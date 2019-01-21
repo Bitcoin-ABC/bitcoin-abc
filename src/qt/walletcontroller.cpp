@@ -28,11 +28,16 @@ WalletController::WalletController(interfaces::Node &node,
     for (std::unique_ptr<interfaces::Wallet> &wallet : m_node.getWallets()) {
         getOrCreateWallet(std::move(wallet));
     }
+
+    m_activity_thread.start();
 }
 
 // Not using the default destructor because not all member types definitions are
 // available in the header, just forward declared.
-WalletController::~WalletController() {}
+WalletController::~WalletController() {
+    m_activity_thread.quit();
+    m_activity_thread.wait();
+}
 
 std::vector<WalletModel *> WalletController::getWallets() const {
     QMutexLocker locker(&m_mutex);

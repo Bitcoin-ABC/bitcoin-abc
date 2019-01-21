@@ -14,6 +14,8 @@
 #include <memory>
 #include <vector>
 
+#include <QThread>
+
 class OptionsModel;
 class PlatformStyle;
 
@@ -54,6 +56,7 @@ Q_SIGNALS:
                    QByteArray transaction);
 
 private:
+    QThread m_activity_thread;
     interfaces::Node &m_node;
     const PlatformStyle *const m_platform_style;
     OptionsModel *const m_options_model;
