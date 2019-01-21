@@ -57,21 +57,13 @@ std::vector<std::string> WalletController::getWalletsAvailableToOpen() const {
     return wallets;
 }
 
-WalletModel *WalletController::openWallet(const CChainParams &params,
-                                          const std::string &name,
-                                          QWidget *parent) {
-    std::string error, warning;
-    WalletModel *wallet_model =
-        getOrCreateWallet(m_node.loadWallet(params, name, error, warning));
-    if (wallet_model == nullptr) {
-        QMessageBox::warning(parent, tr("Open Wallet"),
-                             QString::fromStdString(error));
-    }
-    if (!warning.empty()) {
-        QMessageBox::information(parent, tr("Open Wallet"),
-                                 QString::fromStdString(warning));
-    }
-    return wallet_model;
+OpenWalletActivity *WalletController::openWallet(const CChainParams &params,
+                                                 const std::string &name,
+                                                 QWidget *parent) {
+    OpenWalletActivity *activity = new OpenWalletActivity(this, name, params);
+    activity->moveToThread(&m_activity_thread);
+    QMetaObject::invokeMethod(activity, "open", Qt::QueuedConnection);
+    return activity;
 }
 WalletModel *WalletController::getOrCreateWallet(
     std::unique_ptr<interfaces::Wallet> wallet) {
@@ -144,4 +136,27 @@ void WalletController::removeAndDeleteWallet(WalletModel *wallet_model) {
     // Currently this can trigger the unload since the model can hold the last
     // CWallet shared pointer.
     delete wallet_model;
+}
+
+OpenWalletActivity::OpenWalletActivity(WalletController *wallet_controller,
+                                       const std::string &name,
+                                       const CChainParams &params)
+    : m_wallet_controller(wallet_controller), m_name(name),
+      m_chain_params(params) {}
+
+void OpenWalletActivity::open() {
+    std::string error, warning;
+    std::unique_ptr<interfaces::Wallet> wallet =
+        m_wallet_controller->m_node.loadWallet(m_chain_params, m_name, error,
+                                               warning);
+    if (!warning.empty()) {
+        Q_EMIT message(QMessageBox::Warning, QString::fromStdString(warning));
+    }
+    if (wallet) {
+        Q_EMIT opened(
+            m_wallet_controller->getOrCreateWallet(std::move(wallet)));
+    } else {
+        Q_EMIT message(QMessageBox::Critical, QString::fromStdString(error));
+    }
+    Q_EMIT finished();
 }

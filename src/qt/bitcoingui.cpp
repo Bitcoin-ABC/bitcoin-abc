@@ -453,8 +453,13 @@ void BitcoinGUI::createActions() {
                                    : QString::fromStdString(path);
                 QAction *action = m_open_wallet_action->menu()->addAction(name);
                 connect(action, &QAction::triggered, [this, path] {
-                    setCurrentWallet(m_wallet_controller->openWallet(
-                        config->GetChainParams(), path));
+                    OpenWalletActivity *activity =
+                        m_wallet_controller->openWallet(
+                            config->GetChainParams(), path);
+                    connect(activity, &OpenWalletActivity::opened, this,
+                            &BitcoinGUI::setCurrentWallet);
+                    connect(activity, &OpenWalletActivity::finished, activity,
+                            &QObject::deleteLater);
                 });
             }
         });

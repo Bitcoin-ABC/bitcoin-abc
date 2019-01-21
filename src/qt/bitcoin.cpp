@@ -555,6 +555,7 @@ int GuiMain(int argc, char *argv[]) {
     //   IMPORTANT if it is no longer a typedef use the normal variant above
     qRegisterMetaType<Amount>("Amount");
     qRegisterMetaType<std::function<void()>>("std::function<void()>");
+    qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
 
     // Need to register any types Qt doesn't know about if you intend
     // to use them with the signal/slot mechanism Qt provides. Even pointers.
