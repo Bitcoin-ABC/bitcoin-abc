@@ -46,7 +46,7 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (IsMagneticAnomalyEnabled(config, nMedianTimePast)) {
+    if (IsMagneticAnomalyEnabled(config, nHeight)) {
         // Size limit
         if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) <
             MIN_TX_SIZE) {
