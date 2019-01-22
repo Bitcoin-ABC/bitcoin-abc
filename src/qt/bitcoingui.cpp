@@ -452,13 +452,36 @@ void BitcoinGUI::createActions() {
                                    ? QString("[" + tr("default wallet") + "]")
                                    : QString::fromStdString(path);
                 QAction *action = m_open_wallet_action->menu()->addAction(name);
-                connect(action, &QAction::triggered, [this, path] {
+                connect(action, &QAction::triggered, [this, name, path] {
                     OpenWalletActivity *activity =
                         m_wallet_controller->openWallet(
                             config->GetChainParams(), path);
+
+                    QProgressDialog *dialog = new QProgressDialog(this);
+                    dialog->setLabelText(tr("Opening Wallet <b>%1</b>...")
+                                             .arg(name.toHtmlEscaped()));
+                    dialog->setRange(0, 0);
+                    dialog->setCancelButton(nullptr);
+                    dialog->setWindowModality(Qt::ApplicationModal);
+                    dialog->show();
+
+                    connect(activity, &OpenWalletActivity::message, this,
+                            [this](QMessageBox::Icon icon, QString text) {
+                                QMessageBox box;
+                                box.setIcon(icon);
+                                box.setText(tr("Open Wallet Failed"));
+                                box.setInformativeText(text);
+                                box.setStandardButtons(QMessageBox::Ok);
+                                box.setDefaultButton(QMessageBox::Ok);
+                                connect(this, &QObject::destroyed, &box,
+                                        &QDialog::accept);
+                                box.exec();
+                            });
                     connect(activity, &OpenWalletActivity::opened, this,
                             &BitcoinGUI::setCurrentWallet);
                     connect(activity, &OpenWalletActivity::finished, activity,
+                            &QObject::deleteLater);
+                    connect(activity, &OpenWalletActivity::finished, dialog,
                             &QObject::deleteLater);
                 });
             }
