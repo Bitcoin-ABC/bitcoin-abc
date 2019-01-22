@@ -2114,7 +2114,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
         // counter-DoS based on orphan resolution (that is, feeding
         // people an invalid transaction based on LegitTxX in order to
         // get anyone relaying LegitTxX banned)
-        CValidationState stateDummy;
+        CValidationState orphan_state;
 
         auto it = rejectCountPerNode.find(fromPeer);
         if (it != rejectCountPerNode.end() &&
@@ -2122,7 +2122,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             continue;
         }
 
-        if (AcceptToMemoryPool(config, g_mempool, stateDummy, porphanTx,
+        if (AcceptToMemoryPool(config, g_mempool, orphan_state, porphanTx,
                                &fMissingInputs2, false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
@@ -2141,7 +2141,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             done = true;
         } else if (!fMissingInputs2) {
             int nDos = 0;
-            if (stateDummy.IsInvalid(nDos)) {
+            if (orphan_state.IsInvalid(nDos)) {
                 rejectCountPerNode[fromPeer]++;
                 if (nDos > 0) {
                     // Punish peer that gave us an invalid orphan tx
@@ -2155,7 +2155,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             // Probably non-standard or insufficient fee
             LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
                      orphanTxId.ToString());
-            if (!stateDummy.CorruptionPossible()) {
+            if (!orphan_state.CorruptionPossible()) {
                 // Do not use rejection cache for witness
                 // transactions or witness-stripped transactions, as
                 // they can have been malleated. See
