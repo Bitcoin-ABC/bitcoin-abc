@@ -128,8 +128,8 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 504031;
 
-        // Nov 15, 2018 hard fork
-        consensus.magneticAnomalyActivationTime = 1542300000;
+        // November 15, 2018 hard fork
+        consensus.magneticAnomalyHeight = 556766;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
@@ -299,8 +299,8 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 1188697;
 
-        // Nov 15, 2018 hard fork
-        consensus.magneticAnomalyActivationTime = 1542300000;
+        // November 15, 2018 hard fork
+        consensus.magneticAnomalyHeight = 1267996;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
@@ -419,8 +419,8 @@ public:
         // November 13, 2017 hard fork is always on on regtest.
         consensus.daaHeight = 0;
 
-        // Nov 15, 2018 hard fork
-        consensus.magneticAnomalyActivationTime = 1542300000;
+        // November 15, 2018 hard fork is always on on regtest.
+        consensus.magneticAnomalyHeight = 0;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;

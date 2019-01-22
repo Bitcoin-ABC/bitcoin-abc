@@ -33,11 +33,9 @@ bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsDAAEnabled(config, pindexPrev->nHeight);
 }
 
-bool IsMagneticAnomalyEnabled(const Config &config, int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetArg("-magneticanomalyactivationtime",
-                                           config.GetChainParams()
-                                               .GetConsensus()
-                                               .magneticAnomalyActivationTime);
+bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight) {
+    return nHeight >=
+           config.GetChainParams().GetConsensus().magneticAnomalyHeight;
 }
 
 bool IsMagneticAnomalyEnabled(const Config &config,
@@ -46,5 +44,5 @@ bool IsMagneticAnomalyEnabled(const Config &config,
         return false;
     }
 
-    return IsMagneticAnomalyEnabled(config, pindexPrev->GetMedianTimePast());
+    return IsMagneticAnomalyEnabled(config, pindexPrev->nHeight);
 }
