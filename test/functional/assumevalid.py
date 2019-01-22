@@ -46,6 +46,7 @@ from test_framework.mininode import (CBlockHeader,
 from test_framework.script import (CScript, OP_TRUE)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.txtools import pad_tx
 
 
 class BaseNode(P2PInterface):
@@ -143,6 +144,7 @@ class AssumeValidTest(BitcoinTestFramework):
         tx.vin.append(
             CTxIn(COutPoint(self.block1.vtx[0].sha256, 0), scriptSig=b""))
         tx.vout.append(CTxOut(49 * 100000000, CScript([OP_TRUE])))
+        pad_tx(tx)
         tx.calc_sha256()
 
         block102 = create_block(
