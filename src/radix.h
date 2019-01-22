@@ -56,6 +56,7 @@ private:
 
 public:
     RadixTree() : root(RadixElement()) {}
+    ~RadixTree() { root.load().release(); }
 
     /**
      * Insert a value into the tree.
@@ -179,6 +180,9 @@ private:
                                               RadixElement(newChild.get()))) {
                 // We have a subtree, resume normal operations from there.
                 newChild.release();
+            } else {
+                // We failed to insert our subtree, clean it before it is freed.
+                newChild->get(level, leafKey)->store(RadixElement());
             }
         }
     }
@@ -199,6 +203,20 @@ private:
         explicit RadixElement(RadixNode *nodeIn) noexcept : node(nodeIn) {}
         explicit RadixElement(T *leafIn) noexcept : leaf(leafIn) {
             raw |= DISCRIMINANT;
+        }
+
+        /**
+         * RadixElement is designed to be a dumb wrapper. This allows any
+         * container to release what is held by the RadixElement.
+         */
+        void release() {
+            if (isNode()) {
+                RadixNode *ptr = getNode();
+                RCUPtr<RadixNode>::acquire(ptr);
+            } else {
+                T *ptr = getLeaf();
+                RCUPtr<T>::acquire(ptr);
+            }
         }
 
         /**
@@ -232,7 +250,9 @@ private:
         }
     };
 
-    struct RadixNode {
+    struct RadixNode : public boost::noncopyable {
+        IMPLEMENT_RCU_REFCOUNT(uint64_t);
+
     private:
         union {
             std::array<std::atomic<RadixElement>, CHILD_PER_LEVEL> childs;
@@ -244,6 +264,12 @@ private:
         RadixNode(uint32_t level, const K &key, RadixElement e)
             : non_atomic_childs_DO_NOT_USE() {
             get(level, key)->store(e);
+        }
+
+        ~RadixNode() {
+            for (RadixElement e : non_atomic_childs_DO_NOT_USE) {
+                e.release();
+            }
         }
 
         std::atomic<RadixElement> *get(uint32_t level, const K &key) {
