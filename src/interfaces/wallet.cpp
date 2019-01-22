@@ -521,7 +521,7 @@ namespace {
 } // namespace
 
 std::unique_ptr<Wallet> MakeWallet(const std::shared_ptr<CWallet> &wallet) {
-    return std::make_unique<WalletImpl>(wallet);
+    return wallet ? std::make_unique<WalletImpl>(wallet) : nullptr;
 }
 
 std::unique_ptr<ChainClient>
