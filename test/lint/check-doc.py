@@ -37,6 +37,8 @@ SET_DOC_OPTIONAL = set(['-benchmark',
                         '-dbcrashratio',
                         '-debugnet',
                         '-forcecompactdb',
+                        # TODO remove after the may 2019 fork
+                        '-greatwallactivationtime',
                         '-help',
                         '-parkdeepreorg',
                         '-promiscuousmempoolflags',
