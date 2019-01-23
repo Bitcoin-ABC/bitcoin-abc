@@ -360,7 +360,15 @@
   "time": 5
  },
  {
+  "name": "wallet_txn_clone.py --mineblock",
+  "time": 5
+ },
+ {
   "name": "wallet_txn_doublespend.py",
+  "time": 5
+ },
+ {
+  "name": "wallet_txn_doublespend.py --mineblock",
   "time": 5
  },
  {
