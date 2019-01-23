@@ -17,6 +17,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
 | libjpeg |  |  |  |  | Yes |
 | libpng |  |  |  |  | Yes |
+| libsrvg | |  |  |  |  |
 | MiniUPnPc | [2.0.20180203](http://miniupnp.free.fr/files) | 1.5 | No |  |  |
 | Ninja |  | [1.5.1](https://github.com/ninja-build/ninja/releases) |  |  |  |
 | OpenSSL | [1.0.1k](https://www.openssl.org/source) |  | Yes |  |  |
@@ -29,3 +30,20 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | xkbcommon |  |  |  |  | Yes (Linux only) |
 | ZeroMQ | [4.3.1](https://github.com/zeromq/libzmq/releases) | 4.1.5 | No |  |  |
 | zlib | [1.2.11](http://zlib.net/) |  |  |  | No |
+
+Controlling dependencies
+------------------------
+Some dependencies are not needed in all configurations. The following are some
+factors that affect the dependency list.
+
+#### Options passed to `cmake`
+* MiniUPnPc is not needed with  `-DENABLE_UPNP=OFF`.
+* Berkeley DB is not needed with `-DBUILD_BITCOIN_WALLET=OFF`.
+* protobuf is not needed with `-DENABLE_BIP70=OFF`.
+* Qt is not needed with `-DBUILD_BITCOIN_QT=OFF`.
+* qrencode is not needed with `-DENABLE_QRCODE=OFF`.
+* ZeroMQ is not needed with the `-DBUILD_BITCOIN_ZMQ=OFF`.
+
+#### Other
+* librsvg is only needed if you need to run `ninja osx-dmg` on
+  (cross-compilation to) macOS.
