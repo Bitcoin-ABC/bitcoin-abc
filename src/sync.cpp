@@ -69,7 +69,11 @@ struct LockData {
     LockOrders lockorders;
     InvLockOrders invlockorders;
     std::mutex dd_mutex;
-} static lockdata;
+};
+LockData &GetLockData() {
+    static LockData lockdata;
+    return lockdata;
+}
 
 static thread_local LockStack g_lockstack;
 
@@ -108,6 +112,7 @@ potential_deadlock_detected(const std::pair<void *, void *> &mismatch,
 }
 
 static void push_lock(void *c, const CLockLocation &locklocation) {
+    LockData &lockdata = GetLockData();
     std::lock_guard<std::mutex> lock(lockdata.dd_mutex);
 
     g_lockstack.push_back(std::make_pair(c, locklocation));
@@ -179,6 +184,7 @@ void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
 }
 
 void DeleteLock(void *cs) {
+    LockData &lockdata = GetLockData();
     if (!lockdata.available) {
         // We're already shutting down.
         return;
