@@ -149,9 +149,11 @@ private:
         bool getDiscriminent() const { return (raw & DISCRIMINANT) != 0; }
 
     public:
-        explicit RadixElement() : raw(DISCRIMINANT) {}
-        explicit RadixElement(RadixNode *nodeIn) : node(nodeIn) {}
-        explicit RadixElement(T *leafIn) : leaf(leafIn) { raw |= DISCRIMINANT; }
+        explicit RadixElement() noexcept : raw(DISCRIMINANT) {}
+        explicit RadixElement(RadixNode *nodeIn) noexcept : node(nodeIn) {}
+        explicit RadixElement(T *leafIn) noexcept : leaf(leafIn) {
+            raw |= DISCRIMINANT;
+        }
 
         /**
          * Node features.
