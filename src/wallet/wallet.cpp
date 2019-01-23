@@ -266,10 +266,12 @@ bool CWallet::AddKeyPubKeyWithDB(WalletBatch &batch, const CKey &secret,
     // mapKeyMetadata
     AssertLockHeld(cs_wallet);
 
+    // Make sure we aren't adding private keys to private key disabled wallets
+    assert(!IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
+
     // CCryptoKeyStore has no concept of wallet databases, but calls
-    // AddCryptedKey
-    // which is overridden below.  To avoid flushes, the database handle is
-    // tunneled through to it.
+    // AddCryptedKey which is overridden below. To avoid flushes, the database
+    // handle is tunneled through to it.
     bool needsDB = !encrypted_batch;
     if (needsDB) {
         encrypted_batch = &batch;

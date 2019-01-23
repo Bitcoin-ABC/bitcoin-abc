@@ -5046,6 +5046,12 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
             "Cannot set a new HD seed while still in Initial Block Download");
     }
 
+    if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+        throw JSONRPCError(
+            RPC_WALLET_ERROR,
+            "Cannot set a HD seed to a wallet with private keys disabled");
+    }
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     // Do not do anything to non-HD wallets
