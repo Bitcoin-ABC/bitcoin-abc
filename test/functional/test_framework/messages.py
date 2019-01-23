@@ -28,7 +28,8 @@ import struct
 import time
 
 from test_framework.siphash import siphash256
-from test_framework.util import hex_str_to_bytes
+from test_framework.util import hex_str_to_bytes, assert_equal
+
 
 MIN_VERSION_SUPPORTED = 60001
 # past bip-31 for ping/pong
@@ -505,6 +506,10 @@ class CBlockHeader:
         return "CBlockHeader(nVersion={} hashPrevBlock={:064x} hashMerkleRoot={:064x} nTime={} nBits={:08x} nNonce={:08x})".format(
             self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
             self.nTime, self.nBits, self.nNonce)
+
+
+BLOCK_HEADER_SIZE = len(CBlockHeader().serialize())
+assert_equal(BLOCK_HEADER_SIZE, 80)
 
 
 class CBlock(CBlockHeader):
