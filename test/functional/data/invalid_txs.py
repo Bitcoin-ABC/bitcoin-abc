@@ -64,7 +64,7 @@ class BadTxTemplate:
 
 class OutputMissing(BadTxTemplate):
     reject_reason = "bad-txns-vout-empty"
-    expect_disconnect = False
+    expect_disconnect = True
 
     def get_tx(self):
         tx = CTransaction()
@@ -75,7 +75,7 @@ class OutputMissing(BadTxTemplate):
 
 class InputMissing(BadTxTemplate):
     reject_reason = "bad-txns-vin-empty"
-    expect_disconnect = False
+    expect_disconnect = True
 
     def get_tx(self):
         tx = CTransaction()

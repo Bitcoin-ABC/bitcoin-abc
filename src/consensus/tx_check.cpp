@@ -14,11 +14,11 @@ static bool CheckTransactionCommon(const CTransaction &tx,
                                    CValidationState &state) {
     // Basic checks that don't depend on any context
     if (tx.vin.empty()) {
-        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
+        return state.DoS(100, false, REJECT_INVALID, "bad-txns-vin-empty");
     }
 
     if (tx.vout.empty()) {
-        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-empty");
+        return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-empty");
     }
 
     // Size limit
@@ -81,7 +81,7 @@ bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state) {
     std::unordered_set<COutPoint, SaltedOutpointHasher> vInOutPoints;
     for (const auto &txin : tx.vin) {
         if (txin.prevout.IsNull()) {
-            return state.DoS(10, false, REJECT_INVALID,
+            return state.DoS(100, false, REJECT_INVALID,
                              "bad-txns-prevout-null");
         }
 

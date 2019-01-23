@@ -44,7 +44,7 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
-        return state.DoS(10, false, REJECT_INVALID, "bad-txns-nonfinal", false,
+        return state.DoS(100, false, REJECT_INVALID, "bad-txns-nonfinal", false,
                          "non-final transaction");
     }
 
@@ -172,10 +172,10 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         // If prev is coinbase, check that it's matured
         if (coin.IsCoinBase() &&
             nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
-            return state.Invalid(
-                false, REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
-                strprintf("tried to spend coinbase at depth %d",
-                          nSpendHeight - coin.GetHeight()));
+            return state.DoS(0, false, REJECT_INVALID,
+                             "bad-txns-premature-spend-of-coinbase", false,
+                             strprintf("tried to spend coinbase at depth %d",
+                                       nSpendHeight - coin.GetHeight()));
         }
 
         // Check for negative or overflow input values

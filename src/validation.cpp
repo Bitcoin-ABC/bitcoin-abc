@@ -3388,7 +3388,7 @@ static bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state,
     // Check proof of work matches claimed amount
     if (validationOptions.shouldValidatePoW() &&
         !CheckProofOfWork(block.GetHash(), block.nBits, params)) {
-        return state.DoS(50, false, REJECT_INVALID, "high-hash", false,
+        return state.DoS(100, false, REJECT_INVALID, "high-hash", false,
                          "proof of work failed");
     }
 
@@ -3536,8 +3536,8 @@ ContextualCheckBlockHeader(const CChainParams &params,
 
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast()) {
-        return state.Invalid(false, REJECT_INVALID, "time-too-old",
-                             "block's timestamp is too early");
+        return state.DoS(100, false, REJECT_INVALID, "time-too-old",
+                         "block's timestamp is too early");
     }
 
     // Check timestamp
@@ -3552,9 +3552,9 @@ ContextualCheckBlockHeader(const CChainParams &params,
     if ((block.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
         (block.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
         (block.nVersion < 4 && nHeight >= consensusParams.BIP65Height)) {
-        return state.Invalid(
-            false, REJECT_OBSOLETE,
-            strprintf("bad-version(0x%08x)", block.nVersion),
+        return state.DoS(
+            100, false, REJECT_OBSOLETE,
+            strprintf("bad-version(0x%08x)", block.nVersion), false,
             strprintf("rejected nVersion=0x%08x block", block.nVersion));
     }
 

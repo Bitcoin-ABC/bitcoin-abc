@@ -492,7 +492,8 @@ class FullBlockTest(BitcoinTestFramework):
             [b47],
             False,
             force_send=True,
-            reject_reason='high-hash')
+            reject_reason='high-hash',
+            reconnect=True)
 
         self.log.info("Reject a block with a timestamp >2 hours in the future")
         self.move_tip(44)
@@ -550,8 +551,12 @@ class FullBlockTest(BitcoinTestFramework):
         b54 = self.next_block(54, spend=out[15])
         b54.nTime = b35.nTime - 1
         b54.solve()
-        self.send_blocks([b54], False, force_send=True,
-                         reject_reason='time-too-old')
+        self.send_blocks(
+            [b54],
+            False,
+            force_send=True,
+            reject_reason='time-too-old',
+            reconnect=True)
 
         # valid timestamp
         self.move_tip(53)
@@ -713,8 +718,11 @@ class FullBlockTest(BitcoinTestFramework):
         assert tx.vin[0].nSequence < 0xffffffff
         tx.calc_sha256()
         b62 = self.update_block(62, [tx])
-        self.send_blocks([b62], success=False,
-                         reject_reason='bad-txns-nonfinal')
+        self.send_blocks(
+            [b62],
+            success=False,
+            reject_reason='bad-txns-nonfinal',
+            reconnect=True)
 
         # Test a non-final coinbase is also rejected
         #
@@ -729,8 +737,11 @@ class FullBlockTest(BitcoinTestFramework):
         b63.vtx[0].vin[0].nSequence = 0xDEADBEEF
         b63.vtx[0].rehash()
         b63 = self.update_block(63, [])
-        self.send_blocks([b63], success=False,
-                         reject_reason='bad-txns-nonfinal')
+        self.send_blocks(
+            [b63],
+            success=False,
+            reject_reason='bad-txns-nonfinal',
+            reconnect=True)
 
         #  This checks that a block with a bloated VARINT between the block_header and the array of tx such that
         #  the block is > LEGACY_MAX_BLOCK_SIZE with the bloated varint, but <= LEGACY_MAX_BLOCK_SIZE without the bloated varint,
@@ -1089,7 +1100,8 @@ class FullBlockTest(BitcoinTestFramework):
             [b_v1],
             success=False,
             force_send=True,
-            reject_reason='bad-version(0x00000001)')
+            reject_reason='bad-version(0x00000001)',
+            reconnect=True)
 
         self.move_tip(chain1_tip + 2)
         b_cb34 = self.next_block('b_cb34', version=4)
