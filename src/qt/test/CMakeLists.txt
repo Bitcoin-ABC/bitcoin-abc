@@ -27,6 +27,7 @@ if(BUILD_BITCOIN_WALLET)
 		PRIVATE
 			paymentservertests.cpp
 			wallettests.cpp
+			../../wallet/test/wallet_test_fixture.cpp
 	)
 
 	target_link_libraries(test_bitcoin-qt wallet)
