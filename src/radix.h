@@ -146,7 +146,7 @@ private:
         };
 
         static const uintptr_t DISCRIMINANT = 0x01;
-        bool getDiscriminent() const { return (raw & DISCRIMINANT) != 0; }
+        bool getDiscriminant() const { return (raw & DISCRIMINANT) != 0; }
 
     public:
         explicit RadixElement() noexcept : raw(DISCRIMINANT) {}
@@ -158,7 +158,7 @@ private:
         /**
          * Node features.
          */
-        bool isNode() const { return !getDiscriminent(); }
+        bool isNode() const { return !getDiscriminant(); }
 
         RadixNode *getNode() {
             assert(isNode());
@@ -173,7 +173,7 @@ private:
         /**
          * Leaf features.
          */
-        bool isLeaf() const { return getDiscriminent(); }
+        bool isLeaf() const { return getDiscriminant(); }
 
         T *getLeaf() {
             assert(isLeaf());
