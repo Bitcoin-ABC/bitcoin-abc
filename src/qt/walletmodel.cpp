@@ -58,16 +58,7 @@ WalletModel::~WalletModel() {
 
 Amount WalletModel::getBalance(const CCoinControl *coinControl) const {
     if (coinControl) {
-        Amount nBalance = Amount::zero();
-        std::vector<COutput> vCoins;
-        wallet->AvailableCoins(vCoins, true, coinControl);
-        for (const COutput &out : vCoins) {
-            if (out.fSpendable) {
-                nBalance += out.tx->tx->vout[out.i].nValue;
-            }
-        }
-
-        return nBalance;
+        return wallet->GetAvailableBalance(coinControl);
     }
 
     return wallet->GetBalance();
@@ -586,58 +577,12 @@ bool WalletModel::isSpent(const COutPoint &outpoint) const {
 // group with wallet address)
 void WalletModel::listCoins(
     std::map<QString, std::vector<COutput>> &mapCoins) const {
-    std::vector<COutput> vCoins;
-    wallet->AvailableCoins(vCoins);
-
-    // ListLockedCoins, mapWallet
-    LOCK2(cs_main, wallet->cs_wallet);
-    std::vector<COutPoint> vLockedCoins;
-    wallet->ListLockedCoins(vLockedCoins);
-
-    // add locked coins
-    for (const COutPoint &outpoint : vLockedCoins) {
-        if (!wallet->mapWallet.count(outpoint.GetTxId())) {
-            continue;
+    for (auto &group : wallet->ListCoins()) {
+        auto &resultGroup =
+            mapCoins[QString::fromStdString(EncodeDestination(group.first))];
+        for (auto &coin : group.second) {
+            resultGroup.emplace_back(std::move(coin));
         }
-        int nDepth =
-            wallet->mapWallet[outpoint.GetTxId()].GetDepthInMainChain();
-        if (nDepth < 0) {
-            continue;
-        }
-        COutput out(&wallet->mapWallet[outpoint.GetTxId()], outpoint.GetN(),
-                    nDepth, true /* spendable */, true /* solvable */,
-                    true /* safe */);
-        if (outpoint.GetN() < out.tx->tx->vout.size() &&
-            wallet->IsMine(out.tx->tx->vout[outpoint.GetN()]) ==
-                ISMINE_SPENDABLE) {
-            vCoins.push_back(out);
-        }
-    }
-
-    for (const COutput &out : vCoins) {
-        COutput cout = out;
-
-        while (wallet->IsChange(cout.tx->tx->vout[cout.i]) &&
-               cout.tx->tx->vin.size() > 0 &&
-               wallet->IsMine(cout.tx->tx->vin[0])) {
-            if (!wallet->mapWallet.count(
-                    cout.tx->tx->vin[0].prevout.GetTxId())) {
-                break;
-            }
-            cout = COutput(
-                &wallet->mapWallet[cout.tx->tx->vin[0].prevout.GetTxId()],
-                cout.tx->tx->vin[0].prevout.GetN(), 0 /* depth */,
-                true /* spendable */, true /* solvable */, true /* safe */);
-        }
-
-        CTxDestination address;
-        if (!out.fSpendable ||
-            !ExtractDestination(cout.tx->tx->vout[cout.i].scriptPubKey,
-                                address)) {
-            continue;
-        }
-        mapCoins[QString::fromStdString(EncodeDestination(address))].push_back(
-            out);
     }
 }
 
@@ -663,17 +608,8 @@ void WalletModel::listLockedCoins(std::vector<COutPoint> &vOutpts) {
 
 void WalletModel::loadReceiveRequests(
     std::vector<std::string> &vReceiveRequests) {
-    LOCK(wallet->cs_wallet);
-    for (const std::pair<CTxDestination, CAddressBookData> &item :
-         wallet->mapAddressBook) {
-        for (const std::pair<std::string, std::string> &item2 :
-             item.second.destdata) {
-            if (item2.first.size() > 2 && item2.first.substr(0, 2) == "rr") {
-                // receive request
-                vReceiveRequests.push_back(item2.second);
-            }
-        }
-    }
+    // receive request
+    vReceiveRequests = wallet->GetDestValues("rr");
 }
 
 bool WalletModel::saveReceiveRequest(const std::string &sAddress,
@@ -692,14 +628,7 @@ bool WalletModel::saveReceiveRequest(const std::string &sAddress,
 }
 
 bool WalletModel::transactionCanBeAbandoned(const TxId &txid) const {
-    LOCK2(cs_main, wallet->cs_wallet);
-    const CWalletTx *wtx = wallet->GetWalletTx(txid);
-    if (!wtx || wtx->isAbandoned() || wtx->GetDepthInMainChain() > 0 ||
-        wtx->InMempool()) {
-        return false;
-    }
-
-    return true;
+    return wallet->TransactionCanBeAbandoned(txid);
 }
 
 bool WalletModel::abandonTransaction(const TxId &txid) const {

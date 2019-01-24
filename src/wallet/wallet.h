@@ -833,6 +833,18 @@ public:
                         const int &nMaxDepth = 9999999) const;
 
     /**
+     * Return list of available coins and locked coins grouped by non-change
+     * output address.
+     */
+    std::map<CTxDestination, std::vector<COutput>> ListCoins() const;
+
+    /**
+     * Find non-change parent output.
+     */
+    const CTxOut &FindNonChangeParentOutput(const CTransaction &tx,
+                                            int output) const;
+
+    /**
      * Shuffle and select coins until nTargetValue is reached while avoiding
      * small change; This method is stochastic for some inputs and upon
      * completion the coin set and corresponding actual target value is
@@ -850,7 +862,7 @@ public:
     void LockCoin(const COutPoint &output);
     void UnlockCoin(const COutPoint &output);
     void UnlockAllCoins();
-    void ListLockedCoins(std::vector<COutPoint> &vOutpts);
+    void ListLockedCoins(std::vector<COutPoint> &vOutpts) const;
 
     /*
      * Rescan abort properties
@@ -907,6 +919,8 @@ public:
     //! false otherwise
     bool GetDestData(const CTxDestination &dest, const std::string &key,
                      std::string *value) const;
+    //! Get all destination values matching a prefix.
+    std::vector<std::string> GetDestValues(const std::string &prefix) const;
 
     //! Adds a watch-only address to the store, and saves it to disk.
     bool AddWatchOnly(const CScript &dest, int64_t nCreateTime);
@@ -972,6 +986,7 @@ public:
     Amount GetImmatureWatchOnlyBalance() const;
     Amount GetLegacyBalance(const isminefilter &filter, int minDepth,
                             const std::string *account) const;
+    Amount GetAvailableBalance(const CCoinControl *coinControl = nullptr) const;
 
     /**
      * Insert additional inputs into the transaction by calling
@@ -1139,6 +1154,9 @@ public:
     void SetBroadcastTransactions(bool broadcast) {
         fBroadcastTransactions = broadcast;
     }
+
+    /** Return whether transaction can be abandoned */
+    bool TransactionCanBeAbandoned(const TxId &txid) const;
 
     /**
      * Mark a transaction (and it in-wallet descendants) as abandoned so its
