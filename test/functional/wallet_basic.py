@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2016 The Bitcoin Core developers
+# Copyright (c) 2014-2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the wallet."""
@@ -194,7 +194,9 @@ class WalletTest(BitcoinTestFramework):
         txid = self.nodes[2].sendtoaddress(address, 10, "", "", False)
         self.nodes[2].generate(1)
         self.sync_all([self.nodes[0:3]])
-        ctx = FromHex(CTransaction(), self.nodes[2].getrawtransaction(txid))
+        ctx = FromHex(CTransaction(),
+                      self.nodes[2].gettransaction(txid)['hex'])
+
         node_2_bal = self.check_fee_amount(self.nodes[2].getbalance(), old_balance - Decimal('10'),
                                            fee_per_byte, ctx.billable_size())
         assert_equal(self.nodes[0].getbalance(), Decimal('10'))
@@ -206,14 +208,15 @@ class WalletTest(BitcoinTestFramework):
         node_2_bal -= Decimal('10')
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
         node_0_bal = self.check_fee_amount(self.nodes[0].getbalance(), Decimal(
-            '20'), fee_per_byte, count_bytes(self.nodes[2].getrawtransaction(txid)))
+            '20'), fee_per_byte, count_bytes(self.nodes[2].gettransaction(txid)['hex']))
 
         # Sendmany 10 BCH
         txid = self.nodes[2].sendmany('', {address: 10}, 0, "", [])
         self.nodes[2].generate(1)
         self.sync_all([self.nodes[0:3]])
         node_0_bal += Decimal('10')
-        ctx = FromHex(CTransaction(), self.nodes[2].getrawtransaction(txid))
+        ctx = FromHex(CTransaction(),
+                      self.nodes[2].gettransaction(txid)['hex'])
         node_2_bal = self.check_fee_amount(self.nodes[2].getbalance(
         ), node_2_bal - Decimal('10'), fee_per_byte, ctx.billable_size())
         assert_equal(self.nodes[0].getbalance(), node_0_bal)
@@ -224,7 +227,8 @@ class WalletTest(BitcoinTestFramework):
         self.sync_all([self.nodes[0:3]])
         node_2_bal -= Decimal('10')
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
-        ctx = FromHex(CTransaction(), self.nodes[2].getrawtransaction(txid))
+        ctx = FromHex(CTransaction(),
+                      self.nodes[2].gettransaction(txid)['hex'])
         node_0_bal = self.check_fee_amount(self.nodes[0].getbalance(
         ), node_0_bal + Decimal('10'), fee_per_byte, ctx.billable_size())
 
@@ -391,7 +395,7 @@ class WalletTest(BitcoinTestFramework):
                 self.nodes[0].setlabel(addr, label)
                 assert_equal(self.nodes[0].getaddressinfo(
                     addr)['label'], label)
-                assert(label in self.nodes[0].listlabels())
+                assert label in self.nodes[0].listlabels()
         # restore to default
         self.nodes[0].rpc.ensure_ascii = True
 
@@ -515,7 +519,7 @@ class WalletTest(BitcoinTestFramework):
         destination = self.nodes[1].getnewaddress()
         txid = self.nodes[0].sendtoaddress(destination, 0.123)
         tx = self.nodes[0].decoderawtransaction(
-            self.nodes[0].getrawtransaction(txid))
+            self.nodes[0].gettransaction(txid)['hex'])
         output_addresses = [vout['scriptPubKey']['addresses'][0]
                             for vout in tx["vout"]]
         assert len(output_addresses) > 1
