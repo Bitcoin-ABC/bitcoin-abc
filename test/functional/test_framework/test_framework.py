@@ -75,6 +75,7 @@ class BitcoinTestFramework():
 
     def __init__(self):
         """Sets test framework defaults. Do not override this method. Instead, override the set_test_params() method"""
+        self.chain = 'regtest'
         self.setup_clean_chain = False
         self.nodes = []
         self.network_thread = None
@@ -280,7 +281,7 @@ class BitcoinTestFramework():
     # scripts.
 
     def add_nodes(self, num_nodes, extra_args=None,
-                  *, rpchost=None, binary=None):
+                  *, host=None, binary=None):
         """Instantiate TestNode objects.
 
         Should only be called once after the nodes have been specified in
@@ -300,7 +301,8 @@ class BitcoinTestFramework():
             self.nodes.append(TestNode(
                 i,
                 get_datadir_path(self.options.tmpdir, i),
-                host=rpchost,
+                chain=self.chain,
+                host=host,
                 rpc_port=rpc_port(i),
                 p2p_port=p2p_port(i),
                 timewait=self.rpc_timeout,
@@ -455,10 +457,12 @@ class BitcoinTestFramework():
 
             # Create cache directories, run bitcoinds:
             for i in range(MAX_NODES):
-                datadir = initialize_datadir(self.options.cachedir, i)
+                datadir = initialize_datadir(
+                    self.options.cachedir, i, self.chain)
                 self.nodes.append(TestNode(
                     i,
                     get_datadir_path(self.options.cachedir, i),
+                    chain=self.chain,
                     extra_conf=["bind=127.0.0.1"],
                     extra_args=[],
                     host=None,
@@ -516,7 +520,7 @@ class BitcoinTestFramework():
 
             def cache_path(n, *paths):
                 return os.path.join(get_datadir_path(
-                    self.options.cachedir, n), "regtest", *paths)
+                    self.options.cachedir, n), self.chain, *paths)
 
             for i in range(MAX_NODES):
                 # Remove empty wallets dir
@@ -530,7 +534,7 @@ class BitcoinTestFramework():
             to_dir = get_datadir_path(self.options.tmpdir, i)
             shutil.copytree(from_dir, to_dir)
             # Overwrite port/rpcport in bitcoin.conf
-            initialize_datadir(self.options.tmpdir, i)
+            initialize_datadir(self.options.tmpdir, i, self.chain)
 
     def _initialize_chain_clean(self):
         """Initialize empty blockchain for use by the test.
@@ -538,7 +542,7 @@ class BitcoinTestFramework():
         Create an empty blockchain and num_nodes wallets.
         Useful if a test case wants complete control over initialization."""
         for i in range(self.num_nodes):
-            initialize_datadir(self.options.tmpdir, i)
+            initialize_datadir(self.options.tmpdir, i, self.chain)
 
     def skip_if_no_py3_zmq(self):
         """Attempt to import the zmq package and skip the test if the import fails."""
