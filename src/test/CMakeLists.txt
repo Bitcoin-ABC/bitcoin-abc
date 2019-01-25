@@ -187,7 +187,4 @@ else()
 	target_link_libraries(test_bitcoin bitcoinconsensus)
 endif()
 
-add_executable(test_bitcoin_fuzzy EXCLUDE_FROM_ALL
-	test_bitcoin_fuzzy.cpp
-)
-target_link_libraries(test_bitcoin_fuzzy server)
+add_subdirectory(fuzz)

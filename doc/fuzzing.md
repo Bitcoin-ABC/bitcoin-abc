@@ -1,9 +1,9 @@
 Fuzz-testing Bitcoin ABC
 ==========================
 
-A special test harness `test_bitcoin_fuzzy` is provided to provide an easy
-entry point for fuzzers and the like. In this document we'll describe how to
-use it with AFL and libFuzzer.
+A special test harness in `src/test/fuzz/` is provided for each fuzz target to
+provide an easy entry point for fuzzers and the like. In this document we'll
+describe how to use it with AFL and libFuzzer.
 
 ## AFL
 
@@ -27,7 +27,7 @@ mkdir -p buildFuzzer
 cd buildFuzzer
 cmake -GNinja .. -DCCACHE=OFF -DCMAKE_C_COMPILER=afl-gcc -DCMAKE_CXX_COMPILER=afl-g++
 export AFL_HARDEN=1
-ninja test_bitcoin_fuzzy
+ninja bitcoin-fuzzers
 ```
 
 We disable ccache because we don't want to pollute the ccache with instrumented
@@ -37,9 +37,9 @@ in.
 The fuzzing can be sped up significantly (~200x) by using `afl-clang-fast` and
 `afl-clang-fast++` in place of `afl-gcc` and `afl-g++` when compiling. When
 compiling using `afl-clang-fast`/`afl-clang-fast++` the resulting
-`test_bitcoin_fuzzy` binary will be instrumented in such a way that the AFL
-features "persistent mode" and "deferred forkserver" can be used. See
-https://github.com/mcarpenter/afl/tree/master/llvm_mode for details.
+binary will be instrumented in such a way that the AFL features "persistent
+mode" and "deferred forkserver" can be used.
+See https://github.com/mcarpenter/afl/tree/master/llvm_mode for details.
 
 ### Preparing fuzzing
 
@@ -64,7 +64,7 @@ Extract these (or other starting inputs) into the `inputs` directory before star
 
 To start the actual fuzzing use:
 ```
-$AFLPATH/afl-fuzz -i ${AFLIN} -o ${AFLOUT} -m52 -- src/test/test_bitcoin_fuzzy
+$AFLPATH/afl-fuzz -i ${AFLIN} -o ${AFLOUT} -m52 -- src/test/fuzz/fuzz_target_foo
 ```
 
 You may have to change a few kernel parameters to test optimally - `afl-fuzz`
@@ -85,7 +85,7 @@ cmake -GNinja .. \
   -DCMAKE_C_COMPILER=clang \
   -DCMAKE_CXX_COMPILER=clang++ \
   -DENABLE_SANITIZERS="fuzzer;address"
-ninja test_bitcoin_fuzzy
+ninja bitcoin-fuzzers
 ```
 
 The fuzzer needs some inputs to work on, but the inputs or seeds can be used
