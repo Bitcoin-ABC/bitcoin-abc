@@ -506,8 +506,7 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info("Should import a 1-of-2 bare multisig from descriptor")
         self.test_importmulti({"desc": "multi(1," + key1.pubkey + "," + key2.pubkey + ")",
                                "timestamp": "now"},
-                              success=True,
-                              warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
+                              success=True)
         self.log.info(
             "Should not treat individual keys from the imported bare multisig as watchonly")
         test_address(self.nodes[1],
