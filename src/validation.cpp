@@ -332,6 +332,13 @@ static bool CheckInputsFromMempoolAndCache(
                        txdata, nSigChecksOut);
 }
 
+/**
+ * @param[out] coins_to_uncache   Return any outpoints which were not previously
+ * present in the coins cache, but were added as a result of validating the tx
+ *                                for mempool acceptance. This allows the caller
+ * to optionally remove the cache additions if the associated transaction ends
+ *                                up being rejected by the mempool.
+ */
 static bool
 AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                          CValidationState &state, const CTransactionRef &ptx,
@@ -411,6 +418,10 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                 coins_to_uncache.push_back(txin.prevout);
             }
 
+            // Note: this call may add txin.prevout to the coins cache
+            // (pcoinsTip.cacheCoins) by way of FetchCoin(). It should be
+            // removed later (via coins_to_uncache) if this tx turns out to be
+            // invalid.
             if (!view.HaveCoin(txin.prevout)) {
                 // Are inputs missing because we already have the tx?
                 for (size_t out = 0; out < tx.vout.size(); out++) {
@@ -637,6 +648,12 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
         config, pool, state, tx, pfMissingInputs, nAcceptTime, bypass_limits,
         nAbsurdFee, coins_to_uncache, test_accept);
     if (!res) {
+        // Remove coins that were not present in the coins cache before calling
+        // ATMPW; this is to prevent memory DoS in case we receive a large
+        // number of invalid transactions that attempt to overrun the in-memory
+        // coins cache
+        // (`CCoinsViewCache::cacheCoins`).
+
         for (const COutPoint &outpoint : coins_to_uncache) {
             pcoinsTip->Uncache(outpoint);
         }

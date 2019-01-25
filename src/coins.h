@@ -294,6 +294,10 @@ public:
     const CTxOut &GetOutputFor(const CTxIn &input) const;
 
 private:
+    /**
+     * @note this is marked const, but may actually append to `cacheCoins`,
+     * increasing memory usage.
+     */
     CCoinsMap::iterator FetchCoin(const COutPoint &outpoint) const;
 };
 
