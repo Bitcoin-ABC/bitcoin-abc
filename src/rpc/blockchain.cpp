@@ -2365,7 +2365,7 @@ static UniValue getblockstats(const Config &config,
                 CTransactionRef tx_in;
                 BlockHash hashBlock;
                 if (!GetTransaction(in.prevout.GetTxId(), tx_in, params,
-                                    hashBlock, false)) {
+                                    hashBlock)) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
                                        std::string("Unexpected internal error "
                                                    "(tx index seems corrupt)"));

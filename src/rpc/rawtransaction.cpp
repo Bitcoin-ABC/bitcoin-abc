@@ -73,18 +73,15 @@ static UniValue getrawtransaction(const Config &config,
         request.params.size() > 3) {
         throw std::runtime_error(RPCHelpMan{
             "getrawtransaction",
-            "\nNOTE: By default this function only works for "
-            "mempool transactions. If the -txindex option is\n"
-            "enabled, it also works for blockchain transactions. If "
-            "the block which contains the transaction\n"
-            "is known, its hash can be provided even for nodes "
-            "without -txindex. Note that if a blockhash is\n"
-            "provided, only that block will be searched and if the "
-            "transaction is in the mempool or other\n"
-            "blocks, or if this node does not have the given block "
-            "available, the transaction will not be found.\n"
-            "DEPRECATED: for now, it also works for transactions with "
-            "unspent outputs.\n"
+            "\nBy default this function only works for mempool "
+            "transactions. When called with a blockhash\n"
+            "argument, getrawtransaction will return the transaction if "
+            "the specified block is available and\n"
+            "the transaction is found in that block. When called without a "
+            "blockhash argument, getrawtransaction\n"
+            "will return the transaction if it is in the mempool, or if "
+            "-txindex is enabled and the transaction\n"
+            "is in a block in the blockchain.\n"
 
             "\nReturn the raw transaction data.\n"
             "\nIf verbose is 'true', returns an Object with information "
@@ -223,7 +220,7 @@ static UniValue getrawtransaction(const Config &config,
 
     CTransactionRef tx;
     BlockHash hash_block;
-    if (!GetTransaction(txid, tx, params.GetConsensus(), hash_block, true,
+    if (!GetTransaction(txid, tx, params.GetConsensus(), hash_block,
                         blockindex)) {
         std::string errmsg;
         if (blockindex) {
@@ -349,7 +346,7 @@ static UniValue gettxoutproof(const Config &config,
 
     if (pblockindex == nullptr) {
         CTransactionRef tx;
-        if (!GetTransaction(oneTxId, tx, params, hashBlock, false) ||
+        if (!GetTransaction(oneTxId, tx, params, hashBlock) ||
             hashBlock.IsNull()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Transaction not yet in block");

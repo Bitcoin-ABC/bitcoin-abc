@@ -21,9 +21,12 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
+        # TODO: remove -txindex. Currently required for getrawtransaction call
+        # (called by calculate_fee_from_txid)
         self.extra_args = [[
             "-printpriority=1",
             "-acceptnonstdtxn=1",
+            "-txindex"
         ]] * self.num_nodes
 
     def skip_test_if_missing_module(self):

@@ -703,12 +703,10 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
  */
 bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
                     const Consensus::Params &params, BlockHash &hashBlock,
-                    bool fAllowSlow, const CBlockIndex *const blockIndex) {
-    CBlockIndex const *pindexSlow = blockIndex;
-
+                    const CBlockIndex *const block_index) {
     LOCK(cs_main);
 
-    if (!blockIndex) {
+    if (block_index == nullptr) {
         CTransactionRef ptx = g_mempool.get(txid);
         if (ptx) {
             txOut = ptx;
@@ -718,24 +716,13 @@ bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
         if (g_txindex) {
             return g_txindex->FindTx(txid, hashBlock, txOut);
         }
-
-        // use coin database to locate block that contains transaction, and scan
-        // it
-        if (fAllowSlow) {
-            const Coin &coin = AccessByTxid(*pcoinsTip, txid);
-            if (!coin.IsSpent()) {
-                pindexSlow = ::ChainActive()[coin.GetHeight()];
-            }
-        }
-    }
-
-    if (pindexSlow) {
+    } else {
         CBlock block;
-        if (ReadBlockFromDisk(block, pindexSlow, params)) {
+        if (ReadBlockFromDisk(block, block_index, params)) {
             for (const auto &tx : block.vtx) {
                 if (tx->GetId() == txid) {
                     txOut = tx;
-                    hashBlock = pindexSlow->GetBlockHash();
+                    hashBlock = block_index->GetBlockHash();
                     return true;
                 }
             }

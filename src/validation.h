@@ -381,7 +381,6 @@ void ThreadScriptCheck(int worker_num);
  */
 bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
                     const Consensus::Params &params, BlockHash &hashBlock,
-                    bool fAllowSlow = false,
                     const CBlockIndex *const blockIndex = nullptr);
 
 /**
