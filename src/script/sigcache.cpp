@@ -80,20 +80,35 @@ void InitSignatureCache() {
               (nElems * sizeof(uint256)) >> 20, nMaxCacheSize >> 20, nElems);
 }
 
-bool CachingTransactionSignatureChecker::VerifySignature(
-    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
-    const uint256 &sighash) const {
+template <typename F>
+bool RunMemoizedCheck(const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
+                      const uint256 &sighash, bool storeOrErase, const F &fun) {
     uint256 entry;
     signatureCache.ComputeEntry(entry, sighash, vchSig, pubkey);
-    if (signatureCache.Get(entry, !store)) {
+    if (signatureCache.Get(entry, !storeOrErase)) {
         return true;
     }
-    if (!TransactionSignatureChecker::VerifySignature(vchSig, pubkey,
-                                                      sighash)) {
+    if (!fun()) {
         return false;
     }
-    if (store) {
+    if (storeOrErase) {
         signatureCache.Set(entry);
     }
     return true;
+}
+
+bool CachingTransactionSignatureChecker::IsCached(
+    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
+    const uint256 &sighash) const {
+    return RunMemoizedCheck(vchSig, pubkey, sighash, true,
+                            [] { return false; });
+}
+
+bool CachingTransactionSignatureChecker::VerifySignature(
+    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
+    const uint256 &sighash) const {
+    return RunMemoizedCheck(vchSig, pubkey, sighash, store, [&] {
+        return TransactionSignatureChecker::VerifySignature(vchSig, pubkey,
+                                                            sighash);
+    });
 }

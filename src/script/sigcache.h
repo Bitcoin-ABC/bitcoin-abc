@@ -43,6 +43,9 @@ class CachingTransactionSignatureChecker : public TransactionSignatureChecker {
 private:
     bool store;
 
+    bool IsCached(const std::vector<uint8_t> &vchSig, const CPubKey &vchPubKey,
+                  const uint256 &sighash) const;
+
 public:
     CachingTransactionSignatureChecker(const CTransaction *txToIn,
                                        unsigned int nInIn,
@@ -54,6 +57,8 @@ public:
     bool VerifySignature(const std::vector<uint8_t> &vchSig,
                          const CPubKey &vchPubKey,
                          const uint256 &sighash) const override;
+
+    friend class TestCachingTransactionSignatureChecker;
 };
 
 void InitSignatureCache();
