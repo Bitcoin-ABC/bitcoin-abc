@@ -110,6 +110,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	scriptflags.cpp
 	scriptnum_tests.cpp
 	serialize_tests.cpp
+	sigcache_tests.cpp
 	sigencoding_tests.cpp
 	sighash_tests.cpp
 	sighashtype_tests.cpp
