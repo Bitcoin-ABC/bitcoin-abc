@@ -706,21 +706,21 @@ private:
     const int nType;
     const int nVersion;
 
-    // source file
+    //! source file
     FILE *src;
-    // how many bytes have been read from source
+    //! how many bytes have been read from source
     uint64_t nSrcPos;
-    // how many bytes have been read from this
+    //! how many bytes have been read from this
     uint64_t nReadPos;
-    // up to which position we're allowed to read
+    //! up to which position we're allowed to read
     uint64_t nReadLimit;
-    // how many bytes we guarantee to rewind
+    //! how many bytes we guarantee to rewind
     uint64_t nRewind;
-    // the buffer
+    //! the buffer
     std::vector<char> vchBuf;
 
 protected:
-    // read data from the source to fill the buffer
+    //! read data from the source to fill the buffer
     bool Fill() {
         unsigned int pos = nSrcPos % vchBuf.size();
         unsigned int readNow = vchBuf.size() - pos;
@@ -767,10 +767,10 @@ public:
         }
     }
 
-    // check whether we're at the end of the source file
+    //! check whether we're at the end of the source file
     bool eof() const { return nReadPos == nSrcPos && feof(src); }
 
-    // read a number of bytes
+    //! read a number of bytes
     void read(char *pch, size_t nSize) {
         if (nSize + nReadPos > nReadLimit) {
             throw std::ios_base::failure("Read attempted past buffer limit");
@@ -797,10 +797,10 @@ public:
         }
     }
 
-    // return the current reading position
+    //! return the current reading position
     uint64_t GetPos() const { return nReadPos; }
 
-    // rewind to a given reading position
+    //! rewind to a given reading position
     bool SetPos(uint64_t nPos) {
         nReadPos = nPos;
         if (nReadPos + nRewind < nSrcPos) {
@@ -828,7 +828,8 @@ public:
         return true;
     }
 
-    // Prevent reading beyond a certain position. No argument removes the limit.
+    //! Prevent reading beyond a certain position. No argument removes the
+    //! limit.
     bool SetLimit(uint64_t nPos = std::numeric_limits<uint64_t>::max()) {
         if (nPos < nReadPos) {
             return false;
@@ -843,7 +844,7 @@ public:
         return (*this);
     }
 
-    // search for a given byte in the stream, and remain positioned on it
+    //! search for a given byte in the stream, and remain positioned on it
     void FindByte(char ch) {
         while (true) {
             if (nReadPos == nSrcPos) {
