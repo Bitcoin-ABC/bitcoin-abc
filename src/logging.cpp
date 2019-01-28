@@ -118,7 +118,9 @@ std::string ListLogCategories() {
         // Omit the special cases.
         if (category_desc.flag != BCLog::NONE &&
             category_desc.flag != BCLog::ALL) {
-            if (outcount != 0) ret += ", ";
+            if (outcount != 0) {
+                ret += ", ";
+            }
             ret += category_desc.category;
             outcount++;
         }
@@ -135,22 +137,27 @@ BCLog::Logger::~Logger() {
 std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
     std::string strStamped;
 
-    if (!m_log_timestamps) return str;
+    if (!m_log_timestamps) {
+        return str;
+    }
 
     if (m_started_new_line) {
         int64_t nTimeMicros = GetLogTimeMicros();
         strStamped =
             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros / 1000000);
-        if (m_log_time_micros)
+        if (m_log_time_micros) {
             strStamped += strprintf(".%06d", nTimeMicros % 1000000);
+        }
         strStamped += ' ' + str;
-    } else
+    } else {
         strStamped = str;
+    }
 
-    if (!str.empty() && str[str.size() - 1] == '\n')
+    if (!str.empty() && str[str.size() - 1] == '\n') {
         m_started_new_line = true;
-    else
+    } else {
         m_started_new_line = false;
+    }
 
     return strStamped;
 }
@@ -210,8 +217,9 @@ void BCLog::Logger::ShrinkDebugFile() {
             fwrite(vch.data(), 1, nBytes, file);
             fclose(file);
         }
-    } else if (file != nullptr)
+    } else if (file != nullptr) {
         fclose(file);
+    }
 }
 
 void BCLog::Logger::EnableCategory(LogFlags category) {
@@ -220,7 +228,9 @@ void BCLog::Logger::EnableCategory(LogFlags category) {
 
 bool BCLog::Logger::EnableCategory(const std::string &str) {
     BCLog::LogFlags flag;
-    if (!GetLogCategory(flag, str)) return false;
+    if (!GetLogCategory(flag, str)) {
+        return false;
+    }
     EnableCategory(flag);
     return true;
 }
@@ -231,7 +241,9 @@ void BCLog::Logger::DisableCategory(LogFlags category) {
 
 bool BCLog::Logger::DisableCategory(const std::string &str) {
     BCLog::LogFlags flag;
-    if (!GetLogCategory(flag, str)) return false;
+    if (!GetLogCategory(flag, str)) {
+        return false;
+    }
     DisableCategory(flag);
     return true;
 }
