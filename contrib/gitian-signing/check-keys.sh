@@ -1,5 +1,5 @@
 # Fetch latest signers' keys. We do this in order to check if a key was revoked.
 while read fingerprint keyholder
 do
-  gpg --keyserver hkp://subset.pool.sks-keyservers.net --recv-keys ${fingerprint}
+  gpg --recv-keys ${fingerprint}
 done < ./keys.txt
