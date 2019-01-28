@@ -4005,7 +4005,9 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
                  "block height where the rescan should start"},
                 {"stop_height", RPCArg::Type::NUM, /* opt */ true,
                  /* default_val */ "",
-                 "the last block height that should be scanned"},
+                 "the last block height that should be scanned. If none is "
+                 "provided it will rescan up to the tip at return time of this "
+                 "call."},
             },
             RPCResult{"{\n"
                       "  \"start_height\"     (numeric) The block height where "
