@@ -655,6 +655,8 @@ public:
         GUARDED_BY(cs_SubVer);
     // Used for both cleanSubVer and strSubVer.
     CCriticalSection cs_SubVer;
+    // This peer is preferred for eviction.
+    bool m_prefer_evict{false};
     // This peer can bypass DoS banning.
     bool fWhitelisted{false};
     // If true this node is being used as a short lived feeler.
