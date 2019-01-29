@@ -32,6 +32,7 @@ static std::map<std::string, uint32_t> mapFlagNames = {
     {"SIGHASH_FORKID", SCRIPT_ENABLE_SIGHASH_FORKID},
     {"REPLAY_PROTECTION", SCRIPT_ENABLE_REPLAY_PROTECTION},
     {"CHECKDATASIG", SCRIPT_ENABLE_CHECKDATASIG},
+    {"SCHNORR", SCRIPT_ENABLE_SCHNORR},
 };
 
 uint32_t ParseScriptFlags(std::string strFlags) {

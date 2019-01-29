@@ -40,10 +40,8 @@ static const uint32_t TEST_INVARIANT_FLAGS =
  * behaviour is that flags which are not explicitly listed as invariant in
  * script/sigcache.cpp will affect the cache entry. Here we will thus enforce
  * that certain flags are omitted from that sigcache.cpp list.
- *
- * Currently, no flags affect VerifySignature.
  */
-static const uint32_t TEST_VARIANT_FLAGS = 0;
+static const uint32_t TEST_VARIANT_FLAGS = SCRIPT_ENABLE_SCHNORR;
 
 /**
  * Sigcache is only accessible via CachingTransactionSignatureChecker
