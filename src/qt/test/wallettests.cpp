@@ -1,11 +1,16 @@
 #include "wallettests.h"
 
 #include "chainparams.h"
+#include "config.h"
 #include "dstencode.h"
 #include "qt/bitcoinamountfield.h"
 #include "qt/optionsmodel.h"
+#include "qt/overviewpage.h"
 #include "qt/platformstyle.h"
 #include "qt/qvalidatedlineedit.h"
+#include "qt/receivecoinsdialog.h"
+#include "qt/receiverequestdialog.h"
+#include "qt/recentrequeststablemodel.h"
 #include "qt/sendcoinsdialog.h"
 #include "qt/sendcoinsentry.h"
 #include "qt/transactiontablemodel.h"
@@ -16,6 +21,10 @@
 
 #include <QAbstractButton>
 #include <QApplication>
+#include <QDialogButtonBox>
+#include <QListView>
+#include <QPushButton>
+#include <QTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -83,7 +92,7 @@ QModelIndex FindTx(const QAbstractItemModel &model, const uint256 &txid) {
 //     src/qt/test/test_bitcoin-qt -platform xcb      # Linux
 //     src/qt/test/test_bitcoin-qt -platform windows  # Windows
 //     src/qt/test/test_bitcoin-qt -platform cocoa    # macOS
-void TestSendCoins() {
+void TestGUI() {
 #ifdef Q_OS_MAC
     if (QApplication::platformName() == "minimal") {
         // Disable for mac on "minimal" platform to avoid crashes inside the Qt
@@ -140,6 +149,83 @@ void TestSendCoins() {
     QVERIFY(FindTx(*transactionTableModel, txid1).isValid());
     QVERIFY(FindTx(*transactionTableModel, txid2).isValid());
 
+    // Check current balance on OverviewPage
+    OverviewPage overviewPage(platformStyle.get());
+    overviewPage.setWalletModel(&walletModel);
+    QLabel *balanceLabel = overviewPage.findChild<QLabel *>("labelBalance");
+    QString balanceText = balanceLabel->text();
+    int unit = walletModel.getOptionsModel()->getDisplayUnit();
+    Amount balance = walletModel.getBalance();
+    QString balanceComparison = BitcoinUnits::formatWithUnit(
+        unit, balance, false, BitcoinUnits::separatorAlways);
+    QCOMPARE(balanceText, balanceComparison);
+
+    // Check Request Payment button
+    const Config &config = GetConfig();
+    ReceiveCoinsDialog receiveCoinsDialog(platformStyle.get(), &config);
+    receiveCoinsDialog.setModel(&walletModel);
+    RecentRequestsTableModel *requestTableModel =
+        walletModel.getRecentRequestsTableModel();
+
+    // Label input
+    QLineEdit *labelInput =
+        receiveCoinsDialog.findChild<QLineEdit *>("reqLabel");
+    labelInput->setText("TEST_LABEL_1");
+
+    // Amount input
+    BitcoinAmountField *amountInput =
+        receiveCoinsDialog.findChild<BitcoinAmountField *>("reqAmount");
+    amountInput->setValue(1 * SATOSHI);
+
+    // Message input
+    QLineEdit *messageInput =
+        receiveCoinsDialog.findChild<QLineEdit *>("reqMessage");
+    messageInput->setText("TEST_MESSAGE_1");
+    int initialRowCount = requestTableModel->rowCount({});
+    QPushButton *requestPaymentButton =
+        receiveCoinsDialog.findChild<QPushButton *>("receiveButton");
+    requestPaymentButton->click();
+    for (QWidget *widget : QApplication::topLevelWidgets()) {
+        if (widget->inherits("ReceiveRequestDialog")) {
+            ReceiveRequestDialog *receiveRequestDialog =
+                qobject_cast<ReceiveRequestDialog *>(widget);
+            QTextEdit *rlist =
+                receiveRequestDialog->QObject::findChild<QTextEdit *>("outUri");
+            QString paymentText = rlist->toPlainText();
+            QStringList paymentTextList = paymentText.split('\n');
+            QCOMPARE(paymentTextList.at(0), QString("Payment information"));
+            QVERIFY(paymentTextList.at(1).indexOf(
+                        QString("URI: bitcoincash:")) != -1);
+            QVERIFY(paymentTextList.at(2).indexOf(QString("Address:")) != -1);
+            QCOMPARE(paymentTextList.at(3),
+                     QString("Amount: 0.00000001 ") +
+                         QString::fromStdString(CURRENCY_UNIT));
+            QCOMPARE(paymentTextList.at(4), QString("Label: TEST_LABEL_1"));
+            QCOMPARE(paymentTextList.at(5), QString("Message: TEST_MESSAGE_1"));
+        }
+    }
+
+    // Clear button
+    QPushButton *clearButton =
+        receiveCoinsDialog.findChild<QPushButton *>("clearButton");
+    clearButton->click();
+    QCOMPARE(labelInput->text(), QString(""));
+    QCOMPARE(amountInput->value(), Amount::zero());
+    QCOMPARE(messageInput->text(), QString(""));
+
+    // Check addition to history
+    int currentRowCount = requestTableModel->rowCount({});
+    QCOMPARE(currentRowCount, initialRowCount + 1);
+
+    // Check Remove button
+    QTableView *table =
+        receiveCoinsDialog.findChild<QTableView *>("recentRequestsView");
+    table->selectRow(currentRowCount - 1);
+    QPushButton *removeRequestButton =
+        receiveCoinsDialog.findChild<QPushButton *>("removeRequestButton");
+    removeRequestButton->click();
+    QCOMPARE(requestTableModel->rowCount({}), currentRowCount - 1);
+
     bitdb.Flush(true);
     bitdb.Reset();
 }
@@ -147,5 +233,5 @@ void TestSendCoins() {
 }
 
 void WalletTests::walletTests() {
-    TestSendCoins();
+    TestGUI();
 }
