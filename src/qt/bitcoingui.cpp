@@ -521,6 +521,9 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
         connect(_clientModel, SIGNAL(networkActiveChanged(bool)), this,
                 SLOT(setNetworkActive(bool)));
 
+        modalOverlay->setKnownBestHeight(
+            _clientModel->getHeaderTipHeight(),
+            QDateTime::fromTime_t(_clientModel->getHeaderTipTime()));
         setNumBlocks(_clientModel->getNumBlocks(),
                      _clientModel->getLastBlockDate(),
                      _clientModel->getVerificationProgress(nullptr), false);
@@ -555,10 +558,6 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
             // value in the model.
             setTrayIconVisible(optionsModel->getHideTrayIcon());
         }
-
-        modalOverlay->setKnownBestHeight(
-            clientModel->getHeaderTipHeight(),
-            QDateTime::fromTime_t(clientModel->getHeaderTipTime()));
     } else {
         // Disable possibility to show main window via action
         toggleHideAction->setEnabled(false);
