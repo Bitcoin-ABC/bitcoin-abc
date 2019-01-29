@@ -98,6 +98,10 @@ enum {
     // Is OP_CHECKDATASIG and variant are enabled.
     //
     SCRIPT_ENABLE_CHECKDATASIG = (1U << 18),
+
+    // Are Schnorr signatures enabled for OP_CHECK(DATA)SIG(VERIFY)?
+    //
+    SCRIPT_ENABLE_SCHNORR = (1U << 19),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPTFLAGS_H
