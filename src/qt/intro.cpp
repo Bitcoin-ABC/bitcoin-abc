@@ -9,6 +9,7 @@
 #include <fs.h>
 #include <interfaces/node.h>
 #include <qt/forms/ui_intro.h>
+#include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/intro.h>
 #include <util/system.h>
@@ -19,7 +20,6 @@
 
 #include <cmath>
 
-static const uint64_t GB_BYTES = 1000000000LL;
 /**
  * Total required space (in GB) depending on user choice (prune, not prune).
  */

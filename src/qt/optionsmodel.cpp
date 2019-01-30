@@ -12,6 +12,7 @@
 #include <net.h>
 #include <netbase.h>
 #include <qt/bitcoinunits.h>
+#include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/intro.h>
 #include <txdb.h>       // for -dbcache defaults
@@ -103,10 +104,11 @@ void OptionsModel::Init(bool resetSettings) {
     if (!settings.contains("nPruneSize")) {
         settings.setValue("nPruneSize", 2);
     }
-    // Convert prune size to MB:
-    const uint64_t nPruneSizeMB = settings.value("nPruneSize").toInt() * 1000;
+    // Convert prune size from GB to MiB:
+    const uint64_t nPruneSizeMiB =
+        (settings.value("nPruneSize").toInt() * GB_BYTES) >> 20;
     if (!m_node.softSetArg("-prune", settings.value("bPrune").toBool()
-                                         ? std::to_string(nPruneSizeMB)
+                                         ? std::to_string(nPruneSizeMiB)
                                          : "0")) {
         addOverriddenOption("-prune");
     }
