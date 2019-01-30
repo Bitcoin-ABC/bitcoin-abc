@@ -3,7 +3,6 @@ from .mininode import CTransaction, FromHex, ToHex, CTxOut
 from .script import OP_RETURN, CScript
 
 import random
-from binascii import hexlify, unhexlify
 
 
 def pad_tx(tx, pad_to_size=MIN_TX_SIZE):

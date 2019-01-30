@@ -15,7 +15,7 @@ import subprocess
 import time
 
 from .authproxy import JSONRPCException
-from .mininode import COIN, ToHex, FromHex, CTransaction
+from .mininode import COIN, FromHex, CTransaction
 from .util import (
     assert_equal,
     get_rpc_proxy,
