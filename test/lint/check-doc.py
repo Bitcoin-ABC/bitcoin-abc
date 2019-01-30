@@ -14,7 +14,6 @@ Author: @MarcoFalke
 from subprocess import check_output
 from pprint import PrettyPrinter
 import re
-import sys
 
 FOLDER_SRC = 'src'
 FOLDER_TEST = 'src/test/'
