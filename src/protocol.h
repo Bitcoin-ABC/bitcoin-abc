@@ -308,6 +308,9 @@ enum ServiceFlags : uint64_t {
     // See BIP159 for details on how this is implemented.
     NODE_NETWORK_LIMITED = (1 << 10),
 
+    // The last non experimental service bit, helper for looping over the flags
+    NODE_LAST_NON_EXPERIMENTAL_SERVICE_BIT = (1 << 23),
+
     // Bits 24-31 are reserved for temporary experiments. Just pick a bit that
     // isn't getting used, or one not being used much, and notify the
     // bitcoin-development mailing list. Remember that service bits are just
