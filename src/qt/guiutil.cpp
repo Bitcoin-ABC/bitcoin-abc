@@ -922,9 +922,9 @@ QString formatDurationStr(int secs) {
 QString formatServicesStr(quint64 mask) {
     QStringList strList;
 
-    // Just scan the last 11 bits for now.
-    for (int i = 0; i < 11; i++) {
-        uint64_t check = 1 << i;
+    // Don't display experimental service bits
+    for (uint64_t check = 1; check <= NODE_LAST_NON_EXPERIMENTAL_SERVICE_BIT;
+         check <<= 1) {
         if (mask & check) {
             switch (check) {
                 case NODE_NETWORK:
