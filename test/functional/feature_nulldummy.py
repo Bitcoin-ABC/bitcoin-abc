@@ -51,11 +51,13 @@ class NULLDUMMYTest(BitcoinTestFramework):
         self.ms_address = self.nodes[0].addmultisigaddress(1, [self.address])
 
         network_thread_start()
-        self.coinbase_blocks = self.nodes[0].generate(2)  # Block 2
+        # Block 2
+        self.coinbase_blocks = self.nodes[0].generate(2)
         coinbase_txid = []
         for i in self.coinbase_blocks:
             coinbase_txid.append(self.nodes[0].getblock(i)['tx'][0])
-        self.nodes[0].generate(427)  # Block 429
+        # Block 429
+        self.nodes[0].generate(427)
         self.lastblockhash = self.nodes[0].getbestblockhash()
         self.tip = int("0x" + self.lastblockhash, 0)
         self.lastblockheight = 429
