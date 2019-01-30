@@ -213,6 +213,13 @@ def main():
     # Build list of tests
     all_scripts = get_all_scripts_from_disk(tests_dir, NON_SCRIPTS)
 
+    # Check all tests with parameters actually exist
+    for test in TEST_PARAMS:
+        if not test in all_scripts:
+            print("ERROR: Test with parameter {} does not exist, check it has "
+                  "not been renamed or deleted".format(test))
+            sys.exit(1)
+
     if tests:
         # Individual tests have been specified. Run specified tests that exist
         # in the all_scripts list. Accept the name with or without .py
