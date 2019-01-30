@@ -887,8 +887,8 @@ QString formatDurationStr(int secs) {
 QString formatServicesStr(quint64 mask) {
     QStringList strList;
 
-    // Just scan the last 8 bits for now.
-    for (int i = 0; i < 8; i++) {
+    // Just scan the last 11 bits for now.
+    for (int i = 0; i < 11; i++) {
         uint64_t check = 1 << i;
         if (mask & check) {
             switch (check) {
@@ -906,6 +906,9 @@ QString formatServicesStr(quint64 mask) {
                     break;
                 case NODE_BITCOIN_CASH:
                     strList.append("CASH");
+                    break;
+                case NODE_NETWORK_LIMITED:
+                    strList.append("LIMITED");
                     break;
                 default:
                     strList.append(QString("%1[%2]").arg("UNKNOWN").arg(check));
