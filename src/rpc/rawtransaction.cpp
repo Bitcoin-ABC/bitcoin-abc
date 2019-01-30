@@ -1722,11 +1722,10 @@ static UniValue combinepsbt(const Config &config,
 
     // Merge
     for (auto it = std::next(psbtxs.begin()); it != psbtxs.end(); ++it) {
-        if (*it != merged_psbt) {
+        if (!merged_psbt.Merge(*it)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "PSBTs do not refer to the same transactions.");
         }
-        merged_psbt.Merge(*it);
     }
     if (!merged_psbt.IsSane()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,

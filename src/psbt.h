@@ -314,23 +314,19 @@ struct PartiallySignedTransaction {
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> unknown;
 
     bool IsNull() const;
-    void Merge(const PartiallySignedTransaction &psbt);
+
+    /**
+     * Merge psbt into this. The two psbts must have the same underlying
+     * CTransaction (i.e. the same actual Bitcoin transaction.) Returns true if
+     * the merge succeeded, false otherwise.
+     */
+    NODISCARD bool Merge(const PartiallySignedTransaction &psbt);
     bool IsSane() const;
     PartiallySignedTransaction() {}
     PartiallySignedTransaction(const PartiallySignedTransaction &psbt_in)
         : tx(psbt_in.tx), inputs(psbt_in.inputs), outputs(psbt_in.outputs),
           unknown(psbt_in.unknown) {}
     explicit PartiallySignedTransaction(const CTransaction &txIn);
-
-    // Only checks if they refer to the same transaction
-    friend bool operator==(const PartiallySignedTransaction &a,
-                           const PartiallySignedTransaction &b) {
-        return a.tx == b.tx;
-    }
-    friend bool operator!=(const PartiallySignedTransaction &a,
-                           const PartiallySignedTransaction &b) {
-        return !(a == b);
-    }
 
     template <typename Stream> inline void Serialize(Stream &s) const {
         // magic bytes
