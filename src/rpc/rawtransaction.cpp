@@ -1514,7 +1514,7 @@ static UniValue decodepsbt(const Config &config,
     // Unserialize the transactions
     PartiallySignedTransaction psbtx;
     std::string error;
-    if (!DecodePSBT(psbtx, request.params[0].get_str(), error)) {
+    if (!DecodeBase64PSBT(psbtx, request.params[0].get_str(), error)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                            strprintf("TX decode failed %s", error));
     }
@@ -1710,7 +1710,7 @@ static UniValue combinepsbt(const Config &config,
     for (size_t i = 0; i < txs.size(); ++i) {
         PartiallySignedTransaction psbtx;
         std::string error;
-        if (!DecodePSBT(psbtx, txs[i].get_str(), error)) {
+        if (!DecodeBase64PSBT(psbtx, txs[i].get_str(), error)) {
             throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                strprintf("TX decode failed %s", error));
         }
@@ -1783,7 +1783,7 @@ static UniValue finalizepsbt(const Config &config,
     // Unserialize the transactions
     PartiallySignedTransaction psbtx;
     std::string error;
-    if (!DecodePSBT(psbtx, request.params[0].get_str(), error)) {
+    if (!DecodeBase64PSBT(psbtx, request.params[0].get_str(), error)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                            strprintf("TX decode failed %s", error));
     }

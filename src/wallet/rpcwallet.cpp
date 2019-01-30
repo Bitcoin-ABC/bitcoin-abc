@@ -4625,7 +4625,7 @@ static UniValue walletprocesspsbt(const Config &config,
     // Unserialize the transaction
     PartiallySignedTransaction psbtx;
     std::string error;
-    if (!DecodePSBT(psbtx, request.params[0].get_str(), error)) {
+    if (!DecodeBase64PSBT(psbtx, request.params[0].get_str(), error)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                            strprintf("TX decode failed %s", error));
     }

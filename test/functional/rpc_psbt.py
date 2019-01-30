@@ -211,6 +211,12 @@ class PSBTTest(BitcoinTestFramework):
                 extractor['extract'], True)['hex']
             assert_equal(extracted, extractor['result'])
 
+        # Test decoding error: invalid base64
+        assert_raises_rpc_error(-22,
+                                "TX decode failed invalid base64",
+                                self.nodes[0].decodepsbt,
+                                ";definitely not base64;")
+
 
 if __name__ == '__main__':
     PSBTTest().main()
