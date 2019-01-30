@@ -124,12 +124,12 @@ Follow instructions provided by `arc install-certificate` to provide your API to
 6. Code formatting tools
 
 If code formatting tools do not install automatically on your system, you
-may have to install clang-format-7 and autopep8. clang-format-7 can be installed
-from https://releases.llvm.org/download.html or https://apt.llvm.org
+may have to install clang-format-7, autopep8 and flake8. clang-format-7 can be
+installed from https://releases.llvm.org/download.html or https://apt.llvm.org
 
-To install autopep8 on Ubuntu:
+To install autopep8 and flake8 on Ubuntu:
 ```
-sudo apt-get install python-autopep8
+sudo apt-get install python-autopep8 flake8
 ```
 
 
