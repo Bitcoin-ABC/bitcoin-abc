@@ -62,10 +62,11 @@ bool CBasicKeyStore::GetKey(const CKeyID &address, CKey &keyOut) const {
 }
 
 bool CBasicKeyStore::AddCScript(const CScript &redeemScript) {
-    if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE)
+    if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE) {
         return error("CBasicKeyStore::AddCScript(): redeemScripts > %i bytes "
                      "are invalid",
                      MAX_SCRIPT_ELEMENT_SIZE);
+    }
 
     LOCK(cs_KeyStore);
     mapScripts[CScriptID(redeemScript)] = redeemScript;
@@ -102,13 +103,17 @@ static bool ExtractPubKey(const CScript &dest, CPubKey &pubKeyOut) {
     CScript::const_iterator pc = dest.begin();
     opcodetype opcode;
     std::vector<uint8_t> vch;
-    if (!dest.GetOp(pc, opcode, vch) || vch.size() < 33 || vch.size() > 65)
+    if (!dest.GetOp(pc, opcode, vch) || vch.size() < 33 || vch.size() > 65) {
         return false;
+    }
     pubKeyOut = CPubKey(vch);
-    if (!pubKeyOut.IsFullyValid()) return false;
-    if (!dest.GetOp(pc, opcode, vch) || opcode != OP_CHECKSIG ||
-        dest.GetOp(pc, opcode, vch))
+    if (!pubKeyOut.IsFullyValid()) {
         return false;
+    }
+    if (!dest.GetOp(pc, opcode, vch) || opcode != OP_CHECKSIG ||
+        dest.GetOp(pc, opcode, vch)) {
+        return false;
+    }
     return true;
 }
 
@@ -116,7 +121,9 @@ bool CBasicKeyStore::AddWatchOnly(const CScript &dest) {
     LOCK(cs_KeyStore);
     setWatchOnly.insert(dest);
     CPubKey pubKey;
-    if (ExtractPubKey(dest, pubKey)) mapWatchKeys[pubKey.GetID()] = pubKey;
+    if (ExtractPubKey(dest, pubKey)) {
+        mapWatchKeys[pubKey.GetID()] = pubKey;
+    }
     return true;
 }
 
@@ -124,7 +131,9 @@ bool CBasicKeyStore::RemoveWatchOnly(const CScript &dest) {
     LOCK(cs_KeyStore);
     setWatchOnly.erase(dest);
     CPubKey pubKey;
-    if (ExtractPubKey(dest, pubKey)) mapWatchKeys.erase(pubKey.GetID());
+    if (ExtractPubKey(dest, pubKey)) {
+        mapWatchKeys.erase(pubKey.GetID());
+    }
     return true;
 }
 
