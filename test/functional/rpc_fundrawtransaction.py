@@ -5,7 +5,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-from test_framework.mininode import CTransaction, FromHex, COIN
+from test_framework.mininode import CTransaction, FromHex
 
 
 def get_unspent(listunspent, amount):
