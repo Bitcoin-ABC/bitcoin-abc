@@ -16,6 +16,13 @@
             "type": "autopep8",
             "include": "(\\.py$)"
         },
+        "flake8": {
+            "type": "flake8",
+            "include": "(\\.py$)",
+            "flags": [
+                "--select=F401"
+            ]
+        },
         "lint-format-strings": {
             "type": "script-and-regex",
             "include": "(^src/.*\\.(h|c|cpp)$)",
