@@ -18,7 +18,7 @@ from test_framework.mininode import (CBlockHeader,
                                      msg_block,
                                      msg_headers)
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, wait_until, p2p_port
+from test_framework.util import wait_until, p2p_port
 
 
 NUM_IBD_BLOCKS = 50

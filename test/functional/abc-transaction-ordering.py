@@ -8,11 +8,10 @@ non topological order once the feature is activated.
 """
 
 from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import assert_equal
 from test_framework.comptool import TestManager, TestInstance, RejectResult
 from test_framework.blocktools import *
 import time
-from test_framework.key import CECKey
 from test_framework.script import *
 from collections import deque
 

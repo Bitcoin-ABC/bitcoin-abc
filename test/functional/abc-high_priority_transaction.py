@@ -10,7 +10,6 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.mininode import COIN
-from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, COINBASE_MATURITY
 from test_framework.blocktools import create_confirmed_utxos
 
 
