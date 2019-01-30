@@ -15,7 +15,6 @@ from test_framework.blocktools import *
 import time
 from test_framework.key import CECKey
 from test_framework.script import *
-import struct
 from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
 
 # Error for too many sigops in one TX

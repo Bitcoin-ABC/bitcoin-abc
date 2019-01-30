@@ -3,7 +3,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the parckblock and unparkblock RPC calls."""
-import os
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until

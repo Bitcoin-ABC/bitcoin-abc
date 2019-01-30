@@ -11,9 +11,7 @@ import time
 import random
 import decimal
 
-from test_framework.blocktools import create_coinbase
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
 
 
 class CTORMiningTest(BitcoinTestFramework):

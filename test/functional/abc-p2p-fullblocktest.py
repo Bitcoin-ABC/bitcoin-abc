@@ -12,14 +12,14 @@ this one can be extended, to cover the checks done for bigger blocks
 """
 
 from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import assert_equal
 from test_framework.comptool import TestManager, TestInstance, RejectResult
 from test_framework.blocktools import *
 import time
 from test_framework.key import CECKey
 from test_framework.script import *
-from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
-                                  MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT)
+from test_framework.cdefs import (ONE_MEGABYTE, MAX_BLOCK_SIGOPS_PER_MB,
+                                  MAX_TX_SIGOPS_COUNT)
 from collections import deque
 
 REPLAY_PROTECTION_START_TIME = 2000000000
