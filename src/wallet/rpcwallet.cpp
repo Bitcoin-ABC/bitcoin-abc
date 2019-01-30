@@ -1939,9 +1939,11 @@ static UniValue listsinceblock(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    // Height of the specified block or the common ancestor, if the block
-    // provided was in a deactivated chain.
-    Optional<int> height;
+    // The way the 'height' is initialized is just a workaround for the gcc bug
+    // #47679 since version 4.6.0. Height of the specified block or the common
+    // ancestor, if the block provided was in a deactivated chain.
+    Optional<int> height = MakeOptional(false, int());
+
     // Height of the specified block, even if it's in a deactivated chain.
     Optional<int> altheight;
     int target_confirms = 1;

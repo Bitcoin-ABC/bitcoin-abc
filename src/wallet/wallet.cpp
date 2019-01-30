@@ -1851,7 +1851,9 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
         ShowProgress(strprintf("%s " + _("Rescanning..."), GetDisplayName()),
                      0);
         BlockHash tip_hash;
-        Optional<int> block_height;
+        // The way the 'block_height' is initialized is just a workaround for
+        // the gcc bug #47679 since version 4.6.0.
+        Optional<int> block_height = MakeOptional(false, int());
         double progress_begin;
         double progress_end;
         {
