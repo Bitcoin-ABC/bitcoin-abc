@@ -315,7 +315,7 @@ bool CKey::SignCompact(const uint256 &hash,
         secp256k1_context_sign, &sig, hash.begin(), begin(),
         secp256k1_nonce_function_rfc6979, nullptr);
     assert(ret);
-    secp256k1_ecdsa_recoverable_signature_serialize_compact(
+    ret = secp256k1_ecdsa_recoverable_signature_serialize_compact(
         secp256k1_context_sign, &vchSig[1], &rec, &sig);
     assert(ret);
     assert(rec != -1);
