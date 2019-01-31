@@ -123,7 +123,7 @@ class P2PConnection(asyncio.Protocol):
         self.on_connection_send_msg = None
         self.on_connection_send_msg_is_raw = False
         self.recvbuf = b""
-        self.network = net
+        self.magic_bytes = MAGIC_BYTES[net]
         logger.debug('Connecting to Bitcoin Node: {}:{}'.format(
             self.dstaddr, self.dstport))
 
@@ -193,7 +193,7 @@ class P2PConnection(asyncio.Protocol):
             with mininode_lock:
                 if len(self.recvbuf) < 4:
                     return None
-                if self.recvbuf[:4] != MAGIC_BYTES[self.network]:
+                if self.recvbuf[:4] != self.magic_bytes:
                     raise ValueError(
                         "got garbage {}".format(repr(self.recvbuf)))
                 if len(self.recvbuf) < 4 + 12 + 4 + 4:
@@ -260,7 +260,7 @@ class P2PConnection(asyncio.Protocol):
         """Build a serialized P2P message"""
         command = message.command
         data = message.serialize()
-        tmsg = MAGIC_BYTES[self.network]
+        tmsg = self.magic_bytes
         tmsg += command
         tmsg += b"\x00" * (12 - len(command))
         tmsg += struct.pack("<I", len(data))
