@@ -2,8 +2,6 @@ UNIX BUILD NOTES
 ====================
 Some notes on how to build Bitcoin ABC in Unix.
 
-(for OpenBSD specific instructions, see [build-openbsd.md](build-openbsd.md))
-
 Note
 ---------------------
 Always use absolute paths to configure and compile bitcoin and the dependencies,
@@ -261,8 +259,7 @@ Building on FreeBSD
 
 (Updated as of FreeBSD 11.0)
 
-Clang is installed by default as `cc` compiler, this makes it easier to get
-started than on [OpenBSD](build-openbsd.md). Installing dependencies:
+Clang is installed by default as `cc` compiler. Installing dependencies:
 
     pkg install autoconf automake libtool pkgconf
     pkg install boost-libs openssl libevent gmake
