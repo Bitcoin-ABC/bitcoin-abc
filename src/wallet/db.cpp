@@ -149,6 +149,9 @@ void BerkeleyEnvironment::Close() {
         }
     }
 
+    FILE *error_file = nullptr;
+    dbenv->get_errfile(&error_file);
+
     int ret = dbenv->close(0);
     if (ret != 0) {
         LogPrintf("BerkeleyEnvironment::Close: Error %d closing database "
@@ -158,6 +161,12 @@ void BerkeleyEnvironment::Close() {
     if (!fMockDb) {
         DbEnv(u_int32_t(0)).remove(strPath.c_str(), 0);
     }
+
+    if (error_file) {
+        fclose(error_file);
+    }
+
+    UnlockDirectory(strPath, ".walletlock");
 }
 
 void BerkeleyEnvironment::Reset() {
