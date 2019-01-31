@@ -103,6 +103,9 @@ enum {
     // 65-byte signatures banned for OP_CHECKMULTISIG(VERIFY)?
     //
     SCRIPT_ENABLE_SCHNORR = (1U << 19),
+
+    // Allows the recovery of coins sent to p2sh segwit addresses
+    SCRIPT_ALLOW_SEGWIT_RECOVERY = (1U << 20),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPTFLAGS_H

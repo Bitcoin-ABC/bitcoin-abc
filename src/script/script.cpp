@@ -455,6 +455,13 @@ bool CScript::IsWitnessProgram(int &version,
     return false;
 }
 
+// Wrapper returning only the predicate
+bool CScript::IsWitnessProgram() const {
+    int version;
+    std::vector<uint8_t> program;
+    return IsWitnessProgram(version, program);
+}
+
 bool CScript::IsPushOnly(const_iterator pc) const {
     while (pc < end()) {
         opcodetype opcode;
