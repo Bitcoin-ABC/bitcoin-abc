@@ -41,6 +41,9 @@ static uint32_t countBits(uint32_t v) {
 }
 
 bool VoteRecord::registerVote(uint32_t error) {
+    // We just got a new vote, so there is one less inflight request.
+    clearInflightRequest();
+
     /**
      * The result of the vote is determined from the error code. If the error
      * code is 0, there is no error and therefore the vote is yes. If there is
@@ -78,6 +81,17 @@ bool VoteRecord::registerVote(uint32_t error) {
     // The round changed our state. We reset the confidence.
     confidence = yes;
     return true;
+}
+
+bool VoteRecord::registerPoll() const {
+    uint8_t count = inflight.load();
+    while (count < AVALANCHE_MAX_INFLIGHT_POLL) {
+        if (inflight.compare_exchange_weak(count, count + 1)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static bool IsWorthPolling(const CBlockIndex *pindex) {
@@ -302,7 +316,7 @@ bool AvalancheProcessor::stopEventLoop() {
     return true;
 }
 
-std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
+std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) const {
     std::vector<CInv> invs;
 
     auto r = vote_records.getReadView();
@@ -316,6 +330,13 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
                 // Obviously do not poll if the block is not worth polling.
                 continue;
             }
+        }
+
+        // Check if we can run poll.
+        const bool shouldPoll =
+            forPoll ? p.second.registerPoll() : p.second.shouldPoll();
+        if (!shouldPoll) {
+            continue;
         }
 
         // We don't have a decision, we need more votes.
@@ -346,12 +367,49 @@ NodeId AvalancheProcessor::getSuitableNodeToQuery() {
 
 void AvalancheProcessor::clearTimedoutRequests() {
     auto now = std::chrono::steady_clock::now();
+    std::map<CInv, uint8_t> timedout_items{};
 
-    // Clear expired requests.
-    auto w = queries.getWriteView();
-    auto it = w->get<query_timeout>().begin();
-    while (it != w->get<query_timeout>().end() && it->timeout < now) {
-        w->get<query_timeout>().erase(it++);
+    {
+        // Clear expired requests.
+        auto w = queries.getWriteView();
+        auto it = w->get<query_timeout>().begin();
+        while (it != w->get<query_timeout>().end() && it->timeout < now) {
+            for (auto &i : it->invs) {
+                timedout_items[i]++;
+            }
+
+            w->get<query_timeout>().erase(it++);
+        }
+    }
+
+    if (timedout_items.empty()) {
+        return;
+    }
+
+    // In flight request accounting.
+    for (const auto &p : timedout_items) {
+        const CInv &inv = p.first;
+        assert(inv.type == MSG_BLOCK);
+
+        CBlockIndex *pindex;
+
+        {
+            LOCK(cs_main);
+            BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
+            if (mi == mapBlockIndex.end()) {
+                continue;
+            }
+
+            pindex = mi->second;
+        }
+
+        auto w = vote_records.getWriteView();
+        auto it = w->find(pindex);
+        if (it == w.end()) {
+            continue;
+        }
+
+        it->second.clearInflightRequest(p.second);
     }
 }
 
@@ -359,12 +417,6 @@ void AvalancheProcessor::runEventLoop() {
     // First things first, check if we have requests that timed out and clear
     // them.
     clearTimedoutRequests();
-
-    std::vector<CInv> invs = getInvsForNextPoll();
-    if (invs.empty()) {
-        // If there are no invs to poll, we are done.
-        return;
-    }
 
     while (true) {
         NodeId nodeid = getSuitableNodeToQuery();
@@ -377,7 +429,13 @@ void AvalancheProcessor::runEventLoop() {
          * never add the request to queries, which ensures bad nodes get cleaned
          * up over time.
          */
+        std::vector<CInv> invs;
         bool hasSent = connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
+            invs = getInvsForNextPoll();
+            if (invs.empty()) {
+                return false;
+            }
+
             uint64_t current_round = round++;
 
             {
@@ -407,7 +465,7 @@ void AvalancheProcessor::runEventLoop() {
         });
 
         // Success!
-        if (hasSent) {
+        if (hasSent || invs.empty()) {
             return;
         }
 

@@ -33,10 +33,17 @@ namespace {
  * Finalization score.
  */
 static const int AVALANCHE_FINALIZATION_SCORE = 128;
+
 /**
  * How long before we consider that a query timed out.
  */
 static const int AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS = 10000;
+
+/**
+ * How many inflight requests can exist for one item.
+ */
+static const int AVALANCHE_MAX_INFLIGHT_POLL = 10;
+
 /**
  * Special NodeId that represent no node.
  */
@@ -52,6 +59,8 @@ private:
     uint8_t votes = 0;
     // Each bit indicate if the vote is to be considered.
     uint8_t consider = 0;
+    // How many in flight requests exists for this element.
+    mutable std::atomic<uint8_t> inflight{0};
 
     // confidence's LSB bit is the result. Higher bits are actual confidence
     // score.
@@ -60,6 +69,16 @@ private:
 public:
     VoteRecord(bool accepted) : confidence(accepted) {}
 
+    /**
+     * Copy semantic
+     */
+    VoteRecord(const VoteRecord &other)
+        : votes(other.votes), consider(other.consider),
+          inflight(other.inflight.load()), confidence(other.confidence) {}
+
+    /**
+     * Vote accounting facilities.
+     */
     bool isAccepted() const { return confidence & 0x01; }
 
     uint16_t getConfidence() const { return confidence >> 1; }
@@ -72,6 +91,23 @@ public:
      * Returns true if the acceptance or finalization state changed.
      */
     bool registerVote(uint32_t error);
+
+    /**
+     * Register that a request is being made regarding that item.
+     * The method is made const so that it can be accessed via a read only view
+     * of vote_records. It's not a problem as it is made thread safe.
+     */
+    bool registerPoll() const;
+
+    /**
+     * Return if this item is in condition to be polled at the moment.
+     */
+    bool shouldPoll() const { return inflight < AVALANCHE_MAX_INFLIGHT_POLL; }
+
+    /**
+     * Clear `count` inflight requests.
+     */
+    void clearInflightRequest(uint8_t count = 1) { inflight -= count; }
 };
 
 class AvalancheVote {
@@ -290,7 +326,7 @@ public:
 private:
     void runEventLoop();
     void clearTimedoutRequests();
-    std::vector<CInv> getInvsForNextPoll() const;
+    std::vector<CInv> getInvsForNextPoll(bool forPoll = true) const;
     NodeId getSuitableNodeToQuery();
 
     friend struct AvalancheTest;

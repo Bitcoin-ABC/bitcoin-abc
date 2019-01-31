@@ -14,7 +14,7 @@ struct AvalancheTest {
     static void runEventLoop(AvalancheProcessor &p) { p.runEventLoop(); }
 
     static std::vector<CInv> getInvsForNextPoll(const AvalancheProcessor &p) {
-        return p.getInvsForNextPoll();
+        return p.getInvsForNextPoll(false);
     }
 
     static NodeId getSuitableNodeToQuery(AvalancheProcessor &p) {
@@ -107,6 +107,29 @@ BOOST_AUTO_TEST_CASE(vote_record) {
 
     // The next vote will finalize the decision.
     REGISTER_VOTE_AND_CHECK(vr, 0, false, true, AVALANCHE_FINALIZATION_SCORE);
+
+    // Check that inflight accounting work as expected.
+    VoteRecord vrinflight(false);
+    for (int i = 0; i < 2 * AVALANCHE_MAX_INFLIGHT_POLL; i++) {
+        BOOST_CHECK_EQUAL(vrinflight.shouldPoll(),
+                          i < AVALANCHE_MAX_INFLIGHT_POLL);
+        BOOST_CHECK_EQUAL(vrinflight.registerPoll(), vrinflight.shouldPoll());
+    }
+
+    // Clear various number of inflight requests and check everything behaves as
+    // expected.
+    for (int i = 1; i < AVALANCHE_MAX_INFLIGHT_POLL; i++) {
+        vrinflight.clearInflightRequest(i);
+        BOOST_CHECK(vrinflight.shouldPoll());
+
+        for (int j = 1; j < i; j++) {
+            BOOST_CHECK(vrinflight.registerPoll());
+            BOOST_CHECK(vrinflight.shouldPoll());
+        }
+
+        BOOST_CHECK(vrinflight.registerPoll());
+        BOOST_CHECK(!vrinflight.shouldPoll());
+    }
 }
 
 BOOST_AUTO_TEST_CASE(block_update) {
@@ -608,6 +631,60 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(!p.registerVotes(avanodeid, next(resp), updates));
     }
+
+    CConnmanTest::ClearNodes();
+}
+
+BOOST_AUTO_TEST_CASE(poll_inflight_count) {
+    AvalancheProcessor p(g_connman.get());
+    const Config &config = GetConfig();
+
+    // Create enough nodes so that we run into the inflight request limit.
+    std::array<std::unique_ptr<CNode>, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
+    for (auto &n : nodes) {
+        n = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
+        BOOST_CHECK(p.addPeer(n->GetId(), 0));
+    }
+
+    // Add a block to poll
+    CBlock block = CreateAndProcessBlock({}, CScript());
+    const uint256 blockHash = block.GetHash();
+    const CBlockIndex *pindex = mapBlockIndex[blockHash];
+    BOOST_CHECK(p.addBlockToReconcile(pindex));
+
+    // Ensure there are enough requests in flight.
+    std::map<NodeId, uint32_t> node_round_map;
+    for (int i = 0; i < AVALANCHE_MAX_INFLIGHT_POLL; i++) {
+        NodeId nodeid = AvalancheTest::getSuitableNodeToQuery(p);
+        BOOST_CHECK(node_round_map.find(nodeid) == node_round_map.end());
+        node_round_map[nodeid] = AvalancheTest::getRound(p);
+        auto invs = AvalancheTest::getInvsForNextPoll(p);
+        BOOST_CHECK_EQUAL(invs.size(), 1);
+        BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+        BOOST_CHECK(invs[0].hash == blockHash);
+        AvalancheTest::runEventLoop(p);
+    }
+
+    // Now that we have enough in flight requests, we shouldn't poll.
+    auto suitablenodeid = AvalancheTest::getSuitableNodeToQuery(p);
+    BOOST_CHECK(suitablenodeid != NO_NODE);
+    auto invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 0);
+    AvalancheTest::runEventLoop(p);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), suitablenodeid);
+
+    std::vector<AvalancheBlockUpdate> updates;
+
+    // Send one response, now we can poll again.
+    auto it = node_round_map.begin();
+    AvalancheResponse resp = {it->second, 0, {AvalancheVote(0, blockHash)}};
+    BOOST_CHECK(p.registerVotes(it->first, resp, updates));
+    node_round_map.erase(it);
+
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHash);
 
     CConnmanTest::ClearNodes();
 }
