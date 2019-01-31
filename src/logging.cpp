@@ -149,7 +149,7 @@ std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
         }
         int64_t mocktime = GetMockTime();
         if (mocktime) {
-            strStamped += 
+            strStamped +=
                 " (mocktime: " + FormatISO8601DateTime(mocktime) + ")";
         }
         strStamped += ' ' + str;
