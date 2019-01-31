@@ -143,6 +143,13 @@ public:
                      const std::vector<uint8_t> &vchSig) const;
 
     /**
+     * Verify a Schnorr signature (=64 bytes).
+     * If this public key is not fully valid, the return value will be false.
+     */
+    bool VerifySchnorr(const uint256 &hash,
+                       const std::vector<uint8_t> &vchSig) const;
+
+    /**
      * Check whether a DER-serialized ECDSA signature is normalized (lower-S).
      */
     static bool
