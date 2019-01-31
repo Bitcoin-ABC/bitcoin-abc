@@ -114,6 +114,13 @@ public:
                    uint32_t test_case = 0) const;
 
     /**
+     * Create a Schnorr signature.
+     * The test_case parameter tweaks the deterministic nonce.
+     */
+    bool SignSchnorr(const uint256 &hash, std::vector<uint8_t> &vchSig,
+                     uint32_t test_case = 0) const;
+
+    /**
      * Create a compact ECDSA signature (65 bytes), which allows reconstructing
      * the used public key.
      * The format is one header byte, followed by two times 32 bytes for the
