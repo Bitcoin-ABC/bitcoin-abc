@@ -1532,6 +1532,114 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .Num(0)
                         .ScriptError(SCRIPT_ERR_PUBKEYTYPE));
 
+    // Tests SCRIPT_ALLOW_SEGWIT_RECOVERY
+    const uint32_t allowSegwitRecoveryFlags = SCRIPT_VERIFY_CLEANSTACK |
+                                              SCRIPT_VERIFY_P2SH |
+                                              SCRIPT_ALLOW_SEGWIT_RECOVERY;
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()),
+                    "v0 P2SH-P2WPKH but no SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_P2SH, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()),
+                    "v0 P2SH-P2WPKH with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()),
+                    "v0 P2SH-P2WPKH with extra stack item and "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .Num(0)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    uint256 dummy256(std::vector<uint8_t>(
+        {90, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+         16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}));
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
+                    "v0 P2SH-P2WSH but no SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_P2SH, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
+                    "v0 P2SH-P2WSH with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
+                                "v0 P2SH-P2WSH with extra stack item and "
+                                "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                                allowSegwitRecoveryFlags, true)
+                        .Num(0)
+                        .PushRedeem()
+                        .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    // Tests the limits of IsWitnessProgram along with
+    // SCRIPT_ALLOW_SEGWIT_RECOVERY
+    std::vector<uint8_t> shortprogram({90, 1});
+    tests.push_back(
+        TestBuilder(CScript() << OP_0
+                              << std::vector<uint8_t>(shortprogram.begin(),
+                                                      shortprogram.end() - 1),
+                    "Invalid witness program (too short) with "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << shortprogram,
+                    "Valid witness program (min allowed length) with "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    std::vector<uint8_t> longprogram(
+        {90, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+         14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+         28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40});
+    tests.push_back(
+        TestBuilder(CScript() << OP_0
+                              << std::vector<uint8_t>(longprogram.begin(),
+                                                      longprogram.end() - 1),
+                    "Valid witness program (max allowed length) with "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    tests.push_back(TestBuilder(CScript() << OP_0 << longprogram,
+                                "Invalid witness program (too long) with "
+                                "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                                allowSegwitRecoveryFlags, true)
+                        .PushRedeem()
+                        .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << OP_16 << ToByteVector(dummy256),
+                    "Valid witness program (max allowed version) with "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    tests.push_back(
+        TestBuilder(CScript() << OP_1NEGATE << ToByteVector(dummy256),
+                    "Invalid witness program (invalid version -1) with "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << 17 << ToByteVector(dummy256),
+                    "Invalid witness program (invalid version 17) with "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << ToByteVector(dummy256) << OP_1,
+                    "Invalid witness program (more than 2 stack "
+                    "items) with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+
     std::set<std::string> tests_set;
 
     {
@@ -2292,6 +2400,44 @@ BOOST_AUTO_TEST_CASE(script_FindAndDelete) {
     expect = ScriptFromHex("03feed");
     BOOST_CHECK_EQUAL(s.FindAndDelete(d), 1);
     BOOST_CHECK(s == expect);
+}
+
+BOOST_AUTO_TEST_CASE(IsWitnessProgram) {
+    // Valid version: [0,16]
+    // Valid program_len: [2,40]
+    for (int version = -1; version <= 17; version++) {
+        for (unsigned int program_len = 1; program_len <= 41; program_len++) {
+            CScript script;
+            std::vector<uint8_t> program(program_len, '\42');
+            int parsed_version;
+            std::vector<uint8_t> parsed_program;
+            script << version << program;
+            bool result =
+                script.IsWitnessProgram(parsed_version, parsed_program);
+            bool expected = version >= 0 && version <= 16 && program_len >= 2 &&
+                            program_len <= 40;
+            BOOST_CHECK_EQUAL(result, expected);
+            if (result) {
+                BOOST_CHECK_EQUAL(version, parsed_version);
+                BOOST_CHECK(program == parsed_program);
+            }
+        }
+    }
+    // Tests with 1 and 3 stack elements
+    {
+        CScript script;
+        script << OP_0;
+        BOOST_CHECK_MESSAGE(
+            !script.IsWitnessProgram(),
+            "Failed IsWitnessProgram check with 1 stack element");
+    }
+    {
+        CScript script;
+        script << OP_0 << std::vector<uint8_t>(20, '\42') << OP_1;
+        BOOST_CHECK_MESSAGE(
+            !script.IsWitnessProgram(),
+            "Failed IsWitnessProgram check with 3 stack elements");
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
