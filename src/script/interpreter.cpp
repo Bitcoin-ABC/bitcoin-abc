@@ -1029,7 +1029,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             // pubkey/signature evaluation distinguishable by
                             // CHECKMULTISIG NOT if the STRICTENC flag is set.
                             // See the script_(in)valid tests for details.
-                            if (!CheckTransactionSignatureEncoding(
+                            if (!CheckTransactionECDSASignatureEncoding(
                                     vchSig, flags, serror) ||
                                 !CheckPubKeyEncoding(vchPubKey, flags,
                                                      serror)) {

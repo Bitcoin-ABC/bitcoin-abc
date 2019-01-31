@@ -39,6 +39,8 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
         SigHashType sigHash = baseSigHash.withForkId(hasForkId);
         valtype validSig = SignatureWithHashType(vchSig, sigHash);
         BOOST_CHECK(CheckTransactionSignatureEncoding(validSig, flags, &err));
+        BOOST_CHECK(
+            CheckTransactionECDSASignatureEncoding(validSig, flags, &err));
 
         // If we have strict encoding, we prevent the use of undefined flags.
         std::array<SigHashType, 2> undefSigHashes{
@@ -50,6 +52,9 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
             BOOST_CHECK_EQUAL(
                 CheckTransactionSignatureEncoding(undefSighash, flags, &err),
                 !hasStrictEnc);
+            BOOST_CHECK_EQUAL(CheckTransactionECDSASignatureEncoding(
+                                  undefSighash, flags, &err),
+                              !hasStrictEnc);
             if (hasStrictEnc) {
                 BOOST_CHECK_EQUAL(err, SCRIPT_ERR_SIG_HASHTYPE);
             }
@@ -61,6 +66,9 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
 
         BOOST_CHECK_EQUAL(
             CheckTransactionSignatureEncoding(invalidSig, flags, &err),
+            !hasStrictEnc);
+        BOOST_CHECK_EQUAL(
+            CheckTransactionECDSASignatureEncoding(invalidSig, flags, &err),
             !hasStrictEnc);
         if (hasStrictEnc) {
             BOOST_CHECK_EQUAL(err, hasForkId ? SCRIPT_ERR_MUST_USE_FORKID
@@ -164,6 +172,7 @@ BOOST_AUTO_TEST_CASE(checksignatureencoding_test) {
         // Empty sig is always valid.
         BOOST_CHECK(CheckDataSignatureEncoding({}, flags, &err));
         BOOST_CHECK(CheckTransactionSignatureEncoding({}, flags, &err));
+        BOOST_CHECK(CheckTransactionECDSASignatureEncoding({}, flags, &err));
 
         // Signature are valid as long as the forkid flag is correct.
         CheckSignatureEncodingWithSigHashType(minimalSig, flags);

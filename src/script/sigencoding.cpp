@@ -214,6 +214,12 @@ bool CheckTransactionSignatureEncoding(const valtype &vchSig, uint32_t flags,
     return true;
 }
 
+bool CheckTransactionECDSASignatureEncoding(const valtype &vchSig,
+                                            uint32_t flags,
+                                            ScriptError *serror) {
+    return CheckTransactionSignatureEncoding(vchSig, flags, serror);
+}
+
 static bool IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
     switch (vchPubKey.size()) {
         case 33:
