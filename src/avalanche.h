@@ -289,6 +289,7 @@ public:
 
 private:
     void runEventLoop();
+    void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll() const;
     NodeId getSuitableNodeToQuery();
 
