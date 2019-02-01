@@ -61,6 +61,9 @@ typedef enum ScriptError_t {
     SCRIPT_ERR_MINIMALIF,
     SCRIPT_ERR_SIG_NULLFAIL,
 
+    /* Schnorr */
+    SCRIPT_ERR_SIG_BADLENGTH,
+
     /* softfork safeness */
     SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS,
 

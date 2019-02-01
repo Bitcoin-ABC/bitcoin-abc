@@ -82,6 +82,8 @@ const char *ScriptErrorString(const ScriptError serror) {
         case SCRIPT_ERR_SIG_NULLFAIL:
             return "Signature must be zero for failed CHECK(MULTI)SIG "
                    "operation";
+        case SCRIPT_ERR_SIG_BADLENGTH:
+            return "Signature cannot be 65 bytes in CHECKMULTISIG";
         case SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS:
             return "NOPx reserved for soft-fork upgrades";
         case SCRIPT_ERR_PUBKEYTYPE:
