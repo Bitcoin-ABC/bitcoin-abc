@@ -104,32 +104,24 @@ bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
         .second;
 }
 
-static const VoteRecord *
-GetRecord(const RWCollection<BlockVoteMap> &vote_records,
-          const CBlockIndex *pindex) {
+bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
     auto r = vote_records.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
-        return nullptr;
+        return false;
     }
 
-    return &it->second;
-}
-
-bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
-    if (auto vr = GetRecord(vote_records, pindex)) {
-        return vr->isAccepted();
-    }
-
-    return false;
+    return it->second.isAccepted();
 }
 
 int AvalancheProcessor::getConfidence(const CBlockIndex *pindex) const {
-    if (auto vr = GetRecord(vote_records, pindex)) {
-        return vr->getConfidence();
+    auto r = vote_records.getReadView();
+    auto it = r->find(pindex);
+    if (it == r.end()) {
+        return -1;
     }
 
-    return -1;
+    return it->second.getConfidence();
 }
 
 bool AvalancheProcessor::registerVotes(
