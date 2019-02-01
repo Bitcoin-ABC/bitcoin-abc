@@ -13,6 +13,16 @@
 
 #include <tuple>
 
+/**
+ * Run the avalanche event loop every 10ms.
+ */
+static const int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
+
+/**
+ * Maximum item count that can be polled at once.
+ */
+static const size_t AVALANCHE_MAX_ELEMENT_POLL = 4096;
+
 static uint32_t countBits(uint32_t v) {
 #if HAVE_DECL___BUILTIN_POPCOUNT
     return __builtin_popcount(v);
@@ -242,17 +252,6 @@ bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score) {
     return peerSet.getWriteView()
         ->insert({nodeid, score, std::chrono::steady_clock::now()})
         .second;
-}
-
-namespace {
-/**
- * Run the avalanche event loop every 10ms.
- */
-static int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
-/**
- * Maximum item count that can be polled at once.
- */
-static size_t AVALANCHE_MAX_ELEMENT_POLL = 4096;
 }
 
 bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
