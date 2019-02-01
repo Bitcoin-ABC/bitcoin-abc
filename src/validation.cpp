@@ -4438,11 +4438,11 @@ bool LoadChainTip(const Config &config) {
 }
 
 CVerifyDB::CVerifyDB() {
-    uiInterface.ShowProgress(_("Verifying blocks..."), 0);
+    uiInterface.ShowProgress(_("Verifying blocks..."), 0, false);
 }
 
 CVerifyDB::~CVerifyDB() {
-    uiInterface.ShowProgress("", 100);
+    uiInterface.ShowProgress("", 100, false);
 }
 
 bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
@@ -4488,7 +4488,8 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
             reportDone = percentageDone / 10;
         }
 
-        uiInterface.ShowProgress(_("Verifying blocks..."), percentageDone);
+        uiInterface.ShowProgress(_("Verifying blocks..."), percentageDone,
+                                 false);
         if (pindex->nHeight < chainActive.Height() - nCheckDepth) {
             break;
         }
@@ -4577,7 +4578,8 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                 std::max(
                     1, std::min(99, 100 - (int)(((double)(chainActive.Height() -
                                                           pindex->nHeight)) /
-                                                (double)nCheckDepth * 50))));
+                                                (double)nCheckDepth * 50))),
+                false);
             pindex = chainActive.Next(pindex);
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, config)) {
@@ -4647,7 +4649,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
         return error("ReplayBlocks(): unknown inconsistent state");
     }
 
-    uiInterface.ShowProgress(_("Replaying blocks..."), 0);
+    uiInterface.ShowProgress(_("Replaying blocks..."), 0, false);
     LogPrintf("Replaying blocks\n");
 
     // Old tip during the interrupted flush.
@@ -4722,7 +4724,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
 
     cache.SetBestBlock(pindexNew->GetBlockHash());
     cache.Flush();
-    uiInterface.ShowProgress("", 100);
+    uiInterface.ShowProgress("", 100, false);
     return true;
 }
 
