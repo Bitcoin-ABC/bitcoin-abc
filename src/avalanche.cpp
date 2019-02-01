@@ -305,19 +305,21 @@ bool AvalancheProcessor::stopEventLoop() {
 std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
     std::vector<CInv> invs;
 
-    LOCK(cs_main);
-
     auto r = vote_records.getReadView();
-    for (const std::pair<const CBlockIndex *, VoteRecord> &p :
+    for (const std::pair<const CBlockIndex *const, VoteRecord> &p :
          reverse_iterate(r)) {
         const CBlockIndex *pindex = p.first;
-        if (!IsWorthPolling(pindex)) {
-            // Obviously do not poll if the block is not worth polling.
-            continue;
+
+        {
+            LOCK(cs_main);
+            if (!IsWorthPolling(pindex)) {
+                // Obviously do not poll if the block is not worth polling.
+                continue;
+            }
         }
 
         // We don't have a decision, we need more votes.
-        invs.emplace_back(MSG_BLOCK, p.first->GetBlockHash());
+        invs.emplace_back(MSG_BLOCK, pindex->GetBlockHash());
         if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
             // Make sure we do not produce more invs than specified by the
             // protocol.
