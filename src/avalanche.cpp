@@ -343,17 +343,21 @@ NodeId AvalancheProcessor::getSuitableNodeToQuery() {
     return NO_NODE;
 }
 
-void AvalancheProcessor::runEventLoop() {
+void AvalancheProcessor::clearTimedoutRequests() {
     auto now = std::chrono::steady_clock::now();
 
-    {
-        // Clear expired requests.
-        auto w = queries.getWriteView();
-        auto it = w->get<query_timeout>().begin();
-        while (it != w->get<query_timeout>().end() && it->timeout < now) {
-            w->get<query_timeout>().erase(it++);
-        }
+    // Clear expired requests.
+    auto w = queries.getWriteView();
+    auto it = w->get<query_timeout>().begin();
+    while (it != w->get<query_timeout>().end() && it->timeout < now) {
+        w->get<query_timeout>().erase(it++);
     }
+}
+
+void AvalancheProcessor::runEventLoop() {
+    // First things first, check if we have requests that timed out and clear
+    // them.
+    clearTimedoutRequests();
 
     std::vector<CInv> invs = getInvsForNextPoll();
     if (invs.empty()) {
