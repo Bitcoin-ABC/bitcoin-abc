@@ -61,3 +61,17 @@ add_custom_target(check-functional
 )
 
 add_dependencies(check-all check-functional)
+
+if(BUILD_BITCOIN_TX)
+	add_custom_target(check-bitcoin-util
+		COMMAND
+			${CMAKE_COMMAND} -E echo "Running test/util/bitcoin-util-test.py..."
+		COMMAND
+			./util/bitcoin-util-test.py
+		DEPENDS
+			../src/bitcoin-tx
+			${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
+	)
+
+	add_dependencies(check check-bitcoin-util)
+endif()
