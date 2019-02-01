@@ -89,6 +89,7 @@ BITCOIN_TESTS =\
   test/rwcollection_tests.cpp \
   test/sanity_tests.cpp \
   test/scheduler_tests.cpp \
+  test/schnorr_tests.cpp \
   test/script_commitment_tests.cpp \
   test/script_P2SH_tests.cpp \
   test/script_tests.cpp \

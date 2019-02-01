@@ -1467,7 +1467,11 @@ bool BaseSignatureChecker::VerifySignature(const std::vector<uint8_t> &vchSig,
                                            const CPubKey &pubkey,
                                            const uint256 &sighash,
                                            uint32_t flags) const {
-    return pubkey.VerifyECDSA(sighash, vchSig);
+    if ((flags & SCRIPT_ENABLE_SCHNORR) && (vchSig.size() == 64)) {
+        return pubkey.VerifySchnorr(sighash, vchSig);
+    } else {
+        return pubkey.VerifyECDSA(sighash, vchSig);
+    }
 }
 
 bool TransactionSignatureChecker::CheckSig(

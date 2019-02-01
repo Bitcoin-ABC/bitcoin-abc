@@ -105,6 +105,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	rwcollection_tests.cpp
 	sanity_tests.cpp
 	scheduler_tests.cpp
+	schnorr_tests.cpp
 	script_commitment_tests.cpp
 	script_P2SH_tests.cpp
 	script_tests.cpp
