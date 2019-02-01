@@ -7,6 +7,8 @@
 #include "script/script_flags.h"
 #include "script/sigencoding.h"
 
+#include "test/lcg.h"
+
 #include <boost/test/unit_test.hpp>
 
 BOOST_FIXTURE_TEST_SUITE(sigencoding_tests, BasicTestingSetup)
@@ -164,9 +166,10 @@ BOOST_AUTO_TEST_CASE(checksignatureencoding_test) {
          0xcf, 0x2c, 0xe0, 0xd0, 0x3b, 0x2e, 0xf0},
     };
 
-    // If we add many more flags, this loop can get too expensive, but we can
-    // rewrite in the future to randomly pick a set of flags to evaluate.
-    for (uint32_t flags = 0; flags < (1U << 17); flags++) {
+    MMIXLinearCongruentialGenerator lcg;
+    for (int i = 0; i < 4096; i++) {
+        uint32_t flags = lcg.next();
+
         ScriptError err = SCRIPT_ERR_OK;
 
         // Empty sig is always valid.
@@ -331,9 +334,10 @@ BOOST_AUTO_TEST_CASE(checkpubkeyencoding_test) {
          0xde, 0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0},
     };
 
-    // If we add many more flags, this loop can get too expensive, but we can
-    // rewrite in the future to randomly pick a set of flags to evaluate.
-    for (uint32_t flags = 0; flags < (1U << 17); flags++) {
+    MMIXLinearCongruentialGenerator lcg;
+    for (int i = 0; i < 4096; i++) {
+        uint32_t flags = lcg.next();
+
         ScriptError err = SCRIPT_ERR_OK;
 
         // Compressed pubkeys are always valid.
