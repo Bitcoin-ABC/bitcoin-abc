@@ -156,6 +156,11 @@ static bool IsValidDERSignatureEncoding(const slicedvaltype &sig) {
 static bool CheckRawECDSASignatureEncoding(const slicedvaltype &sig,
                                            uint32_t flags,
                                            ScriptError *serror) {
+    if ((flags & SCRIPT_ENABLE_SCHNORR) && (sig.size() == 64)) {
+        // In an ECDSA-only context, 64-byte signatures are banned when
+        // Schnorr flag set.
+        return set_error(serror, SCRIPT_ERR_SIG_BADLENGTH);
+    }
     if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S |
                   SCRIPT_VERIFY_STRICTENC)) &&
         !IsValidDERSignatureEncoding(sig)) {
@@ -171,6 +176,11 @@ static bool CheckRawECDSASignatureEncoding(const slicedvaltype &sig,
 
 static bool CheckRawSignatureEncoding(const slicedvaltype &sig, uint32_t flags,
                                       ScriptError *serror) {
+    if ((flags & SCRIPT_ENABLE_SCHNORR) && (sig.size() == 64)) {
+        // In a generic-signature context, 64-byte signatures are interpreted
+        // as Schnorr signatures (always correctly encoded) when flag set.
+        return true;
+    }
     return CheckRawECDSASignatureEncoding(sig, flags, serror);
 }
 

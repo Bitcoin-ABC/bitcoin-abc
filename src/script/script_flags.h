@@ -99,7 +99,8 @@ enum {
     //
     SCRIPT_ENABLE_CHECKDATASIG = (1U << 18),
 
-    // Are Schnorr signatures enabled for OP_CHECK(DATA)SIG(VERIFY)?
+    // Are Schnorr signatures enabled for OP_CHECK(DATA)SIG(VERIFY) and
+    // 65-byte signatures banned for OP_CHECKMULTISIG(VERIFY)?
     //
     SCRIPT_ENABLE_SCHNORR = (1U << 19),
 };
