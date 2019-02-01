@@ -4,6 +4,7 @@
 
 #include <radix.h>
 
+#include "test/lcg.h"
 #include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
@@ -318,11 +319,6 @@ BOOST_AUTO_TEST_CASE(const_tree_test) {
 #define THREADS 128
 #define ELEMENTS 65536
 
-static uint64_t next(uint64_t x) {
-    // Simple linear congruential generator by Donald Knuth.
-    return x * 6364136223846793005 + 1442695040888963407;
-}
-
 BOOST_AUTO_TEST_CASE(insert_stress_test) {
     typedef TestElement<uint32_t> E;
 
@@ -332,10 +328,9 @@ BOOST_AUTO_TEST_CASE(insert_stress_test) {
 
     for (int i = 0; i < THREADS; i++) {
         threads.push_back(std::thread([&] {
-            uint64_t rand = 0;
+            MMIXLinearCongruentialGenerator lcg;
             for (int j = 0; j < ELEMENTS; j++) {
-                rand = next(rand);
-                uint32_t v(rand >> 32);
+                uint32_t v = lcg.next();
 
                 if (mytree.remove(v)) {
                     success--;
@@ -369,10 +364,9 @@ BOOST_AUTO_TEST_CASE(insert_stress_test) {
     BOOST_CHECK_EQUAL(success.load(), ELEMENTS);
 
     // All the elements have been inserted into the tree.
-    uint64_t rand = 0;
+    MMIXLinearCongruentialGenerator lcg;
     for (int i = 0; i < ELEMENTS; i++) {
-        rand = next(rand);
-        uint32_t v(rand >> 32);
+        uint32_t v = lcg.next();
         BOOST_CHECK_EQUAL(mytree.get(v)->getId(), v);
         auto ptr = RCUPtr<E>::make(v);
         BOOST_CHECK(!mytree.insert(ptr));
