@@ -31,6 +31,11 @@
  */
 extern FastRandomContext g_insecure_rand_ctx;
 
+/**
+ * Flag to make GetRand in random.h return the same number
+ */
+extern bool g_mock_deterministic_tests;
+
 static inline void SeedInsecureRand(bool deterministic = false) {
     g_insecure_rand_ctx = FastRandomContext(deterministic);
 }

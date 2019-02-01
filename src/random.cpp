@@ -11,6 +11,7 @@
 #endif
 #include <crypto/sha512.h>
 #include <logging.h> // for LogPrint()
+#include <support/allocators/secure.h>
 #include <support/cleanse.h>
 #include <sync.h>      // for WAIT_LOCK
 #include <util/time.h> // for GetTime()
@@ -24,8 +25,6 @@
 #include <limits>
 #include <mutex>
 #include <thread>
-
-#include <support/allocators/secure.h>
 
 #ifndef WIN32
 #include <fcntl.h>
@@ -542,8 +541,10 @@ void RandAddSeedSleep() {
     ProcRand(nullptr, 0, RNGLevel::SLEEP);
 }
 
+bool g_mock_deterministic_tests{false};
+
 uint64_t GetRand(uint64_t nMax) noexcept {
-    return FastRandomContext().randrange(nMax);
+    return FastRandomContext(g_mock_deterministic_tests).randrange(nMax);
 }
 
 int GetRandInt(int nMax) noexcept {
