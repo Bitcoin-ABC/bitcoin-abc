@@ -49,16 +49,16 @@ static const NodeId NO_NODE = -1;
 struct VoteRecord {
 private:
     // Historical record of votes.
-    uint8_t votes;
+    uint8_t votes = 0;
     // Each bit indicate if the vote is to be considered.
-    uint8_t consider;
+    uint8_t consider = 0;
 
     // confidence's LSB bit is the result. Higher bits are actual confidence
     // score.
-    uint16_t confidence;
+    uint16_t confidence = 0;
 
 public:
-    VoteRecord(bool accepted) : votes(0), consider(0), confidence(accepted) {}
+    VoteRecord(bool accepted) : confidence(accepted) {}
 
     bool isAccepted() const { return confidence & 0x01; }
 
