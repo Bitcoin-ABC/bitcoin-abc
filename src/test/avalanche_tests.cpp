@@ -567,10 +567,32 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
+    CConnmanTest::ClearNodes();
+}
+
+BOOST_AUTO_TEST_CASE(poll_inflight_timeout) {
+    AvalancheProcessor p(g_connman.get());
+
+    std::vector<AvalancheBlockUpdate> updates;
+
+    CBlock block = CreateAndProcessBlock({}, CScript());
+    const uint256 blockHash = block.GetHash();
+    const CBlockIndex *pindex = mapBlockIndex[blockHash];
+
+    // Add the block
+    BOOST_CHECK(p.addBlockToReconcile(pindex));
+
+    // Create a node that supports avalanche.
+    const Config &config = GetConfig();
+    auto avanode = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
+    NodeId avanodeid = avanode->GetId();
+    BOOST_CHECK(p.addPeer(avanodeid, 0));
+
     // Expire requests after some time.
     p.setQueryTimeoutDuration(std::chrono::milliseconds(10));
     for (int i = 0; i < 10; i++) {
-        resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
+        AvalancheResponse resp = {
+            AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
         AvalancheTest::runEventLoop(p);
         // NB: This could wait longer than 1ms in some cases and make the
         // test flacky. We'll have to come up with a better solution to test
