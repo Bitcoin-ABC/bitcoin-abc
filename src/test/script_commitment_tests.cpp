@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-BOOST_FIXTURE_TEST_SUITE(script_commitmenet_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(script_commitment_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(test_is_commitment) {
     std::vector<uint8_t> data{};
