@@ -83,13 +83,12 @@ add_test_to_suite(bitcoin test_bitcoin
 	jsonutil.cpp
 	key_tests.cpp
 	lcg_tests.cpp
-	lcg.h
 	limitedmap_tests.cpp
 	main_tests.cpp
 	mempool_tests.cpp
 	merkle_tests.cpp
 	miner_tests.cpp
-	monolith_opcodes.cpp
+	monolith_opcodes_tests.cpp
 	multisig_tests.cpp
 	net_tests.cpp
 	netbase_tests.cpp
