@@ -66,8 +66,14 @@ private:
     // How many in flight requests exists for this element.
     mutable std::atomic<uint8_t> inflight{0};
 
+    // Seed for pseudorandom operations.
+    const uint32_t seed = 0;
+
     // Track how many successful votes occured.
     uint32_t successfulVotes = 0;
+
+    // Track the nodes which are part of the quorum.
+    std::array<uint16_t, 8> nodeFilter{{0, 0, 0, 0, 0, 0, 0, 0}};
 
 public:
     VoteRecord(bool accepted) : confidence(accepted) {}
@@ -78,7 +84,8 @@ public:
     VoteRecord(const VoteRecord &other)
         : confidence(other.confidence), votes(other.votes),
           consider(other.consider), inflight(other.inflight.load()),
-          successfulVotes(other.successfulVotes) {}
+          successfulVotes(other.successfulVotes), nodeFilter(other.nodeFilter) {
+    }
 
     /**
      * Vote accounting facilities.
@@ -94,7 +101,7 @@ public:
      * Register a new vote for an item and update confidence accordingly.
      * Returns true if the acceptance or finalization state changed.
      */
-    bool registerVote(uint32_t error);
+    bool registerVote(NodeId nodeid, uint32_t error);
 
     /**
      * Register that a request is being made regarding that item.
@@ -112,6 +119,14 @@ public:
      * Clear `count` inflight requests.
      */
     void clearInflightRequest(uint8_t count = 1) { inflight -= count; }
+
+private:
+    /**
+     * Add the node to the quorum.
+     * Returns true if the node was added, false if the node already was in the
+     * quorum.
+     */
+    bool addNodeToQuorum(NodeId nodeid);
 };
 
 class AvalancheVote {
