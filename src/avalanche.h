@@ -32,11 +32,11 @@ namespace {
 /**
  * Finalization score.
  */
-static int AVALANCHE_FINALIZATION_SCORE = 128;
+static const int AVALANCHE_FINALIZATION_SCORE = 128;
 /**
  * How long before we consider that a query timed out.
  */
-static int AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS = 10000;
+static const int AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS = 10000;
 /**
  * Special NodeId that represent no node.
  */
