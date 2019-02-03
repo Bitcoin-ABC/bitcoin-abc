@@ -17,6 +17,9 @@ ssl = ctypes.cdll.LoadLibrary(ctypes.util.find_library('ssl') or 'libeay32')
 ssl.BN_new.restype = ctypes.c_void_p
 ssl.BN_new.argtypes = []
 
+ssl.BN_free.restype = None
+ssl.BN_free.argtypes = [ctypes.c_void_p]
+
 ssl.BN_bin2bn.restype = ctypes.c_void_p
 ssl.BN_bin2bn.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_void_p]
 
@@ -117,6 +120,7 @@ class CECKey():
         ssl.EC_POINT_mul(group, pub_key, priv_key, None, None, ctx)
         ssl.EC_KEY_set_private_key(self.k, priv_key)
         ssl.EC_KEY_set_public_key(self.k, pub_key)
+        ssl.BN_free(priv_key)
         ssl.EC_POINT_free(pub_key)
         ssl.BN_CTX_free(ctx)
         return self.k
