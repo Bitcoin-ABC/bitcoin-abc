@@ -40,9 +40,14 @@ static uint32_t countBits(uint32_t v) {
 #endif
 }
 
-bool VoteRecord::registerVote(uint32_t error) {
+bool VoteRecord::registerVote(NodeId nodeid, uint32_t error) {
     // We just got a new vote, so there is one less inflight request.
     clearInflightRequest();
+
+    // We want to avoid having the same node voting twice in a quorum.
+    if (!addNodeToQuorum(nodeid)) {
+        return false;
+    }
 
     /**
      * The result of the vote is determined from the error code. If the error
@@ -80,6 +85,36 @@ bool VoteRecord::registerVote(uint32_t error) {
 
     // The round changed our state. We reset the confidence.
     confidence = yes;
+    return true;
+}
+
+bool VoteRecord::addNodeToQuorum(NodeId nodeid) {
+    if (nodeid == NO_NODE) {
+        // Helpful for testing.
+        return true;
+    }
+
+    // MMIX Linear Congruent Generator.
+    const uint64_t r1 = 6364136223846793005 * nodeid + 1442695040888963407;
+    // Fibonacci hashing.
+    const uint64_t r2 = 11400714819323198485ull * (nodeid ^ seed);
+    // Combine and extract hash.
+    const uint16_t h = (r1 + r2) >> 48;
+
+    /**
+     * Check if the node is in the filter.
+     */
+    for (size_t i = 1; i < nodeFilter.size(); i++) {
+        if (nodeFilter[(successfulVotes + i) % nodeFilter.size()] == h) {
+            return false;
+        }
+    }
+
+    /**
+     * Add the node which just voted to the filter.
+     */
+    nodeFilter[successfulVotes % nodeFilter.size()] = h;
+    successfulVotes++;
     return true;
 }
 
@@ -234,7 +269,7 @@ bool AvalancheProcessor::registerVotes(
             }
 
             auto &vr = it->second;
-            if (!vr.registerVote(v.GetError())) {
+            if (!vr.registerVote(nodeid, v.GetError())) {
                 // This vote did not provide any extra information, move on.
                 continue;
             }
