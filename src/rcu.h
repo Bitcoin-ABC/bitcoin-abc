@@ -189,8 +189,8 @@ public:
     /**
      * ostream support.
      */
-    friend std::ostream &operator<<(std::ostream &stream, const RCUPtr &ptr) {
-        return stream << ptr.ptr;
+    friend std::ostream &operator<<(std::ostream &stream, const RCUPtr &rhs) {
+        return stream << rhs.ptr;
     }
 };
 
