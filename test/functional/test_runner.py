@@ -225,7 +225,18 @@ def main():
         # extension.
         test_list = [t for t in all_scripts if
                      (t in tests or re.sub(".py$", "", t) in tests)]
-        cutoff = sys.maxsize  # do not cut off explicitly specified tests
+
+        # Allow for wildcard at the end of the name, so a single input can
+        # match multiple tests
+        for test in tests:
+            if test.endswith('*'):
+                test_list.extend(
+                    [t for t in all_scripts if t.startswith(test[:-1])])
+        # Make the list unique
+        test_list = list(set(test_list))
+
+        # do not cut off explicitly specified tests
+        cutoff = sys.maxsize
     else:
         # No individual tests have been specified.
         # Run all tests that do not exceed
