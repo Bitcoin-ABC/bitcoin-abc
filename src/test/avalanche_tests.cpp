@@ -27,7 +27,7 @@ struct AvalancheTest {
 BOOST_FIXTURE_TEST_SUITE(avalanche_tests, TestChain100Setup)
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, confidence)        \
-    vr.registerVote(vote);                                                     \
+    vr.registerVote(NO_NODE, vote);                                            \
     BOOST_CHECK_EQUAL(vr.isAccepted(), state);                                 \
     BOOST_CHECK_EQUAL(vr.hasFinalized(), finalized);                           \
     BOOST_CHECK_EQUAL(vr.getConfidence(), confidence);
@@ -204,7 +204,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     const Config &config = GetConfig();
 
-    // Create a node that supports avalanche.
+    // Create nodes that supports avalanche.
     auto avanodes = ConnectNodes(config, p, NODE_AVALANCHE, *peerLogic);
 
     // Querying for random block returns false.
@@ -656,7 +656,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     BOOST_CHECK(p.addBlockToReconcile(pindex));
 
     // Ensure there are enough requests in flight.
-    std::map<NodeId, uint32_t> node_round_map;
+    std::map<NodeId, uint64_t> node_round_map;
     for (int i = 0; i < AVALANCHE_MAX_INFLIGHT_POLL; i++) {
         NodeId nodeid = AvalancheTest::getSuitableNodeToQuery(p);
         BOOST_CHECK(node_round_map.find(nodeid) == node_round_map.end());
@@ -688,6 +688,73 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
     BOOST_CHECK(invs[0].hash == blockHash);
+
+    CConnmanTest::ClearNodes();
+}
+
+BOOST_AUTO_TEST_CASE(quorum_diversity) {
+    AvalancheProcessor p(g_connman.get());
+    std::vector<AvalancheBlockUpdate> updates;
+
+    CBlock block = CreateAndProcessBlock({}, CScript());
+    const uint256 blockHash = block.GetHash();
+    const CBlockIndex *pindex = mapBlockIndex[blockHash];
+
+    const Config &config = GetConfig();
+
+    // Create nodes that supports avalanche.
+    auto avanodes = ConnectNodes(config, p, NODE_AVALANCHE, *peerLogic);
+
+    // Querying for random block returns false.
+    BOOST_CHECK(!p.isAccepted(pindex));
+
+    // Add a new block. Check it is added to the polls.
+    BOOST_CHECK(p.addBlockToReconcile(pindex));
+
+    // Do one valid round of voting.
+    uint64_t round = AvalancheTest::getRound(p);
+    AvalancheResponse resp{round, 0, {AvalancheVote(0, blockHash)}};
+
+    // Check that all nodes can vote.
+    for (size_t i = 0; i < avanodes.size(); i++) {
+        AvalancheTest::runEventLoop(p);
+        BOOST_CHECK(p.registerVotes(avanodes[i]->GetId(), next(resp), updates));
+    }
+
+    // Generate a query for every single node.
+    const NodeId firstNodeId = AvalancheTest::getSuitableNodeToQuery(p);
+    std::map<NodeId, uint64_t> node_round_map;
+    round = AvalancheTest::getRound(p);
+    for (size_t i = 0; i < avanodes.size(); i++) {
+        NodeId nodeid = AvalancheTest::getSuitableNodeToQuery(p);
+        BOOST_CHECK(node_round_map.find(nodeid) == node_round_map.end());
+        node_round_map[nodeid] = AvalancheTest::getRound(p);
+        AvalancheTest::runEventLoop(p);
+    }
+
+    // Now only tge first node can vote. All others would be duplicate in the
+    // quorum.
+    auto confidence = p.getConfidence(pindex);
+    BOOST_REQUIRE(confidence > 0);
+
+    for (auto &pair : node_round_map) {
+        NodeId nodeid = pair.first;
+        uint64_t r = pair.second;
+
+        if (nodeid == firstNodeId) {
+            // Node 0 is the only one which can vote at this stage.
+            round = r;
+            continue;
+        }
+
+        BOOST_CHECK(p.registerVotes(
+            nodeid, {r, 0, {AvalancheVote(0, blockHash)}}, updates));
+        BOOST_CHECK_EQUAL(p.getConfidence(pindex), confidence);
+    }
+
+    BOOST_CHECK(p.registerVotes(
+        firstNodeId, {round, 0, {AvalancheVote(0, blockHash)}}, updates));
+    BOOST_CHECK_EQUAL(p.getConfidence(pindex), confidence + 1);
 
     CConnmanTest::ClearNodes();
 }
