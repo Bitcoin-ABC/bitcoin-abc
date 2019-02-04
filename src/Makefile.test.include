@@ -66,7 +66,7 @@ BITCOIN_TESTS =\
   test/jsonutil.h \
   test/key_tests.cpp \
   test/lcg_tests.cpp \
-  test/lcg_tests.h \
+  test/lcg.h \
   test/limitedmap_tests.cpp \
   test/main_tests.cpp \
   test/mempool_tests.cpp \
