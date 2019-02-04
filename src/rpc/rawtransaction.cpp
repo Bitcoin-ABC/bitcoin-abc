@@ -36,93 +36,14 @@
 
 #include <univalue.h>
 
-void ScriptPubKeyToJSON(const Config &config, const CScript &scriptPubKey,
-                        UniValue &out, bool fIncludeHex) {
-    txnouttype type;
-    std::vector<CTxDestination> addresses;
-    int nRequired;
-
-    out.pushKV("asm", ScriptToAsmStr(scriptPubKey));
-    if (fIncludeHex) {
-        out.pushKV("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
-    }
-
-    if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
-        out.pushKV("type", GetTxnOutputType(type));
-        return;
-    }
-
-    out.pushKV("reqSigs", nRequired);
-    out.pushKV("type", GetTxnOutputType(type));
-
-    UniValue a(UniValue::VARR);
-    for (const CTxDestination &addr : addresses) {
-        a.push_back(EncodeDestination(addr));
-    }
-
-    out.pushKV("addresses", a);
-}
-
-void TxToJSON(const Config &config, const CTransaction &tx,
-              const uint256 hashBlock, UniValue &entry) {
-    entry.pushKV("txid", tx.GetId().GetHex());
-    entry.pushKV("hash", tx.GetHash().GetHex());
-    entry.pushKV("size",
-                 int(::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
-    entry.pushKV("version", tx.nVersion);
-    entry.pushKV("locktime", int64_t(tx.nLockTime));
-
-    UniValue vin(UniValue::VARR);
-    for (unsigned int i = 0; i < tx.vin.size(); i++) {
-        const CTxIn &txin = tx.vin[i];
-        UniValue in(UniValue::VOBJ);
-        if (tx.IsCoinBase()) {
-            in.pushKV("coinbase",
-                      HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
-        } else {
-            in.pushKV("txid", txin.prevout.GetTxId().GetHex());
-            in.pushKV("vout", int64_t(txin.prevout.GetN()));
-            UniValue o(UniValue::VOBJ);
-            o.pushKV("asm", ScriptToAsmStr(txin.scriptSig, true));
-            o.pushKV("hex",
-                     HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
-            in.pushKV("scriptSig", o);
-        }
-
-        in.pushKV("sequence", int64_t(txin.nSequence));
-        vin.push_back(in);
-    }
-
-    entry.pushKV("vin", vin);
-    UniValue vout(UniValue::VARR);
-    for (unsigned int i = 0; i < tx.vout.size(); i++) {
-        const CTxOut &txout = tx.vout[i];
-        UniValue out(UniValue::VOBJ);
-        out.pushKV("value", ValueFromAmount(txout.nValue));
-        out.pushKV("n", int64_t(i));
-        UniValue o(UniValue::VOBJ);
-        ScriptPubKeyToJSON(config, txout.scriptPubKey, o, true);
-        out.pushKV("scriptPubKey", o);
-        vout.push_back(out);
-    }
-
-    entry.pushKV("vout", vout);
-
-    if (!hashBlock.IsNull()) {
-        entry.pushKV("blockhash", hashBlock.GetHex());
-        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-        if (mi != mapBlockIndex.end() && (*mi).second) {
-            CBlockIndex *pindex = (*mi).second;
-            if (chainActive.Contains(pindex)) {
-                entry.pushKV("confirmations",
-                             1 + chainActive.Height() - pindex->nHeight);
-                entry.pushKV("time", pindex->GetBlockTime());
-                entry.pushKV("blocktime", pindex->GetBlockTime());
-            } else {
-                entry.pushKV("confirmations", 0);
-            }
-        }
-    }
+void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
+              UniValue &entry) {
+    // Call into TxToUniv() in bitcoin-common to decode the transaction hex.
+    //
+    // Blockchain contextual information (confirmations and blocktime) is not
+    // available to code in bitcoin-common, so we query them here and push the
+    // data into the returned UniValue.
+    TxToUniv(tx, uint256(), entry);
 }
 
 static UniValue getrawtransaction(const Config &config,
@@ -252,7 +173,7 @@ static UniValue getrawtransaction(const Config &config,
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("hex", strHex);
-    TxToJSON(config, *tx, hashBlock, result);
+    TxToUniv(*tx, hashBlock, result);
     return result;
 }
 
@@ -649,7 +570,7 @@ static UniValue decoderawtransaction(const Config &config,
     }
 
     UniValue result(UniValue::VOBJ);
-    TxToJSON(config, CTransaction(std::move(mtx)), uint256(), result);
+    TxToUniv(CTransaction(std::move(mtx)), uint256(), result);
 
     return result;
 }
@@ -693,7 +614,7 @@ static UniValue decodescript(const Config &config,
         // Empty scripts are valid.
     }
 
-    ScriptPubKeyToJSON(config, script, r, false);
+    ScriptPubKeyToUniv(script, r, false);
 
     UniValue type;
     type = find_value(r, "type");

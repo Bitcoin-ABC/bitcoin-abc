@@ -11,8 +11,6 @@
 
 class CScript;
 
-void ScriptPubKeyToJSON(const Config &config, const CScript &scriptPubKey,
-                        UniValue &out, bool fIncludeHex);
 void TxToJSON(const Config &config, const CTransaction &tx,
               const uint256 hashBlock, UniValue &entry);
 UniValue blockToJSON(const Config &config, const CBlock &block,
