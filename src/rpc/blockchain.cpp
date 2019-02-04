@@ -12,11 +12,11 @@
 #include "coins.h"
 #include "config.h"
 #include "consensus/validation.h"
+#include "core_io.h"
 #include "hash.h"
 #include "policy/policy.h"
 #include "primitives/transaction.h"
 #include "rpc/server.h"
-#include "rpc/tojson.h"
 #include "streams.h"
 #include "sync.h"
 #include "txdb.h"
@@ -118,7 +118,7 @@ UniValue blockToJSON(const Config &config, const CBlock &block,
     for (const auto &tx : block.vtx) {
         if (txDetails) {
             UniValue objTx(UniValue::VOBJ);
-            TxToJSON(config, *tx, uint256(), objTx);
+            TxToUniv(*tx, uint256(), objTx);
             txs.push_back(objTx);
         } else {
             txs.push_back(tx->GetId().GetHex());
@@ -1147,7 +1147,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     }
     ret.pushKV("value", ValueFromAmount(coin.GetTxOut().nValue));
     UniValue o(UniValue::VOBJ);
-    ScriptPubKeyToJSON(config, coin.GetTxOut().scriptPubKey, o, true);
+    ScriptPubKeyToUniv(coin.GetTxOut().scriptPubKey, o, true);
     ret.pushKV("scriptPubKey", o);
     ret.pushKV("coinbase", coin.IsCoinBase());
 
