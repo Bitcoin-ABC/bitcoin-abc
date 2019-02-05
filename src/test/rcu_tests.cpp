@@ -134,15 +134,6 @@ BOOST_AUTO_TEST_CASE(synchronize_test) {
     }
 }
 
-/**
- * Version of Boost::test prior to 1.64 have issues when dealing with nullptr_t.
- * In order to work around this, we ensure that the null pointers are typed in a
- * way that Boost will like better.
- *
- * TODO: Use nullptr directly once the minimum version of boost is 1.64 or more.
- */
-#define NULLPTR(T) static_cast<T *>(nullptr)
-
 BOOST_AUTO_TEST_CASE(cleanup_test) {
     RCULock::synchronize();
     BOOST_CHECK(RCUTest::getCleanups().empty());
