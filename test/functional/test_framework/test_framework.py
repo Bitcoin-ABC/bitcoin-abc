@@ -129,8 +129,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                             help="Attach a python debugger if test fails")
         parser.add_argument("--usecli", dest="usecli", default=False, action="store_true",
                             help="use bitcoin-cli instead of RPC for all commands")
+        parser.add_argument("--perf", dest="perf", default=False, action="store_true",
+                            help="profile running nodes with perf for the duration of the test")
         parser.add_argument("--with-axionactivation", dest="axionactivation", default=False, action="store_true",
                             help="Activate axion update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
+
         self.add_options(parser)
         self.options = parser.parse_args()
 
@@ -212,9 +215,20 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             self.log.info(
                 "Note: bitcoinds were not stopped and may still be running")
 
-        if not self.options.nocleanup and not self.options.noshutdown and success != TestStatus.FAILED:
+        should_clean_up = (
+            not self.options.nocleanup and
+            not self.options.noshutdown and
+            success != TestStatus.FAILED and
+            not self.options.perf
+        )
+        if should_clean_up:
             self.log.info("Cleaning up {} on exit".format(self.options.tmpdir))
             cleanup_tree_on_exit = True
+        elif self.options.perf:
+            self.log.warning(
+                "Not cleaning up dir {} due to perf data".format(
+                    self.options.tmpdir))
+            cleanup_tree_on_exit = False
         else:
             self.log.warning(
                 "Not cleaning up dir {}".format(self.options.tmpdir))
@@ -353,6 +367,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 extra_args=extra_args[i],
                 use_cli=self.options.usecli,
                 emulator=self.options.emulator,
+                start_perf=self.options.perf,
             ))
             if self.options.axionactivation:
                 self.nodes[i].extend_default_args(
