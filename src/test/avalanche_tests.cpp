@@ -111,9 +111,9 @@ BOOST_AUTO_TEST_CASE(vote_record) {
     // Check that inflight accounting work as expected.
     VoteRecord vrinflight(false);
     for (int i = 0; i < 2 * AVALANCHE_MAX_INFLIGHT_POLL; i++) {
-        BOOST_CHECK_EQUAL(vrinflight.shouldPoll(),
-                          i < AVALANCHE_MAX_INFLIGHT_POLL);
-        BOOST_CHECK_EQUAL(vrinflight.registerPoll(), vrinflight.shouldPoll());
+        bool shouldPoll = vrinflight.shouldPoll();
+        BOOST_CHECK_EQUAL(shouldPoll, i < AVALANCHE_MAX_INFLIGHT_POLL);
+        BOOST_CHECK_EQUAL(vrinflight.registerPoll(), shouldPoll);
     }
 
     // Clear various number of inflight requests and check everything behaves as
