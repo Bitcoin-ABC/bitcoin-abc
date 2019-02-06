@@ -83,6 +83,17 @@ TestingSetup::TestingSetup(const std::string &chainName)
     // instead of unit tests, but for now we need these here.
     RPCServer rpcServer;
     RegisterAllRPCCommands(config, rpcServer, tableRPC);
+
+    /**
+     * RPC does not come out of the warmup state on its own. Normally, this is
+     * handled in bitcoind's init path, but unit tests do not trigger this
+     * codepath, so we call it explicitly as part of setup.
+     */
+    std::string rpcWarmupStatus;
+    if (RPCIsInWarmup(&rpcWarmupStatus)) {
+        SetRPCWarmupFinished();
+    }
+
     ClearDatadirCache();
     pathTemp = fs::temp_directory_path() /
                strprintf("test_bitcoin_%lu_%i", (unsigned long)GetTime(),
