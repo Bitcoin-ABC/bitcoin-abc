@@ -148,7 +148,6 @@ BOOST_AUTO_TEST_CASE(bnb_search_test) {
     /////////////////////////
     // Known Outcome tests //
     /////////////////////////
-    BOOST_TEST_MESSAGE("Testing known outcomes");
 
     // Empty utxo pool
     BOOST_CHECK(!SelectCoinsBnB(GroupCoins(utxo_pool), 1 * CENT, CENT / 2,

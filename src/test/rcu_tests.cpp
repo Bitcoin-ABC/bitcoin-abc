@@ -131,6 +131,9 @@ BOOST_AUTO_TEST_CASE(synchronize_test) {
         tlock.join();
         tsync.join();
     }
+
+    // Needed to suppress "Test case [...] did not check any assertions"
+    BOOST_CHECK(true);
 }
 
 BOOST_AUTO_TEST_CASE(cleanup_test) {

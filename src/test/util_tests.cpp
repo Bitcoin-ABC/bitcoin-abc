@@ -36,7 +36,11 @@ BOOST_AUTO_TEST_CASE(util_criticalsection) {
 
     do {
         TRY_LOCK(cs, lockTest);
-        if (lockTest) break;
+        if (lockTest) {
+            // Needed to suppress "Test case [...] did not check any assertions"
+            BOOST_CHECK(true);
+            break;
+        }
 
         BOOST_ERROR("break was swallowed!");
     } while (0);

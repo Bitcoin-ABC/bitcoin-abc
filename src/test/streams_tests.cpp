@@ -204,17 +204,17 @@ BOOST_AUTO_TEST_CASE(streams_empty_vector) {
     CDataStream ds(in, 0, 0);
 
     // read 0 bytes used to cause a segfault on some older systems.
-    ds.read(nullptr, 0);
+    BOOST_CHECK_NO_THROW(ds.read(nullptr, 0));
 
     // Same goes for writing 0 bytes from a vector ...
     const std::vector<char> vdata{'f', 'o', 'o', 'b', 'a', 'r'};
-    ds.insert(ds.begin(), vdata.begin(), vdata.begin());
-    ds.insert(ds.begin(), vdata.begin(), vdata.end());
+    BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), vdata.begin(), vdata.begin()));
+    BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), vdata.begin(), vdata.end()));
 
     // ... or an array.
     const char adata[6] = {'f', 'o', 'o', 'b', 'a', 'r'};
-    ds.insert(ds.begin(), &adata[0], &adata[0]);
-    ds.insert(ds.begin(), &adata[0], &adata[6]);
+    BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), &adata[0], &adata[0]));
+    BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), &adata[0], &adata[6]));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

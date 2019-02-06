@@ -60,7 +60,11 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
 
     fCheckBlockIndex = true;
     SelectParams(chainName);
-    noui_connect();
+    static bool noui_connected = false;
+    if (!noui_connected) {
+        noui_connect();
+        noui_connected = true;
+    }
 }
 
 BasicTestingSetup::~BasicTestingSetup() {
