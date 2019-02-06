@@ -560,6 +560,12 @@ bool HelpRequested(const ArgsManager &args) {
            args.IsArgSet("-help") || args.IsArgSet("-help-debug");
 }
 
+void SetupHelpOptions(ArgsManager &args) {
+    args.AddArg("-?", "Print this help message and exit", false,
+                OptionsCategory::OPTIONS);
+    args.AddHiddenArgs({"-h", "-help"});
+}
+
 static const int screenWidth = 79;
 static const int optIndent = 2;
 static const int msgIndent = 7;

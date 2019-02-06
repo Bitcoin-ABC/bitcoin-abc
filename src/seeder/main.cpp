@@ -122,8 +122,13 @@ public:
 
 private:
     void SetupSeederArgs() {
-        gArgs.AddArg("-?", "Print this help message and exit",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        SetupHelpOptions(gArgs);
+        gArgs.AddArg("-help-debug",
+                     "Show all debugging options (usage: --help -help-debug)",
+                     ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+
+        SetupChainParamsBaseOptions();
+
         gArgs.AddArg("-version", "Print version and exit",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-host=<host>", "Hostname of the DNS seed",
@@ -153,14 +158,6 @@ private:
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg("-wipeignore", "Wipe list of ignored nodes",
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-help-debug",
-                     "Show all debugging options (usage: --help -help-debug)",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-        SetupChainParamsBaseOptions();
-
-        gArgs.AddArg("-help", "", ArgsManager::ALLOW_ANY,
-                     OptionsCategory::HIDDEN);
-        gArgs.AddArg("-h", "", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
     }
 };
 

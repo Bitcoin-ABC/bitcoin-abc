@@ -37,19 +37,21 @@ SET_FALSE_POSITIVE_UNKNOWNS = set([
     '-zmqpubhashtxhwm',
     '-zmqpubrawblockhwm',
     '-zmqpubrawtxhwm',
-
 ])
 
 # list false positive undocumented arguments
-SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-dbcrashratio',
-                                       '-enableminerfund',
-                                       '-forcecompactdb',
-                                       '-parkdeepreorg',
-                                       '-automaticunparking',
-                                       # Remove after November 2020 upgrade
-                                       '-axionactivationtime',
-                                       '-replayprotectionactivationtime',
-                                       ])
+SET_FALSE_POSITIVE_UNDOCUMENTED = set([
+    '-help',
+    '-h',
+    '-dbcrashratio',
+    '-enableminerfund',
+    '-forcecompactdb',
+    '-parkdeepreorg',
+    '-automaticunparking',
+    # Remove after November 2020 upgrade
+    '-axionactivationtime',
+    '-replayprotectionactivationtime',
+])
 
 
 def main():

@@ -347,6 +347,12 @@ static void OnRPCStopped() {
 }
 
 void SetupServerArgs() {
+    SetupHelpOptions(gArgs);
+    // server-only for now
+    gArgs.AddArg("-help-debug",
+                 "Print help message with debugging options and exit", false,
+                 OptionsCategory::DEBUG_TEST);
+
     const auto defaultBaseParams =
         CreateBaseChainParams(CBaseChainParams::MAIN);
     const auto testnetBaseParams =
@@ -361,7 +367,7 @@ void SetupServerArgs() {
 
     // Hidden Options
     std::vector<std::string> hidden_args = {
-        "-h", "-help", "-dbcrashratio", "-forcecompactdb", "-parkdeepreorg",
+        "-dbcrashratio", "-forcecompactdb", "-parkdeepreorg",
         "-automaticunparking", "-replayprotectionactivationtime",
         "-enableminerfund",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
@@ -376,8 +382,6 @@ void SetupServerArgs() {
     // alphabetical ordering. Do not translate _(...) -help-debug options, Many
     // technical terms, and only a very small audience, so is unnecessary stress
     // to translators.
-    gArgs.AddArg("-?", "Print this help message and exit",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
                  OptionsCategory::OPTIONS);
 #if defined(HAVE_SYSTEM)
@@ -891,9 +895,6 @@ void SetupServerArgs() {
                   "in conjunction with -debug=1 to output debug logs for all "
                   "categories except one or more specified categories."),
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-help-debug",
-                 "Print help message with debugging options and exit",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-logips",
                  strprintf("Include IP addresses in debug output (default: %d)",
                            DEFAULT_LOGIPS),
