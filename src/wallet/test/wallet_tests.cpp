@@ -33,6 +33,8 @@ static void AddKey(CWallet &wallet, const CKey &key) {
     wallet.AddKeyPubKey(key, key.GetPubKey());
 }
 
+// Note: when backporting PR14957, see PR15321 and ensure both LockAnnotations
+// are in place.
 BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     auto chain = interfaces::MakeChain();
 
@@ -43,6 +45,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = chainActive.Tip();
 
+    LockAnnotation lock(::cs_main);
     auto locked_chain = chain->lock();
 
     // Verify ScanForWalletTransactions picks up transactions in both the old
@@ -235,6 +238,7 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
     SetMockTime(mockTime);
     CBlockIndex *block = nullptr;
     if (blockTime > 0) {
+        LockAnnotation lock(::cs_main);
         auto locked_chain = wallet.chain().lock();
         auto inserted =
             mapBlockIndex.emplace(BlockHash(GetRandHash()), new CBlockIndex);

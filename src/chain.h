@@ -262,9 +262,9 @@ struct BlockHasher {
     }
 };
 
-typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
-extern BlockMap &mapBlockIndex;
 extern CCriticalSection cs_main;
+typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
+extern BlockMap &mapBlockIndex GUARDED_BY(cs_main);
 
 inline CBlockIndex *LookupBlockIndex(const BlockHash &hash) {
     AssertLockHeld(cs_main);
