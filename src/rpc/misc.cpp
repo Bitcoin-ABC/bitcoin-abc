@@ -156,6 +156,50 @@ static UniValue createmultisig(const Config &config,
     return result;
 }
 
+UniValue getdescriptorinfo(const Config &config,
+                           const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "getdescriptorinfo",
+        {"\nAnalyses a descriptor.\n"},
+        {
+            {"descriptor", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "The descriptor."},
+        },
+        RPCResult{"{\n"
+                  "  \"descriptor\" : \"desc\",         (string) The "
+                  "descriptor in canonical form, without private keys\n"
+                  "  \"isrange\" : true|false,        (boolean) Whether the "
+                  "descriptor is ranged\n"
+                  "  \"issolvable\" : true|false,     (boolean) Whether the "
+                  "descriptor is solvable\n"
+                  "  \"hasprivatekeys\" : true|false, (boolean) Whether the "
+                  "input descriptor contained at least one private key\n"
+                  "}\n"},
+        RPCExamples{"Analyse a descriptor\n" +
+                    HelpExampleCli("getdescriptorinfo",
+                                   "\"pkh([d34db33f/84h/0h/"
+                                   "0h]"
+                                   "0279be667ef9dcbbac55a06295Ce870b07029Bfcdb2"
+                                   "dce28d959f2815b16f81798)\"")}}
+        .Check(request);
+
+    RPCTypeCheck(request.params, {UniValue::VSTR});
+
+    FlatSigningProvider provider;
+    auto desc = Parse(request.params[0].get_str(), provider);
+    if (!desc) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           strprintf("Invalid descriptor"));
+    }
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("descriptor", desc->ToString());
+    result.pushKV("isrange", desc->IsRange());
+    result.pushKV("issolvable", desc->IsSolvable());
+    result.pushKV("hasprivatekeys", provider.keys.size() > 0);
+    return result;
+}
+
 UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "deriveaddresses",
@@ -688,6 +732,7 @@ static const CRPCCommand commands[] = {
     { "util",               "validateaddress",        validateaddress,        {"address"} },
     { "util",               "createmultisig",         createmultisig,         {"nrequired","keys"} },
     { "util",               "deriveaddresses",        deriveaddresses,        {"descriptor", "begin", "end"} },
+    { "util",               "getdescriptorinfo",      getdescriptorinfo,      {"descriptor"} },
     { "util",               "verifymessage",          verifymessage,          {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", signmessagewithprivkey, {"privkey","message"} },
     /* Not shown in help */
