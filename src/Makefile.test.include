@@ -86,6 +86,7 @@ BITCOIN_TESTS =\
   test/rcu_tests.cpp \
   test/reverselock_tests.cpp \
   test/rpc_tests.cpp \
+  test/rpc_server_tests.cpp \
   test/rwcollection_tests.cpp \
   test/sanity_tests.cpp \
   test/scheduler_tests.cpp \

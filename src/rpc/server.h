@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017-2018 The Bitcoin developers
+// Copyright (c) 2017-2019 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,8 +8,10 @@
 #define BITCOIN_RPC_SERVER_H
 
 #include "amount.h"
+#include "rpc/command.h"
 #include "rpc/jsonrpcrequest.h"
 #include "rpc/protocol.h"
+#include "rwcollection.h"
 #include "uint256.h"
 #include "util.h"
 
@@ -47,10 +49,15 @@ struct UniValueType {
     UniValue::VType type;
 };
 
+typedef std::map<std::string, std::unique_ptr<RPCCommand>> RPCCommandMap;
+
 /**
  * Class for registering and managing all RPC calls.
  */
 class RPCServer : public boost::noncopyable {
+private:
+    RWCollection<RPCCommandMap> commands;
+
 public:
     RPCServer() {}
 
@@ -60,6 +67,11 @@ public:
      */
     UniValue ExecuteCommand(Config &config,
                             const JSONRPCRequest &request) const;
+
+    /**
+     * Register an RPC command.
+     */
+    void RegisterCommand(std::unique_ptr<RPCCommand> command);
 };
 
 /**
