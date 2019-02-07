@@ -1183,22 +1183,18 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
         } else if (!check()) {
-            const bool hasNonMandatoryFlags =
-                (flags & STANDARD_NOT_MANDATORY_VERIFY_FLAGS) != 0;
-            if (hasNonMandatoryFlags) {
+            // Compute flags without the optional standardness flags.
+            // This differs from MANDATORY_SCRIPT_VERIFY_FLAGS as it contains
+            // additional upgrade flags (see AcceptToMemoryPoolWorker variable
+            // extraFlags).
+            uint32_t mandatoryFlags =
+                flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS;
+            if (flags != mandatoryFlags) {
                 // Check whether the failure was caused by a non-mandatory
-                // script verification check, such as non-standard DER encodings
-                // or non-null dummy arguments; if so, don't trigger DoS
-                // protection to avoid splitting the network between upgraded
-                // and non-upgraded nodes.
-                //
-                // We also check activating the monolith opcodes as it is a
-                // strictly additive change and we would not like to ban some of
-                // our peer that are ahead of us and are considering the fork
-                // as activated.
-                CScriptCheck check2(scriptPubKey, amount, tx, i,
-                                    flags &
-                                        ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
+                // script verification check. If so, don't trigger DoS
+                // protection to avoid splitting the network on the basis of
+                // relay policy disagreements.
+                CScriptCheck check2(scriptPubKey, amount, tx, i, mandatoryFlags,
                                     sigCacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(
