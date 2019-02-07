@@ -76,8 +76,8 @@ TEST_PARAMS = {
     #    testname --param3
     "wallet_txn_doublespend.py": [["--mineblock"]],
     "wallet_txn_clone.py": [["--mineblock"]],
+    "wallet_createwallet.py": [["--usecli"]],
     "wallet_multiwallet.py": [["--usecli"]],
-    "wallet_disableprivatekeys.py": [["--usecli"]],
 }
 
 # Used to limit the number of tests, when list of tests is not provided on command line
@@ -258,8 +258,8 @@ def main():
 
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:
-        tests_excl = [re.sub(r"\.py$", "", t) +
-                      ".py" for t in args.exclude.split(',')]
+        tests_excl = [re.sub(r"\.py$", "", t)
+                      + ".py" for t in args.exclude.split(',')]
         for exclude_test in tests_excl:
             if exclude_test in test_list:
                 test_list.remove(exclude_test)
@@ -438,7 +438,8 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
                 update_queue.task_done()
             except Empty:
                 if not on_ci():
-                    print("Running jobs: {}".format(", ".join([j[1] for j in running_jobs])), end="\r")
+                    print("Running jobs: {}".format(
+                        ", ".join([j[1] for j in running_jobs])), end="\r")
                     sys.stdout.flush()
                     printed_status = True
 

@@ -206,7 +206,8 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial &vMasterKeyIn) {
             return false;
         }
 
-        bool keyPass = false;
+        // Always pass when there are no encrypted keys
+        bool keyPass = mapCryptedKeys.empty();
         bool keyFail = false;
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
         for (; mi != mapCryptedKeys.end(); ++mi) {

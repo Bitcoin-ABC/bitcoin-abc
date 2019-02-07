@@ -180,12 +180,18 @@ static UniValue getnewaddress(const Config &config,
             HelpExampleRpc("getnewaddress", ""));
     }
 
+    // Belt and suspenders check for disabled private keys
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Error: Private keys are disabled for this wallet");
     }
 
     LOCK(pwallet->cs_wallet);
+
+    if (!pwallet->CanGetAddresses()) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           "Error: This wallet has no available keys");
+    }
 
     // Parse the label first so we don't generate a key if there's an error
     std::string label;
@@ -307,12 +313,18 @@ static UniValue getrawchangeaddress(const Config &config,
             HelpExampleRpc("getrawchangeaddress", ""));
     }
 
+    // Belt and suspenders check for disabled private keys
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Error: Private keys are disabled for this wallet");
     }
 
     LOCK(pwallet->cs_wallet);
+
+    if (!pwallet->CanGetAddresses(true)) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           "Error: This wallet has no available keys");
+    }
 
     if (!pwallet->IsLocked()) {
         pwallet->TopUpKeyPool();
@@ -3781,7 +3793,7 @@ static UniValue loadwallet(const Config &config,
 static UniValue createwallet(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
-        request.params.size() > 2) {
+        request.params.size() > 3) {
         throw std::runtime_error(
             "createwallet \"wallet_name\" ( disable_private_keys )\n"
             "\nCreates and loads a new wallet.\n"
@@ -3792,6 +3804,9 @@ static UniValue createwallet(const Config &config,
             "2. disable_private_keys   (boolean, optional, default: false) "
             "Disable the possibility of private keys (only watchonlys are "
             "possible in this mode).\n"
+            "3. blank   (boolean, optional, default: false) Create a blank "
+            "wallet. A blank wallet has no keys or HD seed. One can be set "
+            "using sethdseed.\n"
             "\nResult:\n"
             "{\n"
             "  \"name\" :    <wallet_name>,        (string) The wallet name if "
@@ -3810,9 +3825,13 @@ static UniValue createwallet(const Config &config,
     std::string error;
     std::string warning;
 
-    bool disable_privatekeys = false;
-    if (!request.params[1].isNull()) {
-        disable_privatekeys = request.params[1].get_bool();
+    uint64_t flags = 0;
+    if (!request.params[1].isNull() && request.params[1].get_bool()) {
+        flags |= WALLET_FLAG_DISABLE_PRIVATE_KEYS;
+    }
+
+    if (!request.params[2].isNull() && request.params[2].get_bool()) {
+        flags |= WALLET_FLAG_BLANK_WALLET;
     }
 
     WalletLocation location(request.params[0].get_str());
@@ -3828,9 +3847,8 @@ static UniValue createwallet(const Config &config,
                            "Wallet file verification failed: " + error);
     }
 
-    std::shared_ptr<CWallet> const wallet = CWallet::CreateWalletFromFile(
-        chainParams, location,
-        (disable_privatekeys ? uint64_t(WALLET_FLAG_DISABLE_PRIVATE_KEYS) : 0));
+    std::shared_ptr<CWallet> const wallet =
+        CWallet::CreateWalletFromFile(chainParams, location, flags);
     if (!wallet) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet creation failed.");
     }
@@ -5063,7 +5081,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     LOCK2(cs_main, pwallet->cs_wallet);
 
     // Do not do anything to non-HD wallets
-    if (!pwallet->IsHDEnabled()) {
+    if (!pwallet->CanSupportFeature(FEATURE_HD)) {
         throw JSONRPCError(
             RPC_WALLET_ERROR,
             "Cannot set a HD seed on a non-HD wallet. Start with "
@@ -5410,7 +5428,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "wallet",             "abandontransaction",           abandontransaction,           {"txid"} },
     { "wallet",             "addmultisigaddress",           addmultisigaddress,           {"nrequired","keys","label|account"} },
     { "wallet",             "backupwallet",                 backupwallet,                 {"destination"} },
-    { "wallet",             "createwallet",                 createwallet,                 {"wallet_name", "disable_private_keys"} },
+    { "wallet",             "createwallet",                 createwallet,                 {"wallet_name", "disable_private_keys", "blank"} },
     { "wallet",             "encryptwallet",                encryptwallet,                {"passphrase"} },
     { "wallet",             "getaddressinfo",               getaddressinfo,               {"address"} },
     { "wallet",             "getbalance",                   getbalance,                   {"account|dummy","minconf","include_watchonly"} },

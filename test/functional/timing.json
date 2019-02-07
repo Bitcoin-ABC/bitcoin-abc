@@ -376,14 +376,6 @@
   "time": 0
  },
  {
-  "name": "wallet_disableprivatekeys.py",
-  "time": 1
- },
- {
-  "name": "wallet_disableprivatekeys.py --usecli",
-  "time": 1
- },
- {
   "name": "wallet_dump.py",
   "time": 4
  },
