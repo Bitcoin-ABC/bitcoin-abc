@@ -7,6 +7,7 @@ This release includes the following features and fixes:
  - `importwallet` now imports these scripts, but corresponding addresses may not
    be added correctly or a manual rescan may be required to find relevant 
    transactions
+ - `getblock <hash> 2` (verbosity = 2) now returns `hex` values in transaction JSON blobs
  - Remove miner policy estimator in favor of minimum fees, also remove `fee_estimates.dat`.
    Old copies will be left in place.
  - The log timestamp format is now ISO 8601 (e.g. "2019-01-28T15:41:17Z")
