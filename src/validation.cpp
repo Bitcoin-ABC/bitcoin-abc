@@ -1904,14 +1904,6 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO,
              nTimeCallbacks * MILLI / nBlocksTotal);
 
-    // If we just activated the replay protection with that block, it means
-    // transaction in the mempool are now invalid. As a result, we need to clear
-    // the mempool.
-    if (IsReplayProtectionEnabled(config, pindex) &&
-        !IsReplayProtectionEnabled(config, pindex->pprev)) {
-        g_mempool.clear();
-    }
-
     return true;
 }
 
@@ -2404,6 +2396,8 @@ static bool ConnectTip(const Config &config, CValidationState &state,
                        const std::shared_ptr<const CBlock> &pblock,
                        ConnectTrace &connectTrace,
                        DisconnectedBlockTransactions &disconnectpool) {
+    AssertLockHeld(cs_main);
+
     assert(pindexNew->pprev == chainActive.Tip());
     // Read block from disk.
     int64_t nTime1 = GetTimeMicros();
@@ -2479,6 +2473,14 @@ static bool ConnectTip(const Config &config, CValidationState &state,
              "  - Writing chainstate: %.2fms [%.2fs (%.2fms/blk)]\n",
              (nTime5 - nTime4) * MILLI, nTimeChainState * MICRO,
              nTimeChainState * MILLI / nBlocksTotal);
+
+    // If we just activated the replay protection with that block, it means
+    // transaction in the mempool are now invalid. As a result, we need to clear
+    // the mempool.
+    if (IsReplayProtectionEnabled(config, pindexNew) &&
+        !IsReplayProtectionEnabled(config, pindexNew->pprev)) {
+        g_mempool.clear();
+    }
 
     // Remove conflicting transactions from the mempool.;
     g_mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);

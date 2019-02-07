@@ -234,6 +234,10 @@ class ReplayProtectionTest(ComparisonTestFramework):
         block(5556)
         yield accepted()
 
+        # Check we just activated the replay protection
+        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
+                     REPLAY_PROTECTION_START_TIME)
+
         # Non replay protected transactions are not valid anymore,
         # so they should be removed from the mempool.
         assert(tx_id not in set(node.getrawmempool()))
@@ -252,8 +256,27 @@ class ReplayProtectionTest(ComparisonTestFramework):
         tip(5556)
 
         # The replay protected transaction is now valid
-        send_transaction_to_mempool(replay_txns[0])
-        replay_tx_id = send_transaction_to_mempool(replay_txns[1])
+        replay_tx0_id = send_transaction_to_mempool(replay_txns[0])
+        replay_tx1_id = send_transaction_to_mempool(replay_txns[1])
+
+        # Make sure the transaction are ready to be mined.
+        tmpl = node.getblocktemplate()
+
+        found_id0 = False
+        found_id1 = False
+
+        for txn in tmpl['transactions']:
+            txid = txn['txid']
+            if txid == replay_tx0_id:
+                found_id0 = True
+            elif txid == replay_tx1_id:
+                found_id1 = True
+
+        assert(found_id0 and found_id1)
+
+        # And the mempool is still in good shape.
+        assert(replay_tx0_id in set(node.getrawmempool()))
+        assert(replay_tx1_id in set(node.getrawmempool()))
 
         # They also can also be mined
         b5 = block(5)
@@ -263,18 +286,21 @@ class ReplayProtectionTest(ComparisonTestFramework):
         # Ok, now we check if a reorg work properly accross the activation.
         postforkblockid = node.getbestblockhash()
         node.invalidateblock(postforkblockid)
-        assert(replay_tx_id in set(node.getrawmempool()))
+        assert(replay_tx0_id in set(node.getrawmempool()))
+        assert(replay_tx1_id in set(node.getrawmempool()))
 
         # Deactivating replay protection.
         forkblockid = node.getbestblockhash()
         node.invalidateblock(forkblockid)
-        assert(replay_tx_id not in set(node.getrawmempool()))
+        assert(replay_tx0_id not in set(node.getrawmempool()))
+        assert(replay_tx1_id not in set(node.getrawmempool()))
 
         # Check that we also do it properly on deeper reorg.
         node.reconsiderblock(forkblockid)
         node.reconsiderblock(postforkblockid)
         node.invalidateblock(forkblockid)
-        assert(replay_tx_id not in set(node.getrawmempool()))
+        assert(replay_tx0_id not in set(node.getrawmempool()))
+        assert(replay_tx1_id not in set(node.getrawmempool()))
 
 
 if __name__ == '__main__':
