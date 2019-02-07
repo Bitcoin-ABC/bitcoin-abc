@@ -54,9 +54,11 @@ static std::string DecodeDumpString(const std::string &str) {
     return ret.str();
 }
 
-bool GetWalletAddressesForKey(const Config &config, CWallet *const pwallet,
-                              const CKeyID &keyid, std::string &strAddr,
-                              std::string &strLabel) {
+static bool GetWalletAddressesForKey(const Config &config,
+                                     CWallet *const pwallet,
+                                     const CKeyID &keyid, std::string &strAddr,
+                                     std::string &strLabel)
+    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
     bool fLabelFound = false;
     CKey key;
     pwallet->GetKey(keyid, key);

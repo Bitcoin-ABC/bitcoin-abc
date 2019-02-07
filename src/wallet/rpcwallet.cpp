@@ -1525,7 +1525,8 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
                              CWallet *const pwallet, const CWalletTx &wtx,
                              int nMinDepth, bool fLong, UniValue &ret,
                              const isminefilter &filter_ismine,
-                             const std::string *filter_label) {
+                             const std::string *filter_label)
+    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
     Amount nFee;
     std::list<COutputEntry> listReceived;
     std::list<COutputEntry> listSent;

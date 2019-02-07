@@ -106,7 +106,6 @@ static std::shared_ptr<CWallet> LoadWallet(const std::string &name,
 }
 
 static void WalletShowInfo(CWallet *wallet_instance) {
-    // lock required because of some AssertLockHeld()
     LOCK(wallet_instance->cs_wallet);
 
     tfm::format(std::cout, "Wallet info\n===========\n");

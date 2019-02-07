@@ -38,6 +38,7 @@ BOOST_AUTO_TEST_CASE(write_erase_name) {
     BOOST_CHECK(batch.WriteName(dst2, "name2"));
     {
         auto w = LoadWallet(batch);
+        LOCK(w->cs_wallet);
         BOOST_CHECK_EQUAL(1, w->mapAddressBook.count(dst1));
         BOOST_CHECK_EQUAL("name1", w->mapAddressBook[dst1].name);
         BOOST_CHECK_EQUAL("name2", w->mapAddressBook[dst2].name);
@@ -47,6 +48,7 @@ BOOST_AUTO_TEST_CASE(write_erase_name) {
 
     {
         auto w = LoadWallet(batch);
+        LOCK(w->cs_wallet);
         BOOST_CHECK_EQUAL(0, w->mapAddressBook.count(dst1));
         BOOST_CHECK_EQUAL(1, w->mapAddressBook.count(dst2));
     }
@@ -62,6 +64,7 @@ BOOST_AUTO_TEST_CASE(write_erase_purpose) {
     BOOST_CHECK(batch.WritePurpose(dst2, "purpose2"));
     {
         auto w = LoadWallet(batch);
+        LOCK(w->cs_wallet);
         BOOST_CHECK_EQUAL(1, w->mapAddressBook.count(dst1));
         BOOST_CHECK_EQUAL("purpose1", w->mapAddressBook[dst1].purpose);
         BOOST_CHECK_EQUAL("purpose2", w->mapAddressBook[dst2].purpose);
@@ -71,6 +74,7 @@ BOOST_AUTO_TEST_CASE(write_erase_purpose) {
 
     {
         auto w = LoadWallet(batch);
+        LOCK(w->cs_wallet);
         BOOST_CHECK_EQUAL(0, w->mapAddressBook.count(dst1));
         BOOST_CHECK_EQUAL(1, w->mapAddressBook.count(dst2));
     }
@@ -88,6 +92,7 @@ BOOST_AUTO_TEST_CASE(write_erase_destdata) {
     BOOST_CHECK(batch.WriteDestData(dst2, "key2", "value4"));
     {
         auto w = LoadWallet(batch);
+        LOCK(w->cs_wallet);
         std::string val;
         BOOST_CHECK(w->GetDestData(dst1, "key1", &val));
         BOOST_CHECK_EQUAL("value1", val);
@@ -103,6 +108,7 @@ BOOST_AUTO_TEST_CASE(write_erase_destdata) {
 
     {
         auto w = LoadWallet(batch);
+        LOCK(w->cs_wallet);
         std::string dummy;
         BOOST_CHECK(w->GetDestData(dst1, "key1", &dummy));
         BOOST_CHECK(!w->GetDestData(dst1, "key2", &dummy));

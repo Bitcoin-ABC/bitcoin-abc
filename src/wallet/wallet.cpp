@@ -3555,7 +3555,6 @@ bool CWallet::SetAddressBook(const CTxDestination &address,
                              const std::string &strPurpose) {
     bool fUpdated = false;
     {
-        // mapAddressBook
         LOCK(cs_wallet);
         std::map<CTxDestination, CAddressBookData>::iterator mi =
             mapAddressBook.find(address);
@@ -3579,7 +3578,6 @@ bool CWallet::SetAddressBook(const CTxDestination &address,
 
 bool CWallet::DelAddressBook(const CTxDestination &address) {
     {
-        // mapAddressBook
         LOCK(cs_wallet);
 
         // Delete destdata tuples associated with address.
@@ -4336,7 +4334,6 @@ bool CWallet::GetDestData(const CTxDestination &dest, const std::string &key,
 
 std::vector<std::string>
 CWallet::GetDestValues(const std::string &prefix) const {
-    LOCK(cs_wallet);
     std::vector<std::string> values;
     for (const auto &address : mapAddressBook) {
         for (const auto &data : address.second.destdata) {

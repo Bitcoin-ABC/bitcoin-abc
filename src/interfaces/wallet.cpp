@@ -226,6 +226,7 @@ namespace {
         }
         std::vector<std::string>
         getDestValues(const std::string &prefix) override {
+            LOCK(m_wallet.cs_wallet);
             return m_wallet.GetDestValues(prefix);
         }
         void lockCoin(const COutPoint &output) override {
