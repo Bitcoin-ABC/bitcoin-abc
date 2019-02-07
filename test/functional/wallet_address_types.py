@@ -36,6 +36,10 @@ from decimal import Decimal
 import itertools
 
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.descriptors import (
+    descsum_create,
+    descsum_check,
+)
 from test_framework.util import (
     assert_equal,
     assert_greater_than,
@@ -111,14 +115,20 @@ class AddressTypeTest(BitcoinTestFramework):
             key_descs[deriv['pubkey']] = '[' + deriv['master_fingerprint'] + \
                 deriv['path'][1:] + ']' + deriv['pubkey']
 
+        # Verify the descriptor checksum against the Python implementation
+        assert(descsum_check(info['desc']))
+        # Verify that stripping the checksum and recreating it using Python
+        # roundtrips
+        assert(info['desc'] == descsum_create(info['desc'][:-9]))
+
         if not multisig and typ == 'legacy':
             # P2PKH
             assert_equal(info['desc'],
-                         "pkh({})".format(key_descs[info['pubkey']]))
+                         descsum_create("pkh({})".format(key_descs[info['pubkey']])))
         elif typ == 'legacy':
             # P2SH-multisig
-            assert_equal(info['desc'], "sh(multi(2,{},{}))".format(
-                key_descs[info['pubkeys'][0]], key_descs[info['pubkeys'][1]]))
+            assert_equal(info['desc'], descsum_create("sh(multi(2,{},{}))".format(
+                key_descs[info['pubkeys'][0]], key_descs[info['pubkeys'][1]])))
         else:
             # Unknown type
             assert(False)

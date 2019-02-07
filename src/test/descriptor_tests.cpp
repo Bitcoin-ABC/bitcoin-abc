@@ -20,8 +20,8 @@ void CheckUnparsable(const std::string &prv, const std::string &pub) {
     FlatSigningProvider keys_priv, keys_pub;
     auto parse_priv = Parse(prv, keys_priv);
     auto parse_pub = Parse(pub, keys_pub);
-    BOOST_CHECK(!parse_priv);
-    BOOST_CHECK(!parse_pub);
+    BOOST_CHECK_MESSAGE(!parse_priv, prv);
+    BOOST_CHECK_MESSAGE(!parse_pub, pub);
 }
 
 constexpr int DEFAULT = 0;
@@ -35,12 +35,34 @@ constexpr int UNSOLVABLE = 4;
 // derivation is used, as that's not integrated in our signing code)
 constexpr int SIGNABLE = 8;
 
+/**
+ * Compare two descriptors. If only one of them has a checksum, the checksum is
+ * ignored.
+ */
+bool EqualDescriptor(std::string a, std::string b) {
+    bool a_check = (a.size() > 9 && a[a.size() - 9] == '#');
+    bool b_check = (b.size() > 9 && b[b.size() - 9] == '#');
+    if (a_check != b_check) {
+        if (a_check) {
+            a = a.substr(0, a.size() - 9);
+        }
+        if (b_check) {
+            b = b.substr(0, b.size() - 9);
+        }
+    }
+    return a == b;
+}
+
 std::string MaybeUseHInsteadOfApostrophy(std::string ret) {
     if (InsecureRandBool()) {
         while (true) {
             auto it = ret.find("'");
             if (it != std::string::npos) {
                 ret[it] = 'h';
+                if (ret.size() > 9 && ret[ret.size() - 9] == '#') {
+                    // Changing apostrophe to h breaks the checksum
+                    ret = ret.substr(0, ret.size() - 9);
+                }
             } else {
                 break;
             }
@@ -71,17 +93,17 @@ void Check(const std::string &prv, const std::string &pub, int flags,
     // Check that both versions serialize back to the public version.
     std::string pub1 = parse_priv->ToString();
     std::string pub2 = parse_pub->ToString();
-    BOOST_CHECK_EQUAL(pub, pub1);
-    BOOST_CHECK_EQUAL(pub, pub2);
+    BOOST_CHECK(EqualDescriptor(pub, pub1));
+    BOOST_CHECK(EqualDescriptor(pub, pub2));
 
     // Check that both can be serialized with private key back to the private
     // version, but not without private key.
     std::string prv1, prv2;
     BOOST_CHECK(parse_priv->ToPrivateString(keys_priv, prv1));
-    BOOST_CHECK_EQUAL(prv, prv1);
+    BOOST_CHECK(EqualDescriptor(prv, prv1));
     BOOST_CHECK(!parse_priv->ToPrivateString(keys_pub, prv1));
     BOOST_CHECK(parse_pub->ToPrivateString(keys_priv, prv1));
-    BOOST_CHECK_EQUAL(prv, prv1);
+    BOOST_CHECK(EqualDescriptor(prv, prv1));
     BOOST_CHECK(!parse_pub->ToPrivateString(keys_pub, prv1));
 
     // Check whether IsRange on both returns the expected result
@@ -385,6 +407,106 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "sh(sh(pk("
         "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd))"
         ")");
+
+    // Checksums
+    Check("sh(multi(2,[00000000/111'/"
+          "222]"
+          "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39"
+          "njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+          "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7"
+          "AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))#ggrsrxfy",
+          "sh(multi(2,[00000000/111'/"
+          "222]"
+          "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4"
+          "koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+          "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHB"
+          "aohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5t",
+          DEFAULT, {{"a91445a9a622a8b0a1269944be477640eedc447bbd8487"}},
+          {{0x8000006FUL, 222}, {0}});
+    Check("sh(multi(2,[00000000/111'/"
+          "222]"
+          "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39"
+          "njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+          "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7"
+          "AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))",
+          "sh(multi(2,[00000000/111'/"
+          "222]"
+          "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4"
+          "koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+          "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHB"
+          "aohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))",
+          DEFAULT, {{"a91445a9a622a8b0a1269944be477640eedc447bbd8487"}},
+          {{0x8000006FUL, 222}, {0}});
+    // Empty checksum
+    CheckUnparsable(
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39nj"
+        "GVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+        "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AA"
+        "NYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))#",
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
+        "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+        "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#");
+    // Too long checksum
+    CheckUnparsable(
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39nj"
+        "GVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+        "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AA"
+        "NYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))#ggrsrxfyq",
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
+        "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+        "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5tq");
+    // Too short checksum
+    CheckUnparsable(
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39nj"
+        "GVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+        "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AA"
+        "NYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))#ggrsrxf",
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
+        "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+        "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5");
+    // Error in payload
+    CheckUnparsable(
+        "sh(multi(3,[00000000/111'/"
+        "222]"
+        "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39nj"
+        "GVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+        "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AA"
+        "NYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))#ggrsrxfy",
+        "sh(multi(3,[00000000/111'/"
+        "222]"
+        "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
+        "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+        "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5t");
+    // Error in checksum
+    CheckUnparsable(
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39nj"
+        "GVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+        "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AA"
+        "NYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))#ggssrxfy",
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
+        "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+        "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjq09x4t");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
