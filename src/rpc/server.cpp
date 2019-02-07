@@ -1,5 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2018-2019 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -39,6 +40,9 @@ static std::map<std::string, std::unique_ptr<RPCTimerBase>> deadlineTimers;
 UniValue RPCServer::ExecuteCommand(Config &config,
                                    const JSONRPCRequest &request) const {
     // Return immediately if in warmup
+    // This is retained from the old RPC implementation because a lot of state
+    // is set during warmup that RPC commands may depend on.  This can be
+    // safely removed once global variable usage has been eliminated.
     {
         LOCK(cs_rpcWarmup);
         if (fRPCInWarmup) {
@@ -46,11 +50,27 @@ UniValue RPCServer::ExecuteCommand(Config &config,
         }
     }
 
-    // TODO Only call tableRPC.execute() if no context-sensitive RPC command
-    // exists
+    std::string commandName = request.strMethod;
+    {
+        auto commandsReadView = commands.getReadView();
+        auto iter = commandsReadView->find(commandName);
+        if (iter != commandsReadView.end()) {
+            return iter->second.get()->Execute(request.params);
+        }
+    }
+
+    // TODO Remove the below call to tableRPC.execute() and only call it for
+    // context-free RPC commands via an implementation of RPCCommand.
 
     // Check if context-free RPC method is valid and execute it
     return tableRPC.execute(config, request);
+}
+
+void RPCServer::RegisterCommand(std::unique_ptr<RPCCommand> command) {
+    if (command != nullptr) {
+        commands.getWriteView()->insert(
+            std::make_pair(command->GetName(), std::move(command)));
+    }
 }
 
 static struct CRPCSignals {
