@@ -35,6 +35,10 @@
         "check-doc": {
             "type": "check-doc",
             "include": "(^src/.*\\.(h|c|cpp)$)"
+        },
+        "lint-tests": {
+            "type": "lint-tests",
+            "include": "(^src/(rpc/|wallet/)?test/.*\\.(cpp)$)"
         }
     }
 }
