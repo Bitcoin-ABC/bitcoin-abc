@@ -7,22 +7,16 @@
 #
 # Check the test suite naming conventions
 
-EXIT_CODE=0
-
 TOPDIR=${TOPDIR:-$(git rev-parse --show-toplevel)}
 
 NAMING_INCONSISTENCIES=$(git grep -E '^BOOST_FIXTURE_TEST_SUITE\(' -- \
-    "${TOPDIR}/src/test/**.cpp" \
-    "${TOPDIR}/src/rpc/test/**.cpp" \
-    "${TOPDIR}/src/wallet/test/**.cpp" | \
-    grep -vE '/(.*?)\.cpp:BOOST_FIXTURE_TEST_SUITE\(\1, .*\)$')
+    "${1}" | grep -vE '/(.*?)\.cpp:BOOST_FIXTURE_TEST_SUITE\(\1, .*\)$')
 if [[ ${NAMING_INCONSISTENCIES} != "" ]]; then
     echo "The test suite in file src/test/foo_tests.cpp should be named"
     echo "\"foo_tests\". Please make sure the following test suites follow"
     echo "that convention:"
     echo
     echo "${NAMING_INCONSISTENCIES}"
-    EXIT_CODE=1
 fi
 
 TEST_SUITE_NAME_COLLISIONS=$(git grep -E '^BOOST_FIXTURE_TEST_SUITE\(' -- \
@@ -35,7 +29,6 @@ if [[ ${TEST_SUITE_NAME_COLLISIONS} != "" ]]; then
     echo "appear to be used more than once:"
     echo
     echo "${TEST_SUITE_NAME_COLLISIONS}"
-    EXIT_CODE=1
 fi
 
-exit ${EXIT_CODE}
+exit 0
