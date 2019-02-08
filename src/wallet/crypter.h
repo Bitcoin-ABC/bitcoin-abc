@@ -66,14 +66,14 @@ public:
 
 typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;
 
-namespace wallet_crypto {
+namespace wallet_crypto_tests {
 class TestCrypter;
 }
 
 /** Encryption/decryption context with key information */
 class CCrypter {
     // for test access to chKey/chIV
-    friend class wallet_crypto::TestCrypter;
+    friend class wallet_crypto_tests::TestCrypter;
 
 private:
     std::vector<uint8_t, secure_allocator<uint8_t>> vchKey;
