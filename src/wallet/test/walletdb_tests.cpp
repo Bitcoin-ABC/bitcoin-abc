@@ -42,7 +42,7 @@ static std::unique_ptr<CWallet> LoadWallet(CWalletDB *db) {
 }
 } // namespace
 
-BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletDBTestingSetup);
+BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletDBTestingSetup)
 
 BOOST_AUTO_TEST_CASE(write_erase_name) {
     auto walletdbwrapper = TmpDB(pathTemp, "write_erase_name");
