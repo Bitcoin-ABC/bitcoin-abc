@@ -1,5 +1,5 @@
 ---
-name: "bitcoin-abc-0.18-linux"
+name: "bitcoin-abc-0.19-linux"
 enable_cache: true
 distro: "debian"
 suites:
