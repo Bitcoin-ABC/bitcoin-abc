@@ -844,6 +844,10 @@ struct TxCoinAgePriorityCompare {
  * Instead, store the disconnected transactions (in order!) as we go, remove any
  * that are included in blocks in the new chain, and then process the remaining
  * still-unconfirmed transactions at the end.
+ *
+ * It also enables efficient reprocessing of current mempool entries, useful
+ * when (de)activating forks that result in in-mempool transactions becoming
+ * invalid
  */
 // multi_index tag names
 struct txid_index {};
@@ -893,6 +897,11 @@ public:
     const indexed_disconnected_transactions &GetQueuedTx() const {
         return queuedTx;
     }
+
+    // Import mempool entries in topological order into queuedTx and clear the
+    // mempool. Caller should call updateMempoolForReorg to reprocess these
+    // transactions
+    void importMempool(CTxMemPool &pool);
 
     // Add entries for a block while reconstructing the topological ordering so
     // they can be added back to the mempool simply.
