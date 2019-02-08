@@ -5,10 +5,10 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.messages import FromHex
 from test_framework.mininode import CTransaction, network_thread_start
 from test_framework.blocktools import create_coinbase, create_block
 from test_framework.script import CScript
-from io import BytesIO
 import time
 
 NULLDUMMY_ERROR = "64: non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)"
@@ -90,10 +90,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
         outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
         signresult = node.signrawtransaction(rawtx)
-        tx = CTransaction()
-        f = BytesIO(hex_str_to_bytes(signresult['hex']))
-        tx.deserialize(f)
-        return tx
+        return FromHex(CTransaction(), signresult['hex'])
 
     def block_submit(self, node, txs, accept=False):
         block = create_block(self.tip, create_coinbase(
