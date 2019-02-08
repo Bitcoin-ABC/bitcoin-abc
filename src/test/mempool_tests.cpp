@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "policy/policy.h"
+#include "reverse_iterator.h"
 #include "txmempool.h"
 #include "util.h"
 
@@ -791,6 +792,96 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     // ... with a 1/4 halflife when mempool is < 1/4 its target size
 
     SetMockTime(0);
+}
+
+// expectedSize can be smaller than correctlyOrderedIds.size(), since we
+// might be testing intermediary states. Just avoiding some slice operations,
+void CheckDisconnectPoolOrder(DisconnectedBlockTransactions &disconnectPool,
+                              std::vector<TxId> correctlyOrderedIds,
+                              unsigned int expectedSize) {
+    int i = 0;
+    BOOST_CHECK_EQUAL(disconnectPool.GetQueuedTx().size(), expectedSize);
+    // Txns in queuedTx's insertion_order index are sorted from children to
+    // parent txn
+    for (const CTransactionRef &tx :
+         reverse_iterate(disconnectPool.GetQueuedTx().get<insertion_order>())) {
+        BOOST_CHECK(tx->GetId() == correctlyOrderedIds[i]);
+        i++;
+    }
+}
+
+typedef std::vector<CMutableTransaction *> vecptx;
+
+BOOST_AUTO_TEST_CASE(TestImportMempool) {
+    CMutableTransaction chainedTxn[5];
+    std::vector<TxId> correctlyOrderedIds;
+    COutPoint lastOutpoint;
+
+    // Construct a chain of 5 transactions
+    for (int i = 0; i < 5; i++) {
+        chainedTxn[i].vin.emplace_back(lastOutpoint);
+        chainedTxn[i].vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
+        correctlyOrderedIds.push_back(chainedTxn[i].GetId());
+        lastOutpoint = COutPoint(correctlyOrderedIds[i], 0);
+    }
+
+    // The first 3 txns simulate once confirmed transactions that have been
+    // disconnected. We test 3 different orders: in order, one case of mixed
+    // order and inverted order.
+    vecptx disconnectedTxnsInOrder = {&chainedTxn[0], &chainedTxn[1],
+                                      &chainedTxn[2]};
+    vecptx disconnectedTxnsMixedOrder = {&chainedTxn[1], &chainedTxn[2],
+                                         &chainedTxn[0]};
+    vecptx disconnectedTxnsInvertedOrder = {&chainedTxn[2], &chainedTxn[1],
+                                            &chainedTxn[0]};
+
+    // The last 2 txns simulate a chain of unconfirmed transactions in the
+    // mempool. We test 2 different orders: in and out of order.
+    vecptx unconfTxnsInOrder = {&chainedTxn[3], &chainedTxn[4]};
+    vecptx unconfTxnsOutOfOrder = {&chainedTxn[4], &chainedTxn[3]};
+
+    // Now we test all combinations of the previously defined orders for
+    // disconnected and unconfirmed txns. The expected outcome is to have these
+    // transactions in the correct order in queuedTx, as defined in
+    // correctlyOrderedIds.
+    for (auto &disconnectedTxns :
+         {disconnectedTxnsInOrder, disconnectedTxnsMixedOrder,
+          disconnectedTxnsInvertedOrder}) {
+        for (auto &unconfTxns : {unconfTxnsInOrder, unconfTxnsOutOfOrder}) {
+            // addForBlock inserts disconnectTxns in disconnectPool. They
+            // simulate transactions that were once confirmed in a block
+            std::vector<CTransactionRef> vtx;
+            for (auto tx : disconnectedTxns) {
+                vtx.push_back(MakeTransactionRef(*tx));
+            }
+            DisconnectedBlockTransactions disconnectPool;
+            disconnectPool.addForBlock(vtx);
+            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                     disconnectedTxns.size());
+
+            // If the mempool is empty, importMempool doesn't change
+            // disconnectPool
+            CTxMemPool testPool;
+            disconnectPool.importMempool(testPool);
+            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                     disconnectedTxns.size());
+
+            // Add all unconfirmed transactions in testPool
+            for (auto tx : unconfTxns) {
+                TestMemPoolEntryHelper entry;
+                testPool.addUnchecked(tx->GetId(), entry.FromTx(*tx));
+            }
+
+            // Now we test importMempool with a non empty mempool
+            disconnectPool.importMempool(testPool);
+            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                     disconnectedTxns.size() +
+                                         unconfTxns.size());
+            // We must clear disconnectPool to not trigger the assert in its
+            // destructor
+            disconnectPool.clear();
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

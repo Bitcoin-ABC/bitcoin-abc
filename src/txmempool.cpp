@@ -1321,6 +1321,43 @@ void DisconnectedBlockTransactions::addForBlock(
     }
 }
 
+void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
+    // addForBlock's algorithm sorts a vector of transactions back into
+    // topological order. We use it in a separate object to create a valid
+    // ordering of all mempool transactions, which we then splice in front of
+    // the current queuedTx. This results in a valid sequence of transactions to
+    // be reprocessed in updateMempoolForReorg.
+
+    // We create vtx in order of the entry_time index to facilitate for
+    // addForBlocks (which iterates in reverse order), as vtx probably end in
+    // the correct ordering for queuedTx.
+    std::vector<CTransactionRef> vtx;
+    {
+        LOCK(pool.cs);
+        vtx.reserve(pool.mapTx.size());
+        for (const CTxMemPoolEntry &e : pool.mapTx.get<entry_time>()) {
+            vtx.push_back(e.GetSharedTx());
+        }
+        pool.clear();
+    }
+
+    // Use addForBlocks to sort the transactions and then splice them in front
+    // of queuedTx
+    DisconnectedBlockTransactions orderedTxnPool;
+    orderedTxnPool.addForBlock(vtx);
+    cachedInnerUsage += orderedTxnPool.cachedInnerUsage;
+    queuedTx.get<insertion_order>().splice(
+        queuedTx.get<insertion_order>().begin(),
+        orderedTxnPool.queuedTx.get<insertion_order>());
+
+    // We limit memory usage because we can't know if more blocks will be
+    // disconnected
+    while (DynamicMemoryUsage() > MAX_DISCONNECTED_TX_POOL_SIZE) {
+        // Drop the earliest entry which, by definition, has no children
+        removeEntry(queuedTx.get<insertion_order>().begin());
+    }
+}
+
 void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
                                                           bool fAddToMempool) {
     AssertLockHeld(cs_main);
