@@ -6,7 +6,6 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.mininode import *
-from io import BytesIO
 
 
 class DecodeScriptTest(BitcoinTestFramework):
@@ -145,8 +144,7 @@ class DecodeScriptTest(BitcoinTestFramework):
         assert_equal(
             'OP_HASH160 2a5edea39971049a540474c6a99edf0aa4074c58 OP_EQUAL',
             rpc_result['vout'][1]['scriptPubKey']['asm'])
-        txSave = CTransaction()
-        txSave.deserialize(BytesIO(hex_str_to_bytes(tx)))
+        txSave = FromHex(CTransaction(), tx)
 
         # make sure that a specifically crafted op_return value will not pass
         # all the IsDERSignature checks and then get decoded as a sighash type
