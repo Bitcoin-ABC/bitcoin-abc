@@ -12,7 +12,6 @@ from test_framework.util import *
 from test_framework.mininode import *
 from test_framework.blocktools import create_coinbase, create_block
 from test_framework.script import CScript
-from io import BytesIO
 
 DERSIG_HEIGHT = 1251
 
@@ -46,9 +45,7 @@ def create_transaction(node, coinbase, to_address, amount):
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
     signresult = node.signrawtransaction(rawtx)
-    tx = CTransaction()
-    tx.deserialize(BytesIO(hex_str_to_bytes(signresult['hex'])))
-    return tx
+    return FromHex(CTransaction(), signresult['hex'])
 
 
 class BIP66Test(BitcoinTestFramework):
