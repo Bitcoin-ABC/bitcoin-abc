@@ -7,15 +7,6 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-from test_framework.mininode import CTransaction
-from io import BytesIO
-
-
-def txFromHex(hexstring):
-    tx = CTransaction()
-    f = BytesIO(hex_str_to_bytes(hexstring))
-    tx.deserialize(f)
-    return tx
 
 
 class ListTransactionsTest(BitcoinTestFramework):
