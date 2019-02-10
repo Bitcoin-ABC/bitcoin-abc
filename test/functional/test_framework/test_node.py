@@ -61,10 +61,13 @@ class TestNode():
             self.binary = binary
         self.stderr = stderr
         self.coverage_dir = coverage_dir
-        # Most callers will just need to add extra args to the standard list below. For those callers that need more flexibity, they can just set the args property directly.
+        # Most callers will just need to add extra args to the default list
+        # below.
+        # For those callers that need more flexibity, they can access the
+        # default args using the provided facilities
         self.extra_args = extra_args
-        self.args = [self.binary, "-datadir=" + self.datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
-                     "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
+        self.default_args = ["-datadir=" + self.datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
+                             "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
 
         self.cli = TestNodeCLI(
             os.getenv("BITCOINCLI", "bitcoin-cli"), self.datadir)
@@ -89,6 +92,22 @@ class TestNode():
             assert self.rpc_connected, "Error: No RPC connection"
             return getattr(self.rpc, name)
 
+    def clear_default_args(self):
+        self.default_args.clear()
+
+    def extend_default_args(self, args):
+        self.default_args.extend(args)
+
+    def remove_default_args(self, args):
+        for rm_arg in args:
+            # Remove all occurrences of rm_arg in self.default_args:
+            #  - if the arg is a flag (-flag), then the names must match
+            #  - if the arg is a value (-key=value) then the name must starts
+            #    with "-key=" (the '"' char is to avoid removing "-key_suffix"
+            #    arg is "-key" is the argument to remove).
+            self.default_args = [def_arg for def_arg in self.default_args
+                                 if rm_arg != def_arg and not def_arg.startswith(rm_arg + '=')]
+
     def start(self, extra_args=None, stderr=None, *args, **kwargs):
         """Start the node."""
         if extra_args is None:
@@ -96,7 +115,8 @@ class TestNode():
         if stderr is None:
             stderr = self.stderr
         self.process = subprocess.Popen(
-            self.args + extra_args, stderr=stderr, *args, **kwargs)
+            [self.binary] + self.default_args + extra_args,
+            stderr=stderr, *args, **kwargs)
         self.running = True
         self.log.debug("bitcoind started, waiting for RPC to come up")
 

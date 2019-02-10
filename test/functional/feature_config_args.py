@@ -18,8 +18,7 @@ class ConfArgsTest(BitcoinTestFramework):
     def run_test(self):
         self.stop_node(0)
         # Remove the -datadir argument so it doesn't override the config file
-        self.nodes[0].args = [
-            arg for arg in self.nodes[0].args if not arg.startswith("-datadir")]
+        self.nodes[0].remove_default_args(["-datadir"])
 
         default_data_dir = get_datadir_path(self.options.tmpdir, 0)
         new_data_dir = os.path.join(default_data_dir, 'newdatadir')
