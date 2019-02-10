@@ -1267,7 +1267,15 @@ static UniValue sendrawtransaction(const Config &config,
         allowhighfees = request.params[1].get_bool();
     }
 
-    return BroadcastTransaction(config, tx, allowhighfees).GetHex();
+    TxId txid;
+    TransactionError err;
+    std::string err_string;
+    if (!BroadcastTransaction(config, tx, txid, err, err_string,
+                              allowhighfees)) {
+        throw JSONRPCTransactionError(err, err_string);
+    }
+
+    return txid.GetHex();
 }
 
 static UniValue testmempoolaccept(const Config &config,

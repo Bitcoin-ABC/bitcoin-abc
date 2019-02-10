@@ -9,17 +9,43 @@
 #include <consensus/validation.h>
 #include <net.h>
 #include <primitives/txid.h>
-#include <rpc/server.h>
 #include <txmempool.h>
 #include <validation.h>
 #include <validationinterface.h>
 
 #include <future>
 
-TxId BroadcastTransaction(const Config &config, const CTransactionRef tx,
-                          const bool allowhighfees) {
+const char *TransactionErrorString(const TransactionError err) {
+    switch (err) {
+        case TransactionError::OK:
+            return "No error";
+        case TransactionError::MISSING_INPUTS:
+            return "Missing inputs";
+        case TransactionError::ALREADY_IN_CHAIN:
+            return "Transaction already in block chain";
+        case TransactionError::P2P_DISABLED:
+            return "Peer-to-peer functionality missing or disabled";
+        case TransactionError::MEMPOOL_REJECTED:
+            return "Transaction rejected by AcceptToMemoryPool";
+        case TransactionError::MEMPOOL_ERROR:
+            return "AcceptToMemoryPool failed";
+        case TransactionError::INVALID_PSBT:
+            return "PSBT is not sane";
+        case TransactionError::SIGHASH_MISMATCH:
+            return "Specified sighash value does not match existing value";
+
+        case TransactionError::UNKNOWN_ERROR:
+        default:
+            break;
+    }
+    return "Unknown error";
+}
+
+bool BroadcastTransaction(const Config &config, const CTransactionRef tx,
+                          TxId &txid, TransactionError &error,
+                          std::string &err_string, const bool allowhighfees) {
     std::promise<void> promise;
-    const TxId &txid = tx->GetId();
+    txid = tx->GetId();
 
     Amount nMaxRawTxFee = maxTxFee;
     if (allowhighfees) {
@@ -44,16 +70,19 @@ TxId BroadcastTransaction(const Config &config, const CTransactionRef tx,
                                     &fMissingInputs, false /* bypass_limits */,
                                     nMaxRawTxFee)) {
                 if (state.IsInvalid()) {
-                    throw JSONRPCError(RPC_TRANSACTION_REJECTED,
-                                       FormatStateMessage(state));
+                    err_string = FormatStateMessage(state);
+                    error = TransactionError::MEMPOOL_REJECTED;
+                    return false;
                 }
 
                 if (fMissingInputs) {
-                    throw JSONRPCError(RPC_TRANSACTION_ERROR, "Missing inputs");
+                    error = TransactionError::MISSING_INPUTS;
+                    return false;
                 }
 
-                throw JSONRPCError(RPC_TRANSACTION_ERROR,
-                                   FormatStateMessage(state));
+                err_string = FormatStateMessage(state);
+                error = TransactionError::MEMPOOL_ERROR;
+                return false;
             } else {
                 // If wallet is enabled, ensure that the wallet has been made
                 // aware of the new transaction prior to returning. This
@@ -65,8 +94,8 @@ TxId BroadcastTransaction(const Config &config, const CTransactionRef tx,
                     [&promise] { promise.set_value(); });
             }
         } else if (fHaveChain) {
-            throw JSONRPCError(RPC_TRANSACTION_ALREADY_IN_CHAIN,
-                               "transaction already in block chain");
+            error = TransactionError::ALREADY_IN_CHAIN;
+            return false;
         } else {
             // Make sure we don't block forever if re-sending a transaction
             // already in mempool.
@@ -77,13 +106,12 @@ TxId BroadcastTransaction(const Config &config, const CTransactionRef tx,
     promise.get_future().wait();
 
     if (!g_connman) {
-        throw JSONRPCError(
-            RPC_CLIENT_P2P_DISABLED,
-            "Error: Peer-to-peer functionality missing or disabled");
+        error = TransactionError::P2P_DISABLED;
+        return false;
     }
 
     CInv inv(MSG_TX, txid);
     g_connman->ForEachNode([&inv](CNode *pnode) { pnode->PushInventory(inv); });
 
-    return txid;
+    return true;
 }

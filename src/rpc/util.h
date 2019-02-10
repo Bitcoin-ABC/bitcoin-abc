@@ -5,6 +5,7 @@
 #ifndef BITCOIN_RPC_UTIL_H
 #define BITCOIN_RPC_UTIL_H
 
+#include <node/transaction.h>
 #include <script/standard.h> // For CTxDestination
 
 #include <string>
@@ -29,6 +30,10 @@ CScript CreateMultisigRedeemscript(const int required,
                                    const std::vector<CPubKey> &pubkeys);
 
 UniValue DescribeAddress(const CTxDestination &dest);
+
+RPCErrorCode RPCErrorFromTransactionError(TransactionError terr);
+UniValue JSONRPCTransactionError(TransactionError terr,
+                                 const std::string &err_string = "");
 
 struct RPCArg {
     enum class Type {

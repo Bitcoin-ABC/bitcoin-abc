@@ -4,13 +4,12 @@
 
 #include <wallet/psbtwallet.h>
 
-#include <rpc/protocol.h>
-
 bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
-              SigHashType sighash_type, bool sign, bool bip32derivs) {
+              TransactionError &error, bool &complete, SigHashType sighash_type,
+              bool sign, bool bip32derivs) {
     LOCK(pwallet->cs_wallet);
     // Get all of the previous transactions
-    bool complete = true;
+    complete = true;
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
         const CTxIn &txin = psbtx.tx->vin[i];
         PSBTInput &input = psbtx.inputs.at(i);
@@ -21,8 +20,8 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
 
         // Verify input looks sane.
         if (!input.IsSane()) {
-            throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
-                               "PSBT input is not sane.");
+            error = TransactionError::INVALID_PSBT;
+            return false;
         }
 
         // If we have no utxo, grab it from the wallet.
@@ -40,9 +39,8 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
         // Get the Sighash type
         if (sign && input.sighash_type.getRawSigHashType() > 0 &&
             input.sighash_type != sighash_type) {
-            throw JSONRPCError(
-                RPC_DESERIALIZATION_ERROR,
-                "Specified sighash and sighash in PSBT do not match.");
+            error = TransactionError::SIGHASH_MISMATCH;
+            return false;
         }
 
         complete &=
@@ -66,5 +64,5 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
                          creator, out.scriptPubKey, sigdata);
         psbt_out.FromSignatureData(sigdata);
     }
-    return complete;
+    return true;
 }
