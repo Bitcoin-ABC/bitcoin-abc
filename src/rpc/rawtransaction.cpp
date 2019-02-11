@@ -1385,6 +1385,10 @@ static UniValue combinepsbt(const Config &config,
     // Unserialize the transactions
     std::vector<PartiallySignedTransaction> psbtxs;
     UniValue txs = request.params[0].get_array();
+    if (txs.empty()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "Parameter 'txs' cannot be empty");
+    }
     for (size_t i = 0; i < txs.size(); ++i) {
         PartiallySignedTransaction psbtx;
         std::string error;
