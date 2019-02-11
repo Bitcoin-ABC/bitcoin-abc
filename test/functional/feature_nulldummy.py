@@ -5,7 +5,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-from test_framework.messages import FromHex
+from test_framework.messages import FromHex, ToHex
 from test_framework.mininode import CTransaction, network_thread_start
 from test_framework.blocktools import create_coinbase, create_block
 from test_framework.script import CScript
@@ -65,12 +65,10 @@ class NULLDUMMYTest(BitcoinTestFramework):
             "Test 1: NULLDUMMY compliant base transactions should be accepted to mempool and mined before activation [430]")
         test1txs = [self.create_transaction(
             self.nodes[0], coinbase_txid[0], self.ms_address, 49)]
-        txid1 = self.nodes[0].sendrawtransaction(
-            bytes_to_hex_str(test1txs[0].serialize()), True)
+        txid1 = self.nodes[0].sendrawtransaction(ToHex(test1txs[0]), True)
         test1txs.append(self.create_transaction(
             self.nodes[0], txid1, self.ms_address, 48))
-        txid2 = self.nodes[0].sendrawtransaction(
-            bytes_to_hex_str(test1txs[1].serialize()), True)
+        txid2 = self.nodes[0].sendrawtransaction(ToHex(test1txs[1]), True)
         self.block_submit(self.nodes[0], test1txs, True)
 
         self.log.info(
@@ -79,7 +77,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
             self.nodes[0], txid2, self.ms_address, 48)
         trueDummy(test2tx)
         assert_raises_rpc_error(-26, NULLDUMMY_ERROR,
-                                self.nodes[0].sendrawtransaction, bytes_to_hex_str(test2tx.serialize()), True)
+                                self.nodes[0].sendrawtransaction, ToHex(test2tx), True)
 
         self.log.info(
             "Test 3: Non-NULLDUMMY base transactions should be accepted in a block before activation [431]")
@@ -104,7 +102,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()
-        node.submitblock(bytes_to_hex_str(block.serialize()))
+        node.submitblock(ToHex(block))
         if (accept):
             assert_equal(node.getbestblockhash(), block.hash)
             self.tip = block.sha256
