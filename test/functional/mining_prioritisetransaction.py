@@ -122,7 +122,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         inputs.append({"txid": utxo["txid"], "vout": utxo["vout"]})
         outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
         raw_tx = self.nodes[0].createrawtransaction(inputs, outputs)
-        tx_hex = self.nodes[0].signrawtransaction(raw_tx)["hex"]
+        tx_hex = self.nodes[0].signrawtransactionwithwallet(raw_tx)["hex"]
         txid = self.nodes[0].sendrawtransaction(tx_hex)
 
         # A tx that spends an in-mempool tx has 0 priority, so we can use it to
@@ -133,7 +133,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         outputs = {}
         outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
         raw_tx2 = self.nodes[0].createrawtransaction(inputs, outputs)
-        tx2_hex = self.nodes[0].signrawtransaction(raw_tx2)["hex"]
+        tx2_hex = self.nodes[0].signrawtransactionwithwallet(raw_tx2)["hex"]
         tx2_id = self.nodes[0].decoderawtransaction(tx2_hex)["txid"]
 
         # This will raise an exception due to min relay fee not being met

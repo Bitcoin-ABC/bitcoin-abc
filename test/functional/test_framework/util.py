@@ -534,7 +534,7 @@ def send_zeropri_transaction(from_node, to_node, amount, fee):
     outputs[self_address] = float(amount + fee)
 
     self_rawtx = from_node.createrawtransaction(inputs, outputs)
-    self_signresult = from_node.signrawtransaction(self_rawtx)
+    self_signresult = from_node.signrawtransactionwithwallet(self_rawtx)
     self_txid = from_node.sendrawtransaction(self_signresult["hex"], True)
 
     vout = find_output(from_node, self_txid, amount + fee)
@@ -544,7 +544,7 @@ def send_zeropri_transaction(from_node, to_node, amount, fee):
     outputs = {to_node.getnewaddress(): float(amount)}
 
     rawtx = from_node.createrawtransaction(inputs, outputs)
-    signresult = from_node.signrawtransaction(rawtx)
+    signresult = from_node.signrawtransactionwithwallet(rawtx)
     txid = from_node.sendrawtransaction(signresult["hex"], True)
 
     return (txid, signresult["hex"])
@@ -609,7 +609,7 @@ def create_tx(node, coinbase, to_address, amount):
     inputs = [{"txid": coinbase, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransaction(rawtx)
+    signresult = node.signrawtransactionwithwallet(rawtx)
     assert_equal(signresult["complete"], True)
     return signresult["hex"]
 
