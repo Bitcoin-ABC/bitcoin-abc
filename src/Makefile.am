@@ -170,6 +170,7 @@ BITCOIN_CORE_H = \
   rpc/mining.h \
   rpc/misc.h \
   rpc/protocol.h \
+  rpc/rawtransaction.h \
   rpc/safemode.h \
   rpc/server.h \
   rpc/tojson.h \

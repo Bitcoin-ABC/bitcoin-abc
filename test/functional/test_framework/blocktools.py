@@ -194,8 +194,8 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
                    CScript([OP_DUP, OP_HASH160, addrHash, OP_EQUALVERIFY, OP_CHECKSIG])))
         # Create a proper fee for the transaction to be mined
         ctx.vout[1].nValue -= int(fee_multiplier * node.calculate_fee(ctx))
-        signresult = node.signrawtransaction(
-            ToHex(ctx), None, None, "NONE|FORKID")
+        signresult = node.signrawtransactionwithwallet(
+            ToHex(ctx), None, "NONE|FORKID")
         txid = node.sendrawtransaction(signresult["hex"], True)
         txids.append(txid)
     return txids
