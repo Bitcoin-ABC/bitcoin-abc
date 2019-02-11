@@ -134,6 +134,9 @@ public:
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
 
+        // Nov 15, 2019 12:00:00 UTC protocol upgrade
+        consensus.gravitonActivationTime = 1573819200;
+
         /**
          * The message start string is designed to be unlikely to occur in
          * normal data. The characters are rarely used upper ASCII, not valid as
@@ -305,6 +308,9 @@ public:
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
 
+        // Nov 15, 2019 12:00:00 UTC protocol upgrade
+        consensus.gravitonActivationTime = 1573819200;
+
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
         diskMagic[2] = 0x09;
@@ -424,6 +430,9 @@ public:
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
+
+        // Nov 15, 2019 12:00:00 UTC protocol upgrade
+        consensus.gravitonActivationTime = 1573819200;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;
