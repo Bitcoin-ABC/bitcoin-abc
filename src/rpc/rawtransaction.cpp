@@ -1116,7 +1116,8 @@ static UniValue signrawtransaction(const Config &config,
             "[{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\","
             "\"redeemScript\":\"hex\"},...] [\"privatekey1\",...] sighashtype "
             ")\n"
-            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
+            "\nDEPRECATED.Sign inputs for raw transaction (serialized, "
+            "hex-encoded).\n"
             "The second optional argument (may be null) is an array of "
             "previous transaction outputs that\n"
             "this transaction depends on but may not yet be in the block "
@@ -1193,6 +1194,17 @@ static UniValue signrawtransaction(const Config &config,
             "\nExamples:\n" +
             HelpExampleCli("signrawtransaction", "\"myhex\"") +
             HelpExampleRpc("signrawtransaction", "\"myhex\""));
+    }
+
+    if (!IsDeprecatedRPCEnabled(gArgs, "signrawtransaction")) {
+        throw JSONRPCError(
+            RPC_METHOD_DEPRECATED,
+            "signrawtransaction is deprecated and will be fully removed in "
+            "v0.20. "
+            "To use signrawtransaction in v0.19, restart bitcoind with "
+            "-deprecatedrpc=signrawtransaction.\n"
+            "Projects should transition to using signrawtransactionwithkey and "
+            "signrawtransactionwithwallet before upgrading to v0.20");
     }
 
     RPCTypeCheck(
