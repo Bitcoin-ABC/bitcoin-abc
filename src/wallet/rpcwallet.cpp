@@ -15,6 +15,7 @@
 #include "policy/policy.h"
 #include "rpc/mining.h"
 #include "rpc/misc.h"
+#include "rpc/rawtransaction.h"
 #include "rpc/safemode.h"
 #include "rpc/server.h"
 #include "timedata.h"
@@ -3610,6 +3611,100 @@ static UniValue fundrawtransaction(const Config &config,
     return result;
 }
 
+UniValue signrawtransactionwithwallet(const Config &config,
+                                      const JSONRPCRequest &request) {
+    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 1 ||
+        request.params.size() > 3) {
+        throw std::runtime_error(
+            "signrawtransactionwithwallet \"hexstring\" ( "
+            "[{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\","
+            "\"redeemScript\":\"hex\"},...] sighashtype )\n"
+            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
+            "The second optional argument (may be null) is an array of "
+            "previous transaction outputs that\n"
+            "this transaction depends on but may not yet be in the block "
+            "chain.\n" +
+            HelpRequiringPassphrase(pwallet) +
+            "\n"
+
+            "\nArguments:\n"
+            "1. \"hexstring\"                      (string, required) The "
+            "transaction hex string\n"
+            "2. \"prevtxs\"                        (string, optional) An json "
+            "array of previous dependent transaction outputs\n"
+            "     [                              (json array of json objects, "
+            "or 'null' if none provided)\n"
+            "       {\n"
+            "         \"txid\":\"id\",               (string, required) The "
+            "transaction id\n"
+            "         \"vout\":n,                  (numeric, required) The "
+            "output number\n"
+            "         \"scriptPubKey\": \"hex\",     (string, required) script "
+            "key\n"
+            "         \"redeemScript\": \"hex\",     (string, required for "
+            "P2SH) redeem script\n"
+            "         \"amount\": value            (numeric, required) The "
+            "amount spent\n"
+            "       }\n"
+            "       ,...\n"
+            "    ]\n"
+            "3. \"sighashtype\"                    (string, optional, "
+            "default=ALL) The signature hash type. Must be one of\n"
+            "       \"ALL|FORKID\"\n"
+            "       \"NONE|FORKID\"\n"
+            "       \"SINGLE|FORKID\"\n"
+            "       \"ALL|FORKID|ANYONECANPAY\"\n"
+            "       \"NONE|FORKID|ANYONECANPAY\"\n"
+            "       \"SINGLE|FORKID|ANYONECANPAY\"\n"
+
+            "\nResult:\n"
+            "{\n"
+            "  \"hex\" : \"value\",                  (string) The hex-encoded "
+            "raw transaction with signature(s)\n"
+            "  \"complete\" : true|false,          (boolean) If the "
+            "transaction has a complete set of signatures\n"
+            "  \"errors\" : [                      (json array of objects) "
+            "Script verification errors (if there are any)\n"
+            "    {\n"
+            "      \"txid\" : \"hash\",              (string) The hash of the "
+            "referenced, previous transaction\n"
+            "      \"vout\" : n,                   (numeric) The index of the "
+            "output to spent and used as input\n"
+            "      \"scriptSig\" : \"hex\",          (string) The hex-encoded "
+            "signature script\n"
+            "      \"sequence\" : n,               (numeric) Script sequence "
+            "number\n"
+            "      \"error\" : \"text\"              (string) Verification or "
+            "signing error related to the input\n"
+            "    }\n"
+            "    ,...\n"
+            "  ]\n"
+            "}\n"
+
+            "\nExamples:\n" +
+            HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
+            HelpExampleRpc("signrawtransactionwithwallet", "\"myhex\""));
+    }
+
+    RPCTypeCheck(request.params,
+                 {UniValue::VSTR, UniValue::VARR, UniValue::VSTR}, true);
+
+    CMutableTransaction mtx;
+    if (!DecodeHexTx(mtx, request.params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
+    }
+
+    // Sign the transaction
+    LOCK2(cs_main, pwallet->cs_wallet);
+    return SignTransaction(mtx, request.params[1], pwallet, false,
+                           request.params[2]);
+}
+
 static UniValue generate(const Config &config, const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
 
@@ -3745,52 +3840,53 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
 
 // clang-format off
 static const ContextFreeRPCCommand commands[] = {
-    //  category            name                        actor (function)          argNames
-    //  ------------------- ------------------------    ----------------------    ----------
-    { "rawtransactions",    "fundrawtransaction",       fundrawtransaction,       {"hexstring","options"} },
-    { "hidden",             "resendwallettransactions", resendwallettransactions, {} },
-    { "wallet",             "abandontransaction",       abandontransaction,       {"txid"} },
-    { "wallet",             "addmultisigaddress",       addmultisigaddress,       {"nrequired","keys","label|account"} },
-    { "wallet",             "backupwallet",             backupwallet,             {"destination"} },
-    { "wallet",             "encryptwallet",            encryptwallet,            {"passphrase"} },
-    { "wallet",             "getaccountaddress",        getlabeladdress,          {"account"} },
-    { "wallet",             "getlabeladdress",          getlabeladdress,          {"label"} },
-    { "wallet",             "getaccount",               getaccount,               {"address"} },
-    { "wallet",             "getaddressesbyaccount",    getaddressesbyaccount,    {"account"} },
-    { "wallet",             "getbalance",               getbalance,               {"account","minconf","include_watchonly"} },
-    { "wallet",             "getnewaddress",            getnewaddress,            {"label|account"} },
-    { "wallet",             "getrawchangeaddress",      getrawchangeaddress,      {} },
-    { "wallet",             "getreceivedbylabel",       getreceivedbylabel,       {"label","minconf"} },
-    { "wallet",             "getreceivedbyaccount",     getreceivedbylabel,       {"account","minconf"} },
-    { "wallet",             "getreceivedbyaddress",     getreceivedbyaddress,     {"address","minconf"} },
-    { "wallet",             "gettransaction",           gettransaction,           {"txid","include_watchonly"} },
-    { "wallet",             "getunconfirmedbalance",    getunconfirmedbalance,    {} },
-    { "wallet",             "getwalletinfo",            getwalletinfo,            {} },
-    { "wallet",             "keypoolrefill",            keypoolrefill,            {"newsize"} },
-    { "wallet",             "listaccounts",             listaccounts,             {"minconf","include_watchonly"} },
-    { "wallet",             "listaddressgroupings",     listaddressgroupings,     {} },
-    { "wallet",             "listlockunspent",          listlockunspent,          {} },
-    { "wallet",             "listreceivedbylabel",      listreceivedbylabel,      {"minconf","include_empty","include_watchonly"} },
-    { "wallet",             "listreceivedbyaccount",    listreceivedbylabel,      {"minconf","include_empty","include_watchonly"} },
-    { "wallet",             "listreceivedbyaddress",    listreceivedbyaddress,    {"minconf","include_empty","include_watchonly","address_filter"} },
-    { "wallet",             "listsinceblock",           listsinceblock,           {"blockhash","target_confirmations","include_watchonly"} },
-    { "wallet",             "listtransactions",         listtransactions,         {"account","count","skip","include_watchonly"} },
-    { "wallet",             "listunspent",              listunspent,              {"minconf","maxconf","addresses","include_unsafe","query_options"} },
-    { "wallet",             "listwallets",              listwallets,              {} },
-    { "wallet",             "lockunspent",              lockunspent,              {"unlock","transactions"} },
-    { "wallet",             "move",                     movecmd,                  {"fromaccount","toaccount","amount","minconf","comment"} },
-    { "wallet",             "rescanblockchain",         rescanblockchain,         {"start_height", "stop_height"} },
-    { "wallet",             "sendfrom",                 sendfrom,                 {"fromaccount","toaddress","amount","minconf","comment","comment_to"} },
-    { "wallet",             "sendmany",                 sendmany,                 {"fromaccount","amounts","minconf","comment","subtractfeefrom"} },
-    { "wallet",             "sendtoaddress",            sendtoaddress,            {"address","amount","comment","comment_to","subtractfeefromamount"} },
-    { "wallet",             "setlabel",                 setlabel,                 {"address","label"} },
-    { "wallet",             "setaccount",               setlabel,                 {"address","account"} },
-    { "wallet",             "settxfee",                 settxfee,                 {"amount"} },
-    { "wallet",             "signmessage",              signmessage,              {"address","message"} },
-    { "wallet",             "walletlock",               walletlock,               {} },
-    { "wallet",             "walletpassphrasechange",   walletpassphrasechange,   {"oldpassphrase","newpassphrase"} },
-    { "wallet",             "walletpassphrase",         walletpassphrase,         {"passphrase","timeout"} },
-    { "generating",         "generate",                 generate,                 {"nblocks","maxtries"} },
+    //  category            name                            actor (function)              argNames
+    //  ------------------- ------------------------        ----------------------        ----------
+    { "rawtransactions",    "fundrawtransaction",           fundrawtransaction,           {"hexstring","options"} },
+    { "hidden",             "resendwallettransactions",     resendwallettransactions,     {} },
+    { "wallet",             "abandontransaction",           abandontransaction,           {"txid"} },
+    { "wallet",             "addmultisigaddress",           addmultisigaddress,           {"nrequired","keys","label|account"} },
+    { "wallet",             "backupwallet",                 backupwallet,                 {"destination"} },
+    { "wallet",             "encryptwallet",                encryptwallet,                {"passphrase"} },
+    { "wallet",             "getaccountaddress",            getlabeladdress,              {"account"} },
+    { "wallet",             "getlabeladdress",              getlabeladdress,              {"label"} },
+    { "wallet",             "getaccount",                   getaccount,                   {"address"} },
+    { "wallet",             "getaddressesbyaccount",        getaddressesbyaccount,        {"account"} },
+    { "wallet",             "getbalance",                   getbalance,                   {"account","minconf","include_watchonly"} },
+    { "wallet",             "getnewaddress",                getnewaddress,                {"label|account"} },
+    { "wallet",             "getrawchangeaddress",          getrawchangeaddress,          {} },
+    { "wallet",             "getreceivedbylabel",           getreceivedbylabel,           {"label","minconf"} },
+    { "wallet",             "getreceivedbyaccount",         getreceivedbylabel,           {"account","minconf"} },
+    { "wallet",             "getreceivedbyaddress",         getreceivedbyaddress,         {"address","minconf"} },
+    { "wallet",             "gettransaction",               gettransaction,               {"txid","include_watchonly"} },
+    { "wallet",             "getunconfirmedbalance",        getunconfirmedbalance,        {} },
+    { "wallet",             "getwalletinfo",                getwalletinfo,                {} },
+    { "wallet",             "keypoolrefill",                keypoolrefill,                {"newsize"} },
+    { "wallet",             "listaccounts",                 listaccounts,                 {"minconf","include_watchonly"} },
+    { "wallet",             "listaddressgroupings",         listaddressgroupings,         {} },
+    { "wallet",             "listlockunspent",              listlockunspent,              {} },
+    { "wallet",             "listreceivedbylabel",          listreceivedbylabel,          {"minconf","include_empty","include_watchonly"} },
+    { "wallet",             "listreceivedbyaccount",        listreceivedbylabel,          {"minconf","include_empty","include_watchonly"} },
+    { "wallet",             "listreceivedbyaddress",        listreceivedbyaddress,        {"minconf","include_empty","include_watchonly","address_filter"} },
+    { "wallet",             "listsinceblock",               listsinceblock,               {"blockhash","target_confirmations","include_watchonly"} },
+    { "wallet",             "listtransactions",             listtransactions,             {"account","count","skip","include_watchonly"} },
+    { "wallet",             "listunspent",                  listunspent,                  {"minconf","maxconf","addresses","include_unsafe","query_options"} },
+    { "wallet",             "listwallets",                  listwallets,                  {} },
+    { "wallet",             "lockunspent",                  lockunspent,                  {"unlock","transactions"} },
+    { "wallet",             "move",                         movecmd,                      {"fromaccount","toaccount","amount","minconf","comment"} },
+    { "wallet",             "rescanblockchain",             rescanblockchain,             {"start_height", "stop_height"} },
+    { "wallet",             "sendfrom",                     sendfrom,                     {"fromaccount","toaddress","amount","minconf","comment","comment_to"} },
+    { "wallet",             "sendmany",                     sendmany,                     {"fromaccount","amounts","minconf","comment","subtractfeefrom"} },
+    { "wallet",             "sendtoaddress",                sendtoaddress,                {"address","amount","comment","comment_to","subtractfeefromamount"} },
+    { "wallet",             "setlabel",                     setlabel,                     {"address","label"} },
+    { "wallet",             "setaccount",                   setlabel,                     {"address","account"} },
+    { "wallet",             "settxfee",                     settxfee,                     {"amount"} },
+    { "wallet",             "signmessage",                  signmessage,                  {"address","message"} },
+    { "wallet",             "signrawtransactionwithwallet", signrawtransactionwithwallet, {"hextring","prevtxs","sighashtype"} },
+    { "wallet",             "walletlock",                   walletlock,                   {} },
+    { "wallet",             "walletpassphrasechange",       walletpassphrasechange,       {"oldpassphrase","newpassphrase"} },
+    { "wallet",             "walletpassphrase",             walletpassphrase,             {"passphrase","timeout"} },
+    { "generating",         "generate",                     generate,                     {"nblocks","maxtries"} },
 };
 // clang-format on
 

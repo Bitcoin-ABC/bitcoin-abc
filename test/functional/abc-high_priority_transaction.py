@@ -29,8 +29,8 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
             change = t['amount'] - fee
             outputs[addr] = satoshi_round(change)
             rawtx = node.createrawtransaction(inputs, outputs)
-            signresult = node.signrawtransaction(
-                rawtx, None, None, "NONE|FORKID")
+            signresult = node.signrawtransactionwithwallet(
+                rawtx, None, "NONE|FORKID")
             txid = node.sendrawtransaction(signresult["hex"], True)
             txids.append(txid)
         return txids
