@@ -18,3 +18,6 @@ This release includes the following features and fixes:
    like Docker, ensure you only bind RPC to your localhost, e.g. docker run [...] -p 127.0.0.1:8332:8332 (this is an extra :8332 over the
    normal Docker port specification).
 
+ - The `getmininginfo` RPC now omits `currentblocksize` and `currentblocktx`
+   when a block was never assembled via RPC on this node.
+

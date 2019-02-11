@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2016 The Bitcoin Core developers
+# Copyright (c) 2014-2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test mining RPCs
@@ -11,7 +11,10 @@
 import copy
 from decimal import Decimal
 
-from test_framework.blocktools import create_coinbase
+from test_framework.blocktools import (
+    create_coinbase,
+    TIME_GENESIS_BLOCK,
+)
 from test_framework.messages import (
     CBlock,
     CBlockHeader,
@@ -23,6 +26,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
+    connect_nodes_bi,
 )
 
 
@@ -39,9 +43,25 @@ def assert_template(node, block, expect, rehash=True):
 class MiningTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.setup_clean_chain = False
+        self.setup_clean_chain = True
+
+    def mine_chain(self):
+        self.log.info('Create some old blocks')
+        node = self.nodes[0]
+        address = node.get_deterministic_priv_key().address
+        for t in range(TIME_GENESIS_BLOCK,
+                       TIME_GENESIS_BLOCK + 200 * 600, 600):
+            node.setmocktime(t)
+            node.generatetoaddress(1, address)
+        mining_info = node.getmininginfo()
+        assert_equal(mining_info['blocks'], 200)
+        assert_equal(mining_info['currentblocktx'], 0)
+        assert_equal(mining_info['currentblocksize'], 1000)
+        self.restart_node(0)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
 
     def run_test(self):
+        self.mine_chain()
         node = self.nodes[0]
 
         def assert_submitblock(block, result_str_1, result_str_2=None):
@@ -56,8 +76,8 @@ class MiningTest(BitcoinTestFramework):
         mining_info = node.getmininginfo()
         assert_equal(mining_info['blocks'], 200)
         assert_equal(mining_info['chain'], 'regtest')
-        assert_equal(mining_info['currentblocksize'], 0)
-        assert_equal(mining_info['currentblocktx'], 0)
+        assert 'currentblocktx' not in mining_info
+        assert 'currentblocksize' not in mining_info
         assert_equal(mining_info['difficulty'],
                      Decimal('4.656542373906925E-10'))
         assert_equal(mining_info['networkhashps'],

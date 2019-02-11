@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2015-2016 The Bitcoin Core developers
+# Copyright (c) 2015-2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Utilities for manipulating blocks and transactions."""
@@ -27,10 +27,12 @@ from .messages import (
 from .txtools import pad_tx
 from .util import assert_equal, satoshi_round
 
-# Create a block (with regtest difficulty)
+# Genesis block time (regtest)
+TIME_GENESIS_BLOCK = 1296688602
 
 
 def create_block(hashprev, coinbase, nTime=None):
+    """Create a block (with regtest difficulty)."""
     block = CBlock()
     if nTime is None:
         import time
