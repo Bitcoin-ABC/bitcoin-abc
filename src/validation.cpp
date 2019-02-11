@@ -319,7 +319,7 @@ static bool IsReplayProtectionEnabled(const Config &config,
     return nMedianTimePast >=
            gArgs.GetArg(
                "-replayprotectionactivationtime",
-               config.GetChainParams().GetConsensus().greatWallActivationTime);
+               config.GetChainParams().GetConsensus().gravitonActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Config &config,
