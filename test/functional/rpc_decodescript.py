@@ -5,7 +5,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-from test_framework.mininode import *
+from test_framework.messages import CTransaction, FromHex, ToHex
 
 
 class DecodeScriptTest(BitcoinTestFramework):
@@ -179,24 +179,21 @@ class DecodeScriptTest(BitcoinTestFramework):
 
         # 1) P2PK scriptSig
         txSave.vin[0].scriptSig = hex_str_to_bytes(push_signature)
-        rpc_result = self.nodes[0].decoderawtransaction(
-            bytes_to_hex_str(txSave.serialize()))
+        rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal(signature_sighash_decoded,
                      rpc_result['vin'][0]['scriptSig']['asm'])
 
         # make sure that the sighash decodes come out correctly for a more
         # complex / lesser used case.
         txSave.vin[0].scriptSig = hex_str_to_bytes(push_signature_2)
-        rpc_result = self.nodes[0].decoderawtransaction(
-            bytes_to_hex_str(txSave.serialize()))
+        rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal(signature_2_sighash_decoded,
                      rpc_result['vin'][0]['scriptSig']['asm'])
 
         # 2) multisig scriptSig
         txSave.vin[0].scriptSig = hex_str_to_bytes(
             '00' + push_signature + push_signature_2)
-        rpc_result = self.nodes[0].decoderawtransaction(
-            bytes_to_hex_str(txSave.serialize()))
+        rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal('0 ' + signature_sighash_decoded + ' ' +
                      signature_2_sighash_decoded, rpc_result['vin'][0]['scriptSig']['asm'])
 
@@ -205,8 +202,7 @@ class DecodeScriptTest(BitcoinTestFramework):
         # cause improper decode if the code does not catch it.
         txSave.vin[0].scriptSig = hex_str_to_bytes(
             '6a143011020701010101010101020601010101010101')
-        rpc_result = self.nodes[0].decoderawtransaction(
-            bytes_to_hex_str(txSave.serialize()))
+        rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal('OP_RETURN 3011020701010101010101020601010101010101',
                      rpc_result['vin'][0]['scriptSig']['asm'])
 
