@@ -49,7 +49,7 @@ def create_transaction(node, coinbase, to_address, amount):
     inputs = [{"txid": from_txid, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransaction(rawtx)
+    signresult = node.signrawtransactionwithwallet(rawtx)
     return FromHex(CTransaction(), signresult['hex'])
 
 

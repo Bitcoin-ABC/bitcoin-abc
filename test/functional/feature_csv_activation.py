@@ -134,7 +134,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
 
     def sign_transaction(self, node, unsignedtx):
         rawtx = ToHex(unsignedtx)
-        signresult = node.signrawtransaction(rawtx)
+        signresult = node.signrawtransactionwithwallet(rawtx)
         tx = FromHex(CTransaction(), signresult['hex'])
         return tx
 

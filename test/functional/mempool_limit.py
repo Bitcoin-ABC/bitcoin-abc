@@ -36,7 +36,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         txF = self.nodes[0].fundrawtransaction(tx)
         # return to automatic fee selection
         self.nodes[0].settxfee(0)
-        txFS = self.nodes[0].signrawtransaction(txF['hex'])
+        txFS = self.nodes[0].signrawtransactionwithwallet(txF['hex'])
         txid = self.nodes[0].sendrawtransaction(txFS['hex'])
 
         for i in range(utxo_groups):

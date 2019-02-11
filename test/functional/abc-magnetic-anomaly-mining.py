@@ -87,7 +87,7 @@ class CTORMiningTest(BitcoinTestFramework):
             outputs[addr] -= fee
 
             rawtx = mining_node.createrawtransaction(inputs, outputs)
-            signedtx = mining_node.signrawtransaction(rawtx)
+            signedtx = mining_node.signrawtransactionwithwallet(rawtx)
             txid = mining_node.sendrawtransaction(signedtx['hex'])
             # number of outputs is the same as the number of sigops in this
             # case

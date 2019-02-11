@@ -2,7 +2,7 @@
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test transaction signing using the signrawtransactionwithwallet RPC."""
+"""Test transaction signing using the signrawtransaction* RPCs."""
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
@@ -40,11 +40,15 @@ class SignRawTransactionsTest(BitcoinTestFramework):
             rawTx, privKeys, inputs)
 
         # 1) The transaction has a complete set of signatures
-        assert 'complete' in rawTxSigned
-        assert_equal(rawTxSigned['complete'], True)
+        assert rawTxSigned['complete']
 
         # 2) No script verification error occurred
         assert 'errors' not in rawTxSigned
+
+        # Perform the same test on signrawtransaction
+        rawTxSigned2 = self.nodes[0].signrawtransaction(
+            rawTx, inputs, privKeys)
+        assert_equal(rawTxSigned, rawTxSigned2)
 
     def script_verification_error_test(self):
         """Creates and signs a raw transaction with valid (vin 0), invalid (vin 1) and one missing (vin 2) input script.
@@ -98,8 +102,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
             rawTx, privKeys, scripts)
 
         # 3) The transaction has no complete set of signatures
-        assert 'complete' in rawTxSigned
-        assert_equal(rawTxSigned['complete'], False)
+        assert not rawTxSigned['complete']
 
         # 4) Two script verification errors occurred
         assert 'errors' in rawTxSigned
@@ -118,6 +121,11 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         assert_equal(rawTxSigned['errors'][0]['vout'], inputs[1]['vout'])
         assert_equal(rawTxSigned['errors'][1]['txid'], inputs[2]['txid'])
         assert_equal(rawTxSigned['errors'][1]['vout'], inputs[2]['vout'])
+
+        # Perform same test with signrawtransaction
+        rawTxSigned2 = self.nodes[0].signrawtransaction(
+            rawTx, scripts, privKeys)
+        assert_equal(rawTxSigned, rawTxSigned2)
 
     def test_sighashes(self):
         """Creates and signs a raw transaction with various sighashes.
@@ -166,8 +174,8 @@ class SignRawTransactionsTest(BitcoinTestFramework):
 
         # 1) If the sighash is valid with FORKID, the signature is complete
         for sighash in valid_sighashes:
-            rawTxSigned = self.nodes[0].signrawtransaction(rawTx, inputs,
-                                                           privKeys, sighash)
+            rawTxSigned = self.nodes[0].signrawtransactionwithkey(
+                rawTx, privKeys, inputs, sighash)
             assert 'complete' in rawTxSigned
             assert_equal(rawTxSigned['complete'], True)
             assert 'errors' not in rawTxSigned
@@ -175,14 +183,14 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         # 2) If FORKID is missing in the sighash, the RPC throws an error
         for sighash in no_forkid_sighashes:
             assert_raises_rpc_error(-8, "Signature must use SIGHASH_FORKID",
-                                    self.nodes[0].signrawtransaction,
-                                        rawTx, inputs, privKeys, sighash)
+                                    self.nodes[0].signrawtransactionwithkey,
+                                    rawTx, privKeys, inputs, sighash)
 
         # 3) If the sighash is invalid the RPC throws an error
         for sighash in invalid_sighashes:
             assert_raises_rpc_error(-8, "Invalid sighash param",
-                                    self.nodes[0].signrawtransaction,
-                                        rawTx, inputs, privKeys, sighash)
+                                    self.nodes[0].signrawtransactionwithkey,
+                                    rawTx, privKeys, inputs, sighash)
 
     def run_test(self):
         self.successful_signing_test()

@@ -62,7 +62,7 @@ def cltv_lock_to_height(node, tx, height=-1):
         [height_op, OP_CHECKLOCKTIMEVERIFY, OP_DROP, OP_TRUE])
     tx.rehash()
 
-    signed_result = node.signrawtransaction(ToHex(tx))
+    signed_result = node.signrawtransactionwithwallet(ToHex(tx))
 
     new_tx = FromHex(CTransaction(), signed_result['hex'])
     pad_tx(new_tx)
@@ -76,7 +76,7 @@ def spend_from_coinbase(node, coinbase, to_address, amount):
     inputs = [{"txid": from_txid, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransaction(rawtx)
+    signresult = node.signrawtransactionwithwallet(rawtx)
     tx = FromHex(CTransaction(), signresult['hex'])
     return tx
 
@@ -174,7 +174,8 @@ class BIP65Test(BitcoinTestFramework):
         output = {self.nodeaddress: 49.98}
 
         rejectedtx_raw = self.nodes[0].createrawtransaction(inputs, output)
-        rejectedtx_signed = self.nodes[0].signrawtransaction(rejectedtx_raw)
+        rejectedtx_signed = self.nodes[0].signrawtransactionwithwallet(
+            rejectedtx_raw)
 
         # Couldn't complete signature due to CLTV
         assert(rejectedtx_signed['errors'][0]['error'] == 'Negative locktime')

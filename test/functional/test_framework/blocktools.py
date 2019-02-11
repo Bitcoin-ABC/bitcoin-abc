@@ -153,7 +153,7 @@ def create_confirmed_utxos(node, count, age=101):
         # Due to possible truncation, we go ahead and take another satoshi in
         # fees to ensure the transaction gets through
         ctx.vout[1].nValue -= fee + 1
-        signed_tx = node.signrawtransaction(ToHex(ctx))["hex"]
+        signed_tx = node.signrawtransactionwithwallet(ToHex(ctx))["hex"]
         node.sendrawtransaction(signed_tx)
 
     while (node.getmempoolinfo()['size'] > 0):
