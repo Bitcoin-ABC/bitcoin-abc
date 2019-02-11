@@ -36,6 +36,7 @@ from test_framework.util import (
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
+    TIME_GENESIS_BLOCK,
 )
 from test_framework.messages import (
     msg_block,
@@ -48,9 +49,12 @@ from test_framework.mininode import (
 class BlockchainTest(BitcoinTestFramework):
 
     def set_test_params(self):
+        self.setup_clean_chain = True
         self.num_nodes = 1
 
     def run_test(self):
+        self.mine_chain()
+
         # Set extra args with pruning after rescan is complete
         self.restart_node(0, extra_args=['-stopatheight=207', '-prune=1'])
 
@@ -65,6 +69,16 @@ class BlockchainTest(BitcoinTestFramework):
         if self.is_wallet_compiled():
             self._test_getblock()
         assert self.nodes[0].verifychain(4, 0)
+
+    def mine_chain(self):
+        self.log.info('Create some old blocks')
+        address = self.nodes[0].get_deterministic_priv_key().address
+        for t in range(TIME_GENESIS_BLOCK,
+                       TIME_GENESIS_BLOCK + 200 * 600, 600):
+            # ten-minute steps from genesis block time
+            self.nodes[0].setmocktime(t)
+            self.nodes[0].generatetoaddress(1, address)
+        assert_equal(self.nodes[0].getblockchaininfo()['blocks'], 200)
 
     def _test_getblockchaininfo(self):
         self.log.info("Test getblockchaininfo")
@@ -403,9 +417,11 @@ class BlockchainTest(BitcoinTestFramework):
     def _test_getblock(self):
         # Checks for getblock verbose outputs
         node = self.nodes[0]
-        blockinfo = node.getblock(node.getblockhash(1), 2)
+        (blockhash, nextblockhash) = node.generate(2)
+
+        blockinfo = node.getblock(blockhash, 2)
         transactioninfo = node.gettransaction(blockinfo['tx'][0]['txid'])
-        blockheaderinfo = node.getblockheader(node.getblockhash(1), True)
+        blockheaderinfo = node.getblockheader(blockhash, True)
 
         assert_equal(blockinfo['hash'], transactioninfo['blockhash'])
         assert_equal(
@@ -429,6 +445,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(
             blockinfo['previousblockhash'],
             blockheaderinfo['previousblockhash'])
+        assert_equal(blockinfo['nextblockhash'], nextblockhash)
         assert_equal(
             blockinfo['nextblockhash'],
             blockheaderinfo['nextblockhash'])

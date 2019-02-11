@@ -3,7 +3,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.blocktools import (create_block, create_coinbase)
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    TIME_GENESIS_BLOCK,
+)
 from test_framework.messages import ToHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -26,6 +30,7 @@ MINER_FUND_ELECTRON_CASH_ADDR = 'bchreg:pp8d685l8kecnmtyy52ndvq625arz2qwmutyjlcy
 
 class MinerFundTest(BitcoinTestFramework):
     def set_test_params(self):
+        self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [
             ['-enableminerfund', "-phononactivationtime={}".format(PHONON_ACTIVATION_TIME)]]
@@ -37,6 +42,14 @@ class MinerFundTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         address = node.get_deterministic_priv_key().address
+
+        self.log.info('Create some old blocks')
+        for t in range(TIME_GENESIS_BLOCK,
+                       TIME_GENESIS_BLOCK + 200 * 600, 600):
+            # ten-minute steps from genesis block time
+            self.nodes[0].setmocktime(t)
+            self.nodes[0].generatetoaddress(1, address)
+        assert_equal(self.nodes[0].getblockchaininfo()['blocks'], 200)
 
         # Get the vote started.
         node.setmocktime(1580000000)

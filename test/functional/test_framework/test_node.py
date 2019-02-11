@@ -58,7 +58,7 @@ class TestNode():
     be dispatched to the RPC connection."""
 
     def __init__(self, i, datadir, *, chain, host, rpc_port, p2p_port, timewait, bitcoind, bitcoin_cli,
-                 mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False, emulator=None):
+                 coverage_dir, extra_conf=None, extra_args=None, use_cli=False, emulator=None):
         self.index = i
         self.datadir = datadir
         self.bitcoinconf = os.path.join(self.datadir, "bitcoin.conf")
@@ -90,7 +90,6 @@ class TestNode():
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
-            "-mocktime=" + str(mocktime),
             "-uacomment=" + self.name,
             "-noprinttoconsole",
         ]
