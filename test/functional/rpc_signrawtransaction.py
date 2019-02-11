@@ -2,6 +2,7 @@
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test transaction signing using the signrawtransactionwithwallet RPC."""
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
@@ -35,7 +36,8 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 0.1}
 
         rawTx = self.nodes[0].createrawtransaction(inputs, outputs)
-        rawTxSigned = self.nodes[0].signrawtransaction(rawTx, inputs, privKeys)
+        rawTxSigned = self.nodes[0].signrawtransactionwithkey(
+            rawTx, privKeys, inputs)
 
         # 1) The transaction has a complete set of signatures
         assert 'complete' in rawTxSigned
@@ -92,8 +94,8 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         assert_raises_rpc_error(-22, "TX decode failed",
                                 self.nodes[0].decoderawtransaction, rawTx + "00")
 
-        rawTxSigned = self.nodes[0].signrawtransaction(
-            rawTx, scripts, privKeys)
+        rawTxSigned = self.nodes[0].signrawtransactionwithkey(
+            rawTx, privKeys, scripts)
 
         # 3) The transaction has no complete set of signatures
         assert 'complete' in rawTxSigned
