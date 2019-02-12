@@ -29,10 +29,8 @@
 #include <QTest>
 #include <QTextEdit>
 #include <QtGlobal>
-#if QT_VERSION >= 0x050000
-#include <QtTest/QtTestWidgets>
-#endif
 #include <QtTest/QtTestGui>
+#include <QtTest/QtTestWidgets>
 
 #include <univalue.h>
 

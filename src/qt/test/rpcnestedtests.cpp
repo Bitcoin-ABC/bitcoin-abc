@@ -157,10 +157,6 @@ void RPCNestedTests::rpcNestedTests() {
                                       "rpcNestedTest(   abc   ,   cba )");
     QVERIFY(result == "[\"abc\",\"cba\"]");
 
-#if QT_VERSION >= 0x050300
-    // do the QVERIFY_EXCEPTION_THROWN checks only with Qt5.3 and higher
-    // (QVERIFY_EXCEPTION_THROWN was introduced in Qt5.3)
-
     // invalid syntax
     QVERIFY_EXCEPTION_THROWN(RPCConsole::RPCExecuteCommandLine(
                                  *node, result, "getblockchaininfo() .\n"),
@@ -198,5 +194,4 @@ void RPCNestedTests::rpcNestedTests() {
     QVERIFY_EXCEPTION_THROWN(RPCConsole::RPCExecuteCommandLine(
                                  *node, result, "rpcNestedTest(abc,,)"),
                              std::runtime_error);
-#endif
 }
