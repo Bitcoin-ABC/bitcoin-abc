@@ -30,7 +30,7 @@ class PreviousSpendableOutput(object):
 
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
-        self.n = n  # the output we're spending
+        self.n = n
 
 
 class ReplayProtectionTest(ComparisonTestFramework):
@@ -102,7 +102,6 @@ class ReplayProtectionTest(ComparisonTestFramework):
 
         # adds transactions to the block and updates state
         def update_block(block_number, new_transactions):
-            [tx.rehash() for tx in new_transactions]
             block = self.blocks[block_number]
             block.vtx.extend(new_transactions)
             old_sha256 = block.sha256
@@ -118,7 +117,7 @@ class ReplayProtectionTest(ComparisonTestFramework):
             self.blocks[block_number] = block
             return block
 
-        # shorthand for functions
+        # shorthand
         block = self.next_block
         node = self.nodes[0]
 
