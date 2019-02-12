@@ -929,6 +929,8 @@ public:
         queuedTx.get<insertion_order>().erase(entry);
     }
 
+    bool isEmpty() const { return queuedTx.empty(); }
+
     void clear() {
         cachedInnerUsage = 0;
         queuedTx.clear();

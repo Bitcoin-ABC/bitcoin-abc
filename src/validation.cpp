@@ -2193,21 +2193,18 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
         return false;
     }
 
-    // If this block was deactivating the replay protection, then we need to
-    // remove transactions that are replay protected from the mempool. There is
-    // no easy way to do this so we'll just discard the whole mempool and then
-    // add the transaction of the block we just disconnected back.
-    if (IsReplayProtectionEnabled(config, pindexDelete) &&
-        !IsReplayProtectionEnabled(config, pindexDelete->pprev)) {
-        LogPrint(BCLog::MEMPOOL, "Clearing mempool for reorg");
-
-        g_mempool.clear();
-        // While not strictly necessary, clearing the disconnect pool is also
-        // beneficial so we don't try to reuse its content at the end of the
-        // reorg, which we know will fail.
+    // If this block is deactivating a fork, we move all mempool transactions
+    // in front of disconnectpool for reprocessing in a future
+    // updateMempoolForReorg call
+    if (pindexDelete->pprev != nullptr &&
+        GetBlockScriptFlags(config, pindexDelete) !=
+            GetBlockScriptFlags(config, pindexDelete->pprev)) {
+        LogPrint(BCLog::MEMPOOL,
+                 "Disconnecting mempool due to rewind of upgrade block\n");
         if (disconnectpool) {
-            disconnectpool->clear();
+            disconnectpool->importMempool(g_mempool);
         }
+        g_mempool.clear();
     }
 
     if (disconnectpool) {
@@ -2474,17 +2471,21 @@ static bool ConnectTip(const Config &config, CValidationState &state,
              (nTime5 - nTime4) * MILLI, nTimeChainState * MICRO,
              nTimeChainState * MILLI / nBlocksTotal);
 
-    // If we just activated the replay protection with that block, it means
-    // transaction in the mempool are now invalid. As a result, we need to clear
-    // the mempool.
-    if (IsReplayProtectionEnabled(config, pindexNew) &&
-        !IsReplayProtectionEnabled(config, pindexNew->pprev)) {
-        g_mempool.clear();
-    }
-
     // Remove conflicting transactions from the mempool.;
     g_mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     disconnectpool.removeForBlock(blockConnecting.vtx);
+
+    // If this block is activating a fork, we move all mempool transactions
+    // in front of disconnectpool for reprocessing in a future
+    // updateMempoolForReorg call
+    if (pindexNew->pprev != nullptr &&
+        GetBlockScriptFlags(config, pindexNew) !=
+            GetBlockScriptFlags(config, pindexNew->pprev)) {
+        LogPrint(BCLog::MEMPOOL,
+                 "Disconnecting mempool due to acceptance of upgrade block\n");
+        disconnectpool.importMempool(g_mempool);
+    }
+
     // Update chainActive & related variables.
     UpdateTip(config, pindexNew);
 
@@ -2753,9 +2754,13 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
         }
     }
 
-    if (fBlocksDisconnected) {
-        // If any blocks were disconnected, disconnectpool may be non empty. Add
-        // any disconnected transactions back to the mempool.
+    if (fBlocksDisconnected || !disconnectpool.isEmpty()) {
+        // If any blocks were disconnected, we need to update the mempool even
+        // if disconnectpool is empty. The disconnectpool may also be non-empty
+        // if the mempool was imported due to new validation rules being in
+        // effect.
+        LogPrint(BCLog::MEMPOOL, "Updating mempool due to reorganization or "
+                                 "rules upgrade/downgrade\n");
         disconnectpool.updateMempoolForReorg(config, true);
     }
 
