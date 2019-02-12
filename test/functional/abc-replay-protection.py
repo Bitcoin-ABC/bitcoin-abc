@@ -291,14 +291,16 @@ class ReplayProtectionTest(ComparisonTestFramework):
         # Deactivating replay protection.
         forkblockid = node.getbestblockhash()
         node.invalidateblock(forkblockid)
-        assert(replay_tx0_id not in set(node.getrawmempool()))
+        # The funding tx is not evicted from the mempool, since it's valid in
+        # both sides of the fork
+        assert(replay_tx0_id in set(node.getrawmempool()))
         assert(replay_tx1_id not in set(node.getrawmempool()))
 
         # Check that we also do it properly on deeper reorg.
         node.reconsiderblock(forkblockid)
         node.reconsiderblock(postforkblockid)
         node.invalidateblock(forkblockid)
-        assert(replay_tx0_id not in set(node.getrawmempool()))
+        assert(replay_tx0_id in set(node.getrawmempool()))
         assert(replay_tx1_id not in set(node.getrawmempool()))
 
 
