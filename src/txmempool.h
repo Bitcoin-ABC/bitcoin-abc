@@ -743,15 +743,6 @@ public:
     TxMempoolInfo info(const uint256 &hash) const;
     std::vector<TxMempoolInfo> infoAll() const;
 
-    /**
-     * Estimate fee rate needed to get into the next nBlocks. If no answer can
-     * be given at nBlocks, return an estimate at the lowest number of blocks
-     * where one can be given.
-     */
-    CFeeRate estimateSmartFee(int nBlocks,
-                              int *answerFoundAtBlocks = nullptr) const;
-
-    /** Estimate fee rate needed to get into the next nBlocks */
     CFeeRate estimateFee(int nBlocks) const;
 
     size_t DynamicMemoryUsage() const;

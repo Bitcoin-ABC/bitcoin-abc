@@ -787,9 +787,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
 
     int nBlocksToConfirm =
         getConfTargetForIndex(ui->confTargetSelector->currentIndex());
-    int estimateFoundAtBlocks = nBlocksToConfirm;
-    CFeeRate feeRate =
-        g_mempool.estimateSmartFee(nBlocksToConfirm, &estimateFoundAtBlocks);
+    CFeeRate feeRate = g_mempool.estimateFee(nBlocksToConfirm);
     // not enough data => minfee
     if (feeRate <= CFeeRate(Amount::zero())) {
         ui->labelSmartFee->setText(
@@ -811,7 +809,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         ui->labelSmartFee2->hide();
         ui->labelFeeEstimation->setText(
             tr("Estimated to begin confirmation within %n block(s).", "",
-               estimateFoundAtBlocks));
+               nBlocksToConfirm));
     }
 
     updateFeeMinimizedLabel();
