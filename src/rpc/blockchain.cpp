@@ -1,5 +1,5 @@
 // Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -2053,100 +2053,90 @@ static constexpr size_t PER_UTXO_OVERHEAD =
 
 static UniValue getblockstats(const Config &config,
                               const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() < 1 ||
-        request.params.size() > 4) {
-        throw std::runtime_error(RPCHelpMan{
-            "getblockstats",
-            "\nCompute per block statistics for a given window. All "
-            "amounts are in " +
-                CURRENCY_UNIT +
-                ".\n"
-                "It won't work for some heights with pruning.\n"
-                "It won't work without -txindex for utxo_size_inc, *fee or "
-                "*feerate stats.\n",
-            {
-                {"hash_or_height",
-                 RPCArg::Type::NUM,
-                 RPCArg::Optional::NO,
-                 "The block hash or height of the target block",
-                 "",
-                 {"", "string or numeric"}},
-                {"stats",
-                 RPCArg::Type::ARR,
-                 /* default */ "all values",
-                 "Values to plot (see result below)",
-                 {
-                     {"height", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
-                      "Selected statistic"},
-                     {"time", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
-                      "Selected statistic"},
-                 },
-                 "stats"},
-            },
-            RPCResult{
-                "{                           (json object)\n"
-                "  \"avgfee\": x.xxx,          (numeric) Average fee in the "
-                "block\n"
-                "  \"avgfeerate\": x.xxx,      (numeric) Average feerate (in " +
-                CURRENCY_UNIT +
-                " per byte)\n"
-                "  \"avgtxsize\": xxxxx,       (numeric) Average transaction "
-                "size\n"
-                "  \"blockhash\": xxxxx,       (string) The block hash (to "
-                "check for potential reorgs)\n"
-                "  \"height\": xxxxx,          (numeric) The height of the "
-                "block\n"
-                "  \"ins\": xxxxx,             (numeric) The number of inputs "
-                "(excluding coinbase)\n"
-                "  \"maxfee\": xxxxx,          (numeric) Maximum fee in the "
-                "block\n"
-                "  \"maxfeerate\": xxxxx,      (numeric) Maximum feerate (in " +
-                CURRENCY_UNIT +
-                " per byte)\n"
-                "  \"maxtxsize\": xxxxx,       (numeric) Maximum transaction "
-                "size\n"
-                "  \"medianfee\": x.xxx,       (numeric) Truncated median fee "
-                "in the block\n"
-                "  \"medianfeerate\": x.xxx,   (numeric) Truncated median "
-                "feerate (in " +
-                CURRENCY_UNIT +
-                " per byte)\n"
-                "  \"mediantime\": xxxxx,      (numeric) The block median time "
-                "past\n"
-                "  \"mediantxsize\": xxxxx,    (numeric) Truncated median "
-                "transaction size\n"
-                "  \"minfee\": x.xxx,          (numeric) Minimum fee in the "
-                "block\n"
-                "  \"minfeerate\": xx.xx,      (numeric) Minimum feerate (in " +
-                CURRENCY_UNIT +
-                " per byte)\n"
-                "  \"mintxsize\": xxxxx,       (numeric) Minimum transaction "
-                "size\n"
-                "  \"outs\": xxxxx,            (numeric) The number of "
-                "outputs\n"
-                "  \"subsidy\": x.xxx,         (numeric) The block subsidy\n"
-                "  \"time\": xxxxx,            (numeric) The block time\n"
-                "  \"total_out\": x.xxx,       (numeric) Total amount in all "
-                "outputs (excluding coinbase and thus reward [ie subsidy + "
-                "totalfee])\n"
-                "  \"total_size\": xxxxx,      (numeric) Total size of all "
-                "non-coinbase transactions\n"
-                "  \"totalfee\": x.xxx,        (numeric) The fee total\n"
-                "  \"txs\": xxxxx,             (numeric) The number of "
-                "transactions (excluding coinbase)\n"
-                "  \"utxo_increase\": xxxxx,   (numeric) The increase/decrease "
-                "in the number of unspent outputs\n"
-                "  \"utxo_size_inc\": xxxxx,   (numeric) The increase/decrease "
-                "in size for the utxo index (not discounting op_return and "
-                "similar)\n"
-                "}\n"},
-            RPCExamples{
-                HelpExampleCli("getblockstats",
-                               "1000 '[\"minfeerate\",\"avgfeerate\"]'") +
-                HelpExampleRpc("getblockstats",
-                               "1000 '[\"minfeerate\",\"avgfeerate\"]'")},
-        }
-                                     .ToString());
+    const RPCHelpMan help{
+        "getblockstats",
+        "\nCompute per block statistics for a given window. All amounts are "
+        "in " +
+            CURRENCY_UNIT +
+            ".\n"
+            "It won't work for some heights with pruning.\n"
+            "It won't work without -txindex for utxo_size_inc, *fee or "
+            "*feerate stats.\n",
+        {
+            {"hash_or_height",
+             RPCArg::Type::NUM,
+             RPCArg::Optional::NO,
+             "The block hash or height of the target block",
+             "",
+             {"", "string or numeric"}},
+            {"stats",
+             RPCArg::Type::ARR,
+             /* default */ "all values",
+             "Values to plot (see result below)",
+             {
+                 {"height", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
+                  "Selected statistic"},
+                 {"time", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
+                  "Selected statistic"},
+             },
+             "stats"},
+        },
+        RPCResult{
+            "{                           (json object)\n"
+            "  \"avgfee\": x.xxx,          (numeric) Average fee in the block\n"
+            "  \"avgfeerate\": x.xxx,      (numeric) Average feerate (in " +
+            CURRENCY_UNIT +
+            " per byte)\n"
+            "  \"avgtxsize\": xxxxx,       (numeric) Average transaction size\n"
+            "  \"blockhash\": xxxxx,       (string) The block hash (to check "
+            "for potential reorgs)\n"
+            "  \"height\": xxxxx,          (numeric) The height of the block\n"
+            "  \"ins\": xxxxx,             (numeric) The number of inputs "
+            "(excluding coinbase)\n"
+            "  \"maxfee\": xxxxx,          (numeric) Maximum fee in the block\n"
+            "  \"maxfeerate\": xxxxx,      (numeric) Maximum feerate (in " +
+            CURRENCY_UNIT +
+            " per byte)\n"
+            "  \"maxtxsize\": xxxxx,       (numeric) Maximum transaction size\n"
+            "  \"medianfee\": x.xxx,       (numeric) Truncated median fee in "
+            "the block\n"
+            "  \"medianfeerate\": x.xxx,   (numeric) Truncated median feerate "
+            "(in " +
+            CURRENCY_UNIT +
+            " per byte)\n"
+            "  \"mediantime\": xxxxx,      (numeric) The block median time "
+            "past\n"
+            "  \"mediantxsize\": xxxxx,    (numeric) Truncated median "
+            "transaction size\n"
+            "  \"minfee\": x.xxx,          (numeric) Minimum fee in the block\n"
+            "  \"minfeerate\": xx.xx,      (numeric) Minimum feerate (in " +
+            CURRENCY_UNIT +
+            " per byte)\n"
+            "  \"mintxsize\": xxxxx,       (numeric) Minimum transaction size\n"
+            "  \"outs\": xxxxx,            (numeric) The number of outputs\n"
+            "  \"subsidy\": x.xxx,         (numeric) The block subsidy\n"
+            "  \"time\": xxxxx,            (numeric) The block time\n"
+            "  \"total_out\": x.xxx,       (numeric) Total amount in all "
+            "outputs (excluding coinbase and thus reward [ie subsidy + "
+            "totalfee])\n"
+            "  \"total_size\": xxxxx,      (numeric) Total size of all "
+            "non-coinbase transactions\n"
+            "  \"totalfee\": x.xxx,        (numeric) The fee total\n"
+            "  \"txs\": xxxxx,             (numeric) The number of "
+            "transactions (excluding coinbase)\n"
+            "  \"utxo_increase\": xxxxx,   (numeric) The increase/decrease in "
+            "the number of unspent outputs\n"
+            "  \"utxo_size_inc\": xxxxx,   (numeric) The increase/decrease in "
+            "size for the utxo index (not discounting op_return and similar)\n"
+            "}\n"},
+        RPCExamples{HelpExampleCli("getblockstats",
+                                   "1000 '[\"minfeerate\",\"avgfeerate\"]'") +
+                    HelpExampleRpc("getblockstats",
+                                   "1000 '[\"minfeerate\",\"avgfeerate\"]'")},
+    };
+
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
     }
 
     LOCK(cs_main);

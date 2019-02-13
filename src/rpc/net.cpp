@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -650,41 +650,42 @@ static UniValue getnetworkinfo(const Config &config,
 }
 
 static UniValue setban(const Config &config, const JSONRPCRequest &request) {
+    const RPCHelpMan help{
+        "setban",
+        "\nAttempts to add or remove an IP/Subnet from the "
+        "banned list.\n",
+        {
+            {"subnet", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "The IP/Subnet (see getpeerinfo for nodes IP) with an optional "
+             "netmask (default is /32 = single IP)"},
+            {"command", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "'add' to add an IP/Subnet to the list, 'remove' to remove an "
+             "IP/Subnet from the list"},
+            {"bantime", RPCArg::Type::NUM, /* default */ "0",
+             "time in seconds how long (or until when if [absolute] is set) "
+             "the IP is banned (0 or empty means using the default time of 24h "
+             "which can also be overwritten by the -bantime startup argument)"},
+            {"absolute", RPCArg::Type::BOOL, /* default */ "false",
+             "If set, the bantime must be an absolute timestamp in seconds "
+             "since epoch (Jan 1 1970 GMT)"},
+        },
+        RPCResults{},
+        RPCExamples{
+            HelpExampleCli("setban", "\"192.168.0.6\" \"add\" 86400") +
+            HelpExampleCli("setban", "\"192.168.0.0/24\" \"add\"") +
+            HelpExampleRpc("setban", "\"192.168.0.6\", \"add\", 86400")},
+    };
+
     std::string strCommand;
     if (!request.params[1].isNull()) {
         strCommand = request.params[1].get_str();
     }
 
-    if (request.fHelp || request.params.size() < 2 ||
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size()) ||
         (strCommand != "add" && strCommand != "remove")) {
-        throw std::runtime_error(RPCHelpMan{
-            "setban",
-            "\nAttempts to add or remove an IP/Subnet from the "
-            "banned list.\n",
-            {
-                {"subnet", RPCArg::Type::STR, RPCArg::Optional::NO,
-                 "The IP/Subnet (see getpeerinfo for nodes IP) with an "
-                 "optional netmask (default is /32 = single IP)"},
-                {"command", RPCArg::Type::STR, RPCArg::Optional::NO,
-                 "'add' to add an IP/Subnet to the list, 'remove' to "
-                 "remove an IP/Subnet from the list"},
-                {"bantime", RPCArg::Type::NUM, /* default */ "0",
-                 "time in seconds how long (or until when if [absolute] is "
-                 "set) the IP is banned (0 or empty means using the default "
-                 "time of 24h which can also be overwritten by the -bantime "
-                 "startup argument)"},
-                {"absolute", RPCArg::Type::BOOL, /* default */ "false",
-                 "If set, the bantime must be an absolute timestamp in seconds "
-                 "since epoch (Jan 1 1970 GMT)"},
-            },
-            RPCResults{},
-            RPCExamples{
-                HelpExampleCli("setban", "\"192.168.0.6\" \"add\" 86400") +
-                HelpExampleCli("setban", "\"192.168.0.0/24\" \"add\"") +
-                HelpExampleRpc("setban", "\"192.168.0.6\", \"add\", 86400")},
-        }
-                                     .ToString());
+        throw std::runtime_error(help.ToString());
     }
+
     if (!g_banman) {
         throw JSONRPCError(RPC_DATABASE_ERROR,
                            "Error: Ban database not loaded");

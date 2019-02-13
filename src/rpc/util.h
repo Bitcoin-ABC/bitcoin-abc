@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Bitcoin Core developers
+// Copyright (c) 2017-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -109,7 +109,7 @@ struct RPCArg {
         /** Required arg */
         NO,
         /**
-         * Optinal arg that is a named argument and has a default value of
+         * Optional arg that is a named argument and has a default value of
          * `null`. When possible, the default value should be specified.
          */
         OMITTED_NAMED_ARG,
@@ -162,6 +162,8 @@ struct RPCArg {
           m_oneline_description{oneline_description}, m_type_str{type_str} {
         CHECK_NONFATAL(type == Type::ARR || type == Type::OBJ);
     }
+
+    bool IsOptional() const;
 
     /**
      * Return the type string of the argument.
@@ -226,6 +228,8 @@ public:
                RPCExamples examples);
 
     std::string ToString() const;
+    /** If the supplied number of args is neither too small nor too high */
+    bool IsValidNumArgs(size_t num_args) const;
 
 private:
     const std::string m_name;
