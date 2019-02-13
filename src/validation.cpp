@@ -310,6 +310,11 @@ static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
     return IsMagneticAnomalyEnabled(config, chainActive.Tip());
 }
 
+static bool IsGreatWallEnabledForCurrentBlock(const Config &config) {
+    AssertLockHeld(cs_main);
+    return IsGreatWallEnabled(config, chainActive.Tip());
+}
+
 // Command-line argument "-replayprotectionactivationtime=<timestamp>" will
 // cause the node to switch to replay protected SigHash ForkID value when the
 // median timestamp of the previous 11 blocks is greater than or equal to
@@ -633,6 +638,10 @@ static bool AcceptToMemoryPoolWorker(
 
         if (IsMagneticAnomalyEnabledForCurrentBlock(config)) {
             extraFlags |= SCRIPT_ENABLE_CHECKDATASIG;
+        }
+
+        if (!fRequireStandard && IsGreatWallEnabledForCurrentBlock(config)) {
+            extraFlags |= SCRIPT_ALLOW_SEGWIT_RECOVERY;
         }
 
         // Check inputs based on the set of flags we activate.
@@ -1187,8 +1196,14 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
             // This differs from MANDATORY_SCRIPT_VERIFY_FLAGS as it contains
             // additional upgrade flags (see AcceptToMemoryPoolWorker variable
             // extraFlags).
+            // Even though it is not a mandatory flag,
+            // SCRIPT_ALLOW_SEGWIT_RECOVERY is strictly more permissive than the
+            // set of standard flags. It therefore needs to be added in order to
+            // check if we need to penalize the peer that sent us the
+            // transaction or not.
             uint32_t mandatoryFlags =
-                flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS;
+                (flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS) |
+                SCRIPT_ALLOW_SEGWIT_RECOVERY;
             if (flags != mandatoryFlags) {
                 // Check whether the failure was caused by a non-mandatory
                 // script verification check. If so, don't trigger DoS
@@ -1569,6 +1584,12 @@ static uint32_t GetBlockScriptFlags(const Config &config,
         flags |= SCRIPT_ENABLE_CHECKDATASIG;
         flags |= SCRIPT_VERIFY_SIGPUSHONLY;
         flags |= SCRIPT_VERIFY_CLEANSTACK;
+    }
+
+    // If the Great Wall fork is enabled, we start accepting transactions
+    // recovering coins sent to segwit addresses
+    if (IsGreatWallEnabled(config, pChainTip)) {
+        flags |= SCRIPT_ALLOW_SEGWIT_RECOVERY;
     }
 
     // We make sure this node will have replay protection during the next hard
