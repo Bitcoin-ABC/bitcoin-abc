@@ -44,6 +44,22 @@ void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
     // available to code in bitcoin-common, so we query them here and push the
     // data into the returned UniValue.
     TxToUniv(tx, uint256(), entry);
+
+    if (!hashBlock.IsNull()) {
+        entry.pushKV("blockhash", hashBlock.GetHex());
+        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
+        if (mi != mapBlockIndex.end() && (*mi).second) {
+            CBlockIndex *pindex = (*mi).second;
+            if (chainActive.Contains(pindex)) {
+                entry.pushKV("confirmations",
+                             1 + chainActive.Height() - pindex->nHeight);
+                entry.pushKV("time", pindex->GetBlockTime());
+                entry.pushKV("blocktime", pindex->GetBlockTime());
+            } else {
+                entry.pushKV("confirmations", 0);
+            }
+        }
+    }
 }
 
 static UniValue getrawtransaction(const Config &config,
@@ -173,7 +189,7 @@ static UniValue getrawtransaction(const Config &config,
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("hex", strHex);
-    TxToUniv(*tx, hashBlock, result);
+    TxToJSON(*tx, hashBlock, result);
     return result;
 }
 
