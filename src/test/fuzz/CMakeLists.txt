@@ -2,11 +2,11 @@
 add_custom_target(bitcoin-fuzzers)
 
 include(SanitizeHelper)
-function(add_fuzz_targets)
+function(add_deserialize_fuzz_targets)
 	foreach(_fuzz_test_name ${ARGN})
 		sanitize_target_name("fuzz-" ${_fuzz_test_name} _fuzz_target_name)
 		add_executable(${_fuzz_target_name} EXCLUDE_FROM_ALL
-			../test_bitcoin_fuzzy.cpp
+			deserialize.cpp
 			fuzz.cpp
 		)
 		set_target_properties(${_fuzz_target_name} PROPERTIES OUTPUT_NAME ${_fuzz_test_name})
@@ -21,7 +21,7 @@ function(add_fuzz_targets)
 	endforeach()
 endfunction()
 
-add_fuzz_targets(
+add_deserialize_fuzz_targets(
 	address_deserialize
 	addrman_deserialize
 	banentry_deserialize
