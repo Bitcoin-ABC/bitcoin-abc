@@ -18,9 +18,7 @@ Amount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget,
     Amount nFeeNeeded = targetFee;
     // User didn't set: use -txconfirmtarget to estimate...
     if (nFeeNeeded == Amount::zero()) {
-        int estimateFoundTarget = nConfirmTarget;
-        nFeeNeeded = pool.estimateSmartFee(nConfirmTarget, &estimateFoundTarget)
-                         .GetFeeCeiling(nTxBytes);
+        nFeeNeeded = pool.estimateFee(nConfirmTarget).GetFeeCeiling(nTxBytes);
         // ... unless we don't have enough mempool data for estimatefee, then
         // use fallbackFee.
         if (nFeeNeeded == Amount::zero()) {

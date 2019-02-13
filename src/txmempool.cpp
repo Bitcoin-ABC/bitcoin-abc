@@ -962,16 +962,6 @@ CFeeRate CTxMemPool::estimateFee(int nBlocks) const {
     return std::max(GetConfig().GetMinFeePerKB(), GetMinFee(maxMempoolSize));
 }
 
-CFeeRate CTxMemPool::estimateSmartFee(int nBlocks,
-                                      int *answerFoundAtBlocks) const {
-    if (answerFoundAtBlocks != nullptr) {
-        *answerFoundAtBlocks = 1;
-    }
-    // estimateSmartFee already includes the GetMinFee check, this is the
-    // reason it takes `*this`.  It does not need std::max as above.
-    return estimateFee(nBlocks);
-}
-
 void CTxMemPool::PrioritiseTransaction(const uint256 hash,
                                        const std::string strHash,
                                        double dPriorityDelta,
