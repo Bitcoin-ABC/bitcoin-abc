@@ -229,12 +229,13 @@ UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
              "range to import."},
         },
         RPCResult{"[ address ] (array) the derived addresses\n"},
-        RPCExamples{"First three native segwit receive addresses\n" +
-                    HelpExampleCli("deriveaddresses",
-                                   "\"pkh([d34db33f/84h/0h/0h]"
-                                   "xpub6DJ2dNUysrn5Vt36jH2KLBT2i1auw1tTSSomg8P"
-                                   "hqNiUtx8QX2SvC9nrHu81fT41fvDUnhMjEzQgXnQjKE"
-                                   "u3oaqMSzhSrHMxyyoEAmUHQbY/0/*)\" 0 2")}}
+        RPCExamples{
+            "First three pkh receive addresses\n" +
+            HelpExampleCli("deriveaddresses",
+                           "\"pkh([d34db33f/84h/0h/0h]"
+                           "xpub6DJ2dNUysrn5Vt36jH2KLBT2i1auw1tTSSomg8P"
+                           "hqNiUtx8QX2SvC9nrHu81fT41fvDUnhMjEzQgXnQjKE"
+                           "u3oaqMSzhSrHMxyyoEAmUHQbY/0/*)#3vhfv5h5\" 0 2")}}
         .Check(request);
 
     RPCTypeCheck(request.params,
@@ -263,7 +264,7 @@ UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
     }
 
     FlatSigningProvider provider;
-    auto desc = Parse(desc_str, provider);
+    auto desc = Parse(desc_str, provider, /* require_checksum = */ true);
     if (!desc) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            strprintf("Invalid descriptor"));

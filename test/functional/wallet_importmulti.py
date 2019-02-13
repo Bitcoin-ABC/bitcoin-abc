@@ -20,6 +20,7 @@ from test_framework.script import (
     OP_NOP,
 )
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.descriptors import descsum_create
 from test_framework.util import (
     assert_equal,
     assert_greater_than,
@@ -466,13 +467,25 @@ class ImportMultiTest(BitcoinTestFramework):
                                     "timestamp": ""
                                 }])
 
-        # Test importing of a P2PKH address via descriptor
+        # Test that importing of a P2PKH address via descriptor without
+        # checksum fails
         key = get_key(self.nodes[0])
-        self.log.info("Should import a p2pkh address from descriptor")
+        self.log.info(
+            "Should fail to import a p2pkh address from descriptor with no checksum")
         self.test_importmulti({"desc": "pkh(" + key.pubkey + ")",
                                "timestamp": "now",
                                "label": "Descriptor import test"},
-                              True,
+                              success=False,
+                              error_code=-5,
+                              error_message='Descriptor is invalid')
+
+        # Test importing of a P2PKH address via descriptor
+        key = get_key(self.nodes[0])
+        self.log.info("Should import a p2pkh address from descriptor")
+        self.test_importmulti({"desc": descsum_create("pkh(" + key.pubkey + ")"),
+                               "timestamp": "now",
+                               "label": "Descriptor import test"},
+                              success=True,
                               warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
         test_address(self.nodes[1],
                      key.p2pkh_addr,
@@ -484,7 +497,7 @@ class ImportMultiTest(BitcoinTestFramework):
         key = get_key(self.nodes[0])
         self.log.info(
             "Import should fail if both scriptPubKey and desc are provided")
-        self.test_importmulti({"desc": "pkh(" + key.pubkey + ")",
+        self.test_importmulti({"desc": descsum_create("pkh(" + key.pubkey + ")"),
                                "scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now"},
                               success=False,
@@ -504,7 +517,7 @@ class ImportMultiTest(BitcoinTestFramework):
         key1 = get_key(self.nodes[0])
         key2 = get_key(self.nodes[0])
         self.log.info("Should import a 1-of-2 bare multisig from descriptor")
-        self.test_importmulti({"desc": "multi(1," + key1.pubkey + "," + key2.pubkey + ")",
+        self.test_importmulti({"desc": descsum_create("multi(1," + key1.pubkey + "," + key2.pubkey + ")"),
                                "timestamp": "now"},
                               success=True,
                               warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
@@ -526,7 +539,7 @@ class ImportMultiTest(BitcoinTestFramework):
         pub_fpr = info['hdmasterfingerprint']
         result = self.nodes[0].importmulti(
             [{
-                'desc': "pkh([" + pub_fpr + pub_keypath[1:] + "]" + pub + ")",
+                'desc': descsum_create("pkh([" + pub_fpr + pub_keypath[1:] + "]" + pub + ")"),
                 "timestamp": "now",
             }]
         )
@@ -544,7 +557,7 @@ class ImportMultiTest(BitcoinTestFramework):
         priv_fpr = info['hdmasterfingerprint']
         result = self.nodes[0].importmulti(
             [{
-                'desc': "pkh([" + priv_fpr + priv_keypath[1:] + "]" + priv + ")",
+                'desc': descsum_create("pkh([" + priv_fpr + priv_keypath[1:] + "]" + priv + ")"),
                 "timestamp": "now",
             }]
         )
@@ -594,12 +607,12 @@ class ImportMultiTest(BitcoinTestFramework):
         pub2 = self.nodes[0].getaddressinfo(addr2)['pubkey']
         result = wrpc.importmulti(
             [{
-                'desc': 'pkh(' + pub1 + ')',
+                'desc': descsum_create('pkh(' + pub1 + ')'),
                 'keypool': True,
                 "timestamp": "now",
             },
                 {
-                'desc': 'pkh(' + pub2 + ')',
+                'desc': descsum_create('pkh(' + pub2 + ')'),
                 'keypool': True,
                 "timestamp": "now",
             }]
@@ -622,13 +635,13 @@ class ImportMultiTest(BitcoinTestFramework):
         pub2 = self.nodes[0].getaddressinfo(addr2)['pubkey']
         result = wrpc.importmulti(
             [{
-                'desc': 'pkh(' + pub1 + ')',
+                'desc': descsum_create('pkh(' + pub1 + ')'),
                 'keypool': True,
                 'internal': True,
                 "timestamp": "now",
             },
                 {
-                'desc': 'pkh(' + pub2 + ')',
+                'desc': descsum_create('pkh(' + pub2 + ')'),
                 'keypool': True,
                 'internal': True,
                 "timestamp": "now",
@@ -651,7 +664,7 @@ class ImportMultiTest(BitcoinTestFramework):
         pub2 = self.nodes[0].getaddressinfo(addr2)['pubkey']
         result = wrpc.importmulti(
             [{
-                'desc': 'sh(multi(2,' + pub1 + ',' + pub2 + '))',
+                'desc': descsum_create('sh(multi(2,' + pub1 + ',' + pub2 + '))'),
                 'keypool': True,
                 "timestamp": "now",
             }]
@@ -666,7 +679,7 @@ class ImportMultiTest(BitcoinTestFramework):
         assert wrpc.getwalletinfo()['private_keys_enabled']
         result = wrpc.importmulti(
             [{
-                'desc': 'pkh(' + pub1 + ')',
+                'desc': descsum_create('pkh(' + pub1 + ')'),
                 'keypool': True,
                 "timestamp": "now",
             }]
@@ -691,7 +704,7 @@ class ImportMultiTest(BitcoinTestFramework):
         ]
         result = wrpc.importmulti(
             [{
-                'desc': 'pkh([80002067/0h/0h]' + xpub + '/*)',
+                'desc': descsum_create('pkh([80002067/0h/0h]' + xpub + '/*)'),
                 'keypool': True,
                 'timestamp': 'now',
                 'range': {'start': 0, 'end': 4}
