@@ -141,6 +141,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].getbalance(), bal + Decimal(
             '50.00000000') + Decimal('2.19000000'))  # block reward + tx
 
+        rawTxBlock = self.nodes[0].getblock(self.nodes[0].getbestblockhash())
+
         # 2of2 test for combining transactions
         bal = self.nodes[2].getbalance()
         addr1 = self.nodes[1].getnewaddress()
@@ -233,6 +235,21 @@ class RawTransactionsTest(BitcoinTestFramework):
         # 8. invalid parameters - supply txid and empty dict
         assert_raises_rpc_error(
             -3, "Invalid type", self.nodes[0].getrawtransaction, txHash, {})
+
+        # Sanity checks on verbose getrawtransaction output
+        rawTxOutput = self.nodes[0].getrawtransaction(txHash, True)
+        assert_equal(rawTxOutput["hex"], rawTxSigned["hex"])
+        assert_equal(rawTxOutput["txid"], txHash)
+        assert_equal(rawTxOutput["hash"], txHash)
+        assert_greater_than(rawTxOutput["size"], 300)
+        assert_equal(rawTxOutput["version"], 0x02)
+        assert_equal(rawTxOutput["locktime"], 0)
+        assert_equal(len(rawTxOutput["vin"]), 1)
+        assert_equal(len(rawTxOutput["vout"]), 1)
+        assert_equal(rawTxOutput["blockhash"], rawTxBlock["hash"])
+        assert_equal(rawTxOutput["confirmations"], 3)
+        assert_equal(rawTxOutput["time"], rawTxBlock["time"])
+        assert_equal(rawTxOutput["blocktime"], rawTxBlock["time"])
 
         inputs = [
             {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'sequence': 1000}]
