@@ -3033,6 +3033,7 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
                               CBlockIndex *pindex, bool invalidate) {
     CBlockIndex *to_mark_failed_or_parked = pindex;
     bool pindex_was_in_chain = false;
+    int disconnected = 0;
 
     // Disconnect (descendants of) pindex, and mark them invalid.
     while (true) {
@@ -3061,9 +3062,11 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
 
         // DisconnectTip will add transactions to disconnectpool.
         // Adjust the mempool to be consistent with the new tip, adding
-        // transactions back to the mempool if disconnecting was successful.
-
-        disconnectpool.updateMempoolForReorg(config, /* fAddToMempool = */ ret);
+        // transactions back to the mempool if disconnecting was successful,
+        // and we're not doing a very deep invalidation (in which case
+        // keeping the mempool up to date is probably futile anyway).
+        disconnectpool.updateMempoolForReorg(
+            config, /* fAddToMempool = */ (++disconnected <= 10) && ret);
 
         if (!ret) {
             return false;
