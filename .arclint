@@ -39,6 +39,13 @@
         "lint-tests": {
             "type": "lint-tests",
             "include": "(^src/(rpc/|wallet/)?test/.*\\.(cpp)$)"
+        },
+        "lint-python-format": {
+            "type": "lint-python-format",
+            "include": "(\\.py$)",
+            "exclude": [
+                "(^test/lint/lint-python-format\\.py$)"
+            ]
         }
     }
 }
