@@ -24,8 +24,6 @@ class PSBTTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = False
         self.num_nodes = 3
-        # TODO: remove -txindex. Currently required for getrawtransaction call.
-        self.extra_args = [["-txindex"], ["-txindex"], ["-txindex"]]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -125,10 +123,10 @@ class PSBTTest(BitcoinTestFramework):
         node2_addr = self.nodes[2].getnewaddress()
         txid1 = self.nodes[0].sendtoaddress(node1_addr, 13)
         txid2 = self.nodes[0].sendtoaddress(node2_addr, 13)
-        self.nodes[0].generate(6)
+        blockhash = self.nodes[0].generate(6)[0]
         self.sync_all()
-        vout1 = find_output(self.nodes[1], txid1, 13)
-        vout2 = find_output(self.nodes[2], txid2, 13)
+        vout1 = find_output(self.nodes[1], txid1, 13, blockhash=blockhash)
+        vout2 = find_output(self.nodes[2], txid2, 13, blockhash=blockhash)
 
         # Create a psbt spending outputs from nodes 1 and 2
         psbt_orig = self.nodes[0].createpsbt([{"txid": txid1, "vout": vout1}, {
@@ -283,9 +281,9 @@ class PSBTTest(BitcoinTestFramework):
         # Newly created PSBT needs UTXOs and updating
         addr = self.nodes[1].getnewaddress("")
         txid = self.nodes[0].sendtoaddress(addr, 7)
-        self.nodes[0].generate(6)
+        blockhash = self.nodes[0].generate(6)[0]
         self.sync_all()
-        vout = find_output(self.nodes[0], txid, 7)
+        vout = find_output(self.nodes[0], txid, 7, blockhash=blockhash)
         psbt = self.nodes[1].createpsbt([{"txid": txid, "vout": vout}], {
                                         self.nodes[0].getnewaddress(""): Decimal('6.999')})
         analyzed = self.nodes[0].analyzepsbt(psbt)
