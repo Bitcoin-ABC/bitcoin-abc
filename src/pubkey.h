@@ -47,8 +47,12 @@ private:
 
     //! Compute the length of a pubkey with a given first byte.
     static unsigned int GetLen(uint8_t chHeader) {
-        if (chHeader == 2 || chHeader == 3) return 33;
-        if (chHeader == 4 || chHeader == 6 || chHeader == 7) return 65;
+        if (chHeader == 2 || chHeader == 3) {
+            return 33;
+        }
+        if (chHeader == 4 || chHeader == 6 || chHeader == 7) {
+            return 65;
+        }
         return 0;
     }
 
@@ -62,10 +66,11 @@ public:
     //! Initialize a public key using begin/end iterators to byte data.
     template <typename T> void Set(const T pbegin, const T pend) {
         int len = pend == pbegin ? 0 : GetLen(pbegin[0]);
-        if (len && len == (pend - pbegin))
+        if (len && len == (pend - pbegin)) {
             memcpy(vch, (uint8_t *)&pbegin[0], len);
-        else
+        } else {
             Invalidate();
+        }
     }
 
     //! Construct a public key using begin/end iterators to byte data.
@@ -109,8 +114,9 @@ public:
         } else {
             // invalid pubkey, skip available data
             char dummy;
-            while (len--)
+            while (len--) {
                 s.read(&dummy, 1);
+            }
             Invalidate();
         }
     }
@@ -203,9 +209,11 @@ struct CExtPubKey {
     }
     template <typename Stream> void Unserialize(Stream &s) {
         unsigned int len = ::ReadCompactSize(s);
-        uint8_t code[BIP32_EXTKEY_SIZE];
-        if (len != BIP32_EXTKEY_SIZE)
+        if (len != BIP32_EXTKEY_SIZE) {
             throw std::runtime_error("Invalid extended key size\n");
+        }
+
+        uint8_t code[BIP32_EXTKEY_SIZE];
         s.read((char *)&code[0], len);
         Decode(code);
     }
