@@ -1,0 +1,70 @@
+# This file contains python code with % string formatters to test the 
+# lint-python-format.py script.
+
+# Single line
+"test %s" % "string"
+"pi %.2f" % 3.1415
+
+# Multiple lines
+"test %s" %
+    "string"
+"test %s" % \
+    "string"
+"test %s" \
+    % "string"
+"test %s %s %s" \
+    % ("1", "2", "3")
+"test %s %s %s" % \
+    ("1", "2", "3")
+"test %s %s %s" \
+     % ("1",
+    "2", "3")
+"test %s %s %s" \
+   % ("0" \
+   + "1",
+  "2", "3")
+
+# In a comment
+# "test %s" % "string"
+
+# Nested comment
+"test %s %s %s" \
+    % ("1",
+    #"4",
+    "2", "3")
+    
+# Inlined comments are not supported
+# "test %s %s %s" \
+#     % ("1", #4,
+#     "2", "3")
+
+# Nested format inside a list, dict or function
+["test %s" % "string"]
+{"key1":"%s" % "value1", "key2":"value2"}
+f("%d" % len("string"), argument2)
+f("%d %s" % (len("string"), "argument1"), argument2)
+["test %s %s" %
+    ("string1", "string2")]
+
+# Multiple formats on a single line
+("%s" % "string1", "%s" % "string2")
+("%s" % "string1", "%s %s" % ("string2", "string3")
+("%s %s" % ("string1", "string2"), "%s %s" % ("string3", "string4"))
+
+# Combo !
+["test %05i %% %s" %
+    (len("string1"),
+    "%d %-10s %%" % (len("string2"),
+        "string2"))]
+
+# Code with % but not using it for formatting should not throw any linter error
+"test %100"
+"test %\n"
+"test %%"
+"test %d" 42
+"test % 42"
+"test %\
+    1"
+"test % \
+    1"
+a = 10 % 2
