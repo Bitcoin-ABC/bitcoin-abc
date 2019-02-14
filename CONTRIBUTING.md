@@ -179,6 +179,11 @@ committed a change to the Bitcoin ABC repository.
 - When reviewing a Diff, apply the changeset on your local by using
 `arc patch D{NNNN}`
 
+- You will likely be re-writing git histories multiple times, which causes
+timestamp changes that require re-building a significant number of files. It's
+highly recommended to install `ccache` (re-run ./configure if you install it
+later), as this will help cut your re-build times from several minutes to under
+a minute, in many cases.
 
 What to work on
 ---------------
