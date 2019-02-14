@@ -14,6 +14,7 @@
 #include "logging.h"  // for LogPrint()
 #include "sync.h"     // for WAIT_LOCK
 #include "utiltime.h" // for GetTime()
+#include "utilstrencodings.h" // for ARRAYLEN
 
 #include <chrono>
 #include <cstdlib>
