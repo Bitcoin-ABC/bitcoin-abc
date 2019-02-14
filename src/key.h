@@ -183,12 +183,16 @@ struct CExtKey {
     }
 };
 
-/** Initialize the elliptic curve support. May not be called twice without
- * calling ECC_Stop first. */
+/**
+ * Initialize the elliptic curve support. May not be called twice without
+ * calling ECC_Stop first.
+ */
 void ECC_Start(void);
 
-/** Deinitialize the elliptic curve support. No-op if ECC_Start wasn't called
- * first. */
+/**
+ * Deinitialize the elliptic curve support. No-op if ECC_Start wasn't called
+ * first.
+ */
 void ECC_Stop(void);
 
 /** Check that required EC support is available at runtime. */
