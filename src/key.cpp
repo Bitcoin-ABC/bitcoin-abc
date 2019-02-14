@@ -16,8 +16,10 @@
 
 static secp256k1_context *secp256k1_context_sign = nullptr;
 
-/** These functions are taken from the libsecp256k1 distribution and are very
- * ugly. */
+/**
+ * These functions are taken from the libsecp256k1 distribution and are very
+ * ugly.
+ */
 static int ec_privkey_import_der(const secp256k1_context *ctx, uint8_t *out32,
                                  const uint8_t *privkey, size_t privkeylen) {
     const uint8_t *end = privkey + privkeylen;
