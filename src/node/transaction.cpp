@@ -16,16 +16,12 @@
 
 #include <future>
 
-bool BroadcastTransaction(const Config &config, const CTransactionRef tx,
-                          TxId &txid, TransactionError &error,
-                          std::string &err_string, const bool allowhighfees) {
+TransactionError BroadcastTransaction(const Config &config,
+                                      const CTransactionRef tx, TxId &txid,
+                                      std::string &err_string,
+                                      const Amount highFee) {
     std::promise<void> promise;
     txid = tx->GetId();
-
-    Amount nMaxRawTxFee = maxTxFee;
-    if (allowhighfees) {
-        nMaxRawTxFee = Amount::zero();
-    }
 
     { // cs_main scope
         LOCK(cs_main);
@@ -43,21 +39,18 @@ bool BroadcastTransaction(const Config &config, const CTransactionRef tx,
             bool fMissingInputs;
             if (!AcceptToMemoryPool(config, g_mempool, state, std::move(tx),
                                     &fMissingInputs, false /* bypass_limits */,
-                                    nMaxRawTxFee)) {
+                                    highFee)) {
                 if (state.IsInvalid()) {
                     err_string = FormatStateMessage(state);
-                    error = TransactionError::MEMPOOL_REJECTED;
-                    return false;
+                    return TransactionError::MEMPOOL_REJECTED;
                 }
 
                 if (fMissingInputs) {
-                    error = TransactionError::MISSING_INPUTS;
-                    return false;
+                    return TransactionError::MISSING_INPUTS;
                 }
 
                 err_string = FormatStateMessage(state);
-                error = TransactionError::MEMPOOL_ERROR;
-                return false;
+                return TransactionError::MEMPOOL_ERROR;
             } else {
                 // If wallet is enabled, ensure that the wallet has been made
                 // aware of the new transaction prior to returning. This
@@ -69,8 +62,7 @@ bool BroadcastTransaction(const Config &config, const CTransactionRef tx,
                     [&promise] { promise.set_value(); });
             }
         } else if (fHaveChain) {
-            error = TransactionError::ALREADY_IN_CHAIN;
-            return false;
+            return TransactionError::ALREADY_IN_CHAIN;
         } else {
             // Make sure we don't block forever if re-sending a transaction
             // already in mempool.
@@ -81,12 +73,11 @@ bool BroadcastTransaction(const Config &config, const CTransactionRef tx,
     promise.get_future().wait();
 
     if (!g_connman) {
-        error = TransactionError::P2P_DISABLED;
-        return false;
+        return TransactionError::P2P_DISABLED;
     }
 
     CInv inv(MSG_TX, txid);
     g_connman->ForEachNode([&inv](CNode *pnode) { pnode->PushInventory(inv); });
 
-    return true;
+    return TransactionError::OK;
 }

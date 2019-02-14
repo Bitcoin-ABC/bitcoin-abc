@@ -29,6 +29,7 @@
 #include <script/standard.h>
 #include <txmempool.h>
 #include <uint256.h>
+#include <util/error.h>
 #include <util/strencodings.h>
 #include <validation.h>
 #include <validationinterface.h>
@@ -973,12 +974,12 @@ static UniValue sendrawtransaction(const Config &config,
     if (!request.params[1].isNull()) {
         allowhighfees = request.params[1].get_bool();
     }
-
+    const Amount highfee{allowhighfees ? Amount::zero() : ::maxTxFee};
     TxId txid;
-    TransactionError err;
     std::string err_string;
-    if (!BroadcastTransaction(config, tx, txid, err, err_string,
-                              allowhighfees)) {
+    const TransactionError err =
+        BroadcastTransaction(config, tx, txid, err_string, highfee);
+    if (err != TransactionError::OK) {
         throw JSONRPCTransactionError(err, err_string);
     }
 
@@ -1434,8 +1435,8 @@ static UniValue combinepsbt(const Config &config,
     }
 
     PartiallySignedTransaction merged_psbt;
-    TransactionError error;
-    if (!CombinePSBTs(merged_psbt, error, psbtxs)) {
+    const TransactionError error = CombinePSBTs(merged_psbt, psbtxs);
+    if (error != TransactionError::OK) {
         throw JSONRPCTransactionError(error);
     }
 

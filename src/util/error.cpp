@@ -6,8 +6,8 @@
 
 #include <util/system.h>
 
-const char *TransactionErrorString(const TransactionError err) {
-    switch (err) {
+std::string TransactionErrorString(const TransactionError error) {
+    switch (error) {
         case TransactionError::OK:
             return "No error";
         case TransactionError::MISSING_INPUTS:
@@ -26,18 +26,15 @@ const char *TransactionErrorString(const TransactionError err) {
             return "PSBTs not compatible (different transactions)";
         case TransactionError::SIGHASH_MISMATCH:
             return "Specified sighash value does not match existing value";
-
-        default:
-            break;
-    }
-    return "Unknown error";
+    } // no default case, so the compiler can warn about missing cases
+    assert(false);
 }
 
 std::string AmountHighWarn(const std::string &optname) {
     return strprintf(_("%s is set very high!"), optname);
 }
 
-std::string AmountErrMsg(const char *const optname,
+std::string AmountErrMsg(const std::string &optname,
                          const std::string &strValue) {
     return strprintf(_("Invalid amount for -%s=<amount>: '%s'"), optname,
                      strValue);

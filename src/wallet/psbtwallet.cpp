@@ -2,11 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <util/error.h>
 #include <wallet/psbtwallet.h>
 
-bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
-              TransactionError &error, bool &complete, SigHashType sighash_type,
-              bool sign, bool bip32derivs) {
+TransactionError FillPSBT(const CWallet *pwallet,
+                          PartiallySignedTransaction &psbtx, bool &complete,
+                          SigHashType sighash_type, bool sign,
+                          bool bip32derivs) {
     LOCK(pwallet->cs_wallet);
     // Get all of the previous transactions
     complete = true;
@@ -20,8 +22,7 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
 
         // Verify input looks sane.
         if (!input.IsSane()) {
-            error = TransactionError::INVALID_PSBT;
-            return false;
+            return TransactionError::INVALID_PSBT;
         }
 
         // If we have no utxo, grab it from the wallet.
@@ -39,8 +40,7 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
         // Get the Sighash type
         if (sign && input.sighash_type.getRawSigHashType() > 0 &&
             input.sighash_type != sighash_type) {
-            error = TransactionError::SIGHASH_MISMATCH;
-            return false;
+            return TransactionError::SIGHASH_MISMATCH;
         }
 
         complete &=
@@ -64,5 +64,6 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
                          creator, out.scriptPubKey, sigdata);
         psbt_out.FromSignatureData(sigdata);
     }
-    return true;
+
+    return TransactionError::OK;
 }

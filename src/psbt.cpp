@@ -208,22 +208,21 @@ bool FinalizeAndExtractPSBT(PartiallySignedTransaction &psbtx,
     return true;
 }
 
-bool CombinePSBTs(PartiallySignedTransaction &out, TransactionError &error,
-                  const std::vector<PartiallySignedTransaction> &psbtxs) {
+TransactionError
+CombinePSBTs(PartiallySignedTransaction &out,
+             const std::vector<PartiallySignedTransaction> &psbtxs) {
     // Copy the first one
     out = psbtxs[0];
 
     // Merge
     for (auto it = std::next(psbtxs.begin()); it != psbtxs.end(); ++it) {
         if (!out.Merge(*it)) {
-            error = TransactionError::PSBT_MISMATCH;
-            return false;
+            return TransactionError::PSBT_MISMATCH;
         }
     }
     if (!out.IsSane()) {
-        error = TransactionError::INVALID_PSBT;
-        return false;
+        return TransactionError::INVALID_PSBT;
     }
 
-    return true;
+    return TransactionError::OK;
 }

@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <key_io.h>
+#include <util/error.h>
 #include <util/strencodings.h>
 #include <wallet/psbtwallet.h>
 #include <wallet/test/wallet_test_fixture.h>
@@ -89,9 +90,10 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
     // The path missing comes from the HD masterkey.
 
     // Fill transaction with our data
-    TransactionError err;
     bool complete = true;
-    FillPSBT(&m_wallet, psbtx, err, complete, SigHashType(), false, true);
+    BOOST_REQUIRE_EQUAL(
+        FillPSBT(&m_wallet, psbtx, complete, SigHashType(), false, true),
+        TransactionError::OK);
 
     // Get the final tx
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);

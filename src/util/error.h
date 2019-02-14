@@ -18,7 +18,7 @@
 #include <string>
 
 enum class TransactionError {
-    OK = 0,
+    OK, //!< No error
 
     MISSING_INPUTS,
     ALREADY_IN_CHAIN,
@@ -28,17 +28,13 @@ enum class TransactionError {
     INVALID_PSBT,
     PSBT_MISMATCH,
     SIGHASH_MISMATCH,
-
-    ERROR_COUNT
 };
 
-#define TRANSACTION_ERR_LAST TransactionError::ERROR_COUNT
-
-const char *TransactionErrorString(const TransactionError error);
+std::string TransactionErrorString(TransactionError error);
 
 std::string AmountHighWarn(const std::string &optname);
 
-std::string AmountErrMsg(const char *const optname,
+std::string AmountErrMsg(const std::string &optname,
                          const std::string &strValue);
 
 #endif // BITCOIN_UTIL_ERROR_H
