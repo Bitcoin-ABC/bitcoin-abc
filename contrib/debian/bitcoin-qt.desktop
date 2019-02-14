@@ -8,6 +8,6 @@ Comment[tr]=Bitcoin, eşten eşe kriptografik sanal para birimi
 Exec=bitcoin-qt %u
 Terminal=false
 Type=Application
-Icon=bitcoin128
+Icon=bitcoin-abc128
 MimeType=x-scheme-handler/bitcoincash;
 Categories=Office;Finance;
