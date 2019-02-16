@@ -117,9 +117,75 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         assert_equal(rawTxSigned['errors'][1]['txid'], inputs[2]['txid'])
         assert_equal(rawTxSigned['errors'][1]['vout'], inputs[2]['vout'])
 
+    def test_sighashes(self):
+        """Creates and signs a raw transaction with various sighashes.
+
+        Expected result:
+
+        1) The transaction is complete if the sighash is valid and has FORKID.
+        2) The RPC throws an error if the sighash does not contain FORKID.
+        3) The RPC throws an error if the sighash is invalid."""
+
+        privKeys = ['cUeKHd5orzT3mz8P9pxyREHfsWtVfgsfDjiZZBcjUBAaGk1BTj7N']
+
+        inputs = [
+            # Valid pay-to-pubkey script
+            {'txid': '9b907ef1e3c26fc71fe4a4b3580bc75264112f95050014157059c736f0202e71',
+             'vout': 0, 'amount': 3.14159,
+             'scriptPubKey': '76a91460baa0f494b38ce3c940dea67f3804dc52d1fb9488ac'}
+        ]
+
+        outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 0.1}
+
+        rawTx = self.nodes[0].createrawtransaction(inputs, outputs)
+
+        valid_sighashes = [
+            "ALL|FORKID",
+            "NONE|FORKID",
+            "SINGLE|FORKID",
+            "ALL|FORKID|ANYONECANPAY",
+            "NONE|FORKID|ANYONECANPAY",
+            "SINGLE|FORKID|ANYONECANPAY"
+        ]
+        no_forkid_sighashes = [
+            "ALL",
+            "NONE",
+            "SINGLE",
+            "ALL|ANYONECANPAY",
+            "NONE|ANYONECANPAY",
+            "SINGLE|ANYONECANPAY"
+        ]
+        invalid_sighashes = [
+            "",
+            "ALL|SINGLE|FORKID",
+            str(0),
+            str(0x20)
+        ]
+
+        # 1) If the sighash is valid with FORKID, the signature is complete
+        for sighash in valid_sighashes:
+            rawTxSigned = self.nodes[0].signrawtransaction(rawTx, inputs,
+                                                           privKeys, sighash)
+            assert 'complete' in rawTxSigned
+            assert_equal(rawTxSigned['complete'], True)
+            assert 'errors' not in rawTxSigned
+
+        # 2) If FORKID is missing in the sighash, the RPC throws an error
+        for sighash in no_forkid_sighashes:
+            assert_raises_rpc_error(-8, "Signature must use SIGHASH_FORKID",
+                                    self.nodes[0].signrawtransaction,
+                                        rawTx, inputs, privKeys, sighash)
+
+        # 3) If the sighash is invalid the RPC throws an error
+        for sighash in invalid_sighashes:
+            assert_raises_rpc_error(-8, "Invalid sighash param",
+                                    self.nodes[0].signrawtransaction,
+                                        rawTx, inputs, privKeys, sighash)
+
     def run_test(self):
         self.successful_signing_test()
         self.script_verification_error_test()
+        self.test_sighashes()
 
 
 if __name__ == '__main__':
