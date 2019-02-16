@@ -67,6 +67,10 @@ FUZZ_TARGET_INIT(torcontrol, initialize_torcontrol) {
             [&] {
                 tor_controller.protocolinfo_cb(dummy_tor_control_connection,
                                                tor_control_reply);
+            },
+            [&] {
+                tor_controller.get_socks_cb(dummy_tor_control_connection,
+                                            tor_control_reply);
             });
     }
 }
