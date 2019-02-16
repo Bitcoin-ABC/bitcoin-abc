@@ -51,18 +51,8 @@ TransactionError FillPSBT(const CWallet *pwallet,
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that
     // hardware wallets can identify change
     for (size_t i = 0; i < psbtx.tx->vout.size(); ++i) {
-        const CTxOut &out = psbtx.tx->vout.at(i);
-        PSBTOutput &psbt_out = psbtx.outputs.at(i);
-
-        // Fill a SignatureData with output info
-        SignatureData sigdata;
-        psbt_out.FillSignatureData(sigdata);
-
-        MutableTransactionSignatureCreator creator(
-            psbtx.tx.get_ptr(), 0, out.nValue, SigHashType().withForkId());
-        ProduceSignature(HidingSigningProvider(pwallet, true, !bip32derivs),
-                         creator, out.scriptPubKey, sigdata);
-        psbt_out.FromSignatureData(sigdata);
+        UpdatePSBTOutput(HidingSigningProvider(pwallet, true, !bip32derivs),
+                         psbtx, i);
     }
 
     return TransactionError::OK;

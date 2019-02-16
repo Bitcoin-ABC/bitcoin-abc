@@ -506,6 +506,15 @@ bool SignPSBTInput(const SigningProvider &provider,
                    bool use_dummy = false);
 
 /**
+ * Updates a PSBTOutput with information from provider.
+ *
+ * This fills in the redeem_script, witness_script, and hd_keypaths where
+ * possible.
+ */
+void UpdatePSBTOutput(const SigningProvider &provider,
+                      PartiallySignedTransaction &psbt, int index);
+
+/**
  * Finalizes a PSBT if possible, combining partial signatures.
  *
  * @param[in,out] &psbtx reference to PartiallySignedTransaction to finalize
