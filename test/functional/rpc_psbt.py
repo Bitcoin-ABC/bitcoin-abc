@@ -280,12 +280,30 @@ class PSBTTest(BitcoinTestFramework):
         vout3 = find_output(self.nodes[0], txid3, 11)
         self.sync_all()
 
-        # Update a PSBT with UTXOs from the node
+        def test_psbt_input_keys(psbt_input, keys):
+            """Check that the psbt input has only the expected keys."""
+            assert_equal(set(keys), set(psbt_input.keys()))
+
+        # Create a PSBT. None of the inputs are filled initially
         psbt = self.nodes[1].createpsbt([{"txid": txid1, "vout": vout1}, {"txid": txid2, "vout": vout2}, {
                                         "txid": txid3, "vout": vout3}], {self.nodes[0].getnewaddress(): 32.999})
         decoded = self.nodes[1].decodepsbt(psbt)
+        test_psbt_input_keys(decoded['inputs'][0], [])
+        test_psbt_input_keys(decoded['inputs'][1], [])
+        test_psbt_input_keys(decoded['inputs'][2], [])
+
+        # Update a PSBT with UTXOs from the node
         updated = self.nodes[1].utxoupdatepsbt(psbt)
         decoded = self.nodes[1].decodepsbt(updated)
+        test_psbt_input_keys(decoded['inputs'][1], [])
+        test_psbt_input_keys(decoded['inputs'][2], [])
+
+        # Try again, now while providing descriptors
+        descs = [self.nodes[1].getaddressinfo(addr)['desc'] for addr in [
+            addr1, addr2, addr3]]
+        updated = self.nodes[1].utxoupdatepsbt(psbt, descs)
+        decoded = self.nodes[1].decodepsbt(updated)
+        test_psbt_input_keys(decoded['inputs'][1], [])
 
         # Two PSBTs with a common input should not be joinable
         psbt1 = self.nodes[1].createpsbt([{"txid": txid1, "vout": vout1}], {
