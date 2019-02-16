@@ -158,10 +158,7 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
             std::max<int>(0, std::min(1, settings.value("nFeeRadio").toInt())))
         ->setChecked(true);
     ui->groupCustomFee->setId(ui->radioCustomPerKilobyte, 0);
-    ui->groupCustomFee
-        ->button(std::max<int>(
-            0, std::min(1, settings.value("nCustomFeeRadio").toInt())))
-        ->setChecked(true);
+    ui->groupCustomFee->button(0)->setChecked(true);
     ui->customFee->setValue(
         int64_t(settings.value("nTransactionFee").toLongLong()) * SATOSHI);
     ui->checkBoxMinimumFee->setChecked(
