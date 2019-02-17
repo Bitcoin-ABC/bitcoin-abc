@@ -1639,6 +1639,11 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                          {"label", RPCArg::Type::STR, /* default */ "''",
                           "Label to assign to the address, only allowed with "
                           "internal=false"},
+                         {"keypool", RPCArg::Type::BOOL, /* default */ "false",
+                          "Stating whether imported public keys should be "
+                          "added to the keypool for when users request new "
+                          "addresses. Only allowed when wallet private keys "
+                          "are disabled"},
                      },
                  },
              },
