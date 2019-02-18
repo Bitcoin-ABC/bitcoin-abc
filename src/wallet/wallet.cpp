@@ -443,6 +443,8 @@ void CWallet::UpgradeKeyMetadata() {
         return;
     }
 
+    auto batch = std::make_unique<WalletBatch>(*database);
+    size_t cnt = 0;
     for (auto &meta_pair : mapKeyMetadata) {
         CKeyMetadata &meta = meta_pair.second;
         // If the hdKeypath is "s", that's the seed and it doesn't have a key
@@ -468,10 +470,18 @@ void CWallet::UpgradeKeyMetadata() {
             // Write meta to wallet
             CPubKey pubkey;
             if (GetPubKey(meta_pair.first, pubkey)) {
-                WriteKeyMetadata(meta, pubkey, true);
+                batch->WriteKeyMetadata(meta, pubkey, true);
+                if (++cnt % 1000 == 0) {
+                    // avoid creating overlarge in-memory batches in case the
+                    // wallet contains large amounts of keys
+                    batch.reset(new WalletBatch(*database));
+                }
             }
         }
     }
+
+    // write before setting the flag
+    batch.reset();
     SetWalletFlag(WALLET_FLAG_KEY_ORIGIN_METADATA);
 }
 
