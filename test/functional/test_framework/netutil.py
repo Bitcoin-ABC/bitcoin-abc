@@ -8,7 +8,7 @@ Roughly based on http://voorloopnul.com/blog/a-python-netstat-in-less-than-100-l
 """
 
 import array
-from binascii import unhexlify, hexlify
+from binascii import unhexlify
 import fcntl
 import os
 import socket
@@ -149,7 +149,7 @@ def addr_to_hex(addr):
         addr = sub[0] + ([0] * nullbytes) + sub[1]
     else:
         raise ValueError('Could not parse address {}'.format(addr))
-    return hexlify(bytearray(addr)).decode('ascii')
+    return bytearray(addr).hex()
 
 
 def test_ipv6_local():

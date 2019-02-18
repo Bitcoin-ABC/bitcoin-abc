@@ -25,7 +25,6 @@ from test_framework.util import (
     assert_raises_rpc_error,
     connect_nodes_bi,
     hex_str_to_bytes,
-    bytes_to_hex_str,
 )
 
 
@@ -147,7 +146,7 @@ class RawTransactionsTest(BitcoinTestFramework):
             inputs=[{'txid': txid, 'vout': 9}], outputs={address: 99}))))
         assert_equal(len(tx.vout), 1)
         assert_equal(
-            bytes_to_hex_str(tx.serialize()),
+            tx.serialize().hex(),
             self.nodes[2].createrawtransaction(
                 inputs=[{'txid': txid, 'vout': 9}], outputs=[{address: 99}]),
         )
@@ -156,7 +155,7 @@ class RawTransactionsTest(BitcoinTestFramework):
                        {'txid': txid, 'vout': 9}], outputs=OrderedDict([(address, 99), (address2, 99)])))))
         assert_equal(len(tx.vout), 2)
         assert_equal(
-            bytes_to_hex_str(tx.serialize()),
+            tx.serialize().hex(),
             self.nodes[2].createrawtransaction(inputs=[{'txid': txid, 'vout': 9}], outputs=[
                                                {address: 99}, {address2: 99}]),
         )
@@ -165,7 +164,7 @@ class RawTransactionsTest(BitcoinTestFramework):
                        {'txid': txid, 'vout': 9}], outputs=multidict([('data', '99'), ('data', '99')])))))
         assert_equal(len(tx.vout), 2)
         assert_equal(
-            bytes_to_hex_str(tx.serialize()),
+            tx.serialize().hex(),
             self.nodes[2].createrawtransaction(inputs=[{'txid': txid, 'vout': 9}], outputs=[
                                                {'data': '99'}, {'data': '99'}]),
         )
@@ -174,7 +173,7 @@ class RawTransactionsTest(BitcoinTestFramework):
                        {'txid': txid, 'vout': 9}], outputs=multidict([(address, 99), ('data', '99'), ('data', '99')])))))
         assert_equal(len(tx.vout), 3)
         assert_equal(
-            bytes_to_hex_str(tx.serialize()),
+            tx.serialize().hex(),
             self.nodes[2].createrawtransaction(inputs=[{'txid': txid, 'vout': 9}], outputs=[
                                                {address: 99}, {'data': '99'}, {'data': '99'}]),
         )

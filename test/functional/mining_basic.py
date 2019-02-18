@@ -23,7 +23,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
-    bytes_to_hex_str as b2x,
 )
 
 
@@ -31,7 +30,7 @@ def assert_template(node, block, expect, rehash=True):
     if rehash:
         block.hashMerkleRoot = block.calc_merkle_root()
     rsp = node.getblocktemplate(
-        {'data': b2x(block.serialize()), 'mode': 'proposal'})
+        {'data': block.serialize().hex(), 'mode': 'proposal'})
     assert_equal(rsp, expect)
 
 
@@ -47,9 +46,9 @@ class MiningTest(BitcoinTestFramework):
             block.solve()
             result_str_2 = result_str_2 or 'duplicate-invalid'
             assert_equal(result_str_1, node.submitblock(
-                hexdata=b2x(block.serialize())))
+                hexdata=block.serialize().hex()))
             assert_equal(result_str_2, node.submitblock(
-                hexdata=b2x(block.serialize())))
+                hexdata=block.serialize().hex()))
 
         self.log.info('getmininginfo')
         mining_info = node.getmininginfo()
@@ -88,7 +87,7 @@ class MiningTest(BitcoinTestFramework):
 
         self.log.info("submitblock: Test block decode failure")
         assert_raises_rpc_error(-22, "Block decode failed",
-                                node.submitblock, b2x(block.serialize()[:-15]))
+                                node.submitblock, block.serialize()[:-15].hex())
 
         self.log.info(
             "getblocktemplate: Test bad input hash for coinbase transaction")
@@ -99,11 +98,11 @@ class MiningTest(BitcoinTestFramework):
 
         self.log.info("submitblock: Test invalid coinbase transaction")
         assert_raises_rpc_error(-22, "Block does not start with a coinbase",
-                                node.submitblock, b2x(bad_block.serialize()))
+                                node.submitblock, bad_block.serialize().hex())
 
         self.log.info("getblocktemplate: Test truncated final transaction")
-        assert_raises_rpc_error(-22, "Block decode failed", node.getblocktemplate,
-                                {'data': b2x(block.serialize()[:-1]), 'mode': 'proposal'})
+        assert_raises_rpc_error(-22, "Block decode failed", node.getblocktemplate, {
+                                'data': block.serialize()[:-1].hex(), 'mode': 'proposal'})
 
         self.log.info("getblocktemplate: Test duplicate transaction")
         bad_block = copy.deepcopy(block)
@@ -134,8 +133,8 @@ class MiningTest(BitcoinTestFramework):
         bad_block_sn = bytearray(block.serialize())
         assert_equal(bad_block_sn[TX_COUNT_OFFSET], 1)
         bad_block_sn[TX_COUNT_OFFSET] += 1
-        assert_raises_rpc_error(-22, "Block decode failed", node.getblocktemplate,
-                                {'data': b2x(bad_block_sn), 'mode': 'proposal'})
+        assert_raises_rpc_error(-22, "Block decode failed", node.getblocktemplate, {
+                                'data': bad_block_sn.hex(), 'mode': 'proposal'})
 
         self.log.info("getblocktemplate: Test bad bits")
         bad_block = copy.deepcopy(block)
@@ -179,28 +178,28 @@ class MiningTest(BitcoinTestFramework):
             return {'hash': b_hash, 'height': 202, 'branchlen': branchlen, 'status': status}
 
         assert chain_tip(block.hash) not in node.getchaintips()
-        node.submitheader(hexdata=b2x(block.serialize()))
+        node.submitheader(hexdata=block.serialize().hex())
         assert chain_tip(block.hash) in node.getchaintips()
         # Noop
-        node.submitheader(hexdata=b2x(CBlockHeader(block).serialize()))
+        node.submitheader(hexdata=CBlockHeader(block).serialize().hex())
         assert chain_tip(block.hash) in node.getchaintips()
 
         bad_block_root = copy.deepcopy(block)
         bad_block_root.hashMerkleRoot += 2
         bad_block_root.solve()
         assert chain_tip(bad_block_root.hash) not in node.getchaintips()
-        node.submitheader(hexdata=b2x(
-            CBlockHeader(bad_block_root).serialize()))
+        node.submitheader(hexdata=CBlockHeader(
+            bad_block_root).serialize().hex())
         assert chain_tip(bad_block_root.hash) in node.getchaintips()
         # Should still reject invalid blocks, even if we have the header:
-        assert_equal(node.submitblock(hexdata=b2x(
-            bad_block_root.serialize())), 'bad-txnmrklroot')
-        assert_equal(node.submitblock(hexdata=b2x(
-            bad_block_root.serialize())), 'bad-txnmrklroot')
+        assert_equal(node.submitblock(
+            hexdata=bad_block_root.serialize().hex()), 'bad-txnmrklroot')
+        assert_equal(node.submitblock(
+            hexdata=bad_block_root.serialize().hex()), 'bad-txnmrklroot')
         assert chain_tip(bad_block_root.hash) in node.getchaintips()
         # We know the header for this invalid block, so should just return early without error:
-        node.submitheader(hexdata=b2x(
-            CBlockHeader(bad_block_root).serialize()))
+        node.submitheader(hexdata=CBlockHeader(
+            bad_block_root).serialize().hex())
         assert chain_tip(bad_block_root.hash) in node.getchaintips()
 
         bad_block_lock = copy.deepcopy(block)
@@ -208,23 +207,23 @@ class MiningTest(BitcoinTestFramework):
         bad_block_lock.vtx[0].rehash()
         bad_block_lock.hashMerkleRoot = bad_block_lock.calc_merkle_root()
         bad_block_lock.solve()
-        assert_equal(node.submitblock(hexdata=b2x(
-            bad_block_lock.serialize())), 'bad-txns-nonfinal')
-        assert_equal(node.submitblock(hexdata=b2x(
-            bad_block_lock.serialize())), 'duplicate-invalid')
+        assert_equal(node.submitblock(
+            hexdata=bad_block_lock.serialize().hex()), 'bad-txns-nonfinal')
+        assert_equal(node.submitblock(
+            hexdata=bad_block_lock.serialize().hex()), 'duplicate-invalid')
         # Build a "good" block on top of the submitted bad block
         bad_block2 = copy.deepcopy(block)
         bad_block2.hashPrevBlock = bad_block_lock.sha256
         bad_block2.solve()
         assert_raises_rpc_error(-25, 'bad-prevblk', lambda: node.submitheader(
-            hexdata=b2x(CBlockHeader(bad_block2).serialize())))
+            hexdata=CBlockHeader(bad_block2).serialize().hex()))
 
         # Should reject invalid header right away
         bad_block_time = copy.deepcopy(block)
         bad_block_time.nTime = 1
         bad_block_time.solve()
         assert_raises_rpc_error(-25, 'time-too-old', lambda: node.submitheader(
-            hexdata=b2x(CBlockHeader(bad_block_time).serialize())))
+            hexdata=CBlockHeader(bad_block_time).serialize().hex()))
 
         # Should ask for the block from a p2p node, if they announce the header as well:
         node.add_p2p_connection(P2PDataStore())
@@ -238,15 +237,15 @@ class MiningTest(BitcoinTestFramework):
         # Building a few blocks should give the same results
         node.generate(10)
         assert_raises_rpc_error(-25, 'time-too-old', lambda: node.submitheader(
-            hexdata=b2x(CBlockHeader(bad_block_time).serialize())))
+            hexdata=CBlockHeader(bad_block_time).serialize().hex()))
         assert_raises_rpc_error(-25, 'bad-prevblk', lambda: node.submitheader(
-            hexdata=b2x(CBlockHeader(bad_block2).serialize())))
-        node.submitheader(hexdata=b2x(CBlockHeader(block).serialize()))
-        node.submitheader(hexdata=b2x(
-            CBlockHeader(bad_block_root).serialize()))
+            hexdata=CBlockHeader(bad_block2).serialize().hex()))
+        node.submitheader(hexdata=CBlockHeader(block).serialize().hex())
+        node.submitheader(hexdata=CBlockHeader(
+            bad_block_root).serialize().hex())
         # valid
-        assert_equal(node.submitblock(hexdata=b2x(
-            block.serialize())), 'duplicate')
+        assert_equal(node.submitblock(
+            hexdata=block.serialize().hex()), 'duplicate')
 
 
 if __name__ == '__main__':

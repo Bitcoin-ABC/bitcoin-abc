@@ -28,7 +28,7 @@ import struct
 import time
 
 from test_framework.siphash import siphash256
-from test_framework.util import bytes_to_hex_str, hex_str_to_bytes
+from test_framework.util import hex_str_to_bytes
 
 MIN_VERSION_SUPPORTED = 60001
 # past bip-31 for ping/pong
@@ -198,7 +198,7 @@ def FromHex(obj, hex_string):
 
 
 def ToHex(obj):
-    return bytes_to_hex_str(obj.serialize())
+    return obj.serialize().hex()
 
 # Objects that map to bitcoind objects, which can be serialized/deserialized
 
@@ -334,7 +334,7 @@ class CTxIn:
 
     def __repr__(self):
         return "CTxIn(prevout={} scriptSig={} nSequence={})".format(
-            repr(self.prevout), bytes_to_hex_str(self.scriptSig), self.nSequence)
+            repr(self.prevout), self.scriptSig.hex(), self.nSequence)
 
 
 class CTxOut:
@@ -356,8 +356,7 @@ class CTxOut:
 
     def __repr__(self):
         return "CTxOut(nValue={}.{:08d} scriptPubKey={})".format(
-            self.nValue // COIN, self.nValue % COIN,
-            bytes_to_hex_str(self.scriptPubKey))
+            self.nValue // COIN, self.nValue % COIN, self.scriptPubKey.hex())
 
 
 class CTransaction:

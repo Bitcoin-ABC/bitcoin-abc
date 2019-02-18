@@ -6,7 +6,7 @@
 
 from test_framework.messages import CTransaction, FromHex, ToHex
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, bytes_to_hex_str, hex_str_to_bytes
+from test_framework.util import assert_equal, hex_str_to_bytes
 
 
 class DecodeScriptTest(BitcoinTestFramework):
@@ -169,8 +169,7 @@ class DecodeScriptTest(BitcoinTestFramework):
         # some more full transaction tests of varying specific scriptSigs. used instead of
         # tests in decodescript_script_sig because the decodescript RPC is specifically
         # for working on scriptPubKeys (argh!).
-        push_signature = bytes_to_hex_str(
-            txSave.vin[0].scriptSig)[2:(0x48 * 2 + 4)]
+        push_signature = txSave.vin[0].scriptSig.hex()[2:(0x48 * 2 + 4)]
         signature = push_signature[2:]
         der_signature = signature[:-2]
         signature_sighash_decoded = der_signature + '[ALL]'

@@ -8,7 +8,6 @@ This file is modified from python-bitcoinlib.
 """
 
 from .bignum import bn2vch
-from binascii import hexlify
 import hashlib
 import struct
 
@@ -558,7 +557,7 @@ class CScript(bytes):
     def __repr__(self):
         def _repr(o):
             if isinstance(o, bytes):
-                return "x('{}')".format(hexlify(o).decode('ascii'))
+                return "x('{}')".format(o.hex())
             else:
                 return repr(o)
 
