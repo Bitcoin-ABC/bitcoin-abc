@@ -246,7 +246,7 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
             "Or try a connection to a node once.\n"
             "Nodes added using addnode (or -connect) are protected from DoS "
             "disconnection and are not required to be\n"
-            "full nodes/support SegWit as other outbound peers are (though "
+            "full nodes as other outbound peers are (though "
             "such peers will not be synced from).\n"
             "\nArguments:\n"
             "1. \"node\"     (string, required) The node (see getpeerinfo for "
