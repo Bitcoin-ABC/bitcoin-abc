@@ -53,12 +53,12 @@ def read_logs(tmp_dir):
     Delegates to generator function get_log_events() to provide individual log events
     for each of the input log files."""
 
-    files = [("test", "%s/test_framework.log" % tmp_dir)]
+    files = [("test", "{}/test_framework.log".format(tmp_dir))]
     for i in itertools.count():
         logfile = "{}/node{}/regtest/debug.log".format(tmp_dir, i)
         if not os.path.isfile(logfile):
             break
-        files.append(("node%d" % i, logfile))
+        files.append(("node{}".format(i), logfile))
 
     return heapq.merge(*[get_log_events(source, f) for source, f in files])
 
@@ -89,8 +89,7 @@ def get_log_events(source, logfile):
             # Flush the final event
             yield LogEvent(timestamp=timestamp, source=source, event=event.rstrip())
     except FileNotFoundError:
-        print("File %s could not be opened. Continuing without it." %
-              logfile, file=sys.stderr)
+        print("File {} could not be opened. Continuing without it.".format(logfile), file=sys.stderr)
 
 
 def print_logs(log_events, color=False, html=False):

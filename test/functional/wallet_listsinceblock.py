@@ -59,7 +59,7 @@ class ListSinceBlockTest (BitcoinTestFramework):
         # generate on both sides
         lastblockhash = self.nodes[1].generate(6)[5]
         self.nodes[2].generate(7)
-        self.log.info('lastblockhash=%s' % (lastblockhash))
+        self.log.info('lastblockhash={}'.format(lastblockhash))
 
         self.sync_all([self.nodes[:2], self.nodes[2:]])
 
