@@ -399,8 +399,8 @@ class SendHeadersTest(BitcoinTestFramework):
 
             block_time += 9
 
-            fork_point = self.nodes[0].getblock("%02x" % new_block_hashes[0])[
-                "previousblockhash"]
+            fork_point = self.nodes[0].getblock("{:02x}".format(
+                new_block_hashes[0]))["previousblockhash"]
             fork_point = int(fork_point, 16)
 
             # Use getblocks/getdata
