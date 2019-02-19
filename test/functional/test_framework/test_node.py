@@ -76,7 +76,7 @@ class TestNode():
         self.rpc = None
         self.url = None
         self.relay_fee_cache = None
-        self.log = logging.getLogger('TestFramework.node%d' % i)
+        self.log = logging.getLogger('TestFramework.node{}'.format(i))
 
         self.p2ps = []
 
@@ -106,7 +106,7 @@ class TestNode():
         poll_per_s = 4
         for _ in range(poll_per_s * self.rpc_timeout):
             assert self.process.poll(
-            ) is None, "bitcoind exited with status %i during initialization" % self.process.returncode
+            ) is None, "bitcoind exited with status {} during initialization".format(self.process.returncode)
             try:
                 self.rpc = get_rpc_proxy(rpc_url(self.datadir, self.host, self.rpc_port),
                                          self.index, timeout=self.rpc_timeout, coveragedir=self.coverage_dir)

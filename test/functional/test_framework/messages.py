@@ -240,8 +240,8 @@ class CAddress():
         return r
 
     def __repr__(self):
-        return "CAddress(nServices=%i ip=%s port=%i)" % (self.nServices,
-                                                         self.ip, self.port)
+        return "CAddress(nServices={} ip={} port={})".format(
+            self.nServices, self.ip, self.port)
 
 
 class CInv():
@@ -267,8 +267,8 @@ class CInv():
         return r
 
     def __repr__(self):
-        return "CInv(type=%s hash=%064x)" \
-            % (self.typemap[self.type], self.hash)
+        return "CInv(type={} hash={:064x})".format(
+            self.typemap[self.type], self.hash)
 
 
 class CBlockLocator():
@@ -287,8 +287,8 @@ class CBlockLocator():
         return r
 
     def __repr__(self):
-        return "CBlockLocator(nVersion=%i vHave=%s)" \
-            % (self.nVersion, repr(self.vHave))
+        return "CBlockLocator(nVersion={} vHave={})".format(
+            self.nVersion, repr(self.vHave))
 
 
 class COutPoint():
@@ -307,7 +307,7 @@ class COutPoint():
         return r
 
     def __repr__(self):
-        return "COutPoint(hash=%064x n=%i)" % (self.hash, self.n)
+        return "COutPoint(hash={:064x} n={})".format(self.hash, self.n)
 
 
 class CTxIn():
@@ -333,9 +333,8 @@ class CTxIn():
         return r
 
     def __repr__(self):
-        return "CTxIn(prevout=%s scriptSig=%s nSequence=%i)" \
-            % (repr(self.prevout), bytes_to_hex_str(self.scriptSig),
-               self.nSequence)
+        return "CTxIn(prevout={} scriptSig={} nSequence={})".format(
+            repr(self.prevout), bytes_to_hex_str(self.scriptSig), self.nSequence)
 
 
 class CTxOut():
@@ -354,9 +353,9 @@ class CTxOut():
         return r
 
     def __repr__(self):
-        return "CTxOut(nValue=%i.%08i scriptPubKey=%s)" \
-            % (self.nValue // COIN, self.nValue % COIN,
-               bytes_to_hex_str(self.scriptPubKey))
+        return "CTxOut(nValue={}.{:08d} scriptPubKey={})".format(
+            self.nValue // COIN, self.nValue % COIN,
+            bytes_to_hex_str(self.scriptPubKey))
 
 
 class CTransaction():
@@ -423,8 +422,8 @@ class CTransaction():
         return True
 
     def __repr__(self):
-        return "CTransaction(nVersion=%i vin=%s vout=%s nLockTime=%i)" \
-            % (self.nVersion, repr(self.vin), repr(self.vout), self.nLockTime)
+        return "CTransaction(nVersion={} vin={} vout={} nLockTime={})".format(
+            self.nVersion, repr(self.vin), repr(self.vout), self.nLockTime)
 
 
 class CBlockHeader():
@@ -490,9 +489,9 @@ class CBlockHeader():
         return self.sha256
 
     def __repr__(self):
-        return "CBlockHeader(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x)" \
-            % (self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
-               time.ctime(self.nTime), self.nBits, self.nNonce)
+        return "CBlockHeader(nVersion={} hashPrevBlock={:064x} hashMerkleRoot={:064x} nTime={} nBits={:08x} nNonce={:08x})".format(
+            self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
+            time.ctime(self.nTime), self.nBits, self.nNonce)
 
 
 class CBlock(CBlockHeader):
@@ -547,9 +546,9 @@ class CBlock(CBlockHeader):
             self.rehash()
 
     def __repr__(self):
-        return "CBlock(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x vtx=%s)" \
-            % (self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
-               time.ctime(self.nTime), self.nBits, self.nNonce, repr(self.vtx))
+        return "CBlock(nVersion={} hashPrevBlock={:064x} hashMerkleRoot={:064x} nTime={} nBits={:08x} nNonce={:08x} vtx={})".format(
+            self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
+            time.ctime(self.nTime), self.nBits, self.nNonce, repr(self.vtx))
 
 
 class PrefilledTransaction():
@@ -569,7 +568,8 @@ class PrefilledTransaction():
         return r
 
     def __repr__(self):
-        return "PrefilledTransaction(index=%d, tx=%s)" % (self.index, repr(self.tx))
+        return "PrefilledTransaction(index={}, tx={})".format(
+            self.index, repr(self.tx))
 
 # This is what we send on the wire, in a cmpctblock message.
 
@@ -607,7 +607,10 @@ class P2PHeaderAndShortIDs():
         return r
 
     def __repr__(self):
-        return "P2PHeaderAndShortIDs(header=%s, nonce=%d, shortids_length=%d, shortids=%s, prefilled_txn_length=%d, prefilledtxn=%s" % (repr(self.header), self.nonce, self.shortids_length, repr(self.shortids), self.prefilled_txn_length, repr(self.prefilled_txn))
+        return "P2PHeaderAndShortIDs(header={}, nonce={}, shortids_length={}, shortids={}, prefilled_txn_length={}, prefilledtxn={}".format(
+            repr(self.header), self.nonce, self.shortids_length,
+            repr(self.shortids), self.prefilled_txn_length,
+            repr(self.prefilled_txn))
 
 # Calculate the BIP 152-compact blocks shortid for a given transaction hash
 
@@ -675,7 +678,9 @@ class HeaderAndShortIDs():
                 self.shortids.append(calculate_shortid(k0, k1, tx_hash))
 
     def __repr__(self):
-        return "HeaderAndShortIDs(header=%s, nonce=%d, shortids=%s, prefilledtxn=%s" % (repr(self.header), self.nonce, repr(self.shortids), repr(self.prefilled_txn))
+        return "HeaderAndShortIDs(header={}, nonce={}, shortids={}, prefilledtxn={}".format(
+            repr(self.header), self.nonce, repr(self.shortids),
+            repr(self.prefilled_txn))
 
 
 class BlockTransactionsRequest():
@@ -715,7 +720,8 @@ class BlockTransactionsRequest():
         return absolute_indexes
 
     def __repr__(self):
-        return "BlockTransactionsRequest(hash=%064x indexes=%s)" % (self.blockhash, repr(self.indexes))
+        return "BlockTransactionsRequest(hash={:064x} indexes={})".format(
+            self.blockhash, repr(self.indexes))
 
 
 class BlockTransactions():
@@ -735,7 +741,8 @@ class BlockTransactions():
         return r
 
     def __repr__(self):
-        return "BlockTransactions(hash=%064x transactions=%s)" % (self.blockhash, repr(self.transactions))
+        return "BlockTransactions(hash={:064x} transactions={})".format(
+            self.blockhash, repr(self.transactions))
 
 
 # Objects that correspond to messages on the wire
@@ -801,10 +808,10 @@ class msg_version():
         return r
 
     def __repr__(self):
-        return 'msg_version(nVersion=%i nServices=%i nTime=%s addrTo=%s addrFrom=%s nNonce=0x%016X strSubVer=%s nStartingHeight=%i nRelay=%i)' \
-            % (self.nVersion, self.nServices, time.ctime(self.nTime),
-               repr(self.addrTo), repr(self.addrFrom), self.nNonce,
-               self.strSubVer, self.nStartingHeight, self.nRelay)
+        return 'msg_version(nVersion={} nServices={} nTime={} addrTo={} addrFrom={} nNonce=0x{:016X} strSubVer={} nStartingHeight={} nRelay={})'.format(
+            self.nVersion, self.nServices, time.ctime(self.nTime),
+            repr(self.addrTo), repr(self.addrFrom), self.nNonce,
+            self.strSubVer, self.nStartingHeight, self.nRelay)
 
 
 class msg_verack():
@@ -836,7 +843,7 @@ class msg_addr():
         return ser_vector(self.addrs)
 
     def __repr__(self):
-        return "msg_addr(addrs=%s)" % (repr(self.addrs))
+        return "msg_addr(addrs={})".format(repr(self.addrs))
 
 
 class msg_inv():
@@ -855,7 +862,7 @@ class msg_inv():
         return ser_vector(self.inv)
 
     def __repr__(self):
-        return "msg_inv(inv=%s)" % (repr(self.inv))
+        return "msg_inv(inv={})".format(repr(self.inv))
 
 
 class msg_getdata():
@@ -871,7 +878,7 @@ class msg_getdata():
         return ser_vector(self.inv)
 
     def __repr__(self):
-        return "msg_getdata(inv=%s)" % (repr(self.inv))
+        return "msg_getdata(inv={})".format(repr(self.inv))
 
 
 class msg_getblocks():
@@ -893,8 +900,8 @@ class msg_getblocks():
         return r
 
     def __repr__(self):
-        return "msg_getblocks(locator=%s hashstop=%064x)" \
-            % (repr(self.locator), self.hashstop)
+        return "msg_getblocks(locator={} hashstop={:064x})".format(
+            repr(self.locator), self.hashstop)
 
 
 class msg_tx():
@@ -910,7 +917,7 @@ class msg_tx():
         return self.tx.serialize()
 
     def __repr__(self):
-        return "msg_tx(tx=%s)" % (repr(self.tx))
+        return "msg_tx(tx={})".format(repr(self.tx))
 
 
 class msg_block():
@@ -929,7 +936,7 @@ class msg_block():
         return self.block.serialize()
 
     def __repr__(self):
-        return "msg_block(block=%s)" % (repr(self.block))
+        return "msg_block(block={})".format(repr(self.block))
 
 # for cases where a user needs tighter control over what is sent over the wire
 # note that the user must supply the name of the command, and the data
@@ -978,7 +985,7 @@ class msg_ping():
         return r
 
     def __repr__(self):
-        return "msg_ping(nonce=%08x)" % self.nonce
+        return "msg_ping(nonce={:08x})".format(self.nonce)
 
 
 class msg_pong():
@@ -996,7 +1003,7 @@ class msg_pong():
         return r
 
     def __repr__(self):
-        return "msg_pong(nonce=%08x)" % self.nonce
+        return "msg_pong(nonce={:08x})".format(self.nonce)
 
 
 class msg_mempool():
@@ -1054,8 +1061,8 @@ class msg_getheaders():
         return r
 
     def __repr__(self):
-        return "msg_getheaders(locator=%s, stop=%064x)" \
-            % (repr(self.locator), self.hashstop)
+        return "msg_getheaders(locator={}, stop={:064x})".format(
+            repr(self.locator), self.hashstop)
 
 
 # headers message has
@@ -1077,7 +1084,7 @@ class msg_headers():
         return ser_vector(blocks)
 
     def __repr__(self):
-        return "msg_headers(headers=%s)" % repr(self.headers)
+        return "msg_headers(headers={})".format(repr(self.headers))
 
 
 class msg_reject():
@@ -1108,8 +1115,8 @@ class msg_reject():
         return r
 
     def __repr__(self):
-        return "msg_reject: %s %d %s [%064x]" \
-            % (self.message, self.code, self.reason, self.data)
+        return "msg_reject: {} {} {} [{:064x}]".format(
+            self.message, self.code, self.reason, self.data)
 
 
 class msg_feefilter():
@@ -1127,7 +1134,7 @@ class msg_feefilter():
         return r
 
     def __repr__(self):
-        return "msg_feefilter(feerate=%08x)" % self.feerate
+        return "msg_feefilter(feerate={:08x})".format(self.feerate)
 
 
 class msg_sendcmpct():
@@ -1148,7 +1155,8 @@ class msg_sendcmpct():
         return r
 
     def __repr__(self):
-        return "msg_sendcmpct(announce=%s, version=%lu)" % (self.announce, self.version)
+        return "msg_sendcmpct(announce={}, version={})".format(
+            self.announce, self.version)
 
 
 class msg_cmpctblock():
@@ -1167,7 +1175,8 @@ class msg_cmpctblock():
         return r
 
     def __repr__(self):
-        return "msg_cmpctblock(HeaderAndShortIDs=%s)" % repr(self.header_and_shortids)
+        return "msg_cmpctblock(HeaderAndShortIDs={})".format(
+            repr(self.header_and_shortids))
 
 
 class msg_getblocktxn():
@@ -1186,7 +1195,8 @@ class msg_getblocktxn():
         return r
 
     def __repr__(self):
-        return "msg_getblocktxn(block_txn_request=%s)" % (repr(self.block_txn_request))
+        return "msg_getblocktxn(block_txn_request={})".format(
+            repr(self.block_txn_request))
 
 
 class msg_blocktxn():
@@ -1204,4 +1214,5 @@ class msg_blocktxn():
         return r
 
     def __repr__(self):
-        return "msg_blocktxn(block_transactions=%s)" % (repr(self.block_transactions))
+        return "msg_blocktxn(block_transactions={})".format(
+            repr(self.block_transactions))
