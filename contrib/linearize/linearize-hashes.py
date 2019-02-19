@@ -32,7 +32,7 @@ def hex_switchEndian(s):
 
 class BitcoinRPC:
     def __init__(self, host, port, username, password):
-        authpair = "%s:%s" % (username, password)
+        authpair = "{}:{}".format(username, password)
         authpair = authpair.encode('utf-8')
         self.authhdr = b"Basic " + base64.b64encode(authpair)
         self.conn = httplib.HTTPConnection(host, port=port, timeout=30)

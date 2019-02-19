@@ -174,7 +174,7 @@ class BlockDataCopier:
                 self.outFname = self.settings['output_file']
             else:
                 self.outFname = os.path.join(
-                    self.settings['output'], "blk%05d.dat" % self.outFn)
+                    self.settings['output'], "blk{:05d}.dat".format(self.outFn))
             print("Output file " + self.outFname)
             self.outF = open(self.outFname, "wb")
 
@@ -188,11 +188,11 @@ class BlockDataCopier:
             self.highTS = blkTS
 
         if (self.blkCountOut % 1000) == 0:
-            print('%i blocks scanned, %i blocks written (of %i, %.1f%% complete)' %
-                  (self.blkCountIn, self.blkCountOut, len(self.blkindex), 100.0 * self.blkCountOut / len(self.blkindex)))
+            print('{} blocks scanned, {} blocks written (of {}, {:.1f}% complete)'.format(
+                self.blkCountIn, self.blkCountOut, len(self.blkindex), 100.0 * self.blkCountOut / len(self.blkindex)))
 
     def inFileName(self, fn):
-        return os.path.join(self.settings['input'], "blk%05d.dat" % fn)
+        return os.path.join(self.settings['input'], "blk{:05d}.dat".format(fn))
 
     def fetchBlock(self, extent):
         '''Fetch block contents from disk given extents'''
@@ -273,7 +273,7 @@ class BlockDataCopier:
                 else:  # If no space in cache, seek forward
                     self.inF.seek(inLen, os.SEEK_CUR)
 
-        print("Done (%i blocks written)" % (self.blkCountOut))
+        print("Done ({} blocks written)".format((self.blkCountOut)))
 
 
 if __name__ == '__main__':
