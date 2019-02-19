@@ -108,10 +108,10 @@ class CTORMiningTest(BitcoinTestFramework):
             txid_decoded = int(txid, 16)
 
             # Assert we got the expected metadata
-            assert(expectedFeeSats == txn['fee'])
-            assert(expectedSigOps == txn['sigops'])
+            assert expectedFeeSats == txn['fee']
+            assert expectedSigOps == txn['sigops']
             # Assert transaction ids are in order
-            assert(last_txid == 0 or last_txid < txid_decoded)
+            assert last_txid == 0 or last_txid < txid_decoded
             last_txid = txid_decoded
 
 

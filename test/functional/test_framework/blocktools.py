@@ -98,7 +98,7 @@ def create_coinbase(height, pubkey=None):
 
 def create_transaction(prevtx, n, sig, value, scriptPubKey=CScript()):
     tx = CTransaction()
-    assert(n < len(prevtx.vout))
+    assert n < len(prevtx.vout)
     tx.vin.append(CTxIn(COutPoint(prevtx.sha256, n), sig, 0xffffffff))
     tx.vout.append(CTxOut(value, scriptPubKey))
     pad_tx(tx)
@@ -158,7 +158,7 @@ def create_confirmed_utxos(node, count, age=101):
         node.generate(1)
 
     utxos = node.listunspent()
-    assert(len(utxos) >= count)
+    assert len(utxos) >= count
     return utxos
 
 

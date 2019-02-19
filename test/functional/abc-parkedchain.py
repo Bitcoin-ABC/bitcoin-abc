@@ -46,9 +46,9 @@ class ParkedChainTest(BitcoinTestFramework):
         wait_for_tip(parking_node, parked_tip)
 
         # Let's park the chain.
-        assert(parked_tip != tip)
-        assert(block_to_park != tip)
-        assert(block_to_park != parked_tip)
+        assert parked_tip != tip
+        assert block_to_park != tip
+        assert block_to_park != parked_tip
         node.parkblock(block_to_park)
         assert_equal(node.getbestblockhash(), tip)
 
@@ -156,7 +156,7 @@ class ParkedChainTest(BitcoinTestFramework):
             def check_block():
                 for tip in parking_node.getchaintips():
                     if tip["hash"] == block:
-                        assert(tip["status"] != "active")
+                        assert tip["status"] != "active"
                         return tip["status"] == "parked"
                 return False
             wait_until(check_block)

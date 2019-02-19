@@ -116,7 +116,7 @@ class WalletLabelsTest(BitcoinTestFramework):
             node.setlabel(address, label.name)
             label.add_address(address)
             label.verify(node)
-            assert(address not in node.getaddressesbyaccount(""))
+            assert address not in node.getaddressesbyaccount("")
 
         # Check that addmultisigaddress can assign labels.
         for label in labels:

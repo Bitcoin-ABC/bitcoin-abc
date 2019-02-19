@@ -72,7 +72,7 @@ class CTX:
 
     def __init__(self):
         self.ptr = ssl.BN_CTX_new()
-        assert(self.ptr)
+        assert self.ptr
 
     def __del__(self):
         ssl.BN_CTX_free(self.ptr)

@@ -175,7 +175,7 @@ class PruneTest(BitcoinTestFramework):
             self.nodes[1].invalidateblock(curhash)
             curhash = self.nodes[1].getblockhash(invalidheight - 1)
 
-        assert(self.nodes[1].getblockcount() == invalidheight - 1)
+        assert self.nodes[1].getblockcount() == invalidheight - 1
         self.log.info("New best height: {}".format(
                       self.nodes[1].getblockcount()))
 
@@ -254,8 +254,8 @@ class PruneTest(BitcoinTestFramework):
                 "Rewind node 0 to prev main chain to mine longer chain to trigger redownload. Blocks needed: {}".format(
                     blocks_to_mine))
             self.nodes[0].invalidateblock(curchainhash)
-            assert(self.nodes[0].getblockcount() == self.mainchainheight)
-            assert(self.nodes[0].getbestblockhash() == self.mainchainhash2)
+            assert self.nodes[0].getblockcount() == self.mainchainheight
+            assert self.nodes[0].getbestblockhash() == self.mainchainhash2
             goalbesthash = self.nodes[0].generate(blocks_to_mine)[-1]
             goalbestheight = first_reorg_height + 1
 
@@ -264,10 +264,10 @@ class PruneTest(BitcoinTestFramework):
         # Wait for Node 2 to reorg to proper height
         wait_until(lambda: self.nodes[2].getblockcount(
         ) >= goalbestheight, timeout=900)
-        assert(self.nodes[2].getbestblockhash() == goalbesthash)
+        assert self.nodes[2].getbestblockhash() == goalbesthash
         # Verify we can now have the data for a block previously pruned
-        assert(self.nodes[2].getblock(
-            self.forkhash)["height"] == self.forkheight)
+        assert self.nodes[2].getblock(
+            self.forkhash)["height"] == self.forkheight
 
     def manual_test(self, node_number, use_timestamp):
         # at this point, node has 995 blocks and has not yet run in prune mode

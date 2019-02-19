@@ -174,7 +174,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         def send_transaction_to_mempool(tx):
             tx_id = node.sendrawtransaction(ToHex(tx))
-            assert(tx_id in set(node.getrawmempool()))
+            assert tx_id in set(node.getrawmempool())
             return tx_id
 
         # Before the fork, no replay protection required to get in the mempool.
@@ -246,7 +246,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         # Non replay protected transactions are not valid anymore,
         # so they should be removed from the mempool.
-        assert(tx_id not in set(node.getrawmempool()))
+        assert tx_id not in set(node.getrawmempool())
 
         # Good old transactions are now invalid.
         send_transaction_to_mempool(txns[0])
@@ -279,11 +279,11 @@ class ReplayProtectionTest(BitcoinTestFramework):
             elif txid == replay_tx1_id:
                 found_id1 = True
 
-        assert(found_id0 and found_id1)
+        assert found_id0 and found_id1
 
         # And the mempool is still in good shape.
-        assert(replay_tx0_id in set(node.getrawmempool()))
-        assert(replay_tx1_id in set(node.getrawmempool()))
+        assert replay_tx0_id in set(node.getrawmempool())
+        assert replay_tx1_id in set(node.getrawmempool())
 
         # They also can also be mined
         block(5)
@@ -293,23 +293,23 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # Ok, now we check if a reorg work properly across the activation.
         postforkblockid = node.getbestblockhash()
         node.invalidateblock(postforkblockid)
-        assert(replay_tx0_id in set(node.getrawmempool()))
-        assert(replay_tx1_id in set(node.getrawmempool()))
+        assert replay_tx0_id in set(node.getrawmempool())
+        assert replay_tx1_id in set(node.getrawmempool())
 
         # Deactivating replay protection.
         forkblockid = node.getbestblockhash()
         node.invalidateblock(forkblockid)
         # The funding tx is not evicted from the mempool, since it's valid in
         # both sides of the fork
-        assert(replay_tx0_id in set(node.getrawmempool()))
-        assert(replay_tx1_id not in set(node.getrawmempool()))
+        assert replay_tx0_id in set(node.getrawmempool())
+        assert replay_tx1_id not in set(node.getrawmempool())
 
         # Check that we also do it properly on deeper reorg.
         node.reconsiderblock(forkblockid)
         node.reconsiderblock(postforkblockid)
         node.invalidateblock(forkblockid)
-        assert(replay_tx0_id in set(node.getrawmempool()))
-        assert(replay_tx1_id not in set(node.getrawmempool()))
+        assert replay_tx0_id in set(node.getrawmempool())
+        assert replay_tx1_id not in set(node.getrawmempool())
 
 
 if __name__ == '__main__':

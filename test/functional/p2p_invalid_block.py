@@ -85,7 +85,7 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         block2.vtx.append(block2.vtx[2])
         assert_equal(block2.hashMerkleRoot, block2.calc_merkle_root())
         assert_equal(orig_hash, block2.rehash())
-        assert(block2_orig.vtx != block2.vtx)
+        assert block2_orig.vtx != block2.vtx
 
         node.p2p.send_blocks_and_test(
             [block2], node, success=False, request_block=False, reject_reason='bad-txns-duplicate')

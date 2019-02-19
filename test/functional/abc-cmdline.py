@@ -36,7 +36,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         netinfo = self.nodes[0].getnetworkinfo()
         subversion = netinfo['subversion']
         pattern = re.compile(pattern_str)
-        assert(pattern.match(subversion))
+        assert pattern.match(subversion)
 
     def excessiveblocksize_test(self):
         self.log.info("Testing -excessiveblocksize")

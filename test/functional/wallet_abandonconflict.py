@@ -60,7 +60,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         newbalance = self.nodes[0].getbalance()
 
         # no more than fees lost
-        assert(balance - newbalance <= total_fees(txA, txB, txC))
+        assert balance - newbalance <= total_fees(txA, txB, txC)
         balance = newbalance
 
         # Disconnect nodes so node0's transactions don't get into node1's mempool
@@ -137,8 +137,8 @@ class AbandonConflictTest(BitcoinTestFramework):
         assert_equal(unconfbalance, newbalance)
         # Unconfirmed transactions which are not in the mempool should also
         # not be in listunspent
-        assert(not txABC2 in [utxo["txid"]
-                              for utxo in self.nodes[0].listunspent(0)])
+        assert not txABC2 in [utxo["txid"]
+                              for utxo in self.nodes[0].listunspent(0)]
         balance = newbalance
 
         # Abandon original transaction and verify inputs are available again

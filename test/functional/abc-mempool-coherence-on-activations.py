@@ -193,7 +193,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         # send a txn to the mempool and check it was accepted
         def send_transaction_to_mempool(tx):
             tx_id = node.sendrawtransaction(ToHex(tx))
-            assert(tx_id in node.getrawmempool())
+            assert tx_id in node.getrawmempool()
 
         # checks the mempool has exactly the same txns as in the provided list
         def check_mempool_equal(txns):

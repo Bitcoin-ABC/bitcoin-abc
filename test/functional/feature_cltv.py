@@ -175,7 +175,7 @@ class BIP65Test(BitcoinTestFramework):
             ToHex(spendtx))
 
         # Couldn't complete signature due to CLTV
-        assert(rejectedtx_signed['errors'][0]['error'] == 'Negative locktime')
+        assert rejectedtx_signed['errors'][0]['error'] == 'Negative locktime'
 
         tip = block.hash
         block_time += 1

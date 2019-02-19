@@ -75,7 +75,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
             def check_block():
                 for tip in node.getchaintips():
                     if tip["hash"] == block:
-                        assert(tip["status"] != "active")
+                        assert tip["status"] != "active"
                         return tip["status"] == status
                 return False
             wait_until(check_block)

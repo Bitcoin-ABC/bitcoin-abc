@@ -55,7 +55,7 @@ def check_key(key):
         key = hex_str_to_bytes(key)  # Assuming this is hex string
     if (type(key) is bytes and (len(key) == 33 or len(key) == 65)):
         return key
-    assert(False)
+    assert False
 
 
 def check_script(script):
@@ -63,4 +63,4 @@ def check_script(script):
         script = hex_str_to_bytes(script)  # Assuming this is hex string
     if (type(script) is bytes or type(script) is CScript):
         return script
-    assert(False)
+    assert False

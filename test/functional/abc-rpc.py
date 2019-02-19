@@ -30,7 +30,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
         netinfo = self.nodes[0].getnetworkinfo()
         subversion = netinfo['subversion']
         pattern = re.compile(pattern_str)
-        assert(pattern.match(subversion))
+        assert pattern.match(subversion)
 
     def test_excessiveblock(self):
         # Check that we start with DEFAULT_MAX_BLOCK_SIZE

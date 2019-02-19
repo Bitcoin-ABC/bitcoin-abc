@@ -57,9 +57,10 @@ class MempoolLimitTest(BitcoinTestFramework):
                 self.nodes[0], utxos[30 * i:30 * i + 30], 30, 10 * (i + 1))
 
         self.log.info('The tx should be evicted by now')
-        assert(txid not in self.nodes[0].getrawmempool())
+        assert txid not in self.nodes[0].getrawmempool()
         txdata = self.nodes[0].gettransaction(txid)
-        assert(txdata['confirmations'] == 0)  # confirmation should still be 0
+        # confirmation should still be 0
+        assert txdata['confirmations'] == 0
 
         self.log.info('Check that mempoolminfee is larger than minrelytxfee')
         assert_equal(self.nodes[0].getmempoolinfo()[
