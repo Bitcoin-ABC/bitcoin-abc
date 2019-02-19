@@ -9,7 +9,7 @@ import os
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until, connect_nodes_bi
 
-FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block %s\n"
+FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {}\n"
 
 
 class NotificationsTest(BitcoinTestFramework):
@@ -25,11 +25,12 @@ class NotificationsTest(BitcoinTestFramework):
 
         # -alertnotify and -blocknotify on node0, walletnotify on node1
         self.extra_args = [["-blockversion=2",
-                            "-alertnotify=echo %%s >> %s" % self.alert_filename,
-                            "-blocknotify=echo %%s >> %s" % self.block_filename],
+                            "-alertnotify=echo %s >> {}".format(
+                                self.alert_filename),
+                            "-blocknotify=echo %s >> {}".format(self.block_filename)],
                            ["-blockversion=211",
                             "-rescan",
-                            "-walletnotify=echo %%s >> %s" % self.tx_filename]]
+                            "-walletnotify=echo %s >> {}".format(self.tx_filename)]]
         super().setup_network()
 
     def run_test(self):
@@ -111,7 +112,7 @@ class NotificationsTest(BitcoinTestFramework):
 
         self.log.info(self.alert_filename)
         with open(self.alert_filename, 'r', encoding='utf8') as f:
-            assert_equal(f.read(), (FORK_WARNING_MESSAGE % fork_block))
+            assert_equal(f.read(), (FORK_WARNING_MESSAGE.format(fork_block)))
 
 
 if __name__ == '__main__':
