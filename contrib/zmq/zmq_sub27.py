@@ -15,7 +15,7 @@ zmqSubSocket.setsockopt(zmq.SUBSCRIBE, "hashblock")
 zmqSubSocket.setsockopt(zmq.SUBSCRIBE, "hashtx")
 zmqSubSocket.setsockopt(zmq.SUBSCRIBE, "rawblock")
 zmqSubSocket.setsockopt(zmq.SUBSCRIBE, "rawtx")
-zmqSubSocket.connect("tcp://127.0.0.1:%i" % port)
+zmqSubSocket.connect("tcp://127.0.0.1:{}".format(port))
 
 try:
     while True:
