@@ -26,7 +26,7 @@ class RPCBindTest(BitcoinTestFramework):
         then try to connect, and check if the set of bound addresses
         matches the expected set.
         '''
-        self.log.info("Bind test for %s" % str(addresses))
+        self.log.info("Bind test for {}".format(str(addresses)))
         expected = [(addr_to_hex(addr), port) for (addr, port) in expected]
         base_args = ['-disablewallet', '-nolisten']
         if allow_ips:
@@ -49,7 +49,7 @@ class RPCBindTest(BitcoinTestFramework):
         Start a node with rpcallow IP, and request getnetworkinfo
         at a non-localhost IP.
         '''
-        self.log.info("Allow IP test for %s:%d" % (rpchost, rpcport))
+        self.log.info("Allow IP test for {}:{}".format(rpchost, rpcport))
         base_args = ['-disablewallet', '-nolisten'] + \
             ['-rpcallowip=' + x for x in allow_ips]
         self.nodes[0].host = None
@@ -90,7 +90,7 @@ class RPCBindTest(BitcoinTestFramework):
         except OSError:
             raise SkipTest("This test requires IPv6 support.")
 
-        self.log.info("Using interface %s for testing" % non_loopback_ip)
+        self.log.info("Using interface {} for testing".format(non_loopback_ip))
 
         defaultport = rpc_port(0)
 

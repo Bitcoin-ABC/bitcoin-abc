@@ -45,7 +45,7 @@ class InvalidateTest(BitcoinTestFramework):
         newhash = self.nodes[0].getbestblockhash()
         if (newheight != 4 or newhash != besthash):
             raise AssertionError(
-                "Wrong tip for node0, hash %s, height %d" % (newhash, newheight))
+                "Wrong tip for node0, hash {}, height {}".format(newhash, newheight))
 
         self.log.info("\nMake sure we won't reorg to a lower work chain:")
         connect_nodes_bi(self.nodes[1], self.nodes[2])
@@ -67,7 +67,7 @@ class InvalidateTest(BitcoinTestFramework):
         node1height = self.nodes[1].getblockcount()
         if node1height < 4:
             raise AssertionError(
-                "Node 1 reorged to a lower height: %d" % node1height)
+                "Node 1 reorged to a lower height: {}".format(node1height))
 
 
 if __name__ == '__main__':
