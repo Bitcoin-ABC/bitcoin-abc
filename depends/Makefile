@@ -209,4 +209,6 @@ build-win64: download-win
 
 build-all: build-linux64 build-linux32 build-linux-arm build-linux-aarch64 build-osx build-win32 build-win64
 
+$(foreach package,$(all_packages),$(eval $(call ext_add_stages,$(package))))
+
 .PHONY: install cached clean clean-all download-one download-osx download-linux download-win download check-packages check-sources
