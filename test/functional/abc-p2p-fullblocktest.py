@@ -46,8 +46,9 @@ class FullBlockTest(ComparisonTestFramework):
         self.blocks = {}
         self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-whitelist=127.0.0.1',
-                            "-replayprotectionactivationtime=%d" % REPLAY_PROTECTION_START_TIME,
-                            "-excessiveblocksize=%d" % self.excessive_block_size]]
+                            "-replayprotectionactivationtime={}".format(
+                                REPLAY_PROTECTION_START_TIME),
+                            "-excessiveblocksize={}".format(self.excessive_block_size)]]
 
     def add_options(self, parser):
         super().add_options(parser)
