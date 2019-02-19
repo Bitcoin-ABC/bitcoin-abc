@@ -51,7 +51,7 @@ log = logging.getLogger("BitcoinRPC")
 class JSONRPCException(Exception):
     def __init__(self, rpc_error):
         try:
-            errmsg = '%(message)s (%(code)i)' % rpc_error
+            errmsg = '{} ({})'.format(rpc_error['message'], rpc_error['code'])
         except (KeyError, TypeError):
             errmsg = ''
         super().__init__(errmsg)
@@ -96,7 +96,7 @@ class AuthServiceProxy():
             # Python internal stuff
             raise AttributeError
         if self._service_name is not None:
-            name = "%s.%s" % (self._service_name, name)
+            name = "{}.{}".format(self._service_name, name)
         return AuthServiceProxy(self.__service_url, name, connection=self.__conn)
 
     def _request(self, method, path, postdata):
@@ -128,8 +128,9 @@ class AuthServiceProxy():
     def get_request(self, *args, **argsn):
         AuthServiceProxy.__id_count += 1
 
-        log.debug("-%s-> %s %s" % (AuthServiceProxy.__id_count, self._service_name,
-                                   json.dumps(args, default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
+        log.debug("-{}-> {} {}".format(
+            AuthServiceProxy.__id_count, self._service_name, json.dumps(
+                args, default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
         if args and argsn:
             raise ValueError(
                 'Cannot handle both named and positional arguments')
@@ -164,10 +165,10 @@ class AuthServiceProxy():
         except socket.timeout as e:
             raise JSONRPCException({
                 'code': -344,
-                'message': '%r RPC took longer than %f seconds. Consider '
+                'message': '{!r} RPC took longer than {} seconds. Consider '
                            'using larger timeout for calls that take '
-                           'longer to return.' % (self._service_name,
-                                                  self.__conn.timeout)})
+                           'longer to return.'.format((self._service_name,
+                                                       self.__conn.timeout))})
         if http_response is None:
             raise JSONRPCException({
                 'code': -342, 'message': 'missing HTTP response from server'})
@@ -175,16 +176,17 @@ class AuthServiceProxy():
         content_type = http_response.getheader('Content-Type')
         if content_type != 'application/json':
             raise JSONRPCException({
-                'code': -342, 'message': 'non-JSON HTTP response with \'%i %s\' from server' % (http_response.status, http_response.reason)})
+                'code': -342, 'message': 'non-JSON HTTP response with \'{} {}\' from server'.format(
+                    http_response.status, http_response.reason)})
 
         responsedata = http_response.read().decode('utf8')
         response = json.loads(responsedata, parse_float=decimal.Decimal)
         elapsed = time.time() - req_start_time
         if "error" in response and response["error"] is None:
-            log.debug("<-%s- [%.6f] %s" % (response["id"], elapsed, json.dumps(
+            log.debug("<-{}- [{:.6f}] {}".format(response["id"], elapsed, json.dumps(
                 response["result"], default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
         else:
-            log.debug("<-- [%.6f] %s" % (elapsed, responsedata))
+            log.debug("<-- [{:.6f}] {}".format(elapsed, responsedata))
         return response
 
     def __truediv__(self, relative_uri):

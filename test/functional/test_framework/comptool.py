@@ -41,7 +41,7 @@ class RejectResult():
         return other.reason.startswith(self.reason)
 
     def __repr__(self):
-        return '%i:%s' % (self.code, self.reason or '*')
+        return '{}:{}'.format(self.code, self.reason or '*')
 
 
 class TestNode(P2PInterface):
@@ -97,7 +97,7 @@ class TestNode(P2PInterface):
             del self.pingMap[message.nonce]
         except KeyError:
             raise AssertionError(
-                "Got pong for unknown ping [%s]" % repr(message))
+                "Got pong for unknown ping [{}]".format(repr(message)))
 
     def on_reject(self, message):
         if message.message == b'tx':
@@ -264,10 +264,10 @@ class TestManager():
                         return False
                     if blockhash not in c.block_reject_map:
                         logger.error(
-                            'Block not in reject map: %064x' % (blockhash))
+                            'Block not in reject map: {:064x}'.format(blockhash))
                         return False
                     if not outcome.match(c.block_reject_map[blockhash]):
-                        logger.error('Block rejected with %s instead of expected %s: %064x' % (
+                        logger.error('Block rejected with {} instead of expected {}: {:064x}'.format(
                             c.block_reject_map[blockhash], outcome, blockhash))
                         return False
                 elif ((c.bestblockhash == blockhash) != outcome):
@@ -292,10 +292,11 @@ class TestManager():
                     if txhash in c.lastInv:
                         return False
                     if txhash not in c.tx_reject_map:
-                        logger.error('Tx not in reject map: %064x' % (txhash))
+                        logger.error(
+                            'Tx not in reject map: {:064x}'.format(txhash))
                         return False
                     if not outcome.match(c.tx_reject_map[txhash]):
-                        logger.error('Tx rejected with %s instead of expected %s: %064x' % (
+                        logger.error('Tx rejected with {} instead of expected {}: {:064x}'.format(
                             c.tx_reject_map[txhash], outcome, txhash))
                         return False
                 elif ((txhash in c.lastInv) != outcome):
@@ -365,7 +366,7 @@ class TestManager():
                             self.ping_counter += 1
                         if (not self.check_results(tip, outcome)):
                             raise AssertionError(
-                                "Test failed at test %d" % test_number)
+                                "Test failed at test {}".format(test_number))
                     else:
                         invqueue.append(CInv(2, block.sha256))
                 elif isinstance(b_or_t, CBlockHeader):
@@ -388,7 +389,7 @@ class TestManager():
                         self.sync_transaction(tx.sha256, 1)
                         if (not self.check_mempool(tx.sha256, outcome)):
                             raise AssertionError(
-                                "Test failed at test %d" % test_number)
+                                "Test failed at test {}".format(test_number))
                     else:
                         invqueue.append(CInv(1, tx.sha256))
                 # Ensure we're not overflowing the inv queue
@@ -407,7 +408,7 @@ class TestManager():
                     test_instance.blocks_and_transactions))
                 if (not self.check_results(tip, block_outcome)):
                     raise AssertionError(
-                        "Block test failed at test %d" % test_number)
+                        "Block test failed at test {}".format(test_number))
             if (not test_instance.sync_every_tx and tx is not None):
                 if len(invqueue) > 0:
                     [c.send_message(msg_inv(invqueue))
@@ -417,9 +418,9 @@ class TestManager():
                     test_instance.blocks_and_transactions))
                 if (not self.check_mempool(tx.sha256, tx_outcome)):
                     raise AssertionError(
-                        "Mempool test failed at test %d" % test_number)
+                        "Mempool test failed at test {}".format(test_number))
 
-            logger.info("Test %d: PASS" % test_number)
+            logger.info("Test {}: PASS".format(test_number))
             test_number += 1
 
         [c.disconnect_node() for c in self.p2p_connections]

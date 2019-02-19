@@ -59,7 +59,7 @@ class CScriptOp(int):
         """Encode a small integer op, returning an opcode"""
         if not (0 <= n <= 16):
             raise ValueError(
-                'Integer must be in range 0 <= n <= 16, got %d' % n)
+                'Integer must be in range 0 <= n <= 16, got {}'.format(n))
 
         if n == 0:
             return OP_0
@@ -72,7 +72,7 @@ class CScriptOp(int):
             return 0
 
         if not (self == OP_0 or OP_1 <= self <= OP_16):
-            raise ValueError('op %r is not an OP_N' % self)
+            raise ValueError('op {!r} is not an OP_N'.format(self))
 
         return int(self - OP_1 + 1)
 
@@ -90,7 +90,7 @@ class CScriptOp(int):
         if self in OPCODE_NAMES:
             return OPCODE_NAMES[self]
         else:
-            return 'CScriptOp(0x%x)' % self
+            return 'CScriptOp(0x{:x})'.format(self)
 
     def __new__(cls, n):
         try:
@@ -453,7 +453,7 @@ class CScript(bytes):
             return CScript(super(CScript, self).__add__(other))
         except TypeError:
             raise TypeError(
-                'Can not add a %r instance to a CScript' % other.__class__)
+                'Can not add a {!r} instance to a CScript'.format(other.__class__))
 
     def join(self, iterable):
         # join makes no sense for a CScript()
@@ -489,7 +489,7 @@ class CScript(bytes):
                 datasize = None
                 pushdata_type = None
                 if opcode < OP_PUSHDATA1:
-                    pushdata_type = 'PUSHDATA(%d)' % opcode
+                    pushdata_type = 'PUSHDATA({})'.format(opcode)
                     datasize = opcode
 
                 elif opcode == OP_PUSHDATA1:
@@ -525,7 +525,7 @@ class CScript(bytes):
                 # Check for truncation
                 if len(data) < datasize:
                     raise CScriptTruncatedPushDataError(
-                        '%s: truncated data' % pushdata_type, data)
+                        '{}: truncated data'.format(pushdata_type, data))
 
                 i += datasize
 
@@ -556,7 +556,7 @@ class CScript(bytes):
         # need to change
         def _repr(o):
             if isinstance(o, bytes):
-                return b"x('%s')" % hexlify(o).decode('ascii')
+                return "x('{}')".format(hexlify(o).decode('ascii')).encode()
             else:
                 return repr(o)
 
@@ -567,10 +567,10 @@ class CScript(bytes):
             try:
                 op = _repr(next(i))
             except CScriptTruncatedPushDataError as err:
-                op = '%s...<ERROR: %s>' % (_repr(err.data), err)
+                op = '{}...<ERROR: {}>'.format(_repr(err.data), err)
                 break
             except CScriptInvalidError as err:
-                op = '<ERROR: %s>' % err
+                op = '<ERROR: {}>'.format(err)
                 break
             except StopIteration:
                 break
@@ -578,7 +578,7 @@ class CScript(bytes):
                 if op is not None:
                     ops.append(op)
 
-        return "CScript([%s])" % ', '.join(ops)
+        return "CScript([{}])".format(', '.join(ops))
 
     def GetSigOpCount(self, fAccurate):
         """Get the SigOp count.
@@ -635,7 +635,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
     if inIdx >= len(txTo.vin):
-        return (HASH_ONE, "inIdx %d out of range (%d)" % (inIdx, len(txTo.vin)))
+        return (HASH_ONE, "inIdx {} out of range ({})".format(inIdx, len(txTo.vin)))
     txtmp = CTransaction(txTo)
 
     for txin in txtmp.vin:
@@ -653,7 +653,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     elif (hashtype & 0x1f) == SIGHASH_SINGLE:
         outIdx = inIdx
         if outIdx >= len(txtmp.vout):
-            return (HASH_ONE, "outIdx %d out of range (%d)" % (outIdx, len(txtmp.vout)))
+            return (HASH_ONE, "outIdx {} out of range ({})".format(outIdx, len(txtmp.vout)))
 
         tmp = txtmp.vout[outIdx]
         txtmp.vout = []
