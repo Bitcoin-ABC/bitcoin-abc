@@ -60,7 +60,7 @@ class TestNode():
     be dispatched to the RPC connection."""
 
     def __init__(self, i, datadir, *, chain, host, rpc_port, p2p_port, timewait, bitcoind, bitcoin_cli,
-                 coverage_dir, extra_conf=None, extra_args=None, use_cli=False, emulator=None, start_perf=False):
+                 coverage_dir, cwd, extra_conf=None, extra_args=None, use_cli=False, emulator=None, start_perf=False):
         """
         Kwargs:
             start_perf (bool): If True, begin profiling the node with `perf` as soon as
@@ -83,6 +83,7 @@ class TestNode():
             raise FileNotFoundError(
                 "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOIND=<path/to/bitcoind> {}".format(self.binary, sys.argv[0]))
         self.coverage_dir = coverage_dir
+        self.cwd = cwd
         if extra_conf is not None:
             append_config(datadir, extra_conf)
         # Most callers will just need to add extra args to the default list
@@ -220,7 +221,7 @@ class TestNode():
             self.default_args = [def_arg for def_arg in self.default_args
                                  if rm_arg != def_arg and not def_arg.startswith(rm_arg + '=')]
 
-    def start(self, extra_args=None, *, stdout=None,
+    def start(self, extra_args=None, *, cwd=None, stdout=None,
               stderr=None, **kwargs):
         """Start the node."""
         if extra_args is None:
@@ -235,6 +236,9 @@ class TestNode():
                 dir=self.stdout_dir, delete=False)
         self.stderr = stderr
         self.stdout = stdout
+
+        if cwd is None:
+            cwd = self.cwd
 
         # Delete any existing cookie file -- if such a file exists (eg due to
         # unclean shutdown), it will get overwritten anyway by bitcoind, and
@@ -253,6 +257,7 @@ class TestNode():
             env=subp_env,
             stdout=stdout,
             stderr=stderr,
+            cwd=cwd,
             **kwargs)
 
         self.running = True

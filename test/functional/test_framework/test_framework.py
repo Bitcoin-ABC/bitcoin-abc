@@ -363,6 +363,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 bitcoind=binary[i],
                 bitcoin_cli=self.options.bitcoincli,
                 coverage_dir=self.options.coveragedir,
+                cwd=self.options.tmpdir,
                 extra_conf=extra_confs[i],
                 extra_args=extra_args[i],
                 use_cli=self.options.usecli,
@@ -524,6 +525,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                     bitcoind=self.options.bitcoind,
                     bitcoin_cli=self.options.bitcoincli,
                     coverage_dir=None,
+                    cwd=self.options.tmpdir,
                     emulator=self.options.emulator,
                 ))
 
