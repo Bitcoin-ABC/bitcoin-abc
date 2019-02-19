@@ -111,7 +111,7 @@ std::string DummyAddress(const CChainParams &params) {
         0xeb, 0x15, 0x23, 0x1d, 0xfc, 0xeb, 0x60, 0x92, 0x58, 0x86,
         0xb6, 0x7d, 0x06, 0x52, 0x99, 0x92, 0x59, 0x15, 0xae, 0xb1};
 
-    const CTxDestination dstKey = CKeyID(uint160(dummydata));
+    const CTxDestination dstKey = PKHash(uint160(dummydata));
     return MakeAddrInvalid(EncodeCashAddr(dstKey, params), params);
 }
 

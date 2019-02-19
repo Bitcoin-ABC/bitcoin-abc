@@ -70,12 +70,12 @@ class CashAddrEncoder : public boost::static_visitor<std::string> {
 public:
     CashAddrEncoder(const CChainParams &p) : params(p) {}
 
-    std::string operator()(const CKeyID &id) const {
+    std::string operator()(const PKHash &id) const {
         std::vector<uint8_t> data = PackAddrData(id, PUBKEY_TYPE);
         return cashaddr::Encode(params.CashAddrPrefix(), data);
     }
 
-    std::string operator()(const CScriptID &id) const {
+    std::string operator()(const ScriptHash &id) const {
         std::vector<uint8_t> data = PackAddrData(id, SCRIPT_TYPE);
         return cashaddr::Encode(params.CashAddrPrefix(), data);
     }
@@ -165,9 +165,9 @@ CTxDestination DecodeCashAddrDestination(const CashAddrContent &content) {
 
     switch (content.type) {
         case PUBKEY_TYPE:
-            return CKeyID(hash);
+            return PKHash(hash);
         case SCRIPT_TYPE:
-            return CScriptID(hash);
+            return ScriptHash(hash);
         default:
             return CNoDestination{};
     }

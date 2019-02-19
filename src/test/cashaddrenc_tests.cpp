@@ -10,6 +10,8 @@
 #include <uint256.h>
 #include <util/strencodings.h>
 
+#include <key_io.h>
+
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -42,8 +44,8 @@ std::vector<uint8_t> insecure_GetRandomByteArray(FastRandomContext &rand,
 
 class DstTypeChecker : public boost::static_visitor<void> {
 public:
-    void operator()(const CKeyID &id) { isKey = true; }
-    void operator()(const CScriptID &id) { isScript = true; }
+    void operator()(const PKHash &id) { isKey = true; }
+    void operator()(const ScriptHash &id) { isScript = true; }
     void operator()(const CNoDestination &) {}
 
     static bool IsScriptDst(const CTxDestination &d) {
@@ -108,8 +110,8 @@ BOOST_AUTO_TEST_CASE(check_packaddr_throws) {
 
 BOOST_AUTO_TEST_CASE(encode_decode) {
     std::vector<CTxDestination> toTest = {CNoDestination{},
-                                          CKeyID(uint160S("badf00d")),
-                                          CScriptID(uint160S("f00dbad"))};
+                                          PKHash(uint160S("badf00d")),
+                                          ScriptHash(uint160S("f00dbad"))};
 
     for (auto dst : toTest) {
         for (auto net : GetNetworks()) {
@@ -123,7 +125,7 @@ BOOST_AUTO_TEST_CASE(encode_decode) {
 
 // Check that an encoded cash address is not valid on another network.
 BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
-    const CTxDestination dst = CKeyID(uint160S("c0ffee"));
+    const CTxDestination dst = PKHash(uint160S("c0ffee"));
     const CTxDestination invalidDst = CNoDestination{};
 
     for (auto net : GetNetworks()) {
@@ -151,8 +153,8 @@ BOOST_AUTO_TEST_CASE(random_dst) {
 
     for (size_t i = 0; i < NUM_TESTS; ++i) {
         uint160 hash = insecure_GetRandUInt160(rand);
-        const CTxDestination dst_key = CKeyID(hash);
-        const CTxDestination dst_scr = CScriptID(hash);
+        const CTxDestination dst_key = PKHash(hash);
+        const CTxDestination dst_scr = ScriptHash(hash);
 
         const std::string encoded_key = EncodeCashAddr(dst_key, *params);
         const CTxDestination decoded_key = DecodeCashAddr(encoded_key, *params);
@@ -290,13 +292,13 @@ BOOST_AUTO_TEST_CASE(test_encode_address) {
         "bitcoincash:pqq3728yw0y47sqn6l2na30mcw6zm78dzq5ucqzc37"};
 
     for (size_t i = 0; i < hash.size(); ++i) {
-        const CTxDestination dstKey = CKeyID(uint160(hash[i]));
+        const CTxDestination dstKey = PKHash(uint160(hash[i]));
         BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr(dstKey, *params));
 
         CashAddrContent keyContent{PUBKEY_TYPE, hash[i]};
         BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr("bitcoincash", keyContent));
 
-        const CTxDestination dstScript = CScriptID(uint160(hash[i]));
+        const CTxDestination dstScript = ScriptHash(uint160(hash[i]));
         BOOST_CHECK_EQUAL(script[i], EncodeCashAddr(dstScript, *params));
 
         CashAddrContent scriptContent{SCRIPT_TYPE, hash[i]};

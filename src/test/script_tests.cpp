@@ -2730,7 +2730,7 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
     }
 
     CMutableTransaction txFrom = BuildCreditingTransaction(
-        GetScriptForDestination(keys[0].GetPubKey().GetID()), Amount::zero());
+        GetScriptForDestination(PKHash(keys[0].GetPubKey())), Amount::zero());
     CMutableTransaction txTo =
         BuildSpendingTransaction(CScript(), CTransaction(txFrom));
     CScript &scriptPubKey = txFrom.vout[0].scriptPubKey;
@@ -2763,7 +2763,7 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
     CScript pkSingle;
     pkSingle << ToByteVector(keys[0].GetPubKey()) << OP_CHECKSIG;
     keystore.AddCScript(pkSingle);
-    scriptPubKey = GetScriptForDestination(CScriptID(pkSingle));
+    scriptPubKey = GetScriptForDestination(ScriptHash(pkSingle));
     SignSignature(keystore, CTransaction(txFrom), txTo, 0,
                   SigHashType().withForkId());
     scriptSig = DataFromTransaction(txTo, 0, txFrom.vout[0]);

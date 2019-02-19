@@ -31,8 +31,8 @@ BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletTestingSetup)
 BOOST_AUTO_TEST_CASE(write_erase_name) {
     WalletBatch batch(m_wallet.GetDBHandle(), "cr+");
 
-    CTxDestination dst1 = CKeyID(uint160S("c0ffee"));
-    CTxDestination dst2 = CKeyID(uint160S("f00d"));
+    CTxDestination dst1 = PKHash(uint160S("c0ffee"));
+    CTxDestination dst2 = PKHash(uint160S("f00d"));
 
     BOOST_CHECK(batch.WriteName(dst1, "name1"));
     BOOST_CHECK(batch.WriteName(dst2, "name2"));
@@ -57,8 +57,8 @@ BOOST_AUTO_TEST_CASE(write_erase_name) {
 BOOST_AUTO_TEST_CASE(write_erase_purpose) {
     WalletBatch batch(m_wallet.GetDBHandle(), "cr+");
 
-    CTxDestination dst1 = CKeyID(uint160S("c0ffee"));
-    CTxDestination dst2 = CKeyID(uint160S("f00d"));
+    CTxDestination dst1 = PKHash(uint160S("c0ffee"));
+    CTxDestination dst2 = PKHash(uint160S("f00d"));
 
     BOOST_CHECK(batch.WritePurpose(dst1, "purpose1"));
     BOOST_CHECK(batch.WritePurpose(dst2, "purpose2"));
@@ -83,8 +83,8 @@ BOOST_AUTO_TEST_CASE(write_erase_purpose) {
 BOOST_AUTO_TEST_CASE(write_erase_destdata) {
     WalletBatch batch(m_wallet.GetDBHandle(), "cr+");
 
-    CTxDestination dst1 = CKeyID(uint160S("c0ffee"));
-    CTxDestination dst2 = CKeyID(uint160S("f00d"));
+    CTxDestination dst1 = PKHash(uint160S("c0ffee"));
+    CTxDestination dst2 = PKHash(uint160S("f00d"));
 
     BOOST_CHECK(batch.WriteDestData(dst1, "key1", "value1"));
     BOOST_CHECK(batch.WriteDestData(dst1, "key2", "value2"));

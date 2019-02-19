@@ -33,8 +33,8 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
                                  139, 218, 81,  119, 184, 106, 21,
                                  195, 178, 159, 85,  152, 115};
 
-    const CTxDestination dstKey = CKeyID(uint160(hash));
-    const CTxDestination dstScript = CScriptID(uint160(hash));
+    const CTxDestination dstKey = PKHash(uint160(hash));
+    const CTxDestination dstScript = ScriptHash(uint160(hash));
 
     std::string cashaddr_pubkey =
         "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";

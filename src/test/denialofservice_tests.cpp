@@ -417,7 +417,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;
         tx.vout[0].scriptPubKey =
-            GetScriptForDestination(key.GetPubKey().GetID());
+            GetScriptForDestination(PKHash(key.GetPubKey()));
 
         AddOrphanTx(MakeTransactionRef(tx), i);
     }
@@ -432,7 +432,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;
         tx.vout[0].scriptPubKey =
-            GetScriptForDestination(key.GetPubKey().GetID());
+            GetScriptForDestination(PKHash(key.GetPubKey()));
         SignSignature(keystore, *txPrev, tx, 0, SigHashType());
 
         AddOrphanTx(MakeTransactionRef(tx), i);
@@ -446,7 +446,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;
         tx.vout[0].scriptPubKey =
-            GetScriptForDestination(key.GetPubKey().GetID());
+            GetScriptForDestination(PKHash(key.GetPubKey()));
         tx.vin.resize(2777);
         for (size_t j = 0; j < tx.vin.size(); j++) {
             tx.vin[j].prevout = COutPoint(txPrev->GetId(), j);

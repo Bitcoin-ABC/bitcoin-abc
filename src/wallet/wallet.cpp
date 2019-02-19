@@ -358,7 +358,7 @@ bool CWallet::AddKeyPubKeyWithDB(WalletBatch &batch, const CKey &secret,
 
     // Check if we need to remove from watch-only.
     CScript script;
-    script = GetScriptForDestination(pubkey.GetID());
+    script = GetScriptForDestination(PKHash(pubkey));
     if (HaveWatchOnly(script)) {
         RemoveWatchOnly(script);
     }
@@ -501,7 +501,7 @@ bool CWallet::LoadCScript(const CScript &redeemScript) {
      */
     if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE) {
         std::string strAddr =
-            EncodeDestination(CScriptID(redeemScript), GetConfig());
+            EncodeDestination(ScriptHash(redeemScript), GetConfig());
         WalletLogPrintf("%s: Warning: This wallet contains a redeemScript "
                         "of size %i which exceeds maximum size %i thus can "
                         "never be redeemed. Do not use address %s.\n",
@@ -4247,7 +4247,7 @@ void CWallet::GetKeyBirthTimes(
     // Get birth times for keys with metadata.
     for (const auto &entry : mapKeyMetadata) {
         if (entry.second.nCreateTime) {
-            mapKeyBirth[entry.first] = entry.second.nCreateTime;
+            mapKeyBirth[PKHash(entry.first)] = entry.second.nCreateTime;
         }
     }
 
@@ -4258,7 +4258,7 @@ void CWallet::GetKeyBirthTimes(
         tip_height && *tip_height > 144 ? *tip_height - 144 : 0;
     std::map<CKeyID, int> mapKeyFirstBlock;
     for (const CKeyID &keyid : GetKeys()) {
-        if (mapKeyBirth.count(keyid) == 0) {
+        if (mapKeyBirth.count(PKHash(keyid)) == 0) {
             mapKeyFirstBlock[keyid] = max_height;
         }
     }
@@ -4293,7 +4293,7 @@ void CWallet::GetKeyBirthTimes(
     // Extract block timestamps for those keys.
     for (const auto &entry : mapKeyFirstBlock) {
         // block times can be 2h off
-        mapKeyBirth[entry.first] =
+        mapKeyBirth[PKHash(entry.first)] =
             locked_chain.getBlockTime(entry.second) - TIMESTAMP_WINDOW;
     }
 }

@@ -41,10 +41,10 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
     dummyTransactions[1].vout.resize(2);
     dummyTransactions[1].vout[0].nValue = 21 * COIN;
     dummyTransactions[1].vout[0].scriptPubKey =
-        GetScriptForDestination(key[2].GetPubKey().GetID());
+        GetScriptForDestination(PKHash(key[2].GetPubKey()));
     dummyTransactions[1].vout[1].nValue = 22 * COIN;
     dummyTransactions[1].vout[1].scriptPubKey =
-        GetScriptForDestination(key[3].GetPubKey().GetID());
+        GetScriptForDestination(PKHash(key[3].GetPubKey()));
     AddCoins(coinsRet, CTransaction(dummyTransactions[1]), 0);
 
     return dummyTransactions;

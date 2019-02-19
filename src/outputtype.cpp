@@ -35,14 +35,15 @@ const std::string &FormatOutputType(OutputType type) {
 CTxDestination GetDestinationForKey(const CPubKey &key, OutputType type) {
     switch (type) {
         case OutputType::LEGACY:
-            return key.GetID();
+            return PKHash(key);
         default:
             assert(false);
     }
 }
 
 std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key) {
-    return std::vector<CTxDestination>{key.GetID()};
+    PKHash keyid(key);
+    return std::vector<CTxDestination>{std::move(keyid)};
 }
 
 CTxDestination AddAndGetDestinationForScript(CKeyStore &keystore,
@@ -53,7 +54,7 @@ CTxDestination AddAndGetDestinationForScript(CKeyStore &keystore,
     // Note that scripts over 520 bytes are not yet supported.
     switch (type) {
         case OutputType::LEGACY:
-            return CScriptID(script);
+            return ScriptHash(script);
         default:
             assert(false);
     }

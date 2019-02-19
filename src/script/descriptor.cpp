@@ -510,7 +510,7 @@ protected:
                                      FlatSigningProvider &out) const override {
         CKeyID id = keys[0].GetID();
         out.pubkeys.emplace(id, keys[0]);
-        return Singleton(GetScriptForDestination(id));
+        return Singleton(GetScriptForDestination(PKHash(id)));
     }
 
 public:
@@ -530,7 +530,7 @@ protected:
         // P2PK
         ret.emplace_back(GetScriptForRawPubKey(keys[0]));
         // P2PKH
-        ret.emplace_back(GetScriptForDestination(id));
+        ret.emplace_back(GetScriptForDestination(PKHash(id)));
         return ret;
     }
 
@@ -566,7 +566,7 @@ protected:
     std::vector<CScript> MakeScripts(const std::vector<CPubKey> &,
                                      const CScript *script,
                                      FlatSigningProvider &) const override {
-        return Singleton(GetScriptForDestination(CScriptID(*script)));
+        return Singleton(GetScriptForDestination(ScriptHash(*script)));
     }
 
 public:

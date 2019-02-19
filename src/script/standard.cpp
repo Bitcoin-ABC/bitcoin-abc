@@ -16,6 +16,11 @@ bool fAcceptDatacarrier = DEFAULT_ACCEPT_DATACARRIER;
 CScriptID::CScriptID(const CScript &in)
     : uint160(Hash160(in.begin(), in.end())) {}
 
+ScriptHash::ScriptHash(const CScript &in)
+    : uint160(Hash160(in.begin(), in.end())) {}
+
+PKHash::PKHash(const CPubKey &pubkey) : uint160(pubkey.GetID()) {}
+
 const char *GetTxnOutputType(txnouttype t) {
     switch (t) {
         case TX_NONSTANDARD:
@@ -158,15 +163,15 @@ bool ExtractDestination(const CScript &scriptPubKey,
             return false;
         }
 
-        addressRet = pubKey.GetID();
+        addressRet = PKHash(pubKey);
         return true;
     }
     if (whichType == TX_PUBKEYHASH) {
-        addressRet = CKeyID(uint160(vSolutions[0]));
+        addressRet = PKHash(uint160(vSolutions[0]));
         return true;
     }
     if (whichType == TX_SCRIPTHASH) {
-        addressRet = CScriptID(uint160(vSolutions[0]));
+        addressRet = ScriptHash(uint160(vSolutions[0]));
         return true;
     }
     // Multisig txns have more than one address...
@@ -194,7 +199,7 @@ bool ExtractDestinations(const CScript &scriptPubKey, txnouttype &typeRet,
                 continue;
             }
 
-            CTxDestination address = pubKey.GetID();
+            CTxDestination address = PKHash(pubKey);
             addressRet.push_back(address);
         }
 
@@ -226,14 +231,14 @@ public:
         return false;
     }
 
-    bool operator()(const CKeyID &keyID) const {
+    bool operator()(const PKHash &keyID) const {
         script->clear();
         *script << OP_DUP << OP_HASH160 << ToByteVector(keyID) << OP_EQUALVERIFY
                 << OP_CHECKSIG;
         return true;
     }
 
-    bool operator()(const CScriptID &scriptID) const {
+    bool operator()(const ScriptHash &scriptID) const {
         script->clear();
         *script << OP_HASH160 << ToByteVector(scriptID) << OP_EQUAL;
         return true;

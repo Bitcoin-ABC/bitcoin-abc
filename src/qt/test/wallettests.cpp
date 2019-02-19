@@ -159,9 +159,9 @@ void TestGUI() {
         walletModel.getTransactionTableModel();
     QCOMPARE(transactionTableModel->rowCount({}), 105);
     TxId txid1 = SendCoins(*wallet.get(), sendCoinsDialog,
-                           CTxDestination(CKeyID()), 5 * COIN);
+                           CTxDestination(PKHash()), 5 * COIN);
     TxId txid2 = SendCoins(*wallet.get(), sendCoinsDialog,
-                           CTxDestination(CKeyID()), 10 * COIN);
+                           CTxDestination(PKHash()), 10 * COIN);
     QCOMPARE(transactionTableModel->rowCount({}), 107);
     QVERIFY(FindTx(*transactionTableModel, txid1).isValid());
     QVERIFY(FindTx(*transactionTableModel, txid2).isValid());

@@ -277,7 +277,7 @@ static void ImportScript(CWallet *const pwallet, const CScript &script,
             throw JSONRPCError(RPC_WALLET_ERROR,
                                "Error adding p2sh redeemScript to wallet");
         }
-        ImportAddress(pwallet, id, strLabel);
+        ImportAddress(pwallet, ScriptHash(id), strLabel);
     } else {
         CTxDestination destination;
         if (ExtractDestination(script, destination)) {
@@ -791,18 +791,18 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             if (pwallet->HaveKey(keyid)) {
                 pwallet->WalletLogPrintf(
                     "Skipping import of %s (key already present)\n",
-                    EncodeDestination(keyid, config));
+                    EncodeDestination(PKHash(keyid), config));
                 continue;
             }
             pwallet->WalletLogPrintf("Importing %s...\n",
-                                     EncodeDestination(keyid, config));
+                                     EncodeDestination(PKHash(keyid), config));
             if (!pwallet->AddKeyPubKey(key, pubkey)) {
                 fGood = false;
                 continue;
             }
             pwallet->mapKeyMetadata[keyid].nCreateTime = time;
             if (has_label) {
-                pwallet->SetAddressBook(keyid, label, "receive");
+                pwallet->SetAddressBook(PKHash(keyid), label, "receive");
             }
             nTimeBegin = std::min(nTimeBegin, time);
             progress++;
@@ -973,9 +973,9 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     // sort time/key pairs
     std::vector<std::pair<int64_t, CKeyID>> vKeyBirth;
     for (const auto &entry : mapKeyBirth) {
-        if (const CKeyID *keyID = boost::get<CKeyID>(&entry.first)) {
+        if (const PKHash *keyID = boost::get<PKHash>(&entry.first)) {
             // set and test
-            vKeyBirth.push_back(std::make_pair(entry.second, *keyID));
+            vKeyBirth.push_back(std::make_pair(entry.second, CKeyID(*keyID)));
         }
     }
     mapKeyBirth.clear();
@@ -1043,7 +1043,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     for (const CScriptID &scriptid : scripts) {
         CScript script;
         std::string create_time = "0";
-        std::string address = EncodeDestination(scriptid, config);
+        std::string address = EncodeDestination(ScriptHash(scriptid), config);
         // get birth times for scripts with metadata
         auto it = pwallet->m_script_metadata.find(scriptid);
         if (it != pwallet->m_script_metadata.end()) {

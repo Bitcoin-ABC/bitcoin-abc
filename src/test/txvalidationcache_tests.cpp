@@ -200,9 +200,9 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     CScript p2pk_scriptPubKey =
         CScript() << ToByteVector(coinbaseKey.GetPubKey()) << OP_CHECKSIG;
     CScript p2sh_scriptPubKey =
-        GetScriptForDestination(CScriptID(p2pk_scriptPubKey));
+        GetScriptForDestination(ScriptHash(p2pk_scriptPubKey));
     CScript p2pkh_scriptPubKey =
-        GetScriptForDestination(coinbaseKey.GetPubKey().GetID());
+        GetScriptForDestination(PKHash(coinbaseKey.GetPubKey()));
 
     CBasicKeyStore keystore;
     keystore.AddKey(coinbaseKey);

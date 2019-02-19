@@ -69,13 +69,14 @@ BOOST_AUTO_TEST_CASE(sign) {
     // different keys, straight/P2SH, pubkey/pubkeyhash
     CScript standardScripts[4];
     standardScripts[0] << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
-    standardScripts[1] = GetScriptForDestination(key[1].GetPubKey().GetID());
+    standardScripts[1] = GetScriptForDestination(PKHash(key[1].GetPubKey()));
     standardScripts[2] << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
-    standardScripts[3] = GetScriptForDestination(key[2].GetPubKey().GetID());
+    standardScripts[3] = GetScriptForDestination(PKHash(key[2].GetPubKey()));
     CScript evalScripts[4];
     for (int i = 0; i < 4; i++) {
         keystore.AddCScript(standardScripts[i]);
-        evalScripts[i] = GetScriptForDestination(CScriptID(standardScripts[i]));
+        evalScripts[i] =
+            GetScriptForDestination(ScriptHash(standardScripts[i]));
     }
 
     // Funding transaction:
@@ -142,7 +143,7 @@ BOOST_AUTO_TEST_CASE(norecurse) {
     CScript invalidAsScript;
     invalidAsScript << OP_INVALIDOPCODE << OP_INVALIDOPCODE;
 
-    CScript p2sh = GetScriptForDestination(CScriptID(invalidAsScript));
+    CScript p2sh = GetScriptForDestination(ScriptHash(invalidAsScript));
 
     CScript scriptSig;
     scriptSig << Serialize(invalidAsScript);
@@ -153,7 +154,7 @@ BOOST_AUTO_TEST_CASE(norecurse) {
 
     // Try to recur, and verification should succeed because
     // the inner HASH160 <> EQUAL should only check the hash:
-    CScript p2sh2 = GetScriptForDestination(CScriptID(p2sh));
+    CScript p2sh2 = GetScriptForDestination(ScriptHash(p2sh));
     CScript scriptSig2;
     scriptSig2 << Serialize(invalidAsScript) << Serialize(p2sh);
 
@@ -174,7 +175,7 @@ BOOST_AUTO_TEST_CASE(set) {
     }
 
     CScript inner[4];
-    inner[0] = GetScriptForDestination(key[0].GetPubKey().GetID());
+    inner[0] = GetScriptForDestination(PKHash(key[0].GetPubKey()));
     inner[1] = GetScriptForMultisig(
         2, std::vector<CPubKey>(keys.begin(), keys.begin() + 2));
     inner[2] = GetScriptForMultisig(
@@ -184,7 +185,7 @@ BOOST_AUTO_TEST_CASE(set) {
 
     CScript outer[4];
     for (int i = 0; i < 4; i++) {
-        outer[i] = GetScriptForDestination(CScriptID(inner[i]));
+        outer[i] = GetScriptForDestination(ScriptHash(inner[i]));
         keystore.AddCScript(inner[i]);
     }
 
@@ -303,7 +304,7 @@ BOOST_AUTO_TEST_CASE(switchover) {
     CScript scriptSig;
     scriptSig << Serialize(notValid);
 
-    CScript fund = GetScriptForDestination(CScriptID(notValid));
+    CScript fund = GetScriptForDestination(ScriptHash(notValid));
 
     // Validation should succeed under old rules (hash is correct):
     BOOST_CHECK(Verify(scriptSig, fund, false, err));
@@ -333,12 +334,12 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txFrom.vout.resize(4);
 
     // First three are standard:
-    CScript pay1 = GetScriptForDestination(key[0].GetPubKey().GetID());
+    CScript pay1 = GetScriptForDestination(PKHash(key[0].GetPubKey()));
     keystore.AddCScript(pay1);
     CScript pay1of3 = GetScriptForMultisig(1, keys);
 
     // P2SH (OP_CHECKSIG)
-    txFrom.vout[0].scriptPubKey = GetScriptForDestination(CScriptID(pay1));
+    txFrom.vout[0].scriptPubKey = GetScriptForDestination(ScriptHash(pay1));
     txFrom.vout[0].nValue = 1000 * SATOSHI;
     // ordinary OP_CHECKSIG
     txFrom.vout[1].scriptPubKey = pay1;
@@ -359,7 +360,8 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
               << ToByteVector(key[5].GetPubKey());
     oneAndTwo << OP_3 << OP_CHECKMULTISIG;
     keystore.AddCScript(oneAndTwo);
-    txFrom.vout[3].scriptPubKey = GetScriptForDestination(CScriptID(oneAndTwo));
+    txFrom.vout[3].scriptPubKey =
+        GetScriptForDestination(ScriptHash(oneAndTwo));
     txFrom.vout[3].nValue = 4000 * SATOSHI;
 
     AddCoins(coins, CTransaction(txFrom), 0);
@@ -367,7 +369,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     CMutableTransaction txTo;
     txTo.vout.resize(1);
     txTo.vout[0].scriptPubKey =
-        GetScriptForDestination(key[1].GetPubKey().GetID());
+        GetScriptForDestination(PKHash(key[1].GetPubKey()));
 
     txTo.vin.resize(5);
     for (int i = 0; i < 5; i++) {
