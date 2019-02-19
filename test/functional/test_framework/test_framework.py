@@ -135,7 +135,7 @@ class BitcoinTestFramework():
         except JSONRPCException as e:
             self.log.exception("JSONRPC error")
         except SkipTest as e:
-            self.log.warning("Test Skipped: %s" % e.message)
+            self.log.warning("Test Skipped: {}".format(e.message))
             success = TestStatus.SKIPPED
         except AssertionError as e:
             self.log.exception("Assertion failed")
@@ -162,7 +162,8 @@ class BitcoinTestFramework():
             self.log.info("Cleaning up")
             shutil.rmtree(self.options.tmpdir)
         else:
-            self.log.warning("Not cleaning up dir %s" % self.options.tmpdir)
+            self.log.warning(
+                "Not cleaning up dir {}".format(self.options.tmpdir))
             if os.getenv("PYTHON_DEBUG", ""):
                 # Dump the end of the debug logs, to aid in debugging rare
                 # travis failures.
@@ -177,7 +178,7 @@ class BitcoinTestFramework():
                             print("From", fn, ":")
                             print("".join(deque(f, MAX_LINES_TO_PRINT)))
                     except OSError:
-                        print("Opening file %s failed." % fn)
+                        print("Opening file {} failed.".format(fn))
                         traceback.print_exc()
 
         if success == TestStatus.PASSED:
@@ -188,7 +189,7 @@ class BitcoinTestFramework():
             sys.exit(TEST_EXIT_SKIPPED)
         else:
             self.log.error(
-                "Test failed. Test logging available at %s/test_framework.log", self.options.tmpdir)
+                "Test failed. Test logging available at {}/test_framework.log".format(self.options.tmpdir))
             logging.shutdown()
             sys.exit(TEST_EXIT_FAILED)
 

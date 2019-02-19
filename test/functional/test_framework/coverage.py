@@ -54,7 +54,7 @@ class AuthServiceProxyWrapper():
 
         if self.coverage_logfile:
             with open(self.coverage_logfile, 'a+', encoding='utf8') as f:
-                f.write("%s\n" % rpc_method)
+                f.write("{}\n".format(rpc_method))
 
     def __truediv__(self, relative_uri):
         return AuthServiceProxyWrapper(self.auth_service_proxy_instance / relative_uri,
@@ -73,7 +73,7 @@ def get_filename(dirname, n_node):
     """
     pid = str(os.getpid())
     return os.path.join(
-        dirname, "coverage.pid%s.node%s.txt" % (pid, str(n_node)))
+        dirname, "coverage.pid{}.node{}.txt".format(pid, str(n_node)))
 
 
 def write_all_rpc_commands(dirname, node):
@@ -103,7 +103,7 @@ def write_all_rpc_commands(dirname, node):
 
         # Ignore blanks and headers
         if line and not line.startswith('='):
-            commands.add("%s\n" % line.split()[0])
+            commands.add("{}\n".format(line.split()[0]))
 
     with open(filename, 'w', encoding='utf8') as f:
         f.writelines(list(commands))
