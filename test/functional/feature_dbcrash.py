@@ -92,7 +92,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
                 # An exception here should mean the node is about to crash.
                 # If bitcoind exits, then try again.  wait_for_node_exit()
                 # should raise an exception if bitcoind doesn't exit.
-                self.wait_for_node_exit(node_index, timeout=10)
+                self.wait_for_node_exit(node_index, timeout=15)
             self.crashed_on_restart += 1
             time.sleep(1)
 
