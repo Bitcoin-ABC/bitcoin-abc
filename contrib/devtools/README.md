@@ -8,18 +8,6 @@ check-doc.py
 Check if all command line args are documented. The return value indicates the
 number of undocumented args.
 
-clang-format-diff.py
-===================
-
-A script to format unified git diffs according to [.clang-format](../../src/.clang-format).
-
-For instance, to format the last commit with 0 lines of context,
-the script should be called from the git root folder as follows.
-
-```
-git diff -U0 HEAD~1.. | ./contrib/devtools/clang-format-diff.py -p1 -i -v
-```
-
 copyright\_header.py
 ====================
 
