@@ -79,7 +79,7 @@ class FullBlockTest(ComparisonTestFramework):
                             '-limitdescendantcount=999999',
                             '-limitdescendantsize=999999',
                             '-maxmempool=99999',
-                            "-excessiveblocksize=%d" % self.excessive_block_size]]
+                            "-excessiveblocksize={}".format(self.excessive_block_size)]]
 
     def add_options(self, parser):
         super().add_options(parser)

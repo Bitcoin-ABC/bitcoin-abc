@@ -42,7 +42,7 @@ class ReplayProtectionTest(ComparisonTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [['-whitelist=127.0.0.1',
-                            "-replayprotectionactivationtime=%d" % REPLAY_PROTECTION_START_TIME]]
+                            "-replayprotectionactivationtime={}".format(REPLAY_PROTECTION_START_TIME)]]
 
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
