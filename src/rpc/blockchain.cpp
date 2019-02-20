@@ -1194,15 +1194,6 @@ static UniValue SoftForkMajorityDesc(int version, CBlockIndex *pindex,
     UniValue rv(UniValue::VOBJ);
     bool activated = false;
     switch (version) {
-        case 2:
-            activated = pindex->nHeight >= consensusParams.BIP34Height;
-            break;
-        case 3:
-            activated = pindex->nHeight >= consensusParams.BIP66Height;
-            break;
-        case 4:
-            activated = pindex->nHeight >= consensusParams.BIP65Height;
-            break;
         case 5:
             activated = pindex->nHeight >= consensusParams.CSVHeight;
             break;
@@ -1286,9 +1277,6 @@ UniValue getblockchaininfo(const Config &config,
         config.GetChainParams().GetConsensus();
     CBlockIndex *tip = chainActive.Tip();
     UniValue softforks(UniValue::VARR);
-    softforks.push_back(SoftForkDesc("bip34", 2, tip, consensusParams));
-    softforks.push_back(SoftForkDesc("bip66", 3, tip, consensusParams));
-    softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     softforks.push_back(SoftForkDesc("csv", 5, tip, consensusParams));
     obj.pushKV("softforks", softforks);
 
