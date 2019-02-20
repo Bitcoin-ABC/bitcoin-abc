@@ -317,10 +317,7 @@ static bool IsGreatWallEnabledForCurrentBlock(const Config &config) {
 // <timestamp>. Defaults to the pre-defined timestamp when not set.
 static bool IsReplayProtectionEnabled(const Config &config,
                                       int64_t nMedianTimePast) {
-    return nMedianTimePast >=
-           gArgs.GetArg(
-               "-replayprotectionactivationtime",
-               config.GetChainParams().GetConsensus().gravitonActivationTime);
+    return true;
 }
 
 static bool IsReplayProtectionEnabled(const Config &config,

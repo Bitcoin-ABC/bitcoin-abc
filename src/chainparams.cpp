@@ -115,9 +115,6 @@ public:
         consensus.defaultAssumeValid = uint256S(
             "000000000000000003aadeae9dee37b8cb4838a866dae19b54854a0f039b03e0");
 
-        // Wed, 15 May 2019 12:00:00 UTC hard fork
-        consensus.greatWallActivationTime = 1557921600;
-
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
         consensus.gravitonActivationTime = 1573819200;
 
@@ -274,9 +271,6 @@ public:
         consensus.defaultAssumeValid = uint256S(
             "000000000000030bee568d677b6b99ee7d2d00b25d1fe95df5e73b484f00c322");
 
-        // Wed, 15 May 2019 12:00:00 UTC hard fork
-        consensus.greatWallActivationTime = 1557921600;
-
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
         consensus.gravitonActivationTime = 1573819200;
 
@@ -381,9 +375,6 @@ public:
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S("0x00");
-
-        // Wed, 15 May 2019 12:00:00 UTC hard fork
-        consensus.greatWallActivationTime = 1557921600;
 
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
         consensus.gravitonActivationTime = 1573819200;
