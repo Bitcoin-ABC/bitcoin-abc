@@ -305,10 +305,6 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
-static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
-    AssertLockHeld(cs_main);
-    return IsMagneticAnomalyEnabled(config, chainActive.Tip());
-}
 
 static bool IsGreatWallEnabledForCurrentBlock(const Config &config) {
     AssertLockHeld(cs_main);
@@ -636,9 +632,9 @@ static bool AcceptToMemoryPoolWorker(
             extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
         }
 
-        if (IsMagneticAnomalyEnabledForCurrentBlock(config)) {
-            extraFlags |= SCRIPT_ENABLE_CHECKDATASIG;
-        }
+        //if (IsMagneticAnomalyEnabledForCurrentBlock(config)) {
+        extraFlags |= SCRIPT_ENABLE_CHECKDATASIG;
+        //}
 
         if (IsGreatWallEnabledForCurrentBlock(config)) {
             if (!fRequireStandard) {
@@ -1598,11 +1594,11 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     // transactions using the OP_CHECKDATASIG opcode and it's verify
     // alternative. We also start enforcing push only signatures and
     // clean stack.
-    if (IsMagneticAnomalyEnabled(config, pChainTip)) {
-        flags |= SCRIPT_ENABLE_CHECKDATASIG;
-        flags |= SCRIPT_VERIFY_SIGPUSHONLY;
-        flags |= SCRIPT_VERIFY_CLEANSTACK;
-    }
+    //if (IsMagneticAnomalyEnabled(config, pChainTip)) {
+    flags |= SCRIPT_ENABLE_CHECKDATASIG;
+    flags |= SCRIPT_VERIFY_SIGPUSHONLY;
+    flags |= SCRIPT_VERIFY_CLEANSTACK;
+    //}
 
     // If the Great Wall fork is enabled, we start accepting transactions
     // recovering coins sent to segwit addresses. We also start accepting
@@ -3614,14 +3610,10 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
                                         ? nMedianTimePast
                                         : block.GetBlockTime();
 
-    const bool fIsMagneticAnomalyEnabled =
-        IsMagneticAnomalyEnabled(config, pindexPrev);
-
     // Check that all transactions are finalized
     const CTransaction *prevTx = nullptr;
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
-        if (fIsMagneticAnomalyEnabled) {
             if (prevTx && (tx.GetId() <= prevTx->GetId())) {
                 if (tx.GetId() == prevTx->GetId()) {
                     return state.DoS(100, false, REJECT_INVALID, "tx-duplicate",
@@ -3640,7 +3632,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
             if (prevTx || !tx.IsCoinBase()) {
                 prevTx = &tx;
             }
-        }
+        
 
         if (!ContextualCheckTransaction(config, tx, state, nHeight,
                                         nLockTimeCutoff, nMedianTimePast)) {

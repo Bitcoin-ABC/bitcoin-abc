@@ -118,9 +118,6 @@ public:
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
 
-        // November 15, 2018 hard fork
-        consensus.magneticAnomalyHeight = 556766;
-
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
 
@@ -283,9 +280,6 @@ public:
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
 
-        // November 15, 2018 hard fork
-        consensus.magneticAnomalyHeight = 1267996;
-
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
 
@@ -396,9 +390,6 @@ public:
 
         // UAHF is always enabled on regtest.
         consensus.uahfHeight = 0;
-
-        // November 15, 2018 hard fork is always on on regtest.
-        consensus.magneticAnomalyHeight = 0;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
