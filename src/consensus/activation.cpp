@@ -21,20 +21,6 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsUAHFenabled(config, pindexPrev->nHeight);
 }
 
-bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight) {
-    return nHeight >=
-           config.GetChainParams().GetConsensus().magneticAnomalyHeight;
-}
-
-bool IsMagneticAnomalyEnabled(const Config &config,
-                              const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return IsMagneticAnomalyEnabled(config, pindexPrev->nHeight);
-}
-
 bool IsGreatWallEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;

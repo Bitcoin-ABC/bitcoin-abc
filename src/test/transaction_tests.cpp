@@ -775,8 +775,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
 BOOST_AUTO_TEST_CASE(txsize_activation_test) {
     const Config &config = GetConfig();
-    const int32_t magneticAnomalyActivationHeight =
-        config.GetChainParams().GetConsensus().magneticAnomalyHeight;
+    const int32_t magneticAnomalyActivationHeight = 0;
 
     // A minimaly sized transction.
     CTransaction minTx;

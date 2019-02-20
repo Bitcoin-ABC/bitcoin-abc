@@ -46,12 +46,11 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (IsMagneticAnomalyEnabled(config, nHeight)) {
-        // Size limit
-        if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) <
-            MIN_TX_SIZE) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-undersize");
-        }
+    
+    // Size limit
+    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) <
+        MIN_TX_SIZE) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-txns-undersize");
     }
 
     return true;
