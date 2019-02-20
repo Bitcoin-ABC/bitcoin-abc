@@ -85,14 +85,7 @@ public:
     CMainParams() {
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 210000;
-        consensus.BIP34Height = 227931;
-        consensus.BIP34Hash = uint256S(
-            "000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-        // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
-        consensus.BIP65Height = 388381;
-        // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
-        consensus.BIP66Height = 363725;
-        // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
+         // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
         consensus.CSVHeight = 419328;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
@@ -259,13 +252,7 @@ public:
     CTestNetParams() {
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
-        consensus.BIP34Height = 21111;
-        consensus.BIP34Hash = uint256S(
-            "0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8");
-        // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
-        consensus.BIP65Height = 581885;
-        // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
-        consensus.BIP66Height = 330776;
+
         // 00000000025e930139bac5c6c31a403776da130831ab85be56578f3fa75369bb
         consensus.CSVHeight = 770112;
         consensus.powLimit = uint256S(
@@ -388,12 +375,6 @@ public:
         consensus.nSubsidyHalvingInterval = 150;
         // BIP34 has not activated on regtest (far in the future so block v1 are
         // not rejected in tests)
-        consensus.BIP34Height = 100000000;
-        consensus.BIP34Hash = uint256();
-        // BIP65 activated on regtest (Used in rpc activation tests)
-        consensus.BIP65Height = 1351;
-        // BIP66 activated on regtest (Used in rpc activation tests)
-        consensus.BIP66Height = 1251;
         // CSV activated on regtest (Used in rpc activation tests)
         consensus.CSVHeight = 576;
         consensus.powLimit = uint256S(

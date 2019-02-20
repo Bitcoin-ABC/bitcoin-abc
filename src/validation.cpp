@@ -1568,14 +1568,11 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     }
 
     // Start enforcing the DERSIG (BIP66) rule.
-    if ((pChainTip->nHeight + 1) >= consensusParams.BIP66Height) {
-        flags |= SCRIPT_VERIFY_DERSIG;
-    }
+    flags |= SCRIPT_VERIFY_DERSIG;
 
     // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule.
-    if ((pChainTip->nHeight + 1) >= consensusParams.BIP65Height) {
-        flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
-    }
+    flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
+    
 
     // Start enforcing CSV (BIP68, BIP112 and BIP113) rule.
     if ((pChainTip->nHeight + 1) >= consensusParams.CSVHeight) {
@@ -1729,18 +1726,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     // applied to all blocks except the two in the chain that violate it. This
     // prevents exploiting the issue against nodes during their initial block
     // download.
-    bool fEnforceBIP30 = (!pindex->phashBlock) || // Enforce on CreateNewBlock
-                                                  // invocations which don't
-                                                  // have a hash.
-                         !((pindex->nHeight == 91842 &&
-                            pindex->GetBlockHash() ==
-                                uint256S("0x00000000000a4d0a398161ffc163c503763"
-                                         "b1f4360639393e0e4c8e300e0caec")) ||
-                           (pindex->nHeight == 91880 &&
-                            pindex->GetBlockHash() ==
-                                uint256S("0x00000000000743f190a18c5577a3c2d2a1f"
-                                         "610ae9601ac046a38084ccb7cd721")));
-
+ 
     // Once BIP34 activated it was not possible to create new duplicate
     // coinbases and thus other than starting with the 2 existing duplicate
     // coinbase pairs, not possible to create overwriting txs. But by the time
@@ -1751,27 +1737,6 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     // we're on the known chain at height greater than where BIP34 activated, we
     // can save the db accesses needed for the BIP30 check.
     assert(pindex->pprev);
-    CBlockIndex *pindexBIP34height =
-        pindex->pprev->GetAncestor(consensusParams.BIP34Height);
-    // Only continue to enforce if we're below BIP34 activation height or the
-    // block hash at that height doesn't correspond.
-    fEnforceBIP30 =
-        fEnforceBIP30 &&
-        (!pindexBIP34height ||
-         !(pindexBIP34height->GetBlockHash() == consensusParams.BIP34Hash));
-
-    if (fEnforceBIP30) {
-        for (const auto &tx : block.vtx) {
-            for (size_t o = 0; o < tx->vout.size(); o++) {
-                if (view.HaveCoin(COutPoint(tx->GetId(), o))) {
-                    return state.DoS(
-                        100,
-                        error("ConnectBlock(): tried to overwrite transaction"),
-                        REJECT_INVALID, "bad-txns-BIP30");
-                }
-            }
-        }
-    }
 
     // Start enforcing BIP68 (sequence locks).
     int nLockTimeFlags = 0;
@@ -3557,10 +3522,8 @@ static bool ContextualCheckBlockHeader(const Config &config,
                                        CValidationState &state,
                                        const CBlockIndex *pindexPrev,
                                        int64_t nAdjustedTime) {
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
-    const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
+    //const Consensus::Params &consensusParams = config.GetChainParams().GetConsensus();
+    //const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
 
     // Check proof of work
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, config)) {
@@ -3584,9 +3547,7 @@ static bool ContextualCheckBlockHeader(const Config &config,
     // Reject outdated version blocks when 95% (75% on testnet) of the network
     // has upgraded:
     // check for version 2, 3 and 4 upgrades
-    if ((block.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
-        (block.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
-        (block.nVersion < 4 && nHeight >= consensusParams.BIP65Height)) {
+    if (block.nVersion < 4) {
         return state.Invalid(
             false, REJECT_OBSOLETE,
             strprintf("bad-version(0x%08x)", block.nVersion),
@@ -3689,14 +3650,12 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
     }
 
     // Enforce rule that the coinbase starts with serialized block height
-    if (nHeight >= consensusParams.BIP34Height) {
-        CScript expect = CScript() << nHeight;
-        if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
-            !std::equal(expect.begin(), expect.end(),
-                        block.vtx[0]->vin[0].scriptSig.begin())) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false,
-                             "block height mismatch in coinbase");
-        }
+    CScript expect = CScript() << nHeight;
+    if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
+        !std::equal(expect.begin(), expect.end(),
+                    block.vtx[0]->vin[0].scriptSig.begin())) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false,
+                            "block height mismatch in coinbase");
     }
 
     return true;
