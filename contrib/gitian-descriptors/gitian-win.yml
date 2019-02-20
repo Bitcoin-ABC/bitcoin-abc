@@ -20,7 +20,7 @@ packages:
 - "mingw-w64"
 - "nsis"
 - "pkg-config"
-- "python"
+- "python3"
 - "rename"
 - "zip"
 remotes:

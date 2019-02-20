@@ -29,7 +29,7 @@ packages:
 - "libc6-dev:i386"
 - "libtool"
 - "pkg-config"
-- "python"
+- "python3"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
