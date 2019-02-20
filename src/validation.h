@@ -66,14 +66,6 @@ struct Params;
 static const Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
 /** Default for -excessutxocharge for transactions transactions */
 static const Amount DEFAULT_UTXO_FEE = Amount::zero();
-//! -maxtxfee default
-static const Amount DEFAULT_TRANSACTION_MAXFEE(COIN / 10);
-//! Discourage users to set fees higher than this amount (in satoshis) per kB
-static const Amount HIGH_TX_FEE_PER_KB(COIN / 100);
-/**
- * -maxtxfee will warn if called with a higher fee than this amount (in satoshis
- */
-static const Amount HIGH_MAX_TX_FEE(100 * HIGH_TX_FEE_PER_KB);
 /**
  * Default for -mempoolexpiry, expiration time for mempool transactions in
  * hours.
@@ -194,11 +186,6 @@ extern size_t nCoinCacheUsage;
  * transaction creation)
  */
 extern CFeeRate minRelayTxFee;
-/**
- * Absolute maximum transaction fee (in satoshis) used by wallet and mempool
- * (rejects high fee in sendrawtransaction)
- */
-extern Amount maxTxFee;
 /**
  * If the tip is older than this (in seconds), the node is considered to be in
  * initial block download.

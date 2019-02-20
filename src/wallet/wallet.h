@@ -72,6 +72,13 @@ static const bool DEFAULT_WALLET_REJECT_LONG_CHAINS = false;
 static const bool DEFAULT_AVOIDPARTIALSPENDS = false;
 static const bool DEFAULT_WALLETBROADCAST = true;
 static const bool DEFAULT_DISABLE_WALLET = false;
+//! -maxtxfee default
+constexpr Amount DEFAULT_TRANSACTION_MAXFEE{COIN / 10};
+//! Discourage users to set fees higher than this amount (in satoshis) per kB
+constexpr Amount HIGH_TX_FEE_PER_KB{COIN / 100};
+//! -maxtxfee will warn if called with a higher fee than this amount (in
+//! satoshis)
+constexpr Amount HIGH_MAX_TX_FEE{100 * HIGH_TX_FEE_PER_KB};
 
 class CChainParams;
 class CCoinControl;
@@ -1158,6 +1165,11 @@ public:
     CFeeRate m_fallback_fee{DEFAULT_FALLBACK_FEE};
     OutputType m_default_address_type{DEFAULT_ADDRESS_TYPE};
     OutputType m_default_change_type{DEFAULT_CHANGE_TYPE};
+    /**
+     * Absolute maximum transaction fee (in satoshis) used by default for the
+     * wallet.
+     */
+    Amount m_default_max_tx_fee{DEFAULT_TRANSACTION_MAXFEE};
 
     bool NewKeyPool();
     size_t KeypoolCountExternalKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

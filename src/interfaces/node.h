@@ -167,9 +167,6 @@ public:
     //! Get network active.
     virtual bool getNetworkActive() = 0;
 
-    //! Get max tx fee.
-    virtual Amount getMaxTxFee() = 0;
-
     //! Estimate smart fee.
     virtual CFeeRate estimateSmartFee() = 0;
 

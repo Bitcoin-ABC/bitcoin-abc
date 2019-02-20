@@ -190,12 +190,6 @@ public:
     //! economical to spend.
     virtual CFeeRate relayDustFee() = 0;
 
-    //! Get node max tx fee setting (-maxtxfee).
-    //! This could be replaced by a per-wallet max fee, as proposed at
-    //! https://github.com/bitcoin/bitcoin/issues/15355
-    //! But for the time being, wallets call this to access the node setting.
-    virtual Amount maxTxFee() = 0;
-
     //! Check if pruning is enabled.
     virtual bool getPruneMode() = 0;
 

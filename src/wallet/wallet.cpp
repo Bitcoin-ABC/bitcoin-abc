@@ -4684,6 +4684,37 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
             return nullptr;
         }
     }
+
+    if (gArgs.IsArgSet("-maxtxfee")) {
+        Amount nMaxFee = Amount::zero();
+        if (!ParseMoney(gArgs.GetArg("-maxtxfee", ""), nMaxFee)) {
+            chain.initError(
+                AmountErrMsg("maxtxfee", gArgs.GetArg("-maxtxfee", "")));
+            return nullptr;
+        }
+        if (nMaxFee > HIGH_MAX_TX_FEE) {
+            chain.initWarning(_("-maxtxfee is set very high! Fees this large "
+                                "could be paid on a single transaction.")
+                                  .translated);
+        }
+        if (CFeeRate(nMaxFee, 1000) < chain.relayMinFee()) {
+            chain.initError(strprintf(
+                _("Invalid amount for -maxtxfee=<amount>: '%s' (must be at "
+                  "least the minrelay fee of %s to prevent stuck transactions)")
+                    .translated,
+                gArgs.GetArg("-maxtxfee", ""), chain.relayMinFee().ToString()));
+            return nullptr;
+        }
+        walletInstance->m_default_max_tx_fee = nMaxFee;
+    }
+
+    if (chain.relayMinFee().GetFeePerK() > HIGH_TX_FEE_PER_KB) {
+        chain.initWarning(
+            AmountHighWarn("-minrelaytxfee") + " " +
+            _("The wallet will avoid paying less than the minimum relay fee.")
+                .translated);
+    }
+
     walletInstance->m_spend_zero_conf_change =
         gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
 
@@ -4901,7 +4932,7 @@ bool CWalletTx::AcceptToMemoryPool(interfaces::Chain::Lock &locked_chain,
     // because we think that this newly generated transaction's change is
     // unavailable as we're not yet aware that it is in the mempool.
     bool ret = locked_chain.submitToMemoryPool(
-        ::GetConfig(), tx, pwallet->chain().maxTxFee(), state);
+        ::GetConfig(), tx, pwallet->m_default_max_tx_fee, state);
     fInMempool |= ret;
     return ret;
 }

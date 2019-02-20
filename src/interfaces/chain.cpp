@@ -318,7 +318,6 @@ namespace {
         }
         CFeeRate relayMinFee() override { return ::minRelayTxFee; }
         CFeeRate relayDustFee() override { return ::dustRelayFee; }
-        Amount maxTxFee() override { return ::maxTxFee; }
         bool getPruneMode() override { return ::fPruneMode; }
         bool p2pEnabled() override { return g_connman != nullptr; }
         bool isReadyToBroadcast() override {

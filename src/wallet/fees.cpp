@@ -23,7 +23,7 @@ Amount GetMinimumFee(const CWallet &wallet, unsigned int nTxBytes,
         GetMinimumFeeRate(wallet, coin_control).GetFeeCeiling(nTxBytes);
 
     // But always obey the maximum.
-    const Amount max_tx_fee = wallet.chain().maxTxFee();
+    const Amount max_tx_fee = wallet.m_default_max_tx_fee;
     if (nFeeNeeded > max_tx_fee) {
         nFeeNeeded = max_tx_fee;
     }

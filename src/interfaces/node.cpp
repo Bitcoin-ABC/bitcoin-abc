@@ -234,7 +234,6 @@ namespace {
         bool getNetworkActive() override {
             return g_connman && g_connman->GetNetworkActive();
         }
-        Amount getMaxTxFee() override { return ::maxTxFee; }
         CFeeRate estimateSmartFee() override { return g_mempool.estimateFee(); }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }
         UniValue executeRpc(Config &config, const std::string &command,
