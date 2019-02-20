@@ -10,7 +10,7 @@
 #include "util.h"
 
 static bool IsUAHFenabled(const Config &config, int nHeight) {
-    return nHeight >= config.GetChainParams().GetConsensus().uahfHeight;
+    return true;
 }
 
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {

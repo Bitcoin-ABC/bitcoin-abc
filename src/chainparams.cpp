@@ -115,9 +115,6 @@ public:
         consensus.defaultAssumeValid = uint256S(
             "000000000000000003aadeae9dee37b8cb4838a866dae19b54854a0f039b03e0");
 
-        // August 1, 2017 hard fork
-        consensus.uahfHeight = 478558;
-
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
 
@@ -277,9 +274,6 @@ public:
         consensus.defaultAssumeValid = uint256S(
             "000000000000030bee568d677b6b99ee7d2d00b25d1fe95df5e73b484f00c322");
 
-        // August 1, 2017 hard fork
-        consensus.uahfHeight = 1155875;
-
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
 
@@ -387,9 +381,6 @@ public:
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S("0x00");
-
-        // UAHF is always enabled on regtest.
-        consensus.uahfHeight = 0;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
