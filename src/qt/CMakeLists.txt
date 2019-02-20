@@ -18,6 +18,15 @@ if(QT_CORE_TYPE MATCHES STATIC)
 	set(QT_STATIC_BUILD ON)
 endif()
 
+
+find_package(Qt5DBus)
+if (Qt5DBus_FOUND)
+  include_directories(${include_directories} "/usr/local/opt/qt5/include/QtDBus/")
+  add_compile_options("-DUSE_DBUS")
+endif()
+
+
+
 set(STATIC_DEPENDENCIES_CMAKE_FILE "${CMAKE_BINARY_DIR}/QtStaticDependencies.cmake")
 if(EXISTS ${STATIC_DEPENDENCIES_CMAKE_FILE})
 	file(REMOVE ${STATIC_DEPENDENCIES_CMAKE_FILE})
@@ -108,6 +117,15 @@ qt5_add_resources(QRC_BITCOIN_CPP bitcoin.qrc)
 find_package(Protobuf REQUIRED)
 protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
 
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(mac_stuff
+	macdockiconhandler.mm
+	macnotificationhandler.mm
+	)
+endif()
+
+
 add_library(bitcoin-qt-base
 	bantablemodel.cpp
 	bitcoinaddressvalidator.cpp
@@ -145,6 +163,9 @@ add_library(bitcoin-qt-base
 	# Handle qrc files
 	${QRC_BITCOIN_CPP}
 	qrc_bitcoin_locale.cpp
+
+  ${mac_stuff}
+
 )
 
 # Windows support
@@ -214,7 +235,23 @@ endif()
 
 # The executable
 add_executable(bitcoin-qt bitcoin.cpp)
-target_link_libraries(bitcoin-qt bitcoin-qt-base)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  target_link_libraries(bitcoin-qt bitcoin-qt-base "-framework Foundation" "-framework CoreServices" "-framework AppKit")
+else()
+  target_link_libraries(bitcoin-qt bitcoin-qt-base)
+endif()
+
+QT5_USE_Modules(bitcoin-qt Gui)
+QT5_USE_Modules(bitcoin-qt Core)
+QT5_USE_Modules(bitcoin-qt Widgets)
+QT5_USE_Modules(bitcoin-qt Test)
+QT5_USE_Modules(bitcoin-qt PrintSupport)
+QT5_USE_Modules(bitcoin-qt Network)
+if (Qt5DBus_FOUND)
+  QT5_USE_Modules(bitcoin-qt DBus)
+endif()
+
+
 
 # Test tests
 add_subdirectory(test)

@@ -95,6 +95,7 @@ target_include_directories(util
 		.
 		# To access the config.
 		${CMAKE_CURRENT_BINARY_DIR}
+    ${OPENSSL_INCLUDE_DIR}
 )
 
 # Target specific configs
@@ -229,14 +230,17 @@ add_library(server
 
 # This require libevent
 find_package(Event REQUIRED)
+find_package(Miniupnpc REQUIRED)
 
 target_include_directories(server PRIVATE leveldb/helpers/memenv)
 
 target_link_libraries(server
-	Event
+	${EVENT_LIBRARY}
+	${EVENT_PTHREAD_LIBRARY}
 	bitcoinconsensus
 	leveldb
 	memenv
+  ${MINIUPNP_LIBRARY}
 )
 
 # Test suite.
@@ -273,7 +277,7 @@ if(BUILD_BITCOIN_CLI)
 		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
 	endif()
 
-	target_link_libraries(bitcoin-cli common rpcclient Event)
+	target_link_libraries(bitcoin-cli common rpcclient ${EVENT_LIBRARY})
 endif()
 
 # bitcoin-tx
