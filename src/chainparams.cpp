@@ -86,7 +86,6 @@ public:
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 210000;
          // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
-        consensus.CSVHeight = 419328;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -240,9 +239,6 @@ public:
     CTestNetParams() {
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
-
-        // 00000000025e930139bac5c6c31a403776da130831ab85be56578f3fa75369bb
-        consensus.CSVHeight = 770112;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -349,10 +345,6 @@ public:
     CRegTestParams() {
         strNetworkID = "regtest";
         consensus.nSubsidyHalvingInterval = 150;
-        // BIP34 has not activated on regtest (far in the future so block v1 are
-        // not rejected in tests)
-        // CSV activated on regtest (Used in rpc activation tests)
-        consensus.CSVHeight = 576;
         consensus.powLimit = uint256S(
             "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks

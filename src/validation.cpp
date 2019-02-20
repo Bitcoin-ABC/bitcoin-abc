@@ -1568,9 +1568,8 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     
 
     // Start enforcing CSV (BIP68, BIP112 and BIP113) rule.
-    if ((pChainTip->nHeight + 1) >= consensusParams.CSVHeight) {
-        flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
-    }
+    flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
+    
 
     // If the UAHF is enabled, we start accepting replay protected txns
     //if (IsUAHFenabled(config, pChainTip)) {
@@ -1732,10 +1731,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     assert(pindex->pprev);
 
     // Start enforcing BIP68 (sequence locks).
-    int nLockTimeFlags = 0;
-    if (pindex->nHeight >= consensusParams.CSVHeight) {
-        nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
-    }
+    int nLockTimeFlags = LOCKTIME_VERIFY_SEQUENCE;
+
 
     const uint32_t flags = GetBlockScriptFlags(config, pindex->pprev);
 
@@ -3591,14 +3588,10 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
                                  CValidationState &state,
                                  const CBlockIndex *pindexPrev) {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
+    //const Consensus::Params &consensusParams = config.GetChainParams().GetConsensus();
 
     // Start enforcing BIP113 (Median Time Past).
-    int nLockTimeFlags = 0;
-    if (nHeight >= consensusParams.CSVHeight) {
-        nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
-    }
+    int nLockTimeFlags = LOCKTIME_MEDIAN_TIME_PAST;
 
     const int64_t nMedianTimePast =
         pindexPrev == nullptr ? 0 : pindexPrev->GetMedianTimePast();

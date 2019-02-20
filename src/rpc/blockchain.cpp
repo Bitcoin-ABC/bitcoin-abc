@@ -1195,7 +1195,7 @@ static UniValue SoftForkMajorityDesc(int version, CBlockIndex *pindex,
     bool activated = false;
     switch (version) {
         case 5:
-            activated = pindex->nHeight >= consensusParams.CSVHeight;
+            activated = true;
             break;
     }
     rv.pushKV("status", activated);
