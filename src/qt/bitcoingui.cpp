@@ -11,6 +11,7 @@
 #include <interfaces/node.h>
 #include <qt/bitcoinunits.h>
 #include <qt/clientmodel.h>
+#include <qt/createwalletdialog.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #ifdef Q_OS_MAC
@@ -397,6 +398,9 @@ void BitcoinGUI::createActions() {
     m_close_wallet_action = new QAction(tr("Close Wallet..."), this);
     m_close_wallet_action->setStatusTip(tr("Close wallet"));
 
+    m_create_wallet_action = new QAction(tr("Create Wallet..."), this);
+    m_create_wallet_action->setStatusTip(tr("Create a new wallet"));
+
     showHelpMessageAction =
         new QAction(platformStyle->TextColorIcon(":/icons/info"),
                     tr("&Command-line options"), this);
@@ -480,6 +484,15 @@ void BitcoinGUI::createActions() {
             m_wallet_controller->closeWallet(walletFrame->currentWalletModel(),
                                              this);
         });
+        connect(m_create_wallet_action, &QAction::triggered, [this] {
+            auto activity = new CreateWalletActivity(
+                m_wallet_controller, this, this->config->GetChainParams());
+            connect(activity, &CreateWalletActivity::created, this,
+                    &BitcoinGUI::setCurrentWallet);
+            connect(activity, &CreateWalletActivity::finished, activity,
+                    &QObject::deleteLater);
+            activity->create();
+        });
     }
 #endif // ENABLE_WALLET
 
@@ -503,6 +516,7 @@ void BitcoinGUI::createMenuBar() {
     // Configure the menus
     QMenu *file = appMenuBar->addMenu(tr("&File"));
     if (walletFrame) {
+        file->addAction(m_create_wallet_action);
         file->addAction(m_open_wallet_action);
         file->addAction(m_close_wallet_action);
         file->addSeparator();
