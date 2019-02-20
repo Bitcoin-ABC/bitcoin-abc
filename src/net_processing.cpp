@@ -42,7 +42,7 @@
 std::atomic<int64_t> nTimeBestReceived(0);
 
 struct IteratorComparator {
-    template <typename I> bool operator()(const I &a, const I &b) {
+    template <typename I> bool operator()(const I &a, const I &b) const {
         return &(*a) < &(*b);
     }
 };

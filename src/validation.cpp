@@ -308,7 +308,7 @@ static bool IsCurrentForFeeEstimation() {
 
 static bool IsGreatWallEnabledForCurrentBlock(const Config &config) {
     AssertLockHeld(cs_main);
-    return IsGreatWallEnabled(config, chainActive.Tip());
+    return true;
 }
 
 // Command-line argument "-replayprotectionactivationtime=<timestamp>" will
@@ -1601,10 +1601,8 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     // 65/64-byte Schnorr signatures in CHECKSIG and CHECKDATASIG respectively,
     // and their verify variants. We also stop accepting 65 byte signatures in
     // CHECKMULTISIG and its verify variant.
-    if (IsGreatWallEnabled(config, pChainTip)) {
-        flags |= SCRIPT_ALLOW_SEGWIT_RECOVERY;
-        flags |= SCRIPT_ENABLE_SCHNORR;
-    }
+    flags |= SCRIPT_ALLOW_SEGWIT_RECOVERY;
+    flags |= SCRIPT_ENABLE_SCHNORR;
 
     // We make sure this node will have replay protection during the next hard
     // fork.
