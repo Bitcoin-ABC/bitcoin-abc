@@ -21,18 +21,6 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsUAHFenabled(config, pindexPrev->nHeight);
 }
 
-static bool IsDAAEnabled(const Config &config, int nHeight) {
-    return nHeight >= config.GetChainParams().GetConsensus().daaHeight;
-}
-
-bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return IsDAAEnabled(config, pindexPrev->nHeight);
-}
-
 bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight) {
     return nHeight >=
            config.GetChainParams().GetConsensus().magneticAnomalyHeight;
