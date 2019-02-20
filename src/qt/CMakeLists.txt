@@ -56,6 +56,7 @@ qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/addressbookpage.ui
 	forms/askpassphrasedialog.ui
 	forms/coincontroldialog.ui
+	forms/createwalletdialog.ui
 	forms/editaddressdialog.ui
 	forms/helpmessagedialog.ui
 	forms/intro.ui
@@ -290,6 +291,7 @@ if(BUILD_BITCOIN_WALLET)
 			askpassphrasedialog.cpp
 			coincontroldialog.cpp
 			coincontroltreewidget.cpp
+			createwalletdialog.cpp
 			editaddressdialog.cpp
 			openuridialog.cpp
 			overviewpage.cpp
