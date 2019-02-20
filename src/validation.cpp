@@ -1576,10 +1576,10 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     }
 
     // If the UAHF is enabled, we start accepting replay protected txns
-    if (IsUAHFenabled(config, pChainTip)) {
-        flags |= SCRIPT_VERIFY_STRICTENC;
-        flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
-    }
+    //if (IsUAHFenabled(config, pChainTip)) {
+    flags |= SCRIPT_VERIFY_STRICTENC;
+    flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
+    //}
 
     // If the DAA HF is enabled, we start rejecting transaction that use a high
     // s in their signature. We also make sure that signature that are supposed
