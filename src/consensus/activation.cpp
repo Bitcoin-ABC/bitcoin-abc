@@ -20,14 +20,3 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
 
     return IsUAHFenabled(config, pindexPrev->nHeight);
 }
-
-bool IsGreatWallEnabled(const Config &config, const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetArg(
-               "-greatwallactivationtime",
-               config.GetChainParams().GetConsensus().greatWallActivationTime);
-}
