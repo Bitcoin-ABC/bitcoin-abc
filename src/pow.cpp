@@ -106,11 +106,8 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
         return pindexPrev->nBits;
     }
 
-    if (IsDAAEnabled(config, pindexPrev)) {
-        return GetNextCashWorkRequired(pindexPrev, pblock, config);
-    }
-
-    return GetNextEDAWorkRequired(pindexPrev, pblock, config);
+    return GetNextCashWorkRequired(pindexPrev, pblock, config);
+    //return GetNextEDAWorkRequired(pindexPrev, pblock, config);
 }
 
 uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,

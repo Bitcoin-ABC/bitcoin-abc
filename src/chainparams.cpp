@@ -118,9 +118,6 @@ public:
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
 
-        // November 13, 2017 hard fork
-        consensus.daaHeight = 504031;
-
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 556766;
 
@@ -286,9 +283,6 @@ public:
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
 
-        // November 13, 2017 hard fork
-        consensus.daaHeight = 1188697;
-
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 1267996;
 
@@ -402,9 +396,6 @@ public:
 
         // UAHF is always enabled on regtest.
         consensus.uahfHeight = 0;
-
-        // November 13, 2017 hard fork is always on on regtest.
-        consensus.daaHeight = 0;
 
         // November 15, 2018 hard fork is always on on regtest.
         consensus.magneticAnomalyHeight = 0;

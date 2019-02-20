@@ -1589,10 +1589,10 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     // s in their signature. We also make sure that signature that are supposed
     // to fail (for instance in multisig or other forms of smart contracts) are
     // null.
-    if (IsDAAEnabled(config, pChainTip)) {
-        flags |= SCRIPT_VERIFY_LOW_S;
-        flags |= SCRIPT_VERIFY_NULLFAIL;
-    }
+    //if (IsDAAEnabled(config, pChainTip)) {
+    flags |= SCRIPT_VERIFY_LOW_S;
+    flags |= SCRIPT_VERIFY_NULLFAIL;
+    //}
 
     // When the magnetic anomaly fork is enabled, we start accepting
     // transactions using the OP_CHECKDATASIG opcode and it's verify
