@@ -55,6 +55,10 @@ static const NodeId NO_NODE = -1;
  */
 struct VoteRecord {
 private:
+    // confidence's LSB bit is the result. Higher bits are actual confidence
+    // score.
+    uint16_t confidence = 0;
+
     // Historical record of votes.
     uint8_t votes = 0;
     // Each bit indicate if the vote is to be considered.
@@ -62,9 +66,8 @@ private:
     // How many in flight requests exists for this element.
     mutable std::atomic<uint8_t> inflight{0};
 
-    // confidence's LSB bit is the result. Higher bits are actual confidence
-    // score.
-    uint16_t confidence = 0;
+    // Track how many successful votes occured.
+    uint32_t successfulVotes = 0;
 
 public:
     VoteRecord(bool accepted) : confidence(accepted) {}
@@ -73,8 +76,9 @@ public:
      * Copy semantic
      */
     VoteRecord(const VoteRecord &other)
-        : votes(other.votes), consider(other.consider),
-          inflight(other.inflight.load()), confidence(other.confidence) {}
+        : confidence(other.confidence), votes(other.votes),
+          consider(other.consider), inflight(other.inflight.load()),
+          successfulVotes(other.successfulVotes) {}
 
     /**
      * Vote accounting facilities.
