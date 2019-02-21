@@ -44,6 +44,9 @@ bool VoteRecord::registerVote(uint32_t error) {
     // We just got a new vote, so there is one less inflight request.
     clearInflightRequest();
 
+    // Keep track of how many votes were registered.
+    successfulVotes++;
+
     /**
      * The result of the vote is determined from the error code. If the error
      * code is 0, there is no error and therefore the vote is yes. If there is
