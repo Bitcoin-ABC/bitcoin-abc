@@ -519,6 +519,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
                          txdata, nSigChecksStandard)) {
             // State filled in by CheckInputs.
+            assert(IsTransactionReason(state.GetReason()));
             return false;
         }
 
@@ -1708,6 +1709,8 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
                               state.GetRejectCode(), state.GetRejectReason(),
                               state.GetDebugMessage());
             }
+
+            assert(IsBlockReason(state.GetReason()));
             return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
                          tx.GetId().ToString(), FormatStateMessage(state));
         }
@@ -4003,6 +4006,7 @@ bool CChainState::AcceptBlock(const Config &config,
     if (!CheckBlock(block, state, consensusParams,
                     BlockValidationOptions(config)) ||
         !ContextualCheckBlock(block, state, consensusParams, pindex->pprev)) {
+        assert(IsBlockReason(state.GetReason()));
         if (state.IsInvalid() &&
             state.GetReason() != ValidationInvalidReason::BLOCK_MUTATED) {
             pindex->nStatus = pindex->nStatus.withFailed();

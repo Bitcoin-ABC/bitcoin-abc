@@ -1202,6 +1202,7 @@ static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
  * transactions from a whitelisted peer that we can safely relay.
  */
 static bool TxRelayMayResultInDisconnect(const CValidationState &state) {
+    assert(IsTransactionReason(state.GetReason()));
     return state.GetReason() == ValidationInvalidReason::CONSENSUS;
 }
 
@@ -2206,6 +2207,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             // Probably non-standard or insufficient fee
             LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
                      orphanTxId.ToString());
+            assert(IsTransactionReason(orphan_state.GetReason()));
 
             assert(recentRejects);
             recentRejects->insert(orphanTxId);
@@ -3042,8 +3044,11 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 recentRejects->insert(tx.GetId());
             }
         } else {
+            assert(IsTransactionReason(state.GetReason()));
+
             assert(recentRejects);
             recentRejects->insert(tx.GetId());
+
             if (RecursiveDynamicUsage(*ptx) < 100000) {
                 AddToCompactExtraTransactions(ptx);
             }
