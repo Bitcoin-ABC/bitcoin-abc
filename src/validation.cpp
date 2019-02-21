@@ -1550,8 +1550,7 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
 static uint32_t GetBlockScriptFlags(const Config &config,
                                     const CBlockIndex *pChainTip) {
     AssertLockHeld(cs_main);
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
+    //const Consensus::Params &consensusParams = config.GetChainParams().GetConsensus();
 
     uint32_t flags = SCRIPT_VERIFY_NONE;
 
