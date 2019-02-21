@@ -176,6 +176,18 @@ std::unique_ptr<CNode> ConnectNode(const Config &config, ServiceFlags nServices,
     return nodeptr;
 }
 
+std::array<std::unique_ptr<CNode>, 8>
+ConnectNodes(const Config &config, AvalancheProcessor &p,
+             ServiceFlags nServices, PeerLogicValidation &peerLogic) {
+    std::array<std::unique_ptr<CNode>, 8> nodes;
+    for (auto &n : nodes) {
+        n = ConnectNode(config, nServices, peerLogic);
+        BOOST_CHECK(p.addPeer(n->GetId(), 0));
+    }
+
+    return nodes;
+}
+
 static AvalancheResponse next(AvalancheResponse &r) {
     auto copy = r;
     r = {r.getRound() + 1, r.getCooldown(), r.GetVotes()};
@@ -193,9 +205,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     const Config &config = GetConfig();
 
     // Create a node that supports avalanche.
-    auto avanode = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
-    NodeId nodeid = avanode->GetId();
-    BOOST_CHECK(p.addPeer(nodeid, 0));
+    auto avanodes = ConnectNodes(config, p, NODE_AVALANCHE, *peerLogic);
 
     // Querying for random block returns false.
     BOOST_CHECK(!p.isAccepted(pindex));
@@ -210,11 +220,17 @@ BOOST_AUTO_TEST_CASE(block_register) {
     // Newly added blocks' state reflect the blockchain.
     BOOST_CHECK(p.isAccepted(pindex));
 
+    int nextNodeIndex = 0;
+    auto registerNewVote = [&](const AvalancheResponse &resp) {
+        AvalancheTest::runEventLoop(p);
+        auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
+        BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+    };
+
     // Let's vote for this block a few times.
     AvalancheResponse resp{0, 0, {AvalancheVote(0, blockHash)}};
     for (int i = 0; i < 6; i++) {
-        AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        registerNewVote(next(resp));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(p.getConfidence(pindex), 0);
         BOOST_CHECK_EQUAL(updates.size(), 0);
@@ -222,16 +238,14 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     // A single neutral vote do not change anything.
     resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(-1, blockHash)}};
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    registerNewVote(next(resp));
     BOOST_CHECK(p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(p.getConfidence(pindex), 0);
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
     for (int i = 1; i < 7; i++) {
-        AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        registerNewVote(next(resp));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(p.getConfidence(pindex), i);
         BOOST_CHECK_EQUAL(updates.size(), 0);
@@ -239,21 +253,18 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     // Two neutral votes will stall progress.
     resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(-1, blockHash)}};
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    registerNewVote(next(resp));
     BOOST_CHECK(p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(p.getConfidence(pindex), 6);
     BOOST_CHECK_EQUAL(updates.size(), 0);
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    registerNewVote(next(resp));
     BOOST_CHECK(p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(p.getConfidence(pindex), 6);
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
     for (int i = 2; i < 8; i++) {
-        AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        registerNewVote(next(resp));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(p.getConfidence(pindex), 6);
         BOOST_CHECK_EQUAL(updates.size(), 0);
@@ -261,8 +272,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     // We vote for it numerous times to finalize it.
     for (int i = 7; i < AVALANCHE_FINALIZATION_SCORE; i++) {
-        AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        registerNewVote(next(resp));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(p.getConfidence(pindex), i);
         BOOST_CHECK_EQUAL(updates.size(), 0);
@@ -275,8 +285,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(invs[0].hash == blockHash);
 
     // Now finalize the decision.
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    registerNewVote(next(resp));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
     BOOST_CHECK_EQUAL(updates[0].getStatus(),
@@ -296,15 +305,13 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(1, blockHash)}};
     for (int i = 0; i < 6; i++) {
-        AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        registerNewVote(next(resp));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Now the state will flip.
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    registerNewVote(next(resp));
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
@@ -314,8 +321,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     // Now it is rejected, but we can vote for it numerous times.
     for (int i = 1; i < AVALANCHE_FINALIZATION_SCORE; i++) {
-        AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        registerNewVote(next(resp));
         BOOST_CHECK(!p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
@@ -327,8 +333,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(invs[0].hash == blockHash);
 
     // Now finalize the decision.
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    registerNewVote(next(resp));
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
