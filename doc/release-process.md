@@ -30,6 +30,7 @@ Bitcoin ABC Release Process
     - Regenerate manpages (run `contrib/devtools/gen-manpages.sh`, or for out-of-tree builds run
       `BUILDDIR=$PWD/build contrib/devtools/gen-manpages.sh`).
     - Update seeds as per [contrib/seeds/README.md](/contrib/seeds/README.md)
+    - Manually test bitcoin-qt by sending some transactions and navigating through the menus.
 
 4. Add git tag for release
 
