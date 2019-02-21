@@ -361,11 +361,8 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 
     const Config &config = GetConfig();
 
-    // Create a node that supports avalanche.
-    auto node0 = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
-    BOOST_CHECK(p.addPeer(node0->GetId(), 0));
-    auto node1 = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
-    BOOST_CHECK(p.addPeer(node1->GetId(), 0));
+    // Create several nodes that support avalanche.
+    auto avanodes = ConnectNodes(config, p, NODE_AVALANCHE, *peerLogic);
 
     // Make sure the block has a hash.
     CBlock blockA = CreateAndProcessBlock({}, CScript());
@@ -389,8 +386,9 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 
     uint64_t round = AvalancheTest::getRound(p);
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(
-        node0->GetId(), {round, 0, {AvalancheVote(0, blockHashA)}}, updates));
+    BOOST_CHECK(p.registerVotes(avanodes[0]->GetId(),
+                                {round, 0, {AvalancheVote(0, blockHashA)}},
+                                updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Start voting on block B after one vote.
@@ -424,7 +422,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
-    // Running two iterration of the event loop so that vote gets triggerd on A
+    // Running two iterration of the event loop so that vote gets triggered on A
     // and B.
     NodeId firstNodeid = AvalancheTest::getSuitableNodeToQuery(p);
     AvalancheTest::runEventLoop(p);
