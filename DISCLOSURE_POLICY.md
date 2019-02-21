@@ -18,11 +18,11 @@ When reporting a bug or vulnerability, please provide the following to security@
 
 ## Encrypting the Disclosure
 
-We highly encourage all disclosures to be encrypted to prevent interception and exploitation by third-parties prior to a fix being developed and deployed.  Please encrypt using this PGP public key with id: `3199472CFB54790D90B8ECB4B1606D6B42B7F4C7`
+We highly encourage all disclosures to be encrypted to prevent interception and exploitation by third-parties prior to a fix being developed and deployed.  Please encrypt using the PGP public key with fingerprint: `5442AB0B9178E0D1567479B471A3ED7ECF82C6A7`
 
 It may be obtained via:
 ```
-gpg --recv-keys 3199472CFB54790D90B8ECB4B1606D6B42B7F4C7
+gpg --recv-keys 5442AB0B9178E0D1567479B471A3ED7ECF82C6A7
 ```
 
 Below are some basic instructions for encrypting your disclosure on Linux if you are unfamiliar with GPG:
