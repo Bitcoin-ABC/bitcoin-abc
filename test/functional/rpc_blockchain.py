@@ -33,6 +33,7 @@ from test_framework.util import (
 
 
 class BlockchainTest(BitcoinTestFramework):
+
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [['-stopatheight=207', '-prune=1']]
@@ -45,6 +46,7 @@ class BlockchainTest(BitcoinTestFramework):
         self._test_getdifficulty()
         self._test_getnetworkhashps()
         self._test_stopatheight()
+        self._test_getblock()
         assert self.nodes[0].verifychain(4, 0)
 
     def _test_getblockchaininfo(self):
@@ -102,7 +104,8 @@ class BlockchainTest(BitcoinTestFramework):
         assert('window_interval' not in chaintxstats)
         assert('txrate' not in chaintxstats)
 
-        assert_raises_rpc_error(-8, "Invalid block count: should be between 0 and the block's height - 1",
+        assert_raises_rpc_error(
+            -8, "Invalid block count: should be between 0 and the block's height - 1",
                                 self.nodes[0].getchaintxstats, 201)
 
     def _test_gettxoutsetinfo(self):
@@ -201,6 +204,40 @@ class BlockchainTest(BitcoinTestFramework):
         self.start_node(0)
         assert_equal(self.nodes[0].getblockcount(), 207)
 
+    def _test_getblock(self):
+        # Checks for getblock verbose outputs
+        node = self.nodes[0]
+        getblockinfo = node.getblock(node.getblockhash(1), 2)
+        gettransactioninfo = node.gettransaction(getblockinfo['tx'][0]['txid'])
+        getblockheaderinfo = node.getblockheader(node.getblockhash(1), True)
+
+        assert_equal(getblockinfo['hash'], gettransactioninfo['blockhash'])
+        assert_equal(
+            getblockinfo['confirmations'], gettransactioninfo['confirmations'])
+        assert_equal(getblockinfo['height'], getblockheaderinfo['height'])
+        assert_equal(
+            getblockinfo['versionHex'], getblockheaderinfo['versionHex'])
+        assert_equal(getblockinfo['version'], getblockheaderinfo['version'])
+        assert_equal(getblockinfo['size'], 188)
+        assert_equal(
+            getblockinfo['merkleroot'], getblockheaderinfo['merkleroot'])
+        # Verify transaction data by check the hex values
+        for tx in getblockinfo['tx']:
+            getrawtransaction = node.getrawtransaction(tx['txid'], True)
+            assert_equal(tx['hex'], getrawtransaction['hex'])
+        assert_equal(getblockinfo['time'], getblockheaderinfo['time'])
+        assert_equal(
+            getblockinfo['mediantime'], getblockheaderinfo['mediantime'])
+        assert_equal(getblockinfo['nonce'], getblockheaderinfo['nonce'])
+        assert_equal(getblockinfo['bits'], getblockheaderinfo['bits'])
+        assert_equal(
+            getblockinfo['difficulty'], getblockheaderinfo['difficulty'])
+        assert_equal(
+            getblockinfo['chainwork'], getblockheaderinfo['chainwork'])
+        assert_equal(
+            getblockinfo['previousblockhash'], getblockheaderinfo['previousblockhash'])
+        assert_equal(
+            getblockinfo['nextblockhash'], getblockheaderinfo['nextblockhash'])
 
 if __name__ == '__main__':
     BlockchainTest().main()
