@@ -495,6 +495,8 @@ void BitcoinGUI::createActions() {
                             &QObject::deleteLater);
                     connect(activity, &OpenWalletActivity::finished, dialog,
                             &QObject::deleteLater);
+                    bool invoked = QMetaObject::invokeMethod(activity, "open");
+                    assert(invoked);
                 });
             }
             if (m_open_wallet_menu->isEmpty()) {

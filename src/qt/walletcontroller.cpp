@@ -64,7 +64,6 @@ OpenWalletActivity *WalletController::openWallet(const CChainParams &params,
                                                  QWidget *parent) {
     OpenWalletActivity *activity = new OpenWalletActivity(this, name, params);
     activity->moveToThread(&m_activity_thread);
-    QMetaObject::invokeMethod(activity, "open", Qt::QueuedConnection);
     return activity;
 }
 void WalletController::closeWallet(WalletModel *wallet_model, QWidget *parent) {
