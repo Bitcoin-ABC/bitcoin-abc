@@ -63,27 +63,25 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
     return true;
 }
 
-bool WalletFrame::setCurrentWallet(WalletModel *wallet_model) {
+void WalletFrame::setCurrentWallet(WalletModel *wallet_model) {
     if (mapWalletViews.count(wallet_model) == 0) {
-        return false;
+        return;
     }
 
     WalletView *walletView = mapWalletViews.value(wallet_model);
     walletStack->setCurrentWidget(walletView);
     assert(walletView);
     walletView->updateEncryptionStatus();
-    return true;
 }
 
-bool WalletFrame::removeWallet(WalletModel *wallet_model) {
+void WalletFrame::removeWallet(WalletModel *wallet_model) {
     if (mapWalletViews.count(wallet_model) == 0) {
-        return false;
+        return;
     }
 
     WalletView *walletView = mapWalletViews.take(wallet_model);
     walletStack->removeWidget(walletView);
     delete walletView;
-    return true;
 }
 
 void WalletFrame::removeAllWallets() {
