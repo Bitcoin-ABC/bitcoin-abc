@@ -10,9 +10,10 @@ Currently:
 """
 
 import re
+
+from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
-from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 
 MAX_GENERATED_BLOCK_SIZE_ERROR = (
     'Max generated block size (blockmaxsize) cannot exceed the excessive block size (excessiveblocksize)')

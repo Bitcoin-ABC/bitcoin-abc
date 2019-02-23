@@ -7,10 +7,10 @@
 # Test HighPriorityTransaction code
 #
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.mininode import COIN
 from test_framework.blocktools import create_confirmed_utxos
+from test_framework.messages import COIN
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, gen_return_txouts, satoshi_round
 
 
 class HighPriorityTransactionTest(BitcoinTestFramework):

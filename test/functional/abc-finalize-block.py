@@ -3,10 +3,16 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the finalizeblock RPC calls."""
+
 import time
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, wait_until, set_node_times
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    set_node_times,
+    wait_until,
+)
 
 RPC_FINALIZE_INVALID_BLOCK_ERROR = 'finalize-invalid-block'
 RPC_FORK_PRIOR_FINALIZED_ERROR = 'bad-fork-prior-finalized'

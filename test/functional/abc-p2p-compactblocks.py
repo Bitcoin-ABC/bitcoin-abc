@@ -11,14 +11,38 @@ this one can be extended, to cover the checks done for bigger blocks
 (e.g. sigops limits).
 """
 
-from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import *
-from test_framework.comptool import TestManager, TestInstance
-from test_framework.blocktools import *
-import time
-from test_framework.script import *
-from test_framework.cdefs import ONE_MEGABYTE
 from collections import deque
+import random
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import TestInstance, TestManager
+from test_framework.cdefs import ONE_MEGABYTE
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    HeaderAndShortIDs,
+    msg_cmpctblock,
+    msg_sendcmpct,
+    ser_compact_size,
+)
+from test_framework.mininode import (
+    mininode_lock,
+    network_thread_start,
+    network_thread_join,
+    P2PInterface,
+)
+from test_framework.script import CScript, OP_RETURN, OP_TRUE
+from test_framework.test_framework import ComparisonTestFramework
+from test_framework.txtools import pad_tx
+from test_framework.util import assert_equal, wait_until
 
 
 class PreviousSpendableOutput():

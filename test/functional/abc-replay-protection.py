@@ -9,13 +9,35 @@ related to this activation.
 It is derived from the much more complex p2p-fullblocktest.
 """
 
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.key import CECKey
+from test_framework.messages import (
+    COIN,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    ToHex,
+)
+from test_framework.mininode import network_thread_start
+from test_framework.script import (
+    CScript,
+    OP_CHECKSIG,
+    OP_TRUE,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
+)
 from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-import time
-from test_framework.key import CECKey
-from test_framework.script import *
 
 # far into the future
 REPLAY_PROTECTION_START_TIME = 2000000000
