@@ -10,9 +10,18 @@
  which are not included in a block and are not currently in the mempool. It has
  no effect on transactions which are already conflicted or abandoned.
 """
+from decimal import Decimal
+
+from test_framework.messages import CTransaction, FromHex
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.mininode import *
+from test_framework.util import (
+    assert_equal,
+    connect_nodes,
+    disconnect_nodes,
+    satoshi_round,
+    sync_blocks,
+    sync_mempools,
+)
 
 
 class AbandonConflictTest(BitcoinTestFramework):
