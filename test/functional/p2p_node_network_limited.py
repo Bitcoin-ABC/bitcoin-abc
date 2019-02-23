@@ -8,10 +8,28 @@ Tests that a node configured with -prune=550 signals NODE_NETWORK_LIMITED correc
 and that it responds to getdata requests for blocks correctly:
     - send a block within 288 + 2 of the tip
     - disconnect peers who request blocks older than that."""
-from test_framework.messages import CInv, msg_getdata, msg_verack
-from test_framework.mininode import NODE_BLOOM, NODE_NETWORK_LIMITED, NODE_BITCOIN_CASH, P2PInterface, wait_until, mininode_lock, network_thread_start, network_thread_join
+from test_framework.messages import (
+    CInv,
+    msg_getdata,
+    msg_verack,
+    NODE_BITCOIN_CASH,
+    NODE_BLOOM,
+    NODE_NETWORK_LIMITED,
+)
+from test_framework.mininode import (
+    mininode_lock,
+    network_thread_join,
+    network_thread_start,
+    P2PInterface,
+)
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, disconnect_nodes, connect_nodes_bi, sync_blocks
+from test_framework.util import (
+    assert_equal,
+    connect_nodes_bi,
+    disconnect_nodes,
+    sync_blocks,
+    wait_until,
+)
 
 
 class P2PIgnoreInv(P2PInterface):
