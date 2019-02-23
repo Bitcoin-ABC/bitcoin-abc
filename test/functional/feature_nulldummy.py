@@ -3,13 +3,14 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.messages import FromHex, ToHex
-from test_framework.mininode import CTransaction, network_thread_start
-from test_framework.blocktools import create_coinbase, create_block
-from test_framework.script import CScript
 import time
+
+from test_framework.blocktools import create_block, create_coinbase
+from test_framework.messages import CTransaction, FromHex, ToHex
+from test_framework.mininode import network_thread_start
+from test_framework.script import CScript
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 NULLDUMMY_ERROR = "64: non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)"
 

@@ -4,16 +4,58 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import *
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-import time
-from test_framework.key import CECKey
-from test_framework.script import *
-from test_framework.mininode import network_thread_start
+import copy
 import struct
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+    get_legacy_sigopcount_block,
+    make_conform_to_ctor,
+)
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, MAX_BLOCK_SIGOPS_PER_MB
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.key import CECKey
+from test_framework.messages import (
+    CBlock,
+    CBlockHeader,
+    COIN,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    ser_uint256,
+    uint256_from_compact,
+    uint256_from_str,
+)
+from test_framework.mininode import network_thread_start
+from test_framework.script import (
+    CScript,
+    hash160,
+    MAX_SCRIPT_ELEMENT_SIZE,
+    OP_2DUP,
+    OP_CHECKMULTISIG,
+    OP_CHECKMULTISIGVERIFY,
+    OP_CHECKSIG,
+    OP_CHECKSIGVERIFY,
+    OP_ELSE,
+    OP_ENDIF,
+    OP_EQUAL,
+    OP_FALSE,
+    OP_HASH160,
+    OP_IF,
+    OP_INVALIDOPCODE,
+    OP_RETURN,
+    OP_TRUE,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
+)
+from test_framework.test_framework import ComparisonTestFramework
+from test_framework.txtools import pad_tx
+from test_framework.util import assert_equal
 
 
 class PreviousSpendableOutput():
