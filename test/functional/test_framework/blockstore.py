@@ -4,9 +4,17 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """BlockStore and TxStore helper classes."""
 
-from .mininode import *
-from io import BytesIO
 import dbm.dumb as dbmd
+from io import BytesIO
+import logging
+
+from .messages import (
+    CBlock,
+    CBlockHeader,
+    CBlockLocator,
+    msg_headers,
+    msg_generic,
+)
 
 logger = logging.getLogger("TestFramework.blockstore")
 
