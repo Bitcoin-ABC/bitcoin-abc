@@ -3,13 +3,19 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import *
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-from test_framework.mininode import network_thread_start
 import copy
 import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+)
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.messages import COIN
+from test_framework.mininode import network_thread_start
+from test_framework.test_framework import ComparisonTestFramework
+from test_framework.util import assert_equal
 
 
 '''
