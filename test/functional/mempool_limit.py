@@ -5,8 +5,11 @@
 
 # Test mempool limiting together/eviction with the wallet
 
+from test_framework.blocktools import (
+    create_confirmed_utxos,
+    send_big_transactions,
+)
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.blocktools import send_big_transactions, create_confirmed_utxos
 
 
 class MempoolLimitTest(BitcoinTestFramework):

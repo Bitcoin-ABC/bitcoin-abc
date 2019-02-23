@@ -30,10 +30,11 @@ Test is as follows:
     does not overwrite a previously valid mempool stored on disk.
 
 """
+from decimal import Decimal
 import time
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
+from test_framework.util import assert_equal, wait_until
 
 
 class MempoolPersistTest(BitcoinTestFramework):
