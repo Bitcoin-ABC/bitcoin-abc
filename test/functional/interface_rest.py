@@ -7,15 +7,21 @@
 # Test REST interface
 #
 
+from codecs import encode
+from decimal import Decimal
+import http.client
+from io import BytesIO
+import json
+from struct import pack, unpack
+import urllib.parse
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from struct import *
-from io import BytesIO
-from codecs import encode
-
-import http.client
-import urllib.parse
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than,
+    connect_nodes_bi,
+    hex_str_to_bytes,
+)
 
 
 def deser_uint256(f):
