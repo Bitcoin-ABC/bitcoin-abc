@@ -33,20 +33,24 @@ import time
 
 from test_framework.blocktools import (create_block, create_coinbase)
 from test_framework.key import CECKey
-from test_framework.mininode import (CBlockHeader,
-                                     COutPoint,
-                                     CTransaction,
-                                     CTxIn,
-                                     CTxOut,
-                                     network_thread_join,
-                                     network_thread_start,
-                                     P2PInterface,
-                                     msg_block,
-                                     msg_headers)
+from test_framework.messages import (
+    CBlockHeader,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    msg_block,
+    msg_headers,
+)
+from test_framework.mininode import (
+    network_thread_join,
+    network_thread_start,
+    P2PInterface,
+)
 from test_framework.script import (CScript, OP_TRUE)
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
 from test_framework.txtools import pad_tx
+from test_framework.util import assert_equal
 
 
 class BaseNode(P2PInterface):

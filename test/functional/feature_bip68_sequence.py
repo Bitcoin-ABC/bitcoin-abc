@@ -7,12 +7,33 @@
 # Test BIP68 implementation
 #
 
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+)
+from test_framework.messages import (
+    COIN,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    FromHex,
+    ToHex,
+)
+from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.script import *
-from test_framework.mininode import *
-from test_framework.blocktools import *
 from test_framework.txtools import pad_tx
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than,
+    assert_raises_rpc_error,
+    connect_nodes,
+    disconnect_nodes,
+    satoshi_round,
+    sync_blocks,
+)
 
 SEQUENCE_LOCKTIME_DISABLE_FLAG = (1 << 31)
 SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22)  # this means use time (0 means height)

@@ -3,8 +3,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test various command line arguments and configuration file parameters."""
-import time
 import os
+import time
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import get_datadir_path
