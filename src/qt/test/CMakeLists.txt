@@ -25,7 +25,6 @@ if(BUILD_BITCOIN_WALLET)
 	# Add wallet functionality to test_bitcoin-qt
 	target_sources(test_bitcoin-qt
 		PRIVATE
-			paymentservertests.cpp
 			wallettests.cpp
 			../../wallet/test/wallet_test_fixture.cpp
 	)

@@ -42,25 +42,7 @@ void WalletModelTransaction::setTransactionFee(const Amount newFee) {
 void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
     int i = 0;
     for (SendCoinsRecipient &rcp : recipients) {
-        if (rcp.paymentRequest.IsInitialized()) {
-            Amount subtotal = Amount::zero();
-            const payments::PaymentDetails &details =
-                rcp.paymentRequest.getDetails();
-            for (int j = 0; j < details.outputs_size(); j++) {
-                const payments::Output &out = details.outputs(j);
-                if (out.amount() <= 0) {
-                    continue;
-                }
-
-                if (i == nChangePosRet) {
-                    i++;
-                }
-
-                subtotal += walletTransaction->tx->vout[i].nValue;
-                i++;
-            }
-            rcp.amount = subtotal;
-        } else {
+        {
             // normal recipient (no payment request)
             if (i == nChangePosRet) {
                 i++;

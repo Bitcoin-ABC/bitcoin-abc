@@ -6,7 +6,6 @@
 
 #include "bitcoinunits.h"
 #include "guiutil.h"
-#include "paymentserver.h"
 #include "transactionrecord.h"
 
 #include "consensus/consensus.h"
@@ -306,21 +305,6 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
     }
 
     //
-    // PaymentRequest info:
-    //
-    for (const std::pair<std::string, std::string> &r : wtx.vOrderForm) {
-        if (r.first == "PaymentRequest") {
-            PaymentRequestPlus req;
-            req.parse(
-                QByteArray::fromRawData(r.second.data(), r.second.size()));
-            QString merchant;
-            if (req.getMerchant(PaymentServer::getCertStore(), merchant)) {
-                strHTML += "<b>" + tr("Merchant") + ":</b> " +
-                           GUIUtil::HtmlEscape(merchant) + "<br>";
-            }
-        }
-    }
-
     if (wtx.IsCoinBase()) {
         quint32 numBlocksToMaturity = COINBASE_MATURITY + 1;
         strHTML +=

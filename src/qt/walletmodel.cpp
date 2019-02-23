@@ -8,7 +8,6 @@
 #include "consensus/validation.h"
 #include "guiconstants.h"
 #include "guiutil.h"
-#include "paymentserver.h"
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
 
@@ -197,31 +196,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         if (rcp.fSubtractFeeFromAmount) fSubtractFeeFromAmount = true;
 
         // PaymentRequest...
-        if (rcp.paymentRequest.IsInitialized()) {
-            Amount subtotal = Amount::zero();
-            const payments::PaymentDetails &details =
-                rcp.paymentRequest.getDetails();
-            for (int i = 0; i < details.outputs_size(); i++) {
-                const payments::Output &out = details.outputs(i);
-                if (out.amount() <= 0) {
-                    continue;
-                }
-
-                subtotal += int64_t(out.amount()) * SATOSHI;
-                const uint8_t *scriptStr = (const uint8_t *)out.script().data();
-                CScript scriptPubKey(scriptStr,
-                                     scriptStr + out.script().size());
-                Amount nAmount = int64_t(out.amount()) * SATOSHI;
-                CRecipient recipient = {scriptPubKey, nAmount,
-                                        rcp.fSubtractFeeFromAmount};
-                vecSend.push_back(recipient);
-            }
-
-            if (subtotal <= Amount::zero()) {
-                return InvalidAmount;
-            }
-            total += subtotal;
-        } else {
+        {
             // User-entered bitcoin address / amount:
             if (!validateAddress(rcp.address)) {
                 return InvalidAddress;
@@ -301,24 +276,12 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
         CWalletTx *newTx = transaction.getTransaction();
 
         for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
-            if (rcp.paymentRequest.IsInitialized()) {
-                // Make sure any payment requests involved are still valid.
-                if (PaymentServer::verifyExpired(
-                        rcp.paymentRequest.getDetails())) {
-                    return PaymentRequestExpired;
-                }
-
-                // Store PaymentRequests in wtx.vOrderForm in wallet.
-                std::string key("PaymentRequest");
-                std::string value;
-                rcp.paymentRequest.SerializeToString(&value);
-                newTx->vOrderForm.push_back(make_pair(key, value));
-            } else if (!rcp.message.isEmpty()) {
+          if (!rcp.message.isEmpty()) {
                 // Message from normal bitcoincash:URI
                 // (bitcoincash:123...?message=example)
                 newTx->vOrderForm.push_back(
                     make_pair("Message", rcp.message.toStdString()));
-            }
+          }
         }
 
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
@@ -339,7 +302,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
     // emit coinsSent signal for each recipient
     for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
         // Don't touch the address book when we have a payment request
-        if (!rcp.paymentRequest.IsInitialized()) {
+      {
             std::string strAddress = rcp.address.toStdString();
             CTxDestination dest =
                 DecodeDestination(strAddress, wallet->chainParams);

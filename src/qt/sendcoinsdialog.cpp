@@ -379,7 +379,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
         QString recipientElement;
 
         // normal payment
-        if (!rcp.paymentRequest.IsInitialized()) {
+        {
             if (rcp.label.length() > 0) {
                 // label with address
                 recipientElement =
@@ -389,17 +389,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
                 // just address
                 recipientElement = tr("%1 to %2").arg(amount, address);
             }
-        } else if (!rcp.authenticatedMerchant.isEmpty()) {
-            // authenticated payment request
-            recipientElement =
-                tr("%1 to %2")
-                    .arg(amount,
-                         GUIUtil::HtmlEscape(rcp.authenticatedMerchant));
-        } else {
-            // unauthenticated payment request
-            recipientElement = tr("%1 to %2").arg(amount, address);
         }
-
         formatted.append(recipientElement);
     }
 
@@ -664,10 +654,6 @@ void SendCoinsDialog::processSendCoinsReturn(
                 tr("A fee higher than %1 is considered an absurdly high fee.")
                     .arg(BitcoinUnits::formatWithUnit(
                         model->getOptionsModel()->getDisplayUnit(), maxTxFee));
-            break;
-        case WalletModel::PaymentRequestExpired:
-            msgParams.first = tr("Payment request expired.");
-            msgParams.second = CClientUIInterface::MSG_ERROR;
             break;
         // included to prevent a compiler warning.
         case WalletModel::OK:

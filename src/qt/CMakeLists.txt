@@ -117,11 +117,6 @@ set(CMAKE_AUTOMOC ON)
 # Handle qrc resources
 qt5_add_resources(QRC_BITCOIN_CPP bitcoin.qrc)
 
-# Do protobuf codegen
-find_package(Protobuf REQUIRED)
-protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
-
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(mac_stuff
 	macdockiconhandler.mm
@@ -157,10 +152,6 @@ add_library(bitcoin-qt-base
 	# Handle ui files
 	${UI_GENERATED_HEADERS}
 
-	# Protobuf codegen
-	${PROTOBUF_HEADERS}
-	${PROTOBUF_SOURCES}
-
 	# Translations
 	${BITCOIN_QM_FILES}
 
@@ -182,7 +173,6 @@ target_include_directories(bitcoin-qt-base
 		.
 		${CMAKE_CURRENT_BINARY_DIR}
 		${CMAKE_CURRENT_BINARY_DIR}/forms
-		${Protobuf_INCLUDE_DIRS}
 )
 
 target_link_libraries(bitcoin-qt-base
@@ -190,8 +180,7 @@ target_link_libraries(bitcoin-qt-base
 	rpcclient
 	Qt5::Widgets
 	Qt5::Network
-	OpenSSL::SSL
-	${Protobuf_LIBRARIES}
+#	OpenSSL::SSL
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -214,8 +203,6 @@ if(BUILD_BITCOIN_WALLET)
 			editaddressdialog.cpp
 			openuridialog.cpp
 			overviewpage.cpp
-			paymentrequestplus.cpp
-			paymentserver.cpp
 			receivecoinsdialog.cpp
 			receiverequestdialog.cpp
 			recentrequeststablemodel.cpp
