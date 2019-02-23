@@ -1,7 +1,7 @@
 # Copyright (c) 2017 The Bitcoin developers
 
 cmake_minimum_required(VERSION 3.5)
-project(BitcoinABC)
+project(DeVault)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -272,29 +272,29 @@ endif()
 
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)
-	add_executable(bitcoin-cli bitcoin-cli.cpp)
+	add_executable(devault-cli bitcoin-cli.cpp)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
+		target_sources(devault-cli PRIVATE bitcoin-cli-res.rc)
 	endif()
 
-	target_link_libraries(bitcoin-cli common rpcclient ${EVENT_LIBRARY})
+	target_link_libraries(devault-cli common rpcclient ${EVENT_LIBRARY})
 endif()
 
 # bitcoin-tx
 if(BUILD_BITCOIN_TX)
-	add_executable(bitcoin-tx bitcoin-tx.cpp)
+	add_executable(devault-tx bitcoin-tx.cpp)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-tx PRIVATE bitcoin-tx-res.rc)
+		target_sources(devault-tx PRIVATE bitcoin-tx-res.rc)
 	endif()
 
-	target_link_libraries(bitcoin-tx bitcoinconsensus)
+	target_link_libraries(devault-tx bitcoinconsensus)
 endif()
 
 # bitcoind
-add_executable(bitcoind bitcoind.cpp)
-target_link_libraries(bitcoind server)
+add_executable(devaultd bitcoind.cpp)
+target_link_libraries(devaultd server)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_sources(bitcoind PRIVATE bitcoind-res.rc)
+	target_sources(devaultd PRIVATE bitcoind-res.rc)
 endif()
 
 # Bitcoin-qt

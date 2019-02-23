@@ -1,6 +1,6 @@
 # Copyright (c) 2018 The Bitcoin developers
 
-project(bitcoin-qt)
+project(devault-qt)
 
 # This ensure that AUTOMOC doesn't run on generated files.
 cmake_policy(SET CMP0071 OLD)
@@ -234,21 +234,21 @@ if(BUILD_BITCOIN_WALLET)
 endif()
 
 # The executable
-add_executable(bitcoin-qt bitcoin.cpp)
+add_executable(devault-qt bitcoin.cpp)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_libraries(bitcoin-qt bitcoin-qt-base "-framework Foundation" "-framework CoreServices" "-framework AppKit")
+  target_link_libraries(devault-qt bitcoin-qt-base "-framework Foundation" "-framework CoreServices" "-framework AppKit")
 else()
-  target_link_libraries(bitcoin-qt bitcoin-qt-base)
+  target_link_libraries(devault-qt bitcoin-qt-base)
 endif()
 
-QT5_USE_Modules(bitcoin-qt Gui)
-QT5_USE_Modules(bitcoin-qt Core)
-QT5_USE_Modules(bitcoin-qt Widgets)
-QT5_USE_Modules(bitcoin-qt Test)
-QT5_USE_Modules(bitcoin-qt PrintSupport)
-QT5_USE_Modules(bitcoin-qt Network)
+QT5_USE_Modules(devault-qt Gui)
+QT5_USE_Modules(devault-qt Core)
+QT5_USE_Modules(devault-qt Widgets)
+QT5_USE_Modules(devault-qt Test)
+QT5_USE_Modules(devault-qt PrintSupport)
+QT5_USE_Modules(devault-qt Network)
 if (Qt5DBus_FOUND)
-  QT5_USE_Modules(bitcoin-qt DBus)
+  QT5_USE_Modules(devault-qt DBus)
 endif()
 
 
