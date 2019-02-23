@@ -7,12 +7,15 @@
 # Test PrioritiseTransaction code
 #
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.mininode import COIN
+from test_framework.blocktools import (
+    create_confirmed_utxos,
+    send_big_transactions,
+)
 # FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
-from test_framework.blocktools import send_big_transactions, create_confirmed_utxos
+from test_framework.messages import COIN
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
