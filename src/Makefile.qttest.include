@@ -14,7 +14,6 @@ TEST_QT_MOC_CPP = \
 
 if ENABLE_WALLET
 TEST_QT_MOC_CPP += \
-  qt/test/moc_paymentservertests.cpp \
   qt/test/moc_wallettests.cpp
 endif
 
@@ -25,7 +24,6 @@ TEST_QT_H = \
   qt/test/rpcnestedtests.h \
   qt/test/uritests.h \
   qt/test/paymentrequestdata.h \
-  qt/test/paymentservertests.h \
   qt/test/wallettests.h
 
 TEST_BITCOIN_CPP = \
@@ -49,7 +47,6 @@ qt_test_test_bitcoin_qt_SOURCES = \
   $(TEST_BITCOIN_H)
 if ENABLE_WALLET
 qt_test_test_bitcoin_qt_SOURCES += \
-  qt/test/paymentservertests.cpp \
   qt/test/wallettests.cpp \
   wallet/test/wallet_test_fixture.cpp
 endif

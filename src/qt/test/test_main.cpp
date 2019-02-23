@@ -18,7 +18,6 @@
 #include "util.h"
 
 #ifdef ENABLE_WALLET
-#include "paymentservertests.h"
 #include "wallettests.h"
 #endif
 
@@ -71,12 +70,6 @@ int main(int argc, char *argv[]) {
     if (QTest::qExec(&test1) != 0) {
         fInvalid = true;
     }
-#ifdef ENABLE_WALLET
-    PaymentServerTests test2;
-    if (QTest::qExec(&test2) != 0) {
-        fInvalid = true;
-    }
-#endif
     RPCNestedTests test3;
     if (QTest::qExec(&test3) != 0) {
         fInvalid = true;
