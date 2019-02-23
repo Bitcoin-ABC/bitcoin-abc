@@ -45,6 +45,8 @@
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
 #include "wallet/rpcdump.h"
+// for vpwallets/GenerateBitcoin
+#include "wallet/wallet.h"
 #endif
 #include "walletinitinterface.h"
 #include "warnings.h"
@@ -2384,6 +2386,11 @@ bool AppInitMain(Config &config,
     if (!connman.Start(scheduler, connOptions)) {
         return false;
     }
+
+    
+    // Generate coins in the background
+   // GenerateBitcoins(1, 1, config, vpwallets[0]);
+
 
     // Step 12: finished
 
