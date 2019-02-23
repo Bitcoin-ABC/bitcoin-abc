@@ -3,10 +3,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-
+from decimal import Decimal
 import threading
+
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import get_rpc_proxy, random_transaction
 
 
 class LongpollThread(threading.Thread):
