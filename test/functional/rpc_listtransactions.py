@@ -5,8 +5,10 @@
 
 # Exercise the listtransactions API
 
+from decimal import Decimal
+
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
+from test_framework.util import assert_array_result
 
 
 class ListTransactionsTest(BitcoinTestFramework):

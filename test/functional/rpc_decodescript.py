@@ -3,9 +3,9 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
 from test_framework.messages import CTransaction, FromHex, ToHex
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, bytes_to_hex_str, hex_str_to_bytes
 
 
 class DecodeScriptTest(BitcoinTestFramework):
