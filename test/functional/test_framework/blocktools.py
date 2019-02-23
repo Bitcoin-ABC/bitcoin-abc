@@ -4,11 +4,29 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Utilities for manipulating blocks and transactions."""
 
-from .mininode import *
-from .script import CScript, OP_TRUE, OP_CHECKSIG, OP_RETURN, OP_PUSHDATA2, OP_DUP, OP_HASH160, OP_EQUALVERIFY
-from .mininode import CTransaction, CTxOut, CTxIn
-from .util import satoshi_round
+from .script import (
+    CScript,
+    OP_CHECKSIG,
+    OP_DUP,
+    OP_EQUALVERIFY,
+    OP_HASH160,
+    OP_PUSHDATA2,
+    OP_RETURN,
+    OP_TRUE,
+)
+from .messages import (
+    CBlock,
+    COIN,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    FromHex,
+    ToHex,
+    ser_string,
+)
 from .txtools import pad_tx
+from .util import satoshi_round
 
 # Create a block (with regtest difficulty)
 

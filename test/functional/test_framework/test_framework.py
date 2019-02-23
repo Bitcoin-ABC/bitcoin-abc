@@ -4,10 +4,10 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Base class for RPC testing."""
 
+import argparse
 from collections import deque
 from enum import Enum
 import logging
-import argparse
 import os
 import pdb
 import shutil
@@ -20,15 +20,15 @@ from .authproxy import JSONRPCException
 from . import coverage
 from .test_node import TestNode
 from .util import (
-    MAX_NODES,
-    PortSeed,
     assert_equal,
     check_json_precision,
     connect_nodes_bi,
     disconnect_nodes,
     initialize_datadir,
     log_filename,
+    MAX_NODES,
     p2p_port,
+    PortSeed,
     rpc_port,
     set_node_times,
     sync_blocks,

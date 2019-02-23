@@ -17,11 +17,25 @@ TestNode behaves as follows:
     on_getdata: provide blocks via BlockStore
 """
 
-from .mininode import *
+import logging
+
 from .blockstore import BlockStore, TxStore
+from .messages import (
+    CBlock,
+    CBlockHeader,
+    CInv,
+    CTransaction,
+    MAX_INV_SZ,
+    msg_block,
+    msg_getheaders,
+    msg_headers,
+    msg_inv,
+    msg_mempool,
+    msg_ping,
+)
+from .mininode import mininode_lock, P2PInterface
 from .util import p2p_port, wait_until
 
-import logging
 
 logger = logging.getLogger("TestFramework.comptool")
 

@@ -20,7 +20,33 @@ import struct
 import sys
 import threading
 
-from test_framework.messages import *
+from test_framework.messages import (
+    MIN_VERSION_SUPPORTED,
+    msg_addr,
+    msg_block,
+    msg_blocktxn,
+    msg_cmpctblock,
+    msg_feefilter,
+    msg_getaddr,
+    msg_getblocks,
+    msg_getblocktxn,
+    msg_getdata,
+    msg_getheaders,
+    msg_headers,
+    msg_inv,
+    msg_mempool,
+    msg_ping,
+    msg_pong,
+    msg_reject,
+    msg_sendcmpct,
+    msg_sendheaders,
+    msg_tx,
+    msg_verack,
+    msg_version,
+    NODE_NETWORK,
+    READ_BUFFER_SIZE,
+    sha256,
+)
 from test_framework.util import wait_until
 
 logger = logging.getLogger("TestFramework.mininode")

@@ -15,13 +15,13 @@ import subprocess
 import time
 
 from .authproxy import JSONRPCException
-from .mininode import COIN, FromHex, CTransaction
+from .messages import COIN, CTransaction, FromHex
 from .util import (
     assert_equal,
     get_rpc_proxy,
+    p2p_port,
     rpc_url,
     wait_until,
-    p2p_port,
 )
 
 # For Python 3.4 compatibility
