@@ -19,12 +19,33 @@ We test the mempool coherence in 3 cases:
    confirmed on the shorter chain) are kept or reincluded in the mempool.
 """
 
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import TestInstance, TestManager
+from test_framework.key import CECKey
+from test_framework.messages import (
+    COIN,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    ToHex,
+)
+from test_framework.mininode import network_thread_start
+from test_framework.script import (
+    CScript,
+    OP_CHECKSIG,
+    OP_TRUE,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
+)
 from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
-from test_framework.comptool import TestManager, TestInstance
-from test_framework.blocktools import *
-from test_framework.key import CECKey
-from test_framework.script import *
 
 
 # ---Code specific to the activation used for this test---

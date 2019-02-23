@@ -11,16 +11,48 @@ this one can be extended, to cover the checks done for bigger blocks
 (e.g. sigops limits).
 """
 
+from collections import deque
+import random
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+    make_conform_to_ctor,
+)
+from test_framework.cdefs import (
+    MAX_BLOCK_SIGOPS_PER_MB,
+    MAX_TX_SIGOPS_COUNT,
+    ONE_MEGABYTE,
+)
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.key import CECKey
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    ser_compact_size,
+    ToHex,
+)
+from test_framework.mininode import network_thread_start
+from test_framework.script import (
+    CScript,
+    hash160,
+    OP_2DUP,
+    OP_CHECKSIG,
+    OP_CHECKSIGVERIFY,
+    OP_EQUAL,
+    OP_HASH160,
+    OP_RETURN,
+    OP_TRUE,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
+)
 from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import assert_equal
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-import time
-from test_framework.key import CECKey
-from test_framework.script import *
-from test_framework.cdefs import (ONE_MEGABYTE, MAX_BLOCK_SIGOPS_PER_MB,
-                                  MAX_TX_SIGOPS_COUNT)
-from collections import deque
 
 REPLAY_PROTECTION_START_TIME = 2000000000
 

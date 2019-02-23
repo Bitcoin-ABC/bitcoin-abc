@@ -7,9 +7,9 @@ Test that mining RPC continues to supply correct transaction metadata after
 the Nov 2018 protocol upgrade which engages canonical transaction ordering
 """
 
-import time
-import random
 import decimal
+import random
+import time
 
 from test_framework.test_framework import BitcoinTestFramework
 

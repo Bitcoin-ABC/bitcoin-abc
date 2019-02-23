@@ -7,11 +7,39 @@
 This test checks activation of the SCRIPT_ALLOW_SEGWIT_RECOVERY flag
 """
 
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.messages import (
+    COIN,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    msg_tx,
+    ToHex,
+)
+from test_framework.mininode import (
+    mininode_lock,
+    network_thread_start,
+    P2PInterface,
+)
+from test_framework.script import (
+    CScript,
+    hash160,
+    OP_EQUAL,
+    OP_HASH160,
+    OP_TRUE,
+)
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, sync_blocks
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-from test_framework.script import *
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    sync_blocks,
+)
 
 # far into the future
 GREAT_WALL_START_TIME = 2000000000

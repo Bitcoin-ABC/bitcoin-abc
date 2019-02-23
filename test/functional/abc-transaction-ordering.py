@@ -7,13 +7,30 @@ This test checks that the node software accepts transactions in
 non topological order once the feature is activated.
 """
 
+from collections import deque
+import random
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+)
+from test_framework.mininode import network_thread_start
+from test_framework.script import (
+    CScript,
+    OP_RETURN,
+    OP_TRUE,
+)
 from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import assert_equal
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-import time
-from test_framework.script import *
-from collections import deque
 
 # far into the future
 REPLAY_PROTECTION_START_TIME = 2000000000

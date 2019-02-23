@@ -6,11 +6,14 @@
 # Exercise the Bitcoin ABC RPC calls.
 
 import re
+
+from test_framework.cdefs import (
+    DEFAULT_MAX_BLOCK_SIZE,
+    LEGACY_MAX_BLOCK_SIZE,
+    ONE_MEGABYTE,
+)
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (assert_equal, assert_raises_rpc_error)
-from test_framework.cdefs import (ONE_MEGABYTE,
-                                  LEGACY_MAX_BLOCK_SIZE,
-                                  DEFAULT_MAX_BLOCK_SIZE)
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 class ABC_RPC_Test (BitcoinTestFramework):

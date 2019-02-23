@@ -9,15 +9,16 @@ each case.
 """
 
 import struct
+
+from test_framework.messages import NODE_NETWORK, msg_version
 from test_framework.mininode import (
-    P2PInterface,
-    msg_ping,
-    mininode_lock,
     MAGIC_BYTES,
+    mininode_lock,
+    msg_ping,
     network_thread_start,
+    P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.messages import NODE_NETWORK, msg_version
 from test_framework.util import wait_until
 
 

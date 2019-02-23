@@ -18,13 +18,41 @@ Derived from abc-replay-protection.py with improvements borrowed from
 abc-segwit-recovery-activation.py.
 """
 
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.key import CECKey
+from test_framework.messages import (
+    COIN,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    msg_tx,
+    ToHex,
+)
+from test_framework.mininode import (
+    mininode_lock,
+    network_thread_start,
+    P2PInterface,
+)
+from test_framework import schnorr
+from test_framework.script import (
+    CScript,
+    OP_1,
+    OP_CHECKMULTISIG,
+    OP_CHECKSIG,
+    OP_TRUE,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, sync_blocks
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-from test_framework.key import CECKey
-from test_framework import schnorr
-from test_framework.script import *
 
 # far into the future
 GREAT_WALL_START_TIME = 2000000000
