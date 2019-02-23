@@ -1,8 +1,8 @@
-from .cdefs import MIN_TX_SIZE, MAX_TXOUT_PUBKEY_SCRIPT
-from .mininode import CTransaction, FromHex, ToHex, CTxOut
-from .script import OP_RETURN, CScript
-
 import random
+
+from .cdefs import MAX_TXOUT_PUBKEY_SCRIPT, MIN_TX_SIZE
+from .messages import CTransaction, CTxOut, FromHex, ToHex
+from .script import CScript, OP_RETURN
 
 
 def pad_tx(tx, pad_to_size=MIN_TX_SIZE):
