@@ -11,10 +11,16 @@
 #    - decoderawtransaction
 #    - getrawtransaction
 """
+from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
 from test_framework.txtools import pad_raw_tx
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than,
+    assert_raises_rpc_error,
+    connect_nodes_bi,
+)
 
 # Create one-input, one-output, no-fee transaction:
 
