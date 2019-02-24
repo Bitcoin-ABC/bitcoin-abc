@@ -231,6 +231,9 @@ private:
     bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
                           const Consensus::Params &params)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    //! Mark a block as not having block data
+    void EraseBlockData(CBlockIndex *index) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 } g_chainstate;
 
 /**
@@ -4940,6 +4943,47 @@ bool CChainState::ReplayBlocks(const Consensus::Params &params,
 
 bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view) {
     return g_chainstate.ReplayBlocks(params, view);
+}
+
+//! Helper for CChainState::RewindBlockIndex
+void CChainState::EraseBlockData(CBlockIndex *index) {
+    AssertLockHeld(cs_main);
+    // Make sure this block isn't active
+    assert(!chainActive.Contains(index));
+
+    // Reduce validity
+    index->nStatus = index->nStatus.withValidity(
+        std::min(index->nStatus.getValidity(), BlockValidity::TREE));
+    // Remove have-data flags.
+    index->nStatus = index->nStatus.withData(false).withUndo(false);
+    // Remove storage location.
+    index->nFile = 0;
+    index->nDataPos = 0;
+    index->nUndoPos = 0;
+    // Remove various other things
+    index->nTx = 0;
+    index->nChainTx = 0;
+    index->nSequenceId = 0;
+    // Make sure it gets written.
+    setDirtyBlockIndex.insert(index);
+    // Update indexes
+    setBlockIndexCandidates.erase(index);
+    std::pair<std::multimap<CBlockIndex *, CBlockIndex *>::iterator,
+              std::multimap<CBlockIndex *, CBlockIndex *>::iterator>
+        ret = mapBlocksUnlinked.equal_range(index->pprev);
+    while (ret.first != ret.second) {
+        if (ret.first->second == index) {
+            mapBlocksUnlinked.erase(ret.first++);
+        } else {
+            ++ret.first;
+        }
+    }
+
+    // Mark parent as eligible for main chain again
+    if (index->pprev && index->pprev->IsValid(BlockValidity::TRANSACTIONS) &&
+        index->pprev->HaveTxsDownloaded()) {
+        setBlockIndexCandidates.insert(index->pprev);
+    }
 }
 
 bool CChainState::RewindBlockIndex(const Config &config) {
