@@ -211,7 +211,7 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "0000000000000000000000000000000000000000000000416ad051088ff75074");
+            "0x00");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
@@ -261,8 +261,8 @@ public:
 
         checkpointData = {
             .mapCheckpoints = {
-                {546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345"
-                               "d31b1bcebf76acb70")},
+                {0, uint256S("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526"
+                               "f8d77f4943")},
             }};
 
         // Data as of block
