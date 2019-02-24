@@ -20,7 +20,7 @@
             "type": "flake8",
             "include": "(\\.py$)",
             "flags": [
-                "--select=F401"
+                "--select=F401,F403,F405"
             ]
         },
         "lint-format-strings": {
