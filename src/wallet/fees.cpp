@@ -10,10 +10,11 @@
 #include "txmempool.h"
 #include "util.h"
 #include "validation.h"
+#include "wallet/coincontrol.h"
 #include "wallet/wallet.h"
 
-Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
-                     Amount targetFee) {
+Amount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget,
+                     const CTxMemPool &pool, Amount targetFee) {
     Amount nFeeNeeded = targetFee;
     // User didn't set: use -txconfirmtarget to estimate...
     if (nFeeNeeded == Amount::zero()) {
@@ -37,7 +38,9 @@ Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
     return nFeeNeeded;
 }
 
-Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool) {
+Amount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget,
+                     const CTxMemPool &pool) {
     // payTxFee is the user-set global for desired feerate.
-    return GetMinimumFee(nTxBytes, pool, payTxFee.GetFeeCeiling(nTxBytes));
+    return GetMinimumFee(nTxBytes, nConfirmTarget, pool,
+                         payTxFee.GetFeeCeiling(nTxBytes));
 }
