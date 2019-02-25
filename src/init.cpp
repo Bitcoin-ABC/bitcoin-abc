@@ -96,7 +96,6 @@ std::unique_ptr<BanMan> g_banman;
 /**
  * The PID file facilities.
  */
-#ifndef WIN32
 static const char *BITCOIN_PID_FILENAME = "bitcoind.pid";
 
 static fs::path GetPidFile() {
@@ -107,7 +106,11 @@ static fs::path GetPidFile() {
 NODISCARD static bool CreatePidFile() {
     FILE *file = fsbridge::fopen(GetPidFile(), "w");
     if (file) {
+#ifdef WIN32
+        fprintf(file, "%d\n", GetCurrentProcessId());
+#else
         fprintf(file, "%d\n", getpid());
+#endif
         fclose(file);
         return true;
     } else {
@@ -116,7 +119,6 @@ NODISCARD static bool CreatePidFile() {
                                    std::strerror(errno)));
     }
 }
-#endif
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -301,16 +303,15 @@ void Shutdown(InitInterfaces &interfaces) {
     }
 #endif
 
-#ifndef WIN32
     try {
         if (!fs::remove(GetPidFile())) {
             LogPrintf("%s: Unable to remove PID file: File does not exist\n",
                       __func__);
         }
     } catch (const fs::filesystem_error &e) {
-        LogPrintf("%s: Unable to remove PID file: %s\n", __func__, e.what());
+        LogPrintf("%s: Unable to remove PID file: %s\n", __func__,
+                  fsbridge::get_filesystem_error_message(e));
     }
-#endif
     interfaces.chain_clients.clear();
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
@@ -511,15 +512,11 @@ void SetupServerArgs() {
                            "on restart (default: %u)",
                            DEFAULT_PERSIST_MEMPOOL),
                  false, OptionsCategory::OPTIONS);
-#ifndef WIN32
     gArgs.AddArg("-pid=<file>",
                  strprintf("Specify pid file. Relative paths will be prefixed "
                            "by a net-specific datadir location. (default: %s)",
                            BITCOIN_PID_FILENAME),
                  false, OptionsCategory::OPTIONS);
-#else
-    hidden_args.emplace_back("-pid");
-#endif
     gArgs.AddArg(
         "-prune=<n>",
         strprintf("Reduce storage requirements by enabling pruning (deleting) "
@@ -1917,12 +1914,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Step 4a: application initialization
     const CChainParams &chainparams = config.GetChainParams();
 
-#ifndef WIN32
     if (!CreatePidFile()) {
         // Detailed error printed inside CreatePidFile().
         return false;
     }
-#endif
 
     BCLog::Logger &logger = LogInstance();
     if (logger.m_print_to_file) {
