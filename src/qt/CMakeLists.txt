@@ -3,7 +3,11 @@
 project(devault-qt)
 
 # This ensure that AUTOMOC doesn't run on generated files.
-cmake_policy(SET CMP0071 OLD)
+if (CMAKE_VERSION VERSION_LESS 3.10)
+  message("Not setting CMP0071")
+else()
+  cmake_policy(SET CMP0071 OLD)
+endif()
 
 include(BrewHelper)
 find_brew_prefix(QT5_PREFIX qt5)
@@ -21,7 +25,7 @@ endif()
 
 find_package(Qt5DBus)
 if (Qt5DBus_FOUND)
-  include_directories(${include_directories} "/usr/local/opt/qt5/include/QtDBus/")
+  include_directories(${include_directories} "/usr/local/opt/qt5/include/QtDBus/" "/usr/include/x86_64-linux-gnu/qt5/QtDBus" ...)
   add_compile_options("-DUSE_DBUS")
 endif()
 
