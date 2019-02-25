@@ -12,7 +12,7 @@ endif()
 include(BrewHelper)
 find_brew_prefix(QT5_PREFIX qt5)
 
-set(QT_REQUIRED_COMPONENTS Core Widgets Network Test)
+set(QT_REQUIRED_COMPONENTS Core Widgets Network Test DBus)
 find_package(Qt5 COMPONENTS ${QT_REQUIRED_COMPONENTS} REQUIRED HINTS "${QT5_PREFIX}")
 
 # Find out more about Qt. This is similar to
@@ -25,7 +25,6 @@ endif()
 
 find_package(Qt5DBus)
 if (Qt5DBus_FOUND)
-  include_directories(${include_directories} "/usr/local/opt/qt5/include/QtDBus/" "/usr/include/x86_64-linux-gnu/qt5/QtDBus" ...)
   add_compile_options("-DUSE_DBUS")
 endif()
 

@@ -15,7 +15,7 @@
 #include <QTemporaryFile>
 #include <QVariant>
 #ifdef USE_DBUS
-#include <QtDBus>
+#include <QtDBus/QtDBus>
 #include <cstdint>
 #endif
 // Include ApplicationServices.h after QtDbus to avoid redefinition of check().
