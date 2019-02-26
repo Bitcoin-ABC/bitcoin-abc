@@ -120,15 +120,15 @@ public:
          * normal data. The characters are rarely used upper ASCII, not valid as
          * UTF-8, and produce a large 32-bit integer with any alignment.
          */
-        diskMagic[0] = 0xf9;
-        diskMagic[1] = 0xbe;
-        diskMagic[2] = 0xb4;
-        diskMagic[3] = 0xd9;
+        diskMagic[0] = 0xc0;
+        diskMagic[1] = 0xd2;
+        diskMagic[2] = 0xe0;
+        diskMagic[3] = 0xd1;
         netMagic[0] = 0xe3;
         netMagic[1] = 0xe1;
         netMagic[2] = 0xf3;
         netMagic[3] = 0xe8;
-        nDefaultPort = 8333;
+        nDefaultPort = 33039;
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1,
@@ -149,9 +149,9 @@ public:
         // Bitcoin ABC seeder
         vSeeds.emplace_back("seed.devault.com");
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
-        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 128);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 31);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 90);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 193);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
         cashaddrPrefix = "devault";
@@ -164,8 +164,8 @@ public:
 
         checkpointData = {
             .mapCheckpoints = {
-                {11111, uint256S("0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee"
-                                 "92559f542fdb26e7c1d")},
+                {0, uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1"
+                                 "b60a8ce26f")},
             }};
 
         // Data as of block
@@ -211,7 +211,7 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "0000000000000000000000000000000000000000000000416ad051088ff75074");
+            "0x00");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
@@ -221,15 +221,15 @@ public:
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
         consensus.gravitonActivationTime = 1573819200;
 
-        diskMagic[0] = 0x0b;
-        diskMagic[1] = 0x11;
-        diskMagic[2] = 0x09;
-        diskMagic[3] = 0x07;
+        diskMagic[0] = 0x0d;
+        diskMagic[1] = 0x08;
+        diskMagic[2] = 0x13;
+        diskMagic[3] = 0x04;
         netMagic[0] = 0xf4;
         netMagic[1] = 0xe5;
         netMagic[2] = 0xf3;
         netMagic[3] = 0xf4;
-        nDefaultPort = 18333;
+        nDefaultPort = 39039;
         nPruneAfterHeight = 1000;
 
         genesis =
@@ -247,9 +247,9 @@ public:
         // nodes with support for servicebits filtering should be at the top
         // Bitcoin ABC seeder
         vSeeds.emplace_back("testnet.devault.com");
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
-        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 66);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 127);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 212);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "dvtest";
@@ -261,8 +261,8 @@ public:
 
         checkpointData = {
             .mapCheckpoints = {
-                {546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345"
-                               "d31b1bcebf76acb70")},
+                {0, uint256S("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526"
+                               "f8d77f4943")},
             }};
 
         // Data as of block
