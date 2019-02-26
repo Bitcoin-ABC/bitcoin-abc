@@ -55,7 +55,7 @@ UniValue RPCServer::ExecuteCommand(Config &config,
         auto commandsReadView = commands.getReadView();
         auto iter = commandsReadView->find(commandName);
         if (iter != commandsReadView.end()) {
-            return iter->second.get()->Execute(request.params);
+            return iter->second.get()->Execute(request);
         }
     }
 
