@@ -41,25 +41,10 @@ struct BIP9Deployment {
 struct Params {
     uint256 hashGenesisBlock;
     int nSubsidyHalvingInterval;
-    /** Block height and hash at which BIP34 becomes active */
-    int BIP34Height;
-    uint256 BIP34Hash;
-    /** Block height at which BIP65 becomes active */
-    int BIP65Height;
-    /** Block height at which BIP66 becomes active */
-    int BIP66Height;
-    /** Block height at which CSV (BIP68, BIP112 and BIP113) becomes active */
-    int CSVHeight;
     /** Block height at which UAHF kicks in */
     int uahfHeight;
-    /** Block height at which the new DAA becomes active */
-    int daaHeight;
-    /** Block height at which the magnetic anomaly activation becomes active */
-    int magneticAnomalyHeight;
     /** Unix time used for MTP activation of 15 May 2019 12:00:00 UTC upgrade */
     int greatWallActivationTime;
-    /** Unix time used for MTP activation of Nov 15 2019 12:00:00 UTC upgrade */
-    int gravitonActivationTime;
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks
      * in a retargeting period, (nPowTargetTimespan / nPowTargetSpacing) which

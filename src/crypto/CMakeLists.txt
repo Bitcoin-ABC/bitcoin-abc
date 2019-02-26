@@ -2,8 +2,12 @@
 
 project(crypto)
 
+file(GLOB CRYPTO_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+source_group("CryptHeaders" FILES ${CRYPTO_HEADERS})
+
 # The library
 add_library(crypto
+  ${CRYPTO_HEADERS}
 	aes.cpp
 	chacha20.cpp
 	hmac_sha256.cpp

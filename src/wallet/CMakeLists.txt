@@ -9,7 +9,11 @@ find_package(BerkeleyDB REQUIRED)
 # in rpcwallet.cpp so it may be worth considering using an alternative.
 find_package(Event REQUIRED)
 
+file(GLOB WALLET_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h )
+source_group("WalletHeaders" FILES ${WALLET_HEADERS})
+
 add_library(wallet
+  ${WALLET_HEADERS}
 	crypter.cpp
 	db.cpp
 	fees.cpp

@@ -60,6 +60,24 @@ add_subdirectory(leveldb)
 add_subdirectory(secp256k1)
 add_subdirectory(univalue)
 
+file(GLOB PRIMITIVE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/primitives/*.h)
+source_group("PrimitiveHeaders" FILES ${PRIMITIVE_HEADERS})
+
+file(GLOB RPC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/rpc/*.h )
+source_group("RpcHeaders" FILES ${RPC_HEADERS})
+
+file(GLOB HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+source_group("SrcHeaders" FILES ${HEADERS})
+
+file(GLOB CON_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/consensus/*.h)
+source_group("ConsenusHeaders" FILES ${CON_HEADERS})
+
+file(GLOB POLICY_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/policy/*.h)
+source_group("PolicyHeaders" FILES ${POLICY_HEADERS})
+
+file(GLOB SCRIPT_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/script/*.h)
+source_group("ScriptHeaders" FILES ${SCRIPT_HEADERS})
+
 # Because the Bitcoin ABc source code is disorganised, we
 # end up with a bunch of libraries without any aparent
 # cohesive structure. This is inherited from Bitcoin Core
@@ -135,6 +153,7 @@ target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_
 # More completely unrelated features shared by all executables.
 # Because nothing says this is different from util than "common"
 add_library(common
+  ${HEADERS}
 	amount.cpp
 	base58.cpp
 	cashaddr.cpp
@@ -165,6 +184,8 @@ target_link_libraries(common util secp256k1)
 
 # libbitcoinconsensus
 add_library(bitcoinconsensus
+  ${SCRIPT_HEADERS}
+  ${PRIMITIVE_HEADERS}
 	arith_uint256.cpp
 	hash.cpp
 	primitives/transaction.cpp
@@ -182,6 +203,9 @@ target_link_libraries(bitcoinconsensus common)
 
 # Bitcoin server facilities
 add_library(server
+  ${RPC_HEADERS}
+  ${CONSENSUS_HEADERS}
+  ${POLICY_HEADERS}
 	addrman.cpp
 	addrdb.cpp
 	avalanche.cpp
@@ -227,6 +251,8 @@ add_library(server
 	validationinterface.cpp
 	versionbits.cpp
 )
+
+
 
 # This require libevent
 find_package(Event REQUIRED)

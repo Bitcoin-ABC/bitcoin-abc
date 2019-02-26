@@ -775,16 +775,16 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
 BOOST_AUTO_TEST_CASE(txsize_activation_test) {
     const Config &config = GetConfig();
-    const int32_t magneticAnomalyActivationHeight = 0;
+    const int32_t greatWallActivationHeight = 0;
 
     // A minimaly sized transction.
     CTransaction minTx;
     CValidationState state;
 
     BOOST_CHECK(ContextualCheckTransaction(
-        config, minTx, state, magneticAnomalyActivationHeight - 1, 5678, 1234));
+        config, minTx, state, greatWallActivationHeight - 1, 5678, 1234));
     BOOST_CHECK(!ContextualCheckTransaction(
-        config, minTx, state, magneticAnomalyActivationHeight, 5678, 1234));
+        config, minTx, state, greatWallActivationHeight, 5678, 1234));
     BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-undersize");
 }

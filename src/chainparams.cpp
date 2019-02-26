@@ -112,8 +112,8 @@ public:
         consensus.defaultAssumeValid = uint256S(
             "000000000000000003aadeae9dee37b8cb4838a866dae19b54854a0f039b03e0");
 
-        // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
+        // Nov 15, 2019 12:00:00 UTC protocol upgrade - TBD
+        consensus.greatWallActivationTime = 1573819200;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -219,7 +219,7 @@ public:
             "000000000000030bee568d677b6b99ee7d2d00b25d1fe95df5e73b484f00c322");
 
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
+        consensus.greatWallActivationTime = 1573819200;
 
         diskMagic[0] = 0x0d;
         diskMagic[1] = 0x08;
@@ -303,7 +303,7 @@ public:
         consensus.defaultAssumeValid = uint256S("0x00");
 
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
+        consensus.greatWallActivationTime = 1573819200;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;
