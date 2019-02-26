@@ -2114,7 +2114,20 @@ BOOST_AUTO_TEST_CASE(script_build) {
             .PushSigSchnorr(keys.key1)
             .EditPush(64, "01", "41")
             .ScriptError(SCRIPT_ERR_EVAL_FALSE));
- 
+
+    std::set<std::string> tests_set;
+
+    {
+        UniValue json_tests = read_json(std::string(
+            json_tests::script_tests,
+            json_tests::script_tests + sizeof(json_tests::script_tests)));
+
+        for (unsigned int idx = 0; idx < json_tests.size(); idx++) {
+            const UniValue &tv = json_tests[idx];
+            tests_set.insert(JSONPrettyPrint(tv.get_array()));
+        }
+    }
+
     std::string strGen;
 
     for (TestBuilder &test : tests) {
@@ -2862,44 +2875,6 @@ BOOST_AUTO_TEST_CASE(script_FindAndDelete) {
     expect = ScriptFromHex("03feed");
     BOOST_CHECK_EQUAL(s.FindAndDelete(d), 1);
     BOOST_CHECK(s == expect);
-}
-
-BOOST_AUTO_TEST_CASE(IsWitnessProgram) {
-    // Valid version: [0,16]
-    // Valid program_len: [2,40]
-    for (int version = -1; version <= 17; version++) {
-        for (unsigned int program_len = 1; program_len <= 41; program_len++) {
-            CScript script;
-            std::vector<uint8_t> program(program_len, '\42');
-            int parsed_version;
-            std::vector<uint8_t> parsed_program;
-            script << version << program;
-            bool result =
-                script.IsWitnessProgram(parsed_version, parsed_program);
-            bool expected = version >= 0 && version <= 16 && program_len >= 2 &&
-                            program_len <= 40;
-            BOOST_CHECK_EQUAL(result, expected);
-            if (result) {
-                BOOST_CHECK_EQUAL(version, parsed_version);
-                BOOST_CHECK(program == parsed_program);
-            }
-        }
-    }
-    // Tests with 1 and 3 stack elements
-    {
-        CScript script;
-        script << OP_0;
-        BOOST_CHECK_MESSAGE(
-            !script.IsWitnessProgram(),
-            "Failed IsWitnessProgram check with 1 stack element");
-    }
-    {
-        CScript script;
-        script << OP_0 << std::vector<uint8_t>(20, '\42') << OP_1;
-        BOOST_CHECK_MESSAGE(
-            !script.IsWitnessProgram(),
-            "Failed IsWitnessProgram check with 3 stack elements");
-    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
