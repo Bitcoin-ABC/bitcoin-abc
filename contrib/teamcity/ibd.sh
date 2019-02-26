@@ -21,10 +21,8 @@ cleanup() {
     pkill -P ${MYPID} tail || true
 }
 
-: ${PARAMS:=-disablewallet}
-
-# Launch bitcoind
-./bitcoind -datadir=ibd "${PARAMS}" &
+# Launch bitcoind using this script's parameters
+./bitcoind -datadir=ibd "$*" &
 bitcoin_pid=$!
 
 trap "cleanup ${bitcoin_pid}" EXIT
