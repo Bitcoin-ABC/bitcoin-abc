@@ -222,7 +222,7 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
             fShouldReturnFalse = false;
         } else if (i->first == "amount") {
             if (!i->second.isEmpty()) {
-                if (!BitcoinUnits::parse(BitcoinUnits::BCH, i->second,
+                if (!BitcoinUnits::parse(BitcoinUnits::DVT, i->second,
                                          &rv.amount)) {
                     return false;
                 }
@@ -264,7 +264,7 @@ QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
     if (info.amount != Amount::zero()) {
         ret +=
             QString("?amount=%1")
-                .arg(BitcoinUnits::format(BitcoinUnits::BCH, info.amount, false,
+                .arg(BitcoinUnits::format(BitcoinUnits::DVT, info.amount, false,
                                           BitcoinUnits::separatorNever));
         paramCount++;
     }

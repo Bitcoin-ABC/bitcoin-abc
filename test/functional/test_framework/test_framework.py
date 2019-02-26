@@ -467,7 +467,7 @@ class BitcoinTestFramework():
             from_dir = os.path.join(self.options.cachedir, "node" + str(i))
             to_dir = os.path.join(self.options.tmpdir, "node" + str(i))
             shutil.copytree(from_dir, to_dir)
-            # Overwrite port/rpcport in bitcoin.conf
+            # Overwrite port/rpcport in devault.conf
             initialize_datadir(self.options.tmpdir, i)
 
     def _initialize_chain_clean(self):

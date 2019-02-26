@@ -26,7 +26,7 @@ class TxViewDelegate : public QAbstractItemDelegate {
 public:
     explicit TxViewDelegate(const PlatformStyle *_platformStyle,
                             QObject *parent = nullptr)
-        : QAbstractItemDelegate(parent), unit(BitcoinUnits::BCH),
+        : QAbstractItemDelegate(parent), unit(BitcoinUnits::DVT),
           platformStyle(_platformStyle) {}
 
     inline void paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -271,7 +271,7 @@ void OverviewPage::setWalletModel(WalletModel *model) {
                 SLOT(updateWatchOnlyLabels(bool)));
     }
 
-    // update the display unit, to not use the default ("BCH")
+    // update the display unit, to not use the default ("DVT")
     updateDisplayUnit();
 }
 

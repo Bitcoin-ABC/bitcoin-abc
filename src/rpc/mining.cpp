@@ -263,7 +263,7 @@ static UniValue getmininginfo(const Config &config,
     return obj;
 }
 
-// NOTE: Unlike wallet RPC (which use BCH values), mining RPCs follow GBT (BIP
+// NOTE: Unlike wallet RPC (which use DVT values), mining RPCs follow GBT (BIP
 // 22) in using satoshi amounts
 static UniValue prioritisetransaction(const Config &config,
                                       const JSONRPCRequest &request) {
