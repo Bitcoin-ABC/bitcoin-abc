@@ -11,8 +11,13 @@
 
 #include <string>
 
+class JSONRPCRequest;
+
 /**
- * Base class for all RPC commands.
+ * Base class for all RPC commands. RPCCommand should only
+ * be inherited from directly if access to the entire request context is
+ * necessary.  For more typical cases where only request arguments are
+ * required, see the RPCCommandWithArgsContext class.
  */
 class RPCCommand : public boost::noncopyable {
 private:
@@ -28,12 +33,30 @@ private:
     // messages as well)
 
 public:
-    RPCCommand(std::string nameIn) : name(nameIn) {}
+    RPCCommand(const std::string &nameIn) : name(nameIn) {}
     virtual ~RPCCommand() {}
 
-    virtual UniValue Execute(const UniValue &args) const = 0;
+    /**
+     * It is recommended to override Execute(JSONRPCRequest) only if the entire
+     * request context is required.  Otherwise, use RPCCommandWithArgsContext
+     * instead.
+     */
+    virtual UniValue Execute(const JSONRPCRequest &request) const = 0;
 
     const std::string &GetName() const { return name; };
 };
 
-#endif // BITCOIN_RPC_COMMAND_H
+/**
+ * By default, use RPCCommandWithArgsContext as the parent class for new RPC
+ * command classes that only depend on RPC arguments.
+ */
+class RPCCommandWithArgsContext : public RPCCommand {
+public:
+    RPCCommandWithArgsContext(const std::string &nameIn) : RPCCommand(nameIn) {}
+
+    virtual UniValue Execute(const UniValue &args) const = 0;
+
+    UniValue Execute(const JSONRPCRequest &request) const final;
+};
+
+#endif // BITCOIN_RPC_COMMAND_WITH_REQUEST_CONTEXT_H
