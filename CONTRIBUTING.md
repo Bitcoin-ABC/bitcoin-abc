@@ -1,34 +1,26 @@
-Contributing to Bitcoin ABC
+Contributing to DeVault
 ===========================
 
-The Bitcoin ABC project welcomes contributors!
+We welcome contributors!
 
-This guide is intended to help developers contribute effectively to Bitcoin ABC.
+This guide is intended to help developers contribute effectively.
 
 Communicating with Developers
 -----------------------------
 
-To get in contact with ABC developers, we monitor a telegram supergroup.  The
-intent of this group is specifically to facilitate development of Bitcoin-ABC,
-and to welcome people who wish to participate.
+To get in contact with developers, we monitor a DeVault Discord group. 
 
-https://t.me/joinchat/HCYr50mxRWjA2uLqii-psw
+Details : TBD
 
-Acceptable use of this supergroup includes the following:
-
-* Introducing yourself to other ABC developers.
-* Getting help with your development environment.
-* Discussing how to complete a patch.
-
-It is not for:
+We don't discuss:
 
 * Market discussion
 * Non-constructive criticism
 
-Bitcoin ABC Development Philosophy
+DeVault Development Philosophy
 ----------------------------------
 
-Bitcoin ABC aims for fast iteration and continuous integration.
+DeVault aims for fast iteration and continuous integration.
 
 This means that there should be quick turnaround for patches to be proposed,
 reviewed, and committed. Changes should not sit in a queue for long.
@@ -45,8 +37,7 @@ good reason to do so.
 - Review Diffs from other developers as quickly as possible.
 - Large changes should be broken into logical chunks that are easy to review,
 and keep the code in a functional state.
-- Do not mix moving stuff around with changing stuff. Do changes with renames
-on their own.
+- Do not mix moving stuff around with changing stuff. Do changes with renames on their own.
 - Sometimes you want to replace one subsystem by another implementation,
 in which case it is not possible to do things incrementally. In such cases,
 you keep both implementations in the codebase for a while, as described
@@ -63,7 +54,6 @@ top priority, more important than completing other tasks.
 Here are some handy links for development practices aligned with Bitcoin ABC:
 
 - [Developer Notes](doc/developer-notes.md)
-- [Statement of Bitcoin ABC Values and Visions](https://www.yours.org/content/bitcoin-abc---our-values-and-vision-a282afaade7c)
 - [How to Do Code Reviews Like a Human - Part 1](https://mtlynch.io/human-code-reviews-1/) 
 - [How to Do Code Reviews Like a Human - Part 2](https://mtlynch.io/human-code-reviews-2/)
 - [Adversarial vs Collaborative Communication Styles](http://www.nehrlich.com/blog/2008/05/23/adversarial-vs-collaborative-communication-styles/)
@@ -75,10 +65,10 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 - [The importance of fixing bugs immediately](https://youtu.be/E2MIpi8pIvY?t=16m0s)
 
 
-Getting set up with the Bitcoin ABC Repository
+Getting set up with the DeVault Repository
 ----------------------------------------------
 
-1. Create an account at https://reviews.bitcoinabc.org/
+1. Create an account at https://reviews.devault.org/
 
 2. Install Git and Arcanist on your machine
 
@@ -97,7 +87,7 @@ Type: `ssh-keygen -t rsa -b 4096 -C "your_email@example.com"`
 
 Enter a file in which to save the key (/home/*username*/.ssh/id_rsa): [Press enter]
 
-4. Upload your SSH public key to reviews.bitcoinabc.org
+4. Upload your SSH public key to reviews.devault.org
 
   - go to: `https://reviews.bitcoinabc.org/settings/user/*username*/page/ssh/`
 
@@ -108,9 +98,9 @@ Paste contents from: `/home/*username*/.ssh/id_rsa.pub`
 5. Clone the repository and install Arcanist certificate:
 
 ```
-git clone ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git
+git clone ssh://vcs@reviews.devault.org:2221/source/devault.git
 
-cd bitcoin-abc
+cd devault
 
 arc install-certificate
 ```
