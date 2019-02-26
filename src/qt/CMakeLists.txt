@@ -124,6 +124,15 @@ set(mac_stuff
 endif()
 
 
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(mac_stuff
+	macdockiconhandler.mm
+	macnotificationhandler.mm
+	)
+endif()
+
+
 add_library(bitcoin-qt-base
 	bantablemodel.cpp
 	bitcoinaddressvalidator.cpp
