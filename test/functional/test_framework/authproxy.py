@@ -36,6 +36,7 @@ ServiceProxy class:
 
 import base64
 import decimal
+from http import HTTPStatus
 import http.client
 import json
 import logging
@@ -51,13 +52,14 @@ log = logging.getLogger("BitcoinRPC")
 
 
 class JSONRPCException(Exception):
-    def __init__(self, rpc_error):
+    def __init__(self, rpc_error, http_status=None):
         try:
             errmsg = '{} ({})'.format(rpc_error['message'], rpc_error['code'])
         except (KeyError, TypeError):
             errmsg = ''
         super().__init__(errmsg)
         self.error = rpc_error
+        self.http_status = http_status
 
 
 def EncodeDecimal(o):
@@ -146,13 +148,16 @@ class AuthServiceProxy():
     def __call__(self, *args, **argsn):
         postdata = json.dumps(self.get_request(
             *args, **argsn), default=EncodeDecimal, ensure_ascii=self.ensure_ascii)
-        response = self._request(
+        response, status = self._request(
             'POST', self.__url.path, postdata.encode('utf-8'))
         if response['error'] is not None:
-            raise JSONRPCException(response['error'])
+            raise JSONRPCException(response['error'], status)
         elif 'result' not in response:
             raise JSONRPCException({
-                'code': -343, 'message': 'missing JSON-RPC result'})
+                'code': -343, 'message': 'missing JSON-RPC result'}, status)
+        elif status != HTTPStatus.OK:
+            raise JSONRPCException({
+                'code': -342, 'message': 'non-200 HTTP status code but no JSON-RPC error'}, status)
         else:
             return response['result']
 
@@ -160,7 +165,12 @@ class AuthServiceProxy():
         postdata = json.dumps(
             list(rpc_call_list), default=EncodeDecimal, ensure_ascii=self.ensure_ascii)
         log.debug("--> " + postdata)
-        return self._request('POST', self.__url.path, postdata.encode('utf-8'))
+        response, status = self._request(
+            'POST', self.__url.path, postdata.encode('utf-8'))
+        if status != HTTPStatus.OK:
+            raise JSONRPCException({
+                'code': -342, 'message': 'non-200 HTTP status code but no JSON-RPC error'}, status)
+        return response
 
     def _get_response(self):
         req_start_time = time.time()
@@ -179,9 +189,11 @@ class AuthServiceProxy():
 
         content_type = http_response.getheader('Content-Type')
         if content_type != 'application/json':
-            raise JSONRPCException({
-                'code': -342, 'message': 'non-JSON HTTP response with \'{} {}\' from server'.format(
-                    http_response.status, http_response.reason)})
+            raise JSONRPCException(
+                {'code': -342,
+                 'message': 'non-JSON HTTP response with \'{} {}\' from server'.format(
+                     http_response.status, http_response.reason)},
+                http_response.status)
 
         responsedata = http_response.read().decode('utf8')
         response = json.loads(responsedata, parse_float=decimal.Decimal)
@@ -191,7 +203,7 @@ class AuthServiceProxy():
                 response["result"], default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
         else:
             log.debug("<-- [{:.6f}] {}".format(elapsed, responsedata))
-        return response
+        return response, http_response.status
 
     def __truediv__(self, relative_uri):
         return AuthServiceProxy("{}/{}".format(self.__service_url,
