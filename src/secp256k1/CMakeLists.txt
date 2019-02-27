@@ -129,14 +129,19 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 	set(USE_ECMULT_STATIC_PRECOMPUTATION 1)
 
 	include(NativeExecutable)
-	add_native_executable(gen_context src/gen_context.c)
+  if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/src/ecmult_static_context.h")
+    message(STATUS "Ecmult_static_context.h already created")
+  else()
+    message(STATUS "Creating ${CMAKE_CURRENT_BINARY_DIR}/src/ecmult_static_context.h")
+	  add_native_executable(gen_context src/gen_context.c)
 
-	add_custom_command(
-		OUTPUT ecmult_static_context.h
-		COMMAND gen_context
-	)
+	  add_custom_command(
+		  OUTPUT ecmult_static_context.h
+		  COMMAND gen_context
+	    )
 
-	target_sources(secp256k1 PRIVATE ecmult_static_context.h)
+	  target_sources(secp256k1 PRIVATE ecmult_static_context.h)
+  endif()
 endif()
 
 # Generate the config
