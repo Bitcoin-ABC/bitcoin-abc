@@ -9,7 +9,7 @@
 #include "policy/policy.h" // DEFAULT_BLOCK_PRIORITY_PERCENTAGE
 
 GlobalConfig::GlobalConfig()
-    : useCashAddr(false), nMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE),
+    : nMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE),
       nBlockPriorityPercentage(DEFAULT_BLOCK_PRIORITY_PERCENTAGE) {}
 
 bool GlobalConfig::SetMaxBlockSize(uint64_t maxBlockSize) {
@@ -48,13 +48,6 @@ static GlobalConfig gConfig;
 
 const Config &GetConfig() {
     return gConfig;
-}
-
-void GlobalConfig::SetCashAddrEncoding(bool c) {
-    useCashAddr = c;
-}
-bool GlobalConfig::UseCashAddrEncoding() const {
-    return useCashAddr;
 }
 
 DummyConfig::DummyConfig()

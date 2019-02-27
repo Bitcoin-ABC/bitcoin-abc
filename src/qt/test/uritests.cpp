@@ -176,12 +176,9 @@ void URITests::uriTestsCashAddr() {
 namespace {
 class UriTestConfig : public DummyConfig {
 public:
-    UriTestConfig(bool useCashAddrIn)
-        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(useCashAddrIn) {}
-    bool UseCashAddrEncoding() const override { return useCashAddr; }
+    UriTestConfig()
+        : DummyConfig(CBaseChainParams::MAIN) {}
 
-private:
-    bool useCashAddr;
 };
 
 } // namespace

@@ -165,16 +165,12 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent) {
     widget->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 }
 
-QString bitcoinURIScheme(const CChainParams &params, bool useCashAddr) {
-    if (!useCashAddr) {
-        return "bitcoincash";
-    }
+QString bitcoinURIScheme(const CChainParams &params) {
     return QString::fromStdString(params.CashAddrPrefix());
 }
 
 QString bitcoinURIScheme(const Config &config) {
-    return bitcoinURIScheme(config.GetChainParams(),
-                            config.UseCashAddrEncoding());
+    return bitcoinURIScheme(config.GetChainParams());
 }
 
 static bool IsCashAddrEncoded(const QUrl &uri) {
@@ -255,10 +251,6 @@ bool parseBitcoinURI(const QString &scheme, QString uri,
 
 QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
     QString ret = info.address;
-    if (!config.UseCashAddrEncoding()) {
-        // prefix address with uri scheme for base58 encoded addresses.
-        ret = (bitcoinURIScheme(config) + ":%1").arg(ret);
-    }
     int paramCount = 0;
 
     if (info.amount != Amount::zero()) {

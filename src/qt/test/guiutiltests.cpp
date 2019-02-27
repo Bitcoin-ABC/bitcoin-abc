@@ -13,12 +13,7 @@ namespace {
 class GUIUtilTestConfig : public DummyConfig {
 public:
     GUIUtilTestConfig()
-        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(false) {}
-    void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
-    bool UseCashAddrEncoding() const override { return useCashAddr; }
-
-private:
-    bool useCashAddr;
+        : DummyConfig(CBaseChainParams::MAIN) {}
 };
 
 } // namespace
@@ -29,12 +24,6 @@ void GUIUtilTests::dummyAddressTest() {
 
     std::string dummyaddr;
 
-    config.SetCashAddrEncoding(false);
-    dummyaddr = GUIUtil::DummyAddress(config);
-    QVERIFY(!IsValidDestinationString(dummyaddr, params));
-    QVERIFY(!dummyaddr.empty());
-
-    config.SetCashAddrEncoding(true);
     dummyaddr = GUIUtil::DummyAddress(config);
     QVERIFY(!IsValidDestinationString(dummyaddr, params));
     QVERIFY(!dummyaddr.empty());
@@ -49,17 +38,11 @@ void GUIUtilTests::toCurrentEncodingTest() {
 
     QString cashaddr_pubkey =
         "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
-    QString base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
 
-    config.SetCashAddrEncoding(true);
     QVERIFY(GUIUtil::convertToConfiguredAddressFormat(
                 config, cashaddr_pubkey) == cashaddr_pubkey);
     QVERIFY(GUIUtil::convertToConfiguredAddressFormat(config, base58_pubkey) ==
             cashaddr_pubkey);
 
-    config.SetCashAddrEncoding(false);
-    QVERIFY(GUIUtil::convertToConfiguredAddressFormat(
-                config, cashaddr_pubkey) == base58_pubkey);
-    QVERIFY(GUIUtil::convertToConfiguredAddressFormat(config, base58_pubkey) ==
-            base58_pubkey);
+ 
 }

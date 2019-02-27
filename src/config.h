@@ -24,8 +24,6 @@ public:
     SetBlockPriorityPercentage(int64_t blockPriorityPercentage) = 0;
     virtual uint8_t GetBlockPriorityPercentage() const = 0;
     virtual const CChainParams &GetChainParams() const = 0;
-    virtual void SetCashAddrEncoding(bool) = 0;
-    virtual bool UseCashAddrEncoding() const = 0;
 
     virtual void SetExcessUTXOCharge(Amount amt) = 0;
     virtual Amount GetExcessUTXOCharge() const = 0;
@@ -47,8 +45,6 @@ public:
     bool SetBlockPriorityPercentage(int64_t blockPriorityPercentage) override;
     uint8_t GetBlockPriorityPercentage() const override;
     const CChainParams &GetChainParams() const override;
-    void SetCashAddrEncoding(bool) override;
-    bool UseCashAddrEncoding() const override;
 
     void SetExcessUTXOCharge(Amount) override;
     Amount GetExcessUTXOCharge() const override;
@@ -62,7 +58,6 @@ public:
     std::string GetRPCCORSDomain() const override;
 
 private:
-    bool useCashAddr;
     Amount excessUTXOCharge;
     CFeeRate feePerKB;
 
@@ -93,9 +88,6 @@ public:
 
     void SetChainParams(std::string net);
     const CChainParams &GetChainParams() const override { return *chainParams; }
-
-    void SetCashAddrEncoding(bool) override {}
-    bool UseCashAddrEncoding() const override { return false; }
 
     void SetExcessUTXOCharge(Amount amt) override {}
     Amount GetExcessUTXOCharge() const override { return Amount::zero(); }

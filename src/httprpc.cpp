@@ -4,7 +4,6 @@
 
 #include "httprpc.h"
 
-#include "base58.h"
 #include "chainparams.h"
 #include "config.h"
 #include "crypto/hmac_sha256.h"

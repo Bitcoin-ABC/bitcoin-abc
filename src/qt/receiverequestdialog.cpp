@@ -146,7 +146,7 @@ void ReceiveRequestDialog::update() {
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE
-    int fontSize = config->UseCashAddrEncoding() ? 10 : 12;
+    int fontSize = 10;
 
     ui->lblQRCode->setText("");
     if (!uri.isEmpty()) {

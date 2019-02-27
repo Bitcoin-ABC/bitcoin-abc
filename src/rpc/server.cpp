@@ -6,7 +6,6 @@
 
 #include "rpc/server.h"
 
-#include "base58.h"
 #include "config.h"
 #include "fs.h"
 #include "init.h"

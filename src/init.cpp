@@ -470,10 +470,6 @@ std::string HelpMessage(HelpMessageMode mode) {
         "-txindex", strprintf(_("Maintain a full transaction index, used by "
                                 "the getrawtransaction rpc call (default: %d)"),
                               DEFAULT_TXINDEX));
-    strUsage += HelpMessageOpt(
-        "-usecashaddr", _("Use Cash Address for destination encoding instead "
-                          "of base58 (activate by default on Jan, 14)"));
-
     strUsage += HelpMessageGroup(_("Connection options:"));
     strUsage += HelpMessageOpt(
         "-addnode=<ip>",
@@ -2240,10 +2236,6 @@ bool AppInitMain(Config &config,
     }
     LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
 
-    // Encoded addresses using cashaddr instead of base58
-    // Activates by default on Jan, 14
-    config.SetCashAddrEncoding(
-        gArgs.GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
 
     // Step 8: load wallet
     if (!g_wallet_init_interface->Open(chainparams)) {
