@@ -707,7 +707,7 @@ class ImportMultiTest(BitcoinTestFramework):
                 'desc': descsum_create('pkh([80002067/0h/0h]' + xpub + '/*)'),
                 'keypool': True,
                 'timestamp': 'now',
-                'range': {'start': 0, 'end': 4}
+                'range': [0, 4],
             }]
         )
         self.log.info(result)
