@@ -447,7 +447,7 @@ add_library(common
 	warnings.cpp
 )
 
-target_link_libraries(common util secp256k1)
+target_link_libraries(common util secp256k1 script)
 
 # script library
 add_library(script
