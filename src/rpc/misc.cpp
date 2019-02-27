@@ -221,46 +221,42 @@ UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
         {
             {"descriptor", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The descriptor."},
-            {"begin", RPCArg::Type::NUM, RPCArg::Optional::OMITTED_NAMED_ARG,
-             "If a ranged descriptor is used, this specifies the beginning of "
-             "the range to import."},
-            {"end", RPCArg::Type::NUM, RPCArg::Optional::OMITTED_NAMED_ARG,
-             "If a ranged descriptor is used, this specifies the end of the "
-             "range to import."},
+            {"range", RPCArg::Type::RANGE, RPCArg::Optional::OMITTED_NAMED_ARG,
+             "If a ranged descriptor is used, this specifies the end or the "
+             "range (in [begin,end] notation) to derive."},
         },
         RPCResult{"[ address ] (array) the derived addresses\n"},
-        RPCExamples{
-            "First three pkh receive addresses\n" +
-            HelpExampleCli("deriveaddresses",
-                           "\"pkh([d34db33f/84h/0h/0h]"
-                           "xpub6DJ2dNUysrn5Vt36jH2KLBT2i1auw1tTSSomg8P"
-                           "hqNiUtx8QX2SvC9nrHu81fT41fvDUnhMjEzQgXnQjKE"
-                           "u3oaqMSzhSrHMxyyoEAmUHQbY/0/*)#3vhfv5h5\" 0 2")}}
+        RPCExamples{"First three pkh receive addresses\n" +
+                    HelpExampleCli(
+                        "deriveaddresses",
+                        "\"pkh([d34db33f/84h/0h/0h]"
+                        "xpub6DJ2dNUysrn5Vt36jH2KLBT2i1auw1tTSSomg8P"
+                        "hqNiUtx8QX2SvC9nrHu81fT41fvDUnhMjEzQgXnQjKE"
+                        "u3oaqMSzhSrHMxyyoEAmUHQbY/0/*)#3vhfv5h5\" \"[0,2]\"")}}
         .Check(request);
 
-    RPCTypeCheck(request.params,
-                 {UniValue::VSTR, UniValue::VNUM, UniValue::VNUM});
+    // Range argument is checked later
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
     const std::string desc_str = request.params[0].get_str();
 
-    int range_begin = 0;
-    int range_end = 0;
+    int64_t range_begin = 0;
+    int64_t range_end = 0;
 
-    if (request.params.size() >= 2) {
-        if (request.params.size() == 2) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "Missing range end parameter");
-        }
-        range_begin = request.params[1].get_int();
-        range_end = request.params[2].get_int();
-        if (range_begin < 0) {
+    if (request.params.size() >= 2 && !request.params[1].isNull()) {
+        auto range = ParseRange(request.params[1]);
+        if (range.first < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Range should be greater or equal than 0");
         }
-        if (range_begin > range_end) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                "Range end should be equal to or greater than begin");
+        if ((range.second >> 31) != 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "End of range is too high");
         }
+        if (range.second >= range.first + 1000000) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Range is too large");
+        }
+        range_begin = range.first;
+        range_end = range.second;
     }
 
     FlatSigningProvider provider;

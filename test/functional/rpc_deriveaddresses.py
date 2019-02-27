@@ -34,7 +34,10 @@ class DeriveaddressesTest(BitcoinTestFramework):
 
         ranged_descriptor = "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)#77vpsvm5"
         assert_equal(
-            self.nodes[0].deriveaddresses(ranged_descriptor, 0, 2),
+            self.nodes[0].deriveaddresses(ranged_descriptor, [1, 2]),
+            ["bchreg:qz7mjsvr6gglnl389gnfxmqx0asxp0hcvqjx829c6k", "bchreg:qq9q9wefpjzuna7qhuzz7rvck9tuhrzp3gvrzd8kx2"])
+        assert_equal(
+            self.nodes[0].deriveaddresses(ranged_descriptor, 2),
             [address, "bchreg:qz7mjsvr6gglnl389gnfxmqx0asxp0hcvqjx829c6k", "bchreg:qq9q9wefpjzuna7qhuzz7rvck9tuhrzp3gvrzd8kx2"])
 
         assert_raises_rpc_error(
@@ -43,8 +46,7 @@ class DeriveaddressesTest(BitcoinTestFramework):
             self.nodes[0].deriveaddresses,
             descsum_create(
                 "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0)"),
-            0,
-            2)
+            [0, 2])
 
         assert_raises_rpc_error(
             -8,
@@ -54,20 +56,27 @@ class DeriveaddressesTest(BitcoinTestFramework):
 
         assert_raises_rpc_error(
             -8,
-            "Missing range end parameter",
+            "End of range is too high",
             self.nodes[0].deriveaddresses,
             descsum_create(
                 "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)"),
-            0)
+            10000000000)
 
         assert_raises_rpc_error(
             -8,
-            "Range end should be equal to or greater than begin",
+            "Range is too large",
             self.nodes[0].deriveaddresses,
             descsum_create(
                 "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)"),
-            2,
-            0)
+            [1000000000, 2000000000])
+
+        assert_raises_rpc_error(
+            -8,
+            "Range specified as [begin,end] must not have begin after end",
+            self.nodes[0].deriveaddresses,
+            descsum_create(
+                "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)"),
+            [2, 0])
 
         assert_raises_rpc_error(
             -8,
@@ -75,8 +84,7 @@ class DeriveaddressesTest(BitcoinTestFramework):
             self.nodes[0].deriveaddresses,
             descsum_create(
                 "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)"),
-            -1,
-            0)
+            [-1, 0])
 
         combo_descriptor = descsum_create(
             "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0)")
