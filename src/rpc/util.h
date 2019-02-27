@@ -106,6 +106,8 @@ struct RPCArg {
         AMOUNT,
         //! Special type that is a STR with only hex chars
         STR_HEX,
+        //! Special type that is a NUM or [NUM,NUM]
+        RANGE,
     };
 
     enum class Optional {
