@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     // Don't remove this, it's needed to access
     // QApplication:: and QCoreApplication:: in the tests
     QApplication app(argc, argv);
-    app.setApplicationName("BitcoinABC-Qt-test");
+    app.setApplicationName("DeVault-Core-test");
 
     // This is necessary to initialize openssl on the test framework
     // (at least on Darwin).

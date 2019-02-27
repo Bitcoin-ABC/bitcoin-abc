@@ -9,7 +9,7 @@
 #define UNUSED
 #endif
 static const char UNUSED *bitcoin_strings[] = {
-    QT_TRANSLATE_NOOP("bitcoin-abc", "Bitcoin ABC"),
+    QT_TRANSLATE_NOOP("bitcoin-abc", "DeVault Core"),
     QT_TRANSLATE_NOOP("bitcoin-abc", "The %s developers"),
     QT_TRANSLATE_NOOP("bitcoin-abc",
                       ""

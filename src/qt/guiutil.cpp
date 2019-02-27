@@ -150,7 +150,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
     widget->setPlaceholderText(
-        QObject::tr("Enter a Bitcoin address (e.g. %1)")
+        QObject::tr("Enter a DeVault address (e.g. %1)")
             .arg(QString::fromStdString(DummyAddress(GetConfig()))));
     widget->setValidator(
         new BitcoinAddressEntryValidator(Params().CashAddrPrefix(), parent));
@@ -607,18 +607,18 @@ TableViewLastColumnResizingFixer::TableViewLastColumnResizingFixer(
 static fs::path StartupShortcutPath() {
     std::string chain = gArgs.GetChainName();
     if (chain == CBaseChainParams::MAIN) {
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin.lnk";
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "DeVault.lnk";
     }
     // Remove this special case when CBaseChainParams::TESTNET = "testnet4"
     if (chain == CBaseChainParams::TESTNET) {
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin (testnet).lnk";
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "DeVault (testnet).lnk";
     }
     return GetSpecialFolderPath(CSIDL_STARTUP) /
-           strprintf("Bitcoin (%s).lnk", chain);
+           strprintf("DeVault (%s).lnk", chain);
 }
 
 bool GetStartOnSystemStartup() {
-    // check for Bitcoin*.lnk
+    // check for DeVault*.lnk
     return fs::exists(StartupShortcutPath());
 }
 
@@ -758,9 +758,9 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
         if (chain == CBaseChainParams::MAIN) {
-            optionFile << "Name=Bitcoin\n";
+            optionFile << "Name=DeVault\n";
         } else {
-            optionFile << strprintf("Name=Bitcoin (%s)\n", chain);
+            optionFile << strprintf("Name=DeVault (%s)\n", chain);
         }
         optionFile << "Exec=" << pszExePath
                    << strprintf(" -min -testnet=%d -regtest=%d\n",

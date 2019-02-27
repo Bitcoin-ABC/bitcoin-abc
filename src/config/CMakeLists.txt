@@ -8,7 +8,7 @@ include(CheckSymbolExists)
 include(CheckCXXSourceCompiles)
 
 # Package informations
-set(PACKAGE_NAME "Bitcoin ABC")
+set(PACKAGE_NAME "DeVault Core")
 
 # Version
 set(CLIENT_VERSION_MAJOR 0)

@@ -84,7 +84,7 @@ bool AppInit(int argc, char *argv[]) {
             strUsage += FormatParagraph(LicenseInfo());
         } else {
             strUsage += "\n" + _("Usage:") + "\n" +
-                        "  bitcoind [options]                     " +
+                        "  devaultd [options]                     " +
                         strprintf(_("Start %s Daemon"), _(PACKAGE_NAME)) + "\n";
 
             strUsage += "\n" + HelpMessage(HMM_BITCOIND);
@@ -122,7 +122,7 @@ bool AppInit(int argc, char *argv[]) {
             if (!IsSwitchChar(argv[i][0])) {
                 fprintf(stderr,
                         "Error: Command line contains unexpected token '%s', "
-                        "see bitcoind -h for a list of options.\n",
+                        "see devaultd -h for a list of options.\n",
                         argv[i]);
                 exit(EXIT_FAILURE);
             }
@@ -151,7 +151,7 @@ bool AppInit(int argc, char *argv[]) {
         }
         if (gArgs.GetBoolArg("-daemon", false)) {
 #if HAVE_DECL_DAEMON
-            fprintf(stdout, "Bitcoin server starting\n");
+            fprintf(stdout, "DeVault server starting\n");
 
             // Daemonize
             if (daemon(1, 0)) {

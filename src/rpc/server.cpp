@@ -311,7 +311,7 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client.
     StartShutdown();
-    return "Bitcoin server stopping";
+    return "DeVault server stopping";
 }
 
 static UniValue uptime(const Config &config,
@@ -560,7 +560,7 @@ std::vector<std::string> CRPCTable::listCommands() const {
 
 std::string HelpExampleCli(const std::string &methodname,
                            const std::string &args) {
-    return "> bitcoin-cli " + methodname + " " + args + "\n";
+    return "> devault-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(const std::string &methodname,
