@@ -143,6 +143,16 @@ class ScantxoutsetTest(BitcoinTestFramework):
                      {"desc": "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/*)", "range": 1499}])['total_amount'], Decimal("12.288"))
         assert_equal(self.nodes[0].scantxoutset("start", [
                      {"desc": "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/*)", "range": 1500}])['total_amount'], Decimal("28.672"))
+        assert_equal(
+            self.nodes[0].scantxoutset(
+                "start",
+                [
+                    {
+                        "desc": "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/*)",
+                        "range": [
+                            1500,
+                            1500]}])['total_amount'],
+            Decimal("16.384"))
 
         # Test the reported descriptors for a few matches
         assert_equal(descriptors(self.nodes[0].scantxoutset("start",
