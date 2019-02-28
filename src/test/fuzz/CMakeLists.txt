@@ -4,6 +4,10 @@ add_custom_target(bitcoin-fuzzers)
 macro(add_fuzz_target TARGET EXE_NAME)
 	add_executable(${TARGET} EXCLUDE_FROM_ALL
 		fuzz.cpp
+
+		# TODO: make a test library
+		../test_bitcoin.cpp
+
 		${ARGN}
 	)
 	set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${EXE_NAME})
