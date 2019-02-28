@@ -8,16 +8,16 @@ define(_CLIENT_VERSION_IS_RELEASE, true)
 define(_COPYRIGHT_YEAR, 2019)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
 define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Bitcoin]])
-AC_INIT([Bitcoin ABC],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/Bitcoin-ABC/bitcoin-abc/issues],[bitcoin-abc],[https://bitcoinabc.org/])
+AC_INIT([DeVault Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/devaultcrypto/devault/issues],[devault],[https://devault.cc/])
 AC_CONFIG_SRCDIR([src/validation.cpp])
 AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
-BITCOIN_DAEMON_NAME=bitcoind
-BITCOIN_GUI_NAME=bitcoin-qt
-BITCOIN_CLI_NAME=bitcoin-cli
-BITCOIN_TX_NAME=bitcoin-tx
+BITCOIN_DAEMON_NAME=devaultd
+BITCOIN_GUI_NAME=devault-qt
+BITCOIN_CLI_NAME=devault-cli
+BITCOIN_TX_NAME=devault-tx
 BITCOIN_SEEDER_NAME=bitcoin-seeder
 
 AC_CANONICAL_HOST
@@ -1123,9 +1123,9 @@ AM_CONDITIONAL([TARGET_DARWIN], [test x$TARGET_OS = xdarwin])
 AM_CONDITIONAL([BUILD_DARWIN], [test x$BUILD_OS = xdarwin])
 AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
 AM_CONDITIONAL([ENABLE_WALLET],[test x$enable_wallet = xyes])
-AM_CONDITIONAL([ENABLE_TESTS],[test x$BUILD_TEST = xyes])
+AM_CONDITIONAL([ENABLE_TESTS],[test x$BUILD_TEST = xno])
 AM_CONDITIONAL([ENABLE_QT],[test x$bitcoin_enable_qt = xyes])
-AM_CONDITIONAL([ENABLE_QT_TESTS],[test x$BUILD_TEST_QT = xyes])
+AM_CONDITIONAL([ENABLE_QT_TESTS],[test x$BUILD_TEST_QT = xno])
 AM_CONDITIONAL([ENABLE_BENCH],[test x$use_bench = xyes])
 AM_CONDITIONAL([USE_QRCODE], [test x$use_qr = xyes])
 AM_CONDITIONAL([USE_LCOV],[test x$use_lcov = xyes])
