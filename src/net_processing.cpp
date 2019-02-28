@@ -1267,12 +1267,11 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
             if (mi->second->nChainTx &&
                 !mi->second->IsValid(BlockValidity::SCRIPTS) &&
                 mi->second->IsValid(BlockValidity::TREE)) {
-                // If we have the block and all of its parents, but have
-                // not yet validated it, we might be in the middle of
-                // connecting it (ie in the unlock of cs_main before
-                // ActivateBestChain but after AcceptBlock). In this
-                // case, we need to run ActivateBestChain prior to
-                // checking the relay conditions below.
+                // If we have the block and all of its parents, but have not yet
+                // validated it, we might be in the middle of connecting it (ie
+                // in the unlock of cs_main before ActivateBestChain but after
+                // AcceptBlock). In this case, we need to run ActivateBestChain
+                // prior to checking the relay conditions below.
                 need_activate_chain = true;
             }
         }
@@ -1294,8 +1293,8 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
         }
     }
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
-    // Disconnect node in case we have reached the outbound limit
-    // for serving historical blocks.
+    // Disconnect node in case we have reached the outbound limit for serving
+    // historical blocks.
     // Never disconnect whitelisted nodes.
     if (send && connman->OutboundTargetReached(true) &&
         (((pindexBestHeader != nullptr) &&
@@ -1326,13 +1325,13 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
                  "threshold from peer=%d\n",
                  pfrom->GetId());
 
-        // disconnect node and prevent it from stalling (would
-        // otherwise wait for the missing block)
+        // disconnect node and prevent it from stalling (would otherwise wait
+        // for the missing block)
         pfrom->fDisconnect = true;
         send = false;
     }
-    // Pruned nodes may have deleted the block, so check whether
-    // it's available before trying to send.
+    // Pruned nodes may have deleted the block, so check whether it's available
+    // before trying to send.
     if (send && (mi->second->nStatus.hasData())) {
         std::shared_ptr<const CBlock> pblock;
         if (a_recent_block &&
@@ -1361,16 +1360,14 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
             if (sendMerkleBlock) {
                 connman->PushMessage(
                     pfrom, msgMaker.Make(NetMsgType::MERKLEBLOCK, merkleBlock));
-                // CMerkleBlock just contains hashes, so also push
-                // any transactions in the block the client did not
-                // see. This avoids hurting performance by
-                // pointlessly requiring a round-trip. Note that
-                // there is currently no way for a node to request
-                // any single transactions we didn't send here -
-                // they must either disconnect and retry or request
-                // the full block. Thus, the protocol spec specified
-                // allows for us to provide duplicate txn here,
-                // however we MUST always provide at least what the
+                // CMerkleBlock just contains hashes, so also push any
+                // transactions in the block the client did not see. This avoids
+                // hurting performance by pointlessly requiring a round-trip.
+                // Note that there is currently no way for a node to request any
+                // single transactions we didn't send here - they must either
+                // disconnect and retry or request the full block. Thus, the
+                // protocol spec specified allows for us to provide duplicate
+                // txn here, however we MUST always provide at least what the
                 // remote peer needs.
                 typedef std::pair<unsigned int, uint256> PairType;
                 for (PairType &pair : merkleBlock.vMatchedTxn) {
@@ -1382,11 +1379,10 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
             // else
             // no response
         } else if (inv.type == MSG_CMPCT_BLOCK) {
-            // If a peer is asking for old blocks, we're almost
-            // guaranteed they won't have a useful mempool to match
-            // against a compact block, and we don't feel like
-            // constructing the object for them, so instead we
-            // respond with the full, non-compact block.
+            // If a peer is asking for old blocks, we're almost guaranteed they
+            // won't have a useful mempool to match against a compact block, and
+            // we don't feel like constructing the object for them, so instead
+            // we respond with the full, non-compact block.
             int nSendFlags = 0;
             if (CanDirectFetch(consensusParams) &&
                 mi->second->nHeight >=
@@ -1402,12 +1398,12 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
             }
         }
 
-        // Trigger the peer node to send a getblocks request for the
-        // next batch of inventory.
+        // Trigger the peer node to send a getblocks request for the next batch
+        // of inventory.
         if (inv.hash == pfrom->hashContinue) {
-            // Bypass PushInventory, this must send even if
-            // redundant, and we want it right after the last block
-            // so they don't wait for other stuff first.
+            // Bypass PushInventory, this must send even if redundant, and we
+            // want it right after the last block so they don't wait for other
+            // stuff first.
             std::vector<CInv> vInv;
             vInv.push_back(CInv(MSG_BLOCK, chainActive.Tip()->GetBlockHash()));
             connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::INV, vInv));
@@ -1450,9 +1446,9 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                 push = true;
             } else if (pfrom->timeLastMempoolReq) {
                 auto txinfo = g_mempool.info(inv.hash);
-                // To protect privacy, do not answer getdata using the
-                // mempool when that TX couldn't have been INVed in reply to
-                // a MEMPOOL request.
+                // To protect privacy, do not answer getdata using the mempool
+                // when that TX couldn't have been INVed in reply to a MEMPOOL
+                // request.
                 if (txinfo.tx && txinfo.nTime <= pfrom->timeLastMempoolReq) {
                     connman->PushMessage(
                         pfrom,
