@@ -1,6 +1,7 @@
 # Copyright (c) 2018 The Bitcoin developers
 
 project(devault-qt)
+cmake_minimum_required(VERSION 3.5)
 
 # This ensure that AUTOMOC doesn't run on generated files.
 if (CMAKE_VERSION VERSION_LESS 3.10)
