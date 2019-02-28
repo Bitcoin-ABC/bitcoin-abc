@@ -32,10 +32,10 @@ env:
     - HOST=i686-pc-linux-gnu PACKAGES="g++-7-multilib bc python3-zmq" DEP_OPTS="NO_QT=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++" USE_SHELL="/bin/dash"
 # bitcoind
     - HOST=x86_64-unknown-linux-gnu PACKAGES="bc python3-zmq" DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports CPPFLAGS=-DDEBUG_LOCKORDER"
-# No wallet
-    - HOST=x86_64-unknown-linux-gnu PACKAGES="python3 xvfb gperf" DEP_OPTS="NO_WALLET=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports"
+# GUI but no wallet
+#    - HOST=x86_64-unknown-linux-gnu PACKAGES="clang llvm python3-zmq qtbase5-dev qttools5-dev-tools libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev libqrencode-dev gperf" NO_DEPENDS=1 RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --disable-wallet --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=thread --disable-hardening --disable-asm CC=clang CXX=clang++"
 # Cross-Mac
-    - HOST=x86_64-apple-darwin11 PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev ninja-build" BITCOIN_CONFIG="--enable-gui --enable-reduce-exports" OSX_SDK=10.11 GOAL="deploy"
+    - HOST=x86_64-apple-darwin14 PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python3-setuptools-git ninja-build" BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror" OSX_SDK=10.11 RUN_TESTS=false GOAL="deploy"
 
 before_install:
     - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
@@ -63,9 +63,9 @@ before_script:
     # Start xvfb if needed, as documented at https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
     - if [ "$RUN_TESTS" = "true" -a "${DEP_OPTS#*NO_QT=1}" = "$DEP_OPTS" ]; then export DISPLAY=:99.0; /sbin/start-stop-daemon --start --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac; fi
 script:
-    - if [ "$RUN_TESTS" = "true" -a "$TRAVIS_REPO_SLUG" = "devaultcrypto/devault" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then while read LINE; do travis_retry gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys $LINE; done < contrib/verify-commits/trusted-keys; fi
+#    - if [ "$RUN_TESTS" = "true" -a "$TRAVIS_REPO_SLUG" = "devaultcrypto/devault" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then while read LINE; do travis_retry gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys $LINE; done < contrib/verify-commits/trusted-keys; fi
     - if [ "$RUN_TESTS" = "true" -a "$TRAVIS_REPO_SLUG" = "devaultcrypto/devault" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then git fetch --unshallow; fi
-    - if [ "$RUN_TESTS" = "true" -a "$TRAVIS_REPO_SLUG" = "devaultcrypto/devault" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then contrib/verify-commits/verify-commits.sh; fi
+#    - if [ "$RUN_TESTS" = "true" -a "$TRAVIS_REPO_SLUG" = "devaultcrypto/devault" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then contrib/verify-commits/verify-commits.sh; fi
     - export TRAVIS_COMMIT_LOG=`git log --format=fuller -1`
     - if [ -n "$USE_SHELL" ]; then export CONFIG_SHELL="$USE_SHELL"; fi
     - OUTDIR=$BASE_OUTDIR/$TRAVIS_PULL_REQUEST/$TRAVIS_JOB_NUMBER-$HOST

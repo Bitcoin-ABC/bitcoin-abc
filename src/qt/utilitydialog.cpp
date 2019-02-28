@@ -68,7 +68,7 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about)
         ui->helpMessage->setVisible(false);
     } else {
         setWindowTitle(tr("Command-line options"));
-        QString header = tr("Usage:") + "\n" + "  bitcoin-qt [" +
+        QString header = tr("Usage:") + "\n" + "  devault-qt [" +
                          tr("command-line options") + "]                     " +
                          "\n";
         QTextCursor cursor(ui->helpMessage->document());
