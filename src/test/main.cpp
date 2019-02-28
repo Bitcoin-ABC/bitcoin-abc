@@ -4,28 +4,9 @@
 
 #define BOOST_TEST_MODULE Bitcoin ABC unit tests
 
-#include <banman.h>
-#include <net.h>
 #include <util/system.h>
 
 #include <boost/test/unit_test.hpp>
-
-#include <memory>
-
-std::unique_ptr<CConnman> g_connman;
-std::unique_ptr<BanMan> g_banman;
-
-[[noreturn]] void Shutdown(void *parg) {
-    std::exit(EXIT_SUCCESS);
-}
-
-[[noreturn]] void StartShutdown() {
-    std::exit(EXIT_SUCCESS);
-}
-
-bool ShutdownRequested() {
-    return false;
-}
 
 namespace utf = boost::unit_test::framework;
 

@@ -74,10 +74,10 @@ endif()
 
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	jsonutil.cpp
+	main.cpp
 	scriptflags.cpp
 	sigutil.cpp
 	test_bitcoin.cpp
-	test_bitcoin_main.cpp
 
 	# Tests generated from JSON
 	${JSON_HEADERS}
