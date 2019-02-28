@@ -36,8 +36,10 @@ from test_framework.util import (
 )
 
 SEQUENCE_LOCKTIME_DISABLE_FLAG = (1 << 31)
-SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22)  # this means use time (0 means height)
-SEQUENCE_LOCKTIME_GRANULARITY = 9  # this is a bit-shift
+# this means use time (0 means height)
+SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22)
+# this is a bit-shift
+SEQUENCE_LOCKTIME_GRANULARITY = 9
 SEQUENCE_LOCKTIME_MASK = 0x0000ffff
 
 # RPC error for non-BIP68 final transactions
@@ -85,7 +87,8 @@ class BIP68Test(BitcoinTestFramework):
     def test_disable_flag(self):
         # Create some unconfirmed inputs
         new_addr = self.nodes[0].getnewaddress()
-        self.nodes[0].sendtoaddress(new_addr, 2)  # send 2 BTC
+        # send 2 BCH
+        self.nodes[0].sendtoaddress(new_addr, 2)
 
         utxos = self.nodes[0].listunspent(0, 0)
         assert(len(utxos) > 0)
@@ -175,7 +178,8 @@ class BIP68Test(BitcoinTestFramework):
             tx.nVersion = 2
             value = 0
             for j in range(num_inputs):
-                sequence_value = 0xfffffffe  # this disables sequence locks
+                # this disables sequence locks
+                sequence_value = 0xfffffffe
 
                 # 50% chance we enable sequence locks
                 if random.randint(0, 1):
@@ -195,7 +199,8 @@ class BIP68Test(BitcoinTestFramework):
                     # spec.
                     orig_time = self.get_median_time_past(
                         utxos[j]["confirmations"])
-                    cur_time = self.get_median_time_past(0)  # MTP of the tip
+                    # MTP of the tip
+                    cur_time = self.get_median_time_past(0)
 
                     # can only timelock this input if it's not too old --
                     # otherwise use height
@@ -429,7 +434,8 @@ class BIP68Test(BitcoinTestFramework):
         self.nodes[0].sendrawtransaction(ToHex(tx2))
 
         # Now make an invalid spend of tx2 according to BIP68
-        sequence_value = 100  # 100 block relative locktime
+        # 100 block relative locktime
+        sequence_value = 100
 
         tx3 = CTransaction()
         tx3.nVersion = 2
