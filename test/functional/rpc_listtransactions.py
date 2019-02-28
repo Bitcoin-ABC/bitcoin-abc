@@ -17,6 +17,8 @@ class ListTransactionsTest(BitcoinTestFramework):
         self.enable_mocktime()
 
     def run_test(self):
+        # Leave IBD
+        self.nodes[0].generate(1)
         # Simple send, 0 to 1:
         txid = self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 0.1)
         self.sync_all()
