@@ -1,6 +1,8 @@
 ![DeVault](./share/pixmaps/dvt-logo.png)
 
 This is the working repository for [DeVault](https://www.devault.cc)
+
+
 [![Build Status](https://travis-ci.com/devaultcrypto/devault.svg?branch=master)](https://travis-ci.com/devaultcrypto/devault)
 
 

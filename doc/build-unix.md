@@ -1,6 +1,6 @@
 UNIX BUILD NOTES
 ====================
-Some notes on how to build Bitcoin ABC in Unix.
+Some notes on how to build DeVault in Unix.
 
 (for OpenBSD specific instructions, see [build-openbsd.md](build-openbsd.md))
 
@@ -28,7 +28,18 @@ make
 make install # optional
 ```
 
-This will build bitcoin-qt as well if the dependencies are met.
+This will build devault-qt as well if the dependencies are met.
+
+Building with cmake
+---------------------
+```bash
+mkdir build
+cd build
+cmake ../devault
+make
+make install # optional
+```
+This will build devault-qt as well if the dependencies are met.
 
 Dependencies
 ---------------------
@@ -58,7 +69,7 @@ Memory Requirements
 --------------------
 
 C++ compilers are memory-hungry. It is recommended to have at least 1.5 GB of
-memory available when compiling Bitcoin ABC. On systems with less, gcc can be
+memory available when compiling DeVault. On systems with less, gcc can be
 tuned to conserve memory with additional CXXFLAGS:
 
 
@@ -86,7 +97,7 @@ BerkeleyDB 5.3 or later is required for the wallet. This can be installed with:
 
         sudo apt-get install libdb-dev libdb++-dev
 
-See the section "Disable-wallet mode" to build Bitcoin ABC without wallet.
+See the section "Disable-wallet mode" to build DeVault without wallet.
 
 Optional (see --with-miniupnpc and --enable-upnp-default):
 
@@ -99,7 +110,7 @@ ZMQ dependencies (provides ZMQ API 4.x):
 Dependencies for the GUI: Ubuntu & Debian
 -----------------------------------------
 
-If you want to build Bitcoin-Qt, make sure that the required packages for Qt development
+If you want to build devault-qt, make sure that the required packages for Qt development
 are installed. Qt 5 is necessary to build the GUI.
 To build without GUI pass `--without-gui`.
 
@@ -111,7 +122,7 @@ libqrencode (optional) can be installed with:
 
     sudo apt-get install libqrencode-dev
 
-Once these are installed, they will be found by configure and a bitcoin-qt executable will be
+Once these are installed, they will be found by configure and a devault-qt executable will be
 built by default.
 
 Dependency Build Instructions: Fedora
@@ -224,8 +235,8 @@ Setup and Build Example: Arch Linux
 This example lists the steps necessary to setup and build a command line only, non-wallet distribution of the latest changes on Arch Linux:
 
     pacman -S git base-devel boost libevent python
-    git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
-    cd bitcoin-abc/
+    git clone https://github.com/devaultcrypto/devault.git
+    cd devault/
     ./autogen.sh
     ./configure --disable-wallet --without-gui --without-miniupnpc
     make check
