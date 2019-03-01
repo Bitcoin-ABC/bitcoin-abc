@@ -723,10 +723,11 @@ static const CRPCCommand commands[] = {
     { "control",            "logging",                logging,                {"include", "exclude"} },
     { "util",               "validateaddress",        validateaddress,        {"address"} },
     { "util",               "createmultisig",         createmultisig,         {"nrequired","keys"} },
-    { "util",               "deriveaddresses",        deriveaddresses,        {"descriptor", "begin", "end"} },
+    { "util",               "deriveaddresses",        deriveaddresses,        {"descriptor", "range"} },
     { "util",               "getdescriptorinfo",      getdescriptorinfo,      {"descriptor"} },
     { "util",               "verifymessage",          verifymessage,          {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", signmessagewithprivkey, {"privkey","message"} },
+
     /* Not shown in help */
     { "hidden",             "setmocktime",            setmocktime,            {"timestamp"}},
     { "hidden",             "mockscheduler",          mockscheduler,          {"delta_time"}},
