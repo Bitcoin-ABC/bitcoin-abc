@@ -33,7 +33,7 @@ public:
 
     virtual UniValue Execute(const UniValue &args) const = 0;
 
-    std::string GetName() const { return name; };
+    const std::string &GetName() const { return name; };
 };
 
 #endif // BITCOIN_RPC_COMMAND_H
