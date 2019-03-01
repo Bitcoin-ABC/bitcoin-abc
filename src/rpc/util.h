@@ -7,6 +7,7 @@
 
 #include <node/transaction.h>
 #include <outputtype.h>
+#include <protocol.h>
 #include <rpc/protocol.h>
 #include <rpc/request.h>
 #include <script/script.h>
@@ -105,6 +106,12 @@ std::pair<int64_t, int64_t> ParseDescriptorRange(const UniValue &value);
 std::vector<CScript>
 EvalDescriptorStringOrObject(const UniValue &scanobject,
                              FlatSigningProvider &provider);
+
+/**
+ * Returns, given services flags, a list of humanly readable (known)
+ * network services.
+ */
+UniValue GetServicesNames(ServiceFlags services);
 
 struct RPCArg {
     enum class Type {

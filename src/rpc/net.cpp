@@ -95,6 +95,12 @@ static UniValue getpeerinfo(const Config &config,
             "reported by the peer\n"
             "    \"services\":\"xxxxxxxxxxxxxxxx\",   (string) The services "
             "offered\n"
+            "    \"servicesnames\":[              (array) the services "
+            "offered, in human-readable form\n"
+            "        \"SERVICE_NAME\",         (string) the service name if "
+            "it is recognised\n"
+            "         ...\n"
+            "     ],\n"
             "    \"relaytxes\":true|false,    (boolean) Whether peer has asked "
             "us to relay transactions to it\n"
             "    \"lastsend\": ttt,           (numeric) The " +
@@ -195,6 +201,7 @@ static UniValue getpeerinfo(const Config &config,
             obj.pushKV("addrbind", stats.addrBind.ToString());
         }
         obj.pushKV("services", strprintf("%016x", stats.nServices));
+        obj.pushKV("servicesnames", GetServicesNames(stats.nServices));
         obj.pushKV("relaytxes", stats.fRelayTxes);
         obj.pushKV("lastsend", stats.nLastSend);
         obj.pushKV("lastrecv", stats.nLastRecv);
@@ -553,6 +560,12 @@ static UniValue getnetworkinfo(const Config &config,
                   "protocol version\n"
                   "  \"localservices\": \"xxxxxxxxxxxxxxxx\", (string) the "
                   "services we offer to the network\n"
+                  "  \"localservicesnames\": [                (array) the "
+                  "services we offer to the network, in human-readable form\n"
+                  "      \"SERVICE_NAME\",                    (string) the "
+                  "service name\n"
+                  "       ...\n"
+                  "   ],\n"
                   "  \"localrelay\": true|false,              (bool) true if "
                   "transaction relay is requested from peers\n"
                   "  \"timeoffset\": xxxxx,                   (numeric) the "
@@ -611,8 +624,9 @@ static UniValue getnetworkinfo(const Config &config,
     obj.pushKV("subversion", userAgent(config));
     obj.pushKV("protocolversion", PROTOCOL_VERSION);
     if (g_rpc_node->connman) {
-        obj.pushKV("localservices",
-                   strprintf("%016x", g_rpc_node->connman->GetLocalServices()));
+        ServiceFlags services = g_rpc_node->connman->GetLocalServices();
+        obj.pushKV("localservices", strprintf("%016x", services));
+        obj.pushKV("localservicesnames", GetServicesNames(services));
     }
     obj.pushKV("localrelay", g_relay_txes);
     obj.pushKV("timeoffset", GetTimeOffset());

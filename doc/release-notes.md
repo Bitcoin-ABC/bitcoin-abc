@@ -12,6 +12,8 @@ Updated RPCs
 
 - The `getchaintxstats` RPC now returns the additional key of
   `window_final_block_height`.
+- The `getnetworkinfo` and `getpeerinfo` commands now contain
+  a new `servicesnames` field with decoded network service flags.
 
 Updated settings
 ----------------
