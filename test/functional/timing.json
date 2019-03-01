@@ -248,6 +248,10 @@
   "time": 3
  },
  {
+  "name": "rpc_estimatefee.py",
+  "time": 2
+ },
+ {
   "name": "rpc_fundrawtransaction.py",
   "time": 49
  },
