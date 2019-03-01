@@ -22,7 +22,7 @@ cleanup() {
 }
 
 # Launch bitcoind using this script's parameters
-./bitcoind -datadir=ibd "$*" &
+./bitcoind -datadir=ibd $* &
 bitcoin_pid=$!
 
 trap "cleanup ${bitcoin_pid}" EXIT
