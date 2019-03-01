@@ -14,6 +14,7 @@ from test_framework.util import (
 
 
 class WalletEncryptionTest(BitcoinTestFramework):
+
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
@@ -32,8 +33,12 @@ class WalletEncryptionTest(BitcoinTestFramework):
         self.nodes[0].node_encrypt_wallet(passphrase)
         self.start_node(0)
 
+        # Check the encrypted wallet is marked as locked on initialization
+        assert_equal(self.nodes[0].getwalletinfo()['unlocked_until'], 0)
+
         # Test that the wallet is encrypted
-        assert_raises_rpc_error(-13, "Please enter the wallet passphrase with walletpassphrase first",
+        assert_raises_rpc_error(
+            -13, "Please enter the wallet passphrase with walletpassphrase first",
                                 self.nodes[0].dumpprivkey, address)
 
         # Check that walletpassphrase works
@@ -42,19 +47,25 @@ class WalletEncryptionTest(BitcoinTestFramework):
 
         # Check that the timeout is right
         time.sleep(2)
-        assert_raises_rpc_error(-13, "Please enter the wallet passphrase with walletpassphrase first",
+        assert_raises_rpc_error(
+            -13, "Please enter the wallet passphrase with walletpassphrase first",
                                 self.nodes[0].dumpprivkey, address)
 
         # Test wrong passphrase
         assert_raises_rpc_error(-14, "wallet passphrase entered was incorrect",
                                 self.nodes[0].walletpassphrase, passphrase + "wrong", 10)
 
-        # Test walletlock
+        # Test walletlock and unlocked_until values
+        self.nodes[0].setmocktime(1)
         self.nodes[0].walletpassphrase(passphrase, 84600)
         assert_equal(privkey, self.nodes[0].dumpprivkey(address))
+        assert_equal(
+            self.nodes[0].getwalletinfo()['unlocked_until'], 1 + 84600)
         self.nodes[0].walletlock()
-        assert_raises_rpc_error(-13, "Please enter the wallet passphrase with walletpassphrase first",
+        assert_raises_rpc_error(
+            -13, "Please enter the wallet passphrase with walletpassphrase first",
                                 self.nodes[0].dumpprivkey, address)
+        assert_equal(self.nodes[0].getwalletinfo()['unlocked_until'], 0)
 
         # Test passphrase changes
         self.nodes[0].walletpassphrasechange(passphrase, passphrase2)

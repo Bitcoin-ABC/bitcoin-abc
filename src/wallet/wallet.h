@@ -791,6 +791,7 @@ public:
         fBroadcastTransactions = false;
         fAbortRescan = false;
         fScanningWallet = false;
+        nRelockTime = 0;
     }
 
     std::map<TxId, CWalletTx> mapWallet;
