@@ -17,7 +17,6 @@ from test_framework.util import (
 class ReceivedByTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.enable_mocktime()
 
     def run_test(self):
         # Generate block to get out of IBD
