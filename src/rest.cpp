@@ -480,10 +480,9 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
     // gives binary output, ...
 
     if (uriParts.size() > 0) {
-
         // inputs is sent over URI scheme
         // (/rest/getutxos/checkmempool/txid1-n/txid2-n/...)
-        if (uriParts.size() > 0 && uriParts[0] == "checkmempool") {
+        if (uriParts[0] == "checkmempool") {
             fCheckMemPool = true;
         }
 
