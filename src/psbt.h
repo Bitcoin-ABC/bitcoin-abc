@@ -7,6 +7,7 @@
 
 #include <attributes.h>
 #include <node/transaction.h>
+#include <optional.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <script/sign.h>
@@ -481,8 +482,35 @@ struct PartiallySignedTransaction {
     }
 };
 
+enum class PSBTRole {
+    UPDATER,
+    SIGNER,
+    FINALIZER,
+    EXTRACTOR,
+};
+
+struct PSBTInputAnalysis {
+    bool has_utxo;
+    bool is_final;
+    PSBTRole next;
+
+    std::vector<CKeyID> missing_pubkeys;
+    std::vector<CKeyID> missing_sigs;
+    uint160 missing_redeem_script;
+};
+
+struct PSBTAnalysis {
+    Optional<size_t> estimated_vsize;
+    Optional<CFeeRate> estimated_feerate;
+    Optional<Amount> fee;
+    std::vector<PSBTInputAnalysis> inputs;
+    PSBTRole next;
+};
+
+std::string PSBTRoleName(PSBTRole role);
+
 /** Checks whether a PSBTInput is already signed. */
-bool PSBTInputSigned(PSBTInput &input);
+bool PSBTInputSigned(const PSBTInput &input);
 
 /**
  * Signs a PSBTInput, verifying that all provided data matches what is being
@@ -526,6 +554,15 @@ bool FinalizeAndExtractPSBT(PartiallySignedTransaction &psbtx,
 NODISCARD TransactionError
 CombinePSBTs(PartiallySignedTransaction &out,
              const std::vector<PartiallySignedTransaction> &psbtxs);
+
+/**
+ * Provides helpful miscellaneous information about where a PSBT is in the
+ * signing workflow.
+ *
+ * @param[in] psbtx the PSBT to analyze
+ * @return A PSBTAnalysis with information about the provided PSBT.
+ */
+PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx);
 
 //! Decode a base64ed PSBT into a PartiallySignedTransaction
 NODISCARD bool DecodeBase64PSBT(PartiallySignedTransaction &decoded_psbt,
