@@ -138,6 +138,12 @@ enum class OptionsCategory {
     AVALANCHE,
 };
 
+struct SectionInfo {
+    std::string m_name;
+    std::string m_file;
+    int m_line;
+};
+
 class ArgsManager {
 protected:
     friend class ArgsManagerHelper;
@@ -162,10 +168,12 @@ protected:
     std::set<std::string> m_network_only_args GUARDED_BY(cs_args);
     std::map<OptionsCategory, std::map<std::string, Arg>>
         m_available_args GUARDED_BY(cs_args);
-    std::set<std::string> m_config_sections GUARDED_BY(cs_args);
+    std::list<SectionInfo> m_config_sections GUARDED_BY(cs_args);
 
-    bool ReadConfigStream(std::istream &stream, std::string &error,
-                          bool ignore_invalid_keys = false);
+    NODISCARD bool ReadConfigStream(std::istream &stream,
+                                    const std::string &filepath,
+                                    std::string &error,
+                                    bool ignore_invalid_keys = false);
 
 public:
     ArgsManager();
@@ -189,7 +197,7 @@ public:
     /**
      * Log warnings for unrecognized section names in the config file.
      */
-    const std::set<std::string> GetUnrecognizedSections() const;
+    const std::list<SectionInfo> GetUnrecognizedSections() const;
 
     /**
      * Return a vector of strings of the given argument
