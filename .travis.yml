@@ -33,7 +33,7 @@ install:
 before_script:
   - set -o errexit; source .travis/beforescript.sh
 script:
-  - if [ $SECONDS -gt 2400 ]; then set +o errexit; echo "exit to cache current state"; false; else set -o errexit; source .travis/script.sh; fi
+  - if [ $SECONDS -gt 2000 ]; then set +o errexit; echo "exit to cache current state"; false; else set -o errexit; source .travis/script.sh; fi
 after_script:
   - echo $TRAVIS_COMMIT_RANGE
   - echo $TRAVIS_COMMIT_LOG
