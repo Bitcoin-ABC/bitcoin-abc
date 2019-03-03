@@ -30,7 +30,7 @@ protected:
         bool ReadBestBlock(CBlockLocator &locator) const;
 
         /// Write block locator of the chain that the txindex is in sync with.
-        bool WriteBestBlock(const CBlockLocator &locator);
+        void WriteBestBlock(CDBBatch &batch, const CBlockLocator &locator);
     };
 
 private:
@@ -52,8 +52,17 @@ private:
     /// over and the sync thread exits.
     void ThreadSync();
 
-    /// Write the current chain block locator to the DB.
-    bool WriteBestBlock(const CBlockIndex *block_index);
+    /// Write the current index state (eg. chain block locator and
+    /// subclass-specific items) to disk.
+    ///
+    /// Recommendations for error handling:
+    /// If called on a successor of the previous committed best block in the
+    /// index, the index can continue processing without risk of corruption,
+    /// though the index state will need to catch up from further behind on
+    /// reboot. If the new state is not a successor of the previous state (due
+    /// to a chain reorganization), the index must halt until Commit succeeds or
+    /// else it could end up getting corrupted.
+    bool Commit();
 
 protected:
     void
@@ -70,6 +79,10 @@ protected:
     virtual bool WriteBlock(const CBlock &block, const CBlockIndex *pindex) {
         return true;
     }
+
+    /// Virtual method called internally by Commit that can be overridden to
+    /// atomically commit more index state.
+    virtual bool CommitInternal(CDBBatch &batch);
 
     virtual DB &GetDB() const = 0;
 

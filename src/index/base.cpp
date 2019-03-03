@@ -41,8 +41,9 @@ bool BaseIndex::DB::ReadBestBlock(CBlockLocator &locator) const {
     return success;
 }
 
-bool BaseIndex::DB::WriteBestBlock(const CBlockLocator &locator) {
-    return Write(DB_BEST_BLOCK, locator);
+void BaseIndex::DB::WriteBestBlock(CDBBatch &batch,
+                                   const CBlockLocator &locator) {
+    batch.Write(DB_BEST_BLOCK, locator);
 }
 
 BaseIndex::~BaseIndex() {
@@ -91,7 +92,12 @@ void BaseIndex::ThreadSync() {
         int64_t last_locator_write_time = 0;
         while (true) {
             if (m_interrupt) {
-                WriteBestBlock(pindex);
+                m_best_block_index = pindex;
+                // No need to handle errors in Commit. If it fails, the error
+                // will be already be logged. The best way to recover is to
+                // continue, as index cannot be corrupted by a missed commit to
+                // disk for an advanced index state.
+                Commit();
                 return;
             }
 
@@ -99,9 +105,10 @@ void BaseIndex::ThreadSync() {
                 LOCK(cs_main);
                 const CBlockIndex *pindex_next = NextSyncBlock(pindex);
                 if (!pindex_next) {
-                    WriteBestBlock(pindex);
                     m_best_block_index = pindex;
                     m_synced = true;
+                    // No need to handle errors in Commit. See rationale above.
+                    Commit();
                     break;
                 }
                 pindex = pindex_next;
@@ -116,8 +123,10 @@ void BaseIndex::ThreadSync() {
 
             if (last_locator_write_time + SYNC_LOCATOR_WRITE_INTERVAL <
                 current_time) {
-                WriteBestBlock(pindex);
+                m_best_block_index = pindex;
                 last_locator_write_time = current_time;
+                // No need to handle errors in Commit. See rationale above.
+                Commit();
             }
 
             CBlock block;
@@ -141,11 +150,19 @@ void BaseIndex::ThreadSync() {
     }
 }
 
-bool BaseIndex::WriteBestBlock(const CBlockIndex *block_index) {
-    LOCK(cs_main);
-    if (!GetDB().WriteBestBlock(::ChainActive().GetLocator(block_index))) {
-        return error("%s: Failed to write locator to disk", __func__);
+bool BaseIndex::Commit() {
+    CDBBatch batch(GetDB());
+    if (!CommitInternal(batch) || !GetDB().WriteBatch(batch)) {
+        return error("%s: Failed to commit latest %s state", __func__,
+                     GetName());
     }
+    return true;
+}
+
+bool BaseIndex::CommitInternal(CDBBatch &batch) {
+    LOCK(cs_main);
+    GetDB().WriteBestBlock(batch,
+                           ::ChainActive().GetLocator(m_best_block_index));
     return true;
 }
 
@@ -225,9 +242,11 @@ void BaseIndex::ChainStateFlushed(const CBlockLocator &locator) {
         return;
     }
 
-    if (!GetDB().WriteBestBlock(locator)) {
-        error("%s: Failed to write locator to disk", __func__);
-    }
+    // No need to handle errors in Commit. If it fails, the error will be
+    // already be logged. The best way to recover is to continue, as index
+    // cannot be corrupted by a missed commit to disk for an advanced index
+    // state.
+    Commit();
 }
 
 bool BaseIndex::BlockUntilSyncedToCurrentChain() {
