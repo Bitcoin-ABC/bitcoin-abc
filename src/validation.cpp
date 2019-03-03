@@ -44,6 +44,8 @@
 #include "validationinterface.h"
 #include "warnings.h"
 
+#include "coldrewards/rewards.h"
+
 #include <atomic>
 #include <sstream>
 #include <thread>
@@ -171,6 +173,10 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
 std::unique_ptr<CCoinsViewDB> pcoinsdbview;
 std::unique_ptr<CCoinsViewCache> pcoinsTip;
 std::unique_ptr<CBlockTreeDB> pblocktree;
+// DeVault:: Reward
+std::unique_ptr<CColdRewards> prewards;
+std::unique_ptr<CRewardsViewDB> prewardsdb;
+///std::unique_ptr<CCoinsViewCache> prewardsTip;
 
 enum FlushStateMode {
     FLUSH_STATE_NONE,
@@ -1840,8 +1846,16 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs - 1),
              nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
-    Amount blockReward =
-        nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
+    // DeVault:: Reward
+    Amount coldReward;
+    if (!prewards->Validate(block, pindex->nHeight, coldReward)) {
+      return error("ConnectBlock(): Cold Reward Invalid with %s",FormatStateMessage(state));
+    }
+    
+    Amount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, consensusParams) + coldReward;
+    
+  
+   // Need to take account of Cold Rewards here, for now  bypass check
     if (block.vtx[0]->GetValueOut() > blockReward) {
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much "
@@ -1881,6 +1895,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     if (!WriteTxIndexDataForBlock(block, state, pindex)) {
         return false;
     }
+
+    // DeVault:: Reward, update DB entry
+    if (coldReward > Amount()) prewards->UpdateRewardsDB(pindex->nHeight);
 
     assert(pindex->phashBlock);
     // add this block to the view's block chain
@@ -2495,6 +2512,10 @@ static bool ConnectTip(const Config &config, CValidationState &state,
              nTimeTotal * MILLI / nBlocksTotal);
 
     connectTrace.BlockConnected(pindexNew, std::move(pthisBlock));
+
+    // DeVault:: REWARDS
+    if(pindexNew->nHeight > 0) prewards->UpdateWithBlock(config, pindexNew);
+    
     return true;
 }
 

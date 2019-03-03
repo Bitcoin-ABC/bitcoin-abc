@@ -27,6 +27,7 @@
 #include "utilmoneystr.h"
 #include "validation.h"
 #include "validationinterface.h"
+#include "coldrewards/rewards.h"
 
 #include <algorithm>
 #include <queue>
@@ -193,6 +194,9 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     coinbaseTx.vout[0].nValue =
         nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+  
+    // Cold Rewards
+    prewards->FillPayments(coinbaseTx, nHeight);
 
     // Make sure the coinbase is big enough.
     uint64_t coinbaseSize =

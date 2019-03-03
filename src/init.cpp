@@ -51,6 +51,8 @@
 #include "walletinitinterface.h"
 #include "warnings.h"
 
+#include "coldrewards/rewards.h"
+
 #include <cstdint>
 #include <cstdio>
 #include <memory>
@@ -173,6 +175,7 @@ public:
 };
 
 static std::unique_ptr<CCoinsViewErrorCatcher> pcoinscatcher;
+////static std::unique_ptr<CCoinsViewErrorCatcher> prewardscatcher;
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
 static boost::thread_group threadGroup;
@@ -260,6 +263,10 @@ void Shutdown() {
         pcoinscatcher.reset();
         pcoinsdbview.reset();
         pblocktree.reset();
+        prewardsdb.reset();
+        prewards.reset();
+        ////prewardscatcher.reset();
+        ////prewardsTip.reset();
     }
     g_wallet_init_interface->Stop();
 
@@ -2013,7 +2020,9 @@ bool AppInitMain(Config &config,
         std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23));
     // cap total coins db cache
     nCoinDBCache = std::min(nCoinDBCache, nMaxCoinsDBCache << 20);
+    int64_t nRewardDBCache = nCoinDBCache;
     nTotalCache -= nCoinDBCache;
+    nTotalCache -= nRewardDBCache;
     // the rest goes to in-memory cache
     nCoinCacheUsage = nTotalCache;
     int64_t nMempoolSizeMax =
@@ -2022,7 +2031,9 @@ bool AppInitMain(Config &config,
     LogPrintf("* Using %.1fMiB for block index database\n",
               nBlockTreeDBCache * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1fMiB for chain state database\n",
-              nCoinDBCache * (1.0 / 1024 / 1024));
+            nCoinDBCache * (1.0 / 1024 / 1024));
+    LogPrintf("* Using %.1fMiB for reward database\n",
+            nRewardDBCache * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1fMiB for in-memory UTXO set (plus up to %.1fMiB of "
               "unused mempool space)\n",
               nCoinCacheUsage * (1.0 / 1024 / 1024),
@@ -2030,10 +2041,12 @@ bool AppInitMain(Config &config,
 
     int64_t nStart = 0;
     bool fLoaded = false;
+
     while (!fLoaded && !fRequestShutdown) {
         bool fReset = fReindex;
         std::string strLoadError;
 
+        
         uiInterface.InitMessage(_("Loading block index..."));
 
         nStart = GetTimeMillis();
@@ -2043,6 +2056,10 @@ bool AppInitMain(Config &config,
                 pcoinsTip.reset();
                 pcoinsdbview.reset();
                 pcoinscatcher.reset();
+                prewardsdb.reset();
+                /////prewardsTip.reset();
+                /////prewardscatcher.reset();
+
                 pblocktree.reset(
                     new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
 
@@ -2107,8 +2124,16 @@ bool AppInitMain(Config &config,
                 // At this point we're either in reindex or we've loaded a
                 // useful block tree into mapBlockIndex!
 
-                pcoinsdbview.reset(new CCoinsViewDB(
-                    nCoinDBCache, false, fReset || fReindexChainState));
+                pcoinsdbview.reset(new CCoinsViewDB(nCoinDBCache, false, fReset || fReindexChainState));
+              
+                prewardsdb.reset(new CRewardsViewDB("rewards",
+                                                  nCoinDBCache, false, fReset || fReindexChainState));
+              
+                ////prewardscatcher.reset(new CCoinsViewErrorCatcher(prewardsdb.get()));
+                /////prewardsTip.reset(new CCoinsViewCache(prewardscatcher.get()));
+                
+                prewards.reset(new CColdRewards(prewardsdb.get()));
+              
                 pcoinscatcher.reset(
                     new CCoinsViewErrorCatcher(pcoinsdbview.get()));
 
@@ -2131,7 +2156,7 @@ bool AppInitMain(Config &config,
 
                 // The on-disk coinsdb is now in a good state, create the cache
                 pcoinsTip.reset(new CCoinsViewCache(pcoinscatcher.get()));
-
+   
                 if (!fReindex && !fReindexChainState) {
                     // LoadChainTip sets chainActive based on pcoinsTip's best
                     // block

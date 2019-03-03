@@ -46,6 +46,9 @@ class CTxUndo;
 class CValidationInterface;
 class CValidationState;
 
+class CColdRewards;
+class CRewardsViewDB;
+
 struct CDiskBlockPos;
 struct ChainTxData;
 struct PrecomputedTransactionData;
@@ -676,6 +679,15 @@ extern std::unique_ptr<CCoinsViewCache> pcoinsTip;
  * Global variable that points to the active block tree (protected by cs_main)
  */
 extern std::unique_ptr<CBlockTreeDB> pblocktree;
+
+/**
+ * Global variable that points to the active rewards tree (protected by cs_main)
+ */
+// DeVault:: Reward
+extern std::unique_ptr<CRewardsViewDB> prewardsdb;
+extern std::unique_ptr<CColdRewards> prewards;
+//extern std::unique_ptr<CCoinsViewCache> prewardsTip;
+
 
 /**
  * Return the spend height, which is one more than the inputs.GetBestBlock().
