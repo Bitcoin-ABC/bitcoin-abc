@@ -23,7 +23,7 @@ This is a list of constants used in this system
 # Description
 ---------------------
 
-Cold Rewards pays out coins to unspent transactions (UTXOs) that are greater than a minimum (**COLDREWARD_MIN_REWARD** coins) and are older than approximately one month (**COLDREWARD_MIN_BLOCKS** number of blocks).
+Cold Rewards pays out coins to unspent transactions (UTXOs) that are greater than a minimum (**COLDREWARD_MIN_REWARD** coins) and are older than approximately one month (**COLDREWARD_MIN_BLOCKS** number of blocks). NOTE: Addresses are not evaluated by total amounts, each separate UTXO is considered.
 
 These unspent transaction must come from regular transactions. Either miner rewards or previous cold rewards will not counted - as coinbase outputs are ignored.
 
@@ -42,7 +42,7 @@ In addition there is a limit of **COLDREWARD_MAX_REWARD** on the payout, to avoi
 ---------------------
 
 For a given UTXO, once rewards are considered valid (given conditions already mentioned), they will be continued to be paid out as long as the UTXO itself is not spent. Once the UTXO is spent, rewards will cease.
-This mechanism allows you to collect rewards and spend the actual rewards themselves since they will be at new UTXOs that will not be considered valid for rewards. To do that, you can use "Coin Control" feature within the wallet. If you want the rewards to earn rewards in return, you'd also need to use coin control to send the rewards using a regular transaction to any one of the addresses under your control.
+This mechanism allows you to collect rewards and spend the actual rewards themselves since they will be at new UTXOs that will not be considered valid for rewards. To do that, you can use "Coin Control" feature within the wallet. If you want the rewards to earn rewards in return, you'd also need to use coin control to send the rewards using a regular transaction to any one of the addresses under your control. However, keep in mind that UTXOs considered valid must have more than **COLDREWARD_MIN_BALANCE** amounts. If you have more than that amount at one address but they are spread out across many UTXOs, you may not get rewards at all. You can use coin control to view your UTXO holdings. 
 
 
 
