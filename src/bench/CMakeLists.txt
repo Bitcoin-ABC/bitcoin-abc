@@ -53,6 +53,7 @@ add_executable(bitcoin-bench
 	mempool_eviction.cpp
 	mempool_stress.cpp
 	merkle_root.cpp
+	poly1305.cpp
 	prevector.cpp
 	rollingbloom.cpp
 	rpc_blockchain.cpp
