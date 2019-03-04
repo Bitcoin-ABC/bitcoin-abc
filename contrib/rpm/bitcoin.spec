@@ -93,7 +93,7 @@ Summary:	Bitcoin shared libraries
 Group:		System Environment/Libraries
 
 %description libs
-This package provides the bitcoinconsensus shared libraries. These libraries
+This package provides the devaultconsensus shared libraries. These libraries
 may be used by third party software to provide consensus verification
 functionality.
 
@@ -106,7 +106,7 @@ Requires:	%{name}-libs = %{version}-%{release}
 
 %description devel
 This package contains the header files and static library for the
-bitcoinconsensus shared library. If you are developing or compiling software
+devaultconsensus shared library. If you are developing or compiling software
 that wants to link against that library, then you need this package installed.
 
 Most people do not need this package installed.

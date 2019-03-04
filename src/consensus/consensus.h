@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CONSENSUS_CONSENSUS_H
-#define BITCOIN_CONSENSUS_CONSENSUS_H
+#ifndef DEVAULT_CONSENSUS_CONSENSUS_H
+#define DEVAULT_CONSENSUS_CONSENSUS_H
 
 #include <cstdint>
 
@@ -52,4 +52,4 @@ inline uint64_t GetMaxBlockSigOpsCount(uint64_t blockSize) {
     return nMbRoundedUp * MAX_BLOCK_SIGOPS_PER_MB;
 }
 
-#endif // BITCOIN_CONSENSUS_CONSENSUS_H
+#endif // DEVAULT_CONSENSUS_CONSENSUS_H

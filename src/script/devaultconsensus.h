@@ -35,55 +35,55 @@ extern "C" {
 
 #define BITCOINCONSENSUS_API_VER 1
 
-typedef enum bitcoinconsensus_error_t {
-    bitcoinconsensus_ERR_OK = 0,
-    bitcoinconsensus_ERR_TX_INDEX,
-    bitcoinconsensus_ERR_TX_SIZE_MISMATCH,
-    bitcoinconsensus_ERR_TX_DESERIALIZE,
-    bitcoinconsensus_ERR_AMOUNT_REQUIRED,
-    bitcoinconsensus_ERR_INVALID_FLAGS,
-} bitcoinconsensus_error;
+typedef enum devaultconsensus_error_t {
+    devaultconsensus_ERR_OK = 0,
+    devaultconsensus_ERR_TX_INDEX,
+    devaultconsensus_ERR_TX_SIZE_MISMATCH,
+    devaultconsensus_ERR_TX_DESERIALIZE,
+    devaultconsensus_ERR_AMOUNT_REQUIRED,
+    devaultconsensus_ERR_INVALID_FLAGS,
+} devaultconsensus_error;
 
 /** Script verification flags */
 enum {
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_NONE = 0,
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_NONE = 0,
     // evaluate P2SH (BIP16) subscripts
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_P2SH = (1U << 0),
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_P2SH = (1U << 0),
     // enforce strict DER (BIP66) compliance
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_DERSIG = (1U << 2),
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_DERSIG = (1U << 2),
     // enforce NULLDUMMY (BIP147)
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_NULLDUMMY = (1U << 4),
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_NULLDUMMY = (1U << 4),
     // enable CHECKLOCKTIMEVERIFY (BIP65)
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY = (1U << 9),
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY = (1U << 9),
     // enable CHECKSEQUENCEVERIFY (BIP112)
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY = (1U << 10),
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY = (1U << 10),
     // enable WITNESS (BIP141)
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_WITNESS_DEPRECATED = (1U << 11),
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_WITNESS_DEPRECATED = (1U << 11),
     // enable SIGHASH_FORKID replay protection
-    bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID = (1U << 16),
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL =
-        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_P2SH |
-        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_DERSIG |
-        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_NULLDUMMY |
-        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY |
-        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY,
+    devaultconsensus_SCRIPT_ENABLE_SIGHASH_FORKID = (1U << 16),
+    devaultconsensus_SCRIPT_FLAGS_VERIFY_ALL =
+        devaultconsensus_SCRIPT_FLAGS_VERIFY_P2SH |
+        devaultconsensus_SCRIPT_FLAGS_VERIFY_DERSIG |
+        devaultconsensus_SCRIPT_FLAGS_VERIFY_NULLDUMMY |
+        devaultconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY |
+        devaultconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY,
 };
 
 /// Returns 1 if the input nIn of the serialized transaction pointed to by txTo
 /// correctly spends the scriptPubKey pointed to by scriptPubKey under the
 /// additional constraints specified by flags.
 /// If not nullptr, err will contain an error/success code for the operation
-EXPORT_SYMBOL int bitcoinconsensus_verify_script(
+EXPORT_SYMBOL int devaultconsensus_verify_script(
     const uint8_t *scriptPubKey, unsigned int scriptPubKeyLen,
     const uint8_t *txTo, unsigned int txToLen, unsigned int nIn,
-    unsigned int flags, bitcoinconsensus_error *err);
+    unsigned int flags, devaultconsensus_error *err);
 
-EXPORT_SYMBOL int bitcoinconsensus_verify_script_with_amount(
+EXPORT_SYMBOL int devaultconsensus_verify_script_with_amount(
     const uint8_t *scriptPubKey, unsigned int scriptPubKeyLen, int64_t amount,
     const uint8_t *txTo, unsigned int txToLen, unsigned int nIn,
-    unsigned int flags, bitcoinconsensus_error *err);
+    unsigned int flags, devaultconsensus_error *err);
 
-EXPORT_SYMBOL unsigned int bitcoinconsensus_version();
+EXPORT_SYMBOL unsigned int devaultconsensus_version();
 
 #ifdef __cplusplus
 } // extern "C"

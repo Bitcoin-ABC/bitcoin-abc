@@ -183,15 +183,15 @@ add_library(common
 
 target_link_libraries(common util secp256k1)
 
-# libbitcoinconsensus
-add_library(bitcoinconsensus
+# libdevaultconsensus
+add_library(devaultconsensus
   ${SCRIPT_HEADERS}
   ${PRIMITIVE_HEADERS}
 	arith_uint256.cpp
 	hash.cpp
 	primitives/transaction.cpp
 	pubkey.cpp
-	script/bitcoinconsensus.cpp
+	script/devaultconsensus.cpp
 	script/interpreter.cpp
 	script/script.cpp
 	script/script_error.cpp
@@ -200,7 +200,7 @@ add_library(bitcoinconsensus
 	utilstrencodings.cpp
 )
 
-target_link_libraries(bitcoinconsensus common coldrewards)
+target_link_libraries(devaultconsensus common coldrewards)
 
 # Bitcoin server facilities
 add_library(server
@@ -264,7 +264,7 @@ target_include_directories(server PRIVATE leveldb/helpers/memenv)
 target_link_libraries(server
 	${EVENT_LIBRARY}
 	${EVENT_PTHREAD_LIBRARY}
-	bitcoinconsensus
+	devaultconsensus
 	leveldb
 	memenv
   ${MINIUPNP_LIBRARY}
@@ -314,7 +314,7 @@ if(BUILD_BITCOIN_TX)
 		target_sources(devault-tx PRIVATE bitcoin-tx-res.rc)
 	endif()
 
-	target_link_libraries(devault-tx bitcoinconsensus)
+	target_link_libraries(devault-tx devaultconsensus)
 endif()
 
 # bitcoind

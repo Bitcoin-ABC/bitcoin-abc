@@ -22,7 +22,7 @@ add_executable(bitcoin-bench
 	rollingbloom.cpp
 )
 
-target_link_libraries(bitcoin-bench common bitcoinconsensus server)
+target_link_libraries(bitcoin-bench common devaultconsensus server)
 
 add_custom_target(bench-bitcoin
 	COMMAND

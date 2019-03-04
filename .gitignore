@@ -108,7 +108,7 @@ test/cache/*
 
 /doc/doxygen/
 
-libbitcoinconsensus.pc
+libdevaultconsensus.pc
 contrib/devtools/split-debug.sh
 
 # vagrant

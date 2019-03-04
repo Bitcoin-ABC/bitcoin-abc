@@ -28,7 +28,7 @@ BITCOIN_SEEDER_INCLUDES += $(BITCOIN_INCLUDES)
 
 LIBBITCOIN_SERVER=libbitcoin_server.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
-LIBBITCOIN_CONSENSUS=libbitcoin_consensus.a
+LIBDEVAULT_CONSENSUS=libbitcoin_consensus.a
 LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO_BASE=crypto/libbitcoin_crypto_base.a
@@ -39,7 +39,7 @@ if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
 endif
 if BUILD_BITCOIN_LIBS
-LIBBITCOINCONSENSUS=libbitcoinconsensus.la
+LIBBITCOINCONSENSUS=libdevaultconsensus.la
 endif
 if BUILD_BITCOIN_SEEDER
 LIBBITCOIN_SEEDER=libbitcoin_seeder.a
@@ -71,7 +71,7 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_CONSENSUS) \
+  $(LIBDEVAULT_CONSENSUS) \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_CLI) \
   $(LIBBITCOIN_SEEDER) \
@@ -374,7 +374,7 @@ libbitcoin_consensus_a_SOURCES = \
   primitives/txid.h \
   pubkey.cpp \
   pubkey.h \
-  script/bitcoinconsensus.cpp \
+  script/devaultconsensus.cpp \
   script/sighashtype.h \
   script/interpreter.cpp \
   script/interpreter.h \
@@ -495,7 +495,7 @@ devaultd_LDADD = \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_ZMQ) \
-  $(LIBBITCOIN_CONSENSUS) \
+  $(LIBDEVAULT_CONSENSUS) \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBLEVELDB) \
   $(LIBLEVELDB_SSE42) \
@@ -552,26 +552,26 @@ devault_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_CONSENSUS) \
+  $(LIBDEVAULT_CONSENSUS) \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBSECP256K1)
 
 devault_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
-# bitcoinconsensus library #
+# devaultconsensus library #
 if BUILD_BITCOIN_LIBS
-include_HEADERS = script/bitcoinconsensus.h
-libbitcoinconsensus_la_SOURCES = $(crypto_libbitcoin_crypto_base_a_SOURCES) $(libbitcoin_consensus_a_SOURCES)
+include_HEADERS = script/devaultconsensus.h
+libdevaultconsensus_la_SOURCES = $(crypto_libbitcoin_crypto_base_a_SOURCES) $(libbitcoin_consensus_a_SOURCES)
 
 if GLIBC_BACK_COMPAT
-  libbitcoinconsensus_la_SOURCES += compat/glibc_compat.cpp
+  libdevaultconsensus_la_SOURCES += compat/glibc_compat.cpp
 endif
 
-libbitcoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-libbitcoinconsensus_la_LIBADD = $(LIBSECP256K1)
-libbitcoinconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
-libbitcoinconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libdevaultconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
+libdevaultconsensus_la_LIBADD = $(LIBSECP256K1)
+libdevaultconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+libdevaultconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 endif
 #

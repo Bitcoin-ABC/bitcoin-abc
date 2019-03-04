@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CONSENSUS_TX_VERIFY_H
-#define BITCOIN_CONSENSUS_TX_VERIFY_H
+#ifndef DEVAULT_CONSENSUS_TX_VERIFY_H
+#define DEVAULT_CONSENSUS_TX_VERIFY_H
 
 #include <cstdint>
 #include <vector>
@@ -97,4 +97,4 @@ uint64_t GetTransactionSigOpCount(const CTransaction &tx,
                                   const CCoinsViewCache &inputs,
                                   uint32_t flags);
 
-#endif // BITCOIN_CONSENSUS_TX_VERIFY_H
+#endif // DEVAULT_CONSENSUS_TX_VERIFY_H

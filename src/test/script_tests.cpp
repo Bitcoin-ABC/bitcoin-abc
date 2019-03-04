@@ -21,7 +21,7 @@
 #include "utilstrencodings.h"
 
 #if defined(HAVE_CONSENSUS_LIB)
-#include "script/bitcoinconsensus.h"
+#include "script/devaultconsensus.h"
 #endif
 
 #include <cstdint>
@@ -175,22 +175,22 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << tx2;
     uint32_t libconsensus_flags =
-        flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
+        flags & devaultconsensus_SCRIPT_FLAGS_VERIFY_ALL;
     if (libconsensus_flags == flags) {
-        if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
-            BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
+        if (flags & devaultconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
+            BOOST_CHECK_MESSAGE(devaultconsensus_verify_script_with_amount(
                                     scriptPubKey.data(), scriptPubKey.size(),
                                     txCredit.vout[0].nValue / SATOSHI,
                                     (const uint8_t *)&stream[0], stream.size(),
                                     0, libconsensus_flags, nullptr) == expect,
                                 message);
         } else {
-            BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
+            BOOST_CHECK_MESSAGE(devaultconsensus_verify_script_with_amount(
                                     scriptPubKey.data(), scriptPubKey.size(), 0,
                                     (const uint8_t *)&stream[0], stream.size(),
                                     0, libconsensus_flags, nullptr) == expect,
                                 message);
-            BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script(
+            BOOST_CHECK_MESSAGE(devaultconsensus_verify_script(
                                     scriptPubKey.data(), scriptPubKey.size(),
                                     (const uint8_t *)&stream[0], stream.size(),
                                     0, libconsensus_flags, nullptr) == expect,

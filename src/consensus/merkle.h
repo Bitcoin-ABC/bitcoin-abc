@@ -20,4 +20,4 @@ uint256 ComputeMerkleRoot(std::vector<uint256> hashes, bool *mutated = nullptr);
  */
 uint256 BlockMerkleRoot(const CBlock &block, bool *mutated = nullptr);
 
-#endif // BITCOIN_CONSENSUS_MERKLE_H
+#endif // DEVAULT_CONSENSUS_MERKLE_H
