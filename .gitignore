@@ -1,14 +1,15 @@
 *.tar.gz
 
 *.exe
-src/bitcoin
-src/bitcoind
-src/bitcoin-cli
+src/devault
+src/devaultd
+src/devault-cli
 src/devault-seeder
-src/bitcoin-tx
-src/test/test_bitcoin
-src/test/test_bitcoin_fuzzy
-src/qt/test/test_bitcoin-qt
+src/devault-tx
+src/test/test_devault
+src/test/test_devault_fuzzy
+src/qt/devault-qt
+src/qt/test/test_devault-qt
 
 # autoreconf
 Makefile.in
@@ -75,12 +76,12 @@ src/qt/test/moc*.cpp
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-bitcoin-qt
-Bitcoin-Qt.app
+DeVault-qt
+DeVault-Qt.app
 
 # Unit-tests
 Makefile.test
-bitcoin-qt_test
+devault-qt_test
 
 # Resources cpp
 qrc_*.cpp
@@ -93,7 +94,7 @@ build
 *.gcno
 *.gcda
 /*.info
-test_bitcoin.coverage/
+test_devault.coverage/
 total.coverage/
 coverage_percent.txt
 
