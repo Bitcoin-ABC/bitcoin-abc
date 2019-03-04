@@ -150,14 +150,15 @@ extern const std::string CURRENCY_UNIT;
 /**
  * No amount larger than this (in satoshi) is valid.
  *
- * Note that this constant is *not* the total money supply, which in Bitcoin
- * currently happens to be less than 21,000,000 BCH for various reasons, but
- * rather a sanity check. As this sanity check is used by consensus-critical
- * validation code, the exact value of the MAX_MONEY constant is consensus
- * critical; in unusual circumstances like a(nother) overflow bug that allowed
- * for the creation of coins out of thin air modification could lead to a fork.
+ * Note that this constant is *not* the total money supply, which in DeVault
+ * should be between 4 & 5 billion (TBD), but rather a sanity check. It's set
+ * at 2 Billion due to arithmetic integer limit.
+ * As this sanity check is used by consensus-critical validation code, the exact
+ * value of the MAX_MONEY constant is consensus critical; in unusual circumstances
+ * like a(nother) overflow bug that allowed for the creation of coins out of thin
+ * air modification could lead to a fork.
  */
-static const Amount MAX_MONEY = 21000000 * COIN;
+static const Amount MAX_MONEY = 2000000000 * COIN; // 2 Billion
 inline bool MoneyRange(const Amount nValue) {
     return nValue >= Amount::zero() && nValue <= MAX_MONEY;
 }

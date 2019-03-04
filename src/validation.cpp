@@ -914,16 +914,18 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
 }
 
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64) {
-        return Amount::zero();
-    }
+  // Peak currently happens 2 years out
+  const int64_t nPeakHeight = 2*consensusParams.nBlocksPerYear;
+  const int64_t nMaxReward = consensusParams.nMaxMiningRewardInCoins;
+  int64_t nReward;
 
-    Amount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur
-    // approximately every 4 years.
-    return ((nSubsidy / SATOSHI) >> halvings) * SATOSHI;
+  if (nHeight <= nPeakHeight) {
+    nReward = (nMaxReward/2) + int((nMaxReward*nHeight)/(nPeakHeight+nHeight));
+  } else {
+    nReward =  int((nMaxReward * nPeakHeight)/nHeight);
+  }
+  Amount nSubsidy = nReward * COIN;
+  return nSubsidy;
 }
 
 bool IsInitialBlockDownload() {

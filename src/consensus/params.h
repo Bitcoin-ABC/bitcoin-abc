@@ -40,7 +40,6 @@ struct BIP9Deployment {
  */
 struct Params {
     uint256 hashGenesisBlock;
-    int nSubsidyHalvingInterval;
     /** Block height at which UAHF kicks in */
     int uahfHeight;
     /** Unix time used for MTP activation of 15 May 2019 12:00:00 UTC upgrade */
@@ -60,6 +59,8 @@ struct Params {
     bool fPowNoRetargeting;
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
+    int64_t nBlocksPerYear;
+    int64_t nMaxMiningRewardInCoins;
     int64_t DifficultyAdjustmentInterval() const {
         return nPowTargetTimespan / nPowTargetSpacing;
     }

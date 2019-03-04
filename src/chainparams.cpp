@@ -84,11 +84,12 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        consensus.nSubsidyHalvingInterval = 210000;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 24 * 60 * 60; // 1 day
-        consensus.nPowTargetSpacing = 2 * 60; // 2 minutes
+        consensus.nPowTargetSpacing = 2 * 60; // 2 minute block time
+        consensus.nBlocksPerYear = 30 * 24 * 365.25;
+        consensus.nMaxMiningRewardInCoins = 2000;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         // 95% of 2016
@@ -189,12 +190,13 @@ class CTestNetParams : public CChainParams {
 public:
     CTestNetParams() {
         strNetworkID = "test";
-        consensus.nSubsidyHalvingInterval = 210000;
         // Reduce this difficult a lot to get started
         consensus.powLimit = uint256S(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 24 * 60 * 60; // 1 day
         consensus.nPowTargetSpacing = 2 * 60;
+        consensus.nBlocksPerYear = 30 * 24 * 365.25;
+        consensus.nMaxMiningRewardInCoins = 2000;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         // 75% for testchains
@@ -279,11 +281,12 @@ class CRegTestParams : public CChainParams {
 public:
     CRegTestParams() {
         strNetworkID = "regtest";
-        consensus.nSubsidyHalvingInterval = 150;
         consensus.powLimit = uint256S(
             "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 24 * 60 * 60; // 1 day
-        consensus.nPowTargetSpacing = 2 * 60;
+        consensus.nPowTargetSpacing = 2* 60;
+        consensus.nBlocksPerYear = 30 * 24 * 365.25;
+        consensus.nMaxMiningRewardInCoins = 2000;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         // 75% for testchains
