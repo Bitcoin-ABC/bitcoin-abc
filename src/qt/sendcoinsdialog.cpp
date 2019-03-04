@@ -30,26 +30,6 @@
 #include <QTextDocument>
 #include <QTimer>
 
-static const std::array<int, 9> confTargets = {
-    {2, 4, 6, 12, 24, 48, 144, 504, 1008}};
-int getConfTargetForIndex(int index) {
-    if (index + 1 > static_cast<int>(confTargets.size())) {
-        return confTargets.back();
-    }
-    if (index < 0) {
-        return confTargets[0];
-    }
-    return confTargets[index];
-}
-int getIndexForConfTarget(int target) {
-    for (unsigned int i = 0; i < confTargets.size(); i++) {
-        if (confTargets[i] >= target) {
-            return i;
-        }
-    }
-    return confTargets.size() - 1;
-}
-
 SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
                                  QWidget *parent)
     : QDialog(parent), ui(new Ui::SendCoinsDialog), clientModel(0), model(0),
@@ -141,9 +121,6 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
         // per kilobyte
         settings.setValue("nCustomFeeRadio", 0);
     }
-    if (!settings.contains("nSmartFeeSliderPosition")) {
-        settings.setValue("nSmartFeeSliderPosition", 0);
-    }
     if (!settings.contains("nTransactionFee")) {
         settings.setValue("nTransactionFee",
                           qint64(DEFAULT_TRANSACTION_FEE / SATOSHI));
@@ -213,19 +190,6 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         coinControlUpdateLabels();
 
         // fee section
-        for (const int n : confTargets) {
-            ui->confTargetSelector->addItem(
-                tr("%1 (%2 blocks)")
-                    .arg(GUIUtil::formatNiceTimeOffset(
-                        n * Params().GetConsensus().nPowTargetSpacing))
-                    .arg(n));
-        }
-        connect(ui->confTargetSelector, SIGNAL(currentIndexChanged(int)), this,
-                SLOT(updateSmartFeeLabel()));
-        connect(ui->confTargetSelector, SIGNAL(currentIndexChanged(int)), this,
-                SLOT(updateGlobalFeeVariables()));
-        connect(ui->confTargetSelector, SIGNAL(currentIndexChanged(int)), this,
-                SLOT(coinControlUpdateLabels()));
         connect(ui->groupFee, SIGNAL(buttonClicked(int)), this,
                 SLOT(updateFeeSectionControls()));
         connect(ui->groupFee, SIGNAL(buttonClicked(int)), this,
@@ -255,24 +219,14 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         updateSmartFeeLabel();
         updateGlobalFeeVariables();
 
-        // set the smartfee-sliders default value (wallets default conf.target
-        // or last stored value)
+        // Cleanup old confirmation target related settings
+        // TODO: Remove these in 0.20
         QSettings settings;
         if (settings.value("nSmartFeeSliderPosition").toInt() != 0) {
-            // migrate nSmartFeeSliderPosition to nConfTarget
-            // nConfTarget is available since 0.18.7 (replaced
-            // nSmartFeeSliderPosition) 25 == old slider range
-            int nConfirmTarget =
-                25 - settings.value("nSmartFeeSliderPosition").toInt();
-            settings.setValue("nConfTarget", nConfirmTarget);
             settings.remove("nSmartFeeSliderPosition");
         }
-        if (settings.value("nConfTarget").toInt() == 0) {
-            ui->confTargetSelector->setCurrentIndex(
-                getIndexForConfTarget(model->getDefaultConfirmTarget()));
-        } else {
-            ui->confTargetSelector->setCurrentIndex(
-                getIndexForConfTarget(settings.value("nConfTarget").toInt()));
+        if (settings.value("nConfTarget").toInt() != 0) {
+            settings.remove("nConfTarget");
         }
     }
 }
@@ -282,9 +236,6 @@ SendCoinsDialog::~SendCoinsDialog() {
     settings.setValue("fFeeSectionMinimized", fFeeMinimized);
     settings.setValue("nFeeRadio", ui->groupFee->checkedId());
     settings.setValue("nCustomFeeRadio", ui->groupCustomFee->checkedId());
-    settings.setValue(
-        "nConfTarget",
-        getConfTargetForIndex(ui->confTargetSelector->currentIndex()));
     settings.setValue("nTransactionFee",
                       qint64(ui->customFee->value() / SATOSHI));
     settings.setValue("fPayOnlyMinFee", ui->checkBoxMinimumFee->isChecked());
@@ -333,12 +284,6 @@ void SendCoinsDialog::on_sendButton_clicked() {
     CCoinControl ctrl;
     if (model->getOptionsModel()->getCoinControlFeatures()) {
         ctrl = *CoinControlDialog::coinControl;
-    }
-    if (ui->radioSmartFee->isChecked()) {
-        ctrl.nConfirmTarget =
-            getConfTargetForIndex(ui->confTargetSelector->currentIndex());
-    } else {
-        ctrl.nConfirmTarget = 0;
     }
 
     prepareStatus = model->prepareTransaction(currentTransaction, &ctrl);
@@ -714,10 +659,8 @@ void SendCoinsDialog::setMinimumFee() {
 }
 
 void SendCoinsDialog::updateFeeSectionControls() {
-    ui->confTargetSelector->setEnabled(ui->radioSmartFee->isChecked());
     ui->labelSmartFee->setEnabled(ui->radioSmartFee->isChecked());
     ui->labelSmartFee2->setEnabled(ui->radioSmartFee->isChecked());
-    ui->labelSmartFee3->setEnabled(ui->radioSmartFee->isChecked());
     ui->labelFeeEstimation->setEnabled(ui->radioSmartFee->isChecked());
     ui->checkBoxMinimumFee->setEnabled(ui->radioCustomFee->isChecked());
     ui->labelMinFeeWarning->setEnabled(ui->radioCustomFee->isChecked());
@@ -768,8 +711,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         return;
     }
 
-    int nBlocksToConfirm =
-        getConfTargetForIndex(ui->confTargetSelector->currentIndex());
+    int nBlocksToConfirm = 1;
     CFeeRate feeRate = g_mempool.estimateFee(nBlocksToConfirm);
     // not enough data => minfee
     if (feeRate <= CFeeRate(Amount::zero())) {
