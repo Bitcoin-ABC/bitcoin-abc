@@ -144,6 +144,11 @@ AC_ARG_ENABLE(module_schnorr,
     [enable_module_schnorr=$enableval],
     [enable_module_schnorr=yes])
 
+AC_ARG_ENABLE(external_default_callbacks,
+    AS_HELP_STRING([--enable-external-default-callbacks],[enable external default callback functions (default is no)]),
+    [use_external_default_callbacks=$enableval],
+    [use_external_default_callbacks=no])
+
 AC_ARG_ENABLE(jni,
     AS_HELP_STRING([--enable-jni],[enable libsecp256k1_jni [default=no]]),
     [use_jni=$enableval],
@@ -511,6 +516,10 @@ if test x"$use_external_asm" = x"yes"; then
   AC_DEFINE(USE_EXTERNAL_ASM, 1, [Define this symbol if an external (non-inline) assembly implementation is used])
 fi
 
+if test x"$use_external_default_callbacks" = x"yes"; then
+  AC_DEFINE(USE_EXTERNAL_DEFAULT_CALLBACKS, 1, [Define this symbol if an external implementation of the default callbacks is used])
+fi
+
 if test x"$enable_experimental" = x"yes"; then
   AC_MSG_NOTICE([******])
   AC_MSG_NOTICE([WARNING: experimental build])
@@ -555,24 +564,25 @@ AC_OUTPUT
 
 echo
 echo "Build Options:"
-echo "  with endomorphism   = $use_endomorphism"
-echo "  with ecmult precomp = $set_precomp"
-echo "  with jni            = $use_jni"
-echo "  with benchmarks     = $use_benchmark"
-echo "  with coverage       = $enable_coverage"
-echo "  module ecdh         = $enable_module_ecdh"
-echo "  module recovery     = $enable_module_recovery"
-echo "  module multiset     = $enable_module_multiset"
-echo "  module schnorr      = $enable_module_schnorr"
+echo "  with endomorphism       = $use_endomorphism"
+echo "  with ecmult precomp     = $set_precomp"
+echo "  with external callbacks = $use_external_default_callbacks"
+echo "  with jni                = $use_jni"
+echo "  with benchmarks         = $use_benchmark"
+echo "  with coverage           = $enable_coverage"
+echo "  module ecdh             = $enable_module_ecdh"
+echo "  module recovery         = $enable_module_recovery"
+echo "  module multiset         = $enable_module_multiset"
+echo "  module schnorr          = $enable_module_schnorr"
 echo
-echo "  asm                 = $set_asm"
-echo "  bignum              = $set_bignum"
-echo "  field               = $set_field"
-echo "  scalar              = $set_scalar"
-echo "  ecmult window size  = $set_ecmult_window"
+echo "  asm                     = $set_asm"
+echo "  bignum                  = $set_bignum"
+echo "  field                   = $set_field"
+echo "  scalar                  = $set_scalar"
+echo "  ecmult window size      = $set_ecmult_window"
 echo
-echo "  CC                  = $CC"
-echo "  CFLAGS              = $CFLAGS"
-echo "  CPPFLAGS            = $CPPFLAGS"
-echo "  LDFLAGS             = $LDFLAGS"
+echo "  CC                      = $CC"
+echo "  CFLAGS                  = $CFLAGS"
+echo "  CPPFLAGS                = $CPPFLAGS"
+echo "  LDFLAGS                 = $LDFLAGS"
 echo
