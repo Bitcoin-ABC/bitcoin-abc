@@ -1,67 +1,58 @@
-Source: bitcoin
-Section: utils
+Source: devault
+Section: net
 Priority: optional
-Maintainer: Jonas Smedegaard <dr@jones.dk>
-Uploaders: Micah Anderson <micah@debian.org>
+Maintainer: Proteus <pro@proteanx.com>
+Uploaders: Proteus <pro@proteanx.com>
 Build-Depends: debhelper,
  devscripts,
  automake,
  libtool,
  bash-completion,
- libboost-system-dev (>> 1.35) | libboost-system1.35-dev,
- libdb4.8++-dev,
+ libdb-dev,
+ libdb++-dev,
  libssl-dev,
  pkg-config,
- libminiupnpc8-dev | libminiupnpc-dev (>> 1.6),
- libboost-filesystem-dev (>> 1.35) | libboost-filesystem1.35-dev,
- libboost-program-options-dev (>> 1.35) | libboost-program-options1.35-dev,
- libboost-thread-dev (>> 1.35) | libboost-thread1.35-dev,
- libboost-test-dev (>> 1.35) | libboost-test1.35-dev,
- qt4-qmake,
- libqt4-dev,
+ libevent-dev,
+ libboost-system1.48-dev | libboost-system-dev (>> 1.47),
+ libboost-filesystem1.48-dev | libboost-filesystem-dev (>> 1.47),
+ libboost-program-options1.48-dev | libboost-program-options-dev (>> 1.47),
+ libboost-thread1.48-dev | libboost-thread-dev (>> 1.47),
+ libboost-test1.48-dev | libboost-test-dev (>> 1.47),
+ libboost-chrono1.48-dev | libboost-chrono-dev (>> 1.47),
+ qt4-qmake, libqt4-dev,
+ xvfb,
+ qttools5-dev-tools, qttools5-dev,
  libqrencode-dev,
- libprotobuf-dev, protobuf-compiler,
- python
-Standards-Version: 3.9.2
-Homepage: https://bitcoinabc.org/
-Vcs-Git: ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git
-Vcs-Browser: https://reviews.bitcoinabc.org/source/bitcoin-abc/
+ python,
+ libzmq3-dev
+Standards-Version: 3.9.8
+Homepage: https://devault.cc/
+Vcs-Git: https://github.com/devaultcrypto/devault.git
+Vcs-Browser: https://github.com/devaultcrypto/devault
 
-Package: bitcoind
+Package: devaultd
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: peer-to-peer network based digital currency - daemon
- Bitcoin is an experimental new digital currency that enables instant
- payments to anyone, anywhere in the world. Bitcoin uses peer-to-peer
- technology to operate with no central authority: managing transactions
- and issuing money are carried out collectively by the network. Bitcoin ABC
- is the name of the open source software which enables the use of this currency.
+Description: Wallet Daemon.
+ Desktop Wallet for DeVault, a decentralized cryptocurrency.
  .
- This package provides the daemon, bitcoind, and the CLI tool
- bitcoin-cli to interact with the daemon.
+ This package provides the daemon, devaultd, and the CLI tool
+ devault-cli to interact with the daemon.
 
-Package: bitcoin-qt
+Package: devault-qt
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: peer-to-peer network based digital currency - Qt GUI
- Bitcoin is an experimental new digital currency that enables instant
- payments to anyone, anywhere in the world. Bitcoin uses peer-to-peer
- technology to operate with no central authority: managing transactions
- and issuing money are carried out collectively by the network. Bitcoin ABC
- is the name of the open source software which enables the use of this currency.
+Description: Wallet GUI.
+ Desktop Wallet for DeVault, a decentralized cryptocurrency.
  .
- This package provides Bitcoin-Qt, a GUI for Bitcoin based on Qt.
+ This package provides devault-qt, a GUI for DeVault based on Qt.
 
-Package: bitcoin-tx
+Package: devault-tx
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: peer-to-peer digital currency - standalone transaction tool
- Bitcoin is an experimental new digital currency that enables instant
- payments to anyone, anywhere in the world. Bitcoin uses peer-to-peer
- technology to operate with no central authority: managing transactions
- and issuing money are carried out collectively by the network. Bitcoin ABC
- is the name of the open source software which enables the use of this currency.
+Description: DeVault TX.
+ Desktop Wallet for DeVault, a decentralized cryptocurrency.
  .
- This package provides bitcoin-tx, a command-line transaction creation
+ This package provides devault-tx, a command-line transaction creation
  tool which can be used without a bitcoin daemon.  Some means of
  exchanging minimal transaction data with peers is still required.

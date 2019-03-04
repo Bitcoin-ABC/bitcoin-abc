@@ -1,0 +1,16 @@
+# If you want devault to appear in a linux app launcher ("start menu"), install this by doing:
+# sudo desktop-file-install devault.desktop
+
+[Desktop Entry]
+Comment=DeVault Wallet
+Exec=devault-qt %u
+GenericName[en_US]=Devault-qt
+GenericName=Devault-qt
+Icon=devault-128.png
+Name[en_US]=devault-qt
+Name=DeVault Wallet
+Categories=Network;
+StartupNotify=false
+Terminal=false
+Type=Application
+

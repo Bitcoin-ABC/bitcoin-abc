@@ -1,0 +1,3 @@
+usr/local/bin/devault-qt usr/bin
+share/pixmaps/devault-128.png usr/share/pixmaps
+debian/devault-qt.desktop usr/share/applications

@@ -1,21 +1,32 @@
 #!/usr/bin/make -f
-# -*- mode: makefile; coding: utf-8 -*-
-
-#DEB_MAKE_CHECK_TARGET = test_bitcoin
-#build/bitcoind::
-#	$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),,src/test_bitcoin)
+# Proteus - Removed unit tests beyond make check
 
 %:
-	dh --with bash-completion $@
+	dh $@ --with bash-completion
 
 override_dh_auto_clean:
 	if [ -f Makefile ]; then $(MAKE) distclean; fi
 	rm -rf Makefile.in aclocal.m4 configure src/Makefile.in src/bitcoin-config.h.in src/build-aux src/qt/Makefile.in src/qt/test/Makefile.in src/test/Makefile.in
 
-# Yea, autogen should be run on the source archive, but I like doing git archive
+QT=$(shell dpkg-vendor --derives-from Ubuntu && echo qt4 || echo qt5)
+# Force qt5 on arm & arch
+ifeq ($(findstring arm,$(shell uname -m)),arm)
+	QT=qt5
+endif
+ifeq ($(findstring aarch64,$(shell uname -m)),aarch64)
+	QT=qt5
+endif
+
+# Run autogen.sh and configure flags before make
 override_dh_auto_configure:
 	./autogen.sh
-	./configure
+	./configure CPPFLAGS="-I${BDB_PREFIX}/include/ -O2" LDFLAGS="-L${BDB_PREFIX}/lib/" --with-gui=$(QT)
 
+# No unit/fuzz tests, just make check
 override_dh_auto_test:
+ifeq ($(QT), qt4)
+	xvfb-run -n 99 -l make check
+else
 	make check
+endif
+

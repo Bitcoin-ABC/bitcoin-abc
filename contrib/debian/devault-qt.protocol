@@ -1,6 +1,6 @@
 [Protocol]
-exec=bitcoin-qt '%u'
-protocol=bitcoin
+exec=devault-qt '%u'
+protocol=devault
 input=none
 output=none
 helper=true
