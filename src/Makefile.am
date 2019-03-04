@@ -42,7 +42,7 @@ if BUILD_BITCOIN_LIBS
 LIBBITCOINCONSENSUS=libdevaultconsensus.la
 endif
 if BUILD_BITCOIN_SEEDER
-LIBBITCOIN_SEEDER=libbitcoin_seeder.a
+LIBBITCOIN_SEEDER=libdevault_seeder.a
 endif
 if ENABLE_WALLET
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
@@ -462,9 +462,9 @@ libbitcoin_cli_a_SOURCES = \
   $(BITCOIN_CORE_H)
 
 # seeder library
-libbitcoin_seeder_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIE_FLAGS) $(BITCOIN_SEEDER_INCLUDES)
-libbitcoin_seeder_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libbitcoin_seeder_a_SOURCES = \
+libdevault_seeder_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIE_FLAGS) $(BITCOIN_SEEDER_INCLUDES)
+libdevault_seeder_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libdevault_seeder_a_SOURCES = \
   seeder/bitcoin.cpp \
   seeder/bitcoin.h \
   seeder/compat.h \
@@ -524,18 +524,18 @@ devault_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
 #
 
 # devault-seeder binary #
-bitcoin_seeder_SOURCES = seeder/main.cpp
-bitcoin_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES)
-bitcoin_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-bitcoin_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+devault_seeder_SOURCES = seeder/main.cpp
+devault_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES)
+devault_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+devault_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
-bitcoin_seeder_LDADD = \
+devault_seeder_LDADD = \
   $(LIBBITCOIN_SEEDER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-bitcoin_seeder_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
+devault_seeder_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
 # devault-tx binary #

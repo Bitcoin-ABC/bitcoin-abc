@@ -386,8 +386,8 @@ AC_ARG_WITH([daemon],
 AC_ARG_WITH([seeder],
   [AS_HELP_STRING([--with-seeder],
   [build seeder (default=yes)])],
-  [build_bitcoin_seeder=$withval],
-  [build_bitcoin_seeder=yes])
+  [build_devault_seeder=$withval],
+  [build_devault_seeder=yes])
 
 use_pkgconfig=yes
 case $host in
@@ -786,7 +786,7 @@ BITCOIN_QT_INIT
 dnl sets $bitcoin_enable_qt, $bitcoin_enable_qt_test, $bitcoin_enable_qt_dbus
 BITCOIN_QT_CONFIGURE([$use_pkgconfig])
 
-if test x$build_bitcoin_utils$build_bitcoind$bitcoin_enable_qt$build_bitcoin_seeder$use_tests$use_bench = xnononononono; then
+if test x$build_bitcoin_utils$build_bitcoind$bitcoin_enable_qt$build_devault_seeder$use_tests$use_bench = xnononononono; then
     use_boost=no
 else
     use_boost=yes
@@ -984,8 +984,8 @@ AM_CONDITIONAL([BUILD_BITCOIND], [test x$build_bitcoind = xyes])
 AC_MSG_RESULT($build_bitcoind)
 
 AC_MSG_CHECKING([whether to build bitcoin-seeder])
-AM_CONDITIONAL([BUILD_BITCOIN_SEEDER], [test x$build_bitcoin_seeder = xyes])
-AC_MSG_RESULT($build_bitcoin_seeder)
+AM_CONDITIONAL([BUILD_BITCOIN_SEEDER], [test x$build_devault_seeder = xyes])
+AC_MSG_RESULT($build_devault_seeder)
 
 AC_MSG_CHECKING([whether to build utils (bitcoin-cli bitcoin-tx)])
 AM_CONDITIONAL([BUILD_BITCOIN_UTILS], [test x$build_bitcoin_utils = xyes])
