@@ -983,7 +983,7 @@ AC_MSG_CHECKING([whether to build bitcoind])
 AM_CONDITIONAL([BUILD_BITCOIND], [test x$build_bitcoind = xyes])
 AC_MSG_RESULT($build_bitcoind)
 
-AC_MSG_CHECKING([whether to build devault-seeder])
+AC_MSG_CHECKING([whether to build bitcoin-seeder])
 AM_CONDITIONAL([BUILD_BITCOIN_SEEDER], [test x$build_bitcoin_seeder = xyes])
 AC_MSG_RESULT($build_bitcoin_seeder)
 
