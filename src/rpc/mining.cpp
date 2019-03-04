@@ -798,12 +798,7 @@ static UniValue estimatefee(const Config &config,
 
     RPCTypeCheck(request.params, {UniValue::VNUM});
 
-    int nBlocks = request.params[0].get_int();
-    if (nBlocks < 1) {
-        nBlocks = 1;
-    }
-
-    CFeeRate feeRate = g_mempool.estimateFee(nBlocks);
+    CFeeRate feeRate = g_mempool.estimateFee();
     if (feeRate == CFeeRate(Amount::zero())) {
         return -1.0;
     }

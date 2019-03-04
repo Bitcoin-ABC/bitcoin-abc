@@ -950,7 +950,7 @@ TxMempoolInfo CTxMemPool::info(const uint256 &txid) const {
     return GetInfo(i);
 }
 
-CFeeRate CTxMemPool::estimateFee(int nBlocks) const {
+CFeeRate CTxMemPool::estimateFee() const {
     LOCK(cs);
 
     uint64_t maxMempoolSize =
