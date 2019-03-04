@@ -33,3 +33,13 @@ macro(remove_compiler_flags)
 		string(REGEX REPLACE "${f}( |^)" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
 	endforeach()
 endmacro()
+
+# Note that CMake does not provide any facility to check that a linker flag is
+# supported by the compiler, but most linker will just drop any unsupported flag
+# (eventually with a warning).
+function(add_linker_flag)
+	foreach(f ${ARGN})
+		string(APPEND CMAKE_EXE_LINKER_FLAGS " ${f}")
+	endforeach()
+	set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} PARENT_SCOPE)
+endfunction()
