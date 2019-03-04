@@ -18,7 +18,7 @@ BITCOIN_DAEMON_NAME=devaultd
 BITCOIN_GUI_NAME=devault-qt
 BITCOIN_CLI_NAME=devault-cli
 BITCOIN_TX_NAME=devault-tx
-BITCOIN_SEEDER_NAME=bitcoin-seeder
+BITCOIN_SEEDER_NAME=devault-seeder
 
 AC_CANONICAL_HOST
 
@@ -983,7 +983,7 @@ AC_MSG_CHECKING([whether to build bitcoind])
 AM_CONDITIONAL([BUILD_BITCOIND], [test x$build_bitcoind = xyes])
 AC_MSG_RESULT($build_bitcoind)
 
-AC_MSG_CHECKING([whether to build bitcoin-seeder])
+AC_MSG_CHECKING([whether to build devault-seeder])
 AM_CONDITIONAL([BUILD_BITCOIN_SEEDER], [test x$build_bitcoin_seeder = xyes])
 AC_MSG_RESULT($build_bitcoin_seeder)
 

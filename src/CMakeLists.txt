@@ -11,7 +11,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
 option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
-option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
+option(BUILD_BITCOIN_SEEDER "Build devault-seeder" ON)
 option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
@@ -292,7 +292,7 @@ endif()
 add_library(rpcclient rpc/client.cpp)
 target_link_libraries(rpcclient univalue util)
 
-# bitcoin-seeder
+# devault-seeder
 if(BUILD_BITCOIN_SEEDER)
 	add_subdirectory(seeder)
 endif()

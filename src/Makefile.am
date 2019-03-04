@@ -90,7 +90,7 @@ if BUILD_BITCOIND
 endif
 
 if BUILD_BITCOIN_SEEDER
-  bin_PROGRAMS += bitcoin-seeder
+  bin_PROGRAMS += devault-seeder
 endif
 
 if BUILD_BITCOIN_UTILS
@@ -523,7 +523,7 @@ devault_cli_LDADD = \
 devault_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
 #
 
-# bitcoin-seeder binary #
+# devault-seeder binary #
 bitcoin_seeder_SOURCES = seeder/main.cpp
 bitcoin_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES)
 bitcoin_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)

@@ -1,9 +1,9 @@
-bitcoin-seeder
+devault-seeder
 ==============
 
 Bitcoin-seeder is a crawler for the Bitcoin Cash network, which exposes a list
 of reliable nodes via a built-in DNS server. It is derived from Pieter Wuille's
-bitcoin-seeder, modified for use on the Bitcoin Cash network.
+devault-seeder, modified for use on the Bitcoin Cash network.
 
 Features:
 * regularly revisits known nodes to check their availability
@@ -33,7 +33,7 @@ dnsseed.example.com.   86400    IN      NS     vps.example.com.
 
 On the system vps.example.com, you can now run dnsseed:
 
-./bitcoin-seeder -h dnsseed.example.com -n vps.example.com
+./devault-seeder -h dnsseed.example.com -n vps.example.com
 
 If you want the DNS server to report SOA records, please provide an
 e-mail address (with the @ part replaced by .) using -m.
