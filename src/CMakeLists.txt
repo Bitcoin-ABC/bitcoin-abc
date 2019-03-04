@@ -14,13 +14,18 @@ option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
 
+# Cmake uses the CMAKE_BUILD_TYPE variable to select the build configuration.
+# By default it supports more configurations that needed for Bitcoin ABC, and
+# all the releases types set NDEBUG which is unwanted as it disables the assert
+# completely.
+# Remove the -DNDEBUG flag from the CFLAGS/CXXFLAGS in all the configurations
+include(AddCompilerFlags)
+remove_compiler_flags(-DNDEBUG)
+
 # Ensure that WINDRES_PREPROC is enabled when using windres.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
 endif()
-
-# Enable warning
-include(AddCompilerFlags)
 
 # CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
 # Unfortunately setting the -pie linker flag this way required CMake >= 3.14,
@@ -32,6 +37,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_linker_flag(-pie)
 endif()
 
+# Enable warning
 add_c_compiler_flag(-Wnested-externs -Wstrict-prototypes)
 add_compiler_flag(
 	-Wall
