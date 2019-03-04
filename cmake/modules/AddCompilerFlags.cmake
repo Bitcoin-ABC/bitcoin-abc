@@ -74,6 +74,24 @@ macro(remove_compiler_flags)
 	remove_cxx_compiler_flags(${ARGN})
 endmacro()
 
+function(add_cxx_compiler_flag_with_fallback TARGET_VAR FLAG FALLBACK)
+	# Remove the fallback flag if it exists, so that the main flag will override
+	# it if it was previously added.
+	remove_cxx_compiler_flags(${FALLBACK})
+	
+	set(FLAG_CANDIDATE ${FLAG})
+	check_compiler_flag(FLAG_IS_SUPPORTED CXX ${FLAG_CANDIDATE})
+	if(NOT ${FLAG_IS_SUPPORTED})
+		set(FLAG_CANDIDATE ${FALLBACK})
+		check_compiler_flag(FLAG_IS_SUPPORTED CXX ${FLAG_CANDIDATE})
+	endif()
+	
+	if(${FLAG_IS_SUPPORTED})
+		string(APPEND ${TARGET_VAR} " ${FLAG_CANDIDATE}")
+		set(${TARGET_VAR} ${${TARGET_VAR}} PARENT_SCOPE)
+	endif()
+endfunction()
+
 # Note that CMake does not provide any facility to check that a linker flag is
 # supported by the compiler.
 # However since CMake 3.2 introduced the CMP0056 policy, the
