@@ -22,6 +22,15 @@ endif()
 # Enable warning
 include(AddCompilerFlags)
 
+# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
+# Unfortunately setting the -pie linker flag this way required CMake >= 3.14,
+# which is not widely distributed at the time of writing.
+# FIXME: use the POSITION_INDEPENDENT_CODE property instead
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	add_compiler_flag(-fPIC -fPIE)
+	add_linker_flag(-pie)
+endif()
+
 add_c_compiler_flag(-Wnested-externs -Wstrict-prototypes)
 add_compiler_flag(
 	-Wall
