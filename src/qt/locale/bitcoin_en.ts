@@ -2853,20 +2853,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+101"/>
+        <location line="+135"/>
+        <source>Estimated to begin confirmation by next block.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-34"/>
         <source>Pay only the required fee of %1</source>
         <translation type="unfinished"></translation>
     </message>
-    <message numerus="yes">
-        <location line="+35"/>
-        <source>Estimated to begin confirmation within %n block(s).</source>
-        <translation>
-            <numerusform>Estimated to begin confirmation within %n block.</numerusform>
-            <numerusform>Estimated to begin confirmation within %n blocks.</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+104"/>
+        <location line="+137"/>
         <source>Warning: Invalid Bitcoin address</source>
         <translation type="unfinished"></translation>
     </message>
