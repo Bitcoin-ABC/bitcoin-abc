@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017 The Bitcoin Core developers
+# Copyright (c) 2017-2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test recovery from a crash during chainstate writing.
@@ -28,7 +28,6 @@
 import errno
 import http.client
 import random
-import sys
 import time
 
 from test_framework.blocktools import create_confirmed_utxos
@@ -42,12 +41,6 @@ from test_framework.messages import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, hex_str_to_bytes
-
-HTTP_DISCONNECT_ERRORS = [http.client.CannotSendRequest]
-try:
-    HTTP_DISCONNECT_ERRORS.append(http.client.RemoteDisconnected)
-except AttributeError:
-    pass
 
 
 class ChainstateWriteCrashTest(BitcoinTestFramework):
@@ -119,15 +112,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         try:
             self.nodes[node_index].submitblock(block)
             return True
-        except http.client.BadStatusLine as e:
-            # Prior to 3.5 BadStatusLine('') was raised for a remote disconnect error.
-            if sys.version_info[0] == 3 and sys.version_info[1] < 5 and e.line == "''":
-                self.log.debug(
-                    "node {} submitblock raised exception: {}".format(node_index, e))
-                return False
-            else:
-                raise
-        except tuple(HTTP_DISCONNECT_ERRORS) as e:
+        except (http.client.CannotSendRequest, http.client.RemoteDisconnected) as e:
             self.log.debug(
                 "node {} submitblock raised exception: {}".format(node_index, e))
             return False
