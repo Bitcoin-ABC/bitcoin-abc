@@ -1,6 +1,6 @@
 # Copyright (c) 2018 The Bitcoin developers
 
-project(bitcoin-test)
+project(devault-test)
 
 # Process json files.
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data")
@@ -40,10 +40,10 @@ gen_json_header(JSON_HEADERS
 )
 
 include(TestSuite)
-create_test_suite(bitcoin)
-add_dependencies(check check-bitcoin)
+create_test_suite(devault)
+add_dependencies(check check-devault)
 
-add_test_to_suite(bitcoin test_bitcoin
+add_test_to_suite(devault test_devault
 	activation_tests.cpp
 	addrman_tests.cpp
 	allocator_tests.cpp
@@ -142,7 +142,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	${JSON_HEADERS}
 )
 
-target_include_directories(test_bitcoin
+target_include_directories(test_devault
 	PUBLIC
 		# To access the generated json headers.
 		${CMAKE_CURRENT_BINARY_DIR}
@@ -150,7 +150,7 @@ target_include_directories(test_bitcoin
 
 find_package(Boost 1.58 REQUIRED unit_test_framework)
 
-target_link_libraries(test_bitcoin Boost::unit_test_framework rpcclient server)
+target_link_libraries(test_devault Boost::unit_test_framework rpcclient server)
 
 # We need to detect if the BOOST_TEST_DYN_LINK flag is required.
 set(CMAKE_REQUIRED_LIBRARIES Boost::unit_test_framework)
@@ -161,11 +161,11 @@ check_cxx_source_compiles("
 " BOOST_TEST_DYN_LINK)
 
 if(BOOST_TEST_DYN_LINK)
-	target_compile_definitions(test_bitcoin PRIVATE BOOST_TEST_DYN_LINK)
+	target_compile_definitions(test_devault PRIVATE BOOST_TEST_DYN_LINK)
 endif(BOOST_TEST_DYN_LINK)
 
 if(BUILD_BITCOIN_WALLET)
-	target_sources(test_bitcoin
+	target_sources(test_devault
 		PRIVATE
 			../wallet/test/wallet_test_fixture.cpp
 			../wallet/test/accounting_tests.cpp

@@ -54,8 +54,8 @@ add_custom_target(check-functional
 	COMMAND
 		./functional/test_runner.py
 	DEPENDS
-		../src/bitcoind
-		../src/bitcoin-cli
+		../src/devaultd
+		../src/devault-cli
 		${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
 		${CMAKE_CURRENT_BINARY_DIR}/functional/create_cache.py
 )
@@ -69,7 +69,7 @@ if(BUILD_BITCOIN_TX)
 		COMMAND
 			./util/bitcoin-util-test.py
 		DEPENDS
-			../src/bitcoin-tx
+			../src/devault-tx
 			${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
 	)
 
