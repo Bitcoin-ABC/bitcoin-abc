@@ -22,5 +22,8 @@ if [ -n "$DPKG_ADD_ARCH" ]; then
 fi
 
 travis_retry DOCKER_EXEC apt-get update
+travis_retry DOCKER_EXEC apt-get install software-properties-common -y
+travis_retry DOCKER_EXEC add-apt-repository ppa:ubuntu-toolchain-r/test -y
+travis_retry DOCKER_EXEC apt-get update
 travis_retry DOCKER_EXEC apt-get install --no-install-recommends --no-upgrade -qq $PACKAGES $DOCKER_PACKAGES
 
