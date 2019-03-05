@@ -305,6 +305,7 @@ add_library(util
 	uint256.cpp
 	util/bytevectorhash.cpp
 	util/moneystr.cpp
+	util/settings.cpp
 	util/strencodings.cpp
 	util/system.cpp
 	util/threadnames.cpp
