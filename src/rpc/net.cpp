@@ -595,7 +595,7 @@ static UniValue getnetworkinfo(const Config &config,
     UniValue localAddresses(UniValue::VARR);
     {
         LOCK(cs_mapLocalHost);
-        for (const std::pair<CNetAddr, LocalServiceInfo> &item : mapLocalHost) {
+        for (const auto &item : mapLocalHost) {
             UniValue rec(UniValue::VOBJ);
             rec.pushKV("address", item.first.ToString());
             rec.pushKV("port", item.second.nPort);

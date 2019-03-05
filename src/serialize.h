@@ -734,7 +734,7 @@ void Unserialize(Stream &is, std::pair<K, T> &item) {
 template <typename Stream, typename K, typename T, typename Pred, typename A>
 void Serialize(Stream &os, const std::map<K, T, Pred, A> &m) {
     WriteCompactSize(os, m.size());
-    for (const std::pair<K, T> &p : m) {
+    for (const auto &p : m) {
         Serialize(os, p);
     }
 }

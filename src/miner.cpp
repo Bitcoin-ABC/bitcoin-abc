@@ -294,7 +294,7 @@ bool BlockAssembler::TestPackage(uint64_t packageSize,
 bool BlockAssembler::TestPackageTransactions(
     const CTxMemPool::setEntries &package) {
     uint64_t nPotentialBlockSize = nBlockSize;
-    for (const CTxMemPool::txiter it : package) {
+    for (const auto& it : package) {
         CValidationState state;
         if (!ContextualCheckTransaction(*config, it->GetTx(), state, nHeight,
                                         nLockTimeCutoff, nMedianTimePast)) {
@@ -382,7 +382,7 @@ int BlockAssembler::UpdatePackagesForAdded(
     const CTxMemPool::setEntries &alreadyAdded,
     indexed_modified_transaction_set &mapModifiedTx) {
     int nDescendantsUpdated = 0;
-    for (const CTxMemPool::txiter it : alreadyAdded) {
+    for (const auto& it : alreadyAdded) {
         CTxMemPool::setEntries descendants;
         mempool->CalculateDescendants(it, descendants);
         // Insert all descendants (not yet in block) into the modified set.

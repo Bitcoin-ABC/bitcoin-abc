@@ -454,7 +454,7 @@ static bool AcceptToMemoryPoolWorker(
         view.SetBackend(viewMemPool);
 
         // Do all inputs exist?
-        for (const CTxIn txin : tx.vin) {
+        for (const auto& txin : tx.vin) {
             if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
                 coins_to_uncache.push_back(txin.prevout);
             }
@@ -4291,13 +4291,13 @@ static bool LoadBlockIndexDB(const Config &config) {
     // Calculate nChainWork
     std::vector<std::pair<int, CBlockIndex *>> vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    for (const std::pair<uint256, CBlockIndex *> &item : mapBlockIndex) {
+    for (const auto& item : mapBlockIndex) {
         CBlockIndex *pindex = item.second;
         vSortedByHeight.push_back(std::make_pair(pindex->nHeight, pindex));
     }
 
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
-    for (const std::pair<int, CBlockIndex *> &item : vSortedByHeight) {
+    for (const auto& item : vSortedByHeight) {
         CBlockIndex *pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) +
                              GetBlockProof(*pindex);
@@ -4371,7 +4371,7 @@ static bool LoadBlockIndexDB(const Config &config) {
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
-    for (const std::pair<uint256, CBlockIndex *> &item : mapBlockIndex) {
+    for (const auto& item : mapBlockIndex) {
         CBlockIndex *pindex = item.second;
         if (pindex->nStatus.hasData()) {
             setBlkDataFiles.insert(pindex->nFile);
@@ -4769,7 +4769,7 @@ bool RewindBlockIndex(const Config &config) {
     // We do this after actual disconnecting, otherwise we'll end up writing the
     // lack of data to disk before writing the chainstate, resulting in a
     // failure to continue if interrupted.
-    for (const std::pair<uint256, CBlockIndex *> &p : mapBlockIndex) {
+    for (const auto& p : mapBlockIndex) {
         CBlockIndex *pindexIter = p.second;
         if (pindexIter->IsValid(BlockValidity::TRANSACTIONS) &&
             pindexIter->nChainTx) {

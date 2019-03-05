@@ -37,6 +37,7 @@
 
 #include <cassert>
 #include <future>
+#include <random>
 
 std::vector<CWalletRef> vpwallets;
 
@@ -2534,7 +2535,14 @@ bool CWallet::SelectCoinsMinConf(const Amount nTargetValue, const int nConfMine,
     std::vector<CInputCoin> vValue;
     Amount nTotalLower = Amount::zero();
 
-    random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+    
+#if __cplusplus < 201703L
+  std::random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+#else
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(vCoins.begin(), vCoins.end(), g);
+#endif
 
     for (const COutput &output : vCoins) {
         if (!output.fSpendable) {
@@ -4014,7 +4022,7 @@ void CWallet::GetKeyBirthTimes(
     }
 
     // Extract block timestamps for those keys.
-    for (const std::pair<CKeyID, CBlockIndex *> &p : mapKeyFirstBlock) {
+    for (const auto& p : mapKeyFirstBlock) {
         // Block times can be 2h off.
         mapKeyBirth[p.first] = p.second->GetBlockTime() - TIMESTAMP_WINDOW;
     }

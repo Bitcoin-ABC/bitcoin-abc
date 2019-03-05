@@ -906,7 +906,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
     ss << VARINT(outputs.begin()->second.GetHeight() * 2 +
                  outputs.begin()->second.IsCoinBase());
     stats.nTransactions++;
-    for (const auto output : outputs) {
+    for (const auto& output : outputs) {
         ss << VARINT(output.first + 1);
         ss << output.second.GetTxOut().scriptPubKey;
         ss << VARINT(output.second.GetTxOut().nValue / SATOSHI);

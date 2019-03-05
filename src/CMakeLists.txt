@@ -46,6 +46,28 @@ else()
 	add_compiler_flag(-Wno-unused-parameter)
 endif()
 
+check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
+if (HAVE_FLAG_STD_CXX17)
+  set(CMAKE_CXX_STANDARD 17)
+  message(STATUS "Compiler supports C++17")
+  add_definitions("-D_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR") # still needed?
+else()
+  message(ERROR "Compiler must at least support C++17")
+endif()
+
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  add_compiler_flag(-Wrange-loop-analysis)
+  # For 17 we need BOOST_NO_AUTO_PTR defined for boost
+  add_definitions("-DOS_MACOSX -DBOOST_NO_AUTO_PTR") # still needed?
+else()
+  # secp256k1 Linux gcc
+  add_compiler_flag(-Wno-cpp -Wno-unused-function -Wno-nonnull-compare -Wno-implicit-fallthrough)
+endif()
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) # for all targets
+
+
+
 # Create a target for OpenSSL
 include(BrewHelper)
 find_brew_prefix(OPENSSL_ROOT_DIR openssl)
