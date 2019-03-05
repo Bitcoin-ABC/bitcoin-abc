@@ -75,12 +75,12 @@ jobs:
       env: >-
         HOST=x86_64-unknown-linux-gnu
         DOCKER_NAME_TAG=ubuntu:16.04
-        PACKAGES="clang llvm python3-zmq qtbase5-dev qttools5-dev-tools libssl-dev libevent-dev bsdmainutils libboost-all-dev libdb-dev libdb++-dev libminiupnpc-dev libzmq3-dev libqrencode-dev"
+        PACKAGES="g++-7 clang llvm python3-zmq qtbase5-dev qttools5-dev-tools libssl-dev libevent-dev bsdmainutils libboost-all-dev libdb-dev libdb++-dev libminiupnpc-dev libzmq3-dev libqrencode-dev"
         NO_DEPENDS=1
         RUN_UNIT_TESTS=false
         RUN_FUNCTIONAL_TESTS=false
         GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=thread --disable-hardening --disable-asm CC=clang CXX=clang++"
+        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=thread --disable-hardening --disable-asm CC=gcc-7 CXX=g++-7"
 
     - name: 'Win32'
       env: >-
