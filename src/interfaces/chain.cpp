@@ -205,9 +205,8 @@ namespace {
         }
         bool hasDescendantsInMempool(const TxId &txid) override {
             LOCK(::g_mempool.cs);
-            auto it_mp = ::g_mempool.mapTx.find(txid);
-            return it_mp != ::g_mempool.mapTx.end() &&
-                   it_mp->GetCountWithDescendants() > 1;
+            auto it = ::g_mempool.GetIter(txid);
+            return it && (*it)->GetCountWithDescendants() > 1;
         }
         void relayTransaction(const TxId &txid) override {
             CInv inv(MSG_TX, txid);
@@ -218,7 +217,7 @@ namespace {
                                     size_t &descendants) override {
             ::g_mempool.GetTransactionAncestry(txid, ancestors, descendants);
         }
-        bool checkChainLimits(CTransactionRef tx) override {
+        bool checkChainLimits(const CTransactionRef &tx) override {
             LockPoints lp;
             CTxMemPoolEntry entry(tx, Amount(), 0, 0, false, 0, lp);
             CTxMemPool::setEntries ancestors;

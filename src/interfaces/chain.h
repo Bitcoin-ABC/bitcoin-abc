@@ -30,7 +30,27 @@ namespace interfaces {
 
 class Wallet;
 
-//! Interface for giving wallet processes access to blockchain state.
+//! Interface giving clients (wallet processes, maybe other analysis tools in
+//! the future) ability to access to the chain state, receive notifications,
+//! estimate fees, and submit transactions.
+//!
+//! TODO: Current chain methods are too low level, exposing too much of the
+//! internal workings of the bitcoin node, and not being very convenient to use.
+//! Chain methods should be cleaned up and simplified over time. Examples:
+//!
+//! * The Chain::lock() method, which lets clients delay chain tip updates
+//!   should be removed when clients are able to respond to updates
+//!   asynchronously
+//!   (https://github.com/bitcoin/bitcoin/pull/10973#issuecomment-380101269).
+//!
+//! * The relayTransactions() and submitToMemoryPool() methods could be replaced
+//!   with a higher-level broadcastTransaction method
+//!   (https://github.com/bitcoin/bitcoin/pull/14978#issuecomment-459373984).
+//!
+//! * The initMessages() and loadWallet() methods which the wallet uses to send
+//!   notifications to the GUI should go away when GUI and wallet can directly
+//!   communicate with each other without going through the node
+//!   (https://github.com/bitcoin/bitcoin/pull/15288#discussion_r253321096).
 class Chain {
 public:
     virtual ~Chain() {}
@@ -163,8 +183,8 @@ public:
     //! Relay transaction.
     virtual void relayTransaction(const TxId &txid) = 0;
 
-    //! Check chain limits.
-    virtual bool checkChainLimits(CTransactionRef tx) = 0;
+    //! Check if transaction will pass the mempool's chain limits.
+    virtual bool checkChainLimits(const CTransactionRef &tx) = 0;
 
     //! Get node max tx fee setting (-maxtxfee).
     //! This could be replaced by a per-wallet max fee, as proposed at
