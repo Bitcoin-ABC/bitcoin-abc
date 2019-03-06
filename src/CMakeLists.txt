@@ -37,6 +37,10 @@ add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -g3 -g)
 # Prefer -Og, defaults to -O0 if unavailable
 add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -Og -O0)
 
+# Define the debugging symbols DEBUG and DEBUG_LOCKORDER when the Debug build
+# type is selected.
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -DDEBUG_LOCKORDER")
+
 # Ensure that WINDRES_PREPROC is enabled when using windres.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	# Ensure that WINDRES_PREPROC is enabled when using windres.
