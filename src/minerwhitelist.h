@@ -6,6 +6,7 @@
 #pragma once
 
 #include "chain.h"
+#include "config.h"
 #include "dbwrapper.h"
 
 /** The currently-connected chain of blocks (protected by cs_main). */
@@ -15,7 +16,7 @@ class CMinerWhitelistDB : CDBWrapper
 {
 public:
     CMinerWhitelistDB(size_t nCacheSize, bool fMemory, bool fWipe);
-    bool Init(bool fWipe);
+    bool Init(const Config& config, bool fWipe);
 
     enum WhitelistAction {ADD_MINER, REMOVE_MINER, ENABLE_CAP, DISABLE_CAP, NONE};
     
@@ -50,14 +51,15 @@ public:
 
     // Managing Cap
 
-    bool MineBlock(unsigned int index, std::string address);
-    bool RewindBlock(unsigned int index);
+    bool MineBlock(const Config& config, unsigned int index, std::string address);
+    bool RewindBlock(const Config& config, unsigned int index);
     std::string getMinerforBlock(unsigned int index);
     bool DumpStatsForMiner(std::string address, bool *wlisted, unsigned int *windowCoins, unsigned int *totalCoins, unsigned int *lastBlock);
     bool DumpFullStatsForMiner(std::string address, bool *wlisted, unsigned int *windowCoins, unsigned int *totalCoins, std::vector<unsigned int> &lastBlocks);
     
     
     using CDBWrapper::Sync;
+
   
 };
 

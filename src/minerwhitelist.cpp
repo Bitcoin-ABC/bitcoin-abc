@@ -5,7 +5,9 @@
 
 #include "minerwhitelist.h"
 #include "chain.h"
-#include "util.h" 
+#include "util.h"
+#include "consensus/consensus.h"
+#include "chainparams.h"
 #include <unordered_map>
 
 // CChain chainActive;
@@ -71,7 +73,7 @@ namespace {
         char key;
         std::string addr;
         MinerEntry() : key(WL_ADDRESS), addr(DUMMY) {}
-        MinerEntry(CDeVaultAddress address) : key(WL_ADDRESS), addr(address.ToString()) {}
+      //MinerEntry(CDeVaultAddress address) : key(WL_ADDRESS), addr(address.ToString()) {}
         MinerEntry(std::string address) : key(WL_ADDRESS), addr(address) {}
         
         template<typename Stream>
@@ -123,7 +125,9 @@ CMinerWhitelistDB::CMinerWhitelistDB(size_t nCacheSize, bool fMemory, bool fWipe
 }
 
 
-bool CMinerWhitelistDB::Init(bool fWipe){
+bool CMinerWhitelistDB::Init(const Config& config, bool fWipe){
+  const Consensus::Params &consensusParams = config.GetChainParams().GetConsensus();
+
     bool init;
     if(fWipe || Read(DB_INIT,init)==false || init==false ) {
         LogPrintf("MinerDatabase: Create new Database.\n");
@@ -133,19 +137,10 @@ bool CMinerWhitelistDB::Init(bool fWipe){
         batch.Write(WL_CAP_ENABLED, 0);
         batch.Write(DB_HEIGHT, 0);
         unsigned int numberMiners = 0;
-        for (std::set<std::string>::iterator it = Params().GetConsensus().minerWhiteListAdminAddress.begin(); it != Params().GetConsensus().minerWhiteListAdminAddress.end(); it++){
-            LogPrintf("Adding admin address %s", *it);
-            batch.Write(MinerEntry(*it), MinerDetails(true,true));
-            numberMiners += 1;
-        }
-        
-        // At the beginning there was another admin key hardcoded into the client. 
-        // also add that address, but allow for later removal.
-        if (Params().NetworkIDString() == "main") {
-            std::string third = "pGNcLNCavQLGXwXkVDwoHPCuQUBoXzJtPh";
-            LogPrintf("Adding admin address %s", third);
-            batch.Write(MinerEntry(third), MinerDetails(true,false)); 
-            numberMiners += 1;
+        for (const auto& it : consensusParams.minerWhiteListAdminAddress) {
+          LogPrintf("Adding admin address %s", it);
+          batch.Write(MinerEntry(it), MinerDetails(true,true));
+          numberMiners += 1;
         }
         
         batch.Write(WL_NUMBER_MINERS, numberMiners);
@@ -153,12 +148,11 @@ bool CMinerWhitelistDB::Init(bool fWipe){
 
         // add dummy address which will be first entry for searching the database
         batch.Write(MinerEntry(DUMMY), MinerDetails(false,false)); 
-
-
+        /*
         for (unsigned int i=1; i <= Params().GetConsensus().minerWhiteListActivationHeight; i++) {
             batch.Write(BlockEntry(i), BlockDetails(DUMMY, false, 0));
-        }
-        batch.Write(DB_HEIGHT, Params().GetConsensus().minerWhiteListActivationHeight);
+         }
+        */
         batch.Write(DB_INIT,true);
         WriteBatch(batch);
     }
@@ -207,29 +201,17 @@ bool CMinerWhitelistDB::IsCapEnabled() {
     return fEnabled == true;
 }
 
-bool CMinerWhitelistDB::IsWhitelistEnabled() {
-    return chainActive.Height() >= (int)Params().GetConsensus().minerWhiteListActivationHeight;
-}
-
+bool CMinerWhitelistDB::IsWhitelistEnabled() { return true; } // Assume always on
 
 unsigned int CMinerWhitelistDB::GetCapFactor() {
     unsigned int factor;
     Read(WL_FACTOR, factor);
-
     return factor;
 }
 
 unsigned int CMinerWhitelistDB::GetNumberOfWhitelistedMiners() {
     unsigned int number;
     Read(WL_NUMBER_MINERS, number);
-
-    // On block 34342, the third admin key was finaly blacklisted. 
-    // Up to that point substract one from the number of miners to accomodate the 
-    // three admins.
-    if (chainActive.Height() < 34342 && Params().NetworkIDString() == "main") {
-        number -= 1;
-    }
-
     return number;
 }
 
@@ -241,16 +223,7 @@ unsigned int CMinerWhitelistDB::GetAvgBlocksPerMiner() {
 
 
 unsigned int CMinerWhitelistDB::GetCap() {
-    
-    unsigned int factor = GetCapFactor();
-    unsigned int number = GetNumberOfWhitelistedMiners();
-
-    if (chainActive.Height() < (int)Params().GetConsensus().minerCapSystemChangeHeight)
-        return factor*(2016/number);
-
-    return (factor*2016)/number;
-    
-    return 2016;
+  return 0; // REMOVED
 }
 
 
@@ -434,10 +407,6 @@ unsigned int CMinerWhitelistDB::GetWindowStart(unsigned int height) {
 	return height - 2016 + 1;
 }
 
-// bool CMinerWhitelistDB::Sync() {
-//   return Sync();
-// }
-
 bool CMinerWhitelistDB::DumpWindowStats(std::vector< std::pair< std::string, uint32_t > > *MinerVector) {
     // LogPrintf("MinerDatabase: Dumping all miner stats.\n");
     // Sync();
@@ -500,7 +469,8 @@ bool CMinerWhitelistDB::DumpFullStatsForMiner(std::string address, bool *wlisted
 }
 
 
-bool CMinerWhitelistDB::MineBlock(unsigned int newHeight, std::string address) {
+bool CMinerWhitelistDB::MineBlock(const Config& config, unsigned int newHeight, std::string address) {
+    const Consensus::Params consensusParams = config.GetChainParams().GetConsensus();
     unsigned int currHeight;
     Read(DB_HEIGHT, currHeight);
     if (newHeight!=currHeight+1 ) {
@@ -514,26 +484,13 @@ bool CMinerWhitelistDB::MineBlock(unsigned int newHeight, std::string address) {
     CDBBatch batch(*this);
     
 
-    /* SPECIAL STUFF for block no 617. The first implementation of the whitelist took
-    whitelist transactions from mempool into account. Block 617 contained the transaction that whitelisted
-    miner of block 617. Add this miner on block 616 instead. */
-    if (newHeight==616 && Params().NetworkIDString() == "main") 
-        WhitelistMiner("pQAqAHfaJaCDQKedbgSXvDkJHhSsTmKGV9");
-    if (newHeight==9912 && Params().NetworkIDString() == "main")
-        WhitelistMiner("pDqhZSLQGfz2JGq1MNdYpp5M2QLjdujeAF");
-    if (newHeight==750 && Params().NetworkIDString() == "test")
-        WhitelistMiner("uQNQ5CUnrH57Mr9FRGZPk99pK9whnKJdjH");
-    if (newHeight==1861 && Params().NetworkIDString() == "test")
-        WhitelistMiner("uey4mzGT2Cb1fgm9XAoFFvDzV3Wx1LEqJR");
-
-
     // First make entry for the new Block
     batch.Write(BlockEntry(newHeight), BlockDetails(address, IsCapEnabled(), GetCapFactor()));
     batch.Write(DB_HEIGHT, newHeight);
    
     // Now make sure that the minerstats match up. 
     // Window Handling
-    if ( newHeight < Params().GetConsensus().minerCapSystemChangeHeight ) {
+    if ( newHeight < consensusParams.minerCapSystemChangeHeight ) {
         // old system
         // Reset the window every 2016 blocks
         if ( newHeight%2016 == 0) {
@@ -588,7 +545,7 @@ bool CMinerWhitelistDB::MineBlock(unsigned int newHeight, std::string address) {
         // old system started on height 6048, we should only count blocks dropping out
         // from 6049 forward. The following formula achieves exactly that.
 
-        unsigned int changeHeight = Params().GetConsensus().minerCapSystemChangeHeight;
+        unsigned int changeHeight = consensusParams.minerCapSystemChangeHeight;
         if (blockDroppingOut >= changeHeight - ( (changeHeight-1) % 2016) ) { // There is!
         //if (Params().NetworkIDString() == "main" && blockDroppingOut > 38304 && Params().NetworkIDString() == "test" && blockDroppingOut > 6048 || Params().NetworkIDString() == "regtest" && blockDroppingOut > 4032) {
             BlockDetails dropDets = BlockDetails();
@@ -617,7 +574,8 @@ bool CMinerWhitelistDB::MineBlock(unsigned int newHeight, std::string address) {
     return true;
 }
       
-bool CMinerWhitelistDB::RewindBlock(unsigned int index) {
+bool CMinerWhitelistDB::RewindBlock(const Config& config, unsigned int index) {
+    const Consensus::Params consensusParams = config.GetChainParams().GetConsensus();
     CDBBatch batch(*this);
 
     // First check that we are actually at the tip
@@ -641,7 +599,7 @@ bool CMinerWhitelistDB::RewindBlock(unsigned int index) {
    
 
     // Window Handling
-    if ( index < Params().GetConsensus().minerCapSystemChangeHeight ) {
+    if ( index < consensusParams.minerCapSystemChangeHeight ) {
         // old system
         // code will never be used as the old system is buried unter checkpoints
         // so this is more for understanding the system
@@ -719,7 +677,7 @@ bool CMinerWhitelistDB::RewindBlock(unsigned int index) {
         // old system started on height 6048, so we should only count blocks dropping out
         // from 6049 forward. The following formula achieves exactly that.
 
-        unsigned int changeHeight = Params().GetConsensus().minerCapSystemChangeHeight;
+        unsigned int changeHeight = consensusParams.minerCapSystemChangeHeight;
         if (blockMovingIn >= changeHeight - ( (changeHeight-1) % 2016) ) { // There is!
         //if (Params().NetworkIDString() == "main" && blockDroppingOut > 38304 && Params().NetworkIDString() == "test" && blockDroppingOut > 6048 || Params().NetworkIDString() == "regtest" && blockDroppingOut > 4032) {
             BlockDetails dropDets = BlockDetails();
@@ -749,30 +707,7 @@ bool CMinerWhitelistDB::RewindBlock(unsigned int index) {
 }
 
 bool CMinerWhitelistDB::hasExceededCap(std::string address) {
-    if (Params().GetConsensus().minerWhiteListAdminAddress.count(address) || (Params().NetworkIDString() == "main" && chainActive.Height() < 38304 && address == "pGNcLNCavQLGXwXkVDwoHPCuQUBoXzJtPh"))
-        return false;
-    
-    
-    unsigned int cap = CMinerWhitelistDB::GetCap();
-    unsigned int blocks = CMinerWhitelistDB::GetBlocksInWindow(address);
-    unsigned int lastBlock = CMinerWhitelistDB::GetLastBlock(address);
-    
-    // There has been a bug in the previous implementation that did not take the current block 
-    // into account when counting the number of blocks mined. Fix these manually.
-    if (blocks == cap + 1 && (unsigned int)chainActive.Height() < Params().GetConsensus().minerCapSystemChangeHeight && lastBlock == (unsigned int)chainActive.Height() ) {
-        LogPrintf("MinerCap: %s has exceeded cap. Accepting Block for legacy compatibility.\n", address);
-        return false;
-    } else if (blocks > cap) {
-        LogPrintf("MinerCap: %s has exceeded cap. Not accepting Block.\n", address);
-        return true;
-    } else if (chainActive.Height() > 122976 && Params().NetworkIDString() == "main" && (unsigned int)chainActive.Height() - 1 <= lastBlock) {
-        // Additional check for overly powerful mining.
-        LogPrintf("MinerCap: %s is mining too fast. Not accepting Block.\n", address);
-        return true;
-    } else {
-        return false;
-    }
-
+  return false;
 }
 
 std::string CMinerWhitelistDB::getMinerforBlock(unsigned int index) {

@@ -246,6 +246,7 @@ add_library(server
 	dbwrapper.cpp
 	merkleblock.cpp
 	miner.cpp
+  minerwhitelist.cpp
 	net.cpp
 	net_processing.cpp
 	noui.cpp

@@ -9,6 +9,7 @@
 #include "uint256.h"
 
 #include <map>
+#include <set>
 #include <string>
 
 namespace Consensus {
@@ -61,6 +62,8 @@ struct Params {
     int64_t nPowTargetTimespan;
     int64_t nBlocksPerYear;
     int64_t nMaxMiningRewardInCoins;
+    int64_t minerCapSystemChangeHeight;
+    std::set<std::string> minerWhiteListAdminAddress;
     int64_t DifficultyAdjustmentInterval() const {
         return nPowTargetTimespan / nPowTargetSpacing;
     }
