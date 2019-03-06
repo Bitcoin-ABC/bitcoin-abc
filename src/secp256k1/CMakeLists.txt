@@ -133,17 +133,21 @@ if(SECP256K1_ENABLE_MODULE_SCHNORR)
 	set(ENABLE_MODULE_SCHNORR 1)
 endif()
 
+# Make the emult window size customizable.
+set(SECP256K1_ECMULT_WINDOW_SIZE 15 CACHE STRING "Window size for ecmult precomputation for verification, specified as integer in range [2..24].")
+
 # Static precomputation for elliptic curve multiplication
 option(SECP256K1_ECMULT_STATIC_PRECOMPUTATION "Precompute libsecp256k1's elliptic curve multiplication tables" ON)
 if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 	set(USE_ECMULT_STATIC_PRECOMPUTATION 1)
-	set(SECP256K1_ECMULT_WINDOW_SIZE 15 CACHE STRING "Window size for ecmult precomputation for verification, specified as integer in range [2..24].")
 	if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 24)
 		message(FATAL_ERROR "SECP256K1_ECMULT_WINDOW_SIZE must be an integer in range [2..24]")
 	endif()
 
-	# FIXME: Propagate SECP256K1_ECMULT_WINDOW_SIZE
 	include(NativeExecutable)
+	native_add_cmake_flags(
+		"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
+	)
 	add_native_executable(gen_context src/gen_context.c)
 
 	add_custom_command(
