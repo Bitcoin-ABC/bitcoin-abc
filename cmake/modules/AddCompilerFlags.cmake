@@ -75,11 +75,25 @@ macro(remove_compiler_flags)
 endmacro()
 
 # Note that CMake does not provide any facility to check that a linker flag is
-# supported by the compiler, but most linker will just drop any unsupported flag
-# (eventually with a warning).
+# supported by the compiler.
+# However since CMake 3.2 introduced the CMP0056 policy, the
+# CMAKE_EXE_LINKER_FLAGS variable is used by the try_compile function, so there
+# is a workaround that allow for testing the linker flags.
 function(add_linker_flag)
 	foreach(f ${ARGN})
+		sanitize_variable("have_linker_" ${f} FLAG_IS_SUPPORTED)
+		
+		# Save the current linker flags
+		set(SAVE_CMAKE_EXE_LINKERFLAGS ${CMAKE_EXE_LINKER_FLAGS})
 		string(APPEND CMAKE_EXE_LINKER_FLAGS " ${f}")
+		# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
+		# calls try_compile, so it will check our flag
+		CHECK_CXX_COMPILER_FLAG("" ${FLAG_IS_SUPPORTED})
+		
+		# If the flag is not supported restore CMAKE_EXE_LINKER_FLAGS
+		if(NOT ${FLAG_IS_SUPPORTED})
+			set(CMAKE_EXE_LINKER_FLAGS ${SAVE_CMAKE_EXE_LINKERFLAGS})
+		endif()
 	endforeach()
 	set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} PARENT_SCOPE)
 endfunction()
