@@ -200,6 +200,13 @@ public:
     //! Check if transaction will pass the mempool's chain limits.
     virtual bool checkChainLimits(const CTransactionRef &tx) = 0;
 
+    //! Relay current minimum fee (from -minrelaytxfee settings).
+    virtual CFeeRate relayMinFee() = 0;
+
+    //! Relay dust fee setting (-dustrelayfee), reflecting lowest rate it's
+    //! economical to spend.
+    virtual CFeeRate relayDustFee() = 0;
+
     //! Get node max tx fee setting (-maxtxfee).
     //! This could be replaced by a per-wallet max fee, as proposed at
     //! https://github.com/bitcoin/bitcoin/issues/15355
@@ -212,8 +219,11 @@ public:
     //! Check if p2p enabled.
     virtual bool p2pEnabled() = 0;
 
-    // Check if in IBD.
+    //! Check if in IBD.
     virtual bool isInitialBlockDownload() = 0;
+
+    //! Check if shutdown requested.
+    virtual bool shutdownRequested() = 0;
 
     //! Get adjusted time.
     virtual int64_t getAdjustedTime() = 0;
@@ -229,6 +239,10 @@ public:
 
     //! Send wallet load notification to the GUI.
     virtual void loadWallet(std::unique_ptr<Wallet> wallet) = 0;
+
+    //! Send progress indicator.
+    virtual void showProgress(const std::string &title, int progress,
+                              bool resume_possible) = 0;
 
     //! Chain notifications.
     class Notifications {

@@ -11,12 +11,14 @@
 #include <net.h>
 #include <node/coin.h>
 #include <policy/mempool.h>
+#include <policy/policy.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h>
 #include <protocol.h>
 #include <rpc/protocol.h>
 #include <rpc/server.h>
+#include <shutdown.h>
 #include <sync.h>
 #include <threadsafety.h>
 #include <timedata.h>
@@ -341,12 +343,15 @@ namespace {
                 limit_descendant_count, limit_descendant_size,
                 unused_error_string);
         }
+        CFeeRate relayMinFee() override { return ::minRelayTxFee; }
+        CFeeRate relayDustFee() override { return ::dustRelayFee; }
         Amount maxTxFee() override { return ::maxTxFee; }
         bool getPruneMode() override { return ::fPruneMode; }
         bool p2pEnabled() override { return g_connman != nullptr; }
         bool isInitialBlockDownload() override {
             return IsInitialBlockDownload();
         }
+        bool shutdownRequested() override { return ShutdownRequested(); }
         int64_t getAdjustedTime() override { return GetAdjustedTime(); }
         void initMessage(const std::string &message) override {
             ::uiInterface.InitMessage(message);
@@ -359,6 +364,10 @@ namespace {
         }
         void loadWallet(std::unique_ptr<Wallet> wallet) override {
             ::uiInterface.LoadWallet(wallet);
+        }
+        void showProgress(const std::string &title, int progress,
+                          bool resume_possible) override {
+            ::uiInterface.ShowProgress(title, progress, resume_possible);
         }
         std::unique_ptr<Handler>
         handleNotifications(Notifications &notifications) override {

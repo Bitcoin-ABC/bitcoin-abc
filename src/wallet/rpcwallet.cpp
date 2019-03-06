@@ -2904,11 +2904,11 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
     CFeeRate tx_fee_rate(nAmount, 1000);
     if (tx_fee_rate == CFeeRate()) {
         // automatic selection
-    } else if (tx_fee_rate < ::minRelayTxFee) {
+    } else if (tx_fee_rate < pwallet->chain().relayMinFee()) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
             strprintf("txfee cannot be less than min relay tx fee (%s)",
-                      ::minRelayTxFee.ToString()));
+                      pwallet->chain().relayMinFee().ToString()));
     } else if (tx_fee_rate < pwallet->m_min_fee) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,

@@ -282,7 +282,7 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
 
     LogPrintf("Using wallet directory %s\n", GetWalletDir().string());
 
-    uiInterface.InitMessage(_("Verifying wallet(s)..."));
+    chain.initMessage(_("Verifying wallet(s)..."));
 
     // Parameter interaction code should have thrown an error if -salvagewallet
     // was enabled with more than wallet file, so the wallet_files size check

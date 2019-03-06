@@ -701,13 +701,13 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         // uiInterface.ShowProgress does not have a cancel button.
 
         // show progress dialog in GUI
-        uiInterface.ShowProgress(
+        pwallet->chain().showProgress(
             strprintf("%s " + _("Importing..."), pwallet->GetDisplayName()), 0,
             false);
         std::vector<std::tuple<CKey, int64_t, bool, std::string>> keys;
         std::vector<std::pair<CScript, int64_t>> scripts;
         while (file.good()) {
-            uiInterface.ShowProgress(
+            pwallet->chain().showProgress(
                 "",
                 std::max(1, std::min<int>(50, 100 * double(file.tellg()) /
                                                   double(nFilesize))),
@@ -758,7 +758,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         if (keys.size() > 0 &&
             pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
             // hide progress dialog in GUI
-            uiInterface.ShowProgress("", 100, false);
+            pwallet->chain().showProgress("", 100, false);
             throw JSONRPCError(
                 RPC_WALLET_ERROR,
                 "Importing wallets is disabled when private keys are disabled");
@@ -766,7 +766,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         double total = double(keys.size() + scripts.size());
         double progress = 0;
         for (const auto &key_tuple : keys) {
-            uiInterface.ShowProgress(
+            pwallet->chain().showProgress(
                 "",
                 std::max(50, std::min<int>(75, 100 * progress / total) + 50),
                 false);
@@ -798,7 +798,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             progress++;
         }
         for (const auto &script_pair : scripts) {
-            uiInterface.ShowProgress(
+            pwallet->chain().showProgress(
                 "",
                 std::max(50, std::min<int>(75, 100 * progress / total) + 50),
                 false);
@@ -824,11 +824,11 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             progress++;
         }
         // hide progress dialog in GUI
-        uiInterface.ShowProgress("", 100, false);
+        pwallet->chain().showProgress("", 100, false);
         pwallet->UpdateTimeFirstKey(nTimeBegin);
     }
     // hide progress dialog in GUI
-    uiInterface.ShowProgress("", 100, false);
+    pwallet->chain().showProgress("", 100, false);
     RescanWallet(*pwallet, reserver, nTimeBegin, false /* update */);
     pwallet->MarkDirty();
 

@@ -23,15 +23,16 @@ Amount GetMinimumFee(const CWallet &wallet, unsigned int nTxBytes,
         GetMinimumFeeRate(wallet, coin_control, pool).GetFeeCeiling(nTxBytes);
 
     // But always obey the maximum.
-    if (nFeeNeeded > maxTxFee) {
-        nFeeNeeded = maxTxFee;
+    const Amount max_tx_fee = wallet.chain().maxTxFee();
+    if (nFeeNeeded > max_tx_fee) {
+        nFeeNeeded = max_tx_fee;
     }
 
     return nFeeNeeded;
 }
 
 CFeeRate GetRequiredFeeRate(const CWallet &wallet) {
-    return std::max(wallet.m_min_fee, ::minRelayTxFee);
+    return std::max(wallet.m_min_fee, wallet.chain().relayMinFee());
 }
 
 CFeeRate GetMinimumFeeRate(const CWallet &wallet,

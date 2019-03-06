@@ -514,7 +514,7 @@ public:
     Amount GetImmatureCredit(interfaces::Chain::Lock &locked_chain,
                              bool fUseCache = true) const;
     // TODO: Remove "NO_THREAD_SAFETY_ANALYSIS" and replace it with the correct
-    // annotation "EXCLUSIVE_LOCKS_REQUIRED(cs_main, pwallet->cs_wallet)". The
+    // annotation "EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)". The
     // annotation "NO_THREAD_SAFETY_ANALYSIS" was temporarily added to avoid
     // having to resolve the issue of member access into incomplete type
     // CWallet.

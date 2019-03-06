@@ -1869,7 +1869,7 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
                 stop_block.IsNull() ? tip_hash : stop_block);
         }
         double progress_current = progress_begin;
-        while (block_height && !fAbortRescan && !ShutdownRequested()) {
+        while (block_height && !fAbortRescan && !chain().shutdownRequested()) {
             if (*block_height % 100 == 0 &&
                 progress_end - progress_begin > 0.0) {
                 ShowProgress(
@@ -1950,7 +1950,7 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
             WalletLogPrintf("Rescan aborted at block %d. Progress=%f\n",
                             block_height.value_or(0), progress_current);
             result.status = ScanResult::USER_ABORT;
-        } else if (block_height && ShutdownRequested()) {
+        } else if (block_height && chain().shutdownRequested()) {
             WalletLogPrintf("Rescan interrupted by shutdown request at block "
                             "%d. Progress=%f\n",
                             block_height.value_or(0), progress_current);
@@ -2453,7 +2453,6 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
                              const Amount nMinimumSumAmount,
                              const uint64_t nMaximumCount, const int nMinDepth,
                              const int nMaxDepth) const {
-    AssertLockHeld(cs_main);
     AssertLockHeld(cs_wallet);
 
     vCoins.clear();
@@ -2574,7 +2573,6 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
 
 std::map<CTxDestination, std::vector<COutput>>
 CWallet::ListCoins(interfaces::Chain::Lock &locked_chain) const {
-    AssertLockHeld(cs_main);
     AssertLockHeld(cs_wallet);
 
     std::map<CTxDestination, std::vector<COutput>> result;
@@ -2939,14 +2937,15 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     return true;
 }
 
-static bool IsCurrentForAntiFeeSniping(interfaces::Chain::Lock &locked_chain) {
-    if (IsInitialBlockDownload()) {
+static bool IsCurrentForAntiFeeSniping(interfaces::Chain &chain,
+                                       interfaces::Chain::Lock &locked_chain) {
+    if (chain.isInitialBlockDownload()) {
         return false;
     }
 
     // in seconds
     constexpr int64_t MAX_ANTI_FEE_SNIPING_TIP_AGE = 8 * 60 * 60;
-    if (ChainActive().Tip()->GetBlockTime() <
+    if (locked_chain.getBlockTime(*locked_chain.getHeight()) <
         (GetTime() - MAX_ANTI_FEE_SNIPING_TIP_AGE)) {
         return false;
     }
@@ -2958,7 +2957,8 @@ static bool IsCurrentForAntiFeeSniping(interfaces::Chain::Lock &locked_chain) {
  * current chain tip unless we are not synced with the current chain
  */
 static uint32_t
-GetLocktimeForNewTransaction(interfaces::Chain::Lock &locked_chain) {
+GetLocktimeForNewTransaction(interfaces::Chain &chain,
+                             interfaces::Chain::Lock &locked_chain) {
     uint32_t const height = locked_chain.getHeight().value_or(-1);
     uint32_t locktime;
     // Discourage fee sniping.
@@ -2981,7 +2981,7 @@ GetLocktimeForNewTransaction(interfaces::Chain::Lock &locked_chain) {
     // enough, that fee sniping isn't a problem yet, but by implementing a fix
     // now we ensure code won't be written that makes assumptions about
     // nLockTime that preclude a fix later.
-    if (IsCurrentForAntiFeeSniping(locked_chain)) {
+    if (IsCurrentForAntiFeeSniping(chain, locked_chain)) {
         locktime = height;
 
         // Secondly occasionally randomly pick a nLockTime even further back, so
@@ -3049,7 +3049,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 
     CMutableTransaction txNew;
 
-    txNew.nLockTime = GetLocktimeForNewTransaction(locked_chainIn);
+    txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chainIn);
 
     {
         std::set<CInputCoin> setCoins;
@@ -3159,7 +3159,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                 coin_selection_params.tx_noinputs_size +=
                     ::GetSerializeSize(txout, PROTOCOL_VERSION);
 
-                if (IsDust(txout, dustRelayFee)) {
+                if (IsDust(txout, chain().relayDustFee())) {
                     if (recipient.fSubtractFeeFromAmount &&
                         nFeeRet > Amount::zero()) {
                         if (txout.nValue < Amount::zero()) {
@@ -3253,7 +3253,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
             // If we made it here and we aren't even able to meet the relay fee
             // on the next pass, give up because we must be at the maximum
             // allowed fee.
-            if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) {
+            if (nFeeNeeded < chain().relayMinFee().GetFee(nBytes)) {
                 strFailReason = _("Transaction too large for fee policy");
                 return false;
             }
@@ -4655,11 +4655,11 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                   "send a transaction."));
         }
         walletInstance->m_pay_tx_fee = CFeeRate(nFeePerK, 1000);
-        if (walletInstance->m_pay_tx_fee < ::minRelayTxFee) {
+        if (walletInstance->m_pay_tx_fee < chain.relayMinFee()) {
             chain.initError(strprintf(
                 _("Invalid amount for -paytxfee=<amount>: '%s' "
                   "(must be at least %s)"),
-                gArgs.GetArg("-paytxfee", ""), ::minRelayTxFee.ToString()));
+                gArgs.GetArg("-paytxfee", ""), chain.relayMinFee().ToString()));
             return nullptr;
         }
     }
@@ -4841,8 +4841,6 @@ int CMerkleTx::GetDepthInMainChain(
     if (hashUnset()) {
         return 0;
     }
-
-    AssertLockHeld(cs_main);
 
     return locked_chain.getBlockDepth(hashBlock) * (nIndex == -1 ? -1 : 1);
 }

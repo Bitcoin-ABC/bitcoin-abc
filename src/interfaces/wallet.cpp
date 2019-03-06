@@ -98,13 +98,10 @@ namespace {
     static WalletTxStatus
     MakeWalletTxStatus(interfaces::Chain::Lock &locked_chain,
                        const CWalletTx &wtx) {
-        // Temporary, for LookupBlockIndex below. Removed in upcoming commit.
-        LockAnnotation lock(::cs_main);
-
         WalletTxStatus result;
-        CBlockIndex *block = LookupBlockIndex(wtx.hashBlock);
         result.block_height =
-            (block ? block->nHeight : std::numeric_limits<int>::max());
+            locked_chain.getBlockHeight(wtx.hashBlock)
+                .get_value_or(std::numeric_limits<int>::max());
         result.blocks_to_maturity = wtx.GetBlocksToMaturity(locked_chain);
         result.depth_in_main_chain = wtx.GetDepthInMainChain(locked_chain);
         result.time_received = wtx.nTimeReceived;
