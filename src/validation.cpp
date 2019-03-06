@@ -4441,8 +4441,14 @@ bool ChainstateManager::ProcessNewBlock(
         // CheckBlock() call as well.
         LOCK(cs_main);
 
-        // Ensure that CheckBlock() passes before calling AcceptBlock, as
-        // belt-and-suspenders.
+        // Skipping AcceptBlock() for CheckBlock() failures means that we will
+        // never mark a block as invalid if CheckBlock() fails.  This is
+        // protective against consensus failure if there are any unknown form
+        // s of block malleability that cause CheckBlock() to fail; see e.g.
+        // CVE-2012-2459 and
+        // https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2019-February/016697.html.
+        // Because CheckBlock() is not very expensive, the anti-DoS benefits of
+        // caching failure (of a definitely-invalid block) are not substantial.
         bool ret =
             CheckBlock(*block, state, config.GetChainParams().GetConsensus(),
                        BlockValidationOptions(config));
