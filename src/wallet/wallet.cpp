@@ -279,7 +279,6 @@ const CWalletTx *CWallet::GetWalletTx(const TxId &txid) const {
 CPubKey CWallet::GenerateNewKey(WalletBatch &batch, bool internal) {
     assert(!IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
     assert(!IsWalletFlagSet(WALLET_FLAG_BLANK_WALLET));
-    // mapKeyMetadata
     AssertLockHeld(cs_wallet);
     // default to compressed public keys if we want 0.6.0 wallets
     bool fCompressed = CanSupportFeature(FEATURE_COMPRPUBKEY);
@@ -394,7 +393,6 @@ void CWallet::DeriveNewChildKey(WalletBatch &batch, CKeyMetadata &metadata,
 
 bool CWallet::AddKeyPubKeyWithDB(WalletBatch &batch, const CKey &secret,
                                  const CPubKey &pubkey) {
-    // mapKeyMetadata
     AssertLockHeld(cs_wallet);
 
     // Make sure we aren't adding private keys to private key disabled wallets
@@ -461,7 +459,6 @@ bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
 }
 
 void CWallet::LoadKeyMetadata(const CKeyID &keyID, const CKeyMetadata &meta) {
-    // mapKeyMetadata
     AssertLockHeld(cs_wallet);
     UpdateTimeFirstKey(meta.nCreateTime);
     mapKeyMetadata[keyID] = meta;
@@ -469,14 +466,12 @@ void CWallet::LoadKeyMetadata(const CKeyID &keyID, const CKeyMetadata &meta) {
 
 void CWallet::LoadScriptMetadata(const CScriptID &script_id,
                                  const CKeyMetadata &meta) {
-    // m_script_metadata
     AssertLockHeld(cs_wallet);
     UpdateTimeFirstKey(meta.nCreateTime);
     m_script_metadata[script_id] = meta;
 }
 
 void CWallet::UpgradeKeyMetadata() {
-    // mapKeyMetadata
     AssertLockHeld(cs_wallet);
     if (IsLocked() || IsWalletFlagSet(WALLET_FLAG_KEY_ORIGIN_METADATA)) {
         return;
@@ -768,7 +763,6 @@ void CWallet::ChainStateFlushed(const CBlockLocator &loc) {
 
 void CWallet::SetMinVersion(enum WalletFeature nVersion, WalletBatch *batch_in,
                             bool fExplicit) {
-    // nWalletVersion
     LOCK(cs_wallet);
     if (nWalletVersion >= nVersion) {
         return;
@@ -796,7 +790,6 @@ void CWallet::SetMinVersion(enum WalletFeature nVersion, WalletBatch *batch_in,
 }
 
 bool CWallet::SetMaxVersion(int nVersion) {
-    // nWalletVersion, nWalletMaxVersion
     LOCK(cs_wallet);
 
     // Cannot downgrade below current version
@@ -1109,7 +1102,6 @@ DBErrors CWallet::ReorderTransactions() {
 }
 
 int64_t CWallet::IncOrderPosNext(WalletBatch *batch) {
-    // nOrderPosNext
     AssertLockHeld(cs_wallet);
     int64_t nRet = nOrderPosNext++;
     if (batch) {
@@ -3089,6 +3081,7 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
 }
 
 bool CWallet::SignTransaction(CMutableTransaction &tx) {
+    AssertLockHeld(cs_wallet);
     // sign the new tx
     int nIn = 0;
     for (CTxIn &input : tx.vin) {
@@ -3722,7 +3715,6 @@ DBErrors CWallet::LoadWallet(bool &fFirstRunRet) {
 
 DBErrors CWallet::ZapSelectTx(std::vector<TxId> &txIdsIn,
                               std::vector<TxId> &txIdsOut) {
-    // mapWallet
     AssertLockHeld(cs_wallet);
     DBErrors nZapSelectTxRet =
         WalletBatch(*database, "cr+").ZapSelectTx(txIdsIn, txIdsOut);
@@ -3878,7 +3870,6 @@ bool CWallet::NewKeyPool() {
 }
 
 size_t CWallet::KeypoolCountExternalKeys() {
-    // setExternalKeyPool
     AssertLockHeld(cs_wallet);
     return setExternalKeyPool.size() + set_pre_split_keypool.size();
 }
@@ -4200,7 +4191,6 @@ CWallet::GetAddressBalances(interfaces::Chain::Lock &locked_chain) {
 }
 
 std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
-    // mapWallet
     AssertLockHeld(cs_wallet);
     std::set<std::set<CTxDestination>> groupings;
     std::set<CTxDestination> grouping;
@@ -4398,32 +4388,27 @@ void CWallet::MarkReserveKeysAsUsed(int64_t keypool_id) {
 }
 
 void CWallet::LockCoin(const COutPoint &output) {
-    // setLockedCoins
     AssertLockHeld(cs_wallet);
     setLockedCoins.insert(output);
 }
 
 void CWallet::UnlockCoin(const COutPoint &output) {
-    // setLockedCoins
     AssertLockHeld(cs_wallet);
     setLockedCoins.erase(output);
 }
 
 void CWallet::UnlockAllCoins() {
-    // setLockedCoins
     AssertLockHeld(cs_wallet);
     setLockedCoins.clear();
 }
 
 bool CWallet::IsLockedCoin(const COutPoint &outpoint) const {
-    // setLockedCoins
     AssertLockHeld(cs_wallet);
 
     return setLockedCoins.count(outpoint) > 0;
 }
 
 void CWallet::ListLockedCoins(std::vector<COutPoint> &vOutpts) const {
-    // setLockedCoins
     AssertLockHeld(cs_wallet);
     for (COutPoint outpoint : setLockedCoins) {
         vOutpts.push_back(outpoint);
@@ -4434,7 +4419,6 @@ void CWallet::ListLockedCoins(std::vector<COutPoint> &vOutpts) const {
 
 void CWallet::GetKeyBirthTimes(interfaces::Chain::Lock &locked_chain,
                                std::map<CKeyID, int64_t> &mapKeyBirth) const {
-    // mapKeyMetadata
     AssertLockHeld(cs_wallet);
     mapKeyBirth.clear();
 
@@ -4764,7 +4748,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
     }
 
-    int prev_version = walletInstance->nWalletVersion;
+    int prev_version = walletInstance->GetVersion();
     if (gArgs.GetBoolArg("-upgradewallet", fFirstRun)) {
         int nMaxVersion = gArgs.GetArg("-upgradewallet", 0);
         // The -upgradewallet without argument case
@@ -4793,7 +4777,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
 
         // Do not upgrade versions to any version between HD_SPLIT and
         // FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
-        int max_version = walletInstance->nWalletVersion;
+        int max_version = walletInstance->GetVersion();
         if (!walletInstance->CanSupportFeature(FEATURE_HD_SPLIT) &&
             max_version >= FEATURE_HD_SPLIT &&
             max_version < FEATURE_PRE_SPLIT_KEYPOOL) {
