@@ -213,7 +213,7 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this,
                 SLOT(coinControlUpdateLabels()));
 
-        ui->customFee->setSingleStep(GetMinimumFee(1000, 2, g_mempool));
+        ui->customFee->setSingleStep(GetMinimumFee(1000, g_mempool));
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
@@ -669,7 +669,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
 
 void SendCoinsDialog::setMinimumFee() {
     ui->radioCustomPerKilobyte->setChecked(true);
-    ui->customFee->setValue(GetMinimumFee(1000, 2, g_mempool));
+    ui->customFee->setValue(GetMinimumFee(1000, g_mempool));
 }
 
 void SendCoinsDialog::updateFeeSectionControls() {
@@ -715,7 +715,7 @@ void SendCoinsDialog::updateMinFeeLabel() {
             tr("Pay only the required fee of %1")
                 .arg(BitcoinUnits::formatWithUnit(
                          model->getOptionsModel()->getDisplayUnit(),
-                         GetMinimumFee(1000, 2, g_mempool)) +
+                         GetMinimumFee(1000, g_mempool)) +
                      "/kB"));
     }
 }
@@ -732,7 +732,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
                 std::max(CWallet::fallbackFee.GetFeePerK(),
-                         GetMinimumFee(1000, 2, g_mempool))) +
+                         GetMinimumFee(1000, g_mempool))) +
             "/kB");
         // (Smart fee not initialized yet. This usually takes a few blocks...)
         ui->labelSmartFee2->show();
@@ -742,7 +742,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
                 std::max(feeRate.GetFeePerK(),
-                         GetMinimumFee(1000, 2, g_mempool))) +
+                         GetMinimumFee(1000, g_mempool))) +
             "/kB");
         ui->labelSmartFee2->hide();
         ui->labelFeeEstimation->setText(
