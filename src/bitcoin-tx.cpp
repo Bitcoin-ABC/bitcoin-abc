@@ -6,7 +6,7 @@
 #include "config/bitcoin-config.h"
 #endif
 
-#include "base58.h"
+#include "cashaddrenc.h"
 #include "chainparams.h"
 #include "clientversion.h"
 #include "coins.h"
@@ -567,13 +567,10 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("privatekey not a std::string");
         }
 
-        CBitcoinSecret vchSecret;
-        bool fGood = vchSecret.SetString(keysObj[kidx].getValStr());
-        if (!fGood) {
-            throw std::runtime_error("privatekey not valid");
+        CKey key = DecodeSecret(keysObj[kidx].getValStr());
+        if (!key.IsValid()) {
+          throw std::runtime_error("private key not valid");
         }
-
-        CKey key = vchSecret.GetKey();
         tempKeystore.AddKey(key);
     }
 

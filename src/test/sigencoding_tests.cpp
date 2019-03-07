@@ -36,7 +36,7 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
         baseSigHashes.push_back(baseSigHash.withAnyoneCanPay(true));
     }
 
-    for (const SigHashType baseSigHash : baseSigHashes) {
+    for (const auto& baseSigHash : baseSigHashes) {
         // Check the signature with the proper forkid flag.
         SigHashType sigHash = baseSigHash.withForkId(hasForkId);
         valtype validSig = SignatureWithHashType(vchSig, sigHash);

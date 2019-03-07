@@ -7,7 +7,7 @@
 
 #include "chainparams.h"
 #include "walletmodeltransaction.h"
-#include "base58.h"
+#include "cashaddrenc.h"
 
 #include "support/allocators/secure.h"
 

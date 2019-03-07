@@ -51,9 +51,8 @@ add_test_to_suite(devault test_devault
 	arith_uint256_tests.cpp
 	avalanche_tests.cpp
 	base32_tests.cpp
-	base58_tests.cpp
 	base64_tests.cpp
-	bip32_tests.cpp
+  bip32_tests.cpp
 	blockcheck_tests.cpp
 	blockencodings_tests.cpp
 	blockindex_tests.cpp

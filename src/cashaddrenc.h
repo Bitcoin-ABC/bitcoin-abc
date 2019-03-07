@@ -5,13 +5,13 @@
 #define BITCOIN_CASHADDRENC_H
 
 #include "script/standard.h"
-
+#include "key.h"
 #include <string>
 #include <vector>
 
 class CChainParams;
 
-enum CashAddrType : uint8_t { PUBKEY_TYPE = 0, SCRIPT_TYPE = 1 };
+enum CashAddrType : uint8_t { PUBKEY_TYPE = 0, SCRIPT_TYPE = 1, SECRET_TYPE = 2 };
 
 struct CashAddrContent {
     CashAddrType type;
@@ -29,4 +29,8 @@ CashAddrContent DecodeCashAddrContent(const std::string &addr,
 CTxDestination DecodeCashAddrDestination(const CashAddrContent &content);
 
 std::vector<uint8_t> PackCashAddrContent(const CashAddrContent &content);
+
+CKey DecodeSecret(const std::string &addr);
+std::string EncodeSecret(const CKey& key);
+
 #endif

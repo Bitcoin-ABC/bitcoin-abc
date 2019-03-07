@@ -29,10 +29,8 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
     const CTxDestination dstKey = CKeyID(uint160(hash));
     const CTxDestination dstScript = CScriptID(uint160(hash));
 
-    std::string cashaddr_pubkey =
-        "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
-    std::string cashaddr_script =
-        "bitcoincash:ppm2qsznhks23z7629mms6s4cwef74vcwvn0h829pq";
+    std::string cashaddr_pubkey = "devault:qpm2qsznhks23z7629mms6s4cwef74vcwvztjeqp4y";
+    std::string cashaddr_script = "devault:ppm2qsznhks23z7629mms6s4cwef74vcwv4w0k8zwe";
 
     DummyCashAddrConfig config;
 

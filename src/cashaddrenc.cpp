@@ -4,6 +4,7 @@
 #include "cashaddrenc.h"
 #include "cashaddr.h"
 #include "chainparams.h"
+#include "key.h"
 #include "pubkey.h"
 #include "script/script.h"
 #include "utilstrencodings.h"
@@ -11,6 +12,7 @@
 #include <boost/variant/static_visitor.hpp>
 
 #include <algorithm>
+#include <iostream>
 
 namespace {
 
@@ -78,6 +80,27 @@ public:
         return cashaddr::Encode(params.CashAddrPrefix(), data);
     }
 
+    std::string operator()(const CNoDestination &) const { return ""; }
+
+private:
+    const CChainParams &params;
+};
+
+// Implements encoding of CTxDestination using cashaddr.
+class CashSecretAddrEncoder : public boost::static_visitor<std::string> {
+public:
+    CashSecretAddrEncoder(const CChainParams &p) : params(p) {}
+
+    std::string operator()(const CKeyID &id) const {
+        std::vector<uint8_t> data = PackAddrData(id, SECRET_TYPE);
+        return cashaddr::Encode(params.CashAddrSecretPrefix(), data);
+    }
+  /*
+    std::string operator()(const CScriptID &id) const {
+        std::vector<uint8_t> data = PackAddrData(id, SCRIPT_TYPE);
+        return cashaddr::Encode(params.CashAddrPrefix(), data);
+    }
+  */
     std::string operator()(const CNoDestination &) const { return ""; }
 
 private:
@@ -186,4 +209,75 @@ CTxDestination DecodeCashAddrDestination(const CashAddrContent &content) {
 // template definitions.
 std::vector<uint8_t> PackCashAddrContent(const CashAddrContent &content) {
     return PackAddrData(content.hash, content.type);
+}
+
+std::string EncodeSecret(const CKey& key) {
+  assert(key.IsValid());
+  auto type = SECRET_TYPE;
+  uint8_t version_byte(type << 3);
+  std::vector<uint8_t> data = {version_byte};
+  size_t size = key.size();
+  data.insert(data.end(), std::begin(key), std::end(key));
+  
+  std::vector<uint8_t> copydata;
+  copydata.insert(copydata.end(), std::begin(key), std::end(key));
+
+  std::vector<uint8_t> converted;
+  converted.reserve(((size + 1) * 8 + 4) / 5);
+  ConvertBits<8, 5, true>(converted, std::begin(data), std::end(data));
+  
+  return cashaddr::Encode(Params().CashAddrSecretPrefix(), converted);
+}
+
+CKey DecodeSecret(const std::string &addr) {
+    CKey key;
+    std::string prefix;
+    std::vector<uint8_t> payload;
+    std::tie(prefix, payload) = cashaddr::Decode(addr, Params().CashAddrSecretPrefix());
+  
+
+    if (payload.empty()) {
+      return key;
+    }
+
+    // Check that the padding is zero.
+    size_t extrabits = payload.size() * 5 % 8;
+    if (extrabits >= 5) {
+        // We have more padding than allowed.
+      return key;
+    }
+
+    uint8_t last = payload.back();
+    uint8_t mask = (1 << extrabits) - 1;
+    if (last & mask) {
+        // We have non zero bits as padding.
+        return key;
+    }
+
+    std::vector<uint8_t> data;
+    data.reserve(payload.size() * 5 / 8);
+    ConvertBits<5, 8, false>(data, begin(payload), end(payload));
+
+  
+    // Decode type and size from the version.
+    uint8_t version = data[0];
+    if (version & 0x80) {
+        // First bit is reserved.
+      return key;
+    }
+
+    auto type = CashAddrType((version >> 3) & 0x1f);
+    // must be Secret Type
+    if (type != SECRET_TYPE) {
+      return key;
+    }
+    // Check that we decoded the exact number of bytes we expected.
+    if (data.size() != 33) {
+      return key;
+    }
+
+    // Pop the version.
+    data.erase(data.begin());
+    key.Set(data.begin(), data.end(), true);
+    return key;
 }

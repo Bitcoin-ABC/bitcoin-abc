@@ -6,7 +6,6 @@ include_directories(.)
 
 add_executable(bitcoin-bench
 	EXCLUDE_FROM_ALL
-	base58.cpp
 	bench.cpp
 	bench_bitcoin.cpp
 	cashaddr.cpp
