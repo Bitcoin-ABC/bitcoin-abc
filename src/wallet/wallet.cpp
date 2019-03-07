@@ -3065,15 +3065,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 vin.scriptSig = CScript();
             }
 
-            // Allow to override the default confirmation target over the
-            // CoinControl instance.
-            int currentConfirmationTarget = nTxConfirmTarget;
-            if (coinControl && coinControl->nConfirmTarget > 0) {
-                currentConfirmationTarget = coinControl->nConfirmTarget;
-            }
-
-            Amount nFeeNeeded =
-                GetMinimumFee(nBytes, currentConfirmationTarget, g_mempool);
+            Amount nFeeNeeded = GetMinimumFee(nBytes, g_mempool);
             if (coinControl && coinControl->fOverrideFeeRate) {
                 nFeeNeeded = coinControl->nFeeRate.GetFeeCeiling(nBytes);
             }
@@ -3103,8 +3095,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 // tx size) and so we should add a change output. Only try this
                 // once.
                 Amount fee_needed_for_change =
-                    GetMinimumFee(change_prototype_size,
-                                  currentConfirmationTarget, g_mempool);
+                    GetMinimumFee(change_prototype_size, g_mempool);
                 Amount minimum_value_for_change =
                     change_prototype_txout.GetDustThreshold(dustRelayFee);
                 Amount max_excess_fee =
