@@ -270,7 +270,7 @@ if(BUILD_BITCOIN_WALLET)
 endif()
 
 # The executable
-add_executable(bitcoin-qt bitcoin.cpp)
+add_executable(bitcoin-qt WIN32 bitcoin.cpp)
 target_link_libraries(bitcoin-qt bitcoin-qt-base)
 
 # Test tests
