@@ -181,14 +181,20 @@ bool CNetAddr::IsValid() const {
     // header20 vectorlen3 addr26 addr26 addr26 header20 vectorlen3 addr26
     // addr26 addr26... so if the first length field is garbled, it reads the
     // second batch of addr misaligned by 3 bytes.
-    if (memcmp(ip, pchIPv4 + 3, sizeof(pchIPv4) - 3) == 0) return false;
+    if (memcmp(ip, pchIPv4 + 3, sizeof(pchIPv4) - 3) == 0) {
+        return false;
+    }
 
     // unspecified IPv6 address (::/128)
     uint8_t ipNone6[16] = {};
-    if (memcmp(ip, ipNone6, 16) == 0) return false;
+    if (memcmp(ip, ipNone6, 16) == 0) {
+        return false;
+    }
 
     // documentation IPv6 address
-    if (IsRFC3849()) return false;
+    if (IsRFC3849()) {
+        return false;
+    }
 
     if (IsInternal()) {
         return false;
@@ -197,11 +203,15 @@ bool CNetAddr::IsValid() const {
     if (IsIPv4()) {
         // INADDR_NONE
         uint32_t ipNone = INADDR_NONE;
-        if (memcmp(ip + 12, &ipNone, 4) == 0) return false;
+        if (memcmp(ip + 12, &ipNone, 4) == 0) {
+            return false;
+        }
 
         // 0
         ipNone = 0;
-        if (memcmp(ip + 12, &ipNone, 4) == 0) return false;
+        if (memcmp(ip + 12, &ipNone, 4) == 0) {
+            return false;
+        }
     }
 
     return true;
@@ -283,7 +293,9 @@ bool operator<(const CNetAddr &a, const CNetAddr &b) {
 }
 
 bool CNetAddr::GetInAddr(struct in_addr *pipv4Addr) const {
-    if (!IsIPv4()) return false;
+    if (!IsIPv4()) {
+        return false;
+    }
     memcpy(pipv4Addr, ip + 12, 4);
     return true;
 }
@@ -370,8 +382,12 @@ uint64_t CNetAddr::GetHash() const {
 static const int NET_UNKNOWN = NET_MAX + 0;
 static const int NET_TEREDO = NET_MAX + 1;
 static int GetExtNetwork(const CNetAddr *addr) {
-    if (addr == nullptr) return NET_UNKNOWN;
-    if (addr->IsRFC4380()) return NET_TEREDO;
+    if (addr == nullptr) {
+        return NET_UNKNOWN;
+    }
+    if (addr->IsRFC4380()) {
+        return NET_TEREDO;
+    }
     return addr->GetNetwork();
 }
 
@@ -508,23 +524,31 @@ bool operator<(const CService &a, const CService &b) {
 
 bool CService::GetSockAddr(struct sockaddr *paddr, socklen_t *addrlen) const {
     if (IsIPv4()) {
-        if (*addrlen < (socklen_t)sizeof(struct sockaddr_in)) return false;
+        if (*addrlen < (socklen_t)sizeof(struct sockaddr_in)) {
+            return false;
+        }
         *addrlen = sizeof(struct sockaddr_in);
         struct sockaddr_in *paddrin =
             reinterpret_cast<struct sockaddr_in *>(paddr);
         memset(paddrin, 0, *addrlen);
-        if (!GetInAddr(&paddrin->sin_addr)) return false;
+        if (!GetInAddr(&paddrin->sin_addr)) {
+            return false;
+        }
         paddrin->sin_family = AF_INET;
         paddrin->sin_port = htons(port);
         return true;
     }
     if (IsIPv6()) {
-        if (*addrlen < (socklen_t)sizeof(struct sockaddr_in6)) return false;
+        if (*addrlen < (socklen_t)sizeof(struct sockaddr_in6)) {
+            return false;
+        }
         *addrlen = sizeof(struct sockaddr_in6);
         struct sockaddr_in6 *paddrin6 =
             reinterpret_cast<struct sockaddr_in6 *>(paddr);
         memset(paddrin6, 0, *addrlen);
-        if (!GetIn6Addr(&paddrin6->sin6_addr)) return false;
+        if (!GetIn6Addr(&paddrin6->sin6_addr)) {
+            return false;
+        }
         paddrin6->sin6_scope_id = scopeId;
         paddrin6->sin6_family = AF_INET6;
         paddrin6->sin6_port = htons(port);
@@ -577,8 +601,9 @@ CSubNet::CSubNet(const CNetAddr &addr, int32_t mask) {
     if (n >= 0 && n <= (128 - astartofs * 8)) {
         n += astartofs * 8;
         // Clear bits [n..127]
-        for (; n < 128; ++n)
+        for (; n < 128; ++n) {
             netmask[n >> 3] &= ~(1 << (7 - (n & 7)));
+        }
     } else {
         valid = false;
     }
@@ -599,12 +624,14 @@ CSubNet::CSubNet(const CNetAddr &addr, const CNetAddr &mask) {
     // offset n
     const int astartofs = network.IsIPv4() ? 12 : 0;
 
-    for (int x = astartofs; x < 16; ++x)
+    for (int x = astartofs; x < 16; ++x) {
         netmask[x] = mask.ip[x];
+    }
 
     // Normalize network according to netmask
-    for (int x = 0; x < 16; ++x)
+    for (int x = 0; x < 16; ++x) {
         network.ip[x] &= netmask[x];
+    }
 }
 
 CSubNet::CSubNet(const CNetAddr &addr) : valid(addr.IsValid()) {
@@ -613,9 +640,14 @@ CSubNet::CSubNet(const CNetAddr &addr) : valid(addr.IsValid()) {
 }
 
 bool CSubNet::Match(const CNetAddr &addr) const {
-    if (!valid || !addr.IsValid()) return false;
-    for (int x = 0; x < 16; ++x)
-        if ((addr.ip[x] & netmask[x]) != network.ip[x]) return false;
+    if (!valid || !addr.IsValid()) {
+        return false;
+    }
+    for (int x = 0; x < 16; ++x) {
+        if ((addr.ip[x] & netmask[x]) != network.ip[x]) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -649,34 +681,40 @@ std::string CSubNet::ToString() const {
     int cidr = 0;
     bool valid_cidr = true;
     int n = network.IsIPv4() ? 12 : 0;
-    for (; n < 16 && netmask[n] == 0xff; ++n)
+    for (; n < 16 && netmask[n] == 0xff; ++n) {
         cidr += 8;
+    }
     if (n < 16) {
         int bits = NetmaskBits(netmask[n]);
-        if (bits < 0)
+        if (bits < 0) {
             valid_cidr = false;
-        else
+        } else {
             cidr += bits;
+        }
         ++n;
     }
-    for (; n < 16 && valid_cidr; ++n)
-        if (netmask[n] != 0x00) valid_cidr = false;
+    for (; n < 16 && valid_cidr; ++n) {
+        if (netmask[n] != 0x00) {
+            valid_cidr = false;
+        }
+    }
 
     /* Format output */
     std::string strNetmask;
     if (valid_cidr) {
         strNetmask = strprintf("%u", cidr);
     } else {
-        if (network.IsIPv4())
+        if (network.IsIPv4()) {
             strNetmask = strprintf("%u.%u.%u.%u", netmask[12], netmask[13],
                                    netmask[14], netmask[15]);
-        else
+        } else {
             strNetmask = strprintf(
                 "%x:%x:%x:%x:%x:%x:%x:%x", netmask[0] << 8 | netmask[1],
                 netmask[2] << 8 | netmask[3], netmask[4] << 8 | netmask[5],
                 netmask[6] << 8 | netmask[7], netmask[8] << 8 | netmask[9],
                 netmask[10] << 8 | netmask[11], netmask[12] << 8 | netmask[13],
                 netmask[14] << 8 | netmask[15]);
+        }
     }
 
     return network.ToString() + "/" + strNetmask;
