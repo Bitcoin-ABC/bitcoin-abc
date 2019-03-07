@@ -10,7 +10,6 @@
 #include "amount.h"
 
 class CTxMemPool;
-struct FeeCalculation;
 
 /**
  * Estimate the minimum fee considering user set parameters
