@@ -774,36 +774,29 @@ static UniValue submitblock(const Config &config,
 
 static UniValue estimatefee(const Config &config,
                             const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 1) {
+    if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
-            "estimatefee nblocks\n"
+            "estimatefee\n"
             "\nEstimates the approximate fee per kilobyte needed for a "
-            "transaction to begin\n"
-            "confirmation within nblocks blocks.\n"
-            "\nArguments:\n"
-            "1. nblocks     (numeric, required)\n"
+            "transaction\n"
             "\nResult:\n"
             "n              (numeric) estimated fee-per-kilobyte\n"
-            "\n"
-            "A negative value is returned if not enough transactions and "
-            "blocks\n"
-            "have been observed to make an estimate.\n"
-            "-1 is always returned for nblocks == 1 as it is impossible to "
-            "calculate\n"
-            "a fee that is high enough to get reliably included in the next "
-            "block.\n"
             "\nExample:\n" +
-            HelpExampleCli("estimatefee", "6"));
+            HelpExampleCli("estimatefee", ""));
     }
 
-    RPCTypeCheck(request.params, {UniValue::VNUM});
-
-    CFeeRate feeRate = g_mempool.estimateFee();
-    if (feeRate == CFeeRate(Amount::zero())) {
-        return -1.0;
+    if ((request.params.size() == 1) &&
+        !IsDeprecatedRPCEnabled(gArgs, "estimatefee")) {
+        // FIXME: Remove this message in 0.20
+        throw JSONRPCError(
+            RPC_METHOD_DEPRECATED,
+            "estimatefee with the nblocks argument is no longer supported\n"
+            "Please call estimatefee with no arguments instead.\n"
+            "\nExample:\n" +
+                HelpExampleCli("estimatefee", ""));
     }
 
-    return ValueFromAmount(feeRate.GetFeePerK());
+    return ValueFromAmount(g_mempool.estimateFee().GetFeePerK());
 }
 
 // clang-format off
