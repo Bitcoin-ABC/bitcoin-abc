@@ -194,7 +194,7 @@ public:
         consensus.nBlocksPerYear = 30 * 24 * 365.25;
         consensus.nMaxMiningRewardInCoins = 2000;
         consensus.fPowAllowMinDifficultyBlocks = true;
-        consensus.fPowNoRetargeting = false;
+        consensus.fPowNoRetargeting = true; // switch back before public testnet
         // 75% for testchains
         consensus.nRuleChangeActivationThreshold = 1512;
         // nPowTargetTimespan / nPowTargetSpacing
