@@ -39,7 +39,11 @@ add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -Og -O0)
 
 # Ensure that WINDRES_PREPROC is enabled when using windres.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	# Ensure that WINDRES_PREPROC is enabled when using windres.
 	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
+
+	# Build all static so there is no dll file to distribute.
+	add_compiler_flag(-static)
 endif()
 
 # All windows code is PIC, forcing it on just adds useless compile warnings
