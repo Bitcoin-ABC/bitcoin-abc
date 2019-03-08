@@ -708,16 +708,8 @@ public:
     const bool fInbound;
     std::atomic_bool fSuccessfullyConnected{false};
     std::atomic_bool fDisconnect{false};
-    // We use fRelayTxes for two purposes -
-    // a) it allows us to not relay tx invs before receiving the peer's version
-    // message.
-    // b) the peer may tell us in its version message that we should not relay
-    // tx invs unless it loads a bloom filter.
-    bool fRelayTxes GUARDED_BY(cs_filter){false};
     bool fSentAddr{false};
     CSemaphoreGrant grantOutbound;
-    mutable RecursiveMutex cs_filter;
-    std::unique_ptr<CBloomFilter> pfilter PT_GUARDED_BY(cs_filter);
     std::atomic<int> nRefCount{0};
 
     const uint64_t nKeyedNetGroup;
@@ -739,24 +731,47 @@ public:
     int64_t nNextAddrSend GUARDED_BY(cs_sendProcessing){0};
     int64_t nNextLocalAddrSend GUARDED_BY(cs_sendProcessing){0};
 
-    // Inventory based relay.
-    CRollingBloomFilter filterInventoryKnown GUARDED_BY(cs_inventory);
-    // Set of transaction ids we still have to announce. They are sorted by the
-    // mempool before relay, so the order is not important.
-    std::set<TxId> setInventoryTxToSend;
-    // List of block ids we still have announce. There is no final sorting
-    // before sending, as they are always sent immediately and in the order
-    // requested.
+    // List of block ids we still have to announce.
+    // There is no final sorting before sending, as they are always sent
+    // immediately and in the order requested.
     std::vector<BlockHash> vInventoryBlockToSend GUARDED_BY(cs_inventory);
     RecursiveMutex cs_inventory;
-    int64_t nNextInvSend{0};
-    // Used for headers announcements - unfiltered blocks to relay.
-    std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
-    // Used for BIP35 mempool sending.
-    bool fSendMempool GUARDED_BY(cs_inventory){false};
 
-    // Last time a "MEMPOOL" request was serviced.
-    std::atomic<int64_t> timeLastMempoolReq{0};
+    struct TxRelay {
+        TxRelay() { pfilter = std::make_unique<CBloomFilter>(); }
+        mutable RecursiveMutex cs_filter;
+        // We use fRelayTxes for two purposes -
+        // a) it allows us to not relay tx invs before receiving the peer's
+        //    version message.
+        // b) the peer may tell us in its version message that we should not
+        //    relay tx invs unless it loads a bloom filter.
+        bool fRelayTxes GUARDED_BY(cs_filter){false};
+        std::unique_ptr<CBloomFilter> pfilter PT_GUARDED_BY(cs_filter)
+            GUARDED_BY(cs_filter);
+
+        mutable RecursiveMutex cs_tx_inventory;
+        CRollingBloomFilter filterInventoryKnown GUARDED_BY(cs_tx_inventory){
+            50000, 0.000001};
+        // Set of transaction ids we still have to announce.
+        // They are sorted by the mempool before relay, so the order is not
+        // important.
+        std::set<TxId> setInventoryTxToSend;
+        // Used for BIP35 mempool sending
+        bool fSendMempool GUARDED_BY(cs_tx_inventory){false};
+        // Last time a "MEMPOOL" request was serviced.
+        std::atomic<int64_t> timeLastMempoolReq{0};
+        int64_t nNextInvSend{0};
+
+        RecursiveMutex cs_feeFilter;
+        // Minimum fee rate with which to filter inv's to this node
+        Amount minFeeFilter GUARDED_BY(cs_feeFilter){Amount::zero()};
+        Amount lastSentFeeFilter{Amount::zero()};
+        int64_t nextSendTimeFeeFilter{0};
+    };
+
+    TxRelay m_tx_relay;
+    // Used for headers announcements - unfiltered blocks to relay
+    std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
 
     // Block and TXN accept times
     std::atomic<int64_t> nLastBlockTime{0};
@@ -773,11 +788,6 @@ public:
     std::atomic<int64_t> nMinPingUsecTime{std::numeric_limits<int64_t>::max()};
     // Whether a ping is requested.
     std::atomic<bool> fPingQueued{false};
-    // Minimum fee rate with which to filter inv's to this node
-    Amount minFeeFilter GUARDED_BY(cs_feeFilter){Amount::zero()};
-    RecursiveMutex cs_feeFilter;
-    Amount lastSentFeeFilter{Amount::zero()};
-    int64_t nextSendTimeFeeFilter{0};
 
     std::set<TxId> orphan_work_set;
 
@@ -857,19 +867,20 @@ public:
     }
 
     void AddInventoryKnown(const CInv &inv) {
-        LOCK(cs_inventory);
-        filterInventoryKnown.insert(inv.hash);
+        LOCK(m_tx_relay.cs_tx_inventory);
+        m_tx_relay.filterInventoryKnown.insert(inv.hash);
     }
 
     void PushInventory(const CInv &inv) {
-        LOCK(cs_inventory);
         if (inv.type == MSG_TX) {
             const TxId txid(inv.hash);
-            if (!filterInventoryKnown.contains(txid)) {
-                setInventoryTxToSend.insert(txid);
+            LOCK(m_tx_relay.cs_tx_inventory);
+            if (!m_tx_relay.filterInventoryKnown.contains(txid)) {
+                m_tx_relay.setInventoryTxToSend.insert(txid);
             }
         } else if (inv.type == MSG_BLOCK) {
             const BlockHash hash(inv.hash);
+            LOCK(cs_inventory);
             vInventoryBlockToSend.push_back(hash);
         }
     }
