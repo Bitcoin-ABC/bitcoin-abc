@@ -150,6 +150,8 @@ public:
         // Bitcoin ABC seeder
         vSeeds.emplace_back("seed.devault.com");
 
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
         cashaddrPrefix = "devault";
         cashaddrSecretPrefix = "dvtpriv";
 
@@ -245,6 +247,8 @@ public:
         // nodes with support for servicebits filtering should be at the top
         // Bitcoin ABC seeder
         vSeeds.emplace_back("testnet.devault.com");
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "dvtest";
         cashaddrSecretPrefix = "testpriv"; // Shouldn't matter that "dv" isn't indicated
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
@@ -336,6 +340,8 @@ public:
 
         chainTxData = ChainTxData{0, 0, 0};
 
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "dvreg";
         cashaddrSecretPrefix = "regpriv";
     }

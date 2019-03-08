@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "base58.h"
 #include "cashaddrenc.h"
 #include "chain.h"
 #include "config.h"
@@ -783,14 +784,17 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
                       FormatISO8601DateTime(chainActive.Tip()->GetBlockTime()));
     file << "\n";
 
-    // add the CashAddr encoded extended master if the wallet uses HD
+    // add the base58check encoded extended master if the wallet uses HD
     CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
     if (!masterKeyID.IsNull()) {
         CKey key;
         if (pwallet->GetKey(masterKeyID, key)) {
-            // NOTE: Not using EXT_SECRET_KEY as before just encoded as a private CashAddr
-            // Since this is in a comment it will be ignored by importwallet
-            file << "# extended private masterkey: " << EncodeSecret(key) << "\n\n";
+          CExtKey masterKey;	        
+          masterKey.SetMaster(key.begin(), key.size());	       
+          CBitcoinExtKey b58extkey;	
+          b58extkey.SetKey(masterKey);	
+          file << "# extended private masterkey: " << b58extkey.ToString()	
+               << "\n\n";
         }
     }
     for (std::vector<std::pair<int64_t, CKeyID>>::const_iterator it =

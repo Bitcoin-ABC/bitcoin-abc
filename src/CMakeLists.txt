@@ -3,6 +3,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(DeVault)
 
+set(CMAKE_CXX_STANDARD 11)
+
 # Default visibility is hidden on all targets.
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -176,6 +178,7 @@ target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_
 add_library(common
   ${HEADERS}
 	amount.cpp
+	base58.cpp
 	cashaddr.cpp
 	cashaddrenc.cpp
 	chainparams.cpp

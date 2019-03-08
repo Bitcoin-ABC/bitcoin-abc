@@ -40,6 +40,16 @@ struct ChainTxData {
  */
 class CChainParams {
 public:
+    enum Base58Type {
+        PUBKEY_ADDRESS,
+        SCRIPT_ADDRESS,
+        SECRET_KEY,
+        EXT_PUBLIC_KEY,
+        EXT_SECRET_KEY,
+
+        MAX_BASE58_TYPES
+    };
+
     const Consensus::Params &GetConsensus() const { return consensus; }
     const CMessageHeader::MessageMagic &DiskMagic() const { return diskMagic; }
     const CMessageHeader::MessageMagic &NetMagic() const { return netMagic; }
@@ -60,6 +70,9 @@ public:
     std::string NetworkIDString() const { return strNetworkID; }
     /** Return the list of hostnames to look up for DNS seeds */
     const std::vector<std::string> &DNSSeeds() const { return vSeeds; }
+    const std::vector<uint8_t> &Base58Prefix(Base58Type type) const {
+        return base58Prefixes[type];
+    }
     const std::string &CashAddrPrefix() const { return cashaddrPrefix; }
     const std::string &CashAddrSecretPrefix() const { return cashaddrSecretPrefix; }
     const std::vector<SeedSpec6> &FixedSeeds() const { return vFixedSeeds; }
@@ -75,6 +88,7 @@ protected:
     int nDefaultPort;
     uint64_t nPruneAfterHeight;
     std::vector<std::string> vSeeds;
+    std::vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];
     std::string cashaddrPrefix;
     std::string cashaddrSecretPrefix;
     std::string strNetworkID;
