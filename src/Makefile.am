@@ -126,7 +126,6 @@ BITCOIN_CORE_H = \
   compat/sanity.h \
   compressor.h \
   config.h \
-  coldrewards/reward_constants.h \
   coldrewards/rewards.h \
   coldrewards/rewardsview.h \
   consensus/activation.h \
