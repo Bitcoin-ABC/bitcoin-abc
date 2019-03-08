@@ -15,6 +15,7 @@ option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
+option(ENABLE_HARDENING "Harden the executables" ON)
 
 # Cmake uses the CMAKE_BUILD_TYPE variable to select the build configuration.
 # By default it supports more configurations that needed for Bitcoin ABC, and
@@ -29,13 +30,20 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
 endif()
 
-# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
-# Unfortunately setting the -pie linker flag this way required CMake >= 3.14,
-# which is not widely distributed at the time of writing.
-# FIXME: use the POSITION_INDEPENDENT_CODE property instead
+# All windows code is PIC, forcing it on just adds useless compile warnings
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	add_compiler_flag(-fPIC -fPIE)
-	add_linker_flag(-pie)
+	add_compiler_flag(-fPIC)
+endif()
+	
+if(ENABLE_HARDENING)
+	# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
+	# Unfortunately setting the -pie linker flag this way require CMake >= 3.14,
+	# which is not widely distributed at the time of writing.
+	# FIXME: use the POSITION_INDEPENDENT_CODE property instead
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		add_compiler_flag(-fPIE)
+		add_linker_flag(-pie)
+	endif()
 endif()
 
 # Enable warning
