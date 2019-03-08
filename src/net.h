@@ -863,12 +863,14 @@ public:
     }
 
     void AddInventoryKnown(const CInv &inv) {
-        LOCK(m_tx_relay->cs_tx_inventory);
-        m_tx_relay->filterInventoryKnown.insert(inv.hash);
+        if (m_tx_relay != nullptr) {
+            LOCK(m_tx_relay->cs_tx_inventory);
+            m_tx_relay->filterInventoryKnown.insert(inv.hash);
+        }
     }
 
     void PushInventory(const CInv &inv) {
-        if (inv.type == MSG_TX) {
+        if (inv.type == MSG_TX && m_tx_relay != nullptr) {
             const TxId txid(inv.hash);
             LOCK(m_tx_relay->cs_tx_inventory);
             if (!m_tx_relay->filterInventoryKnown.contains(txid)) {

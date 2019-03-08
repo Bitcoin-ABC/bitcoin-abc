@@ -508,9 +508,11 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.nServices = nServices;
     stats.addr = addr;
     stats.addrBind = addrBind;
-    {
+    if (m_tx_relay != nullptr) {
         LOCK(m_tx_relay->cs_filter);
         stats.fRelayTxes = m_tx_relay->fRelayTxes;
+    } else {
+        stats.fRelayTxes = false;
     }
     stats.nLastSend = nLastSend;
     stats.nLastRecv = nLastRecv;
@@ -537,9 +539,11 @@ void CNode::copyStats(CNodeStats &stats) {
     }
     stats.m_legacyWhitelisted = m_legacyWhitelisted;
     stats.m_permissionFlags = m_permissionFlags;
-    {
+    if (m_tx_relay != nullptr) {
         LOCK(m_tx_relay->cs_feeFilter);
         stats.minFeeFilter = m_tx_relay->minFeeFilter;
+    } else {
+        stats.minFeeFilter = Amount::zero();
     }
 
     // It is common for nodes with good ping times to suddenly become lagged,
@@ -879,7 +883,13 @@ bool CConnman::AttemptToEvictConnection() {
             if (node->fDisconnect) {
                 continue;
             }
-            LOCK(node->m_tx_relay->cs_filter);
+            bool peer_relay_txes = false;
+            bool peer_filter_not_null = false;
+            if (node->m_tx_relay != nullptr) {
+                LOCK(node->m_tx_relay->cs_filter);
+                peer_relay_txes = node->m_tx_relay->fRelayTxes;
+                peer_filter_not_null = node->m_tx_relay->pfilter != nullptr;
+            }
             NodeEvictionCandidate candidate = {
                 node->GetId(),
                 node->nTimeConnected,
@@ -887,8 +897,8 @@ bool CConnman::AttemptToEvictConnection() {
                 node->nLastBlockTime,
                 node->nLastTXTime,
                 HasAllDesirableServiceFlags(node->nServices),
-                node->m_tx_relay->fRelayTxes,
-                node->m_tx_relay->pfilter != nullptr,
+                peer_relay_txes,
+                peer_filter_not_null,
                 node->addr,
                 node->nKeyedNetGroup,
                 node->m_prefer_evict};
