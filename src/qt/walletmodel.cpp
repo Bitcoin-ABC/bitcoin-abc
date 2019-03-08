@@ -644,10 +644,6 @@ bool WalletModel::hdEnabled() const {
     return wallet->IsHDEnabled();
 }
 
-int WalletModel::getDefaultConfirmTarget() const {
-    return nTxConfirmTarget;
-}
-
 QString WalletModel::getWalletName() const {
     LOCK(wallet->cs_wallet);
     return QString::fromStdString(wallet->GetName());
