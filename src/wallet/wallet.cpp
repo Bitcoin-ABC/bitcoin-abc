@@ -2727,6 +2727,32 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
     return res;
 }
 
+bool CWallet::SignTransaction(CMutableTransaction &tx) {
+    // sign the new tx
+    CTransaction txNewConst(tx);
+    int nIn = 0;
+    for (auto &input : tx.vin) {
+        auto mi = mapWallet.find(input.prevout.GetTxId());
+        if (mi == mapWallet.end() ||
+            input.prevout.GetN() >= mi->second.tx->vout.size()) {
+            return false;
+        }
+        const CScript &scriptPubKey =
+            mi->second.tx->vout[input.prevout.GetN()].scriptPubKey;
+        const Amount amount = mi->second.tx->vout[input.prevout.GetN()].nValue;
+        SignatureData sigdata;
+        SigHashType sigHashType = SigHashType().withForkId();
+        if (!ProduceSignature(TransactionSignatureCreator(
+                                  this, &txNewConst, nIn, amount, sigHashType),
+                              scriptPubKey, sigdata)) {
+            return false;
+        }
+        UpdateTransaction(tx, nIn, sigdata);
+        nIn++;
+    }
+    return true;
+}
+
 bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
                               bool overrideEstimatedFeeRate,
                               const CFeeRate &specificFeeRate,
