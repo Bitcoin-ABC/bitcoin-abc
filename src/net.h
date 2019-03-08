@@ -769,7 +769,7 @@ public:
         int64_t nextSendTimeFeeFilter{0};
     };
 
-    TxRelay m_tx_relay;
+    std::unique_ptr<TxRelay> m_tx_relay;
     // Used for headers announcements - unfiltered blocks to relay
     std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
 
@@ -867,16 +867,16 @@ public:
     }
 
     void AddInventoryKnown(const CInv &inv) {
-        LOCK(m_tx_relay.cs_tx_inventory);
-        m_tx_relay.filterInventoryKnown.insert(inv.hash);
+        LOCK(m_tx_relay->cs_tx_inventory);
+        m_tx_relay->filterInventoryKnown.insert(inv.hash);
     }
 
     void PushInventory(const CInv &inv) {
         if (inv.type == MSG_TX) {
             const TxId txid(inv.hash);
-            LOCK(m_tx_relay.cs_tx_inventory);
-            if (!m_tx_relay.filterInventoryKnown.contains(txid)) {
-                m_tx_relay.setInventoryTxToSend.insert(txid);
+            LOCK(m_tx_relay->cs_tx_inventory);
+            if (!m_tx_relay->filterInventoryKnown.contains(txid)) {
+                m_tx_relay->setInventoryTxToSend.insert(txid);
             }
         } else if (inv.type == MSG_BLOCK) {
             const BlockHash hash(inv.hash);

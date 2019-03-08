@@ -509,8 +509,8 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.addr = addr;
     stats.addrBind = addrBind;
     {
-        LOCK(m_tx_relay.cs_filter);
-        stats.fRelayTxes = m_tx_relay.fRelayTxes;
+        LOCK(m_tx_relay->cs_filter);
+        stats.fRelayTxes = m_tx_relay->fRelayTxes;
     }
     stats.nLastSend = nLastSend;
     stats.nLastRecv = nLastRecv;
@@ -538,8 +538,8 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.m_legacyWhitelisted = m_legacyWhitelisted;
     stats.m_permissionFlags = m_permissionFlags;
     {
-        LOCK(m_tx_relay.cs_feeFilter);
-        stats.minFeeFilter = m_tx_relay.minFeeFilter;
+        LOCK(m_tx_relay->cs_feeFilter);
+        stats.minFeeFilter = m_tx_relay->minFeeFilter;
     }
 
     // It is common for nodes with good ping times to suddenly become lagged,
@@ -879,7 +879,7 @@ bool CConnman::AttemptToEvictConnection() {
             if (node->fDisconnect) {
                 continue;
             }
-            LOCK(node->m_tx_relay.cs_filter);
+            LOCK(node->m_tx_relay->cs_filter);
             NodeEvictionCandidate candidate = {
                 node->GetId(),
                 node->nTimeConnected,
@@ -887,8 +887,8 @@ bool CConnman::AttemptToEvictConnection() {
                 node->nLastBlockTime,
                 node->nLastTXTime,
                 HasAllDesirableServiceFlags(node->nServices),
-                node->m_tx_relay.fRelayTxes,
-                node->m_tx_relay.pfilter != nullptr,
+                node->m_tx_relay->fRelayTxes,
+                node->m_tx_relay->pfilter != nullptr,
                 node->addr,
                 node->nKeyedNetGroup,
                 node->m_prefer_evict};
@@ -2728,6 +2728,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
     strSubVer = "";
     hashContinue = BlockHash();
+    m_tx_relay = std::make_unique<TxRelay>();
 
     for (const std::string &msg : getAllNetMessageTypes()) {
         mapRecvBytesPerMsgCmd[msg] = 0;
