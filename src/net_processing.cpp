@@ -76,6 +76,9 @@ static const int STALE_RELAY_AGE_LIMIT = 30 * 24 * 60 * 60;
 /// limiting block relay. Set to one week, denominated in seconds.
 static const int HISTORICAL_BLOCK_AGE = 7 * 24 * 60 * 60;
 
+// How many non standard orphan do we consider from a node before ignoring it.
+static const uint32_t MAX_NON_STANDARD_ORPHAN_PER_NODE = 5;
+
 // Internal stuff
 namespace {
 /** Number of nodes with fSyncStarted. */
@@ -2509,7 +2512,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
             // Recursively process any orphan transactions that depended on this
             // one
-            std::set<NodeId> setMisbehaving;
+            std::unordered_map<NodeId, uint32_t> rejectCountPerNode;
             while (!vWorkQueue.empty()) {
                 auto itByPrev =
                     mapOrphanTransactionsByPrev.find(vWorkQueue.front());
@@ -2530,9 +2533,12 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     // in order to get anyone relaying LegitTxX banned)
                     CValidationState stateDummy;
 
-                    if (setMisbehaving.count(fromPeer)) {
+                    auto it = rejectCountPerNode.find(fromPeer);
+                    if (it != rejectCountPerNode.end() &&
+                        it->second > MAX_NON_STANDARD_ORPHAN_PER_NODE) {
                         continue;
                     }
+
                     if (AcceptToMemoryPool(config, g_mempool, stateDummy,
                                            porphanTx, true, &fMissingInputs2)) {
                         LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
@@ -2544,13 +2550,16 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                         vEraseQueue.push_back(orphanId);
                     } else if (!fMissingInputs2) {
                         int nDos = 0;
-                        if (stateDummy.IsInvalid(nDos) && nDos > 0) {
-                            // Punish peer that gave us an invalid orphan tx
-                            Misbehaving(fromPeer, nDos, "invalid-orphan-tx");
-                            setMisbehaving.insert(fromPeer);
-                            LogPrint(BCLog::MEMPOOL,
-                                     "   invalid orphan tx %s\n",
-                                     orphanId.ToString());
+                        if (stateDummy.IsInvalid(nDos)) {
+                            rejectCountPerNode[fromPeer]++;
+                            if (nDos > 0) {
+                                // Punish peer that gave us an invalid orphan tx
+                                Misbehaving(fromPeer, nDos,
+                                            "invalid-orphan-tx");
+                                LogPrint(BCLog::MEMPOOL,
+                                         "   invalid orphan tx %s\n",
+                                         orphanId.ToString());
+                            }
                         }
                         // Has inputs but not accepted to mempool
                         // Probably non-standard or insufficient fee/priority
