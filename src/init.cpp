@@ -1029,7 +1029,7 @@ void CleanupBlockRevFiles() {
     // removing block files.
     int nContigCounter = 0;
     for (const std::pair<std::string, fs::path> &item : mapBlockFiles) {
-        if (atoi(item.first) == nContigCounter) {
+        if (std::atoi(item.first.c_str()) == nContigCounter) {
             nContigCounter++;
             continue;
         }

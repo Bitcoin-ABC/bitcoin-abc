@@ -532,7 +532,7 @@ static UniValue getblocktemplate(const Config &config,
             std::string lpstr = lpval.get_str();
 
             hashWatchedChain.SetHex(lpstr.substr(0, 64));
-            nTransactionsUpdatedLastLP = atoi64(lpstr.substr(64));
+            nTransactionsUpdatedLastLP = std::atoi(lpstr.substr(64).c_str());
         } else {
             // NOTE: Spec does not specify behaviour for non-string longpollid,
             // but this makes testing easier

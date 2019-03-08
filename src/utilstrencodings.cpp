@@ -571,26 +571,6 @@ std::string itostr(int n) {
     return strprintf("%d", n);
 }
 
-int64_t atoi64(const char *psz) {
-#ifdef _MSC_VER
-    return _atoi64(psz);
-#else
-    return strtoll(psz, nullptr, 10);
-#endif
-}
-
-int64_t atoi64(const std::string &str) {
-#ifdef _MSC_VER
-    return _atoi64(str.c_str());
-#else
-    return strtoll(str.c_str(), nullptr, 10);
-#endif
-}
-
-int atoi(const std::string &str) {
-    return atoi(str.c_str());
-}
-
 /**
  * Upper bound for mantissa.
  * 10^18-1 is the largest arbitrary decimal that will fit in a signed 64-bit
@@ -732,4 +712,13 @@ bool ParseFixedPoint(const std::string &val, int decimals,
     if (amount_out) *amount_out = mantissa;
 
     return true;
+}
+void Downcase(std::string& str) {
+  std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return ToLower(c); });
+}
+
+std::string Capitalize(std::string str) {
+  if (str.empty()) return str;
+  str[0] = ToUpper(str.front());
+  return str;
 }

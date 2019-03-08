@@ -73,7 +73,7 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
         return false;
     }
 
-    Amount nWhole = atoi64(strWhole) * COIN;
+    Amount nWhole = std::atoi(strWhole.c_str()) * COIN;
 
     nRet = nWhole + Amount(nUnits);
     return true;

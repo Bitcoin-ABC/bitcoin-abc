@@ -165,7 +165,7 @@ static bool InterpretBool(const std::string &strValue) {
     if (strValue.empty()) {
         return true;
     }
-    return (atoi(strValue) != 0);
+    return (std::atoi(strValue.c_str()) != 0);
 }
 
 /** Internal helper functions for ArgsManager */
@@ -489,7 +489,7 @@ int64_t ArgsManager::GetArg(const std::string &strArg, int64_t nDefault) const {
     std::pair<bool, std::string> found_res =
         ArgsManagerHelper::GetArg(*this, strArg);
     if (found_res.first) {
-        return atoi64(found_res.second);
+      return std::atoi(found_res.second.c_str());
     }
     return nDefault;
 }

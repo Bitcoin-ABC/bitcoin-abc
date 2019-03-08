@@ -166,7 +166,7 @@ static inline void ReadOrderPos(int64_t &nOrderPos, mapValue_t &mapValue) {
         return;
     }
 
-    nOrderPos = atoi64(mapValue["n"].c_str());
+    nOrderPos = std::atoi(mapValue["n"].c_str());
 }
 
 static inline void WriteOrderPos(const int64_t &nOrderPos,
@@ -396,7 +396,7 @@ public:
             strFromAccount = mapValue["fromaccount"];
             ReadOrderPos(nOrderPos, mapValue);
             nTimeSmart = mapValue.count("timesmart")
-                             ? (unsigned int)atoi64(mapValue["timesmart"])
+              ? (unsigned int)std::atoi(mapValue["timesmart"].c_str())
                              : 0;
         }
 

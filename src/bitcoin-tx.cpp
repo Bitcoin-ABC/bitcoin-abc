@@ -209,7 +209,7 @@ static Amount ExtractAndValidateValue(const std::string &strValue) {
 
 static void MutateTxVersion(CMutableTransaction &tx,
                             const std::string &cmdVal) {
-    int64_t newVersion = atoi64(cmdVal);
+    int64_t newVersion = std::atoi(cmdVal.c_str());
     if (newVersion < 1 || newVersion > CTransaction::MAX_STANDARD_VERSION) {
         throw std::runtime_error("Invalid TX version requested");
     }
@@ -219,7 +219,7 @@ static void MutateTxVersion(CMutableTransaction &tx,
 
 static void MutateTxLocktime(CMutableTransaction &tx,
                              const std::string &cmdVal) {
-    int64_t newLocktime = atoi64(cmdVal);
+    int64_t newLocktime = std::atoi(cmdVal.c_str());
     if (newLocktime < 0LL || newLocktime > 0xffffffffLL) {
         throw std::runtime_error("Invalid TX locktime requested");
     }
@@ -250,7 +250,7 @@ static void MutateTxAddInput(CMutableTransaction &tx,
 
     // extract and validate vout
     std::string strVout = vStrInputParts[1];
-    int vout = atoi(strVout);
+    int vout = std::atoi(strVout.c_str());
     if ((vout < 0) || (vout > (int)maxVout)) {
         throw std::runtime_error("invalid TX input vout");
     }
@@ -461,7 +461,7 @@ static void MutateTxAddOutScript(CMutableTransaction &tx,
 static void MutateTxDelInput(CMutableTransaction &tx,
                              const std::string &strInIdx) {
     // parse requested deletion index
-    int inIdx = atoi(strInIdx);
+    int inIdx = std::atoi(strInIdx.c_str());
     if (inIdx < 0 || inIdx >= (int)tx.vin.size()) {
         std::string strErr = "Invalid TX input index '" + strInIdx + "'";
         throw std::runtime_error(strErr.c_str());
@@ -474,7 +474,7 @@ static void MutateTxDelInput(CMutableTransaction &tx,
 static void MutateTxDelOutput(CMutableTransaction &tx,
                               const std::string &strOutIdx) {
     // parse requested deletion index
-    int outIdx = atoi(strOutIdx);
+    int outIdx = std::atoi(strOutIdx.c_str());
     if (outIdx < 0 || outIdx >= (int)tx.vout.size()) {
         std::string strErr = "Invalid TX output index '" + strOutIdx + "'";
         throw std::runtime_error(strErr.c_str());
@@ -597,7 +597,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
 
         TxId txid(ParseHashUV(prevOut["txid"], "txid"));
 
-        int nOut = atoi(prevOut["vout"].getValStr());
+        int nOut = std::atoi(prevOut["vout"].getValStr().c_str());
         if (nOut < 0) {
             throw std::runtime_error("vout must be positive");
         }

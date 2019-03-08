@@ -11,6 +11,7 @@
 #include "streams.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "utilsplitstring.h"
 #include "version.h"
 
 #include <univalue.h>
@@ -18,7 +19,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 CScript ParseScript(const std::string &s) {
     CScript result;
@@ -45,8 +45,7 @@ CScript ParseScript(const std::string &s) {
     }
 
     std::vector<std::string> words;
-    boost::algorithm::split(words, s, boost::algorithm::is_any_of(" \t\n"),
-                            boost::algorithm::token_compress_on);
+    Split(words, s, " \t\n", true);
 
     size_t push_size = 0, next_push_size = 0;
     size_t script_size = 0;
@@ -73,7 +72,7 @@ CScript ParseScript(const std::string &s) {
              all(std::string(w.begin() + 1, w.end()),
                  boost::algorithm::is_digit()))) {
             // Number
-            int64_t n = atoi64(w);
+            int64_t n = std::atoi(w.c_str());
             result << n;
             goto next;
         }
