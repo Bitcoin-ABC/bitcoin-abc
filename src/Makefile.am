@@ -392,6 +392,7 @@ libbitcoin_consensus_a_SOURCES = \
   uint256.h \
   utilstrencodings.cpp \
   utilstrencodings.h \
+  utilsplitstring.h \
   version.h
 
 # common: shared between devaultd, and devault-qt and non-server tools
