@@ -15,7 +15,6 @@
 Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
                      Amount targetFee) {
     Amount nFeeNeeded = targetFee;
-    // User didn't set: use -txconfirmtarget to estimate...
     if (nFeeNeeded == Amount::zero()) {
         nFeeNeeded = pool.estimateFee().GetFeeCeiling(nTxBytes);
         // ... unless we don't have enough mempool data for estimatefee, then

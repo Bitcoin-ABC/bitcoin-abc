@@ -7,3 +7,4 @@ This release includes the following features and fixes:
    These are specialized subsets of the `signrawtransaction` RPC.
  - Deprecate `nblocks` parameter in `estimatefee`.  See `bitcoin-cli help estimatefee` for more info. Use `-deprecatedrpc=estimatefee` to temporarily re-enable the old behavior while you migrate.
  - Minor bug fixes and wallet UI cleanup
+ - Removed `txconfirmtarget` option from bitcoind
