@@ -2132,7 +2132,7 @@ bool AppInitMain(Config &config,
                 ////prewardscatcher.reset(new CCoinsViewErrorCatcher(prewardsdb.get()));
                 /////prewardsTip.reset(new CCoinsViewCache(prewardscatcher.get()));
                 
-                prewards.reset(new CColdRewards(prewardsdb.get()));
+                prewards.reset(new CColdRewards(chainparams.GetConsensus(), prewardsdb.get()));
               
                 pcoinscatcher.reset(
                     new CCoinsViewErrorCatcher(pcoinsdbview.get()));

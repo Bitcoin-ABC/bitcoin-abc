@@ -10,6 +10,7 @@
 #include "logging.h"
 #include "script/standard.h"
 #include "validation.h"
+#include "amount.h"
 
 #include <boost/thread.hpp>
 
@@ -17,9 +18,18 @@ using namespace std;
 
 CCriticalSection cs_rewardsdb;
 
-CColdRewards::CColdRewards(CRewardsViewDB *prdb) : pdb(prdb) {
+CColdRewards::CColdRewards(const Consensus::Params& consensusParams, CRewardsViewDB *prdb) : pdb(prdb) {
   LOCK(cs_rewardsdb);
+  Setup(consensusParams);
   //viable_utxos = 0;
+}
+
+void CColdRewards::Setup(const Consensus::Params& consensusParams) {
+  nRewardRatePerBlockReciprocal = consensusParams.nRewardRatePerBlockReciprocal;
+  nMinBlocks = consensusParams.nMinRewardBlocks;
+  nMinBalance = consensusParams.nMinRewardBalance;
+  nMinReward = consensusParams.nMinReward;
+  nMaxReward = consensusParams.nMaxReward;
 }
 
 bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew) {
@@ -32,15 +42,16 @@ bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew)
   // Loop through block
 
   for (auto &tx : block.vtx) {
-    // check the input here for new coins???
 
+    // Will will ignore coinbase rewards. i.e. miner rewards and cold rewards as basis for rewards
+    
     if (!tx->IsCoinBase()) {
       // Loop through inputs
       auto TxId = tx->GetId();
 
       for (const CTxIn &in : tx->vin) {
         // Since input is a previous output, delete it from the database if it's in there
-        // could be if > COLDREWARD_MIN_BALANCE, but don't need to check
+        // could be if > nMinBalance, but don't need to check
         COutPoint outpoint(in.prevout);
         if (pdb->HaveCoin(outpoint)) {
           // will erase
@@ -65,7 +76,7 @@ bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew)
         Amount balance = out.nValue;
         // LogPrintf("Found spend to %d COINS at height %d\n", balance/COIN, nHeight);
         COutPoint outpoint(TxId, n); // Unique
-        if (balance >= COLDREWARD_MIN_BALANCE) {
+        if (balance >= nMinBalance) {
           LogPrint(BCLog::COLD,"Writing to Rewards db, value of %d at Height %d\n", balance / COIN, nHeight);
           if (!pdb->PutCoin(outpoint, Coin(out, nHeight, false))) {
             LogPrint(BCLog::COLD,"Problem Writing to Rewards db, value of %d at Height %d\n", balance / COIN, nHeight);
@@ -118,7 +129,7 @@ bool CColdRewards::FindReward(int Height, CTxOut &rewardPayment) {
     // get Height (last reward)
     if (nHeight < minHeight) {
       HeightDiff = Height - nHeight;
-      if (HeightDiff > COLDREWARD_MIN_BLOCKS) {
+      if (HeightDiff > nMinBlocks) {
         balance = the_coin.GetTxOut().nValue;
         Amount reward = CalculateReward(HeightDiff, balance);
         LogPrint(BCLog::COLD, " Got coin from Height %d, with balance = %d COINS, Height Diff = %d, reward = %d\n", nHeight, the_coin.GetTxOut().nValue / COIN, HeightDiff,reward/COIN);
@@ -127,10 +138,10 @@ bool CColdRewards::FindReward(int Height, CTxOut &rewardPayment) {
           // This is the oldest unrewarded UTXO with a + reward value
           minHeight = nHeight;
           minKey = key; // Needed?
-          if (reward < COLDREWARD_MAX_REWARD)
+          if (reward < nMaxReward)
             minReward = reward;
           else
-            minReward = COLDREWARD_MAX_REWARD;
+            minReward = nMaxReward;
           coin = the_coin;
           found = true;
           LogPrint(BCLog::COLD, "*** Reward candidate for Height %d, bal = %d, HeightDiff = %d, Reward = %d\n", nHeight, the_coin.GetTxOut().nValue / COIN, HeightDiff, reward/COIN);
@@ -176,14 +187,14 @@ void CColdRewards::ReplaceCoin(const COutPoint &key, int nNewHeight) {
 // Calcuate Reward based on blocks since start/last reward and the balance
 
 Amount CColdRewards::CalculateReward(int HeightDiff, Amount balance) {
-  Amount reward_per_block = balance / OverRewardRatePerBlock;
+  Amount reward_per_block = balance / nRewardRatePerBlockReciprocal;
   Amount reward = HeightDiff * reward_per_block;
 
   // Quantize reward to 1/100th of a coin
   reward = (100*reward/COIN)*(COIN/100);
   
   //double debug_reward_div = OverRewardRatePerBlock * HeightDiff;
-  if (reward < COLDREWARD_MIN_REWARD) reward = Amount();
+  if (reward < nMinReward) reward = Amount();
   return reward;
 }
 

@@ -10,7 +10,6 @@
 #pragma once
 #include "config/bitcoin-config.h"
 #include "chain.h"
-#include "coldrewards/reward_constants.h"
 // for now
 #include "txdb.h"
 #include "validation.h"

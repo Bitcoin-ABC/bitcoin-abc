@@ -6,8 +6,8 @@
 #pragma once
 #include "config/bitcoin-config.h"
 #include "chain.h"
-#include "coldrewards/reward_constants.h"
 #include "coldrewards/rewardsview.h"
+#include "amount.h"
 // for now
 #include "validation.h"
 
@@ -16,14 +16,21 @@ extern CCriticalSection cs_rewardsdb;
 class CColdRewards {
 
   public:
-  CColdRewards(CRewardsViewDB *prewardsdb);
+  CColdRewards(const Consensus::Params& consensusParams, CRewardsViewDB *prdb);
 
   private:
   CRewardsViewDB *pdb;
   COutPoint rewardKey;
+  int64_t nRewardRatePerBlockReciprocal;
+  int64_t nMinBlocks;
+  Amount nMinBalance;
+  Amount nMinReward;
+  Amount nMaxReward;
+
 
   public:
   bool UpdateWithBlock(const Config &config, CBlockIndex *pindexNew);
+  void Setup(const Consensus::Params& consensusParams);
 
   CTxOut GetPayment(const Coin &coin, Amount reward);
   Amount CalculateReward(int HeightDiff, Amount balance);

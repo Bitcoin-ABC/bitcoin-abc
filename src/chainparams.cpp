@@ -155,6 +155,14 @@ public:
         cashaddrPrefix = "devault";
         cashaddrSecretPrefix = "dvtpriv";
 
+        // Rewards
+        consensus.nPerCentPerYear = 12;
+        consensus.nRewardRatePerBlockReciprocal = consensus.nBlocksPerYear/consensus.nPerCentPerYear;
+        consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
+        consensus.nMinRewardBalance = 100 * COIN;
+        consensus.nMinReward = COIN;
+        consensus.nMaxReward = 10000 * COIN;
+
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
         fDefaultConsistencyChecks = false;
@@ -253,6 +261,14 @@ public:
         cashaddrSecretPrefix = "testpriv"; // Shouldn't matter that "dv" isn't indicated
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
+        // Rewards
+        consensus.nPerCentPerYear = 12;
+        consensus.nRewardRatePerBlockReciprocal = consensus.nBlocksPerYear/consensus.nPerCentPerYear;
+        consensus.nMinRewardBlocks = 100; // several times a day
+        consensus.nMinRewardBalance = 100 * COIN;
+        consensus.nMinReward = COIN;
+        consensus.nMaxReward = 10000 * COIN;
+
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
         fMineBlocksOnDemand = false;
@@ -344,6 +360,15 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "dvreg";
         cashaddrSecretPrefix = "regpriv";
+
+        // Rewards
+        consensus.nPerCentPerYear = 12;
+        consensus.nRewardRatePerBlockReciprocal = consensus.nBlocksPerYear/consensus.nPerCentPerYear;
+        consensus.nMinRewardBlocks = 100; // several times a day
+        consensus.nMinRewardBalance = 100 * COIN;
+        consensus.nMinReward = COIN;
+        consensus.nMaxReward = 10000 * COIN;
+
     }
 };
 

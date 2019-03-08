@@ -6,6 +6,7 @@
 #ifndef BITCOIN_CONSENSUS_PARAMS_H
 #define BITCOIN_CONSENSUS_PARAMS_H
 
+#include "amount.h"
 #include "uint256.h"
 
 #include <map>
@@ -63,6 +64,15 @@ struct Params {
     int64_t nBlocksPerYear;
     int64_t nMaxMiningRewardInCoins;
     int64_t minerCapSystemChangeHeight;
+
+  // Rewards
+    int64_t nPerCentPerYear;
+    int64_t nMinRewardBlocks;
+    int64_t nRewardRatePerBlockReciprocal;
+    Amount nMinRewardBalance;
+    Amount nMinReward;
+    Amount nMaxReward;
+  
     std::set<std::string> minerWhiteListAdminAddress;
     int64_t DifficultyAdjustmentInterval() const {
         return nPowTargetTimespan / nPowTargetSpacing;
