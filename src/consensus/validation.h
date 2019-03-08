@@ -55,9 +55,11 @@ enum class ValidationInvalidReason {
     // Only loose txn:
     //! didn't meet our local policy rules
     TX_NOT_STANDARD,
-    //! a transaction was missing some of its inputs (or its inputs were spent
-    //! at < coinbase maturity height)
+    //! a transaction was missing some of its inputs
     TX_MISSING_INPUTS,
+    //! transaction spends a coinbase too early, or violates locktime/sequence
+    //! locks
+    TX_PREMATURE_SPEND,
     /**
      * Tx already in mempool or conflicts with a tx in the chain
      * TODO: Currently this is only used if the transaction already exists in
@@ -75,6 +77,7 @@ inline bool IsTransactionReason(ValidationInvalidReason r) {
            r == ValidationInvalidReason::CONSENSUS ||
            r == ValidationInvalidReason::RECENT_CONSENSUS_CHANGE ||
            r == ValidationInvalidReason::TX_NOT_STANDARD ||
+           r == ValidationInvalidReason::TX_PREMATURE_SPEND ||
            r == ValidationInvalidReason::TX_MISSING_INPUTS ||
            r == ValidationInvalidReason::TX_CONFLICT ||
            r == ValidationInvalidReason::TX_MEMPOOL_POLICY;

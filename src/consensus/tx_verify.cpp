@@ -175,7 +175,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         if (coin.IsCoinBase() &&
             nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
             return state.Invalid(
-                ValidationInvalidReason::TX_MISSING_INPUTS, false,
+                ValidationInvalidReason::TX_PREMATURE_SPEND, false,
                 REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
                 strprintf("tried to spend coinbase at depth %d",
                           nSpendHeight - coin.GetHeight()));

@@ -375,7 +375,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             consensusParams, tx, ctxState, STANDARD_LOCKTIME_VERIFY_FLAGS)) {
         // We copy the state from a dummy to ensure we don't increase the
         // ban score of peer for transaction that could be valid in the future.
-        return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false,
+        return state.Invalid(ValidationInvalidReason::TX_PREMATURE_SPEND, false,
                              REJECT_NONSTANDARD, ctxState.GetRejectReason(),
                              ctxState.GetDebugMessage());
     }
@@ -456,7 +456,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         // own.
         if (!CheckSequenceLocks(pool, tx, STANDARD_LOCKTIME_VERIFY_FLAGS,
                                 &lp)) {
-            return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD,
+            return state.Invalid(ValidationInvalidReason::TX_PREMATURE_SPEND,
                                  false, REJECT_NONSTANDARD, "non-BIP68-final");
         }
 
@@ -1700,17 +1700,15 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         Amount txfee = Amount::zero();
         if (!isCoinBase && !Consensus::CheckTxInputs(tx, state, view,
                                                      pindex->nHeight, txfee)) {
-            if (state.GetReason() ==
-                ValidationInvalidReason::TX_MISSING_INPUTS) {
-                // CheckTxInputs may return MISSING_INPUTS but we can't return
-                // that, as it's not defined for a block, so we reset the reason
-                // flag to CONSENSUS here.
+            if (!IsBlockReason(state.GetReason())) {
+                // CheckTxInputs may return MISSING_INPUTS or PREMATURE_SPEND
+                // but we can't return that, as it's not defined for a block, so
+                // we reset the reason flag to CONSENSUS here.
                 state.Invalid(ValidationInvalidReason::CONSENSUS, false,
                               state.GetRejectCode(), state.GetRejectReason(),
                               state.GetDebugMessage());
             }
 
-            assert(IsBlockReason(state.GetReason()));
             return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
                          tx.GetId().ToString(), FormatStateMessage(state));
         }
