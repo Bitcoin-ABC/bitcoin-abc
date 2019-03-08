@@ -3280,10 +3280,6 @@
         <translation>交易费(in %s/kB)比这更小的在关联、挖掘和生成交易时将被视为零费交易 (默认: %s)</translation>
     </message>
     <message>
-        <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
-        <translation>如果未设置交易费用，自动添加足够的交易费以确保交易在平均n个数据块内被确认 (默认: %u) </translation>
-    </message>
-    <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)</source>
         <translation>-maxtxfee=&lt;amount&gt;: '%s' 的金额无效（交易费至少为 %s，以免交易滞留过久）</translation>
     </message>

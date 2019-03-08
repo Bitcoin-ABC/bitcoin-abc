@@ -3459,10 +3459,6 @@
         <translation>當處理轉發的交易、挖礦、或製造交易時，如果每千位元組(kB)的手續費比這個值(單位是 %s)低，就視為沒付手續費(預設值: %s)</translation>
     </message>
     <message>
-        <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
-        <translation>當沒有設定 paytxfee 時，自動包含可以讓交易能在平均 n 個區塊內開始確認的手續費(預設值: %u)</translation>
-    </message>
-    <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)</source>
         <translation>-maxtxfee=&lt;amount&gt;: '%s' 的金額無效 (必須大於最低轉發手續費 %s 以避免交易無法確認)</translation>
     </message>

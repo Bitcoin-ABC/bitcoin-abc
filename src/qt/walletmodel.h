@@ -213,7 +213,6 @@ public:
 
     bool hdEnabled() const;
 
-    int getDefaultConfirmTarget() const;
     const CChainParams &getChainParams() const;
 
     QString getWalletName() const;

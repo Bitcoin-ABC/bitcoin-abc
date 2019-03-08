@@ -139,11 +139,6 @@ static const char UNUSED *bitcoin_strings[] = {
                                      "If <category> is not supplied or if "
                                      "<category> = 1, output all debugging "
                                      "information."),
-    QT_TRANSLATE_NOOP(
-        "bitcoin-abc",
-        ""
-        "If paytxfee is not set, include enough fee so transactions begin "
-        "confirmation on average within n blocks (default: %u)"),
     QT_TRANSLATE_NOOP("bitcoin-abc",
                       ""
                       "If this block is in the chain assume that it and its "

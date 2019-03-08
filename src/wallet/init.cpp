@@ -82,12 +82,6 @@ std::string WalletInit::GetHelpString(bool showDebug) {
                        strprintf(_("Spend unconfirmed change when sending "
                                    "transactions (default: %d)"),
                                  DEFAULT_SPEND_ZEROCONF_CHANGE));
-    strUsage +=
-        HelpMessageOpt("-txconfirmtarget=<n>",
-                       strprintf(_("If paytxfee is not set, include enough fee "
-                                   "so transactions begin confirmation on "
-                                   "average within n blocks (default: %u)"),
-                                 DEFAULT_TX_CONFIRM_TARGET));
     strUsage += HelpMessageOpt(
         "-usehd",
         _("Use hierarchical deterministic key generation (HD) after BIP32. "
@@ -285,8 +279,6 @@ bool WalletInit::ParameterInteraction() {
         }
     }
 
-    nTxConfirmTarget =
-        gArgs.GetArg("-txconfirmtarget", DEFAULT_TX_CONFIRM_TARGET);
     bSpendZeroConfChange =
         gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
 
