@@ -326,10 +326,10 @@ struct CNodeState {
 
     /**
      * State used to enforce CHAIN_SYNC_TIMEOUT
-     * Only in effect for outbound, non-manual connections,
-     * with m_protect == false
-     * Algorithm: if a peer's best known block has less work than our tip, set a
-     * timeout CHAIN_SYNC_TIMEOUT seconds in the future:
+     * Only in effect for outbound, non-manual, full-relay connections, with
+     * m_protect == false
+     * Algorithm: if a peer's best known block has less work than our tip, set
+     * a timeout CHAIN_SYNC_TIMEOUT seconds in the future:
      *   - If at timeout their best known block now has more work than our tip
      * when the timeout was set, then either reset the timeout or clear it
      * (after comparing against our current tip's work)
@@ -494,12 +494,12 @@ static void PushNodeVersion(const Config &config, CNode *pnode,
                             : CAddress(CService(), addr.nServices));
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
-    connman->PushMessage(pnode,
-                         CNetMsgMaker(INIT_PROTO_VERSION)
-                             .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
-                                   uint64_t(nLocalNodeServices), nTime, addrYou,
-                                   addrMe, nonce, userAgent(config),
-                                   nNodeStartingHeight, ::g_relay_txes));
+    connman->PushMessage(
+        pnode, CNetMsgMaker(INIT_PROTO_VERSION)
+                   .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
+                         uint64_t(nLocalNodeServices), nTime, addrYou, addrMe,
+                         nonce, userAgent(config), nNodeStartingHeight,
+                         ::g_relay_txes && pnode->m_tx_relay != nullptr));
 
     if (fLogIPs) {
         LogPrint(BCLog::NET,
@@ -2037,9 +2037,12 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
         }
 
         if (!pfrom->fDisconnect && IsOutboundDisconnectionCandidate(pfrom) &&
-            nodestate->pindexBestKnownBlock != nullptr) {
-            // If this is an outbound peer, check to see if we should protect it
-            // from the bad/lagging chain logic.
+            nodestate->pindexBestKnownBlock != nullptr &&
+            pfrom->m_tx_relay != nullptr) {
+            // If this is an outbound full-relay peer, check to see if we should
+            // protect it from the bad/lagging chain logic. Note that
+            // block-relay-only peers are already implicitly protected, so we
+            // only consider setting m_protect for the full-relay peers.
             if (g_outbound_peers_with_protect_from_disconnect <
                     MAX_OUTBOUND_PEERS_TO_PROTECT_FROM_DISCONNECT &&
                 nodestate->pindexBestKnownBlock->nChainWork >=
@@ -2418,10 +2421,11 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             State(pfrom->GetId())->fCurrentlyConnected = true;
             LogPrintf(
                 "New outbound peer connected: version: %d, blocks=%d, "
-                "peer=%d%s\n",
+                "peer=%d%s (%s)\n",
                 pfrom->nVersion.load(), pfrom->nStartingHeight, pfrom->GetId(),
                 (fLogIPs ? strprintf(", peeraddr=%s", pfrom->addr.ToString())
-                         : ""));
+                         : ""),
+                pfrom->m_tx_relay == nullptr ? "block-relay" : "full-relay");
         }
 
         if (pfrom->nVersion >= SENDHEADERS_VERSION) {
@@ -2552,7 +2556,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             return error("message inv size() = %u", vInv.size());
         }
 
-        bool fBlocksOnly = !g_relay_txes;
+        // We won't accept tx inv's if we're in blocks-only mode, or this is a
+        // block-relay-only peer
+        bool fBlocksOnly = !g_relay_txes || (pfrom->m_tx_relay == nullptr);
 
         // Allow whitelisted peers to send data other than blocks in blocks only
         // mode if whitelistrelay is true
@@ -4123,6 +4129,11 @@ void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
         if (state->m_chain_sync.m_protect) {
             return;
         }
+        // Don't evict our block-relay-only peers.
+        if (pnode->m_tx_relay == nullptr) {
+            return;
+        }
+
         if (state->m_last_block_announcement < oldest_block_announcement ||
             (state->m_last_block_announcement == oldest_block_announcement &&
              pnode->GetId() > worst_peer)) {
