@@ -11,7 +11,6 @@
 
 #include <atomic>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 
 //!< For unit testing
@@ -37,37 +36,40 @@ int64_t GetMockTime() {
 }
 
 int64_t GetTimeMillis() {
-    int64_t now = (boost::posix_time::microsec_clock::universal_time() -
-                   boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
-                      .total_milliseconds();
-    assert(now > 0);
-    return now;
+  std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+  return millis;
 }
 
 int64_t GetTimeMicros() {
-    int64_t now = (boost::posix_time::microsec_clock::universal_time() -
-                   boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
-                      .total_microseconds();
-    assert(now > 0);
-    return now;
+  std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+  return micros;
 }
 
 int64_t GetSystemTimeInSeconds() {
     return GetTimeMicros() / 1000000;
 }
 
+// Use this when we go to std::thread
+// void MilliSleep(int64_t n) { std::this_thread::sleep_for(std::chrono::milliseconds(n)); }
+
 void MilliSleep(int64_t n) {
     boost::this_thread::sleep_for(boost::chrono::milliseconds(n));
 }
 
 std::string DateTimeStrFormat(const char *pszFormat, int64_t nTime) {
-    static std::locale classic(std::locale::classic());
-    // std::locale takes ownership of the pointer
-    std::locale loc(classic, new boost::posix_time::time_facet(pszFormat));
-    std::stringstream ss;
-    ss.imbue(loc);
-    ss << boost::posix_time::from_time_t(nTime);
-    return ss.str();
+  std::chrono::system_clock::time_point tp = std::chrono::system_clock::from_time_t(nTime);
+  std::time_t ttp = std::chrono::system_clock::to_time_t(tp);
+  static std::locale classic(std::locale::classic());
+  // std::locale takes ownership of the pointer
+  // std::locale loc(classic, new boost::posix_time::time_facet(pszFormat));
+  std::stringstream ss;
+  ss.imbue(classic);  // was loc.
+  ss << std::put_time(std::localtime(&ttp), pszFormat);
+  return ss.str();
 }
 
 std::string FormatISO8601DateTime(int64_t nTime) {
