@@ -7,7 +7,6 @@
 #include "random.h"
 #include "reverselock.h"
 
-#include <boost/bind.hpp>
 #include <cassert>
 #include <utility>
 
@@ -106,14 +105,14 @@ void CScheduler::scheduleFromNow(CScheduler::Function f,
 static void Repeat(CScheduler *s, CScheduler::Predicate p,
                    int64_t deltaMilliSeconds) {
     if (p()) {
-        s->scheduleFromNow(boost::bind(&Repeat, s, p, deltaMilliSeconds),
+        s->scheduleFromNow(std::bind(&Repeat, s, p, deltaMilliSeconds),
                            deltaMilliSeconds);
     }
 }
 
 void CScheduler::scheduleEvery(CScheduler::Predicate p,
                                int64_t deltaMilliSeconds) {
-    scheduleFromNow(boost::bind(&Repeat, this, p, deltaMilliSeconds),
+    scheduleFromNow(std::bind(&Repeat, this, p, deltaMilliSeconds),
                     deltaMilliSeconds);
 }
 

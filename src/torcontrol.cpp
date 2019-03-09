@@ -14,8 +14,8 @@
 #include <deque>
 #include <set>
 #include <vector>
+#include <functional>
 
-#include <boost/bind.hpp>
 #include <boost/signals2/signal.hpp>
 
 #include <event2/buffer.h>
@@ -448,8 +448,8 @@ TorController::TorController(struct event_base *_base,
     }
     // Start connection attempts immediately
     if (!conn.Connect(_target,
-                      boost::bind(&TorController::connected_cb, this, _1),
-                      boost::bind(&TorController::disconnected_cb, this, _1))) {
+                      std::bind(&TorController::connected_cb, this, std::placeholders::_1),
+                      std::bind(&TorController::disconnected_cb, this, std::placeholders::_1))) {
         LogPrintf("tor: Initiating connection to Tor control port %s failed\n",
                   _target);
     }
@@ -533,7 +533,7 @@ void TorController::auth_cb(TorControlConnection &_conn,
         // the shutdown sequence some day.
         _conn.Command(strprintf("ADD_ONION %s Port=%i,127.0.0.1:%i",
                                 private_key, GetListenPort(), GetListenPort()),
-                      boost::bind(&TorController::add_onion_cb, this, _1, _2));
+                      std::bind(&TorController::add_onion_cb, this, std::placeholders::_1, std::placeholders::_2));
     } else {
         LogPrintf("tor: Authentication failed\n");
     }
@@ -601,7 +601,7 @@ void TorController::authchallenge_cb(TorControlConnection &_conn,
             std::vector<uint8_t> computedClientHash = ComputeResponse(
                 TOR_SAFE_CLIENTKEY, cookie, clientNonce, serverNonce);
             _conn.Command("AUTHENTICATE " + HexStr(computedClientHash),
-                          boost::bind(&TorController::auth_cb, this, _1, _2));
+                          std::bind(&TorController::auth_cb, this, std::placeholders::_1, std::placeholders::_2));
         } else {
             LogPrintf("tor: Invalid reply to AUTHCHALLENGE\n");
         }
@@ -661,7 +661,7 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
                 torpassword.replace(torpassword.find("\""), 2, "\\\"");
                 _conn.Command(
                     "AUTHENTICATE \"" + torpassword + "\"",
-                    boost::bind(&TorController::auth_cb, this, _1, _2));
+                    std::bind(&TorController::auth_cb, this, std::placeholders::_1, std::placeholders::_2));
             } else {
                 LogPrintf("tor: Password provided with -torpassword, but "
                           "HASHEDPASSWORD authentication is not available\n");
@@ -669,7 +669,7 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
         } else if (methods.count("NULL")) {
             LogPrint(BCLog::TOR, "tor: Using NULL authentication\n");
             _conn.Command("AUTHENTICATE",
-                          boost::bind(&TorController::auth_cb, this, _1, _2));
+                          std::bind(&TorController::auth_cb, this, std::placeholders::_1, std::placeholders::_2));
         } else if (methods.count("SAFECOOKIE")) {
             // Cookie: hexdump -e '32/1 "%02x""\n"'  ~/.tor/control_auth_cookie
             LogPrint(BCLog::TOR,
@@ -681,14 +681,14 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
             if (status_cookie.first &&
                 status_cookie.second.size() == TOR_COOKIE_SIZE) {
                 // _conn.Command("AUTHENTICATE " + HexStr(status_cookie.second),
-                // boost::bind(&TorController::auth_cb, this, _1, _2));
+                // boost::bind(&TorController::auth_cb, this, std::placeholders::_1, std::placeholders::_2));
                 cookie = std::vector<uint8_t>(status_cookie.second.begin(),
                                               status_cookie.second.end());
                 clientNonce = std::vector<uint8_t>(TOR_NONCE_SIZE, 0);
                 GetRandBytes(&clientNonce[0], TOR_NONCE_SIZE);
                 _conn.Command("AUTHCHALLENGE SAFECOOKIE " + HexStr(clientNonce),
-                              boost::bind(&TorController::authchallenge_cb,
-                                          this, _1, _2));
+                              std::bind(&TorController::authchallenge_cb,
+                                          this, std::placeholders::_1, std::placeholders::_2));
             } else {
                 if (status_cookie.first) {
                     LogPrintf("tor: Authentication cookie %s is not exactly %i "
@@ -718,7 +718,7 @@ void TorController::connected_cb(TorControlConnection &_conn) {
     // expected
     if (!_conn.Command(
             "PROTOCOLINFO 1",
-            boost::bind(&TorController::protocolinfo_cb, this, _1, _2))) {
+            std::bind(&TorController::protocolinfo_cb, this, std::placeholders::_1, std::placeholders::_2))) {
         LogPrintf("tor: Error sending initial protocolinfo command\n");
     }
 }
@@ -750,8 +750,8 @@ void TorController::Reconnect() {
      * be restarting.
      */
     if (!conn.Connect(target,
-                      boost::bind(&TorController::connected_cb, this, _1),
-                      boost::bind(&TorController::disconnected_cb, this, _1))) {
+                      std::bind(&TorController::connected_cb, this, std::placeholders::_1),
+                      std::bind(&TorController::disconnected_cb, this, std::placeholders::_1))) {
         LogPrintf(
             "tor: Re-initiating connection to Tor control port %s failed\n",
             target);
