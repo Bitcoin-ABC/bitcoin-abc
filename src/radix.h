@@ -7,9 +7,6 @@
 
 #include <rcu.h>
 #include <util.h>
-
-#include <boost/noncopyable.hpp>
-
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -38,7 +35,7 @@
  * itself cannot be destroyed and will leak memory instead of cleaning up after
  * itself. This obviously needs to be fixed in subsequent revisions.
  */
-template <typename T> struct RadixTree : public boost::noncopyable {
+template <typename T> struct RadixTree {
 private:
     static const int BITS = 4;
     static const int MASK = (1 << BITS) - 1;
@@ -55,7 +52,7 @@ private:
     std::atomic<RadixElement> root;
 
 public:
-    RadixTree() : root(RadixElement()) {}
+    RadixTree() : root(RadixElement()) {} = delete;
     ~RadixTree() { root.load().release(); }
 
     /**
