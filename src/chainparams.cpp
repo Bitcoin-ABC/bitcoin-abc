@@ -157,7 +157,7 @@ public:
 
         // Rewards
         consensus.nPerCentPerYear = 12;
-        consensus.nRewardRatePerBlockReciprocal = consensus.nBlocksPerYear/consensus.nPerCentPerYear;
+        consensus.nRewardRatePerBlockReciprocal = (100*consensus.nBlocksPerYear)/consensus.nPerCentPerYear;
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
         consensus.nMinRewardBalance = 100 * COIN;
         consensus.nMinReward = COIN;
@@ -263,8 +263,8 @@ public:
 
         // Rewards
         consensus.nPerCentPerYear = 12;
-        consensus.nRewardRatePerBlockReciprocal = consensus.nBlocksPerYear/consensus.nPerCentPerYear;
-        consensus.nMinRewardBlocks = 100; // several times a day
+        consensus.nRewardRatePerBlockReciprocal = (100*consensus.nBlocksPerYear)/consensus.nPerCentPerYear;
+        consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
         consensus.nMinRewardBalance = 100 * COIN;
         consensus.nMinReward = COIN;
         consensus.nMaxReward = 10000 * COIN;
@@ -363,8 +363,8 @@ public:
 
         // Rewards
         consensus.nPerCentPerYear = 12;
-        consensus.nRewardRatePerBlockReciprocal = consensus.nBlocksPerYear/consensus.nPerCentPerYear;
-        consensus.nMinRewardBlocks = 100; // several times a day
+        consensus.nRewardRatePerBlockReciprocal = (100*consensus.nBlocksPerYear)/consensus.nPerCentPerYear;
+        consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
         consensus.nMinRewardBalance = 100 * COIN;
         consensus.nMinReward = COIN;
         consensus.nMaxReward = 10000 * COIN;
