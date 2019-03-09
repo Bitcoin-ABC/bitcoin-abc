@@ -180,6 +180,10 @@ public:
 //! the maximum number of tried addr collisions to store
 #define ADDRMAN_SET_TRIED_COLLISION_SIZE 10
 
+//! the maximum time we'll spend trying to resolve a tried table collision, in
+//! seconds (40 minutes)
+static const int64_t ADDRMAN_TEST_WINDOW = 40 * 60;
+
 /**
  * Stochastical (IP) address manager
  */
