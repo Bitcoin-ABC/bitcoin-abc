@@ -8,16 +8,13 @@
 #include "netbase.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "utilsplitstring.h"
 
 #include <cstdlib>
 #include <deque>
 #include <set>
 #include <vector>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/signals2/signal.hpp>
 
@@ -631,7 +628,7 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
                     ParseTorReplyMapping(l.second);
                 std::map<std::string, std::string>::iterator i;
                 if ((i = m.find("METHODS")) != m.end()) {
-                    boost::split(methods, i->second, boost::is_any_of(","));
+                    Split(methods, i->second, ",");
                 }
                 if ((i = m.find("COOKIEFILE")) != m.end()) {
                     cookiefile = i->second;
@@ -661,7 +658,7 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
             if (methods.count("HASHEDPASSWORD")) {
                 LogPrint(BCLog::TOR,
                          "tor: Using HASHEDPASSWORD authentication\n");
-                boost::replace_all(torpassword, "\"", "\\\"");
+                torpassword.replace(torpassword.find("\""), 2, "\\\"");
                 _conn.Command(
                     "AUTHENTICATE \"" + torpassword + "\"",
                     boost::bind(&TorController::auth_cb, this, _1, _2));
