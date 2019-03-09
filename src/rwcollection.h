@@ -5,7 +5,7 @@
 #ifndef BITCOIN_RWCOLLECTION_H
 #define BITCOIN_RWCOLLECTION_H
 
-#include <boost/noncopyable.hpp>
+#include "noncopyable.h"
 #include <boost/range/iterator.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <utility>
 
-template <typename T, typename L> class RWCollectionView : boost::noncopyable {
+template <typename T, typename L> class RWCollectionView : noncopyable {
 private:
     L lock;
     T *collection;

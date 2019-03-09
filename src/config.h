@@ -8,7 +8,7 @@
 #include "amount.h"
 #include "feerate.h"
 
-#include <boost/noncopyable.hpp>
+#include "noncopyable.h"
 
 #include <cstdint>
 #include <memory>
@@ -16,7 +16,7 @@
 
 class CChainParams;
 
-class Config : public boost::noncopyable {
+class Config : public noncopyable {
 public:
     virtual bool SetMaxBlockSize(uint64_t maxBlockSize) = 0;
     virtual uint64_t GetMaxBlockSize() const = 0;
