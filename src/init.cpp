@@ -61,9 +61,6 @@
 #include <signal.h>
 #endif
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/thread.hpp>
@@ -960,10 +957,10 @@ static void BlockNotifyCallback(bool initialSync,
 
     std::string strCmd = gArgs.GetArg("-blocknotify", "");
     if (!strCmd.empty()) {
-        boost::replace_all(strCmd, "%s", pBlockIndex->GetBlockHash().GetHex());
-        std::thread t(runCommand, strCmd);
-        // thread runs free
-        t.detach();
+      strCmd.replace(strCmd.find("%s"), 2, pBlockIndex->GetBlockHash().GetHex());
+      std::thread t(runCommand, strCmd);
+      // thread runs free
+      t.detach();
     }
 }
 
