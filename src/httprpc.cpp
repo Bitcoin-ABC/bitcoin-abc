@@ -15,8 +15,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "utilstrencodings.h"
-
-#include <boost/algorithm/string.hpp> // boost::trim
+#include "utilsplitstring.h"
 
 #include <cstdio>
 
@@ -94,7 +93,7 @@ static bool multiUserAuthorized(std::string strUserPass) {
     for (const std::string &strRPCAuth : gArgs.GetArgs("-rpcauth")) {
         // Search for multi-user login/pass "rpcauth" from config
         std::vector<std::string> vFields;
-        boost::split(vFields, strRPCAuth, boost::is_any_of(":$"));
+        Split(vFields, strRPCAuth, ":$");
         if (vFields.size() != 3) {
             // Incorrect formatting in config file
             continue;
@@ -126,6 +125,8 @@ static bool multiUserAuthorized(std::string strUserPass) {
     return false;
 }
 
+inline bool is_not_space(int c) { return !std::isspace(c); }
+
 static bool RPCAuthorized(Config &config, const std::string &strAuth,
                           std::string &strAuthUsernameOut) {
     // Belt-and-suspenders measure if InitRPCAuthentication was not called.
@@ -138,7 +139,11 @@ static bool RPCAuthorized(Config &config, const std::string &strAuth,
     }
 
     std::string strUserPass64 = strAuth.substr(6);
-    boost::trim(strUserPass64);
+    // left and right trim for strings
+    auto ltrim = [](std::string& s) { s.erase(s.begin(), std::find_if(s.begin(), s.end(), is_not_space)); };
+    auto rtrim = [](std::string& s) { s.erase(std::find_if(s.rbegin(), s.rend(), is_not_space).base(), s.end()); };
+    ltrim(strUserPass64);
+    rtrim(strUserPass64);
     std::string strUserPass = DecodeBase64(strUserPass64);
 
     if (strUserPass.find(":") != std::string::npos) {
