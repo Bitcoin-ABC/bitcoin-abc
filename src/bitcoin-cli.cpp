@@ -332,10 +332,8 @@ public:
                       batch[ID_NETWORKINFO]["result"]["networks"][0]["proxy"]);
         result.pushKV("difficulty",
                       batch[ID_BLOCKCHAININFO]["result"]["difficulty"]);
-        result.pushKV(
-            "testnet",
-            UniValue(batch[ID_BLOCKCHAININFO]["result"]["chain"].get_str() ==
-                     "test"));
+        result.pushKV("chain",
+                      UniValue(batch[ID_BLOCKCHAININFO]["result"]["chain"]));
         if (!batch[ID_WALLETINFO].isNull()) {
             result.pushKV("walletversion",
                           batch[ID_WALLETINFO]["result"]["walletversion"]);
