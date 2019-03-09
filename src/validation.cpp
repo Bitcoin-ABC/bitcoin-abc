@@ -50,8 +50,6 @@
 #include <sstream>
 #include <thread>
 
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
@@ -973,7 +971,7 @@ static void AlertNotify(const std::string &strMessage) {
     std::string singleQuote("'");
     std::string safeStatus = SanitizeString(strMessage);
     safeStatus = singleQuote + safeStatus + singleQuote;
-    boost::replace_all(strCmd, "%s", safeStatus);
+    strCmd.replace(strCmd.find("%s"), 2, safeStatus);
 
     std::thread t(runCommand, strCmd);
     // thread runs free
@@ -2154,8 +2152,9 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
               pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
               pcoinsTip->GetCacheSize());
     if (!warningMessages.empty()) {
-        LogPrintf(" warning='%s'",
-                  boost::algorithm::join(warningMessages, ", "));
+      std::string mess = "";
+      for (size_t i=0;i<warningMessages.size();i++) mess += warningMessages[i]+",";
+      LogPrintf(" warning='%s'",mess);
     }
     LogPrintf("\n");
 }
