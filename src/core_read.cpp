@@ -16,9 +16,6 @@
 
 #include <univalue.h>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 CScript ParseScript(const std::string &s) {
     CScript result;
@@ -39,7 +36,7 @@ CScript ParseScript(const std::string &s) {
             std::string strName(name);
             mapOpNames[strName] = (opcodetype)op;
             // Convenience: OP_ADD and just ADD are both recognized:
-            boost::algorithm::replace_first(strName, "OP_", "");
+            strName.replace(strName.find("OP_"),3,"");
             mapOpNames[strName] = (opcodetype)op;
         }
     }
@@ -54,7 +51,7 @@ CScript ParseScript(const std::string &s) {
 
     for (const auto &w : words) {
         if (w.empty()) {
-            // Empty string, ignore. (boost::split given '' will return one
+            // Empty string, ignore. (Split given '' will return one
             // word)
             continue;
         }
@@ -67,10 +64,8 @@ CScript ParseScript(const std::string &s) {
         next_push_size = 0;
 
         // Decimal numbers
-        if (all(w, boost::algorithm::is_digit()) ||
-            (boost::algorithm::starts_with(w, "-") &&
-             all(std::string(w.begin() + 1, w.end()),
-                 boost::algorithm::is_digit()))) {
+        if (std::all_of(w.begin(), w.end(), ::IsDigit) ||
+            (w.front() == '-' && w.size() > 1 && std::all_of(w.begin()+1, w.end(), ::IsDigit))) {
             // Number
             int64_t n = std::atoi(w.c_str());
             result << n;
@@ -78,8 +73,7 @@ CScript ParseScript(const std::string &s) {
         }
 
         // Hex Data
-        if (boost::algorithm::starts_with(w, "0x") &&
-            (w.begin() + 2 != w.end())) {
+        if (w.substr(0,2) == "0x" && w.size() > 2 && IsHex(std::string(w.begin()+2, w.end()))) {
             if (!IsHex(std::string(w.begin() + 2, w.end()))) {
                 // Should only arrive here for improperly formatted hex values
                 throw std::runtime_error("Hex numbers expected to be formatted "
@@ -95,8 +89,7 @@ CScript ParseScript(const std::string &s) {
             goto next;
         }
 
-        if (w.size() >= 2 && boost::algorithm::starts_with(w, "'") &&
-            boost::algorithm::ends_with(w, "'")) {
+        if (w.size() >= 2 && w.front() == '\'' && w.back() == '\'') {
             // Single-quoted string, pushed as data. NOTE: this is poor-man's
             // parsing, spaces/tabs/newlines in single-quoted strings won't
             // work.
