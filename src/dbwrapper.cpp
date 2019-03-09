@@ -7,7 +7,7 @@
 #include "random.h"
 #include "util.h"
 
-#include <boost/filesystem.hpp>
+#include "fs.h"
 
 #include <algorithm>
 #include <cstdint>
