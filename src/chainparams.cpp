@@ -199,12 +199,12 @@ public:
         // Reduce this difficult a lot to get started
         consensus.powLimit = uint256S(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 24 * 60 * 60; // 1 day
-        consensus.nPowTargetSpacing = 2 * 60;
+        consensus.nPowTargetTimespan = 6 * 60 * 60; // 6 hours
+        consensus.nPowTargetSpacing = 2 * 1; // 2 seconds
         consensus.nBlocksPerYear = 30 * 24 * 365.25;
         consensus.nMaxMiningRewardInCoins = 2000;
         consensus.fPowAllowMinDifficultyBlocks = true;
-        consensus.fPowNoRetargeting = true; // switch back before public testnet
+        consensus.fPowNoRetargeting = false;
         // 75% for testchains
         consensus.nRuleChangeActivationThreshold = 1512;
         // nPowTargetTimespan / nPowTargetSpacing
