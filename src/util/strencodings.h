@@ -12,6 +12,7 @@
 #include <attributes.h>
 
 #include <cstdint>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -130,25 +131,21 @@ NODISCARD bool ParseUInt64(const std::string &str, uint64_t *out);
  */
 NODISCARD bool ParseDouble(const std::string &str, double *out);
 
-template <typename T>
-std::string HexStr(const T itbegin, const T itend, bool fSpaces = false) {
+template <typename T> std::string HexStr(const T itbegin, const T itend) {
     std::string rv;
     static const char hexmap[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                                     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    rv.reserve((itend - itbegin) * 3);
+    rv.reserve(std::distance(itbegin, itend) * 2);
     for (T it = itbegin; it < itend; ++it) {
         uint8_t val = uint8_t(*it);
-        if (fSpaces && it != itbegin) rv.push_back(' ');
         rv.push_back(hexmap[val >> 4]);
         rv.push_back(hexmap[val & 15]);
     }
-
     return rv;
 }
 
-template <typename T>
-inline std::string HexStr(const T &vch, bool fSpaces = false) {
-    return HexStr(vch.begin(), vch.end(), fSpaces);
+template <typename T> inline std::string HexStr(const T &vch) {
+    return HexStr(vch.begin(), vch.end());
 }
 
 /**
