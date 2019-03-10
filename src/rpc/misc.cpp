@@ -136,7 +136,13 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
 }
 
 #ifdef ENABLE_WALLET
-class DescribeAddressVisitor : public boost::static_visitor<UniValue> {
+class DescribeAddressVisitor
+#ifdef HAVE_VARIANT
+  : public std::variant<UniValue>
+#else
+  : public boost::static_visitor<UniValue>
+#endif
+{
 public:
     CWallet *const pwallet;
 
@@ -252,16 +258,23 @@ static UniValue validateaddress(const Config &config,
         isminetype mine = pwallet ? IsMine(*pwallet, dest) : ISMINE_NO;
         ret.pushKV("ismine", (mine & ISMINE_SPENDABLE) ? true : false);
         ret.pushKV("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true : false);
-        UniValue detail =
-            boost::apply_visitor(DescribeAddressVisitor(pwallet), dest);
+#ifdef HAVE_VARIANT
+        UniValue detail = std::visit(DescribeAddressVisitor(pwallet), dest);
+#else
+        UniValue detail = boost::apply_visitor(DescribeAddressVisitor(pwallet), dest);
+ #endif
         ret.pushKVs(detail);
         if (pwallet && pwallet->mapAddressBook.count(dest)) {
             ret.pushKV("account", pwallet->mapAddressBook[dest].name);
         }
         if (pwallet) {
             const CKeyMetadata *meta = nullptr;
+#ifdef HAVE_VARIANT
+            if (const CKeyID *key_id = &std::get<CKeyID>(dest)) {
+#else
             if (const CKeyID *key_id = boost::get<CKeyID>(&dest)) {
-                auto it = pwallet->mapKeyMetadata.find(*key_id);
+#endif
+              auto it = pwallet->mapKeyMetadata.find(*key_id);
                 if (it != pwallet->mapKeyMetadata.end()) {
                     meta = &it->second;
                 }
@@ -323,7 +336,11 @@ CScript createmultisig_redeemScript(CWallet *const pwallet,
         if (pwallet) {
             CTxDestination dest = DecodeDestination(ks, pwallet->chainParams);
             if (IsValidDestination(dest)) {
+#ifdef HAVE_VARIANT
+                const CKeyID *keyID = &std::get<CKeyID>(dest);
+#else
                 const CKeyID *keyID = boost::get<CKeyID>(&dest);
+#endif
                 if (!keyID) {
                     throw std::runtime_error(
                         strprintf("%s does not refer to a key", ks));
@@ -466,8 +483,11 @@ static UniValue verifymessage(const Config &config,
     if (!IsValidDestination(destination)) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     }
-
+#ifdef HAVE_VARIANT
+    const CKeyID *keyID = &std::get<CKeyID>(destination);
+#else
     const CKeyID *keyID = boost::get<CKeyID>(&destination);
+#endif
     if (!keyID) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
     }

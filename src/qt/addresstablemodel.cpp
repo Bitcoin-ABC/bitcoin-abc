@@ -245,6 +245,19 @@ bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
             CTxDestination newAddress = DecodeDestination(
                 value.toString().toStdString(), wallet->chainParams);
             // Refuse to set invalid address, set error status and return false
+#ifdef HAVE_VARIANT
+            try {
+              std::get<CNoDestination>(newAddress);
+            } catch (std::bad_variant_access&) {
+              editStatus = INVALID_ADDRESS;
+              return false;
+            }
+            // Do nothing, if old address == new address
+            if (newAddress == curAddress) {
+                editStatus = NO_CHANGES;
+                return false;
+            }
+#else
             if (boost::get<CNoDestination>(&newAddress)) {
                 editStatus = INVALID_ADDRESS;
                 return false;
@@ -254,6 +267,7 @@ bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
                 editStatus = NO_CHANGES;
                 return false;
             }
+ #endif
             // Check for duplicate addresses to prevent accidental deletion of
             // addresses, if you try to paste an existing address over another
             // address (with a different label)

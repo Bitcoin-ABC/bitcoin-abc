@@ -688,7 +688,11 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");
     }
+#ifdef HAVE_VARIANT    
+    const CKeyID *keyID = &std::get<CKeyID>(dest);
+#else
     const CKeyID *keyID = boost::get<CKeyID>(&dest);
+#endif
     if (!keyID) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
     }
@@ -778,7 +782,11 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     // sort time/key pairs
     std::vector<std::pair<int64_t, CKeyID>> vKeyBirth;
     for (const auto &entry : mapKeyBirth) {
+#ifdef HAVE_VARIANT      
+        if (const CKeyID *keyID = &std::get<CKeyID>(entry.first)) {
+#else
         if (const CKeyID *keyID = boost::get<CKeyID>(&entry.first)) {
+#endif
             // set and test
             vKeyBirth.push_back(std::make_pair(entry.second, *keyID));
         }
