@@ -1057,15 +1057,10 @@ static UniValue signrawtransactionwithkey(const Config &config,
     const UniValue &keys = request.params[1].get_array();
     for (size_t idx = 0; idx < keys.size(); ++idx) {
         UniValue k = keys[idx];
-        CBitcoinSecret vchSecret;
-        if (!vchSecret.SetString(k.get_str())) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "Invalid private key");
-        }
-        CKey key = vchSecret.GetKey();
+        CKey key = DecodeSecret(k.get_str());
         if (!key.IsValid()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "Private key outside allowed range");
+                               "Invalid private key encoding or range");
         }
         keystore.AddKey(key);
     }
