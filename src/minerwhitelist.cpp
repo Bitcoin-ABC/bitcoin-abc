@@ -51,7 +51,7 @@ namespace {
         std::string miner;
         unsigned int prevFactor;
         BlockDetails(): minedUnderCap(false), miner(DUMMY), prevFactor(0) {}
-        BlockDetails(std::string min, bool enabled, unsigned int prevFactor) : minedUnderCap(enabled), miner(min), prevFactor(prevFactor) {}
+        BlockDetails(std::string min, bool enabled, unsigned int prev) : minedUnderCap(enabled), miner(min), prevFactor(prev) {}
 
         template<typename Stream>
         void Serialize(Stream &s) const {
