@@ -14,6 +14,7 @@ source_group("WalletHeaders" FILES ${WALLET_HEADERS})
 
 add_library(wallet
   ${WALLET_HEADERS}
+  ../base58.cpp
 	crypter.cpp
 	db.cpp
 	fees.cpp
