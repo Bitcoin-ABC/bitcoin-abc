@@ -16,7 +16,6 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
-#include <boost/filesystem/operations.hpp>
 #include <cstdio>
 
 #include <event2/buffer.h>
