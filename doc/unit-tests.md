@@ -5,35 +5,35 @@ and tests weren't explicitly disabled.
 
 After configuring, they can be run with `make check`.
 
-To run the bitcoind tests manually, launch `src/test/test_bitcoin`.
+To run the devaultd tests manually, launch `src/test/test_devault`.
 
-To add more bitcoind tests, add `BOOST_AUTO_TEST_CASE` functions to the existing
+To add more devaultd tests, add `BOOST_AUTO_TEST_CASE` functions to the existing
 .cpp files in the `src/test/` directory or add new .cpp files that
 implement new BOOST_AUTO_TEST_SUITE sections.
 
-To run the bitcoin-qt tests manually, launch `src/qt/test/test_bitcoin-qt`
+To run the devault-qt tests manually, launch `src/qt/test/test_devault-qt`
 
-To add more bitcoin-qt tests, add them to the `src/qt/test/` directory and
+To add more devault-qt tests, add them to the `src/qt/test/` directory and
 the `src/qt/test/test_main.cpp` file.
 
 ### Running individual tests
 
-test_bitcoin has some built-in command-line arguments; for
+test_devault has some built-in command-line arguments; for
 example, to run just the getarg_tests verbosely:
 
-    test_bitcoin --log_level=all --run_test=getarg_tests
+    test_devault --log_level=all --run_test=getarg_tests
 
 ... or to run just the doubledash test:
 
-    test_bitcoin --run_test=getarg_tests/doubledash
+    test_devault --run_test=getarg_tests/doubledash
 
-Run `test_bitcoin --help` for the full list.
+Run `test_devault --help` for the full list.
 
 ### Note on adding test cases
 
-The build system is setup to compile an executable called `test_bitcoin`
+The build system is setup to compile an executable called `test_devault`
 that runs all of the unit tests.  The main source file is called
-test_bitcoin.cpp. To add a new unit test file to our test suite you need
+test_devault.cpp. To add a new unit test file to our test suite you need
 to add the file to `src/Makefile.test.include`. The pattern is to create
 one test file for each class or source file for which you want to create
 unit tests.  The file naming convention is `<source_filename>_tests.cpp`
@@ -50,7 +50,7 @@ explaining how the boost unit test framework works:
 Simple example of debugging unit tests with GDB on Linux:
 ```
 cd /build/src/test
-gdb test_bitcoin
+gdb test_devault
 break interpreter.cpp:295  # No path is necessary, just the file name and line number
 run
 # GDB hits the breakpoint
@@ -61,7 +61,7 @@ c           # continue
 Simple example of debugging unit tests with LLDB (OSX or Linux):
 ```
 cd /build/src/test
-lldb -- test_bitcoin
+lldb -- test_devault
 break set --file interpreter.cpp --line 295
 run
 ```

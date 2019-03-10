@@ -1,4 +1,4 @@
-TOR SUPPORT IN BITCOIN
+TOR SUPPORT IN DEVAULT
 ======================
 
 It is possible to run DeVault as a Tor hidden service, and connect to such services.

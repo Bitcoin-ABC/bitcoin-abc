@@ -1,4 +1,4 @@
-Bitcoin ABC Release Process
+Devault Release Process
 ===========================
 
 
@@ -39,7 +39,7 @@ Bitcoin ABC Release Process
 
 6. Verify matching gitian builds, gather signatures
 
-7. Upload gitian build to [bitcoinabc.org](https://download.bitcoinabc.org/)
+7. Upload gitian build to [devault.org](https://download.devault.org/)
 
 8. Create a [GitHub release](https://github.com/DeVault/DeVault/releases).
     The Github release name should be the same as the tag (without the prepended 'v'), and
@@ -56,13 +56,13 @@ Bitcoin ABC Release Process
     - src/config/CMakeLists.txt
     - contrib/gitian-descriptors/*.yml (before a new major release)
 
-11. Update version number on www.bitcoinabc.org
+11. Update version number on www.devault.org
 
-12. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
+12. Publish signed checksums (various places, e.g. blog, reddit/r/Devault)
 
 13. Announce Release:
-    - [Reddit](https://www.reddit.com/r/BitcoinABC/)
-    - Twitter @Bitcoin_ABC
-    - Public slack channels friendly to Bitcoin ABC announcements 
+    - [Reddit](https://www.reddit.com/r/Devault/)
+    - Twitter @Devault
+    - Public slack channels friendly to Devault announcements 
       (eg. #abc-announce on BTCforks,  #hardfork on BTCchat)
 

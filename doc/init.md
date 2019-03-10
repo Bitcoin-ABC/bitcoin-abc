@@ -68,9 +68,9 @@ can then be controlled by group membership.
 3b) Mac OS X
 
 Binary:              `/usr/local/bin/devaultd`  
-Configuration file:  `~/Library/Application Support/Bitcoin/devault.conf`  
-Data directory:      `~/Library/Application Support/Bitcoin`
-Lock file:           `~/Library/Application Support/Bitcoin/.lock`
+Configuration file:  `~/Library/Application Support/Devault/devault.conf`  
+Data directory:      `~/Library/Application Support/Devault`
+Lock file:           `~/Library/Application Support/Devault/.lock`
 
 4. Installing Service Configuration
 -----------------------------------
@@ -104,7 +104,7 @@ use old versions of Upstart and do not supply the start-stop-daemon utility.
 Copy devaultd.init to /etc/init.d/devaultd. Test by running `service devaultd start`.
 
 Using this script, you can adjust the path and flags to the devaultd program by
-setting the BITCOIND and FLAGS environment variables in the file
+setting the DEVAULTD and FLAGS environment variables in the file
 /etc/sysconfig/devaultd. You can also use the DAEMONOPTS environment variable here.
 
 4e) Mac OS X

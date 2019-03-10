@@ -2,7 +2,7 @@ OpenBSD build guide
 ======================
 (updated for OpenBSD 6.0)
 
-This guide describes how to build bitcoind and command-line utilities on OpenBSD.
+This guide describes how to build devaultd and command-line utilities on OpenBSD.
 
 As OpenBSD is most common as a server OS, we will not bother with the GUI.
 
@@ -18,7 +18,7 @@ pkg_add automake # (select highest version, e.g. 1.15)
 pkg_add python # (select highest version, e.g. 3.5)
 ```
 
-The default C++ compiler that comes with OpenBSD 5.9 is g++ 4.2. This version is old (from 2007), and is not able to compile the current version of Bitcoin ABC, primarily as it has no C++11 support, but even before there were issues. So here we will be installing a newer compiler.
+The default C++ compiler that comes with OpenBSD 5.9 is g++ 4.2. This version is old (from 2007), and is not able to compile the current version of Devault, primarily as it has no C++11 support, but even before there were issues. So here we will be installing a newer compiler.
 
 GCC
 -------
@@ -35,16 +35,16 @@ This compiler will not overwrite the system compiler, it will be installed as `e
 
 Do not use `pkg_add boost`! The boost version installed thus is compiled using the `g++` compiler not `eg++`, which will result in a conflict between `/usr/local/lib/libestdc++.so.XX.0` and `/usr/lib/libstdc++.so.XX.0`, resulting in a test crash:
 
-    test_bitcoin:/usr/lib/libstdc++.so.57.0: /usr/local/lib/libestdc++.so.17.0 : WARNING: symbol(_ZN11__gnu_debug17_S_debug_me ssagesE) size mismatch, relink your program
+    test_devault:/usr/lib/libstdc++.so.57.0: /usr/local/lib/libestdc++.so.17.0 : WARNING: symbol(_ZN11__gnu_debug17_S_debug_me ssagesE) size mismatch, relink your program
     ...
     Segmentation fault (core dumped)
 
-This makes it necessary to build boost, or at least the parts used by Bitcoin ABC, manually:
+This makes it necessary to build boost, or at least the parts used by Devault, manually:
 
 ```
-# Pick some path to install boost to, here we create a directory within the bitcoin directory
-BITCOIN_ROOT=$(pwd)
-BOOST_PREFIX="${BITCOIN_ROOT}/boost"
+# Pick some path to install boost to, here we create a directory within the devault directory
+DEVAULT_ROOT=$(pwd)
+BOOST_PREFIX="${DEVAULT_ROOT}/boost"
 mkdir -p $BOOST_PREFIX
 
 # Fetch the source and verify that it is not tampered with
@@ -58,7 +58,7 @@ cd boost_1_61_0
 # Also here: https://gist.githubusercontent.com/laanwj/bf359281dc319b8ff2e1/raw/92250de8404b97bb99d72ab898f4a8cb35ae1ea3/patch-boost_test_impl_execution_monitor_ipp.patch
 patch -p0 < /usr/ports/devel/boost/patches/patch-boost_test_impl_execution_monitor_ipp
 
-# Build w/ minimum configuration necessary for bitcoin
+# Build w/ minimum configuration necessary for devault
 echo 'using gcc : : eg++ : <cxxflags>"-fvisibility=hidden -fPIC" <linkflags>"" <archiver>"ar" <striper>"strip"  <ranlib>"ranlib" <rc>"" : ;' > user-config.jam
 config_opts="runtime-link=shared threadapi=pthread threading=multi link=static variant=release --layout=tagged --build-type=complete --user-config=user-config.jam -sNO_BZIP2=1"
 ./bootstrap.sh --without-icu --with-libraries=chrono,filesystem,program_options,system,thread,test
@@ -73,9 +73,9 @@ BerkeleyDB is only necessary for the wallet functionality. To skip this, pass `-
 You cannot use the BerkeleyDB library from ports, for the same reason as boost above (g++/libstd++ incompatibility).
 
 ```bash
-# Pick some path to install BDB to, here we create a directory within the bitcoin directory
-BITCOIN_ROOT=$(pwd)
-BDB_PREFIX="${BITCOIN_ROOT}/db6"
+# Pick some path to install BDB to, here we create a directory within the devault directory
+DEVAULT_ROOT=$(pwd)
+BDB_PREFIX="${DEVAULT_ROOT}/db6"
 mkdir -p $BDB_PREFIX
 
 # Fetch the source and verify that it is not tampered with
@@ -98,7 +98,7 @@ The standard ulimit restrictions in OpenBSD are very strict:
     data(kbytes)         1572864
 
 This is, unfortunately, no longer enough to compile some `.cpp` files in the project,
-at least with gcc 4.9.3 (see issue https://github.com/bitcoin/bitcoin/issues/6658).
+at least with gcc 4.9.3 (see issue https://github.com/devault/devault/issues/6658).
 If your user is in the `staff` group the limit can be raised with:
 
     ulimit -d 3000000
@@ -107,7 +107,7 @@ The change will only affect the current shell and processes spawned by it. To
 make the change system-wide, change `datasize-cur` and `datasize-max` in
 `/etc/login.conf`, and reboot.
 
-### Building Bitcoin ABC
+### Building Devault
 
 **Important**: use `gmake`, not `make`. The non-GNU `make` will exit with a horrible error.
 

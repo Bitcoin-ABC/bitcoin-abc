@@ -1,7 +1,7 @@
 Benchmarking
 ============
 
-Bitcoin ABC has an internal benchmarking framework, with benchmarks
+DeVault has an internal benchmarking framework, with benchmarks
 for cryptographic algorithms such as SHA1, SHA256, SHA512, RIPEMD160,
 the rolling bloom filter, address encoding and decoding, CCoinsCaching,
 memory pool eviction, and wallet coin selection.
