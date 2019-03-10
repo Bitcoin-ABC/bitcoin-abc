@@ -55,6 +55,10 @@ static const NodeId NO_NODE = -1;
  */
 struct VoteRecord {
 private:
+    // confidence's LSB bit is the result. Higher bits are actual confidence
+    // score.
+    uint16_t confidence = 0;
+
     // Historical record of votes.
     uint8_t votes = 0;
     // Each bit indicate if the vote is to be considered.
@@ -62,11 +66,7 @@ private:
     // How many in flight requests exists for this element.
     mutable std::atomic<uint8_t> inflight{0};
 
-    // confidence's LSB bit is the result. Higher bits are actual confidence
-    // score.
-    uint16_t confidence = 0;
-
-  // Seed for pseudorandom operations.
+    // Seed for pseudorandom operations.
     const uint32_t seed = 0;
 
     // Track how many successful votes occured.
