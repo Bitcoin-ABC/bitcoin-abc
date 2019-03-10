@@ -26,6 +26,7 @@ include(AddCompilerFlags)
 # Unfortunately setting the -pie linker flag this way required CMake >= 3.14,
 # which is not widely distributed at the time of writing.
 # FIXME: use the POSITION_INDEPENDENT_CODE property instead
+# set(CMAKE_POSITION_INDEPENDENT_CODE ON) # for all targets
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_compiler_flag(-fPIC -fPIE)
 	add_linker_flag(-pie)
@@ -71,7 +72,6 @@ else()
   add_compiler_flag(-Wno-cpp -Wno-unused-function -Wno-nonnull-compare -Wno-implicit-fallthrough)
 endif()
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON) # for all targets
 
 
 
