@@ -21,6 +21,7 @@
 #include "validation.h"
 #include "wallet.h"
 
+#include <string.h> // for memcpy
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -696,7 +697,18 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " +
                                                  strAddress + " is not known");
     }
-    return EncodeSecret(vchSecret);
+    
+    
+    std::vector<uint8_t> vch = Params().Base58Prefix(CChainParams::SECRET_KEY);
+    vch.insert(vch.end(), vchSecret.begin(), vchSecret.end());
+    if (vchSecret.IsCompressed()) vch.push_back(1);
+    std::string base58string = EncodeBase58Check(vch);
+    std::string bech32string = EncodeSecret(vchSecret);
+    
+    UniValue keys(UniValue::VOBJ);
+    keys.pushKV("base58",base58string);
+    keys.pushKV("bech32",bech32string);
+    return keys;
 }
 
 UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
