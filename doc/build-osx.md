@@ -32,12 +32,12 @@ In case you want to build the disk image with `make deploy` (.dmg / optional), y
 Build Bitcoin ABC
 -----------------
 
-1. Clone the Bitcoin ABC source code and cd into `bitcoin-abc`
+1. Clone the Bitcoin ABC source code and cd into `DeVault`
 
-        git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
-        cd bitcoin-abc
+        git clone https://github.com/DeVault/DeVault.git
+        cd DeVault
 
-2.  Build bitcoin-abc:
+2.  Build DeVault:
 
     Configure and build the headless bitcoin binaries as well as the GUI (if Qt is found).
 

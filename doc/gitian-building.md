@@ -57,7 +57,7 @@ You can check the version with `lxc-execute --version`.
 
 Non-Debian / Ubuntu, Manual and Offline Building
 ------------------------------------------------
-The instructions below use the automated script [gitian-build.py](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/contrib/gitian-build.py) which only works in Debian/Ubuntu. For manual steps and instructions for fully offline signing, see [this guide](./gitian-building/gitian-building-manual.md).
+The instructions below use the automated script [gitian-build.py](https://github.com/DeVault/DeVault/blob/master/contrib/gitian-build.py) which only works in Debian/Ubuntu. For manual steps and instructions for fully offline signing, see [this guide](./gitian-building/gitian-building-manual.md).
 
 MacOS code signing
 ------------------
@@ -77,7 +77,7 @@ Initial Gitian Setup
 The `gitian-build.py` script will checkout different release tags, so it's best to copy it:
 
 ```bash
-cp bitcoin-abc/contrib/gitian-build.py .
+cp DeVault/contrib/gitian-build.py .
 ```
 
 You only need to do this once:
@@ -106,7 +106,7 @@ You need to copy these uncommited changes to your host machine, where you can si
 
 ```bash
 export NAME=satoshi
-gpg --output $VERSION-linux/$NAME/bitcoin-abc-linux-0.18.5-build.assert.sig --detach-sign 0.18.5-linux/$NAME/bitcoin-abc-linux-0.18.5-build.assert 
-gpg --output $VERSION-osx-unsigned/$NAME/bitcoin-abc-osx-0.18.5-build.assert.sig --detach-sign 0.18.5-osx-unsigned/$NAME/bitcoin-abc-osx-0.18.5-build.assert 
-gpg --output $VERSION-win-unsigned/$NAME/bitcoin-abc-win-0.18.5-build.assert.sig --detach-sign 0.18.5-win-unsigned/$NAME/bitcoin-abc-win-0.18.5-build.assert 
+gpg --output $VERSION-linux/$NAME/DeVault-linux-0.18.5-build.assert.sig --detach-sign 0.18.5-linux/$NAME/DeVault-linux-0.18.5-build.assert 
+gpg --output $VERSION-osx-unsigned/$NAME/DeVault-osx-0.18.5-build.assert.sig --detach-sign 0.18.5-osx-unsigned/$NAME/DeVault-osx-0.18.5-build.assert 
+gpg --output $VERSION-win-unsigned/$NAME/DeVault-win-0.18.5-build.assert.sig --detach-sign 0.18.5-win-unsigned/$NAME/DeVault-win-0.18.5-build.assert 
 ```

@@ -41,7 +41,7 @@ Bitcoin ABC Release Process
 
 7. Upload gitian build to [bitcoinabc.org](https://download.bitcoinabc.org/)
 
-8. Create a [GitHub release](https://github.com/Bitcoin-ABC/bitcoin-abc/releases).
+8. Create a [GitHub release](https://github.com/DeVault/DeVault/releases).
     The Github release name should be the same as the tag (without the prepended 'v'), and
     the contents of the release notes should be copied from release-notes.md.
 

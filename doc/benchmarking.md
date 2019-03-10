@@ -6,7 +6,7 @@ for cryptographic algorithms such as SHA1, SHA256, SHA512, RIPEMD160,
 the rolling bloom filter, address encoding and decoding, CCoinsCaching,
 memory pool eviction, and wallet coin selection.
 
-After compiling bitcoin-abc, the benchmarks can be run with:
+After compiling DeVault, the benchmarks can be run with:
 `src/bench/bench_bitcoin`
 
 The output will look similar to:
