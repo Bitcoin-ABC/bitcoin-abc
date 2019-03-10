@@ -37,6 +37,7 @@
 #include <sys/random.h>
 #endif
 #ifdef HAVE_SYSCTL_ARND
+#include "utilstrencodings.h" // for FreeBSD
 #include <sys/sysctl.h>
 #endif
 
