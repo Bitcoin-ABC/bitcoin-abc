@@ -1068,12 +1068,18 @@ public:
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
     void ResendWalletTransactions();
-    Amount GetBalance(const isminefilter &filter = ISMINE_SPENDABLE,
-                      const int min_depth = 0) const;
-    Amount GetUnconfirmedBalance() const;
-    Amount GetImmatureBalance() const;
-    Amount GetUnconfirmedWatchOnlyBalance() const;
-    Amount GetImmatureWatchOnlyBalance() const;
+    struct Balance {
+        //! Trusted, at depth=GetBalance.min_depth or more
+        Amount m_mine_trusted{Amount::zero()};
+        //! Untrusted, but in mempool (pending)
+        Amount m_mine_untrusted_pending{Amount::zero()};
+        //! Immature coinbases in the main chain
+        Amount m_mine_immature{Amount::zero()};
+        Amount m_watchonly_trusted{Amount::zero()};
+        Amount m_watchonly_untrusted_pending{Amount::zero()};
+        Amount m_watchonly_immature{Amount::zero()};
+    };
+    Balance GetBalance(int min_depth = 0) const;
     Amount GetAvailableBalance(const CCoinControl *coinControl = nullptr) const;
 
     OutputType TransactionChangeType(OutputType change_type,
