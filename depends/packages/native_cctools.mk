@@ -34,9 +34,9 @@ define $(package)_extract_cmds
   mkdir -p toolchain/bin toolchain/lib/clang/$($(package)_clang_version)/include && \
   mkdir -p libtapi && \
   tar --no-same-owner --strip-components=1 -C libtapi -xf $($(package)_source_dir)/$($(package)_libtapi_file_name) && \
-  tar --strip-components=1 -C toolchain -xf $($(package)_source_dir)/$($(package)_clang_file_name) && \
+  tar --no-same-owner --strip-components=1 -C toolchain -xf $($(package)_source_dir)/$($(package)_clang_file_name) && \
   rm -f toolchain/lib/libc++abi.so* && \
-  tar --strip-components=1 -xf $($(package)_source)
+  tar --no-same-owner --strip-components=1 -xf $($(package)_source)
 endef
 
 define $(package)_set_vars
