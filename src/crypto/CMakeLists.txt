@@ -5,6 +5,7 @@ project(crypto)
 # The library
 add_library(crypto
 	aes.cpp
+	chacha_poly_aead.cpp
 	chacha20.cpp
 	hkdf_sha256_32.cpp
 	hmac_sha256.cpp
