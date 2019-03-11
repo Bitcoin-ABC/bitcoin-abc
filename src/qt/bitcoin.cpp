@@ -218,8 +218,7 @@ public:
 
     /// Request core initialization
     void requestInitialize(Config &config,
-                           HTTPRPCRequestProcessor &httpRPCRequestProcessor,
-                           RPCServer &rpcServer);
+                           HTTPRPCRequestProcessor &httpRPCRequestProcessor);
     /// Request core shutdown
     void requestShutdown(Config &config);
 
@@ -238,8 +237,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void requestedInitialize(Config *config,
-                             HTTPRPCRequestProcessor *httpRPCRequestProcessor,
-                             RPCServer *rpcServer);
+                             HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void requestedShutdown();
     void stopThread();
     void splashFinished(QWidget *window);
@@ -416,8 +414,7 @@ void BitcoinApplication::startThread() {
     // crash because initialize() gets executed in another thread at some
     // unspecified time (after) requestedInitialize() is emitted!
     connect(this,
-            SIGNAL(requestedInitialize(Config *, HTTPRPCRequestProcessor *,
-                                       RPCServer *)),
+            SIGNAL(requestedInitialize(Config *, HTTPRPCRequestProcessor *)),
             executor, SLOT(initialize(Config *, HTTPRPCRequestProcessor *)));
 
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
@@ -434,14 +431,13 @@ void BitcoinApplication::parameterSetup() {
 }
 
 void BitcoinApplication::requestInitialize(
-    Config &config, HTTPRPCRequestProcessor &httpRPCRequestProcessor,
-    RPCServer &rpcServer) {
+    Config &config, HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     qDebug() << __func__ << ": Requesting initialize";
     startThread();
     // IMPORTANT: config must NOT be a reference to a temporary because below
     // signal may be connected to a slot that will be executed as a queued
     // connection in another thread!
-    Q_EMIT requestedInitialize(&config, &httpRPCRequestProcessor, &rpcServer);
+    Q_EMIT requestedInitialize(&config, &httpRPCRequestProcessor);
 }
 
 void BitcoinApplication::requestShutdown(Config &config) {
@@ -792,7 +788,7 @@ int main(int argc, char *argv[]) {
             // A dialog with detailed error will have been shown by InitError()
             return EXIT_FAILURE;
         }
-        app.requestInitialize(config, httpRPCRequestProcessor, rpcServer);
+        app.requestInitialize(config, httpRPCRequestProcessor);
 #if defined(Q_OS_WIN)
         WinShutdownMonitor::registerShutdownBlockReason(
             QObject::tr("%1 didn't yet exit safely...")
