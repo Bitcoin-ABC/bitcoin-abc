@@ -2776,8 +2776,9 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
 
     CReserveKey reservekey(this);
     CTransactionRef tx_new;
-    if (!CreateTransaction(vecSend, tx_new, reservekey, nFeeRet, nChangePosInOut,
-                           strFailReason, coinControl, false)) {
+    if (!CreateTransaction(vecSend, tx_new, reservekey, nFeeRet,
+                           nChangePosInOut, strFailReason, coinControl,
+                           false)) {
         return false;
     }
 
@@ -3077,7 +3078,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 vin.scriptSig = CScript();
             }
 
-            Amount nFeeNeeded = GetMinimumFee(nBytes, g_mempool);
+            Amount nFeeNeeded = GetMinimumFee(nBytes, g_mempool, coinControl);
 
             // If we made it here and we aren't even able to meet the relay fee
             // on the next pass, give up because we must be at the maximum
@@ -3103,8 +3104,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 // We now know we only need the smaller fee (because of reduced
                 // tx size) and so we should add a change output. Only try this
                 // once.
-                Amount fee_needed_for_change =
-                    GetMinimumFee(change_prototype_size, g_mempool);
+                Amount fee_needed_for_change = GetMinimumFee(
+                    change_prototype_size, g_mempool, coinControl);
                 Amount minimum_value_for_change =
                     change_prototype_txout.GetDustThreshold(dustRelayFee);
                 Amount max_excess_fee =

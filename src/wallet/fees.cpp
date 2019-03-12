@@ -10,6 +10,7 @@
 #include "txmempool.h"
 #include "util.h"
 #include "validation.h"
+#include "wallet/coincontrol.h"
 #include "wallet/wallet.h"
 
 Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
@@ -39,4 +40,14 @@ Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
 Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool) {
     // payTxFee is the user-set global for desired feerate.
     return GetMinimumFee(nTxBytes, pool, payTxFee.GetFeeCeiling(nTxBytes));
+}
+
+Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
+                     const CCoinControl &coinControl) {
+    if (coinControl.fOverrideFeeRate && coinControl.m_feerate) {
+        return GetMinimumFee(nTxBytes, pool,
+                             coinControl.m_feerate->GetFee(nTxBytes));
+    } else {
+        return GetMinimumFee(nTxBytes, pool);
+    }
 }
