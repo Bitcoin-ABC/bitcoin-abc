@@ -11,12 +11,20 @@
 
 #include <algorithm>
 #include <cstdint>
+
+#ifdef USE_ROCKSDB
+#include <rocksdb/cache.h>
+#include <rocksdb/env.h>
+#include <rocksdb/filter_policy.h>
+#include <rocksdb/utilities/leveldb_options.h>
+#else
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
 #include <memenv.h>
+#endif
 
-class CBitcoinLevelDBLogger : public leveldb::Logger {
+class CBitcoinLevelDBLogger : public datadb::Logger {
 public:
     // This code is adapted from posix_logger.h, which is why it is using
     // vsprintf.
@@ -74,22 +82,37 @@ public:
     }
 };
 
-static leveldb::Options GetOptions(size_t nCacheSize) {
-    leveldb::Options options;
-    options.block_cache = leveldb::NewLRUCache(nCacheSize / 2);
-    // up to two write buffers may be held in memory simultaneously
-    options.write_buffer_size = nCacheSize / 4;
-    options.filter_policy = leveldb::NewBloomFilterPolicy(10);
-    options.compression = leveldb::kNoCompression;
-    options.max_open_files = 64;
-    options.info_log = new CBitcoinLevelDBLogger();
-    if (leveldb::kMajorVersion > 1 ||
-        (leveldb::kMajorVersion == 1 && leveldb::kMinorVersion >= 16)) {
-        // LevelDB versions before 1.16 consider short writes to be corruption.
-        // Only trigger error on corruption in later versions.
-        options.paranoid_checks = true;
-    }
-    return options;
+static datadb::Options GetOptions(size_t nCacheSize) {
+#ifdef USE_ROCKSDB
+  datadb::LevelDBOptions opt;
+  // opt.block_cache = datadb::NewLRUCache(nCacheSize / 2);
+  opt.write_buffer_size = nCacheSize / 4;  // up to two write buffers may be held in memory simultaneously
+  opt.filter_policy = datadb::NewBloomFilterPolicy(10);
+  opt.compression = datadb::kNoCompression;
+  opt.max_open_files = 64;
+  datadb::Options datadb_options = ConvertOptions(opt);
+  datadb_options.avoid_flush_during_shutdown = true;
+  datadb_options.enable_thread_tracking = true;
+  datadb_options.IncreaseParallelism();
+  datadb_options.OptimizeLevelStyleCompaction();
+  return datadb_options;
+#else
+  datadb::Options options;
+  options.block_cache = datadb::NewLRUCache(nCacheSize / 2);
+  // up to two write buffers may be held in memory simultaneously
+  options.write_buffer_size = nCacheSize / 4;
+  options.filter_policy = datadb::NewBloomFilterPolicy(10);
+  options.compression = datadb::kNoCompression;
+  options.max_open_files = 64;
+  options.info_log = new CBitcoinLevelDBLogger();
+  if (datadb::kMajorVersion > 1 ||
+      (datadb::kMajorVersion == 1 && datadb::kMinorVersion >= 16)) {
+    // LevelDB versions before 1.16 consider short writes to be corruption.
+    // Only trigger error on corruption in later versions.
+    options.paranoid_checks = true;
+  }
+  return options;
+#endif
 }
 
 CDBWrapper::CDBWrapper(const fs::path &path, size_t nCacheSize, bool fMemory,
@@ -102,18 +125,18 @@ CDBWrapper::CDBWrapper(const fs::path &path, size_t nCacheSize, bool fMemory,
     options = GetOptions(nCacheSize);
     options.create_if_missing = true;
     if (fMemory) {
-        penv = leveldb::NewMemEnv(leveldb::Env::Default());
+        penv = datadb::NewMemEnv(datadb::Env::Default());
         options.env = penv;
     } else {
         if (fWipe) {
             LogPrintf("Wiping LevelDB in %s\n", path.string());
-            leveldb::Status result = leveldb::DestroyDB(path.string(), options);
+            datadb::Status result = datadb::DestroyDB(path.string(), options);
             dbwrapper_private::HandleError(result);
         }
         TryCreateDirectories(path);
         LogPrintf("Opening LevelDB in %s\n", path.string());
     }
-    leveldb::Status status = leveldb::DB::Open(options, path.string(), &pdb);
+    datadb::Status status = datadb::DB::Open(options, path.string(), &pdb);
     dbwrapper_private::HandleError(status);
     LogPrintf("Opened LevelDB successfully\n");
 
@@ -148,18 +171,21 @@ CDBWrapper::CDBWrapper(const fs::path &path, size_t nCacheSize, bool fMemory,
 CDBWrapper::~CDBWrapper() {
     delete pdb;
     pdb = nullptr;
+#ifdef USE_ROCKSDB
+#else
     delete options.filter_policy;
     options.filter_policy = nullptr;
     delete options.info_log;
     options.info_log = nullptr;
     delete options.block_cache;
     options.block_cache = nullptr;
+#endif
     delete penv;
     options.env = nullptr;
 }
 
 bool CDBWrapper::WriteBatch(CDBBatch &batch, bool fSync) {
-    leveldb::Status status =
+    datadb::Status status =
         pdb->Write(fSync ? syncoptions : writeoptions, &batch.batch);
     dbwrapper_private::HandleError(status);
     return true;
@@ -204,7 +230,7 @@ void CDBIterator::Next() {
 
 namespace dbwrapper_private {
 
-void HandleError(const leveldb::Status &status) {
+void HandleError(const datadb::Status &status) {
     if (status.ok()) {
         return;
     }

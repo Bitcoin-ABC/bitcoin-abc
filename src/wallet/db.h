@@ -125,7 +125,7 @@ public:
 
     void IncrementUpdateCounter();
 
-    std::atomic<unsigned int> nUpdateCounter;
+    std::atomic<unsigned int> nUpdateCounter{};
     unsigned int nLastSeen;
     unsigned int nLastFlushed;
     int64_t nLastWalletUpdate;

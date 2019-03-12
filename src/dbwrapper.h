@@ -1,9 +1,10 @@
 // Copyright (c) 2012-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The DeVault developers
+// Copyright (c) 2019 Jon Spock
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_DBWRAPPER_H
-#define BITCOIN_DBWRAPPER_H
+#pragma once
 
 #include "clientversion.h"
 #include "fs.h"
@@ -13,8 +14,15 @@
 #include "utilstrencodings.h"
 #include "version.h"
 
+#ifdef USE_ROCKSDB
+#include <rocksdb/db.h>
+#include <rocksdb/write_batch.h>
+namespace datadb = rocksdb;
+#else
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
+namespace datadb = leveldb;
+#endif
 
 static const size_t DBWRAPPER_PREALLOC_KEY_SIZE = 64;
 static const size_t DBWRAPPER_PREALLOC_VALUE_SIZE = 1024;
@@ -35,7 +43,7 @@ namespace dbwrapper_private {
 /**
  * Handle database error by throwing dbwrapper_error exception.
  */
-void HandleError(const leveldb::Status &status);
+void HandleError(const datadb::Status &status);
 
 /**
  * Work around circular dependency, as well as for testing in dbwrapper_tests.
@@ -51,7 +59,7 @@ class CDBBatch {
 
 private:
     const CDBWrapper &parent;
-    leveldb::WriteBatch batch;
+    datadb::WriteBatch batch;
 
     CDataStream ssKey;
     CDataStream ssValue;
@@ -74,15 +82,15 @@ public:
     template <typename K, typename V> void Write(const K &key, const V &value) {
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
+        datadb::Slice slKey(ssKey.data(), ssKey.size());
 
         ssValue.reserve(DBWRAPPER_PREALLOC_VALUE_SIZE);
         ssValue << value;
         ssValue.Xor(dbwrapper_private::GetObfuscateKey(parent));
-        leveldb::Slice slValue(ssValue.data(), ssValue.size());
+        datadb::Slice slValue(ssValue.data(), ssValue.size());
 
         batch.Put(slKey, slValue);
-        // LevelDB serializes writes as:
+        // Datadb serializes writes as:
         // - byte: header
         // - varint: key length (1 byte up to 127B, 2 bytes up to 16383B, ...)
         // - byte[]: key
@@ -98,7 +106,7 @@ public:
     template <typename K> void Erase(const K &key) {
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
+        datadb::Slice slKey(ssKey.data(), ssKey.size());
 
         batch.Delete(slKey);
         // LevelDB serializes erases as:
@@ -116,14 +124,14 @@ public:
 class CDBIterator {
 private:
     const CDBWrapper &parent;
-    leveldb::Iterator *piter;
+    datadb::Iterator *piter;
 
 public:
     /**
      * @param[in] _parent          Parent CDBWrapper instance.
      * @param[in] _piter           The original leveldb iterator.
      */
-    CDBIterator(const CDBWrapper &_parent, leveldb::Iterator *_piter)
+    CDBIterator(const CDBWrapper &_parent, datadb::Iterator *_piter)
         : parent(_parent), piter(_piter){};
     ~CDBIterator();
 
@@ -135,14 +143,14 @@ public:
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
+        datadb::Slice slKey(ssKey.data(), ssKey.size());
         piter->Seek(slKey);
     }
 
     void Next();
 
     template <typename K> bool GetKey(K &key) {
-        leveldb::Slice slKey = piter->key();
+        datadb::Slice slKey = piter->key();
         try {
             CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(),
                               SER_DISK, CLIENT_VERSION);
@@ -154,7 +162,7 @@ public:
     }
 
     template <typename V> bool GetValue(V &value) {
-        leveldb::Slice slValue = piter->value();
+        datadb::Slice slValue = piter->value();
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(),
                                 SER_DISK, CLIENT_VERSION);
@@ -176,25 +184,25 @@ class CDBWrapper {
 private:
     //! custom environment this database is using (may be nullptr in case of
     //! default environment)
-    leveldb::Env *penv;
+    datadb::Env *penv;
 
     //! database options used
-    leveldb::Options options;
+    datadb::Options options;
 
     //! options used when reading from the database
-    leveldb::ReadOptions readoptions;
+    datadb::ReadOptions readoptions;
 
     //! options used when iterating over values of the database
-    leveldb::ReadOptions iteroptions;
+    datadb::ReadOptions iteroptions;
 
     //! options used when writing to the database
-    leveldb::WriteOptions writeoptions;
+    datadb::WriteOptions writeoptions;
 
     //! options used when sync writing to the database
-    leveldb::WriteOptions syncoptions;
+    datadb::WriteOptions syncoptions;
 
     //! the database itself
-    leveldb::DB *pdb;
+    datadb::DB *pdb;
 
     //! a key used for optional XOR-obfuscation of the database
     std::vector<uint8_t> obfuscate_key;
@@ -226,13 +234,13 @@ public:
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
+        datadb::Slice slKey(ssKey.data(), ssKey.size());
 
         std::string strValue;
-        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
+        datadb::Status status = pdb->Get(readoptions, slKey, &strValue);
         if (!status.ok()) {
             if (status.IsNotFound()) return false;
-            LogPrintf("LevelDB read failure: %s\n", status.ToString());
+            LogPrintf("Datadb read failure: %s\n", status.ToString());
             dbwrapper_private::HandleError(status);
         }
         try {
@@ -258,13 +266,13 @@ public:
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
+        datadb::Slice slKey(ssKey.data(), ssKey.size());
 
         std::string strValue;
-        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
+        datadb::Status status = pdb->Get(readoptions, slKey, &strValue);
         if (!status.ok()) {
             if (status.IsNotFound()) return false;
-            LogPrintf("LevelDB read failure: %s\n", status.ToString());
+            LogPrintf("Datadb read failure: %s\n", status.ToString());
             dbwrapper_private::HandleError(status);
         }
         return true;
@@ -303,10 +311,10 @@ public:
         ssKey2.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey1 << key_begin;
         ssKey2 << key_end;
-        leveldb::Slice slKey1(ssKey1.data(), ssKey1.size());
-        leveldb::Slice slKey2(ssKey2.data(), ssKey2.size());
+        datadb::Slice slKey1(ssKey1.data(), ssKey1.size());
+        datadb::Slice slKey2(ssKey2.data(), ssKey2.size());
         uint64_t size = 0;
-        leveldb::Range range(slKey1, slKey2);
+        datadb::Range range(slKey1, slKey2);
         pdb->GetApproximateSizes(&range, 1, &size);
         return size;
     }
@@ -322,10 +330,9 @@ public:
         ssKey2.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey1 << key_begin;
         ssKey2 << key_end;
-        leveldb::Slice slKey1(ssKey1.data(), ssKey1.size());
-        leveldb::Slice slKey2(ssKey2.data(), ssKey2.size());
+        datadb::Slice slKey1(ssKey1.data(), ssKey1.size());
+        datadb::Slice slKey2(ssKey2.data(), ssKey2.size());
         pdb->CompactRange(&slKey1, &slKey2);
     }
 };
 
-#endif // BITCOIN_DBWRAPPER_H

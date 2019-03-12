@@ -91,7 +91,21 @@ add_subdirectory(config)
 
 # libraries
 add_subdirectory(crypto)
-add_subdirectory(leveldb)
+
+
+# Can change to LevelDB if needed
+find_package(RocksDB) # REQUIRED)
+if (RocksDB_FOUND)
+  message(STATUS "Found RocksDB")
+  message(STATUS "Libs : ${ROCKSDB_LIBRARIES}")
+  add_definitions("-DUSE_ROCKSDB")
+  set(DB_LIBRARIES ${ROCKSDB_LIBRARIES})
+else()
+  message(STATUS "FAILED to FIND RocksDB")
+  add_subdirectory(leveldb)
+  set(DB_LIBRARIES leveldb memenv)
+endif()  
+
 add_subdirectory(secp256k1)
 add_subdirectory(univalue)
 add_subdirectory(coldrewards)
@@ -291,20 +305,19 @@ add_library(server
 	versionbits.cpp
 )
 
-
-
 # This require libevent
 find_package(Event REQUIRED)
 find_package(Miniupnpc REQUIRED)
 
-target_include_directories(server PRIVATE leveldb/helpers/memenv)
+if (NOT RocksDB_FOUND)
+  target_include_directories(server PRIVATE leveldb/helpers/memenv)
+endif()
 
 target_link_libraries(server
 	${EVENT_LIBRARY}
 	${EVENT_PTHREAD_LIBRARY}
 	devaultconsensus
-	leveldb
-	memenv
+  ${DB_LIBRARIES}
   ${MINIUPNP_LIBRARY}
 )
 
