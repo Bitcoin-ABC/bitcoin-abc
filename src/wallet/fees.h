@@ -9,6 +9,7 @@
 
 #include "amount.h"
 
+class CCoinControl;
 class CTxMemPool;
 
 /**
@@ -22,5 +23,11 @@ Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool);
  */
 Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
                      Amount targetFee);
+
+/**
+ * Estimate the minimum fee considering overriden fee rate from coin control
+ */
+Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
+                     const CCoinControl &coinControl);
 
 #endif // BITCOIN_WALLET_FEES_H
