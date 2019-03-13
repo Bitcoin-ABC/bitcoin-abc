@@ -931,92 +931,84 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() < 2 ||
-        request.params.size() > 5) {
-        throw std::runtime_error(RPCHelpMan{
-            "sendmany",
-            "\nSend multiple times. Amounts are double-precision "
-            "floating point numbers." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+    const RPCHelpMan help{
+        "sendmany",
+        "\nSend multiple times. Amounts are double-precision "
+        "floating point numbers." +
+            HelpRequiringPassphrase(pwallet) + "\n",
+        {
+            {"dummy", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "Must be set to \"\" for backwards compatibility.", "\"\""},
             {
-                {"dummy", RPCArg::Type::STR, RPCArg::Optional::NO,
-                 "Must be set to \"\" for backwards compatibility.", "\"\""},
+                "amounts",
+                RPCArg::Type::OBJ,
+                RPCArg::Optional::NO,
+                "A json object with addresses and amounts",
                 {
-                    "amounts",
-                    RPCArg::Type::OBJ,
-                    RPCArg::Optional::NO,
-                    "A json object with addresses and amounts",
-                    {
-                        {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
-                         "The bitcoin address is the key, the numeric "
-                         "amount (can be string) in " +
-                             CURRENCY_UNIT + " is the value"},
-                    },
-                },
-                {"minconf", RPCArg::Type::NUM, /* default */ "1",
-                 "Only use the balance confirmed at least this many "
-                 "times."},
-                {"comment", RPCArg::Type::STR,
-                 RPCArg::Optional::OMITTED_NAMED_ARG, "A comment"},
-                {
-                    "subtractfeefrom",
-                    RPCArg::Type::ARR,
-                    RPCArg::Optional::OMITTED_NAMED_ARG,
-                    "A json array with addresses.\n"
-                    "                           The fee will be equally "
-                    "deducted from the amount of each selected address.\n"
-                    "                           Those recipients will "
-                    "receive less bitcoins than you enter in their "
-                    "corresponding amount field.\n"
-                    "                           If no addresses are "
-                    "specified here, the sender pays the fee.",
-                    {
-                        {"address", RPCArg::Type::STR,
-                         RPCArg::Optional::OMITTED,
-                         "Subtract fee from this address"},
-                    },
+                    {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
+                     "The bitcoin address is the key, the numeric amount (can "
+                     "be string) in " +
+                         CURRENCY_UNIT + " is the value"},
                 },
             },
-            RPCResult{
-                "\"txid\"                   (string) The transaction id for "
-                "the send. Only 1 transaction is created regardless of \n"
-                "                                    the number of "
-                "addresses.\n"},
-            RPCExamples{
-                "\nSend two amounts to two different addresses:\n" +
-                HelpExampleCli(
-                    "sendmany",
-                    "\"\" "
-                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}"
-                    "\"") +
-                "\nSend two amounts to two different addresses setting the "
-                "confirmation and comment:\n" +
-                HelpExampleCli(
-                    "sendmany",
-                    "\"\" "
-                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
-                    "6 \"testing\"") +
-                "\nSend two amounts to two different addresses, subtract fee "
-                "from amount:\n" +
-                HelpExampleCli(
-                    "sendmany",
-                    "\"\" "
-                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
-                    "1 \"\" "
-                    "\"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\","
-                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
-                "\nAs a JSON-RPC call\n" +
-                HelpExampleRpc(
-                    "sendmany",
-                    "\"\", "
-                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\","
-                    " 6, \"testing\"")},
-        }
-                                     .ToString());
+            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+             "Only use the balance confirmed at least this many times."},
+            {"comment", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             "A comment"},
+            {
+                "subtractfeefrom",
+                RPCArg::Type::ARR,
+                RPCArg::Optional::OMITTED_NAMED_ARG,
+                "A json array with addresses.\n"
+                "                           The fee will be equally deducted "
+                "from the amount of each selected address.\n"
+                "                           Those recipients will receive less "
+                "bitcoins than you enter in their corresponding amount field.\n"
+                "                           If no addresses are specified "
+                "here, the sender pays the fee.",
+                {
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
+                     "Subtract fee from this address"},
+                },
+            },
+        },
+        RPCResult{
+            "\"txid\"                   (string) The transaction id for the "
+            "send. Only 1 transaction is created regardless of \n"
+            "                                    the number of addresses.\n"},
+        RPCExamples{
+            "\nSend two amounts to two different addresses:\n" +
+            HelpExampleCli(
+                "sendmany",
+                "\"\" "
+                "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\"") +
+            "\nSend two amounts to two different addresses setting the "
+            "confirmation and comment:\n" +
+            HelpExampleCli("sendmany",
+                           "\"\" "
+                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
+                           "6 \"testing\"") +
+            "\nSend two amounts to two different addresses, subtract fee "
+            "from amount:\n" +
+            HelpExampleCli(
+                "sendmany",
+                "\"\" "
+                "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 1 \"\" "
+                "\"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\","
+                "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
+            "\nAs a JSON-RPC call\n" +
+            HelpExampleRpc("sendmany",
+                           "\"\", "
+                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\","
+                           " 6, \"testing\"")},
+    };
+
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1037,10 +1029,6 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                            "Dummy value must be set to \"\"");
     }
     UniValue sendTo = request.params[1].get_obj();
-    int nMinDepth = 1;
-    if (!request.params[2].isNull()) {
-        nMinDepth = request.params[2].get_int();
-    }
 
     mapValue_t mapValue;
     if (!request.params[3].isNull() && !request.params[3].get_str().empty()) {
@@ -1055,7 +1043,6 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::set<CTxDestination> destinations;
     std::vector<CRecipient> vecSend;
 
-    Amount totalAmount = Amount::zero();
     std::vector<std::string> keys = sendTo.getKeys();
     for (const std::string &name_ : keys) {
         CTxDestination dest = DecodeDestination(name_, config.GetChainParams());
@@ -1077,7 +1064,6 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
         if (nAmount <= Amount::zero()) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
         }
-        totalAmount += nAmount;
 
         bool fSubtractFeeFromAmount = false;
         for (size_t idx = 0; idx < subtractFeeFromAmount.size(); idx++) {
@@ -1092,12 +1078,6 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     }
 
     EnsureWalletIsUnlocked(pwallet);
-
-    // Check funds
-    if (totalAmount > pwallet->GetLegacyBalance(ISMINE_SPENDABLE, nMinDepth)) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
-                           "Wallet has insufficient funds");
-    }
 
     // Shuffle recipient list
     std::shuffle(vecSend.begin(), vecSend.end(), FastRandomContext());
