@@ -612,7 +612,7 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase &database, const char *pszMode,
             if (fCreate && !Exists(std::string("version"))) {
                 bool fTmp = fReadOnly;
                 fReadOnly = false;
-                WriteVersion(CLIENT_VERSION);
+                Write(std::string("version"), CLIENT_VERSION);
                 fReadOnly = fTmp;
             }
         }

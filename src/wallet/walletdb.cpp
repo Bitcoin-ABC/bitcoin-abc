@@ -507,7 +507,7 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
     // Last client version to open this wallet, was previously the file version
     // number
     int last_client = CLIENT_VERSION;
-    ReadVersion(last_client);
+    m_batch.Read(std::string("version"), last_client);
 
     int wallet_version = pwallet->GetVersion();
     pwallet->WalletLogPrintf("Wallet File Version = %d\n",
@@ -534,7 +534,7 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
 
     if (last_client < CLIENT_VERSION) {
         // Update
-        WriteVersion(CLIENT_VERSION);
+        m_batch.Write(std::string("version"), CLIENT_VERSION);
     }
 
     if (wss.fAnyUnordered) {
@@ -796,12 +796,4 @@ bool WalletBatch::TxnCommit() {
 
 bool WalletBatch::TxnAbort() {
     return m_batch.TxnAbort();
-}
-
-bool WalletBatch::ReadVersion(int &nVersion) {
-    return m_batch.ReadVersion(nVersion);
-}
-
-bool WalletBatch::WriteVersion(int nVersion) {
-    return m_batch.WriteVersion(nVersion);
 }
