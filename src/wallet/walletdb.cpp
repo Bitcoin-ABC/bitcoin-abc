@@ -181,7 +181,6 @@ public:
     unsigned int m_unknown_records{0};
     bool fIsEncrypted{false};
     bool fAnyUnordered{false};
-    int nFileVersion{0};
     std::vector<TxId> vWalletUpgrade;
 
     CWalletScanState() {}
@@ -378,11 +377,6 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             ssValue >> keypool;
 
             pwallet->LoadKeyPool(nIndex, keypool);
-        } else if (strType == "version") {
-            ssValue >> wss.nFileVersion;
-            if (wss.nFileVersion == 10300) {
-                wss.nFileVersion = 300;
-            }
         } else if (strType == "cscript") {
             uint160 hash;
             ssKey >> hash;
@@ -415,7 +409,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
                 return false;
             }
         } else if (strType != "bestblock" && strType != "bestblock_nomerkle" &&
-                   strType != "minversion" && strType != "acentry") {
+                   strType != "minversion" && strType != "acentry" &&
+                   strType != "version") {
             wss.m_unknown_records++;
         }
     } catch (...) {
@@ -509,7 +504,12 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
         return result;
     }
 
-    pwallet->WalletLogPrintf("nFileVersion = %d\n", wss.nFileVersion);
+    // Last client version to open this wallet, was previously the file version
+    // number
+    int last_client = CLIENT_VERSION;
+    ReadVersion(last_client);
+
+    pwallet->WalletLogPrintf("nFileVersion = %d\n", last_client);
 
     pwallet->WalletLogPrintf("Keys: %u plaintext, %u encrypted, %u w/ "
                              "metadata, %u total. Unknown wallet records: %u\n",
@@ -526,12 +526,11 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
     }
 
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
-    if (wss.fIsEncrypted &&
-        (wss.nFileVersion == 40000 || wss.nFileVersion == 50000)) {
+    if (wss.fIsEncrypted && (last_client == 40000 || last_client == 50000)) {
         return DBErrors::NEED_REWRITE;
     }
 
-    if (wss.nFileVersion < CLIENT_VERSION) {
+    if (last_client < CLIENT_VERSION) {
         // Update
         WriteVersion(CLIENT_VERSION);
     }
