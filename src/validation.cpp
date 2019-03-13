@@ -45,6 +45,7 @@
 #include "warnings.h"
 
 #include "coldrewards/rewards.h"
+#include "budget/budget.h"
 
 #include <atomic>
 #include <future>
@@ -176,6 +177,9 @@ std::unique_ptr<CBlockTreeDB> pblocktree;
 std::unique_ptr<CColdRewards> prewards;
 std::unique_ptr<CRewardsViewDB> prewardsdb;
 ///std::unique_ptr<CCoinsViewCache> prewardsTip;
+
+std::unique_ptr<CBudget> pbudget;
+
 
 enum FlushStateMode {
     FLUSH_STATE_NONE,
@@ -1848,12 +1852,22 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
     // DeVault:: Reward
-    Amount coldReward;
-    if (!prewards->Validate(block, pindex->nHeight, coldReward)) {
-      return error("ConnectBlock(): Cold Reward Invalid with %s",FormatStateMessage(state));
+    Amount nColdReward;
+    Amount nBlockSubsidy =  GetBlockSubsidy(pindex->nHeight, consensusParams);
+    Amount nBudgetReward;
+  
+    if (!pbudget->Validate(block,pindex->nHeight, nBlockSubsidy, nBudgetReward)) {
+      return error("ConnectBlock(): Budget Invalid with %s",FormatStateMessage(state));
     }
-    
-    Amount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, consensusParams) + coldReward;
+  
+    if (!pbudget->IsSuperBlock(pindex->nHeight)) {
+      // Only check Cold Rewards, if not a Superblock
+      if (!prewards->Validate(block, pindex->nHeight, nColdReward)) {
+        return error("ConnectBlock(): Cold Reward Invalid with %s",FormatStateMessage(state));
+      }
+    }
+  
+    Amount blockReward = nFees + nBlockSubsidy + nColdReward + nBudgetReward;
     
   
    // Need to take account of Cold Rewards here, for now  bypass check
@@ -1898,7 +1912,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     }
 
     // DeVault:: Reward, update DB entry
-    if (coldReward > Amount()) prewards->UpdateRewardsDB(pindex->nHeight);
+    if (nColdReward > Amount()) prewards->UpdateRewardsDB(pindex->nHeight);
 
     assert(pindex->phashBlock);
     // add this block to the view's block chain
@@ -2142,7 +2156,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         }
     }
     LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
-              "date='%s' progress=%f cache=%.1fMiB(%utxo)",
+              "date='%s' progress=%.2f cache=%.1fMiB(%utxo)",
               __func__, chainActive.Tip()->GetBlockHash().ToString(),
               chainActive.Height(), chainActive.Tip()->nVersion,
               log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),

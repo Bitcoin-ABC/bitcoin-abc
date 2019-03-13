@@ -126,6 +126,7 @@ BITCOIN_CORE_H = \
   compat/sanity.h \
   compressor.h \
   config.h \
+	budget/budget.h \
   coldrewards/rewards.h \
   coldrewards/rewardsview.h \
   consensus/activation.h \
@@ -242,6 +243,7 @@ libbitcoin_server_a_SOURCES = \
   chain.cpp \
   checkpoints.cpp \
   config.cpp \
+	budget/budget.cpp \
 	coldrewards/rewards.cpp \
 	coldrewards/rewardsview.cpp \
   consensus/activation.cpp \

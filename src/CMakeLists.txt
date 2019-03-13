@@ -95,6 +95,7 @@ add_subdirectory(leveldb)
 add_subdirectory(secp256k1)
 add_subdirectory(univalue)
 add_subdirectory(coldrewards)
+add_subdirectory(budget)
 
 file(GLOB PRIMITIVE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/primitives/*.h)
 source_group("PrimitiveHeaders" FILES ${PRIMITIVE_HEADERS})
@@ -235,7 +236,7 @@ add_library(devaultconsensus
 	utilstrencodings.cpp
 )
 
-target_link_libraries(devaultconsensus common coldrewards)
+target_link_libraries(devaultconsensus common coldrewards budget)
 
 # Bitcoin server facilities
 add_library(server

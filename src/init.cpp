@@ -52,6 +52,7 @@
 #include "warnings.h"
 
 #include "coldrewards/rewards.h"
+#include "budget/budget.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -261,6 +262,7 @@ void Shutdown() {
         pblocktree.reset();
         prewardsdb.reset();
         prewards.reset();
+        pbudget.reset();
         ////prewardscatcher.reset();
         ////prewardsTip.reset();
     }
@@ -2058,6 +2060,7 @@ bool AppInitMain(Config &config,
                 pcoinsdbview.reset();
                 pcoinscatcher.reset();
                 prewardsdb.reset();
+                pbudget.reset();
                 /////prewardsTip.reset();
                 /////prewardscatcher.reset();
 
@@ -2134,7 +2137,9 @@ bool AppInitMain(Config &config,
                 /////prewardsTip.reset(new CCoinsViewCache(prewardscatcher.get()));
                 
                 prewards.reset(new CColdRewards(chainparams.GetConsensus(), prewardsdb.get()));
-              
+
+                pbudget.reset(new CBudget(config));
+                
                 pcoinscatcher.reset(
                     new CCoinsViewErrorCatcher(pcoinsdbview.get()));
 

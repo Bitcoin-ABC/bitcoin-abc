@@ -28,6 +28,7 @@
 #include "validation.h"
 #include "validationinterface.h"
 #include "coldrewards/rewards.h"
+#include "budget/budget.h"
 
 #include <algorithm>
 #include <queue>
@@ -185,18 +186,22 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     nLastBlockTx = nBlockTx;
     nLastBlockSize = nBlockSize;
 
+    Amount nMiningReward = GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+  
     // Create coinbase transaction.
     CMutableTransaction coinbaseTx;
     coinbaseTx.vin.resize(1);
     coinbaseTx.vin[0].prevout = COutPoint();
     coinbaseTx.vout.resize(1);
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-    coinbaseTx.vout[0].nValue =
-        nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    coinbaseTx.vout[0].nValue = nFees + nMiningReward;
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
   
-    // Cold Rewards
-    prewards->FillPayments(coinbaseTx, nHeight);
+    // if Budget Superblock, skip Cold Rewards
+    if (!pbudget->FillPayments(coinbaseTx, nHeight, nMiningReward)) {
+      // Cold Rewards
+      prewards->FillPayments(coinbaseTx, nHeight);
+    }
 
     // Make sure the coinbase is big enough.
     uint64_t coinbaseSize =

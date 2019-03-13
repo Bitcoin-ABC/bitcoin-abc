@@ -46,6 +46,7 @@ class CTxUndo;
 class CValidationInterface;
 class CValidationState;
 
+class CBudget;
 class CColdRewards;
 class CRewardsViewDB;
 
@@ -686,6 +687,7 @@ extern std::unique_ptr<CBlockTreeDB> pblocktree;
 // DeVault:: Reward
 extern std::unique_ptr<CRewardsViewDB> prewardsdb;
 extern std::unique_ptr<CColdRewards> prewards;
+extern std::unique_ptr<CBudget> pbudget;
 //extern std::unique_ptr<CCoinsViewCache> prewardsTip;
 
 
