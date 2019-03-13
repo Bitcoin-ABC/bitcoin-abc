@@ -56,6 +56,18 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 	
 if(ENABLE_HARDENING)
+	# Enable stack protection
+	add_cxx_compiler_flag(-fstack-protector-all -Wstack-protector)
+	
+	# Enable some buffer overflow checking
+	add_compiler_flag(-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+	
+	# Enable ASLR (these flags are primarily targeting MinGw)
+	add_linker_flag(-Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)
+	
+	# Make the relocated sections read-only
+	add_linker_flag(-Wl,-z,relro -Wl,-z,now)
+
 	# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
 	# Unfortunately setting the -pie linker flag this way require CMake >= 3.14,
 	# which is not widely distributed at the time of writing.
@@ -63,6 +75,9 @@ if(ENABLE_HARDENING)
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		add_compiler_flag(-fPIE)
 		add_linker_flag(-pie)
+	else()
+		# MinGw provides its own libssp for stack smashing protection
+		link_libraries(ssp)
 	endif()
 endif()
 
