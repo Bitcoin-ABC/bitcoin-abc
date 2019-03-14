@@ -15,18 +15,19 @@
 struct BudgetStruct {
   std::string MainNetAddress;
   std::string TestNetAddress;
+  std::string Purpose;
   int64_t percent;
 };
 
 // Consts until change is required
 // Reward Address & Percentage
 const BudgetStruct Payouts[] = {
-    {"devault:qryvj8ezelgrgmr22myc7suwnn7pal9a0vtvtwfr96", "dvtest:qryvj8ezelgrgmr22myc7suwnn7pal9a0vtvtwfr96", 15},
-    {"devault:qrhcm0z0gn4ccygcqesmrshgdgumlhyavvlcnwtgll", "dvtest:qrhcm0z0gn4ccygcqesmrshgdgumlhyavvlcnwtgll", 10},
-    {"devault:qz4nj7c6x5uf5ar6rqjj602eyux26t0ftuarvygttl", "dvtest:qz4nj7c6x5uf5ar6rqjj602eyux26t0ftuarvygttl", 5},
-    {"devault:qzeyacx0xhvpd0zq7neyywed0qs4yfh2psr36ntaep", "dvtest:qzeyacx0xhvpd0zq7neyywed0qs4yfh2psr36ntaep", 5},
-    {"devault:qzjjtr6pxrkh69ugsvjcwj4h7dexvx72ayh3vkgrwt", "dvtest:qzjjtr6pxrkh69ugsvjcwj4h7dexvx72ayh3vkgrwt", 5},
-    {"devault:qpd3d3ufpcwa2n6ghqnmlrcw62syh68cjvc98u84ws", "dvtest:qpd3d3ufpcwa2n6ghqnmlrcw62syh68cjvc98u84ws", 5}};
+    {"devault:qryvj8ezelgrgmr22myc7suwnn7pal9a0vtvtwfr96", "dvtest:qryvj8ezelgrgmr22myc7suwnn7pal9a0vtvtwfr96", "Community",15},
+    {"devault:qrhcm0z0gn4ccygcqesmrshgdgumlhyavvlcnwtgll", "dvtest:qrhcm0z0gn4ccygcqesmrshgdgumlhyavvlcnwtgll", "CoreDevs", 10},
+    {"devault:qz4nj7c6x5uf5ar6rqjj602eyux26t0ftuarvygttl", "dvtest:qz4nj7c6x5uf5ar6rqjj602eyux26t0ftuarvygttl", "WebDevs", 5},
+    {"devault:qzeyacx0xhvpd0zq7neyywed0qs4yfh2psr36ntaep", "dvtest:qzeyacx0xhvpd0zq7neyywed0qs4yfh2psr36ntaep", "BusDevs",5},
+    {"devault:qzjjtr6pxrkh69ugsvjcwj4h7dexvx72ayh3vkgrwt", "dvtest:qzjjtr6pxrkh69ugsvjcwj4h7dexvx72ayh3vkgrwt", "Marketing",5},
+    {"devault:qpd3d3ufpcwa2n6ghqnmlrcw62syh68cjvc98u84ws", "dvtest:qpd3d3ufpcwa2n6ghqnmlrcw62syh68cjvc98u84ws", "Support", 5}};
 
 
 // Get Array Size at Compile time for Loops
@@ -37,6 +38,16 @@ bool CBudget::Validate(const CBlock &block, int nHeight, const Amount &BlockRewa
   if (!IsSuperBlock(nHeight)) return true;
 
   Amount refRewards = CalculateSuperBlockRewards(nHeight, BlockReward);
+  
+  // Just Log during Validation
+  for (int i = 0; i < BudgetSize; i++) {
+    if (fTestNet) {
+      LogPrintf("%s: budget payment to %s (%s) for %d COINs\n", __func__, Payouts[i].Purpose, Payouts[i].TestNetAddress, nPayment[i] );
+    } else {
+      LogPrintf("%s: budget payment to %s (%s) for %d COINs\n", __func__, Payouts[i].Purpose, Payouts[i].MainNetAddress, nPayment[i] );
+    }
+  }
+
 
   bool fPaymentOK = true;
   auto txCoinbase = block.vtx[0];
@@ -62,17 +73,18 @@ bool CBudget::Validate(const CBlock &block, int nHeight, const Amount &BlockRewa
 
 Amount CBudget::CalculateSuperBlockRewards(int nHeight, const Amount &nOverallReward) {
   if (!IsSuperBlock(nHeight)) return Amount();
-
-  // Overall Reward should be an integer
+  
+  // Get Sum of the %s to get a gain factor since we must include block rewards
+  // and scale appropriately
+  int PerCentSum = 0;
+  for (int i = 0; i < BudgetSize; i++) PerCentSum += Payouts[i].percent;
+  int ScaleFactor = (100-PerCentSum);
+  
+  // Overall Reward should be an integer - so divide by COIN and then re-mulitply
   Amount sumRewards;
   for (int i = 0; i < BudgetSize; i++) {
-    nPayment[i] = (((Payouts[i].percent * nBlocksPerPeriod * nOverallReward) / COIN) * COIN) / 100;
+    nPayment[i] = (((Payouts[i].percent * nBlocksPerPeriod * nOverallReward) / (ScaleFactor *  COIN)) * COIN);
     sumRewards += nPayment[i];
-    if (fTestNet) {
-        LogPrintf("%s: budget payment to %s for %d COINs\n", __func__, Payouts[i].TestNetAddress, nPayment[i] / COIN);
-    } else {
-        LogPrintf("%s: budget payment to %s for %d COINs\n", __func__, Payouts[i].MainNetAddress, nPayment[i] / COIN);
-    }        
   }
   return sumRewards;
 }
@@ -83,9 +95,8 @@ CBudget::CBudget(const Config &config) {
   nPayment.reset(new Amount[BudgetSize]);
   Scripts.reset(new CScript[BudgetSize]);
 
-  //  nBlocksPerPeriod = (chainparams.GetConsensus().nBlocksPerYear / 12);
-  nBlocksPerPeriod = 100;///(chainparams.GetConsensus().nBlocksPerYear / 12);
-
+  nBlocksPerPeriod = (chainparams.GetConsensus().nBlocksPerYear / 12);
+  
   fTestNet = (chainparams.NetworkIDString() != "main");
   
   for (int i = 0; i < BudgetSize; i++) {
