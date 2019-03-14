@@ -191,6 +191,12 @@ void OptionsModel::Init(bool resetSettings) {
     }
 
     language = settings.value("language").toString();
+
+    if (!settings.contains("theme")) 
+        settings.setValue("theme", "light"); 
+    if (!gArgs.SoftSetArg("-theme", settings.value("theme").toString().toStdString())) 
+        addOverriddenOption("-theme"); 
+    theme = settings.value("theme").toString();
 }
 
 void OptionsModel::Reset() {
@@ -289,6 +295,8 @@ QVariant OptionsModel::data(const QModelIndex &index, int role) const {
                 return strThirdPartyTxUrls;
             case Language:
                 return settings.value("language");
+            case Theme:
+                return settings.value("theme");
             case CoinControlFeatures:
                 return fCoinControlFeatures;
             case DatabaseCache:
@@ -442,6 +450,12 @@ bool OptionsModel::setData(const QModelIndex &index, const QVariant &value,
                     setRestartRequired(true);
                 }
                 break;
+            case Theme: 
+                if (settings.value("theme") != value) { 
+                    settings.setValue("theme", value); 
+                    setRestartRequired(true); 
+                } 
+                break;   
             case CoinControlFeatures:
                 fCoinControlFeatures = value.toBool();
                 settings.setValue("fCoinControlFeatures", fCoinControlFeatures);

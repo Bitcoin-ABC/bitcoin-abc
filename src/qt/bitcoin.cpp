@@ -202,6 +202,7 @@ public:
     explicit BitcoinApplication(int &argc, char **argv);
     ~BitcoinApplication();
 
+    void initPlatformStyle();
     /// parameter interaction/setup based on rules
     void parameterSetup();
     /// Create options model
@@ -320,15 +321,7 @@ BitcoinApplication::BitcoinApplication(int &argc, char **argv)
     // UI per-platform customization.
     // This must be done inside the BitcoinApplication constructor, or after it,
     // because PlatformStyle::instantiate requires a QApplication.
-    std::string platformName;
-    platformName = gArgs.GetArg("-uiplatform", BitcoinGUI::DEFAULT_UIPLATFORM);
-    platformStyle =
-        PlatformStyle::instantiate(QString::fromStdString(platformName));
-    // Fall back to "other" if specified name not found.
-    if (!platformStyle) {
-        platformStyle = PlatformStyle::instantiate("other");
-    }
-    assert(platformStyle);
+
 }
 
 BitcoinApplication::~BitcoinApplication() {
@@ -346,6 +339,16 @@ BitcoinApplication::~BitcoinApplication() {
     delete platformStyle;
     platformStyle = 0;
 }
+
+void BitcoinApplication::initPlatformStyle() 
+{ 
+    std::string platformName; 
+    platformName = gArgs.GetArg("-uiplatform", BitcoinGUI::DEFAULT_UIPLATFORM); 
+    platformStyle = PlatformStyle::instantiate(QString::fromStdString(platformName)); 
+    if (!platformStyle) // Fall back to "other" if specified name not found 
+        platformStyle = PlatformStyle::instantiate("other"); 
+    assert(platformStyle); 
+} 
 
 void BitcoinApplication::createOptionsModel(bool resetSettings) {
     optionsModel = new OptionsModel(nullptr, resetSettings);
@@ -645,6 +648,9 @@ int main(int argc, char *argv[]) {
         help.showOrPrint();
         return EXIT_SUCCESS;
     }
+
+    /// 4.5 Settings available --> init Platformstyle 
+    app.initPlatformStyle(); 
 
     /// 5. Now that settings and translations are available, ask user for data
     /// directory. User language is set up: pick a data directory.

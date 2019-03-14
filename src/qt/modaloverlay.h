@@ -5,6 +5,8 @@
 #ifndef BITCOIN_QT_MODALOVERLAY_H
 #define BITCOIN_QT_MODALOVERLAY_H
 
+#include "platformstyle.h"
+
 #include <QDateTime>
 #include <QWidget>
 
@@ -21,7 +23,7 @@ class ModalOverlay : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ModalOverlay(QWidget *parent);
+    explicit ModalOverlay(const PlatformStyle *platformStyle, QWidget *parent);
     ~ModalOverlay();
 
 public Q_SLOTS:
@@ -46,6 +48,7 @@ private:
     QVector<QPair<qint64, double>> blockProcessTime;
     bool layerIsVisible;
     bool userClosed;
+    const PlatformStyle *platformStyle;
 };
 
 #endif // BITCOIN_QT_MODALOVERLAY_H

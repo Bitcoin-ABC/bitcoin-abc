@@ -282,6 +282,11 @@ RES_ICONS = \
   qt/res/icons/tx_output.png \
   qt/res/icons/tx_mined.png \
   qt/res/icons/warning.png \
+  qt/res/icons/dvt_header.png \
+  qt/res/icons/up_arrow.png \
+  qt/res/icons/down_arrow.png \
+  qt/res/icons/up_arrow_off.png \
+  qt/res/icons/down_arrow_off.png \
   qt/res/icons/verify.png
 
 BITCOIN_QT_BASE_CPP = \

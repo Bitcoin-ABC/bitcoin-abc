@@ -116,6 +116,11 @@ void FreespaceChecker::check() {
 
 Intro::Intro(QWidget *parent)
     : QDialog(parent), ui(new Ui::Intro), thread(0), signalled(false) {
+    QSettings settings; 
+    if(settings.value("theme").toString() == "dark") 
+    {   
+        setStyleSheet("QWidget { background: rgba(30,30,30); color: rgb(211,211,211); }"); 
+    } 
     ui->setupUi(this);
     ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));
     ui->storageLabel->setText(ui->storageLabel->text().arg(tr(PACKAGE_NAME)));

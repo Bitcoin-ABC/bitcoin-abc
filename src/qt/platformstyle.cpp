@@ -12,6 +12,7 @@
 #include <QImage>
 #include <QPalette>
 #include <QPixmap>
+#include <QSettings>
 
 static const struct {
     const char *platformId;
@@ -21,7 +22,7 @@ static const struct {
     const bool colorizeIcons;
     /** Extra padding/spacing in transactionview */
     const bool useExtraSpacing;
-} platform_styles[] = {{"macosx", false, false, true},
+} platform_styles[] = {{"macosx", false, true, true},
                        {"windows", true, false, false},
                        /* Other: linux, unix, ... */
                        {"other", true, true, false}};
@@ -69,25 +70,30 @@ PlatformStyle::PlatformStyle(const QString &_name, bool _imagesOnButtons,
     : name(_name), imagesOnButtons(_imagesOnButtons),
       colorizeIcons(_colorizeIcons), useExtraSpacing(_useExtraSpacing),
       singleColor(0, 0, 0), textColor(0, 0, 0) {
-    // Determine icon highlighting color
-    if (colorizeIcons) {
-        const QColor colorHighlightBg(
-            QApplication::palette().color(QPalette::Highlight));
-        const QColor colorHighlightFg(
-            QApplication::palette().color(QPalette::HighlightedText));
-        const QColor colorText(
-            QApplication::palette().color(QPalette::WindowText));
-        const int colorTextLightness = colorText.lightness();
-        QColor colorbase;
-        if (abs(colorHighlightBg.lightness() - colorTextLightness) <
-            abs(colorHighlightFg.lightness() - colorTextLightness))
-            colorbase = colorHighlightBg;
-        else
-            colorbase = colorHighlightFg;
-        singleColor = colorbase;
+      QSettings settings; 
+    if(settings.value("theme").toString() == "dark") 
+    { 
+        //dark theme
+        singleColor = QColor(211,211,211); 
+        textColor = QColor(211,211,211);         
+    } else {
+        //default light theme
+        // Determine icon highlighting color
+        if (colorizeIcons) {
+            const QColor colorHighlightBg(QApplication::palette().color(QPalette::Highlight));
+            const QColor colorHighlightFg(QApplication::palette().color(QPalette::HighlightedText));
+            const QColor colorText(QApplication::palette().color(QPalette::WindowText));
+            const int colorTextLightness = colorText.lightness();
+            QColor colorbase;
+            if (abs(colorHighlightBg.lightness() - colorTextLightness) < abs(colorHighlightFg.lightness() - colorTextLightness))
+                colorbase = colorHighlightBg;
+            else
+                colorbase = colorHighlightFg;
+            singleColor = colorbase;
+        }
+        // Determine text color
+        textColor = QColor(QApplication::palette().color(QPalette::WindowText));
     }
-    // Determine text color
-    textColor = QColor(QApplication::palette().color(QPalette::WindowText));
 }
 
 QImage PlatformStyle::SingleColorImage(const QString &filename) const {

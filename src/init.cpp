@@ -924,12 +924,15 @@ std::string HelpMessage(HelpMessageMode mode) {
 
 std::string LicenseInfo() {
     const std::string URL_SOURCE_CODE =
-        "<https://github.com/Bitcoin-ABC/bitcoin-abc>";
-    const std::string URL_WEBSITE = "<https://www.bitcoinabc.org>";
+        "<https://github.com/devaultcrypto/devault>";
+    const std::string URL_WEBSITE = "<https://www.devault.cc>";
 
     return CopyrightHolders(
                strprintf(_("Copyright (C) %i-%i"), 2009, COPYRIGHT_YEAR) +
                " ") +
+           "\n" + "\n" +
+	       strprintf(_("Copyright (C) 2019") +
+               "  The DeVault Developers ") +
            "\n" + "\n" +
            strprintf(_("Please contribute if you find %s useful. "
                        "Visit %s for further information about the software."),

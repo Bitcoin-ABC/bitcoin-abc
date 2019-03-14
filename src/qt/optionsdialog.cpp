@@ -81,8 +81,11 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
         ui->bitcoinAtStartup->text().arg(tr(PACKAGE_NAME)));
 
     ui->lang->setToolTip(ui->lang->toolTip().arg(tr(PACKAGE_NAME)));
+    ui->theme->setToolTip(ui->theme->toolTip().arg(tr(PACKAGE_NAME)));
     ui->lang->addItem(QString("(") + tr("default") + QString(")"),
                       QVariant(""));
+    ui->theme->addItem(tr("light"), QVariant("light")); 
+    ui->theme->addItem(tr("dark"), QVariant("dark"));
     for (const QString &langStr : translations.entryList()) {
         QLocale locale(langStr);
 
@@ -166,6 +169,7 @@ void OptionsDialog::setModel(OptionsModel *_model) {
             SLOT(showRestartWarning()));
     /* Display */
     connect(ui->lang, SIGNAL(valueChanged()), this, SLOT(showRestartWarning()));
+    connect(ui->theme, SIGNAL(valueChanged()), this, SLOT(showRestartWarning())); 
     connect(ui->thirdPartyTxUrls, SIGNAL(textChanged(const QString &)), this,
             SLOT(showRestartWarning()));
 }
@@ -204,6 +208,7 @@ void OptionsDialog::setMapper() {
 
     /* Display */
     mapper->addMapping(ui->lang, OptionsModel::Language);
+    mapper->addMapping(ui->theme, OptionsModel::Theme);
     mapper->addMapping(ui->unit, OptionsModel::DisplayUnit);
     mapper->addMapping(ui->thirdPartyTxUrls, OptionsModel::ThirdPartyTxUrls);
 }

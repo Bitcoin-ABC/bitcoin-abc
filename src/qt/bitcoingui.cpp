@@ -81,6 +81,48 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
         move(QApplication::desktop()->availableGeometry().center() -
              frameGeometry().center());
     }
+    if(settings.value("theme").toString() == "dark")
+    {
+    QString appstyle = "fusion";
+    QApplication::setStyle(appstyle);    
+    setStyleSheet("QFrame { background: rgb(22,22,22); alternate-background-color: rgb(22,22,22);}"
+                    "QWidget {background: rgb(30,30,30); color: rgb(211,211,211); }"
+                    "QHeaderView { background: rgb(22,22,22)} "
+                    "QLineEdit { background: rgb(22,22,22); border-style: solid; border-width: 1px;  border-color: rgb(30,30,30) }"
+                    "QAbstractSpinBox { background: rgb(22,22,22); border-style: solid; border-width: 1px;  border-color: rgb(30,30,30); padding: 0px }"
+                    "QSpinBox::down-button:off {width: 30px; border: solid }"
+                    "QComboBox { background: rgb(22,22,22); }"
+                    //"QSpinBox::down-button { subcontrol-origin: border; subcontrol-position: center; width: 16px; border-color: rgb(32,32,32); border-width: 1px;}"
+                    "QAbstractSpinBox::up-arrow { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/up_arrow) }"
+                    "QAbstractSpinBox::down-arrow { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/down_arrow) }"                    
+                    "QAbstractSpinBox::up-arrow:off { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/up_arrow_off) }"                    
+                    "QAbstractSpinBox::down-arrow:off { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/down_arrow_off) }"                    
+                    ".QFrame { border-style: solid; border-width: 1px;  border-color: rgb(30,30,30) }"
+                    //"QLabel { border-style: none; border-width: 1px;  border-color: rgb(30,30,30) }"
+                    "QTableView { border: 1px solid rgb(30,30,30); selection-background-color: rgb(62,62,62); selection-color: rgb(0,178,255); alternate-background: rgb(22,22,22); }"
+                    "QTableView::item { border-right: 1px solid rgb(30,30,30); border-bottom: 1px solid rgb(30,30,30);}"                    
+                    "RecentRequestsTableModel::item { selection-background: rgb(62,62,62); selection-color: rgb(0,178,255); alternate-background: rgb(22,22,22); }"
+                    //"QToolBar {background: red; border-color: rgb (32,32,32); border-style: solid; border-width: 1px }"
+                    "QToolButton { background: rgb(30,30,30); border-color: rgb(22,22,22); border-style: solid; border-width: 1px; border-radius: 5px; padding: 6px; margin: 3px}"
+                    "QToolButton:hover { background: rgb(62,62,62); border-color: rgb(22,22,22); border-style: solid; border-width: 1px; border-radius: 5px; padding: 6px}"                          
+                    "QToolButton:checked { background: rgb(22,22,22); border-color: rgb(0,178,255); border-style: solid; border-width: 1px; border-radius: 5px; padding: 6px}"
+                    "QScrollBar {border: 2px solid rgb(62,62,62); background: rgb(32,32,32); margin: 0px 20px 0 20px;}"
+                    "QScrollBar::handle { background: rgb(119,119,119); }"
+                    //"QCheckBox::indicator { background: rgb(22,22,22); }"
+                    "QMenu:item:selected { color: rgb(0,178,255); background: rgb(22,22,22); }"
+                    "QMenuBar:item:selected { color: rgb(0,178,255); background: rgb(22,22,22); }"
+                    "QPushButton { background: rgb(30,30,30); color: rgb(211,211,211); border-width: 1px; padding: 6px; border-style: solid; border-radius: 5px ; border-color: rgb(22,22,22)}"
+                    "QPushButton:hover { background: rgb(22,22,22); }"
+                    "QProgressBar {color: rgb(22,22,22); background: rgb(62,62,62);  border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; }" 
+                    "QProgressBar::chunk {color: rgb(22,22,22); background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgb(0,178,255), stop: 1 rgb(0,174.255), stop: 2 rgb(0,174.255)); border-radius: 7px; margin: 0px; }"
+                    "#labelWalletStatus { border: none }"
+                    "#labelTransactionsStatus { border: none }"
+                    "#lineWatchBalance { border: none }"
+                    "#line { border: none; color: rgb(30,30,30) }"
+                    "#widgetCoinControl { border: none }"
+                    "#checkBoxCoinControlChange { padding-left: 5px }"
+                );
+    }
 
     QString windowTitle = tr(PACKAGE_NAME) + " - ";
 #ifdef ENABLE_WALLET
@@ -143,6 +185,7 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
     QFrame *frameBlocks = new QFrame();
     frameBlocks->setContentsMargins(0, 0, 0, 0);
     frameBlocks->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    frameBlocks->setStyleSheet("border: none");
     QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
     frameBlocksLayout->setContentsMargins(3, 0, 3, 0);
     frameBlocksLayout->setSpacing(3);
@@ -202,7 +245,7 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
     connect(connectionsControl, SIGNAL(clicked(QPoint)), this,
             SLOT(toggleNetworkActive()));
 
-    modalOverlay = new ModalOverlay(this->centralWidget());
+    modalOverlay = new ModalOverlay(platformStyle, this->centralWidget());
 #ifdef ENABLE_WALLET
     if (enableWallet) {
         connect(walletFrame, SIGNAL(requestedSyncWarningInfo()), this,

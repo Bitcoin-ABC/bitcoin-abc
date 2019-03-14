@@ -40,6 +40,7 @@ public:
         DisplayUnit,         // BitcoinUnits::Unit
         ThirdPartyTxUrls,    // QString
         Language,            // QString
+        Theme,               // QString
         CoinControlFeatures, // bool
         ThreadsScriptVerif,  // int
         DatabaseCache,       // int
@@ -82,6 +83,7 @@ private:
     bool fMinimizeToTray;
     bool fMinimizeOnClose;
     QString language;
+    QString theme;
     int nDisplayUnit;
     QString strThirdPartyTxUrls;
     bool fCoinControlFeatures;
