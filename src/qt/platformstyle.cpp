@@ -22,7 +22,7 @@ static const struct {
     const bool colorizeIcons;
     /** Extra padding/spacing in transactionview */
     const bool useExtraSpacing;
-} platform_styles[] = {{"macosx", false, true, true},
+} platform_styles[] = {{"macosx", false, false, true},
                        {"windows", true, false, false},
                        /* Other: linux, unix, ... */
                        {"other", true, true, false}};

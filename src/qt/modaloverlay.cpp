@@ -11,40 +11,11 @@
 
 #include <QPropertyAnimation>
 #include <QResizeEvent>
-#include <QSettings>
 
-ModalOverlay::ModalOverlay(const PlatformStyle *_platformStyle, QWidget *parent) :
-QWidget(parent),
-ui(new Ui::ModalOverlay),
-bestHeaderHeight(0),
-bestHeaderDate(QDateTime()),
-layerIsVisible(false),
-userClosed(false),
-platformStyle(_platformStyle)
-{
-    ui->setupUi(this); 
-
-    QSettings settings; 
-    bool darkTheme = (settings.value("theme").toString() == "dark"); 
-    if(darkTheme) 
-    { 
-        setStyleSheet( 
-        "#contentWidget { background: rgba(30,30,30); border-radius: 6px; }" 
-        "QPushButton { background-color: rgb(30,30,30); color: rgb(211,211,211); border-width: 1px; padding: 6px; border-style: outset; border-radius: 5px ; border-color: rgb(22,22,22); }" 
-        "QPushButton:hover { background: rgb(22,22,22); }"
-        "#warningIcon { border: none }");
-        
-        if (platformStyle->getImagesOnButtons()) { 
-            QIcon icon = platformStyle->SingleColorIcon(":/icons/warning"); 
-            icon.addPixmap(icon.pixmap(QSize(64,64), QIcon::Normal), QIcon::Disabled); 
-            ui->warningIcon->setIcon(icon); 
-        }  
-    }else{ 
-        setStyleSheet( 
-        "#contentWidget { background: rgba(211,211,211,240); border-radius: 6px; }" 
-        "QLabel { color: rgb(40,40,40); }"); 
-    }
-
+ModalOverlay::ModalOverlay(QWidget *parent)
+    : QWidget(parent), ui(new Ui::ModalOverlay), bestHeaderHeight(0),
+      bestHeaderDate(QDateTime()), layerIsVisible(false), userClosed(false) {
+    ui->setupUi(this);
     connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(closeClicked()));
     if (parent) {
         parent->installEventFilter(this);

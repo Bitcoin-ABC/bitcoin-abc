@@ -23,7 +23,7 @@ class ModalOverlay : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ModalOverlay(const PlatformStyle *platformStyle, QWidget *parent);
+    explicit ModalOverlay(QWidget *parent);
     ~ModalOverlay();
 
 public Q_SLOTS:

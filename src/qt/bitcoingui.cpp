@@ -245,7 +245,7 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
     connect(connectionsControl, SIGNAL(clicked(QPoint)), this,
             SLOT(toggleNetworkActive()));
 
-    modalOverlay = new ModalOverlay(platformStyle, this->centralWidget());
+    modalOverlay = new ModalOverlay(this->centralWidget());
 #ifdef ENABLE_WALLET
     if (enableWallet) {
         connect(walletFrame, SIGNAL(requestedSyncWarningInfo()), this,
