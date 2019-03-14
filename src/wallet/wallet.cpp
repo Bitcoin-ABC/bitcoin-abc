@@ -135,8 +135,6 @@ const CWalletTx *CWallet::GetWalletTx(const TxId &txid) const {
 CPubKey CWallet::GenerateNewKey(CWalletDB &walletdb, bool internal) {
     // mapKeyMetadata
     AssertLockHeld(cs_wallet);
-    // default to compressed public keys if we want 0.6.0 wallets
-    bool fCompressed = CanSupportFeature(FEATURE_COMPRPUBKEY);
 
     CKey secret;
 
@@ -144,19 +142,8 @@ CPubKey CWallet::GenerateNewKey(CWalletDB &walletdb, bool internal) {
     int64_t nCreationTime = GetTime();
     CKeyMetadata metadata(nCreationTime);
 
-    // use HD key derivation if HD was enabled during wallet creation
-    if (IsHDEnabled()) {
-        DeriveNewChildKey(
-            walletdb, metadata, secret,
-            (CanSupportFeature(FEATURE_HD_SPLIT) ? internal : false));
-    } else {
-        secret.MakeNewKey(fCompressed);
-    }
-
-    // Compressed public keys were introduced in version 0.6.0
-    if (fCompressed) {
-        SetMinVersion(FEATURE_COMPRPUBKEY);
-    }
+    // use HD key derivation since HD was enabled during wallet creation
+    DeriveNewChildKey(walletdb, metadata, secret, internal);
 
     CPubKey pubkey = secret.GetPubKey();
     assert(secret.VerifyPubKey(pubkey));
@@ -199,7 +186,6 @@ void CWallet::DeriveNewChildKey(CWalletDB &walletdb, CKeyMetadata &metadata,
     masterKey.Derive(accountKey, BIP32_HARDENED_KEY_LIMIT);
 
     // derive m/0'/0' (external chain) OR m/0'/1' (internal chain)
-    assert(internal ? CanSupportFeature(FEATURE_HD_SPLIT) : true);
     accountKey.Derive(chainChildKey,
                       BIP32_HARDENED_KEY_LIMIT + (internal ? 1 : 0));
 
@@ -743,9 +729,6 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
             assert(false);
         }
 
-        // Encryption was introduced in version 0.4.0
-        SetMinVersion(FEATURE_WALLETCRYPT, pwalletdbEncryption, true);
-
         if (!pwalletdbEncryption->TxnCommit()) {
             delete pwalletdbEncryption;
             // We now have keys encrypted in memory, but not on disk... die to
@@ -759,16 +742,14 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
         Lock();
         Unlock(strWalletPassphrase);
 
-        // If we are using HD, replace the HD master key (seed) with a new one.
-        if (IsHDEnabled()) {
-            CKey key;
-            CPubKey masterPubKey = GenerateNewHDMasterKey();
-            // preserve the old chains version to not break backward
-            // compatibility
-            CHDChain oldChain = GetHDChain();
-            if (!SetHDMasterKey(masterPubKey, &oldChain)) {
-                return false;
-            }
+        // Since we are using HD, replace the HD master key (seed) with a new one.
+        CKey key;
+        CPubKey masterPubKey = GenerateNewHDMasterKey();
+        // preserve the old chains version to not break backward
+        // compatibility
+        CHDChain oldChain = GetHDChain();
+        if (!SetHDMasterKey(masterPubKey, &oldChain)) {
+            return false;
         }
 
         NewKeyPool();
@@ -3534,10 +3515,6 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
     int64_t missingInternal = std::max<int64_t>(
         std::max<int64_t>(nTargetSize, 1) - setInternalKeyPool.size(), 0);
 
-    if (!IsHDEnabled() || !CanSupportFeature(FEATURE_HD_SPLIT)) {
-        // don't create extra internal keys
-        missingInternal = 0;
-    }
     bool internal = false;
     CWalletDB walletdb(*dbw);
     for (int64_t i = missingInternal + missingExternal; i--;) {
@@ -3583,10 +3560,7 @@ void CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
     if (!IsLocked()) {
         TopUpKeyPool();
     }
-
-    bool fReturningInternal = IsHDEnabled() &&
-                              CanSupportFeature(FEATURE_HD_SPLIT) &&
-                              fRequestedInternal;
+    bool fReturningInternal = fRequestedInternal;
     std::set<int64_t> &setKeyPool =
         fReturningInternal ? setInternalKeyPool : setExternalKeyPool;
 
@@ -3683,10 +3657,7 @@ int64_t CWallet::GetOldestKeyPoolTime() {
 
     // load oldest key from keypool, get time and return
     int64_t oldestKey = GetOldestKeyTimeInPool(setExternalKeyPool, walletdb);
-    if (IsHDEnabled() && CanSupportFeature(FEATURE_HD_SPLIT)) {
-        oldestKey = std::max(
-            GetOldestKeyTimeInPool(setInternalKeyPool, walletdb), oldestKey);
-    }
+    oldestKey = std::max(GetOldestKeyTimeInPool(setInternalKeyPool, walletdb), oldestKey);
 
     return oldestKey;
 }
@@ -3921,8 +3892,7 @@ void CWallet::MarkReserveKeysAsUsed(int64_t keypool_id) {
 
 bool CWallet::HasUnusedKeys(size_t min_keys) const {
     return setExternalKeyPool.size() >= min_keys &&
-           (setInternalKeyPool.size() >= min_keys ||
-            !CanSupportFeature(FEATURE_HD_SPLIT));
+           (setInternalKeyPool.size() >= min_keys);
 }
 
 void CWallet::GetScriptForMining(std::shared_ptr<CReserveScript> &script) {
@@ -4244,20 +4214,12 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
     if (fFirstRun) {
         // Create new keyUser and set as default key.
-        if (gArgs.GetBoolArg("-usehd", DEFAULT_USE_HD_WALLET) &&
-            !walletInstance->IsHDEnabled()) {
-
-            // Ensure this wallet.dat can only be opened by clients supporting
-            // HD with chain split.
-            walletInstance->SetMinVersion(FEATURE_HD_SPLIT);
-
-            // Generate a new master key.
-            CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
-            if (!walletInstance->SetHDMasterKey(masterPubKey)) {
-                throw std::runtime_error(std::string(__func__) +
+        // Generate a new master key.
+        CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
+        if (!walletInstance->SetHDMasterKey(masterPubKey)) {
+              throw std::runtime_error(std::string(__func__) +
                                          ": Storing master key failed");
-            }
-        }
+          }
 
         // Top up the keypool
         if (!walletInstance->TopUpKeyPool()) {
@@ -4266,21 +4228,6 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         }
 
         walletInstance->SetBestChain(chainActive.GetLocator());
-    } else if (gArgs.IsArgSet("-usehd")) {
-        bool useHD = gArgs.GetBoolArg("-usehd", DEFAULT_USE_HD_WALLET);
-        if (walletInstance->IsHDEnabled() && !useHD) {
-            InitError(strprintf(_("Error loading %s: You can't disable HD on a "
-                                  "already existing HD wallet"),
-                                walletFile));
-            return nullptr;
-        }
-
-        if (!walletInstance->IsHDEnabled() && useHD) {
-            InitError(strprintf(_("Error loading %s: You can't enable HD on a "
-                                  "already existing non-HD wallet"),
-                                walletFile));
-            return nullptr;
-        }
     }
 
     LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);

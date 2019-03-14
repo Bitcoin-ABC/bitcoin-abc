@@ -80,21 +80,12 @@ class CWalletTx;
 enum WalletFeature {
     // the earliest version new wallets supports (only useful for getinfo's
     // clientversion output)
-    FEATURE_BASE = 10500,
-
-    // wallet encryption
-    FEATURE_WALLETCRYPT = 40000,
-    // compressed public keys
-    FEATURE_COMPRPUBKEY = 60000,
-
+    FEATURE_BASE = 130000,
     // Hierarchical key derivation after BIP32 (HD Wallet)
-    FEATURE_HD = 130000,
-
     // Wallet with HD chain split (change outputs will use m/0'/1'/k)
-    FEATURE_HD_SPLIT = 160300,
 
     // HD is optional, use FEATURE_COMPRPUBKEY as latest version
-    FEATURE_LATEST = FEATURE_COMPRPUBKEY,
+    FEATURE_LATEST = FEATURE_BASE,
 };
 
 /** A key pool entry */
