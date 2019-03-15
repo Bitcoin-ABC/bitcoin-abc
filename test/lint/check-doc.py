@@ -13,18 +13,16 @@ Author: @MarcoFalke
 
 from subprocess import check_output
 from pprint import PrettyPrinter
+import glob
 import re
 
-FOLDER_SRC = 'src'
-FOLDER_TEST = 'test'
-PATH_SRC = '`git rev-parse --show-toplevel`/{}'.format(FOLDER_SRC)
+TOP_LEVEL = 'git rev-parse --show-toplevel'
+FOLDER_SRC = '/src/**/'
+FOLDER_TEST = '/src/**/test/'
 
+EXTENSIONS = ["*.c", "*.h", "*.cpp", "*.cc", "*.hpp"]
 REGEX_ARG = '(?:ForceSet|SoftSet|Get|Is)(?:Bool)?Args?(?:Set)?\(\s*"(-[^"]+)"'
 REGEX_DOC = 'HelpMessageOpt\(\s*"(-[^"=]+?)(?:=|")'
-
-CMD_GREP_ARGS_SRC = r"grep -rIPzo '{}' {} --exclude-dir={}".format(
-    REGEX_ARG, PATH_SRC, FOLDER_TEST)
-CMD_GREP_DOCS = r"grep -rIPzo '{}' {}".format(REGEX_DOC, PATH_SRC)
 
 # list unsupported, deprecated and duplicate args as they need no documentation
 SET_DOC_OPTIONAL = set(['-benchmark',
@@ -53,12 +51,27 @@ SET_FALSE_POSITIVE_UNKNOWNS = set(['-nodebug',
 
 
 def main():
-    used = check_output(CMD_GREP_ARGS_SRC, shell=True).decode()
-    docd = check_output(CMD_GREP_DOCS, shell=True).decode()
+    top_level = check_output(TOP_LEVEL, shell=True).decode().strip()
+    source_files = []
+    test_files = []
 
-    args_used = set(re.findall(REGEX_ARG, used))
+    for extension in EXTENSIONS:
+        source_files += glob.glob(top_level +
+                                  FOLDER_SRC + extension, recursive=True)
+        test_files += glob.glob(top_level + FOLDER_TEST +
+                                extension, recursive=True)
+
+    files = set(source_files) - set(test_files)
+
+    args_used = set()
+    args_docd = set()
+    for file in files:
+        with open(file, 'r') as f:
+            content = f.read()
+            args_used |= set(re.findall(re.compile(REGEX_ARG), content))
+            args_docd |= set(re.findall(re.compile(REGEX_DOC), content))
+
     args_used |= SET_FALSE_POSITIVE_UNKNOWNS
-    args_docd = set(re.findall(REGEX_DOC, docd))
     args_need_doc = args_used - args_docd - SET_DOC_OPTIONAL
     args_unknown = args_docd - args_used
 
