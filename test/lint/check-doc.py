@@ -16,19 +16,15 @@ from pprint import PrettyPrinter
 import re
 
 FOLDER_SRC = 'src'
-FOLDER_TEST = 'src/test/'
+FOLDER_TEST = 'test'
 PATH_SRC = '`git rev-parse --show-toplevel`/{}'.format(FOLDER_SRC)
-PATH_TEST = '`git rev-parse --show-toplevel`/{}'.format(FOLDER_TEST)
 
-GREP_ARGS_REGEX = r"egrep -rIzo '((Is|Get)(Bool)?Arg(s|Set)?\((\s)*)\"\-[^\"]+?\"' {}"
-CMD_GREP_ARGS_SRC = GREP_ARGS_REGEX.format(PATH_SRC)
-CMD_GREP_ARGS_TEST = GREP_ARGS_REGEX.format(PATH_TEST)
-CMD_GREP_DOCS = r"egrep -rIzo 'HelpMessageOpt\((\s)*\"\-[^\"=]+?(=|\")' {}".format(
-    PATH_SRC)
+REGEX_ARG = '(?:ForceSet|SoftSet|Get|Is)(?:Bool)?Args?(?:Set)?\(\s*"(-[^"]+)"'
+REGEX_DOC = 'HelpMessageOpt\(\s*"(-[^"=]+?)(?:=|")'
 
-REGEX_ARG = re.compile(
-    r'(?:(?:Is|Get)(?:Bool)?Arg(?:s|Set)?\((?:\s)*)\"(\-[^\"]+?)\"')
-REGEX_DOC = re.compile(r'HelpMessageOpt\((?:\s)*\"(\-[^\"=]+?)(?:=|\")')
+CMD_GREP_ARGS_SRC = r"grep -rIPzo '{}' {} --exclude-dir={}".format(
+    REGEX_ARG, PATH_SRC, FOLDER_TEST)
+CMD_GREP_DOCS = r"grep -rIPzo '{}' {}".format(REGEX_DOC, PATH_SRC)
 
 # list unsupported, deprecated and duplicate args as they need no documentation
 SET_DOC_OPTIONAL = set(['-benchmark',
@@ -38,6 +34,7 @@ SET_DOC_OPTIONAL = set(['-benchmark',
                         '-forcecompactdb',
                         # TODO remove after the may 2019 fork
                         '-greatwallactivationtime',
+                        '-h',
                         '-help',
                         '-parkdeepreorg',
                         '-promiscuousmempoolflags',
@@ -57,11 +54,9 @@ SET_FALSE_POSITIVE_UNKNOWNS = set(['-nodebug',
 
 def main():
     used = check_output(CMD_GREP_ARGS_SRC, shell=True).decode()
-    tested = check_output(CMD_GREP_ARGS_TEST, shell=True).decode()
     docd = check_output(CMD_GREP_DOCS, shell=True).decode()
 
     args_used = set(re.findall(REGEX_ARG, used))
-    args_used -= set(re.findall(REGEX_ARG, tested))
     args_used |= SET_FALSE_POSITIVE_UNKNOWNS
     args_docd = set(re.findall(REGEX_DOC, docd))
     args_need_doc = args_used - args_docd - SET_DOC_OPTIONAL
