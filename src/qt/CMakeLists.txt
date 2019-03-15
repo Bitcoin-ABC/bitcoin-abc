@@ -118,15 +118,14 @@ set(CMAKE_AUTOMOC ON)
 qt5_add_resources(QRC_BITCOIN_CPP bitcoin.qrc)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-set(mac_stuff
-	macdockiconhandler.mm
-	macnotificationhandler.mm
-	)
+  set(mac_stuff
+	  macdockiconhandler.mm
+	  macnotificationhandler.mm
+	  )
+
+  file(GLOB QT_BASE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+  source_group("BaseHeaders" FILES ${QT_BASE_HEADERS})
 endif()
-
-
-file(GLOB QT_BASE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-source_group("BaseHeaders" FILES ${QT_BASE_HEADERS})
 
 
 add_library(bitcoin-qt-base

@@ -97,7 +97,7 @@ namespace {
         unsigned int windowBlocks;
         std::vector<unsigned int> blockVector;
         MinerDetails() : whitelisted(false), wlcount(0), isAdmin(false), totalBlocks(0), windowBlocks(0) {}
-        MinerDetails(bool wlisted, bool isAdmin) : whitelisted(wlisted), wlcount(1), isAdmin(isAdmin), totalBlocks(0), windowBlocks(0) {}
+        MinerDetails(bool wlisted, bool isAd) : whitelisted(wlisted), wlcount(1), isAdmin(isAd), totalBlocks(0), windowBlocks(0) {}
 
         template<typename Stream>
         void Serialize(Stream &s) const {
