@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 import time
 
 from .authproxy import JSONRPCException
@@ -59,6 +60,9 @@ class TestNode():
             self.binary = os.getenv("BITCOIND", "bitcoind")
         else:
             self.binary = binary
+        if not os.path.isfile(self.binary):
+            raise FileNotFoundError(
+                "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOIND=<path/to/bitcoind> {}".format(self.binary, sys.argv[0]))
         self.stderr = stderr
         self.coverage_dir = coverage_dir
         # Most callers will just need to add extra args to the default list
@@ -69,8 +73,11 @@ class TestNode():
         self.default_args = ["-datadir=" + self.datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
                              "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
 
-        self.cli = TestNodeCLI(
-            os.getenv("BITCOINCLI", "bitcoin-cli"), self.datadir)
+        cli_path = os.getenv("BITCOINCLI", "bitcoin-cli")
+        if not os.path.isfile(cli_path):
+            raise FileNotFoundError(
+                "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOINCLI=<path/to/bitcoin-cli> {}".format(cli_path, sys.argv[0]))
+        self.cli = TestNodeCLI(cli_path, self.datadir)
         self.use_cli = use_cli
 
         self.running = False
