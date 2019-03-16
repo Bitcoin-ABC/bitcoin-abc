@@ -142,7 +142,12 @@ CDBWrapper::CDBWrapper(const fs::path &path, size_t nCacheSize, bool fMemory,
 
     if (gArgs.GetBoolArg("-forcecompactdb", false)) {
         LogPrintf("Starting database compaction of %s\n", path.string());
+#ifdef USE_ROCKSDB
+        const datadb::CompactRangeOptions comp;
+        pdb->CompactRange(comp, nullptr, nullptr);
+#else
         pdb->CompactRange(nullptr, nullptr);
+#endif
         LogPrintf("Finished database compaction of %s\n", path.string());
     }
 

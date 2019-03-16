@@ -332,7 +332,12 @@ public:
         ssKey2 << key_end;
         datadb::Slice slKey1(ssKey1.data(), ssKey1.size());
         datadb::Slice slKey2(ssKey2.data(), ssKey2.size());
+#ifdef USE_ROCKSDB
+        const datadb::CompactRangeOptions comp;
+        pdb->CompactRange(comp, &slKey1, &slKey2);
+#else
         pdb->CompactRange(&slKey1, &slKey2);
+#endif
     }
 };
 
