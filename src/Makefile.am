@@ -129,6 +129,7 @@ BITCOIN_CORE_H = \
 	budget/budget.h \
   coldrewards/rewards.h \
   coldrewards/rewardsview.h \
+  coldrewards/rewards_calculation.h \
   consensus/activation.h \
   consensus/consensus.h \
   consensus/tx_verify.h \
@@ -245,6 +246,7 @@ libbitcoin_server_a_SOURCES = \
   config.cpp \
 	budget/budget.cpp \
 	coldrewards/rewards.cpp \
+	coldrewards/rewards_calculation.cpp \
 	coldrewards/rewardsview.cpp \
   consensus/activation.cpp \
   consensus/tx_verify.cpp \

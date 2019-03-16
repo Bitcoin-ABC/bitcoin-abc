@@ -21,10 +21,8 @@ class CColdRewards {
   private:
   CRewardsViewDB *pdb;
   COutPoint rewardKey;
-  int64_t nRewardRatePerBlockReciprocal;
   int64_t nMinBlocks;
   Amount nMinBalance;
-  Amount nMinReward;
   Amount nMaxReward;
 
 
@@ -33,10 +31,9 @@ class CColdRewards {
   void Setup(const Consensus::Params& consensusParams);
 
   CTxOut GetPayment(const Coin &coin, Amount reward);
-  Amount CalculateReward(int HeightDiff, Amount balance);
-  bool FindReward(int Height, CTxOut &out);
-  void FillPayments(CMutableTransaction &txNew, int nHeight);
-  bool Validate(const CBlock &block, int nHeight, Amount &reward);
+  bool FindReward(const Consensus::Params& consensusParams, int Height, CTxOut &out);
+  void FillPayments(const Consensus::Params& consensusParams, CMutableTransaction &txNew, int nHeight);
+  bool Validate(const Consensus::Params& consensusParams, const CBlock &block, int nHeight, Amount &reward);
   void ReplaceCoin(const COutPoint &key, int nNewHeight);
   void UpdateRewardsDB(int nNewHeight);
 };

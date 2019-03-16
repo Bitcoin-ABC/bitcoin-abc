@@ -200,7 +200,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // if Budget Superblock, skip Cold Rewards
     if (!pbudget->FillPayments(coinbaseTx, nHeight, nMiningReward)) {
       // Cold Rewards
-      prewards->FillPayments(coinbaseTx, nHeight);
+      prewards->FillPayments(chainparams.GetConsensus(), coinbaseTx, nHeight);
     }
 
     // Make sure the coinbase is big enough.

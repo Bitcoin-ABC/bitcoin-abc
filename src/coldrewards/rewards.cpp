@@ -4,13 +4,16 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "coldrewards/rewards.h"
+#include "coldrewards/rewards_calculation.h"
+#include "amount.h"
 #include "config.h"
 #include "consensus/consensus.h"
 #include "init.h" // for Shutdown
+#include "chain.h"
+#include "chainparams.h"
 #include "logging.h"
 #include "script/standard.h"
 #include "validation.h"
-#include "amount.h"
 
 #include <boost/thread.hpp>
 
@@ -18,23 +21,24 @@ using namespace std;
 
 CCriticalSection cs_rewardsdb;
 
-CColdRewards::CColdRewards(const Consensus::Params& consensusParams, CRewardsViewDB *prdb) : pdb(prdb) {
+//
+
+CColdRewards::CColdRewards(const Consensus::Params &consensusParams, CRewardsViewDB *prdb) : pdb(prdb) {
   LOCK(cs_rewardsdb);
   Setup(consensusParams);
-  //viable_utxos = 0;
+  // viable_utxos = 0;
 }
 
-void CColdRewards::Setup(const Consensus::Params& consensusParams) {
-  nRewardRatePerBlockReciprocal = consensusParams.nRewardRatePerBlockReciprocal;
+void CColdRewards::Setup(const Consensus::Params &consensusParams) {
   nMinBlocks = consensusParams.nMinRewardBlocks;
   nMinBalance = consensusParams.nMinRewardBalance;
-  nMinReward = consensusParams.nMinReward;
   nMaxReward = consensusParams.nMaxReward;
 }
 
 bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew) {
 
-  bool db_change  = false;
+  const Consensus::Params consensusParams = config.GetChainParams().GetConsensus();
+  bool db_change = false;
   CBlock block;
   int nHeight = pindexNew->nHeight;
   ReadBlockFromDisk(block, pindexNew, config);
@@ -44,7 +48,7 @@ bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew)
   for (auto &tx : block.vtx) {
 
     // Will will ignore coinbase rewards. i.e. miner rewards and cold rewards as basis for rewards
-    
+
     if (!tx->IsCoinBase()) {
       // Loop through inputs
       auto TxId = tx->GetId();
@@ -58,14 +62,16 @@ bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew)
           // first get Value for now
           Coin coin;
           if (!pdb->GetCoin(outpoint, coin)) {
-            LogPrint(BCLog::COLD,"Problem getting coin from Rewards db at Height %d, value %d\n", nHeight, coin.GetTxOut().nValue / COIN);
+            LogPrint(BCLog::COLD, "Problem getting coin from Rewards db at Height %d, value %d\n", nHeight,
+                     coin.GetTxOut().nValue / COIN);
           }
           // for Xcode
           if (!pdb->EraseCoin(outpoint)) {
-            LogPrint(BCLog::COLD,"Problem erasing from Rewards db at Height %d, value %d\n", nHeight, coin.GetTxOut().nValue / COIN);
+            LogPrint(BCLog::COLD, "Problem erasing from Rewards db at Height %d, value %d\n", nHeight,
+                     coin.GetTxOut().nValue / COIN);
           }
           db_change = true;
-          //viable_utxos--;
+          // viable_utxos--;
         }
       }
 
@@ -77,9 +83,9 @@ bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew)
         // LogPrintf("Found spend to %d COINS at height %d\n", balance/COIN, nHeight);
         COutPoint outpoint(TxId, n); // Unique
         if (balance >= nMinBalance) {
-          LogPrint(BCLog::COLD,"Writing to Rewards db, value of %d at Height %d\n", balance / COIN, nHeight);
+          LogPrint(BCLog::COLD, "Writing to Rewards db, value of %d at Height %d\n", balance / COIN, nHeight);
           if (!pdb->PutCoin(outpoint, Coin(out, nHeight, false))) {
-            LogPrint(BCLog::COLD,"Problem Writing to Rewards db, value of %d at Height %d\n", balance / COIN, nHeight);
+            LogPrint(BCLog::COLD, "Problem Writing to Rewards db, value of %d at Height %d\n", balance / COIN, nHeight);
           }
           db_change = true;
         }
@@ -89,23 +95,23 @@ bool CColdRewards::UpdateWithBlock(const Config &config, CBlockIndex *pindexNew)
   }
 
   if (db_change) pdb->Flush();
-  
+
   return true;
 }
 
 // Fill the Coinbase Tx
 //
-void CColdRewards::FillPayments(CMutableTransaction &txNew, int nHeight) {
+void CColdRewards::FillPayments(const Consensus::Params& consensusParams, CMutableTransaction &txNew, int nHeight) {
   CTxOut out;
-  if (FindReward(nHeight, out)) txNew.vout.push_back(out);
+  if (FindReward(consensusParams, nHeight, out)) txNew.vout.push_back(out);
 }
 
 // Determine which coin gets reward and how much
 //
-bool CColdRewards::FindReward(int Height, CTxOut &rewardPayment) {
+bool CColdRewards::FindReward(const Consensus::Params& consensusParams, int Height, CTxOut &rewardPayment) {
   Coin the_coin;
   Coin coin;
-  //int64_t count = 0;
+  // int64_t count = 0;
   COutPoint key;
   COutPoint minKey;
   int minHeight = Height;
@@ -131,8 +137,9 @@ bool CColdRewards::FindReward(int Height, CTxOut &rewardPayment) {
       HeightDiff = Height - nHeight;
       if (HeightDiff > nMinBlocks) {
         balance = the_coin.GetTxOut().nValue;
-        Amount reward = CalculateReward(HeightDiff, balance);
-        LogPrint(BCLog::COLD, " Got coin from Height %d, with balance = %d COINS, Height Diff = %d, reward = %d\n", nHeight, the_coin.GetTxOut().nValue / COIN, HeightDiff,reward/COIN);
+        Amount reward = CalculateReward(consensusParams, Height, HeightDiff, balance);
+        LogPrint(BCLog::COLD, " Got coin from Height %d, with balance = %d COINS, Height Diff = %d, reward = %d\n",
+                 nHeight, the_coin.GetTxOut().nValue / COIN, HeightDiff, reward / COIN);
         // Check reward amount to make sure it's > min
         if (reward > Amount()) {
           // This is the oldest unrewarded UTXO with a + reward value
@@ -144,7 +151,8 @@ bool CColdRewards::FindReward(int Height, CTxOut &rewardPayment) {
             minReward = nMaxReward;
           coin = the_coin;
           found = true;
-          LogPrint(BCLog::COLD, "*** Reward candidate for Height %d, bal = %d, HeightDiff = %d, Reward = %d\n", nHeight, the_coin.GetTxOut().nValue / COIN, HeightDiff, reward/COIN);
+          LogPrint(BCLog::COLD, "*** Reward candidate for Height %d, bal = %d, HeightDiff = %d, Reward = %d\n", nHeight,
+                   the_coin.GetTxOut().nValue / COIN, HeightDiff, reward / COIN);
         }
       }
     }
@@ -155,7 +163,7 @@ bool CColdRewards::FindReward(int Height, CTxOut &rewardPayment) {
   if (found) {
     // Use this coin
     rewardPayment = GetPayment(coin, minReward);
-    rewardKey  = minKey;
+    rewardKey = minKey;
   }
   return found;
 }
@@ -167,7 +175,8 @@ void CColdRewards::UpdateRewardsDB(int nNewHeight) {
   Coin coin;
   pdb->GetCoin(rewardKey, coin);
   // Should have erased coin with balance/height
-  LogPrint(BCLog::COLD, "Attempt to erase Coin with Value %d/Height = %d\n", coin.GetTxOut().nValue/COIN, coin.GetHeight());
+  LogPrint(BCLog::COLD, "Attempt to erase Coin with Value %d/Height = %d\n", coin.GetTxOut().nValue / COIN,
+           coin.GetHeight());
   pdb->EraseCoin(rewardKey);
   LogPrint(BCLog::COLD, "Putting Coin with new Height = %d\n", nNewHeight);
   pdb->PutCoin(rewardKey, Coin(coin.GetTxOut(), nNewHeight, false));
@@ -178,24 +187,11 @@ void CColdRewards::ReplaceCoin(const COutPoint &key, int nNewHeight) {
   Coin coin;
   pdb->GetCoin(key, coin);
   // Should have erased coin with balance/height
-  LogPrint(BCLog::COLD, "Attempt to erase Coin with Value %d/Height = %d\n", coin.GetTxOut().nValue/COIN, coin.GetHeight());
+  LogPrint(BCLog::COLD, "Attempt to erase Coin with Value %d/Height = %d\n", coin.GetTxOut().nValue / COIN,
+           coin.GetHeight());
   pdb->EraseCoin(key);
   LogPrint(BCLog::COLD, "Putting Coin with new Height = %d\n", nNewHeight);
   pdb->PutCoin(key, Coin(coin.GetTxOut(), nNewHeight, false));
-}
-
-// Calcuate Reward based on blocks since start/last reward and the balance
-
-Amount CColdRewards::CalculateReward(int HeightDiff, Amount balance) {
-  Amount reward_per_block = balance / nRewardRatePerBlockReciprocal;
-  Amount reward = HeightDiff * reward_per_block;
-
-  // Quantize reward to 1/100th of a coin
-  reward = (100*reward/COIN)*(COIN/100);
-  
-  //double debug_reward_div = OverRewardRatePerBlock * HeightDiff;
-  if (reward < nMinReward) reward = Amount();
-  return reward;
 }
 
 // Create CTxOut based on coin and reward
@@ -207,13 +203,13 @@ CTxOut CColdRewards::GetPayment(const Coin &coin, Amount reward) {
 
 // Validate!
 
-bool CColdRewards::Validate(const CBlock &block, int nHeight, Amount &reward) {
+bool CColdRewards::Validate(const Consensus::Params& consensusParams, const CBlock &block, int nHeight, Amount &reward) {
   auto txCoinbase = block.vtx[0];
   int size = txCoinbase->vout.size();
   // Coinbase has Cold Reward
   CTxOut out;
-  // Found Reward 
-  if (FindReward(nHeight, out)) {
+  // Found Reward
+  if (FindReward(consensusParams,nHeight, out)) {
     reward = out.nValue;
     if (size > 1) {
       CTxOut coinbase_reward = txCoinbase->vout[1]; // 1???

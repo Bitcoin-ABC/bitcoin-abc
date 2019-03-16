@@ -13,6 +13,7 @@ source_group("RewardHeaders" FILES ${REWARD_HEADERS})
 add_library(coldrewards
   ${REWARD_HEADERS}
 	rewards.cpp
+	rewards_calculation.cpp
   rewardsview.cpp
 )
 

@@ -258,7 +258,7 @@ void Shutdown() {
         }
         pcoinsTip.reset();
         pcoinscatcher.reset();
-        pcoinsdbview.reset();
+        pcoinsdbview.reset(); /// Crash here???
         pblocktree.reset();
         prewardsdb.reset();
         prewards.reset();
