@@ -212,6 +212,7 @@ public:
 
     // Remove an arg setting, used only in testing
     void ClearArg(const std::string &strArg);
+
 };
 
 extern ArgsManager gArgs;
