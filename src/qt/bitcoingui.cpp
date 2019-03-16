@@ -103,24 +103,28 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
                     "QTableView::item { border-right: 1px solid rgb(30,30,30); border-bottom: 1px solid rgb(30,30,30);}"                    
                     "RecentRequestsTableModel::item { selection-background: rgb(62,62,62); selection-color: rgb(0,178,255); alternate-background: rgb(22,22,22); }"
                     //"QToolBar {background: red; border-color: rgb (32,32,32); border-style: solid; border-width: 1px }"
-                    "QToolButton { background: rgb(30,30,30); border-color: rgb(22,22,22); border-style: solid; border-width: 1px; border-radius: 5px; padding: 6px; margin: 3px}"
-                    "QToolButton:hover { background: rgb(62,62,62); border-color: rgb(22,22,22); border-style: solid; border-width: 1px; border-radius: 5px; padding: 6px}"                          
-                    "QToolButton:checked { background: rgb(22,22,22); border-color: rgb(0,178,255); border-style: solid; border-width: 1px; border-radius: 5px; padding: 6px}"
-                    "QScrollBar {border: 2px solid rgb(62,62,62); background: rgb(32,32,32); margin: 0px 20px 0 20px;}"
-                    "QScrollBar::handle { background: rgb(119,119,119); }"
+                    "QToolButton { background: rgb(30,30,30); border-color: rgb(30,30,30); border-style: solid; border-width: 1px; border-radius: 3px; padding: 3px; margin: 6px}"
+                    "QToolButton:hover { background: rgb(62,62,62); border-color: rgb(22,22,22); border-style: solid; border-width: 1px; border-radius: 3px; padding: 4px}"                          
+                    "QToolButton:checked { background: rgb(22,22,22); border-color: rgb(0,178,255); border-style: solid; border-width: 1px; border-radius: 3px; padding: 4px}"
+                    "QScrollBar:vertical {border: 1px solid rgb(62,62,62); background: rgb(32,32,32); padding-top: 13px; padding-bottom: 13px;}"
+                    "QScrollBar:horizontal {border: 1px solid rgb(62,62,62); background: rgb(32,32,32); margin: 0px 20px 0 20px; padding-left: 13px; padding-right: 13px;}"
+                    "QScrollBar::handle { background: rgb(119,119,119); border: 1px solid rgb(62,62,62); }"
                     //"QCheckBox::indicator { background: rgb(22,22,22); }"
                     "QMenu:item:selected { color: rgb(0,178,255); background: rgb(22,22,22); }"
                     "QMenuBar:item:selected { color: rgb(0,178,255); background: rgb(22,22,22); }"
-                    "QPushButton { background: rgb(30,30,30); color: rgb(211,211,211); border-width: 1px; padding: 6px; border-style: solid; border-radius: 5px ; border-color: rgb(22,22,22)}"
+                    "QPushButton { background: rgb(30,30,30); color: rgb(0,174,255); border-width: 1px; padding: 6px; border-style: solid; border-radius: 5px ; border-color: rgb(22,22,22)}"
                     "QPushButton:hover { background: rgb(22,22,22); }"
-                    "QProgressBar {color: rgb(22,22,22); background: rgb(62,62,62);  border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; }" 
-                    "QProgressBar::chunk {color: rgb(22,22,22); background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgb(0,178,255), stop: 1 rgb(0,174.255), stop: 2 rgb(0,174.255)); border-radius: 7px; margin: 0px; }"
+                    "QProgressBar {color: rgb(200,200,200); background: rgb(62,62,62);  border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; }" 
+                    "QProgressBar::chunk {color: rgb(0,174,255); background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgb(0,255,169), stop: 1 rgb(0,190,190), stop: 2 rgb(0,174,255)); border-radius: 7px; margin: 0px; }"
                     "#labelWalletStatus { border: none }"
                     "#labelTransactionsStatus { border: none }"
                     "#lineWatchBalance { border: none }"
                     "#line { border: none; color: rgb(30,30,30) }"
                     "#widgetCoinControl { border: none }"
                     "#checkBoxCoinControlChange { padding-left: 5px }"
+                    "QFrame {border: none} "
+                    "QToolbar {border: none} "
+                    "#frameFeeSelection {border: none}"
                 );
     }
 
@@ -245,7 +249,7 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
     connect(connectionsControl, SIGNAL(clicked(QPoint)), this,
             SLOT(toggleNetworkActive()));
 
-    modalOverlay = new ModalOverlay(this->centralWidget());
+    modalOverlay = new ModalOverlay(platformStyle, this->centralWidget());
 #ifdef ENABLE_WALLET
     if (enableWallet) {
         connect(walletFrame, SIGNAL(requestedSyncWarningInfo()), this,

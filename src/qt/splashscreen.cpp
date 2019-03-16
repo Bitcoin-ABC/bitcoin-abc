@@ -50,7 +50,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle)
     // set reference point, paddings relative to size
     int paddingRight            = 50;
     int vSpace                  = 10;
-    int paddingTop              = 320*0.5 - vSpace;
+    int paddingTop              = 320*0.65 - vSpace;
     //float iconHeight              = 86;
 
 #if QT_VERSION > 0x050100
@@ -76,7 +76,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle)
         fontFactor = fontFactor * 176 / titleTextWidth;
     }
 
-    pixPaint.setFont(QFont(font, 33*fontFactor));
+    pixPaint.setFont(QFont(font, 20*fontFactor));
     fm = pixPaint.fontMetrics();
     titleTextWidth  = fm.width(titleText);
 
@@ -92,20 +92,20 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle)
     {
         pixPaint.setFont(QFont(font, 10*fontFactor));
         textHeight += fm.height();
-        const int x = paddingRight;//pixmap.width()/2/devicePixelRatio;
+        const int x = pixmap.width()/2/devicePixelRatio-titleTextWidth-paddingRight;
         const int y = paddingTop + textHeight + vSpace;  //paddingTop;
         QRect copyrightRect(x, y, pixmap.width() - x - paddingRight, pixmap.height() - y);
         pixPaint.drawText(copyrightRect, Qt::AlignHCenter | Qt::AlignTop, copyrightText);
     }
 
     // draw additional text if special network
-    if (!titleAddText.isEmpty()) {
-        QFont boldFont = QFont(font, 10 * fontFactor);
+    if(!titleAddText.isEmpty()) {
+        QFont boldFont = QFont(font, 10*fontFactor);
         boldFont.setWeight(QFont::Bold);
         pixPaint.setFont(boldFont);
         fm = pixPaint.fontMetrics();
-        int titleAddTextWidth = fm.width(titleAddText);
-        pixPaint.drawText(pixmap.width()/2/devicePixelRatio-titleAddTextWidth/2-10,15,titleAddText);
+        //int titleAddTextWidth  = fm.width(titleAddText);
+        pixPaint.drawText(pixmap.width()/2/devicePixelRatio-titleTextWidth/2 + 10 + titleTextWidth,paddingTop,titleAddText);
     }
 
     pixPaint.end();

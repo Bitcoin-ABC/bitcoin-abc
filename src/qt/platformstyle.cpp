@@ -22,7 +22,7 @@ static const struct {
     const bool colorizeIcons;
     /** Extra padding/spacing in transactionview */
     const bool useExtraSpacing;
-} platform_styles[] = {{"macosx", false, false, true},
+} platform_styles[] = {{"macosx", false, true, true},
                        {"windows", true, false, false},
                        /* Other: linux, unix, ... */
                        {"other", true, true, false}};
@@ -74,7 +74,9 @@ PlatformStyle::PlatformStyle(const QString &_name, bool _imagesOnButtons,
     if(settings.value("theme").toString() == "dark") 
     { 
         //dark theme
-        singleColor = QColor(211,211,211); 
+        imagesOnButtons = true;
+        colorizeIcons = true;
+        singleColor = QColor(0,174,255); 
         textColor = QColor(211,211,211);         
     } else {
         //default light theme
