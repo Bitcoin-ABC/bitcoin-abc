@@ -159,6 +159,10 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
 
     // restore list mode and sortorder as a convenience feature
     QSettings settings;
+    if(settings.value("theme").toString() == "dark") 
+    {   
+        setStyleSheet("QWidget {background: rgb(30,30,30); color: rgb(211,211,211);}"); 
+    } 
     if (settings.contains("nCoinControlMode") &&
         !settings.value("nCoinControlMode").toBool())
         ui->radioTreeMode->click();

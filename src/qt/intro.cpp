@@ -22,12 +22,12 @@ static const uint64_t GB_BYTES = 1000000000LL;
 /**
  * Minimum free space (in GB) needed for data directory.
  */
-static const uint64_t BLOCK_CHAIN_SIZE = 200;
+static const uint64_t BLOCK_CHAIN_SIZE = 0.5;
 /**
  * Minimum free space (in GB) needed for data directory when pruned; Does not
  * include prune target.
  */
-static const uint64_t CHAIN_STATE_SIZE = 4;
+static const uint64_t CHAIN_STATE_SIZE = 0.1;
 /**
  * Total required space (in GB) depending on user choice (prune, not prune).
  */
@@ -119,7 +119,7 @@ Intro::Intro(QWidget *parent)
     QSettings settings; 
     if(settings.value("theme").toString() == "dark") 
     {   
-        setStyleSheet("QWidget { background: rgba(30,30,30); color: rgb(211,211,211); }"); 
+        setStyleSheet("QWidget { background: rgb(30,30,30); color: rgb(211,211,211); }"); 
     } 
     ui->setupUi(this);
     ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));

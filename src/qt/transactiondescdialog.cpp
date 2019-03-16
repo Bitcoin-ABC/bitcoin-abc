@@ -8,11 +8,17 @@
 #include "transactiontablemodel.h"
 
 #include <QModelIndex>
+#include <QSettings>
 
 TransactionDescDialog::TransactionDescDialog(const QModelIndex &idx,
                                              QWidget *parent)
     : QDialog(parent), ui(new Ui::TransactionDescDialog) {
     ui->setupUi(this);
+    QSettings settings;
+    if(settings.value("theme").toString() == "dark") 
+    {   
+        setStyleSheet("QWidget {background: rgb(30,30,30); color: rgb(211,211,211);}"); 
+    } 
     setWindowTitle(
         tr("Details for %1")
             .arg(idx.data(TransactionTableModel::TxIDRole).toString()));
