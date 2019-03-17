@@ -83,8 +83,7 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
     ui->lang->setToolTip(ui->lang->toolTip().arg(tr(PACKAGE_NAME)));
     ui->theme->setToolTip(ui->theme->toolTip().arg(tr(PACKAGE_NAME)));
     ui->lang->addItem(QString("(") + tr("default") + QString(")"),
-                      QVariant(""));
-    ui->theme->addItem(tr("light"), QVariant("light")); 
+                      QVariant("")); 
     ui->theme->addItem(tr("dark"), QVariant("dark"));
     for (const QString &langStr : translations.entryList()) {
         QLocale locale(langStr);
