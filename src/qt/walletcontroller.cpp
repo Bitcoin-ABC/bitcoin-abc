@@ -7,8 +7,10 @@
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
 
+#include <QApplication>
 #include <QMutexLocker>
 #include <QThread>
+#include <QWindow>
 
 #include <algorithm>
 
@@ -55,8 +57,22 @@ WalletModel *WalletController::getOrCreateWallet(
         std::move(wallet), m_node, m_platform_style, m_options_model, nullptr);
     m_wallets.push_back(wallet_model);
 
-    connect(wallet_model, &WalletModel::unload,
-            [this, wallet_model] { removeAndDeleteWallet(wallet_model); });
+    connect(wallet_model, &WalletModel::unload, [this, wallet_model] {
+        // Defer removeAndDeleteWallet when no modal widget is active.
+        // TODO: remove this workaround by removing usage of QDiallog::exec.
+        if (QApplication::activeModalWidget()) {
+            connect(
+                qApp, &QApplication::focusWindowChanged, wallet_model,
+                [this, wallet_model]() {
+                    if (!QApplication::activeModalWidget()) {
+                        removeAndDeleteWallet(wallet_model);
+                    }
+                },
+                Qt::QueuedConnection);
+        } else {
+            removeAndDeleteWallet(wallet_model);
+        }
+    });
 
     // Re-emit coinsSent signal from wallet model.
     connect(wallet_model, &WalletModel::coinsSent, this,
