@@ -7,7 +7,10 @@
 #include "rewards_calculation.h"
 
 Amount CalculateReward(const Consensus::Params &consensusParams, int Height, int HeightDiff, Amount balance) {
-  int64_t nRewardRatePerBlockReciprocal = consensusParams.nRewardRatePerBlockReciprocal;
+  size_t year_number = Height/consensusParams.nBlocksPerYear;
+  if (year_number > consensusParams.nPerCentPerYear.size()-1) year_number = consensusParams.nPerCentPerYear.size()-1;
+  int64_t percent = consensusParams.nPerCentPerYear[year_number];
+  int64_t nRewardRatePerBlockReciprocal = (100*consensusParams.nBlocksPerYear)/percent;
   Amount nMinReward = consensusParams.nMinReward;
   Amount reward_per_block = balance / nRewardRatePerBlockReciprocal;
   Amount reward = HeightDiff * reward_per_block;

@@ -156,8 +156,7 @@ public:
         cashaddrSecretPrefix = "dvtpriv";
 
         // Rewards
-        consensus.nPerCentPerYear = 12;
-        consensus.nRewardRatePerBlockReciprocal = (100*consensus.nBlocksPerYear)/consensus.nPerCentPerYear;
+        consensus.nPerCentPerYear = {15,13,11,9,7};
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
         consensus.nMinRewardBalance = 100 * COIN;
         consensus.nMinReward = COIN;
@@ -262,8 +261,7 @@ public:
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
         // Rewards
-        consensus.nPerCentPerYear = 12;
-        consensus.nRewardRatePerBlockReciprocal = (100*consensus.nBlocksPerYear)/consensus.nPerCentPerYear;
+        consensus.nPerCentPerYear = {15,13,11,9,7};
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
         consensus.nMinRewardBalance = 100 * COIN;
         consensus.nMinReward = COIN;
@@ -362,8 +360,7 @@ public:
         cashaddrSecretPrefix = "regpriv";
 
         // Rewards
-        consensus.nPerCentPerYear = 12;
-        consensus.nRewardRatePerBlockReciprocal = (100*consensus.nBlocksPerYear)/consensus.nPerCentPerYear;
+        consensus.nPerCentPerYear = {15,13,11,9,7};
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
         consensus.nMinRewardBalance = 100 * COIN;
         consensus.nMinReward = COIN;

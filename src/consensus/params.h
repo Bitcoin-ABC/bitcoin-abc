@@ -65,10 +65,9 @@ struct Params {
     int64_t nInitialMiningRewardInCoins;
     int64_t minerCapSystemChangeHeight;
 
-  // Rewards
-    int64_t nPerCentPerYear;
+    // Rewards
+    std::vector<int64_t> nPerCentPerYear;
     int64_t nMinRewardBlocks;
-    int64_t nRewardRatePerBlockReciprocal;
     Amount nMinRewardBalance;
     Amount nMinReward;
     Amount nMaxReward;
