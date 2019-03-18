@@ -193,9 +193,9 @@ REGEXP_IGNORE_KNOWN_VIOLATIONS=$(join_array "|" "${KNOWN_VIOLATIONS[@]}")
 
 # Invoke "git grep" only once in order to minimize run-time
 REGEXP_LOCALE_DEPENDENT_FUNCTIONS=$(join_array "|" "${LOCALE_DEPENDENT_FUNCTIONS[@]}")
-GIT_GREP_OUTPUT=$(git grep -nE "[^a-zA-Z0-9_\`'\"<>](${REGEXP_LOCALE_DEPENDENT_FUNCTIONS}(_r|_s)?)[^a-zA-Z0-9_\`'\"<>]" -- ":/*.cpp" ":/*.h")
+GIT_GREP_OUTPUT=$(git grep -nE "[^a-zA-Z0-9_\`'\"<>](${REGEXP_LOCALE_DEPENDENT_FUNCTIONS}(_r|_s)?)[^a-zA-Z0-9_\`'\"<>]" -- "$1")
 
-EXIT_CODE=0
+FUNCTION_FOUND=0
 for LOCALE_DEPENDENT_FUNCTION in "${LOCALE_DEPENDENT_FUNCTIONS[@]}"; do
     MATCHES=$(grep -E "[^a-zA-Z0-9_\`'\"<>]${LOCALE_DEPENDENT_FUNCTION}(_r|_s)?[^a-zA-Z0-9_\`'\"<>]" <<< "${GIT_GREP_OUTPUT}" | \
         grep -vE "\.(c|cpp|h):[0-9]+:\s*(//|\*|/\*|\").*${LOCALE_DEPENDENT_FUNCTION}")
@@ -209,10 +209,10 @@ for LOCALE_DEPENDENT_FUNCTION in "${LOCALE_DEPENDENT_FUNCTIONS[@]}"; do
         echo "The locale dependent function ${LOCALE_DEPENDENT_FUNCTION}(...) appears to be used:"
         echo "${MATCHES}"
         echo
-        EXIT_CODE=1
+        FUNCTION_FOUND=1
     fi
 done
-if [[ ${EXIT_CODE} != 0 ]]; then
+if [[ ${FUNCTION_FOUND} != 0 ]]; then
     echo "Unnecessary locale dependence can cause bugs that are very"
     echo "tricky to isolate and fix. Please avoid using locale dependent"
     echo "functions if possible."
@@ -220,4 +220,4 @@ if [[ ${EXIT_CODE} != 0 ]]; then
     echo "Advice not applicable in this specific case? Add an exception"
     echo "by updating the ignore list in $0"
 fi
-exit ${EXIT_CODE}
+exit 0

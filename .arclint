@@ -46,6 +46,10 @@
             "exclude": [
                 "(^test/lint/lint-python-format\\.py$)"
             ]
+        },
+        "lint-locale-dependence": {
+            "type": "lint-locale-dependence",
+            "include": "(^src/.*\\.(h|cpp)$)"
         }
     }
 }
