@@ -435,7 +435,15 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
                    strType != DBKeys::SETTINGS) {
             wss.m_unknown_records++;
         }
+    } catch (const std::exception &e) {
+        if (strErr.empty()) {
+            strErr = e.what();
+        }
+        return false;
     } catch (...) {
+        if (strErr.empty()) {
+            strErr = "Caught unknown exception in ReadKeyValue";
+        }
         return false;
     }
     return true;
