@@ -89,7 +89,7 @@ public:
         consensus.nPowTargetTimespan = 24 * 60 * 60; // 1 day
         consensus.nPowTargetSpacing = 2 * 60; // 2 minute block time
         consensus.nBlocksPerYear = 30 * 24 * 365.25;
-        consensus.nMaxMiningRewardInCoins = 2000;
+        consensus.nInitialMiningRewardInCoins = 500;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         // 95% of 2016
@@ -202,7 +202,7 @@ public:
         consensus.nPowTargetTimespan = 6 * 60 * 60; // 6 hours
         consensus.nPowTargetSpacing = 2 * 1; // 2 seconds
         consensus.nBlocksPerYear = 30 * 24 * 365.25;
-        consensus.nMaxMiningRewardInCoins = 2000;
+        consensus.nInitialMiningRewardInCoins = 500;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         // 75% for testchains
@@ -298,7 +298,7 @@ public:
         consensus.nPowTargetTimespan = 24 * 60 * 60; // 1 day
         consensus.nPowTargetSpacing = 2* 60;
         consensus.nBlocksPerYear = 30 * 24 * 365.25;
-        consensus.nMaxMiningRewardInCoins = 2000;
+        consensus.nInitialMiningRewardInCoins = 500;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         // 75% for testchains

@@ -62,7 +62,7 @@ struct Params {
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
     int64_t nBlocksPerYear;
-    int64_t nMaxMiningRewardInCoins;
+    int64_t nInitialMiningRewardInCoins;
     int64_t minerCapSystemChangeHeight;
 
   // Rewards

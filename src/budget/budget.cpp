@@ -23,7 +23,7 @@ struct BudgetStruct {
 // Reward Address & Percentage
 const BudgetStruct Payouts[] = {
     {"devault:qryvj8ezelgrgmr22myc7suwnn7pal9a0vtvtwfr96", "dvtest:qryvj8ezelgrgmr22myc7suwnn7pal9a0vtvtwfr96", "Community",15},
-    {"devault:qrhcm0z0gn4ccygcqesmrshgdgumlhyavvlcnwtgll", "dvtest:qrhcm0z0gn4ccygcqesmrshgdgumlhyavvlcnwtgll", "CoreDevs", 10},
+    {"devault:qpd3d3ufpcwa2n6ghqnmlrcw62syh68cjvc98u84ws", "dvtest:qzqhxk7x6q99phpznr503xsd5c0x587uku7qw4p6zn", "CoreDevs", 10},
     {"devault:qz4nj7c6x5uf5ar6rqjj602eyux26t0ftuarvygttl", "dvtest:qz4nj7c6x5uf5ar6rqjj602eyux26t0ftuarvygttl", "WebDevs", 5},
     {"devault:qzeyacx0xhvpd0zq7neyywed0qs4yfh2psr36ntaep", "dvtest:qzeyacx0xhvpd0zq7neyywed0qs4yfh2psr36ntaep", "BusDevs",5},
     {"devault:qzjjtr6pxrkh69ugsvjcwj4h7dexvx72ayh3vkgrwt", "dvtest:qzjjtr6pxrkh69ugsvjcwj4h7dexvx72ayh3vkgrwt", "Marketing",5},
