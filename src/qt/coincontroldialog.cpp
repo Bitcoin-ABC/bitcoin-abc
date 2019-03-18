@@ -161,7 +161,7 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
     QSettings settings;
     if(settings.value("theme").toString() == "dark") 
     {   
-        setStyleSheet("QWidget {background: rgb(30,30,30); color: rgb(211,211,211);}"); 
+        setStyleSheet("QWidget {background: rgb(22,22,22); color: rgb(211,211,211);}"); 
     } 
     if (settings.contains("nCoinControlMode") &&
         !settings.value("nCoinControlMode").toBool())
