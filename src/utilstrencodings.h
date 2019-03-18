@@ -226,3 +226,5 @@ std::string Capitalize(std::string str);
  */
 constexpr bool IsDigit(char c) { return c >= '0' && c <= '9'; }
 
+// Join words with separator
+std::string join(const std::vector<std::string>& words, const std::string &separator = ", ", const std::string &concluder = "");

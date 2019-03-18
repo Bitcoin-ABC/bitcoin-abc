@@ -20,7 +20,7 @@
 #include "utiltime.h"
 #include "validation.h"
 #include "wallet.h"
-
+#include "mnemonic/mnemonic.h"
 #include <string.h> // for memcpy
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -810,7 +810,13 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         CKey key;
         if (pwallet->GetKey(masterKeyID, key)) {
           CExtKey masterKey;	        
-          masterKey.SetMaster(key.begin(), key.size());	       
+          masterKey.SetMaster(key.begin(), key.size());
+          CPrivKey privkey = key.GetPrivKey();
+          std::vector<uint8_t> vchKey;
+          vchKey.insert(vchKey.end(), privkey.begin(), privkey.end());
+          mnemonic::WordList words = mnemonic::mapBitsToMnemonic(vchKey, language::en);
+          file << "# 12-Word phrase: " << join(words,",") << "\n";
+          
           CBitcoinExtKey b58extkey;	
           b58extkey.SetKey(masterKey);	
           file << "# extended private masterkey: " << b58extkey.ToString()	

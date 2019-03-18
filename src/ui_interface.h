@@ -136,6 +136,9 @@ void InitWarning(const std::string &str);
 /** Show error message **/
 bool InitError(const std::string &str);
 
+//! Show 12-word seed phrase and confirm
+bool ShowSeedPhrase(const std::string& str);
+
 std::string AmountHighWarn(const std::string &optname);
 
 std::string AmountErrMsg(const char *const optname,
