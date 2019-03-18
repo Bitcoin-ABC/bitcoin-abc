@@ -44,6 +44,13 @@
 
 #include <univalue.h>
 
+/**
+ * High fee for sendrawtransaction and testmempoolaccept.
+ * By default, transaction with a fee higher than this will be rejected by the
+ * RPCs. This can be overridden with the maxfeerate argument.
+ */
+constexpr static Amount DEFAULT_MAX_RAW_TX_FEE{COIN / 10};
+
 static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
                      UniValue &entry) {
     // Call into TxToUniv() in bitcoin-common to decode the transaction hex.
@@ -907,39 +914,38 @@ static UniValue signrawtransactionwithkey(const Config &config,
 
 static UniValue sendrawtransaction(const Config &config,
                                    const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() < 1 ||
-        request.params.size() > 2) {
-        throw std::runtime_error(RPCHelpMan{
-            "sendrawtransaction",
-            "\nSubmits raw transaction (serialized, hex-encoded) to local node "
-            "and network.\n"
-            "\nAlso see createrawtransaction and "
-            "signrawtransactionwithkey calls.\n",
-            {
-                {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
-                 "The hex string of the raw transaction"},
-                {"maxfeerate", RPCArg::Type::AMOUNT,
-                 /* default */ FormatMoney(maxTxFee),
-                 "Reject transactions whose fee rate is higher than the "
-                 "specified value, expressed in " +
-                     CURRENCY_UNIT + "/kB\n"},
-            },
-            RPCResult{
-                "\"hex\"             (string) The transaction hash in hex\n"},
-            RPCExamples{
-                "\nCreate a transaction\n" +
-                HelpExampleCli(
-                    "createrawtransaction",
-                    "\"[{\\\"txid\\\" : \\\"mytxid\\\",\\\"vout\\\":0}]\" "
-                    "\"{\\\"myaddress\\\":0.01}\"") +
-                "Sign the transaction, and get back the hex\n" +
-                HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
-                "\nSend the transaction (signed hex)\n" +
-                HelpExampleCli("sendrawtransaction", "\"signedhex\"") +
-                "\nAs a JSON-RPC call\n" +
-                HelpExampleRpc("sendrawtransaction", "\"signedhex\"")},
-        }
-                                     .ToString());
+    const RPCHelpMan help{
+        "sendrawtransaction",
+        "\nSubmits raw transaction (serialized, hex-encoded) to local node and "
+        "network.\n"
+        "\nAlso see createrawtransaction and "
+        "signrawtransactionwithkey calls.\n",
+        {
+            {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The hex string of the raw transaction"},
+            {"maxfeerate", RPCArg::Type::AMOUNT,
+             /* default */ FormatMoney(DEFAULT_MAX_RAW_TX_FEE),
+             "Reject transactions whose fee rate is higher than the specified "
+             "value, expressed in " +
+                 CURRENCY_UNIT + "/kB\n"},
+        },
+        RPCResult{"\"hex\"             (string) The transaction hash in hex\n"},
+        RPCExamples{
+            "\nCreate a transaction\n" +
+            HelpExampleCli(
+                "createrawtransaction",
+                "\"[{\\\"txid\\\" : \\\"mytxid\\\",\\\"vout\\\":0}]\" "
+                "\"{\\\"myaddress\\\":0.01}\"") +
+            "Sign the transaction, and get back the hex\n" +
+            HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
+            "\nSend the transaction (signed hex)\n" +
+            HelpExampleCli("sendrawtransaction", "\"signedhex\"") +
+            "\nAs a JSON-RPC call\n" +
+            HelpExampleRpc("sendrawtransaction", "\"signedhex\"")},
+    };
+
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
     }
 
     RPCTypeCheck(request.params, {
@@ -956,7 +962,7 @@ static UniValue sendrawtransaction(const Config &config,
 
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
 
-    Amount max_raw_tx_fee = maxTxFee;
+    Amount max_raw_tx_fee = DEFAULT_MAX_RAW_TX_FEE;
     // TODO: temporary migration code for old clients. Remove in v0.22
     if (request.params[1].isBool()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -985,60 +991,60 @@ static UniValue sendrawtransaction(const Config &config,
 
 static UniValue testmempoolaccept(const Config &config,
                                   const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() < 1 ||
-        request.params.size() > 2) {
-        throw std::runtime_error(RPCHelpMan{
-            "testmempoolaccept",
-            "\nReturns if raw transaction (serialized, hex-encoded) would be "
-            "accepted by mempool.\n"
-            "\nThis checks if the transaction violates the consensus or policy "
-            "rules.\n"
-            "\nSee sendrawtransaction call.\n",
+    const RPCHelpMan help{
+        "testmempoolaccept",
+        "\nReturns if raw transaction (serialized, hex-encoded) would be "
+        "accepted by mempool.\n"
+        "\nThis checks if the transaction violates the consensus or policy "
+        "rules.\n"
+        "\nSee sendrawtransaction call.\n",
+        {
             {
+                "rawtxs",
+                RPCArg::Type::ARR,
+                RPCArg::Optional::NO,
+                "An array of hex strings of raw transactions.\n"
+                "                                        Length must be one "
+                "for now.",
                 {
-                    "rawtxs",
-                    RPCArg::Type::ARR,
-                    RPCArg::Optional::NO,
-                    "An array of hex strings of raw transactions.\n"
-                    "                                        Length must be "
-                    "one for now.",
-                    {
-                        {"rawtx", RPCArg::Type::STR_HEX,
-                         RPCArg::Optional::OMITTED, ""},
-                    },
+                    {"rawtx", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
+                     ""},
                 },
-                {"maxfeerate", RPCArg::Type::AMOUNT,
-                 /* default */ FormatMoney(maxTxFee),
-                 "Reject transactions whose fee rate is higher than the "
-                 "specified value, expressed in " +
-                     CURRENCY_UNIT + "/kB\n"},
             },
-            RPCResult{
-                "[                   (array) The result of the mempool "
-                "acceptance test for each raw transaction in the input array.\n"
-                "                            Length is exactly one for now.\n"
-                " {\n"
-                "  \"txid\"           (string) The transaction hash in hex\n"
-                "  \"allowed\"        (boolean) If the mempool allows this tx "
-                "to be inserted\n"
-                "  \"reject-reason\"  (string) Rejection string (only present "
-                "when 'allowed' is false)\n"
-                " }\n"
-                "]\n"},
-            RPCExamples{
-                "\nCreate a transaction\n" +
-                HelpExampleCli(
-                    "createrawtransaction",
-                    "\"[{\\\"txid\\\" : \\\"mytxid\\\",\\\"vout\\\":0}]\" "
-                    "\"{\\\"myaddress\\\":0.01}\"") +
-                "Sign the transaction, and get back the hex\n" +
-                HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
-                "\nTest acceptance of the transaction (signed hex)\n" +
-                HelpExampleCli("testmempoolaccept", "[\"signedhex\"]") +
-                "\nAs a JSON-RPC call\n" +
-                HelpExampleRpc("testmempoolaccept", "[\"signedhex\"]")},
-        }
-                                     .ToString());
+            {"maxfeerate", RPCArg::Type::AMOUNT,
+             /* default */ FormatMoney(DEFAULT_MAX_RAW_TX_FEE),
+             "Reject transactions whose fee rate is higher than the specified "
+             "value, expressed in " +
+                 CURRENCY_UNIT + "/kB\n"},
+        },
+        RPCResult{
+            "[                   (array) The result of the mempool acceptance "
+            "test for each raw transaction in the input array.\n"
+            "                            Length is exactly one for now.\n"
+            " {\n"
+            "  \"txid\"           (string) The transaction hash in hex\n"
+            "  \"allowed\"        (boolean) If the mempool allows this tx to "
+            "be inserted\n"
+            "  \"reject-reason\"  (string) Rejection string (only present when "
+            "'allowed' is false)\n"
+            " }\n"
+            "]\n"},
+        RPCExamples{
+            "\nCreate a transaction\n" +
+            HelpExampleCli(
+                "createrawtransaction",
+                "\"[{\\\"txid\\\" : \\\"mytxid\\\",\\\"vout\\\":0}]\" "
+                "\"{\\\"myaddress\\\":0.01}\"") +
+            "Sign the transaction, and get back the hex\n" +
+            HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
+            "\nTest acceptance of the transaction (signed hex)\n" +
+            HelpExampleCli("testmempoolaccept", "[\"signedhex\"]") +
+            "\nAs a JSON-RPC call\n" +
+            HelpExampleRpc("testmempoolaccept", "[\"signedhex\"]")},
+    };
+
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
     }
 
     RPCTypeCheck(request.params, {
@@ -1060,7 +1066,7 @@ static UniValue testmempoolaccept(const Config &config,
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
     const TxId &txid = tx->GetId();
 
-    Amount max_raw_tx_fee = maxTxFee;
+    Amount max_raw_tx_fee = DEFAULT_MAX_RAW_TX_FEE;
     // TODO: temporary migration code for old clients. Remove in v0.20
     if (request.params[1].isBool()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
