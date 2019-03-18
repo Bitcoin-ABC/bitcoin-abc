@@ -12,11 +12,6 @@ bool InitError(const std::string &str) {
     return false;
 }
 
-bool ShowSeedPhrase(const std::string &str) {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING);
-    return false;
-}
-
 void InitWarning(const std::string &str) {
     uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING);
 }

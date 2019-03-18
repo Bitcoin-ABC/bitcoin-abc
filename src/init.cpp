@@ -364,7 +364,6 @@ std::string HelpMessage(HelpMessageMode mode) {
 #endif
     }
     strUsage += HelpMessageOpt("-datadir=<dir>", _("Specify data directory"));
-    strUsage += HelpMessageOpt("-seedphrase=<words>", _("Specify 12-word seed phrase for wallet on 1st run (only)"));
     if (showDebug) {
         strUsage += HelpMessageOpt(
             "-dbbatchsize",

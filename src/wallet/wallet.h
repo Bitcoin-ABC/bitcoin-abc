@@ -1180,7 +1180,6 @@ public:
 
     /* Generates a new HD master key (will not be activated) */
     CPubKey GenerateNewHDMasterKey();
-    CPubKey GenerateHDMasterKey(std::vector<uint8_t>& secret);
 
     /**
      * Set the current HD master key (will reset the chain child index counters)
