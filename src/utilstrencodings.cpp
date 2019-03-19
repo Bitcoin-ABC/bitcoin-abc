@@ -27,8 +27,9 @@ static const std::string SAFE_CHARS[] = {
 std::string SanitizeString(const std::string &str, int rule) {
     std::string strResult;
     for (std::string::size_type i = 0; i < str.size(); i++) {
-        if (SAFE_CHARS[rule].find(str[i]) != std::string::npos)
+        if (SAFE_CHARS[rule].find(str[i]) != std::string::npos) {
             strResult.push_back(str[i]);
+        }
     }
     return strResult;
 }
@@ -58,7 +59,9 @@ signed char HexDigit(char c) {
 
 bool IsHex(const std::string &str) {
     for (std::string::const_iterator it(str.begin()); it != str.end(); ++it) {
-        if (HexDigit(*it) < 0) return false;
+        if (HexDigit(*it) < 0) {
+            return false;
+        }
     }
     return (str.size() > 0) && (str.size() % 2 == 0);
 }
@@ -69,7 +72,9 @@ bool IsHexNumber(const std::string &str) {
         starting_location = 2;
     }
     for (auto c : str.substr(starting_location)) {
-        if (HexDigit(c) < 0) return false;
+        if (HexDigit(c) < 0) {
+            return false;
+        }
     }
     // Return false for empty string or "0x".
     return (str.size() > starting_location);
@@ -79,13 +84,18 @@ std::vector<uint8_t> ParseHex(const char *psz) {
     // convert hex dump to vector
     std::vector<uint8_t> vch;
     while (true) {
-        while (isspace(*psz))
+        while (isspace(*psz)) {
             psz++;
+        }
         signed char c = HexDigit(*psz++);
-        if (c == (signed char)-1) break;
+        if (c == (signed char)-1) {
+            break;
+        }
         uint8_t n = (c << 4);
         c = HexDigit(*psz++);
-        if (c == (signed char)-1) break;
+        if (c == (signed char)-1) {
+            break;
+        }
         n |= c;
         vch.push_back(n);
     }
@@ -158,7 +168,9 @@ std::string EncodeBase64(const uint8_t *pch, size_t len) {
     if (mode) {
         strRet += pbase64[left];
         strRet += '=';
-        if (mode == 1) strRet += '=';
+        if (mode == 1) {
+            strRet += '=';
+        }
     }
 
     return strRet;
@@ -186,7 +198,9 @@ std::vector<uint8_t> DecodeBase64(const char *p, bool *pfInvalid) {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1};
 
-    if (pfInvalid) *pfInvalid = false;
+    if (pfInvalid) {
+        *pfInvalid = false;
+    }
 
     std::vector<uint8_t> vchRet;
     vchRet.reserve(strlen(p) * 3 / 4);
@@ -196,7 +210,9 @@ std::vector<uint8_t> DecodeBase64(const char *p, bool *pfInvalid) {
 
     while (1) {
         int dec = decode64_table[(uint8_t)*p];
-        if (dec == -1) break;
+        if (dec == -1) {
+            break;
+        }
         p++;
         switch (mode) {
             case 0: // we have no bits and get 6
@@ -223,7 +239,8 @@ std::vector<uint8_t> DecodeBase64(const char *p, bool *pfInvalid) {
         }
     }
 
-    if (pfInvalid) switch (mode) {
+    if (pfInvalid) {
+        switch (mode) {
             case 0: // 4n base64 characters processed: ok
                 break;
 
@@ -233,15 +250,19 @@ std::vector<uint8_t> DecodeBase64(const char *p, bool *pfInvalid) {
 
             case 2: // 4n+2 base64 characters processed: require '=='
                 if (left || p[0] != '=' || p[1] != '=' ||
-                    decode64_table[(uint8_t)p[2]] != -1)
+                    decode64_table[(uint8_t)p[2]] != -1) {
                     *pfInvalid = true;
+                }
                 break;
 
             case 3: // 4n+3 base64 characters processed: require '='
-                if (left || p[0] != '=' || decode64_table[(uint8_t)p[1]] != -1)
+                if (left || p[0] != '=' ||
+                    decode64_table[(uint8_t)p[1]] != -1) {
                     *pfInvalid = true;
+                }
                 break;
         }
+    }
 
     return vchRet;
 }
@@ -301,8 +322,9 @@ std::string EncodeBase32(const uint8_t *pch, size_t len) {
     static const int nPadding[5] = {0, 6, 4, 3, 1};
     if (mode) {
         strRet += pbase32[left];
-        for (int n = 0; n < nPadding[mode]; n++)
+        for (int n = 0; n < nPadding[mode]; n++) {
             strRet += '=';
+        }
     }
 
     return strRet;
@@ -330,7 +352,9 @@ std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1};
 
-    if (pfInvalid) *pfInvalid = false;
+    if (pfInvalid) {
+        *pfInvalid = false;
+    }
 
     std::vector<uint8_t> vchRet;
     vchRet.reserve((strlen(p)) * 5 / 8);
@@ -340,7 +364,9 @@ std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
 
     while (1) {
         int dec = decode32_table[(uint8_t)*p];
-        if (dec == -1) break;
+        if (dec == -1) {
+            break;
+        }
         p++;
         switch (mode) {
             case 0: // we have no bits and get 5
@@ -402,25 +428,30 @@ std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
             case 2: // 8n+2 base32 characters processed: require '======'
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
                     p[3] != '=' || p[4] != '=' || p[5] != '=' ||
-                    decode32_table[(uint8_t)p[6]] != -1)
+                    decode32_table[(uint8_t)p[6]] != -1) {
                     *pfInvalid = true;
+                }
                 break;
 
             case 4: // 8n+4 base32 characters processed: require '===='
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
-                    p[3] != '=' || decode32_table[(uint8_t)p[4]] != -1)
+                    p[3] != '=' || decode32_table[(uint8_t)p[4]] != -1) {
                     *pfInvalid = true;
+                }
                 break;
 
             case 5: // 8n+5 base32 characters processed: require '==='
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
-                    decode32_table[(uint8_t)p[3]] != -1)
+                    decode32_table[(uint8_t)p[3]] != -1) {
                     *pfInvalid = true;
+                }
                 break;
 
             case 7: // 8n+7 base32 characters processed: require '='
-                if (left || p[0] != '=' || decode32_table[(uint8_t)p[1]] != -1)
+                if (left || p[0] != '=' ||
+                    decode32_table[(uint8_t)p[1]] != -1) {
                     *pfInvalid = true;
+                }
                 break;
         }
 
@@ -436,22 +467,31 @@ std::string DecodeBase32(const std::string &str) {
 
 static bool ParsePrechecks(const std::string &str) {
     // No empty string allowed
-    if (str.empty()) return false;
-    // No padding allowed
-    if (str.size() >= 1 && (isspace(str[0]) || isspace(str[str.size() - 1])))
+    if (str.empty()) {
         return false;
+    }
+    // No padding allowed
+    if (str.size() >= 1 && (isspace(str[0]) || isspace(str[str.size() - 1]))) {
+        return false;
+    }
     // No embedded NUL characters allowed
-    if (str.size() != strlen(str.c_str())) return false;
+    if (str.size() != strlen(str.c_str())) {
+        return false;
+    }
     return true;
 }
 
 bool ParseInt32(const std::string &str, int32_t *out) {
-    if (!ParsePrechecks(str)) return false;
+    if (!ParsePrechecks(str)) {
+        return false;
+    }
     char *endp = nullptr;
     // strtol will not set errno if valid
     errno = 0;
     long int n = strtol(str.c_str(), &endp, 10);
-    if (out) *out = (int32_t)n;
+    if (out) {
+        *out = (int32_t)n;
+    }
     // Note that strtol returns a *long int*, so even if strtol doesn't report a
     // over/underflow we still have to check that the returned value is within
     // the range of an *int32_t*. On 64-bit platforms the size of these types
@@ -462,12 +502,16 @@ bool ParseInt32(const std::string &str, int32_t *out) {
 }
 
 bool ParseInt64(const std::string &str, int64_t *out) {
-    if (!ParsePrechecks(str)) return false;
+    if (!ParsePrechecks(str)) {
+        return false;
+    }
     char *endp = nullptr;
     // strtoll will not set errno if valid
     errno = 0;
     long long int n = strtoll(str.c_str(), &endp, 10);
-    if (out) *out = (int64_t)n;
+    if (out) {
+        *out = (int64_t)n;
+    }
     // Note that strtoll returns a *long long int*, so even if strtol doesn't
     // report a over/underflow we still have to check that the returned value is
     // within the range of an *int64_t*.
@@ -477,15 +521,21 @@ bool ParseInt64(const std::string &str, int64_t *out) {
 }
 
 bool ParseUInt32(const std::string &str, uint32_t *out) {
-    if (!ParsePrechecks(str)) return false;
+    if (!ParsePrechecks(str)) {
+        return false;
+    }
     // Reject negative values, unfortunately strtoul accepts these by default if
     // they fit in the range
-    if (str.size() >= 1 && str[0] == '-') return false;
+    if (str.size() >= 1 && str[0] == '-') {
+        return false;
+    }
     char *endp = nullptr;
     // strtoul will not set errno if valid
     errno = 0;
     unsigned long int n = strtoul(str.c_str(), &endp, 10);
-    if (out) *out = (uint32_t)n;
+    if (out) {
+        *out = (uint32_t)n;
+    }
     // Note that strtoul returns a *unsigned long int*, so even if it doesn't
     // report a over/underflow we still have to check that the returned value is
     // within the range of an *uint32_t*. On 64-bit platforms the size of these
@@ -495,15 +545,21 @@ bool ParseUInt32(const std::string &str, uint32_t *out) {
 }
 
 bool ParseUInt64(const std::string &str, uint64_t *out) {
-    if (!ParsePrechecks(str)) return false;
+    if (!ParsePrechecks(str)) {
+        return false;
+    }
     // Reject negative values, unfortunately strtoull accepts these by default
     // if they fit in the range
-    if (str.size() >= 1 && str[0] == '-') return false;
+    if (str.size() >= 1 && str[0] == '-') {
+        return false;
+    }
     char *endp = nullptr;
     // strtoull will not set errno if valid
     errno = 0;
     unsigned long long int n = strtoull(str.c_str(), &endp, 10);
-    if (out) *out = (uint64_t)n;
+    if (out) {
+        *out = (uint64_t)n;
+    }
     // Note that strtoull returns a *unsigned long long int*, so even if it
     // doesn't report a over/underflow we still have to check that the returned
     // value is within the range of an *uint64_t*.
@@ -512,14 +568,20 @@ bool ParseUInt64(const std::string &str, uint64_t *out) {
 }
 
 bool ParseDouble(const std::string &str, double *out) {
-    if (!ParsePrechecks(str)) return false;
+    if (!ParsePrechecks(str)) {
+        return false;
+    }
     // No hexadecimal floats allowed
-    if (str.size() >= 2 && str[0] == '0' && str[1] == 'x') return false;
+    if (str.size() >= 2 && str[0] == '0' && str[1] == 'x') {
+        return false;
+    }
     std::istringstream text(str);
     text.imbue(std::locale::classic());
     double result;
     text >> result;
-    if (out) *out = result;
+    if (out) {
+        *out = result;
+    }
     return text.eof() && !text.fail();
 }
 
@@ -605,12 +667,14 @@ static const int64_t UPPER_BOUND = 1000000000000000000LL - 1LL;
 /** Helper function for ParseFixedPoint */
 static inline bool ProcessMantissaDigit(char ch, int64_t &mantissa,
                                         int &mantissa_tzeros) {
-    if (ch == '0')
+    if (ch == '0') {
         ++mantissa_tzeros;
-    else {
+    } else {
         for (int i = 0; i <= mantissa_tzeros; ++i) {
             // overflow
-            if (mantissa > (UPPER_BOUND / 10LL)) return false;
+            if (mantissa > (UPPER_BOUND / 10LL)) {
+                return false;
+            }
             mantissa *= 10;
         }
         mantissa += ch - '0';
@@ -674,9 +738,9 @@ bool ParseFixedPoint(const std::string &val, int decimals,
     }
     if (ptr < end && (val[ptr] == 'e' || val[ptr] == 'E')) {
         ++ptr;
-        if (ptr < end && val[ptr] == '+')
+        if (ptr < end && val[ptr] == '+') {
             ++ptr;
-        else if (ptr < end && val[ptr] == '-') {
+        } else if (ptr < end && val[ptr] == '-') {
             exponent_sign = true;
             ++ptr;
         }
@@ -699,11 +763,15 @@ bool ParseFixedPoint(const std::string &val, int decimals,
         return false;
     }
     // finalize exponent
-    if (exponent_sign) exponent = -exponent;
+    if (exponent_sign) {
+        exponent = -exponent;
+    }
     exponent = exponent - point_ofs + mantissa_tzeros;
 
     // finalize mantissa
-    if (mantissa_sign) mantissa = -mantissa;
+    if (mantissa_sign) {
+        mantissa = -mantissa;
+    }
 
     // convert to one 64-bit fixed-point value
     exponent += decimals;
@@ -729,7 +797,9 @@ bool ParseFixedPoint(const std::string &val, int decimals,
         return false;
     }
 
-    if (amount_out) *amount_out = mantissa;
+    if (amount_out) {
+        *amount_out = mantissa;
+    }
 
     return true;
 }
