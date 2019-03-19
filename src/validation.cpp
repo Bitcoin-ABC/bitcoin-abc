@@ -1144,11 +1144,9 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
     return true;
 }
 
-namespace {
-
-bool UndoWriteToDisk(const CBlockUndo &blockundo, FlatFilePos &pos,
-                     const uint256 &hashBlock,
-                     const CMessageHeader::MessageMagic &messageStart) {
+static bool UndoWriteToDisk(const CBlockUndo &blockundo, FlatFilePos &pos,
+                            const BlockHash &hashBlock,
+                            const CMessageHeader::MessageMagic &messageStart) {
     // Open history file to append
     CAutoFile fileout(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull()) {
@@ -1176,7 +1174,7 @@ bool UndoWriteToDisk(const CBlockUndo &blockundo, FlatFilePos &pos,
     return true;
 }
 
-static bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
+bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
     FlatFilePos pos = pindex->GetUndoPos();
     if (pos.IsNull()) {
         return error("%s: no undo data available", __func__);
@@ -1228,8 +1226,6 @@ static bool AbortNode(CValidationState &state, const std::string &strMessage,
     AbortNode(strMessage, userMessage);
     return state.Error(strMessage);
 }
-
-} // namespace
 
 /** Restore the UTXO in a Coin at a given COutPoint. */
 DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
