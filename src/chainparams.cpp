@@ -158,9 +158,9 @@ public:
         // Rewards
         consensus.nPerCentPerYear = {15,13,11,9,7};
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
-        consensus.nMinRewardBalance = 100 * COIN;
-        consensus.nMinReward = COIN;
-        consensus.nMaxReward = 10000 * COIN;
+        consensus.nMinRewardBalance = 1000 * COIN;
+        consensus.nMinReward = 50 * COIN;
+        consensus.nMaxReward = 62500 * COIN;
 
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -263,9 +263,9 @@ public:
         // Rewards
         consensus.nPerCentPerYear = {15,13,11,9,7};
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
-        consensus.nMinRewardBalance = 100 * COIN;
-        consensus.nMinReward = COIN;
-        consensus.nMaxReward = 10000 * COIN;
+        consensus.nMinRewardBalance = 1000 * COIN;
+        consensus.nMinReward = 50 * COIN;
+        consensus.nMaxReward = 62500 * COIN;
 
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
@@ -362,9 +362,9 @@ public:
         // Rewards
         consensus.nPerCentPerYear = {15,13,11,9,7};
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
-        consensus.nMinRewardBalance = 100 * COIN;
-        consensus.nMinReward = COIN;
-        consensus.nMaxReward = 10000 * COIN;
+        consensus.nMinRewardBalance = 1000 * COIN;
+        consensus.nMinReward = 50 * COIN;
+        consensus.nMaxReward = 62500 * COIN;
 
     }
 };
