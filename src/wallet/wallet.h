@@ -1063,7 +1063,7 @@ public:
                                          bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
-    void ResendWalletTransactions(interfaces::Chain::Lock &locked_chain);
+    void ResendWalletTransactions();
     Amount GetBalance(const isminefilter &filter = ISMINE_SPENDABLE,
                       const int min_depth = 0) const;
     Amount GetUnconfirmedBalance() const;

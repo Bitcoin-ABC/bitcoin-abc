@@ -2257,7 +2257,7 @@ bool CWalletTx::IsEquivalentTo(const CWalletTx &_tx) const {
 // and so is probably just sitting in the mempool waiting to be confirmed.
 // Rebroadcasting does nothing to speed up confirmation and only damages
 // privacy.
-void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) {
+void CWallet::ResendWalletTransactions() {
     // During reindex, importing and IBD, old wallet transactions become
     // unconfirmed. Don't resend them as that would spam other nodes.
     if (!chain().isReadyToBroadcast()) {
@@ -2285,7 +2285,8 @@ void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) {
 
     int relayed_tx_count = 0;
 
-    { // cs_wallet scope
+    { // locked_chain and cs_wallet scope
+        auto locked_chain = chain().lock();
         LOCK(cs_wallet);
 
         // Relay transactions
@@ -2296,10 +2297,11 @@ void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) {
             if (wtx.nTimeReceived > m_best_block_time - 5 * 60) {
                 continue;
             }
-            relayed_tx_count +=
-                wtx.RelayWalletTransaction(locked_chain) ? 1 : 0;
+            if (wtx.RelayWalletTransaction(*locked_chain)) {
+                ++relayed_tx_count;
+            }
         }
-    } // cs_wallet
+    } // locked_chain and cs_wallet
 
     if (relayed_tx_count > 0) {
         WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n",
@@ -2311,8 +2313,7 @@ void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) {
 
 void MaybeResendWalletTxs() {
     for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
-        auto locked_chain = pwallet->chain().lock();
-        pwallet->ResendWalletTransactions(*locked_chain);
+        pwallet->ResendWalletTransactions();
     }
 }
 
