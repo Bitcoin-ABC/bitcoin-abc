@@ -349,7 +349,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt(
         "-conf=<file>", strprintf(_("Specify configuration file (default: %s)"),
                                   BITCOIN_CONF_FILENAME));
-    if (mode == HMM_BITCOIND) {
+    if (mode == HelpMessageMode::BITCOIND) {
 #if HAVE_DECL_DAEMON
         strUsage += HelpMessageOpt(
             "-daemon",

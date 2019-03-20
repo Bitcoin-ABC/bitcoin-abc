@@ -87,7 +87,7 @@ bool AppInit(int argc, char *argv[]) {
                         "  bitcoind [options]                     " +
                         strprintf(_("Start %s Daemon"), _(PACKAGE_NAME)) + "\n";
 
-            strUsage += "\n" + HelpMessage(HMM_BITCOIND);
+            strUsage += "\n" + HelpMessage(HelpMessageMode::BITCOIND);
         }
 
         fprintf(stdout, "%s", strUsage.c_str());
