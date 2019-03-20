@@ -53,7 +53,7 @@ public:
      * This must be called BEFORE strFile is opened.
      * Returns true if strFile is OK.
      */
-    enum VerifyResult { VERIFY_OK, RECOVER_OK, RECOVER_FAIL };
+    enum class VerifyResult { VERIFY_OK, RECOVER_OK, RECOVER_FAIL };
     typedef bool (*recoverFunc_type)(const std::string &strFile,
                                      std::string &out_backup_filename);
     VerifyResult Verify(const std::string &strFile,
