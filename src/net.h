@@ -780,6 +780,8 @@ public:
     Amount lastSentFeeFilter{Amount::zero()};
     int64_t nextSendTimeFeeFilter{0};
 
+    std::set<TxId> orphan_work_set;
+
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn,
           SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
           uint64_t nLocalHostNonceIn, const CAddress &addrBindIn,

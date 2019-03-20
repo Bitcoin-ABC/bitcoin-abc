@@ -2058,7 +2058,8 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
     std::unordered_map<NodeId, uint32_t> rejectCountPerNode;
-    while (!orphan_work_set.empty()) {
+    bool done = false;
+    while (!done && !orphan_work_set.empty()) {
         const TxId orphanTxId = *orphan_work_set.begin();
         orphan_work_set.erase(orphan_work_set.begin());
 
@@ -2099,6 +2100,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
                 }
             }
             EraseOrphanTx(orphanTxId);
+            done = true;
         } else if (!fMissingInputs2) {
             int nDos = 0;
             if (stateDummy.IsInvalid(nDos)) {
@@ -2125,6 +2127,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
                 recentRejects->insert(orphanTxId);
             }
             EraseOrphanTx(orphanTxId);
+            done = true;
         }
         g_mempool.check(pcoinsTip.get());
     }
@@ -2856,8 +2859,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             return true;
         }
 
-        std::set<TxId> orphan_work_set;
-
         CTransactionRef ptx;
         vRecv >> ptx;
         const CTransaction &tx = *ptx;
@@ -2887,7 +2888,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     mapOrphanTransactionsByPrev.find(COutPoint(txid, i));
                 if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
                     for (const auto &elem : it_by_prev->second) {
-                        orphan_work_set.insert(elem->first);
+                        pfrom->orphan_work_set.insert(elem->first);
                     }
                 }
             }
@@ -2902,7 +2903,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
             // Recursively process any orphan transactions that depended on this
             // one
-            ProcessOrphanTx(config, connman, orphan_work_set);
+            ProcessOrphanTx(config, connman, pfrom->orphan_work_set);
         } else if (fMissingInputs) {
             // It may be the case that the orphans parents have all been
             // rejected.
@@ -3842,12 +3843,20 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
         ProcessGetData(config, pfrom, connman, interruptMsgProc);
     }
 
+    if (!pfrom->orphan_work_set.empty()) {
+        LOCK2(cs_main, g_cs_orphans);
+        ProcessOrphanTx(config, connman, pfrom->orphan_work_set);
+    }
+
     if (pfrom->fDisconnect) {
         return false;
     }
 
     // this maintains the order of responses
     if (!pfrom->vRecvGetData.empty()) {
+        return true;
+    }
+    if (!pfrom->orphan_work_set.empty()) {
         return true;
     }
 
