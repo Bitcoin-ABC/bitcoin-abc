@@ -12,6 +12,7 @@
 #include "qt/bantablemodel.h"
 #include "qt/clientmodel.h"
 #include "qt/guiutil.h"
+#include "qt/dvtui.h"
 #include "qt/platformstyle.h"
 #include "qt/walletmodel.h"
 
@@ -516,13 +517,10 @@ RPCConsole::RPCConsole(const PlatformStyle *_platformStyle, QWidget *parent)
         move(QApplication::desktop()->availableGeometry().center() -
              frameGeometry().center());
     }
-    if(settings.value("theme").toString() == "dark") 
-    {   
-        setStyleSheet( 
-            "QWidget { background: rgba(30,30,30); color: rgb(211,211,211); }" 
-            "QTableView { border: 1px solid rgb(30,30,30); selection-background-color: rgb(62,62,62); selection-color: rgb(0,178,255); alternate-background: rgb(22,22,22); }" 
-            "QTableView::item { border-right: 1px solid rgb(30,30,30); border-bottom: 1px solid rgb(30,30,30);}" 
-        ); 
+    if(DVTUI::customThemeIsSet()) {
+        QString appstyle = "fusion";
+        QApplication::setStyle(appstyle);
+        setStyleSheet(styleSheetString);
     }
 
     ui->openDebugLogfileButton->setToolTip(

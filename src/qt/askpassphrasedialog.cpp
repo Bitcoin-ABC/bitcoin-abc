@@ -36,6 +36,9 @@ AskPassphraseDialog::AskPassphraseDialog(Mode _mode, QWidget *parent)
     ui->passEdit2->installEventFilter(this);
     ui->passEdit3->installEventFilter(this);
 
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setIcon(QIcon());
+    ui->buttonBox->button(QDialogButtonBox::Cancel)->setIcon(QIcon());
+
     switch (mode) {
         case Encrypt: // Ask passphrase x2
             ui->warningLabel->setText(

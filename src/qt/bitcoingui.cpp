@@ -10,8 +10,10 @@
 
 #include "bitcoinunits.h"
 #include "clientmodel.h"
+#include "clientversion.h"
 #include "guiconstants.h"
 #include "guiutil.h"
+#include "dvtui.h"
 #include "modaloverlay.h"
 #include "networkstyle.h"
 #include "notificator.h"
@@ -59,6 +61,9 @@
 #include <QToolBar>
 #include <QUrlQuery>
 #include <QVBoxLayout>
+#include <QWidgetAction>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 const std::string BitcoinGUI::DEFAULT_UIPLATFORM =
 #if defined(Q_OS_MAC)
@@ -73,7 +78,7 @@ const std::string BitcoinGUI::DEFAULT_UIPLATFORM =
 BitcoinGUI::BitcoinGUI(const Config *configIn,
                        const PlatformStyle *_platformStyle,
                        const NetworkStyle *networkStyle, QWidget *parent)
-    : QMainWindow(parent), enableWallet(false), platformStyle(_platformStyle),
+    : QMainWindow(parent), enableWallet(false), dvtLogoAction(0), platformStyle(_platformStyle),
       config(configIn) {
     QSettings settings;
     if (!restoreGeometry(settings.value("MainWindowGeometry").toByteArray())) {
@@ -81,51 +86,16 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
         move(QApplication::desktop()->availableGeometry().center() -
              frameGeometry().center());
     }
-    if(settings.value("theme").toString() == "dark")
-    {
-    QString appstyle = "fusion";
-    QApplication::setStyle(appstyle);    
-    setStyleSheet("QFrame { background: rgb(22,22,22); alternate-background-color: rgb(22,22,22);}"
-                    "QWidget {background: rgb(30,30,30); color: rgb(211,211,211); }"
-                    "QHeaderView { background: rgb(22,22,22)} "
-                    "QLineEdit { background: rgb(22,22,22); border-style: solid; border-width: 1px;  border-color: rgb(30,30,30) }"
-                    "QAbstractSpinBox { background: rgb(22,22,22); border-style: solid; border-width: 1px;  border-color: rgb(30,30,30); padding: 0px }"
-                    "QSpinBox::down-button:off {width: 30px; border: solid }"
-                    "QComboBox { background: rgb(22,22,22); }"
-                    //"QSpinBox::down-button { subcontrol-origin: border; subcontrol-position: center; width: 16px; border-color: rgb(32,32,32); border-width: 1px;}"
-                    "QAbstractSpinBox::up-arrow { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/up_arrow) }"
-                    "QAbstractSpinBox::down-arrow { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/down_arrow) }"                    
-                    "QAbstractSpinBox::up-arrow:off { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/up_arrow_off) }"                    
-                    "QAbstractSpinBox::down-arrow:off { border: none; padding: 0; width: 7px; height: 7px; image: url(:/icons/down_arrow_off) }"                    
-                    ".QFrame { border-style: solid; border-width: 1px;  border-color: rgb(30,30,30) }"
-                    //"QLabel { border-style: none; border-width: 1px;  border-color: rgb(30,30,30) }"
-                    "QTableView { border: 1px solid rgb(30,30,30); selection-background-color: rgb(62,62,62); selection-color: rgb(0,178,255); alternate-background: rgb(22,22,22); }"
-                    "QTableView::item { border-right: 1px solid rgb(30,30,30); border-bottom: 1px solid rgb(30,30,30);}"                    
-                    "RecentRequestsTableModel::item { selection-background: rgb(62,62,62); selection-color: rgb(0,178,255); alternate-background: rgb(22,22,22); }"
-                    //"QToolBar {background: red; border-color: rgb (32,32,32); border-style: solid; border-width: 1px }"
-                    "QToolButton { background: rgb(30,30,30); border-color: rgb(30,30,30); border-style: solid; border-width: 1px; border-radius: 3px; padding: 3px; margin: 6px}"
-                    "QToolButton:hover { background: rgb(22,22,22); border-color: rgb(0,174,255); border-style: solid; border-width: 1px; border-radius: 3px; padding: 4px}"                          
-                    "QToolButton:checked { background: rgb(22,22,22); border-color: rgb(0,178,255); border-style: solid; border-width: 1px; border-radius: 3px; padding: 4px}"
-                    "QScrollBar:vertical {border: 1px solid rgb(62,62,62); background: rgb(32,32,32); padding-top: 13px; padding-bottom: 13px;}"
-                    "QScrollBar:horizontal {border: 1px solid rgb(62,62,62); background: rgb(32,32,32); margin: 0px 20px 0 20px; padding-left: 13px; padding-right: 13px;}"
-                    "QScrollBar::handle { background: rgb(0,174,255); border: 1px solid rgb(62,62,62); }"
-                    //"QCheckBox::indicator { background: rgb(22,22,22); }"
-                    "QMenu:item:selected { color: rgb(0,178,255); background: rgb(22,22,22); }"
-                    "QMenuBar:item:selected { color: rgb(0,178,255); background: rgb(22,22,22); }"
-                    "QPushButton { background: rgb(30,30,30); color: rgb(0,174,255); border-width: 1px; padding: 6px; border-style: solid; border-radius: 5px ; border-color: rgb(22,22,22)}"
-                    "QPushButton:hover { background: rgb(22,22,22); }"
-                    "QProgressBar {color: rgb(200,200,200); background: rgb(62,62,62);  border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; }" 
-                    "QProgressBar::chunk {color: rgb(0,174,255); background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgb(0,255,169), stop: 1 rgb(0,190,190), stop: 2 rgb(0,174,255)); border-radius: 7px; margin: 0px; }"
-                    "#labelWalletStatus { border: none }"
-                    "#labelTransactionsStatus { border: none }"
-                    "#lineWatchBalance { border: none }"
-                    "#line { border: none; color: rgb(30,30,30) }"
-                    "#widgetCoinControl { border: none }"
-                    "#checkBoxCoinControlChange { padding-left: 5px }"
-                    "QFrame {border: none} "
-                    "QToolbar {border: none} "
-                    "#frameFeeSelection {border: none}"
-                );
+
+    if (DVTUI::customThemeIsSet()) {
+        QString appstyle = "fusion";
+        QApplication::setStyle(appstyle);
+        QPalette newPal(qApp->palette());
+        newPal.setColor(QPalette::Link, QColor(41, 128, 185));
+        newPal.setColor(QPalette::LinkVisited, QColor(41, 99, 185));
+        qApp->setPalette(newPal);
+        setStyleSheet(styleSheetString);
+        ensurePolished();
     }
 
     QString windowTitle = tr(PACKAGE_NAME) + " - ";
@@ -173,68 +143,17 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
     // Create application menu bar
     createMenuBar();
 
+   // Progress bar and label for blocks download
+    progressBarLabel = new QLabel();
+    progressBar = new GUIUtil::ProgressBar();
+    progressBar->setAlignment(Qt::AlignLeft);
+    progressBar->setMaximumHeight(12);
+
     // Create the toolbars
     createToolBars();
 
     // Create system tray icon and notification
     createTrayIcon(networkStyle);
-
-    // Create status bar
-    statusBar();
-
-    // Disable size grip because it looks ugly and nobody needs it
-    statusBar()->setSizeGripEnabled(false);
-
-    // Status bar notification icons
-    QFrame *frameBlocks = new QFrame();
-    frameBlocks->setContentsMargins(0, 0, 0, 0);
-    frameBlocks->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-    frameBlocks->setStyleSheet("border: none");
-    QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
-    frameBlocksLayout->setContentsMargins(3, 0, 3, 0);
-    frameBlocksLayout->setSpacing(3);
-    unitDisplayControl = new UnitDisplayStatusBarControl(platformStyle);
-    labelWalletEncryptionIcon = new QLabel();
-    labelWalletHDStatusIcon = new QLabel();
-    connectionsControl = new GUIUtil::ClickableLabel();
-    labelBlocksIcon = new GUIUtil::ClickableLabel();
-    if (enableWallet) {
-        frameBlocksLayout->addStretch();
-        frameBlocksLayout->addWidget(unitDisplayControl);
-        frameBlocksLayout->addStretch();
-        frameBlocksLayout->addWidget(labelWalletEncryptionIcon);
-        frameBlocksLayout->addWidget(labelWalletHDStatusIcon);
-    }
-    frameBlocksLayout->addStretch();
-    frameBlocksLayout->addWidget(connectionsControl);
-    frameBlocksLayout->addStretch();
-    frameBlocksLayout->addWidget(labelBlocksIcon);
-    frameBlocksLayout->addStretch();
-
-    // Progress bar and label for blocks download
-    progressBarLabel = new QLabel();
-    progressBarLabel->setVisible(false);
-    progressBar = new GUIUtil::ProgressBar();
-    progressBar->setAlignment(Qt::AlignCenter);
-    progressBar->setVisible(false);
-
-    // Override style sheet for progress bar for styles that have a segmented
-    // progress bar, as they make the text unreadable (workaround for issue
-    // #1071)
-    // See https://doc.qt.io/qt-5/gallery.html
-    QString curStyle = QApplication::style()->metaObject()->className();
-    if (curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle") {
-        progressBar->setStyleSheet(
-            "QProgressBar { background-color: #e8e8e8; border: 1px solid grey; "
-            "border-radius: 7px; padding: 1px; text-align: center; } "
-            "QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, "
-            "x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 orange); border-radius: "
-            "7px; margin: 0px; }");
-    }
-
-    statusBar()->addWidget(progressBarLabel);
-    statusBar()->addWidget(progressBar);
-    statusBar()->addPermanentWidget(frameBlocks);
 
     // Install event filter to be able to catch status tip events
     // (QEvent::StatusTip)
@@ -281,7 +200,11 @@ BitcoinGUI::~BitcoinGUI() {
 }
 
 void BitcoinGUI::createActions() {
-    QActionGroup *tabGroup = new QActionGroup(this);
+    QActionGroup* tabGroup = new QActionGroup(this);
+
+    dvtLogoAction = new QAction("", this);
+    dvtLogoAction->setCheckable(false);
+    tabGroup->addAction(dvtLogoAction);
 
     overviewAction =
         new QAction(platformStyle->SingleColorIcon(":/icons/overview"),
@@ -323,14 +246,6 @@ void BitcoinGUI::createActions() {
     receiveCoinsMenuAction->setStatusTip(receiveCoinsAction->statusTip());
     receiveCoinsMenuAction->setToolTip(receiveCoinsMenuAction->statusTip());
 
-    historyAction =
-        new QAction(platformStyle->SingleColorIcon(":/icons/history"),
-                    tr("&Transactions"), this);
-    historyAction->setStatusTip(tr("Browse transaction history"));
-    historyAction->setToolTip(historyAction->statusTip());
-    historyAction->setCheckable(true);
-    historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
-    tabGroup->addAction(historyAction);
 
 #ifdef ENABLE_WALLET
     // These showNormalIfMinimized are needed because Send Coins and Receive
@@ -340,13 +255,11 @@ void BitcoinGUI::createActions() {
             SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this,
             SLOT(gotoOverviewPage()));
+    connect(dvtLogoAction, SIGNAL(triggered()), this, 
+	    SLOT(openDVT_global()));
     connect(sendCoinsAction, SIGNAL(triggered()), this,
             SLOT(showNormalIfMinimized()));
     connect(sendCoinsAction, SIGNAL(triggered()), this,
-            SLOT(gotoSendCoinsPage()));
-    connect(sendCoinsMenuAction, SIGNAL(triggered()), this,
-            SLOT(showNormalIfMinimized()));
-    connect(sendCoinsMenuAction, SIGNAL(triggered()), this,
             SLOT(gotoSendCoinsPage()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this,
             SLOT(showNormalIfMinimized()));
@@ -356,9 +269,6 @@ void BitcoinGUI::createActions() {
             SLOT(showNormalIfMinimized()));
     connect(receiveCoinsMenuAction, SIGNAL(triggered()), this,
             SLOT(gotoReceiveCoinsPage()));
-    connect(historyAction, SIGNAL(triggered()), this,
-            SLOT(showNormalIfMinimized()));
-    connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(platformStyle->TextColorIcon(":/icons/quit"),
@@ -531,17 +441,82 @@ void BitcoinGUI::createMenuBar() {
 
 void BitcoinGUI::createToolBars() {
     if (walletFrame) {
-        QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
-        appToolBar = toolbar;
-        toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
+        QToolBar* toolbar = new QToolBar(tr("Tabs toolbar"), this);
+        addToolBar(Qt::LeftToolBarArea, toolbar);
+        toolbar->setObjectName("toolbar");
+        toolbar->setOrientation(Qt::Vertical);
+        toolbar->setContextMenuPolicy(Qt::PreventContextMenu); 
         toolbar->setMovable(false);
+        toolbar->setIconSize(TOOLBAR_ICONSIZE);
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        toolbar->addAction(dvtLogoAction);
         toolbar->addAction(overviewAction);
         toolbar->addAction(sendCoinsAction);
         toolbar->addAction(receiveCoinsAction);
-        toolbar->addAction(historyAction);
-        overviewAction->setChecked(true);
+        toolbar->widgetForAction(dvtLogoAction)->setStyleSheet("background: transparent; width: 108; height: 108; padding:30; margin: 20px; border: none; image: url(:/icons/devault)");
+        toolbar->widgetForAction(dvtLogoAction)->setToolTip(tr("devault.cc"));
+        QWidget* spacerWidget = new QWidget(this);
+        spacerWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        spacerWidget->setVisible(true);
+        spacerWidget->setStyleSheet("background: transparent; width: 275");
+        toolbar->addWidget(spacerWidget);
 
+        // Status bar notification icons
+        QFrame* frameBlocks = new QFrame();
+        frameBlocks->setContentsMargins(0, 0, 0, 0);
+        frameBlocks->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+        frameBlocks->setStyleSheet("border: none; background: transparent; padding-top: 10px; font-size: 8px; font-weight: bold;");
+
+        QHBoxLayout* frameBlocksLayout = new QHBoxLayout(frameBlocks);
+        frameBlocksLayout->setContentsMargins(3, 0, 3, 0);
+        frameBlocksLayout->addSpacing(30);
+        frameBlocksLayout->setSpacing(3);
+        unitDisplayControl = new UnitDisplayStatusBarControl(platformStyle);
+        labelWalletEncryptionIcon = new QLabel();
+        labelWalletHDStatusIcon = new QLabel();
+        connectionsControl = new GUIUtil::ClickableLabel();
+        labelBlocksIcon = new GUIUtil::ClickableLabel();
+
+        if (enableWallet) {
+            frameBlocksLayout->addStretch();
+            frameBlocksLayout->addWidget(labelWalletEncryptionIcon);
+        }
+        frameBlocksLayout->addStretch();
+        frameBlocksLayout->addWidget(connectionsControl);
+        frameBlocksLayout->addStretch();
+        frameBlocksLayout->addWidget(labelBlocksIcon);
+        frameBlocksLayout->addStretch();
+
+
+        
+        progressBarLabel->setStyleSheet("background: transparent; color: " + s_placeHolderText + "; margin-left: 30px; margin-right: 30px;");
+        actProgressBar = new QWidgetAction(this);
+        actProgressBar->setDefaultWidget(progressBar);
+
+        actProgressBarLabel = new QWidgetAction(this);
+        actProgressBarLabel->setDefaultWidget(progressBarLabel);
+
+        toolbar->addWidget(frameBlocks);
+
+        QWidget* spacerWidget3 = new QWidget(this);
+        spacerWidget3->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        spacerWidget3->setFixedHeight(5);
+        spacerWidget3->setVisible(true);
+        spacerWidget3->setStyleSheet("background: transparent;");
+        toolbar->addWidget(spacerWidget3);
+
+        toolbar->addAction(actProgressBar);
+        toolbar->addAction(actProgressBarLabel);
+
+        
+        QWidget* spacerWidget2 = new QWidget(this);
+        spacerWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        spacerWidget2->setFixedHeight(15);
+        spacerWidget2->setVisible(true);
+        spacerWidget2->setStyleSheet("background: transparent;");
+        toolbar->addWidget(spacerWidget2);
+
+        overviewAction->setChecked(true);
 #ifdef ENABLE_WALLET
         QWidget *spacer = new QWidget();
         spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -552,6 +527,14 @@ void BitcoinGUI::createToolBars() {
                 this, SLOT(setCurrentWallet(const QString &)));
 #endif
     }
+}
+
+int BitcoinGUI::getConnectedNodeCount()
+{
+    std::vector<CNodeStats> vstats;
+    if (g_connman)
+        g_connman->GetNodeStats(vstats);
+    return vstats.size();
 }
 
 void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
@@ -653,12 +636,12 @@ void BitcoinGUI::removeAllWallets() {
 #endif // ENABLE_WALLET
 
 void BitcoinGUI::setWalletActionsEnabled(bool enabled) {
+    dvtLogoAction->setEnabled(enabled);
     overviewAction->setEnabled(enabled);
     sendCoinsAction->setEnabled(enabled);
     sendCoinsMenuAction->setEnabled(enabled);
     receiveCoinsAction->setEnabled(enabled);
     receiveCoinsMenuAction->setEnabled(enabled);
-    historyAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -770,9 +753,9 @@ void BitcoinGUI::gotoOverviewPage() {
     if (walletFrame) walletFrame->gotoOverviewPage();
 }
 
-void BitcoinGUI::gotoHistoryPage() {
-    historyAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoHistoryPage();
+void BitcoinGUI::openDVT_global()
+{
+    QDesktopServices::openUrl(QUrl("http://devault.cc", QUrl::TolerantMode));
 }
 
 void BitcoinGUI::gotoReceiveCoinsPage() {
@@ -798,27 +781,27 @@ void BitcoinGUI::updateNetworkState() {
     int count = clientModel->getNumConnections();
     QString icon;
     switch (count) {
-        case 0:
-            icon = ":/icons/connect_0";
-            break;
-        case 1:
-        case 2:
-        case 3:
-            icon = ":/icons/connect_1";
-            break;
-        case 4:
-        case 5:
-        case 6:
-            icon = ":/icons/connect_2";
-            break;
-        case 7:
-        case 8:
-        case 9:
-            icon = ":/icons/connect_3";
-            break;
-        default:
-            icon = ":/icons/connect_4";
-            break;
+    case 0:
+        icon = ":/icons/connect_0";
+        break;
+    case 1:
+    case 2:
+        icon = ":/icons/connect_1";
+        break;
+    case 3:
+    case 4:
+        icon = ":/icons/connect_2";
+        break;
+    case 5:
+    case 6:
+        icon = ":/icons/connect_3";
+    case 7:
+    case 8:
+        icon = ":/icons/connect_4";
+        break;
+    default:
+        icon = ":/icons/connect_5";
+        break;
     }
 
     QString tooltip;
@@ -878,7 +861,10 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
 
     // Prevent orphan statusbar messages (e.g. hover Quit in main menu, wait
     // until chain-sync starts -> garbled text)
-    statusBar()->clearMessage();
+    //statusBar()->clearMessage();
+
+    actProgressBarLabel->setVisible(true);
+    actProgressBar->setVisible(true);
 
     // Acquire current block source
     enum BlockSource blockSource = clientModel->getBlockSource();
@@ -930,16 +916,19 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
         }
 #endif // ENABLE_WALLET
 
-        progressBarLabel->setVisible(false);
-        progressBar->setVisible(false);
+        actProgressBarLabel->setVisible(true);
+        actProgressBar->setVisible(true);
+        progressBar->setMaximum(1000000000);
+        progressBar->setValue(1000000000);
+        progressBarLabel->setText(tr("Fully synchronized!"));
     } else {
         QString timeBehindText = GUIUtil::formatNiceTimeOffset(secs);
 
-        progressBarLabel->setVisible(true);
+        actProgressBarLabel->setVisible(true);
         progressBar->setFormat(tr("%1 behind").arg(timeBehindText));
         progressBar->setMaximum(1000000000);
         progressBar->setValue(nVerificationProgress * 1000000000.0 + 0.5);
-        progressBar->setVisible(true);
+        actProgressBar->setVisible(true);
 
         tooltip = tr("Catching up...") + QString("<br>") + tooltip;
         if (count != prevBlocks) {

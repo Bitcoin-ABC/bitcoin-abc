@@ -110,13 +110,13 @@ void WalletFrame::gotoOverviewPage() {
     QMap<QString, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoOverviewPage();
-}
-
+} 
+/*
 void WalletFrame::gotoHistoryPage() {
     QMap<QString, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoHistoryPage();
-}
+} */
 
 void WalletFrame::gotoReceiveCoinsPage() {
     QMap<QString, WalletView *>::const_iterator i;

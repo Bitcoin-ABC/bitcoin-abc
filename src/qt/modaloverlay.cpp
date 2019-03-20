@@ -5,6 +5,7 @@
 #include "modaloverlay.h"
 #include "ui_modaloverlay.h"
 
+#include "dvtui.h"
 #include "guiutil.h"
 
 #include "chainparams.h"
@@ -24,21 +25,17 @@ platformStyle(_platformStyle)
 {
     ui->setupUi(this); 
 
-    QSettings settings; 
-    bool darkTheme = (settings.value("theme").toString() == "dark"); 
-    if(darkTheme) 
-    { 
-        setStyleSheet( 
-        "#contentWidget { background: rgba(30,30,30); border-radius: 6px; }" 
-        "QPushButton { background-color: rgb(30,30,30); color: rgb(211,211,211); border-width: 1px; padding: 6px; border-style: outset; border-radius: 5px ; border-color: rgb(22,22,22); }" 
-        "QPushButton:hover { background: rgb(22,22,22); }"
-        "#warningIcon { border: none }");
+    if(DVTUI::customThemeIsSet()) {
+        QString appstyle = "fusion";
+        QApplication::setStyle(appstyle);
+        setStyleSheet(styleSheetString); 
         
         if (platformStyle->getImagesOnButtons()) { 
             QIcon icon = platformStyle->SingleColorIcon(":/icons/warning"); 
             icon.addPixmap(icon.pixmap(QSize(64,64), QIcon::Normal), QIcon::Disabled); 
             ui->warningIcon->setIcon(icon); 
-        }  
+        }
+
     }else{ 
         setStyleSheet( 
         "#contentWidget { background: rgba(211,211,211,240); border-radius: 6px; }" 

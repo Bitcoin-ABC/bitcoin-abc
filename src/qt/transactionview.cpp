@@ -45,17 +45,18 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
     QHBoxLayout *hlayout = new QHBoxLayout();
     hlayout->setContentsMargins(0, 0, 0, 0);
 
-    if (platformStyle->getUseExtraSpacing()) {
+ /*   if (platformStyle->getUseExtraSpacing()) {
         hlayout->setSpacing(5);
         hlayout->addSpacing(26);
     } else {
         hlayout->setSpacing(0);
         hlayout->addSpacing(23);
-    }
+    } */
 
     watchOnlyWidget = new QComboBox(this);
     watchOnlyWidget->setFixedWidth(24);
     watchOnlyWidget->addItem("", TransactionFilterProxy::WatchOnlyFilter_All);
+    watchOnlyWidget->setIconSize(QSize(14,14));
     watchOnlyWidget->addItem(platformStyle->SingleColorIcon(":/icons/eye_plus"),
                              "", TransactionFilterProxy::WatchOnlyFilter_Yes);
     watchOnlyWidget->addItem(
@@ -77,6 +78,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
     dateWidget->addItem(tr("This year"), ThisYear);
     dateWidget->addItem(tr("Range..."), Range);
     hlayout->addWidget(dateWidget);
+    hlayout->addSpacing(15);
 
     typeWidget = new QComboBox(this);
     if (platformStyle->getUseExtraSpacing()) {
@@ -102,10 +104,12 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
                         TransactionFilterProxy::TYPE(TransactionRecord::Other));
 
     hlayout->addWidget(typeWidget);
+    hlayout->addSpacing(15);
 
     addressWidget = new QLineEdit(this);
     addressWidget->setPlaceholderText(tr("Enter address or label to search"));
     hlayout->addWidget(addressWidget);
+    hlayout->addSpacing(15);
 
     amountWidget = new QLineEdit(this);
     amountWidget->setPlaceholderText(tr("Min amount"));
@@ -122,17 +126,19 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
     vlayout->setSpacing(0);
 
     QTableView *view = new QTableView(this);
+    view->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Expanding);
+    view->setMaximumHeight(123456);
     vlayout->addLayout(hlayout);
     vlayout->addWidget(createDateRangeWidget());
     vlayout->addWidget(view);
     vlayout->setSpacing(0);
-    int width = view->verticalScrollBar()->sizeHint().width();
+  //  int width = view->verticalScrollBar()->sizeHint().width();
     // Cover scroll bar width with spacing
-    if (platformStyle->getUseExtraSpacing()) {
+  /*  if (platformStyle->getUseExtraSpacing()) {
         hlayout->addSpacing(width + 2);
     } else {
         hlayout->addSpacing(width);
-    }
+    } */
     // Always show scroll bar
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     view->setTabKeyNavigation(false);
@@ -212,6 +218,9 @@ void TransactionView::setModel(WalletModel *_model) {
         transactionProxyModel->setSortRole(Qt::EditRole);
 
         transactionView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        transactionView->setMaximumHeight(133700);
+        transactionView->setIconSize(QSize(16,16));
+        transactionView->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
         transactionView->setModel(transactionProxyModel);
         transactionView->setAlternatingRowColors(true);
         transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);

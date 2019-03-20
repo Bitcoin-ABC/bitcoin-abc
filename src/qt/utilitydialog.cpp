@@ -24,6 +24,8 @@
 
 #include <QCloseEvent>
 #include <QLabel>
+#include <QRect>
+#include <QPushButton>
 #include <QRegExp>
 #include <QTextCursor>
 #include <QTextTable>
@@ -50,6 +52,7 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about)
 
     if (about) {
         setWindowTitle(tr("About %1").arg(tr(PACKAGE_NAME)));
+        resize(780,400);
 
         /// HTML-format the license message from the core
         QString licenseInfo = QString::fromStdString(LicenseInfo());
@@ -69,6 +72,7 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about)
         ui->helpMessage->setVisible(false);
     } else {
         setWindowTitle(tr("Command-line options"));
+        resize(780,400);
         QString header = tr("Usage:") + "\n" + "  devault-qt [" +
                          tr("command-line options") + "]                     " +
                          "\n";

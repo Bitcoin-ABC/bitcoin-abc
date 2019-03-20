@@ -6,6 +6,7 @@
 #include "ui_transactiondescdialog.h"
 
 #include "transactiontablemodel.h"
+#include "dvtui.h"
 
 #include <QModelIndex>
 #include <QSettings>
@@ -14,10 +15,10 @@ TransactionDescDialog::TransactionDescDialog(const QModelIndex &idx,
                                              QWidget *parent)
     : QDialog(parent), ui(new Ui::TransactionDescDialog) {
     ui->setupUi(this);
-    QSettings settings;
-    if(settings.value("theme").toString() == "dark") 
-    {   
-        setStyleSheet("QWidget {background: rgb(22,22,22); color: rgb(211,211,211);}"); 
+    if(DVTUI::customThemeIsSet()) {
+        QString appstyle = "fusion";
+        QApplication::setStyle(appstyle);
+        setStyleSheet(styleSheetString);
     } 
     setWindowTitle(
         tr("Details for %1")

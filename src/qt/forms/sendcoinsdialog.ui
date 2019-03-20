@@ -675,6 +675,13 @@
         <property name="topMargin">
          <number>0</number>
         </property>
+         <item>
+              <widget class="Line" name="lineb">
+                  <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                  </property>
+              </widget>
+          </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayoutFee1">
           <property name="bottomMargin">
@@ -857,7 +864,7 @@
                  </item>
                 </layout>
                </item>
-               <item>
+          <!--      <item>
                 <layout class="QHBoxLayout" name="horizontalLayoutFee8">
                  <item>
                   <widget class="QCheckBox" name="checkBoxMinimumFee">
@@ -899,9 +906,9 @@
                   </spacer>
                  </item>
                 </layout>
-               </item>
+               </item>  -->
               </layout>
-             </item>
+             </item> 
              <item row="0" column="0">
               <layout class="QVBoxLayout" name="verticalLayoutFee4" stretch="0,1">
                <item>
@@ -932,7 +939,7 @@
                </item>
               </layout>
              </item>
-             <item row="1" column="0">
+              <item row="1" column="0">
               <layout class="QVBoxLayout" name="verticalLayoutFee9" stretch="0,1">
                <item>
                 <widget class="QRadioButton" name="radioCustomFee">
@@ -986,7 +993,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item>
+            <!--      <item>
                   <widget class="QLabel" name="labelSmartFee2">
                    <property name="text">
                     <string>(Smart fee not initialized yet. This usually takes a few blocks...)</string>
@@ -995,7 +1002,7 @@
                     <number>2</number>
                    </property>
                   </widget>
-                 </item>
+                 </item> -->
                  <item>
                   <spacer name="horizontalSpacer_5">
                    <property name="orientation">
@@ -1171,6 +1178,26 @@
      </item>
     </layout>
    </item>
+  <item>
+      <widget class="Line" name="lineb">
+        <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+        </property>
+      </widget>
+    </item>
+    <item>
+      <spacer name="verticalBottomSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
   </layout>
  </widget>
  <customwidgets>

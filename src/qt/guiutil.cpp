@@ -4,6 +4,8 @@
 
 #include "guiutil.h"
 
+#include "platformstyle.h"
+#include "dvtui.h"
 #include "bitcoinaddressvalidator.h"
 #include "bitcoinunits.h"
 #include "dstencode.h"

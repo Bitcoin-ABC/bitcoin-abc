@@ -10,13 +10,18 @@
 #endif
 
 #include "amount.h"
+#include "dvtui.h"
 
 #include <QLabel>
+#include <QWidgetAction>
 #include <QMainWindow>
 #include <QMap>
 #include <QMenu>
 #include <QPoint>
 #include <QSystemTrayIcon>
+#include <QDesktopServices>
+#include <QGuiApplication>
+#include <QUrl>
 
 class ClientModel;
 class NetworkStyle;
@@ -50,12 +55,14 @@ class BitcoinGUI : public QMainWindow {
     Q_OBJECT
 
 public:
+
     static const std::string DEFAULT_UIPLATFORM;
 
     explicit BitcoinGUI(const Config *, const PlatformStyle *platformStyle,
                         const NetworkStyle *networkStyle, QWidget *parent = 0);
     ~BitcoinGUI();
 
+    int getConnectedNodeCount();
     /**
      * Set the client model.
      * The client model represents the part of the core that communicates with
@@ -98,7 +105,7 @@ private:
     QMenuBar *appMenuBar = nullptr;
     QToolBar *appToolBar = nullptr;
     QAction *overviewAction = nullptr;
-    QAction *historyAction = nullptr;
+    QAction *dvtLogoAction = nullptr;
     QAction *quitAction = nullptr;
     QAction *sendCoinsAction = nullptr;
     QAction *sendCoinsMenuAction = nullptr;
@@ -118,6 +125,8 @@ private:
     QAction *openRPCConsoleAction = nullptr;
     QAction *openAction = nullptr;
     QAction *showHelpMessageAction = nullptr;
+    QWidgetAction *actProgressBar = nullptr;
+    QWidgetAction *actProgressBarLabel = nullptr;
 
     QLabel *m_wallet_selector_label = nullptr;
     QComboBox *m_wallet_selector = nullptr;
@@ -216,10 +225,10 @@ public Q_SLOTS:
 
 private Q_SLOTS:
 #ifdef ENABLE_WALLET
+    /** Open DeVault website */
+    void openDVT_global();
     /** Switch to overview (home) page */
     void gotoOverviewPage();
-    /** Switch to history (transactions) page */
-    void gotoHistoryPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

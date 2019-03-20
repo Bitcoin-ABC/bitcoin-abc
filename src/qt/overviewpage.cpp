@@ -14,9 +14,12 @@
 #include "transactionfilterproxy.h"
 #include "transactiontablemodel.h"
 #include "walletmodel.h"
+#include "bitcoingui.h"
 
 #include <QAbstractItemDelegate>
+#include <QDesktopServices>
 #include <QPainter>
+#include <QUrl>
 
 #define DECORATION_SIZE 54
 #define NUM_ITEMS 5
@@ -124,32 +127,46 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent)
 
     // use a SingleColorIcon for the "out of sync warning" icon
     QIcon icon = platformStyle->SingleColorIcon(":/icons/warning");
-    // also set the disabled icon because we are using a disabled QPushButton to
-    // work around missing HiDPI support of QLabel
-    // (https://bugreports.qt.io/browse/QTBUG-42503)
-    icon.addPixmap(icon.pixmap(QSize(64, 64), QIcon::Normal), QIcon::Disabled);
-    ui->labelTransactionsStatus->setIcon(icon);
-    ui->labelWalletStatus->setIcon(icon);
+    icon.addPixmap(icon.pixmap(QSize(64, 64), QIcon::Normal), QIcon::Disabled); // also set the disabled icon because we are using a disabled QPushButton to work around missing HiDPI support of QLabel (https://bugreports.qt.io/browse/QTBUG-42503)
+    //ui->labelTransactionsStatus->setIcon(icon);
+    ui->labelWalletStatus1->setIcon(icon);
+    ui->labelWalletStatus2->setIcon(icon);
+    ui->labelWalletStatus3->setIcon(icon);
+    ui->labelWalletStatus4->setIcon(icon);
+    ui->labelWalletStatus5->setIcon(icon);
+    ui->labelWalletStatus6->setIcon(icon);
+    ui->labelWalletStatus7->setIcon(icon);
+    ui->labelWalletStatus8->setIcon(icon);
+    ui->labelWalletStatus9->setIcon(icon);
 
     // Recent transactions
-    ui->listTransactions->setItemDelegate(txdelegate);
-    ui->listTransactions->setIconSize(QSize(DECORATION_SIZE, DECORATION_SIZE));
-    ui->listTransactions->setMinimumHeight(NUM_ITEMS * (DECORATION_SIZE + 2));
-    ui->listTransactions->setAttribute(Qt::WA_MacShowFocusRect, false);
+    transactionView = new TransactionView(platformStyle, NULL);
+    //ui->transactionFrame->setVisible(true);
+    ui->transactionLayout->addWidget(transactionView);
+    //ui->transactionLayout->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
 
-    connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this,
-            SLOT(handleTransactionClicked(QModelIndex)));
+    transactionView->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+    transactionView->setMaximumHeight(123456);
+    ui->transactionFrame->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+    ui->transactionFrame->setMaximumHeight(123456);
 
     // start with displaying the "out of sync" warnings
     showOutOfSyncWarning(true);
-    connect(ui->labelWalletStatus, SIGNAL(clicked()), this,
-            SLOT(handleOutOfSyncWarningClicks()));
-    connect(ui->labelTransactionsStatus, SIGNAL(clicked()), this,
-            SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus1, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus2, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus3, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus4, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus5, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus6, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus7, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus8, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+    connect(ui->labelWalletStatus9, SIGNAL(clicked()), this, SLOT(handleOutOfSyncWarningClicks()));
+
 }
 
-void OverviewPage::handleTransactionClicked(const QModelIndex &index) {
-    if (filter) Q_EMIT transactionClicked(filter->mapToSource(index));
+void OverviewPage::showTransactions(){
+    ui->transactionFrame->setVisible(true);
+
 }
 
 void OverviewPage::handleOutOfSyncWarningClicks() {
@@ -200,30 +217,13 @@ void OverviewPage::setBalance(const Amount balance,
 
     // for symmetry reasons also show immature label when the watch-only one is
     // shown
-    ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature);
-    ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
-    ui->labelWatchImmature->setVisible(
-        showWatchOnlyImmature); // show watch-only immature balance
+    ui->immature->setVisible(showImmature || showWatchOnlyImmature);
+    ui->watchImmature->setVisible(showImmature || showWatchOnlyImmature);
 }
 
 // show/hide watch-only labels
 void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly) {
-    // show spendable label (only when watch-only is active)
-    ui->labelSpendable->setVisible(showWatchOnly);
-    // show watch-only label
-    ui->labelWatchonly->setVisible(showWatchOnly);
-    // show watch-only balance separator line
-    ui->lineWatchBalance->setVisible(showWatchOnly);
-    // show watch-only available balance
-    ui->labelWatchAvailable->setVisible(showWatchOnly);
-    // show watch-only pending balance
-    ui->labelWatchPending->setVisible(showWatchOnly);
-    // show watch-only total balance
-    ui->labelWatchTotal->setVisible(showWatchOnly);
-
-    if (!showWatchOnly) {
-        ui->labelWatchImmature->hide();
-    }
+    ui->watchOnly->setVisible(showWatchOnly);
 }
 
 void OverviewPage::setClientModel(ClientModel *model) {
@@ -238,6 +238,7 @@ void OverviewPage::setClientModel(ClientModel *model) {
 
 void OverviewPage::setWalletModel(WalletModel *model) {
     this->walletModel = model;
+    transactionView->setModel(model);
     if (model && model->getOptionsModel()) {
         // Set up transaction list
         filter.reset(new TransactionFilterProxy());
@@ -248,8 +249,8 @@ void OverviewPage::setWalletModel(WalletModel *model) {
         filter->setShowInactive(false);
         filter->sort(TransactionTableModel::Date, Qt::DescendingOrder);
 
-        ui->listTransactions->setModel(filter.get());
-        ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);
+   //     ui->listTransactions->setModel(filter.get());
+     //   ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);
 
         // Keep up to date with wallet
         setBalance(model->getBalance(), model->getUnconfirmedBalance(),
@@ -286,7 +287,7 @@ void OverviewPage::updateDisplayUnit() {
         // Update txdelegate->unit with the current unit
         txdelegate->unit = walletModel->getOptionsModel()->getDisplayUnit();
 
-        ui->listTransactions->update();
+  //      ui->listTransactions->update();
     }
 }
 
@@ -296,6 +297,13 @@ void OverviewPage::updateAlerts(const QString &warnings) {
 }
 
 void OverviewPage::showOutOfSyncWarning(bool fShow) {
-    ui->labelWalletStatus->setVisible(fShow);
-    ui->labelTransactionsStatus->setVisible(fShow);
+    ui->labelWalletStatus1->setVisible(fShow);
+    ui->labelWalletStatus2->setVisible(fShow);
+    ui->labelWalletStatus3->setVisible(fShow);
+    ui->labelWalletStatus4->setVisible(fShow);
+    ui->labelWalletStatus5->setVisible(fShow);
+    ui->labelWalletStatus6->setVisible(fShow);
+    ui->labelWalletStatus7->setVisible(fShow);
+    ui->labelWalletStatus8->setVisible(fShow);
+    ui->labelWalletStatus9->setVisible(fShow);
 }

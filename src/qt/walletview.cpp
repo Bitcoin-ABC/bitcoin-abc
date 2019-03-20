@@ -69,8 +69,8 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, const Config *cfg,
 
     // Clicking on a transaction on the overview pre-selects the transaction on
     // the transaction history page
-    connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)),
-            transactionView, SLOT(focusTransaction(QModelIndex)));
+ //   connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)),
+   //         transactionView, SLOT(focusTransaction(QModelIndex)));
     connect(overviewPage, SIGNAL(outOfSyncWarningClicked()), this,
             SLOT(requestedSyncWarningInfo()));
 
@@ -80,19 +80,16 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, const Config *cfg,
 
     // Double-clicking on a transaction on the transaction history page shows
     // details
-    connect(transactionView, SIGNAL(doubleClicked(QModelIndex)),
-            transactionView, SLOT(showDetails()));
+    connect(overviewPage->transactionView, SIGNAL(doubleClicked(QModelIndex)), overviewPage->transactionView, SLOT(showDetails()));
 
     // Clicking on "Export" allows to export the transaction list
-    connect(exportButton, SIGNAL(clicked()), transactionView,
-            SLOT(exportClicked()));
+    connect(exportButton, SIGNAL(clicked()), overviewPage->transactionView, SLOT(exportClicked()));
 
     // Pass through messages from sendCoinsPage
     connect(sendCoinsPage, SIGNAL(message(QString, QString, unsigned int)),
             this, SIGNAL(message(QString, QString, unsigned int)));
     // Pass through messages from transactionView
-    connect(transactionView, SIGNAL(message(QString, QString, unsigned int)),
-            this, SIGNAL(message(QString, QString, unsigned int)));
+    connect(overviewPage->transactionView, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
 }
 
 WalletView::~WalletView() {}
@@ -101,8 +98,8 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui) {
     if (gui) {
         // Clicking on a transaction on the overview page simply sends you to
         // transaction history page
-        connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui,
-                SLOT(gotoHistoryPage()));
+  //      connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui,
+    //            SLOT(gotoHistoryPage()));
 
         // Navigate to transaction history page after send
         connect(sendCoinsPage, SIGNAL(coinsSent(uint256)), gui,
@@ -141,7 +138,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel) {
     this->walletModel = _walletModel;
 
     // Put transaction list in tabs
-    transactionView->setModel(_walletModel);
+  //  transactionView->setModel(_walletModel);
     overviewPage->setWalletModel(_walletModel);
     receiveCoinsPage->setModel(_walletModel);
     sendCoinsPage->setModel(_walletModel);
@@ -213,11 +210,12 @@ void WalletView::processNewTransaction(const QModelIndex &parent, int start,
 
 void WalletView::gotoOverviewPage() {
     setCurrentWidget(overviewPage);
+    overviewPage->showTransactions();
 }
-
+/*
 void WalletView::gotoHistoryPage() {
     setCurrentWidget(transactionsPage);
-}
+} */
 
 void WalletView::gotoReceiveCoinsPage() {
     setCurrentWidget(receiveCoinsPage);

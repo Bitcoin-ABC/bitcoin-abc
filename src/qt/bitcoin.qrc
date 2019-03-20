@@ -58,6 +58,21 @@
         <file alias="up_arrow-off">res/icons/up_arrow_off.png</file>
         <file alias="down_arrow_off">res/icons/down_arrow_off.png</file>
         <file alias="dvt_header">res/icons/dvt_header.png</file>
+        <file alias="balance">res/icons/balance.png</file>
+        <file alias="pending">res/icons/pending.png</file>
+        <file alias="total">res/icons/total.png</file>
+        <file alias="balance_watch">res/icons/balance_watch.png</file>
+        <file alias="pending_watch">res/icons/pending_watch.png</file>
+        <file alias="total_watch">res/icons/total_watch.png</file>
+        <file alias="checkbox_filled">res/icons/checkbox_filled.png</file>
+        <file alias="checkbox_empty">res/icons/checkbox_empty.png</file>
+        <file alias="radio_filled">res/icons/radio_filled.png</file>
+        <file alias="radio_empty">res/icons/radio_empty.png</file>
+        <file alias="checkbox_filled_hover">res/icons/checkbox_filled_hover.png</file>
+        <file alias="checkbox_empty_hover">res/icons/checkbox_empty_hover.png</file>
+        <file alias="radio_filled_hover">res/icons/radio_filled_hover.png</file>
+        <file alias="radio_empty_hover">res/icons/radio_empty_hover.png</file>
+        <file alias="devault">res/icons/devault.png</file>
     </qresource>
     <qresource prefix="/movies">
         <file alias="spinner-000">res/movies/spinner-000.png</file>

@@ -44,6 +44,9 @@ public:
     /** Change unit used to display amount. */
     void setDisplayUnit(int unit);
 
+    void setMinimum(int minimum);
+
+
     /** Make field empty and ready for new input. */
     void clear();
 

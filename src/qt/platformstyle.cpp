@@ -5,6 +5,8 @@
 #include "platformstyle.h"
 
 #include "guiconstants.h"
+#include "guiutil.h"
+#include "dvtui.h"
 
 #include <QApplication>
 #include <QColor>
@@ -33,13 +35,37 @@ namespace {
 
 /* Local functions for colorizing single-color images */
 void MakeSingleColorImage(QImage &img, const QColor &colorbase) {
-    img = img.convertToFormat(QImage::Format_ARGB32);
-    for (int x = img.width(); x--;) {
-        for (int y = img.height(); y--;) {
-            const QRgb rgb = img.pixel(x, y);
-            img.setPixel(x, y,
-                         qRgba(colorbase.red(), colorbase.green(),
-                               colorbase.blue(), qAlpha(rgb)));
+    if(DVTUI::customThemeIsSet()) 
+    { 
+        QColor colorLeft = c_DVTBlue;
+        QColor colorRight = c_LBlue;
+        
+        img = img.convertToFormat(QImage::Format_ARGB32);
+        for (int x = img.width(); x--; )
+        {
+            for (int y = img.height(); y--; )
+            {
+                const QRgb rgb = img.pixel(x, y);
+                QColor col;
+                float r;
+                r = 0.5*(x*1.0/img.width()+1-y*1.0/img.height());
+                col = QColor(
+                    colorLeft.red()* (1-r) + colorRight.red()*r,
+                    colorLeft.green()* (1-r) + colorRight.green()*r,
+                    colorLeft.blue()* (1-r) + colorRight.blue()*r,
+                    255);
+                img.setPixel(x, y, qRgba(col.red(), col.green(), col.blue(), qAlpha(rgb)));
+            }
+        }
+    } else {
+        img = img.convertToFormat(QImage::Format_ARGB32);
+        for (int x = img.width(); x--; )
+        {
+            for (int y = img.height(); y--; )
+            {
+                const QRgb rgb = img.pixel(x, y);
+                img.setPixel(x, y, qRgba(colorbase.red(), colorbase.green(), colorbase.blue(), qAlpha(rgb)));
+            }
         }
     }
 }
@@ -70,17 +96,15 @@ PlatformStyle::PlatformStyle(const QString &_name, bool _imagesOnButtons,
     : name(_name), imagesOnButtons(_imagesOnButtons),
       colorizeIcons(_colorizeIcons), useExtraSpacing(_useExtraSpacing),
       singleColor(0, 0, 0), textColor(0, 0, 0) {
-      QSettings settings; 
-    if(settings.value("theme").toString() == "dark") 
-    { 
+    if(DVTUI::customThemeIsSet()) 
+    {   
         //dark theme
-        imagesOnButtons = true;
+        imagesOnButtons = false;
         colorizeIcons = true;
-        singleColor = QColor(0,174,255); 
-        textColor = QColor(211,211,211);         
+        singleColor = c_DVTBlue; 
+        textColor = c_DVTBlue;         
     } else {
-        //default light theme
-        // Determine icon highlighting color
+        //default theme
         if (colorizeIcons) {
             const QColor colorHighlightBg(QApplication::palette().color(QPalette::Highlight));
             const QColor colorHighlightFg(QApplication::palette().color(QPalette::HighlightedText));

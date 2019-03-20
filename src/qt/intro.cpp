@@ -7,6 +7,7 @@
 #endif
 
 #include "fs.h"
+#include "dvtui.h"
 #include "guiutil.h"
 #include "intro.h"
 #include "ui_intro.h"
@@ -116,10 +117,10 @@ void FreespaceChecker::check() {
 
 Intro::Intro(QWidget *parent)
     : QDialog(parent), ui(new Ui::Intro), thread(0), signalled(false) {
-    QSettings settings; 
-    if(settings.value("theme").toString() == "dark") 
-    {   
-        setStyleSheet("QWidget { background: rgb(30,30,30); color: rgb(211,211,211); }"); 
+    if(DVTUI::customThemeIsSet()) {
+        QString appstyle = "fusion";
+        QApplication::setStyle(appstyle);
+        setStyleSheet(styleSheetString);
     } 
     ui->setupUi(this);
     ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));

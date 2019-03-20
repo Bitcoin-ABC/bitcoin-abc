@@ -2,540 +2,1251 @@
 <ui version="4.0">
  <class>OverviewPage</class>
  <widget class="QWidget" name="OverviewPage">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>596</width>
-    <height>342</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
-  <layout class="QVBoxLayout" name="topLayout">
-   <item>
-    <widget class="QLabel" name="labelAlerts">
-     <property name="visible">
-      <bool>false</bool>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop:0 #F0D0A0, stop:1 #F8D488); color:#000000; }</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-     <property name="margin">
-      <number>3</number>
-     </property>
-     <property name="textInteractionFlags">
-      <set>Qt::TextSelectableByMouse</set>
-     </property>
+        <property name="windowTitle">
+            <string>Form</string>
+        </property>
+        <layout class="QVBoxLayout" name="topLayout">
+            <item>
+                <widget class="QLabel" name="labelAlerts">
+                    <property name="visible">
+                        <bool>false</bool>
+                    </property>
+                    <property name="styleSheet">
+                        <string notr="true">QLabel { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop:0 #F0D0A0, stop:1 #F8D488); color:#000000; }</string>
+                    </property>
+                    <property name="wordWrap">
+                        <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                        <number>3</number>
+                    </property>
+                    <property name="textInteractionFlags">
+                        <set>Qt::TextSelectableByMouse</set>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <layout class="QVBoxLayout" name="overview_Vertical" stretch="0,1">
+                    <item>
+                        <layout class="QVBoxLayout" name="verticalLayout_2">
+                            <item>
+                                <widget class="QFrame" name="frame">
+                                    <property name="frameShape">
+                                        <enum>QFrame::StyledPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>QFrame::Raised</enum>
+                                    </property>
+                                    <layout class="QVBoxLayout" name="verticalLayout_4">
+                                        <property name="alignment">
+                                            <set>Qt::AlignTop</set>
+                                        </property>
+                                        <item>
+                                            <layout class="QHBoxLayout" name="horizontalLayout_4">
+                                                <item>
+                                                    <spacer name="balanceTopSpacer">
+                                                        <property name="orientation">
+                                                            <enum>Qt::Vertical</enum>
+                                                        </property>
+                                                        <property name="sizeHint" stdset="0">
+                                                            <size>
+                                                                <width>40</width>
+                                                                <height>30</height>
+                                                            </size>
+                                                        </property>
+                                                    </spacer>
+                                                </item>
+                                            </layout>
+                                        </item>
+                                        <!-- BALANCE -->
+                                        <item>
+                                            <layout class="QHBoxLayout" name ="balancesLayout">
+                                                <property name="spacing">
+                                                    <number>50</number>
+                                                </property>
+                                                <!-- AVAILABLE -->
+                                                <item>
+                                                    <layout class="QGridLayout" name="gridAvailable">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="availableIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>39</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/balance</normaloff>
+                                                                        <disabledoff>:/icons/balance</disabledoff>:/icons/balance                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>39</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- available balance-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelBalance">
+                                                                <property name="font">
+                                                                    <font>
+                                                                        <weight>75</weight>
+                                                                        <bold>true</bold>
+                                                                    </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                    <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>Your current spendable balance</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- available label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelBalanceText">
+                                                                <property name="text">
+                                                                    <string>Available</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus5">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb1">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </item>
+                                                <!-- TOTAL -->
+                                                <item>
+                                                    <layout class="QGridLayout" name="gridTotal">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb2">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="totalIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/total</normaloff>
+                                                                        <disabledoff>:/icons/total</disabledoff>:/icons/total                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- total balance-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelTotal">
+                                                                <property name="font">
+                                                                    <font>
+                                                                        <weight>75</weight>
+                                                                        <bold>true</bold>
+                                                                    </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                    <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>Your current total balance</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- total label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelTotalText">
+                                                                <property name="text">
+                                                                    <string>Total</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus6">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb3">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </item>
+                                                <!-- PENDING -->
+                                                <item>
+                                                    <layout class="QGridLayout" name="gridPending">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb4">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="pendingIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/pending</normaloff>
+                                                                        <disabledoff>:/icons/pending</disabledoff>:/icons/pending                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- pending-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelUnconfirmed">
+                                                                <property name="font">
+                                                                    <font>
+                                                                        <weight>75</weight>
+                                                                        <bold>true</bold>
+                                                                    </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                    <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>Total of transactions that have yet to be confirmed, and do not yet count toward the spendable balance</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- pending label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelPendingText">
+                                                                <property name="text">
+                                                                    <string>Pending</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus7">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb5">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </item>
+                                                <!-- IMMATURE -->
+                                                <item>
+                                                <widget class="QWidget" name="immature">
+                                                    <property name="visible">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <layout class="QGridLayout" name="gridImmature">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb8">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="immatureIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/pending</normaloff>
+                                                                        <disabledoff>:/icons/pending</disabledoff>:/icons/pending                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- immature-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelImmature">
+                                                                <property name="font">
+                                                                    <font>
+                                                                        <weight>75</weight>
+                                                                        <bold>true</bold>
+                                                                    </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                    <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>Total of transactions that have yet to be confirmed, and do not yet count toward the spendable balance</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- immature label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelPendingText">
+                                                                <property name="text">
+                                                                    <string>Immature</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus8">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="lineb9">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </widget>
+                                                </item>
+                                            </layout>
+                                        </item>
+                                        <item>
+                                            <spacer name="vSpacerBalance">
+                                                <property name="orientation">
+                                                    <enum>Qt::Vertical</enum>
+                                                </property>
+                                                <property name="sizePolicy">
+                                                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                                                        <horstretch>1</horstretch>
+                                                        <verstretch>1</verstretch>
+                                                    </sizepolicy>
+                                                </property>
+                                                <property name="sizeHint" stdset="0">
+                                                    <size>
+                                                        <width>20</width>
+                                                        <height>20</height>
+                                                    </size>
+                                                </property>
+                                            </spacer>
+                                        </item>
+                                        <item>
+                                        <widget class="QWidget" name="watchOnly">
+                                        <!-- WATCH ONLY BALANCES -->
+                                            <layout class="QHBoxLayout" name ="watchOnlyBalancesLayout">
+                                                <property name="spacing">
+                                                    <number>50</number>
+                                                </property>
+                                                <!-- AVAILABLE -->
+                                                <item>
+                                                    <layout class="QGridLayout" name="gridAvailable">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="availableIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>39</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/balance_watch</normaloff>
+                                                                        <disabledoff>:/icons/balance_watch</disabledoff>:/icons/balance_watch                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>39</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- available balance-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelWatchAvailable">
+                                                                <property name="font">
+                                                                <font>
+                                                                    <weight>75</weight>
+                                                                    <bold>true</bold>
+                                                                </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                <string>Your current balance in watch-only addresses</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- available label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelBalanceText">
+                                                                <property name="text">
+                                                                    <string>Available (watch only)</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus1">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb1">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </item>
+                                                <!-- TOTAL -->
+                                                <item>
+                                                    <layout class="QGridLayout" name="gridTotal">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb2">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="totalIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/total_watch</normaloff>
+                                                                        <disabledoff>:/icons/total_watch</disabledoff>:/icons/balance_watch                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- total balance-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelWatchTotal">
+                                                                <property name="font">
+                                                                <font>
+                                                                    <weight>75</weight>
+                                                                    <bold>true</bold>
+                                                                </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                <string>Current total balance in watch-only addresses</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- total label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelTotalText">
+                                                                <property name="text">
+                                                                    <string>Total (watch only)</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus2">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb3">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </item>
+                                                <!-- PENDING -->
+                                                <item>
+                                                    <layout class="QGridLayout" name="gridPending">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb4">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="pendingIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/pending_watch</normaloff>
+                                                                        <disabledoff>:/icons/pending_watch</disabledoff>:/icons/pending_watch                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- pending-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelWatchPending">
+                                                                <property name="font">
+                                                                <font>
+                                                                    <weight>75</weight>
+                                                                    <bold>true</bold>
+                                                                </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                <string>Unconfirmed transactions to watch-only addresses</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- pending label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelPendingText">
+                                                                <property name="text">
+                                                                    <string>Pending (watch only)</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus3">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb5">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </item>
+                                                <!-- IMMATURE -->
+                                                <item>
+                                                <widget class="QWidget" name="watchImmature">
+                                                    <property name="visible">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <layout class="QGridLayout" name="gridWatchImmature">
+                                                        <property name="spacing">
+                                                            <number>2</number>
+                                                        </property>
+                                                        <!-- line -->
+                                                        <item row="0" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb8">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- icon -->
+                                                        <item row="1" column="0" rowspan="2">
+                                                            <widget class="QPushButton" name="pendingIcon">
+                                                                <property name="enabled">
+                                                                    <bool>false</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/pending_watch</normaloff>
+                                                                        <disabledoff>:/icons/pending_watch</disabledoff>:/icons/pending_watch                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>42</width>
+                                                                        <height>42</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- immature-->
+                                                        <item row="1" column="1">
+                                                            <widget class="QLabel" name="labelWatchImmature">
+                                                                <property name="font">
+                                                                <font>
+                                                                    <weight>75</weight>
+                                                                    <bold>true</bold>
+                                                                </font>
+                                                                </property>
+                                                                <property name="cursor">
+                                                                <cursorShape>IBeamCursor</cursorShape>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                <string>Unconfirmed transactions to watch-only addresses</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                <string notr="true">0.000 DVT</string>
+                                                                </property>
+                                                                <property name="textInteractionFlags">
+                                                                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- Immature label-->
+                                                        <item row="2" column="1">
+                                                            <widget class="QLabel" name="labelWatchImmatureText">
+                                                                <property name="text">
+                                                                    <string>Immature (watch only)</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus4">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <!-- line -->
+                                                        <item row="3" column="0" colspan="3">
+                                                            <widget class="Line" name="w_lineb9">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Horizontal</enum>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    </layout>
+                                                </widget>
+                                                </item>
+                                            </layout>
+                                        </widget>
+                                        </item>
+                                    </layout>
+                                </widget>
+                            </item>
+                            <item>
+                                <spacer name="verticalSpacer">
+                                    <property name="orientation">
+                                        <enum>Qt::Vertical</enum>
+                                    </property>
+                                    <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                                            <horstretch>1</horstretch>
+                                            <verstretch>1</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="sizeHint" stdset="0">
+                                        <size>
+                                            <width>20</width>
+                                            <height>40</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </item>
+                        </layout>
+                    </item>
+                    <item>
+                        <layout class="QVBoxLayout" name="verticalLayout_3">
+                            <item>
+                                <widget class="QFrame" name="transactionFrame">
+                                    <property name="frameShape">
+                                        <enum>QFrame::StyledPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>QFrame::Raised</enum>
+                                    </property>
+                                    <layout class="QVBoxLayout" name="transactionLayout">
+                                        <item>
+                                            <widget class="QFrame" name="transactionTitle">
+                                                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                                                    <item>
+                                                        <widget class="QLabel" name="transactions_title">
+                                                            <property name="font">
+                                                                <font>
+                                                                    <weight>25</weight>
+                                                                    <bold>false</bold>
+                                                                </font>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Full Transaction History</string>
+                                                            </property>
+                                                        </widget>
+                                                    </item>
+                                                    <item row="1" column="2" rowspan="2">
+                                                            <widget class="QPushButton" name="labelWalletStatus9">
+                                                                <property name="enabled">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                                <property name="maximumSize">
+                                                                    <size>
+                                                                        <width>30</width>
+                                                                        <height>30</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="styleSheet">
+                                                                    <string notr="true">background: transparent; border: none</string>
+                                                                </property>
+                                                                <property name="toolTip">
+                                                                    <string>The displayed information may be out of date. Your wallet automatically synchronizes with the DeVault network after a connection is established, but this process has not completed yet.</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string/>
+                                                                </property>
+                                                                <property name="icon">
+                                                                    <iconset resource="../bitcoin.qrc">
+                                                                        <normaloff>:/icons/warning</normaloff>
+                                                                        <disabledoff>:/icons/warning</disabledoff>:/icons/warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                    </iconset>
+                                                                </property>
+                                                                <property name="iconSize">
+                                                                    <size>
+                                                                        <width>24</width>
+                                                                        <height>24</height>
+                                                                    </size>
+                                                                </property>
+                                                                <property name="flat">
+                                                                    <bool>true</bool>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                    <item>
+                                                        <spacer name="horizontalSpacer">
+                                                            <property name="orientation">
+                                                                <enum>Qt::Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeHint" stdset="0">
+                                                                <size>
+                                                                    <width>40</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </item>
+                                                </layout>
+                                            </widget>
+                                        </item>
+                                    </layout>
+                                </widget>
+                            </item>
+                            <!--<item>
+                                <spacer name="verticalSpacer_2">
+                                    <property name="orientation">
+                                        <enum>Qt::Vertical</enum>
+                                    </property>
+                                    <property name="sizeHint" stdset="0">
+                                        <size>
+                                            <width>20</width>
+                                            <height>40</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </item>-->
+                        </layout>
+                    </item>
+                </layout>
+            </item>
+        </layout>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QFrame" name="frame">
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_5">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Balances</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="labelWalletStatus">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>30</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Bitcoin network after a connection is established, but this process has not completed yet.</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../bitcoin.qrc">
-                <normaloff>:/icons/warning</normaloff>
-                <disabledoff>:/icons/warning</disabledoff>:/icons/warning</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QGridLayout" name="gridLayout">
-            <property name="spacing">
-             <number>12</number>
-            </property>
-            <item row="2" column="2">
-             <widget class="QLabel" name="labelWatchPending">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Unconfirmed transactions to watch-only addresses</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLabel" name="labelUnconfirmed">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Total of transactions that have yet to be confirmed, and do not yet count toward the spendable balance</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="2">
-             <widget class="QLabel" name="labelWatchImmature">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Mined balance in watch-only addresses that has not yet matured</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0" colspan="2">
-             <widget class="Line" name="line">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="2">
-             <widget class="Line" name="lineWatchBalance">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>140</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="labelTotalText">
-              <property name="text">
-               <string>Total:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QLabel" name="labelImmature">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Mined balance that has not yet matured</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="3">
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="labelImmatureText">
-              <property name="text">
-               <string>Immature:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QLabel" name="labelTotal">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Your current total balance</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="2">
-             <widget class="QLabel" name="labelWatchTotal">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Current total balance in watch-only addresses</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QLabel" name="labelWatchonly">
-              <property name="text">
-               <string>Watch-only:</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="labelBalanceText">
-              <property name="text">
-               <string>Available:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="labelBalance">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Your current spendable balance</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QLabel" name="labelWatchAvailable">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="cursor">
-               <cursorShape>IBeamCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>Your current balance in watch-only addresses</string>
-              </property>
-              <property name="text">
-               <string notr="true">0.000 000 00 DVT</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="labelPendingText">
-              <property name="text">
-               <string>Pending:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="labelSpendable">
-              <property name="text">
-               <string>Spendable:</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QFrame" name="frame_2">
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Recent transactions</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="labelTransactionsStatus">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>30</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Bitcoin network after a connection is established, but this process has not completed yet.</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../bitcoin.qrc">
-                <normaloff>:/icons/warning</normaloff>
-                <disabledoff>:/icons/warning</disabledoff>:/icons/warning</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QListView" name="listTransactions">
-            <property name="styleSheet">
-             <string notr="true">QListView { background: transparent; }</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="selectionMode">
-             <enum>QAbstractItemView::NoSelection</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-    </layout>
-   </item>
-  </layout>
- </widget>
- <resources/>
- <connections/>
+    <resources/>
+    <connections/>
 </ui>
