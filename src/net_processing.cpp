@@ -2052,6 +2052,84 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
     return true;
 }
 
+void static ProcessOrphanTx(const Config &config, CConnman *connman,
+                            std::set<TxId> &orphan_work_set)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans) {
+    AssertLockHeld(cs_main);
+    AssertLockHeld(g_cs_orphans);
+    std::unordered_map<NodeId, uint32_t> rejectCountPerNode;
+    while (!orphan_work_set.empty()) {
+        const TxId orphanTxId = *orphan_work_set.begin();
+        orphan_work_set.erase(orphan_work_set.begin());
+
+        auto orphan_it = mapOrphanTransactions.find(orphanTxId);
+        if (orphan_it == mapOrphanTransactions.end()) {
+            continue;
+        }
+
+        const CTransactionRef porphanTx = orphan_it->second.tx;
+        const CTransaction &orphanTx = *porphanTx;
+        NodeId fromPeer = orphan_it->second.fromPeer;
+        bool fMissingInputs2 = false;
+        // Use a dummy CValidationState so someone can't setup nodes to
+        // counter-DoS based on orphan resolution (that is, feeding
+        // people an invalid transaction based on LegitTxX in order to
+        // get anyone relaying LegitTxX banned)
+        CValidationState stateDummy;
+
+        auto it = rejectCountPerNode.find(fromPeer);
+        if (it != rejectCountPerNode.end() &&
+            it->second > MAX_NON_STANDARD_ORPHAN_PER_NODE) {
+            continue;
+        }
+
+        if (AcceptToMemoryPool(config, g_mempool, stateDummy, porphanTx,
+                               &fMissingInputs2, false /* bypass_limits */,
+                               Amount::zero() /* nAbsurdFee */)) {
+            LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
+                     orphanTxId.ToString());
+            RelayTransaction(orphanTx, connman);
+            for (size_t i = 0; i < orphanTx.vout.size(); i++) {
+                auto it_by_prev =
+                    mapOrphanTransactionsByPrev.find(COutPoint(orphanTxId, i));
+                if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
+                    for (const auto &elem : it_by_prev->second) {
+                        orphan_work_set.insert(elem->first);
+                    }
+                }
+            }
+            EraseOrphanTx(orphanTxId);
+        } else if (!fMissingInputs2) {
+            int nDos = 0;
+            if (stateDummy.IsInvalid(nDos)) {
+                rejectCountPerNode[fromPeer]++;
+                if (nDos > 0) {
+                    // Punish peer that gave us an invalid orphan tx
+                    Misbehaving(fromPeer, nDos, "invalid-orphan-tx");
+                    LogPrint(BCLog::MEMPOOL, "   invalid orphan tx %s\n",
+                             orphanTxId.ToString());
+                }
+                EraseOrphanTx(orphanTxId);
+            }
+            // Has inputs but not accepted to mempool
+            // Probably non-standard or insufficient fee
+            LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
+                     orphanTxId.ToString());
+            if (!stateDummy.CorruptionPossible()) {
+                // Do not use rejection cache for witness
+                // transactions or witness-stripped transactions, as
+                // they can have been malleated. See
+                // https://github.com/bitcoin/bitcoin/issues/8279
+                // for details.
+                assert(recentRejects);
+                recentRejects->insert(orphanTxId);
+            }
+            EraseOrphanTx(orphanTxId);
+        }
+        g_mempool.check(pcoinsTip.get());
+    }
+}
+
 static bool ProcessMessage(const Config &config, CNode *pfrom,
                            const std::string &strCommand, CDataStream &vRecv,
                            int64_t nTimeReceived, CConnman *connman,
@@ -2805,11 +2883,11 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             g_mempool.check(pcoinsTip.get());
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
-                auto it_by_prev = mapOrphanTransactionsByPrev.find(
-                    COutPoint(txid, i));
+                auto it_by_prev =
+                    mapOrphanTransactionsByPrev.find(COutPoint(txid, i));
                 if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
                     for (const auto &elem : it_by_prev->second) {
-                        orphan_work_set.insert(TxId(elem->first));
+                        orphan_work_set.insert(elem->first);
                     }
                 }
             }
@@ -2824,79 +2902,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
             // Recursively process any orphan transactions that depended on this
             // one
-            std::unordered_map<NodeId, uint32_t> rejectCountPerNode;
-            while (!orphan_work_set.empty()) {
-                const TxId orphanTxId = *orphan_work_set.begin();
-                orphan_work_set.erase(orphan_work_set.begin());
-
-                auto orphan_it = mapOrphanTransactions.find(orphanTxId);
-                if (orphan_it == mapOrphanTransactions.end()) {
-                    continue;
-                }
-
-                const CTransactionRef porphanTx = orphan_it->second.tx;
-                const CTransaction &orphanTx = *porphanTx;
-                NodeId fromPeer = orphan_it->second.fromPeer;
-                bool fMissingInputs2 = false;
-                // Use a dummy CValidationState so someone can't setup nodes to
-                // counter-DoS based on orphan resolution (that is, feeding
-                // people an invalid transaction based on LegitTxX in order to
-                // get anyone relaying LegitTxX banned)
-                CValidationState stateDummy;
-
-                auto it = rejectCountPerNode.find(fromPeer);
-                if (it != rejectCountPerNode.end() &&
-                    it->second > MAX_NON_STANDARD_ORPHAN_PER_NODE) {
-                    continue;
-                }
-
-                if (AcceptToMemoryPool(config, g_mempool, stateDummy, porphanTx,
-                                       &fMissingInputs2,
-                                       false /* bypass_limits */,
-                                       Amount::zero() /* nAbsurdFee */)) {
-                    LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
-                             orphanTxId.ToString());
-                    RelayTransaction(orphanTx, connman);
-                    for (size_t i = 0; i < orphanTx.vout.size(); i++) {
-                        auto it_by_prev = mapOrphanTransactionsByPrev.find(
-                            COutPoint(orphanTxId, i));
-                        if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
-                            for (const auto &elem : it_by_prev->second) {
-                                orphan_work_set.insert(TxId(elem->first));
-                            }
-                        }
-                    }
-                    EraseOrphanTx(orphanTxId);
-                } else if (!fMissingInputs2) {
-                    int nDos = 0;
-                    if (stateDummy.IsInvalid(nDos)) {
-                        rejectCountPerNode[fromPeer]++;
-                        if (nDos > 0) {
-                            // Punish peer that gave us an invalid orphan tx
-                            Misbehaving(fromPeer, nDos, "invalid-orphan-tx");
-                            LogPrint(BCLog::MEMPOOL,
-                                     "   invalid orphan tx %s\n",
-                                     orphanTxId.ToString());
-                        }
-                        EraseOrphanTx(orphanTxId);
-                    }
-                    // Has inputs but not accepted to mempool
-                    // Probably non-standard or insufficient fee
-                    LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
-                             orphanTxId.ToString());
-                    if (!stateDummy.CorruptionPossible()) {
-                        // Do not use rejection cache for witness
-                        // transactions or witness-stripped transactions, as
-                        // they can have been malleated. See
-                        // https://github.com/bitcoin/bitcoin/issues/8279
-                        // for details.
-                        assert(recentRejects);
-                        recentRejects->insert(orphanTxId);
-                    }
-                    EraseOrphanTx(orphanTxId);
-                }
-                g_mempool.check(pcoinsTip.get());
-            }
+            ProcessOrphanTx(config, connman, orphan_work_set);
         } else if (fMissingInputs) {
             // It may be the case that the orphans parents have all been
             // rejected.
