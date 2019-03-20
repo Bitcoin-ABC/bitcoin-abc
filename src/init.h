@@ -74,7 +74,7 @@ bool AppInitMain(Config &config,
                  HTTPRPCRequestProcessor &httpRPCRequestProcessor);
 
 /** The help message mode determines what help message to show */
-enum HelpMessageMode { HMM_BITCOIND, HMM_BITCOIN_QT };
+enum class HelpMessageMode { BITCOIND, BITCOIN_QT };
 
 /** Help for options shared between UI and daemon (for -help) */
 std::string HelpMessage(HelpMessageMode mode);
