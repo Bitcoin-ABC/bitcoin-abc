@@ -141,8 +141,6 @@ protected:
      * Called on a background thread.
      */
     virtual void ChainStateFlushed(const CBlockLocator &locator) {}
-    /** Tells listeners to broadcast their data. */
-    virtual void ResendWalletTransactions(CConnman *connman) {}
     /**
      * Notifies listeners of a block validation result.
      * If the provided CValidationState IsValid, the provided block
@@ -205,7 +203,6 @@ public:
                    const std::shared_ptr<const std::vector<CTransactionRef>> &);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &);
     void ChainStateFlushed(const CBlockLocator &);
-    void Broadcast(CConnman *connman);
     void BlockChecked(const CBlock &, const CValidationState &);
     void NewPoWValidBlock(const CBlockIndex *,
                           const std::shared_ptr<const CBlock> &);

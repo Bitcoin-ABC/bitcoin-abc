@@ -1063,8 +1063,7 @@ public:
                                          bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
-    void
-    ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) override;
+    void ResendWalletTransactions(interfaces::Chain::Lock &locked_chain);
     Amount GetBalance(const isminefilter &filter = ISMINE_SPENDABLE,
                       const int min_depth = 0) const;
     Amount GetUnconfirmedBalance() const;
@@ -1422,6 +1421,13 @@ public:
 
     friend struct WalletTestingSetup;
 };
+
+/**
+ * Called periodically by the schedule thread. Prompts individual wallets to
+ * resend their transactions. Actual rebroadcast schedule is managed by the
+ * wallets themselves.
+ */
+void MaybeResendWalletTxs();
 
 /** A key allocated from the key pool. */
 class CReserveKey final : public CReserveScript {
