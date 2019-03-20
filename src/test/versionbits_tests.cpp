@@ -114,7 +114,7 @@ public:
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
-                        THRESHOLD_DEFINED,
+                        ThresholdState::DEFINED,
                     strprintf("Test %i for DEFINED", num));
             }
         }
@@ -128,7 +128,7 @@ public:
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
-                        THRESHOLD_STARTED,
+                        ThresholdState::STARTED,
                     strprintf("Test %i for STARTED", num));
             }
         }
@@ -142,7 +142,7 @@ public:
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
-                        THRESHOLD_LOCKED_IN,
+                        ThresholdState::LOCKED_IN,
                     strprintf("Test %i for LOCKED_IN", num));
             }
         }
@@ -156,7 +156,7 @@ public:
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
-                        THRESHOLD_ACTIVE,
+                        ThresholdState::ACTIVE,
                     strprintf("Test %i for ACTIVE", num));
             }
         }
@@ -170,7 +170,7 @@ public:
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
-                        THRESHOLD_FAILED,
+                        ThresholdState::FAILED,
                     strprintf("Test %i for FAILED", num));
             }
         }
