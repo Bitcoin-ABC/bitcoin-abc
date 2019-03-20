@@ -114,9 +114,9 @@ exhaustive_tests_LDFLAGS = -static
 TESTS += exhaustive_tests
 endif
 
-JAVAROOT=src/java
+JAVAROOT=$(srcdir)/src/java
 JAVAORG=org/bitcoin
-JAVA_GUAVA=$(srcdir)/$(JAVAROOT)/guava/guava-18.0.jar
+JAVA_GUAVA=$(JAVAROOT)/guava/guava-18.0.jar
 CLASSPATH_ENV=CLASSPATH=$(JAVA_GUAVA)
 JAVA_FILES= \
   $(JAVAROOT)/$(JAVAORG)/NativeSecp256k1.java \
