@@ -811,12 +811,6 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         if (pwallet->GetKey(masterKeyID, key)) {
           CExtKey masterKey;	        
           masterKey.SetMaster(key.begin(), key.size());
-          CPrivKey privkey = key.GetPrivKey();
-          std::vector<uint8_t> vchKey;
-          vchKey.insert(vchKey.end(), privkey.begin(), privkey.end());
-          mnemonic::WordList words = mnemonic::mapBitsToMnemonic(vchKey, language::en);
-          file << "# 12-Word phrase: " << join(words,",") << "\n";
-          
           CBitcoinExtKey b58extkey;	
           b58extkey.SetKey(masterKey);	
           file << "# extended private masterkey: " << b58extkey.ToString()	
