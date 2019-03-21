@@ -51,14 +51,17 @@ ClientModel::~ClientModel() {
 int ClientModel::getNumConnections(unsigned int flags) const {
     CConnman::NumConnections connections = CConnman::CONNECTIONS_NONE;
 
-    if (flags == CONNECTIONS_IN)
+    if (flags == CONNECTIONS_IN) {
         connections = CConnman::CONNECTIONS_IN;
-    else if (flags == CONNECTIONS_OUT)
+    } else if (flags == CONNECTIONS_OUT) {
         connections = CConnman::CONNECTIONS_OUT;
-    else if (flags == CONNECTIONS_ALL)
+    } else if (flags == CONNECTIONS_ALL) {
         connections = CConnman::CONNECTIONS_ALL;
+    }
 
-    if (g_connman) return g_connman->GetNodeCount(connections);
+    if (g_connman) {
+        return g_connman->GetNodeCount(connections);
+    }
     return 0;
 }
 
@@ -92,20 +95,25 @@ int64_t ClientModel::getHeaderTipTime() const {
 }
 
 quint64 ClientModel::getTotalBytesRecv() const {
-    if (!g_connman) return 0;
+    if (!g_connman) {
+        return 0;
+    }
     return g_connman->GetTotalBytesRecv();
 }
 
 quint64 ClientModel::getTotalBytesSent() const {
-    if (!g_connman) return 0;
+    if (!g_connman) {
+        return 0;
+    }
     return g_connman->GetTotalBytesSent();
 }
 
 QDateTime ClientModel::getLastBlockDate() const {
     LOCK(cs_main);
 
-    if (chainActive.Tip())
+    if (chainActive.Tip()) {
         return QDateTime::fromTime_t(chainActive.Tip()->GetBlockTime());
+    }
 
     // Genesis block's time of current network
     return QDateTime::fromTime_t(Params().GenesisBlock().GetBlockTime());
@@ -152,12 +160,13 @@ bool ClientModel::inInitialBlockDownload() const {
 }
 
 enum BlockSource ClientModel::getBlockSource() const {
-    if (fReindex)
+    if (fReindex) {
         return BlockSource::REINDEX;
-    else if (fImporting)
+    } else if (fImporting) {
         return BlockSource::DISK;
-    else if (getNumConnections() > 0)
+    } else if (getNumConnections() > 0) {
         return BlockSource::NETWORK;
+    }
 
     return BlockSource::NONE;
 }
@@ -256,7 +265,9 @@ static void BlockTipChanged(ClientModel *clientmodel, bool initialSync,
     // during initial sync, only update the UI if the last update
     // was > 250ms (MODEL_UPDATE_DELAY) ago
     int64_t now = 0;
-    if (initialSync) now = GetTimeMillis();
+    if (initialSync) {
+        now = GetTimeMillis();
+    }
 
     int64_t &nLastUpdateNotification = fHeader
                                            ? nLastHeaderTipUpdateNotification
