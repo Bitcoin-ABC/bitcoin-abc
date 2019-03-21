@@ -212,9 +212,11 @@ BITCOIN_CORE_H = \
   wallet/coincontrol.h \
   wallet/crypter.h \
   wallet/db.h \
+  wallet/dictionary.h \
   wallet/finaltx.h \
   wallet/rpcdump.h \
   wallet/fees.h \
+  wallet/mnemonic.h \
   wallet/rpcwallet.h \
   wallet/wallet.h \
   wallet/walletdb.h \
@@ -308,6 +310,8 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/finaltx.cpp \
   wallet/fees.cpp \
   wallet/init.cpp \
+  wallet/dictionary.cpp \
+  wallet/mnemonic.cpp \
   wallet/rpcdump.cpp \
   wallet/rpcwallet.cpp \
   wallet/wallet.cpp \
@@ -319,6 +323,14 @@ libbitcoin_wallet_a_SOURCES = \
 crypto_libbitcoin_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_libbitcoin_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_libbitcoin_crypto_base_a_SOURCES = \
+  crypto/zeroize.h \
+  crypto/zeroize.c \
+  crypto/sha512_c.h \
+  crypto/sha512_c.c \
+  crypto/hmacsha512.h \
+  crypto/hmacsha512.c \
+  crypto/pkcs5_pbkdf2.h \
+  crypto/pkcs5_pbkdf2.c \
   crypto/aes.cpp \
   crypto/aes.h \
   crypto/chacha20.h \

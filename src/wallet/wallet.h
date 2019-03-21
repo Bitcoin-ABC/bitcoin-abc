@@ -1179,6 +1179,7 @@ public:
     bool IsHDEnabled();
 
     /* Generates a new HD master key (will not be activated) */
+    CPubKey GenerateHDMasterKey();
     CPubKey GenerateNewHDMasterKey();
 
     /**

@@ -25,6 +25,8 @@ add_library(wallet
 	wallet.cpp
 	walletdb.cpp
 	walletutil.cpp
+  dictionary.cpp
+  mnemonic.cpp
 )
 
 target_link_libraries(wallet util univalue Event ${BDBXX_LIBRARY})

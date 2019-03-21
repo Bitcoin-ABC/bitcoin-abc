@@ -27,11 +27,14 @@
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "utilstrencodings.h" // for debug
+#include "utilsplitstring.h"
 #include "utilmoneystr.h"
 #include "validation.h"
 #include "wallet/coincontrol.h"
 #include "wallet/fees.h"
 #include "wallet/finaltx.h"
+#include "wallet/mnemonic.h"
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -1503,6 +1506,70 @@ Amount CWallet::GetChange(const CTransaction &tx) const {
     return nChange;
 }
 
+CPubKey CWallet::GenerateHDMasterKey() {
+  // At this point we could have either used keydata or hashRet
+  // for the master key, hashRet just adds mnemonic passphrase, etc
+  std::vector<uint8_t> keydata(16);
+  std::vector<uint8_t> hashWords;
+  mnemonic::WordList words;
+  std::string seedphrase = gArgs.GetArg("-seedphrase","").c_str();
+  if (seedphrase != "") {
+    Split(words, seedphrase, " ");
+    // Ignore CHECKSUM check!
+    if (mnemonic::isValidMnemonic(words, language::en)) {
+      hashWords = mnemonic::decodeMnemonic(words);
+    } else {
+      // exit
+      InitError(_("Invalid Seed Phrase"));
+      CPubKey pubkey;
+      return pubkey;
+    }
+  } else {
+    // 1) Generate Random bytes (strong)
+    // 2) Map to 12 words (with checksum word)
+    // 3) Map back to 'seed' - 64 bits
+    // 4) Use 1st 32 bytes as secret key for Master HD key
+    // Using 2) we can re-generate 4) as needed
+    GetStrongRandBytes(keydata.data(), keydata.size());
+    words = mnemonic::mapBitsToMnemonic(keydata, language::en);
+    //std::cout << "Words = " << join(words,",") << "\n";
+    hashWords = mnemonic::decodeMnemonic(words);
+    std::string notice = "This is your seed phrase, please write it down to recover wallet \"" + join(words," ")+"\"\n" +
+        "NEVER SHARE THIS SEQUENCE WITH ANYONE TO PROTECT YOUR FUNDS";
+    ShowSeedPhrase(notice);
+  }
+
+  CKey key;
+  
+  // Look at storing full 64-byte path
+  key.Set(&hashWords[0],&hashWords[32], true);
+  
+  int64_t nCreationTime = GetTime();
+  CKeyMetadata metadata(nCreationTime);
+  
+  // Calculate the pubkey.
+  CPubKey pubkey = key.GetPubKey();
+  assert(key.VerifyPubKey(pubkey));
+  
+  // Set the hd keypath to "m" -> Master, refers the masterkeyid to itself.
+  metadata.hdKeypath = "m";
+  metadata.hdMasterKeyID = pubkey.GetID();
+  
+  LOCK(cs_wallet);
+  
+  // mem store the metadata
+  mapKeyMetadata[pubkey.GetID()] = metadata;
+  
+  // Write the key&metadata to the database.
+  if (!AddKeyPubKey(key, pubkey)) {
+    throw std::runtime_error(std::string(__func__) +
+                             ": AddKeyPubKey failed");
+  }
+  
+  return pubkey;
+}
+
+// Need to Review
 CPubKey CWallet::GenerateNewHDMasterKey() {
     CKey key;
     key.MakeNewKey(true);
@@ -4213,21 +4280,24 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     }
 
     if (fFirstRun) {
-        // Create new keyUser and set as default key.
-        // Generate a new master key.
-        CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
-        if (!walletInstance->SetHDMasterKey(masterPubKey)) {
-              throw std::runtime_error(std::string(__func__) +
-                                         ": Storing master key failed");
-          }
+      CPubKey masterPubKey = walletInstance->GenerateHDMasterKey();
+      if (!masterPubKey.IsValid()) {
+        throw std::runtime_error(std::string(__func__) + ": Unable to set HD MasterKey");
+      }
+
+      // Create new keyUser and set as default key.
+      // Generate a new master key.
+      if (!walletInstance->SetHDMasterKey(masterPubKey)) {
+            throw std::runtime_error(std::string(__func__) + ": Storing master key failed");
+      }
 
         // Top up the keypool
-        if (!walletInstance->TopUpKeyPool()) {
+      if (!walletInstance->TopUpKeyPool()) {
             InitError(_("Unable to generate initial keys") += "\n");
             return nullptr;
-        }
+      }
 
-        walletInstance->SetBestChain(chainActive.GetLocator());
+      walletInstance->SetBestChain(chainActive.GetLocator());
     }
 
     LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);

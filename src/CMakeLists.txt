@@ -108,8 +108,16 @@ endif()
 
 add_subdirectory(secp256k1)
 add_subdirectory(univalue)
+
+#--------------------------------------------------------------------------------
+# DeVault
+#--------------------------------------------------------------------------------
 add_subdirectory(coldrewards)
 add_subdirectory(budget)
+#
+#--------------------------------------------------------------------------------
+
+
 
 file(GLOB PRIMITIVE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/primitives/*.h)
 source_group("PrimitiveHeaders" FILES ${PRIMITIVE_HEADERS})

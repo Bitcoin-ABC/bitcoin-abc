@@ -17,6 +17,12 @@ add_library(crypto
 	sha256.cpp
 	sha256_sse4.cpp
 	sha512.cpp
+  # new
+  sha512_c.c
+  hmacsha512.c
+  zeroize.c
+  pkcs5_pbkdf2.c
+	hmacsha512.c
 )
 
 target_include_directories(crypto
