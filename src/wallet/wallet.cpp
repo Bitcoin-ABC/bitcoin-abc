@@ -2246,35 +2246,6 @@ bool CWalletTx::IsEquivalentTo(const CWalletTx &_tx) const {
     return CTransaction(tx1) == CTransaction(tx2);
 }
 
-std::vector<uint256>
-CWallet::ResendWalletTransactionsBefore(interfaces::Chain::Lock &locked_chain,
-                                        int64_t nTime) {
-    std::vector<uint256> result;
-
-    LOCK(cs_wallet);
-
-    // Sort them in chronological order
-    std::multimap<unsigned int, CWalletTx *> mapSorted;
-    for (std::pair<const TxId, CWalletTx> &item : mapWallet) {
-        CWalletTx &wtx = item.second;
-        // Don't rebroadcast if newer than nTime:
-        if (wtx.nTimeReceived > nTime) {
-            continue;
-        }
-
-        mapSorted.insert(std::make_pair(wtx.nTimeReceived, &wtx));
-    }
-
-    for (const std::pair<const unsigned int, CWalletTx *> &item : mapSorted) {
-        CWalletTx &wtx = *item.second;
-        if (wtx.RelayWalletTransaction(locked_chain)) {
-            result.push_back(wtx.GetId());
-        }
-    }
-
-    return result;
-}
-
 void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) {
     // Do this infrequently and randomly to avoid giving away that these are our
     // transactions.
@@ -2295,13 +2266,27 @@ void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) {
 
     nLastResend = GetTime();
 
-    // Rebroadcast unconfirmed txes older than 5 minutes before the last block
-    // was found:
-    std::vector<uint256> relayed = ResendWalletTransactionsBefore(
-        locked_chain, m_best_block_time - 5 * 60);
-    if (!relayed.empty()) {
+    int relayed_tx_count = 0;
+
+    { // cs_wallet scope
+        LOCK(cs_wallet);
+
+        // Relay transactions
+        for (std::pair<const TxId, CWalletTx> &item : mapWallet) {
+            CWalletTx &wtx = item.second;
+            // only rebroadcast unconfirmed txes older than 5 minutes before the
+            // last block was found
+            if (wtx.nTimeReceived > m_best_block_time - 5 * 60) {
+                continue;
+            }
+            relayed_tx_count +=
+                wtx.RelayWalletTransaction(locked_chain) ? 1 : 0;
+        }
+    } // cs_wallet
+
+    if (relayed_tx_count > 0) {
         WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n",
-                        __func__, relayed.size());
+                        __func__, relayed_tx_count);
     }
 }
 

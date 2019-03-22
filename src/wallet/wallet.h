@@ -1089,11 +1089,6 @@ public:
     void ReacceptWalletTransactions();
     void
     ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) override;
-    // ResendWalletTransactionsBefore may only be called if
-    // fBroadcastTransactions!
-    std::vector<uint256>
-    ResendWalletTransactionsBefore(interfaces::Chain::Lock &locked_chain,
-                                   int64_t nTime);
     Amount GetBalance(const isminefilter &filter = ISMINE_SPENDABLE,
                       const int min_depth = 0) const;
     Amount GetUnconfirmedBalance() const;
