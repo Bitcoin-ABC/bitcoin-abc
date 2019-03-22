@@ -2127,7 +2127,8 @@ static UniValue gettransaction(const Config &config,
                      nullptr /* filter_label */);
     entry.pushKV("details", details);
 
-    std::string strHex = EncodeHexTx(*wtx.tx, RPCSerializationFlags());
+    std::string strHex =
+        EncodeHexTx(*wtx.tx, pwallet->chain().rpcSerializationFlags());
     entry.pushKV("hex", strHex);
 
     return entry;
@@ -2379,7 +2380,7 @@ static UniValue walletpassphrase(const Config &config,
     // wallet before the following callback is called. If a valid shared pointer
     // is acquired in the callback then the wallet is still loaded.
     std::weak_ptr<CWallet> weak_wallet = wallet;
-    RPCRunLater(
+    pwallet->chain().rpcRunLater(
         strprintf("lockwallet(%s)", pwallet->GetName()),
         [weak_wallet] {
             if (auto shared_wallet = weak_wallet.lock()) {

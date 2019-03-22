@@ -69,7 +69,8 @@ bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
     return true;
 }
 
-bool IsStandardTx(const CTransaction &tx, std::string &reason) {
+bool IsStandardTx(const CTransaction &tx, bool permit_bare_multisig,
+                  const CFeeRate &dust_relay_fee, std::string &reason) {
     if (tx.nVersion > CTransaction::MAX_STANDARD_VERSION || tx.nVersion < 1) {
         reason = "version";
         return false;
@@ -106,10 +107,10 @@ bool IsStandardTx(const CTransaction &tx, std::string &reason) {
 
         if (whichType == TX_NULL_DATA) {
             nDataOut++;
-        } else if ((whichType == TX_MULTISIG) && (!fIsBareMultisigStd)) {
+        } else if ((whichType == TX_MULTISIG) && (!permit_bare_multisig)) {
             reason = "bare-multisig";
             return false;
-        } else if (IsDust(txout, ::dustRelayFee)) {
+        } else if (IsDust(txout, dust_relay_fee)) {
             reason = "dust";
             return false;
         }

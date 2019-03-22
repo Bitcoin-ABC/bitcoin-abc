@@ -378,6 +378,14 @@ namespace {
         handleRpc(const CRPCCommand &command) override {
             return std::make_unique<RpcHandlerImpl>(command);
         }
+        bool rpcEnableDeprecated(const std::string &method) override {
+            return IsDeprecatedRPCEnabled(gArgs, method);
+        }
+        void rpcRunLater(const std::string &name, std::function<void()> fn,
+                         int64_t seconds) override {
+            RPCRunLater(name, std::move(fn), seconds);
+        }
+        int rpcSerializationFlags() override { return RPCSerializationFlags(); }
         void requestMempoolTransactions(Notifications &notifications) override {
             LOCK2(::cs_main, ::g_mempool.cs);
             for (const CTxMemPoolEntry &entry : ::g_mempool.mapTx) {

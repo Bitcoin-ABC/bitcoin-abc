@@ -120,7 +120,8 @@ bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType);
  * @return True if all outputs (scriptPubKeys) use only standard transaction
  * forms
  */
-bool IsStandardTx(const CTransaction &tx, std::string &reason);
+bool IsStandardTx(const CTransaction &tx, bool permit_bare_multisig,
+                  const CFeeRate &dust_relay_fee, std::string &reason);
 
 /**
  * Check for standard transaction types
@@ -141,5 +142,13 @@ int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCount,
                                   unsigned int bytes_per_sigop);
 int64_t GetVirtualTransactionInputSize(const CTxIn &txin, int64_t nSigOpCount,
                                        unsigned int bytes_per_sigop);
+
+static inline int64_t GetVirtualTransactionSize(const CTransaction &tx) {
+    return GetVirtualTransactionSize(tx, 0, 0);
+}
+
+static inline int64_t GetVirtualTransactionInputSize(const CTxIn &tx) {
+    return GetVirtualTransactionInputSize(tx, 0, 0);
+}
 
 #endif // BITCOIN_POLICY_POLICY_H
