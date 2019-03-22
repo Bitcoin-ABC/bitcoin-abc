@@ -13,13 +13,6 @@ SECP_DIR="${TOPLEVEL}/src/secp256k1"
 cd ${SECP_DIR}
 ./autogen.sh
 
-# Download the guava dependency if it doesn't exist
-mkdir -p "${SECP_DIR}/src/java/guava"
-GUAVA_FILE="${SECP_DIR}/src/java/guava/guava-18.0.jar"
-if [ ! -f "${GUAVA_FILE}" ]; then
-  wget https://search.maven.org/remotecontent?filepath=com/google/guava/guava/18.0/guava-18.0.jar -O "${GUAVA_FILE}"
-fi
-
 # Setup build directory
 BUILD_DIR="${SECP_DIR}/build"
 mkdir -p ${BUILD_DIR}
