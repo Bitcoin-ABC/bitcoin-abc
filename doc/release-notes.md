@@ -9,3 +9,5 @@ This release includes the following features and fixes:
  - `listsinceblock` will now throw an error if an unknown `blockhash` argument
    value is passed, instead of returning a list of all wallet transactions since
    the genesis block.
+ - Various minor fixes to RPC parameter validation
+ - Minor wallet performance improvements
