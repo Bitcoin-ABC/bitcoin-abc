@@ -768,7 +768,7 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /** Interface for accessing chain state. */
-    interfaces::Chain &m_chain;
+    interfaces::Chain *m_chain;
 
     /**
      * Wallet location which includes wallet name (see WalletLocation).
@@ -836,7 +836,7 @@ public:
     unsigned int nMasterKeyMaxID = 0;
 
     /** Construct wallet with specified name and database implementation. */
-    CWallet(const CChainParams &chainParamsIn, interfaces::Chain &chain,
+    CWallet(const CChainParams &chainParamsIn, interfaces::Chain *chain,
             const WalletLocation &location,
             std::unique_ptr<WalletDatabase> databaseIn)
         : m_chain(chain), m_location(location), database(std::move(databaseIn)),
@@ -865,7 +865,10 @@ public:
     std::unique_ptr<interfaces::Handler> m_chain_notifications_handler;
 
     /** Interface for accessing chain state. */
-    interfaces::Chain &chain() const { return m_chain; }
+    interfaces::Chain &chain() const {
+        assert(m_chain);
+        return *m_chain;
+    }
 
     const CWalletTx *GetWalletTx(const TxId &txid) const;
 

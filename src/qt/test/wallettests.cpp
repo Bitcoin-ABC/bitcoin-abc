@@ -116,7 +116,7 @@ void TestGUI() {
 
     auto chain = interfaces::MakeChain();
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-        Params(), *chain, WalletLocation(), WalletDatabase::CreateMock());
+        Params(), chain.get(), WalletLocation(), WalletDatabase::CreateMock());
 
     bool firstRun;
     wallet->LoadWallet(firstRun);

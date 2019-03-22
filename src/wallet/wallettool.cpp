@@ -5,7 +5,6 @@
 #include <base58.h>
 #include <chainparams.h>
 #include <fs.h>
-#include <interfaces/chain.h>
 #include <util/system.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
@@ -30,9 +29,8 @@ static std::shared_ptr<CWallet> CreateWallet(const std::string &name,
         return nullptr;
     }
     // dummy chain interface
-    auto chain = interfaces::MakeChain();
     std::shared_ptr<CWallet> wallet_instance(
-        new CWallet(Params(), *chain, WalletLocation(name),
+        new CWallet(Params(), nullptr /* chain */, WalletLocation(name),
                     WalletDatabase::Create(path)),
         WalletToolReleaseWallet);
     bool first_run = true;
@@ -61,9 +59,8 @@ static std::shared_ptr<CWallet> LoadWallet(const std::string &name,
     }
 
     // dummy chain interface
-    auto chain = interfaces::MakeChain();
     std::shared_ptr<CWallet> wallet_instance(
-        new CWallet(Params(), *chain, WalletLocation(name),
+        new CWallet(Params(), nullptr /* chain */, WalletLocation(name),
                     WalletDatabase::Create(path)),
         WalletToolReleaseWallet);
     DBErrors load_wallet_ret;

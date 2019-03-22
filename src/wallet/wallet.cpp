@@ -3415,7 +3415,6 @@ bool CWallet::CommitTransaction(
 }
 
 DBErrors CWallet::LoadWallet(bool &fFirstRunRet) {
-    auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
     fFirstRunRet = false;
@@ -4352,7 +4351,7 @@ bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
 
     if (salvage_wallet) {
         // Recover readable keypairs:
-        CWallet dummyWallet(chainParams, chain, WalletLocation(),
+        CWallet dummyWallet(chainParams, &chain, WalletLocation(),
                             WalletDatabase::CreateDummy());
         std::string backup_filename;
         if (!WalletBatch::Recover(
@@ -4399,7 +4398,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
             _("Zapping all transactions from wallet...").translated);
 
         std::unique_ptr<CWallet> tempWallet = std::make_unique<CWallet>(
-            chainParams, chain, location,
+            chainParams, &chain, location,
             WalletDatabase::Create(location.GetPath()));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DBErrors::LOAD_OK) {
@@ -4417,7 +4416,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(
-        new CWallet(chainParams, chain, location,
+        new CWallet(chainParams, &chain, location,
                     WalletDatabase::Create(location.GetPath())),
         ReleaseWallet);
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
