@@ -29,7 +29,7 @@ add_library(wallet
 
 # There is a circular dependency between wallet and server, see:
 # https://github.com/bitcoin/bitcoin/pull/14437#discussion_r226237048
-target_link_libraries(wallet server script univalue BerkeleyDB::CXX)
+target_link_libraries(wallet bitcoinconsensus univalue BerkeleyDB::CXX)
 
 # wallet-tool library
 add_library(wallet-tool wallettool.cpp)
