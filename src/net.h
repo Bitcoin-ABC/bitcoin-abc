@@ -67,7 +67,7 @@ static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
 static const unsigned int MAX_LOCATOR_SZ = 101;
 /** The maximum number of new addresses to accumulate before announcing. */
 static const unsigned int MAX_ADDR_TO_SEND = 1000;
-/** Maximum length of strSubVer in `version` message */
+/** Maximum length of the user agent string in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 /** Maximum number of automatic outgoing nodes */
 static const int MAX_OUTBOUND_CONNECTIONS = 8;
@@ -680,15 +680,12 @@ public:
     // Bind address of our side of the connection
     const CAddress addrBind;
     std::atomic<int> nVersion{0};
-    // strSubVer is whatever byte array we read from the wire. However, this
-    // field is intended to be printed out, displayed to humans in various forms
-    // and so on. So we sanitize it and store the sanitized version in
-    // cleanSubVer. The original should be used when dealing with the network or
-    // wire types and the cleaned string used when displayed or logged.
-    std::string strSubVer GUARDED_BY(cs_SubVer), cleanSubVer
-        GUARDED_BY(cs_SubVer);
-    // Used for both cleanSubVer and strSubVer.
     RecursiveMutex cs_SubVer;
+    /**
+     * cleanSubVer is a sanitized string of the user agent byte array we read
+     * from the wire. This cleaned string can safely be logged or displayed.
+     */
+    std::string cleanSubVer GUARDED_BY(cs_SubVer){};
     // This peer is preferred for eviction.
     bool m_prefer_evict{false};
     bool HasPermission(NetPermissionFlags permission) const {

@@ -2212,7 +2212,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         ServiceFlags nServices;
         int nVersion;
         int nSendVersion;
-        std::string strSubVer;
         std::string cleanSubVer;
         int nStartingHeight = -1;
         bool fRelay = true;
@@ -2265,6 +2264,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             vRecv >> addrFrom >> nNonce;
         }
         if (!vRecv.empty()) {
+            std::string strSubVer;
             vRecv >> LIMITED_STRING(strSubVer, MAX_SUBVERSION_LENGTH);
             cleanSubVer = SanitizeString(strSubVer);
         }
@@ -2298,7 +2298,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         pfrom->SetAddrLocal(addrMe);
         {
             LOCK(pfrom->cs_SubVer);
-            pfrom->strSubVer = strSubVer;
             pfrom->cleanSubVer = cleanSubVer;
         }
         pfrom->nStartingHeight = nStartingHeight;
