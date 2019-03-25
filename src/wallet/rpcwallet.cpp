@@ -1078,6 +1078,8 @@ static UniValue addmultisigaddress(const Config &config,
                   "the new multisig address.\n"
                   "  \"redeemScript\":\"script\"         (string) The string "
                   "value of the hex-encoded redemption script.\n"
+                  "  \"descriptor\":\"descriptor\"     (string) The descriptor "
+                  "for this multisig\n"
                   "}\n"},
         RPCExamples{
             "\nAdd a multisig address from 2 addresses\n" +
@@ -1126,9 +1128,14 @@ static UniValue addmultisigaddress(const Config &config,
         required, pubkeys, output_type, spk_man, inner);
     pwallet->SetAddressBook(dest, label, "send");
 
+    // Make the descriptor
+    std::unique_ptr<Descriptor> descriptor =
+        InferDescriptor(GetScriptForDestination(dest), spk_man);
+
     UniValue result(UniValue::VOBJ);
     result.pushKV("address", EncodeDestination(dest, config));
     result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
+    result.pushKV("descriptor", descriptor->ToString());
     return result;
 }
 

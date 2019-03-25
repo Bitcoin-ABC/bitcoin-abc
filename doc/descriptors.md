@@ -10,6 +10,7 @@ Supporting RPCs are:
 - `deriveaddresses` takes as input a descriptor and computes the corresponding
  addresses.
 - `listunspent` outputs a specialized descriptor for the reported unspent outputs.
+- `createmultisig` and `addmultisigaddress` return descriptors as well (since v0.22.6)
 
 This document describes the language. For the specifics on usage, see the RPC
 documentation for the functions mentioned above.in the

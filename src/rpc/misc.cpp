@@ -102,6 +102,8 @@ static UniValue createmultisig(const Config &config,
                   "the new multisig address.\n"
                   "  \"redeemScript\":\"script\"       (string) The string "
                   "value of the hex-encoded redemption script.\n"
+                  "  \"descriptor\":\"descriptor\"     (string) The descriptor "
+                  "for this multisig\n"
                   "}\n"},
         RPCExamples{
             "\nCreate a multisig address from 2 public keys\n" +
@@ -149,9 +151,14 @@ static UniValue createmultisig(const Config &config,
     const CTxDestination dest = AddAndGetMultisigDestination(
         required, pubkeys, output_type, keystore, inner);
 
+    // Make the descriptor
+    std::unique_ptr<Descriptor> descriptor =
+        InferDescriptor(GetScriptForDestination(dest), keystore);
+
     UniValue result(UniValue::VOBJ);
     result.pushKV("address", EncodeDestination(dest, config));
     result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
+    result.pushKV("descriptor", descriptor->ToString());
 
     return result;
 }

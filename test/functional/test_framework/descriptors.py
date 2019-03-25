@@ -4,6 +4,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Utility functions related to output descriptors"""
 
+import re
+
 INPUT_CHARSET = "0123456789()[],'/*abcdefgh@:$%{}IJKLMNOPQRSTUVWXYZ&+-.;<=>?!^_|~ijklmnopqrstuvwxyzABCDEFGH`#\"\\ "
 CHECKSUM_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 GENERATOR = [
@@ -65,3 +67,11 @@ def descsum_check(s, require=True):
     symbols = descsum_expand(
         s[:-9]) + [CHECKSUM_CHARSET.find(x) for x in s[-8:]]
     return descsum_polymod(symbols) == 1
+
+
+def drop_origins(s):
+    '''Drop the key origins from a descriptor'''
+    desc = re.sub(r'\[.+?\]', '', s)
+    if '#' in s:
+        desc = desc[:desc.index('#')]
+    return descsum_create(desc)
