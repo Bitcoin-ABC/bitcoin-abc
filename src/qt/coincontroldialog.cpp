@@ -12,6 +12,7 @@
 #include "platformstyle.h"
 #include "txmempool.h"
 #include "walletmodel.h"
+#include "dvtui.h"
 
 #include "dstencode.h"
 #include "init.h"
@@ -51,6 +52,11 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
     : QDialog(parent), ui(new Ui::CoinControlDialog), model(0),
       platformStyle(_platformStyle) {
     ui->setupUi(this);
+    if(DVTUI::customThemeIsSet()) {
+        QString appstyle = "fusion";
+        QApplication::setStyle(appstyle);
+        setStyleSheet(styleSheetString);
+    } 
 
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
@@ -159,10 +165,6 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
 
     // restore list mode and sortorder as a convenience feature
     QSettings settings;
-    if(settings.value("theme").toString() == "dark") 
-    {   
-        setStyleSheet("QWidget {background: rgb(22,22,22); color: rgb(211,211,211);}"); 
-    } 
     if (settings.contains("nCoinControlMode") &&
         !settings.value("nCoinControlMode").toBool())
         ui->radioTreeMode->click();

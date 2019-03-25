@@ -180,7 +180,7 @@
       <item>
        <widget class="QPushButton" name="useAvailableBalanceButton">
         <property name="text">
-         <string>Use available balance</string>
+         <string>Spend entire balance</string>
         </property>
        </widget>
       </item>

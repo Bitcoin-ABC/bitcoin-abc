@@ -19,6 +19,7 @@
     static const QString s_BUTTON_DEFAULTWIDTH = QString::number(BUTTON_DEFAULTWIDTH).append("px");
 
     static const QString s_LBlue = "rgb(46,144,255)"; // #00AEFF
+    static const QString s_green = "rgb(94,245,158)";
     static const QString s_DVTBlue = "rgb(0,174,255)"; // #1B83EE
 
     static const QString s_Darker = "rgb(22,22,22)"; // #161616
@@ -38,6 +39,7 @@
     
     static const QColor c_LBlue = QColor(46,144,255); 
     static const QColor c_DVTBlue = QColor(0,174,255); 
+    static const QColor c_green = QColor(94,245,158);
 
     static const QColor c_Darker = QColor(22,22,22);
     static const QColor c_Dark = QColor(50,50,50);
@@ -74,7 +76,7 @@
             "{ border: none; background: transparent }"
 
             "#transactions_title "
-            "{ color: qlineargradient(x0:0, y0:0, x1: 1, y1: 0, stop: 0 " + s_DVTBlue + ", stop: 0.3 " + s_LBlue + "); font-size: 24px; }"
+            "{ color: qlineargradient(x0:0, y0:0, x1: 1, y1: 0, stop: 0 " + s_LBlue + ", stop: 0.3 " + s_green + "); font-size: 24px; }"
             
             "QPlainTextEdit "
             "{ background: " + s_hightlight_dark + "; border: 1px solid " + s_LBlue + "; border-left: none; border-right: none; border-top: none}"
@@ -90,7 +92,7 @@
             "{ border-right: none; border-bottom: none; }"                    
             
             "#payAmount > QAbstractSpinBox, #payAmount > QComboBox"
-            "{ min-height: 48px; font-size: 32px; color: " +  s_LBlue +"; font-weight: light;}"
+            "{ min-height: 36px; font-size: 24px; color: " +  s_LBlue +"; font-weight: light;}"
             "#buy_adressInfo, #buy_amountInfo, #buy_amountVaryInfo "
             "{ color: " + s_placeHolderText + ";}"
             
@@ -98,7 +100,7 @@
             "QProgressBar "
             "{ color: transparent; background: " + s_Darker + ";  border: 1px inset " + s_Dark + ";  padding: 0px; margin-left: 30px; margin-right: 30px;}" 
             "QProgressBar::chunk "
-            "{ color: transparent; background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgba(108,200,239,100%), stop: 1 rgba(102,204,204,100%), stop: 2 rgba(12,175,165,100%)); border-radius: 1px; margin: 0px;}"
+            "{ color: transparent; background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgba(94,204,158,100%), stop: 1 rgba(0,174,255,100%), stop: 2 rgba(12,175,165,100%)); border-radius: 1px; margin: 0px;}"
             
             //Balance seperator line
             "#lineb, #lineb1, #lineb2, #lineb3, #lineb4, #lineb5 , #lineb6 , #lineb7 , #lineb8 , #lineb9 ,#w_lineb, #w_lineb1, #w_lineb2, #w_lineb3, #w_lineb4, #w_lineb5, #w_lineb6, #w_lineb7, #w_lineb8, #w_lineb9"
@@ -148,8 +150,8 @@
 
             //Toolbar
             "#toolbar {background: " + s_Darker + "; border-left: none; border-right: 1px solid " + s_Dark + "; border-top: none; border-bottom: none; padding-top: 0px;}"
-            "#toolbar > QToolButton { width: 150px; height: 40px; background: transparent; border: none; padding: 6px; padding-left: 9px; padding-right: 9px; margin-bottom: 1px;}"
-            "#toolbar > QToolButton:hover { color: " + s_LBlue + "; border: none}"                    
+            "#toolbar > QToolButton { width: 150px; height: 40px; background: transparent; border: none; padding: 6px; padding-left: 1px; padding-right: 1px; margin-bottom: 1px;}"
+            "#toolbar > QToolButton:hover { color: " + s_DVTBlue + "; border: none}"                    
             "#toolbar > QToolButton:checked { color: " + s_LBlue + "; border: none;}"
             
             //Scrollbar

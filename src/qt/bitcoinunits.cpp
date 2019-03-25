@@ -46,11 +46,11 @@ QString BitcoinUnits::name(int unit) {
 QString BitcoinUnits::description(int unit) {
     switch (unit) {
         case DVT:
-            return QString("Bitcoins");
+            return QString("DVTs");
         case mDVT:
-            return QString("Milli-Bitcoins (1 / 1" THIN_SP_UTF8 "000)");
+            return QString("Milli-DVTs (1 / 1" THIN_SP_UTF8 "000)");
         case uDVT:
-            return QString("Micro-Bitcoins (1 / 1" THIN_SP_UTF8
+            return QString("Micro-DVTs (1 / 1" THIN_SP_UTF8
                            "000" THIN_SP_UTF8 "000)");
         default:
             return QString("???");
