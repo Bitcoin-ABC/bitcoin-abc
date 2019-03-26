@@ -75,29 +75,16 @@ namespace {
             CBlockIndex *block = ::ChainActive()[height];
             return block && (block->nStatus.hasData() != 0) && block->nTx > 0;
         }
-        Optional<int> findFirstBlockWithTime(int64_t time,
-                                             BlockHash *hash) override {
-            CBlockIndex *block = ::ChainActive().FindEarliestAtLeast(time);
+        Optional<int>
+        findFirstBlockWithTimeAndHeight(int64_t time, int height,
+                                        BlockHash *hash) override {
+            CBlockIndex *block =
+                ::ChainActive().FindEarliestAtLeast(time, height);
             if (block) {
                 if (hash) {
                     *hash = block->GetBlockHash();
                 }
                 return block->nHeight;
-            }
-            return nullopt;
-        }
-        Optional<int> findFirstBlockWithTimeAndHeight(int64_t time,
-                                                      int height) override {
-            // TODO: Could update CChain::FindEarliestAtLeast() to take a height
-            // parameter and use it with std::lower_bound() to make this
-            // implementation more efficient and allow combining
-            // findFirstBlockWithTime and findFirstBlockWithTimeAndHeight into
-            // one method.
-            for (CBlockIndex *block = ::ChainActive()[height]; block;
-                 block = ::ChainActive().Next(block)) {
-                if (block->GetBlockTime() >= time) {
-                    return block->nHeight;
-                }
             }
             return nullopt;
         }
