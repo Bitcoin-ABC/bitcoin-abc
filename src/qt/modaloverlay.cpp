@@ -13,6 +13,7 @@
 #include <QPropertyAnimation>
 #include <QResizeEvent>
 #include <QSettings>
+#include <iostream>
 
 ModalOverlay::ModalOverlay(const PlatformStyle *_platformStyle, QWidget *parent) :
 QWidget(parent),
@@ -93,6 +94,7 @@ void ModalOverlay::setKnownBestHeight(int count, const QDateTime &blockDate) {
 void ModalOverlay::tipUpdate(int count, const QDateTime &blockDate,
                              double nVerificationProgress) {
     QDateTime currentDate = QDateTime::currentDateTime();
+    int currentDateDiff = currentDate.toMSecsSinceEpoch() - 500 * 1000;
 
     // keep a vector of samples of verification progress at height
     blockProcessTime.push_front(
@@ -106,16 +108,15 @@ void ModalOverlay::tipUpdate(int count, const QDateTime &blockDate,
         qint64 timeDelta = 0;
         qint64 remainingMSecs = 0;
         double remainingProgress = 1.0 - nVerificationProgress;
+        int sizem1 = blockProcessTime.size() - 1;
         for (int i = 1; i < blockProcessTime.size(); i++) {
             QPair<qint64, double> sample = blockProcessTime[i];
 
             // take first sample after 500 seconds or last available one
-            if (sample.first < (currentDate.toMSecsSinceEpoch() - 500 * 1000) ||
-                i == blockProcessTime.size() - 1) {
+            if (sample.first < currentDateDiff || i == sizem1) {
                 progressDelta = progressStart - sample.second;
                 timeDelta = blockProcessTime[0].first - sample.first;
-                progressPerHour =
-                    progressDelta / (double)timeDelta * 1000 * 3600;
+                progressPerHour = progressDelta / (double)timeDelta * 1000 * 3600;
                 remainingMSecs = remainingProgress / progressDelta * timeDelta;
                 break;
             }
@@ -128,7 +129,7 @@ void ModalOverlay::tipUpdate(int count, const QDateTime &blockDate,
         ui->expectedTimeLeft->setText(
             GUIUtil::formatNiceTimeOffset(remainingMSecs / 1000.0));
 
-        static const int MAX_SAMPLES = 5000;
+        static const int MAX_SAMPLES = 500;
         if (blockProcessTime.count() > MAX_SAMPLES)
             blockProcessTime.remove(MAX_SAMPLES,
                                     blockProcessTime.count() - MAX_SAMPLES);
