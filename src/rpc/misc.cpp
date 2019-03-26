@@ -222,7 +222,7 @@ static UniValue validateaddress(const Config &config,
             "1 1970 GMT)\n"
             "  \"hdkeypath\" : \"keypath\"       (string, optional) The HD "
             "keypath if the key is HD and available\n"
-            "  \"hdmasterkeyid\" : \"<hash160>\" (string, optional) The "
+            "  \"hdchainid\" : \"<hash160>\" (string, optional) The "
             "Hash160 of the HD master pubkey\n"
             "}\n"
             "\nExamples:\n" +
@@ -275,25 +275,17 @@ static UniValue validateaddress(const Config &config,
             if (const CKeyID *key_id = boost::get<CKeyID>(&dest)) {
 #endif
               auto it = pwallet->mapKeyMetadata.find(*key_id);
-                if (it != pwallet->mapKeyMetadata.end()) {
-                    meta = &it->second;
-                }
-            }
-            if (!meta) {
-                auto it =
-                    pwallet->m_script_metadata.find(CScriptID(scriptPubKey));
-                if (it != pwallet->m_script_metadata.end()) {
-                    meta = &it->second;
-                }
-            }
-            if (meta) {
-                ret.pushKV("timestamp", meta->nCreateTime);
-                if (!meta->hdKeypath.empty()) {
-                    ret.pushKV("hdkeypath", meta->hdKeypath);
-                    ret.pushKV("hdmasterkeyid", meta->hdMasterKeyID.GetHex());
+              if (it != pwallet->mapKeyMetadata.end()) meta = &it->second;
+              // inside if
+              if (meta) {
+                  CHDChain hdChain = pwallet->GetHDChain();
+                  if (!key_id->IsNull() && pwallet->mapHdPubKeys.count(*key_id)) {
+                  ret.push_back(Pair("hdkeypath", pwallet->mapHdPubKeys[*key_id].GetKeyPath()));
+                  ret.push_back(Pair("hdchainid", hdChain.GetID().GetHex()));
                 }
             }
         }
+            }
 #endif
     }
     return ret;

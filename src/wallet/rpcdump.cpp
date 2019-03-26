@@ -805,18 +805,39 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     file << "\n";
 
     // add the base58check encoded extended master if the wallet uses HD
-    CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
-    if (!masterKeyID.IsNull()) {
-        CKey key;
-        if (pwallet->GetKey(masterKeyID, key)) {
-          CExtKey masterKey;	        
-          masterKey.SetMaster(key.begin(), key.size());
-          CBitcoinExtKey b58extkey;	
-          b58extkey.SetKey(masterKey);	
-          file << "# extended private masterkey: " << b58extkey.ToString()	
-               << "\n\n";
+    CHDChain hdChain = pwallet->GetHDChain();
+    SecureString ssMnemonic;
+    hdChain.GetMnemonic(ssMnemonic);
+    file << "# mnemonic: " << ssMnemonic << "\n";
+
+    SecureVector vchSeed = hdChain.GetSeed();
+    file << "# HD seed: " << HexStr(vchSeed) << "\n\n";
+
+    CExtKey masterKey;
+    masterKey.SetMaster(&vchSeed[0], vchSeed.size());
+
+    CBitcoinExtKey b58extkey;
+    b58extkey.SetKey(masterKey);
+
+    file << "# extended private masterkey: " << b58extkey.ToString() << "\n";
+
+    CExtPubKey masterPubkey;
+    masterPubkey = masterKey.Neuter();
+
+    CBitcoinExtPubKey b58extpubkey;
+    b58extpubkey.SetKey(masterPubkey);
+    file << "# extended public masterkey: " << b58extpubkey.ToString() << "\n\n";
+
+    for (size_t i = 0; i < hdChain.CountAccounts(); ++i) {
+        CHDAccount acc;
+        if(hdChain.GetAccount(i, acc)) {
+            file << "# external chain counter: " << acc.nExternalChainCounter << "\n";
+            file << "# internal chain counter: " << acc.nInternalChainCounter << "\n\n";
+        } else {
+            file << "# WARNING: ACCOUNT " << i << " IS MISSING!" << "\n\n";
         }
     }
+
     for (std::vector<std::pair<int64_t, CKeyID>>::const_iterator it =
              vKeyBirth.begin();
          it != vKeyBirth.end(); it++) {
@@ -831,20 +852,12 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
                 file << strprintf(
                     "label=%s",
                     EncodeDumpString(pwallet->mapAddressBook[keyid].name));
-            } else if (keyid == masterKeyID) {
-                file << "hdmaster=1";
             } else if (mapKeyPool.count(keyid)) {
                 file << "reserve=1";
-            } else if (pwallet->mapKeyMetadata[keyid].hdKeypath == "m") {
-                file << "inactivehdmaster=1";
             } else {
                 file << "change=1";
             }
-            file << strprintf(
-                " # addr=%s%s\n", strAddr,
-                (pwallet->mapKeyMetadata[keyid].hdKeypath.size() > 0
-                     ? " hdkeypath=" + pwallet->mapKeyMetadata[keyid].hdKeypath
-                     : ""));
+            file << strprintf(" # addr=%s%s\n", strAddr, (pwallet->mapHdPubKeys.count(keyid) ? " hdkeypath="+pwallet->mapHdPubKeys[keyid].GetKeyPath() : ""));
         }
     }
     file << "\n";

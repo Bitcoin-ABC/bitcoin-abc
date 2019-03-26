@@ -73,6 +73,7 @@ public:
     const std::vector<uint8_t> &Base58Prefix(Base58Type type) const {
         return base58Prefixes[type];
     }
+    int ExtCoinType() const { return nExtCoinType; }
     const std::string &CashAddrPrefix() const { return cashaddrPrefix; }
     const std::string &CashAddrSecretPrefix() const { return cashaddrSecretPrefix; }
     const std::vector<SeedSpec6> &FixedSeeds() const { return vFixedSeeds; }
@@ -89,6 +90,7 @@ protected:
     uint64_t nPruneAfterHeight;
     std::vector<std::string> vSeeds;
     std::vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];
+    int nExtCoinType;
     std::string cashaddrPrefix;
     std::string cashaddrSecretPrefix;
     std::string strNetworkID;

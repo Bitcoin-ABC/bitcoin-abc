@@ -75,6 +75,7 @@ bool RenameOver(fs::path src, fs::path dest);
 bool TryCreateDirectories(const fs::path &p);
 fs::path GetDefaultDataDir();
 const fs::path &GetDataDir(bool fNetSpecific = true);
+bool CheckIfWalletDirExists(bool fNetSpecific = true);
 void ClearDatadirCache();
 fs::path GetConfigFile(const std::string &confPath);
 #ifndef WIN32

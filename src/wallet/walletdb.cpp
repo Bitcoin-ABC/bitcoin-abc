@@ -515,6 +515,23 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                 strErr = "Error reading wallet database: SetHDChain failed";
                 return false;
             }
+        } else if (strType == "hdpubkey")  {
+            CPubKey vchPubKey;
+            ssKey >> vchPubKey;
+
+            CHDPubKey hdPubKey;
+            ssValue >> hdPubKey;
+
+            if(vchPubKey != hdPubKey.extPubKey.pubkey)
+            {
+                strErr = "Error reading wallet database: CHDPubKey corrupt";
+                return false;
+            }
+            if (!pwallet->LoadHDPubKey(hdPubKey))
+            {
+                strErr = "Error reading wallet database: LoadHDPubKey failed";
+                return false;
+            }
         }
     } catch (...) {
         return false;
@@ -524,6 +541,8 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
 
 bool CWalletDB::IsKeyType(const std::string &strType) {
     return (strType == "key" || strType == "wkey" || strType == "mkey" ||
+            strType == "hdchain" || 
+            strType == "chdchain" || 
             strType == "ckey");
 }
 
@@ -586,6 +605,11 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
             }
         }
         pcursor->close();
+
+        //pwallet->nKeysLeftSinceAutoBackup = pwallet->KeypoolCountExternalKeys();
+        //LogPrintf("nKeysLeftSinceAutoBackup: %d\n", pwallet->nKeysLeftSinceAutoBackup);
+
+        
     } catch (const boost::thread_interrupted &) {
         throw;
     } catch (...) {
@@ -894,4 +918,12 @@ bool CWalletDB::ReadVersion(int &nVersion) {
 
 bool CWalletDB::WriteVersion(int nVersion) {
     return batch.WriteVersion(nVersion);
+}
+
+bool CWalletDB::WriteHDPubKey(const CHDPubKey& hdPubKey, const CKeyMetadata& keyMeta)
+{
+  if (!WriteIC(std::make_pair(std::string("keymeta"), hdPubKey.extPubKey.pubkey), keyMeta, false))
+        return false;
+
+  return WriteIC(std::make_pair(std::string("hdpubkey"), hdPubKey.extPubKey.pubkey), hdPubKey, false);
 }

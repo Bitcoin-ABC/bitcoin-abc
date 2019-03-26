@@ -363,3 +363,15 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial &vMasterKeyIn) {
     }
     return true;
 }
+bool CCryptoKeyStore::SetHDChain(const CHDChain& chain)
+{
+    if (IsCrypted())
+        return false;
+
+    if (chain.IsCrypted())
+        return false;
+
+    hdChain = chain;
+    return true;
+}
+

@@ -106,24 +106,9 @@ public:
         if (!(s.GetType() & SER_GETHASH)) {
             READWRITE(nVersion);
         }
-
         READWRITE(nTime);
         READWRITE(vchPubKey);
-        if (ser_action.ForRead()) {
-            try {
-                READWRITE(fInternal);
-            } catch (std::ios_base::failure &) {
-                /**
-                 * flag as external address if we can't read the internal
-                 * boolean
-                 * (this will be the case for any wallet before the HD chain
-                 * split version)
-                 */
-                fInternal = false;
-            }
-        } else {
-            READWRITE(fInternal);
-        }
+        READWRITE(fInternal);
     }
 };
 
@@ -752,6 +737,9 @@ public:
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
 
+    std::map<CKeyID, CHDPubKey> mapHdPubKeys; //<! memory map of HD extended pubkeys
+
+
     // Create wallet with dummy database handle
     explicit CWallet(const CChainParams &chainParamsIn)
         : dbw(new CWalletDBWrapper()), chainParams(chainParamsIn) {
@@ -1025,7 +1013,8 @@ public:
     void ReturnKey(int64_t nIndex, bool fInternal, const CPubKey &pubkey);
     bool GetKeyFromPool(CPubKey &key, bool internal = false);
     int64_t GetOldestKeyPoolTime();
-    /**
+    void GetAllReserveKeys(std::set<CKeyID>& setAddress) const;
+     /**
      * Marks all keys in the keypool up to and including reserve_key as used.
      */
     void MarkReserveKeysAsUsed(int64_t keypool_id);
@@ -1178,17 +1167,9 @@ public:
     /* Returns true if HD is enabled */
     bool IsHDEnabled();
 
-    /* Generates a new HD master key (will not be activated) */
-    CPubKey GenerateHDMasterKey();
+   /* Generates a new HD master key (will not be activated) */
+    void GenerateHDMasterKey();
     CPubKey GenerateNewHDMasterKey();
-
-    /**
-     * Set the current HD master key (will reset the chain child index counters)
-     * If possibleOldChain is provided, the parameters from the old chain
-     * (version) will be preserved.
-     */
-    bool SetHDMasterKey(const CPubKey &key,
-                        CHDChain *possibleOldChain = nullptr);
 
     /**
      * Blocks until the wallet state is up-to-date to /at least/ the current
@@ -1197,6 +1178,22 @@ public:
      * deadlock
      */
     void BlockUntilSyncedToCurrentChain();
+
+
+    //! GetPubKey implementation that also checks the mapHdPubKeys
+    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const override;
+    //! GetKey implementation that can derive a HD private key on the fly
+    bool GetKey(const CKeyID &address, CKey& keyOut) const override;
+    //! Load metadata (used by LoadWallet)
+    bool LoadKeyMetadata(const CTxDestination& pubKey, const CKeyMetadata &metadata);
+
+
+
+  bool HaveKey(const CKeyID &address) const override;
+  bool LoadHDPubKey(const CHDPubKey &hdPubKey);
+  bool AddHDPubKey(const CExtPubKey &extPubKey, bool fInternal);
+  bool AddKeyPubKeyX(const CKey& secret, const CPubKey &pubkey);
+  
 };
 
 /** A key allocated from the key pool. */

@@ -182,7 +182,7 @@ static UniValue getnewaddress(const Config &config,
 
     // Generate a new key that is added to wallet
     CPubKey newKey;
-    if (!pwallet->GetKeyFromPool(newKey)) {
+    if (!pwallet->GetKeyFromPool(newKey, false)) {
         throw JSONRPCError(
             RPC_WALLET_KEYPOOL_RAN_OUT,
             "Error: Keypool ran out, please call keypoolrefill first");
@@ -3051,7 +3051,7 @@ static UniValue getwalletinfo(const Config &config,
             "fee configuration, set in " +
             CURRENCY_UNIT +
             "/kB\n"
-            "  \"hdmasterkeyid\": \"<hash160>\"     (string) "
+            "  \"hdchainid\": \"<hash160>\"     (string) "
             "the Hash160 of the HD master pubkey\n"
             "}\n"
             "\nExamples:\n" +
@@ -3068,6 +3068,7 @@ static UniValue getwalletinfo(const Config &config,
     LOCK2(cs_main, pwallet->cs_wallet);
 
     UniValue obj(UniValue::VOBJ);
+    CHDChain hdChain = pwallet->GetHDChain();
 
     size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
     obj.pushKV("walletname", pwallet->GetName());
@@ -3080,18 +3081,29 @@ static UniValue getwalletinfo(const Config &config,
     obj.pushKV("txcount", (int)pwallet->mapWallet.size());
     obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
     obj.pushKV("keypoolsize", (int64_t)kpExternalSize);
-    CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
-    if (!masterKeyID.IsNull()) {
-        obj.pushKV("keypoolsize_hd_internal",
-                   int64_t(pwallet->GetKeyPoolSize() - kpExternalSize));
+
+    obj.push_back(Pair("hdchainid", hdChain.GetID().GetHex()));
+    obj.push_back(Pair("hdaccountcount", (int64_t)hdChain.CountAccounts()));
+    UniValue accounts(UniValue::VARR);
+    for (size_t i = 0; i < hdChain.CountAccounts(); ++i) {
+        CHDAccount acc;
+        UniValue account(UniValue::VOBJ);
+        account.push_back(Pair("hdaccountindex", (int64_t)i));
+        if(hdChain.GetAccount(i, acc)) {
+            account.push_back(Pair("hdexternalkeyindex", (int64_t)acc.nExternalChainCounter));
+            account.push_back(Pair("hdinternalkeyindex", (int64_t)acc.nInternalChainCounter));
+        } else {
+            account.push_back(Pair("error", strprintf("account %d is missing", i)));
+        }
+        accounts.push_back(account);
     }
+    obj.push_back(Pair("hdaccounts", accounts));
+  
+    
     if (pwallet->IsCrypted()) {
         obj.pushKV("unlocked_until", pwallet->nRelockTime);
     }
     obj.pushKV("paytxfee", ValueFromAmount(payTxFee.GetFeePerK()));
-    if (!masterKeyID.IsNull()) {
-        obj.pushKV("hdmasterkeyid", masterKeyID.GetHex());
-    }
     return obj;
 }
 

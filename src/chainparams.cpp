@@ -152,6 +152,7 @@ public:
 
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
+        nExtCoinType = 5;
         cashaddrPrefix = "devault";
         cashaddrSecretPrefix = "dvtpriv";
 
@@ -256,6 +257,7 @@ public:
         vSeeds.emplace_back("testnet.devault.com");
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+        nExtCoinType = 1;
         cashaddrPrefix = "dvtest";
         cashaddrSecretPrefix = "testpriv"; // Shouldn't matter that "dv" isn't indicated
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
@@ -264,7 +266,7 @@ public:
         consensus.nPerCentPerYear = {15,13,11,9,7};
         consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
         consensus.nMinRewardBalance = 1000 * COIN;
-        consensus.nMinReward = 50 * COIN;
+        consensus.nMinReward =  50 * COIN;
         consensus.nMaxReward = 62500 * COIN;
 
         fDefaultConsistencyChecks = false;
@@ -356,6 +358,7 @@ public:
 
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+        nExtCoinType = 1;
         cashaddrPrefix = "dvreg";
         cashaddrSecretPrefix = "regpriv";
 

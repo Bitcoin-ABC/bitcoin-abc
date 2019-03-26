@@ -94,6 +94,7 @@ add_custom_command(OUTPUT qrc_bitcoin_locale.cpp
 qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/addressbookpage.ui
 	forms/askpassphrasedialog.ui
+	forms/setpassphrasedialog.ui
 	forms/coincontroldialog.ui
 	forms/editaddressdialog.ui
 	forms/helpmessagedialog.ui
@@ -202,6 +203,7 @@ if(BUILD_BITCOIN_WALLET)
 			addressbookpage.cpp
 			addresstablemodel.cpp
 			askpassphrasedialog.cpp
+			setpassphrasedialog.cpp
 			coincontroldialog.cpp
 			coincontroltreewidget.cpp
 			editaddressdialog.cpp

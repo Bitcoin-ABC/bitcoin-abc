@@ -12,7 +12,7 @@
 #include "primitives/transaction.h"
 #include "script/standard.h" // for CTxDestination
 #include "wallet/db.h"
-
+#include "hdchain.h"
 #include <cstdint>
 #include <list>
 #include <string>
@@ -58,78 +58,6 @@ enum DBErrors {
     DB_TOO_NEW,
     DB_LOAD_FAIL,
     DB_NEED_REWRITE
-};
-
-/* simple HD chain data model */
-class CHDChain {
-public:
-    uint32_t nExternalChainCounter;
-    uint32_t nInternalChainCounter;
-    //!< master key hash160
-    CKeyID masterKeyID;
-
-    static const int VERSION_HD_BASE = 1;
-    static const int VERSION_HD_CHAIN_SPLIT = 2;
-    static const int CURRENT_VERSION = VERSION_HD_CHAIN_SPLIT;
-    int nVersion;
-
-    CHDChain() { SetNull(); }
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(this->nVersion);
-        READWRITE(nExternalChainCounter);
-        READWRITE(masterKeyID);
-        if (this->nVersion >= VERSION_HD_CHAIN_SPLIT) {
-            READWRITE(nInternalChainCounter);
-        }
-    }
-
-    void SetNull() {
-        nVersion = CHDChain::CURRENT_VERSION;
-        nExternalChainCounter = 0;
-        nInternalChainCounter = 0;
-        masterKeyID.SetNull();
-    }
-};
-
-class CKeyMetadata {
-public:
-    static const int VERSION_BASIC = 1;
-    static const int VERSION_WITH_HDDATA = 10;
-    static const int CURRENT_VERSION = VERSION_WITH_HDDATA;
-    int nVersion;
-    // 0 means unknown.
-    int64_t nCreateTime;
-    // optional HD/bip32 keypath.
-    std::string hdKeypath;
-    // Id of the HD masterkey used to derive this key.
-    CKeyID hdMasterKeyID;
-
-    CKeyMetadata() { SetNull(); }
-    explicit CKeyMetadata(int64_t nCreateTime_) {
-        SetNull();
-        nCreateTime = nCreateTime_;
-    }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(this->nVersion);
-        READWRITE(nCreateTime);
-        if (this->nVersion >= VERSION_WITH_HDDATA) {
-            READWRITE(hdKeypath);
-            READWRITE(hdMasterKeyID);
-        }
-    }
-
-    void SetNull() {
-        nVersion = CKeyMetadata::CURRENT_VERSION;
-        nCreateTime = 0;
-        hdKeypath.clear();
-        hdMasterKeyID.SetNull();
-    }
 };
 
 /**
@@ -250,6 +178,7 @@ public:
 
     //! write the hdchain model (external chain child index counter)
     bool WriteHDChain(const CHDChain &chain);
+    bool WriteHDPubKey(const CHDPubKey& hdPubKey, const CKeyMetadata& keyMeta);
 
     //! Begin a new transaction
     bool TxnBegin();

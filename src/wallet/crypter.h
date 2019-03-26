@@ -132,6 +132,7 @@ protected:
 
     //! will encrypt previously unencrypted keys
     bool EncryptKeys(CKeyingMaterial &vMasterKeyIn);
+    bool SetHDChain(const CHDChain& chain);
 
     bool Unlock(const CKeyingMaterial &vMasterKeyIn);
     CryptedKeyMap mapCryptedKeys;

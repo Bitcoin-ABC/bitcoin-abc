@@ -211,6 +211,7 @@ BITCOIN_CORE_H = \
   walletinitinterface.h \
   wallet/coincontrol.h \
   wallet/crypter.h \
+  wallet/hdchain.h \
   wallet/db.h \
   wallet/dictionary.h \
   wallet/finaltx.h \
@@ -305,6 +306,7 @@ libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
 	base58.cpp \
+  wallet/hdchain.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/finaltx.cpp \
