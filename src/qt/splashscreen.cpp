@@ -92,10 +92,10 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle)
     {
         pixPaint.setFont(QFont(font, 10*fontFactor));
         textHeight += fm.height();
-        const int x = pixmap.width()/2/devicePixelRatio-titleTextWidth-paddingRight;
+        const int x = pixmap.width() / 2 / devicePixelRatio - fm.width(copyrightText);
         const int y = paddingTop + textHeight + vSpace;  //paddingTop;
-        QRect copyrightRect(x, y, pixmap.width() - x - paddingRight, pixmap.height() - y);
-        pixPaint.drawText(copyrightRect, Qt::AlignHCenter | Qt::AlignTop, copyrightText);
+        QRect copyrightRect(x, y, pixmap.width() - x, pixmap.height() - y);
+        pixPaint.drawText(copyrightRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap, copyrightText);
     }
 
     // draw additional text if special network
