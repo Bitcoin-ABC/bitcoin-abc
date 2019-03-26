@@ -29,7 +29,7 @@ platformStyle(_platformStyle)
     if(DVTUI::customThemeIsSet()) {
         QString appstyle = "fusion";
         QApplication::setStyle(appstyle);
-        setStyleSheet(styleSheetString); 
+        setStyleSheet(DVTUI::styleSheetString); 
         
         if (platformStyle->getImagesOnButtons()) { 
             QIcon icon = platformStyle->SingleColorIcon(":/icons/warning"); 

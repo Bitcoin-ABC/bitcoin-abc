@@ -520,7 +520,7 @@ RPCConsole::RPCConsole(const PlatformStyle *_platformStyle, QWidget *parent)
     if(DVTUI::customThemeIsSet()) {
         QString appstyle = "fusion";
         QApplication::setStyle(appstyle);
-        setStyleSheet(styleSheetString);
+        setStyleSheet(DVTUI::styleSheetString);
     }
 
     ui->openDebugLogfileButton->setToolTip(

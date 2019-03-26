@@ -18,7 +18,7 @@ TransactionDescDialog::TransactionDescDialog(const QModelIndex &idx,
     if(DVTUI::customThemeIsSet()) {
         QString appstyle = "fusion";
         QApplication::setStyle(appstyle);
-        setStyleSheet(styleSheetString);
+        setStyleSheet(DVTUI::styleSheetString);
     } 
     setWindowTitle(
         tr("Details for %1")

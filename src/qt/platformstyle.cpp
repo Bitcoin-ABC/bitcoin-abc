@@ -24,7 +24,7 @@ static const struct {
     const bool colorizeIcons;
     /** Extra padding/spacing in transactionview */
     const bool useExtraSpacing;
-} platform_styles[] = {{"macosx", false, true, true},
+} platform_styles[] = {{"macosx", true, true, true},
                        {"windows", true, false, false},
                        /* Other: linux, unix, ... */
                        {"other", true, true, false}};
@@ -37,8 +37,8 @@ namespace {
 void MakeSingleColorImage(QImage &img, const QColor &colorbase) {
     if(DVTUI::customThemeIsSet()) 
     { 
-        QColor colorLeft = c_DVTBlue;
-        QColor colorRight = c_LBlue;
+        QColor colorLeft = DVTUI::c_DVTBlue;
+        QColor colorRight = DVTUI::c_LBlue;
         
         img = img.convertToFormat(QImage::Format_ARGB32);
         for (int x = img.width(); x--; )
@@ -101,8 +101,8 @@ PlatformStyle::PlatformStyle(const QString &_name, bool _imagesOnButtons,
         //dark theme
         imagesOnButtons = false;
         colorizeIcons = true;
-        singleColor = c_DVTBlue; 
-        textColor = c_DVTBlue;         
+        singleColor = DVTUI::c_DVTBlue; 
+        textColor = DVTUI::c_DVTBlue;         
     } else {
         //default theme
         if (colorizeIcons) {

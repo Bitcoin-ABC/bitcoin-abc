@@ -120,7 +120,7 @@ Intro::Intro(QWidget *parent)
     if(DVTUI::customThemeIsSet()) {
         QString appstyle = "fusion";
         QApplication::setStyle(appstyle);
-        setStyleSheet(styleSheetString);
+        setStyleSheet(DVTUI::styleSheetString);
     } 
     ui->setupUi(this);
     ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));

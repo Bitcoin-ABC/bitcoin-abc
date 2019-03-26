@@ -55,7 +55,7 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
     if(DVTUI::customThemeIsSet()) {
         QString appstyle = "fusion";
         QApplication::setStyle(appstyle);
-        setStyleSheet(styleSheetString);
+        setStyleSheet(DVTUI::styleSheetString);
     } 
 
     // context menu actions

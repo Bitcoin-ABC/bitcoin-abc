@@ -94,7 +94,7 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
         newPal.setColor(QPalette::Link, QColor(41, 128, 185));
         newPal.setColor(QPalette::LinkVisited, QColor(41, 99, 185));
         qApp->setPalette(newPal);
-        setStyleSheet(styleSheetString);
+        setStyleSheet(DVTUI::styleSheetString);
         ensurePolished();
     }
 
@@ -438,7 +438,7 @@ void BitcoinGUI::createToolBars() {
         toolbar->setOrientation(Qt::Vertical);
         toolbar->setContextMenuPolicy(Qt::PreventContextMenu); 
         toolbar->setMovable(false);
-        toolbar->setIconSize(TOOLBAR_ICONSIZE);
+        toolbar->setIconSize(DVTUI::getToolbarIconSize());
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         toolbar->addAction(dvtLogoAction);
         toolbar->addAction(overviewAction);
@@ -480,7 +480,7 @@ void BitcoinGUI::createToolBars() {
 
 
         
-        progressBarLabel->setStyleSheet("background: transparent; color: " + s_placeHolderText + "; margin-left: 30px; margin-right: 30px;");
+        progressBarLabel->setStyleSheet("background: transparent; color: " + DVTUI::s_placeHolderText + "; margin-left: 30px; margin-right: 30px;");
         actProgressBar = new QWidgetAction(this);
         actProgressBar->setDefaultWidget(progressBar);
 
