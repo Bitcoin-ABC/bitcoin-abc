@@ -2169,23 +2169,37 @@ void CWallet::ReacceptWalletTransactions(
 }
 
 bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock &locked_chain) {
-    assert(pwallet->GetBroadcastTransactions());
-    if (IsCoinBase() || isAbandoned() ||
-        GetDepthInMainChain(locked_chain) != 0) {
+    // Can't relay if wallet is not broadcasting
+    if (!pwallet->GetBroadcastTransactions()) {
+        return false;
+    }
+    // Don't relay coinbase transactions outside blocks
+    if (IsCoinBase()) {
+        return false;
+    }
+    // Don't relay abandoned transactions
+    if (isAbandoned()) {
+        return false;
+    }
+    // Don't relay conflicted or already confirmed transactions
+    if (GetDepthInMainChain(locked_chain) != 0) {
+        return false;
+    }
+    // Don't relay transactions that aren't accepted to the mempool
+    CValidationState unused_state;
+    if (!InMempool() && !AcceptToMemoryPool(locked_chain, unused_state)) {
+        return false;
+    }
+    // Don't try to relay if the node is not connected to the p2p network
+    if (!pwallet->chain().p2pEnabled()) {
         return false;
     }
 
-    CValidationState state;
-    // GetDepthInMainChain already catches known conflicts.
-    if (InMempool() || AcceptToMemoryPool(locked_chain, state)) {
-        pwallet->WalletLogPrintf("Relaying wtx %s\n", GetId().ToString());
-        if (pwallet->chain().p2pEnabled()) {
-            pwallet->chain().relayTransaction(GetId());
-            return true;
-        }
-    }
+    // Try to relay the transaction
+    pwallet->WalletLogPrintf("Relaying wtx %s\n", GetId().ToString());
+    pwallet->chain().relayTransaction(GetId());
 
-    return false;
+    return true;
 }
 
 std::set<TxId> CWalletTx::GetConflicts() const {
