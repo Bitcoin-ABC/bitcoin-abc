@@ -52,10 +52,10 @@ bool DVTUI::customThemeIsSet() {
     const QString DVTUI::styleSheetString = QString(
             //General
             "QFrame "
-            "{ background-color: " + s_Darker + "; border: none; font-family: Encode Sans Expanded; font-size: 14px;}"
+            "{ background-color: " + s_Darker + "; border: none; font-size: 14px;}"
             
             "QWidget "
-            "{ background: " + s_Darker + "; color: " + s_Light + "; font-family: Encode Sans Expanded; font-size: 14px;}"
+            "{ background: " + s_Darker + "; color: " + s_Light + "; font-size: 14px;}"
 
             "#addressBookButton, #pasteButton, #deleteButton "
             "{ width: 35; height: 35; background-color: " + s_hightlight_dark + "; color: " + s_Light + "; border: 1px outset rgb(33,33,33); padding: 6px; border-radius: 0px;}"
@@ -176,7 +176,7 @@ bool DVTUI::customThemeIsSet() {
             "QPushButton:disabled { color: " + s_Dark + "}"
 
             "#payTo, #reqLabel, #reqMessage, #reqAmount, #addAsLabel, #label_Label, #label_amount, #label_message "
-            "{ font-size: 14px; font-family: Encode Sans Expanded; font-weight: thin; color: " + s_Light + ";}"                   
+            "{ font-size: 14px; font-weight: thin; color: " + s_Light + ";}"                   
             
 
             //Disturbing borders
