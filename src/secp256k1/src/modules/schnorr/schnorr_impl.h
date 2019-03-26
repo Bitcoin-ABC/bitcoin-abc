@@ -37,7 +37,7 @@
  *     public key point P,
  *     signature: (32-byte r, scalar s)
  *
- *   Signature is invalid if s >= order or r >= p.
+ *   Signature is invalid if s >= n or r >= p.
  *   Compute scalar e = Hash(r || compressed(P) || m) mod n.
  *   Option 1 (faster for single verification):
  *     Compute point R = s * G - e * P.
