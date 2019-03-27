@@ -923,6 +923,9 @@ const CBlockIndex *GetFinalizedBlock() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool IsBlockFinalized(const CBlockIndex *pindex)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+/** @returns the most-work valid chainstate. */
+CChainState &ChainstateActive();
+
 /** @returns the most-work chain. */
 CChain &ChainActive();
 

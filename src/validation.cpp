@@ -68,6 +68,10 @@
 
 CChainState g_chainstate;
 
+CChainState &ChainstateActive() {
+    return g_chainstate;
+}
+
 CChain &ChainActive() {
     return g_chainstate.m_chain;
 }
@@ -86,7 +90,7 @@ CChain &ChainActive() {
  */
 RecursiveMutex cs_main;
 
-BlockMap &mapBlockIndex = g_chainstate.mapBlockIndex;
+BlockMap &mapBlockIndex = ::ChainstateActive().mapBlockIndex;
 CBlockIndex *pindexBestHeader = nullptr;
 Mutex g_best_block_mutex;
 std::condition_variable g_best_block_cv;
@@ -116,21 +120,21 @@ CScript COINBASE_FLAGS;
 
 // Internal stuff
 namespace {
-CBlockIndex *&pindexBestInvalid = g_chainstate.pindexBestInvalid;
-CBlockIndex *&pindexBestParked = g_chainstate.pindexBestParked;
+CBlockIndex *&pindexBestInvalid = ::ChainstateActive().pindexBestInvalid;
+CBlockIndex *&pindexBestParked = ::ChainstateActive().pindexBestParked;
 
 /**
  * The best finalized block.
  * This block cannot be reorged in any way, shape or form.
  */
-CBlockIndex const *&pindexFinalized = g_chainstate.pindexFinalized;
+CBlockIndex const *&pindexFinalized = ::ChainstateActive().pindexFinalized;
 
 /**
  * All pairs A->B, where A (or one of its ancestors) misses transactions, but B
  * has transactions. Pruned nodes may have entries where B is missing data.
  */
 std::multimap<CBlockIndex *, CBlockIndex *> &mapBlocksUnlinked =
-    g_chainstate.mapBlocksUnlinked;
+    ::ChainstateActive().mapBlocksUnlinked;
 
 RecursiveMutex cs_LastBlockFile;
 std::vector<CBlockFileInfo> vinfoBlockFile;
@@ -2967,7 +2971,8 @@ bool CChainState::ActivateBestChain(const Config &config,
 
 bool ActivateBestChain(const Config &config, CValidationState &state,
                        std::shared_ptr<const CBlock> pblock) {
-    return g_chainstate.ActivateBestChain(config, state, std::move(pblock));
+    return ::ChainstateActive().ActivateBestChain(config, state,
+                                                  std::move(pblock));
 }
 
 bool CChainState::PreciousBlock(const Config &config, CValidationState &state,
@@ -3010,7 +3015,7 @@ bool CChainState::PreciousBlock(const Config &config, CValidationState &state,
 
 bool PreciousBlock(const Config &config, CValidationState &state,
                    CBlockIndex *pindex) {
-    return g_chainstate.PreciousBlock(config, state, pindex);
+    return ::ChainstateActive().PreciousBlock(config, state, pindex);
 }
 
 bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
@@ -3161,12 +3166,12 @@ bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
 
 bool InvalidateBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex) {
-    return g_chainstate.UnwindBlock(config, state, pindex, true);
+    return ::ChainstateActive().UnwindBlock(config, state, pindex, true);
 }
 
 bool ParkBlock(const Config &config, CValidationState &state,
                CBlockIndex *pindex) {
-    return g_chainstate.UnwindBlock(config, state, pindex, false);
+    return ::ChainstateActive().UnwindBlock(config, state, pindex, false);
 }
 
 template <typename F>
@@ -3248,7 +3253,7 @@ void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
 }
 
 void ResetBlockFailureFlags(CBlockIndex *pindex) {
-    return g_chainstate.ResetBlockFailureFlags(pindex);
+    return ::ChainstateActive().ResetBlockFailureFlags(pindex);
 }
 
 void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
@@ -3269,11 +3274,11 @@ void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
 }
 
 void UnparkBlockAndChildren(CBlockIndex *pindex) {
-    return g_chainstate.UnparkBlockImpl(pindex, true);
+    return ::ChainstateActive().UnparkBlockImpl(pindex, true);
 }
 
 void UnparkBlock(CBlockIndex *pindex) {
-    return g_chainstate.UnparkBlockImpl(pindex, false);
+    return ::ChainstateActive().UnparkBlockImpl(pindex, false);
 }
 
 const CBlockIndex *GetFinalizedBlock() {
@@ -3926,8 +3931,8 @@ bool ProcessNewBlockHeaders(const Config &config,
         for (const CBlockHeader &header : headers) {
             // Use a temp pindex instead of ppindex to avoid a const_cast
             CBlockIndex *pindex = nullptr;
-            if (!g_chainstate.AcceptBlockHeader(config, header, state,
-                                                &pindex)) {
+            if (!::ChainstateActive().AcceptBlockHeader(config, header, state,
+                                                        &pindex)) {
                 if (first_invalid) {
                     *first_invalid = header;
                 }
@@ -4158,7 +4163,7 @@ bool ProcessNewBlock(const Config &config,
                        BlockValidationOptions(config));
         if (ret) {
             // Store to disk
-            ret = g_chainstate.AcceptBlock(
+            ret = ::ChainstateActive().AcceptBlock(
                 config, pblock, state, fForceProcessing, nullptr, fNewBlock);
         }
 
@@ -4173,7 +4178,7 @@ bool ProcessNewBlock(const Config &config,
 
     // Only used to report errors, not invalidity - ignore it
     CValidationState state;
-    if (!g_chainstate.ActivateBestChain(config, state, pblock)) {
+    if (!::ChainstateActive().ActivateBestChain(config, state, pblock)) {
         return error("%s: ActivateBestChain failed (%s)", __func__,
                      FormatStateMessage(state));
     }
@@ -4211,8 +4216,8 @@ bool TestBlockValidity(CValidationState &state, const CChainParams &params,
                      FormatStateMessage(state));
     }
 
-    if (!g_chainstate.ConnectBlock(block, state, &indexDummy, viewNew, params,
-                                   validationOptions, true)) {
+    if (!::ChainstateActive().ConnectBlock(block, state, &indexDummy, viewNew,
+                                           params, validationOptions, true)) {
         return false;
     }
 
@@ -4538,7 +4543,7 @@ bool CChainState::LoadBlockIndex(const Config &config,
 
 static bool LoadBlockIndexDB(const Config &config)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    if (!g_chainstate.LoadBlockIndex(config, *pblocktree)) {
+    if (!::ChainstateActive().LoadBlockIndex(config, *pblocktree)) {
         return false;
     }
 
@@ -4625,7 +4630,7 @@ bool LoadChainTip(const Config &config) {
     }
     ::ChainActive().SetTip(pindex);
 
-    g_chainstate.PruneBlockIndexCandidates();
+    ::ChainstateActive().PruneBlockIndexCandidates();
 
     LogPrintf(
         "Loaded best chain: hashBestChain=%s height=%d date=%s progress=%f\n",
@@ -4739,7 +4744,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                 nCoinCacheUsage) {
             assert(coins.GetBestBlock() == pindex->GetBlockHash());
             DisconnectResult res =
-                g_chainstate.DisconnectBlock(block, pindex, coins);
+                ::ChainstateActive().DisconnectBlock(block, pindex, coins);
             if (res == DisconnectResult::FAILED) {
                 return error("VerifyDB(): *** irrecoverable inconsistency in "
                              "block data at %d, hash=%s",
@@ -4789,8 +4794,9 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                     "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
             }
-            if (!g_chainstate.ConnectBlock(block, state, pindex, coins, params,
-                                           BlockValidationOptions(config))) {
+            if (!::ChainstateActive().ConnectBlock(
+                    block, state, pindex, coins, params,
+                    BlockValidationOptions(config))) {
                 return error("VerifyDB(): *** found unconnectable block at %d, "
                              "hash=%s (%s)",
                              pindex->nHeight, pindex->GetBlockHash().ToString(),
@@ -4935,7 +4941,7 @@ bool CChainState::ReplayBlocks(const Consensus::Params &params,
 }
 
 bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view) {
-    return g_chainstate.ReplayBlocks(params, view);
+    return ::ChainstateActive().ReplayBlocks(params, view);
 }
 
 // May NOT be used after any connections are up as much of the peer-processing
@@ -4972,7 +4978,7 @@ void UnloadBlockIndex() {
     mapBlockIndex.clear();
     fHavePruned = false;
 
-    g_chainstate.UnloadBlockIndex();
+    ::ChainstateActive().UnloadBlockIndex();
 }
 
 bool LoadBlockIndex(const Config &config) {
@@ -5027,7 +5033,7 @@ bool CChainState::LoadGenesisBlock(const CChainParams &chainparams) {
 }
 
 bool LoadGenesisBlock(const CChainParams &chainparams) {
-    return g_chainstate.LoadGenesisBlock(chainparams);
+    return ::ChainstateActive().LoadGenesisBlock(chainparams);
 }
 
 bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
@@ -5112,8 +5118,8 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     CBlockIndex *pindex = LookupBlockIndex(hash);
                     if (!pindex || !pindex->nStatus.hasData()) {
                         CValidationState state;
-                        if (g_chainstate.AcceptBlock(config, pblock, state,
-                                                     true, dbp, nullptr)) {
+                        if (::ChainstateActive().AcceptBlock(
+                                config, pblock, state, true, dbp, nullptr)) {
                             nLoaded++;
                         }
                         if (state.IsError()) {
@@ -5164,7 +5170,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                                 head.ToString());
                             LOCK(cs_main);
                             CValidationState dummy;
-                            if (g_chainstate.AcceptBlock(
+                            if (::ChainstateActive().AcceptBlock(
                                     config, pblockrecursive, dummy, true,
                                     &it->second, nullptr)) {
                                 nLoaded++;
