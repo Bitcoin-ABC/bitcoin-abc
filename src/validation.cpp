@@ -3288,9 +3288,9 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState &state,
     return true;
 }
 
-static bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos,
-                         unsigned int nAddSize, unsigned int nHeight,
-                         uint64_t nTime, bool fKnown = false) {
+static bool FindBlockPos(CDiskBlockPos &pos, unsigned int nAddSize,
+                         unsigned int nHeight, uint64_t nTime,
+                         bool fKnown = false) {
     LOCK(cs_LastBlockFile);
 
     unsigned int nFile = fKnown ? pos.nFile : nLastBlockFile;
@@ -3349,7 +3349,7 @@ static bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos,
                     fclose(file);
                 }
             } else {
-                return state.Error("out of disk space");
+                return error("out of disk space");
             }
         }
     }
@@ -3813,6 +3813,33 @@ bool ProcessNewBlockHeaders(const Config &config,
 }
 
 /**
+ * Store block on disk. If dbp is non-nullptr, the file is known to already
+ * reside on disk.
+ */
+static CDiskBlockPos SaveBlockToDisk(const CBlock &block, int nHeight,
+                                     const CChainParams &chainparams,
+                                     const CDiskBlockPos *dbp) {
+    unsigned int nBlockSize =
+        ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+    CDiskBlockPos blockPos;
+    if (dbp != nullptr) {
+        blockPos = *dbp;
+    }
+    if (!FindBlockPos(blockPos, nBlockSize + 8, nHeight, block.GetBlockTime(),
+                      dbp != nullptr)) {
+        error("%s: FindBlockPos failed", __func__);
+        return CDiskBlockPos();
+    }
+    if (dbp == nullptr) {
+        if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
+            AbortNode("Failed to write block");
+            return CDiskBlockPos();
+        }
+    }
+    return blockPos;
+}
+
+/**
  * Store a block on disk.
  *
  * @param[in]     config     The global config.
@@ -3950,29 +3977,18 @@ static bool AcceptBlock(const Config &config,
         GetMainSignals().NewPoWValidBlock(pindex, pblock);
     }
 
-    int nHeight = pindex->nHeight;
     const CChainParams &chainparams = config.GetChainParams();
 
     // Write block to history file
     try {
-        unsigned int nBlockSize =
-            ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
-        CDiskBlockPos blockPos;
-        if (dbp != nullptr) {
-            blockPos = *dbp;
+        CDiskBlockPos blockPos =
+            SaveBlockToDisk(block, pindex->nHeight, chainparams, dbp);
+        if (blockPos.IsNull()) {
+            state.Error(strprintf(
+                "%s: Failed to find position to write new block to disk",
+                __func__));
+            return false;
         }
-
-        if (!FindBlockPos(state, blockPos, nBlockSize + 8, nHeight,
-                          block.GetBlockTime(), dbp != nullptr)) {
-            return error("AcceptBlock(): FindBlockPos failed");
-        }
-
-        if (dbp == nullptr) {
-            if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
-                AbortNode(state, "Failed to write block");
-            }
-        }
-
         if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) {
             return error("AcceptBlock(): ReceivedBlockTransactions failed");
         }
@@ -4894,19 +4910,13 @@ bool LoadGenesisBlock(const CChainParams &chainparams) {
     // one already on disk)
     try {
         CBlock &block = const_cast<CBlock &>(chainparams.GenesisBlock());
-        // Start new block file
-        unsigned int nBlockSize =
-            ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
-        CDiskBlockPos blockPos;
-        CValidationState state;
-        if (!FindBlockPos(state, blockPos, nBlockSize + 8, 0,
-                          block.GetBlockTime())) {
-            return error("%s: FindBlockPos failed", __func__);
-        }
-        if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
+        CDiskBlockPos blockPos =
+            SaveBlockToDisk(block, 0, chainparams, nullptr);
+        if (blockPos.IsNull()) {
             return error("%s: writing genesis block to disk failed", __func__);
         }
         CBlockIndex *pindex = AddToBlockIndex(block);
+        CValidationState state;
         if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) {
             return error("%s: genesis block not accepted", __func__);
         }
