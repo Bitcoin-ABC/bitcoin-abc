@@ -13,8 +13,10 @@
 
 #include <amount.h>
 #include <blockfileinfo.h>
+#include <blockindexworkcomparator.h>
 #include <coins.h>
 #include <consensus/consensus.h>
+#include <disconnectresult.h>
 #include <flatfile.h>
 #include <fs.h>
 #include <protocol.h> // For CMessageHeader::MessageMagic
@@ -48,9 +50,10 @@ class CScriptCheck;
 class CTxMemPool;
 class CTxUndo;
 class CValidationState;
+class DisconnectedBlockTransactions;
 
-struct FlatFilePos;
 struct ChainTxData;
+struct FlatFilePos;
 struct PrecomputedTransactionData;
 struct LockPoints;
 
@@ -475,6 +478,8 @@ public:
     }
 };
 
+class ConnectTrace;
+
 /**
  * Check whether all inputs of this transaction are valid (no double spends,
  * scripts & sigs, amounts). This does not modify the UTXO set.
@@ -705,6 +710,176 @@ bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+/**
+ * CChainState stores and provides an API to update our local knowledge of the
+ * current best chain and header tree.
+ *
+ * It generally provides access to the current block tree, as well as functions
+ * to provide new data, which it will appropriately validate and incorporate in
+ * its state as necessary.
+ *
+ * Eventually, the API here is targeted at being exposed externally as a
+ * consumable libconsensus library, so any functions added must only call
+ * other class member functions, pure functions in other parts of the consensus
+ * library, callbacks via the validation interface, or read/write-to-disk
+ * functions (eventually this will also be via callbacks).
+ */
+class CChainState {
+private:
+    /**
+     * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for
+     * itself and all ancestors) and as good as our current tip or better.
+     * Entries may be failed or parked though, and pruning nodes may be missing
+     * the data for the block; these will get cleaned during FindMostWorkChain.
+     */
+    std::set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexCandidates;
+
+    /**
+     * the ChainState CriticalSection
+     * A lock that must be held when modifying this ChainState - held in
+     * ActivateBestChain()
+     */
+    RecursiveMutex m_cs_chainstate;
+
+    /**
+     * Every received block is assigned a unique and increasing identifier, so
+     * we know which one to give priority in case of a fork.
+     * Blocks loaded from disk are assigned id 0, so start the counter at 1.
+     */
+    std::atomic<int32_t> nBlockSequenceId{1};
+    /** Decreasing counter (used by subsequent preciousblock calls). */
+    int32_t nBlockReverseSequenceId = -1;
+    /** chainwork for the last block that preciousblock has been applied to. */
+    arith_uint256 nLastPreciousChainwork = 0;
+
+    /**
+     * In order to efficiently track invalidity of headers, we keep the set of
+     * blocks which we tried to connect and found to be invalid here (ie which
+     * were set to BLOCK_FAILED_VALID since the last restart). We can then
+     * walk this set and check if a new header is a descendant of something in
+     * this set, preventing us from having to walk mapBlockIndex when we try
+     * to connect a bad block and fail.
+     *
+     * While this is more complicated than marking everything which descends
+     * from an invalid block as invalid at the time we discover it to be
+     * invalid, doing so would require walking all of mapBlockIndex to find all
+     * descendants. Since this case should be very rare, keeping track of all
+     * BLOCK_FAILED_VALID blocks in a set should be just fine and work just as
+     * well.
+     *
+     * Because we already walk mapBlockIndex in height-order at startup, we go
+     * ahead and mark descendants of invalid blocks as FAILED_CHILD at that
+     * time, instead of putting things in this set.
+     */
+    std::set<CBlockIndex *> m_failed_blocks;
+
+public:
+    CChain m_chain;
+    BlockMap mapBlockIndex GUARDED_BY(cs_main);
+    std::multimap<CBlockIndex *, CBlockIndex *> mapBlocksUnlinked;
+    CBlockIndex *pindexBestInvalid = nullptr;
+    CBlockIndex *pindexBestParked = nullptr;
+    CBlockIndex const *pindexFinalized = nullptr;
+
+    bool LoadBlockIndex(const Config &config, CBlockTreeDB &blocktree)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    bool ActivateBestChain(
+        const Config &config, CValidationState &state,
+        std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
+
+    /**
+     * If a block header hasn't already been seen, call CheckBlockHeader on it,
+     * ensure that it doesn't descend from an invalid block, and then add it to
+     * mapBlockIndex.
+     */
+    bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
+                           CValidationState &state, CBlockIndex **ppindex)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool AcceptBlock(const Config &config,
+                     const std::shared_ptr<const CBlock> &pblock,
+                     CValidationState &state, bool fRequested,
+                     const FlatFilePos *dbp, bool *fNewBlock)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    // Block (dis)connection on a given view:
+    DisconnectResult DisconnectBlock(const CBlock &block,
+                                     const CBlockIndex *pindex,
+                                     CCoinsViewCache &view);
+    bool ConnectBlock(const CBlock &block, CValidationState &state,
+                      CBlockIndex *pindex, CCoinsViewCache &view,
+                      const CChainParams &params,
+                      BlockValidationOptions options, bool fJustCheck = false)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    // Block disconnection on our pcoinsTip:
+    bool DisconnectTip(const CChainParams &params, CValidationState &state,
+                       DisconnectedBlockTransactions *disconnectpool)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    // Manual block validity manipulation:
+    bool PreciousBlock(const Config &config, CValidationState &state,
+                       CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
+    bool UnwindBlock(const Config &config, CValidationState &state,
+                     CBlockIndex *pindex, bool invalidate);
+    void ResetBlockFailureFlags(CBlockIndex *pindex)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    template <typename F>
+    bool UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    template <typename F, typename C, typename AC>
+    void UpdateFlags(CBlockIndex *pindex, CBlockIndex *&pindexReset, F f,
+                     C fChild, AC fAncestorWasChanged)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    /** Remove parked status from a block and its descendants. */
+    void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
+    bool LoadGenesisBlock(const CChainParams &chainparams);
+
+    void PruneBlockIndexCandidates();
+
+    void UnloadBlockIndex();
+
+private:
+    bool ActivateBestChainStep(const Config &config, CValidationState &state,
+                               CBlockIndex *pindexMostWork,
+                               const std::shared_ptr<const CBlock> &pblock,
+                               bool &fInvalidFound, ConnectTrace &connectTrace)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool ConnectTip(const Config &config, CValidationState &state,
+                    CBlockIndex *pindexNew,
+                    const std::shared_ptr<const CBlock> &pblock,
+                    ConnectTrace &connectTrace,
+                    DisconnectedBlockTransactions &disconnectpool)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    CBlockIndex *AddToBlockIndex(const CBlockHeader &block)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    /** Create a new block index entry for a given block hash */
+    CBlockIndex *InsertBlockIndex(const BlockHash &hash)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    /**
+     * Make various assertions about the state of the block index.
+     *
+     * By default this only executes fully when using the Regtest chain; see:
+     * fCheckBlockIndex.
+     */
+    void CheckBlockIndex(const Consensus::Params &consensusParams);
+
+    void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    CBlockIndex *FindMostWorkChain() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    void ReceivedBlockTransactions(const CBlock &block, CBlockIndex *pindexNew,
+                                   const FlatFilePos &pos)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
+                          const Consensus::Params &params)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+};
 
 /**
  * Mark a block as precious and reorganize.
