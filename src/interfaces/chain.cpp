@@ -378,6 +378,12 @@ namespace {
         handleRpc(const CRPCCommand &command) override {
             return std::make_unique<RpcHandlerImpl>(command);
         }
+        void requestMempoolTransactions(Notifications &notifications) override {
+            LOCK2(::cs_main, ::g_mempool.cs);
+            for (const CTxMemPoolEntry &entry : ::g_mempool.mapTx) {
+                notifications.TransactionAddedToMempool(entry.GetSharedTx());
+            }
+        }
     };
 
 } // namespace
