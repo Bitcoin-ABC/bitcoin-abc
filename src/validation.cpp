@@ -180,12 +180,7 @@ std::unique_ptr<CCoinsViewDB> pcoinsdbview;
 std::unique_ptr<CCoinsViewCache> pcoinsTip;
 std::unique_ptr<CBlockTreeDB> pblocktree;
 
-enum class FlushStateMode { NONE, IF_NEEDED, PERIODIC, ALWAYS };
-
 // See definition for documentation
-static bool FlushStateToDisk(const CChainParams &chainParams,
-                             CValidationState &state, FlushStateMode mode,
-                             int nManualPruneHeight = 0);
 static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                                    int nManualPruneHeight);
 static void FindFilesToPrune(std::set<int> &setFilesToPrune,
@@ -689,8 +684,8 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
     // After we've (potentially) uncached entries, ensure our coins cache is
     // still within its size limits
     CValidationState stateDummy;
-    FlushStateToDisk(config.GetChainParams(), stateDummy,
-                     FlushStateMode::PERIODIC);
+    ::ChainstateActive().FlushStateToDisk(config.GetChainParams(), stateDummy,
+                                          FlushStateMode::PERIODIC);
     return res;
 }
 
@@ -1952,18 +1947,9 @@ MinerFundSuccess:
     return true;
 }
 
-/**
- * Update the on-disk chain state.
- * The caches and indexes are flushed depending on the mode we're called with if
- * they're too large, if it's been a while since the last write, or always and
- * in all cases if we're in prune mode and are deleting files.
- *
- * If FlushStateMode::NONE is used, then FlushStateToDisk(...) won't do anything
- * besides checking if we need to prune.
- */
-static bool FlushStateToDisk(const CChainParams &chainparams,
-                             CValidationState &state, FlushStateMode mode,
-                             int nManualPruneHeight) {
+bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
+                                   CValidationState &state, FlushStateMode mode,
+                                   int nManualPruneHeight) {
     int64_t nMempoolUsage = g_mempool.DynamicMemoryUsage();
     LOCK(cs_main);
     static int64_t nLastWrite = 0;
@@ -2098,7 +2084,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
 
         if (full_flush_completed) {
             // Update best block in wallet (so we can detect restored wallets).
-            GetMainSignals().ChainStateFlushed(::ChainActive().GetLocator());
+            GetMainSignals().ChainStateFlushed(m_chain.GetLocator());
         }
     } catch (const std::runtime_error &e) {
         return AbortNode(state, std::string("System error while flushing: ") +
@@ -2107,20 +2093,20 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
     return true;
 }
 
-void FlushStateToDisk() {
+void CChainState::ForceFlushStateToDisk() {
     CValidationState state;
     const CChainParams &chainparams = Params();
-    if (!FlushStateToDisk(chainparams, state, FlushStateMode::ALWAYS)) {
+    if (!this->FlushStateToDisk(chainparams, state, FlushStateMode::ALWAYS)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
                   FormatStateMessage(state));
     }
 }
 
-void PruneAndFlush() {
+void CChainState::PruneAndFlush() {
     CValidationState state;
     fCheckForPruning = true;
     const CChainParams &chainparams = Params();
-    if (!FlushStateToDisk(chainparams, state, FlushStateMode::NONE)) {
+    if (!this->FlushStateToDisk(chainparams, state, FlushStateMode::NONE)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
                   FormatStateMessage(state));
     }
@@ -4325,8 +4311,8 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
 void PruneBlockFilesManual(int nManualPruneHeight) {
     CValidationState state;
     const CChainParams &chainparams = Params();
-    if (!FlushStateToDisk(chainparams, state, FlushStateMode::NONE,
-                          nManualPruneHeight)) {
+    if (!::ChainstateActive().FlushStateToDisk(
+            chainparams, state, FlushStateMode::NONE, nManualPruneHeight)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
                   FormatStateMessage(state));
     }

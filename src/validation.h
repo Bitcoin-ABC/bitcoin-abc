@@ -36,8 +36,6 @@
 #include <utility>
 #include <vector>
 
-class arith_uint256;
-
 class CBlockIndex;
 class CBlockTreeDB;
 class CChainParams;
@@ -425,10 +423,6 @@ void PruneOneBlockFile(const int fileNumber) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
  */
 void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune);
 
-/** Flush all state, indexes and buffers to disk. */
-void FlushStateToDisk();
-/** Prune block files and flush state to disk. */
-void PruneAndFlush();
 /** Prune block files up to a given height */
 void PruneBlockFilesManual(int nManualPruneHeight);
 
@@ -707,6 +701,9 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+/** @see CChainState::FlushStateToDisk */
+enum class FlushStateMode { NONE, IF_NEEDED, PERIODIC, ALWAYS };
+
 /**
  * CChainState stores and provides an API to update our local knowledge of the
  * current best chain and header tree.
@@ -780,6 +777,26 @@ public:
 
     bool LoadBlockIndex(const Config &config, CBlockTreeDB &blocktree)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
+     * Update the on-disk chain state.
+     * The caches and indexes are flushed depending on the mode we're called
+     * with if they're too large, if it's been a while since the last write, or
+     * always and in all cases if we're in prune mode and are deleting files.
+     *
+     * If FlushStateMode::NONE is used, then FlushStateToDisk(...) won't do
+     * anything besides checking if we need to prune.
+     */
+    bool FlushStateToDisk(const CChainParams &chainparams,
+                          CValidationState &state, FlushStateMode mode,
+                          int nManualPruneHeight = 0);
+
+    //! Unconditionally flush all changes to disk.
+    void ForceFlushStateToDisk();
+
+    //! Prune blockfiles from the disk if necessary and then flush chainstate
+    //! changes if we pruned.
+    void PruneAndFlush();
 
     bool ActivateBestChain(
         const Config &config, CValidationState &state,
