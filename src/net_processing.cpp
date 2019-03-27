@@ -1399,7 +1399,8 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
     // 3. This is currently the best block we're aware of. We haven't updated
     //    the tip yet so we have no way to check this directly here. Instead we
     //    just check that there are currently no other blocks in flight.
-    else if (state.IsValid() && !IsInitialBlockDownload() &&
+    else if (state.IsValid() &&
+             !::ChainstateActive().IsInitialBlockDownload() &&
              mapBlocksInFlight.count(hash) == mapBlocksInFlight.size()) {
         if (it != mapBlockSource.end()) {
             MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first, connman);
@@ -2003,7 +2004,8 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
         }
         // If we're in IBD, we want outbound peers that will serve us a useful
         // chain. Disconnect peers that are on chains with insufficient work.
-        if (IsInitialBlockDownload() && nCount != MAX_HEADERS_RESULTS) {
+        if (::ChainstateActive().IsInitialBlockDownload() &&
+            nCount != MAX_HEADERS_RESULTS) {
             // When nCount < MAX_HEADERS_RESULTS, we know we have no more
             // headers to fetch from this peer.
             if (nodestate->pindexBestKnownBlock &&
@@ -2244,7 +2246,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         if (!pfrom->fInbound) {
             // Advertise our address
-            if (fListen && !IsInitialBlockDownload()) {
+            if (fListen && !::ChainstateActive().IsInitialBlockDownload()) {
                 CAddress addr =
                     GetLocalAddress(&pfrom->addr, pfrom->GetLocalServices());
                 FastRandomContext insecure_rand;
@@ -2497,7 +2499,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                              "protocol peer=%d\n",
                              inv.hash.ToString(), pfrom->GetId());
                 } else if (!fAlreadyHave && !fImporting && !fReindex &&
-                           !IsInitialBlockDownload()) {
+                           !::ChainstateActive().IsInitialBlockDownload()) {
                     RequestTx(State(pfrom->GetId()), TxId(inv.hash), nNow);
                 }
             }
@@ -2681,7 +2683,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         LOCK(cs_main);
-        if (IsInitialBlockDownload() && !pfrom->HasPermission(PF_NOBAN)) {
+        if (::ChainstateActive().IsInitialBlockDownload() &&
+            !pfrom->HasPermission(PF_NOBAN)) {
             LogPrint(BCLog::NET,
                      "Ignoring getheaders from peer=%d because node is in "
                      "initial block download\n",
@@ -2984,7 +2987,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             if (!LookupBlockIndex(cmpctblock.header.hashPrevBlock)) {
                 // Doesn't connect (or is genesis), instead of DoSing in
                 // AcceptBlockHeader, request deeper headers
-                if (!IsInitialBlockDownload()) {
+                if (!::ChainstateActive().IsInitialBlockDownload()) {
                     connman->PushMessage(
                         pfrom, msgMaker.Make(
                                    NetMsgType::GETHEADERS,
@@ -3378,8 +3381,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // unless we're still syncing with the network. Such an unrequested
         // block may still be processed, subject to the conditions in
         // AcceptBlock().
-        bool forceProcessing =
-            pfrom->HasPermission(PF_NOBAN) && !IsInitialBlockDownload();
+        bool forceProcessing = pfrom->HasPermission(PF_NOBAN) &&
+                               !::ChainstateActive().IsInitialBlockDownload();
         const uint256 hash(pblock->GetHash());
         {
             LOCK(cs_main);
@@ -4216,7 +4219,8 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
 
     // Address refresh broadcast
     int64_t nNow = GetTimeMicros();
-    if (!IsInitialBlockDownload() && pto->nNextLocalAddrSend < nNow) {
+    if (!::ChainstateActive().IsInitialBlockDownload() &&
+        pto->nNextLocalAddrSend < nNow) {
         AdvertiseLocal(pto);
         pto->nNextLocalAddrSend =
             PoissonNextSend(nNow, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
@@ -4704,7 +4708,8 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     //
     std::vector<CInv> vGetData;
     if (!pto->fClient &&
-        ((fFetch && !pto->m_limited_node) || !IsInitialBlockDownload()) &&
+        ((fFetch && !pto->m_limited_node) ||
+         !::ChainstateActive().IsInitialBlockDownload()) &&
         state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
         std::vector<const CBlockIndex *> vToDownload;
         NodeId staller = -1;

@@ -562,9 +562,9 @@ static UniValue getblocktemplate(const Config &config,
                            "Bitcoin is not connected!");
     }
 
-    if (IsInitialBlockDownload()) {
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                           "Bitcoin is downloading blocks...");
+    if (::ChainstateActive().IsInitialBlockDownload()) {
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, PACKAGE_NAME
+                           " is in initial sync and waiting for blocks...");
     }
 
     static unsigned int nTransactionsUpdatedLast;

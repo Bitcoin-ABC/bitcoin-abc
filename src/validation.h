@@ -377,12 +377,6 @@ void UnloadBlockIndex();
 void ThreadScriptCheck(int worker_num);
 
 /**
- * Check whether we are doing an initial block download (synchronizing from disk
- * or network)
- */
-bool IsInitialBlockDownload();
-
-/**
  * Retrieve a transaction (from memory pool, or from disk, if possible).
  */
 bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
@@ -767,6 +761,14 @@ private:
      */
     std::set<CBlockIndex *> m_failed_blocks;
 
+    /**
+     * Whether this chainstate is undergoing initial block download.
+     *
+     * Mutable because we need to be able to mark IsInitialBlockDownload()
+     * const, which latches this for caching purposes.
+     */
+    mutable std::atomic<bool> m_cached_finished_ibd{false};
+
 public:
     CChain m_chain;
     BlockMap mapBlockIndex GUARDED_BY(cs_main);
@@ -855,6 +857,12 @@ public:
     void PruneBlockIndexCandidates();
 
     void UnloadBlockIndex();
+
+    /**
+     * Check whether we are doing an initial block download (synchronizing from
+     * disk or network)
+     */
+    bool IsInitialBlockDownload() const;
 
 private:
     bool ActivateBestChainStep(const Config &config, CValidationState &state,

@@ -347,10 +347,10 @@ namespace {
         bool getPruneMode() override { return ::fPruneMode; }
         bool p2pEnabled() override { return g_connman != nullptr; }
         bool isReadyToBroadcast() override {
-            return !::fImporting && !::fReindex && !IsInitialBlockDownload();
+            return !::fImporting && !::fReindex && !isInitialBlockDownload();
         }
         bool isInitialBlockDownload() override {
-            return IsInitialBlockDownload();
+            return ::ChainstateActive().IsInitialBlockDownload();
         }
         bool shutdownRequested() override { return ShutdownRequested(); }
         int64_t getAdjustedTime() override { return GetAdjustedTime(); }

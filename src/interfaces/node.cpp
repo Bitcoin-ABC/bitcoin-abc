@@ -218,7 +218,7 @@ namespace {
             return GuessVerificationProgress(Params().TxData(), tip);
         }
         bool isInitialBlockDownload() override {
-            return IsInitialBlockDownload();
+            return ::ChainstateActive().IsInitialBlockDownload();
         }
         bool getReindex() override { return ::fReindex; }
         bool getImporting() override { return ::fImporting; }
