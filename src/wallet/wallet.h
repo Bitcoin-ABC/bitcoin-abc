@@ -1083,7 +1083,8 @@ public:
                                          const WalletRescanReserver &reserver,
                                          bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
-    void ReacceptWalletTransactions();
+    void ReacceptWalletTransactions(interfaces::Chain::Lock &locked_chain)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ResendWalletTransactions();
     struct Balance {
         //! Trusted, at depth=GetBalance.min_depth or more

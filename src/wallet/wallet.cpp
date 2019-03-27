@@ -2063,15 +2063,14 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
     return result;
 }
 
-void CWallet::ReacceptWalletTransactions() {
+void CWallet::ReacceptWalletTransactions(
+    interfaces::Chain::Lock &locked_chain) {
     // If transactions aren't being broadcasted, don't let them into local
     // mempool either.
     if (!fBroadcastTransactions) {
         return;
     }
 
-    auto locked_chain = chain().lock();
-    LOCK(cs_wallet);
     std::map<int64_t, CWalletTx *> mapSorted;
 
     // Sort pending wallet transactions based on their initial wallet insertion
@@ -2081,7 +2080,7 @@ void CWallet::ReacceptWalletTransactions() {
         CWalletTx &wtx = item.second;
         assert(wtx.GetId() == wtxid);
 
-        int nDepth = wtx.GetDepthInMainChain(*locked_chain);
+        int nDepth = wtx.GetDepthInMainChain(locked_chain);
 
         if (!wtx.IsCoinBase() && (nDepth == 0 && !wtx.isAbandoned())) {
             mapSorted.insert(std::make_pair(wtx.nOrderPos, &wtx));
@@ -2092,7 +2091,7 @@ void CWallet::ReacceptWalletTransactions() {
     for (const std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
         CValidationState state;
-        wtx.AcceptToMemoryPool(*locked_chain, state);
+        wtx.AcceptToMemoryPool(locked_chain, state);
     }
 }
 
@@ -4838,9 +4837,12 @@ void CWallet::handleNotifications() {
 }
 
 void CWallet::postInitProcess() {
+    auto locked_chain = chain().lock();
+    LOCK(cs_wallet);
+
     // Add wallet transactions that aren't already in a block to mempool.
     // Do this here as mempool requires genesis block to be loaded.
-    ReacceptWalletTransactions();
+    ReacceptWalletTransactions(*locked_chain);
 }
 
 bool CWallet::BackupWallet(const std::string &strDest) {
