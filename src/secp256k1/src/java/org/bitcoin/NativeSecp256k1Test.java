@@ -164,6 +164,156 @@ public class NativeSecp256k1Test {
         assertEquals( result, true, "testRandomize");
     }
 
+    private static class SchnorrTestVector {
+        String data;
+        String sig;
+        String pubKey;
+        boolean expected;
+        String comment;
+
+        SchnorrTestVector(String d, String s, String p, boolean e, String c) {
+            data = d;
+            sig = s;
+            pubKey = p;
+            expected = e;
+            comment = c;
+        }
+    }
+
+    /**
+     * This tests schnorrVerify() for a valid signature
+     * It tests the following test vectors
+     * https://github.com/sipa/bips/blob/bip-schnorr/bip-schnorr/test-vectors.csv
+     */
+    public static void testSchnorrVerify() throws AssertFailException{
+        SchnorrTestVector[] tests = new SchnorrTestVector[]{
+            new SchnorrTestVector(
+                "0000000000000000000000000000000000000000000000000000000000000000",
+                "787A848E71043D280C50470E8E1532B2DD5D20EE912A45DBDD2BD1DFBF187EF67031A98831859DC34DFFEEDDA86831842CCD0079E1F92AF177F7F22CC1DCED05",
+                "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
+                true,
+                "success"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "2A298DACAE57395A15D0795DDBFD1DCB564DA82B0F269BC70A74F8220429BA1D1E51A22CCEC35599B8F266912281F8365FFC2D035A230434A1A64DC59F7013FD",
+                "02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                true,
+                "success"
+            ),
+            new SchnorrTestVector(
+                "5E2D58D8B3BCDF1ABADEC7829054F90DDA9805AAB56C77333024B9D0A508B75C",
+                "00DA9B08172A9B6F0466A2DEFD817F2D7AB437E0D253CB5395A963866B3574BE00880371D01766935B92D2AB4CD5C8A2A5837EC57FED7660773A05F0DE142380",
+                "03FAC2114C2FBB091527EB7C64ECB11F8021CB45E8E7809D3C0938E4B8C0E5F84B",
+                true,
+                "success"
+            ),
+            new SchnorrTestVector(
+                "4DF3C3F68FCC83B27E9D42C90431A72499F17875C81A599B566C9889B9696703",
+                "00000000000000000000003B78CE563F89A0ED9414F5AA28AD0D96D6795F9C6302A8DC32E64E86A333F20EF56EAC9BA30B7246D6D25E22ADB8C6BE1AEB08D49D",
+                "03DEFDEA4CDB677750A420FEE807EACF21EB9898AE79B9768766E4FAA04A2D4A34",
+                true,
+                "success"
+            ),
+            new SchnorrTestVector(
+                "0000000000000000000000000000000000000000000000000000000000000000",
+                "52818579ACA59767E3291D91B76B637BEF062083284992F2D95F564CA6CB4E3530B1DA849C8E8304ADC0CFE870660334B3CFC18E825EF1DB34CFAE3DFC5D8187",
+                "031B84C5567B126440995D3ED5AABA0565D71E1834604819FF9C17F5E9D5DD078F",
+                true,
+                "success"
+            ),
+            new SchnorrTestVector(
+                "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+                "570DD4CA83D4E6317B8EE6BAE83467A1BF419D0767122DE409394414B05080DCE9EE5F237CBD108EABAE1E37759AE47F8E4203DA3532EB28DB860F33D62D49BD",
+                "03FAC2114C2FBB091527EB7C64ECB11F8021CB45E8E7809D3C0938E4B8C0E5F84B",
+                true,
+                "success"
+            ),
+            new SchnorrTestVector(
+                "4DF3C3F68FCC83B27E9D42C90431A72499F17875C81A599B566C9889B9696703",
+                "00000000000000000000003B78CE563F89A0ED9414F5AA28AD0D96D6795F9C6302A8DC32E64E86A333F20EF56EAC9BA30B7246D6D25E22ADB8C6BE1AEB08D49D",
+                "02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                false,
+                "public key not on the curve"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "2A298DACAE57395A15D0795DDBFD1DCB564DA82B0F269BC70A74F8220429BA1DFA16AEE06609280A19B67A24E1977E4697712B5FD2943914ECD5F730901B4AB7",
+                "03EEFDEA4CDB677750A420FEE807EACF21EB9898AE79B9768766E4FAA04A2D4A34",
+                false,
+                "incorrect R residuosity"
+            ),
+            new SchnorrTestVector(
+                "5E2D58D8B3BCDF1ABADEC7829054F90DDA9805AAB56C77333024B9D0A508B75C",
+                "00DA9B08172A9B6F0466A2DEFD817F2D7AB437E0D253CB5395A963866B3574BED092F9D860F1776A1F7412AD8A1EB50DACCC222BC8C0E26B2056DF2F273EFDEC",
+                "03FAC2114C2FBB091527EB7C64ECB11F8021CB45E8E7809D3C0938E4B8C0E5F84B",
+                false,
+                "negated message hash"
+            ),
+            new SchnorrTestVector(
+                "0000000000000000000000000000000000000000000000000000000000000000",
+                "787A848E71043D280C50470E8E1532B2DD5D20EE912A45DBDD2BD1DFBF187EF68FCE5677CE7A623CB20011225797CE7A8DE1DC6CCD4F754A47DA6C600E59543C",
+                "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
+                false,
+                "negated s value"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "2A298DACAE57395A15D0795DDBFD1DCB564DA82B0F269BC70A74F8220429BA1D1E51A22CCEC35599B8F266912281F8365FFC2D035A230434A1A64DC59F7013FD",
+                "03DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                false,
+                "negated public key"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "00000000000000000000000000000000000000000000000000000000000000009E9D01AF988B5CEDCE47221BFA9B222721F3FA408915444A4B489021DB55775F",
+                "02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                false,
+                "sG - eP is infinite. Test fails in single verification if jacobi(y(inf)) is defined as 1 and x(inf) as 0"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "0000000000000000000000000000000000000000000000000000000000000001D37DDF0254351836D84B1BD6A795FD5D523048F298C4214D187FE4892947F728",
+                "02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                false,
+                "sG - eP is infinite. Test fails in single verification if jacobi(y(inf)) is defined as 1 and x(inf) as 1"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "4A298DACAE57395A15D0795DDBFD1DCB564DA82B0F269BC70A74F8220429BA1D1E51A22CCEC35599B8F266912281F8365FFC2D035A230434A1A64DC59F7013FD",
+                "02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                false,
+                "sig[0:32] is not an X coordinate on the curve"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC2F1E51A22CCEC35599B8F266912281F8365FFC2D035A230434A1A64DC59F7013FD",
+                "02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                false,
+                "sig[0:32] is equal to field size"
+            ),
+            new SchnorrTestVector(
+                "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+                "2A298DACAE57395A15D0795DDBFD1DCB564DA82B0F269BC70A74F8220429BA1DFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
+                "02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+                false,
+                "sig[32:64] is equal to curve order"
+            )
+        };
+        int i = 0;
+        for(SchnorrTestVector test : tests) {
+            boolean expected = test.expected;
+            byte[] data = DatatypeConverter.parseHexBinary(test.data);
+            byte[] sig = DatatypeConverter.parseHexBinary(test.sig);
+            byte[] pub = DatatypeConverter.parseHexBinary(test.pubKey);
+            boolean result = NativeSecp256k1.schnorrVerify(data, sig, pub);
+
+            String testMsg = String.join(" ", "testSchnorrVerify", String.valueOf(i++), String.valueOf(expected), test.comment);
+
+            assertEquals(result, expected, testMsg);
+        }
+    }
+
     public static void testCreateECDHSecret() throws AssertFailException{
 
         byte[] sec = DatatypeConverter.parseHexBinary("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
@@ -211,6 +361,9 @@ public class NativeSecp256k1Test {
 
         //Test randomize()
         testRandomize();
+
+        //Test verifySchnorr() success/fail
+        testSchnorrVerify();
 
         //Test ECDH
         testCreateECDHSecret();

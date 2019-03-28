@@ -5,7 +5,7 @@
 #include "include/secp256k1.h"
 #include "include/secp256k1_ecdh.h"
 #include "include/secp256k1_recovery.h"
-
+#include "include/secp256k1_schnorr.h"
 
 SECP256K1_API jlong JNICALL Java_org_bitcoin_NativeSecp256k1_secp256k1_1ctx_1clone
   (JNIEnv* env, jclass classObject, jlong ctx_l)
@@ -330,6 +330,27 @@ SECP256K1_API jlong JNICALL Java_org_bitcoin_NativeSecp256k1_secp256k1_1ecdsa_1p
   (void)classObject;(void)env;(void)byteBufferObject;(void)ctx_l;(void)numkeys;
 
   return 0;
+}
+
+SECP256K1_API jint JNICALL Java_org_bitcoin_NativeSecp256k1_secp256k1_1schnorr_1verify
+  (JNIEnv* env, jclass classObject, jobject byteBufferObject, jlong ctx_l, jint publen)
+{
+  secp256k1_context *ctx = (secp256k1_context*)(uintptr_t)ctx_l;
+
+  unsigned char* data = (unsigned char*) (*env)->GetDirectBufferAddress(env, byteBufferObject);
+  const unsigned char* sigdata = {  (unsigned char*) (data + 32) };
+  const unsigned char* pubdata = { (unsigned char*) (data + 32 + 64) };
+
+  secp256k1_pubkey pubkey;
+  int ret = secp256k1_ec_pubkey_parse(ctx, &pubkey, pubdata, publen);
+
+  if( ret ) {
+    ret = secp256k1_schnorr_verify(ctx, sigdata, data, &pubkey);
+  }
+
+  (void)classObject;
+
+  return ret;
 }
 
 SECP256K1_API jobjectArray JNICALL Java_org_bitcoin_NativeSecp256k1_secp256k1_1ecdh
