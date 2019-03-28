@@ -10,13 +10,17 @@
 ### END INIT INFO
 #Provide the correct user name:
 USER="teamcity"
+AGENT_PATH="~/buildAgent/bin"
 
 case "$1" in
 start)
- su - $USER -c "cd ~/bin ; ./agent.sh start"
+ su - $USER -c "cd ${AGENT_PATH} ; ./agent.sh start"
 ;;
 stop)
- su - $USER -c "cd ~/bin ; ./agent.sh stop"
+ su - $USER -c "cd ${AGENT_PATH} ; ./agent.sh stop"
+;;
+status)
+ su - $USER -c "cd ${AGENT_PATH} ; ./agent.sh status"
 ;;
 *)
   echo "usage start/stop"
