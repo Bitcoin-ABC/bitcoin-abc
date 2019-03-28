@@ -1320,6 +1320,10 @@ void CWallet::BlockDisconnected(const CBlock &block) {
     }
 }
 
+void CWallet::UpdatedBlockTip() {
+    m_best_block_time = GetTime();
+}
+
 void CWallet::BlockUntilSyncedToCurrentChain() {
     AssertLockNotHeld(cs_main);
     AssertLockNotHeld(cs_wallet);
@@ -2268,8 +2272,7 @@ CWallet::ResendWalletTransactionsBefore(interfaces::Chain::Lock &locked_chain,
     return result;
 }
 
-void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain,
-                                       int64_t nBestBlockTime) {
+void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) {
     // Do this infrequently and randomly to avoid giving away that these are our
     // transactions.
     if (GetTime() < nNextResend || !fBroadcastTransactions) {
@@ -2283,7 +2286,7 @@ void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain,
     }
 
     // Only do it if there's been a new block since last time
-    if (nBestBlockTime < nLastResend) {
+    if (m_best_block_time < nLastResend) {
         return;
     }
 
@@ -2291,8 +2294,8 @@ void CWallet::ResendWalletTransactions(interfaces::Chain::Lock &locked_chain,
 
     // Rebroadcast unconfirmed txes older than 5 minutes before the last block
     // was found:
-    std::vector<uint256> relayed =
-        ResendWalletTransactionsBefore(locked_chain, nBestBlockTime - 5 * 60);
+    std::vector<uint256> relayed = ResendWalletTransactionsBefore(
+        locked_chain, m_best_block_time - 5 * 60);
     if (!relayed.empty()) {
         WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n",
                         __func__, relayed.size());

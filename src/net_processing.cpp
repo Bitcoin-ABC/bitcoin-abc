@@ -237,9 +237,6 @@ MapRelay mapRelay GUARDED_BY(cs_main);
 std::deque<std::pair<int64_t, MapRelay::iterator>>
     vRelayExpiration GUARDED_BY(cs_main);
 
-// Used only to inform the wallet of when we last received a block
-std::atomic<int64_t> nTimeBestReceived(0);
-
 struct IteratorComparator {
     template <typename I> bool operator()(const I &a, const I &b) const {
         return &(*a) < &(*b);
@@ -1365,8 +1362,6 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
         });
         connman->WakeMessageHandler();
     }
-
-    nTimeBestReceived = GetTime();
 }
 
 /**
@@ -4323,7 +4318,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     // Except during reindex, importing and IBD, when old wallet transactions
     // become unconfirmed and spams other nodes.
     if (!fReindex && !fImporting && !IsInitialBlockDownload()) {
-        GetMainSignals().Broadcast(nTimeBestReceived, connman);
+        GetMainSignals().Broadcast(connman);
     }
 
     //

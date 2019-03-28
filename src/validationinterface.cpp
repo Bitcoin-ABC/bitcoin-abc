@@ -43,8 +43,7 @@ struct MainSignalsInstance {
     boost::signals2::signal<void(const CTransactionRef &)>
         TransactionRemovedFromMempool;
     boost::signals2::signal<void(const CBlockLocator &)> ChainStateFlushed;
-    boost::signals2::signal<void(int64_t nBestBlockTime, CConnman *connman)>
-        Broadcast;
+    boost::signals2::signal<void(CConnman *connman)> Broadcast;
     boost::signals2::signal<void(const CBlock &, const CValidationState &)>
         BlockChecked;
     boost::signals2::signal<void(const CBlockIndex *,
@@ -135,7 +134,7 @@ void RegisterValidationInterface(CValidationInterface *pwalletIn) {
                   std::placeholders::_1));
     conns.Broadcast = g_signals.m_internals->Broadcast.connect(
         std::bind(&CValidationInterface::ResendWalletTransactions, pwalletIn,
-                  std::placeholders::_1, std::placeholders::_2));
+                  std::placeholders::_1));
     conns.BlockChecked = g_signals.m_internals->BlockChecked.connect(
         std::bind(&CValidationInterface::BlockChecked, pwalletIn,
                   std::placeholders::_1, std::placeholders::_2));
@@ -215,8 +214,8 @@ void CMainSignals::ChainStateFlushed(const CBlockLocator &locator) {
         [locator, this] { m_internals->ChainStateFlushed(locator); });
 }
 
-void CMainSignals::Broadcast(int64_t nBestBlockTime, CConnman *connman) {
-    m_internals->Broadcast(nBestBlockTime, connman);
+void CMainSignals::Broadcast(CConnman *connman) {
+    m_internals->Broadcast(connman);
 }
 
 void CMainSignals::BlockChecked(const CBlock &block,

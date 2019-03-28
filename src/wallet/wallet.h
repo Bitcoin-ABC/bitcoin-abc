@@ -698,6 +698,9 @@ private:
     int64_t nNextResend = 0;
     int64_t nLastResend = 0;
     bool fBroadcastTransactions = false;
+    // Local time that the tip block was received. Used to schedule wallet
+    // rebroadcasts.
+    std::atomic<int64_t> m_best_block_time{0};
 
     /**
      * Used to keep track of spent outpoints, and detect and report conflicts
@@ -1059,6 +1062,7 @@ public:
     BlockConnected(const CBlock &block,
                    const std::vector<CTransactionRef> &vtxConflicted) override;
     void BlockDisconnected(const CBlock &block) override;
+    void UpdatedBlockTip() override;
     int64_t RescanFromTime(int64_t startTime,
                            const WalletRescanReserver &reserver, bool update);
 
@@ -1083,8 +1087,8 @@ public:
                                          bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
-    void ResendWalletTransactions(interfaces::Chain::Lock &locked_chain,
-                                  int64_t nBestBlockTime) override;
+    void
+    ResendWalletTransactions(interfaces::Chain::Lock &locked_chain) override;
     // ResendWalletTransactionsBefore may only be called if
     // fBroadcastTransactions!
     std::vector<uint256>
