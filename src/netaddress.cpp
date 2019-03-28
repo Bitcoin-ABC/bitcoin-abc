@@ -168,6 +168,11 @@ bool CNetAddr::IsRFC4843() const {
             (GetByte(12) & 0xF0) == 0x10);
 }
 
+bool CNetAddr::IsRFC7343() const {
+    return (GetByte(15) == 0x20 && GetByte(14) == 0x01 && GetByte(13) == 0x00 &&
+            (GetByte(12) & 0xF0) == 0x20);
+}
+
 bool CNetAddr::IsTor() const {
     return (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
 }
@@ -235,7 +240,7 @@ bool CNetAddr::IsRoutable() const {
     return IsValid() &&
            !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() ||
              IsRFC6598() || IsRFC5737() || (IsRFC4193() && !IsTor()) ||
-             IsRFC4843() || IsLocal() || IsInternal());
+             IsRFC4843() || IsRFC7343() || IsLocal() || IsInternal());
 }
 
 bool CNetAddr::IsInternal() const {

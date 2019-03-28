@@ -81,8 +81,10 @@ public:
     bool IsRFC4193() const;
     // IPv6 Teredo tunnelling (2001::/32)
     bool IsRFC4380() const;
-    // IPv6 ORCHID (2001:10::/28)
+    // IPv6 ORCHID (deprecated) (2001:10::/28)
     bool IsRFC4843() const;
+    // IPv6 ORCHIDv2 (2001:20::/28)
+    bool IsRFC7343() const;
     // IPv6 autoconfig (FE80::/64)
     bool IsRFC4862() const;
     // IPv6 well-known prefix (64:FF9B::/96)
