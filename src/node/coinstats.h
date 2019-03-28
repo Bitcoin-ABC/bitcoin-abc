@@ -15,18 +15,17 @@
 class CCoinsView;
 
 struct CCoinsStats {
-    int nHeight;
-    BlockHash hashBlock;
-    uint64_t nTransactions;
-    uint64_t nTransactionOutputs;
-    uint64_t nBogoSize;
-    uint256 hashSerialized;
-    uint64_t nDiskSize;
-    Amount nTotalAmount;
+    int nHeight{0};
+    BlockHash hashBlock{};
+    uint64_t nTransactions{0};
+    uint64_t nTransactionOutputs{0};
+    uint64_t nBogoSize{0};
+    uint256 hashSerialized{};
+    uint64_t nDiskSize{0};
+    Amount nTotalAmount{Amount::zero()};
 
-    CCoinsStats()
-        : nHeight(0), nTransactions(0), nTransactionOutputs(0), nBogoSize(0),
-          nDiskSize(0), nTotalAmount() {}
+    //! The number of coins contained.
+    uint64_t coins_count{0};
 };
 
 //! Calculate statistics about the unspent transaction output set

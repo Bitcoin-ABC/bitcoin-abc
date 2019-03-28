@@ -39,6 +39,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
 
 //! Calculate statistics about the unspent transaction output set
 bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
+    stats = CCoinsStats();
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
     assert(pcursor);
 
@@ -62,6 +63,7 @@ bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
             }
             prevkey = key.GetTxId();
             outputs[key.GetN()] = std::move(coin);
+            stats.coins_count++;
         } else {
             return error("%s: unable to read value", __func__);
         }
