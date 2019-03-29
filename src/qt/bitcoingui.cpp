@@ -786,6 +786,7 @@ void BitcoinGUI::updateNetworkState() {
     case 5:
     case 6:
         icon = ":/icons/connect_3";
+	break;
     case 7:
     case 8:
         icon = ":/icons/connect_4";

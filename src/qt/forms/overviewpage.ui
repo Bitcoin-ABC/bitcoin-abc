@@ -138,7 +138,7 @@
                                                         </item>
                                                         <!-- available label-->
                                                         <item row="2" column="1">
-                                                            <widget class="QLabel" name="labelBalanceText">
+                                                            <widget class="QLabel" name="labelBalanceText1">
                                                                 <property name="text">
                                                                     <string>Available</string>
                                                                 </property>
@@ -193,7 +193,7 @@
                                                 </item>
                                                 <!-- TOTAL -->
                                                 <item>
-                                                    <layout class="QGridLayout" name="gridTotal">
+                                                    <layout class="QGridLayout" name="gridTotal1">
                                                         <property name="spacing">
                                                             <number>2</number>
                                                         </property>
@@ -207,7 +207,7 @@
                                                         </item>
                                                         <!-- icon -->
                                                         <item row="1" column="0" rowspan="2">
-                                                            <widget class="QPushButton" name="totalIcon">
+                                                            <widget class="QPushButton" name="totalIcon1">
                                                                 <property name="enabled">
                                                                     <bool>false</bool>
                                                                 </property>
@@ -265,7 +265,7 @@
                                                         </item>
                                                         <!-- total label-->
                                                         <item row="2" column="1">
-                                                            <widget class="QLabel" name="labelTotalText">
+                                                            <widget class="QLabel" name="labelTotalText1">
                                                                 <property name="text">
                                                                     <string>Total</string>
                                                                 </property>
@@ -392,7 +392,7 @@
                                                         </item>
                                                         <!-- pending label-->
                                                         <item row="2" column="1">
-                                                            <widget class="QLabel" name="labelPendingText">
+                                                            <widget class="QLabel" name="labelPendingText1">
                                                                 <property name="text">
                                                                     <string>Pending</string>
                                                                 </property>
@@ -607,7 +607,7 @@
                                                 </property>
                                                 <!-- AVAILABLE -->
                                                 <item>
-                                                    <layout class="QGridLayout" name="gridAvailable">
+                                                    <layout class="QGridLayout" name="gridAvailable1">
                                                         <property name="spacing">
                                                             <number>2</number>
                                                         </property>
@@ -621,7 +621,7 @@
                                                         </item>
                                                         <!-- icon -->
                                                         <item row="1" column="0" rowspan="2">
-                                                            <widget class="QPushButton" name="availableIcon">
+                                                            <widget class="QPushButton" name="availableIcon1">
                                                                 <property name="enabled">
                                                                     <bool>false</bool>
                                                                 </property>
@@ -679,7 +679,7 @@
                                                         </item>
                                                         <!-- available label-->
                                                         <item row="2" column="1">
-                                                            <widget class="QLabel" name="labelBalanceText">
+                                                            <widget class="QLabel" name="labelBalanceText1">
                                                                 <property name="text">
                                                                     <string>Available (watch only)</string>
                                                                 </property>
@@ -734,7 +734,7 @@
                                                 </item>
                                                 <!-- TOTAL -->
                                                 <item>
-                                                    <layout class="QGridLayout" name="gridTotal">
+                                                    <layout class="QGridLayout" name="gridTotal1">
                                                         <property name="spacing">
                                                             <number>2</number>
                                                         </property>
@@ -748,7 +748,7 @@
                                                         </item>
                                                         <!-- icon -->
                                                         <item row="1" column="0" rowspan="2">
-                                                            <widget class="QPushButton" name="totalIcon">
+                                                            <widget class="QPushButton" name="totalIcon1">
                                                                 <property name="enabled">
                                                                     <bool>false</bool>
                                                                 </property>
@@ -806,7 +806,7 @@
                                                         </item>
                                                         <!-- total label-->
                                                         <item row="2" column="1">
-                                                            <widget class="QLabel" name="labelTotalText">
+                                                            <widget class="QLabel" name="labelTotalText1">
                                                                 <property name="text">
                                                                     <string>Total (watch only)</string>
                                                                 </property>
@@ -861,7 +861,7 @@
                                                 </item>
                                                 <!-- PENDING -->
                                                 <item>
-                                                    <layout class="QGridLayout" name="gridPending">
+                                                    <layout class="QGridLayout" name="gridPending1">
                                                         <property name="spacing">
                                                             <number>2</number>
                                                         </property>
@@ -875,7 +875,7 @@
                                                         </item>
                                                         <!-- icon -->
                                                         <item row="1" column="0" rowspan="2">
-                                                            <widget class="QPushButton" name="pendingIcon">
+                                                            <widget class="QPushButton" name="pendingIcon1">
                                                                 <property name="enabled">
                                                                     <bool>false</bool>
                                                                 </property>
@@ -933,7 +933,7 @@
                                                         </item>
                                                         <!-- pending label-->
                                                         <item row="2" column="1">
-                                                            <widget class="QLabel" name="labelPendingText">
+                                                            <widget class="QLabel" name="labelPendingText2">
                                                                 <property name="text">
                                                                     <string>Pending (watch only)</string>
                                                                 </property>
@@ -1006,7 +1006,7 @@
                                                         </item>
                                                         <!-- icon -->
                                                         <item row="1" column="0" rowspan="2">
-                                                            <widget class="QPushButton" name="pendingIcon">
+                                                            <widget class="QPushButton" name="pendingIcon2">
                                                                 <property name="enabled">
                                                                     <bool>false</bool>
                                                                 </property>

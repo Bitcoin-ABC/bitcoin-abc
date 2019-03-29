@@ -487,10 +487,10 @@ void BitcoinApplication::initializeResult(bool success) {
             fFirstWallet = false;
         }
 
-        connect(walletModel,
-                SIGNAL(coinsSent(CWallet *, SendCoinsRecipient, QByteArray)),
-                SLOT(fetchPaymentACK(CWallet *, const SendCoinsRecipient &,
-                                     QByteArray)));
+    //    connect(walletModel,
+   //             SIGNAL(coinsSent(CWallet *, SendCoinsRecipient, QByteArray)));
+     //           SLOT(fetchPaymentACK(CWallet *, const SendCoinsRecipient &,
+     //                                QByteArray)));
 
         m_wallet_models.push_back(walletModel);
     }
@@ -507,8 +507,8 @@ void BitcoinApplication::initializeResult(bool success) {
 #ifdef ENABLE_WALLET
     // Now that initialization/startup is done, process any command-line
     // bitcoincash: URIs or payment requests:
-    connect(window, SIGNAL(receivedURI(QString)), 
-            SLOT(handleURIOrFile(QString)));
+ //   connect(window, SIGNAL(receivedURI(QString)), 
+ //           SLOT(handleURIOrFile(QString)));
 #endif
 
     pollShutdownTimer->start(200);

@@ -48,7 +48,6 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle)
     pixmap = QPixmap(splashSize);
 
     // set reference point, paddings relative to size
-    int paddingRight            = 50;
     int vSpace                  = 10;
     int paddingTop              = 320*0.65 - vSpace;
     //float iconHeight              = 86;

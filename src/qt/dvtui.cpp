@@ -97,7 +97,7 @@ bool DVTUI::customThemeIsSet() {
             "QProgressBar "
             "{ color: transparent; background: " + s_Darker + ";  border: 1px inset " + s_Dark + ";  padding: 0px; margin-left: 30px; margin-right: 30px;}" 
             "QProgressBar::chunk "
-            "{ color: transparent; background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgba(94,204,158,100%), stop: 1 rgba(0,174,255,100%), stop: 2 rgba(12,175,165,100%)); border-radius: 1px; margin: 0px;}"
+            "{ color: transparent; background: qlineargradient(x1:0, y1:0, x2: 0.5, y2: 0, x3: 1, y3: 0, stop: 0 rgba(94,204,158,100%), stop: 0.6 rgba(0,174,255,100%), stop: 0.9 rgba(46,144,255,100%)); border-radius: 1px; margin: 0px;}"
             
             //Balance seperator line
             "#lineb, #lineb1, #lineb2, #lineb3, #lineb4, #lineb5 , #lineb6 , #lineb7 , #lineb8 , #lineb9 ,#w_lineb, #w_lineb1, #w_lineb2, #w_lineb3, #w_lineb4, #w_lineb5, #w_lineb6, #w_lineb7, #w_lineb8, #w_lineb9"
@@ -148,7 +148,7 @@ bool DVTUI::customThemeIsSet() {
             //Toolbar
             "#toolbar {background: " + s_Darker + "; border-left: none; border-right: 1px solid " + s_Dark + "; border-top: none; border-bottom: none; padding-top: 0px;}"
             "#toolbar > QToolButton { width: 150px; height: 40px; background: transparent; border: none; padding: 6px; padding-left: 1px; padding-right: 1px; margin-bottom: 1px;}"
-            "#toolbar > QToolButton:hover { color: " + s_DVTBlue + "; border: none}"                    
+            "#toolbar > QToolButton:hover { color: " + s_LBlue + "; border: none}"                    
             "#toolbar > QToolButton:checked { color: " + s_LBlue + "; border: none;}"
             
             //Scrollbar

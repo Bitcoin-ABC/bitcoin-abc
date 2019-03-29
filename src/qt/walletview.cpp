@@ -102,8 +102,8 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui) {
     //            SLOT(gotoHistoryPage()));
 
         // Navigate to transaction history page after send
-        connect(sendCoinsPage, SIGNAL(coinsSent(uint256)), gui,
-                SLOT(gotoHistoryPage()));
+  //      connect(sendCoinsPage, SIGNAL(coinsSent(uint256)), gui,
+  //              SLOT(gotoHistoryPage()));
 
         // Receive and report messages
         connect(this, SIGNAL(message(QString, QString, unsigned int)), gui,
