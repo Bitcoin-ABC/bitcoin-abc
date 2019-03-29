@@ -43,10 +43,7 @@ if [[ -z "${DISABLE_TESTS}" ]]; then
 	echo "*** Running tests"
 
 	# Run unit tests
-	make check
-
-	# Run util tests
-	./test/util/bitcoin-util-test.py
+	make -j ${THREADS} check
 
 	mkdir -p output/
 	BRANCH=$(git rev-parse --abbrev-ref HEAD)
