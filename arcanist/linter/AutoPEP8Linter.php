@@ -35,6 +35,29 @@ final class AutoPEP8FormatLinter extends ArcanistExternalLinter {
   public function getDefaultBinary() {
     return 'autopep8';
   }
+  
+  public function getVersion() {
+    list($stdout, $stderr) = execx('%C --version',
+      $this->getExecutableCommand());
+    $matches = array();
+    
+    /* Support a.b or a.b.c version numbering scheme */
+    $regex = '/^autopep8 (?P<version>\d+\.\d+(?:\.\d+)?)/';
+    
+    /* 
+     * Old autopep8 output the version to stdout, newer output to stderr.
+     * Try both to determine the version.
+     */
+    if (preg_match($regex, $stdout, $matches)) {
+      return $matches['version'];
+    } 
+    if (preg_match($regex, $stderr, $matches)) {
+      return $matches['version'];
+    }
+
+    return false;
+  }
+  
 
   public function getInstallInstructions() {
     return pht('Make sure autopep8 is in directory specified by $PATH');
