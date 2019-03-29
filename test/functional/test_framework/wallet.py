@@ -8,6 +8,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Optional
 
+from test_framework import cashaddr
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
@@ -473,3 +474,13 @@ def address_to_scriptpubkey(address):
     # TODO: also support other address formats
     else:
         assert False
+
+
+def cashaddr_to_scriptpubkey(address: str) -> CScript:
+    """Converts a given CashAddress to the corresponding output script (scriptPubKey)."""
+    prefix, kind, addr_hash = cashaddr.decode(address)
+    if kind == cashaddr.PUBKEY_TYPE:
+        return CScript([OP_DUP, OP_HASH160, addr_hash, OP_EQUALVERIFY, OP_CHECKSIG])
+    if kind == cashaddr.SCRIPT_TYPE:
+        return CScript([OP_HASH160, addr_hash, OP_EQUAL])
+    assert False
