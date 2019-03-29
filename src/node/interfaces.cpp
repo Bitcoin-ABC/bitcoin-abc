@@ -781,6 +781,9 @@ namespace {
                                                         /*mempool_sequence=*/0);
             }
         }
+        bool hasAssumedValidChain() override {
+            return Assert(m_node.chainman)->IsSnapshotActive();
+        }
         const CChainParams &params() const override { return m_params; }
         NodeContext &m_node;
         const CChainParams &m_params;

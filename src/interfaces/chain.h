@@ -301,6 +301,9 @@ public:
     //! removed transactions and already added new transactions.
     virtual void requestMempoolTransactions(Notifications &notifications) = 0;
 
+    //! Return true if an assumed-valid chain is in use.
+    virtual bool hasAssumedValidChain() = 0;
+
     //! This Chain's parameters
     virtual const CChainParams &params() const = 0;
 };
