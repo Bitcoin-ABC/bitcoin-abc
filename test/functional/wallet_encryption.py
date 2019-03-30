@@ -39,7 +39,7 @@ class WalletEncryptionTest(BitcoinTestFramework):
         # Test that the wallet is encrypted
         assert_raises_rpc_error(
             -13, "Please enter the wallet passphrase with walletpassphrase first",
-                                self.nodes[0].dumpprivkey, address)
+            self.nodes[0].dumpprivkey, address)
 
         # Check that walletpassphrase works
         self.nodes[0].walletpassphrase(passphrase, 2)
@@ -49,7 +49,7 @@ class WalletEncryptionTest(BitcoinTestFramework):
         time.sleep(2)
         assert_raises_rpc_error(
             -13, "Please enter the wallet passphrase with walletpassphrase first",
-                                self.nodes[0].dumpprivkey, address)
+            self.nodes[0].dumpprivkey, address)
 
         # Test wrong passphrase
         assert_raises_rpc_error(-14, "wallet passphrase entered was incorrect",
@@ -64,7 +64,7 @@ class WalletEncryptionTest(BitcoinTestFramework):
         self.nodes[0].walletlock()
         assert_raises_rpc_error(
             -13, "Please enter the wallet passphrase with walletpassphrase first",
-                                self.nodes[0].dumpprivkey, address)
+            self.nodes[0].dumpprivkey, address)
         assert_equal(self.nodes[0].getwalletinfo()['unlocked_until'], 0)
 
         # Test passphrase changes

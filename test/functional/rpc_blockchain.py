@@ -107,7 +107,7 @@ class BlockchainTest(BitcoinTestFramework):
 
         assert_raises_rpc_error(
             -8, "Invalid block count: should be between 0 and the block's height - 1",
-                                self.nodes[0].getchaintxstats, 201)
+            self.nodes[0].getchaintxstats, 201)
 
     def _test_gettxoutsetinfo(self):
         node = self.nodes[0]
@@ -239,6 +239,7 @@ class BlockchainTest(BitcoinTestFramework):
             getblockinfo['previousblockhash'], getblockheaderinfo['previousblockhash'])
         assert_equal(
             getblockinfo['nextblockhash'], getblockheaderinfo['nextblockhash'])
+
 
 if __name__ == '__main__':
     BlockchainTest().main()
