@@ -620,7 +620,7 @@ static fs::path pathCached;
 static fs::path pathCachedNetSpecific;
 static CCriticalSection csPathCached;
 
-bool CheckIfWalletDirExists(bool fNetSpecific) {
+bool CheckIfWalletDatExists(bool fNetSpecific) {
   fs::path path;
   if (gArgs.IsArgSet("-datadir")) {
     path = fs::system_complete(gArgs.GetArg("-datadir", ""));
@@ -635,7 +635,9 @@ bool CheckIfWalletDirExists(bool fNetSpecific) {
     path /= BaseParams().DataDir();
   }
   
-  return fs::exists(path / "wallets");
+  path /= "wallets";
+  path /= "wallet.dat";
+  return fs::exists(path);
 }
 
 const fs::path &GetDataDir(bool fNetSpecific) {
@@ -663,12 +665,33 @@ const fs::path &GetDataDir(bool fNetSpecific) {
         path /= BaseParams().DataDir();
     }
 
-    if (fs::create_directories(path)) {
-        // This is the first run, create wallets subdirectory too
-        fs::create_directories(path / "wallets");
-    }
+    fs::create_directories(path);
+    // Make sure this wallets subdirectory exists too
+    fs::create_directories(path / "wallets");
 
     return path;
+}
+
+const fs::path GetDataDirNoCreate() {
+  // copy instead of reference
+  fs::path path = pathCachedNetSpecific;
+  
+  // This can be called during exceptions by LogPrintf(), so we cache the
+  // value so we don't have to do memory allocations after that.
+  if (!path.empty()) {
+    return path;
+  }
+  
+  if (gArgs.IsArgSet("-datadir")) {
+    path = fs::system_complete(gArgs.GetArg("-datadir", ""));
+    if (!fs::is_directory(path)) {
+      path = "";
+      return path;
+    }
+  } else {
+    path = GetDefaultDataDir();
+  }
+  return path;
 }
 
 void ClearDatadirCache() {

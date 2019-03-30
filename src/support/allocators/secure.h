@@ -1,15 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The DeVault developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
-#define BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
+#pragma once
 
 #include "support/cleanse.h"
 #include "support/lockedpool.h"
 
 #include <string>
+#include <vector>
 
 //
 // Allocator that locks its contents from being paged
@@ -51,4 +52,4 @@ template <typename T> struct secure_allocator : public std::allocator<T> {
 typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char>>
     SecureString;
 
-#endif // BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
+typedef std::vector<unsigned char, secure_allocator<unsigned char>> SecureVector;

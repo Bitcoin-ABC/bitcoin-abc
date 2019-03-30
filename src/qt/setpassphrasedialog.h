@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QDialog>
+#include "support/allocators/secure.h"
 
 class CWallet;
 
@@ -22,11 +23,11 @@ public:
     ~SetPassphraseDialog();
 
     void accept() override;
-    std::string getPassword() { return password; }
+    SecureString getPassword() { return password; }
 
 private:
     Ui::SetPassphraseDialog *ui;
-    std::string password;
+    SecureString password;
     bool fCapsLock;
                   
 

@@ -19,6 +19,12 @@ void CHDChain::Setup(const SecureString& securewords, const std::vector<uint8_t>
     vchSeed = SecureVector(hashWords.begin(), hashWords.end());
     id = GetSeedHash();
 }
+void CHDChain::SetupCrypted(const SecureVector& securewords, const SecureVector& secureseed) {
+    vchMnemonic = securewords;
+    vchSeed = secureseed;
+    // Seed/ID should be already set
+    //id = GetSeedHash();
+}
     
 bool CHDChain::GetMnemonic(SecureVector &vchMnemonicRet) const {
   // mnemonic was not set, fail

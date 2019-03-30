@@ -10,6 +10,7 @@
 #endif
 
 #include "amount.h"
+#include "support/allocators/secure.h"
 #include "dvtui.h"
 
 #include <QLabel>
@@ -118,7 +119,6 @@ private:
     QAction *receiveCoinsMenuAction = nullptr;
     QAction *optionsAction = nullptr;
     QAction *toggleHideAction = nullptr;
-    QAction *encryptWalletAction = nullptr;
     QAction *backupWalletAction = nullptr;
     QAction *changePassphraseAction = nullptr;
     QAction *aboutQtAction = nullptr;

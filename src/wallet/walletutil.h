@@ -9,5 +9,6 @@
 
 //! Get the path of the wallet directory.
 fs::path GetWalletDir();
+fs::path GetWalletDirNoCreate(fs::path& added_dir);
 
 #endif // BITCOIN_WALLET_UTIL_H

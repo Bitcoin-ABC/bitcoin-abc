@@ -81,7 +81,7 @@ void SetPassphraseDialog::accept() {
     }
     if (newpass1 == newpass2) {
         password = newpass1;
-        QMessageBox::warning(this, tr("Success"), tr("Password verified").arg(tr(PACKAGE_NAME)) + "<br><br><b></b></qt>");
+        //QMessageBox::warning(this, tr("Success"), tr("Password verified").arg(tr(PACKAGE_NAME)) + "<br><br><b></b></qt>");
         QApplication::quit();
     } else {
         QMessageBox::critical(this, tr("failed"), tr("The supplied passphrases do not match."));

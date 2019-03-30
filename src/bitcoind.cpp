@@ -20,7 +20,8 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "walletinitinterface.h"
-
+#include "support/allocators/secure.h"
+#include <cstdint>
 #include <boost/thread.hpp>
 
 #include <cstdio>
@@ -53,6 +54,28 @@ void WaitForShutdown() {
     Interrupt();
 }
 
+void getPassphrase(SecureString& walletPassphrase) {
+  std::cout << "Enter a Wallet Encryption password\n";
+  SecureString pass1;
+  SecureString pass2;
+  char c='0';
+  do {
+    while (c != '\n') {
+      std::cin.get(c);
+      std::cout << "*" << std::flush;
+      if (c != '\n') pass1.push_back(c);
+    }
+    c = '0';
+    std::cout << "Confirm password\n";
+    while (c != '\n') {
+      std::cin.get(c);
+      std::cout << "*" << std::flush;
+      if (c != '\n') pass2.push_back(c);
+    }
+  } while (pass1 != pass2);
+  walletPassphrase   = pass1;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Start
@@ -66,7 +89,7 @@ bool AppInit(int argc, char *argv[]) {
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
     bool fRet = false;
-
+    SecureString walletPassphrase;
     //
     // Parameters
     //
@@ -95,6 +118,7 @@ bool AppInit(int argc, char *argv[]) {
     }
 
     try {
+      
         if (!fs::is_directory(GetDataDir(false))) {
             fprintf(stderr,
                     "Error: Specified data directory \"%s\" does not exist.\n",
@@ -115,7 +139,7 @@ bool AppInit(int argc, char *argv[]) {
             fprintf(stderr, "Error: %s\n", e.what());
             return false;
         }
-
+      
         // Error out when loose non-argument tokens are encountered on command
         // line
         for (int i = 1; i < argc; i++) {
@@ -144,6 +168,12 @@ bool AppInit(int argc, char *argv[]) {
             // up on console
             exit(1);
         }
+      
+      if (!g_wallet_init_interface->CheckIfWalletExists(config.GetChainParams())) {
+        //std::cout << "Stop here no wallet found\n!";
+        getPassphrase(walletPassphrase);
+      }
+
         if (!AppInitSanityChecks()) {
             // InitError will have been called with detailed error, which ends
             // up on console
@@ -173,7 +203,7 @@ bool AppInit(int argc, char *argv[]) {
             // If locking the data directory failed, exit immediately
             exit(EXIT_FAILURE);
         }
-        fRet = AppInitMain(config, httpRPCRequestProcessor);
+        fRet = AppInitMain(config, httpRPCRequestProcessor, walletPassphrase);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {

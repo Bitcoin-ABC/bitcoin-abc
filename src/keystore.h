@@ -80,6 +80,8 @@ public:
     virtual bool RemoveWatchOnly(const CScript &dest) override;
     virtual bool HaveWatchOnly(const CScript &dest) const override;
     virtual bool HaveWatchOnly() const override;
+    virtual bool GetHDChain(CHDChain& hdChainRet) const;
+
 };
 
 typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;

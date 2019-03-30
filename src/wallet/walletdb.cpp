@@ -515,6 +515,13 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                 strErr = "Error reading wallet database: SetHDChain failed";
                 return false;
             }
+        } else if (strType == "chdchain") {
+            CHDChain chain;
+            ssValue >> chain;
+            if (!pwallet->SetCryptedHDChain(chain, true)) {
+                strErr = "Error reading wallet database: SetHDCryptedChain failed";
+                return false;
+            }
         } else if (strType == "hdpubkey")  {
             CPubKey vchPubKey;
             ssKey >> vchPubKey;
@@ -926,4 +933,14 @@ bool CWalletDB::WriteHDPubKey(const CHDPubKey& hdPubKey, const CKeyMetadata& key
         return false;
 
   return WriteIC(std::make_pair(std::string("hdpubkey"), hdPubKey.extPubKey.pubkey), hdPubKey, false);
+}
+
+bool CWalletDB::WriteCryptedHDChain(const CHDChain& chain)
+{
+    if (!WriteIC(std::string("chdchain"), chain))
+        return false;
+
+    EraseIC(std::string("hdchain"));
+
+    return true;
 }

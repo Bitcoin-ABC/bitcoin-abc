@@ -40,7 +40,7 @@ extern std::vector<CWalletRef> vpwallets;
 extern CFeeRate payTxFee;
 extern bool bSpendZeroConfChange;
 
-static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
+static const unsigned int DEFAULT_KEYPOOL_SIZE = 100;
 //! -paytxfee default
 static const Amount DEFAULT_TRANSACTION_FEE = Amount::zero();
 //! -fallbackfee default
@@ -59,8 +59,6 @@ static const bool DEFAULT_WALLET_REJECT_LONG_CHAINS = false;
 static const unsigned int MAX_FREE_TRANSACTION_CREATE_SIZE = 1000;
 static const bool DEFAULT_WALLETBROADCAST = true;
 static const bool DEFAULT_DISABLE_WALLET = false;
-//! if set, all keys will be derived by using BIP32
-static const bool DEFAULT_USE_HD_WALLET = true;
 
 extern const char *DEFAULT_WALLET_DAT;
 
@@ -1149,7 +1147,8 @@ public:
      * in case of an error.
      */
     static CWallet *CreateWalletFromFile(const CChainParams &chainParams,
-                                         const std::string walletFile);
+                                         const std::string walletFile,
+                                         const SecureString& walletPassphrase);
 
     /**
      * Wallet post-init setup
@@ -1162,7 +1161,6 @@ public:
 
     /* Set the HD chain model (chain child index counters) */
     bool SetHDChain(const CHDChain &chain, bool memonly);
-    const CHDChain &GetHDChain() { return hdChain; }
 
     /* Returns true if HD is enabled */
     bool IsHDEnabled();
@@ -1187,12 +1185,13 @@ public:
     //! Load metadata (used by LoadWallet)
     bool LoadKeyMetadata(const CTxDestination& pubKey, const CKeyMetadata &metadata);
 
-
-
-  bool HaveKey(const CKeyID &address) const override;
-  bool LoadHDPubKey(const CHDPubKey &hdPubKey);
-  bool AddHDPubKey(const CExtPubKey &extPubKey, bool fInternal);
-  bool AddKeyPubKeyX(const CKey& secret, const CPubKey &pubkey);
+    bool HaveKey(const CKeyID &address) const override;
+    bool LoadHDPubKey(const CHDPubKey &hdPubKey);
+    bool AddHDPubKey(const CExtPubKey &extPubKey, bool fInternal);
+    bool AddKeyPubKeyX(const CKey& secret, const CPubKey &pubkey);
+    bool SetCryptedHDChain(const CHDChain& chain, bool memonly);
+    bool GetDecryptedHDChain(CHDChain& hdChainRet);
+    bool GetMnemonic(CHDChain &hdChain, SecureString& securewords) const;
   
 };
 

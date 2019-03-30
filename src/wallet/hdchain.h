@@ -6,8 +6,8 @@
 #include "key.h"
 #include "mnemonic.h"
 #include "sync.h"
+#include "support/allocators/secure.h"
 
-typedef std::vector<unsigned char, secure_allocator<unsigned char>> SecureVector;
 
 /* hd account data model */
 class CHDAccount {
@@ -33,6 +33,7 @@ public:
   uint256 id;
   SecureVector vchSeed;
   SecureVector vchMnemonic;
+  bool fCrypted;
 
   std::map<uint32_t, CHDAccount> mapAccounts;
   // critical section to protect mapAccounts
@@ -41,7 +42,7 @@ public:
   CHDChain() { SetNull(); }
   CHDChain(const CHDChain &other)
     : nVersion(other.nVersion),
-      id(other.id), vchSeed(other.vchSeed), vchMnemonic(other.vchMnemonic),
+      id(other.id), vchSeed(other.vchSeed), vchMnemonic(other.vchMnemonic), fCrypted(other.fCrypted),
         mapAccounts(other.mapAccounts) {}
 
   ADD_SERIALIZE_METHODS;
@@ -51,6 +52,7 @@ public:
     READWRITE(id);
     READWRITE(vchSeed);
     READWRITE(vchMnemonic);
+    READWRITE(fCrypted);
     READWRITE(mapAccounts);
   }
 
@@ -65,6 +67,7 @@ public:
     swap(first.id, second.id);
     swap(first.vchSeed, second.vchSeed);
     swap(first.vchMnemonic, second.vchMnemonic);
+    swap(first.fCrypted, second.fCrypted);
     swap(first.mapAccounts, second.mapAccounts);
     
 
@@ -81,7 +84,7 @@ public:
     vchSeed.clear();
     vchMnemonic.clear();
     mapAccounts.clear();
-
+    fCrypted = false;
     // default blank account
     mapAccounts.insert(std::pair<uint32_t, CHDAccount>(0, CHDAccount()));
     return IsNull();
@@ -89,15 +92,17 @@ public:
 
   void Setup(const mnemonic::WordList& words, const std::vector<uint8_t>& hashWords);
   void Setup(const SecureString& strWords, const std::vector<uint8_t>& hashWords);
+  void SetupCrypted(const SecureVector& words, const SecureVector& seed);
         
   bool IsNull() const { return vchSeed.empty() || id == uint256(); }
 
-  void SetCrypted(bool fCryptedIn) {}
-  bool IsCrypted() const { return false; }
+  void SetCrypted(bool fCryptedIn) { fCrypted = fCryptedIn; }
+  bool IsCrypted() const { return fCrypted; }
 
   bool GetMnemonic(SecureVector &vchMnemonicRet) const;
   bool GetMnemonic(SecureString &ssMnemonicRet) const;
 
+  void SetMnemonic(SecureVector &securewords) {  vchMnemonic = securewords;}
   bool SetSeed(const SecureVector &vchSeedIn, bool fUpdateID);
   SecureVector GetSeed() const { return vchSeed; }
   uint256 GetSeedHash() { return Hash(vchSeed.begin(), vchSeed.end()); }

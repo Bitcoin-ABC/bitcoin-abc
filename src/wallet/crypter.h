@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_WALLET_CRYPTER_H
-#define BITCOIN_WALLET_CRYPTER_H
+#pragma once
 
+#include "hdchain.h"
 #include "keystore.h"
 #include "serialize.h"
 #include "support/allocators/secure.h"
@@ -119,6 +119,7 @@ public:
 class CCryptoKeyStore : public CBasicKeyStore {
 private:
     CKeyingMaterial vMasterKey;
+    CHDChain cryptedHDChain;
 
     //! if fUseCrypto is true, mapKeys must be empty
     //! if fUseCrypto is false, vMasterKey must be empty
@@ -133,10 +134,13 @@ protected:
     //! will encrypt previously unencrypted keys
     bool EncryptKeys(CKeyingMaterial &vMasterKeyIn);
     bool SetHDChain(const CHDChain& chain);
-
+    bool EncryptHDChain(const CKeyingMaterial& vMasterKeyIn);
+    bool DecryptHDChain(CHDChain& hdChainRet) const;
+    bool SetCryptedHDChain(const CHDChain& chain);
     bool Unlock(const CKeyingMaterial &vMasterKeyIn);
-    CryptedKeyMap mapCryptedKeys;
 
+    CryptedKeyMap mapCryptedKeys;
+    
 public:
     CCryptoKeyStore()
         : fUseCrypto(false), fDecryptionThoroughlyChecked(false) {}
@@ -152,6 +156,8 @@ public:
     bool GetKey(const CKeyID &address, CKey &keyOut) const override;
     bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const override;
     std::set<CKeyID> GetKeys() const override;
+    virtual bool GetHDChain(CHDChain& hdChainRet) const override;
+
 
     /**
      * Wallet status (encrypted, locked) changed.
@@ -160,4 +166,5 @@ public:
     boost::signals2::signal<void(CCryptoKeyStore *wallet)> NotifyStatusChanged;
 };
 
-#endif // BITCOIN_WALLET_CRYPTER_H
+
+

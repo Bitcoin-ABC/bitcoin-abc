@@ -31,10 +31,10 @@ endif()
 # Unfortunately setting the -pie linker flag this way required CMake >= 3.14,
 # which is not widely distributed at the time of writing.
 # FIXME: use the POSITION_INDEPENDENT_CODE property instead
-# set(CMAKE_POSITION_INDEPENDENT_CODE ON) # for all targets
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	add_compiler_flag(-fPIC -fPIE)
-	add_linker_flag(-pie)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON) # for all targets
+	#add_compiler_flag(-fPIC -fPIE)
+	#add_linker_flag(-pie)
 endif()
 
 # Enable warning
@@ -137,6 +137,9 @@ source_group("PolicyHeaders" FILES ${POLICY_HEADERS})
 file(GLOB SCRIPT_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/script/*.h)
 source_group("ScriptHeaders" FILES ${SCRIPT_HEADERS})
 
+file(GLOB SUPPORT_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/support/*.h ${CMAKE_CURRENT_SOURCE_DIR}/support/allocators/*.h)
+source_group("SupportHeaders" FILES ${SUPPORT_HEADERS})
+
 # Because the Bitcoin ABc source code is disorganised, we
 # end up with a bunch of libraries without any aparent
 # cohesive structure. This is inherited from Bitcoin Core
@@ -145,6 +148,7 @@ source_group("ScriptHeaders" FILES ${SCRIPT_HEADERS})
 
 # Various completely unrelated features shared by all executables.
 add_library(util
+  ${SUPPORT_HEADERS}
 	chainparamsbase.cpp
 	clientversion.cpp
 	compat/glibc_sanity.cpp

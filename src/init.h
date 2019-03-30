@@ -4,11 +4,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_INIT_H
-#define BITCOIN_INIT_H
+#pragma once
 
 #include <memory>
 #include <string>
+#include "support/allocators/secure.h"
+
 
 class Config;
 class CScheduler;
@@ -71,7 +72,8 @@ bool AppInitLockDataDirectory();
  * AppInitLockDataDirectory should have been called.
  */
 bool AppInitMain(Config &config,
-                 HTTPRPCRequestProcessor &httpRPCRequestProcessor);
+                 HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                 const SecureString& walletPassphrase);
 
 /** The help message mode determines what help message to show */
 enum HelpMessageMode { HMM_BITCOIND, HMM_BITCOIN_QT };
@@ -81,4 +83,3 @@ std::string HelpMessage(HelpMessageMode mode);
 /** Returns licensing information (for -version) */
 std::string LicenseInfo();
 
-#endif // BITCOIN_INIT_H

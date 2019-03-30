@@ -21,6 +21,7 @@
 #include "splashscreen.h"
 #include "utilitydialog.h"
 #include "winshutdownmonitor.h"
+#include "setpassphrasedialog.h"
 
 #ifdef ENABLE_WALLET
 #include "walletmodel.h"
@@ -166,13 +167,13 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext &context,
 }
 
 /**
- * Class encapsulating Bitcoin ABC startup and shutdown.
+ * Class encapsulating DeVault startup and shutdown.
  * Allows running startup and shutdown in a different thread from the UI thread.
  */
-class BitcoinABC : public QObject {
+class DeVault : public QObject {
     Q_OBJECT
 public:
-    explicit BitcoinABC();
+    explicit DeVault(SecureString& strWalletPassphrase);
 
     /**
      * Basic initialization, before starting initialization/shutdown thread.
@@ -193,6 +194,7 @@ Q_SIGNALS:
 private:
     /// Pass fatal exception message to UI thread
     void handleRunawayException(const std::exception *e);
+    SecureString walletPassphrase;
 };
 
 /** Main Bitcoin application object */
@@ -208,9 +210,11 @@ public:
     /// Create options model
     void createOptionsModel(bool resetSettings);
     /// Create main window
-    void createWindow(const Config *, const NetworkStyle *networkStyle);
+    bool createWindow(const Config *, const NetworkStyle *networkStyle);
     /// Create splash screen
     void createSplashScreen(const NetworkStyle *networkStyle);
+    /// Get wallet password from user for Wallet Encryption or return true if wallet pre-exists
+    bool setupPassword(SecureString& password);
 
     /// Request core initialization
     void requestInitialize(Config &config,
@@ -249,6 +253,7 @@ private:
 #ifdef ENABLE_WALLET
     std::vector<WalletModel *> m_wallet_models;
 #endif
+    SecureString pss;
     int returnValue;
     const PlatformStyle *platformStyle;
     std::unique_ptr<QWidget> shutdownWindow;
@@ -258,14 +263,14 @@ private:
 
 #include "bitcoin.moc"
 
-BitcoinABC::BitcoinABC() : QObject() {}
+DeVault::DeVault(SecureString& strWalletPassphrase) : QObject(), walletPassphrase(strWalletPassphrase) {}
 
-void BitcoinABC::handleRunawayException(const std::exception *e) {
+void DeVault::handleRunawayException(const std::exception *e) {
     PrintExceptionContinue(e, "Runaway exception");
     Q_EMIT runawayException(QString::fromStdString(GetWarnings("gui")));
 }
 
-bool BitcoinABC::baseInitialize(Config &config, RPCServer &rpcServer) {
+bool DeVault::baseInitialize(Config &config, RPCServer &rpcServer) {
     if (!AppInitBasicSetup()) {
         return false;
     }
@@ -281,12 +286,13 @@ bool BitcoinABC::baseInitialize(Config &config, RPCServer &rpcServer) {
     return true;
 }
 
-void BitcoinABC::initialize(Config *cfg,
+void DeVault::initialize(Config *cfg,
                             HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
     Config &config(*cfg);
     try {
         qDebug() << __func__ << ": Running initialization in thread";
-        bool rv = AppInitMain(config, *httpRPCRequestProcessor);
+        bool rv = AppInitMain(config, *httpRPCRequestProcessor, walletPassphrase);
+        walletPassphrase.clear();
         Q_EMIT initializeResult(rv);
     } catch (const std::exception &e) {
         handleRunawayException(&e);
@@ -295,7 +301,7 @@ void BitcoinABC::initialize(Config *cfg,
     }
 }
 
-void BitcoinABC::shutdown() {
+void DeVault::shutdown() {
     try {
         qDebug() << __func__ << ": Running Shutdown in thread";
         Interrupt();
@@ -354,13 +360,36 @@ void BitcoinApplication::createOptionsModel(bool resetSettings) {
     optionsModel = new OptionsModel(nullptr, resetSettings);
 }
 
-void BitcoinApplication::createWindow(const Config *config,
+
+bool BitcoinApplication::setupPassword(SecureString& password) {
+  if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
+    LogPrintf("Wallet disabled!\n");
+  } else {
+    for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
+        if (fs::exists(walletFile)) return true;
+    }
+  }
+  if (CheckIfWalletDatExists()) return true;
+  
+  SetPassphraseDialog dlg(0);
+  dlg.exec();
+  password = dlg.getPassword();
+  std::cout << "Got " << password  << "\n";
+  return false;
+}
+
+bool BitcoinApplication::createWindow(const Config *config,
                                       const NetworkStyle *networkStyle) {
+
+    if (!setupPassword(pss)) {
+        if (pss.empty()) return false;
+    }
     window = new BitcoinGUI(config, platformStyle, networkStyle, 0);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, SIGNAL(timeout()), window,
             SLOT(detectShutdown()));
+    return true;
 }
 
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
@@ -379,7 +408,7 @@ void BitcoinApplication::startThread() {
         return;
     }
     coreThread = new QThread(this);
-    BitcoinABC *executor = new BitcoinABC();
+    DeVault *executor = new DeVault(pss);
     executor->moveToThread(coreThread);
 
     /*  communication to and from thread */
@@ -738,12 +767,14 @@ int main(int argc, char *argv[]) {
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
     try {
-        app.createWindow(&config, networkStyle.data());
+        if (!app.createWindow(&config, networkStyle.data())) {
+            return EXIT_FAILURE;
+        }
         // Perform base initialization before spinning up
         // initialization/shutdown thread. This is acceptable because this
         // function only contains steps that are quick to execute, so the GUI
         // thread won't be held up.
-        if (!BitcoinABC::baseInitialize(config, rpcServer)) {
+        if (!DeVault::baseInitialize(config, rpcServer)) {
             // A dialog with detailed error will have been shown by InitError()
             return EXIT_FAILURE;
         }

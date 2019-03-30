@@ -13,7 +13,7 @@ bool InitError(const std::string &str) {
 }
 
 bool ShowSeedPhrase(const std::string &str) {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING);
+    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_SEED);
     return false;
 }
 
