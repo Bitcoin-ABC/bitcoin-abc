@@ -137,7 +137,12 @@ endif()
 option(SECP256K1_ECMULT_STATIC_PRECOMPUTATION "Precompute libsecp256k1's elliptic curve multiplication tables" ON)
 if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 	set(USE_ECMULT_STATIC_PRECOMPUTATION 1)
+	set(SECP256K1_ECMULT_WINDOW_SIZE 15 CACHE STRING "Window size for ecmult precomputation for verification, specified as integer in range [2..24].")
+	if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 24)
+		message(FATAL_ERROR "SECP256K1_ECMULT_WINDOW_SIZE must be an integer in range [2..24]")
+	endif()
 
+	# FIXME: Propagate SECP256K1_ECMULT_WINDOW_SIZE
 	include(NativeExecutable)
 	add_native_executable(gen_context src/gen_context.c)
 

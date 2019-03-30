@@ -1,4 +1,5 @@
 language: c
+os: linux
 addons:
   apt:
     packages:
@@ -64,4 +65,3 @@ jobs:
 script:
  - ./travis/build_autotools.sh
  - ./travis/build_cmake.sh
-os: linux
