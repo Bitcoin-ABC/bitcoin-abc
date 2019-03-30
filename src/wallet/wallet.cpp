@@ -2140,7 +2140,7 @@ Amount CWallet::GetBalance() const {
     LOCK2(cs_main, cs_wallet);
 
     Amount nTotal = Amount::zero();
-    for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
+    for (const auto &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (pcoin->IsTrusted()) {
             nTotal += pcoin->GetAvailableCredit();
@@ -2154,7 +2154,7 @@ Amount CWallet::GetUnconfirmedBalance() const {
     LOCK2(cs_main, cs_wallet);
 
     Amount nTotal = Amount::zero();
-    for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
+    for (const auto &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (!pcoin->IsTrusted() && pcoin->GetDepthInMainChain() == 0 &&
             pcoin->InMempool()) {
@@ -2169,7 +2169,7 @@ Amount CWallet::GetImmatureBalance() const {
     LOCK2(cs_main, cs_wallet);
 
     Amount nTotal = Amount::zero();
-    for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
+    for (const auto &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         nTotal += pcoin->GetImmatureCredit();
     }
@@ -2181,7 +2181,7 @@ Amount CWallet::GetWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
     Amount nTotal = Amount::zero();
-    for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
+    for (const auto &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (pcoin->IsTrusted()) {
             nTotal += pcoin->GetAvailableWatchOnlyCredit();
@@ -2195,7 +2195,7 @@ Amount CWallet::GetUnconfirmedWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
     Amount nTotal = Amount::zero();
-    for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
+    for (const auto &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (!pcoin->IsTrusted() && pcoin->GetDepthInMainChain() == 0 &&
             pcoin->InMempool()) {
@@ -2210,7 +2210,7 @@ Amount CWallet::GetImmatureWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
     Amount nTotal = Amount::zero();
-    for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
+    for (const auto &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         nTotal += pcoin->GetImmatureWatchOnlyCredit();
     }
@@ -3408,8 +3408,7 @@ bool CWallet::DelAddressBook(const CTxDestination &address) {
         LOCK(cs_wallet);
 
         // Delete destdata tuples associated with address.
-        for (const std::pair<std::string, std::string> &item :
-             mapAddressBook[address].destdata) {
+        for (const auto &item : mapAddressBook[address].destdata) {
             CWalletDB(*dbw).EraseDestData(address, item.first);
         }
 
@@ -3843,8 +3842,7 @@ std::set<CTxDestination>
 CWallet::GetLabelAddresses(const std::string &label) const {
     LOCK(cs_wallet);
     std::set<CTxDestination> result;
-    for (const std::pair<CTxDestination, CAddressBookData> &item :
-         mapAddressBook) {
+    for (const auto &item : mapAddressBook) {
         const CTxDestination &address = item.first;
         const std::string &strName = item.second.name;
         if (strName == label) {

@@ -73,7 +73,7 @@ public:
         cachedWallet.clear();
 
         LOCK2(cs_main, wallet->cs_wallet);
-        for (const std::pair<TxId, CWalletTx> &p : wallet->mapWallet) {
+        for (const auto &p : wallet->mapWallet) {
             if (TransactionRecord::showTransaction(p.second)) {
                 cachedWallet.append(
                     TransactionRecord::decomposeTransaction(wallet, p.second));
