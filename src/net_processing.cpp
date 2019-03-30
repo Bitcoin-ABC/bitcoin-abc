@@ -4193,7 +4193,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             nPeersWithValidatedDownloads -
             (state.nBlocksInFlightValidHeaders > 0);
         if (nNow > state.nDownloadingSince +
-                       consensusParams.nPowTargetSpacing *
+                       120 *   //consensusParams.nPowTargetSpacing *
                            (BLOCK_DOWNLOAD_TIMEOUT_BASE +
                             BLOCK_DOWNLOAD_TIMEOUT_PER_PEER *
                                 nOtherPeersWithValidatedDownloads)) {
