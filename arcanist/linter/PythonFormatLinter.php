@@ -15,7 +15,7 @@ final class PythonFormatLinter extends ArcanistExternalLinter {
   }
 
   public function getInfoDescription() {
-    return pht('Convert python string formatting from % to .format().');
+    return pht('Convert python string formatting from %% to .format().');
   }
 
   public function getLinterName() {
