@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Uses the lint-python-format.py script to update from old % format style to 
+ * Uses the lint-python-format.py script to update from old % format style to
  * new .format().
  */
 final class PythonFormatLinter extends ArcanistExternalLinter {
@@ -28,26 +28,25 @@ final class PythonFormatLinter extends ArcanistExternalLinter {
 
   public function getLinterConfigurationOptions() {
     $options = array();
-
     return $options + parent::getLinterConfigurationOptions();
   }
 
   public function getDefaultBinary() {
-    return Filesystem::resolvePath(
-      'test/lint/lint-python-format.py',
+    return Filesystem::resolvePath('test/lint/lint-python-format.py',
       $this->getProjectRoot());
   }
-  
+
   public function shouldUseInterpreter() {
     return true;
   }
-  
+
   public function getDefaultInterpreter() {
     return "python3";
   }
 
   public function getInstallInstructions() {
-    return pht('The test/lint/lint-python-format.py script is part of the bitcoin-abc project');
+    return pht('The test/lint/lint-python-format.py script is part of the '.
+      'bitcoin-abc project');
   }
 
   public function shouldExpectCommandErrors() {
@@ -62,8 +61,8 @@ final class PythonFormatLinter extends ArcanistExternalLinter {
     $pattern = '/\((\d+)\) ([\s\S]+?)=> (.+)/';
     $found = preg_match_all($pattern, $stdout, $snippets,
       $flags = PREG_SET_ORDER);
-    
-    /* 
+
+    /*
      * Matched snippets $snippets are organized like this:
      * [0] The complete mask
      * [1] The line number
@@ -89,7 +88,7 @@ final class PythonFormatLinter extends ArcanistExternalLinter {
         ->setOriginalText(rtrim($snippet[2]))
         ->setReplacementText($snippet[3]);
     }
-    
+
     return $messages;
   }
 }

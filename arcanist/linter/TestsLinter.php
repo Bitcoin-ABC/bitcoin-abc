@@ -15,7 +15,7 @@ final class TestsLinter extends ArcanistExternalLinter {
 
   public function getInfoDescription() {
     return pht('Check the unit tests for duplicates and ensure the file name '.
-               'matches the boost test suite name.');
+      'matches the boost test suite name.');
   }
 
   public function getLinterName() {
@@ -27,29 +27,26 @@ final class TestsLinter extends ArcanistExternalLinter {
   }
 
   public function getLinterConfigurationOptions() {
-    $options = array(
-    );
-
+    $options = array();
     return $options + parent::getLinterConfigurationOptions();
   }
 
   public function getDefaultBinary() {
-    return Filesystem::resolvePath(
-      'test/lint/lint-tests.sh',
+    return Filesystem::resolvePath('test/lint/lint-tests.sh',
       $this->getProjectRoot());
   }
-  
+
   public function shouldUseInterpreter() {
     return true;
   }
-  
+
   public function getDefaultInterpreter() {
     return "bash";
   }
-  
+
   public function getInstallInstructions() {
     return pht('The test/lint/lint-tests.sh script is part of the bitcoin-abc '.
-               'project');
+      'project');
   }
 
   public function shouldExpectCommandErrors() {
@@ -57,8 +54,7 @@ final class TestsLinter extends ArcanistExternalLinter {
   }
 
   protected function getMandatoryFlags() {
-    return array(
-    );
+    return array();
   }
 
   protected function parseLinterOutput($path, $err, $stdout, $stderr) {
@@ -70,9 +66,9 @@ final class TestsLinter extends ArcanistExternalLinter {
      * <test_name>
      */
 
-    /* 
+    /*
      * Extract infos from the path
-     * 
+     *
      * Note: the files are already filtered by path thanks to the .arclint
      * configuration. If the file is not a test, the grep will find nothing and
      * there will be no error to parse.
@@ -88,7 +84,7 @@ final class TestsLinter extends ArcanistExternalLinter {
     $mismatch = preg_match($pattern, $stdout, $matches);
 
     if ($mismatch) {
-      /* 
+      /*
        * Expect a single result as we are testing against a single file.
        *  - $matches[0] contains the full mask
        *  - $matches[1] contains the captured match
@@ -96,7 +92,7 @@ final class TestsLinter extends ArcanistExternalLinter {
       if (count($matches) != 2) {
         throw new Exception(
           pht('Found multiple matches for a single file, lint-tests.sh output '.
-              'is not formatted as expected, aborting.'));
+            'is not formatted as expected, aborting.'));
       }
 
       $mismatchName = $matches[1];
@@ -111,7 +107,7 @@ final class TestsLinter extends ArcanistExternalLinter {
           $mismatchName.'", should be "'.$testName.'").');
     }
 
-    /* 
+    /*
      * Search for unicity, searching for test name alone on its line.
      * The test name can be whether the one extracted from the file name or the
      * one extracted from the BOOST_FIXTURE_TEST_SUITE content.
@@ -130,7 +126,7 @@ final class TestsLinter extends ArcanistExternalLinter {
      * possibly return an output matching our expected test name AND our actual
      * test name. This would be weird, but not impossible.
      * Just returning an error for the first one is enough, as the linter will
-     * be rerun after the name is fix and the other match will then eventually 
+     * be rerun after the name is fix and the other match will then eventually
      * get catched.
      */
 
@@ -147,5 +143,3 @@ final class TestsLinter extends ArcanistExternalLinter {
     return $messages;
   }
 }
-
-?>
