@@ -6,9 +6,10 @@
  */
 final class LocaleDependenceLinter extends ArcanistExternalLinter {
   
-  const ADVICE_MESSAGE = 
-    'Unnecessary locale dependence can cause bugs and should be avoided. '.
-    'Otherwise an exception can be added to the lint-locale-dependence script.';
+  const ADVICE_MESSAGE = <<<ADVICE
+Unnecessary locale dependence can cause bugs and should be avoided.
+Otherwise an exception can be added to the lint-locale-dependence script.
+ADVICE;
 
   public function getInfoName() {
     return 'lint-locale-dependence';
