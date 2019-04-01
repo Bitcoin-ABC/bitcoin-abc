@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="BitcoinABC Standard" namespace="BitcoinABC\CS\Standard">
+
+    <description>
+        BitcoinABC PHP coding standard.
+    </description>
+
+    <rule ref="Generic">
+        <exclude name="Generic.Arrays.ArrayIndent" />
+        <exclude name="Generic.Arrays.DisallowLongArraySyntax.Found" />
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
+        <exclude name="Generic.CodeAnalysis.AssignmentInCondition.Found" />
+        <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found" />
+        <exclude name="Generic.Files.EndFileNoNewline.Found" />
+        <exclude name="Generic.Files.LowercasedFilename" />
+        <exclude name="Generic.Formatting.MultipleStatementAlignment" />
+        <exclude name="Generic.Formatting.SpaceAfterNot" />
+        <exclude name="Generic.Functions.OpeningFunctionBraceBsdAllman" />
+        <exclude name="Generic.PHP.ClosingPHPTag" />
+        <exclude name="Generic.PHP.UpperCaseConstant" />
+        <exclude name="Generic.WhiteSpace.DisallowSpaceIndent" />
+    </rule>
+
+    <rule ref="Generic.NamingConventions.CamelCapsFunctionName">
+        <properties>
+            <property name="strict" value="false" />
+        </properties>
+    </rule>
+
+    <rule ref="Generic.Strings.UnnecessaryStringConcat">
+        <properties>
+            <property name="allowMultiline" value="true" />
+        </properties>
+    </rule>
+
+    <rule ref="Generic.WhiteSpace.ScopeIndent">
+        <properties>
+            <property name="indent" value="2" />
+            <property name="exact" value="true" />
+            <property name="ignoreIndentationTokens" type="array"
+                value="T_COMMENT, T_OBJECT_OPERATOR" />
+        </properties>
+    </rule>
+
+    <rule ref="PSR2.Files.ClosingTag" />
+
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace" />
+
+</ruleset>

@@ -51,6 +51,14 @@
         "lint-locale-dependence": {
             "type": "lint-locale-dependence",
             "include": "(^src/.*\\.(h|cpp)$)"
+        },
+        "phpcs": {
+            "type": "phpcs",
+            "include": "(\\.php$)",
+            "exclude": [
+                "(^arcanist/__phutil_library_.+\\.php$)"
+            ],
+            "phpcs.standard": "arcanist/linter/phpcs_ruleset.xml"
         }
     }
 }
