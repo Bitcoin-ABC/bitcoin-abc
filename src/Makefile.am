@@ -491,6 +491,7 @@ libbitcoin_common_a_SOURCES = \
   policy/policy.cpp \
   protocol.cpp \
   psbt.cpp \
+  rpc/util.cpp \
   scheduler.cpp \
   script/descriptor.cpp \
   script/ismine.cpp \
@@ -517,7 +518,6 @@ libbitcoin_util_a_SOURCES = \
   random.cpp \
   rcu.cpp \
   rpc/protocol.cpp \
-  rpc/util.cpp \
   support/cleanse.cpp \
   sync.cpp \
   threadinterrupt.cpp \

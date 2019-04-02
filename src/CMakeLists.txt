@@ -312,7 +312,6 @@ add_library(util
 	random.cpp
 	rcu.cpp
 	rpc/protocol.cpp
-	rpc/util.cpp
 	support/cleanse.cpp
 	support/lockedpool.cpp
 	sync.cpp
@@ -411,6 +410,7 @@ add_library(common
 	primitives/block.cpp
 	protocol.cpp
 	psbt.cpp
+	rpc/util.cpp
 	scheduler.cpp
 	versionbitsinfo.cpp
 	warnings.cpp

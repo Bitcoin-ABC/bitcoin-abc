@@ -16,6 +16,133 @@
 
 InitInterfaces *g_rpc_interfaces = nullptr;
 
+void RPCTypeCheck(const UniValue &params,
+                  const std::list<UniValueType> &typesExpected,
+                  bool fAllowNull) {
+    unsigned int i = 0;
+    for (const UniValueType &t : typesExpected) {
+        if (params.size() <= i) {
+            break;
+        }
+
+        const UniValue &v = params[i];
+        if (!(fAllowNull && v.isNull())) {
+            RPCTypeCheckArgument(v, t);
+        }
+        i++;
+    }
+}
+
+void RPCTypeCheckArgument(const UniValue &value,
+                          const UniValueType &typeExpected) {
+    if (!typeExpected.typeAny && value.type() != typeExpected.type) {
+        throw JSONRPCError(RPC_TYPE_ERROR,
+                           strprintf("Expected type %s, got %s",
+                                     uvTypeName(typeExpected.type),
+                                     uvTypeName(value.type())));
+    }
+}
+
+void RPCTypeCheckObj(const UniValue &o,
+                     const std::map<std::string, UniValueType> &typesExpected,
+                     bool fAllowNull, bool fStrict) {
+    for (const auto &t : typesExpected) {
+        const UniValue &v = find_value(o, t.first);
+        if (!fAllowNull && v.isNull()) {
+            throw JSONRPCError(RPC_TYPE_ERROR,
+                               strprintf("Missing %s", t.first));
+        }
+
+        if (!(t.second.typeAny || v.type() == t.second.type ||
+              (fAllowNull && v.isNull()))) {
+            std::string err = strprintf("Expected type %s for %s, got %s",
+                                        uvTypeName(t.second.type), t.first,
+                                        uvTypeName(v.type()));
+            throw JSONRPCError(RPC_TYPE_ERROR, err);
+        }
+    }
+
+    if (fStrict) {
+        for (const std::string &k : o.getKeys()) {
+            if (typesExpected.count(k) == 0) {
+                std::string err = strprintf("Unexpected key %s", k);
+                throw JSONRPCError(RPC_TYPE_ERROR, err);
+            }
+        }
+    }
+}
+
+Amount AmountFromValue(const UniValue &value) {
+    if (!value.isNum() && !value.isStr()) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Amount is not a number or string");
+    }
+
+    int64_t n;
+    if (!ParseFixedPoint(value.getValStr(), 8, &n)) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+    }
+
+    Amount amt = n * SATOSHI;
+    if (!MoneyRange(amt)) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Amount out of range");
+    }
+
+    return amt;
+}
+
+uint256 ParseHashV(const UniValue &v, std::string strName) {
+    std::string strHex(v.get_str());
+    if (64 != strHex.length()) {
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            strprintf("%s must be of length %d (not %d, for '%s')", strName, 64,
+                      strHex.length(), strHex));
+    }
+    // Note: IsHex("") is false
+    if (!IsHex(strHex)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           strName + " must be hexadecimal string (not '" +
+                               strHex + "')");
+    }
+    return uint256S(strHex);
+}
+
+uint256 ParseHashO(const UniValue &o, std::string strKey) {
+    return ParseHashV(find_value(o, strKey), strKey);
+}
+
+std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName) {
+    std::string strHex;
+    if (v.isStr()) {
+        strHex = v.get_str();
+    }
+    if (!IsHex(strHex)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           strName + " must be hexadecimal string (not '" +
+                               strHex + "')");
+    }
+
+    return ParseHex(strHex);
+}
+
+std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey) {
+    return ParseHexV(find_value(o, strKey), strKey);
+}
+
+std::string HelpExampleCli(const std::string &methodname,
+                           const std::string &args) {
+    return "> bitcoin-cli " + methodname + " " + args + "\n";
+}
+
+std::string HelpExampleRpc(const std::string &methodname,
+                           const std::string &args) {
+    return "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", "
+           "\"id\":\"curltest\", "
+           "\"method\": \"" +
+           methodname + "\", \"params\": [" + args +
+           "] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n";
+}
+
 // Converts a hex string to a public key if possible
 CPubKey HexToPubKey(const std::string &hex_in) {
     if (!IsHex(hex_in)) {

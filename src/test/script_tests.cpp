@@ -11,7 +11,7 @@
 #include <core_io.h>
 #include <key.h>
 #include <keystore.h>
-#include <rpc/server.h>
+#include <rpc/util.h>
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/system.h>

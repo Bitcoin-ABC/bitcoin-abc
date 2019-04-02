@@ -35,17 +35,6 @@ void OnStopped(std::function<void()> slot);
 
 class Config;
 
-/**
- * Wrapper for UniValue::VType, which includes typeAny: used to denote don't
- * care type.
- */
-struct UniValueType {
-    UniValueType(UniValue::VType _type) : typeAny(false), type(_type) {}
-    UniValueType() : typeAny(true) {}
-    bool typeAny;
-    UniValue::VType type;
-};
-
 typedef std::map<std::string, std::unique_ptr<RPCCommand>> RPCCommandMap;
 
 /**
@@ -91,28 +80,6 @@ void SetRPCWarmupFinished();
  * Returns the current warmup state
  */
 bool RPCIsInWarmup(std::string *outStatus);
-
-/**
- * Type-check arguments; throws JSONRPCError if wrong type given. Does not check
- * that the right number of arguments are passed, just that any passed are the
- * correct type.
- */
-void RPCTypeCheck(const UniValue &params,
-                  const std::list<UniValueType> &typesExpected,
-                  bool fAllowNull = false);
-
-/**
- * Type-check one argument; throws JSONRPCError if wrong type given.
- */
-void RPCTypeCheckArgument(const UniValue &value,
-                          const UniValueType &typeExpected);
-
-/**
- * Check for expected keys/value types in an Object.
- */
-void RPCTypeCheckObj(const UniValue &o,
-                     const std::map<std::string, UniValueType> &typesExpected,
-                     bool fAllowNull = false, bool fStrict = false);
 
 /**
  * Opaque base class for timers returned by NewTimerFunc.
@@ -270,20 +237,6 @@ public:
 bool IsDeprecatedRPCEnabled(ArgsManager &args, const std::string &method);
 
 extern CRPCTable tableRPC;
-
-/**
- * Utilities: convert hex-encoded values (throws error if not hex).
- */
-extern uint256 ParseHashV(const UniValue &v, std::string strName);
-extern uint256 ParseHashO(const UniValue &o, std::string strKey);
-extern std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName);
-extern std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey);
-
-extern Amount AmountFromValue(const UniValue &value);
-extern std::string HelpExampleCli(const std::string &methodname,
-                                  const std::string &args);
-extern std::string HelpExampleRpc(const std::string &methodname,
-                                  const std::string &args);
 
 void StartRPC();
 void InterruptRPC();
