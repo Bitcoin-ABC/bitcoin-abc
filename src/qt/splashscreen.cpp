@@ -38,7 +38,8 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle)
     float devicePixelRatio = 1.0;
 #if QT_VERSION > 0x050100
     devicePixelRatio =
-        ((QGuiApplication *)QCoreApplication::instance())->devicePixelRatio();
+        static_cast<QGuiApplication *>(QCoreApplication::instance())
+            ->devicePixelRatio();
 #endif
 
     // define text to place

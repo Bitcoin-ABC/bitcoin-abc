@@ -2109,7 +2109,8 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
         return;
     }
     if (!pszDest) {
-        if (IsLocal(addrConnect) || FindNode((CNetAddr)addrConnect) ||
+        if (IsLocal(addrConnect) ||
+            FindNode(static_cast<CNetAddr>(addrConnect)) ||
             IsBanned(addrConnect) || FindNode(addrConnect.ToStringIPPort())) {
             return;
         }

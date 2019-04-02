@@ -384,7 +384,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
         SEND_CONFIRM_DELAY, this);
     confirmationDialog.exec();
     QMessageBox::StandardButton retval =
-        (QMessageBox::StandardButton)confirmationDialog.result();
+        static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
 
     if (retval != QMessageBox::Yes) {
         fNewRecipientAllowed = true;

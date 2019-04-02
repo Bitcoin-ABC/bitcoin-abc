@@ -163,9 +163,9 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
         ui->radioTreeMode->click();
     if (settings.contains("nCoinControlSortColumn") &&
         settings.contains("nCoinControlSortOrder"))
-        sortView(
-            settings.value("nCoinControlSortColumn").toInt(),
-            ((Qt::SortOrder)settings.value("nCoinControlSortOrder").toInt()));
+        sortView(settings.value("nCoinControlSortColumn").toInt(),
+                 (static_cast<Qt::SortOrder>(
+                     settings.value("nCoinControlSortOrder").toInt())));
 }
 
 CoinControlDialog::~CoinControlDialog() {
@@ -467,7 +467,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         nPayAmount += amount;
 
         if (amount > Amount::zero()) {
-            CTxOut txout(Amount(amount), (CScript)std::vector<uint8_t>(24, 0));
+            CTxOut txout(amount,
+                         static_cast<CScript>(std::vector<uint8_t>(24, 0)));
             txDummy.vout.push_back(txout);
             if (txout.IsDust(dustRelayFee)) {
                 fDust = true;
@@ -556,7 +557,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
             // Never create dust outputs; if we would, just add the dust to the
             // fee.
             if (nChange > Amount::zero() && nChange < MIN_CHANGE) {
-                CTxOut txout(nChange, (CScript)std::vector<uint8_t>(24, 0));
+                CTxOut txout(nChange,
+                             static_cast<CScript>(std::vector<uint8_t>(24, 0)));
                 if (txout.IsDust(dustRelayFee)) {
                     // dust-change will be raised until no dust
                     if (CoinControlDialog::fSubtractFeeFromAmount) {

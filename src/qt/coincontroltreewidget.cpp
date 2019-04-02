@@ -23,7 +23,7 @@ void CoinControlTreeWidget::keyPressEvent(QKeyEvent *event) {
     {
         event->ignore();
         CoinControlDialog *coinControlDialog =
-            (CoinControlDialog *)this->parentWidget();
+            static_cast<CoinControlDialog *>(this->parentWidget());
         coinControlDialog->done(QDialog::Accepted);
     } else {
         this->QTreeWidget::keyPressEvent(event);
