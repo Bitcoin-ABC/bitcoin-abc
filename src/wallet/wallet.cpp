@@ -29,8 +29,10 @@
 #include <timedata.h>
 #include <txmempool.h>
 #include <ui_interface.h>
+#include <util/error.h>
 #include <util/moneystr.h>
 #include <util/system.h>
+#include <util/validation.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/coinselection.h>

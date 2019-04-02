@@ -6,14 +6,13 @@
 // NOTE: This file is intended to be customised by the end user, and includes
 // only local node policy logic
 
+#include <coins.h>
 #include <policy/policy.h>
-
 #include <policy/settings.h>
 #include <script/interpreter.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
 #include <util/system.h>
-#include <validation.h>
 
 Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {
     /**

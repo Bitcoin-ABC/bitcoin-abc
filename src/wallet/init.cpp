@@ -9,6 +9,7 @@
 #include <interfaces/chain.h>
 #include <net.h>
 #include <scheduler.h>
+#include <util/error.h>
 #include <util/moneystr.h>
 #include <util/system.h>
 #include <validation.h>

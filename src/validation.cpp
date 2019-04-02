@@ -47,6 +47,7 @@
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/validation.h>
 #include <validationinterface.h>
 #include <warnings.h>
 
@@ -112,8 +113,6 @@ CTxMemPool g_mempool;
 
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
-
-const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 
 // Internal stuff
 namespace {
@@ -281,14 +280,6 @@ bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
         }
     }
     return EvaluateSequenceLocks(index, lockPair);
-}
-
-/** Convert CValidationState to a human-readable message for logging */
-std::string FormatStateMessage(const CValidationState &state) {
-    return strprintf(
-        "%s%s (code %i)", state.GetRejectReason(),
-        state.GetDebugMessage().empty() ? "" : ", " + state.GetDebugMessage(),
-        state.GetRejectCode());
 }
 
 // Command-line argument "-replayprotectionactivationtime=<timestamp>" will

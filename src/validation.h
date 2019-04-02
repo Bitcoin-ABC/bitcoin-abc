@@ -180,7 +180,6 @@ static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 2 * 60 * 60;
 extern CScript COINBASE_FLAGS;
 extern RecursiveMutex cs_main;
 extern CTxMemPool g_mempool;
-extern const std::string strMessageMagic;
 extern Mutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;
 extern uint256 g_best_block;
@@ -441,9 +440,6 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         bool *pfMissingInputs, bool bypass_limits,
                         const Amount nAbsurdFee, bool test_accept = false)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-/** Convert CValidationState to a human-readable message for logging */
-std::string FormatStateMessage(const CValidationState &state);
 
 /**
  * Simple class for regulating resource usage during CheckInputs (and

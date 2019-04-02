@@ -10,7 +10,7 @@
 #include <qt/guiutil.h>
 #include <qt/platformstyle.h>
 #include <qt/walletmodel.h>
-#include <validation.h> // For strMessageMagic
+#include <util/validation.h> // For strMessageMagic
 #include <wallet/wallet.h>
 
 #include <QClipboard>

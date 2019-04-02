@@ -25,6 +25,8 @@
 #include <timedata.h>
 #include <util/moneystr.h>
 #include <util/system.h>
+#include <util/url.h>
+#include <util/validation.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/psbtwallet.h>
@@ -40,18 +42,6 @@
 #include <functional>
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
-
-static std::string urlDecode(const std::string &urlEncoded) {
-    std::string res;
-    if (!urlEncoded.empty()) {
-        char *decoded = evhttp_uridecode(urlEncoded.c_str(), false, nullptr);
-        if (decoded) {
-            res = std::string(decoded);
-            free(decoded);
-        }
-    }
-    return res;
-}
 
 bool GetWalletNameFromJSONRPCRequest(const JSONRPCRequest &request,
                                      std::string &wallet_name) {

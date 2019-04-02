@@ -26,6 +26,7 @@
 #include <txmempool.h>
 #include <util/moneystr.h>
 #include <util/system.h>
+#include <util/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
 

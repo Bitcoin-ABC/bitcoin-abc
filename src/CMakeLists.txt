@@ -319,12 +319,15 @@ add_library(util
 	threadinterrupt.cpp
 	uint256.cpp
 	util/bytevectorhash.cpp
+	util/error.cpp
 	util/moneystr.cpp
 	util/settings.cpp
 	util/strencodings.cpp
 	util/system.cpp
 	util/threadnames.cpp
 	util/time.cpp
+	util/url.cpp
+	util/validation.cpp
 
 	# obj/build.h
 	"${BUILD_HEADER}"

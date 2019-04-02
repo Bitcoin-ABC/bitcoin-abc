@@ -234,12 +234,15 @@ BITCOIN_CORE_H = \
   util/bitmanip.h \
   util/bytevectorhash.h \
   util/check.h \
+  util/error.h \
   util/macros.h \
   util/moneystr.h \
   util/system.h \
   util/settings.h \
   util/threadnames.h \
   util/time.h \
+  util/url.h \
+  util/validation.h \
   validation.h \
   validationinterface.h \
   versionbits.h \
@@ -525,12 +528,15 @@ libbitcoin_util_a_SOURCES = \
   threadinterrupt.cpp \
   uint256.cpp \
   uint256.h \
+  util/error.cpp \
   util/system.cpp \
   util/moneystr.cpp \
   util/settings.cpp \
   util/strencodings.cpp \
   util/threadnames.cpp \
   util/time.cpp \
+  util/url.cpp \
+  util/validation.cpp \
   util/bytevectorhash.cpp \
   $(BITCOIN_CORE_H)
 
