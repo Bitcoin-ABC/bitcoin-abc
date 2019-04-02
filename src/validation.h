@@ -401,7 +401,8 @@ bool IsInitialBlockDownload();
  * Retrieve a transaction (from memory pool, or from disk, if possible).
  */
 bool GetTransaction(const Config &config, const TxId &txid, CTransactionRef &tx,
-                    uint256 &hashBlock, bool fAllowSlow = false);
+                    uint256 &hashBlock, bool fAllowSlow = false,
+                    CBlockIndex *blockIndex = nullptr);
 
 /**
  * Find the best known block, and make it the active tip of the block chain.
