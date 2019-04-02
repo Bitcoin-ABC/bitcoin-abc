@@ -188,6 +188,7 @@ BITCOIN_CORE_H = \
   policy/fees.h \
   policy/mempool.h \
   policy/policy.h \
+  policy/settings.h \
   pow.h \
   protocol.h \
   psbt.h \
@@ -308,7 +309,7 @@ libbitcoin_server_a_SOURCES = \
   outputtype.cpp \
   policy/fees.cpp \
   policy/mempool.cpp \
-  policy/policy.cpp \
+  policy/settings.cpp \
   pow.cpp \
   rest.cpp \
   rpc/abc.cpp \
@@ -490,6 +491,7 @@ libbitcoin_common_a_SOURCES = \
   net_permissions.cpp \
   netaddress.cpp \
   netbase.cpp \
+  policy/policy.cpp \
   protocol.cpp \
   psbt.cpp \
   scheduler.cpp \

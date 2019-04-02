@@ -8,6 +8,7 @@
 
 #include <consensus/consensus.h>
 #include <feerate.h>
+#include <policy/settings.h>
 #include <script/standard.h>
 
 #include <string>
@@ -64,6 +65,8 @@ static const CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
  */
 static const unsigned int DEFAULT_BYTES_PER_SIGOP =
     1000000 / MAX_BLOCK_SIGOPS_PER_MB;
+/** Default for -permitbaremultisig */
+static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 /**
  * Min feerate for defining dust. Historically this has been the same as the
  * minRelayTxFee, however changing the dust limit changes which transactions are
@@ -137,9 +140,6 @@ bool IsStandardTx(const CTransaction &tx, std::string &reason);
  */
 bool AreInputsStandard(const CTransaction &tx, const CCoinsViewCache &mapInputs,
                        uint32_t flags);
-
-extern CFeeRate dustRelayFee;
-extern uint32_t nBytesPerSigOp;
 
 /**
  * Compute the virtual transaction size (size, or more if sigops are too

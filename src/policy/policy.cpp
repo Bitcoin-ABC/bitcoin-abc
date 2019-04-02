@@ -8,6 +8,7 @@
 
 #include <policy/policy.h>
 
+#include <policy/settings.h>
 #include <script/interpreter.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
@@ -164,9 +165,6 @@ bool AreInputsStandard(const CTransaction &tx, const CCoinsViewCache &mapInputs,
 
     return true;
 }
-
-CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
-uint32_t nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
 
 int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigOpCount,
                                   unsigned int bytes_per_sigop) {

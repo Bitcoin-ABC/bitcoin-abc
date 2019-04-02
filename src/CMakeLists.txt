@@ -408,6 +408,7 @@ add_library(common
 	net_permissions.cpp
 	netaddress.cpp
 	netbase.cpp
+	policy/policy.cpp
 	primitives/block.cpp
 	protocol.cpp
 	psbt.cpp
@@ -496,7 +497,7 @@ add_library(server
 	outputtype.cpp
 	policy/fees.cpp
 	policy/mempool.cpp
-	policy/policy.cpp
+	policy/settings.cpp
 	pow.cpp
 	rest.cpp
 	rpc/abc.cpp

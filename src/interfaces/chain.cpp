@@ -12,6 +12,7 @@
 #include <node/coin.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
+#include <policy/settings.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h>

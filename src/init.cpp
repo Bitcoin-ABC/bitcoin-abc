@@ -33,6 +33,7 @@
 #include <netbase.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
+#include <policy/settings.h>
 #include <rpc/blockchain.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
