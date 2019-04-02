@@ -2,6 +2,8 @@
 
 Bitcoin ABC takes security very seriously.  We greatly appreciate any and all disclosures of bugs and vulnerabilities that are done in a responsible manner.  We will engage responsible disclosures according to this policy and put forth our best effort to fix disclosed vulnerabilities as well as reaching out to numerous node operators to deploy fixes in a timely manner.
 
+This disclosure policy is also intended to conform to [this proposed standard](https://github.com/RD-Crypto-Spec/Responsible-Disclosure/blob/184391fcbc1bbf3c158c527a841e611ac9ae8388/README.md) with some modifications (see below).
+
 ## Responsible Disclosure Guidelines
 
 Do not disclose any bug or vulnerability on public forums, message boards, mailing lists, etc. prior to responsibly disclosing to Bitcoin ABC and giving sufficient time for the issue to be fixed and deployed.
@@ -65,6 +67,24 @@ Bitcoin ABC Developer
 contact at jasonbcox dot com
 3BB16D00D9A6D281591BDC76E4486356E7A81D2C
 ```
+
+## Disclosure Relationships
+
+Neighboring projects that may be affected by bugs, potential exploits, or other security vulnerabilities that are disclosed to Bitcoin ABC will be passed along information regarding disclosures that we believe could impact them.  As per the standard referenced above, we are disclosing these relationships here:
+
+* [ZCash](https://github.com/zcash/zcash/)
+  * [Security Contact(s)](https://z.cash/support/security/)
+  * [Disclosure Policy](https://github.com/zcash/zcash/blob/master/responsible_disclosure.md)
+
+## Bounty Payments
+
+Bitcoin ABC cannot commit to bounty payments ahead of time.  However, we will use our best judgement and do intend on rewarding those who provide valuable disclosures (with a strong emphasis on easy to read and reproduce disclosures).
+
+## Deviations from the Standard
+
+While Bitcoin ABC believes that strong cohesion among neighoring projects and ethical behavior can be standardized to reduce poorly handled disclosure incidents, we also believe that it's in the best interest of Bitcoin Cash for us to deviate from the standard in the following ways:
+
+* The standard calls for coordinated releases. While Bitcoin ABC will make attempts to coordinate releases when possible, it's not always feasible to coordinate urgent fixes for catastrophic exploits (ie. chain splitting events).  For critical fixes, Bitcoin ABC will release them in the next release when possible.
 
 ## Making changes to this disclosure
 
