@@ -410,6 +410,7 @@ add_library(common
 	primitives/block.cpp
 	protocol.cpp
 	psbt.cpp
+	rpc/rawtransaction_util.cpp
 	rpc/util.cpp
 	scheduler.cpp
 	versionbitsinfo.cpp

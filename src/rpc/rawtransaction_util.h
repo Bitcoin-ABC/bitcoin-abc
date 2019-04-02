@@ -2,13 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_RPC_RAWTRANSACTION_H
-#define BITCOIN_RPC_RAWTRANSACTION_H
+#ifndef BITCOIN_RPC_RAWTRANSACTION_UTIL_H
+#define BITCOIN_RPC_RAWTRANSACTION_UTIL_H
 
 class CBasicKeyStore;
 class CChainParams;
-class CMutableTransaction;
+
 class UniValue;
+struct CMutableTransaction;
 
 namespace interfaces {
 class Chain;
@@ -25,4 +26,4 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
                                          const UniValue &outputs_in,
                                          const UniValue &locktime);
 
-#endif // BITCOIN_RPC_RAWTRANSACTION_H
+#endif // BITCOIN_RPC_RAWTRANSACTION_UTIL_H
