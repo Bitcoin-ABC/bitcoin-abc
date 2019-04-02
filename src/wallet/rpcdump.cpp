@@ -436,7 +436,7 @@ UniValue removeprunedfunds(const Config &config,
     txIds.push_back(txid);
     std::vector<TxId> txIdsOut;
 
-    if (pwallet->ZapSelectTx(txIds, txIdsOut) != DB_LOAD_OK) {
+    if (pwallet->ZapSelectTx(txIds, txIdsOut) != DBErrors::LOAD_OK) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Could not properly delete the transaction.");
     }

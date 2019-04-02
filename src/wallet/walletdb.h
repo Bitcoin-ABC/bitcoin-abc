@@ -51,13 +51,13 @@ class uint160;
 class uint256;
 
 /** Error statuses for the wallet database */
-enum DBErrors {
-    DB_LOAD_OK,
-    DB_CORRUPT,
-    DB_NONCRITICAL_ERROR,
-    DB_TOO_NEW,
-    DB_LOAD_FAIL,
-    DB_NEED_REWRITE
+enum class DBErrors {
+    LOAD_OK,
+    CORRUPT,
+    NONCRITICAL_ERROR,
+    TOO_NEW,
+    LOAD_FAIL,
+    NEED_REWRITE
 };
 
 /* simple HD chain data model */

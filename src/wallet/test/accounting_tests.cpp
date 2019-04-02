@@ -18,7 +18,7 @@ static void GetResults(std::map<Amount, CAccountingEntry> &results) {
     std::list<CAccountingEntry> aes;
 
     results.clear();
-    BOOST_CHECK(pwalletMain->ReorderTransactions() == DB_LOAD_OK);
+    BOOST_CHECK(pwalletMain->ReorderTransactions() == DBErrors::LOAD_OK);
     pwalletMain->ListAccountCreditDebit("", aes);
     for (CAccountingEntry &ae : aes) {
         results[ae.nOrderPos * SATOSHI] = ae;
