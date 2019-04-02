@@ -308,6 +308,7 @@ add_library(util
 	compat/glibcxx_sanity.cpp
 	compat/strnlen.cpp
 	fs.cpp
+	interfaces/handler.cpp
 	logging.cpp
 	random.cpp
 	rcu.cpp
@@ -389,6 +390,7 @@ target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_
 add_library(common
 	amount.cpp
 	base58.cpp
+	bloom.cpp
 	cashaddr.cpp
 	cashaddrenc.cpp
 	chainparams.cpp
@@ -403,9 +405,11 @@ add_library(common
 	key.cpp
 	key_io.cpp
 	keystore.cpp
+	merkleblock.cpp
 	net_permissions.cpp
 	netaddress.cpp
 	netbase.cpp
+	outputtype.cpp
 	policy/policy.cpp
 	primitives/block.cpp
 	protocol.cpp
@@ -466,7 +470,6 @@ add_library(server
 	addrman.cpp
 	avalanche.cpp
 	banman.cpp
-	bloom.cpp
 	blockencodings.cpp
 	blockfilter.cpp
 	chain.cpp
@@ -483,9 +486,7 @@ add_library(server
 	index/txindex.cpp
 	init.cpp
 	interfaces/chain.cpp
-	interfaces/handler.cpp
 	interfaces/node.cpp
-	merkleblock.cpp
 	miner.cpp
 	minerfund.cpp
 	net.cpp
@@ -493,7 +494,6 @@ add_library(server
 	node/coin.cpp
 	node/transaction.cpp
 	noui.cpp
-	outputtype.cpp
 	policy/fees.cpp
 	policy/mempool.cpp
 	policy/settings.cpp

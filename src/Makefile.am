@@ -278,7 +278,6 @@ libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   avalanche.cpp \
   banman.cpp \
-  bloom.cpp \
   blockencodings.cpp \
   blockfilter.cpp \
   chain.cpp \
@@ -293,10 +292,8 @@ libbitcoin_server_a_SOURCES = \
   index/txindex.cpp \
   init.cpp \
   interfaces/chain.cpp \
-  interfaces/handler.cpp \
   interfaces/node.cpp \
   dbwrapper.cpp \
-  merkleblock.cpp \
   miner.cpp \
   minerfund.cpp \
   net.cpp \
@@ -304,7 +301,6 @@ libbitcoin_server_a_SOURCES = \
   node/coin.cpp \
   node/transaction.cpp \
   noui.cpp \
-  outputtype.cpp \
   policy/fees.cpp \
   policy/mempool.cpp \
   policy/settings.cpp \
@@ -474,6 +470,7 @@ libbitcoin_common_a_SOURCES = \
   base58.cpp \
   cashaddr.cpp \
   cashaddrenc.cpp \
+  bloom.cpp \
   chainparams.cpp \
   config.cpp \
   coins.cpp \
@@ -485,9 +482,11 @@ libbitcoin_common_a_SOURCES = \
   key.cpp \
   key_io.cpp \
   keystore.cpp \
+  merkleblock.cpp \
   net_permissions.cpp \
   netaddress.cpp \
   netbase.cpp \
+  outputtype.cpp \
   policy/policy.cpp \
   protocol.cpp \
   psbt.cpp \
@@ -515,6 +514,7 @@ libbitcoin_util_a_SOURCES = \
   compat/glibcxx_sanity.cpp \
   compat/strnlen.cpp \
   fs.cpp \
+  interfaces/handler.cpp \
   logging.cpp \
   random.cpp \
   rcu.cpp \
