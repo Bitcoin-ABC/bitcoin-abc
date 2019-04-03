@@ -1352,7 +1352,7 @@ public:
      * @param state[in,out] TxValidationState object returning information about
      * whether the transaction was accepted
      */
-    bool CommitTransaction(
+    void CommitTransaction(
         CTransactionRef tx, mapValue_t mapValue,
         std::vector<std::pair<std::string, std::string>> orderForm,
         TxValidationState &state);

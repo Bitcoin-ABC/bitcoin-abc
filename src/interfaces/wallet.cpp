@@ -228,19 +228,13 @@ namespace {
             }
             return tx;
         }
-        bool commitTransaction(CTransactionRef tx, WalletValueMap value_map,
-                               WalletOrderForm order_form,
-                               std::string &reject_reason) override {
+        void commitTransaction(CTransactionRef tx, WalletValueMap value_map,
+                               WalletOrderForm order_form) override {
             auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             TxValidationState state;
-            if (!m_wallet->CommitTransaction(std::move(tx),
-                                             std::move(value_map),
-                                             std::move(order_form), state)) {
-                reject_reason = state.GetRejectReason();
-                return false;
-            }
-            return true;
+            m_wallet->CommitTransaction(std::move(tx), std::move(value_map),
+                                        std::move(order_form), state);
         }
         bool transactionCanBeAbandoned(const TxId &txid) override {
             return m_wallet->TransactionCanBeAbandoned(txid);
