@@ -140,6 +140,7 @@ To select a different button, press `Tab`.
 ![](figs/debian_install_15_write_changes.png)
 
 - The base system will be installed, this will take a minute or so
+- Scan another CD or DVD? -> *No*
 - Choose a mirror (any will do)
 
 ![](figs/debian_install_16_choose_a_mirror.png)
