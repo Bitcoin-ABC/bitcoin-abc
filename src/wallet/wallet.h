@@ -1340,6 +1340,18 @@ public:
                            CTransactionRef &tx, Amount &nFeeRet,
                            int &nChangePosInOut, std::string &strFailReason,
                            const CCoinControl &coin_control, bool sign = true);
+    /**
+     * Submit the transaction to the node's mempool and then relay to peers.
+     * Should be called after CreateTransaction unless you want to abort
+     * broadcasting the transaction.
+     *
+     * @param tx[in] The transaction to be broadcast.
+     * @param mapValue[in] key-values to be set on the transaction.
+     * @param orderForm[in] BIP 70 / BIP 21 order form details to be set on the
+     * transaction.
+     * @param state[in,out] TxValidationState object returning information about
+     * whether the transaction was accepted
+     */
     bool CommitTransaction(
         CTransactionRef tx, mapValue_t mapValue,
         std::vector<std::pair<std::string, std::string>> orderForm,

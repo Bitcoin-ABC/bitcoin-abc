@@ -3664,9 +3664,6 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
     return true;
 }
 
-/**
- * Call after CreateTransaction unless you want to abort
- */
 bool CWallet::CommitTransaction(
     CTransactionRef tx, mapValue_t mapValue,
     std::vector<std::pair<std::string, std::string>> orderForm,
