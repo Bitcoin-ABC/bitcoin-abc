@@ -795,6 +795,7 @@ private:
     // controlled by WalletRescanReserver
     std::atomic<bool> fScanningWallet{false};
     std::atomic<int64_t> m_scanning_start{0};
+    std::atomic<double> m_scanning_progress{0};
     std::mutex mutexScanning;
     friend class WalletRescanReserver;
 
@@ -1123,6 +1124,9 @@ public:
     bool IsScanning() { return fScanningWallet; }
     int64_t ScanningDuration() const {
         return fScanningWallet ? GetTimeMillis() - m_scanning_start : 0;
+    }
+    double ScanningProgress() const {
+        return fScanningWallet ? double(m_scanning_progress) : 0;
     }
 
     /**
@@ -1681,6 +1685,7 @@ public:
             return false;
         }
         m_wallet->m_scanning_start = GetTimeMillis();
+        m_wallet->m_scanning_progress = 0;
         m_wallet->fScanningWallet = true;
         m_could_reserve = true;
         return true;
