@@ -2865,6 +2865,14 @@ static UniValue getwalletinfo(const Config &config,
             "  \"private_keys_enabled\": true|false (boolean) false if "
             "privatekeys are disabled for this wallet (enforced watch-only "
             "wallet)\n"
+            "  \"scanning\":                        (json object) current "
+            "scanning details, or false if no scan is in progress\n"
+            "    {\n"
+            "      \"duration\" : xxxx              (numeric) elapsed seconds "
+            "since scan start\n"
+            "      \"progress\" : x.xxxx,           (numeric) scanning "
+            "progress percentage [0.0, 1.0]\n"
+            "    }\n"
             "  \"avoid_reuse\": true|false          (boolean) whether this "
             "wallet tracks clean/dirty coins in terms of reuse\n"
             "}\n"},
@@ -2907,6 +2915,14 @@ static UniValue getwalletinfo(const Config &config,
     }
     obj.pushKV("private_keys_enabled",
                !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
+    if (pwallet->IsScanning()) {
+        UniValue scanning(UniValue::VOBJ);
+        scanning.pushKV("duration", pwallet->ScanningDuration() / 1000);
+        scanning.pushKV("progress", pwallet->ScanningProgress());
+        obj.pushKV("scanning", scanning);
+    } else {
+        obj.pushKV("scanning", false);
+    }
     obj.pushKV("avoid_reuse",
                pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE));
     return obj;
