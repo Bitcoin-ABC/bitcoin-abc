@@ -151,7 +151,7 @@ To select a different button, press `Tab`.
 
 - Wait a bit while 'Select and install software' runs
 - Participate in popularity contest -> *No*
-- Choose software to install. We need just the base system.
+- Choose software to install. We need just the base system. (`Tab` to highlight options, `Space` to select them)
 - Make sure only 'SSH server' and 'Standard System Utilities' are checked
 - Uncheck 'Debian Desktop Environment' and 'Print Server'
 
