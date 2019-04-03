@@ -60,12 +60,12 @@ After creating the VM, we need to configure it.
 
 - Click `Ok` twice to save.
 
-Get the [Debian 9.x net installer](https://cdimage.debian.org/debian-cd/9.6.0/amd64/iso-cd/debian-9.6.0-amd64-netinst.iso) (a more recent minor version should also work, see also [Debian Network installation](https://www.debian.org/CD/netinst/)).
+Get the [Debian 9.x net installer](https://cdimage.debian.org/debian-cd/9.8.0/amd64/iso-cd/debian-9.8.0-amd64-netinst.iso) (a more recent minor version should also work, see also [Debian Network installation](https://www.debian.org/CD/netinst/)).
 This DVD image can be [validated](https://www.debian.org/CD/verify) using a SHA256 hashing tool, for example on
 Unixy OSes by entering the following in a terminal:
 
 ```bash
-echo "c51d84019c3637ae9d12aa6658ea8c613860c776bd84c6a71eaaf765a0dd60fe debian-9.6.0-amd64-netinst.iso" | sha256sum -c
+echo "73bd56fb4548efa384bf32fd25808b99198f81c23cf19ab9e6507d898cd58dce debian-9.8.0-amd64-netinst.iso" | sha256sum -c
     # (must return OK)
 ```
 
