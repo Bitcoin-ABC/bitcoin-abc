@@ -1214,6 +1214,7 @@ static UniValue signrawtransaction(const Config &config,
     // Make a JSONRPCRequest to pass on to the right signrawtransaction* command
     JSONRPCRequest new_request;
     new_request.id = request.id;
+    new_request.URI = std::move(request.URI);
     new_request.params.setArray();
 
     // For signing with private keys
