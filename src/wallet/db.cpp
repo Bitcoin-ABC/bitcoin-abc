@@ -634,10 +634,15 @@ void BerkeleyBatch::Flush() {
         nMinutes = 1;
     }
 
-    env->dbenv->txn_checkpoint(
-        nMinutes ? gArgs.GetArg("-dblogsize", DEFAULT_WALLET_DBLOGSIZE) * 1024
-                 : 0,
-        nMinutes, 0);
+    // env is nullptr for dummy databases (i.e. in tests). Don't actually flush
+    // if env is nullptr so we don't segfault
+    if (env) {
+        env->dbenv->txn_checkpoint(
+            nMinutes
+                ? gArgs.GetArg("-dblogsize", DEFAULT_WALLET_DBLOGSIZE) * 1024
+                : 0,
+            nMinutes, 0);
+    }
 }
 
 void BerkeleyDatabase::IncrementUpdateCounter() {
