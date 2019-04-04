@@ -206,7 +206,6 @@ BITCOIN_CORE_H = \
   rpc/blockchain.h \
   rpc/client.h \
   rpc/command.h \
-  rpc/mining.h \
   rpc/protocol.h \
   rpc/rawtransaction_util.h \
   rpc/register.h \

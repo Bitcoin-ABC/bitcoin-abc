@@ -19,11 +19,12 @@
 #include <policy/policy.h>
 #include <pow.h>
 #include <rpc/blockchain.h>
-#include <rpc/mining.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
+#include <script/script.h>
 #include <shutdown.h>
 #include <txmempool.h>
+#include <univalue.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/validation.h>
@@ -112,9 +113,9 @@ static UniValue getnetworkhashps(const Config &config,
         !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-UniValue generateBlocks(const Config &config,
-                        std::shared_ptr<CReserveScript> coinbaseScript,
-                        int nGenerate, uint64_t nMaxTries, bool keepScript) {
+static UniValue generateBlocks(const Config &config,
+                               const CScript &coinbase_script, int nGenerate,
+                               uint64_t nMaxTries) {
     static const int nInnerLoopCount = 0x100000;
     int nHeightEnd = 0;
     int nHeight = 0;
@@ -132,8 +133,7 @@ UniValue generateBlocks(const Config &config,
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd && !ShutdownRequested()) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler(config, g_mempool)
-                .CreateNewBlock(coinbaseScript->reserveScript));
+            BlockAssembler(config, g_mempool).CreateNewBlock(coinbase_script));
 
         if (!pblocktemplate.get()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
@@ -170,12 +170,6 @@ UniValue generateBlocks(const Config &config,
         }
         ++nHeight;
         blockHashes.push_back(pblock->GetHash().GetHex());
-
-        // Mark script as important because it was used at least for one
-        // coinbase output if the script came from the wallet.
-        if (keepScript) {
-            coinbaseScript->KeepScript();
-        }
     }
 
     return blockHashes;
@@ -218,11 +212,9 @@ static UniValue generatetoaddress(const Config &config,
                            "Error: Invalid address");
     }
 
-    std::shared_ptr<CReserveScript> coinbaseScript =
-        std::make_shared<CReserveScript>();
-    coinbaseScript->reserveScript = GetScriptForDestination(destination);
+    CScript coinbase_script = GetScriptForDestination(destination);
 
-    return generateBlocks(config, coinbaseScript, nGenerate, nMaxTries, false);
+    return generateBlocks(config, coinbase_script, nGenerate, nMaxTries);
 }
 
 static UniValue getmininginfo(const Config &config,
