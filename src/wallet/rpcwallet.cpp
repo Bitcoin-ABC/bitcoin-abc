@@ -3996,8 +3996,7 @@ class DescribeWalletAddressVisitor : public boost::static_visitor<UniValue> {
 public:
     CWallet *const pwallet;
 
-    void ProcessSubScript(const CScript &subscript, UniValue &obj,
-                          bool include_addresses = false) const {
+    void ProcessSubScript(const CScript &subscript, UniValue &obj) const {
         // Always present: script type and redeemscript
         std::vector<std::vector<uint8_t>> solutions_data;
         txnouttype which_type = Solver(subscript, solutions_data);
@@ -4005,7 +4004,6 @@ public:
         obj.pushKV("hex", HexStr(subscript.begin(), subscript.end()));
 
         CTxDestination embedded;
-        UniValue a(UniValue::VARR);
         if (ExtractDestination(subscript, embedded)) {
             // Only when the script corresponds to an address.
             UniValue subobj(UniValue::VOBJ);
@@ -4022,9 +4020,6 @@ public:
                 obj.pushKV("pubkey", subobj["pubkey"]);
             }
             obj.pushKV("embedded", std::move(subobj));
-            if (include_addresses) {
-                a.push_back(EncodeDestination(embedded, GetConfig()));
-            }
         } else if (which_type == TX_MULTISIG) {
             // Also report some information on multisig scripts (which do not
             // have a corresponding address).
@@ -4034,20 +4029,9 @@ public:
             UniValue pubkeys(UniValue::VARR);
             for (size_t i = 1; i < solutions_data.size() - 1; ++i) {
                 CPubKey key(solutions_data[i].begin(), solutions_data[i].end());
-                if (include_addresses) {
-                    a.push_back(EncodeDestination(key.GetID(), GetConfig()));
-                }
                 pubkeys.push_back(HexStr(key.begin(), key.end()));
             }
             obj.pushKV("pubkeys", std::move(pubkeys));
-        }
-
-        // The "addresses" field is confusing because it refers to public keys
-        // using their P2PKH address. For that reason, only add the 'addresses'
-        // field when needed for backward compatibility. New applications can
-        // use the 'pubkeys' field for inspecting multisig participants.
-        if (include_addresses) {
-            obj.pushKV("addresses", std::move(a));
         }
     }
 
@@ -4072,7 +4056,7 @@ public:
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
         if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
-            ProcessSubScript(subscript, obj, true);
+            ProcessSubScript(subscript, obj);
         }
         return obj;
     }
