@@ -291,7 +291,7 @@ public:
  * If a key is reserved and KeepKey() is not called, then the key will be
  * returned to the keypool when the CReserveObject goes out of scope.
  */
-class CReserveKey final : public CReserveScript {
+class CReserveKey {
 protected:
     //! The wallet to reserve the keypool key from
     CWallet *pwallet;
@@ -321,7 +321,6 @@ public:
     //! Keep the key. Do not return it to the keypool when this object goes out
     //! of scope
     void KeepKey();
-    void KeepScript() override { KeepKey(); }
 };
 
 /** Address book data */
