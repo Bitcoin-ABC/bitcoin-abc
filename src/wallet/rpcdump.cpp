@@ -1076,7 +1076,7 @@ struct ImportData {
     //! Import these private keys if available (the value indicates whether if
     //! the key is required for solvability)
     std::map<CKeyID, bool> used_keys;
-    std::map<CKeyID, KeyOriginInfo> key_origins;
+    std::map<CKeyID, std::pair<CPubKey, KeyOriginInfo>> key_origins;
 };
 
 enum class ScriptContext {
@@ -1426,7 +1426,11 @@ static UniValue ProcessImportDescriptor(ImportData &import_data,
         std::all_of(pubkey_map.begin(), pubkey_map.end(),
                     [&](const std::pair<CKeyID, CPubKey> &used_key) {
                         return privkey_map.count(used_key.first) > 0;
-                    });
+                    }) &&
+        std::all_of(
+            import_data.key_origins.begin(), import_data.key_origins.end(),
+            [&](const std::pair<CKeyID, std::pair<CPubKey, KeyOriginInfo>>
+                    &entry) { return privkey_map.count(entry.first) > 0; });
     if (!watch_only && !spendable) {
         warnings.push_back(
             "Some private keys are missing, outputs will be considered "
@@ -1535,6 +1539,9 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
             }
             pwallet->UpdateTimeFirstKey(timestamp);
         }
+        for (const auto &entry : import_data.key_origins) {
+            pwallet->AddKeyOrigin(entry.second.first, entry.second.second);
+        }
         for (const CKeyID &id : ordered_pubkeys) {
             auto entry = pubkey_map.find(id);
             if (entry == pubkey_map.end()) {
@@ -1547,10 +1554,6 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                                        timestamp)) {
                 throw JSONRPCError(RPC_WALLET_ERROR,
                                    "Error adding address to wallet");
-            }
-            const auto &key_orig_it = import_data.key_origins.find(id);
-            if (key_orig_it != import_data.key_origins.end()) {
-                pwallet->AddKeyOrigin(pubkey, key_orig_it->second);
             }
             pwallet->mapKeyMetadata[id].nCreateTime = timestamp;
 

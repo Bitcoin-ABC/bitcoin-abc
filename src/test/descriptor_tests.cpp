@@ -179,9 +179,9 @@ void Check(const std::string &prv, const std::string &pub, int flags,
             // variable (which contains expected, unobserved paths), and then
             // remove it from that set.
             for (const auto &origin : script_provider.origins) {
-                BOOST_CHECK_MESSAGE(paths.count(origin.second.path),
+                BOOST_CHECK_MESSAGE(paths.count(origin.second.second.path),
                                     "Unexpected key path: " + prv);
-                left_paths.erase(origin.second.path);
+                left_paths.erase(origin.second.second.path);
             }
         }
     }

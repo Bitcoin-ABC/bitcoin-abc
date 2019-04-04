@@ -470,7 +470,12 @@ bool FlatSigningProvider::GetPubKey(const CKeyID &keyid,
 }
 bool FlatSigningProvider::GetKeyOrigin(const CKeyID &keyid,
                                        KeyOriginInfo &info) const {
-    return LookupHelper(origins, keyid, info);
+    std::pair<CPubKey, KeyOriginInfo> out;
+    bool ret = LookupHelper(origins, keyid, out);
+    if (ret) {
+        info = std::move(out.second);
+    }
+    return ret;
 }
 bool FlatSigningProvider::GetKey(const CKeyID &keyid, CKey &key) const {
     return LookupHelper(keys, keyid, key);
