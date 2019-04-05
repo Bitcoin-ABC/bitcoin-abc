@@ -1483,7 +1483,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
     assert(nRelayNodes <= best.size());
 
     auto sortfunc = [&best, &hasher, nRelayNodes](CNode *pnode) {
-        if (pnode->nVersion >= CADDR_TIME_VERSION) {
+        if (pnode->nVersion >= CADDR_TIME_VERSION && pnode->IsAddrRelayPeer()) {
             uint64_t hashKey =
                 CSipHasher(hasher).Write(pnode->GetId()).Finalize();
             for (unsigned int i = 0; i < nRelayNodes; i++) {
@@ -2336,7 +2336,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             UpdatePreferredDownload(pfrom, State(pfrom->GetId()));
         }
 
-        if (!pfrom->fInbound) {
+        if (!pfrom->fInbound && pfrom->IsAddrRelayPeer()) {
             // Advertise our address
             if (fListen && !::ChainstateActive().IsInitialBlockDownload()) {
                 CAddress addr =
@@ -2464,6 +2464,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // Don't want addr from older versions unless seeding
         if (pfrom->nVersion < CADDR_TIME_VERSION &&
             connman->GetAddressCount() > 1000) {
+            return true;
+        }
+        if (!pfrom->IsAddrRelayPeer()) {
             return true;
         }
         if (vAddr.size() > 1000) {
@@ -3564,6 +3567,13 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      pfrom->GetId());
             return true;
         }
+        if (!pfrom->IsAddrRelayPeer()) {
+            LogPrint(BCLog::NET,
+                     "Ignoring \"getaddr\" from block-relay-only connection. "
+                     "peer=%d\n",
+                     pfrom->GetId());
+            return true;
+        }
 
         // Only send one GetAddr response per connection to reduce resource
         // waste and discourage addr stamping of INV announcements.
@@ -4287,7 +4297,8 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
 
     // Address refresh broadcast
     int64_t nNow = GetTimeMicros();
-    if (!::ChainstateActive().IsInitialBlockDownload() &&
+    if (pto->IsAddrRelayPeer() &&
+        !::ChainstateActive().IsInitialBlockDownload() &&
         pto->nNextLocalAddrSend < nNow) {
         AdvertiseLocal(pto);
         pto->nNextLocalAddrSend =
@@ -4297,7 +4308,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     //
     // Message: addr
     //
-    if (pto->nNextAddrSend < nNow) {
+    if (pto->IsAddrRelayPeer() && pto->nNextAddrSend < nNow) {
         pto->nNextAddrSend =
             PoissonNextSend(nNow, AVG_ADDRESS_BROADCAST_INTERVAL);
         std::vector<CAddress> vAddr;

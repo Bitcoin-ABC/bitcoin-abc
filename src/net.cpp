@@ -2751,7 +2751,11 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              bool fInboundIn, bool block_relay_only)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
       addrBind(addrBindIn), fInbound(fInboundIn),
-      nKeyedNetGroup(nKeyedNetGroupIn), addrKnown(5000, 0.001), id(idIn),
+      nKeyedNetGroup(nKeyedNetGroupIn), addrKnown(5000, 0.001),
+      // Don't relay addr messages to peers that we connect to as
+      // block-relay-only peers (to prevent adversaries from inferring these
+      // links from addr traffic).
+      m_addr_relay_peer(!block_relay_only), id(idIn),
       nLocalHostNonce(nLocalHostNonceIn), nLocalServices(nLocalServicesIn),
       nMyStartingHeight(nMyStartingHeightIn) {
     hSocket = hSocketIn;
