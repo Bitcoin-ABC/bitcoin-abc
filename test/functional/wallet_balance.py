@@ -46,6 +46,12 @@ class WalletTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
+        self.extra_args = [
+            # Limit mempool descendants as a hack to have wallet txs rejected
+            # from the mempool
+            ['-limitdescendantcount=3'],
+            [],
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -188,6 +194,15 @@ class WalletTest(BitcoinTestFramework):
         self.nodes[1].loadwallet('')
         after = self.nodes[1].getunconfirmedbalance()
         assert_equal(before + Decimal('0.1'), after)
+
+        # Create 3 more wallet txs, where the last is not accepted to the
+        # mempool because it is the third descendant of the tx above
+        for _ in range(3):
+            txid = self.nodes[0].sendtoaddress(
+                self.nodes[0].getnewaddress(), 99)
+        assert txid not in self.nodes[0].getrawmempool()
+        # wallet txs not in the mempool are untrusted
+        assert_equal(self.nodes[0].getbalance(minconf=0), 0)
 
 
 if __name__ == '__main__':
