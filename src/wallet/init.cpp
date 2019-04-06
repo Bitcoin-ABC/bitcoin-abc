@@ -107,8 +107,6 @@ void WalletInit::AddWalletOptions() const {
             "Spend unconfirmed change when sending transactions (default: %d)",
             DEFAULT_SPEND_ZEROCONF_CHANGE),
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
-    gArgs.AddArg("-upgradewallet", "Upgrade wallet to latest format on startup",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     gArgs.AddArg("-wallet=<path>",
                  "Specify wallet database path. Can be specified multiple "
                  "times to load multiple wallets. Path is interpreted relative "
@@ -214,14 +212,6 @@ bool WalletInit::ParameterInteraction() const {
             LogPrintf("%s: parameter interaction: -zapwallettxes enabled -> "
                       "setting -rescan=1\n",
                       __func__);
-        }
-    }
-
-    if (is_multiwallet) {
-        if (gArgs.GetBoolArg("-upgradewallet", false)) {
-            return InitError(
-                strprintf("%s is only allowed with a single wallet file",
-                          "-upgradewallet"));
         }
     }
 

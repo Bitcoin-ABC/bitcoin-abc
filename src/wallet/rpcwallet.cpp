@@ -3088,8 +3088,7 @@ static UniValue loadwallet(const Config &config,
         "Loads a wallet from a wallet file or directory."
         "\nNote that all wallet command-line options used when starting "
         "bitcoind will be"
-        "\napplied to the new wallet (eg -zapwallettxes, upgradewallet, "
-        "rescan, etc).\n",
+        "\napplied to the new wallet (eg -zapwallettxes, rescan, etc).\n",
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The wallet directory or .dat file."},
@@ -4534,8 +4533,8 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     if (!pwallet->CanSupportFeature(FEATURE_HD)) {
         throw JSONRPCError(
             RPC_WALLET_ERROR,
-            "Cannot set a HD seed on a non-HD wallet. Start with "
-            "-upgradewallet in order to upgrade a non-HD wallet to HD");
+            "Cannot set a HD seed on a non-HD wallet. Use the upgradewallet "
+            "RPC in order to upgrade a non-HD wallet to HD");
     }
 
     EnsureWalletIsUnlocked(pwallet);
