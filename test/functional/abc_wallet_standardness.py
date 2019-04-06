@@ -6,6 +6,12 @@
 that it might try to spend."""
 
 from decimal import Decimal
+from test_framework.messages import (
+    CTransaction,
+    CTxOut,
+    FromHex,
+    ToHex,
+)
 from test_framework.script import (
     CScript,
     OP_1,
@@ -22,13 +28,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_raises_rpc_error,
     assert_equal,
-    sync_blocks,
-)
-from test_framework.messages import (
-    CTransaction,
-    CTxOut,
-    FromHex,
-    ToHex,
 )
 
 SATOSHI = Decimal('0.00000001')
@@ -50,7 +49,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
 
         # make and mature some coins for the nonstandard node
         nonstd_node.generate(120)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         def fund_and_test_wallet(scriptPubKey, shouldBeStandard, shouldBeInWallet,
                                  amount=10000, spendfee=500, nonstd_error="scriptpubkey (code 64)", sign_error=None):
@@ -96,7 +95,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
             # make sure it was mined
             assert txid in nonstd_node.getblock(blockhash)["tx"]
 
-            sync_blocks(self.nodes)
+            self.sync_blocks()
 
             wallet_outpoints = {(entry['txid'], entry['vout'])
                                 for entry in std_node.listunspent()}
@@ -128,7 +127,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
                 [blockhash] = std_node.generate(1)
                 # make sure it was mined
                 assert txid in std_node.getblock(blockhash)["tx"]
-                sync_blocks(self.nodes)
+                self.sync_blocks()
             else:
                 assert_equal(signresult['complete'], False)
                 assert_equal(signresult['errors'][0]['error'], sign_error)

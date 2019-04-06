@@ -47,7 +47,10 @@ from test_framework.mininode import (
 from test_framework.script import CScript, OP_TRUE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, sync_blocks, wait_until
+from test_framework.util import (
+    assert_equal,
+    wait_until,
+)
 
 # TestP2PConn: A peer we use to send messages to bitcoind, and store responses.
 
@@ -855,53 +858,53 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         self.log.info("\tTesting SENDCMPCT p2p message... ")
         self.test_sendcmpct(self.nodes[0], self.test_node, 1)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         self.test_sendcmpct(
             self.nodes[1], self.ex_softfork_node, 1, old_node=self.old_node)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         self.log.info("\tTesting compactblock construction...")
         self.test_compactblock_construction(self.nodes[0], self.test_node)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         self.test_compactblock_construction(
             self.nodes[1], self.ex_softfork_node)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         self.log.info("\tTesting compactblock requests... ")
         self.test_compactblock_requests(self.nodes[0], self.test_node, 1)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         self.test_compactblock_requests(
             self.nodes[1], self.ex_softfork_node, 2)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         self.log.info("\tTesting getblocktxn requests...")
         self.test_getblocktxn_requests(self.nodes[0], self.test_node, 1)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         self.test_getblocktxn_requests(self.nodes[1], self.ex_softfork_node, 2)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         self.log.info("\tTesting getblocktxn handler...")
         self.test_getblocktxn_handler(self.nodes[0], self.test_node, 1)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         self.test_getblocktxn_handler(self.nodes[1], self.ex_softfork_node, 2)
         self.test_getblocktxn_handler(self.nodes[1], self.old_node, 1)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         self.log.info(
             "\tTesting compactblock requests/announcements not at chain tip...")
         self.test_compactblocks_not_at_tip(self.nodes[0], self.test_node)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         self.test_compactblocks_not_at_tip(
             self.nodes[1], self.ex_softfork_node)
         self.test_compactblocks_not_at_tip(self.nodes[1], self.old_node)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         self.log.info("\tTesting handling of incorrect blocktxn responses...")
         self.test_incorrect_blocktxn_response(self.nodes[0], self.test_node, 1)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         self.test_incorrect_blocktxn_response(
             self.nodes[1], self.ex_softfork_node, 2)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         # End-to-end block relay tests
         self.log.info("\tTesting end-to-end block relay...")
@@ -924,7 +927,7 @@ class CompactBlocksTest(BitcoinTestFramework):
             "\tTesting reconstructing compact blocks from all peers...")
         self.test_compactblock_reconstruction_multiple_peers(
             self.nodes[1], self.ex_softfork_node, self.old_node)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         self.log.info("\tTesting invalid index in cmpctblock message...")
         self.test_invalid_cmpctblock_message()

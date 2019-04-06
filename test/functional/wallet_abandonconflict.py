@@ -19,8 +19,6 @@ from test_framework.util import (
     connect_nodes,
     disconnect_nodes,
     satoshi_round,
-    sync_blocks,
-    sync_mempools,
 )
 
 
@@ -41,7 +39,7 @@ class AbandonConflictTest(BitcoinTestFramework):
             return satoshi_round(total)
 
         self.nodes[1].generate(100)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         balance = self.nodes[0].getbalance()
         txA = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), Decimal("10"))
@@ -50,7 +48,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         txC = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), Decimal("10"))
 
-        sync_mempools(self.nodes)
+        self.sync_mempools()
         self.nodes[1].generate(1)
 
         # Can not abandon non-wallet transaction
@@ -60,7 +58,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         assert_raises_rpc_error(-5, 'Transaction not eligible for abandonment',
                                 lambda: self.nodes[0].abandontransaction(txid=txA))
 
-        sync_blocks(self.nodes)
+        self.sync_blocks()
         newbalance = self.nodes[0].getbalance()
 
         # no more than fees lost
@@ -199,7 +197,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         self.nodes[1].generate(1)
 
         connect_nodes(self.nodes[0], self.nodes[1])
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         # Verify that B and C's 10 BCH outputs are available for spending again
         # because AB1 is now conflicted

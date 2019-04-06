@@ -17,7 +17,6 @@ from test_framework.messages import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
-    sync_blocks,
     wait_until,
 )
 from test_framework import schnorr
@@ -104,7 +103,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         fork_node = self.nodes[1]
         # Make sure the fork node has synced the blocks
-        sync_blocks([node, fork_node])
+        self.sync_blocks([node, fork_node])
 
         # Get the key so we can verify signatures.
         avakey = bytes.fromhex(node.getavalanchekey())
@@ -184,7 +183,7 @@ class AvalancheTest(BitcoinTestFramework):
         node.addavalanchepeer(nodeid, pubkey.hex())
 
         # Make sure the fork node has synced the blocks
-        sync_blocks([node, fork_node])
+        self.sync_blocks([node, fork_node])
 
         # Create a fork 2 blocks deep. This should trigger polling.
         fork_node.invalidateblock(fork_node.getblockhash(100))

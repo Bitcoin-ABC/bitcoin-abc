@@ -15,7 +15,6 @@ from test_framework.util import (
     assert_raises_rpc_error,
     connect_nodes_bi,
     count_bytes,
-    sync_blocks,
     wait_until,
 )
 
@@ -304,10 +303,10 @@ class WalletTest(BitcoinTestFramework):
         connect_nodes_bi(self.nodes[0], self.nodes[1])
         connect_nodes_bi(self.nodes[1], self.nodes[2])
         connect_nodes_bi(self.nodes[0], self.nodes[2])
-        sync_blocks(self.nodes[0:3])
+        self.sync_blocks(self.nodes[0:3])
 
         self.nodes[0].generate(1)
-        sync_blocks(self.nodes[0:3])
+        self.sync_blocks(self.nodes[0:3])
         node_2_bal += 2
 
         # tx should be added to balance because after restarting the nodes tx

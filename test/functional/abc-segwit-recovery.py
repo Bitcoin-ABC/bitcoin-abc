@@ -36,7 +36,6 @@ from test_framework.script import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_raises_rpc_error,
-    sync_blocks,
 )
 
 TEST_TIME = int(time.time())
@@ -246,7 +245,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         accepted(node_nonstd)
 
         # Check both nodes are synchronized before continuing.
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         # Check that upgraded nodes checking for standardness are not banning
         # nodes sending segwit spending txns.
@@ -274,7 +273,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         block(5)
         update_block(5, [txspend, txspend_case0])
         accepted(node_nonstd)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
 
 if __name__ == '__main__':

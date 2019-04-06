@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2017 The Bitcoin Core developers
+# Copyright (c) 2014-2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the listreceivedbyaddress RPC."""
@@ -11,7 +11,6 @@ from test_framework.util import (
     assert_array_result,
     assert_equal,
     assert_raises_rpc_error,
-    sync_blocks,
 )
 
 
@@ -26,7 +25,7 @@ class ReceivedByTest(BitcoinTestFramework):
     def run_test(self):
         # Generate block to get out of IBD
         self.nodes[0].generate(1)
-        sync_blocks(self.nodes)
+        self.sync_blocks()
 
         # save the number of coinbase reward addresses so far
         num_cb_reward_addresses = len(

@@ -21,7 +21,6 @@ from test_framework.util import (
     assert_raises_rpc_error,
     connect_nodes,
     disconnect_nodes,
-    sync_blocks,
     wait_until,
 )
 
@@ -120,7 +119,7 @@ class PruneTest(BitcoinTestFramework):
         connect_nodes(self.nodes[0], self.nodes[2])
         connect_nodes(self.nodes[0], self.nodes[3])
         connect_nodes(self.nodes[0], self.nodes[4])
-        sync_blocks(self.nodes[0:5])
+        self.sync_blocks(self.nodes[0:5])
 
     def setup_nodes(self):
         self.add_nodes(self.num_nodes, self.extra_args)
@@ -134,13 +133,13 @@ class PruneTest(BitcoinTestFramework):
     def create_big_chain(self):
         # Start by creating some coinbases we can spend later
         self.nodes[1].generate(200)
-        sync_blocks(self.nodes[0:2])
+        self.sync_blocks(self.nodes[0:2])
         self.nodes[0].generate(150)
 
         # Then mine enough full blocks to create more than 550MiB of data
         mine_large_blocks(self.nodes[0], 645)
 
-        sync_blocks(self.nodes[0:5])
+        self.sync_blocks(self.nodes[0:5])
 
     def test_height_min(self):
         assert os.path.isfile(os.path.join(
@@ -184,7 +183,7 @@ class PruneTest(BitcoinTestFramework):
             # at the same time
             connect_nodes(self.nodes[0], self.nodes[1])
             connect_nodes(self.nodes[0], self.nodes[2])
-            sync_blocks(self.nodes[0:3])
+            self.sync_blocks(self.nodes[0:3])
 
         self.log.info("Usage can be over target because of high stale rate: {}".format(
                       calc_usage(self.prunedir)))
@@ -226,7 +225,7 @@ class PruneTest(BitcoinTestFramework):
         self.log.info("Reconnect nodes")
         connect_nodes(self.nodes[0], self.nodes[1])
         connect_nodes(self.nodes[1], self.nodes[2])
-        sync_blocks(self.nodes[0:3], timeout=120)
+        self.sync_blocks(self.nodes[0:3], timeout=120)
 
         self.log.info("Verify height on node 2: {}".format(
                       self.nodes[2].getblockcount()))
@@ -237,7 +236,7 @@ class PruneTest(BitcoinTestFramework):
             "Mine 220 more large blocks so we have requisite history")
 
         mine_large_blocks(self.nodes[0], 220)
-        sync_blocks(self.nodes[0:3], timeout=120)
+        self.sync_blocks(self.nodes[0:3], timeout=120)
 
         usage = calc_usage(self.prunedir)
         self.log.info("Usage should be below target: {}".format(usage))
@@ -410,7 +409,7 @@ class PruneTest(BitcoinTestFramework):
         self.log.info("Syncing node 5 to test wallet")
         connect_nodes(self.nodes[0], self.nodes[5])
         nds = [self.nodes[0], self.nodes[5]]
-        sync_blocks(nds, wait=5, timeout=300)
+        self.sync_blocks(nds, wait=5, timeout=300)
         # Stop and start to trigger rescan
         self.stop_node(5)
         self.start_node(
