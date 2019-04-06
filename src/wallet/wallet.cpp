@@ -4145,51 +4145,8 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
     }
 
-    int prev_version = walletInstance->GetVersion();
-    if (gArgs.GetBoolArg("-upgradewallet", fFirstRun)) {
-        int nMaxVersion = gArgs.GetArg("-upgradewallet", 0);
-        // The -upgradewallet without argument case
-        if (nMaxVersion == 0) {
-            walletInstance->WalletLogPrintf("Performing wallet upgrade to %i\n",
-                                            FEATURE_LATEST);
-            nMaxVersion = FEATURE_LATEST;
-            // permanently upgrade the wallet immediately
-            walletInstance->SetMinVersion(FEATURE_LATEST);
-        } else {
-            walletInstance->WalletLogPrintf(
-                "Allowing wallet upgrade up to %i\n", nMaxVersion);
-        }
-
-        if (nMaxVersion < walletInstance->GetVersion()) {
-            error = _("Cannot downgrade wallet");
-            return nullptr;
-        }
-
-        walletInstance->SetMaxVersion(nMaxVersion);
-    }
-
-    // Upgrade to HD if explicit upgrade
-    if (gArgs.GetBoolArg("-upgradewallet", false)) {
-        LOCK(walletInstance->cs_wallet);
-
-        // Do not upgrade versions to any version between HD_SPLIT and
-        // FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
-        int max_version = walletInstance->GetVersion();
-        if (!walletInstance->CanSupportFeature(FEATURE_HD_SPLIT) &&
-            max_version >= FEATURE_HD_SPLIT &&
-            max_version < FEATURE_PRE_SPLIT_KEYPOOL) {
-            error =
-                _("Cannot upgrade a non HD split wallet without upgrading to "
-                  "support pre split keypool. Please use -upgradewallet=200300 "
-                  "or -upgradewallet with no version specified.");
-            return nullptr;
-        }
-
-        for (auto spk_man : walletInstance->GetActiveScriptPubKeyMans()) {
-            if (!spk_man->Upgrade(prev_version, error)) {
-                return nullptr;
-            }
-        }
+    if (!UpgradeWallet(walletInstance, fFirstRun, error, warnings)) {
+        return nullptr;
     }
 
     if (fFirstRun) {
@@ -4496,6 +4453,59 @@ CWallet::FindAddressBookEntry(const CTxDestination &dest,
         return nullptr;
     }
     return &address_book_it->second;
+}
+
+bool CWallet::UpgradeWallet(std::shared_ptr<CWallet> walletInstance,
+                            bool fFirstRun, bilingual_str &error,
+                            std::vector<bilingual_str> &warnings) {
+    int prev_version = walletInstance->GetVersion();
+    if (gArgs.GetBoolArg("-upgradewallet", fFirstRun)) {
+        int nMaxVersion = gArgs.GetArg("-upgradewallet", 0);
+        // The -upgradewallet without argument case
+        if (nMaxVersion == 0) {
+            walletInstance->WalletLogPrintf("Performing wallet upgrade to %i\n",
+                                            FEATURE_LATEST);
+            nMaxVersion = FEATURE_LATEST;
+            // permanently upgrade the wallet immediately
+            walletInstance->SetMinVersion(FEATURE_LATEST);
+        } else {
+            walletInstance->WalletLogPrintf(
+                "Allowing wallet upgrade up to %i\n", nMaxVersion);
+        }
+
+        if (nMaxVersion < walletInstance->GetVersion()) {
+            error = _("Cannot downgrade wallet");
+            return false;
+        }
+
+        walletInstance->SetMaxVersion(nMaxVersion);
+    }
+
+    // Upgrade to HD if explicit upgrade
+    if (gArgs.GetBoolArg("-upgradewallet", false)) {
+        LOCK(walletInstance->cs_wallet);
+
+        // Do not upgrade versions to any version between HD_SPLIT and
+        // FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
+        int max_version = walletInstance->GetVersion();
+        if (!walletInstance->CanSupportFeature(FEATURE_HD_SPLIT) &&
+            max_version >= FEATURE_HD_SPLIT &&
+            max_version < FEATURE_PRE_SPLIT_KEYPOOL) {
+            error =
+                _("Cannot upgrade a non HD split wallet without upgrading to "
+                  "support pre split keypool. Please use -upgradewallet=200300 "
+                  "or -upgradewallet with no version specified.");
+            return false;
+        }
+
+        for (auto spk_man : walletInstance->GetActiveScriptPubKeyMans()) {
+            if (!spk_man->Upgrade(prev_version, error)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 void CWallet::postInitProcess() {
