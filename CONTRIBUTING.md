@@ -73,6 +73,8 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 - [The Pragmatic Programmer: From Journeyman to Master](https://www.amazon.com/Pragmatic-Programmer-Journeyman-Master/dp/020161622X)
 - [Advantages of monolithic version control](https://danluu.com/monorepo/)
 - [The importance of fixing bugs immediately](https://youtu.be/E2MIpi8pIvY?t=16m0s)
+- [Slow Deployment Causes Meetings](https://www.facebook.com/notes/kent-beck/slow-deployment-causes-meetings/1055427371156793/)
+- [Good Work, Great Work, and Right Work](https://forum.dlang.org/post/q7u6g1$94p$1@digitalmars.com)
 
 
 Getting set up with the Bitcoin ABC Repository
