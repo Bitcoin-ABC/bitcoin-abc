@@ -4834,6 +4834,46 @@ static UniValue walletcreatefundedpsbt(const Config &config,
     return result;
 }
 
+static UniValue upgradewallet(const Config &config,
+                              const JSONRPCRequest &request) {
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet *const pwallet = wallet.get();
+
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    RPCHelpMan{"upgradewallet",
+               "\nUpgrade the wallet. Upgrades to the latest version if no "
+               "version number is specified\n"
+               "New keys may be generated and a new wallet backup will need to "
+               "be made.",
+               {{"version", RPCArg::Type::NUM,
+                 /* default */ strprintf("%d", FEATURE_LATEST),
+                 "The version number to upgrade to. Default is the latest "
+                 "wallet version"}},
+               RPCResults{},
+               RPCExamples{HelpExampleCli("upgradewallet", "200300") +
+                           HelpExampleRpc("upgradewallet", "200300")}}
+        .Check(request);
+
+    RPCTypeCheck(request.params, {UniValue::VNUM}, true);
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    int version = 0;
+    if (!request.params[0].isNull()) {
+        version = request.params[0].get_int();
+    }
+
+    bilingual_str error;
+    std::vector<bilingual_str> warnings;
+    if (!pwallet->UpgradeWallet(version, error, warnings)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, error.original);
+    }
+    return error.original;
+}
+
 // clang-format off
 static const CRPCCommand commands[] = {
     //  category            name                            actor (function)              argNames
@@ -4878,6 +4918,7 @@ static const CRPCCommand commands[] = {
     { "wallet",             "signmessage",                  signmessage,                  {"address","message"} },
     { "wallet",             "signrawtransactionwithwallet", signrawtransactionwithwallet, {"hextring","prevtxs","sighashtype"} },
     { "wallet",             "unloadwallet",                 unloadwallet,                 {"wallet_name"} },
+    { "wallet",             "upgradewallet",                upgradewallet,                {"version"} },
     { "wallet",             "walletcreatefundedpsbt",       walletcreatefundedpsbt,       {"inputs","outputs","locktime","options","bip32derivs"} },
     { "wallet",             "walletlock",                   walletlock,                   {} },
     { "wallet",             "walletpassphrase",             walletpassphrase,             {"passphrase","timeout"} },
