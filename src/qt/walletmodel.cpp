@@ -12,6 +12,7 @@
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
 
+#include "chain.h"
 #include "config.h"
 #include "dstencode.h"
 #include "keystore.h"

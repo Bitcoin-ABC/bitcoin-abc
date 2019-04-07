@@ -9,6 +9,7 @@
 #include "arith_uint256.h"
 #include "blockencodings.h"
 #include "blockvalidity.h"
+#include "chain.h"
 #include "chainparams.h"
 #include "config.h"
 #include "consensus/validation.h"

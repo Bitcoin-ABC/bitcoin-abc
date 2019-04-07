@@ -4,6 +4,7 @@
 
 #include "transactionrecord.h"
 
+#include "chain.h"
 #include "consensus/consensus.h"
 #include "dstencode.h"
 #include "timedata.h"

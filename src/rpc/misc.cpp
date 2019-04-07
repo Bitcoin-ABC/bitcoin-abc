@@ -5,6 +5,7 @@
 
 #include "rpc/misc.h"
 #include "base58.h"
+#include "chain.h"
 #include "clientversion.h"
 #include "config.h"
 #include "dstencode.h"

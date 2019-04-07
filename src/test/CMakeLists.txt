@@ -127,7 +127,6 @@ add_test_to_suite(bitcoin test_bitcoin
 	timedata_tests.cpp
 	transaction_tests.cpp
 	txvalidationcache_tests.cpp
-	versionbits_tests.cpp
 	uint256_tests.cpp
 	undo_tests.cpp
 	univalue_tests.cpp

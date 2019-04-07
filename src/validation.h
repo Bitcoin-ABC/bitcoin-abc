@@ -15,6 +15,7 @@
 #include "blockfileinfo.h"
 #include "coins.h"
 #include "consensus/consensus.h"
+#include "consensus/params.h"
 #include "diskblockpos.h"
 #include "fs.h"
 #include "protocol.h" // For CMessageHeader::MessageMagic
@@ -32,10 +33,13 @@
 #include <utility>
 #include <vector>
 
+class arith_uint256;
+
 class CBlockIndex;
 class CBlockTreeDB;
 class CBloomFilter;
 class CChainParams;
+class CChain;
 class CCoinsViewDB;
 class CConnman;
 class CInv;
@@ -688,8 +692,6 @@ extern std::unique_ptr<CBlockTreeDB> pblocktree;
  * This is also true for mempool checks.
  */
 int GetSpendHeight(const CCoinsViewCache &inputs);
-
-extern VersionBitsCache versionbitscache;
 
 /**
  * Determine what nVersion a new block should use.

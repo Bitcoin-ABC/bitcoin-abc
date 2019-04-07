@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "zmqpublishnotifier.h"
+#include "chain.h"
 #include "config.h"
 #include "rpc/server.h"
 #include "streams.h"

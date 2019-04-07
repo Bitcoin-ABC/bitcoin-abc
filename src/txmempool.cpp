@@ -5,6 +5,7 @@
 
 #include "txmempool.h"
 
+#include "chain.h"
 #include "chainparams.h" // for GetConsensus.
 #include "clientversion.h"
 #include "config.h"

@@ -1616,9 +1616,6 @@ void ThreadScriptCheck() {
     scriptcheckqueue.Thread();
 }
 
-// Protected by cs_main
-VersionBitsCache versionbitscache;
-
 int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
                             const Consensus::Params &params) {
     int32_t nVersion = VERSIONBITS_TOP_BITS;
@@ -4987,7 +4984,6 @@ void UnloadBlockIndex() {
     nBlockSequenceId = 1;
     setDirtyBlockIndex.clear();
     setDirtyFileInfo.clear();
-    versionbitscache.Clear();
 
     for (BlockMap::value_type &entry : mapBlockIndex) {
         delete entry.second;
