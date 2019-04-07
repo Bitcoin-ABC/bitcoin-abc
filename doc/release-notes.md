@@ -7,3 +7,5 @@ This release includes the following features and fixes:
    enabled, `prune_height`, `automatic_pruning`, and `prune_target_size`.
     - The help message also reflects this.
  - Code standard updated to c++14.
+ - Remove `depends` from transaction objects provided by `getblocktemplate`.
+ 

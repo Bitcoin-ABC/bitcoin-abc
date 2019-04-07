@@ -615,32 +615,19 @@ static UniValue getblocktemplate(const Config &config,
     aCaps.push_back("proposal");
 
     UniValue transactions(UniValue::VARR);
-    std::map<uint256, int64_t> setTxIndex;
-    int i = 0;
+    int index_in_template = 0;
     for (const auto &it : pblock->vtx) {
         const CTransaction &tx = *it;
         uint256 txId = tx.GetId();
-        setTxIndex[txId] = i++;
 
         if (tx.IsCoinBase()) {
             continue;
         }
 
         UniValue entry(UniValue::VOBJ);
-
         entry.pushKV("data", EncodeHexTx(tx));
         entry.pushKV("txid", txId.GetHex());
         entry.pushKV("hash", tx.GetHash().GetHex());
-
-        UniValue deps(UniValue::VARR);
-        for (const CTxIn &in : tx.vin) {
-            if (setTxIndex.count(in.prevout.GetTxId())) {
-                deps.push_back(setTxIndex[in.prevout.GetTxId()]);
-            }
-        }
-        entry.pushKV("depends", deps);
-
-        int index_in_template = i - 1;
         entry.pushKV("fee",
                      pblocktemplate->entries[index_in_template].fees / SATOSHI);
         int64_t nTxSigOps =
@@ -648,6 +635,7 @@ static UniValue getblocktemplate(const Config &config,
         entry.pushKV("sigops", nTxSigOps);
 
         transactions.push_back(entry);
+        index_in_template++;
     }
 
     UniValue aux(UniValue::VOBJ);
