@@ -566,11 +566,11 @@ class RawTransactionsTest(BitcoinTestFramework):
                                 0.00001000)
         # And below calls should both succeed
         testres = self.nodes[2].testmempoolaccept(
-            rawtxs=[rawTxSigned['hex']], maxfeerate=0.00007000)[0]
+            rawtxs=[rawTxSigned['hex']], maxfeerate='0.00007000')[0]
         assert_equal(testres['allowed'], True)
         self.nodes[2].sendrawtransaction(
             hexstring=rawTxSigned['hex'],
-            maxfeerate=0.00007000)
+            maxfeerate='0.00007000')
 
         ##########################################
         # Decoding weird scripts in transactions #
