@@ -78,6 +78,13 @@ add_custom_command(OUTPUT qrc_bitcoin_locale.cpp
 )
 
 # UI elements
+# qt5_wrap_ui() generates the files in the CMAKE_CURRENT_BINARY_DIR. As there
+# is no option to change the output directory, moving the files to the forms
+# subdirectory requires to override the variable. It is reset to its actual
+# value after the call so it does not impact the other sections of this
+# CMakeLists.txt file.
+set(SAVE_CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/forms")
 qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/addressbookpage.ui
 	forms/askpassphrasedialog.ui
@@ -97,6 +104,7 @@ qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/signverifymessagedialog.ui
 	forms/transactiondescdialog.ui
 )
+set(CMAKE_CURRENT_BINARY_DIR ${SAVE_CMAKE_CURRENT_BINARY_DIR})
 
 # Qt MOC
 set(CMAKE_AUTOMOC ON)
