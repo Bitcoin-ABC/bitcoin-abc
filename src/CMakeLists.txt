@@ -501,6 +501,7 @@ add_library(server
 	net.cpp
 	net_processing.cpp
 	node/coin.cpp
+	node/psbt.cpp
 	node/transaction.cpp
 	noui.cpp
 	policy/fees.cpp
