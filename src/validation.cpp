@@ -283,24 +283,6 @@ std::string FormatStateMessage(const CValidationState &state) {
         state.GetRejectCode());
 }
 
-static bool IsCurrentForFeeEstimation() {
-    AssertLockHeld(cs_main);
-    if (IsInitialBlockDownload()) {
-        return false;
-    }
-
-    if (chainActive.Tip()->GetBlockTime() <
-        (GetTime() - MAX_FEE_ESTIMATION_TIP_AGE)) {
-        return false;
-    }
-
-    if (chainActive.Height() < pindexBestHeader->nHeight - 1) {
-        return false;
-    }
-
-    return true;
-}
-
 static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
     AssertLockHeld(cs_main);
     return IsMagneticAnomalyEnabled(config, chainActive.Tip());
@@ -708,14 +690,8 @@ static bool AcceptToMemoryPoolWorker(
                       "otherwise cause instability!\n");
         }
 
-        // This transaction should only count for fee estimation if
-        // the node is not behind and it is not dependent on any other
-        // transactions in the mempool.
-        bool validForFeeEstimation =
-            IsCurrentForFeeEstimation() && pool.HasNoInputsOf(tx);
-
         // Store transaction in memory.
-        pool.addUnchecked(txid, entry, setAncestors, validForFeeEstimation);
+        pool.addUnchecked(txid, entry, setAncestors);
 
         // Trim mempool and check if tx was trimmed.
         if (!fOverrideMempoolLimit) {
