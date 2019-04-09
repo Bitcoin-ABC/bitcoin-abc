@@ -621,6 +621,7 @@ static UniValue getblocktemplate(const Config &config,
         uint256 txId = tx.GetId();
 
         if (tx.IsCoinBase()) {
+            index_in_template++;
             continue;
         }
 
