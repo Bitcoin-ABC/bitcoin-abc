@@ -202,6 +202,28 @@ public:
     }
 };
 
+/** A key allocated from the key pool. */
+class CReserveKey final : public CReserveScript {
+protected:
+    CWallet *pwallet;
+    int64_t nIndex{-1};
+    CPubKey vchPubKey;
+    bool fInternal{false};
+
+public:
+    explicit CReserveKey(CWallet *pwalletIn) { pwallet = pwalletIn; }
+
+    CReserveKey(const CReserveKey &) = delete;
+    CReserveKey &operator=(const CReserveKey &) = delete;
+
+    ~CReserveKey() { ReturnKey(); }
+
+    void ReturnKey();
+    bool GetReservedKey(CPubKey &pubkey, bool internal = false);
+    void KeepKey();
+    void KeepScript() override { KeepKey(); }
+};
+
 /** Address book data */
 class CAddressBookData {
 public:
@@ -1451,28 +1473,6 @@ public:
  * wallets themselves.
  */
 void MaybeResendWalletTxs();
-
-/** A key allocated from the key pool. */
-class CReserveKey final : public CReserveScript {
-protected:
-    CWallet *pwallet;
-    int64_t nIndex{-1};
-    CPubKey vchPubKey;
-    bool fInternal{false};
-
-public:
-    explicit CReserveKey(CWallet *pwalletIn) { pwallet = pwalletIn; }
-
-    CReserveKey(const CReserveKey &) = delete;
-    CReserveKey &operator=(const CReserveKey &) = delete;
-
-    ~CReserveKey() { ReturnKey(); }
-
-    void ReturnKey();
-    bool GetReservedKey(CPubKey &pubkey, bool internal = false);
-    void KeepKey();
-    void KeepScript() override { KeepKey(); }
-};
 
 /** RAII object to check and reserve a wallet rescan */
 class WalletRescanReserver {
