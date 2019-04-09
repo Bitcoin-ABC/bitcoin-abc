@@ -399,9 +399,15 @@ class BitcoinTestFramework():
         connect_nodes_bi(self.nodes[1], self.nodes[2])
         self.sync_all()
 
-    def sync_all(self, nodes=None, **kwargs):
+    def sync_blocks(self, nodes=None, **kwargs):
         sync_blocks(nodes or self.nodes, **kwargs)
+
+    def sync_mempools(self, nodes=None, **kwargs):
         sync_mempools(nodes or self.nodes, **kwargs)
+
+    def sync_all(self, nodes=None, **kwargs):
+        self.sync_blocks(nodes, **kwargs)
+        self.sync_mempools(nodes, **kwargs)
 
     # Private helper methods. These should not be accessed by the subclass
     # test scripts.
