@@ -7,9 +7,56 @@
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/merkle.h>
+#include <key_io.h>
 #include <miner.h>
 #include <pow.h>
 #include <validation.h>
+
+#ifdef ENABLE_WALLET
+#include <wallet/wallet.h>
+#endif // ENABLE_WALLET
+
+const std::string ADDRESS_BCHREG_UNSPENDABLE =
+    "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt";
+
+#ifdef ENABLE_WALLET
+std::string getnewaddress(const Config &config, CWallet &w) {
+    constexpr auto output_type = OutputType::LEGACY;
+
+    CPubKey new_key;
+    if (!w.GetKeyFromPool(new_key)) {
+        assert(false);
+    }
+
+    w.LearnRelatedScripts(new_key, output_type);
+    const auto dest = GetDestinationForKey(new_key, output_type);
+
+    w.SetAddressBook(dest, /* label */ "", "receive");
+
+    return EncodeDestination(dest, config);
+}
+
+void importaddress(CWallet &wallet, const std::string &address) {
+    LOCK(wallet.cs_wallet);
+    const auto dest = DecodeDestination(address, wallet.chainParams);
+    assert(IsValidDestination(dest));
+    const auto script = GetScriptForDestination(dest);
+    wallet.MarkDirty();
+    assert(!wallet.HaveWatchOnly(script));
+    if (!wallet.AddWatchOnly(script, 0 /* nCreateTime */)) {
+        assert(false);
+    }
+    wallet.SetAddressBook(dest, /* label */ "", "receive");
+}
+#endif // ENABLE_WALLET
+
+CTxIn generatetoaddress(const Config &config, const std::string &address) {
+    const auto dest = DecodeDestination(address, config.GetChainParams());
+    assert(IsValidDestination(dest));
+    const auto coinbase_script = GetScriptForDestination(dest);
+
+    return MineBlock(config, coinbase_script);
+}
 
 CTxIn MineBlock(const Config &config, const CScript &coinbase_scriptPubKey) {
     auto block = PrepareBlock(config, coinbase_scriptPubKey);

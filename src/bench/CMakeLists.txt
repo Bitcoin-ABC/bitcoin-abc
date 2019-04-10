@@ -69,7 +69,11 @@ add_executable(bitcoin-bench
 target_link_libraries(bitcoin-bench common bitcoinconsensus server)
 
 if(BUILD_BITCOIN_WALLET)
-	target_sources(bitcoin-bench PRIVATE coin_selection.cpp)
+	target_sources(bitcoin-bench
+		PRIVATE
+			coin_selection.cpp
+			wallet_balance.cpp
+	)
 	target_link_libraries(bitcoin-bench wallet)
 endif()
 
