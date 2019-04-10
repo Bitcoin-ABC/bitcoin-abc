@@ -39,6 +39,11 @@ class ConfArgsTest(BitcoinTestFramework):
         self.nodes[0].assert_start_raises_init_error(
             expected_msg='Error reading configuration file: parse error on line 1: -dash=1, options in configuration file must be specified without leading -')
 
+        with open(inc_conf_file_path, 'w', encoding='utf8') as conf:
+            conf.write("wallet=foo\n")
+        self.nodes[0].assert_start_raises_init_error(
+            expected_msg='Error: Config setting for -wallet only applied on regtest network when in [regtest] section.')
+
         with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
             conf.write('nono\n')
         self.nodes[0].assert_start_raises_init_error(
