@@ -8,6 +8,7 @@
 
 #include <script/standard.h>
 
+#include <bitset>
 #include <cstdint>
 
 class CKeyStore;
@@ -16,9 +17,10 @@ class CScript;
 /** IsMine() return codes */
 enum isminetype {
     ISMINE_NO = 0,
-    ISMINE_WATCH_ONLY = 1,
-    ISMINE_SPENDABLE = 2,
-    ISMINE_ALL = ISMINE_WATCH_ONLY | ISMINE_SPENDABLE
+    ISMINE_WATCH_ONLY = 1 << 0,
+    ISMINE_SPENDABLE = 1 << 1,
+    ISMINE_ALL = ISMINE_WATCH_ONLY | ISMINE_SPENDABLE,
+    ISMINE_ENUM_ELEMENTS,
 };
 
 /** used for bitflags of isminetype */
@@ -35,5 +37,19 @@ isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
                   bool &isInvalid);
 isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey);
 isminetype IsMine(const CKeyStore &keystore, const CTxDestination &dest);
+
+/**
+ * Cachable amount subdivided into watchonly and spendable parts.
+ */
+struct CachableAmount {
+    // NO and ALL are never (supposed to be) cached
+    std::bitset<ISMINE_ENUM_ELEMENTS> m_cached;
+    Amount m_value[ISMINE_ENUM_ELEMENTS];
+    inline void Reset() { m_cached.reset(); }
+    void Set(isminefilter filter, Amount value) {
+        m_cached.set(filter);
+        m_value[filter] = value;
+    }
+};
 
 #endif // BITCOIN_SCRIPT_ISMINE_H

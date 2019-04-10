@@ -75,8 +75,7 @@ static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
     auto wtx =
         std::make_unique<CWalletTx>(&wallet, MakeTransactionRef(std::move(tx)));
     if (fIsFromMe) {
-        wtx->fDebitCached = true;
-        wtx->nDebitCached = SATOSHI;
+        wtx->m_amounts[CWalletTx::DEBIT].Set(ISMINE_SPENDABLE, SATOSHI);
     }
     COutput output(wtx.get(), nInput, nAge, true /* spendable */,
                    true /* solvable */, true /* safe */);
@@ -127,7 +126,9 @@ inline std::vector<OutputGroup> &GroupCoins(const std::vector<COutput> &coins) {
         // HACK: we can't figure out the is_me flag so we use the conditions
         // defined below; perhaps set safe to false for !fIsFromMe in add_coin()
         const bool is_me =
-            coin.tx->fDebitCached && coin.tx->nDebitCached == SATOSHI;
+            coin.tx->m_amounts[CWalletTx::DEBIT].m_cached[ISMINE_SPENDABLE] &&
+            coin.tx->m_amounts[CWalletTx::DEBIT].m_value[ISMINE_SPENDABLE] ==
+                SATOSHI;
         static_groups.emplace_back(coin.GetInputCoin(), coin.nDepth, is_me, 0,
                                    0);
     }

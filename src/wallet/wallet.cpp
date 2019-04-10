@@ -2115,6 +2115,16 @@ std::set<TxId> CWalletTx::GetConflicts() const {
     return result;
 }
 
+Amount CWalletTx::GetCachableAmount(AmountType type, const isminefilter &filter,
+                                    bool recalculate) const {
+    auto &amount = m_amounts[type];
+    if (recalculate || !amount.m_cached[filter]) {
+        amount.Set(filter, type == DEBIT ? pwallet->GetDebit(*tx, filter)
+                                         : pwallet->GetCredit(*tx, filter));
+    }
+    return amount.m_value[filter];
+}
+
 Amount CWalletTx::GetDebit(const isminefilter &filter) const {
     if (tx->vin.empty()) {
         return Amount::zero();
@@ -2122,23 +2132,10 @@ Amount CWalletTx::GetDebit(const isminefilter &filter) const {
 
     Amount debit = Amount::zero();
     if (filter & ISMINE_SPENDABLE) {
-        if (fDebitCached) {
-            debit += nDebitCached;
-        } else {
-            nDebitCached = pwallet->GetDebit(*tx, ISMINE_SPENDABLE);
-            fDebitCached = true;
-            debit += nDebitCached;
-        }
+        debit += GetCachableAmount(DEBIT, ISMINE_SPENDABLE);
     }
-
     if (filter & ISMINE_WATCH_ONLY) {
-        if (fWatchDebitCached) {
-            debit += nWatchDebitCached;
-        } else {
-            nWatchDebitCached = pwallet->GetDebit(*tx, ISMINE_WATCH_ONLY);
-            fWatchDebitCached = true;
-            debit += Amount(nWatchDebitCached);
-        }
+        debit += GetCachableAmount(DEBIT, ISMINE_WATCH_ONLY);
     }
 
     return debit;
@@ -2155,23 +2152,11 @@ Amount CWalletTx::GetCredit(interfaces::Chain::Lock &locked_chain,
     Amount credit = Amount::zero();
     if (filter & ISMINE_SPENDABLE) {
         // GetBalance can assume transactions in mapWallet won't change.
-        if (fCreditCached) {
-            credit += nCreditCached;
-        } else {
-            nCreditCached = pwallet->GetCredit(*tx, ISMINE_SPENDABLE);
-            fCreditCached = true;
-            credit += nCreditCached;
-        }
+        credit += GetCachableAmount(CREDIT, ISMINE_SPENDABLE);
     }
 
     if (filter & ISMINE_WATCH_ONLY) {
-        if (fWatchCreditCached) {
-            credit += nWatchCreditCached;
-        } else {
-            nWatchCreditCached = pwallet->GetCredit(*tx, ISMINE_WATCH_ONLY);
-            fWatchCreditCached = true;
-            credit += nWatchCreditCached;
-        }
+        credit += GetCachableAmount(CREDIT, ISMINE_WATCH_ONLY);
     }
 
     return credit;
@@ -2180,13 +2165,7 @@ Amount CWalletTx::GetCredit(interfaces::Chain::Lock &locked_chain,
 Amount CWalletTx::GetImmatureCredit(interfaces::Chain::Lock &locked_chain,
                                     bool fUseCache) const {
     if (IsImmatureCoinBase(locked_chain) && IsInMainChain(locked_chain)) {
-        if (fUseCache && fImmatureCreditCached) {
-            return nImmatureCreditCached;
-        }
-
-        nImmatureCreditCached = pwallet->GetCredit(*tx, ISMINE_SPENDABLE);
-        fImmatureCreditCached = true;
-        return nImmatureCreditCached;
+        return GetCachableAmount(IMMATURE_CREDIT, ISMINE_SPENDABLE, !fUseCache);
     }
 
     return Amount::zero();
@@ -2199,25 +2178,20 @@ Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
         return Amount::zero();
     }
 
+    // Avoid caching ismine for NO or ALL cases (could remove this check and
+    // simplify in the future).
+    bool allow_cache =
+        filter == ISMINE_SPENDABLE || filter == ISMINE_WATCH_ONLY;
+
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
     if (IsImmatureCoinBase(locked_chain)) {
         return Amount::zero();
     }
 
-    Amount *cache = nullptr;
-    bool *cache_used = nullptr;
-
-    if (filter == ISMINE_SPENDABLE) {
-        cache = &nAvailableCreditCached;
-        cache_used = &fAvailableCreditCached;
-    } else if (filter == ISMINE_WATCH_ONLY) {
-        cache = &nAvailableWatchCreditCached;
-        cache_used = &fAvailableWatchCreditCached;
-    }
-
-    if (fUseCache && cache_used && *cache_used) {
-        return *cache;
+    if (fUseCache && allow_cache &&
+        m_amounts[AVAILABLE_CREDIT].m_cached[filter]) {
+        return m_amounts[AVAILABLE_CREDIT].m_value[filter];
     }
 
     Amount nCredit = Amount::zero();
@@ -2233,10 +2207,10 @@ Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
         }
     }
 
-    if (cache) {
-        *cache = nCredit;
-        *cache_used = true;
+    if (allow_cache) {
+        m_amounts[AVAILABLE_CREDIT].Set(filter, nCredit);
     }
+
     return nCredit;
 }
 
@@ -2244,13 +2218,8 @@ Amount
 CWalletTx::GetImmatureWatchOnlyCredit(interfaces::Chain::Lock &locked_chain,
                                       const bool fUseCache) const {
     if (IsImmatureCoinBase(locked_chain) && IsInMainChain(locked_chain)) {
-        if (fUseCache && fImmatureWatchCreditCached) {
-            return nImmatureWatchCreditCached;
-        }
-
-        nImmatureWatchCreditCached = pwallet->GetCredit(*tx, ISMINE_WATCH_ONLY);
-        fImmatureWatchCreditCached = true;
-        return nImmatureWatchCreditCached;
+        return GetCachableAmount(IMMATURE_CREDIT, ISMINE_WATCH_ONLY,
+                                 !fUseCache);
     }
 
     return Amount::zero();
