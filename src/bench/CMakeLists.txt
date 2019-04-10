@@ -57,6 +57,8 @@ add_executable(bitcoin-bench
 
 	# TODO: make a test library
 	../test/setup_common.cpp
+	../test/util.cpp
+
 
 	# Add the generated headers to trigger the conversion command
 	${BENCH_DATA_GENERATED_HEADERS}
