@@ -2223,6 +2223,60 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << std::vector<uint8_t>({0, 0}),
+                    "Valid segwit recovery, in spite of false value being left "
+                    "on stack (0)",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << std::vector<uint8_t>({0, 0x80}),
+                    "Valid segwit recovery, in spite of false value being left "
+                    "on stack (minus 0)",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    tests.push_back(
+        TestBuilder(
+            CScript() << OP_RESERVED << ToByteVector(dummy256),
+            "Invalid witness program (OP_RESERVED in version field) with "
+            "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+            allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_BAD_OPCODE));
+    const uint8_t nonmin_push_00[] = {1, 0};
+    tests.push_back(
+        TestBuilder(
+            CScript(&nonmin_push_00[0], &nonmin_push_00[sizeof(nonmin_push_00)])
+                << ToByteVector(keys.pubkey0.GetID()),
+            "Invalid witness program (non-minimal push in version field) with "
+            "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+            allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    const uint8_t nonmin_push_45aa[] = {OP_PUSHDATA1, 2, 0x45, 0xaa};
+    tests.push_back(
+        TestBuilder((CScript() << OP_0) +
+                        CScript(&nonmin_push_45aa[0],
+                                &nonmin_push_45aa[sizeof(nonmin_push_45aa)]),
+                    "Invalid witness program (non-minimal push in program "
+                    "field) with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
+                    "v0 P2SH-P2WPKH whose redeem script hash does not match "
+                    "P2SH output and SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags, true)
+            .Push(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()))
+            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
+    tests.push_back(
+        TestBuilder(CScript() << OP_1,
+                    "v0 P2SH-P2WPKH spending a non-P2SH output and "
+                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags)
+            .Push(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()))
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
 
     std::set<std::string> tests_set;
 

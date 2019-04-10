@@ -3349,6 +3349,55 @@
     "CLEANSTACK",
     "Invalid witness program (more than 2 stack items) with SCRIPT_ALLOW_SEGWIT_RECOVERY"
 ],
+[
+    "0x04 0x00020000",
+    "HASH160 0x14 0x0e01bcfe7c6f3fd2fd8f81092299369744684733 EQUAL",
+    "ALLOW_SEGWIT_RECOVERY,CLEANSTACK,P2SH",
+    "OK",
+    "Valid segwit recovery, in spite of false value being left on stack (0)"
+],
+[
+    "0x04 0x00020080",
+    "HASH160 0x14 0x10ddc638cb26615f867dad80efacced9e73766bc EQUAL",
+    "ALLOW_SEGWIT_RECOVERY,CLEANSTACK,P2SH",
+    "OK",
+    "Valid segwit recovery, in spite of false value being left on stack (minus 0)"
+],
+[
+    "0x22 0x50205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0xbe02794ceede051da41b420e88a86fff2802af06 EQUAL",
+    "ALLOW_SEGWIT_RECOVERY,CLEANSTACK,P2SH",
+    "BAD_OPCODE",
+    "Invalid witness program (OP_RESERVED in version field) with SCRIPT_ALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x17 0x01001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "HASH160 0x14 0x0718743e67c1ef4911e0421f206c5ff81755718e EQUAL",
+    "ALLOW_SEGWIT_RECOVERY,CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Invalid witness program (non-minimal push in version field) with SCRIPT_ALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x05 0x004c0245aa",
+    "HASH160 0x14 0xd3ec673296c7fd7e1a9e53bfc36f414de303e905 EQUAL",
+    "ALLOW_SEGWIT_RECOVERY,CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Invalid witness program (non-minimal push in program field) with SCRIPT_ALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
+    "ALLOW_SEGWIT_RECOVERY,CLEANSTACK,P2SH",
+    "EVAL_FALSE",
+    "v0 P2SH-P2WPKH whose redeem script hash does not match P2SH output and SCRIPT_ALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "1",
+    "ALLOW_SEGWIT_RECOVERY,CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "v0 P2SH-P2WPKH spending a non-P2SH output and SCRIPT_ALLOW_SEGWIT_RECOVERY"
+],
 
 ["CHECKSEQUENCEVERIFY tests"],
 ["", "CHECKSEQUENCEVERIFY", "CHECKSEQUENCEVERIFY", "INVALID_STACK_OPERATION", "CSV automatically fails on a empty stack"],
