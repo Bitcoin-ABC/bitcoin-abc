@@ -10,6 +10,9 @@
 #include <config.h>
 #include <net_processing.h> // For PeerLogicValidation
 #include <util/time.h>
+// D6970 moved LookupBlockIndex from chain.h to validation.h TODO: remove this
+// when LookupBlockIndex is refactored out of validation
+#include <validation.h>
 
 #include <test/util/setup_common.h>
 

@@ -86,7 +86,6 @@ CChain &ChainActive() {
  */
 RecursiveMutex cs_main;
 
-BlockMap &mapBlockIndex = g_blockman.m_block_index;
 CBlockIndex *pindexBestHeader = nullptr;
 Mutex g_best_block_mutex;
 std::condition_variable g_best_block_cv;
@@ -142,6 +141,12 @@ std::set<int> setDirtyFileInfo;
 BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
       checkMerkleRoot(true) {}
+
+CBlockIndex *LookupBlockIndex(const BlockHash &hash) {
+    AssertLockHeld(cs_main);
+    BlockMap::const_iterator it = g_blockman.m_block_index.find(hash);
+    return it == g_blockman.m_block_index.end() ? nullptr : it->second;
+}
 
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator) {
@@ -819,6 +824,10 @@ bool CChainState::IsInitialBlockDownload() const {
 
 static CBlockIndex const *pindexBestForkTip = nullptr;
 static CBlockIndex const *pindexBestForkBase = nullptr;
+
+BlockMap &BlockIndex() {
+    return g_blockman.m_block_index;
+}
 
 static void AlertNotify(const std::string &strMessage) {
     uiInterface.NotifyAlertChanged();
@@ -3666,7 +3675,7 @@ static bool ContextualCheckBlockHeader(const CChainParams &params,
 
         // Don't accept any forks from the main chain prior to last checkpoint.
         // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's
-        // in our MapBlockIndex.
+        // in our g_blockman.m_block_index.
         CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
             LogPrintf("ERROR: %s: forked chain older than last checkpoint "
@@ -4509,9 +4518,9 @@ bool BlockManager::LoadBlockIndex(
 
     // Calculate nChainWork
     std::vector<std::pair<int, CBlockIndex *>> vSortedByHeight;
-    vSortedByHeight.reserve(mapBlockIndex.size());
+    vSortedByHeight.reserve(m_block_index.size());
     for (const std::pair<const BlockHash, CBlockIndex *> &item :
-         mapBlockIndex) {
+         m_block_index) {
         CBlockIndex *pindex = item.second;
         vSortedByHeight.push_back(std::make_pair(pindex->nHeight, pindex));
     }
@@ -4614,7 +4623,7 @@ static bool LoadBlockIndexDB(const Consensus::Params &params)
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
     for (const std::pair<const BlockHash, CBlockIndex *> &item :
-         mapBlockIndex) {
+         g_blockman.m_block_index) {
         CBlockIndex *pindex = item.second;
         if (pindex->nStatus.hasData()) {
             setBlkDataFiles.insert(pindex->nFile);
@@ -4904,21 +4913,21 @@ bool CChainState::ReplayBlocks(const Consensus::Params &params,
     // Latest block common to both the old and the new tip.
     const CBlockIndex *pindexFork = nullptr;
 
-    if (mapBlockIndex.count(hashHeads[0]) == 0) {
+    if (m_blockman.m_block_index.count(hashHeads[0]) == 0) {
         return error(
             "ReplayBlocks(): reorganization to unknown block requested");
     }
 
-    pindexNew = mapBlockIndex[hashHeads[0]];
+    pindexNew = m_blockman.m_block_index[hashHeads[0]];
 
     if (!hashHeads[1].IsNull()) {
         // The old tip is allowed to be 0, indicating it's the first flush.
-        if (mapBlockIndex.count(hashHeads[1]) == 0) {
+        if (m_blockman.m_block_index.count(hashHeads[1]) == 0) {
             return error(
                 "ReplayBlocks(): reorganization from unknown block requested");
         }
 
-        pindexOld = mapBlockIndex[hashHeads[1]];
+        pindexOld = m_blockman.m_block_index[hashHeads[1]];
         pindexFork = LastCommonAncestor(pindexOld, pindexNew);
         assert(pindexFork != nullptr);
     }
@@ -5021,7 +5030,7 @@ bool LoadBlockIndex(const Consensus::Params &params) {
             return false;
         }
 
-        needs_init = mapBlockIndex.empty();
+        needs_init = g_blockman.m_block_index.empty();
     }
 
     if (needs_init) {
@@ -5040,10 +5049,10 @@ bool CChainState::LoadGenesisBlock(const CChainParams &chainparams) {
     LOCK(cs_main);
 
     // Check whether we're already initialized by checking for genesis in
-    // mapBlockIndex. Note that we can't use m_chain here, since it is
-    // set based on the coins db, not the block index db, which is the only
+    // m_blockman.m_block_index. Note that we can't use m_chain here, since it
+    // is set based on the coins db, not the block index db, which is the only
     // thing loaded at this point.
-    if (mapBlockIndex.count(chainparams.GenesisBlock().GetHash())) {
+    if (m_blockman.m_block_index.count(chainparams.GenesisBlock().GetHash())) {
         return true;
     }
 
@@ -5238,21 +5247,21 @@ void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
     LOCK(cs_main);
 
     // During a reindex, we read the genesis block and call CheckBlockIndex
-    // before ActivateBestChain, so we have the genesis block in mapBlockIndex
-    // but no active chain. (A few of the tests when iterating the block tree
-    // require that m_chain has been initialized.)
+    // before ActivateBestChain, so we have the genesis block in
+    // m_blockman.m_block_index but no active chain. (A few of the tests when
+    // iterating the block tree require that m_chain has been initialized.)
     if (m_chain.Height() < 0) {
-        assert(mapBlockIndex.size() <= 1);
+        assert(m_blockman.m_block_index.size() <= 1);
         return;
     }
 
     // Build forward-pointing map of the entire block tree.
     std::multimap<CBlockIndex *, CBlockIndex *> forward;
-    for (const auto &entry : mapBlockIndex) {
+    for (const auto &entry : m_blockman.m_block_index) {
         forward.emplace(entry.second->pprev, entry.second);
     }
 
-    assert(forward.size() == mapBlockIndex.size());
+    assert(forward.size() == m_blockman.m_block_index.size());
 
     std::pair<std::multimap<CBlockIndex *, CBlockIndex *>::iterator,
               std::multimap<CBlockIndex *, CBlockIndex *>::iterator>
@@ -5369,7 +5378,7 @@ void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
         // The pskip pointer must point back for all but the first 2 blocks.
         assert(nHeight < 2 ||
                (pindex->pskip && (pindex->pskip->nHeight < nHeight)));
-        // All mapBlockIndex entries must at least be TREE valid
+        // All m_blockman.m_block_index entries must at least be TREE valid
         assert(pindexFirstNotTreeValid == nullptr);
         if (pindex->nStatus.getValidity() >= BlockValidity::TREE) {
             // TREE valid implies all parents are TREE valid
@@ -5771,10 +5780,10 @@ public:
     ~CMainCleanup() {
         // block headers
         for (const std::pair<const BlockHash, CBlockIndex *> &it :
-             mapBlockIndex) {
+             g_blockman.m_block_index) {
             delete it.second;
         }
-        mapBlockIndex.clear();
+        g_blockman.m_block_index.clear();
     }
 };
 static CMainCleanup instance_of_cmaincleanup;

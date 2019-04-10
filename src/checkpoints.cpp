@@ -4,9 +4,11 @@
 
 #include <checkpoints.h>
 
-#include <chain.h>
 #include <chainparams.h>
 #include <reverse_iterator.h>
+// D6970 moved LookupBlockIndex from chain.h to validation.h TODO: remove this
+// when LookupBlockIndex is refactored out of validation
+#include <validation.h>
 
 #include <cstdint>
 

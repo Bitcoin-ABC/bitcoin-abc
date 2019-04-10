@@ -798,7 +798,7 @@ void SetupServerArgs() {
         OptionsCategory::DEBUG_TEST);
     gArgs.AddArg(
         "-checkblockindex",
-        strprintf("Do a full consistency check for mapBlockIndex, "
+        strprintf("Do a full consistency check for the block tree, "
                   "setBlockIndexCandidates, ::ChainActive() and "
                   "mapBlocksUnlinked occasionally. (default: %u, regtest: %u)",
                   defaultChainParams->DefaultConsistencyChecks(),
@@ -2444,7 +2444,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way
                 // around).
-                if (!mapBlockIndex.empty() &&
+                if (!::BlockIndex().empty() &&
                     !LookupBlockIndex(params.hashGenesisBlock)) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?")
@@ -2476,7 +2476,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 }
 
                 // At this point we're either in reindex or we've loaded a
-                // useful block tree into mapBlockIndex!
+                // useful block tree into BlockIndex()!
 
                 pcoinsdbview.reset(new CCoinsViewDB(
                     nCoinDBCache, false, fReset || fReindexChainState));
@@ -2706,7 +2706,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     //// debug print
     {
         LOCK(cs_main);
-        LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());
+        LogPrintf("block tree size = %u\n", ::BlockIndex().size());
         chain_active_height = ::ChainActive().Height();
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);

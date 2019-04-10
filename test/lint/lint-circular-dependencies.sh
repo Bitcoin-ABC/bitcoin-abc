@@ -33,6 +33,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "seeder/bitcoin -> seeder/db -> seeder/bitcoin"
     "chainparams -> protocol -> config -> chainparams"
     "wallet/scriptpubkeyman -> wallet/wallet -> wallet/scriptpubkeyman"
+    "checkpoints -> validation -> checkpoints"
 )
 
 EXIT_CODE=0

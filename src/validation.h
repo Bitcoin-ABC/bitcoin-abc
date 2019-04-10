@@ -171,6 +171,7 @@ static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 2 * 60 * 60;
 extern CScript COINBASE_FLAGS;
 extern RecursiveMutex cs_main;
 extern CTxMemPool g_mempool;
+typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
 extern Mutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;
 extern uint256 g_best_block;
@@ -682,6 +683,9 @@ public:
 /** Replay blocks that aren't fully applied to the database. */
 bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
 
+CBlockIndex *LookupBlockIndex(const BlockHash &hash)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
 /** Find the last common block between the parameter chain and a locator. */
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator)
@@ -755,7 +759,7 @@ public:
     /**
      * If a block header hasn't already been seen, call CheckBlockHeader on it,
      * ensure that it doesn't descend from an invalid block, and then add it to
-     * mapBlockIndex.
+     * m_block_index.
      */
     bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
                            BlockValidationState &state, CBlockIndex **ppindex)
@@ -989,6 +993,9 @@ CChainState &ChainstateActive();
 
 /** @returns the most-work chain. */
 CChain &ChainActive();
+
+/** @returns the global block index map. */
+BlockMap &BlockIndex();
 
 /**
  * Global variable that points to the coins database (protected by cs_main)
