@@ -8,11 +8,8 @@
 #include <key.h>
 #include <util/strencodings.h>
 #include <util/system.h>
-#include <validation.h>
 
 #include <memory>
-
-const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 static const int64_t DEFAULT_BENCH_EVALUATIONS = 5;
 static const char *DEFAULT_BENCH_FILTER = ".*";
@@ -69,14 +66,6 @@ static void SetupBenchArgs() {
     gArgs.AddArg("-help", "", false, OptionsCategory::HIDDEN);
 }
 
-static fs::path SetDataDir() {
-    fs::path ret =
-        fs::temp_directory_path() / "bench_bitcoin" / fs::unique_path();
-    fs::create_directories(ret);
-    gArgs.ForceSetArg("-datadir", ret.string());
-    return ret;
-}
-
 int main(int argc, char **argv) {
     SetupBenchArgs();
     std::string error;
@@ -90,13 +79,6 @@ int main(int argc, char **argv) {
         std::cout << gArgs.GetHelpMessage();
         return EXIT_SUCCESS;
     }
-
-    // Set the datadir after parsing the bench options
-    const fs::path bench_datadir{SetDataDir()};
-
-    SHA256AutoDetect();
-    ECC_Start();
-    SetupEnvironment();
 
     int64_t evaluations = gArgs.GetArg("-evals", DEFAULT_BENCH_EVALUATIONS);
     std::string regex_filter = gArgs.GetArg("-filter", DEFAULT_BENCH_FILTER);
@@ -122,10 +104,6 @@ int main(int argc, char **argv) {
 
     benchmark::BenchRunner::RunAll(*printer, evaluations, scaling_factor,
                                    regex_filter, is_list_only);
-
-    fs::remove_all(bench_datadir);
-
-    ECC_Stop();
 
     return EXIT_SUCCESS;
 }

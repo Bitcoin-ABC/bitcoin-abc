@@ -12,15 +12,10 @@
 #include <miner.h>
 #include <policy/policy.h>
 #include <pow.h>
-#include <scheduler.h>
 #include <script/scriptcache.h>
-#include <txdb.h>
 #include <txmempool.h>
-#include <util/time.h>
 #include <validation.h>
 #include <validationinterface.h>
-
-#include <boost/thread.hpp>
 
 #include <list>
 #include <vector>
@@ -28,30 +23,7 @@
 static void DuplicateInputs(benchmark::State &state) {
     const CScript SCRIPT_PUB{CScript(OP_TRUE)};
 
-    // Switch to regtest so we can mine faster
-    SelectParams(CBaseChainParams::REGTEST);
-    const Config &config = GetConfig();
-
-    InitScriptExecutionCache();
-
-    boost::thread_group thread_group;
-    CScheduler scheduler;
-    const CChainParams &chainparams = config.GetChainParams();
-    {
-        LOCK(cs_main);
-        ::pblocktree.reset(new CBlockTreeDB(1 << 20, true));
-        ::pcoinsdbview.reset(new CCoinsViewDB(1 << 23, true));
-        ::pcoinsTip.reset(new CCoinsViewCache(pcoinsdbview.get()));
-    }
-    {
-        thread_group.create_thread(
-            std::bind(&CScheduler::serviceQueue, &scheduler));
-        GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
-        LoadGenesisBlock(chainparams);
-        CValidationState cvstate;
-        ActivateBestChain(config, cvstate);
-        assert(::ChainActive().Tip() != nullptr);
-    }
+    const CChainParams &chainparams = Params();
 
     CBlock block{};
     CMutableTransaction coinbaseTx{};
@@ -92,16 +64,11 @@ static void DuplicateInputs(benchmark::State &state) {
     while (state.KeepRunning()) {
         CValidationState cvstate{};
         assert(!CheckBlock(block, cvstate, chainparams.GetConsensus(),
-                           BlockValidationOptions(config)
+                           BlockValidationOptions(GetConfig())
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false)));
         assert(cvstate.GetRejectReason() == "bad-txns-inputs-duplicate");
     }
-
-    thread_group.interrupt_all();
-    thread_group.join_all();
-    GetMainSignals().FlushBackgroundCallbacks();
-    GetMainSignals().UnregisterBackgroundSignalScheduler();
 }
 
 BENCHMARK(DuplicateInputs, 10);

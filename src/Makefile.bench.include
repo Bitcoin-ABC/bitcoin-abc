@@ -31,13 +31,16 @@ bench_bench_bitcoin_SOURCES = \
   bench/util_time.cpp \
   bench/base58.cpp \
   bench/lockedpool.cpp \
-  bench/prevector.cpp
+  bench/prevector.cpp \
+  test/test_bitcoin.h \
+  test/test_bitcoin.cpp
 
 nodist_bench_bench_bitcoin_SOURCES = $(GENERATED_BENCH_FILES)
 
 bench_bench_bitcoin_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CLFAGS) $(EVENT_PTHREADS_CFLAGS) -I$(builddir)/bench/
 bench_bench_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bench_bench_bitcoin_LDADD = \
+  $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \

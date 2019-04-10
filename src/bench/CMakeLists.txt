@@ -54,6 +54,9 @@ add_executable(bitcoin-bench
 	rpc_mempool.cpp
 	util_time.cpp
 
+	# TODO: make a test library
+	../test/test_bitcoin.cpp
+
 	# Add the generated headers to trigger the conversion command
 	${BENCH_DATA_GENERATED_HEADERS}
 )
