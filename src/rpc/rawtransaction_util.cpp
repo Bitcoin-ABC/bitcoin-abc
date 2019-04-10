@@ -157,24 +157,11 @@ static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
     vErrorsRet.push_back(entry);
 }
 
-// TODO(https://github.com/bitcoin/bitcoin/pull/10973#discussion_r267084237):
-// This function is called from both wallet and node rpcs
-// (signrawtransactionwithwallet and signrawtransactionwithkey). It should be
-// moved to a util file so wallet code doesn't need to link against node code.
-// Also the dependency on interfaces::Chain should be removed, so
-// signrawtransactionwithkey doesn't need access to a Chain instance.
-UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
+UniValue SignTransaction(CMutableTransaction &mtx,
                          const UniValue &prevTxsUnival,
-                         CBasicKeyStore *keystore, bool is_temp_keystore,
-                         const UniValue &hashType) {
-    // Fetch previous transactions (inputs):
-    std::map<COutPoint, Coin> coins;
-    for (const CTxIn &txin : mtx.vin) {
-        // Create empty map entry keyed by prevout.
-        coins[txin.prevout];
-    }
-    chain.findCoins(coins);
-
+                         CBasicKeyStore *keystore,
+                         std::map<COutPoint, Coin> &coins,
+                         bool is_temp_keystore, const UniValue &hashType) {
     // Add previous txouts given in the RPC call:
     if (!prevTxsUnival.isNull()) {
         UniValue prevTxs = prevTxsUnival.get_array();
