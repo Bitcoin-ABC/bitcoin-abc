@@ -7,7 +7,7 @@
 #include <random.h>
 #include <script/sigcache.h>
 
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/shared_mutex.hpp>

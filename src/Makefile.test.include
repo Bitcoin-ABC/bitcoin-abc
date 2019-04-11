@@ -55,8 +55,8 @@ BITCOIN_TEST_SUITE = \
   test/main.cpp \
   test/scriptflags.cpp \
   test/sigutil.cpp \
-  test/test_bitcoin.h \
-  test/test_bitcoin.cpp
+  test/setup_common.h \
+  test/setup_common.cpp
 
 FUZZ_SUITE = \
   test/test_bitcoin.cpp \

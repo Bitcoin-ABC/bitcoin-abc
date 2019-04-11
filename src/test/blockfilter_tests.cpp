@@ -10,7 +10,7 @@
 #include <util/strencodings.h>
 
 #include <test/data/blockfilters.json.h>
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 

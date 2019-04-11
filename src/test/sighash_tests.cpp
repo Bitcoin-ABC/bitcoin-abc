@@ -15,7 +15,7 @@
 
 #include <test/data/sighash.json.h>
 #include <test/jsonutil.h>
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 

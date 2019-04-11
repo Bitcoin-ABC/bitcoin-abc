@@ -26,7 +26,7 @@
 #include <test/data/tx_valid.json.h>
 #include <test/jsonutil.h>
 #include <test/scriptflags.h>
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 

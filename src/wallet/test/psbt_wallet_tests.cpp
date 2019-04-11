@@ -8,7 +8,7 @@
 #include <wallet/test/wallet_test_fixture.h>
 #include <wallet/wallet.h>
 
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 #include <univalue.h>
 

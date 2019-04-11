@@ -7,7 +7,7 @@
 
 #include <interfaces/chain.h>
 
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 struct InitWalletDirTestingSetup : public BasicTestingSetup {
     explicit InitWalletDirTestingSetup(

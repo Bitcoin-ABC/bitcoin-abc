@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_TEST_TEST_BITCOIN_H
-#define BITCOIN_TEST_TEST_BITCOIN_H
+#ifndef BITCOIN_TEST_SETUP_COMMON_H
+#define BITCOIN_TEST_SETUP_COMMON_H
 
 #include <amount.h>
 #include <chainparamsbase.h>
@@ -161,4 +161,4 @@ std::ostream &operator<<(std::ostream &os, const ScriptError &err);
 
 CBlock getBlock13b8a();
 
-#endif // BITCOIN_TEST_TEST_BITCOIN_H
+#endif // BITCOIN_TEST_SETUP_COMMON_H

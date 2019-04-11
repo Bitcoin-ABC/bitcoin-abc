@@ -9,7 +9,7 @@
 #include <key.h>
 #include <key_io.h>
 #include <script/script.h>
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 #include <util/strencodings.h>
 
 #include <boost/test/unit_test.hpp>

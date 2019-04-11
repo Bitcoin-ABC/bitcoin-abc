@@ -1,5 +1,5 @@
 #include <qt/test/addressbooktests.h>
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 #include <interfaces/chain.h>
 #include <interfaces/node.h>

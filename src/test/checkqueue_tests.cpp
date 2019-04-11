@@ -10,7 +10,7 @@
 #include <checkqueue.h>
 #include <condition_variable>
 #include <mutex>
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 #include <thread>
 #include <vector>
 

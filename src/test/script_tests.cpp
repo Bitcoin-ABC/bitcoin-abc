@@ -23,8 +23,8 @@
 #include <test/data/script_tests.json.h>
 #include <test/jsonutil.h>
 #include <test/scriptflags.h>
+#include <test/setup_common.h>
 #include <test/sigutil.h>
-#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 

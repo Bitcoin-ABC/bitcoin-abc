@@ -77,7 +77,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	main.cpp
 	scriptflags.cpp
 	sigutil.cpp
-	test_bitcoin.cpp
+	setup_common.cpp
 
 	# Tests generated from JSON
 	${JSON_HEADERS}

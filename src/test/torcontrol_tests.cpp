@@ -4,7 +4,7 @@
 //
 #include <torcontrol.h>
 
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 
