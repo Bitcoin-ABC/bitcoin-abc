@@ -149,14 +149,6 @@ namespace {
             LockAssertion lock(::cs_main);
             return ContextualCheckTransactionForCurrentBlock(params, tx, state);
         }
-        bool submitToMemoryPool(const Config &config, CTransactionRef tx,
-                                Amount absurd_fee,
-                                CValidationState &state) override {
-            LockAssertion lock(::cs_main);
-            return AcceptToMemoryPool(config, ::g_mempool, state, tx,
-                                      nullptr /* missing inputs */,
-                                      false /* bypass limits */, absurd_fee);
-        }
 
         using UniqueLock::UniqueLock;
     }; // namespace interfaces
@@ -294,9 +286,6 @@ namespace {
             LOCK(::g_mempool.cs);
             auto it = ::g_mempool.GetIter(txid);
             return it && (*it)->GetCountWithDescendants() > 1;
-        }
-        void relayTransaction(const TxId &txid) override {
-            RelayTransaction(txid, *m_node.connman);
         }
         bool broadcastTransaction(const Config &config,
                                   const CTransactionRef &tx,
