@@ -977,16 +977,16 @@ static UniValue sendrawtransaction(const Config &config,
         throw JSONRPCError(RPC_INVALID_PARAMETER,
                            "second argument (maxfeerate) must be numeric");
     }
-
-    TxId txid;
     std::string err_string;
-    const TransactionError err =
-        BroadcastTransaction(config, tx, txid, err_string, max_raw_tx_fee);
+    AssertLockNotHeld(cs_main);
+    const TransactionError err = BroadcastTransaction(
+        config, tx, err_string, max_raw_tx_fee, /*relay*/ true,
+        /*wait_callback*/ true);
     if (err != TransactionError::OK) {
         throw JSONRPCTransactionError(err, err_string);
     }
 
-    return txid.GetHex();
+    return tx->GetHash().GetHex();
 }
 
 static UniValue testmempoolaccept(const Config &config,
