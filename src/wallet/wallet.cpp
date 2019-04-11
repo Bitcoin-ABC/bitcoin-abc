@@ -2163,12 +2163,14 @@ void CWallet::ReacceptWalletTransactions(
     // Try to add wallet transactions to memory pool.
     for (const std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
-        CValidationState state;
-        wtx.AcceptToMemoryPool(locked_chain, state);
+        std::string unused_err_string;
+        wtx.SubmitMemoryPoolAndRelay(unused_err_string, false, locked_chain);
     }
 }
 
-bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock &locked_chain) {
+bool CWalletTx::SubmitMemoryPoolAndRelay(
+    std::string &err_string, bool relay,
+    interfaces::Chain::Lock &locked_chain) {
     // Can't relay if wallet is not broadcasting
     if (!pwallet->GetBroadcastTransactions()) {
         return false;
@@ -2185,21 +2187,23 @@ bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock &locked_chain) {
     if (GetDepthInMainChain(locked_chain) != 0) {
         return false;
     }
-    // Don't relay transactions that aren't accepted to the mempool
-    CValidationState unused_state;
-    if (!InMempool() && !AcceptToMemoryPool(locked_chain, unused_state)) {
-        return false;
-    }
-    // Don't try to relay if the node is not connected to the p2p network
-    if (!pwallet->chain().p2pEnabled()) {
-        return false;
-    }
 
-    // Try to relay the transaction
-    pwallet->WalletLogPrintf("Relaying wtx %s\n", GetId().ToString());
-    pwallet->chain().relayTransaction(GetId());
-
-    return true;
+    // Submit transaction to mempool for relay
+    pwallet->WalletLogPrintf("Submitting wtx %s to mempool for relay\n",
+                             GetId().ToString());
+    // We must set fInMempool here - while it will be re-set to true by the
+    // entered-mempool callback, if we did not there would be a race where a
+    // user could call sendmoney in a loop and hit spurious out of funds errors
+    // because we think that this newly generated transaction's change is
+    // unavailable as we're not yet aware that it is in the mempool.
+    //
+    // Irrespective of the failure reason, un-marking fInMempool
+    // out-of-order is incorrect - it should be unmarked when
+    // TransactionRemovedFromMempool fires.
+    bool ret = pwallet->chain().broadcastTransaction(
+        GetConfig(), tx, err_string, pwallet->m_default_max_tx_fee, relay);
+    fInMempool |= ret;
+    return ret;
 }
 
 std::set<TxId> CWalletTx::GetConflicts() const {
@@ -2431,7 +2435,7 @@ void CWallet::ResendWalletTransactions() {
 
     nLastResend = GetTime();
 
-    int relayed_tx_count = 0;
+    int submitted_tx_count = 0;
 
     { // locked_chain and cs_wallet scope
         auto locked_chain = chain().lock();
@@ -2445,15 +2449,17 @@ void CWallet::ResendWalletTransactions() {
             if (wtx.nTimeReceived > m_best_block_time - 5 * 60) {
                 continue;
             }
-            if (wtx.RelayWalletTransaction(*locked_chain)) {
-                ++relayed_tx_count;
+            std::string unused_err_string;
+            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true,
+                                             *locked_chain)) {
+                ++submitted_tx_count;
             }
         }
     } // locked_chain and cs_wallet
 
-    if (relayed_tx_count > 0) {
-        WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n",
-                        __func__, relayed_tx_count);
+    if (submitted_tx_count > 0) {
+        WalletLogPrintf("%s: resubmit %u unconfirmed transactions\n", __func__,
+                        submitted_tx_count);
     }
 }
 
@@ -3521,15 +3527,13 @@ bool CWallet::CommitTransaction(
     CWalletTx &wtx = mapWallet.at(wtxNew.GetId());
 
     if (fBroadcastTransactions) {
-        // Broadcast
-        if (!wtx.AcceptToMemoryPool(*locked_chain, state)) {
+        std::string err_string;
+        if (!wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain)) {
             WalletLogPrintf("CommitTransaction(): Transaction cannot be "
                             "broadcast immediately, %s\n",
-                            FormatStateMessage(state));
+                            err_string);
             // TODO: if we expect the failure to be long term or permanent,
             // instead delete wtx from the wallet and return failure.
-        } else {
-            wtx.RelayWalletTransaction(*locked_chain);
         }
     }
 
@@ -5001,19 +5005,6 @@ bool CMerkleTx::IsImmatureCoinBase(
     interfaces::Chain::Lock &locked_chain) const {
     // note GetBlocksToMaturity is 0 for non-coinbase tx
     return GetBlocksToMaturity(locked_chain) > 0;
-}
-
-bool CWalletTx::AcceptToMemoryPool(interfaces::Chain::Lock &locked_chain,
-                                   CValidationState &state) {
-    // We must set fInMempool here - while it will be re-set to true by the
-    // entered-mempool callback, if we did not there would be a race where a
-    // user could call sendmoney in a loop and hit spurious out of funds errors
-    // because we think that this newly generated transaction's change is
-    // unavailable as we're not yet aware that it is in the mempool.
-    bool ret = locked_chain.submitToMemoryPool(
-        ::GetConfig(), tx, pwallet->m_default_max_tx_fee, state);
-    fInMempool |= ret;
-    return ret;
 }
 
 void CWallet::LearnRelatedScripts(const CPubKey &key, OutputType type) {
