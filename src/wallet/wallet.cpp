@@ -2164,27 +2164,17 @@ void CWallet::ReacceptWalletTransactions(
     for (const std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
         std::string unused_err_string;
-        wtx.SubmitMemoryPoolAndRelay(unused_err_string, false, locked_chain);
+        wtx.SubmitMemoryPoolAndRelay(unused_err_string, false);
     }
 }
 
-bool CWalletTx::SubmitMemoryPoolAndRelay(
-    std::string &err_string, bool relay,
-    interfaces::Chain::Lock &locked_chain) {
+bool CWalletTx::SubmitMemoryPoolAndRelay(std::string &err_string, bool relay) {
     // Can't relay if wallet is not broadcasting
     if (!pwallet->GetBroadcastTransactions()) {
         return false;
     }
-    // Don't relay coinbase transactions outside blocks
-    if (IsCoinBase()) {
-        return false;
-    }
     // Don't relay abandoned transactions
     if (isAbandoned()) {
-        return false;
-    }
-    // Don't relay conflicted or already confirmed transactions
-    if (GetDepthInMainChain(locked_chain) != 0) {
         return false;
     }
 
@@ -2450,8 +2440,7 @@ void CWallet::ResendWalletTransactions() {
                 continue;
             }
             std::string unused_err_string;
-            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true,
-                                             *locked_chain)) {
+            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true)) {
                 ++submitted_tx_count;
             }
         }
@@ -3528,7 +3517,7 @@ bool CWallet::CommitTransaction(
 
     if (fBroadcastTransactions) {
         std::string err_string;
-        if (!wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain)) {
+        if (!wtx.SubmitMemoryPoolAndRelay(err_string, true)) {
             WalletLogPrintf("CommitTransaction(): Transaction cannot be "
                             "broadcast immediately, %s\n",
                             err_string);

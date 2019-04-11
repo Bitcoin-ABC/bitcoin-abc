@@ -628,8 +628,7 @@ public:
 
     // Pass this transaction to node for mempool insertion and relay to peers if
     // flag set to true
-    bool SubmitMemoryPoolAndRelay(std::string &err_string, bool relay,
-                                  interfaces::Chain::Lock &locked_chain);
+    bool SubmitMemoryPoolAndRelay(std::string &err_string, bool relay);
 
     // TODO: Remove "NO_THREAD_SAFETY_ANALYSIS" and replace it with the correct
     // annotation "EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)". The annotation
