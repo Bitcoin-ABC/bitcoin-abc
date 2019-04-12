@@ -289,8 +289,8 @@ void PruneBlockFilesManual(int nManualPruneHeight);
  */
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         TxValidationState &state, const CTransactionRef &tx,
-                        bool bypass_limits, const Amount nAbsurdFee,
-                        bool test_accept = false, Amount *fee_out = nullptr)
+                        bool bypass_limits, bool test_accept = false,
+                        Amount *fee_out = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**

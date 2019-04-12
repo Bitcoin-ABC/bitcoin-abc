@@ -332,8 +332,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
             for (const auto &tx : txs) {
                 BOOST_REQUIRE_MESSAGE(
                     AcceptToMemoryPool(config, *m_node.mempool, state, tx,
-                                       /* bypass_limits */ false,
-                                       /* nAbsurdFee */ Amount::zero()),
+                                       /* bypass_limits */ false),
                     state.GetRejectReason());
             }
         }

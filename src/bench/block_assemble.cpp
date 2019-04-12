@@ -55,8 +55,7 @@ static void AssembleBlock(benchmark::Bench &bench) {
             TxValidationState vstate;
             bool ret{::AcceptToMemoryPool(config, *test_setup.m_node.mempool,
                                           vstate, txr,
-                                          false /* bypass_limits */,
-                                          /* nAbsurdFee */ Amount::zero())};
+                                          false /* bypass_limits */)};
             assert(ret);
         }
     }

@@ -358,7 +358,6 @@ public:
         TxValidationState &m_state;
         const int64_t m_accept_time;
         const bool m_bypass_limits;
-        const Amount &m_absurd_fee;
         /*
          * Return any outpoints which were not previously present in the coins
          * cache, but were added as a result of validating the tx for mempool
@@ -443,7 +442,6 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     TxValidationState &state = args.m_state;
     const int64_t nAcceptTime = args.m_accept_time;
     const bool bypass_limits = args.m_bypass_limits;
-    const Amount &nAbsurdFee = args.m_absurd_fee;
     std::vector<COutPoint> &coins_to_uncache = args.m_coins_to_uncache;
 
     // Alias what we need out of ws
@@ -593,10 +591,6 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
         return state.Invalid(
             TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
             strprintf("%d < %d", nModifiedFees, ::minRelayTxFee.GetFee(nSize)));
-    }
-
-    if (nAbsurdFee != Amount::zero() && nFees > nAbsurdFee) {
-        LogPrintf("Ignoring Absurdfee\n");
     }
 
     // Validate input scripts against standard script flags.
@@ -750,16 +744,17 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool AcceptToMemoryPoolWithTime(
-    const Config &config, CTxMemPool &pool, TxValidationState &state,
-    const CTransactionRef &tx, int64_t nAcceptTime, bool bypass_limits,
-    const Amount nAbsurdFee, bool test_accept, Amount *fee_out = nullptr)
+static bool
+AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
+                           TxValidationState &state, const CTransactionRef &tx,
+                           int64_t nAcceptTime, bool bypass_limits,
+                           bool test_accept, Amount *fee_out = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
-    MemPoolAccept::ATMPArgs args{config,        state,      nAcceptTime,
-                                 bypass_limits, nAbsurdFee, coins_to_uncache,
-                                 test_accept,   fee_out};
+    MemPoolAccept::ATMPArgs args{
+        config,           state,       nAcceptTime, bypass_limits,
+        coins_to_uncache, test_accept, fee_out};
     bool res = MemPoolAccept(pool).AcceptSingleTransaction(tx, args);
     if (!res) {
         // Remove coins that were not present in the coins cache before calling
@@ -783,11 +778,9 @@ static bool AcceptToMemoryPoolWithTime(
 
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         TxValidationState &state, const CTransactionRef &tx,
-                        bool bypass_limits, const Amount nAbsurdFee,
-                        bool test_accept, Amount *fee_out) {
+                        bool bypass_limits, bool test_accept, Amount *fee_out) {
     return AcceptToMemoryPoolWithTime(config, pool, state, tx, GetTime(),
-                                      bypass_limits, nAbsurdFee, test_accept,
-                                      fee_out);
+                                      bypass_limits, test_accept, fee_out);
 }
 
 CTransactionRef GetTransaction(const CBlockIndex *const block_index,
@@ -5859,9 +5852,9 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
             TxValidationState state;
             if (nTime + nExpiryTimeout > nNow) {
                 LOCK(cs_main);
-                AcceptToMemoryPoolWithTime(
-                    config, pool, state, tx, nTime, false /* bypass_limits */,
-                    Amount::zero() /* nAbsurdFee */, false /* test_accept */);
+                AcceptToMemoryPoolWithTime(config, pool, state, tx, nTime,
+                                           false /* bypass_limits */,
+                                           false /* test_accept */);
                 if (state.IsValid()) {
                     ++count;
                 } else {
