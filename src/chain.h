@@ -13,6 +13,7 @@
 #include "diskblockpos.h"
 #include "pow.h"
 #include "primitives/block.h"
+#include "sync.h"
 #include "tinyformat.h"
 #include "uint256.h"
 
@@ -240,6 +241,13 @@ struct BlockHasher {
 
 typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
 extern BlockMap &mapBlockIndex;
+extern CCriticalSection cs_main;
+
+inline CBlockIndex *LookupBlockIndex(const uint256 &hash) {
+    AssertLockHeld(cs_main);
+    BlockMap::const_iterator it = mapBlockIndex.find(hash);
+    return it == mapBlockIndex.end() ? nullptr : it->second;
+}
 
 arith_uint256 GetBlockProof(const CBlockIndex &block);
 

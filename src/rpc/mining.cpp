@@ -480,9 +480,8 @@ static UniValue getblocktemplate(const Config &config,
             }
 
             uint256 hash = block.GetHash();
-            BlockMap::iterator mi = mapBlockIndex.find(hash);
-            if (mi != mapBlockIndex.end()) {
-                CBlockIndex *pindex = mi->second;
+            const CBlockIndex *pindex = LookupBlockIndex(hash);
+            if (pindex) {
                 if (pindex->IsValid(BlockValidity::SCRIPTS)) {
                     return "duplicate";
                 }
@@ -736,9 +735,8 @@ static UniValue submitblock(const Config &config,
     bool fBlockPresent = false;
     {
         LOCK(cs_main);
-        BlockMap::iterator mi = mapBlockIndex.find(hash);
-        if (mi != mapBlockIndex.end()) {
-            CBlockIndex *pindex = mi->second;
+        const CBlockIndex *pindex = LookupBlockIndex(hash);
+        if (pindex) {
             if (pindex->IsValid(BlockValidity::SCRIPTS)) {
                 return "duplicate";
             }

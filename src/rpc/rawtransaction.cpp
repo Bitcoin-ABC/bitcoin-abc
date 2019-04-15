@@ -47,9 +47,8 @@ void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
 
     if (!hashBlock.IsNull()) {
         entry.pushKV("blockhash", hashBlock.GetHex());
-        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-        if (mi != mapBlockIndex.end() && (*mi).second) {
-            CBlockIndex *pindex = (*mi).second;
+        CBlockIndex *pindex = LookupBlockIndex(hashBlock);
+        if (pindex) {
             if (chainActive.Contains(pindex)) {
                 entry.pushKV("confirmations",
                              1 + chainActive.Height() - pindex->nHeight);
@@ -180,12 +179,11 @@ static UniValue getrawtransaction(const Config &config,
 
     if (!request.params[2].isNull()) {
         uint256 blockhash = ParseHashV(request.params[2], "parameter 3");
-        BlockMap::iterator it = mapBlockIndex.find(blockhash);
-        if (it == mapBlockIndex.end()) {
+        blockindex = LookupBlockIndex(blockhash);
+        if (!blockindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Block hash not found");
         }
-        blockindex = it->second;
         in_active_chain = chainActive.Contains(blockindex);
     }
 
@@ -278,10 +276,10 @@ static UniValue gettxoutproof(const Config &config,
     uint256 hashBlock;
     if (!request.params[1].isNull()) {
         hashBlock = uint256S(request.params[1].get_str());
-        if (!mapBlockIndex.count(hashBlock)) {
+        pblockindex = LookupBlockIndex(hashBlock);
+        if (!pblockindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         }
-        pblockindex = mapBlockIndex[hashBlock];
     } else {
         // Loop through txids and try to find which block they're in. Exit loop
         // once a block is found.
@@ -302,11 +300,10 @@ static UniValue gettxoutproof(const Config &config,
                                "Transaction not yet in block");
         }
 
-        if (!mapBlockIndex.count(hashBlock)) {
+        pblockindex = LookupBlockIndex(hashBlock);
+        if (!pblockindex) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Transaction index corrupt");
         }
-
-        pblockindex = mapBlockIndex[hashBlock];
     }
 
     CBlock block;
@@ -366,8 +363,8 @@ static UniValue verifytxoutproof(const Config &config,
 
     LOCK(cs_main);
 
-    if (!mapBlockIndex.count(merkleBlock.header.GetHash()) ||
-        !chainActive.Contains(mapBlockIndex[merkleBlock.header.GetHash()])) {
+    const CBlockIndex *pindex = LookupBlockIndex(merkleBlock.header.GetHash());
+    if (!pindex || !chainActive.Contains(pindex)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Block not found in chain");
     }

@@ -2043,6 +2043,8 @@ bool AppInitMain(Config &config,
 
         uiInterface.InitMessage(_("Loading block index..."));
 
+        LOCK(cs_main);
+
         nStart = GetTimeMillis();
         do {
             try {
@@ -2078,8 +2080,8 @@ bool AppInitMain(Config &config,
                 // (we're likely using a testnet datadir, or the other way
                 // around).
                 if (!mapBlockIndex.empty() &&
-                    mapBlockIndex.count(
-                        chainparams.GetConsensus().hashGenesisBlock) == 0) {
+                    !LookupBlockIndex(
+                        chainparams.GetConsensus().hashGenesisBlock)) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?"));
                 }
@@ -2174,21 +2176,17 @@ bool AppInitMain(Config &config,
                                   MIN_BLOCKS_TO_KEEP);
                     }
 
-                    {
-                        LOCK(cs_main);
-                        CBlockIndex *tip = chainActive.Tip();
-                        RPCNotifyBlockChange(true, tip);
-                        if (tip && tip->nTime > GetAdjustedTime() +
-                                                    MAX_FUTURE_BLOCK_TIME) {
-                            strLoadError =
-                                _("The block database contains a block which "
-                                  "appears to be from the future. This may be "
-                                  "due to your computer's date and time being "
-                                  "set incorrectly. Only rebuild the block "
-                                  "database if you are sure that your "
-                                  "computer's date and time are correct");
-                            break;
-                        }
+                    CBlockIndex *tip = chainActive.Tip();
+                    RPCNotifyBlockChange(true, tip);
+                    if (tip && tip->nTime >
+                                   GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
+                        strLoadError = _(
+                            "The block database contains a block which appears "
+                            "to be from the future. This may be due to your "
+                            "computer's date and time being set incorrectly. "
+                            "Only rebuild the block database if you are sure "
+                            "that your computer's date and time are correct");
+                        break;
                     }
 
                     if (!CVerifyDB().VerifyDB(

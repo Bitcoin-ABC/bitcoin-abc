@@ -366,10 +366,9 @@ UniValue importprunedfunds(const Config &config,
         merkleBlock.header.hashMerkleRoot) {
 
         LOCK(cs_main);
-
-        if (!mapBlockIndex.count(merkleBlock.header.GetHash()) ||
-            !chainActive.Contains(
-                mapBlockIndex[merkleBlock.header.GetHash()])) {
+        const CBlockIndex *pindex =
+            LookupBlockIndex(merkleBlock.header.GetHash());
+        if (!pindex || !chainActive.Contains(pindex)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Block not found in chain");
         }
