@@ -26,7 +26,7 @@ from test_framework.cdefs import (
     MAX_TX_SIGOPS_COUNT,
     ONE_MEGABYTE,
 )
-from test_framework.key import CECKey
+from test_framework.key import ECKey
 from test_framework.messages import (
     COutPoint,
     CTransaction,
@@ -346,9 +346,9 @@ class FullBlockTest(BitcoinTestFramework):
         tip(26)
 
         # Generate a key pair to test P2SH sigops count
-        private_key = CECKey()
-        private_key.set_secretbytes(b"fatstacks")
-        public_key = private_key.get_pubkey()
+        private_key = ECKey()
+        private_key.generate()
+        public_key = private_key.get_pubkey().get_bytes()
 
         # P2SH
         # Build the redeem script, hash it, use hash to create the p2sh script
@@ -375,7 +375,7 @@ class FullBlockTest(BitcoinTestFramework):
             # Sign the transaction using the redeem script
             sighash = SignatureHashForkId(
                 redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx.vout[0].nValue)
-            sig = private_key.sign(sighash) + \
+            sig = private_key.sign_ecdsa(sighash) + \
                 bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
             spent_p2sh_tx.rehash()

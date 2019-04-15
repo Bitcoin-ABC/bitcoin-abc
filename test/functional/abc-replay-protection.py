@@ -17,7 +17,7 @@ from test_framework.blocktools import (
     create_tx_with_script,
     make_conform_to_ctor,
 )
-from test_framework.key import CECKey
+from test_framework.key import ECKey
 from test_framework.messages import (
     COIN,
     COutPoint,
@@ -146,9 +146,9 @@ class ReplayProtectionTest(BitcoinTestFramework):
             out.append(get_spendable_output())
 
         # Generate a key pair to test P2SH sigops count
-        private_key = CECKey()
-        private_key.set_secretbytes(b"replayprotection")
-        public_key = private_key.get_pubkey()
+        private_key = ECKey()
+        private_key.generate()
+        public_key = private_key.get_pubkey().get_bytes()
 
         # This is a little handier to use than the version in blocktools.py
         def create_fund_and_spend_tx(spend, forkvalue=0):
@@ -167,7 +167,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
             sighashtype = (forkvalue << 8) | SIGHASH_ALL | SIGHASH_FORKID
             sighash = SignatureHashForkId(
                 script, txspend, 0, sighashtype, 50 * COIN - 1000)
-            sig = private_key.sign(sighash) + \
+            sig = private_key.sign_ecdsa(sighash) + \
                 bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             txspend.vin[0].scriptSig = CScript([sig])
             txspend.rehash()

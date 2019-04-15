@@ -25,7 +25,7 @@ from test_framework.blocktools import (
     create_tx_with_script,
     make_conform_to_ctor,
 )
-from test_framework.key import CECKey
+from test_framework.key import ECKey
 from test_framework.messages import (
     COIN,
     COutPoint,
@@ -72,9 +72,9 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
     # create transactions that are only valid before or after the fork.
 
     # Generate a key pair to test
-    private_key = CECKey()
-    private_key.set_secretbytes(b"replayprotection")
-    public_key = private_key.get_pubkey()
+    private_key = ECKey()
+    private_key.generate()
+    public_key = private_key.get_pubkey().get_bytes()
 
     # Fund transaction
     script = CScript([public_key, OP_CHECKSIG])
@@ -94,7 +94,7 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
     sighashtype = (forkvalue << 8) | SIGHASH_ALL | SIGHASH_FORKID
     sighash = SignatureHashForkId(
         script, txspend, 0, sighashtype, 50 * COIN)
-    sig = private_key.sign(sighash) + \
+    sig = private_key.sign_ecdsa(sighash) + \
         bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
     txspend.vin[0].scriptSig = CScript([sig])
     txspend.rehash()

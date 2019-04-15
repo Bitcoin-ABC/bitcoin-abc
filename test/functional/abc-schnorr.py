@@ -16,7 +16,7 @@ from test_framework.blocktools import (
     create_tx_with_script,
     make_conform_to_ctor,
 )
-from test_framework.key import CECKey
+from test_framework.key import ECKey
 from test_framework.messages import (
     CBlock,
     COutPoint,
@@ -151,10 +151,10 @@ class SchnorrTest(BitcoinTestFramework):
 
         # Generate a key pair
         privkeybytes = b"Schnorr!" * 4
-        private_key = CECKey()
-        private_key.set_secretbytes(privkeybytes)
+        private_key = ECKey()
+        private_key.set(privkeybytes, True)
         # get uncompressed public key serialization
-        public_key = private_key.get_pubkey()
+        public_key = private_key.get_pubkey().get_bytes()
 
         def create_fund_and_spend_tx(multi=False, sig='schnorr'):
             spendfrom = spendable_outputs.pop()
@@ -186,7 +186,7 @@ class SchnorrTest(BitcoinTestFramework):
             if sig == 'schnorr':
                 txsig = schnorr.sign(privkeybytes, sighash) + hashbyte
             elif sig == 'ecdsa':
-                txsig = private_key.sign(sighash) + hashbyte
+                txsig = private_key.sign_ecdsa(sighash) + hashbyte
             elif isinstance(sig, bytes):
                 txsig = sig + hashbyte
             if multi:

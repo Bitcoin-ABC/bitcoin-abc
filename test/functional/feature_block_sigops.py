@@ -18,7 +18,7 @@ from test_framework.blocktools import (
     make_conform_to_ctor,
 )
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, MAX_BLOCK_SIGOPS_PER_MB
-from test_framework.key import CECKey
+from test_framework.key import ECKey
 from test_framework.messages import (
     COutPoint,
     CTransaction,
@@ -61,9 +61,9 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         self.bootstrap_p2p()  # Add one p2p connection to the node
 
         self.block_heights = {}
-        self.coinbase_key = CECKey()
-        self.coinbase_key.set_secretbytes(b"horsebattery")
-        self.coinbase_pubkey = self.coinbase_key.get_pubkey()
+        self.coinbase_key = ECKey()
+        self.coinbase_key.generate()
+        self.coinbase_pubkey = self.coinbase_key.get_pubkey().get_bytes()
         self.tip = None
         self.blocks = {}
         self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
@@ -263,7 +263,7 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
             sighash = SignatureHashForkId(
                 redeem_script, tx, 1, SIGHASH_ALL | SIGHASH_FORKID,
                 lastAmount)
-            sig = self.coinbase_key.sign(
+            sig = self.coinbase_key.sign_ecdsa(
                 sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             scriptSig = CScript([sig, redeem_script])
 
@@ -420,7 +420,7 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         sighash = SignatureHashForkId(
             spend_tx.vout[0].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[0].nValue)
         tx.vin[0].scriptSig = CScript(
-            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
+            [self.coinbase_key.sign_ecdsa(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
     def create_and_sign_transaction(
             self, spend_tx, value, script=CScript([OP_TRUE])):

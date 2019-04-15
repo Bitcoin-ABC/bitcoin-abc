@@ -16,7 +16,7 @@ from test_framework.blocktools import (
     create_tx_with_script,
 )
 from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
-from test_framework.key import CECKey
+from test_framework.key import ECKey
 from test_framework.messages import (
     COutPoint,
     CTransaction,
@@ -65,9 +65,10 @@ class FullBlockTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.setup_clean_chain = True
         self.block_heights = {}
-        self.coinbase_key = CECKey()
-        self.coinbase_key.set_secretbytes(b"horsebattery")
-        self.coinbase_pubkey = self.coinbase_key.get_pubkey()
+        self.coinbase_key = ECKey()
+        # The test expects uncompressed keys
+        self.coinbase_key.generate(compressed=False)
+        self.coinbase_pubkey = self.coinbase_key.get_pubkey().get_bytes()
         self.tip = None
         self.blocks = {}
         self.extra_args = [
@@ -101,7 +102,7 @@ class FullBlockTest(BitcoinTestFramework):
         sighash = SignatureHashForkId(
             spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[n].nValue)
         tx.vin[0].scriptSig = CScript(
-            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
+            [self.coinbase_key.sign_ecdsa(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
     def create_and_sign_transaction(
             self, spend_tx, n, value, script=CScript([OP_TRUE])):
@@ -223,7 +224,7 @@ class FullBlockTest(BitcoinTestFramework):
             # Sign the transaction using the redeem script
             sighash = SignatureHashForkId(
                 redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx_to_spend.vout[0].nValue)
-            sig = self.coinbase_key.sign(
+            sig = self.coinbase_key.sign_ecdsa(
                 sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
             assert len(
