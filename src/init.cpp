@@ -54,7 +54,7 @@
 #include <memory>
 
 #ifndef WIN32
-#include <signal.h>
+#include <csignal>
 #endif
 
 #include <boost/algorithm/string/classification.hpp>

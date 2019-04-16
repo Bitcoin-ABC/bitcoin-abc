@@ -9,11 +9,11 @@
 #include <algorithm>
 #include <atomic>
 #include <cinttypes>
+#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <getopt.h>
 #include <pthread.h>
-#include <signal.h>
 
 class CDnsSeedOpts {
 public:

@@ -15,7 +15,6 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
-#include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -34,6 +33,7 @@
 #endif
 #endif
 
+#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

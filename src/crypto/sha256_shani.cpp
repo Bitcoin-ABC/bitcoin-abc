@@ -8,8 +8,8 @@
 
 #ifdef ENABLE_SHANI
 
+#include <cstdint>
 #include <immintrin.h>
-#include <stdint.h>
 
 #include <crypto/common.h>
 
