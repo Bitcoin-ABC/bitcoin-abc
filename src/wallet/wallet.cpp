@@ -4818,8 +4818,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
 
     // Register with the validation interface. It's ok to do this after rescan
     // since we're still holding locked_chain.
-    walletInstance->m_chain_notifications_handler =
-        chain.handleNotifications(*walletInstance);
+    walletInstance->handleNotifications();
 
     walletInstance->SetBroadcastTransactions(
         gArgs.GetBoolArg("-walletbroadcast", DEFAULT_WALLETBROADCAST));
@@ -4832,6 +4831,10 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                                     walletInstance->mapAddressBook.size());
 
     return walletInstance;
+}
+
+void CWallet::handleNotifications() {
+    m_chain_notifications_handler = m_chain->handleNotifications(*this);
 }
 
 void CWallet::postInitProcess() {

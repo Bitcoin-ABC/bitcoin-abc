@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <bench/bench.h>
-#include <chainparams.h> // For Params()
 #include <config.h>
 #include <interfaces/chain.h>
 #include <key_io.h>
@@ -12,35 +11,22 @@
 #include <validationinterface.h>
 #include <wallet/wallet.h>
 
-struct WalletTestingSetup {
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain();
-    CWallet m_wallet;
-
-    WalletTestingSetup()
-        : m_wallet{Params(), m_chain.get(), WalletLocation(),
-                   WalletDatabase::CreateMock()} {}
-
-    void handleNotifications() {
-        m_wallet.m_chain_notifications_handler =
-            m_chain->handleNotifications(m_wallet);
-    }
-};
-
 static void WalletBalance(benchmark::State &state, const bool set_dirty,
                           const bool add_watchonly, const bool add_mine) {
     const auto &ADDRESS_WATCHONLY = ADDRESS_BCHREG_UNSPENDABLE;
 
-    WalletTestingSetup wallet_t{};
-    auto &wallet = wallet_t.m_wallet;
+    const Config &config = GetConfig();
+
+    std::unique_ptr<interfaces::Chain> chain = interfaces::MakeChain();
+    CWallet wallet{config.GetChainParams(), chain.get(), WalletLocation(),
+                   WalletDatabase::CreateMock()};
     {
         bool first_run;
         if (wallet.LoadWallet(first_run) != DBErrors::LOAD_OK) {
             assert(false);
         }
-        wallet_t.handleNotifications();
+        wallet.handleNotifications();
     }
-
-    const Config &config = GetConfig();
 
     const Optional<std::string> address_mine{
         add_mine ? Optional<std::string>{getnewaddress(config, wallet)}

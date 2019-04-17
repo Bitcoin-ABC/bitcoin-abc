@@ -872,6 +872,9 @@ public:
     /** Registered interfaces::Chain::Notifications handler. */
     std::unique_ptr<interfaces::Handler> m_chain_notifications_handler;
 
+    /** Register the wallet for chain notifications */
+    void handleNotifications();
+
     /** Interface for accessing chain state. */
     interfaces::Chain &chain() const {
         assert(m_chain);
@@ -1446,8 +1449,6 @@ public:
      * Add a KeyOriginInfo to the wallet
      */
     bool AddKeyOrigin(const CPubKey &pubkey, const KeyOriginInfo &info);
-
-    friend struct WalletTestingSetup;
 };
 
 /**
