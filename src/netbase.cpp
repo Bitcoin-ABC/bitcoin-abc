@@ -3,14 +3,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "netbase.h"
+#include <netbase.h>
 
-#include "hash.h"
-#include "random.h"
-#include "sync.h"
-#include "uint256.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include <hash.h>
+#include <random.h>
+#include <sync.h>
+#include <uint256.h>
+#include <util.h>
+#include <utilstrencodings.h>
 
 #include <atomic>
 
