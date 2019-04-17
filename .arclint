@@ -60,6 +60,13 @@
             "exclude": [
                 "(^src/(crypto/ctaes/|leveldb/|secp256k1/|seeder/|tinyformat.h|univalue/))"
             ]
+        },
+        "lint-cheader": {
+            "type": "lint-cheader",
+            "include": "(^src/.*\\.(h|cpp)$)",
+            "exclude": [
+                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
+            ]
         }
     }
 }

@@ -10,6 +10,7 @@ phutil_register_library_map(array(
   '__library_version__' => 2,
   'class' => array(
     'AutoPEP8FormatLinter' => 'linter/AutoPEP8Linter.php',
+    'CHeaderLinter' => 'linter/CHeaderLinter.php',
     'CheckDocLinter' => 'linter/CheckDocLinter.php',
     'ClangFormatLinter' => 'linter/ClangFormatLinter.php',
     'FormatStringLinter' => 'linter/FormatStringLinter.php',
@@ -20,6 +21,7 @@ phutil_register_library_map(array(
   'function' => array(),
   'xmap' => array(
     'AutoPEP8FormatLinter' => 'ArcanistExternalLinter',
+    'CHeaderLinter' => 'ArcanistLinter',
     'CheckDocLinter' => 'ArcanistExternalLinter',
     'ClangFormatLinter' => 'ArcanistExternalLinter',
     'FormatStringLinter' => 'ArcanistExternalLinter',
