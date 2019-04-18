@@ -4,9 +4,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "policy/fees.h"
-#include "amount.h"
-#include "feerate.h"
+#include <amount.h>
+#include <feerate.h>
+#include <policy/fees.h>
 
 FeeFilterRounder::FeeFilterRounder(const CFeeRate &minIncrementalFee) {
     Amount minFeeLimit = std::max(SATOSHI, minIncrementalFee.GetFeePerK() / 2);

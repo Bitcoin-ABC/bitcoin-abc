@@ -5,9 +5,9 @@
 #ifndef BITCOIN_POLICYESTIMATOR_H
 #define BITCOIN_POLICYESTIMATOR_H
 
-#include "amount.h"
-#include "random.h"
-#include "uint256.h"
+#include <amount.h>
+#include <random.h>
+#include <uint256.h>
 
 #include <map>
 #include <string>
