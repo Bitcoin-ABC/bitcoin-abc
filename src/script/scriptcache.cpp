@@ -2,16 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "scriptcache.h"
+#include <script/scriptcache.h>
 
-#include "crypto/sha256.h"
-#include "cuckoocache.h"
-#include "primitives/transaction.h"
-#include "random.h"
-#include "script/sigcache.h"
-#include "sync.h"
-#include "util.h"
-#include "validation.h"
+#include <crypto/sha256.h>
+#include <cuckoocache.h>
+#include <primitives/transaction.h>
+#include <random.h>
+#include <script/sigcache.h>
+#include <sync.h>
+#include <util.h>
+#include <validation.h>
 
 static CuckooCache::cache<uint256, SignatureCacheHasher> scriptExecutionCache;
 static uint256 scriptExecutionCacheNonce(GetRandHash());

@@ -7,10 +7,10 @@
 #ifndef BITCOIN_SCRIPT_INTERPRETER_H
 #define BITCOIN_SCRIPT_INTERPRETER_H
 
-#include "primitives/transaction.h"
-#include "script/script_flags.h"
-#include "script_error.h"
-#include "sighashtype.h"
+#include <primitives/transaction.h>
+#include <script/script_error.h>
+#include <script/script_flags.h>
+#include <script/sighashtype.h>
 
 #include <cstdint>
 #include <string>

@@ -7,8 +7,8 @@
 #ifndef BITCOIN_SCRIPT_SIGENCODING_H
 #define BITCOIN_SCRIPT_SIGENCODING_H
 
-#include "script_error.h"
-#include "sighashtype.h"
+#include <script/script_error.h>
+#include <script/sighashtype.h>
 
 #include <cstdint>
 #include <vector>

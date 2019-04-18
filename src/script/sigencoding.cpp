@@ -4,10 +4,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "sigencoding.h"
+#include <script/sigencoding.h>
 
-#include "pubkey.h"
-#include "script_flags.h"
+#include <pubkey.h>
+#include <script/script_flags.h>
 
 #include <boost/range/adaptor/sliced.hpp>
 

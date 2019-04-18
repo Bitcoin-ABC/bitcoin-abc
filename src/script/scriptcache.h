@@ -5,7 +5,7 @@
 #ifndef BITCOIN_SCRIPT_SCRIPTCACHE_H
 #define BITCOIN_SCRIPT_SCRIPTCACHE_H
 
-#include "uint256.h"
+#include <uint256.h>
 
 #include <cstdint>
 
