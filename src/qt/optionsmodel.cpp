@@ -3,21 +3,20 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "optionsmodel.h"
+#include <qt/optionsmodel.h>
 
-#include "bitcoinunits.h"
-#include "guiutil.h"
-
-#include "amount.h"
-#include "interfaces/node.h"
-#include "intro.h"
-#include "net.h"
-#include "netbase.h"
-#include "txdb.h"       // for -dbcache defaults
-#include "validation.h" // For DEFAULT_SCRIPTCHECK_THREADS
+#include <amount.h>
+#include <interfaces/node.h>
+#include <net.h>
+#include <netbase.h>
+#include <qt/bitcoinunits.h>
+#include <qt/guiutil.h>
+#include <qt/intro.h>
+#include <txdb.h>       // for -dbcache defaults
+#include <validation.h> // For DEFAULT_SCRIPTCHECK_THREADS
 
 #include <QNetworkProxy>
 #include <QSettings>
