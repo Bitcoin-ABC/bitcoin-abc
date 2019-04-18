@@ -9,16 +9,15 @@
 // boost::test doesn't seem to make that practical (at least not in versions
 // available with common distros)
 
-#include <cstdlib>
-#include <map>
+#include <support/events.h>
 
-#include "support/events.h"
-
-#include "test/test_bitcoin.h"
-
-#include <vector>
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
+
+#include <cstdlib>
+#include <map>
+#include <vector>
 
 static std::map<void *, short> tags;
 static std::map<void *, uint16_t> orders;

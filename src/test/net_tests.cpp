@@ -2,20 +2,22 @@
 // Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#include "addrman.h"
-#include "chainparams.h"
-#include "clientversion.h"
-#include "config.h"
-#include "hash.h"
-#include "net.h"
-#include "netbase.h"
-#include "serialize.h"
-#include "streams.h"
-#include "test/test_bitcoin.h"
+#include <net.h>
 
-#include <string>
+#include <addrman.h>
+#include <chainparams.h>
+#include <clientversion.h>
+#include <config.h>
+#include <hash.h>
+#include <netbase.h>
+#include <serialize.h>
+#include <streams.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
+
+#include <string>
 
 class CAddrManSerializationMock : public CAddrMan {
 public:
