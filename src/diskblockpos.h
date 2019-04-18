@@ -5,8 +5,8 @@
 #ifndef BITCOIN_DISKBLOCKPOS_H
 #define BITCOIN_DISKBLOCKPOS_H
 
-#include "serialize.h"
-#include "tinyformat.h"
+#include <serialize.h>
+#include <tinyformat.h>
 
 #include <string>
 

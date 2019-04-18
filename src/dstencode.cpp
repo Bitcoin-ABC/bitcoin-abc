@@ -1,12 +1,13 @@
 // Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#include "dstencode.h"
-#include "base58.h"
-#include "cashaddrenc.h"
-#include "chainparams.h"
-#include "config.h"
-#include "script/standard.h"
+#include <dstencode.h>
+
+#include <base58.h>
+#include <cashaddrenc.h>
+#include <chainparams.h>
+#include <config.h>
+#include <script/standard.h>
 
 std::string EncodeDestination(const CTxDestination &dest,
                               const Config &config) {

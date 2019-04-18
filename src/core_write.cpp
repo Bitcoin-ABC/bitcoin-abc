@@ -2,18 +2,18 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "core_io.h"
+#include <core_io.h>
 
-#include "dstencode.h"
-#include "primitives/transaction.h"
-#include "script/script.h"
-#include "script/sigencoding.h"
-#include "script/standard.h"
-#include "serialize.h"
-#include "streams.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "utilstrencodings.h"
+#include <dstencode.h>
+#include <primitives/transaction.h>
+#include <script/script.h>
+#include <script/sigencoding.h>
+#include <script/standard.h>
+#include <serialize.h>
+#include <streams.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <utilstrencodings.h>
 
 #include <univalue.h>
 
