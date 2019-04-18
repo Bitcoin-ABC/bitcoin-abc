@@ -7,17 +7,17 @@
 #ifndef BITCOIN_WALLET_WALLET_H
 #define BITCOIN_WALLET_WALLET_H
 
-#include "amount.h"
-#include "script/ismine.h"
-#include "script/sign.h"
-#include "streams.h"
-#include "tinyformat.h"
-#include "ui_interface.h"
-#include "utilstrencodings.h"
-#include "validationinterface.h"
-#include "wallet/crypter.h"
-#include "wallet/rpcwallet.h"
-#include "wallet/walletdb.h"
+#include <amount.h>
+#include <script/ismine.h>
+#include <script/sign.h>
+#include <streams.h>
+#include <tinyformat.h>
+#include <ui_interface.h>
+#include <utilstrencodings.h>
+#include <validationinterface.h>
+#include <wallet/crypter.h>
+#include <wallet/rpcwallet.h>
+#include <wallet/walletdb.h>
 
 #include <boost/thread.hpp>
 

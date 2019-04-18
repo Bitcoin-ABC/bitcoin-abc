@@ -3,35 +3,35 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "wallet/wallet.h"
+#include <wallet/wallet.h>
 
-#include "chain.h"
-#include "checkpoints.h"
-#include "config.h"
-#include "consensus/consensus.h"
-#include "consensus/validation.h"
-#include "dstencode.h"
-#include "fs.h"
-#include "init.h"
-#include "key.h"
-#include "keystore.h"
-#include "net.h"
-#include "policy/policy.h"
-#include "primitives/block.h"
-#include "primitives/transaction.h"
-#include "scheduler.h"
-#include "script/script.h"
-#include "script/sighashtype.h"
-#include "script/sign.h"
-#include "timedata.h"
-#include "txmempool.h"
-#include "ui_interface.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "validation.h"
-#include "wallet/coincontrol.h"
-#include "wallet/fees.h"
-#include "wallet/finaltx.h"
+#include <chain.h>
+#include <checkpoints.h>
+#include <config.h>
+#include <consensus/consensus.h>
+#include <consensus/validation.h>
+#include <dstencode.h>
+#include <fs.h>
+#include <init.h>
+#include <key.h>
+#include <keystore.h>
+#include <net.h>
+#include <policy/policy.h>
+#include <primitives/block.h>
+#include <primitives/transaction.h>
+#include <scheduler.h>
+#include <script/script.h>
+#include <script/sighashtype.h>
+#include <script/sign.h>
+#include <timedata.h>
+#include <txmempool.h>
+#include <ui_interface.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <validation.h>
+#include <wallet/coincontrol.h>
+#include <wallet/fees.h>
+#include <wallet/finaltx.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
