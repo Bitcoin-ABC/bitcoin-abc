@@ -5,7 +5,7 @@
 #ifndef WALLETINITINTERFACE_H
 #define WALLETINITINTERFACE_H
 
-#include "chainparams.h"
+#include <chainparams.h>
 
 #include <string>
 

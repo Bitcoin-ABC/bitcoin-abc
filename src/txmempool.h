@@ -6,18 +6,17 @@
 #ifndef BITCOIN_TXMEMPOOL_H
 #define BITCOIN_TXMEMPOOL_H
 
-#include "amount.h"
-#include "coins.h"
-#include "indirectmap.h"
-#include "primitives/transaction.h"
-#include "random.h"
-#include "sync.h"
+#include <amount.h>
+#include <coins.h>
+#include <indirectmap.h>
+#include <primitives/transaction.h>
+#include <random.h>
+#include <sync.h>
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index_container.hpp>
-
 #include <boost/signals2/signal.hpp>
 
 #include <map>

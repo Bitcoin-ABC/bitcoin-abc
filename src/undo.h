@@ -7,10 +7,10 @@
 #ifndef BITCOIN_UNDO_H
 #define BITCOIN_UNDO_H
 
-#include "coins.h"
-#include "compressor.h"
-#include "consensus/consensus.h"
-#include "serialize.h"
+#include <coins.h>
+#include <compressor.h>
+#include <consensus/consensus.h>
+#include <serialize.h>
 
 class CBlock;
 class CBlockIndex;

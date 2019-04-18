@@ -4,17 +4,24 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "util.h"
+#include <util.h>
 
-#include "chainparamsbase.h"
-#include "fs.h"
-#include "random.h"
-#include "serialize.h"
-#include "utilstrencodings.h"
-#include "utiltime.h"
+#include <chainparamsbase.h>
+#include <fs.h>
+#include <random.h>
+#include <serialize.h>
+#include <utilstrencodings.h>
+#include <utiltime.h>
+
+#include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/program_options/detail/config_file.hpp>
+#include <boost/thread.hpp>
+
+#include <openssl/conf.h>
+#include <openssl/rand.h>
 
 #include <cstdarg>
 
@@ -75,13 +82,6 @@
 #ifdef HAVE_MALLOPT_ARENA_MAX
 #include <malloc.h>
 #endif
-
-#include <boost/interprocess/sync/file_lock.hpp>
-#include <boost/program_options/detail/config_file.hpp>
-#include <boost/thread.hpp>
-
-#include <openssl/conf.h>
-#include <openssl/rand.h>
 
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();

@@ -3,10 +3,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "warnings.h"
-#include "clientversion.h"
-#include "sync.h"
-#include "util.h"
+#include <warnings.h>
+
+#include <clientversion.h>
+#include <sync.h>
+#include <util.h>
 
 CCriticalSection cs_warnings;
 std::string strMiscWarning;
