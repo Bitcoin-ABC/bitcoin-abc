@@ -3,11 +3,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "bitcoinaddressvalidator.h"
+#include <qt/bitcoinaddressvalidator.h>
 
-#include "cashaddr.h"
-#include "config.h"
-#include "dstencode.h"
+#include <cashaddr.h>
+#include <config.h>
+#include <dstencode.h>
 
 /* Base58 characters are:
      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"

@@ -3,43 +3,38 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "bitcoingui.h"
+#include <qt/bitcoingui.h>
 
-#include "bitcoinunits.h"
-#include "clientmodel.h"
-#include "guiconstants.h"
-#include "guiutil.h"
-#include "modaloverlay.h"
-#include "networkstyle.h"
-#include "notificator.h"
-#include "openuridialog.h"
-#include "optionsdialog.h"
-#include "optionsmodel.h"
-#include "platformstyle.h"
-#include "rpcconsole.h"
-#include "utilitydialog.h"
-
-#ifdef ENABLE_WALLET
-#include "walletframe.h"
-#include "walletmodel.h"
-#include "walletview.h"
-#endif // ENABLE_WALLET
-
+#include <chainparams.h>
+#include <init.h>
+#include <interfaces/handler.h>
+#include <interfaces/node.h>
+#include <qt/bitcoinunits.h>
+#include <qt/clientmodel.h>
+#include <qt/guiconstants.h>
+#include <qt/guiutil.h>
 #ifdef Q_OS_MAC
-#include "macdockiconhandler.h"
+#include <qt/macdockiconhandler.h>
 #endif
-
-#include "chainparams.h"
-#include "init.h"
-#include "interfaces/handler.h"
-#include "interfaces/node.h"
-#include "ui_interface.h"
-#include "util.h"
-
-#include <iostream>
+#include <qt/modaloverlay.h>
+#include <qt/networkstyle.h>
+#include <qt/notificator.h>
+#include <qt/openuridialog.h>
+#include <qt/optionsdialog.h>
+#include <qt/optionsmodel.h>
+#include <qt/platformstyle.h>
+#include <qt/rpcconsole.h>
+#include <qt/utilitydialog.h>
+#ifdef ENABLE_WALLET
+#include <qt/walletframe.h>
+#include <qt/walletmodel.h>
+#include <qt/walletview.h>
+#endif // ENABLE_WALLET
+#include <ui_interface.h>
+#include <util.h>
 
 #include <QAction>
 #include <QApplication>
@@ -61,6 +56,8 @@
 #include <QToolBar>
 #include <QUrlQuery>
 #include <QVBoxLayout>
+
+#include <iostream>
 
 const std::string BitcoinGUI::DEFAULT_UIPLATFORM =
 #if defined(Q_OS_MAC)
