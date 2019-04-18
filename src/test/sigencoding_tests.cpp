@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "test/test_bitcoin.h"
+#include <script/sigencoding.h>
 
-#include "script/script_flags.h"
-#include "script/sigencoding.h"
+#include <script/script_flags.h>
 
-#include "test/lcg.h"
+#include <test/lcg.h>
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 

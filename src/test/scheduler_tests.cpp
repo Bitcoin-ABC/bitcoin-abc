@@ -2,10 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "random.h"
-#include "scheduler.h"
+#include <scheduler.h>
 
-#include "test/test_bitcoin.h"
+#include <random.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/bind.hpp>
 #include <boost/random/mersenne_twister.hpp>

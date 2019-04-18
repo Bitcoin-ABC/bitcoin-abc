@@ -3,35 +3,36 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "data/script_tests.json.h"
+#include <script/script.h>
+#include <script/script_error.h>
+#include <script/sighashtype.h>
+#include <script/sign.h>
 
-#include "core_io.h"
-#include "key.h"
-#include "keystore.h"
-#include "rpc/server.h"
-#include "script/script.h"
-#include "script/script_error.h"
-#include "script/sighashtype.h"
-#include "script/sign.h"
-#include "test/jsonutil.h"
-#include "test/scriptflags.h"
-#include "test/sigutil.h"
-#include "test/test_bitcoin.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include <core_io.h>
+#include <data/script_tests.json.h>
+#include <key.h>
+#include <keystore.h>
+#include <rpc/server.h>
+#include <util.h>
+#include <utilstrencodings.h>
 
 #if defined(HAVE_CONSENSUS_LIB)
-#include "script/bitcoinconsensus.h"
+#include <script/bitcoinconsensus.h>
 #endif
+
+#include <test/jsonutil.h>
+#include <test/scriptflags.h>
+#include <test/sigutil.h>
+#include <test/test_bitcoin.h>
+
+#include <boost/test/unit_test.hpp>
+
+#include <univalue.h>
 
 #include <cstdint>
 #include <fstream>
 #include <string>
 #include <vector>
-
-#include <boost/test/unit_test.hpp>
-
-#include <univalue.h>
 
 // Uncomment if you want to output updated JSON tests.
 // #define UPDATE_JSON_TESTS

@@ -4,13 +4,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 // (based on key_tests.cpp)
 
-#include "script/sigcache.h"
+#include <script/sigcache.h>
 
-#include "base58.h"
-#include "dstencode.h"
-#include "key.h"
-#include "test/test_bitcoin.h"
-#include "utilstrencodings.h"
+#include <base58.h>
+#include <dstencode.h>
+#include <key.h>
+#include <utilstrencodings.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
