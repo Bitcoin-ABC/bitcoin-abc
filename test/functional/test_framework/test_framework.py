@@ -446,57 +446,47 @@ class BitcoinTestFramework():
     def _initialize_chain(self):
         """Initialize a pre-mined blockchain for use by the test.
 
-        Create a cache of a 199-block-long chain (with wallet) for MAX_NODES
+        Create a cache of a 199-block-long chain
         Afterward, create num_nodes copies from the cache."""
 
+        # Use node 0 to create the cache for all other nodes
+        CACHE_NODE_ID = 0
+        cache_node_dir = get_datadir_path(self.options.cachedir, CACHE_NODE_ID)
         assert self.num_nodes <= MAX_NODES
-        create_cache = False
-        for i in range(MAX_NODES):
-            if not os.path.isdir(get_datadir_path(self.options.cachedir, i)):
-                create_cache = True
-                break
 
-        if create_cache:
-            self.log.debug("Creating data directories from cached datadir")
+        if not os.path.isdir(cache_node_dir):
+            self.log.debug(
+                "Creating cache directory {}".format(cache_node_dir))
 
-            # find and delete old cache directories if any exist
-            for i in range(MAX_NODES):
-                if os.path.isdir(get_datadir_path(self.options.cachedir, i)):
-                    shutil.rmtree(get_datadir_path(self.options.cachedir, i))
-
-            # Create cache directories, run bitcoinds:
-            for i in range(MAX_NODES):
-                datadir = initialize_datadir(
-                    self.options.cachedir, i, self.chain)
-                self.nodes.append(TestNode(
-                    i,
-                    get_datadir_path(self.options.cachedir, i),
+            initialize_datadir(
+                self.options.cachedir,
+                CACHE_NODE_ID,
+                self.chain)
+            self.nodes.append(
+                TestNode(
+                    CACHE_NODE_ID,
+                    cache_node_dir,
                     chain=self.chain,
                     extra_conf=["bind=127.0.0.1"],
-                    extra_args=[],
+                    extra_args=['-disablewallet'],
                     host=None,
-                    rpc_port=rpc_port(i),
-                    p2p_port=p2p_port(i),
+                    rpc_port=rpc_port(CACHE_NODE_ID),
+                    p2p_port=p2p_port(CACHE_NODE_ID),
                     timewait=self.rpc_timeout,
                     bitcoind=self.options.bitcoind,
                     bitcoin_cli=self.options.bitcoincli,
                     coverage_dir=None,
                     emulator=self.options.emulator,
                 ))
-                self.nodes[i].clear_default_args()
-                self.nodes[i].extend_default_args(["-datadir=" + datadir])
-                self.nodes[i].extend_default_args(["-disablewallet"])
-                if i > 0:
-                    self.nodes[i].extend_default_args(
-                        ["-connect=127.0.0.1:" + str(p2p_port(0))])
-                if self.options.phononactivation:
-                    self.nodes[i].extend_default_args(
-                        ["-phononactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
-                self.start_node(i)
+
+            if self.options.phononactivation:
+                self.nodes[CACHE_NODE_ID].extend_default_args(
+                    ["-phononactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+
+            self.start_node(CACHE_NODE_ID)
 
             # Wait for RPC connections to be ready
-            for node in self.nodes:
-                node.wait_for_rpc_connection()
+            self.nodes[CACHE_NODE_ID].wait_for_rpc_connection()
 
             # Create a 199-block-long chain; each of the 4 first nodes
             # gets 25 mature blocks and 25 immature.
@@ -505,32 +495,34 @@ class BitcoinTestFramework():
             # This is needed so that we are out of IBD when the test starts,
             # see the tip age check in IsInitialBlockDownload().
             for i in range(8):
-                self.nodes[0].generatetoaddress(
-                    25 if i != 7 else 24, self.nodes[i % 4].get_deterministic_priv_key().address)
-            sync_blocks(self.nodes)
+                self.nodes[CACHE_NODE_ID].generatetoaddress(
+                    nblocks=25 if i != 7 else 24,
+                    address=TestNode.PRIV_KEYS[i % 4].address,
+                )
 
-            for n in self.nodes:
-                assert_equal(n.getblockchaininfo()["blocks"], 199)
+            assert_equal(
+                self.nodes[CACHE_NODE_ID].getblockchaininfo()["blocks"], 199)
 
-            # Shut them down, and clean up cache directories:
+            # Shut it down, and clean up cache directories:
             self.stop_nodes()
             self.nodes = []
 
-            def cache_path(n, *paths):
-                return os.path.join(get_datadir_path(
-                    self.options.cachedir, n), self.chain, *paths)
+            def cache_path(*paths):
+                return os.path.join(cache_node_dir, "regtest", *paths)
 
-            for i in range(MAX_NODES):
-                # Remove empty wallets dir
-                os.rmdir(cache_path(i, 'wallets'))
-                for entry in os.listdir(cache_path(i)):
-                    if entry not in ['chainstate', 'blocks']:
-                        os.remove(cache_path(i, entry))
+            # Remove empty wallets dir
+            os.rmdir(cache_path('wallets'))
+            for entry in os.listdir(cache_path()):
+                # Only keep chainstate and blocks folder
+                if entry not in ['chainstate', 'blocks']:
+                    os.remove(cache_path(entry))
 
         for i in range(self.num_nodes):
-            from_dir = get_datadir_path(self.options.cachedir, i)
+            self.log.debug(
+                "Copy cache directory {} to node {}".format(
+                    cache_node_dir, i))
             to_dir = get_datadir_path(self.options.tmpdir, i)
-            shutil.copytree(from_dir, to_dir)
+            shutil.copytree(cache_node_dir, to_dir)
             # Overwrite port/rpcport in bitcoin.conf
             initialize_datadir(self.options.tmpdir, i, self.chain)
 
