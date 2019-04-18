@@ -2,17 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "walletframe.h"
-#include "walletmodel.h"
+#include <qt/walletframe.h>
 
-#include "bitcoingui.h"
-#include "walletview.h"
-
-#include <cassert>
-#include <cstdio>
+#include <qt/bitcoingui.h>
+#include <qt/walletmodel.h>
+#include <qt/walletview.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
+
+#include <cassert>
+#include <cstdio>
 
 WalletFrame::WalletFrame(const PlatformStyle *_platformStyle,
                          const Config *configIn, BitcoinGUI *_gui)
