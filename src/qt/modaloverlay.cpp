@@ -2,12 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "modaloverlay.h"
-#include "ui_modaloverlay.h"
+#include <qt/forms/ui_modaloverlay.h>
+#include <qt/modaloverlay.h>
 
-#include "guiutil.h"
-
-#include "chainparams.h"
+#include <chainparams.h>
+#include <qt/guiutil.h>
 
 #include <QPropertyAnimation>
 #include <QResizeEvent>

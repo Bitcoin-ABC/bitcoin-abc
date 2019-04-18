@@ -6,17 +6,17 @@
 // Wraps dumb protocol buffer paymentRequest with some extra methods
 //
 
-#include "paymentrequestplus.h"
+#include <qt/paymentrequestplus.h>
 
-#include "util.h"
-
-#include <stdexcept>
+#include <util.h>
 
 #include <openssl/x509_vfy.h>
 
 #include <QDateTime>
 #include <QDebug>
 #include <QSslCertificate>
+
+#include <stdexcept>
 
 class SSLVerifyError : public std::runtime_error {
 public:

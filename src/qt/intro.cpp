@@ -3,15 +3,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "fs.h"
-#include "guiutil.h"
-#include "interfaces/node.h"
-#include "intro.h"
-#include "ui_intro.h"
-#include "util.h"
+#include <fs.h>
+#include <interfaces/node.h>
+#include <qt/guiutil.h>
+#include <qt/intro.h>
+#include <ui_intro.h>
+#include <util.h>
 
 #include <QFileDialog>
 #include <QMessageBox>

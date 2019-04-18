@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "notificator.h"
+#include <qt/notificator.h>
 
 #include <QApplication>
 #include <QByteArray>
@@ -23,8 +23,8 @@
 // Note: This could also be worked around using:
 // #define __ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES 0
 #ifdef Q_OS_MAC
-#include "macnotificationhandler.h"
 #include <ApplicationServices/ApplicationServices.h>
+#include <qt/macnotificationhandler.h>
 #endif
 
 #ifdef USE_DBUS
