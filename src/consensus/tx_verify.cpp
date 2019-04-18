@@ -2,17 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "tx_verify.h"
+#include <consensus/tx_verify.h>
 
-#include "chain.h"
-#include "coins.h"
-#include "consensus/activation.h"
-#include "consensus/consensus.h"
-#include "consensus/validation.h"
-#include "primitives/transaction.h"
-#include "script/script_flags.h"
-#include "utilmoneystr.h" // For FormatMoney
-#include "version.h"      // For PROTOCOL_VERSION
+#include <chain.h>
+#include <coins.h>
+#include <consensus/activation.h>
+#include <consensus/consensus.h>
+#include <consensus/validation.h>
+#include <primitives/transaction.h>
+#include <script/script_flags.h>
+#include <utilmoneystr.h> // For FormatMoney
+#include <version.h>      // For PROTOCOL_VERSION
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {
