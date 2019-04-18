@@ -2,20 +2,21 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "key.h"
+#include <key.h>
 
-#include "base58.h"
-#include "dstencode.h"
-#include "script/script.h"
-#include "test/test_bitcoin.h"
-#include "uint256.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include <base58.h>
+#include <dstencode.h>
+#include <script/script.h>
+#include <uint256.h>
+#include <util.h>
+#include <utilstrencodings.h>
+
+#include <test/test_bitcoin.h>
+
+#include <boost/test/unit_test.hpp>
 
 #include <string>
 #include <vector>
-
-#include <boost/test/unit_test.hpp>
 
 static const std::string strSecret1 =
     "5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj";
