@@ -5,7 +5,7 @@
 #ifndef BITCOIN_BLOCKFILEINFO_H
 #define BITCOIN_BLOCKFILEINFO_H
 
-#include "serialize.h"
+#include <serialize.h>
 
 #include <cstdint>
 #include <string>
