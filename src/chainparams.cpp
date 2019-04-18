@@ -115,12 +115,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000e413581befbedfd7a660ce");
+            "000000000000000000000000000000000000000000e69facb8ace3926ead407c");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "000000000000000002f14548e86cd33b9bf9bfba049b5123e5bae431a61c6476");
+            "000000000000000001cfa7b6cb48a93d07d8e7f474edcf4fe9b32b7525afe971");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
