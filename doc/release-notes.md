@@ -10,3 +10,6 @@ This release includes the following features and fixes:
  - Remove `depends` from transaction objects provided by `getblocktemplate`.
  - The option to reuse exisiting receiving addresses has been removed from the wallet.
  - Remove safe mode.
+ - Added Schnorr signing to JNI (Java Native Interface) bindings.
+ - Added `-getinfo` option to bitcoin-cli for batching calls to `getnetworkinfo`, `getblockchaininfo`, and `getwalletinfo`.
+   This option is only available for bitcoin-cli.
