@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "checkqueue.h"
-#include "bench.h"
-#include "prevector.h"
-#include "random.h"
-#include "util.h"
-#include "validation.h"
+#include <bench/bench.h>
+#include <checkqueue.h>
+#include <prevector.h>
+#include <random.h>
+#include <util.h>
+#include <validation.h>
 
 #include <boost/thread/thread.hpp>
 

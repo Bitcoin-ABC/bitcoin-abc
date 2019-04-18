@@ -2,15 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "bench.h"
+#include <bench/bench.h>
 
-#include "config.h"
-#include "consensus/validation.h"
-#include "streams.h"
-#include "validation.h"
+#include <config.h>
+#include <consensus/validation.h>
+#include <streams.h>
+#include <validation.h>
 
 namespace block_bench {
-#include "bench/data/block413567.raw.h"
+#include <bench/data/block413567.raw.h>
 }
 
 // These are the two major time-sinks which happen after we have fully received
