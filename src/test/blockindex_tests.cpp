@@ -2,14 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "blockvalidity.h"
-#include "chain.h"
-#include "diskblockpos.h"
-#include "uint256.h"
+#include <blockvalidity.h>
+#include <chain.h>
+#include <diskblockpos.h>
+#include <uint256.h>
 
-#include "test/test_bitcoin.h"
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
+
 #include <limits>
 
 BOOST_FIXTURE_TEST_SUITE(blockindex_tests, BasicTestingSetup)
