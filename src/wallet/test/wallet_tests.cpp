@@ -2,18 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "wallet/wallet.h"
+#include <chainparams.h>
+#include <config.h>
+#include <consensus/validation.h>
+#include <rpc/server.h>
+#include <validation.h>
+#include <wallet/coincontrol.h>
+#include <wallet/rpcdump.h>
+#include <wallet/wallet.h>
 
-#include "chainparams.h"
-#include "config.h"
-
-#include "consensus/validation.h"
-#include "rpc/server.h"
-#include "test/test_bitcoin.h"
-#include "validation.h"
-#include "wallet/coincontrol.h"
-#include "wallet/rpcdump.h"
-#include "wallet/test/wallet_test_fixture.h"
+#include <test/test_bitcoin.h>
+#include <wallet/test/wallet_test_fixture.h>
 
 #include <boost/test/unit_test.hpp>
 
