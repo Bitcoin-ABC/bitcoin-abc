@@ -3,26 +3,22 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "utilitydialog.h"
+#include <qt/utilitydialog.h>
 
-#include "ui_helpmessagedialog.h"
-
-#include "bitcoingui.h"
-#include "clientmodel.h"
-#include "guiconstants.h"
-#include "guiutil.h"
-#include "intro.h"
-#include "paymentrequestplus.h"
-
-#include "clientversion.h"
-#include "init.h"
-#include "interfaces/node.h"
-#include "util.h"
-
-#include <cstdio>
+#include <clientversion.h>
+#include <init.h>
+#include <interfaces/node.h>
+#include <qt/bitcoingui.h>
+#include <qt/clientmodel.h>
+#include <qt/forms/ui_helpmessagedialog.h>
+#include <qt/guiconstants.h>
+#include <qt/guiutil.h>
+#include <qt/intro.h>
+#include <qt/paymentrequestplus.h>
+#include <util.h>
 
 #include <QCloseEvent>
 #include <QLabel>
@@ -30,6 +26,8 @@
 #include <QTextCursor>
 #include <QTextTable>
 #include <QVBoxLayout>
+
+#include <cstdio>
 
 /** "Help message" or "About" dialog box */
 HelpMessageDialog::HelpMessageDialog(interfaces::Node &node, QWidget *parent,
