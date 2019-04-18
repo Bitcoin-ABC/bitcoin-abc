@@ -7,11 +7,11 @@
 #ifndef BITCOIN_PRIMITIVES_TRANSACTION_H
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
-#include "amount.h"
-#include "feerate.h"
-#include "primitives/txid.h"
-#include "script/script.h"
-#include "serialize.h"
+#include <amount.h>
+#include <feerate.h>
+#include <primitives/txid.h>
+#include <script/script.h>
+#include <serialize.h>
 
 static const int SERIALIZE_TRANSACTION = 0x00;
 
