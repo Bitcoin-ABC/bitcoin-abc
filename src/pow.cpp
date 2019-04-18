@@ -4,17 +4,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "pow.h"
+#include <pow.h>
 
-#include "arith_uint256.h"
-#include "chain.h"
-#include "chainparams.h"
-#include "config.h"
-#include "consensus/activation.h"
-#include "consensus/params.h"
-#include "primitives/block.h"
-#include "uint256.h"
-#include "util.h"
+#include <arith_uint256.h>
+#include <chain.h>
+#include <chainparams.h>
+#include <config.h>
+#include <consensus/activation.h>
+#include <consensus/params.h>
+#include <primitives/block.h>
+#include <uint256.h>
+#include <util.h>
 
 /**
  * Compute the next required proof of work using the legacy Bitcoin difficulty

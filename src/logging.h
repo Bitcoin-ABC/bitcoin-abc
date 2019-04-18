@@ -7,8 +7,8 @@
 #ifndef BITCOIN_LOGGING_H
 #define BITCOIN_LOGGING_H
 
-#include "fs.h"
-#include "tinyformat.h"
+#include <fs.h>
+#include <tinyformat.h>
 
 #include <atomic>
 #include <cstdint>
