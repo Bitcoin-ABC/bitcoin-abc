@@ -3,35 +3,35 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "data/tx_invalid.json.h"
-#include "data/tx_valid.json.h"
-#include "test/test_bitcoin.h"
+#include <chainparams.h> // For CChainParams
+#include <checkqueue.h>
+#include <clientversion.h>
+#include <config.h>
+#include <consensus/tx_verify.h>
+#include <consensus/validation.h>
+#include <core_io.h>
+#include <data/tx_invalid.json.h>
+#include <data/tx_valid.json.h>
+#include <key.h>
+#include <keystore.h>
+#include <policy/policy.h>
+#include <script/script.h>
+#include <script/script_error.h>
+#include <script/sign.h>
+#include <script/standard.h>
+#include <utilstrencodings.h>
+#include <validation.h>
 
-#include "chainparams.h" // For CChainParams
-#include "checkqueue.h"
-#include "clientversion.h"
-#include "config.h"
-#include "consensus/tx_verify.h"
-#include "consensus/validation.h"
-#include "core_io.h"
-#include "key.h"
-#include "keystore.h"
-#include "policy/policy.h"
-#include "script/script.h"
-#include "script/script_error.h"
-#include "script/sign.h"
-#include "script/standard.h"
-#include "test/jsonutil.h"
-#include "test/scriptflags.h"
-#include "utilstrencodings.h"
-#include "validation.h"
-
-#include <map>
-#include <string>
+#include <test/jsonutil.h>
+#include <test/scriptflags.h>
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
+
+#include <map>
+#include <string>
 
 typedef std::vector<uint8_t> valtype;
 

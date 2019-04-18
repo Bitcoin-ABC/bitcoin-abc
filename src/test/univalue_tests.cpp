@@ -3,14 +3,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "test/test_bitcoin.h"
+#include <univalue.h>
+
+#include <test/test_bitcoin.h>
+
+#include <boost/test/unit_test.hpp>
+
 #include <cstdint>
 #include <map>
 #include <string>
-#include <univalue.h>
 #include <vector>
-
-#include <boost/test/unit_test.hpp>
 
 BOOST_FIXTURE_TEST_SUITE(univalue_tests, BasicTestingSetup)
 
