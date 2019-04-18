@@ -2,11 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "config.h"
-#include "chainparams.h"
-#include "consensus/consensus.h" // DEFAULT_MAX_BLOCK_SIZE
-#include "globals.h"
-#include "policy/policy.h" // DEFAULT_BLOCK_PRIORITY_PERCENTAGE
+#include <config.h>
+
+#include <chainparams.h>
+#include <consensus/consensus.h> // DEFAULT_MAX_BLOCK_SIZE
+#include <globals.h>
+#include <policy/policy.h> // DEFAULT_BLOCK_PRIORITY_PERCENTAGE
 
 GlobalConfig::GlobalConfig()
     : useCashAddr(false), nMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE),
