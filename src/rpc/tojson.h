@@ -5,7 +5,7 @@
 #ifndef BITCOIN_RPCTOJSON_H
 #define BITCOIN_RPCTOJSON_H
 
-#include "uint256.h"
+#include <uint256.h>
 
 #include <univalue.h>
 
