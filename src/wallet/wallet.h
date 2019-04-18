@@ -791,7 +791,7 @@ private:
      * to have seen all transactions in the chain, but is only used to track
      * live BlockConnected callbacks.
      */
-    BlockHash m_last_block_processed;
+    BlockHash m_last_block_processed GUARDED_BY(cs_wallet);
 
 public:
     const CChainParams &chainParams;

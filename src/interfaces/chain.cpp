@@ -119,14 +119,6 @@ namespace {
             }
             return nullopt;
         }
-        bool isPotentialTip(const BlockHash &hash) override {
-            if (::ChainActive().Tip()->GetBlockHash() == hash) {
-                return true;
-            }
-            CBlockIndex *block = LookupBlockIndex(hash);
-            return block && block->GetAncestor(::ChainActive().Height()) ==
-                                ::ChainActive().Tip();
-        }
         CBlockLocator getTipLocator() override {
             return ::ChainActive().GetLocator();
         }
@@ -358,9 +350,22 @@ namespace {
             return std::make_unique<NotificationsHandlerImpl>(*this,
                                                               notifications);
         }
-        void waitForNotifications() override {
+        void waitForNotificationsIfNewBlocksConnected(
+            const BlockHash &old_tip) override {
+            if (!old_tip.IsNull()) {
+                LOCK(::cs_main);
+                if (old_tip == ::ChainActive().Tip()->GetBlockHash()) {
+                    return;
+                }
+                CBlockIndex *block = LookupBlockIndex(old_tip);
+                if (block && block->GetAncestor(::ChainActive().Height()) ==
+                                 ::ChainActive().Tip()) {
+                    return;
+                }
+            }
             SyncWithValidationInterfaceQueue();
         }
+
         std::unique_ptr<Handler>
         handleRpc(const CRPCCommand &command) override {
             return std::make_unique<RpcHandlerImpl>(command);
