@@ -3,23 +3,22 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "compat/setenv.h"
+#include <chainparams.h>
+#include <compat/setenv.h>
+#include <key.h>
+#include <util.h>
 
-#include "bitcoinaddressvalidatortests.h"
-#include "chainparams.h"
-#include "compattests.h"
-#include "guiutiltests.h"
-#include "key.h"
-#include "rpcnestedtests.h"
-#include "uritests.h"
-#include "util.h"
-
+#include <qt/test/bitcoinaddressvalidatortests.h>
+#include <qt/test/compattests.h>
+#include <qt/test/guiutiltests.h>
+#include <qt/test/rpcnestedtests.h>
+#include <qt/test/uritests.h>
 #ifdef ENABLE_WALLET
-#include "paymentservertests.h"
-#include "wallettests.h"
+#include <qt/test/paymentservertests.h>
+#include <qt/test/wallettests.h>
 #endif
 
 #include <QApplication>

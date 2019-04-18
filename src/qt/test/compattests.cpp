@@ -2,11 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "paymentrequestplus.h" // this includes protobuf's port.h which defines its own bswap macos
+#include <qt/test/compattests.h>
 
-#include "compattests.h"
-
-#include "compat/byteswap.h"
+#include <compat/byteswap.h>
+#include <qt/paymentrequestplus.h> // this includes protobuf's port.h which defines its own bswap macos
 
 void CompatTests::bswapTests() {
     // Sibling in bitcoin/src/test/bswap_tests.cpp

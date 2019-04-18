@@ -2,9 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "qt/test/bitcoinaddressvalidatortests.h"
-#include "chainparams.h"
-#include "qt/bitcoinaddressvalidator.h"
+#include <qt/bitcoinaddressvalidator.h>
+#include <qt/test/bitcoinaddressvalidatortests.h>
+
+#include <chainparams.h>
+
 #include <QValidator>
 
 void BitcoinAddressValidatorTests::inputTests() {

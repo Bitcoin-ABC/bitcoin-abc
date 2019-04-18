@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <test/rpcnestedtests.h>
+#include <qt/test/rpcnestedtests.h>
 
 #include <chainparams.h>
 #include <config.h>
@@ -12,13 +12,15 @@
 #include <qt/rpcconsole.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
-#include <test/test_bitcoin.h>
-#include <univalue.h>
 #include <util.h>
 #include <validation.h>
 
+#include <test/test_bitcoin.h>
+
 #include <QDir>
 #include <QtGlobal>
+
+#include <univalue.h>
 
 static UniValue rpcNestedTest_rpc(const Config &config,
                                   const JSONRPCRequest &request) {
