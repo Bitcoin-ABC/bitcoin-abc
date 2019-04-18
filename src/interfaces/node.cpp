@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <interface/node.h>
+#include <interfaces/node.h>
 
 #include <chainparams.h>
 #include <config.h>
 #include <init.h>
-#include <interface/handler.h>
+#include <interfaces/handler.h>
 #include <net.h>
 #include <netaddress.h>
 #include <netbase.h>
@@ -20,7 +20,7 @@
 
 class HTTPRPCRequestProcessor;
 
-namespace interface {
+namespace interfaces {
 namespace {
 
     class NodeImpl : public Node {
@@ -89,4 +89,4 @@ std::unique_ptr<Node> MakeNode() {
     return std::make_unique<NodeImpl>();
 }
 
-} // namespace interface
+} // namespace interfaces

@@ -28,8 +28,8 @@
 #endif
 
 #include "init.h"
-#include "interface/handler.h"
-#include "interface/node.h"
+#include "interfaces/handler.h"
+#include "interfaces/node.h"
 #include "rpc/server.h"
 #include "ui_interface.h"
 #include "uint256.h"
@@ -175,7 +175,7 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext &context,
 class BitcoinABC : public QObject {
     Q_OBJECT
 public:
-    explicit BitcoinABC(interface::Node &node);
+    explicit BitcoinABC(interfaces::Node &node);
 
 public Q_SLOTS:
     void initialize(Config *config,
@@ -191,14 +191,14 @@ private:
     /// Pass fatal exception message to UI thread
     void handleRunawayException(const std::exception *e);
 
-    interface::Node &m_node;
+    interfaces::Node &m_node;
 };
 
 /** Main Bitcoin application object */
 class BitcoinApplication : public QApplication {
     Q_OBJECT
 public:
-    explicit BitcoinApplication(interface::Node &node, int &argc, char **argv);
+    explicit BitcoinApplication(interfaces::Node &node, int &argc, char **argv);
     ~BitcoinApplication();
 
 #ifdef ENABLE_WALLET
@@ -242,7 +242,7 @@ Q_SIGNALS:
 
 private:
     QThread *coreThread;
-    interface::Node &m_node;
+    interfaces::Node &m_node;
     OptionsModel *optionsModel;
     ClientModel *clientModel;
     BitcoinGUI *window;
@@ -260,7 +260,7 @@ private:
 
 #include "bitcoin.moc"
 
-BitcoinABC::BitcoinABC(interface::Node &node) : QObject(), m_node(node) {}
+BitcoinABC::BitcoinABC(interfaces::Node &node) : QObject(), m_node(node) {}
 
 void BitcoinABC::handleRunawayException(const std::exception *e) {
     PrintExceptionContinue(e, "Runaway exception");
@@ -294,7 +294,7 @@ void BitcoinABC::shutdown() {
     }
 }
 
-BitcoinApplication::BitcoinApplication(interface::Node &node, int &argc,
+BitcoinApplication::BitcoinApplication(interfaces::Node &node, int &argc,
                                        char **argv)
     : QApplication(argc, argv), coreThread(0), m_node(node), optionsModel(0),
       clientModel(0), window(0), pollShutdownTimer(0),
@@ -581,7 +581,7 @@ static void MigrateSettings() {
 int main(int argc, char *argv[]) {
     SetupEnvironment();
 
-    std::unique_ptr<interface::Node> node = interface::MakeNode();
+    std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 
     /// 1. Parse command-line options. These take precedence over anything else.
     // Command-line options take precedence:
@@ -750,7 +750,7 @@ int main(int argc, char *argv[]) {
     app.createOptionsModel(gArgs.GetBoolArg("-resetguisettings", false));
 
     // Subscribe to global signals from core
-    std::unique_ptr<interface::Handler> handler =
+    std::unique_ptr<interfaces::Handler> handler =
         node->handleInitMessage(InitMessage);
 
     // Get global config

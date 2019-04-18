@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <interface/handler.h>
+#include <interfaces/handler.h>
 
 #include <util.h>
 
@@ -10,7 +10,7 @@
 #include <memory>
 #include <utility>
 
-namespace interface {
+namespace interfaces {
 namespace {
 
     class HandlerImpl : public Handler {
@@ -29,4 +29,4 @@ std::unique_ptr<Handler> MakeHandler(boost::signals2::connection connection) {
     return std::make_unique<HandlerImpl>(std::move(connection));
 }
 
-} // namespace interface
+} // namespace interfaces
