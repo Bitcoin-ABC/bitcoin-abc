@@ -132,8 +132,6 @@ add_library(util
 	compat/glibcxx_sanity.cpp
 	compat/strnlen.cpp
 	fs.cpp
-	interfaces/handler.cpp
-	interfaces/node.cpp
 	logging.cpp
 	random.cpp
 	rcu.cpp
@@ -256,6 +254,8 @@ add_library(server
 	httprpc.cpp
 	httpserver.cpp
 	init.cpp
+	interfaces/handler.cpp
+	interfaces/node.cpp
 	dbwrapper.cpp
 	merkleblock.cpp
 	miner.cpp
