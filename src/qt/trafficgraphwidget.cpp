@@ -4,6 +4,7 @@
 
 #include "trafficgraphwidget.h"
 #include "clientmodel.h"
+#include "interfaces/node.h"
 
 #include <QColor>
 #include <QPainter>
@@ -26,8 +27,8 @@ TrafficGraphWidget::TrafficGraphWidget(QWidget *parent)
 void TrafficGraphWidget::setClientModel(ClientModel *model) {
     clientModel = model;
     if (model) {
-        nLastBytesIn = model->getTotalBytesRecv();
-        nLastBytesOut = model->getTotalBytesSent();
+        nLastBytesIn = model->node().getTotalBytesRecv();
+        nLastBytesOut = model->node().getTotalBytesSent();
     }
 }
 
@@ -111,8 +112,8 @@ void TrafficGraphWidget::paintEvent(QPaintEvent *) {
 void TrafficGraphWidget::updateRates() {
     if (!clientModel) return;
 
-    quint64 bytesIn = clientModel->getTotalBytesRecv(),
-            bytesOut = clientModel->getTotalBytesSent();
+    quint64 bytesIn = clientModel->node().getTotalBytesRecv(),
+            bytesOut = clientModel->node().getTotalBytesSent();
     float inRate =
         (bytesIn - nLastBytesIn) / 1024.0f * 1000 / timer->interval();
     float outRate =
@@ -157,8 +158,8 @@ void TrafficGraphWidget::clear() {
     fMax = 0.0f;
 
     if (clientModel) {
-        nLastBytesIn = clientModel->getTotalBytesRecv();
-        nLastBytesOut = clientModel->getTotalBytesSent();
+        nLastBytesIn = clientModel->node().getTotalBytesRecv();
+        nLastBytesOut = clientModel->node().getTotalBytesSent();
     }
     timer->start();
 }
