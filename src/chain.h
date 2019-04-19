@@ -266,7 +266,8 @@ extern RecursiveMutex cs_main;
 typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
 extern BlockMap &mapBlockIndex GUARDED_BY(cs_main);
 
-inline CBlockIndex *LookupBlockIndex(const BlockHash &hash) {
+inline CBlockIndex *LookupBlockIndex(const BlockHash &hash)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     BlockMap::const_iterator it = mapBlockIndex.find(hash);
     return it == mapBlockIndex.end() ? nullptr : it->second;

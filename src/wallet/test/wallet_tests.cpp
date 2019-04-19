@@ -7,6 +7,7 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
+#include <policy/policy.h>
 #include <rpc/server.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
@@ -32,16 +33,15 @@ static void AddKey(CWallet &wallet, const CKey &key) {
 }
 
 BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
-    auto chain = interfaces::MakeChain();
-
     // Cap last block file size, and mine new block in a new block file.
     CBlockIndex *oldTip = ::ChainActive().Tip();
     GetBlockFileInfo(oldTip->GetBlockPos().nFile)->nSize = MAX_BLOCKFILE_SIZE;
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = ::ChainActive().Tip();
 
-    LockAnnotation lock(::cs_main);
+    auto chain = interfaces::MakeChain();
     auto locked_chain = chain->lock();
+    LockAnnotation lock(::cs_main);
 
     // Verify ScanForWalletTransactions accommodates a null start block.
     {
@@ -119,16 +119,15 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
-    auto chain = interfaces::MakeChain();
-
     // Cap last block file size, and mine new block in a new block file.
     CBlockIndex *oldTip = ::ChainActive().Tip();
     GetBlockFileInfo(oldTip->GetBlockPos().nFile)->nSize = MAX_BLOCKFILE_SIZE;
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = ::ChainActive().Tip();
 
-    LockAnnotation lock(::cs_main);
+    auto chain = interfaces::MakeChain();
     auto locked_chain = chain->lock();
+    LockAnnotation lock(::cs_main);
 
     // Prune the older block file.
     PruneOneBlockFile(oldTip->GetBlockPos().nFile);
@@ -189,8 +188,6 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
 // importwallet RPC would start the scan at the latest block with timestamp less
 // than or equal to key birthday.
 BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
-    auto chain = interfaces::MakeChain();
-
     // Create two blocks with same timestamp to verify that importwallet rescan
     // will pick up both blocks, not just the first.
     const int64_t BLOCK_TIME = ::ChainActive().Tip()->GetBlockTimeMax() + 5;
@@ -213,7 +210,9 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
             .vtx[0]);
 
+    auto chain = interfaces::MakeChain();
     auto locked_chain = chain->lock();
+    LockAnnotation lock(::cs_main);
 
     std::string backup_file = (GetDataDir() / "wallet.backup").string();
 
@@ -271,8 +270,11 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     CWallet wallet(Params(), chain.get(), WalletLocation(),
                    WalletDatabase::CreateDummy());
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
+
     auto locked_chain = chain->lock();
+    LockAnnotation lock(::cs_main);
     LOCK(wallet.cs_wallet);
+
     wtx.hashBlock = ::ChainActive().Tip()->GetBlockHash();
     wtx.nIndex = 0;
 
@@ -406,6 +408,8 @@ public:
         }
         CreateAndProcessBlock({CMutableTransaction(blocktx)},
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
+
+        LOCK(cs_main);
         LOCK(wallet->cs_wallet);
         auto it = wallet->mapWallet.find(tx->GetId());
         BOOST_CHECK(it != wallet->mapWallet.end());

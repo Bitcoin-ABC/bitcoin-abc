@@ -23,7 +23,8 @@ bool CheckBlock(const CCheckpointData &data, int nHeight,
     return hash == i->second;
 }
 
-CBlockIndex *GetLastCheckpoint(const CCheckpointData &data) {
+CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     const MapCheckpoints &checkpoints = data.mapCheckpoints;
 
     for (const MapCheckpoints::value_type &i : reverse_iterate(checkpoints)) {
