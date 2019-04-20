@@ -50,6 +50,11 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     {
         CWallet wallet(Params(), chain.get(), WalletLocation(),
                        WalletDatabase::CreateDummy());
+        {
+            LOCK(wallet.cs_wallet);
+            wallet.SetLastBlockProcessed(::ChainActive().Height(),
+                                         ::ChainActive().Tip()->GetBlockHash());
+        }
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -67,6 +72,11 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     {
         CWallet wallet(Params(), chain.get(), WalletLocation(),
                        WalletDatabase::CreateDummy());
+        {
+            LOCK(wallet.cs_wallet);
+            wallet.SetLastBlockProcessed(::ChainActive().Height(),
+                                         ::ChainActive().Tip()->GetBlockHash());
+        }
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -88,6 +98,11 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     {
         CWallet wallet(Params(), chain.get(), WalletLocation(),
                        WalletDatabase::CreateDummy());
+        {
+            LOCK(wallet.cs_wallet);
+            wallet.SetLastBlockProcessed(::ChainActive().Height(),
+                                         ::ChainActive().Tip()->GetBlockHash());
+        }
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -108,6 +123,11 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     {
         CWallet wallet(Params(), chain.get(), WalletLocation(),
                        WalletDatabase::CreateDummy());
+        {
+            LOCK(wallet.cs_wallet);
+            wallet.SetLastBlockProcessed(::ChainActive().Height(),
+                                         ::ChainActive().Tip()->GetBlockHash());
+        }
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -284,6 +304,8 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     LockAssertion lock(::cs_main);
     LOCK(wallet.cs_wallet);
     AssertLockHeld(spk_man->cs_wallet);
+    wallet.SetLastBlockProcessed(::ChainActive().Height(),
+                                 ::ChainActive().Tip()->GetBlockHash());
 
     wtx.SetConf(CWalletTx::Status::CONFIRMED,
                 ::ChainActive().Tip()->GetBlockHash(), 0);
@@ -465,6 +487,12 @@ public:
         wallet =
             std::make_unique<CWallet>(Params(), m_chain.get(), WalletLocation(),
                                       WalletDatabase::CreateMock());
+        {
+            LOCK(wallet->cs_wallet);
+            wallet->SetLastBlockProcessed(
+                ::ChainActive().Height(),
+                ::ChainActive().Tip()->GetBlockHash());
+        }
         bool firstRun;
         wallet->LoadWallet(firstRun);
         AddKey(*wallet, coinbaseKey);
@@ -506,6 +534,8 @@ public:
 
         LOCK(cs_main);
         LOCK(wallet->cs_wallet);
+        wallet->SetLastBlockProcessed(wallet->GetLastBlockHeight() + 1,
+                                      ::ChainActive().Tip()->GetBlockHash());
         auto it = wallet->mapWallet.find(tx->GetId());
         BOOST_CHECK(it != wallet->mapWallet.end());
         it->second.SetConf(CWalletTx::Status::CONFIRMED,

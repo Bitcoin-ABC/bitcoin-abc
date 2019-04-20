@@ -1142,6 +1142,8 @@ void CWallet::BlockConnected(const CBlock &block,
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
+    m_last_block_processed_height = height;
+    m_last_block_processed = block_hash;
     for (size_t i = 0; i < block.vtx.size(); i++) {
         SyncTransaction(block.vtx[i], CWalletTx::Status::CONFIRMED, block_hash,
                         i);
@@ -1150,8 +1152,6 @@ void CWallet::BlockConnected(const CBlock &block,
     for (const CTransactionRef &ptx : vtxConflicted) {
         TransactionRemovedFromMempool(ptx);
     }
-
-    m_last_block_processed = block_hash;
 }
 
 void CWallet::BlockDisconnected(const CBlock &block, int height) {
@@ -1163,6 +1163,8 @@ void CWallet::BlockDisconnected(const CBlock &block, int height) {
     // mempool. User may have to call abandontransaction again. It may be
     // addressed in the future with a stickier abandoned state or even removing
     // abandontransaction call.
+    m_last_block_processed_height = height - 1;
+    m_last_block_processed = block.hashPrevBlock;
     for (const CTransactionRef &ptx : block.vtx) {
         SyncTransaction(ptx, CWalletTx::Status::UNCONFIRMED,
                         BlockHash() /* block hash */,
@@ -4222,8 +4224,10 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
     if (tip_height) {
         walletInstance->m_last_block_processed =
             locked_chain->getBlockHash(*tip_height);
+        walletInstance->m_last_block_processed_height = *tip_height;
     } else {
         walletInstance->m_last_block_processed.SetNull();
+        walletInstance->m_last_block_processed_height = -1;
     }
 
     if (tip_height && *tip_height != rescan_height) {
