@@ -10,7 +10,7 @@
 from test_framework.blocktools import create_confirmed_utxos
 from test_framework.messages import COIN
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, gen_return_txouts, satoshi_round
+from test_framework.util import assert_equal, satoshi_round
 
 
 class HighPriorityTransactionTest(BitcoinTestFramework):
@@ -36,21 +36,15 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
         return txids
 
     def generate_high_priotransactions(self, node, count):
-        # generate a bunch of spendable utxos
-        self.txouts = gen_return_txouts()
         # create 150 simple one input one output hi prio txns
         hiprio_utxo_count = 150
         age = 250
         # be sure to make this utxo aged enough
         hiprio_utxos = create_confirmed_utxos(node, hiprio_utxo_count, age)
-        txids = []
 
         # Create hiprio_utxo_count number of txns with 0 fee
-        range_size = [0, hiprio_utxo_count]
-        start_range = range_size[0]
-        end_range = range_size[1]
         txids = self.create_small_transactions(
-            node, hiprio_utxos[start_range:end_range], end_range - start_range, 0)
+            node, hiprio_utxos, hiprio_utxo_count, 0)
         return txids
 
     def run_test(self):
