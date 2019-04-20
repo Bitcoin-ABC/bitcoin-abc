@@ -353,19 +353,20 @@ public:
     enum Status { UNCONFIRMED, CONFIRMED, CONFLICTED, ABANDONED };
 
     /**
-     * Confirmation includes tx status and a pair of {block hash/tx index in
-     * block} at which tx has been confirmed. This pair is both 0 if tx hasn't
-     * confirmed yet. Meaning of these fields changes with CONFLICTED state
-     * where they instead point to block hash and index of the deepest
-     * conflicting tx.
+     * Confirmation includes tx status and a triplet of {block height/block
+     * hash/tx index in block} at which tx has been confirmed. All three are set
+     * to 0 if tx is unconfirmed or abandoned. Meaning of these fields changes
+     * with CONFLICTED state where they instead point to block hash and block
+     * height of the deepest conflicting tx.
      */
     struct Confirmation {
         Status status;
+        int block_height;
         BlockHash hashBlock;
         int nIndex;
-        Confirmation(Status s = UNCONFIRMED, BlockHash h = BlockHash(),
-                     int i = 0)
-            : status(s), hashBlock(h), nIndex(i) {}
+        Confirmation(Status s = UNCONFIRMED, int b = 0,
+                     BlockHash h = BlockHash(), int i = 0)
+            : status(s), block_height(b), hashBlock(h), nIndex(i) {}
     };
 
     Confirmation m_confirm;
@@ -418,7 +419,6 @@ public:
          * unconfirmed for backward compatibility (pre-commit 9ac63d6).
          */
         if (serializedIndex == -1 && m_confirm.hashBlock == ABANDON_HASH) {
-            m_confirm.hashBlock = BlockHash();
             setAbandoned();
         } else if (serializedIndex == -1) {
             setConflicted();
@@ -532,6 +532,7 @@ public:
     void setAbandoned() {
         m_confirm.status = CWalletTx::ABANDONED;
         m_confirm.hashBlock = BlockHash();
+        m_confirm.block_height = 0;
         m_confirm.nIndex = 0;
     }
     bool isConflicted() const {
@@ -542,6 +543,9 @@ public:
         return m_confirm.status == CWalletTx::UNCONFIRMED;
     }
     void setUnconfirmed() { m_confirm.status = CWalletTx::UNCONFIRMED; }
+    bool isConfirmed() const {
+        return m_confirm.status == CWalletTx::CONFIRMED;
+    }
     void setConfirmed() { m_confirm.status = CWalletTx::CONFIRMED; }
     TxId GetId() const { return tx->GetId(); }
     bool IsCoinBase() const { return tx->IsCoinBase(); }
@@ -699,7 +703,8 @@ private:
      * Mark a transaction (and its in-wallet descendants) as conflicting with a
      * particular block.
      */
-    void MarkConflicted(const BlockHash &hashBlock, const TxId &txid);
+    void MarkConflicted(const BlockHash &hashBlock, int conflicting_height,
+                        const TxId &txid);
 
     /**
      * Mark a transaction's inputs dirty, thus forcing the outputs to be

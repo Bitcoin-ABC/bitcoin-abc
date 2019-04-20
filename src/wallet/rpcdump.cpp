@@ -418,11 +418,12 @@ UniValue importprunedfunds(const Config &config,
     std::vector<uint256> vMatch;
     std::vector<size_t> vIndex;
     size_t txnIndex = 0;
+    Optional<int> height;
     if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) ==
         merkleBlock.header.hashMerkleRoot) {
         auto locked_chain = pwallet->chain().lock();
-        if (locked_chain->getBlockHeight(merkleBlock.header.GetHash()) ==
-            nullopt) {
+        height = locked_chain->getBlockHeight(merkleBlock.header.GetHash());
+        if (height == nullopt) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Block not found in chain");
         }
@@ -440,7 +441,7 @@ UniValue importprunedfunds(const Config &config,
                            "Something wrong with merkleblock");
     }
 
-    CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED,
+    CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED, *height,
                                     merkleBlock.header.GetHash(), txnIndex);
     wtx.m_confirm = confirm;
 
