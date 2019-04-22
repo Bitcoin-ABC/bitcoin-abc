@@ -963,8 +963,7 @@ CFeeRate CTxMemPool::estimateFee() const {
     return std::max(GetConfig().GetMinFeePerKB(), GetMinFee(maxMempoolSize));
 }
 
-void CTxMemPool::PrioritiseTransaction(const uint256 hash,
-                                       const std::string strHash,
+void CTxMemPool::PrioritiseTransaction(const uint256 &hash,
                                        double dPriorityDelta,
                                        const Amount nFeeDelta) {
     {
@@ -996,8 +995,8 @@ void CTxMemPool::PrioritiseTransaction(const uint256 hash,
             }
         }
     }
-    LogPrintf("PrioritiseTransaction: %s priority += %f, fee += %d\n", strHash,
-              dPriorityDelta, FormatMoney(nFeeDelta));
+    LogPrintf("PrioritiseTransaction: %s priority += %f, fee += %d\n",
+              hash.ToString(), dPriorityDelta, FormatMoney(nFeeDelta));
 }
 
 void CTxMemPool::ApplyDeltas(const uint256 hash, double &dPriorityDelta,
