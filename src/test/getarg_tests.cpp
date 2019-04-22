@@ -6,6 +6,8 @@
 
 #include <test/setup_common.h>
 
+#include <univalue.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/test/unit_test.hpp>
 

@@ -26,6 +26,7 @@ REGEX_DOC = r'AddArg\(\s*"(-[^"=]+?)(?:=|")'
 
 # list false positive unknows arguments
 SET_FALSE_POSITIVE_UNKNOWNS = set([
+    '-includeconf',
     '-regtest',
     '-testnet',
     '-zmqpubhashblock',

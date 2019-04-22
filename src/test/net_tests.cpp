@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE(test_userAgent) {
 
     config.SetMaxBlockSize(8000000);
     const std::string uacomment = "A very nice comment";
-    gArgs.ForceSetMultiArg("-uacomment", uacomment);
+    gArgs.ForceSetMultiArg("-uacomment", {uacomment});
 
     const std::string versionMessage =
         "/Bitcoin ABC:" + std::to_string(CLIENT_VERSION_MAJOR) + "." +

@@ -21,6 +21,7 @@
 #include <logging.h>
 #include <sync.h>
 #include <tinyformat.h>
+#include <util/settings.h>
 #include <util/threadnames.h>
 #include <util/time.h>
 
@@ -169,10 +170,7 @@ protected:
     };
 
     mutable RecursiveMutex cs_args;
-    std::map<std::string, std::vector<std::string>>
-        m_override_args GUARDED_BY(cs_args);
-    std::map<std::string, std::vector<std::string>>
-        m_config_args GUARDED_BY(cs_args);
+    util::Settings m_settings GUARDED_BY(cs_args);
     std::string m_network GUARDED_BY(cs_args);
     std::set<std::string> m_network_only_args GUARDED_BY(cs_args);
     std::map<OptionsCategory, std::map<std::string, Arg>>
@@ -285,7 +283,7 @@ public:
 
     // Forces a multi arg setting, used only in testing
     void ForceSetMultiArg(const std::string &strArg,
-                          const std::string &strValue);
+                          const std::vector<std::string> &values);
 
     /**
      * Looks for -regtest, -testnet and returns the appropriate BIP70 chain
