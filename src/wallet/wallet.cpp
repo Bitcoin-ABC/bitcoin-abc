@@ -4386,11 +4386,13 @@ CKeyPool::CKeyPool(const CPubKey &vchPubKeyIn, bool internalIn) {
 
 int CWalletTx::GetDepthInMainChain(
     interfaces::Chain::Lock &locked_chain) const {
+    assert(pwallet != nullptr);
+    AssertLockHeld(pwallet->cs_wallet);
     if (isUnconfirmed() || isAbandoned()) {
         return 0;
     }
 
-    return locked_chain.getBlockDepth(m_confirm.hashBlock) *
+    return (pwallet->GetLastBlockHeight() - m_confirm.block_height + 1) *
            (isConflicted() ? -1 : 1);
 }
 
