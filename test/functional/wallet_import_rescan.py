@@ -26,7 +26,6 @@ import itertools
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
-    assert_raises_rpc_error,
     connect_nodes,
     set_node_times,
 )
@@ -41,36 +40,20 @@ class Variant(collections.namedtuple("Variant", "call data rescan prune")):
 
     """Helper for importing one key and verifying scanned transactions."""
 
-    def try_rpc(self, func, *args, **kwargs):
-        if self.expect_disabled:
-            assert_raises_rpc_error(-4, "Rescan is disabled in pruned mode",
-                                    func, *args, **kwargs)
-        else:
-            return func(*args, **kwargs)
-
     def do_import(self, timestamp):
         """Call one key import RPC."""
         rescan = self.rescan == Rescan.yes
 
         if self.call == Call.single:
             if self.data == Data.address:
-                response = self.try_rpc(
-                    self.node.importaddress,
-                    address=self.address["address"],
-                    label=self.label,
-                    rescan=rescan)
+                response = self.node.importaddress(
+                    address=self.address["address"], label=self.label, rescan=rescan)
             elif self.data == Data.pub:
-                response = self.try_rpc(
-                    self.node.importpubkey,
-                    pubkey=self.address["pubkey"],
-                    label=self.label,
-                    rescan=rescan)
+                response = self.node.importpubkey(
+                    pubkey=self.address["pubkey"], label=self.label, rescan=rescan)
             elif self.data == Data.priv:
-                response = self.try_rpc(
-                    self.node.importprivkey,
-                    privkey=self.key,
-                    label=self.label,
-                    rescan=rescan)
+                response = self.node.importprivkey(
+                    privkey=self.key, label=self.label, rescan=rescan)
             assert_equal(response, None)
 
         elif self.call in (Call.multiaddress, Call.multiscript):
@@ -196,10 +179,9 @@ class ImportRescanTest(BitcoinTestFramework):
         # check the results from getbalance and listtransactions.
         for variant in IMPORT_VARIANTS:
             self.log.info('Run import for variant {}'.format(variant))
-            variant.expect_disabled = variant.rescan == Rescan.yes and variant.prune and variant.call == Call.single
-            expect_rescan = variant.rescan == Rescan.yes and not variant.expect_disabled
-            variant.node = self.nodes[
-                2 + IMPORT_NODES.index(ImportNode(variant.prune, expect_rescan))]
+            expect_rescan = variant.rescan == Rescan.yes
+            variant.node = self.nodes[2 + IMPORT_NODES.index(
+                ImportNode(variant.prune, expect_rescan))]
             variant.do_import(timestamp)
             if expect_rescan:
                 variant.expected_balance = variant.initial_amount
@@ -224,12 +206,9 @@ class ImportRescanTest(BitcoinTestFramework):
         # Check the latest results from getbalance and listtransactions.
         for variant in IMPORT_VARIANTS:
             self.log.info('Run check for variant {}'.format(variant))
-            if not variant.expect_disabled:
-                variant.expected_balance += variant.sent_amount
-                variant.expected_txs += 1
-                variant.check(variant.sent_txid, variant.sent_amount, 1)
-            else:
-                variant.check()
+            variant.expected_balance += variant.sent_amount
+            variant.expected_txs += 1
+            variant.check(variant.sent_txid, variant.sent_amount, 1)
 
 
 if __name__ == "__main__":

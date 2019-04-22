@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Bitcoin Core developers
+// Copyright (c) 2018-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -340,7 +340,10 @@ namespace {
         }
         CFeeRate relayMinFee() override { return ::minRelayTxFee; }
         CFeeRate relayDustFee() override { return ::dustRelayFee; }
-        bool getPruneMode() override { return ::fPruneMode; }
+        bool havePruned() override {
+            LOCK(cs_main);
+            return ::fHavePruned;
+        }
         bool p2pEnabled() override { return m_node.connman != nullptr; }
         bool isReadyToBroadcast() override {
             return !::fImporting && !::fReindex && !isInitialBlockDownload();
