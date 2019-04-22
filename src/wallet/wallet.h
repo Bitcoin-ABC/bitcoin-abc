@@ -1413,7 +1413,7 @@ public:
     };
 
     /** Upgrade the wallet */
-    static bool UpgradeWallet(std::shared_ptr<CWallet> wallet,
+    static bool UpgradeWallet(std::shared_ptr<CWallet> wallet, int version,
                               bilingual_str &error,
                               std::vector<bilingual_str> &warnings);
 
