@@ -4146,8 +4146,8 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
     }
 
     if (gArgs.GetBoolArg("-upgradewallet", false)) {
-        if (!UpgradeWallet(walletInstance, gArgs.GetArg("-upgradewallet", 0),
-                           error, warnings)) {
+        if (!walletInstance->UpgradeWallet(gArgs.GetArg("-upgradewallet", 0),
+                                           error, warnings)) {
             return nullptr;
         }
     }
@@ -4458,36 +4458,33 @@ CWallet::FindAddressBookEntry(const CTxDestination &dest,
     return &address_book_it->second;
 }
 
-bool CWallet::UpgradeWallet(std::shared_ptr<CWallet> walletInstance,
-                            int version, bilingual_str &error,
+bool CWallet::UpgradeWallet(int version, bilingual_str &error,
                             std::vector<bilingual_str> &warnings) {
-    int prev_version = walletInstance->GetVersion();
+    int prev_version = GetVersion();
     int nMaxVersion = version;
     // The -upgradewallet without argument case
     if (nMaxVersion == 0) {
-        walletInstance->WalletLogPrintf("Performing wallet upgrade to %i\n",
-                                        FEATURE_LATEST);
+        WalletLogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
         nMaxVersion = FEATURE_LATEST;
         // permanently upgrade the wallet immediately
-        walletInstance->SetMinVersion(FEATURE_LATEST);
+        SetMinVersion(FEATURE_LATEST);
     } else {
-        walletInstance->WalletLogPrintf("Allowing wallet upgrade up to %i\n",
-                                        nMaxVersion);
+        WalletLogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
     }
 
-    if (nMaxVersion < walletInstance->GetVersion()) {
+    if (nMaxVersion < GetVersion()) {
         error = _("Cannot downgrade wallet");
         return false;
     }
 
-    walletInstance->SetMaxVersion(nMaxVersion);
+    SetMaxVersion(nMaxVersion);
 
-    LOCK(walletInstance->cs_wallet);
+    LOCK(cs_wallet);
 
     // Do not upgrade versions to any version between HD_SPLIT and
     // FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
-    int max_version = walletInstance->GetVersion();
-    if (!walletInstance->CanSupportFeature(FEATURE_HD_SPLIT) &&
+    int max_version = GetVersion();
+    if (!CanSupportFeature(FEATURE_HD_SPLIT) &&
         max_version >= FEATURE_HD_SPLIT &&
         max_version < FEATURE_PRE_SPLIT_KEYPOOL) {
         error = _("Cannot upgrade a non HD split wallet without upgrading to "
@@ -4496,7 +4493,7 @@ bool CWallet::UpgradeWallet(std::shared_ptr<CWallet> walletInstance,
         return false;
     }
 
-    for (auto spk_man : walletInstance->GetActiveScriptPubKeyMans()) {
+    for (auto spk_man : GetActiveScriptPubKeyMans()) {
         if (!spk_man->Upgrade(prev_version, error)) {
             return false;
         }

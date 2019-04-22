@@ -1413,9 +1413,8 @@ public:
     };
 
     /** Upgrade the wallet */
-    static bool UpgradeWallet(std::shared_ptr<CWallet> wallet, int version,
-                              bilingual_str &error,
-                              std::vector<bilingual_str> &warnings);
+    bool UpgradeWallet(int version, bilingual_str &error,
+                       std::vector<bilingual_str> &warnings);
 
     //! Returns all unique ScriptPubKeyMans in m_internal_spk_managers and
     //! m_external_spk_managers
