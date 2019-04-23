@@ -50,11 +50,6 @@ public:
      */
     static bool showIfNeeded(bool &did_show_intro, bool &prune);
 
-    /**
-     * Determine default data directory for operating system.
-     */
-    static QString getDefaultDataDirectory();
-
 Q_SIGNALS:
     void requestCheck();
 
