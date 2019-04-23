@@ -84,8 +84,7 @@ public:
     rtype signal_name(args);                                                   \
     using signal_name##Sig = rtype(args);                                      \
     boost::signals2::connection signal_name##_connect(                         \
-        std::function<signal_name##Sig> fn);                                   \
-    void signal_name##_disconnect(std::function<signal_name##Sig> fn);
+        std::function<signal_name##Sig> fn);
 
     /** Show message box. */
     ADD_SIGNALS_DECL_WRAPPER(ThreadSafeMessageBox, bool,
