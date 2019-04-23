@@ -973,7 +973,7 @@ void SetupServerArgs() {
                  OptionsCategory::NODE_RELAY);
     gArgs.AddArg(
         "-dustrelayfee=<amt>",
-        strprintf("Fee rate (in %s/kB) used to defined dust, the value of an "
+        strprintf("Fee rate (in %s/kB) used to define dust, the value of an "
                   "output such that it will cost about 1/3 of its value in "
                   "fees at this fee rate to spend it. (default: %s)",
                   CURRENCY_UNIT, FormatMoney(DUST_RELAY_TX_FEE)),
