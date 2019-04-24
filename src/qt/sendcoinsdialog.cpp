@@ -294,25 +294,16 @@ void SendCoinsDialog::on_sendButton_clicked() {
     // Format confirmation message
     QStringList formatted;
     for (const SendCoinsRecipient &rcp : currentTransaction.getRecipients()) {
-        // generate bold amount string with wallet name in case of multiwallet
-        QString amount =
-            "<b>" + BitcoinUnits::formatHtmlWithUnit(
-                        model->getOptionsModel()->getDisplayUnit(), rcp.amount);
+        // generate amount string with wallet name in case of multiwallet
+        QString amount = BitcoinUnits::formatWithUnit(
+            model->getOptionsModel()->getDisplayUnit(), rcp.amount);
         if (model->isMultiwallet()) {
-            amount.append(
-                " <u>" +
-                tr("from wallet %1")
-                    .arg(GUIUtil::HtmlEscape(model->getWalletName())) +
-                "</u> ");
+            amount.append(tr(" from wallet '%1'").arg(model->getWalletName()));
         }
-        amount.append("</b>");
-        // generate monospace address string
-        QString address =
-            "<span style='font-family: monospace;'>" + rcp.address;
-        address.append("</span>");
+        // generate address string
+        QString address = rcp.address;
 
         QString recipientElement;
-        recipientElement = "<br />";
 
 #ifdef ENABLE_BIP70
         // normal payment
@@ -322,7 +313,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
             if (rcp.label.length() > 0) {
                 // label with address
                 recipientElement.append(
-                    tr("%1 to %2").arg(amount, GUIUtil::HtmlEscape(rcp.label)));
+                    tr("%1 to '%2'").arg(amount, rcp.label));
                 recipientElement.append(QString(" (%1)").arg(address));
             } else {
                 // just address
@@ -333,9 +324,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
         // authenticated payment request
         else if (!rcp.authenticatedMerchant.isEmpty()) {
             recipientElement.append(
-                tr("%1 to %2")
-                    .arg(amount,
-                         GUIUtil::HtmlEscape(rcp.authenticatedMerchant)));
+                tr("%1 to '%2'").arg(amount, rcp.authenticatedMerchant));
         } else {
             // unauthenticated payment request
             recipientElement.append(tr("%1 to %2").arg(amount, address));
@@ -348,7 +337,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
     QString questionString = tr("Are you sure you want to send?");
     questionString.append("<br /><span style='font-size:10pt;'>");
     questionString.append(tr("Please, review your transaction."));
-    questionString.append("</span><br />%1");
+    questionString.append("</span>");
 
     if (txFee > Amount::zero()) {
         // append fee string if a fee is required
@@ -392,8 +381,9 @@ void SendCoinsDialog::on_sendButton_clicked() {
             .arg(alternativeUnits.join(" " + tr("or") + " ")));
 
     SendConfirmationDialog confirmationDialog(
-        tr("Confirm send coins"), questionString.arg(formatted.join("<br />")),
-        "", "", SEND_CONFIRM_DELAY, this);
+        tr("Confirm send coins"), questionString,
+        "To review recipient list click \"Show Details...\"",
+        formatted.join("\n\n"), SEND_CONFIRM_DELAY, this);
     confirmationDialog.exec();
     QMessageBox::StandardButton retval =
         static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
