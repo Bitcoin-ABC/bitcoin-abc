@@ -393,7 +393,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
 
     SendConfirmationDialog confirmationDialog(
         tr("Confirm send coins"), questionString.arg(formatted.join("<br />")),
-        SEND_CONFIRM_DELAY, this);
+        "", "", SEND_CONFIRM_DELAY, this);
     confirmationDialog.exec();
     QMessageBox::StandardButton retval =
         static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
@@ -919,10 +919,18 @@ void SendCoinsDialog::coinControlUpdateLabels() {
 
 SendConfirmationDialog::SendConfirmationDialog(const QString &title,
                                                const QString &text,
+                                               const QString &informative_text,
+                                               const QString &detailed_text,
                                                int _secDelay, QWidget *parent)
-    : QMessageBox(QMessageBox::Question, title, text,
-                  QMessageBox::Yes | QMessageBox::Cancel, parent),
-      secDelay(_secDelay) {
+    : QMessageBox(parent), secDelay(_secDelay) {
+    setIcon(QMessageBox::Question);
+    // On macOS, the window title is ignored (as required by the macOS
+    // Guidelines).
+    setWindowTitle(title);
+    setText(text);
+    setInformativeText(informative_text);
+    setDetailedText(detailed_text);
+    setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     setDefaultButton(QMessageBox::Cancel);
     yesButton = button(QMessageBox::Yes);
     updateYesButton();
