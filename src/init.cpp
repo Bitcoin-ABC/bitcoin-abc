@@ -722,9 +722,7 @@ void SetupServerArgs() {
                  "Whitelist peers connecting from the given IP address (e.g. "
                  "1.2.3.4) or CIDR notated network (e.g. 1.2.3.0/24). Can be "
                  "specified multiple times. "
-                 "Whitelisted peers cannot be DoS banned and their "
-                 "transactions are always relayed, even if they are already in "
-                 "the mempool, useful e.g. for a gateway",
+                 "Whitelisted peers cannot be DoS banned",
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg(
         "-maxuploadtarget=<n>",
@@ -1010,7 +1008,8 @@ void SetupServerArgs() {
     gArgs.AddArg(
         "-whitelistforcerelay",
         strprintf("Force relay of transactions from whitelisted peers even if "
-                  "they violate local relay policy (default: %d)",
+                  "the transactions were already in the mempool or violate "
+                  "local relay policy (default: %d)",
                   DEFAULT_WHITELISTFORCERELAY),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
 
