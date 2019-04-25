@@ -46,6 +46,12 @@ class DumptxoutsetTest(BitcoinTestFramework):
                 "5403d65d5310532fdec241643ef1857368a934b0878859436cf768bee003d135",
             )
 
+        assert_equal(
+            out["txoutset_hash"],
+            "f00b066f5014ef37f0bb40ab455f995a85ac475bc3beaa721476854a37fb4268",
+        )
+        assert_equal(out["nchaintx"], 101)
+
         # Specifying a path to an existing file will fail.
         assert_raises_rpc_error(
             -8, f"{FILENAME} already exists", node.dumptxoutset, FILENAME
