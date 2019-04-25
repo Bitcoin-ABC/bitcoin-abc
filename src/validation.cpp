@@ -26,6 +26,7 @@
 #include <logging.h>
 #include <logging/timer.h>
 #include <minerfund.h>
+#include <node/coinstats.h>
 #include <node/ui_interface.h>
 #include <policy/fees.h>
 #include <policy/mempool.h>
@@ -6121,6 +6122,17 @@ ChainstateManager::InitializeChainstate(CTxMemPool &mempool,
     }
 
     return *to_modify;
+}
+
+const AssumeutxoData *ExpectedAssumeutxo(const int height,
+                                         const CChainParams &chainparams) {
+    const MapAssumeutxo &valid_assumeutxos_map = chainparams.Assumeutxo();
+    const auto assumeutxo_found = valid_assumeutxos_map.find(height);
+
+    if (assumeutxo_found != valid_assumeutxos_map.end()) {
+        return &assumeutxo_found->second;
+    }
+    return nullptr;
 }
 
 CChainState &ChainstateManager::ActiveChainstate() const {

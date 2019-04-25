@@ -12,6 +12,7 @@
 #include <net.h>
 #include <primitives/transaction.h>
 #include <streams.h>
+#include <uint256.h>
 #include <util/system.h>
 #include <validation.h>
 
@@ -129,6 +130,32 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     fseek(fp, 0, SEEK_SET);
     BOOST_CHECK_NO_THROW(
         { ::ChainstateActive().LoadExternalBlockFile(config, fp, 0); });
+}
+
+//! Test retrieval of valid assumeutxo values.
+BOOST_AUTO_TEST_CASE(test_assumeutxo) {
+    const auto params = CreateChainParams(CBaseChainParams::REGTEST);
+
+    // These heights don't have assumeutxo configurations associated, per the
+    // contents of chainparams.cpp.
+    std::vector<int> bad_heights{0, 100, 111, 115, 209, 211};
+
+    for (auto empty : bad_heights) {
+        const auto out = ExpectedAssumeutxo(empty, *params);
+        BOOST_CHECK(!out);
+    }
+
+    const auto out110 = *ExpectedAssumeutxo(110, *params);
+    BOOST_CHECK_EQUAL(
+        out110.hash_serialized.ToString(),
+        "f5a6cff6749a5a2e1f01a706cd6d139739cd029d14912c2fab284f1d22e79268");
+    BOOST_CHECK_EQUAL(out110.nChainTx, (unsigned int)110);
+
+    const auto out210 = *ExpectedAssumeutxo(210, *params);
+    BOOST_CHECK_EQUAL(
+        out210.hash_serialized.ToString(),
+        "37636b5bb17459fe77f2d77fcae80992ae03dff848033c7225dab8a9722821a6");
+    BOOST_CHECK_EQUAL(out210.nChainTx, (unsigned int)210);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

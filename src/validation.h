@@ -59,6 +59,7 @@ struct ChainTxData;
 struct FlatFilePos;
 struct PrecomputedTransactionData;
 struct LockPoints;
+struct AssumeutxoData;
 
 namespace Consensus {
 struct Params;
@@ -1295,5 +1296,15 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
 
 //! Check whether the block associated with this index entry is pruned or not.
 bool IsBlockPruned(const CBlockIndex *pblockindex);
+
+/**
+ * Return the expected assumeutxo value for a given height, if one exists.
+ *
+ * @param height[in] Get the assumeutxo value for this height.
+ *
+ * @returns empty if no assumeutxo configuration exists for the given height.
+ */
+const AssumeutxoData *ExpectedAssumeutxo(const int height,
+                                         const CChainParams &params);
 
 #endif // BITCOIN_VALIDATION_H

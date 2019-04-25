@@ -218,6 +218,10 @@ public:
 
         checkpointData = CheckpointData(CBaseChainParams::MAIN);
 
+        m_assumeutxo_data = MapAssumeutxo{
+            // TODO to be specified in a future patch.
+        };
+
         // Data as of block
         // 000000000000000001d2ce557406b017a928be25ee98906397d339c3f68eec5d
         // (height 523992).
@@ -368,6 +372,10 @@ public:
 
         checkpointData = CheckpointData(CBaseChainParams::TESTNET);
 
+        m_assumeutxo_data = MapAssumeutxo{
+            // TODO to be specified in a future patch.
+        };
+
         // Data as of block
         // 000000000005b07ecf85563034d13efd81c1a29e47e22b20f4fc6919d5b09cd6
         // (height 1223263)
@@ -480,6 +488,23 @@ public:
         m_is_mockable_chain = true;
 
         checkpointData = CheckpointData(CBaseChainParams::REGTEST);
+
+        m_assumeutxo_data = MapAssumeutxo{
+            {
+                110,
+                {AssumeutxoHash{uint256S(
+                     "0xf5a6cff6749a5a2e1f01a706cd6d139739cd029d14912c2fab"
+                     "284f1d22e79268")},
+                 110},
+            },
+            {
+                210,
+                {AssumeutxoHash{uint256S(
+                     "0x37636b5bb17459fe77f2d77fcae80992ae03dff848033c7225"
+                     "dab8a9722821a6")},
+                 210},
+            },
+        };
 
         chainTxData = ChainTxData{0, 0, 0};
 
