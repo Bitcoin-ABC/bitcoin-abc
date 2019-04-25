@@ -506,6 +506,8 @@ static UniValue sendtoaddress(const Config &config,
     CCoinControl coin_control;
     coin_control.m_avoid_address_reuse =
         GetAvoidReuseFlag(pwallet, request.params[5]);
+    // We also enable partial spend avoidance if reuse avoidance is set.
+    coin_control.m_avoid_partial_spends |= coin_control.m_avoid_address_reuse;
 
     EnsureWalletIsUnlocked(pwallet);
 
