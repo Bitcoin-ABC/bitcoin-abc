@@ -488,6 +488,26 @@ Source code organization
 
   - *Rationale*: Avoids symbol conflicts
 
+Header Inclusions
+-----------------
+
+  - Header inclusions should use angle brackets (`#include <>`).
+  The include path should be relative to the `src` folder.
+  e.g.: `#include <qt/test/guiutiltests.h>`
+
+  - Native C++ headers should be preferred over C compatibility headers.
+  e.g.: use `<cstdint>` instead of `<stdint.h>` 
+
+  - In order to make the code consistent, header files should be included in the following order, with each
+  section separated by a newline:
+    1. In a .cpp file, the associated .h is in first position. In a test source, this is the header file under test.
+    2. The project headers.
+    3. The test headers.
+    4. The 3rd party libraries headers. Different libraries should be in different sections.
+    5. The system libraries.
+
+All headers should be lexically ordered inside their block. 
+
 GUI
 -----
 
