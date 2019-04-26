@@ -53,6 +53,13 @@
                 "(^arcanist/__phutil_library_.+\\.php$)"
             ],
             "phpcs.standard": "arcanist/linter/phpcs_ruleset.xml"
+        },
+        "lint-locale-dependence": {
+            "type": "lint-locale-dependence",
+            "include": "(^src/.*\\.(h|cpp)$)",
+            "exclude": [
+                "(^src/(crypto/ctaes/|leveldb/|secp256k1/|seeder/|tinyformat.h|univalue/))"
+            ]
         }
     }
 }
