@@ -5,7 +5,7 @@
 #ifndef BITCOIN_QT_OPTIONSMODEL_H
 #define BITCOIN_QT_OPTIONSMODEL_H
 
-#include "amount.h"
+#include <amount.h>
 
 #include <QAbstractListModel>
 
@@ -83,6 +83,8 @@ public:
     /* Restart flag helper */
     void setRestartRequired(bool fRequired);
     bool isRestartRequired() const;
+
+    interfaces::Node &node() const { return m_node; }
 
 private:
     interfaces::Node &m_node;
