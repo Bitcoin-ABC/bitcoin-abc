@@ -5,25 +5,211 @@
 #ifndef BITCOIN_INTERFACES_WALLET_H
 #define BITCOIN_INTERFACES_WALLET_H
 
+#include <amount.h>                    // For Amount
+#include <script/ismine.h>             // For isminefilter, isminetype
+#include <script/standard.h>           // For CTxDestination
+#include <support/allocators/secure.h> // For SecureString
+#include <ui_interface.h>              // For ChangeType
+
+#include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
+class CChainParams;
+class CCoinControl;
+class CKey;
+class CMutableTransaction;
+class COutPoint;
+class CTransaction;
 class CWallet;
+enum class OutputType;
+struct CRecipient;
+struct TxId;
 
 namespace interfaces {
 
 class Handler;
+class PendingWalletTx;
+struct WalletBalances;
+
+using WalletOrderForm = std::vector<std::pair<std::string, std::string>>;
+using WalletValueMap = std::map<std::string, std::string>;
 
 //! Interface for accessing a wallet.
 class Wallet {
 public:
     virtual ~Wallet() {}
 
+    //! Encrypt wallet.
+    virtual bool encryptWallet(const SecureString &wallet_passphrase) = 0;
+
+    //! Return whether wallet is encrypted.
+    virtual bool isCrypted() = 0;
+
+    //! Lock wallet.
+    virtual bool lock() = 0;
+
+    //! Unlock wallet.
+    virtual bool unlock(const SecureString &wallet_passphrase) = 0;
+
+    //! Return whether wallet is locked.
+    virtual bool isLocked() = 0;
+
+    //! Change wallet passphrase.
+    virtual bool
+    changeWalletPassphrase(const SecureString &old_wallet_passphrase,
+                           const SecureString &new_wallet_passphrase) = 0;
+
+    //! Back up wallet.
+    virtual bool backupWallet(const std::string &filename) = 0;
+
+    //! Get wallet name.
+    virtual std::string getWalletName() = 0;
+
+    //! Get chainparams.
+    virtual const CChainParams &getChainParams() = 0;
+
+    //! Get public key.
+    virtual bool getPubKey(const CKeyID &address, CPubKey &pub_key) = 0;
+
+    //! Get private key.
+    virtual bool getPrivKey(const CKeyID &address, CKey &key) = 0;
+
+    //! Return whether wallet has private key.
+    virtual bool isSpendable(const CTxDestination &dest) = 0;
+
+    //! Return whether wallet has watch only keys.
+    virtual bool haveWatchOnly() = 0;
+
+    //! Add or update address.
+    virtual bool setAddressBook(const CTxDestination &dest,
+                                const std::string &name,
+                                const std::string &purpose) = 0;
+
+    //! Look up address in wallet, return whether exists.
+    virtual bool getAddress(const CTxDestination &dest,
+                            std::string *name = nullptr,
+                            isminetype *is_mine = nullptr) = 0;
+
+    //! Add dest data.
+    virtual bool addDestData(const CTxDestination &dest, const std::string &key,
+                             const std::string &value) = 0;
+
+    //! Erase dest data.
+    virtual bool eraseDestData(const CTxDestination &dest,
+                               const std::string &key) = 0;
+
+    //! Get dest values with prefix.
+    virtual std::vector<std::string>
+    getDestValues(const std::string &prefix) = 0;
+
+    //! Lock coin.
+    virtual void lockCoin(const COutPoint &output) = 0;
+
+    //! Unlock coin.
+    virtual void unlockCoin(const COutPoint &output) = 0;
+
+    //! Return whether coin is locked.
+    virtual bool isLockedCoin(const COutPoint &output) = 0;
+
+    //! List locked coins.
+    virtual void listLockedCoins(std::vector<COutPoint> &outputs) = 0;
+
+    //! Create transaction.
+    virtual std::unique_ptr<PendingWalletTx>
+    createTransaction(const std::vector<CRecipient> &recipients,
+                      const CCoinControl &coin_control, bool sign,
+                      int &change_pos, Amount &fee,
+                      std::string &fail_reason) = 0;
+
+    //! Return whether transaction can be abandoned.
+    virtual bool transactionCanBeAbandoned(const TxId &txid) = 0;
+
+    //! Abandon transaction.
+    virtual bool abandonTransaction(const TxId &txid) = 0;
+
+    //! Get balances.
+    virtual WalletBalances getBalances() = 0;
+
+    //! Get balances if possible without blocking.
+    virtual bool tryGetBalances(WalletBalances &balances, int &num_blocks) = 0;
+
+    //! Get balance.
+    virtual Amount getBalance() = 0;
+
+    //! Get available balance.
+    virtual Amount getAvailableBalance(const CCoinControl &coin_control) = 0;
+
+    // Return whether HD enabled.
+    virtual bool hdEnabled() = 0;
+
     //! Register handler for show progress messages.
     using ShowProgressFn =
         std::function<void(const std::string &title, int progress)>;
     virtual std::unique_ptr<Handler> handleShowProgress(ShowProgressFn fn) = 0;
+
+    //! Register handler for status changed messages.
+    using StatusChangedFn = std::function<void()>;
+    virtual std::unique_ptr<Handler>
+    handleStatusChanged(StatusChangedFn fn) = 0;
+
+    //! Register handler for address book changed messages.
+    using AddressBookChangedFn = std::function<void(
+        const CTxDestination &address, const std::string &label, bool is_mine,
+        const std::string &purpose, ChangeType status)>;
+    virtual std::unique_ptr<Handler>
+    handleAddressBookChanged(AddressBookChangedFn fn) = 0;
+
+    //! Register handler for transaction changed messages.
+    using TransactionChangedFn =
+        std::function<void(const TxId &txid, ChangeType status)>;
+    virtual std::unique_ptr<Handler>
+    handleTransactionChanged(TransactionChangedFn fn) = 0;
+
+    //! Register handler for watchonly changed messages.
+    using WatchOnlyChangedFn = std::function<void(bool have_watch_only)>;
+    virtual std::unique_ptr<Handler>
+    handleWatchOnlyChanged(WatchOnlyChangedFn fn) = 0;
+};
+
+//! Tracking object returned by CreateTransaction and passed to
+//! CommitTransaction.
+class PendingWalletTx {
+public:
+    virtual ~PendingWalletTx() {}
+
+    //! Get transaction data.
+    virtual const CTransaction &get() = 0;
+
+    //! Send pending transaction and commit to wallet.
+    virtual bool commit(WalletValueMap value_map, WalletOrderForm order_form,
+                        std::string from_account,
+                        std::string &reject_reason) = 0;
+};
+
+//! Collection of wallet balances.
+struct WalletBalances {
+    Amount balance = Amount::zero();
+    Amount unconfirmed_balance = Amount::zero();
+    Amount immature_balance = Amount::zero();
+    bool have_watch_only = false;
+    Amount watch_only_balance = Amount::zero();
+    Amount unconfirmed_watch_only_balance = Amount::zero();
+    Amount immature_watch_only_balance = Amount::zero();
+
+    bool balanceChanged(const WalletBalances &prev) const {
+        return balance != prev.balance ||
+               unconfirmed_balance != prev.unconfirmed_balance ||
+               immature_balance != prev.immature_balance ||
+               watch_only_balance != prev.watch_only_balance ||
+               unconfirmed_watch_only_balance !=
+                   prev.unconfirmed_watch_only_balance ||
+               immature_watch_only_balance != prev.immature_watch_only_balance;
+    }
 };
 
 //! Return implementation of Wallet interface. This function will be undefined

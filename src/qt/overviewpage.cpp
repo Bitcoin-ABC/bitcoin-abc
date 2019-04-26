@@ -252,10 +252,12 @@ void OverviewPage::setWalletModel(WalletModel *model) {
         ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);
 
         // Keep up to date with wallet
-        setBalance(model->getBalance(), model->getUnconfirmedBalance(),
-                   model->getImmatureBalance(), model->getWatchBalance(),
-                   model->getWatchUnconfirmedBalance(),
-                   model->getWatchImmatureBalance());
+        interfaces::Wallet &wallet = model->wallet();
+        interfaces::WalletBalances balances = wallet.getBalances();
+        setBalance(balances.balance, balances.unconfirmed_balance,
+                   balances.immature_balance, balances.watch_only_balance,
+                   balances.unconfirmed_watch_only_balance,
+                   balances.immature_watch_only_balance);
         connect(
             model,
             SIGNAL(
@@ -266,7 +268,7 @@ void OverviewPage::setWalletModel(WalletModel *model) {
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this,
                 SLOT(updateDisplayUnit()));
 
-        updateWatchOnlyLabels(model->haveWatchOnly());
+        updateWatchOnlyLabels(wallet.haveWatchOnly());
         connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this,
                 SLOT(updateWatchOnlyLabels(bool)));
     }
