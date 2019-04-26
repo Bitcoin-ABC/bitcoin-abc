@@ -9,6 +9,7 @@
 # in the format string.
 
 import argparse
+import doctest
 import re
 import sys
 
@@ -246,7 +247,6 @@ def main(args_in):
     test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printf("%a %b", 1, 2, "anything")
     test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 0 argument(s): printf("%d")
     test/lint/lint-format-strings-tests.txt: Expected 3 argument(s) after format string but found 2 argument(s): printf("%a%b%z", 1, "anything")
-    1
 
     >>> main(["test/lint/lint-format-strings-tests-skip-arguments.txt"])
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): fprintf(skipped, "%d", 1, 2)
@@ -254,7 +254,6 @@ def main(args_in):
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): snprintf(skip1, skip2, "%d", 1, 2)
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 0 argument(s): snprintf(skip1, skip2, "%d")
     test/lint/lint-format-strings-tests-skip-arguments.txt: Could not parse function call string "snprintf(...)": snprintf(skip1, "%d")
-    1
     """
     parser = argparse.ArgumentParser(description="This program checks that the number of arguments passed "
                                      "to a variadic format string function matches the number of format "
@@ -263,7 +262,6 @@ def main(args_in):
         "r", encoding="utf-8"), nargs="*", help="C++ source code file (e.g. foo.cpp)")
     args = parser.parse_args(args_in)
 
-    exit_code = 0
     for f in args.file:
         file_content = f.read()
         for (function_name, skip_arguments) in FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS:
@@ -274,7 +272,6 @@ def main(args_in):
                 if (f.name, relevant_function_call_str) in FALSE_POSITIVES:
                     continue
                 if len(parts) < 3 + skip_arguments:
-                    exit_code = 1
                     print("{}: Could not parse function call string \"{}(...)\": {}".format(
                         f.name, function_name, relevant_function_call_str))
                     continue
@@ -282,12 +279,11 @@ def main(args_in):
                 format_str = parse_string_content(parts[1 + skip_arguments])
                 format_specifier_count = count_format_specifiers(format_str)
                 if format_specifier_count != argument_count:
-                    exit_code = 1
                     print("{}: Expected {} argument(s) after format string but found {} argument(s): {}".format(
                         f.name, format_specifier_count, argument_count, relevant_function_call_str))
                     continue
-    return exit_code
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    doctest.testmod()
+    main(sys.argv[1:])
