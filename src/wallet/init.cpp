@@ -42,7 +42,8 @@ void WalletInit::AddWalletOptions() const {
                   "address is only used once (unless someone sends to it after "
                   "spending from it), but may result in slightly higher fees "
                   "as suboptimal coin selection may result due to the added "
-                  "limitation (default: %u)",
+                  "limitation (default: %u (always enabled for wallets with "
+                  "\"avoid_reuse\" enabled))",
                   DEFAULT_AVOIDPARTIALSPENDS),
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
 
