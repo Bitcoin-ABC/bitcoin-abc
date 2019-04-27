@@ -2161,6 +2161,7 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
     const BlockHash &start_block, const BlockHash &stop_block,
     const WalletRescanReserver &reserver, bool fUpdate) {
     int64_t nNow = GetTime();
+    int64_t start_time = GetTimeMillis();
 
     assert(reserver.isReserved());
 
@@ -2281,6 +2282,9 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
                             "%d. Progress=%f\n",
                             *block_height, progress_current);
             result.status = ScanResult::USER_ABORT;
+        } else {
+            WalletLogPrintf("Rescan completed in %15dms\n",
+                            GetTimeMillis() - start_time);
         }
     }
 
@@ -5034,7 +5038,6 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
             }
         }
 
-        nStart = GetTimeMillis();
         {
             WalletRescanReserver reserver(walletInstance.get());
             if (!reserver.reserve() ||
@@ -5050,8 +5053,6 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                 return nullptr;
             }
         }
-        walletInstance->WalletLogPrintf("Rescan completed in %15dms\n",
-                                        GetTimeMillis() - nStart);
         walletInstance->ChainStateFlushed(locked_chain->getTipLocator());
         walletInstance->database->IncrementUpdateCounter();
 
