@@ -55,7 +55,7 @@ enum class ValidationInvalidReason {
     // Only loose txn:
     //! didn't meet our local policy rules
     TX_NOT_STANDARD,
-    //! a transaction was missing some of its inputs
+    //! transaction was missing some of its inputs
     TX_MISSING_INPUTS,
     //! transaction spends a coinbase too early, or violates locktime/sequence
     //! locks
@@ -64,8 +64,6 @@ enum class ValidationInvalidReason {
      * Tx already in mempool or conflicts with a tx in the chain
      * TODO: Currently this is only used if the transaction already exists in
      * the mempool or on chain,
-     * TODO: ATMP's fMissingInputs and a valid CValidationState being used to
-     * indicate missing inputs
      */
     TX_CONFLICT,
     //! violated mempool's fee/size/descendant/etc limits

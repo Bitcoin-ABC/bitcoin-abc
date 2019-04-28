@@ -339,13 +339,11 @@ static bool CheckInputsFromMempoolAndCache(
  * to optionally remove the cache additions if the associated transaction ends
  *                                up being rejected by the mempool.
  */
-static bool
-AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
-                         CValidationState &state, const CTransactionRef &ptx,
-                         bool *pfMissingInputs, int64_t nAcceptTime,
-                         bool bypass_limits, const Amount nAbsurdFee,
-                         std::vector<COutPoint> &coins_to_uncache,
-                         bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+static bool AcceptToMemoryPoolWorker(
+    const Config &config, CTxMemPool &pool, CValidationState &state,
+    const CTransactionRef &ptx, int64_t nAcceptTime, bool bypass_limits,
+    const Amount nAbsurdFee, std::vector<COutPoint> &coins_to_uncache,
+    bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     const Consensus::Params &consensusParams =
@@ -357,9 +355,6 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
     // mempool "read lock" (held through
     // GetMainSignals().TransactionAddedToMempool())
     LOCK(pool.cs);
-    if (pfMissingInputs) {
-        *pfMissingInputs = false;
-    }
 
     // Coinbase is only valid in a block, not as a loose transaction.
     if (!CheckRegularTransaction(tx, state)) {
@@ -435,13 +430,9 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
 
                 // Otherwise assume this might be an orphan tx for which we just
                 // haven't seen parents yet.
-                if (pfMissingInputs) {
-                    *pfMissingInputs = true;
-                }
-
-                // fMissingInputs and !state.IsInvalid() is used to detect this
-                // condition, don't set state.Invalid()
-                return false;
+                return state.Invalid(ValidationInvalidReason::TX_MISSING_INPUTS,
+                                     REJECT_INVALID,
+                                     "bad-txns-inputs-missingorspent");
             }
         }
 
@@ -636,14 +627,14 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
 static bool
 AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
                            CValidationState &state, const CTransactionRef &tx,
-                           bool *pfMissingInputs, int64_t nAcceptTime,
-                           bool bypass_limits, const Amount nAbsurdFee,
-                           bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                           int64_t nAcceptTime, bool bypass_limits,
+                           const Amount nAbsurdFee, bool test_accept)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
-    bool res = AcceptToMemoryPoolWorker(
-        config, pool, state, tx, pfMissingInputs, nAcceptTime, bypass_limits,
-        nAbsurdFee, coins_to_uncache, test_accept);
+    bool res = AcceptToMemoryPoolWorker(config, pool, state, tx, nAcceptTime,
+                                        bypass_limits, nAbsurdFee,
+                                        coins_to_uncache, test_accept);
     if (!res) {
         // Remove coins that were not present in the coins cache before calling
         // ATMPW; this is to prevent memory DoS in case we receive a large
@@ -666,11 +657,10 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
 
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
-                        bool *pfMissingInputs, bool bypass_limits,
-                        const Amount nAbsurdFee, bool test_accept) {
-    return AcceptToMemoryPoolWithTime(config, pool, state, tx, pfMissingInputs,
-                                      GetTime(), bypass_limits, nAbsurdFee,
-                                      test_accept);
+                        bool bypass_limits, const Amount nAbsurdFee,
+                        bool test_accept) {
+    return AcceptToMemoryPoolWithTime(config, pool, state, tx, GetTime(),
+                                      bypass_limits, nAbsurdFee, test_accept);
 }
 
 /**
@@ -5520,8 +5510,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
             if (nTime + nExpiryTimeout > nNow) {
                 LOCK(cs_main);
                 AcceptToMemoryPoolWithTime(
-                    config, pool, state, tx, nullptr /* pfMissingInputs */,
-                    nTime, false /* bypass_limits */,
+                    config, pool, state, tx, nTime, false /* bypass_limits */,
                     Amount::zero() /* nAbsurdFee */, false /* test_accept */);
                 if (state.IsValid()) {
                     ++count;

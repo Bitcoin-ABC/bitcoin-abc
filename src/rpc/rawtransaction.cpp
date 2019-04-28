@@ -1037,22 +1037,24 @@ static UniValue testmempoolaccept(const Config &config,
     result_0.pushKV("txid", txid.GetHex());
 
     CValidationState state;
-    bool missing_inputs;
     bool test_accept_res;
     {
         LOCK(cs_main);
         test_accept_res = AcceptToMemoryPool(
-            config, g_mempool, state, std::move(tx), &missing_inputs,
-            false /* bypass_limits */, max_raw_tx_fee, true /* test_accept */);
+            config, g_mempool, state, std::move(tx), false /* bypass_limits */,
+            max_raw_tx_fee, true /* test_accept */);
     }
     result_0.pushKV("allowed", test_accept_res);
     if (!test_accept_res) {
         if (state.IsInvalid()) {
-            result_0.pushKV("reject-reason",
-                            strprintf("%i: %s", state.GetRejectCode(),
-                                      state.GetRejectReason()));
-        } else if (missing_inputs) {
-            result_0.pushKV("reject-reason", "missing-inputs");
+            if (state.GetReason() ==
+                ValidationInvalidReason::TX_MISSING_INPUTS) {
+                result_0.pushKV("reject-reason", "missing-inputs");
+            } else {
+                result_0.pushKV("reject-reason",
+                                strprintf("%i: %s", state.GetRejectCode(),
+                                          state.GetRejectReason()));
+            }
         } else {
             result_0.pushKV("reject-reason", state.GetRejectReason());
         }

@@ -41,7 +41,6 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_reject_coinbase, TestChain100Setup) {
     BOOST_CHECK_EQUAL(false,
                       AcceptToMemoryPool(GetConfig(), *m_node.mempool, state,
                                          MakeTransactionRef(coinbaseTx),
-                                         nullptr /* pfMissingInputs */,
                                          true /* bypass_limits */,
                                          Amount::zero() /* nAbsurdFee */));
 

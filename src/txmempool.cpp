@@ -1394,7 +1394,6 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
         CValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
             !AcceptToMemoryPool(config, g_mempool, stateDummy, tx,
-                                nullptr /* pfMissingInputs */,
                                 true /* bypass_limits */,
                                 Amount::zero() /* nAbsurdFee */)) {
             // If the transaction doesn't make it in to the mempool, remove any

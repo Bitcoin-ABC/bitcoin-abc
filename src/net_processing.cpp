@@ -2165,7 +2165,6 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
         const CTransactionRef porphanTx = orphan_it->second.tx;
         const CTransaction &orphanTx = *porphanTx;
         NodeId fromPeer = orphan_it->second.fromPeer;
-        bool fMissingInputs2 = false;
         // Use a new CValidationState because orphans come from different peers
         // (and we call MaybePunishNode based on the source peer from the orphan
         // map, not based on the peer that relayed the previous transaction).
@@ -2178,7 +2177,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
         }
 
         if (AcceptToMemoryPool(config, g_mempool, orphan_state, porphanTx,
-                               &fMissingInputs2, false /* bypass_limits */,
+                               false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
@@ -2194,7 +2193,8 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             }
             EraseOrphanTx(orphanTxId);
             done = true;
-        } else if (!fMissingInputs2) {
+        } else if (orphan_state.GetReason() !=
+                   ValidationInvalidReason::TX_MISSING_INPUTS) {
             if (orphan_state.IsInvalid()) {
                 // Punish peer that gave us an invalid orphan tx
                 MaybePunishNode(fromPeer, orphan_state,
@@ -2965,7 +2965,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         LOCK2(cs_main, g_cs_orphans);
 
-        bool fMissingInputs = false;
         CValidationState state;
 
         CNodeState *nodestate = State(pfrom->GetId());
@@ -2974,7 +2973,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         EraseTxRequest(txid);
 
         if (!AlreadyHave(inv) &&
-            AcceptToMemoryPool(config, g_mempool, state, ptx, &fMissingInputs,
+            AcceptToMemoryPool(config, g_mempool, state, ptx,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             g_mempool.check(pcoinsTip.get());
@@ -3000,7 +2999,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             // Recursively process any orphan transactions that depended on this
             // one
             ProcessOrphanTx(config, connman, pfrom->orphan_work_set);
-        } else if (fMissingInputs) {
+        } else if (state.GetReason() ==
+                   ValidationInvalidReason::TX_MISSING_INPUTS) {
             // It may be the case that the orphans parents have all been
             // rejected.
             bool fRejectedParents = false;
