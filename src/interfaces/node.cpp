@@ -16,6 +16,8 @@
 #include <net_processing.h>
 #include <netaddress.h>
 #include <netbase.h>
+#include <policy/fees.h>
+#include <policy/policy.h>
 #include <primitives/block.h>
 #include <rpc/server.h>
 #include <scheduler.h>
@@ -30,6 +32,7 @@
 #include <config/bitcoin-config.h>
 #endif
 #ifdef ENABLE_WALLET
+#include <wallet/fees.h>
 #include <wallet/wallet.h>
 #define CHECK_WALLET(x) x
 #else
@@ -208,7 +211,16 @@ namespace {
         bool getNetworkActive() override {
             return g_connman && g_connman->GetNetworkActive();
         }
+        Amount getMinimumFee(unsigned int tx_bytes,
+                             const CCoinControl &coin_control) override {
+            Amount result;
+            CHECK_WALLET(result =
+                             GetMinimumFee(tx_bytes, g_mempool, coin_control));
+            return result;
+        }
         Amount getMaxTxFee() override { return ::maxTxFee; }
+        CFeeRate getDustRelayFee() override { return ::dustRelayFee; }
+        CFeeRate getPayTxFee() override { CHECK_WALLET(return ::payTxFee); }
         UniValue executeRpc(Config &config, const std::string &command,
                             const UniValue &params,
                             const std::string &uri) override {
