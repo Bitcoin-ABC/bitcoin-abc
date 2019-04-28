@@ -422,11 +422,12 @@ void SetupServerArgs() {
             " not affected. (default: %u)",
             DEFAULT_BLOCKSONLY),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-conf=<file>",
-                 strprintf("Specify configuration file. Relative paths will be "
-                           "prefixed by datadir location. (default: %s)",
-                           BITCOIN_CONF_FILENAME),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg(
+        "-conf=<file>",
+        strprintf("Specify path to read-only configuration file. Relative "
+                  "paths will be prefixed by datadir location. (default: %s)",
+                  BITCOIN_CONF_FILENAME),
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-datadir=<dir>", "Specify data directory",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg(
@@ -533,6 +534,15 @@ void SetupServerArgs() {
     gArgs.AddArg(
         "-reindex",
         "Rebuild chain state and block index from the blk*.dat files on disk",
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg(
+        "-settings=<file>",
+        strprintf(
+            "Specify path to dynamic settings data file. Can be disabled with "
+            "-nosettings. File is written at runtime and not meant to be "
+            "edited by users (use %s instead for custom settings). Relative "
+            "paths will be prefixed by datadir location. (default: %s)",
+            BITCOIN_CONF_FILENAME, BITCOIN_SETTINGS_FILENAME),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #ifndef WIN32
     gArgs.AddArg(

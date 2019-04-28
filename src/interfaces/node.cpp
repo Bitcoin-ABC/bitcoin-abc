@@ -87,6 +87,9 @@ namespace {
         bool softSetBoolArg(const std::string &arg, bool value) override {
             return gArgs.SoftSetBoolArg(arg, value);
         }
+        bool initSettings(std::string &error) override {
+            return gArgs.InitSettings(error);
+        }
         void selectParams(const std::string &network) override {
             SelectParams(network);
         }

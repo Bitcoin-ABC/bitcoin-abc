@@ -27,6 +27,7 @@
 #include <util/ref.h>
 #include <util/system.h>
 #include <util/threadnames.h>
+#include <util/translation.h>
 
 #ifdef ENABLE_WALLET
 #include <qt/paymentserver.h>
@@ -669,6 +670,13 @@ int GuiMain(int argc, char *argv[]) {
     // Parse URIs on command line -- this can affect Params()
     PaymentServer::ipcParseCommandLine(*node, argc, argv);
 #endif
+    if (!node->initSettings(error)) {
+        node->initError(Untranslated(error).original);
+        QMessageBox::critical(nullptr, PACKAGE_NAME,
+                              QObject::tr("Error initializing settings: %1")
+                                  .arg(QString::fromStdString(error)));
+        return EXIT_FAILURE;
+    }
 
     QScopedPointer<const NetworkStyle> networkStyle(
         NetworkStyle::instantiate(Params().NetworkIDString()));

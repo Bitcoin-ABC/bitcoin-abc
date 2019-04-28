@@ -146,6 +146,11 @@ static bool AppInit(int argc, char *argv[]) {
             }
         }
 
+        if (!gArgs.InitSettings(error)) {
+            InitError(Untranslated(error));
+            return false;
+        }
+
         // -server defaults to true for bitcoind but not for the GUI so do this
         // here
         gArgs.SoftSetBoolArg("-server", true);
