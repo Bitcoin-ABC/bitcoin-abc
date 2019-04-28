@@ -1988,9 +1988,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
     }
 
     CValidationState state;
-    CBlockHeader first_invalid_header;
-    if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast,
-                                &first_invalid_header)) {
+    if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast)) {
         if (state.IsInvalid()) {
             MaybePunishNode(pfrom->GetId(), state, via_compact_block,
                             "invalid header received");

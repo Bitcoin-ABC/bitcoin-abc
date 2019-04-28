@@ -96,8 +96,7 @@ static bool BuildChain(const CBlockIndex *pindex,
         CBlockHeader header = block->GetBlockHeader();
 
         CValidationState state;
-        if (!ProcessNewBlockHeaders(GetConfig(), {header}, state, &pindex,
-                                    nullptr)) {
+        if (!ProcessNewBlockHeaders(GetConfig(), {header}, state, &pindex)) {
             return false;
         }
     }

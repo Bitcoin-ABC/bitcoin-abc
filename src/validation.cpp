@@ -3861,12 +3861,7 @@ bool CChainState::AcceptBlockHeader(const Config &config,
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &headers,
                             CValidationState &state,
-                            const CBlockIndex **ppindex,
-                            CBlockHeader *first_invalid) {
-    if (first_invalid != nullptr) {
-        first_invalid->SetNull();
-    }
-
+                            const CBlockIndex **ppindex) {
     {
         LOCK(cs_main);
         for (const CBlockHeader &header : headers) {
@@ -3874,9 +3869,6 @@ bool ProcessNewBlockHeaders(const Config &config,
             CBlockIndex *pindex = nullptr;
             if (!::ChainstateActive().AcceptBlockHeader(config, header, state,
                                                         &pindex)) {
-                if (first_invalid) {
-                    *first_invalid = header;
-                }
                 return false;
             }
 

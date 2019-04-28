@@ -311,14 +311,12 @@ bool ProcessNewBlock(const Config &config,
  *                           occurred processing them.
  * @param[out] ppindex       If set, the pointer will be set to point to the
  *                           last new block index object for the given headers.
- * @param[out] first_invalid First header that fails validation, if one exists.
  * @return True if block headers were accepted as valid.
  */
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &block,
                             CValidationState &state,
-                            const CBlockIndex **ppindex = nullptr,
-                            CBlockHeader *first_invalid = nullptr)
+                            const CBlockIndex **ppindex = nullptr)
     LOCKS_EXCLUDED(cs_main);
 
 /**

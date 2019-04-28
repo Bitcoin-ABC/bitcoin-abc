@@ -804,8 +804,7 @@ static UniValue submitheader(const Config &config,
     }
 
     CValidationState state;
-    ProcessNewBlockHeaders(config, {h}, state, /* ppindex */ nullptr,
-                           /* first_invalid */ nullptr);
+    ProcessNewBlockHeaders(config, {h}, state);
     if (state.IsValid()) {
         return NullUniValue;
     }
