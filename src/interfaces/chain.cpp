@@ -52,11 +52,6 @@ namespace {
             }
             return nullopt;
         }
-        int getBlockDepth(const BlockHash &hash) override {
-            const Optional<int> tip_height = getHeight();
-            const Optional<int> height = getBlockHeight(hash);
-            return tip_height && height ? *tip_height - *height + 1 : 0;
-        }
         BlockHash getBlockHash(int height) override {
             LockAssertion lock(::cs_main);
             CBlockIndex *block = ::ChainActive()[height];
