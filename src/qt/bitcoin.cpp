@@ -3,45 +3,38 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "bitcoingui.h"
+#include <qt/bitcoingui.h>
 
-#include "chainparams.h"
-#include "clientmodel.h"
-#include "config.h"
-#include "guiconstants.h"
-#include "guiutil.h"
-#include "httprpc.h"
-#include "intro.h"
-#include "networkstyle.h"
-#include "optionsmodel.h"
-#include "platformstyle.h"
-#include "splashscreen.h"
-#include "utilitydialog.h"
-#include "winshutdownmonitor.h"
+#include <chainparams.h>
+#include <config.h>
+#include <httprpc.h>
+#include <init.h>
+#include <interfaces/handler.h>
+#include <interfaces/node.h>
+#include <qt/clientmodel.h>
+#include <qt/guiconstants.h>
+#include <qt/guiutil.h>
+#include <qt/intro.h>
+#include <qt/networkstyle.h>
+#include <qt/optionsmodel.h>
+#include <qt/platformstyle.h>
+#include <qt/splashscreen.h>
+#include <qt/utilitydialog.h>
+#include <qt/winshutdownmonitor.h>
+#include <rpc/server.h>
+#include <ui_interface.h>
+#include <uint256.h>
+#include <util.h>
+#include <walletinitinterface.h>
+#include <warnings.h>
 
 #ifdef ENABLE_WALLET
-#include "paymentserver.h"
-#include "walletmodel.h"
+#include <qt/paymentserver.h>
+#include <qt/walletmodel.h>
 #endif
-
-#include "init.h"
-#include "interfaces/handler.h"
-#include "interfaces/node.h"
-#include "rpc/server.h"
-#include "ui_interface.h"
-#include "uint256.h"
-#include "util.h"
-#include "warnings.h"
-
-#ifdef ENABLE_WALLET
-#include "wallet/wallet.h"
-#endif
-#include "walletinitinterface.h"
-
-#include <cstdint>
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/thread.hpp>
@@ -70,6 +63,8 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 #endif
+
+#include <cstdint>
 
 // Declare meta types used for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(bool *)
@@ -475,10 +470,9 @@ void BitcoinApplication::initializeResult(bool success) {
 #ifdef ENABLE_WALLET
     bool fFirstWallet = true;
     auto wallets = m_node.getWallets();
-    auto cwallet = ::vpwallets.begin();
     for (auto &wallet : wallets) {
         WalletModel *const walletModel = new WalletModel(
-            std::move(wallet), m_node, platformStyle, *cwallet++, optionsModel);
+            std::move(wallet), m_node, platformStyle, optionsModel);
 
         window->addWallet(walletModel);
         if (fFirstWallet) {

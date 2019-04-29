@@ -240,6 +240,10 @@ namespace {
         void rpcUnsetTimerInterface(RPCTimerInterface *iface) override {
             RPCUnsetTimerInterface(iface);
         }
+        bool getUnspentOutput(const COutPoint &output, Coin &coin) override {
+            LOCK(::cs_main);
+            return ::pcoinsTip->GetCoin(output, coin);
+        }
         std::vector<std::unique_ptr<Wallet>> getWallets() override {
 #ifdef ENABLE_WALLET
             std::vector<std::unique_ptr<Wallet>> wallets;

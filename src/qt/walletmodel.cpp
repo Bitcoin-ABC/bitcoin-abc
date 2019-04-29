@@ -4,27 +4,19 @@
 
 #include <qt/walletmodel.h>
 
-#include <chain.h>
 #include <config.h>
-#include <consensus/validation.h>
 #include <dstencode.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
-#include <keystore.h>
-#include <net.h> // for g_connman
 #include <qt/addresstablemodel.h>
 #include <qt/guiconstants.h>
-#include <qt/guiutil.h>
 #include <qt/paymentserver.h>
 #include <qt/recentrequeststablemodel.h>
 #include <qt/transactiontablemodel.h>
-#include <sync.h>
 #include <ui_interface.h>
 #include <util.h> // for GetBoolArg
-#include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
-#include <wallet/walletdb.h> // for BackupWallet
 
 #include <QDebug>
 #include <QSet>
@@ -34,19 +26,18 @@
 
 WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet,
                          interfaces::Node &node,
-                         const PlatformStyle *platformStyle, CWallet *_wallet,
+                         const PlatformStyle *platformStyle,
                          OptionsModel *_optionsModel, QObject *parent)
     : QObject(parent), m_wallet(std::move(wallet)), m_node(node),
-      cwallet(_wallet), optionsModel(_optionsModel), addressTableModel(0),
+      optionsModel(_optionsModel), addressTableModel(0),
       transactionTableModel(0), recentRequestsTableModel(0),
       cachedEncryptionStatus(Unencrypted), cachedNumBlocks(0) {
     fHaveWatchOnly = m_wallet->haveWatchOnly();
     fForceCheckBalanceChanged = false;
 
     addressTableModel = new AddressTableModel(this);
-    transactionTableModel =
-        new TransactionTableModel(platformStyle, cwallet, this);
-    recentRequestsTableModel = new RecentRequestsTableModel(cwallet, this);
+    transactionTableModel = new TransactionTableModel(platformStyle, this);
+    recentRequestsTableModel = new RecentRequestsTableModel(this);
 
     // This timer will be fired repeatedly to update the balance
     pollTimer = new QTimer(this);

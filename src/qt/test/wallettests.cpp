@@ -144,7 +144,7 @@ void TestGUI() {
     OptionsModel optionsModel(*node);
     vpwallets.insert(vpwallets.begin(), &wallet);
     WalletModel walletModel(std::move(node->getWallets()[0]), *node,
-                            platformStyle.get(), &wallet, &optionsModel);
+                            platformStyle.get(), &optionsModel);
     vpwallets.erase(vpwallets.begin());
     sendCoinsDialog.setModel(&walletModel);
 
