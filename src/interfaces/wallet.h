@@ -7,6 +7,7 @@
 
 #include <amount.h>                    // For Amount
 #include <primitives/transaction.h>    // For CTxOut
+#include <pubkey.h>                    // For CTxDestination (CKeyID and CScriptID)
 #include <script/ismine.h>             // For isminefilter, isminetype
 #include <script/standard.h>           // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString
@@ -36,6 +37,7 @@ namespace interfaces {
 
 class Handler;
 class PendingWalletTx;
+struct WalletAddress;
 struct WalletBalances;
 struct WalletTxOut;
 
@@ -76,6 +78,9 @@ public:
     //! Get chainparams.
     virtual const CChainParams &getChainParams() = 0;
 
+    // Get key from pool.
+    virtual bool getKeyFromPool(bool internal, CPubKey &pub_key) = 0;
+
     //! Get public key.
     virtual bool getPubKey(const CKeyID &address, CPubKey &pub_key) = 0;
 
@@ -93,10 +98,16 @@ public:
                                 const std::string &name,
                                 const std::string &purpose) = 0;
 
+    // Remove address.
+    virtual bool delAddressBook(const CTxDestination &dest) = 0;
+
     //! Look up address in wallet, return whether exists.
     virtual bool getAddress(const CTxDestination &dest,
                             std::string *name = nullptr,
                             isminetype *is_mine = nullptr) = 0;
+
+    //! Get wallet address list.
+    virtual std::vector<WalletAddress> getAddresses() = 0;
 
     //! Add dest data.
     virtual bool addDestData(const CTxDestination &dest, const std::string &key,
@@ -202,6 +213,19 @@ public:
     virtual bool commit(WalletValueMap value_map, WalletOrderForm order_form,
                         std::string from_account,
                         std::string &reject_reason) = 0;
+};
+
+//! Information about one wallet address.
+struct WalletAddress {
+    CTxDestination dest;
+    isminetype is_mine;
+    std::string name;
+    std::string purpose;
+
+    WalletAddress(CTxDestination destIn, isminetype isMineIn,
+                  std::string nameIn, std::string purposeIn)
+        : dest(std::move(destIn)), is_mine(isMineIn), name(std::move(nameIn)),
+          purpose(std::move(purposeIn)) {}
 };
 
 //! Collection of wallet balances.

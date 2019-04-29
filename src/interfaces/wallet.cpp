@@ -84,6 +84,9 @@ namespace {
             return m_wallet.BackupWallet(filename);
         }
         std::string getWalletName() override { return m_wallet.GetName(); }
+        bool getKeyFromPool(bool internal, CPubKey &pub_key) override {
+            return m_wallet.GetKeyFromPool(pub_key, internal);
+        }
         const CChainParams &getChainParams() override {
             return m_wallet.chainParams;
         }
@@ -101,6 +104,9 @@ namespace {
                             const std::string &purpose) override {
             return m_wallet.SetAddressBook(dest, name, purpose);
         }
+        bool delAddressBook(const CTxDestination &dest) override {
+            return m_wallet.DelAddressBook(dest);
+        }
         bool getAddress(const CTxDestination &dest, std::string *name,
                         isminetype *is_mine) override {
             LOCK(m_wallet.cs_wallet);
@@ -115,6 +121,15 @@ namespace {
                 *is_mine = IsMine(m_wallet, dest);
             }
             return true;
+        }
+        std::vector<WalletAddress> getAddresses() override {
+            LOCK(m_wallet.cs_wallet);
+            std::vector<WalletAddress> result;
+            for (const auto &item : m_wallet.mapAddressBook) {
+                result.emplace_back(item.first, IsMine(m_wallet, item.first),
+                                    item.second.name, item.second.purpose);
+            }
+            return result;
         }
         bool addDestData(const CTxDestination &dest, const std::string &key,
                          const std::string &value) override {
