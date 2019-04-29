@@ -6,7 +6,7 @@
 #include "utilstrencodings.h"
 
 #include "tinyformat.h"
-
+#include <boost/multiprecision/cpp_int.hpp>
 
 #include <algorithm>
 #include <cerrno>

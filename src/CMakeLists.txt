@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8.2)
 project(src)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -564,7 +564,6 @@ add_executable(src
         secp256k1/src/util.h
         seeder/bitcoin.cpp
         seeder/bitcoin.h
-        seeder/compat.h
         seeder/db.cpp
         seeder/db.h
         seeder/dns.cpp

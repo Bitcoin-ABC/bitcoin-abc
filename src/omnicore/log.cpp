@@ -154,7 +154,7 @@ int LogFilePrint(const std::string& str)
 {
     int ret = 0; // Number of characters written
 	BCLog::Logger &logger = GetLogger();
-    if(logger.fPrintToConsole) {
+    if(logger.m_print_to_console) {
         // Print to console
         ret = ConsolePrint(str);
     }
@@ -177,7 +177,7 @@ int LogFilePrint(const std::string& str)
         }
 
         // Printing log timestamps can be useful for profiling
-        if (logger.fLogTimestamps && fStartedNewLine) {
+        if (logger.m_log_timestamps && fStartedNewLine) {
             ret += fprintf(fileout, "%s ", GetTimestamp().c_str());
         }
         if (!str.empty() && str[str.size()-1] == '\n') {
@@ -205,7 +205,7 @@ int ConsolePrint(const std::string& str)
     int ret = 0; // Number of characters written
     static bool fStartedNewLine = true;
 	BCLog::Logger &logger = GetLogger();
-    if (logger.fLogTimestamps && fStartedNewLine) {
+    if (logger.m_log_timestamps && fStartedNewLine) {
         ret = fprintf(stdout, "%s %s", GetTimestamp().c_str(), str.c_str());
     } else {
         ret = fwrite(str.data(), 1, str.size(), stdout);
