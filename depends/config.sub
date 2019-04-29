@@ -263,7 +263,7 @@ case $basic_machine in
 	| fido | fr30 | frv | ft32 \
 	| h8300 | h8500 | hppa | hppa1.[01] | hppa2.0 | hppa2.0[nw] | hppa64 \
 	| hexagon \
-	| i370 | i860 | i960 | ia64 \
+	| i370 | i860 | i960 | ia16 | ia64 \
 	| ip2k | iq2000 \
 	| k1om \
 	| le32 | le64 \
@@ -314,6 +314,7 @@ case $basic_machine in
 	| ubicom32 \
 	| v850 | v850e | v850e1 | v850e2 | v850es | v850e2v3 \
 	| visium \
+	| wasm32 \
 	| we32k \
 	| x86 | xc16x | xstormy16 | xtensa \
 	| z8k | z80)
@@ -387,7 +388,7 @@ case $basic_machine in
 	| h8300-* | h8500-* \
 	| hppa-* | hppa1.[01]-* | hppa2.0-* | hppa2.0[nw]-* | hppa64-* \
 	| hexagon-* \
-	| i*86-* | i860-* | i960-* | ia64-* \
+	| i*86-* | i860-* | i960-* | ia16-* | ia64-* \
 	| ip2k-* | iq2000-* \
 	| k1om-* \
 	| le32-* | le64-* \
@@ -444,6 +445,7 @@ case $basic_machine in
 	| v850-* | v850e-* | v850e1-* | v850es-* | v850e2-* | v850e2v3-* \
 	| vax-* \
 	| visium-* \
+	| wasm32-* \
 	| we32k-* \
 	| x86-* | x86_64-* | xc16x-* | xps100-* \
 	| xstormy16-* | xtensa*-* \
@@ -938,6 +940,9 @@ case $basic_machine in
 	nsr-tandem)
 		basic_machine=nsr-tandem
 		;;
+	nsx-tandem)
+		basic_machine=nsx-tandem
+		;;
 	op50n-* | op60c-*)
 		basic_machine=hppa1.1-oki
 		os=-proelf
@@ -1232,6 +1237,9 @@ case $basic_machine in
 	vxworks29k)
 		basic_machine=a29k-wrs
 		os=-vxworks
+		;;
+	wasm32)
+		basic_machine=wasm32-unknown
 		;;
 	w65*)
 		basic_machine=w65-wdc

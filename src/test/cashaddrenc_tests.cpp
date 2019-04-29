@@ -2,12 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "cashaddr.h"
-#include "cashaddrenc.h"
-#include "chainparams.h"
-#include "random.h"
-#include "test/test_bitcoin.h"
-#include "uint256.h"
+#include <cashaddrenc.h>
+
+#include <cashaddr.h>
+#include <chainparams.h>
+#include <random.h>
+#include <uint256.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -345,8 +347,9 @@ BOOST_AUTO_TEST_CASE(test_vectors) {
                   "C060"),
          "bitcoincash:"
          "qvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq5nlegake"},
-        {"bchtest", SCRIPT_TYPE, ParseHex("3173EF6623C6B48FFD1A3DCC0CC6489B0A07"
-                                          "BB47A37F47CFEF4FE69DE825C060"),
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825"
+                  "C060"),
          "bchtest:"
          "pvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq7fqng6m6"},
         {"prefix", CashAddrType(15),

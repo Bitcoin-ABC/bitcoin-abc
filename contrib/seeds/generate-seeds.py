@@ -48,7 +48,7 @@ def name_to_ipv6(addr):
     if len(addr) > 6 and addr.endswith('.onion'):
         vchAddr = b32decode(addr[0:-6], True)
         if len(vchAddr) != 16 - len(pchOnionCat):
-            raise ValueError('Invalid onion %s' % s)
+            raise ValueError('Invalid onion {}'.format(s))
         return pchOnionCat + vchAddr
     elif '.' in addr:  # IPv4
         return pchIPv4 + bytearray((int(x) for x in addr.split('.')))
@@ -73,7 +73,7 @@ def name_to_ipv6(addr):
     elif addr.startswith('0x'):  # IPv4-in-little-endian
         return pchIPv4 + bytearray(reversed(a2b_hex(addr[2:])))
     else:
-        raise ValueError('Could not parse address %s' % addr)
+        raise ValueError('Could not parse address {}'.format(addr))
 
 
 def parse_spec(s, defaultport):
@@ -98,7 +98,7 @@ def parse_spec(s, defaultport):
 
 
 def process_nodes(g, f, structname, defaultport):
-    g.write('static SeedSpec6 %s[] = {\n' % structname)
+    g.write('static SeedSpec6 {}[] = {{\n'.format(structname))
     first = True
     for line in f:
         comment = line.find('#')
@@ -112,15 +112,15 @@ def process_nodes(g, f, structname, defaultport):
         first = False
 
         (host, port) = parse_spec(line, defaultport)
-        hoststr = ','.join(('0x%02x' % b) for b in host)
-        g.write('    {{%s}, %i}' % (hoststr, port))
+        hoststr = ','.join(('0x{:02x}'.format(b)) for b in host)
+        g.write('    {{{{{}}}, {}}}'.format(hoststr, port))
     g.write('\n};\n')
 
 
 def main():
     if len(sys.argv) < 2:
-        print(('Usage: %s <path_to_nodes_txt>' % sys.argv[0]), file=sys.stderr)
-        exit(1)
+        print('Usage: {} <path_to_nodes_txt>'.format(sys.argv[0]), file=sys.stderr)
+        sys.exit(1)
     g = sys.stdout
     indir = sys.argv[1]
     g.write('#ifndef BITCOIN_CHAINPARAMSSEEDS_H\n')

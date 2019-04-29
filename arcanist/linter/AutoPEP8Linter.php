@@ -26,14 +26,34 @@ final class AutoPEP8FormatLinter extends ArcanistExternalLinter {
   }
 
   public function getLinterConfigurationOptions() {
-    $options = array(
-    );
-
+    $options = array();
     return $options + parent::getLinterConfigurationOptions();
   }
 
   public function getDefaultBinary() {
     return 'autopep8';
+  }
+
+  public function getVersion() {
+    list($stdout, $stderr) = execx('%C --version',
+      $this->getExecutableCommand());
+    $matches = array();
+
+    /* Support a.b or a.b.c version numbering scheme */
+    $regex = '/^autopep8 (?P<version>\d+\.\d+(?:\.\d+)?)/';
+
+    /*
+     * Old autopep8 output the version to stdout, newer output to stderr.
+     * Try both to determine the version.
+     */
+    if (preg_match($regex, $stdout, $matches)) {
+      return $matches['version'];
+    }
+    if (preg_match($regex, $stderr, $matches)) {
+      return $matches['version'];
+    }
+
+    return false;
   }
 
   public function getInstallInstructions() {
@@ -45,8 +65,7 @@ final class AutoPEP8FormatLinter extends ArcanistExternalLinter {
   }
 
   protected function getMandatoryFlags() {
-    return array(
-    );
+    return array();
   }
 
   protected function parseLinterOutput($path, $err, $stdout, $stderr) {
@@ -74,6 +93,7 @@ final class AutoPEP8FormatLinter extends ArcanistExternalLinter {
       ->setDescription("'$path' has code style errors.")
       ->setOriginalText($orig)
       ->setReplacementText($stdout);
+
     return array($message);
   }
 }

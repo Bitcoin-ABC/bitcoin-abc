@@ -18,7 +18,7 @@ private:
     CTransactionRef &tx;
 
 public:
-    TransactionCompressor(CTransactionRef &txIn) : tx(txIn) {}
+    explicit TransactionCompressor(CTransactionRef &txIn) : tx(txIn) {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -84,7 +84,7 @@ public:
     std::vector<CTransactionRef> txn;
 
     BlockTransactions() {}
-    BlockTransactions(const BlockTransactionsRequest &req)
+    explicit BlockTransactions(const BlockTransactionsRequest &req)
         : blockhash(req.blockhash), txn(req.indices.size()) {}
 
     ADD_SERIALIZE_METHODS;

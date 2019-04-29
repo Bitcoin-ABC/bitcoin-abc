@@ -161,8 +161,8 @@ public:
      * the allocation fails (hard fail), if it returns true the allocation
      * proceeds, but it could warn.
      */
-    LockedPool(std::unique_ptr<LockedPageAllocator> allocator,
-               LockingFailed_Callback lf_cb_in = 0);
+    explicit LockedPool(std::unique_ptr<LockedPageAllocator> allocator,
+                        LockingFailed_Callback lf_cb_in = nullptr);
     ~LockedPool();
 
     /**
@@ -235,7 +235,7 @@ public:
     }
 
 private:
-    LockedPoolManager(std::unique_ptr<LockedPageAllocator> allocator);
+    explicit LockedPoolManager(std::unique_ptr<LockedPageAllocator> allocator);
 
     /** Create a new LockedPoolManager specialized to the OS */
     static void CreateInstance();

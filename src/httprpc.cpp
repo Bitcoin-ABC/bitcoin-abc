@@ -24,7 +24,11 @@
 /** WWW-Authenticate to present with 401 Unauthorized response */
 static const char *WWW_AUTH_HEADER_DATA = "Basic realm=\"jsonrpc\"";
 
-/** Simple one-shot callback timer to be used by the RPC mechanism to e.g.
+/** RPC auth failure delay to make brute-forcing expensive */
+static const int64_t RPC_AUTH_BRUTE_FORCE_DELAY = 250;
+
+/**
+ * Simple one-shot callback timer to be used by the RPC mechanism to e.g.
  * re-lock the wallet.
  */
 class HTTPRPCTimer : public RPCTimerBase {
@@ -44,8 +48,10 @@ private:
 
 class HTTPRPCTimerInterface : public RPCTimerInterface {
 public:
-    HTTPRPCTimerInterface(struct event_base *_base) : base(_base) {}
+    explicit HTTPRPCTimerInterface(struct event_base *_base) : base(_base) {}
+
     const char *Name() override { return "HTTP"; }
+
     RPCTimerBase *NewTimer(std::function<void(void)> &func,
                            int64_t millis) override {
         return new HTTPRPCTimer(base, func, millis);
@@ -56,7 +62,7 @@ private:
 };
 
 /* Stored RPC timer interface (for unregistration) */
-static HTTPRPCTimerInterface *httpRPCTimerInterface = 0;
+static std::unique_ptr<HTTPRPCTimerInterface> httpRPCTimerInterface;
 
 static void JSONErrorReply(HTTPRequest *req, const UniValue &objError,
                            const UniValue &id) {
@@ -75,8 +81,10 @@ static void JSONErrorReply(HTTPRequest *req, const UniValue &objError,
     req->WriteReply(nStatus, strReply);
 }
 
-// This function checks username and password against -rpcauth entries from
-// config file.
+/*
+ * This function checks username and password against -rpcauth entries from
+ * config file.
+ */
 static bool multiUserAuthorized(std::string strUserPass) {
     if (strUserPass.find(":") == std::string::npos) {
         return false;
@@ -266,8 +274,7 @@ static bool checkCORS(Config &config, HTTPRequest *req) {
     return false;
 }
 
-static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
-                            const std::string &) {
+bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
     // First, check and/or set CORS headers
     if (checkCORS(config, req)) {
         return true;
@@ -292,10 +299,12 @@ static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
         LogPrintf("ThreadRPCServer incorrect password attempt from %s\n",
                   req->GetPeer().ToString());
 
-        /* Deter brute-forcing.
+        /**
+         * Deter brute-forcing.
          * If this results in a DoS the user really shouldn't have their RPC
-         * port exposed. */
-        MilliSleep(250);
+         * port exposed.
+         */
+        MilliSleep(RPC_AUTH_BRUTE_FORCE_DELAY);
 
         req->WriteHeader("WWW-Authenticate", WWW_AUTH_HEADER_DATA);
         req->WriteReply(HTTP_UNAUTHORIZED);
@@ -316,13 +325,14 @@ static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
         if (valRequest.isObject()) {
             jreq.parse(valRequest);
 
-            UniValue result = tableRPC.execute(config, jreq);
+            UniValue result = rpcServer.ExecuteCommand(config, jreq);
 
             // Send reply
             strReply = JSONRPCReply(result, NullUniValue, jreq.id);
         } else if (valRequest.isArray()) {
             // array of requests
-            strReply = JSONRPCExecBatch(config, jreq, valRequest.get_array());
+            strReply = JSONRPCExecBatch(config, rpcServer, jreq,
+                                        valRequest.get_array());
         } else {
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
         }
@@ -365,19 +375,27 @@ static bool InitRPCAuthentication(Config &config) {
     return true;
 }
 
-bool StartHTTPRPC(Config &config) {
+bool StartHTTPRPC(Config &config,
+                  HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     LogPrint(BCLog::RPC, "Starting HTTP RPC server\n");
-    if (!InitRPCAuthentication(config)) return false;
+    if (!InitRPCAuthentication(config)) {
+        return false;
+    }
 
-    RegisterHTTPHandler("/", true, HTTPReq_JSONRPC);
+    const std::function<bool(Config &, HTTPRequest *, const std::string &)>
+        &rpcFunction =
+            std::bind(&HTTPRPCRequestProcessor::DelegateHTTPRequest,
+                      &httpRPCRequestProcessor, std::placeholders::_2);
+    RegisterHTTPHandler("/", true, rpcFunction);
 #ifdef ENABLE_WALLET
     // ifdef can be removed once we switch to better endpoint support and API
     // versioning
-    RegisterHTTPHandler("/wallet/", false, HTTPReq_JSONRPC);
+    RegisterHTTPHandler("/wallet/", false, rpcFunction);
 #endif
     assert(EventBase());
-    httpRPCTimerInterface = new HTTPRPCTimerInterface(EventBase());
-    RPCSetTimerInterface(httpRPCTimerInterface);
+    httpRPCTimerInterface =
+        std::make_unique<HTTPRPCTimerInterface>(EventBase());
+    RPCSetTimerInterface(httpRPCTimerInterface.get());
     return true;
 }
 
@@ -388,9 +406,11 @@ void InterruptHTTPRPC() {
 void StopHTTPRPC() {
     LogPrint(BCLog::RPC, "Stopping HTTP RPC server\n");
     UnregisterHTTPHandler("/", true);
+#ifdef ENABLE_WALLET
+    UnregisterHTTPHandler("/wallet/", false);
+#endif
     if (httpRPCTimerInterface) {
-        RPCUnsetTimerInterface(httpRPCTimerInterface);
-        delete httpRPCTimerInterface;
-        httpRPCTimerInterface = 0;
+        RPCUnsetTimerInterface(httpRPCTimerInterface.get());
+        httpRPCTimerInterface.reset();
     }
 }

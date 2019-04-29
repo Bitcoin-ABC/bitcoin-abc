@@ -30,10 +30,10 @@ class CoinControlDialog;
 
 class CCoinControlWidgetItem : public QTreeWidgetItem {
 public:
-    CCoinControlWidgetItem(QTreeWidget *parent, int type = Type)
+    explicit CCoinControlWidgetItem(QTreeWidget *parent, int type = Type)
         : QTreeWidgetItem(parent, type) {}
-    CCoinControlWidgetItem(int type = Type) : QTreeWidgetItem(type) {}
-    CCoinControlWidgetItem(QTreeWidgetItem *parent, int type = Type)
+    explicit CCoinControlWidgetItem(int type = Type) : QTreeWidgetItem(type) {}
+    explicit CCoinControlWidgetItem(QTreeWidgetItem *parent, int type = Type)
         : QTreeWidgetItem(parent, type) {}
 
     bool operator<(const QTreeWidgetItem &other) const override;
@@ -53,7 +53,7 @@ public:
     static void updateLabels(WalletModel *, QDialog *);
 
     static QList<Amount> payAmounts;
-    static CCoinControl *coinControl;
+    static CCoinControl *coinControl();
     static bool fSubtractFeeFromAmount;
 
 private:

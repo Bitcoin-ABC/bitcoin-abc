@@ -5,7 +5,7 @@
 #ifndef BITCOIN_RPCMISC_H
 #define BITCOIN_RPCMISC_H
 
-#include "script/script.h"
+#include <script/script.h>
 
 class CWallet;
 class UniValue;

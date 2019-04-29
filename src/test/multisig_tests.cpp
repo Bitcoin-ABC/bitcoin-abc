@@ -2,17 +2,18 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "key.h"
-#include "keystore.h"
-#include "policy/policy.h"
-#include "script/interpreter.h"
-#include "script/ismine.h"
-#include "script/script.h"
-#include "script/script_error.h"
-#include "script/sighashtype.h"
-#include "script/sign.h"
-#include "test/test_bitcoin.h"
-#include "uint256.h"
+#include <key.h>
+#include <keystore.h>
+#include <policy/policy.h>
+#include <script/interpreter.h>
+#include <script/ismine.h>
+#include <script/script.h>
+#include <script/script_error.h>
+#include <script/sighashtype.h>
+#include <script/sign.h>
+#include <uint256.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -30,7 +31,7 @@ CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
     result << OP_0;
     for (const CKey &key : keys) {
         std::vector<uint8_t> vchSig;
-        BOOST_CHECK(key.Sign(hash, vchSig));
+        BOOST_CHECK(key.SignECDSA(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL));
         result << vchSig;
     }

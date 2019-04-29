@@ -13,9 +13,15 @@ void SetMiscWarning(const std::string &strWarning);
 void SetfLargeWorkForkFound(bool flag);
 bool GetfLargeWorkForkFound();
 void SetfLargeWorkInvalidChainFound(bool flag);
-bool GetfLargeWorkInvalidChainFound();
+/**
+ * Format a string that describes several potential problems detected by the
+ * core.
+ * strFor can have three values:
+ * - "statusbar": get all warnings
+ * - "gui": get all warnings, translated (where possible) for GUI
+ * This function only returns the highest priority warning of the set selected
+ * by strFor.
+ */
 std::string GetWarnings(const std::string &strFor);
-
-static const bool DEFAULT_TESTSAFEMODE = false;
 
 #endif //  BITCOIN_WARNINGS_H

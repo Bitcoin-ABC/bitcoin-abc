@@ -4,6 +4,7 @@
 
 #include "transactionrecord.h"
 
+#include "chain.h"
 #include "consensus/consensus.h"
 #include "dstencode.h"
 #include "timedata.h"
@@ -159,11 +160,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx) {
     // Determine transaction status
 
     // Find the block the tx is in
-    CBlockIndex *pindex = nullptr;
-    BlockMap::iterator mi = mapBlockIndex.find(wtx.hashBlock);
-    if (mi != mapBlockIndex.end()) {
-        pindex = (*mi).second;
-    }
+    const CBlockIndex *pindex = LookupBlockIndex(wtx.hashBlock);
 
     // Sort order, unrecorded transactions sort to the top
     status.sortKey =
@@ -175,7 +172,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx) {
     status.depth = wtx.GetDepthInMainChain();
     status.cur_num_blocks = chainActive.Height();
 
-    if (!CheckFinalTx(wtx)) {
+    if (!CheckFinalTx(*wtx.tx)) {
         if (wtx.tx->nLockTime < LOCKTIME_THRESHOLD) {
             status.status = TransactionStatus::OpenUntilBlock;
             status.open_for = wtx.tx->nLockTime - chainActive.Height();
@@ -221,7 +218,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx) {
     }
 }
 
-bool TransactionRecord::statusUpdateNeeded() {
+bool TransactionRecord::statusUpdateNeeded() const {
     AssertLockHeld(cs_main);
     return status.cur_num_blocks != chainActive.Height();
 }

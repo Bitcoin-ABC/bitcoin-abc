@@ -37,12 +37,12 @@ static std::unique_ptr<CWalletDBWrapper> TmpDB(const fs::path &pathTemp,
 static std::unique_ptr<CWallet> LoadWallet(CWalletDB *db) {
     std::unique_ptr<CWallet> wallet(new CWallet(Params()));
     DBErrors res = db->LoadWallet(wallet.get());
-    BOOST_CHECK(res == DB_LOAD_OK);
+    BOOST_CHECK(res == DBErrors::LOAD_OK);
     return wallet;
 }
 } // namespace
 
-BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletDBTestingSetup);
+BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletDBTestingSetup)
 
 BOOST_AUTO_TEST_CASE(write_erase_name) {
     auto walletdbwrapper = TmpDB(pathTemp, "write_erase_name");

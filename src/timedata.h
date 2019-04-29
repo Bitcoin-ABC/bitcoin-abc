@@ -25,8 +25,8 @@ private:
     unsigned int nSize;
 
 public:
-    CMedianFilter(unsigned int size, T initial_value) : nSize(size) {
-        vValues.reserve(size);
+    CMedianFilter(unsigned int _size, T initial_value) : nSize(_size) {
+        vValues.reserve(_size);
         vValues.push_back(initial_value);
         vSorted = vValues;
     }
@@ -43,15 +43,15 @@ public:
     }
 
     T median() const {
-        int size = vSorted.size();
-        assert(size > 0);
-
-        if (size & 1) {
+        int vSortedSize = vSorted.size();
+        assert(vSortedSize > 0);
+        if (vSortedSize & 1) {
             // Odd number of elements
-            return vSorted[size / 2];
+            return vSorted[vSortedSize / 2];
         } else {
             // Even number of elements
-            return (vSorted[size / 2 - 1] + vSorted[size / 2]) / 2;
+            return (vSorted[vSortedSize / 2 - 1] + vSorted[vSortedSize / 2]) /
+                   2;
         }
     }
 

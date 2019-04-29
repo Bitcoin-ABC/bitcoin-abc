@@ -2,14 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "test/test_bitcoin.h"
+#include <policy/policy.h>
+#include <script/interpreter.h>
 
-#include "policy/policy.h"
-#include "script/interpreter.h"
+#include <test/lcg.h>
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <array>
+#include <bitset>
 
 typedef std::vector<uint8_t> valtype;
 typedef std::vector<valtype> stacktype;
@@ -130,7 +132,7 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
 
     // Check valid signatures (as in the signature format is valid).
     valtype validsig;
-    kd.privkey.Sign(messageHash, validsig);
+    kd.privkey.SignECDSA(messageHash, validsig);
 
     CheckTestResultForAllFlags({validsig, message, pubkey},
                                CScript() << OP_CHECKDATASIG, {{0x01}});
@@ -148,59 +150,82 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
         0xa2, 0x0e, 0x0b, 0x99, 0x9e, 0x04, 0x99, 0x78, 0xea, 0x8d, 0x6e, 0xe5,
         0x48, 0x0d, 0x48, 0x5f, 0xcf, 0x2c, 0xe0, 0xd0, 0x3b, 0x2e, 0xf0};
 
-    // If we add many more flags, this loop can get too expensive, but we can
-    // rewrite in the future to randomly pick a set of flags to evaluate.
-    for (uint32_t flags = 0; flags < (1U << 17); flags++) {
-        // Make sure we activate the opcodes.
-        flags |= SCRIPT_ENABLE_CHECKDATASIG;
+    MMIXLinearCongruentialGenerator lcg;
+    for (int i = 0; i < 4096; i++) {
+        uint32_t flags = lcg.next() | SCRIPT_ENABLE_CHECKDATASIG;
 
         if (flags & SCRIPT_VERIFY_STRICTENC) {
-            // When strict encoding is enforced, hybrid key are invalid.
+            // When strict encoding is enforced, hybrid keys are invalid.
             CheckError(flags, {{}, message, pubkeyH}, script,
                        SCRIPT_ERR_PUBKEYTYPE);
             CheckError(flags, {{}, message, pubkeyH}, scriptverify,
                        SCRIPT_ERR_PUBKEYTYPE);
+        } else if (flags & SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE) {
+            // When compressed-only is enforced, hybrid keys are invalid.
+            CheckError(flags, {{}, message, pubkeyH}, script,
+                       SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
+            CheckError(flags, {{}, message, pubkeyH}, scriptverify,
+                       SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
         } else {
-            // When strict encoding is not enforced, hybrid key are valid.
+            // Otherwise, hybrid keys are valid.
             CheckPass(flags, {{}, message, pubkeyH}, script, {});
             CheckError(flags, {{}, message, pubkeyH}, scriptverify,
                        SCRIPT_ERR_CHECKDATASIGVERIFY);
         }
 
+        if (flags & SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE) {
+            // When compressed-only is enforced, uncompressed keys are invalid.
+            CheckError(flags, {{}, message, pubkey}, script,
+                       SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
+            CheckError(flags, {{}, message, pubkey}, scriptverify,
+                       SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
+        } else {
+            // Otherwise, uncompressed keys are valid.
+            CheckPass(flags, {{}, message, pubkey}, script, {});
+            CheckError(flags, {{}, message, pubkey}, scriptverify,
+                       SCRIPT_ERR_CHECKDATASIGVERIFY);
+        }
+
         if (flags & SCRIPT_VERIFY_NULLFAIL) {
-            // When strict encoding is enforced, hybrid key are invalid.
-            CheckError(flags, {minimalsig, message, pubkey}, script,
+            // Invalid signature causes checkdatasig to fail.
+            CheckError(flags, {minimalsig, message, pubkeyC}, script,
                        SCRIPT_ERR_SIG_NULLFAIL);
-            CheckError(flags, {minimalsig, message, pubkey}, scriptverify,
+            CheckError(flags, {minimalsig, message, pubkeyC}, scriptverify,
                        SCRIPT_ERR_SIG_NULLFAIL);
 
-            // Invalid message cause checkdatasig to fail.
-            CheckError(flags, {validsig, {0x01}, pubkey}, script,
+            // Invalid message causes checkdatasig to fail.
+            CheckError(flags, {validsig, {0x01}, pubkeyC}, script,
                        SCRIPT_ERR_SIG_NULLFAIL);
-            CheckError(flags, {validsig, {0x01}, pubkey}, scriptverify,
+            CheckError(flags, {validsig, {0x01}, pubkeyC}, scriptverify,
                        SCRIPT_ERR_SIG_NULLFAIL);
         } else {
             // When nullfail is not enforced, invalid signature are just false.
-            CheckPass(flags, {minimalsig, message, pubkey}, script, {});
-            CheckError(flags, {minimalsig, message, pubkey}, scriptverify,
+            CheckPass(flags, {minimalsig, message, pubkeyC}, script, {});
+            CheckError(flags, {minimalsig, message, pubkeyC}, scriptverify,
                        SCRIPT_ERR_CHECKDATASIGVERIFY);
 
             // Invalid message cause checkdatasig to fail.
-            CheckPass(flags, {validsig, {0x01}, pubkey}, script, {});
-            CheckError(flags, {validsig, {0x01}, pubkey}, scriptverify,
+            CheckPass(flags, {validsig, {0x01}, pubkeyC}, script, {});
+            CheckError(flags, {validsig, {0x01}, pubkeyC}, scriptverify,
                        SCRIPT_ERR_CHECKDATASIGVERIFY);
         }
 
         if (flags & SCRIPT_VERIFY_LOW_S) {
             // If we do enforce low S, then high S sigs are rejected.
-            CheckError(flags, {highSSig, message, pubkey}, script,
+            CheckError(flags, {highSSig, message, pubkeyC}, script,
                        SCRIPT_ERR_SIG_HIGH_S);
-            CheckError(flags, {highSSig, message, pubkey}, scriptverify,
+            CheckError(flags, {highSSig, message, pubkeyC}, scriptverify,
                        SCRIPT_ERR_SIG_HIGH_S);
+        } else if (flags & SCRIPT_VERIFY_NULLFAIL) {
+            // If we do enforce nullfail, these invalid sigs hit this.
+            CheckError(flags, {highSSig, message, pubkeyC}, script,
+                       SCRIPT_ERR_SIG_NULLFAIL);
+            CheckError(flags, {highSSig, message, pubkeyC}, scriptverify,
+                       SCRIPT_ERR_SIG_NULLFAIL);
         } else {
             // If we do not enforce low S, then high S sigs are accepted.
-            CheckPass(flags, {highSSig, message, pubkey}, script, {});
-            CheckError(flags, {highSSig, message, pubkey}, scriptverify,
+            CheckPass(flags, {highSSig, message, pubkeyC}, script, {});
+            CheckError(flags, {highSSig, message, pubkeyC}, scriptverify,
                        SCRIPT_ERR_CHECKDATASIGVERIFY);
         }
 
@@ -208,14 +233,20 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
                      SCRIPT_VERIFY_STRICTENC)) {
             // If we get any of the dersig flags, the non canonical dersig
             // signature fails.
-            CheckError(flags, {nondersig, message, pubkey}, script,
+            CheckError(flags, {nondersig, message, pubkeyC}, script,
                        SCRIPT_ERR_SIG_DER);
-            CheckError(flags, {nondersig, message, pubkey}, scriptverify,
+            CheckError(flags, {nondersig, message, pubkeyC}, scriptverify,
                        SCRIPT_ERR_SIG_DER);
+        } else if (flags & SCRIPT_VERIFY_NULLFAIL) {
+            // If we do enforce nullfail, these invalid sigs hit this.
+            CheckError(flags, {nondersig, message, pubkeyC}, script,
+                       SCRIPT_ERR_SIG_NULLFAIL);
+            CheckError(flags, {nondersig, message, pubkeyC}, scriptverify,
+                       SCRIPT_ERR_SIG_NULLFAIL);
         } else {
             // If we do not check, then it is accepted.
-            CheckPass(flags, {nondersig, message, pubkey}, script, {});
-            CheckError(flags, {nondersig, message, pubkey}, scriptverify,
+            CheckPass(flags, {nondersig, message, pubkeyC}, script, {});
+            CheckError(flags, {nondersig, message, pubkeyC}, scriptverify,
                        SCRIPT_ERR_CHECKDATASIGVERIFY);
         }
     }

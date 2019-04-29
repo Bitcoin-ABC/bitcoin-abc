@@ -5,7 +5,7 @@
 #ifndef BITCOIN_PRIMITIVES_TXID_H
 #define BITCOIN_PRIMITIVES_TXID_H
 
-#include "uint256.h"
+#include <uint256.h>
 
 /**
  * A TxId is the identifier of a transaction. Currently identical to TxHash but

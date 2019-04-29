@@ -6,7 +6,7 @@
 #ifndef BITCOIN_CONSENSUS_PARAMS_H
 #define BITCOIN_CONSENSUS_PARAMS_H
 
-#include "uint256.h"
+#include <uint256.h>
 
 #include <map>
 #include <string>
@@ -54,10 +54,12 @@ struct Params {
     int uahfHeight;
     /** Block height at which the new DAA becomes active */
     int daaHeight;
-    /** Unix time used for MTP activation of Nov 15 2018, hardfork */
-    int magneticAnomalyActivationTime;
+    /** Block height at which the magnetic anomaly activation becomes active */
+    int magneticAnomalyHeight;
     /** Unix time used for MTP activation of 15 May 2019 12:00:00 UTC upgrade */
     int greatWallActivationTime;
+    /** Unix time used for MTP activation of Nov 15 2019 12:00:00 UTC upgrade */
+    int gravitonActivationTime;
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks
      * in a retargeting period, (nPowTargetTimespan / nPowTargetSpacing) which

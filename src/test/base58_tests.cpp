@@ -2,19 +2,19 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "base58.h"
+#include <base58.h>
 
-#include "data/base58_encode_decode.json.h"
-#include "data/base58_keys_invalid.json.h"
-#include "data/base58_keys_valid.json.h"
+#include <data/base58_encode_decode.json.h>
+#include <data/base58_keys_invalid.json.h>
+#include <data/base58_keys_valid.json.h>
+#include <key.h>
+#include <script/script.h>
+#include <uint256.h>
+#include <util.h>
+#include <utilstrencodings.h>
 
-#include "key.h"
-#include "script/script.h"
-#include "test/jsonutil.h"
-#include "test/test_bitcoin.h"
-#include "uint256.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include <test/jsonutil.h>
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -87,7 +87,7 @@ private:
     std::string exp_addrType;
 
 public:
-    TestAddrTypeVisitor(const std::string &_exp_addrType)
+    explicit TestAddrTypeVisitor(const std::string &_exp_addrType)
         : exp_addrType(_exp_addrType) {}
     bool operator()(const CKeyID &id) const {
         return (exp_addrType == "pubkey");
@@ -106,7 +106,7 @@ private:
     std::vector<uint8_t> exp_payload;
 
 public:
-    TestPayloadVisitor(std::vector<uint8_t> &_exp_payload)
+    explicit TestPayloadVisitor(std::vector<uint8_t> &_exp_payload)
         : exp_payload(_exp_payload) {}
     bool operator()(const CKeyID &id) const {
         uint160 exp_key(exp_payload);

@@ -118,14 +118,14 @@ def bctest(testDir, testObj, buildenv):
         try:
             a_parsed = parse_output(outs[0], outputType)
         except Exception as e:
-            logging.error('Error parsing command output as %s: %s' %
-                          (outputType, e))
+            logging.error(
+                'Error parsing command output as {}: {}'.format(outputType, e))
             raise
         try:
             b_parsed = parse_output(outputData, outputType)
         except Exception as e:
-            logging.error('Error parsing expected output %s as %s: %s' %
-                          (outputFn, outputType, e))
+            logging.error('Error parsing expected output {} as {}: {}'.format(
+                outputFn, outputType, e))
             raise
         # Compare data
         if a_parsed != b_parsed:
@@ -176,7 +176,7 @@ def parse_output(a, fmt):
     elif fmt == 'hex':  # hex: parse and compare binary data
         return binascii.a2b_hex(a.strip())
     else:
-        raise NotImplementedError("Don't know how to compare %s" % fmt)
+        raise NotImplementedError("Don't know how to compare {}".format(fmt))
 
 
 if __name__ == '__main__':

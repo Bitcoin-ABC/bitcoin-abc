@@ -4,7 +4,7 @@ Upstream-Contact: helpdesk@bitcoinabc.org
 Source: https://github.com/Bitcoin-ABC/bitcoin-abc
 
 Files: *
-Copyright: 2009-2017, Bitcoin Core Developers, 2017 Bitcoin Developers
+Copyright: 2009-2017, The Bitcoin Core Developers, 2017-2019 The Bitcoin Developers
 License: Expat
 Comment: The Bitcoin Developers encompasses those contributing to Bitcoin
          client open source development (various clients).
@@ -82,12 +82,14 @@ Comment: Modifications of Stephan Hutchings Typicons
 
 Files: src/qt/res/icons/about.png
        src/qt/res/icons/bitcoin.*
-       share/pixmaps/bitcoin*
        src/qt/res/src/bitcoin.svg
 Copyright: Bitboy, Jonas Schnelli
 License: public-domain
 Comment: Site: https://bitcointalk.org/?topic=1756.0
 
+Files: share/pixmaps/bitcoin-abc*
+License: public-domain
+Copyright: bitcoincash.org, bitcoinabc.org
 
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a

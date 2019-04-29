@@ -9,8 +9,8 @@
 #include "primitives/block.h"
 #include "txmempool.h"
 
-#include "boost/multi_index/ordered_index.hpp"
-#include "boost/multi_index_container.hpp"
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -24,24 +24,35 @@ class CWallet;
 
 static const bool DEFAULT_PRINTPRIORITY = false;
 
+struct CBlockTemplateEntry {
+    CTransactionRef tx;
+    Amount fees;
+    int64_t sigOpCount;
+
+    CBlockTemplateEntry(CTransactionRef _tx, Amount _fees, int64_t _sigOpCount)
+        : tx(_tx), fees(_fees), sigOpCount(_sigOpCount){};
+};
+
 struct CBlockTemplate {
     CBlock block;
-    std::vector<Amount> vTxFees;
-    std::vector<int64_t> vTxSigOpsCount;
+
+    std::vector<CBlockTemplateEntry> entries;
 };
 
 // Container for tracking updates to ancestor feerate as we include (parent)
 // transactions in a block
 struct CTxMemPoolModifiedEntry {
-    CTxMemPoolModifiedEntry(CTxMemPool::txiter entry) {
+    explicit CTxMemPoolModifiedEntry(CTxMemPool::txiter entry) {
         iter = entry;
         nSizeWithAncestors = entry->GetSizeWithAncestors();
+        nBillableSizeWithAncestors = entry->GetBillableSizeWithAncestors();
         nModFeesWithAncestors = entry->GetModFeesWithAncestors();
         nSigOpCountWithAncestors = entry->GetSigOpCountWithAncestors();
     }
 
     CTxMemPool::txiter iter;
     uint64_t nSizeWithAncestors;
+    uint64_t nBillableSizeWithAncestors;
     Amount nModFeesWithAncestors;
     int64_t nSigOpCountWithAncestors;
 };
@@ -113,11 +124,12 @@ typedef indexed_modified_transaction_set::index<ancestor_score>::type::iterator
     modtxscoreiter;
 
 struct update_for_parent_inclusion {
-    update_for_parent_inclusion(CTxMemPool::txiter it) : iter(it) {}
+    explicit update_for_parent_inclusion(CTxMemPool::txiter it) : iter(it) {}
 
     void operator()(CTxMemPoolModifiedEntry &e) {
         e.nModFeesWithAncestors -= iter->GetFee();
         e.nSizeWithAncestors -= iter->GetTxSize();
+        e.nBillableSizeWithAncestors -= iter->GetTxBillableSize();
         e.nSigOpCountWithAncestors -= iter->GetSigOpCount();
     }
 
@@ -149,12 +161,13 @@ private:
     int64_t nMedianTimePast;
 
     const Config *config;
+    const CTxMemPool *mempool;
 
     // Variables used for addPriorityTxs
     int lastFewTxs;
 
 public:
-    BlockAssembler(const Config &_config);
+    BlockAssembler(const Config &_config, const CTxMemPool &mempool);
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
     CreateNewBlock(const CScript &scriptPubKeyIn);
@@ -193,7 +206,7 @@ private:
     /** Remove confirmed (inBlock) entries from given set */
     void onlyUnconfirmed(CTxMemPool::setEntries &testSet);
     /** Test if a new package would "fit" in the block */
-    bool TestPackage(uint64_t packageSize, int64_t packageSigOpsCost);
+    bool TestPackage(uint64_t packageSize, int64_t packageSigOpsCost) const;
     /** Perform checks on each transaction in a package:
      * locktime, serialized size (if necessary)
      * These checks should always succeed, and they're here

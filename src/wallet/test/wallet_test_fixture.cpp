@@ -10,7 +10,7 @@
 #include "wallet/rpcdump.h"
 #include "wallet/wallet.h"
 
-CWallet *pwalletMain;
+std::unique_ptr<CWallet> pwalletMain;
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     : TestingSetup(chainName) {
@@ -19,18 +19,17 @@ WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     bool fFirstRun;
     std::unique_ptr<CWalletDBWrapper> dbw(
         new CWalletDBWrapper(&bitdb, "wallet_test.dat"));
-    pwalletMain = new CWallet(Params(), std::move(dbw));
+    pwalletMain = std::make_unique<CWallet>(Params(), std::move(dbw));
     pwalletMain->LoadWallet(fFirstRun);
-    RegisterValidationInterface(pwalletMain);
+    RegisterValidationInterface(pwalletMain.get());
 
     RegisterWalletRPCCommands(tableRPC);
     RegisterDumpRPCCommands(tableRPC);
 }
 
 WalletTestingSetup::~WalletTestingSetup() {
-    UnregisterValidationInterface(pwalletMain);
-    delete pwalletMain;
-    pwalletMain = nullptr;
+    UnregisterValidationInterface(pwalletMain.get());
+    pwalletMain.reset();
 
     bitdb.Flush(true);
     bitdb.Reset();

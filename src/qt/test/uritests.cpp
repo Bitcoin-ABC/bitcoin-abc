@@ -147,11 +147,12 @@ void URITests::uriTestsCashAddr() {
             QString("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"));
     QVERIFY(rv.label == QString());
 
-    QVERIFY(GUIUtil::parseBitcoinURI(
-        scheme, "bitcoincash://"
-                "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
-                "message=Wikipedia Example Address",
-        &rv));
+    QVERIFY(
+        GUIUtil::parseBitcoinURI(scheme,
+                                 "bitcoincash://"
+                                 "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
+                                 "message=Wikipedia Example Address",
+                                 &rv));
     QVERIFY(rv.address ==
             QString("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"));
     QVERIFY(rv.label == QString());
@@ -175,8 +176,8 @@ void URITests::uriTestsCashAddr() {
 namespace {
 class UriTestConfig : public DummyConfig {
 public:
-    UriTestConfig(bool useCashAddr)
-        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(useCashAddr) {}
+    UriTestConfig(bool useCashAddrIn)
+        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(useCashAddrIn) {}
     bool UseCashAddrEncoding() const override { return useCashAddr; }
 
 private:

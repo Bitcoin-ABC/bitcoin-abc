@@ -23,7 +23,7 @@ public:
 /** Template base class for unsigned big integers. */
 template <unsigned int BITS> class base_uint {
 protected:
-    enum { WIDTH = BITS / 32 };
+    static constexpr int WIDTH = BITS / 32;
     uint32_t pn[WIDTH];
 
 public:
@@ -258,7 +258,8 @@ public:
     unsigned int bits() const;
 
     uint64_t GetLow64() const {
-        assert(WIDTH >= 2);
+        static_assert(WIDTH >= 2, "Assertion WIDTH >= 2 failed (WIDTH = BITS / "
+                                  "32). BITS is a template parameter.");
         return pn[0] | (uint64_t)pn[1] << 32;
     }
 };

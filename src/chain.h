@@ -13,6 +13,7 @@
 #include "diskblockpos.h"
 #include "pow.h"
 #include "primitives/block.h"
+#include "sync.h"
 #include "tinyformat.h"
 #include "uint256.h"
 
@@ -124,17 +125,13 @@ public:
 
     CBlockIndex() { SetNull(); }
 
-    CBlockIndex(const CBlockHeader &block) {
+    explicit CBlockIndex(const CBlockHeader &block) {
         SetNull();
 
         nVersion = block.nVersion;
         hashMerkleRoot = block.hashMerkleRoot;
         nTime = block.nTime;
-        // Default to block time if nTimeReceived is never set, which
-        // in effect assumes that this block is honestly mined.
-        // Note that nTimeReceived isn't written to disk, so blocks read from
-        // disk will be assumed to be honestly mined.
-        nTimeReceived = block.nTime;
+        nTimeReceived = 0;
         nBits = block.nBits;
         nNonce = block.nNonce;
     }
@@ -182,7 +179,7 @@ public:
         return GetHeaderReceivedTime() - GetBlockTime();
     }
 
-    enum { nMedianTimeSpan = 11 };
+    static constexpr int nMedianTimeSpan = 11;
 
     int64_t GetMedianTimePast() const {
         int64_t pmedian[nMedianTimeSpan];
@@ -243,7 +240,14 @@ struct BlockHasher {
 };
 
 typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
-extern BlockMap mapBlockIndex;
+extern BlockMap &mapBlockIndex;
+extern CCriticalSection cs_main;
+
+inline CBlockIndex *LookupBlockIndex(const uint256 &hash) {
+    AssertLockHeld(cs_main);
+    BlockMap::const_iterator it = mapBlockIndex.find(hash);
+    return it == mapBlockIndex.end() ? nullptr : it->second;
+}
 
 arith_uint256 GetBlockProof(const CBlockIndex &block);
 
@@ -262,6 +266,11 @@ int64_t GetBlockProofEquivalentTime(const CBlockIndex &to,
 const CBlockIndex *LastCommonAncestor(const CBlockIndex *pa,
                                       const CBlockIndex *pb);
 
+/**
+ * Check if two block index are on the same fork.
+ */
+bool AreOnTheSameFork(const CBlockIndex *pa, const CBlockIndex *pb);
+
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex {
 public:
@@ -277,9 +286,9 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        int version = s.GetVersion();
+        int _nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(VARINT(version));
+            READWRITE(VARINT(_nVersion));
         }
 
         READWRITE(VARINT(nHeight));

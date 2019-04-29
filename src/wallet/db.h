@@ -36,7 +36,7 @@ private:
 
 public:
     mutable CCriticalSection cs_db;
-    DbEnv *dbenv;
+    std::unique_ptr<DbEnv> dbenv;
     std::map<std::string, int> mapFileUseCount;
     std::map<std::string, Db *> mapDb;
 
@@ -45,7 +45,7 @@ public:
     void Reset();
 
     void MakeMock();
-    bool IsMock() { return fMockDb; }
+    bool IsMock() const { return fMockDb; }
 
     /**
      * Verify that database file strFile is OK. If it is not, call the callback
@@ -53,7 +53,7 @@ public:
      * This must be called BEFORE strFile is opened.
      * Returns true if strFile is OK.
      */
-    enum VerifyResult { VERIFY_OK, RECOVER_OK, RECOVER_FAIL };
+    enum class VerifyResult { VERIFY_OK, RECOVER_OK, RECOVER_FAIL };
     typedef bool (*recoverFunc_type)(const std::string &strFile,
                                      std::string &out_backup_filename);
     VerifyResult Verify(const std::string &strFile,
@@ -72,7 +72,7 @@ public:
     bool Salvage(const std::string &strFile, bool fAggressive,
                  std::vector<KeyValPair> &vResult);
 
-    bool Open(const fs::path &path);
+    bool Open(const fs::path &path, bool retry = 0);
     void Close();
     void Flush(bool fShutdown);
     void CheckpointLSN(const std::string &strFile);
@@ -171,11 +171,11 @@ public:
     static bool PeriodicFlush(CWalletDBWrapper &dbw);
     /* verifies the database environment */
     static bool VerifyEnvironment(const std::string &walletFile,
-                                  const fs::path &dataDir,
+                                  const fs::path &walletDir,
                                   std::string &errorStr);
     /* verifies the database file */
     static bool VerifyDatabaseFile(const std::string &walletFile,
-                                   const fs::path &dataDir,
+                                   const fs::path &walletDir,
                                    std::string &warningStr,
                                    std::string &errorStr,
                                    CDBEnv::recoverFunc_type recoverFunc);

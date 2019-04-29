@@ -14,7 +14,7 @@ struct BlockStatus {
 private:
     uint32_t status;
 
-    explicit BlockStatus(uint32_t nStatusIn) : status(nStatusIn) {}
+    explicit constexpr BlockStatus(uint32_t nStatusIn) : status(nStatusIn) {}
 
     static const uint32_t VALIDITY_MASK = 0x07;
 
@@ -41,7 +41,7 @@ private:
     static const uint32_t PARKED_MASK = PARKED_FLAG | PARKED_PARENT_FLAG;
 
 public:
-    explicit BlockStatus() : status(0) {}
+    explicit constexpr BlockStatus() : status(0) {}
 
     BlockValidity getValidity() const {
         return BlockValidity(status & VALIDITY_MASK);
@@ -105,12 +105,23 @@ public:
     }
 
     bool isOnParkedChain() const { return status & PARKED_MASK; }
+    BlockStatus withClearedParkedFlags() const {
+        return BlockStatus(status & ~PARKED_MASK);
+    }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
         READWRITE(VARINT(status));
+    }
+
+    friend constexpr bool operator==(const BlockStatus a, const BlockStatus b) {
+        return a.status == b.status;
+    }
+
+    friend constexpr bool operator!=(const BlockStatus a, const BlockStatus b) {
+        return !(a == b);
     }
 };
 

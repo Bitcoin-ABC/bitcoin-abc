@@ -5,17 +5,38 @@
 #ifndef BITCOIN_HTTPRPC_H
 #define BITCOIN_HTTPRPC_H
 
+#include "httpserver.h"
+#include "rpc/server.h"
+
 #include <map>
 #include <string>
 
 class Config;
 class HTTPRequest;
 
+class HTTPRPCRequestProcessor {
+private:
+    Config &config;
+    RPCServer &rpcServer;
+
+    bool ProcessHTTPRequest(HTTPRequest *request);
+
+public:
+    HTTPRPCRequestProcessor(Config &configIn, RPCServer &rpcServerIn)
+        : config(configIn), rpcServer(rpcServerIn) {}
+
+    static bool DelegateHTTPRequest(HTTPRPCRequestProcessor *requestProcessor,
+                                    HTTPRequest *request) {
+        return requestProcessor->ProcessHTTPRequest(request);
+    }
+};
+
 /**
  * Start HTTP RPC subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-bool StartHTTPRPC(Config &config);
+bool StartHTTPRPC(Config &config,
+                  HTTPRPCRequestProcessor &httpRPCRequestProcessor);
 
 /** Interrupt HTTP RPC subsystem */
 void InterruptHTTPRPC();

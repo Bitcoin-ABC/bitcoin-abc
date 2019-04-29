@@ -13,7 +13,6 @@
 #include "sync.h"
 
 #include <boost/signals2/signal.hpp>
-#include <boost/variant.hpp>
 
 /** A virtual base class for key stores */
 class CKeyStore {
@@ -31,7 +30,7 @@ public:
     //! store.
     virtual bool HaveKey(const CKeyID &address) const = 0;
     virtual bool GetKey(const CKeyID &address, CKey &keyOut) const = 0;
-    virtual void GetKeys(std::set<CKeyID> &setAddress) const = 0;
+    virtual std::set<CKeyID> GetKeys() const = 0;
     virtual bool GetPubKey(const CKeyID &address,
                            CPubKey &vchPubKeyOut) const = 0;
 
@@ -39,6 +38,7 @@ public:
     //! https://github.com/bitcoin/bips/blob/master/bip-0013.mediawiki
     virtual bool AddCScript(const CScript &redeemScript) = 0;
     virtual bool HaveCScript(const CScriptID &hash) const = 0;
+    virtual std::set<CScriptID> GetCScripts() const = 0;
     virtual bool GetCScript(const CScriptID &hash,
                             CScript &redeemScriptOut) const = 0;
 
@@ -65,38 +65,12 @@ protected:
 public:
     bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) override;
     bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const override;
-    bool HaveKey(const CKeyID &address) const override {
-        bool result;
-        {
-            LOCK(cs_KeyStore);
-            result = (mapKeys.count(address) > 0);
-        }
-        return result;
-    }
-    void GetKeys(std::set<CKeyID> &setAddress) const override {
-        setAddress.clear();
-        {
-            LOCK(cs_KeyStore);
-            KeyMap::const_iterator mi = mapKeys.begin();
-            while (mi != mapKeys.end()) {
-                setAddress.insert((*mi).first);
-                mi++;
-            }
-        }
-    }
-    bool GetKey(const CKeyID &address, CKey &keyOut) const override {
-        {
-            LOCK(cs_KeyStore);
-            KeyMap::const_iterator mi = mapKeys.find(address);
-            if (mi != mapKeys.end()) {
-                keyOut = mi->second;
-                return true;
-            }
-        }
-        return false;
-    }
+    bool HaveKey(const CKeyID &address) const override;
+    std::set<CKeyID> GetKeys() const override;
+    bool GetKey(const CKeyID &address, CKey &keyOut) const override;
     virtual bool AddCScript(const CScript &redeemScript) override;
     virtual bool HaveCScript(const CScriptID &hash) const override;
+    std::set<CScriptID> GetCScripts() const override;
     virtual bool GetCScript(const CScriptID &hash,
                             CScript &redeemScriptOut) const override;
 

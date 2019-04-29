@@ -1,8 +1,9 @@
 ---
 name: "wormhole-0.2.3-linux"
 enable_cache: true
+distro: "debian"
 suites:
-- "xenial"
+- "stretch"
 architectures:
 - "amd64"
 multiarch:
@@ -11,19 +12,14 @@ packages:
 - "curl"
 - "gperf"
 - "g++-aarch64-linux-gnu"
-- "g++-5-aarch64-linux-gnu"
 - "gcc-aarch64-linux-gnu"
-- "gcc-5-aarch64-linux-gnu"
 - "binutils-aarch64-linux-gnu"
 - "g++-arm-linux-gnueabihf"
-- "g++-5-arm-linux-gnueabihf"
 - "gcc-arm-linux-gnueabihf"
-- "gcc-5-arm-linux-gnueabihf"
 - "binutils-arm-linux-gnueabihf"
-- "g++-5-multilib"
-- "gcc-5-multilib"
 - "binutils-gold"
-- "git-core"
+- "build-essential"
+- "git"
 - "pkg-config"
 - "autoconf"
 - "libtool"
@@ -32,9 +28,11 @@ packages:
 - "bsdmainutils"
 - "ca-certificates"
 - "python"
+- "lib32stdc++-6-dev"
 - "libc6-dev:i386"
 - "libstdc++6:i386"
 - "libdb++-dev"
+
 remotes:
 - "url": "https://github.com/copernet/wormhole.git"
   "dir": "wormhole"
@@ -51,6 +49,7 @@ script: |
   HOST_LDFLAGS=-static-libstdc++
 
   export QT_RCC_TEST=1
+  export QT_RCC_SOURCE_DATE_OVERRIDE=1
   export GZIP="-9n"
   export TAR_OPTIONS="--mtime="$REFERENCE_DATE\\\ $REFERENCE_TIME""
   export TZ="UTC"

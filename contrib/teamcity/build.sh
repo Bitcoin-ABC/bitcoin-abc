@@ -30,21 +30,46 @@ if [[ ! -z "${DISABLE_WALLET}" ]]; then
 	CONFIGURE_FLAGS+=("--disable-wallet")
 fi
 
+# Default to nothing
+: ${ENABLE_DEBUG:=}
+
+if [[ ! -z "${ENABLE_DEBUG}" ]]; then
+	echo "*** Building with debug"
+	CONFIGURE_FLAGS+=("--enable-debug")
+fi
+
 ../configure "${CONFIGURE_FLAGS[@]}"
 
-# Run unit tests
-make check
+# Run build
+make -j ${THREADS}
 
-# Run util tests
-./test/util/bitcoin-util-test.py
+# Default to nothing
+: ${DISABLE_TESTS:=}
 
-mkdir -p output/
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ ! -z "${DISABLE_WALLET}" ]]; then
-	echo "Skipping rpc testing due to disabled wallet functionality."
-elif [[ "${BRANCH}" == "master" ]]; then
-	./test/functional/test_runner.py --extended --jobs=${THREADS} --tmpdirprefix=output
+# If DISABLE_TESTS is unset (default), run the tests
+if [[ -z "${DISABLE_TESTS}" ]]; then
+	echo "*** Running tests"
+
+	# Run unit tests
+	make -j ${THREADS} check
+
+	# FIXME Remove when the functional tests are running with debug enabled
+	if [[ -z "${ENABLE_DEBUG}" ]]; then
+		mkdir -p output/
+		BRANCH=$(git rev-parse --abbrev-ref HEAD)
+		if [[ ! -z "${DISABLE_WALLET}" ]]; then
+			echo "Skipping rpc testing due to disabled wallet functionality."
+		elif [[ "${BRANCH}" == "master" ]]; then
+			./test/functional/test_runner.py --cutoff=600 --tmpdirprefix=output
+			./test/functional/test_runner.py --cutoff=600 --tmpdirprefix=output --with-greatwallactivation
+		else
+			./test/functional/test_runner.py --tmpdirprefix=output
+			./test/functional/test_runner.py --tmpdirprefix=output --with-greatwallactivation
+		fi
+	else
+		echo "*** Functional tests have been skipped"
+	fi
 else
-	./test/functional/test_runner.py --jobs=${THREADS} --tmpdirprefix=output
+	echo "*** Tests have been skipped"
 fi
 

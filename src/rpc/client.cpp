@@ -3,14 +3,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "rpc/client.h"
-#include "rpc/protocol.h"
-#include "util.h"
+#include <rpc/client.h>
+#include <rpc/protocol.h>
+#include <util.h>
 
 #include <cstdint>
 #include <set>
 
-#include <boost/algorithm/string/case_conv.hpp> // for to_lower()
 #include <univalue.h>
 
 class CRPCConvertParam {
@@ -39,12 +38,17 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"settxfee", 0, "amount"},
     {"getreceivedbyaddress", 1, "minconf"},
     {"getreceivedbyaccount", 1, "minconf"},
+    {"getreceivedbylabel", 1, "minconf"},
     {"listreceivedbyaddress", 0, "minconf"},
     {"listreceivedbyaddress", 1, "include_empty"},
     {"listreceivedbyaddress", 2, "include_watchonly"},
+    {"listreceivedbyaddress", 3, "address_filter"},
     {"listreceivedbyaccount", 0, "minconf"},
     {"listreceivedbyaccount", 1, "include_empty"},
     {"listreceivedbyaccount", 2, "include_watchonly"},
+    {"listreceivedbylabel", 0, "minconf"},
+    {"listreceivedbylabel", 1, "include_empty"},
+    {"listreceivedbylabel", 2, "include_watchonly"},
     {"getbalance", 1, "minconf"},
     {"getbalance", 2, "include_watchonly"},
     {"getblockhash", 0, "height"},
@@ -65,6 +69,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"getblocktemplate", 0, "template_request"},
     {"listsinceblock", 1, "target_confirmations"},
     {"listsinceblock", 2, "include_watchonly"},
+    {"listsinceblock", 3, "include_removed"},
     {"sendmany", 1, "amounts"},
     {"sendmany", 2, "minconf"},
     {"sendmany", 4, "subtractfeefrom"},
@@ -75,7 +80,8 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"listunspent", 0, "minconf"},
     {"listunspent", 1, "maxconf"},
     {"listunspent", 2, "addresses"},
-    {"getblock", 1, "verbose"},
+    {"listunspent", 4, "query_options"},
+    {"getblock", 1, "verbosity"},
     {"getblockheader", 1, "verbose"},
     {"getchaintxstats", 0, "nblocks"},
     {"gettransaction", 1, "include_watchonly"},
@@ -85,7 +91,11 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"createrawtransaction", 2, "locktime"},
     {"signrawtransaction", 1, "prevtxs"},
     {"signrawtransaction", 2, "privkeys"},
+    {"signrawtransactionwithkey", 1, "privkeys"},
+    {"signrawtransactionwithkey", 2, "prevtxs"},
+    {"signrawtransactionwithwallet", 1, "prevtxs"},
     {"sendrawtransaction", 1, "allowhighfees"},
+    {"combinerawtransaction", 0, "txs"},
     {"fundrawtransaction", 1, "options"},
     {"gettxout", 1, "n"},
     {"gettxout", 2, "include_mempool"},

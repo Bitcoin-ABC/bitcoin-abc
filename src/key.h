@@ -31,7 +31,7 @@
  */
 typedef std::vector<uint8_t, secure_allocator<uint8_t>> CPrivKey;
 
-/** An encapsulated private key. */
+/** An encapsulated secp256k1 private key. */
 class CKey {
 private:
     //! Whether this private key is valid. We check for correctness when
@@ -107,15 +107,22 @@ public:
     CPubKey GetPubKey() const;
 
     /**
-     * Create a DER-serialized signature.
+     * Create a DER-serialized ECDSA signature.
      * The test_case parameter tweaks the deterministic nonce.
      */
-    bool Sign(const uint256 &hash, std::vector<uint8_t> &vchSig,
-              uint32_t test_case = 0) const;
+    bool SignECDSA(const uint256 &hash, std::vector<uint8_t> &vchSig,
+                   uint32_t test_case = 0) const;
 
     /**
-     * Create a compact signature (65 bytes), which allows reconstructing the
-     * used public key.
+     * Create a Schnorr signature.
+     * The test_case parameter tweaks the deterministic nonce.
+     */
+    bool SignSchnorr(const uint256 &hash, std::vector<uint8_t> &vchSig,
+                     uint32_t test_case = 0) const;
+
+    /**
+     * Create a compact ECDSA signature (65 bytes), which allows reconstructing
+     * the used public key.
      * The format is one header byte, followed by two times 32 bytes for the
      * serialized r and s values.
      * The header byte: 0x1B = first key with even y, 0x1C = first key with odd
@@ -133,6 +140,7 @@ public:
     /**
      * Verify thoroughly whether a private key and a public key match.
      * This is done using a different mechanism than just regenerating it.
+     * (An ECDSA signature is created then verified.)
      */
     bool VerifyPubKey(const CPubKey &vchPubKey) const;
 
@@ -169,18 +177,26 @@ struct CExtKey {
     }
     template <typename Stream> void Unserialize(Stream &s) {
         unsigned int len = ::ReadCompactSize(s);
+        if (len != BIP32_EXTKEY_SIZE) {
+            throw std::runtime_error("Invalid extended key size\n");
+        }
+
         uint8_t code[BIP32_EXTKEY_SIZE];
         s.read((char *)&code[0], len);
         Decode(code);
     }
 };
 
-/** Initialize the elliptic curve support. May not be called twice without
- * calling ECC_Stop first. */
+/**
+ * Initialize the elliptic curve support. May not be called twice without
+ * calling ECC_Stop first.
+ */
 void ECC_Start(void);
 
-/** Deinitialize the elliptic curve support. No-op if ECC_Start wasn't called
- * first. */
+/**
+ * Deinitialize the elliptic curve support. No-op if ECC_Start wasn't called
+ * first.
+ */
 void ECC_Stop(void);
 
 /** Check that required EC support is available at runtime. */

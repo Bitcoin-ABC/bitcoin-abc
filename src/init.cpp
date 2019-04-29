@@ -45,8 +45,8 @@
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
 #include "wallet/rpcdump.h"
-#include "wallet/wallet.h"
 #endif
+#include "walletinitinterface.h"
 #include "warnings.h"
 
 #include <cstdint>
@@ -54,11 +54,10 @@
 #include <memory>
 
 #ifndef WIN32
-#include <signal.h>
+#include <csignal>
 #endif
 
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
@@ -69,14 +68,30 @@
 #include "zmq/zmqnotificationinterface.h"
 #endif
 
-bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
-static const bool DEFAULT_DISABLE_SAFEMODE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
+
+#if !(ENABLE_WALLET)
+class DummyWalletInit : public WalletInitInterface {
+public:
+    std::string GetHelpString(bool showDebug) override { return std::string{}; }
+    bool ParameterInteraction() override { return true; }
+    void RegisterRPC(CRPCTable &) override {}
+    bool Verify(const CChainParams &chainParams) override { return true; }
+    bool Open(const CChainParams &chainParams) override { return true; }
+    void Start(CScheduler &scheduler) override {}
+    void Flush() override {}
+    void Stop() override {}
+    void Close() override {}
+};
+
+static DummyWalletInit g_dummy_wallet_init;
+WalletInitInterface *const g_wallet_init_interface = &g_dummy_wallet_init;
+#endif
 
 #if ENABLE_ZMQ
 static CZMQNotificationInterface *pzmqNotificationInterface = nullptr;
@@ -89,8 +104,6 @@ static CZMQNotificationInterface *pzmqNotificationInterface = nullptr;
 #else
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
-
-static const char *FEE_ESTIMATES_FILENAME = "fee_estimates.dat";
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -135,7 +148,8 @@ bool ShutdownRequested() {
  */
 class CCoinsViewErrorCatcher final : public CCoinsViewBacked {
 public:
-    CCoinsViewErrorCatcher(CCoinsView *view) : CCoinsViewBacked(view) {}
+    explicit CCoinsViewErrorCatcher(CCoinsView *view)
+        : CCoinsViewBacked(view) {}
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override {
         try {
             return CCoinsViewBacked::GetCoin(outpoint, coin);
@@ -156,11 +170,13 @@ public:
     // the caller.
 };
 
-static CCoinsViewDB *pcoinsdbview = nullptr;
-static CCoinsViewErrorCatcher *pcoinscatcher = nullptr;
+static std::unique_ptr<CCoinsViewErrorCatcher> pcoinscatcher;
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
-void Interrupt(boost::thread_group &threadGroup) {
+static boost::thread_group threadGroup;
+static CScheduler scheduler;
+
+void Interrupt() {
     InterruptHTTPServer();
     InterruptHTTPRPC();
     InterruptRPC();
@@ -170,7 +186,6 @@ void Interrupt(boost::thread_group &threadGroup) {
     if (g_connman) {
         g_connman->Interrupt();
     }
-    threadGroup.interrupt_all();
 }
 
 void Shutdown() {
@@ -186,64 +201,65 @@ void Shutdown() {
     /// locked. Be sure that anything that writes files or flushes caches only
     /// does this if the respective module was initialized.
     RenameThread("bitcoin-shutoff");
-    mempool.AddTransactionsUpdated(1);
+    g_mempool.AddTransactionsUpdated(1);
 
     StopHTTPRPC();
     StopREST();
     StopRPC();
     StopHTTPServer();
-#ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        pwallet->Flush(false);
-    }
-#endif
+    g_wallet_init_interface->Flush();
     StopMapPort();
 
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.
-    UnregisterValidationInterface(peerLogic.get());
-    g_connman->Stop();
+    if (peerLogic) {
+        UnregisterValidationInterface(peerLogic.get());
+    }
+    if (g_connman) {
+        g_connman->Stop();
+    }
     peerLogic.reset();
     g_connman.reset();
 
     StopTorControl();
+
+    // After everything has been shut down, but before things get flushed, stop
+    // the CScheduler/checkqueue threadGroup
+    threadGroup.interrupt_all();
+    threadGroup.join_all();
+
     if (fDumpMempoolLater &&
         gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         DumpMempool();
     }
 
-    if (fFeeEstimatesInitialized) {
-        fs::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-        CAutoFile est_fileout(fsbridge::fopen(est_path, "wb"), SER_DISK,
-                              CLIENT_VERSION);
-        if (!est_fileout.IsNull()) {
-            mempool.WriteFeeEstimates(est_fileout);
-        } else {
-            LogPrintf("%s: Failed to write fee estimates to %s\n", __func__,
-                      est_path.string());
-        }
-        fFeeEstimatesInitialized = false;
+    // FlushStateToDisk generates a SetBestChain callback, which we should avoid
+    // missing
+    if (pcoinsTip != nullptr) {
+        FlushStateToDisk();
     }
+
+    // After there are no more peers/RPC left to give us new data which may
+    // generate CValidationInterface callbacks, flush them...
+    GetMainSignals().FlushBackgroundCallbacks();
+
+    // Any future callbacks will be dropped. This should absolutely be safe - if
+    // missing a callback results in an unrecoverable situation, unclean
+    // shutdown would too. The only reason to do the above flushes is to let the
+    // wallet catch up with our current chain to avoid any strange pruning edge
+    // cases and make next startup faster by avoiding rescan.
 
     {
         LOCK(cs_main);
         if (pcoinsTip != nullptr) {
             FlushStateToDisk();
         }
-        delete pcoinsTip;
-        pcoinsTip = nullptr;
-        delete pcoinscatcher;
-        pcoinscatcher = nullptr;
-        delete pcoinsdbview;
-        pcoinsdbview = nullptr;
-        delete pblocktree;
-        pblocktree = nullptr;
+        pcoinsTip.reset();
+        pcoinscatcher.reset();
+        pcoinsdbview.reset();
+        pblocktree.reset();
     }
-#ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        pwallet->Flush(true);
-    }
-#endif
+    g_wallet_init_interface->Stop();
 
 #if ENABLE_ZMQ
     if (pzmqNotificationInterface) {
@@ -261,12 +277,9 @@ void Shutdown() {
     }
 #endif
     UnregisterAllValidationInterfaces();
-#ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        delete pwallet;
-    }
-    vpwallets.clear();
-#endif
+    GetMainSignals().UnregisterBackgroundSignalScheduler();
+    GetMainSignals().UnregisterWithMempoolSignals(g_mempool);
+    g_wallet_init_interface->Close();
     globalVerifyHandle.reset();
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
@@ -281,7 +294,7 @@ void HandleSIGTERM(int) {
 }
 
 void HandleSIGHUP(int) {
-    GetLogger().fReopenDebugLog = true;
+    GetLogger().m_reopen_file = true;
 }
 
 void OnRPCStarted() {
@@ -291,19 +304,8 @@ void OnRPCStarted() {
 void OnRPCStopped() {
     uiInterface.NotifyBlockTip.disconnect(&RPCNotifyBlockChange);
     RPCNotifyBlockChange(false, nullptr);
-    cvBlockChange.notify_all();
+    g_best_block_cv.notify_all();
     LogPrint(BCLog::RPC, "RPC stopped.\n");
-}
-
-void OnRPCPreCommand(const ContextFreeRPCCommand &cmd) {
-    // Observe safe mode.
-    std::string strWarning = GetWarnings("rpc");
-    if (strWarning != "" &&
-        !gArgs.GetBoolArg("-disablesafemode", DEFAULT_DISABLE_SAFEMODE) &&
-        !cmd.okSafeMode) {
-        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE,
-                           std::string("Safe mode: ") + strWarning);
-    }
 }
 
 std::string HelpMessage(HelpMessageMode mode) {
@@ -348,7 +350,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt(
         "-conf=<file>", strprintf(_("Specify configuration file (default: %s)"),
                                   BITCOIN_CONF_FILENAME));
-    if (mode == HMM_BITCOIND) {
+    if (mode == HelpMessageMode::BITCOIND) {
 #if HAVE_DECL_DAEMON
         strUsage += HelpMessageOpt(
             "-daemon",
@@ -374,10 +376,26 @@ std::string HelpMessage(HelpMessageMode mode) {
                                     "our mempool min fee (default: %d)",
                                     DEFAULT_FEEFILTER));
     }
-
+    strUsage += HelpMessageOpt(
+        "-finalizationdelay=<n>",
+        strprintf("Set the minimum amount of time to wait between a "
+                  "block header reception and the block finalization. "
+                  "Unit is seconds (default: %d)",
+                  DEFAULT_MIN_FINALIZATION_DELAY));
+    strUsage += HelpMessageOpt(
+        "-maxreorgdepth=<n>",
+        strprintf("Configure at what depth blocks are considered final "
+                  "(default: %d). Use -1 to disable.",
+                  DEFAULT_MAX_REORG_DEPTH));
     strUsage += HelpMessageOpt(
         "-loadblock=<file>",
         _("Imports blocks from external blk000??.dat file on startup"));
+    strUsage += HelpMessageOpt(
+        "-debuglogfile=<file>",
+        strprintf(
+            _("Specify location of debug log file: this can be an absolute "
+              "path or a path relative to the data directory (default: %s)"),
+            DEFAULT_DEBUGLOGFILE));
     strUsage += HelpMessageOpt(
         "-maxorphantx=<n>", strprintf(_("Keep at most <n> unconnectable "
                                         "transactions in memory (default: %u)"),
@@ -480,9 +498,8 @@ std::string HelpMessage(HelpMessageMode mode) {
                                _("Discover own IP addresses (default: 1 when "
                                  "listening and no -externalip or -proxy)"));
     strUsage += HelpMessageOpt(
-        "-dns",
-        _("Allow DNS lookups for -addnode, -seednode and -connect") + " " +
-            strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
+        "-dns", _("Allow DNS lookups for -addnode, -seednode and -connect") +
+                    " " + strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
     strUsage += HelpMessageOpt(
         "-dnsseed", _("Query for peer addresses via DNS lookup, if low on "
                       "addresses (default: 1 unless -connect/-noconnect)"));
@@ -582,9 +599,10 @@ std::string HelpMessage(HelpMessageMode mode) {
         _("Whitelist peers connecting from the given IP address (e.g. 1.2.3.4) "
           "or CIDR notated network (e.g. 1.2.3.0/24). Can be specified "
           "multiple times.") +
-            " " + _("Whitelisted peers cannot be DoS banned and their "
-                    "transactions are always relayed, even if they are already "
-                    "in the mempool, useful e.g. for a gateway"));
+            " " +
+            _("Whitelisted peers cannot be DoS banned and their transactions "
+              "are always relayed, even if they are already in the mempool, "
+              "useful e.g. for a gateway"));
     strUsage += HelpMessageOpt(
         "-whitelistrelay",
         strprintf(_("Accept relayed transactions received from whitelisted "
@@ -601,9 +619,7 @@ std::string HelpMessage(HelpMessageMode mode) {
                     "MiB per 24h), 0 = no limit (default: %d)"),
                   DEFAULT_MAX_UPLOAD_TARGET));
 
-#ifdef ENABLE_WALLET
-    strUsage += CWallet::GetWalletHelpString(showDebug);
-#endif
+    strUsage += g_wallet_init_interface->GetHelpString(showDebug);
 
 #if ENABLE_ZMQ
     strUsage += HelpMessageGroup(_("ZeroMQ notification options:"));
@@ -648,19 +664,12 @@ std::string HelpMessage(HelpMessageMode mode) {
             "-checkpoints", strprintf("Only accept block chain matching "
                                       "built-in checkpoints (default: %d)",
                                       DEFAULT_CHECKPOINTS_ENABLED));
-        strUsage += HelpMessageOpt(
-            "-disablesafemode", strprintf("Disable safemode, override a real "
-                                          "safe mode event (default: %d)",
-                                          DEFAULT_DISABLE_SAFEMODE));
-        strUsage += HelpMessageOpt(
-            "-testsafemode",
-            strprintf("Force safe mode (default: %d)", DEFAULT_TESTSAFEMODE));
+        strUsage +=
+            HelpMessageOpt("-deprecatedrpc=<method>",
+                           "Allows deprecated RPC method(s) to be used");
         strUsage +=
             HelpMessageOpt("-dropmessagestest=<n>",
                            "Randomly drop 1 of every <n> network messages");
-        strUsage +=
-            HelpMessageOpt("-fuzzmessagestest=<n>",
-                           "Randomly fuzz 1 of every <n> network messages");
         strUsage += HelpMessageOpt(
             "-stopafterblockimport",
             strprintf(
@@ -692,14 +701,17 @@ std::string HelpMessage(HelpMessageMode mode) {
                       "more than <n> kilobytes of in-mempool descendants "
                       "(default: %u).",
                       DEFAULT_DESCENDANT_SIZE_LIMIT));
+        strUsage += HelpMessageOpt("-addrmantest",
+                                   "Allows to test address relay on localhost");
     }
     strUsage += HelpMessageOpt(
         "-debug=<category>",
         strprintf(_("Output debugging information (default: %u, supplying "
                     "<category> is optional)"),
                   0) +
-            ". " + _("If <category> is not supplied or if <category> = 1, "
-                     "output all debugging information.") +
+            ". " +
+            _("If <category> is not supplied or if <category> = 1, output all "
+              "debugging information.") +
             _("<category> can be:") + " " + ListLogCategories() + ".");
     strUsage += HelpMessageOpt(
         "-debugexclude=<category>",
@@ -764,7 +776,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strprintf(
             _("Fees (in %s/kB) smaller than this are considered zero fee for "
               "relaying, mining and transaction creation (default: %s)"),
-            CURRENCY_UNIT, FormatMoney(DEFAULT_MIN_RELAY_TX_FEE)));
+            CURRENCY_UNIT, FormatMoney(DEFAULT_MIN_RELAY_TX_FEE_PER_KB)));
     strUsage += HelpMessageOpt(
         "-maxtxfee=<amt>",
         strprintf(_("Maximum total fees (in %s) to use in a single wallet "
@@ -835,7 +847,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         "-blockmintxfee=<amt>",
         strprintf(_("Set lowest fee rate (in %s/kB) for transactions to be "
                     "included in block creation. (default: %s)"),
-                  CURRENCY_UNIT, FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE)));
+                  CURRENCY_UNIT, FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)));
     if (showDebug) {
         strUsage +=
             HelpMessageOpt("-blockversion=<n>",
@@ -913,8 +925,9 @@ std::string LicenseInfo() {
            strprintf(_("Please contribute if you find %s useful. "
                        "Visit %s for further information about the software."),
                      PACKAGE_NAME, URL_WEBSITE) +
-           "\n" + strprintf(_("The source code is available from %s."),
-                            URL_SOURCE_CODE) +
+           "\n" +
+           strprintf(_("The source code is available from %s."),
+                     URL_SOURCE_CODE) +
            "\n" + "\n" + _("This is experimental software.") + "\n" +
            strprintf(_("Distributed under the MIT software license, see the "
                        "accompanying file %s or %s"),
@@ -944,13 +957,13 @@ static void BlockNotifyCallback(bool initialSync,
 }
 
 static bool fHaveGenesis = false;
-static boost::mutex cs_GenesisWait;
+static CWaitableCriticalSection cs_GenesisWait;
 static CConditionVariable condvar_GenesisWait;
 
 static void BlockNotifyGenesisWait(bool, const CBlockIndex *pBlockIndex) {
     if (pBlockIndex != nullptr) {
         {
-            boost::unique_lock<boost::mutex> lock_GenesisWait(cs_GenesisWait);
+            LOCK(cs_GenesisWait);
             fHaveGenesis = true;
         }
         condvar_GenesisWait.notify_all();
@@ -1043,7 +1056,7 @@ void ThreadImport(const Config &config, std::vector<fs::path> vImportFiles) {
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
-            InitBlockIndex(config);
+            LoadGenesisBlock(config.GetChainParams());
         }
 
         // hardcoded $DATADIR/bootstrap.dat
@@ -1116,17 +1129,17 @@ bool InitSanityCheck(void) {
     return true;
 }
 
-static bool AppInitServers(Config &config, boost::thread_group &threadGroup) {
+static bool AppInitServers(Config &config,
+                           HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     RPCServerSignals::OnStarted(&OnRPCStarted);
     RPCServerSignals::OnStopped(&OnRPCStopped);
-    RPCServerSignals::OnPreCommand(&OnRPCPreCommand);
     if (!InitHTTPServer(config)) {
         return false;
     }
     if (!StartRPC()) {
         return false;
     }
-    if (!StartHTTPRPC(config)) {
+    if (!StartHTTPRPC(config, httpRPCRequestProcessor)) {
         return false;
     }
     if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) {
@@ -1243,6 +1256,11 @@ void InitParameterInteraction() {
                       __func__);
         }
     }
+
+    // Warn if network-specific options (-addnode, -connect, etc) are
+    // specified in default section of config file, but not overridden
+    // on the command line or in this network's section of the config file.
+    gArgs.WarnForSectionOnlyArgs();
 }
 
 static std::string ResolveErrMsg(const char *const optname,
@@ -1252,10 +1270,10 @@ static std::string ResolveErrMsg(const char *const optname,
 
 void InitLogging() {
     BCLog::Logger &logger = GetLogger();
-    logger.fPrintToConsole = gArgs.GetBoolArg("-printtoconsole", false);
-    logger.fLogTimestamps =
+    logger.m_print_to_console = gArgs.GetBoolArg("-printtoconsole", false);
+    logger.m_log_timestamps =
         gArgs.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
-    logger.fLogTimeMicros =
+    logger.m_log_time_micros =
         gArgs.GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
 
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
@@ -1269,7 +1287,7 @@ namespace { // Variables internal to initialization process only
 int nMaxConnections;
 int nUserMaxConnections;
 int nFD;
-ServiceFlags nLocalServices = NODE_NETWORK;
+ServiceFlags nLocalServices = ServiceFlags(NODE_NETWORK | NODE_NETWORK_LIMITED);
 } // namespace
 
 [[noreturn]] static void new_handler_terminate() {
@@ -1347,7 +1365,7 @@ bool AppInitBasicSetup() {
     return true;
 }
 
-bool AppInitParameterInteraction(Config &config) {
+bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
     const CChainParams &chainparams = config.GetChainParams();
     // Step 2: parameter interactions
 
@@ -1471,12 +1489,17 @@ bool AppInitParameterInteraction(Config &config) {
             0),
         1000000);
     if (ratio != 0) {
-        mempool.setSanityCheck(1.0 / ratio);
+        g_mempool.setSanityCheck(1.0 / ratio);
     }
     fCheckBlockIndex = gArgs.GetBoolArg("-checkblockindex",
                                         chainparams.DefaultConsistencyChecks());
     fCheckpointsEnabled =
         gArgs.GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED);
+    if (fCheckpointsEnabled) {
+        LogPrintf("Checkpoints will be verified.\n");
+    } else {
+        LogPrintf("Skipping checkpoint verification.\n");
+    }
 
     hashAssumeValid = uint256S(
         gArgs.GetArg("-assumevalid",
@@ -1575,9 +1598,9 @@ bool AppInitParameterInteraction(Config &config) {
         fPruneMode = true;
     }
 
-    RegisterAllRPCCommands(tableRPC);
+    RegisterAllRPCCommands(config, rpcServer, tableRPC);
+    g_wallet_init_interface->RegisterRPC(tableRPC);
 #ifdef ENABLE_WALLET
-    RegisterWalletRPCCommands(tableRPC);
     RegisterDumpRPCCommands(tableRPC);
 #endif
 
@@ -1610,10 +1633,10 @@ bool AppInitParameterInteraction(Config &config) {
             return InitError(AmountErrMsg("minrelaytxfee",
                                           gArgs.GetArg("-minrelaytxfee", "")));
         }
-        // High fee check is done afterward in CWallet::ParameterInteraction()
+        // High fee check is done afterward in WalletParameterInteraction()
         config.SetMinFeePerKB(CFeeRate(n));
     } else {
-        config.SetMinFeePerKB(CFeeRate(DEFAULT_MIN_RELAY_TX_FEE));
+        config.SetMinFeePerKB(CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB));
     }
 
     // Sanity check argument for min fee for including tx in block
@@ -1648,11 +1671,9 @@ bool AppInitParameterInteraction(Config &config) {
     }
     nBytesPerSigOp = gArgs.GetArg("-bytespersigop", nBytesPerSigOp);
 
-#ifdef ENABLE_WALLET
-    if (!CWallet::ParameterInteraction()) {
+    if (!g_wallet_init_interface->ParameterInteraction()) {
         return false;
     }
-#endif
 
     fIsBareMultisigStd =
         gArgs.GetBoolArg("-permitbaremultisig", DEFAULT_PERMIT_BAREMULTISIG);
@@ -1677,33 +1698,17 @@ bool AppInitParameterInteraction(Config &config) {
 }
 
 static bool LockDataDirectory(bool probeOnly) {
-    std::string strDataDir = GetDataDir().string();
-
     // Make sure only a single Bitcoin process is using the data directory.
-    fs::path pathLockFile = GetDataDir() / ".lock";
-    // empty lock file; created if it doesn't exist.
-    FILE *file = fsbridge::fopen(pathLockFile, "a");
-    if (file) {
-        fclose(file);
+    fs::path datadir = GetDataDir();
+    if (!DirIsWritable(datadir)) {
+        return InitError(strprintf(
+            _("Cannot write to data directory '%s'; check permissions."),
+            datadir.string()));
     }
-
-    try {
-        static boost::interprocess::file_lock lock(
-            pathLockFile.string().c_str());
-        if (!lock.try_lock()) {
-            return InitError(
-                strprintf(_("Cannot obtain a lock on data directory %s. %s is "
-                            "probably already running."),
-                          strDataDir, _(PACKAGE_NAME)));
-        }
-        if (probeOnly) {
-            lock.unlock();
-        }
-    } catch (const boost::interprocess::interprocess_exception &e) {
+    if (!LockDirectory(datadir, ".lock", probeOnly)) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory "
-                                     "%s. %s is probably already running.") +
-                                       " %s.",
-                                   strDataDir, _(PACKAGE_NAME), e.what()));
+                                     "%s. %s is probably already running."),
+                                   datadir.string(), _(PACKAGE_NAME)));
     }
     return true;
 }
@@ -1726,15 +1731,13 @@ bool AppInitSanityChecks() {
     }
 
     // Probe the data directory lock to give an early error message, if possible
+    // We cannot hold the data directory lock here, as the forking for daemon()
+    // hasn't yet happened, and a fork will cause weird behavior to it.
     return LockDataDirectory(true);
 }
 
-bool
-AppInitMain(Config &config, boost::thread_group &threadGroup,
-                 CScheduler &scheduler) {
-    const CChainParams &chainparams = config.GetChainParams();
-    // Step 4a: application initialization
 
+bool AppInitLockDataDirectory() {
     // After daemonization get the data directory lock again and hold on to it
     // until exit. This creates a slight window for a race condition to happen,
     // however this condition is harmless: it will at most make us exit without
@@ -1743,6 +1746,13 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
         // Detailed error printed inside LockDataDirectory
         return false;
     }
+    return true;
+}
+
+bool AppInitMain(Config &config,
+                 HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
+    // Step 4a: application initialization
+    const CChainParams &chainparams = config.GetChainParams();
 
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());
@@ -1757,13 +1767,15 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
         logger.ShrinkDebugFile();
     }
 
-    if (logger.fPrintToDebugLog) {
-        logger.OpenDebugLog();
+    if (logger.m_print_to_file) {
+        if (!logger.OpenDebugLog()) {
+            return InitError(strprintf("Could not open debug log file %s",
+                                       logger.GetDebugLogPath().string()));
+        }
     }
 
-    if (!logger.fLogTimestamps) {
-        LogPrintf("Startup time: %s\n",
-                  DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
+    if (!logger.m_log_timestamps) {
+        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
     }
     LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
     LogPrintf("Using data directory %s\n", GetDataDir().string());
@@ -1773,6 +1785,19 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
     LogPrintf("Using at most %i automatic connections (%i file descriptors "
               "available)\n",
               nMaxConnections, nFD);
+
+    // Warn about relative -datadir path.
+    if (gArgs.IsArgSet("-datadir") &&
+        !fs::path(gArgs.GetArg("-datadir", "")).is_absolute()) {
+        LogPrintf("Warning: relative datadir option '%s' specified, which will "
+                  "be interpreted relative to the current working directory "
+                  "'%s'. This is fragile, because if bitcoin is started in the "
+                  "future from a different location, it will be unable to "
+                  "locate the current data files. There could also be data "
+                  "loss if bitcoin is started while in a temporary "
+                  "directory.\n",
+                  gArgs.GetArg("-datadir", ""), fs::current_path().string());
+    }
 
     InitSignatureCache();
     InitScriptExecutionCache();
@@ -1791,6 +1816,9 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
     threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>,
                                           "scheduler", serviceLoop));
 
+    GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
+    GetMainSignals().RegisterWithMempoolSignals(g_mempool);
+
     /**
      * Start the RPC server.  It will be started in "warmup" mode and not
      * process calls yet (but it will verify that the server is there and will
@@ -1799,18 +1827,17 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
      */
     if (gArgs.GetBoolArg("-server", false)) {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus);
-        if (!AppInitServers(config, threadGroup)) {
+        if (!AppInitServers(config, httpRPCRequestProcessor)) {
             return InitError(
                 _("Unable to start HTTP server. See debug log for details."));
         }
     }
 
-// Step 5: verify wallet database integrity
-#ifdef ENABLE_WALLET
-    if (!CWallet::Verify(chainparams)) {
+    // Step 5: verify wallet database integrity
+    if (!g_wallet_init_interface->Verify(chainparams)) {
         return false;
     }
-#endif
+
     // Step 6: network initialization
 
     // Note that we absolutely cannot open any actual connections
@@ -1826,6 +1853,23 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
 
     peerLogic.reset(new PeerLogicValidation(&connman, scheduler));
     RegisterValidationInterface(peerLogic.get());
+
+    // sanitize comments per BIP-0014, format user agent and check total size
+    std::vector<std::string> uacomments;
+    for (const std::string &cmt : gArgs.GetArgs("-uacomment")) {
+        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT))
+            return InitError(strprintf(
+                _("User Agent comment (%s) contains unsafe characters."), cmt));
+        uacomments.push_back(cmt);
+    }
+    const std::string strSubVersion =
+        FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
+    if (strSubVersion.size() > MAX_SUBVERSION_LENGTH) {
+        return InitError(strprintf(
+            _("Total length of network version string (%i) exceeds maximum "
+              "length (%i). Reduce the number or size of uacomments."),
+            strSubVersion.size(), MAX_SUBVERSION_LENGTH));
+    }
 
     if (gArgs.IsArgSet("-onlynet")) {
         std::set<enum Network> nets;
@@ -1853,7 +1897,7 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
     // -noproxy (or -proxy=0) as well as the empty string can be used to not set
     // a proxy, this is the default
     std::string proxyArg = gArgs.GetArg("-proxy", "");
-    SetLimited(NET_TOR);
+    SetLimited(NET_ONION);
     if (proxyArg != "" && proxyArg != "0") {
         CService proxyAddr;
         if (!Lookup(proxyArg.c_str(), proxyAddr, 9050, fNameLookup)) {
@@ -1869,10 +1913,10 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
 
         SetProxy(NET_IPV4, addrProxy);
         SetProxy(NET_IPV6, addrProxy);
-        SetProxy(NET_TOR, addrProxy);
+        SetProxy(NET_ONION, addrProxy);
         SetNameProxy(addrProxy);
         // by default, -proxy sets onion as reachable, unless -noonion later
-        SetLimited(NET_TOR, false);
+        SetLimited(NET_ONION, false);
     }
 
     // -onion can be used to set only a proxy for .onion, or override normal
@@ -1882,8 +1926,8 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
     // to -proxy set above, or none)
     std::string onionArg = gArgs.GetArg("-onion", "");
     if (onionArg != "") {
-        if (onionArg == "0") {   // Handle -noonion/-onion=0
-            SetLimited(NET_TOR); // set onions as unreachable
+        if (onionArg == "0") {     // Handle -noonion/-onion=0
+            SetLimited(NET_ONION); // set onions as unreachable
         } else {
             CService onionProxy;
             if (!Lookup(onionArg.c_str(), onionProxy, 9050, fNameLookup)) {
@@ -1895,8 +1939,8 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
                 return InitError(strprintf(
                     _("Invalid -onion address or hostname: '%s'"), onionArg));
             }
-            SetProxy(NET_TOR, addrOnion);
-            SetLimited(NET_TOR, false);
+            SetProxy(NET_ONION, addrOnion);
+            SetLimited(NET_ONION, false);
         }
     }
 
@@ -1978,20 +2022,17 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
 
         uiInterface.InitMessage(_("Loading block index..."));
 
+        LOCK(cs_main);
+
         nStart = GetTimeMillis();
         do {
             try {
                 UnloadBlockIndex();
-                delete pcoinsTip;
-                delete pcoinsdbview;
-                delete pcoinscatcher;
-                delete pblocktree;
-
-                pblocktree =
-                    new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
-                pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false,
-                                                fReindex || fReindexChainState);
-                pcoinscatcher = new CCoinsViewErrorCatcher(pcoinsdbview);
+                pcoinsTip.reset();
+                pcoinsdbview.reset();
+                pcoinscatcher.reset();
+                pblocktree.reset(
+                    new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
 
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
@@ -2000,14 +2041,15 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
                     if (fPruneMode) {
                         CleanupBlockRevFiles();
                     }
-                } else if (!pcoinsdbview->Upgrade()) {
-                    strLoadError = _("Error upgrading chainstate database");
-                    break;
                 }
+
                 if (fRequestShutdown) {
                     break;
                 }
 
+                // LoadBlockIndex will load fTxIndex from the db, or set it if
+                // we're reindexing. It will also load fHavePruned if we've
+                // ever removed a block file from disk.
                 if (!LoadBlockIndex(config)) {
                     strLoadError = _("Error loading block database");
                     break;
@@ -2017,17 +2059,10 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
                 // (we're likely using a testnet datadir, or the other way
                 // around).
                 if (!mapBlockIndex.empty() &&
-                    mapBlockIndex.count(
-                        chainparams.GetConsensus().hashGenesisBlock) == 0) {
+                    !LookupBlockIndex(
+                        chainparams.GetConsensus().hashGenesisBlock)) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?"));
-                }
-
-                // Initialize the block index (no-op if non-empty database was
-                // already loaded)
-                if (!InitBlockIndex(config)) {
-                    strLoadError = _("Error initializing block database");
-                    break;
                 }
 
                 // Check for changed -txindex state
@@ -2048,17 +2083,58 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
                     break;
                 }
 
-                if (!ReplayBlocks(config, pcoinsdbview)) {
+                // At this point blocktree args are consistent with what's on
+                // disk. If we're not mid-reindex (based on disk + args), add a
+                // genesis block on disk. This is called again in ThreadImport
+                // if the reindex completes.
+                if (!fReindex && !LoadGenesisBlock(chainparams)) {
+                    strLoadError = _("Error initializing block database");
+                    break;
+                }
+
+                // At this point we're either in reindex or we've loaded a
+                // useful block tree into mapBlockIndex!
+
+                pcoinsdbview.reset(new CCoinsViewDB(
+                    nCoinDBCache, false, fReset || fReindexChainState));
+                pcoinscatcher.reset(
+                    new CCoinsViewErrorCatcher(pcoinsdbview.get()));
+
+                // If necessary, upgrade from older database format.
+                // This is a no-op if we cleared the coinsviewdb with -reindex
+                // or -reindex-chainstate
+                if (!pcoinsdbview->Upgrade()) {
+                    strLoadError = _("Error upgrading chainstate database");
+                    break;
+                }
+
+                // ReplayBlocks is a no-op if we cleared the coinsviewdb with
+                // -reindex or -reindex-chainstate
+                if (!ReplayBlocks(config, pcoinsdbview.get())) {
                     strLoadError =
                         _("Unable to replay blocks. You will need to rebuild "
                           "the database using -reindex-chainstate.");
                     break;
                 }
 
-                pcoinsTip = new CCoinsViewCache(pcoinscatcher);
-                LoadChainTip(chainparams);
+                // The on-disk coinsdb is now in a good state, create the cache
+                pcoinsTip.reset(new CCoinsViewCache(pcoinscatcher.get()));
 
-                if (!fReindex && chainActive.Tip() != nullptr) {
+                if (!fReindex && !fReindexChainState) {
+                    // LoadChainTip sets chainActive based on pcoinsTip's best
+                    // block
+                    if (!LoadChainTip(config)) {
+                        strLoadError = _("Error initializing block database");
+                        break;
+                    }
+                    assert(chainActive.Tip() != nullptr);
+                }
+
+                if (!fReindex) {
+                    // Note that RewindBlockIndex MUST run even if we're about
+                    // to -reindex-chainstate. It both disconnects blocks based
+                    // on chainActive, and drops block data in mapBlockIndex
+                    // based on lack of available witness data.
                     uiInterface.InitMessage(_("Rewinding blocks..."));
                     if (!RewindBlockIndex(config)) {
                         strLoadError = _("Unable to rewind the database to a "
@@ -2068,39 +2144,38 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
                     }
                 }
 
-                uiInterface.InitMessage(_("Verifying blocks..."));
-                if (fHavePruned &&
-                    gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) >
-                        MIN_BLOCKS_TO_KEEP) {
-                    LogPrintf("Prune: pruned datadir may not have more than %d "
-                              "blocks; only checking available blocks",
-                              MIN_BLOCKS_TO_KEEP);
-                }
+                if (!fReindex && !fReindexChainState) {
+                    uiInterface.InitMessage(_("Verifying blocks..."));
+                    if (fHavePruned &&
+                        gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) >
+                            MIN_BLOCKS_TO_KEEP) {
+                        LogPrintf("Prune: pruned datadir may not have more "
+                                  "than %d blocks; only checking available "
+                                  "blocks",
+                                  MIN_BLOCKS_TO_KEEP);
+                    }
 
-                {
-                    LOCK(cs_main);
                     CBlockIndex *tip = chainActive.Tip();
                     RPCNotifyBlockChange(true, tip);
-                    if (tip &&
-                        tip->nTime >
-                            GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
-                        strLoadError =
-                            _("The block database contains a block which "
-                              "appears to be from the future. "
-                              "This may be due to your computer's date and "
-                              "time being set incorrectly. "
-                              "Only rebuild the block database if you are sure "
-                              "that your computer's date and time are correct");
+                    if (tip && tip->nTime >
+                                   GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
+                        strLoadError = _(
+                            "The block database contains a block which appears "
+                            "to be from the future. This may be due to your "
+                            "computer's date and time being set incorrectly. "
+                            "Only rebuild the block database if you are sure "
+                            "that your computer's date and time are correct");
                         break;
                     }
-                }
 
-                if (!CVerifyDB().VerifyDB(
-                        config, pcoinsdbview,
-                        gArgs.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
-                        gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS))) {
-                    strLoadError = _("Corrupted block database detected");
-                    break;
+                    if (!CVerifyDB().VerifyDB(
+                            config, pcoinsdbview.get(),
+                            gArgs.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
+                            gArgs.GetArg("-checkblocks",
+                                         DEFAULT_CHECKBLOCKS))) {
+                        strLoadError = _("Corrupted block database detected");
+                        break;
+                    }
                 }
             } catch (const std::exception &e) {
                 LogPrintf("%s\n", e.what());
@@ -2145,29 +2220,16 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
     }
     LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
 
-    fs::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-    CAutoFile est_filein(fsbridge::fopen(est_path, "rb"), SER_DISK,
-                         CLIENT_VERSION);
-    // Allowed to fail as this file IS missing on first startup.
-    if (!est_filein.IsNull()) {
-        mempool.ReadFeeEstimates(est_filein);
-    }
-    fFeeEstimatesInitialized = true;
-
     // Encoded addresses using cashaddr instead of base58
     // Activates by default on Jan, 14
     config.SetCashAddrEncoding(
         gArgs.GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
 	mastercore_init();
 
-// Step 8: load wallet
-#ifdef ENABLE_WALLET
-    if (!CWallet::InitLoadWallet(chainparams)) {
+    // Step 8: load wallet
+    if (!g_wallet_init_interface->Open(chainparams)) {
         return false;
     }
-#else
-    LogPrintf("No wallet support compiled in!\n");
-#endif
 
     // Step 9: data directory maintenance
 
@@ -2210,18 +2272,28 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
 
     // Wait for genesis block to be processed
     {
-        boost::unique_lock<boost::mutex> lock(cs_GenesisWait);
-        while (!fHaveGenesis) {
-            condvar_GenesisWait.wait(lock);
+        WAIT_LOCK(cs_GenesisWait, lock);
+        // We previously could hang here if StartShutdown() is called prior to
+        // ThreadImport getting started, so instead we just wait on a timer to
+        // check ShutdownRequested() regularly.
+        while (!fHaveGenesis && !ShutdownRequested()) {
+            condvar_GenesisWait.wait_for(lock, std::chrono::milliseconds(500));
         }
         uiInterface.NotifyBlockTip.disconnect(BlockNotifyGenesisWait);
     }
 
     // Step 11: start node
 
+    int chain_active_height;
+
     //// debug print
-    LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());
-    LogPrintf("nBestHeight = %d\n", chainActive.Height());
+    {
+        LOCK(cs_main);
+        LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());
+        chain_active_height = chainActive.Height();
+    }
+    LogPrintf("nBestHeight = %d\n", chain_active_height);
+
     if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) {
         StartTorControl();
     }
@@ -2240,7 +2312,7 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
         std::min(MAX_OUTBOUND_CONNECTIONS, connOptions.nMaxConnections);
     connOptions.nMaxAddnode = MAX_ADDNODE_CONNECTIONS;
     connOptions.nMaxFeeler = 1;
-    connOptions.nBestHeight = chainActive.Height();
+    connOptions.nBestHeight = chain_active_height;
     connOptions.uiInterface = &uiInterface;
     connOptions.m_msgproc = peerLogic.get();
     connOptions.nSendBufferMaxSize =
@@ -2301,11 +2373,7 @@ AppInitMain(Config &config, boost::thread_group &threadGroup,
     SetRPCWarmupFinished();
     uiInterface.InitMessage(_("Done loading"));
 
-#ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        pwallet->postInitProcess(scheduler);
-    }
-#endif
+    g_wallet_init_interface->Start(scheduler);
 
     return !fRequestShutdown;
 }

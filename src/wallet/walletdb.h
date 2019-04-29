@@ -51,13 +51,13 @@ class uint160;
 class uint256;
 
 /** Error statuses for the wallet database */
-enum DBErrors {
-    DB_LOAD_OK,
-    DB_CORRUPT,
-    DB_NONCRITICAL_ERROR,
-    DB_TOO_NEW,
-    DB_LOAD_FAIL,
-    DB_NEED_REWRITE
+enum class DBErrors {
+    LOAD_OK,
+    CORRUPT,
+    NONCRITICAL_ERROR,
+    TOO_NEW,
+    LOAD_FAIL,
+    NEED_REWRITE
 };
 
 /* simple HD chain data model */
@@ -107,7 +107,7 @@ public:
     CKeyID hdMasterKeyID;
 
     CKeyMetadata() { SetNull(); }
-    CKeyMetadata(int64_t nCreateTime_) {
+    explicit CKeyMetadata(int64_t nCreateTime_) {
         SetNull();
         nCreateTime = nCreateTime_;
     }
@@ -159,8 +159,8 @@ private:
     }
 
 public:
-    CWalletDB(CWalletDBWrapper &dbw, const char *pszMode = "r+",
-              bool _fFlushOnClose = true)
+    explicit CWalletDB(CWalletDBWrapper &dbw, const char *pszMode = "r+",
+                       bool _fFlushOnClose = true)
         : batch(dbw, pszMode, _fFlushOnClose), m_dbw(dbw) {}
 
     bool WriteName(const CTxDestination &address, const std::string &strName);
@@ -240,11 +240,11 @@ public:
     static bool IsKeyType(const std::string &strType);
     /* verifies the database environment */
     static bool VerifyEnvironment(const std::string &walletFile,
-                                  const fs::path &dataDir,
+                                  const fs::path &walletDir,
                                   std::string &errorStr);
     /* verifies the database file */
     static bool VerifyDatabaseFile(const std::string &walletFile,
-                                   const fs::path &dataDir,
+                                   const fs::path &walletDir,
                                    std::string &warningStr,
                                    std::string &errorStr);
 

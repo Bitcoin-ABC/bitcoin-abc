@@ -3463,10 +3463,6 @@
         <translation>トランザクションの中継、採掘および作成の際には、この値未満の手数料 (%s/kB単位) はゼロであるとみなす (デフォルト: %s)</translation>
     </message>
     <message>
-        <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
-        <translation>paytxfee が設定されていなかった場合、平均して n ブロック以内にトランザクションが検証され始めるのに十分な手数料を含める (初期値: %u)</translation>
-    </message>
-    <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)</source>
         <translation>-maxtxfee=&lt;amount&gt; の数量の指定が不正です: '%s' (トランザクションが詰まってしまうのを防ぐため、少なくとも %s の最小中継手数料を指定しなければいけません)</translation>
     </message>

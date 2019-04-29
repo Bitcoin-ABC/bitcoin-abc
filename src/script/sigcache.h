@@ -6,7 +6,7 @@
 #ifndef BITCOIN_SCRIPT_SIGCACHE_H
 #define BITCOIN_SCRIPT_SIGCACHE_H
 
-#include "script/interpreter.h"
+#include <script/interpreter.h>
 
 #include <vector>
 
@@ -43,6 +43,9 @@ class CachingTransactionSignatureChecker : public TransactionSignatureChecker {
 private:
     bool store;
 
+    bool IsCached(const std::vector<uint8_t> &vchSig, const CPubKey &vchPubKey,
+                  const uint256 &sighash, uint32_t flags) const;
+
 public:
     CachingTransactionSignatureChecker(const CTransaction *txToIn,
                                        unsigned int nInIn,
@@ -52,8 +55,10 @@ public:
           store(storeIn) {}
 
     bool VerifySignature(const std::vector<uint8_t> &vchSig,
-                         const CPubKey &vchPubKey,
-                         const uint256 &sighash) const override;
+                         const CPubKey &vchPubKey, const uint256 &sighash,
+                         uint32_t flags) const override;
+
+    friend class TestCachingTransactionSignatureChecker;
 };
 
 void InitSignatureCache();

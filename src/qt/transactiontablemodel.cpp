@@ -73,10 +73,10 @@ public:
         cachedWallet.clear();
 
         LOCK2(cs_main, wallet->cs_wallet);
-        for (const std::pair<TxId, CWalletTx> &p : wallet->mapWallet) {
-            if (TransactionRecord::showTransaction(p.second)) {
-                cachedWallet.append(
-                    TransactionRecord::decomposeTransaction(wallet, p.second));
+        for (const auto &entry : wallet->mapWallet) {
+            if (TransactionRecord::showTransaction(entry.second)) {
+                cachedWallet.append(TransactionRecord::decomposeTransaction(
+                    wallet, entry.second));
             }
         }
     }
@@ -221,8 +221,7 @@ public:
         std::map<TxId, CWalletTx>::iterator mi =
             wallet->mapWallet.find(rec->txid);
         if (mi != wallet->mapWallet.end()) {
-            std::string strHex =
-                EncodeHexTx(static_cast<CTransaction>(mi->second));
+            std::string strHex = EncodeHexTx(*mi->second.tx);
             return QString::fromStdString(strHex);
         }
         return QString();

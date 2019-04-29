@@ -38,12 +38,23 @@
 #cmakedefine HAVE_DECL_BSWAP_32 1
 #cmakedefine HAVE_DECL_BSWAP_64 1
 
+#cmakedefine HAVE_SYS_SELECT_H 1
+#cmakedefine HAVE_SYS_PRCTL_H 1
+
 #cmakedefine HAVE_DECL___BUILTIN_CLZ 1
 #cmakedefine HAVE_DECL___BUILTIN_CLZL 1
 #cmakedefine HAVE_DECL___BUILTIN_CLZLL 1
+#cmakedefine HAVE_DECL___BUILTIN_POPCOUNT 1
+
+#cmakedefine HAVE_MALLOPT_ARENA_MAX 1
+#cmakedefine HAVE_MALLOC_INFO 1
 
 #cmakedefine HAVE_DECL_STRNLEN 1
 #cmakedefine HAVE_DECL_DAEMON 1
+#cmakedefine HAVE_GETENTROPY 1
+#cmakedefine HAVE_GETENTROPY_RAND 1
+#cmakedefine HAVE_SYS_GETRANDOM 1
+#cmakedefine HAVE_SYSCTL_ARND 1
 
 #cmakedefine HAVE_DECL_EVP_MD_CTX_NEW 1
 

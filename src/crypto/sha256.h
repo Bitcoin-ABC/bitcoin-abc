@@ -31,4 +31,12 @@ public:
  */
 std::string SHA256AutoDetect();
 
+/**
+ * Compute multiple double-SHA256's of 64-byte blobs.
+ * output:  pointer to a blocks*32 byte output buffer
+ * input:   pointer to a blocks*64 byte input buffer
+ * blocks:  the number of hashes to compute.
+ */
+void SHA256D64(uint8_t *output, const uint8_t *input, size_t blocks);
+
 #endif // BITCOIN_CRYPTO_SHA256_H

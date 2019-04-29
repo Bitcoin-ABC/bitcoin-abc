@@ -96,13 +96,6 @@ function(add_secp256k1_bench NAME)
 	add_dependencies(bench-secp256k1 ${NAME})
 endfunction(add_secp256k1_bench)
 
-# Recovery module
-option(SECP256K1_ENABLE_MODULE_RECOVERY "Build libsecp256k1's recovery module" ON)
-if(SECP256K1_ENABLE_MODULE_RECOVERY)
-	set(ENABLE_MODULE_RECOVERY 1)
-	add_secp256k1_bench(bench_recover src/bench_recover.c)
-endif()
-
 # ECDH module
 option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" OFF)
 if(SECP256K1_ENABLE_MODULE_ECDH)
@@ -115,6 +108,19 @@ option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" O
 if(SECP256K1_ENABLE_MODULE_MULTISET)
     set(ENABLE_MODULE_MULTISET 1)
 	add_secp256k1_bench(bench_multiset src/bench_multiset.c)
+endif()
+
+# Recovery module
+option(SECP256K1_ENABLE_MODULE_RECOVERY "Build libsecp256k1's recovery module" ON)
+if(SECP256K1_ENABLE_MODULE_RECOVERY)
+	set(ENABLE_MODULE_RECOVERY 1)
+	add_secp256k1_bench(bench_recover src/bench_recover.c)
+endif()
+
+# Schnorr module
+option(SECP256K1_ENABLE_MODULE_SCHNORR "Build libsecp256k1's Schnorr module" ON)
+if(SECP256K1_ENABLE_MODULE_SCHNORR)
+	set(ENABLE_MODULE_SCHNORR 1)
 endif()
 
 # Static precomputation for eliptic curve mutliplication
@@ -148,8 +154,8 @@ if(SECP256K1_BUILD_TEST)
 		link_secp256k1_internal(${NAME})
 	endfunction()
 
-	create_secp256k1_test(secp256k1_tests src/tests.c)
-	target_compile_definitions(secp256k1_tests PRIVATE VERIFY)
+	create_secp256k1_test(tests src/tests.c)
+	target_compile_definitions(tests PRIVATE VERIFY)
 
 	create_secp256k1_test(exhaustive_tests src/tests_exhaustive.c)
 	# This should not be enabled at the same time as coverage is.

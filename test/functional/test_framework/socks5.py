@@ -4,10 +4,10 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Dummy Socks5 server for testing."""
 
+import logging
+import queue
 import socket
 import threading
-import queue
-import logging
 
 logger = logging.getLogger("TestFramework.socks5")
 
@@ -62,7 +62,8 @@ class Socks5Command():
         self.password = password
 
     def __repr__(self):
-        return 'Socks5Command(%s,%s,%s,%s,%s,%s)' % (self.cmd, self.atyp, self.addr, self.port, self.username, self.password)
+        return 'Socks5Command({},{},{},{},{},{})'.format(
+            self.cmd, self.atyp, self.addr, self.port, self.username, self.password)
 
 
 class Socks5Connection():
@@ -77,7 +78,7 @@ class Socks5Connection():
             # Verify socks version
             ver = recvall(self.conn, 1)[0]
             if ver != 0x05:
-                raise IOError('Invalid socks version %i' % ver)
+                raise IOError('Invalid socks version {}'.format(ver))
             # Choose authentication method
             nmethods = recvall(self.conn, 1)[0]
             methods = bytearray(recvall(self.conn, nmethods))
@@ -96,7 +97,7 @@ class Socks5Connection():
             if method == 0x02:
                 ver = recvall(self.conn, 1)[0]
                 if ver != 0x01:
-                    raise IOError('Invalid auth packet version %i' % ver)
+                    raise IOError('Invalid auth packet version {}'.format(ver))
                 ulen = recvall(self.conn, 1)[0]
                 username = str(recvall(self.conn, ulen))
                 plen = recvall(self.conn, 1)[0]
@@ -105,12 +106,13 @@ class Socks5Connection():
                 self.conn.sendall(bytearray([0x01, 0x00]))
 
             # Read connect request
-            (ver, cmd, rsv, atyp) = recvall(self.conn, 4)
+            ver, cmd, _, atyp = recvall(self.conn, 4)
             if ver != 0x05:
                 raise IOError(
-                    'Invalid socks version %i in connect request' % ver)
+                    'Invalid socks version {} in connect request'.format(ver))
             if cmd != Command.CONNECT:
-                raise IOError('Unhandled command %i in connect request' % cmd)
+                raise IOError(
+                    'Unhandled command {} in connect request'.format(cmd))
 
             if atyp == AddressType.IPV4:
                 addr = recvall(self.conn, 4)
@@ -120,7 +122,7 @@ class Socks5Connection():
             elif atyp == AddressType.IPV6:
                 addr = recvall(self.conn, 16)
             else:
-                raise IOError('Unknown address type %i' % atyp)
+                raise IOError('Unknown address type {}'.format(atyp))
             port_hi, port_lo = recvall(self.conn, 2)
             port = (port_hi << 8) | port_lo
 
@@ -130,7 +132,7 @@ class Socks5Connection():
 
             cmdin = Socks5Command(cmd, atyp, addr, port, username, password)
             self.serv.queue.put(cmdin)
-            logger.info('Proxy: %s', cmdin)
+            logger.info('Proxy: {}'.format(cmdin))
             # Fall through to disconnect
         except Exception as e:
             logger.exception("socks5 request handling failed.")

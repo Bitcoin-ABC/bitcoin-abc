@@ -7,21 +7,21 @@
 #ifndef BITCOIN_NET_H
 #define BITCOIN_NET_H
 
-#include "addrdb.h"
-#include "addrman.h"
-#include "amount.h"
-#include "bloom.h"
-#include "chainparams.h"
-#include "compat.h"
-#include "hash.h"
-#include "limitedmap.h"
-#include "netaddress.h"
-#include "protocol.h"
-#include "random.h"
-#include "streams.h"
-#include "sync.h"
-#include "threadinterrupt.h"
-#include "uint256.h"
+#include <addrdb.h>
+#include <addrman.h>
+#include <amount.h>
+#include <bloom.h>
+#include <chainparams.h>
+#include <compat.h>
+#include <hash.h>
+#include <limitedmap.h>
+#include <netaddress.h>
+#include <protocol.h>
+#include <random.h>
+#include <streams.h>
+#include <sync.h>
+#include <threadinterrupt.h>
+#include <uint256.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -52,6 +52,10 @@ static const int TIMEOUT_INTERVAL = 20 * 60;
 static const int FEELER_INTERVAL = 120;
 /** The maximum number of entries in an 'inv' protocol message */
 static const unsigned int MAX_INV_SZ = 50000;
+static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
+              "Max protocol message length must be greater than largest "
+              "possible INV message");
+
 /** The maximum number of new addresses to accumulate before announcing. */
 static const unsigned int MAX_ADDR_TO_SEND = 1000;
 /** Maximum length of strSubVer in `version` message */
@@ -98,7 +102,7 @@ struct AddedNodeInfo {
     bool fInbound;
 };
 
-class CNodeStats;
+struct CNodeStats;
 class CClientUIInterface;
 
 struct CSerializedNetMsg {
@@ -170,7 +174,7 @@ public:
     void Interrupt();
     bool GetNetworkActive() const { return fNetworkActive; };
     void SetNetworkActive(bool active);
-    bool OpenNetworkConnection(const CAddress &addrConnect, bool fCountFailure,
+    void OpenNetworkConnection(const CAddress &addrConnect, bool fCountFailure,
                                CSemaphoreGrant *grantOutbound = nullptr,
                                const char *strDest = nullptr,
                                bool fOneShot = false, bool fFeeler = false,
@@ -184,14 +188,18 @@ public:
     template <typename Callable> void ForEachNode(Callable &&func) {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) func(node);
+            if (NodeFullyConnected(node)) {
+                func(node);
+            }
         }
     };
 
     template <typename Callable> void ForEachNode(Callable &&func) const {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) func(node);
+            if (NodeFullyConnected(node)) {
+                func(node);
+            }
         }
     };
 
@@ -199,7 +207,9 @@ public:
     void ForEachNodeThen(Callable &&pre, CallableAfter &&post) {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) pre(node);
+            if (NodeFullyConnected(node)) {
+                pre(node);
+            }
         }
         post();
     };
@@ -208,7 +218,9 @@ public:
     void ForEachNodeThen(Callable &&pre, CallableAfter &&post) const {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) pre(node);
+            if (NodeFullyConnected(node)) {
+                pre(node);
+            }
         }
         post();
     };
@@ -217,12 +229,9 @@ public:
     size_t GetAddressCount() const;
     void SetServices(const CService &addr, ServiceFlags nServices);
     void MarkAddressGood(const CAddress &addr);
-    void AddNewAddress(const CAddress &addr, const CAddress &addrFrom,
-                       int64_t nTimePenalty = 0);
     void AddNewAddresses(const std::vector<CAddress> &vAddr,
                          const CAddress &addrFrom, int64_t nTimePenalty = 0);
     std::vector<CAddress> GetAddresses();
-    void AddressCurrentlyConnected(const CService &addr);
 
     // Denial-of-service detection/prevention. The idea is to detect peers that
     // are behaving badly and disconnect/ban them, but do it in a
@@ -267,8 +276,6 @@ public:
     void GetNodeStats(std::vector<CNodeStats> &vstats);
     bool DisconnectNode(const std::string &node);
     bool DisconnectNode(NodeId id);
-
-    unsigned int GetSendBufferSize() const;
 
     ServiceFlags GetLocalServices() const;
 
@@ -421,7 +428,7 @@ private:
     bool fMsgProcWake;
 
     std::condition_variable condMsgProc;
-    std::mutex mutexMsgProc;
+    CWaitableCriticalSection mutexMsgProc;
     std::atomic<bool> flagInterruptMsgProc;
 
     CThreadInterrupt interruptNet;
@@ -441,6 +448,7 @@ private:
 
     friend struct CConnmanTest;
 };
+
 extern std::unique_ptr<CConnman> g_connman;
 void Discover();
 void StartMapPort();
@@ -449,20 +457,6 @@ void StopMapPort();
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string &strError,
                     bool fWhitelisted = false);
-
-struct CombinerAll {
-    typedef bool result_type;
-
-    template <typename I> bool operator()(I first, I last) const {
-        while (first != last) {
-            if (!(*first)) {
-                return false;
-            }
-            ++first;
-        }
-        return true;
-    }
-};
 
 /**
  * Interface for message handling
@@ -508,7 +502,7 @@ bool IsLimited(enum Network net);
 bool IsLimited(const CNetAddr &addr);
 bool AddLocal(const CService &addr, int nScore = LOCAL_NONE);
 bool AddLocal(const CNetAddr &addr, int nScore = LOCAL_NONE);
-bool RemoveLocal(const CService &addr);
+void RemoveLocal(const CService &addr);
 bool SeenLocal(const CService &addr);
 bool IsLocal(const CService &addr);
 bool GetLocal(CService &addr, const CNetAddr *paddrPeer = nullptr);
@@ -534,8 +528,12 @@ extern std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
 // Command, total bytes
 typedef std::map<std::string, uint64_t> mapMsgCmdSize;
 
-class CNodeStats {
-public:
+/**
+ * POD that contains various stats about a node.
+ * Usually constructed from CConman::GetNodeStats. Stats are filled from the
+ * node using CNode::copyStats.
+ */
+struct CNodeStats {
     NodeId nodeid;
     ServiceFlags nServices;
     bool fRelayTxes;
@@ -669,6 +667,8 @@ public:
     bool fOneShot;
     bool m_manual_connection;
     bool fClient;
+    // after BIP159
+    bool m_limited_node;
     const bool fInbound;
     std::atomic_bool fSuccessfullyConnected;
     std::atomic_bool fDisconnect;

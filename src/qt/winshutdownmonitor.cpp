@@ -4,9 +4,9 @@
 
 #include "winshutdownmonitor.h"
 
-#if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
-#include "init.h"
-#include "util.h"
+#if defined(Q_OS_WIN)
+#include <init.h>
+#include <util.h>
 
 #include <openssl/rand.h>
 #include <windows.h>

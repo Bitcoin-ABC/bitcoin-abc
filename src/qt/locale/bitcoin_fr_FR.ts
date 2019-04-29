@@ -43,7 +43,7 @@
     </message>
     <message>
         <source>C&amp;hoose</source>
-        <translation>C&amp;oisir</translation>
+        <translation>C&amp;hoisir</translation>
     </message>
     <message>
         <source>Copy &amp;Label</source>
@@ -1310,7 +1310,7 @@
     </message>
     <message>
         <source>S&amp;end</source>
-        <translation>E&amp;voyer</translation>
+        <translation>E&amp;nvoyer</translation>
     </message>
     <message>
         <source>Copy amount</source>

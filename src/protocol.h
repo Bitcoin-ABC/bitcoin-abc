@@ -22,10 +22,10 @@
 class Config;
 
 /**
- * Maximum length of incoming protocol messages (Currently 1MB).
+ * Maximum length of incoming protocol messages (Currently 2MB).
  * NB: Messages propagating block content are not subject to this limit.
  */
-static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 1 * 1024 * 1024;
+static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 2 * 1024 * 1024;
 
 /**
  * Message header.
@@ -36,20 +36,19 @@ static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 1 * 1024 * 1024;
  */
 class CMessageHeader {
 public:
-    enum {
-        MESSAGE_START_SIZE = 4,
-        COMMAND_SIZE = 12,
-        MESSAGE_SIZE_SIZE = 4,
-        CHECKSUM_SIZE = 4,
-
-        MESSAGE_SIZE_OFFSET = MESSAGE_START_SIZE + COMMAND_SIZE,
-        CHECKSUM_OFFSET = MESSAGE_SIZE_OFFSET + MESSAGE_SIZE_SIZE,
-        HEADER_SIZE = MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE +
-                      CHECKSUM_SIZE
-    };
+    static constexpr size_t MESSAGE_START_SIZE = 4;
+    static constexpr size_t COMMAND_SIZE = 12;
+    static constexpr size_t MESSAGE_SIZE_SIZE = 4;
+    static constexpr size_t CHECKSUM_SIZE = 4;
+    static constexpr size_t MESSAGE_SIZE_OFFSET =
+        MESSAGE_START_SIZE + COMMAND_SIZE;
+    static constexpr size_t CHECKSUM_OFFSET =
+        MESSAGE_SIZE_OFFSET + MESSAGE_SIZE_SIZE;
+    static constexpr size_t HEADER_SIZE =
+        MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE + CHECKSUM_SIZE;
     typedef std::array<uint8_t, MESSAGE_START_SIZE> MessageMagic;
 
-    CMessageHeader(const MessageMagic &pchMessageStartIn);
+    explicit CMessageHeader(const MessageMagic &pchMessageStartIn);
     CMessageHeader(const MessageMagic &pchMessageStartIn,
                    const char *pszCommand, unsigned int nMessageSizeIn);
 
@@ -252,6 +251,16 @@ extern const char *GETBLOCKTXN;
  * @since protocol version 70014 as described by BIP 152
  */
 extern const char *BLOCKTXN;
+/**
+ * Contains an AvalanchePoll.
+ * Peer should respond with "avaresponse" message.
+ */
+extern const char *AVAPOLL;
+/**
+ * Contains an AvalancheResponse.
+ * Sent in response to a "avapoll" message.
+ */
+extern const char *AVARESPONSE;
 
 /**
  * Indicate if the message is used to transmit the content of a block.
@@ -270,9 +279,9 @@ const std::vector<std::string> &getAllNetMessageTypes();
 enum ServiceFlags : uint64_t {
     // Nothing
     NODE_NONE = 0,
-    // NODE_NETWORK means that the node is capable of serving the block chain.
-    // It is currently set by all Bitcoin ABC nodes, and is unset by SPV clients
-    // or other peers that just want network services but don't provide them.
+    // NODE_NETWORK means that the node is capable of serving the complete block
+    // chain. It is currently set by all Bitcoin ABC non pruned nodes, and is
+    // unset by SPV clients or other light clients.
     NODE_NETWORK = (1 << 0),
     // NODE_GETUTXO means the node is capable of responding to the getutxo
     // protocol request. Bitcoin ABC does not support this but a patch set
@@ -294,6 +303,13 @@ enum ServiceFlags : uint64_t {
     // TODO: remove (free up) the NODE_BITCOIN_CASH service bit once no longer
     // needed.
     NODE_BITCOIN_CASH = (1 << 5),
+    // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation
+    // of only serving the last 288 (2 day) blocks
+    // See BIP159 for details on how this is implemented.
+    NODE_NETWORK_LIMITED = (1 << 10),
+
+    // The last non experimental service bit, helper for looping over the flags
+    NODE_LAST_NON_EXPERIMENTAL_SERVICE_BIT = (1 << 23),
 
     // Bits 24-31 are reserved for temporary experiments. Just pick a bit that
     // isn't getting used, or one not being used much, and notify the
@@ -302,6 +318,10 @@ enum ServiceFlags : uint64_t {
     // collisions and other cases where nodes may be advertising a service they
     // do not actually support. Other service bits should be allocated via the
     // BIP process.
+
+    // NODE_AVALANCHE means the node supports Bitcoin Cash's avalanche
+    // preconsensus mechanism.
+    NODE_AVALANCHE = (1 << 24),
 };
 
 /**
@@ -318,11 +338,23 @@ enum ServiceFlags : uint64_t {
  * unless they set NODE_NETWORK_LIMITED and we are out of IBD, in which
  * case NODE_NETWORK_LIMITED suffices).
  *
- * Thus, generally, avoid calling with peerServices == NODE_NONE.
+ * Thus, generally, avoid calling with peerServices == NODE_NONE, unless
+ * state-specific flags must absolutely be avoided. When called with
+ * peerServices == NODE_NONE, the returned desirable service flags are
+ * guaranteed to not change dependant on state - ie they are suitable for
+ * use when describing peers which we know to be desirable, but for which
+ * we do not have a confirmed set of service flags.
+ *
+ * If the NODE_NONE return value is changed, contrib/seeds/makeseeds.py
+ * should be updated appropriately to filter for the same nodes.
  */
-static ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
-    return ServiceFlags(NODE_NETWORK);
-}
+ServiceFlags GetDesirableServiceFlags(ServiceFlags services);
+
+/**
+ * Set the current IBD status in order to figure out the desirable service
+ * flags
+ */
+void SetServiceFlagsIBDCache(bool status);
 
 /**
  * A shortcut for (services & GetDesirableServiceFlags(services))
@@ -335,10 +367,10 @@ static inline bool HasAllDesirableServiceFlags(ServiceFlags services) {
 
 /**
  * Checks if a peer with the given service flags may be capable of having a
- * robust address-storage DB. Currently an alias for checking NODE_NETWORK.
+ * robust address-storage DB.
  */
 static inline bool MayHaveUsefulAddressDB(ServiceFlags services) {
-    return services & NODE_NETWORK;
+    return (services & NODE_NETWORK) || (services & NODE_NETWORK_LIMITED);
 }
 
 /**
@@ -363,8 +395,8 @@ public:
             READWRITE(nTime);
         uint64_t nServicesInt = nServices;
         READWRITE(nServicesInt);
-        nServices = (ServiceFlags)nServicesInt;
-        READWRITE(*(CService *)this);
+        nServices = static_cast<ServiceFlags>(nServicesInt);
+        READWRITE(*static_cast<CService *>(this));
     }
 
     // TODO: make private (improves encapsulation)
@@ -393,7 +425,11 @@ enum GetDataMsg {
     MSG_CMPCT_BLOCK = 4,
 };
 
-/** inv message data */
+/**
+ * Inv(ventory) message data.
+ * Intended as non-ambiguous identifier of objects (eg. transactions, blocks)
+ * held by peers.
+ */
 class CInv {
 public:
     // TODO: make private (improves encapsulation)

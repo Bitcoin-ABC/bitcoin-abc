@@ -104,15 +104,11 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
     hlayout->addWidget(typeWidget);
 
     addressWidget = new QLineEdit(this);
-#if QT_VERSION >= 0x040700
     addressWidget->setPlaceholderText(tr("Enter address or label to search"));
-#endif
     hlayout->addWidget(addressWidget);
 
     amountWidget = new QLineEdit(this);
-#if QT_VERSION >= 0x040700
     amountWidget->setPlaceholderText(tr("Min amount"));
-#endif
     if (platformStyle->getUseExtraSpacing()) {
         amountWidget->setFixedWidth(97);
     } else {
@@ -333,8 +329,8 @@ void TransactionView::chooseWatchonly(int idx) {
     }
 
     transactionProxyModel->setWatchOnlyFilter(
-        (TransactionFilterProxy::WatchOnlyFilter)watchOnlyWidget->itemData(idx)
-            .toInt());
+        static_cast<TransactionFilterProxy::WatchOnlyFilter>(
+            watchOnlyWidget->itemData(idx).toInt()));
 }
 
 void TransactionView::changedPrefix(const QString &prefix) {
@@ -419,7 +415,7 @@ void TransactionView::contextualMenu(const QPoint &point) {
     abandonAction->setEnabled(model->transactionCanBeAbandoned(txid));
 
     if (index.isValid()) {
-        contextMenu->exec(QCursor::pos());
+        contextMenu->popup(transactionView->viewport()->mapToGlobal(point));
     }
 }
 
@@ -544,10 +540,9 @@ void TransactionView::openThirdPartyTxUrl(QString url) {
         transactionView->selectionModel()->selectedRows(0);
     if (!selection.isEmpty()) {
         QDesktopServices::openUrl(QUrl::fromUserInput(
-            url.replace("%s",
-                        selection.at(0)
-                            .data(TransactionTableModel::TxHashRole)
-                            .toString())));
+            url.replace("%s", selection.at(0)
+                                  .data(TransactionTableModel::TxHashRole)
+                                  .toString())));
     }
 }
 
@@ -605,6 +600,36 @@ void TransactionView::focusTransaction(const QModelIndex &idx) {
     transactionView->scrollTo(targetIdx);
     transactionView->setCurrentIndex(targetIdx);
     transactionView->setFocus();
+}
+
+void TransactionView::focusTransaction(const uint256 &txid) {
+    if (!transactionProxyModel) {
+        return;
+    }
+
+    const QModelIndexList results =
+        this->model->getTransactionTableModel()->match(
+            this->model->getTransactionTableModel()->index(0, 0),
+            TransactionTableModel::TxHashRole,
+            QString::fromStdString(txid.ToString()), -1);
+
+    transactionView->setFocus();
+    transactionView->selectionModel()->clearSelection();
+    for (const QModelIndex &index : results) {
+        const QModelIndex targetIndex =
+            transactionProxyModel->mapFromSource(index);
+        transactionView->selectionModel()->select(
+            targetIndex,
+            QItemSelectionModel::Rows | QItemSelectionModel::Select);
+        // Called once per destination to ensure all results are in view, unless
+        // transactions are not ordered by (ascending or descending) date.
+        transactionView->scrollTo(targetIndex);
+        // scrollTo() does not scroll far enough the first time when
+        // transactions are ordered by ascending date.
+        if (index == results[0]) {
+            transactionView->scrollTo(targetIndex);
+        }
+    }
 }
 
 // We override the virtual resizeEvent of the QWidget to adjust tables column

@@ -60,6 +60,9 @@ public Q_SLOTS:
                     const Amount watchUnconfBalance,
                     const Amount watchImmatureBalance);
 
+Q_SIGNALS:
+    void coinsSent(const uint256 &txid);
+
 private:
     Ui::SendCoinsDialog *ui;
     ClientModel *clientModel;
@@ -76,12 +79,15 @@ private:
                            const QString &msgArg = QString());
     void minimizeFeeSection(bool fMinimize);
     void updateFeeMinimizedLabel();
+    // Update the passed in CCoinControl with state from the GUI
+    void updateCoinControlState(CCoinControl &ctrl);
 
 private Q_SLOTS:
     void on_sendButton_clicked();
     void on_buttonChooseFee_clicked();
     void on_buttonMinimizeFee_clicked();
     void removeEntry(SendCoinsEntry *entry);
+    void useAvailableBalance(SendCoinsEntry *entry);
     void updateDisplayUnit();
     void coinControlFeatureChanged(bool);
     void coinControlButtonClicked();
@@ -99,7 +105,6 @@ private Q_SLOTS:
     void updateFeeSectionControls();
     void updateMinFeeLabel();
     void updateSmartFeeLabel();
-    void updateGlobalFeeVariables();
 
 Q_SIGNALS:
     // Fired when a message should be reported to the user
@@ -107,12 +112,15 @@ Q_SIGNALS:
                  unsigned int style);
 };
 
+#define SEND_CONFIRM_DELAY 3
+
 class SendConfirmationDialog : public QMessageBox {
     Q_OBJECT
 
 public:
     SendConfirmationDialog(const QString &title, const QString &text,
-                           int secDelay = 0, QWidget *parent = 0);
+                           int secDelay = SEND_CONFIRM_DELAY,
+                           QWidget *parent = 0);
     int exec();
 
 private Q_SLOTS:

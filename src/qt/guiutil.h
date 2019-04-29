@@ -208,12 +208,6 @@ private Q_SLOTS:
 bool GetStartOnSystemStartup();
 bool SetStartOnSystemStartup(bool fAutoStart);
 
-/** Save window size and position */
-void saveWindowGeometry(const QString &strSetting, QWidget *parent);
-/** Restore window size and position */
-void restoreWindowGeometry(const QString &strSetting,
-                           const QSize &defaultSizeIn, QWidget *parent);
-
 /* Convert QString to OS specific boost path through UTF-8 */
 fs::path qstringToBoostPath(const QString &path);
 
@@ -234,6 +228,8 @@ QString formatPingTime(double dPingTime);
 QString formatTimeOffset(int64_t nTimeOffset);
 
 QString formatNiceTimeOffset(qint64 secs);
+
+QString formatBytes(uint64_t bytes);
 
 class ClickableLabel : public QLabel {
     Q_OBJECT
@@ -261,7 +257,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
-#if defined(Q_OS_MAC) && QT_VERSION >= 0x050000
+#if defined(Q_OS_MAC)
 // workaround for Qt OSX Bug:
 // https://bugreports.qt-project.org/browse/QTBUG-15631
 // QProgressBar uses around 10% CPU even when app is in background

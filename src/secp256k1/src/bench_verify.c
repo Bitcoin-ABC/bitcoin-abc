@@ -11,6 +11,10 @@
 #include "util.h"
 #include "bench.h"
 
+#ifdef ENABLE_MODULE_SCHNORR
+#include "include/secp256k1_schnorr.h"
+#endif
+
 #ifdef ENABLE_OPENSSL_TESTS
 #include <openssl/bn.h>
 #include <openssl/ecdsa.h>
@@ -79,6 +83,25 @@ static void benchmark_verify_openssl(void* arg) {
 }
 #endif
 
+#ifdef ENABLE_MODULE_SCHNORR
+static void benchmark_schnorr_verify(void* arg) {
+    int i;
+    benchmark_verify_t* data = (benchmark_verify_t*)arg;
+
+    for (i = 0; i < 20000; i++) {
+        secp256k1_pubkey pubkey;
+        data->sig[data->siglen - 1] ^= (i & 0xFF);
+        data->sig[data->siglen - 2] ^= ((i >> 8) & 0xFF);
+        data->sig[data->siglen - 3] ^= ((i >> 16) & 0xFF);
+        CHECK(secp256k1_ec_pubkey_parse(data->ctx, &pubkey, data->pubkey, data->pubkeylen) == 1);
+        CHECK(secp256k1_schnorr_verify(data->ctx, data->sig, data->msg, &pubkey) == (i == 0));
+        data->sig[data->siglen - 1] ^= (i & 0xFF);
+        data->sig[data->siglen - 2] ^= ((i >> 8) & 0xFF);
+        data->sig[data->siglen - 3] ^= ((i >> 16) & 0xFF);
+    }
+}
+#endif
+
 int main(void) {
     int i;
     secp256k1_pubkey pubkey;
@@ -105,6 +128,11 @@ int main(void) {
     data.ec_group = EC_GROUP_new_by_curve_name(NID_secp256k1);
     run_benchmark("ecdsa_verify_openssl", benchmark_verify_openssl, NULL, NULL, &data, 10, 20000);
     EC_GROUP_free(data.ec_group);
+#endif
+#ifdef ENABLE_MODULE_SCHNORR
+    CHECK(secp256k1_schnorr_sign(data.ctx, data.sig, data.msg, data.key, NULL, NULL));
+    data.siglen = 64;
+    run_benchmark("schnorr_verify", benchmark_schnorr_verify, NULL, NULL, &data, 10, 20000);
 #endif
 
     secp256k1_context_destroy(data.ctx);

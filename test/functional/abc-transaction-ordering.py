@@ -7,17 +7,33 @@ This test checks that the node software accepts transactions in
 non topological order once the feature is activated.
 """
 
-from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-import time
-from test_framework.key import CECKey
-from test_framework.script import *
 from collections import deque
+import random
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import RejectResult, TestInstance, TestManager
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+)
+from test_framework.mininode import network_thread_start
+from test_framework.script import (
+    CScript,
+    OP_RETURN,
+    OP_TRUE,
+)
+from test_framework.test_framework import ComparisonTestFramework
+from test_framework.util import assert_equal
 
 # far into the future
-MAGNETIC_ANOMALY_START_TIME = 2000000000
+REPLAY_PROTECTION_START_TIME = 2000000000
 
 
 class PreviousSpendableOutput():
@@ -41,16 +57,13 @@ class TransactionOrderingTest(ComparisonTestFramework):
         self.blocks = {}
         self.extra_args = [['-whitelist=127.0.0.1',
                             '-relaypriority=0',
-                            "-magneticanomalyactivationtime=%d" % MAGNETIC_ANOMALY_START_TIME,
-                            "-replayprotectionactivationtime=%d" % (2 * MAGNETIC_ANOMALY_START_TIME)]]
+                            "-replayprotectionactivationtime={}".format(REPLAY_PROTECTION_START_TIME)]]
 
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
         self.test.add_all_connections(self.nodes)
-        # Start up network handling in another thread
-        NetworkThread().start()
+        network_thread_start()
         # Set the blocksize to 2MB as initial condition
-        self.nodes[0].setmocktime(MAGNETIC_ANOMALY_START_TIME)
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
@@ -192,47 +205,13 @@ class TransactionOrderingTest(ComparisonTestFramework):
             out.append(get_spendable_output())
 
         # Let's build some blocks and test them.
-        for i in range(15):
+        for i in range(17):
             n = i + 1
             block(n)
             yield accepted()
 
-        # Start moving MTP forward
-        bfork = block(5555)
-        bfork.nTime = MAGNETIC_ANOMALY_START_TIME - 1
-        update_block(5555)
+        block(5556)
         yield accepted()
-
-        # Get to one block of the Nov 15, 2018 HF activation
-        for i in range(5):
-            block(5100 + i)
-            test.blocks_and_transactions.append([self.tip, True])
-        yield test
-
-        # Check that the MTP is just before the configured fork point.
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     MAGNETIC_ANOMALY_START_TIME - 1)
-
-        # Before we activate the Nov 15, 2018 HF, transaction order is respected.
-        def ordered_block(block_number, spend):
-            b = block(block_number, spend=spend, tx_count=16)
-            b.vtx = [b.vtx[0]] + sorted(b.vtx[1:], key=lambda tx: tx.get_id())
-            update_block(block_number)
-            return b
-
-        ordered_block(4444, out[16])
-        yield rejected(RejectResult(16, b'bad-txns-inputs-missingorspent'))
-
-        # Rewind bad block.
-        tip(5104)
-
-        # Activate the Nov 15, 2018 HF
-        block(5556, out[16], tx_count=16)
-        yield accepted()
-
-        # Now MTP is exactly the fork time. Transactions are expected to be ordered now.
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     MAGNETIC_ANOMALY_START_TIME)
 
         # Block with regular ordering are now rejected.
         block(5557, out[17], tx_count=16)
@@ -241,22 +220,42 @@ class TransactionOrderingTest(ComparisonTestFramework):
         # Rewind bad block.
         tip(5556)
 
+        # After we activate the Nov 15, 2018 HF, transaction order is enforced.
+        def ordered_block(block_number, spend):
+            b = block(block_number, spend=spend, tx_count=16)
+            make_conform_to_ctor(b)
+            update_block(block_number)
+            return b
+
         # Now that the fork activated, we need to order transaction per txid.
         ordered_block(4445, out[17])
         yield accepted()
 
-        # Invalidate the best block and make sure we are back at the fork point.
-        ctorblockhash = node.getbestblockhash()
-        node.invalidateblock(ctorblockhash)
-        forkblockhash = node.getbestblockhash()
-        assert(forkblockhash != ctorblockhash)
-        assert_equal(node.getblockheader(forkblockhash)[
-                     'mediantime'], MAGNETIC_ANOMALY_START_TIME)
+        ordered_block(4446, out[18])
+        yield accepted()
 
-        assert_equal(len(node.getrawmempool()), 15)
-        node.generate(1)
-        generatedblockhash = node.getbestblockhash()
-        assert(forkblockhash != generatedblockhash)
+        # Generate a block with a duplicated transaction.
+        double_tx_block = ordered_block(4447, out[19])
+        assert_equal(len(double_tx_block.vtx), 16)
+        double_tx_block.vtx = double_tx_block.vtx[:8] + \
+            [double_tx_block.vtx[8]] + double_tx_block.vtx[8:]
+        update_block(4447)
+        yield rejected(RejectResult(16, b'bad-txns-duplicate'))
+
+        # Rewind bad block.
+        tip(4446)
+
+        # Check over two blocks.
+        proper_block = ordered_block(4448, out[20])
+        yield accepted()
+
+        replay_tx_block = ordered_block(4449, out[21])
+        assert_equal(len(replay_tx_block.vtx), 16)
+        replay_tx_block.vtx.append(proper_block.vtx[5])
+        replay_tx_block.vtx = [replay_tx_block.vtx[0]] + \
+            sorted(replay_tx_block.vtx[1:], key=lambda tx: tx.get_id())
+        update_block(4449)
+        yield rejected(RejectResult(16, b'bad-txns-BIP30'))
 
 
 if __name__ == '__main__':

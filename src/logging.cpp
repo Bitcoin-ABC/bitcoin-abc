@@ -9,7 +9,7 @@
 #include "utiltime.h"
 
 bool fLogIPs = DEFAULT_LOGIPS;
-std::atomic<bool> fReopenOmniCoreLog(false);
+const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
 
 /**
  * NOTE: the logger instance is leaked on exit. This is ugly, but will be
@@ -33,21 +33,35 @@ static int FileWriteStr(const std::string &str, FILE *fp) {
     return fwrite(str.data(), 1, str.size(), fp);
 }
 
-void BCLog::Logger::OpenDebugLog() {
-    std::lock_guard<std::mutex> scoped_lock(mutexDebugLog);
-
-    assert(fileout == nullptr);
-    fs::path pathDebug = GetDataDir() / "debug.log";
-    fileout = fsbridge::fopen(pathDebug, "a");
-    if (fileout) {
-        // Unbuffered.
-        setbuf(fileout, nullptr);
-        // Dump buffered messages from before we opened the log.
-        while (!vMsgsBeforeOpenLog.empty()) {
-            FileWriteStr(vMsgsBeforeOpenLog.front(), fileout);
-            vMsgsBeforeOpenLog.pop_front();
-        }
+fs::path BCLog::Logger::GetDebugLogPath() {
+    fs::path logfile(gArgs.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
+    if (logfile.is_absolute()) {
+        return logfile;
+    } else {
+        return GetDataDir() / logfile;
     }
+}
+
+bool BCLog::Logger::OpenDebugLog() {
+    std::lock_guard<std::mutex> scoped_lock(m_file_mutex);
+
+    assert(m_fileout == nullptr);
+    fs::path pathDebug = GetDebugLogPath();
+
+    m_fileout = fsbridge::fopen(pathDebug, "a");
+    if (!m_fileout) {
+        return false;
+    }
+
+    // Unbuffered.
+    setbuf(m_fileout, nullptr);
+    // Dump buffered messages from before we opened the log.
+    while (!m_msgs_before_open.empty()) {
+        FileWriteStr(m_msgs_before_open.front(), m_fileout);
+        m_msgs_before_open.pop_front();
+    }
+
+    return true;
 }
 
 struct CLogCategoryDesc {
@@ -57,6 +71,7 @@ struct CLogCategoryDesc {
 
 const CLogCategoryDesc LogCategories[] = {
     {BCLog::NONE, "0"},
+    {BCLog::NONE, "none"},
     {BCLog::NET, "net"},
     {BCLog::TOR, "tor"},
     {BCLog::MEMPOOL, "mempool"},
@@ -103,7 +118,9 @@ std::string ListLogCategories() {
         // Omit the special cases.
         if (category_desc.flag != BCLog::NONE &&
             category_desc.flag != BCLog::ALL) {
-            if (outcount != 0) ret += ", ";
+            if (outcount != 0) {
+                ret += ", ";
+            }
             ret += category_desc.category;
             outcount++;
         }
@@ -112,30 +129,39 @@ std::string ListLogCategories() {
 }
 
 BCLog::Logger::~Logger() {
-    if (fileout) {
-        fclose(fileout);
+    if (m_fileout) {
+        fclose(m_fileout);
     }
 }
 
 std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
     std::string strStamped;
 
-    if (!fLogTimestamps) return str;
+    if (!m_log_timestamps) {
+        return str;
+    }
 
-    if (fStartedNewLine) {
-        int64_t nTimeMicros = GetLogTimeMicros();
-        strStamped =
-            DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros / 1000000);
-        if (fLogTimeMicros)
+    if (m_started_new_line) {
+        int64_t nTimeMicros = GetTimeMicros();
+        strStamped = FormatISO8601DateTime(nTimeMicros / 1000000);
+        if (m_log_time_micros) {
             strStamped += strprintf(".%06d", nTimeMicros % 1000000);
+        }
+        int64_t mocktime = GetMockTime();
+        if (mocktime) {
+            strStamped +=
+                " (mocktime: " + FormatISO8601DateTime(mocktime) + ")";
+        }
         strStamped += ' ' + str;
-    } else
+    } else {
         strStamped = str;
+    }
 
-    if (!str.empty() && str[str.size() - 1] == '\n')
-        fStartedNewLine = true;
-    else
-        fStartedNewLine = false;
+    if (!str.empty() && str[str.size() - 1] == '\n') {
+        m_started_new_line = true;
+    } else {
+        m_started_new_line = false;
+    }
 
     return strStamped;
 }
@@ -146,29 +172,29 @@ int BCLog::Logger::LogPrintStr(const std::string &str) {
 
     std::string strTimestamped = LogTimestampStr(str);
 
-    if (fPrintToConsole) {
+    if (m_print_to_console) {
         // Print to console.
         ret = fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout);
         fflush(stdout);
-    } else if (fPrintToDebugLog) {
-        std::lock_guard<std::mutex> scoped_lock(mutexDebugLog);
+    } else if (m_print_to_file) {
+        std::lock_guard<std::mutex> scoped_lock(m_file_mutex);
 
         // Buffer if we haven't opened the log yet.
-        if (fileout == nullptr) {
+        if (m_fileout == nullptr) {
             ret = strTimestamped.length();
-            vMsgsBeforeOpenLog.push_back(strTimestamped);
+            m_msgs_before_open.push_back(strTimestamped);
         } else {
             // Reopen the log file, if requested.
-            if (fReopenDebugLog) {
-                fReopenDebugLog = false;
-                fs::path pathDebug = GetDataDir() / "debug.log";
-                if (fsbridge::freopen(pathDebug, "a", fileout) != nullptr) {
+            if (m_reopen_file) {
+                m_reopen_file = false;
+                fs::path pathDebug = GetDebugLogPath();
+                if (fsbridge::freopen(pathDebug, "a", m_fileout) != nullptr) {
                     // unbuffered.
-                    setbuf(fileout, nullptr);
+                    setbuf(m_fileout, nullptr);
                 }
             }
 
-            ret = FileWriteStr(strTimestamped, fileout);
+            ret = FileWriteStr(strTimestamped, m_fileout);
         }
     }
     return ret;
@@ -178,7 +204,7 @@ void BCLog::Logger::ShrinkDebugFile() {
     // Amount of debug.log to save at end when shrinking (must fit in memory)
     constexpr size_t RECENT_DEBUG_HISTORY_SIZE = 10 * 1000000;
     // Scroll debug.log if it's getting too big.
-    fs::path pathLog = GetDataDir() / "debug.log";
+    fs::path pathLog = GetDebugLogPath();
     FILE *file = fsbridge::fopen(pathLog, "r");
     // If debug.log file is more than 10% bigger the RECENT_DEBUG_HISTORY_SIZE
     // trim it down by saving only the last RECENT_DEBUG_HISTORY_SIZE bytes.
@@ -195,16 +221,35 @@ void BCLog::Logger::ShrinkDebugFile() {
             fwrite(vch.data(), 1, nBytes, file);
             fclose(file);
         }
-    } else if (file != nullptr)
+    } else if (file != nullptr) {
         fclose(file);
+    }
 }
 
 void BCLog::Logger::EnableCategory(LogFlags category) {
-    logCategories |= category;
+    m_categories |= category;
+}
+
+bool BCLog::Logger::EnableCategory(const std::string &str) {
+    BCLog::LogFlags flag;
+    if (!GetLogCategory(flag, str)) {
+        return false;
+    }
+    EnableCategory(flag);
+    return true;
 }
 
 void BCLog::Logger::DisableCategory(LogFlags category) {
-    logCategories &= ~category;
+    m_categories &= ~category;
+}
+
+bool BCLog::Logger::DisableCategory(const std::string &str) {
+    BCLog::LogFlags flag;
+    if (!GetLogCategory(flag, str)) {
+        return false;
+    }
+    DisableCategory(flag);
+    return true;
 }
 
 bool BCLog::Logger::WillLogCategory(LogFlags category) const {
@@ -216,9 +261,9 @@ bool BCLog::Logger::WillLogCategory(LogFlags category) const {
         return true;
     }
 
-    return (logCategories.load(std::memory_order_relaxed) & category) != 0;
+    return (m_categories.load(std::memory_order_relaxed) & category) != 0;
 }
 
 bool BCLog::Logger::DefaultShrinkDebugFile() const {
-    return logCategories != BCLog::NONE;
+    return m_categories != BCLog::NONE;
 }

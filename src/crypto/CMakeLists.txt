@@ -32,7 +32,4 @@ if(CRYPTO_USE_ASM)
 endif()
 
 # Dependencies
-include(BrewHelper)
-find_brew_prefix(OPENSSL_ROOT_DIR openssl)
-find_package(OpenSSL REQUIRED)
-target_link_libraries(crypto ${OPENSSL_CRYPTO_LIBRARY})
+target_link_libraries(crypto OpenSSL::Crypto)

@@ -286,14 +286,18 @@ public:
     // nodes that are banned, with their unban time (a)
     std::map<CService, int64_t> banned;
 
-    void GetStats(CAddrDbStats &stats) {
+    void GetStats(CAddrDbStats &stats) const {
         LOCK(cs);
         stats.nBanned = banned.size();
         stats.nAvail = idToInfo.size();
         stats.nTracked = ourId.size();
         stats.nGood = goodId.size();
         stats.nNew = unkId.size();
-        stats.nAge = time(nullptr) - idToInfo[ourId[0]].ourLastTry;
+        if (ourId.size() > 0) {
+            stats.nAge = time(nullptr) - idToInfo.at(ourId.at(0)).ourLastTry;
+        } else {
+            stats.nAge = 0;
+        }
     }
 
     void ResetIgnores() {

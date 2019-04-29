@@ -35,11 +35,38 @@ bool CBasicKeyStore::AddKeyPubKey(const CKey &key, const CPubKey &pubkey) {
     return true;
 }
 
+bool CBasicKeyStore::HaveKey(const CKeyID &address) const {
+    LOCK(cs_KeyStore);
+    return mapKeys.count(address) > 0;
+}
+
+std::set<CKeyID> CBasicKeyStore::GetKeys() const {
+    LOCK(cs_KeyStore);
+    std::set<CKeyID> set_address;
+    for (const auto &mi : mapKeys) {
+        set_address.insert(mi.first);
+    }
+    return set_address;
+}
+
+bool CBasicKeyStore::GetKey(const CKeyID &address, CKey &keyOut) const {
+    {
+        LOCK(cs_KeyStore);
+        KeyMap::const_iterator mi = mapKeys.find(address);
+        if (mi != mapKeys.end()) {
+            keyOut = mi->second;
+            return true;
+        }
+    }
+    return false;
+}
+
 bool CBasicKeyStore::AddCScript(const CScript &redeemScript) {
-    if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE)
+    if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE) {
         return error("CBasicKeyStore::AddCScript(): redeemScripts > %i bytes "
                      "are invalid",
                      MAX_SCRIPT_ELEMENT_SIZE);
+    }
 
     LOCK(cs_KeyStore);
     mapScripts[CScriptID(redeemScript)] = redeemScript;
@@ -49,6 +76,15 @@ bool CBasicKeyStore::AddCScript(const CScript &redeemScript) {
 bool CBasicKeyStore::HaveCScript(const CScriptID &hash) const {
     LOCK(cs_KeyStore);
     return mapScripts.count(hash) > 0;
+}
+
+std::set<CScriptID> CBasicKeyStore::GetCScripts() const {
+    LOCK(cs_KeyStore);
+    std::set<CScriptID> set_script;
+    for (const auto &mi : mapScripts) {
+        set_script.insert(mi.first);
+    }
+    return set_script;
 }
 
 bool CBasicKeyStore::GetCScript(const CScriptID &hash,
@@ -67,13 +103,17 @@ static bool ExtractPubKey(const CScript &dest, CPubKey &pubKeyOut) {
     CScript::const_iterator pc = dest.begin();
     opcodetype opcode;
     std::vector<uint8_t> vch;
-    if (!dest.GetOp(pc, opcode, vch) || vch.size() < 33 || vch.size() > 65)
+    if (!dest.GetOp(pc, opcode, vch) || vch.size() < 33 || vch.size() > 65) {
         return false;
+    }
     pubKeyOut = CPubKey(vch);
-    if (!pubKeyOut.IsFullyValid()) return false;
-    if (!dest.GetOp(pc, opcode, vch) || opcode != OP_CHECKSIG ||
-        dest.GetOp(pc, opcode, vch))
+    if (!pubKeyOut.IsFullyValid()) {
         return false;
+    }
+    if (!dest.GetOp(pc, opcode, vch) || opcode != OP_CHECKSIG ||
+        dest.GetOp(pc, opcode, vch)) {
+        return false;
+    }
     return true;
 }
 
@@ -81,7 +121,9 @@ bool CBasicKeyStore::AddWatchOnly(const CScript &dest) {
     LOCK(cs_KeyStore);
     setWatchOnly.insert(dest);
     CPubKey pubKey;
-    if (ExtractPubKey(dest, pubKey)) mapWatchKeys[pubKey.GetID()] = pubKey;
+    if (ExtractPubKey(dest, pubKey)) {
+        mapWatchKeys[pubKey.GetID()] = pubKey;
+    }
     return true;
 }
 
@@ -89,7 +131,9 @@ bool CBasicKeyStore::RemoveWatchOnly(const CScript &dest) {
     LOCK(cs_KeyStore);
     setWatchOnly.erase(dest);
     CPubKey pubKey;
-    if (ExtractPubKey(dest, pubKey)) mapWatchKeys.erase(pubKey.GetID());
+    if (ExtractPubKey(dest, pubKey)) {
+        mapWatchKeys.erase(pubKey.GetID());
+    }
     return true;
 }
 

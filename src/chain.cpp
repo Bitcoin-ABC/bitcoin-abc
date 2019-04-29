@@ -104,9 +104,9 @@ CBlockIndex *CBlockIndex::GetAncestor(int height) {
         int heightSkip = GetSkipHeight(heightWalk);
         int heightSkipPrev = GetSkipHeight(heightWalk - 1);
         if (pindexWalk->pskip != nullptr &&
-            (heightSkip == height || (heightSkip > height &&
-                                      !(heightSkipPrev < heightSkip - 2 &&
-                                        heightSkipPrev >= height)))) {
+            (heightSkip == height ||
+             (heightSkip > height && !(heightSkipPrev < heightSkip - 2 &&
+                                       heightSkipPrev >= height)))) {
             // Only follow pskip if pprev->pskip isn't better than pskip->pprev.
             pindexWalk = pindexWalk->pskip;
             heightWalk = heightSkip;
@@ -183,4 +183,11 @@ const CBlockIndex *LastCommonAncestor(const CBlockIndex *pa,
     // Eventually all chain branches meet at the genesis block.
     assert(pa == pb);
     return pa;
+}
+
+bool AreOnTheSameFork(const CBlockIndex *pa, const CBlockIndex *pb) {
+    // The common ancestor needs to be either pa (pb is a child of pa) or pb (pa
+    // is a child of pb).
+    const CBlockIndex *pindexCommon = LastCommonAncestor(pa, pb);
+    return pindexCommon == pa || pindexCommon == pb;
 }

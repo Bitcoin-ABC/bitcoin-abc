@@ -2,13 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "netbase.h"
-#include "test/test_bitcoin.h"
-#include "utilstrencodings.h"
+#include <netbase.h>
 
-#include <string>
+#include <utilstrencodings.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
+
+#include <string>
 
 BOOST_FIXTURE_TEST_SUITE(netbase_tests, BasicTestingSetup)
 
@@ -37,7 +39,7 @@ BOOST_AUTO_TEST_CASE(netbase_networks) {
     BOOST_CHECK(ResolveIP("2001::8888").GetNetwork() == NET_IPV6);
     BOOST_CHECK(
         ResolveIP("FD87:D87E:EB43:edb1:8e4:3588:e546:35ca").GetNetwork() ==
-        NET_TOR);
+        NET_ONION);
     BOOST_CHECK(CreateInternal("foo.com").GetNetwork() == NET_INTERNAL);
 }
 
@@ -317,7 +319,7 @@ BOOST_AUTO_TEST_CASE(netbase_getgroup) {
     // Tor
     BOOST_CHECK(
         ResolveIP("FD87:D87E:EB43:edb1:8e4:3588:e546:35ca").GetGroup() ==
-        Vec8({NET_TOR, 239}));
+        Vec8({NET_ONION, 239}));
     // he.net
     BOOST_CHECK(
         ResolveIP("2001:470:abcd:9999:9999:9999:9999:9999").GetGroup() ==
@@ -332,6 +334,23 @@ BOOST_AUTO_TEST_CASE(netbase_getgroup) {
     Vec8 internal_group = {NET_INTERNAL, 0x12, 0x92, 0x94, 0x00, 0xeb,
                            0x46,         0x07, 0xc4, 0xac, 0x07};
     BOOST_CHECK(CreateInternal("baz.net").GetGroup() == internal_group);
+}
+
+BOOST_AUTO_TEST_CASE(netbase_parsenetwork) {
+    BOOST_CHECK_EQUAL(ParseNetwork("ipv4"), NET_IPV4);
+    BOOST_CHECK_EQUAL(ParseNetwork("ipv6"), NET_IPV6);
+    BOOST_CHECK_EQUAL(ParseNetwork("onion"), NET_ONION);
+    BOOST_CHECK_EQUAL(ParseNetwork("tor"), NET_ONION);
+
+    BOOST_CHECK_EQUAL(ParseNetwork("IPv4"), NET_IPV4);
+    BOOST_CHECK_EQUAL(ParseNetwork("IPv6"), NET_IPV6);
+    BOOST_CHECK_EQUAL(ParseNetwork("ONION"), NET_ONION);
+    BOOST_CHECK_EQUAL(ParseNetwork("TOR"), NET_ONION);
+
+    BOOST_CHECK_EQUAL(ParseNetwork(":)"), NET_UNROUTABLE);
+    BOOST_CHECK_EQUAL(ParseNetwork("tÖr"), NET_UNROUTABLE);
+    BOOST_CHECK_EQUAL(ParseNetwork("\xfe\xff"), NET_UNROUTABLE);
+    BOOST_CHECK_EQUAL(ParseNetwork(""), NET_UNROUTABLE);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

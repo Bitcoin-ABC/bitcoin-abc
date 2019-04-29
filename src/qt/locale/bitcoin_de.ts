@@ -3450,10 +3450,6 @@
         <translation>Niedrigere Gebühren (in %s/Kb) als diese werden bei der Transaktionserstellung als gebührenfrei angesehen (Standard: %s)</translation>
     </message>
     <message>
-        <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
-        <translation>Wenn -paytxfee nicht festgelegt wurde Gebühren einschließen, so dass mit der Bestätigung von Transaktionen im Schnitt innerhalb von n Blöcken begonnen wird (Standard: %u)</translation>
-    </message>
-    <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)</source>
         <translation>Ungültiger Betrag für -maxtxfee=&lt;amount&gt;: '%s' (muss mindestens die minimale Weiterleitungsgebühr in Höhe von %s sein, um zu verhindern dass Transaktionen nicht bearbeitet werden)</translation>
     </message>

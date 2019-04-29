@@ -1,7 +1,7 @@
 // Copyright (c) 2014 BitPay Inc.
 // Copyright (c) 2014-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://opensource.org/licenses/mit-license.php.
 
 #include <stdint.h>
 #include <vector>
@@ -260,6 +260,12 @@ BOOST_AUTO_TEST_CASE(univalue_object)
     strKey = "temperature";
     BOOST_CHECK(obj.pushKV(strKey, (double) 90.012));
 
+    strKey = "moon";
+    BOOST_CHECK(obj.pushKV(strKey, true));
+
+    strKey = "spoon";
+    BOOST_CHECK(obj.pushKV(strKey, false));
+
     UniValue obj2(UniValue::VOBJ);
     BOOST_CHECK(obj2.pushKV("cat1", 9000));
     BOOST_CHECK(obj2.pushKV("cat2", 12345));
@@ -267,7 +273,7 @@ BOOST_AUTO_TEST_CASE(univalue_object)
     BOOST_CHECK(obj.pushKVs(obj2));
 
     BOOST_CHECK_EQUAL(obj.empty(), false);
-    BOOST_CHECK_EQUAL(obj.size(), 9);
+    BOOST_CHECK_EQUAL(obj.size(), 11);
 
     BOOST_CHECK_EQUAL(obj["age"].getValStr(), "100");
     BOOST_CHECK_EQUAL(obj["first"].getValStr(), "John");
@@ -276,6 +282,8 @@ BOOST_AUTO_TEST_CASE(univalue_object)
     BOOST_CHECK_EQUAL(obj["time"].getValStr(), "3600");
     BOOST_CHECK_EQUAL(obj["calories"].getValStr(), "12");
     BOOST_CHECK_EQUAL(obj["temperature"].getValStr(), "90.012");
+    BOOST_CHECK_EQUAL(obj["moon"].getValStr(), "1");
+    BOOST_CHECK_EQUAL(obj["spoon"].getValStr(), "");
     BOOST_CHECK_EQUAL(obj["cat1"].getValStr(), "9000");
     BOOST_CHECK_EQUAL(obj["cat2"].getValStr(), "12345");
 
@@ -288,6 +296,8 @@ BOOST_AUTO_TEST_CASE(univalue_object)
     BOOST_CHECK(obj.exists("time"));
     BOOST_CHECK(obj.exists("calories"));
     BOOST_CHECK(obj.exists("temperature"));
+    BOOST_CHECK(obj.exists("moon"));
+    BOOST_CHECK(obj.exists("spoon"));
     BOOST_CHECK(obj.exists("cat1"));
     BOOST_CHECK(obj.exists("cat2"));
 
@@ -301,6 +311,8 @@ BOOST_AUTO_TEST_CASE(univalue_object)
     objTypes["time"] = UniValue::VNUM;
     objTypes["calories"] = UniValue::VNUM;
     objTypes["temperature"] = UniValue::VNUM;
+    objTypes["moon"] = UniValue::VBOOL;
+    objTypes["spoon"] = UniValue::VBOOL;
     objTypes["cat1"] = UniValue::VNUM;
     objTypes["cat2"] = UniValue::VNUM;
     BOOST_CHECK(obj.checkObject(objTypes));

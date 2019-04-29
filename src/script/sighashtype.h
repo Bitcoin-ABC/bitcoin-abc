@@ -5,7 +5,7 @@
 #ifndef BITCOIN_SCRIPT_HASH_TYPE_H
 #define BITCOIN_SCRIPT_HASH_TYPE_H
 
-#include "serialize.h"
+#include <serialize.h>
 
 #include <cstdint>
 #include <stdexcept>

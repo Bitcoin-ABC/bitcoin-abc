@@ -36,8 +36,9 @@ void MakeSingleColorImage(QImage &img, const QColor &colorbase) {
     for (int x = img.width(); x--;) {
         for (int y = img.height(); y--;) {
             const QRgb rgb = img.pixel(x, y);
-            img.setPixel(x, y, qRgba(colorbase.red(), colorbase.green(),
-                                     colorbase.blue(), qAlpha(rgb)));
+            img.setPixel(x, y,
+                         qRgba(colorbase.red(), colorbase.green(),
+                               colorbase.blue(), qAlpha(rgb)));
         }
     }
 }

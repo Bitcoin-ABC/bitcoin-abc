@@ -298,12 +298,12 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
         } else if (strType == "tx") {
             TxId txid;
             ssKey >> txid;
-            CWalletTx wtx;
+            CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
             ssValue >> wtx;
             CValidationState state;
             bool isValid = wtx.IsCoinBase()
-                               ? CheckCoinbase(wtx, state)
-                               : CheckRegularTransaction(wtx, state);
+                               ? CheckCoinbase(*wtx.tx, state)
+                               : CheckRegularTransaction(*wtx.tx, state);
             if (!isValid || wtx.GetId() != txid) {
                 return false;
             }
@@ -447,23 +447,21 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                 return false;
             }
             wss.fIsEncrypted = true;
-        } else if (strType == "keymeta" || strType == "watchmeta") {
-            CTxDestination keyID;
-            if (strType == "keymeta") {
-                CPubKey vchPubKey;
-                ssKey >> vchPubKey;
-                keyID = vchPubKey.GetID();
-            } else if (strType == "watchmeta") {
-                CScript script;
-                ssKey >> script;
-                keyID = CScriptID(script);
-            }
-
+        } else if (strType == "keymeta") {
+            CPubKey vchPubKey;
+            ssKey >> vchPubKey;
             CKeyMetadata keyMeta;
             ssValue >> keyMeta;
             wss.nKeyMeta++;
 
-            pwallet->LoadKeyMetadata(keyID, keyMeta);
+            pwallet->LoadKeyMetadata(vchPubKey.GetID(), keyMeta);
+        } else if (strType == "watchmeta") {
+            CScript script;
+            ssKey >> script;
+            CKeyMetadata keyMeta;
+            ssValue >> keyMeta;
+            wss.nKeyMeta++;
+            pwallet->LoadScriptMetadata(CScriptID(script), keyMeta);
         } else if (strType == "defaultkey") {
             // We don't want or need the default key, but if there is one set,
             // we want to make sure that it is valid so that we can detect
@@ -530,14 +528,14 @@ bool CWalletDB::IsKeyType(const std::string &strType) {
 DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
     CWalletScanState wss;
     bool fNoncriticalErrors = false;
-    DBErrors result = DB_LOAD_OK;
+    DBErrors result = DBErrors::LOAD_OK;
 
     LOCK(pwallet->cs_wallet);
     try {
         int nMinVersion = 0;
         if (batch.Read((std::string) "minversion", nMinVersion)) {
             if (nMinVersion > CLIENT_VERSION) {
-                return DB_TOO_NEW;
+                return DBErrors::TOO_NEW;
             }
             pwallet->LoadMinVersion(nMinVersion);
         }
@@ -546,7 +544,7 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
         Dbc *pcursor = batch.GetCursor();
         if (!pcursor) {
             LogPrintf("Error getting wallet database cursor\n");
-            return DB_CORRUPT;
+            return DBErrors::CORRUPT;
         }
 
         while (true) {
@@ -560,7 +558,7 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
 
             if (ret != 0) {
                 LogPrintf("Error reading next record from wallet database\n");
-                return DB_CORRUPT;
+                return DBErrors::CORRUPT;
             }
 
             // Try to be tolerant of single corrupt records:
@@ -569,7 +567,7 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
                 // losing keys is considered a catastrophic error, anything else
                 // we assume the user can live with:
                 if (IsKeyType(strType) || strType == "defaultkey") {
-                    result = DB_CORRUPT;
+                    result = DBErrors::CORRUPT;
                 } else {
                     // Leave other errors alone, if we try to fix them we might
                     // make things worse. But do warn the user there is
@@ -589,16 +587,16 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
     } catch (const boost::thread_interrupted &) {
         throw;
     } catch (...) {
-        result = DB_CORRUPT;
+        result = DBErrors::CORRUPT;
     }
 
-    if (fNoncriticalErrors && result == DB_LOAD_OK) {
-        result = DB_NONCRITICAL_ERROR;
+    if (fNoncriticalErrors && result == DBErrors::LOAD_OK) {
+        result = DBErrors::NONCRITICAL_ERROR;
     }
 
     // Any wallet corruption at all: skip any rewriting or upgrading, we don't
     // want to make it worse.
-    if (result != DB_LOAD_OK) {
+    if (result != DBErrors::LOAD_OK) {
         return result;
     }
 
@@ -613,13 +611,13 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
     }
 
     for (const TxId &txid : wss.vWalletUpgrade) {
-        WriteTx(pwallet->mapWallet[txid]);
+        WriteTx(pwallet->mapWallet.at(txid));
     }
 
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
     if (wss.fIsEncrypted &&
         (wss.nFileVersion == 40000 || wss.nFileVersion == 50000)) {
-        return DB_NEED_REWRITE;
+        return DBErrors::NEED_REWRITE;
     }
 
     if (wss.nFileVersion < CLIENT_VERSION) {
@@ -634,8 +632,8 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
     pwallet->laccentries.clear();
     ListAccountCreditDebit("*", pwallet->laccentries);
     for (CAccountingEntry &entry : pwallet->laccentries) {
-        pwallet->wtxOrdered.insert(std::make_pair(
-            entry.nOrderPos, CWallet::TxPair((CWalletTx *)0, &entry)));
+        pwallet->wtxOrdered.insert(
+            std::make_pair(entry.nOrderPos, CWallet::TxPair(nullptr, &entry)));
     }
 
     return result;
@@ -643,14 +641,13 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
 
 DBErrors CWalletDB::FindWalletTx(std::vector<TxId> &txIds,
                                  std::vector<CWalletTx> &vWtx) {
-    bool fNoncriticalErrors = false;
-    DBErrors result = DB_LOAD_OK;
+    DBErrors result = DBErrors::LOAD_OK;
 
     try {
         int nMinVersion = 0;
         if (batch.Read((std::string) "minversion", nMinVersion)) {
             if (nMinVersion > CLIENT_VERSION) {
-                return DB_TOO_NEW;
+                return DBErrors::TOO_NEW;
             }
         }
 
@@ -658,7 +655,7 @@ DBErrors CWalletDB::FindWalletTx(std::vector<TxId> &txIds,
         Dbc *pcursor = batch.GetCursor();
         if (!pcursor) {
             LogPrintf("Error getting wallet database cursor\n");
-            return DB_CORRUPT;
+            return DBErrors::CORRUPT;
         }
 
         while (true) {
@@ -672,7 +669,7 @@ DBErrors CWalletDB::FindWalletTx(std::vector<TxId> &txIds,
 
             if (ret != 0) {
                 LogPrintf("Error reading next record from wallet database\n");
-                return DB_CORRUPT;
+                return DBErrors::CORRUPT;
             }
 
             std::string strType;
@@ -681,7 +678,7 @@ DBErrors CWalletDB::FindWalletTx(std::vector<TxId> &txIds,
                 TxId txid;
                 ssKey >> txid;
 
-                CWalletTx wtx;
+                CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
                 ssValue >> wtx;
 
                 txIds.push_back(txid);
@@ -692,11 +689,7 @@ DBErrors CWalletDB::FindWalletTx(std::vector<TxId> &txIds,
     } catch (const boost::thread_interrupted &) {
         throw;
     } catch (...) {
-        result = DB_CORRUPT;
-    }
-
-    if (fNoncriticalErrors && result == DB_LOAD_OK) {
-        result = DB_NONCRITICAL_ERROR;
+        result = DBErrors::CORRUPT;
     }
 
     return result;
@@ -708,7 +701,7 @@ DBErrors CWalletDB::ZapSelectTx(std::vector<TxId> &txIdsIn,
     std::vector<TxId> txIds;
     std::vector<CWalletTx> vWtx;
     DBErrors err = FindWalletTx(txIds, vWtx);
-    if (err != DB_LOAD_OK) {
+    if (err != DBErrors::LOAD_OK) {
         return err;
     }
 
@@ -728,8 +721,9 @@ DBErrors CWalletDB::ZapSelectTx(std::vector<TxId> &txIdsIn,
 
         if ((*it) == txid) {
             if (!EraseTx(txid)) {
-                LogPrint(BCLog::DB, "Transaction was found for deletion but "
-                                    "returned database error: %s\n",
+                LogPrint(BCLog::DB,
+                         "Transaction was found for deletion but returned "
+                         "database error: %s\n",
                          txid.GetHex());
                 delerror = true;
             }
@@ -738,27 +732,27 @@ DBErrors CWalletDB::ZapSelectTx(std::vector<TxId> &txIdsIn,
     }
 
     if (delerror) {
-        return DB_CORRUPT;
+        return DBErrors::CORRUPT;
     }
-    return DB_LOAD_OK;
+    return DBErrors::LOAD_OK;
 }
 
 DBErrors CWalletDB::ZapWalletTx(std::vector<CWalletTx> &vWtx) {
     // Build list of wallet TXs.
     std::vector<TxId> txIds;
     DBErrors err = FindWalletTx(txIds, vWtx);
-    if (err != DB_LOAD_OK) {
+    if (err != DBErrors::LOAD_OK) {
         return err;
     }
 
     // Erase each wallet TX.
     for (const TxId &txid : txIds) {
         if (!EraseTx(txid)) {
-            return DB_CORRUPT;
+            return DBErrors::CORRUPT;
         }
     }
 
-    return DB_LOAD_OK;
+    return DBErrors::LOAD_OK;
 }
 
 void MaybeCompactWalletDB() {
@@ -835,16 +829,16 @@ bool CWalletDB::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
 }
 
 bool CWalletDB::VerifyEnvironment(const std::string &walletFile,
-                                  const fs::path &dataDir,
+                                  const fs::path &walletDir,
                                   std::string &errorStr) {
-    return CDB::VerifyEnvironment(walletFile, dataDir, errorStr);
+    return CDB::VerifyEnvironment(walletFile, walletDir, errorStr);
 }
 
 bool CWalletDB::VerifyDatabaseFile(const std::string &walletFile,
-                                   const fs::path &dataDir,
+                                   const fs::path &walletDir,
                                    std::string &warningStr,
                                    std::string &errorStr) {
-    return CDB::VerifyDatabaseFile(walletFile, dataDir, warningStr, errorStr,
+    return CDB::VerifyDatabaseFile(walletFile, walletDir, warningStr, errorStr,
                                    CWalletDB::Recover);
 }
 

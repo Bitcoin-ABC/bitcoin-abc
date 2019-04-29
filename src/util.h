@@ -25,11 +25,13 @@
 #include <cstdint>
 #include <exception>
 #include <map>
+#include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <boost/signals2/signal.hpp>
-#include <boost/thread/exceptions.hpp>
+#include <boost/thread/condition_variable.hpp> // for boost::thread_interrupted
 
 // Application startup time (used for uptime calculation)
 int64_t GetStartupTime();
@@ -70,6 +72,16 @@ bool TruncateFile(FILE *file, unsigned int length);
 int RaiseFileDescriptorLimit(int nMinFD);
 void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);
 bool RenameOver(fs::path src, fs::path dest);
+bool LockDirectory(const fs::path &directory, const std::string lockfile_name,
+                   bool probe_only = false);
+bool DirIsWritable(const fs::path &directory);
+
+/**
+ * Release all directory locks. This is used for unit testing only, at runtime
+ * the global destructor will take care of the locks.
+ */
+void ReleaseDirectoryLocks();
+
 bool TryCreateDirectories(const fs::path &p);
 fs::path GetDefaultDataDir();
 const fs::path &GetDataDir(bool fNetSpecific = true);
@@ -94,14 +106,41 @@ inline bool IsSwitchChar(char c) {
 
 class ArgsManager {
 protected:
-    CCriticalSection cs_args;
-    std::map<std::string, std::string> mapArgs;
-    std::map<std::string, std::vector<std::string>> mapMultiArgs;
+    friend class ArgsManagerHelper;
+
+    mutable CCriticalSection cs_args;
+    std::map<std::string, std::vector<std::string>> m_override_args;
+    std::map<std::string, std::vector<std::string>> m_config_args;
+    std::string m_network;
+    std::set<std::string> m_network_only_args;
+
+    void ReadConfigStream(std::istream &stream);
 
 public:
+    ArgsManager();
+
+    /**
+     * Select the network in use
+     */
+    void SelectConfigNetwork(const std::string &network);
+
     void ParseParameters(int argc, const char *const argv[]);
     void ReadConfigFile(const std::string &confPath);
-    std::vector<std::string> GetArgs(const std::string &strArg);
+
+    /**
+     * Log warnings for options in m_section_only_args when they are specified
+     * in the default section but not overridden on the command line or in a
+     * network-specific section in the config file.
+     */
+    void WarnForSectionOnlyArgs();
+
+    /**
+     * Return a vector of strings of the given argument
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return command-line arguments
+     */
+    std::vector<std::string> GetArgs(const std::string &strArg) const;
 
     /**
      * Return true if the given argument has been manually set.
@@ -109,7 +148,16 @@ public:
      * @param strArg Argument to get (e.g. "-foo")
      * @return true if the argument has been set
      */
-    bool IsArgSet(const std::string &strArg);
+    bool IsArgSet(const std::string &strArg) const;
+
+    /**
+     * Return true if the argument was originally passed as a negated option,
+     * i.e. -nofoo.
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return true if the argument was passed negated
+     */
+    bool IsArgNegated(const std::string &strArg) const;
 
     /**
      * Return string argument or default value.
@@ -119,7 +167,7 @@ public:
      * @return command-line argument or default value
      */
     std::string GetArg(const std::string &strArg,
-                       const std::string &strDefault);
+                       const std::string &strDefault) const;
 
     /**
      * Return integer argument or default value.
@@ -128,7 +176,7 @@ public:
      * @param default (e.g. 1)
      * @return command-line argument (0 if invalid number) or default value
      */
-    int64_t GetArg(const std::string &strArg, int64_t nDefault);
+    int64_t GetArg(const std::string &strArg, int64_t nDefault) const;
 
     /**
      * Return boolean argument or default value.
@@ -137,7 +185,7 @@ public:
      * @param default (true or false)
      * @return command-line argument or default value
      */
-    bool GetBoolArg(const std::string &strArg, bool fDefault);
+    bool GetBoolArg(const std::string &strArg, bool fDefault) const;
 
     /**
      * Set an argument if it doesn't already have a value.
@@ -164,11 +212,24 @@ public:
     void ForceSetMultiArg(const std::string &strArg,
                           const std::string &strValue);
 
+    /**
+     * Looks for -regtest, -testnet and returns the appropriate BIP70 chain
+     * name.
+     * @return CBaseChainParams::MAIN by default; raises runtime error if an
+     * invalid combination is given.
+     */
+    std::string GetChainName() const;
+
     // Remove an arg setting, used only in testing
     void ClearArg(const std::string &strArg);
 };
 
 extern ArgsManager gArgs;
+
+/**
+ * @return true if help has been requested via a command-line arg
+ */
+bool HelpRequested(const ArgsManager &args);
 
 /**
  * Format a string to be used as group of options in help messages.

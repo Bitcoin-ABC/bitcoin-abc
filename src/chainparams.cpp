@@ -115,12 +115,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000b8702680bcb0fec8548e05");
+            "000000000000000000000000000000000000000000e69facb8ace3926ead407c");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "0000000000000000007e11995a8969e2d8838e72da271cdd1903ae4c6753064a");
+            "000000000000000001cfa7b6cb48a93d07d8e7f474edcf4fe9b32b7525afe971");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
@@ -128,11 +128,14 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 504031;
 
-        // Nov 15, 2018 hard fork
-        consensus.magneticAnomalyActivationTime = 1542300000;
+        // November 15, 2018 hard fork
+        consensus.magneticAnomalyHeight = 556766;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
+
+        // Nov 15, 2019 12:00:00 UTC protocol upgrade
+        consensus.gravitonActivationTime = 1573819200;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -160,20 +163,23 @@ public:
                uint256S("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b"
                         "7afdeda33b"));
 
-        // Note that of those with the service bits flag, most only support a
-        // subset of possible options.
+        // Note that of those which support the service bits prefix, most only
+        // support a subset of possible options. This is fine at runtime as
+        // we'll fall back to using them as a oneshot if they dont support the
+        // service bits we want, but we should get them updated to support all
+        // service bits wanted by any release ASAP to avoid it where possible.
         // Bitcoin ABC seeder
-        vSeeds.emplace_back("seed.bitcoinabc.org", true);
+        vSeeds.emplace_back("seed.bitcoinabc.org");
         // bitcoinforks seeders
-        vSeeds.emplace_back("seed-abc.bitcoinforks.org", true);
+        vSeeds.emplace_back("seed-abc.bitcoinforks.org");
         // BU backed seeder
-        vSeeds.emplace_back("btccash-seeder.bitcoinunlimited.info", true);
+        vSeeds.emplace_back("btccash-seeder.bitcoinunlimited.info");
         // Bitprim
-        vSeeds.emplace_back("seed.bitprim.org", true);
+        vSeeds.emplace_back("seed.bitprim.org");
         // Amaury SÉCHET
-        vSeeds.emplace_back("seed.deadalnix.me", true);
+        vSeeds.emplace_back("seed.deadalnix.me");
         // criptolayer.net
-        vSeeds.emplace_back("seeder.criptolayer.net", true);
+        vSeeds.emplace_back("seeder.criptolayer.net");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
@@ -185,7 +191,6 @@ public:
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
-        fMiningRequiresPeers = true;
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;
         fMineBlocksOnDemand = false;
@@ -227,6 +232,9 @@ public:
                 // Monolith activation.
                 {530359, uint256S("0000000000000000011ada8bd08f46074f44a8f15539"
                                   "6f43e38acf9501c49103")},
+                // Magnetic anomaly activation.
+                {556767, uint256S("0000000000000000004626ff6e3b936941d341c5932e"
+                                  "ce4357eeccac44e6d56c")},
             }};
 
         // Data as of block
@@ -281,12 +289,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000000030015a07e503af3227");
+            "000000000000000000000000000000000000000000000043cb761ba833f844c5");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "00000000000000ba5624709777f8df34b911c16a33a474562aec7360580218cc");
+            "00000000000002cb911c0a756a24c2fe6c1a29acaede3569ce430b95d8ff012d");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
@@ -294,11 +302,14 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 1188697;
 
-        // Nov 15, 2018 hard fork
-        consensus.magneticAnomalyActivationTime = 1542300000;
+        // November 15, 2018 hard fork
+        consensus.magneticAnomalyHeight = 1267996;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
+
+        // Nov 15, 2019 12:00:00 UTC protocol upgrade
+        consensus.gravitonActivationTime = 1573819200;
 
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
@@ -325,15 +336,15 @@ public:
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
         // Bitcoin ABC seeder
-        vSeeds.emplace_back("testnet-seed.bitcoinabc.org", true);
+        vSeeds.emplace_back("testnet-seed.bitcoinabc.org");
         // bitcoinforks seeders
-        vSeeds.emplace_back("testnet-seed-abc.bitcoinforks.org", true);
+        vSeeds.emplace_back("testnet-seed-abc.bitcoinforks.org");
         // Bitprim
-        vSeeds.emplace_back("testnet-seed.bitprim.org", true);
+        vSeeds.emplace_back("testnet-seed.bitprim.org");
         // Amaury SÉCHET
-        vSeeds.emplace_back("testnet-seed.deadalnix.me", true);
+        vSeeds.emplace_back("testnet-seed.deadalnix.me");
         // criptolayer.net
-        vSeeds.emplace_back("testnet-seeder.criptolayer.net", true);
+        vSeeds.emplace_back("testnet-seeder.criptolayer.net");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
@@ -344,7 +355,6 @@ public:
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
-        fMiningRequiresPeers = true;
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
         fMineBlocksOnDemand = false;
@@ -415,11 +425,14 @@ public:
         // November 13, 2017 hard fork is always on on regtest.
         consensus.daaHeight = 0;
 
-        // Nov 15, 2018 hard fork
-        consensus.magneticAnomalyActivationTime = 1542300000;
+        // November 15, 2018 hard fork is always on on regtest.
+        consensus.magneticAnomalyHeight = 0;
 
         // Wed, 15 May 2019 12:00:00 UTC hard fork
         consensus.greatWallActivationTime = 1557921600;
+
+        // Nov 15, 2019 12:00:00 UTC protocol upgrade
+        consensus.gravitonActivationTime = 1573819200;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;
@@ -446,7 +459,6 @@ public:
         //!< Regtest mode doesn't have any DNS seeds.
         vSeeds.clear();
 
-        fMiningRequiresPeers = false;
         fDefaultConsistencyChecks = true;
         fRequireStandard = false;
         fMineBlocksOnDemand = true;

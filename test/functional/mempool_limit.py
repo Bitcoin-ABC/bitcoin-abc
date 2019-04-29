@@ -5,9 +5,11 @@
 
 # Test mempool limiting together/eviction with the wallet
 
+from test_framework.blocktools import (
+    create_confirmed_utxos,
+    send_big_transactions,
+)
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.blocktools import send_big_transactions, create_confirmed_utxos
 
 
 class MempoolLimitTest(BitcoinTestFramework):
@@ -34,7 +36,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         txF = self.nodes[0].fundrawtransaction(tx)
         # return to automatic fee selection
         self.nodes[0].settxfee(0)
-        txFS = self.nodes[0].signrawtransaction(txF['hex'])
+        txFS = self.nodes[0].signrawtransactionwithwallet(txF['hex'])
         txid = self.nodes[0].sendrawtransaction(txFS['hex'])
 
         for i in range(utxo_groups):

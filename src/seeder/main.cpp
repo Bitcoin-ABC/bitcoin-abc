@@ -2,17 +2,18 @@
 #include "clientversion.h"
 #include "db.h"
 #include "dns.h"
+#include "logging.h"
 #include "protocol.h"
 #include "streams.h"
 
 #include <algorithm>
 #include <atomic>
 #include <cinttypes>
+#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <getopt.h>
 #include <pthread.h>
-#include <signal.h>
 
 class CDnsSeedOpts {
 public:
@@ -431,7 +432,7 @@ extern "C" void *ThreadStats(void *) {
             queries += dnsThread[i]->dbQueries;
         }
         printf("%s %i/%i available (%i tried in %is, %i new, %i active), %i "
-               "banned; %llu DNS requests, %llu db queries",
+               "banned; %llu DNS requests, %llu db queries\n",
                c, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge,
                stats.nNew, stats.nAvail - stats.nTracked - stats.nNew,
                stats.nBanned, (unsigned long long)requests,
@@ -468,6 +469,9 @@ extern "C" void *ThreadSeeder(void *) {
 }
 
 int main(int argc, char **argv) {
+    // The logger dump everything on the console by default.
+    GetLogger().m_print_to_console = true;
+
     signal(SIGPIPE, SIG_IGN);
     setbuf(stdout, nullptr);
     CDnsSeedOpts opts;
@@ -485,7 +489,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.tor, 9050));
         if (service.IsValid()) {
             printf("Using Tor proxy at %s\n", service.ToStringIPPort().c_str());
-            SetProxy(NET_TOR, service);
+            SetProxy(NET_ONION, proxyType(service));
         }
     }
     if (opts.ipv4_proxy) {
@@ -493,7 +497,7 @@ int main(int argc, char **argv) {
         if (service.IsValid()) {
             printf("Using IPv4 proxy at %s\n",
                    service.ToStringIPPort().c_str());
-            SetProxy(NET_IPV4, service);
+            SetProxy(NET_IPV4, proxyType(service));
         }
     }
     if (opts.ipv6_proxy) {
@@ -501,7 +505,7 @@ int main(int argc, char **argv) {
         if (service.IsValid()) {
             printf("Using IPv6 proxy at %s\n",
                    service.ToStringIPPort().c_str());
-            SetProxy(NET_IPV6, service);
+            SetProxy(NET_IPV6, proxyType(service));
         }
     }
     bool fDNS = true;

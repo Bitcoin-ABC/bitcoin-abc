@@ -2,13 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "zmqnotificationinterface.h"
-#include "zmqpublishnotifier.h"
+#include <zmq/zmqnotificationinterface.h>
+#include <zmq/zmqpublishnotifier.h>
 
-#include "streams.h"
-#include "util.h"
-#include "validation.h"
-#include "version.h"
+#include <streams.h>
+#include <util.h>
+#include <validation.h>
+#include <version.h>
 
 void zmqError(const char *str) {
     LogPrint(BCLog::ZMQ, "zmq: Error: %s, errno=%s\n", str,
@@ -40,15 +40,13 @@ CZMQNotificationInterface *CZMQNotificationInterface::Create() {
     factories["pubrawtx"] =
         CZMQAbstractNotifier::Create<CZMQPublishRawTransactionNotifier>;
 
-    for (std::map<std::string, CZMQNotifierFactory>::const_iterator i =
-             factories.begin();
-         i != factories.end(); ++i) {
-        std::string arg("-zmq" + i->first);
+    for (const auto &entry : factories) {
+        std::string arg("-zmq" + entry.first);
         if (gArgs.IsArgSet(arg)) {
-            CZMQNotifierFactory factory = i->second;
+            CZMQNotifierFactory factory = entry.second;
             std::string address = gArgs.GetArg(arg, "");
             CZMQAbstractNotifier *notifier = factory();
-            notifier->SetType(i->first);
+            notifier->SetType(entry.first);
             notifier->SetAddress(address);
             notifiers.push_back(notifier);
         }
@@ -112,7 +110,7 @@ void CZMQNotificationInterface::Shutdown() {
         }
         zmq_ctx_destroy(pcontext);
 
-        pcontext = 0;
+        pcontext = nullptr;
     }
 }
 

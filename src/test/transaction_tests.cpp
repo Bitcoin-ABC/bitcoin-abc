@@ -29,7 +29,6 @@
 #include <map>
 #include <string>
 
-#include <boost/range/adaptor/reversed.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
@@ -103,6 +102,14 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                                 strTest);
             BOOST_CHECK(state.IsValid());
 
+            // Check that CheckCoinbase reject non-coinbase transactions and
+            // vice versa.
+            BOOST_CHECK_MESSAGE(!(tx.IsCoinBase()
+                                      ? CheckRegularTransaction(tx, state)
+                                      : CheckCoinbase(tx, state)),
+                                strTest);
+            BOOST_CHECK(state.IsInvalid());
+
             PrecomputedTransactionData txdata(tx);
             for (size_t i = 0; i < tx.vin.size(); i++) {
                 if (!mapprevOutScriptPubKeys.count(tx.vin[i].prevout)) {
@@ -117,11 +124,12 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
 
                 uint32_t verify_flags = ParseScriptFlags(test[2].get_str());
                 BOOST_CHECK_MESSAGE(
-                    VerifyScript(tx.vin[i].scriptSig,
-                                 mapprevOutScriptPubKeys[tx.vin[i].prevout],
-                                 verify_flags, TransactionSignatureChecker(
-                                                   &tx, i, amount, txdata),
-                                 &err),
+                    VerifyScript(
+                        tx.vin[i].scriptSig,
+                        mapprevOutScriptPubKeys[tx.vin[i].prevout],
+                        verify_flags,
+                        TransactionSignatureChecker(&tx, i, amount, txdata),
+                        &err),
                     strTest);
                 BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK,
                                     ScriptErrorString(err));
@@ -577,11 +585,12 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, 0, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
-                                     MutableTransactionSignatureChecker(
-                                         &input1, 0, output1->vout[0].nValue),
-                                     DataFromTransaction(input1, 0),
-                                     DataFromTransaction(input2, 0)));
+        input1, 0,
+        CombineSignatures(output1->vout[0].scriptPubKey,
+                          MutableTransactionSignatureChecker(
+                              &input1, 0, output1->vout[0].nValue),
+                          DataFromTransaction(input1, 0),
+                          DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 
     // P2SH 2-of-2 multisig
@@ -597,11 +606,12 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, SCRIPT_VERIFY_P2SH, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
-                                     MutableTransactionSignatureChecker(
-                                         &input1, 0, output1->vout[0].nValue),
-                                     DataFromTransaction(input1, 0),
-                                     DataFromTransaction(input2, 0)));
+        input1, 0,
+        CombineSignatures(output1->vout[0].scriptPubKey,
+                          MutableTransactionSignatureChecker(
+                              &input1, 0, output1->vout[0].nValue),
+                          DataFromTransaction(input1, 0),
+                          DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, SCRIPT_VERIFY_P2SH, true);
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 }
@@ -765,19 +775,39 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
 BOOST_AUTO_TEST_CASE(txsize_activation_test) {
     const Config &config = GetConfig();
-    const int64_t magneticAnomalyActivationTime =
-        config.GetChainParams().GetConsensus().magneticAnomalyActivationTime;
+    const int32_t magneticAnomalyActivationHeight =
+        config.GetChainParams().GetConsensus().magneticAnomalyHeight;
 
     // A minimaly sized transction.
     CTransaction minTx;
     CValidationState state;
 
-    BOOST_CHECK(ContextualCheckTransaction(config, minTx, state, 1234, 5678,
-                                           magneticAnomalyActivationTime - 1));
-    BOOST_CHECK(!ContextualCheckTransaction(config, minTx, state, 1234, 5678,
-                                            magneticAnomalyActivationTime));
+    BOOST_CHECK(ContextualCheckTransaction(
+        config, minTx, state, magneticAnomalyActivationHeight - 1, 5678, 1234));
+    BOOST_CHECK(!ContextualCheckTransaction(
+        config, minTx, state, magneticAnomalyActivationHeight, 5678, 1234));
     BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-undersize");
+}
+
+BOOST_AUTO_TEST_CASE(tx_transaction_fee) {
+    std::vector<size_t> sizes = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
+    for (size_t inputs : sizes) {
+        for (size_t outputs : sizes) {
+            CMutableTransaction mtx;
+            mtx.vin.resize(inputs);
+            mtx.vout.resize(outputs);
+            CTransaction tx(mtx);
+            auto txBillableSize = tx.GetBillableSize();
+            auto txSize = tx.GetTotalSize();
+            BOOST_CHECK(txBillableSize > 0);
+            if (inputs > outputs) {
+                BOOST_CHECK(txBillableSize <= txSize);
+            } else {
+                BOOST_CHECK(txBillableSize >= txSize);
+            }
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

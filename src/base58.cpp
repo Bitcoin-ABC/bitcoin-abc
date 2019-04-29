@@ -7,6 +7,7 @@
 #include "hash.h"
 #include "script/script.h"
 #include "uint256.h"
+#include "utilstrencodings.h"
 
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>
@@ -22,7 +23,7 @@ static const char *pszBase58 =
 
 bool DecodeBase58(const char *psz, std::vector<uint8_t> &vch) {
     // Skip leading spaces.
-    while (*psz && isspace(*psz)) {
+    while (*psz && IsSpace(*psz)) {
         psz++;
     }
     // Skip and count leading '1's.
@@ -37,7 +38,7 @@ bool DecodeBase58(const char *psz, std::vector<uint8_t> &vch) {
     int size = strlen(psz) * 733 / 1000 + 1;
     std::vector<uint8_t> b256(size);
     // Process the characters.
-    while (*psz && !isspace(*psz)) {
+    while (*psz && !IsSpace(*psz)) {
         // Decode base58 character
         const char *ch = strchr(pszBase58, *psz);
         if (ch == nullptr) {
@@ -57,7 +58,7 @@ bool DecodeBase58(const char *psz, std::vector<uint8_t> &vch) {
         psz++;
     }
     // Skip trailing spaces.
-    while (isspace(*psz)) {
+    while (IsSpace(*psz)) {
         psz++;
     }
     if (*psz != 0) {
@@ -214,7 +215,8 @@ private:
     const CChainParams &m_params;
 
 public:
-    DestinationEncoder(const CChainParams &params) : m_params(params) {}
+    explicit DestinationEncoder(const CChainParams &params)
+        : m_params(params) {}
 
     std::string operator()(const CKeyID &id) const {
         std::vector<uint8_t> data =

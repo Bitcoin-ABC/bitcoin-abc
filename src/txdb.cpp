@@ -35,7 +35,7 @@ namespace {
 struct CoinEntry {
     COutPoint *outpoint;
     char key;
-    CoinEntry(const COutPoint *ptr)
+    explicit CoinEntry(const COutPoint *ptr)
         : outpoint(const_cast<COutPoint *>(ptr)), key(DB_COIN) {}
 
     template <typename Stream> void Serialize(Stream &s) const {
@@ -141,8 +141,9 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
     LogPrint(BCLog::COINDB, "Writing final batch of %.2f MiB\n",
              batch.SizeEstimate() * (1.0 / 1048576.0));
     bool ret = db.WriteBatch(batch);
-    LogPrint(BCLog::COINDB, "Committed %u changed transaction outputs (out of "
-                            "%u) to coin database...\n",
+    LogPrint(BCLog::COINDB,
+             "Committed %u changed transaction outputs (out of "
+             "%u) to coin database...\n",
              (unsigned int)changed, (unsigned int)count);
     return ret;
 }
@@ -390,9 +391,9 @@ bool CCoinsViewDB::Upgrade() {
     int64_t count = 0;
     LogPrintf("Upgrading utxo-set database...\n");
     LogPrintf("[0%%]...");
+    uiInterface.ShowProgress(_("Upgrading UTXO database"), 0, true);
     size_t batch_size = 1 << 24;
     CDBBatch batch(db);
-    uiInterface.SetProgressBreakAction(StartShutdown);
     int reportDone = 0;
     std::pair<uint8_t, uint256> key;
     std::pair<uint8_t, uint256> prev_key = {DB_COINS, uint256()};
@@ -410,10 +411,8 @@ bool CCoinsViewDB::Upgrade() {
             uint32_t high =
                 0x100 * *key.second.begin() + *(key.second.begin() + 1);
             int percentageDone = (int)(high * 100.0 / 65536.0 + 0.5);
-            uiInterface.ShowProgress(
-                _("Upgrading UTXO database") + "\n" +
-                    _("(press q to shutdown and continue later)") + "\n",
-                percentageDone);
+            uiInterface.ShowProgress(_("Upgrading UTXO database"),
+                                     percentageDone, true);
             if (reportDone < percentageDone / 10) {
                 // report max. every 10% step
                 LogPrintf("[%d%%]...", percentageDone);
@@ -451,7 +450,7 @@ bool CCoinsViewDB::Upgrade() {
 
     db.WriteBatch(batch);
     db.CompactRange({DB_COINS, uint256()}, key);
-    uiInterface.SetProgressBreakAction(std::function<void(void)>());
+    uiInterface.ShowProgress("", 100, false);
     LogPrintf("[%s].\n", ShutdownRequested() ? "CANCELLED" : "DONE");
     return !ShutdownRequested();
 }

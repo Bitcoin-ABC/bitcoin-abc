@@ -184,11 +184,13 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
     out.pushKV("addresses", a);
 }
 
-void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
-              UniValue &entry) {
+void TxToUniv(const CTransaction &tx, const uint256 &hashBlock, UniValue &entry,
+              bool include_hex, int serialize_flags) {
     entry.pushKV("txid", tx.GetId().GetHex());
     entry.pushKV("hash", tx.GetHash().GetHex());
     entry.pushKV("version", tx.nVersion);
+    entry.pushKV("size",
+                 (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION));
     entry.pushKV("locktime", (int64_t)tx.nLockTime);
 
     UniValue vin(UniValue::VARR);
@@ -236,7 +238,9 @@ void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
         entry.pushKV("blockhash", hashBlock.GetHex());
     }
 
-    // the hex-encoded transaction. used the name "hex" to be consistent with
-    // the verbose output of "getrawtransaction".
-    entry.pushKV("hex", EncodeHexTx(tx));
+    if (include_hex) {
+        // the hex-encoded transaction. used the name "hex" to be consistent
+        // with the verbose output of "getrawtransaction".
+        entry.pushKV("hex", EncodeHexTx(tx, serialize_flags));
+    }
 }

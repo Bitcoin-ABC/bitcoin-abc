@@ -4,6 +4,7 @@ Setup instructions for a Gitian build of Wormhole using a Ubuntu VM.
 
 Gitian is the deterministic build process that is used to build the Wormhole executables. It provides a way to be reasonably sure that the executables are really built from the source on GitHub. It also makes sure that the same, tested dependencies are used and statically built into the executable.
 
+
 Multiple developers build the source code by following a specific descriptor ("recipe"), cryptographically sign the result, and upload the resulting signature. These results are compared and only if they match, the build is accepted and uploaded to bitcoinabc.org.
 
 More independent Gitian builders are needed, which is why this guide exists. It is preferred you follow these steps yourself instead of using someone else's VM image to avoid 'contaminating' the build.
@@ -11,7 +12,6 @@ More independent Gitian builders are needed, which is why this guide exists. It 
 Preparing the Gitian builder host
 ---------------------------------
 The first step is to prepare the host environment that will be used to perform the Gitian builds. This guide explains how to set up the environment, and how to start the builds.
-
 The gitian build is easiest performed under Ubuntu Xenial. This guide will focus on creating and using a KVM. 
 
 Requirements:
@@ -61,10 +61,8 @@ There will be a lot of warnings printed during the build of the image. These can
 
 testing
 --------
-
 ```
 make-clean-vm --suite xenial --arch amd64
-
 on-target ls -la
 ```
 
@@ -73,7 +71,6 @@ on-target ls -la
 Building Wormhole
 -------------------
 To build Womrhole run the following commands:
-
 ```
 URL=https://github.com/copernet/wormhole.git
 COMMIT=Earth-0.0.6-pre-release # or whatever release tag you wish
@@ -88,7 +85,6 @@ This may take some time as it will build all the dependencies needed for each de
 
 Note:
 If you build with ```gitian-osx.yml```, you will need put [MacOSX10.11.sdk.tar.gz](https://github.com/phracker/MacOSX-SDKs/releases) in directory```gitian-build/inputs```, because build in osx need depend it. You can follow this step to build it.
-
 ```
 cd gitian-builder
 
@@ -96,11 +92,14 @@ wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11
 xz -d MacOSX10.11.sdk.tar.xz
 tar -xvf MacOSX10.11.sdk.tar
 tar zcvf MacOSX10.11.sdk.tar.gz MacOSX10.11.sdk
-
 mv MacOSX10.11.sdk.tar.gz inputs
 ```
 
-At any time you can check the package installation and build progress with
+Build binaries
+--------------
+Windows and OSX have code signed binaries, but those won't be available until a few developers have gitian signed the non-codesigned binaries.
+
+To build the most recent tag:
 
 ```
 tail -f var/install.log

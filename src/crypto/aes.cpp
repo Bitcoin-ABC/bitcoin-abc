@@ -2,14 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "aes.h"
-#include "crypto/common.h"
+#include <crypto/aes.h>
+#include <crypto/common.h>
 
 #include <cassert>
 #include <cstring>
 
 extern "C" {
-#include "crypto/ctaes/ctaes.c"
+#include <crypto/ctaes/ctaes.c>
 }
 
 AES128Encrypt::AES128Encrypt(const uint8_t key[16]) {

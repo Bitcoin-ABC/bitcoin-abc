@@ -1,14 +1,18 @@
-Language:        Cpp
-Standard:        Cpp11
-ColumnLimit:     80
-IndentWidth:     4
-TabWidth:        4
-UseTab:          Never
+Language:             Cpp
+Standard:             Cpp11
+ColumnLimit:          80
+IndentWidth:          4
+TabWidth:             4
 AccessModifierOffset: -4
-IndentCaseLabels: true
+UseTab:               Never
+IndentCaseLabels:     true
 NamespaceIndentation: Inner
-BreakBeforeBraces: Attach
+BreakBeforeBraces:    Attach
+ReflowComments:       true
+AlignEscapedNewlines: Right
+AllowShortBlocksOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
+FixNamespaceComments: false
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, BOOST_REVERSE_FOREACH ]
 CommentPragmas:  '@DISABLE FORMATING FOR THIS COMMENT@'

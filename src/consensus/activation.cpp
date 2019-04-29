@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activation.h"
+#include <consensus/activation.h>
 
-#include "chain.h"
-#include "chainparams.h"
-#include "config.h"
-#include "util.h"
+#include <chain.h>
+#include <chainparams.h>
+#include <config.h>
+#include <util.h>
 
 static bool IsUAHFenabled(const Config &config, int nHeight) {
     return nHeight >= config.GetChainParams().GetConsensus().uahfHeight;
@@ -33,11 +33,9 @@ bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsDAAEnabled(config, pindexPrev->nHeight);
 }
 
-bool IsMagneticAnomalyEnabled(const Config &config, int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetArg("-magneticanomalyactivationtime",
-                                           config.GetChainParams()
-                                               .GetConsensus()
-                                               .magneticAnomalyActivationTime);
+bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight) {
+    return nHeight >=
+           config.GetChainParams().GetConsensus().magneticAnomalyHeight;
 }
 
 bool IsMagneticAnomalyEnabled(const Config &config,
@@ -46,5 +44,16 @@ bool IsMagneticAnomalyEnabled(const Config &config,
         return false;
     }
 
-    return IsMagneticAnomalyEnabled(config, pindexPrev->GetMedianTimePast());
+    return IsMagneticAnomalyEnabled(config, pindexPrev->nHeight);
+}
+
+bool IsGreatWallEnabled(const Config &config, const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return pindexPrev->GetMedianTimePast() >=
+           gArgs.GetArg(
+               "-greatwallactivationtime",
+               config.GetChainParams().GetConsensus().greatWallActivationTime);
 }

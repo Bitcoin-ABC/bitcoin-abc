@@ -3,18 +3,20 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "walletframe.h"
+#include "walletmodel.h"
 
 #include "bitcoingui.h"
 #include "walletview.h"
 
+#include <cassert>
 #include <cstdio>
 
 #include <QHBoxLayout>
 #include <QLabel>
 
-WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, const Config *cfg,
-                         BitcoinGUI *_gui)
-    : QFrame(_gui), gui(_gui), platformStyle(_platformStyle), cfg(cfg) {
+WalletFrame::WalletFrame(const PlatformStyle *_platformStyle,
+                         const Config *configIn, BitcoinGUI *_gui)
+    : QFrame(_gui), gui(_gui), platformStyle(_platformStyle), config(configIn) {
     // Leave HBox hook for adding a list view later
     QHBoxLayout *walletFrameLayout = new QHBoxLayout(this);
     setContentsMargins(0, 0, 0, 0);
@@ -33,11 +35,17 @@ void WalletFrame::setClientModel(ClientModel *_clientModel) {
     this->clientModel = _clientModel;
 }
 
-bool WalletFrame::addWallet(const QString &name, WalletModel *walletModel) {
-    if (!gui || !clientModel || !walletModel || mapWalletViews.count(name) > 0)
+bool WalletFrame::addWallet(WalletModel *walletModel) {
+    if (!gui || !clientModel || !walletModel) {
         return false;
+    }
 
-    WalletView *walletView = new WalletView(platformStyle, cfg, this);
+    const QString name = walletModel->getWalletName();
+    if (mapWalletViews.count(name) > 0) {
+        return false;
+    }
+
+    WalletView *walletView = new WalletView(platformStyle, config, this);
     walletView->setBitcoinGUI(gui);
     walletView->setClientModel(clientModel);
     walletView->setWalletModel(walletModel);
@@ -64,6 +72,7 @@ bool WalletFrame::setCurrentWallet(const QString &name) {
 
     WalletView *walletView = mapWalletViews.value(name);
     walletStack->setCurrentWidget(walletView);
+    assert(walletView);
     walletView->updateEncryptionStatus();
     return true;
 }

@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "bench.h"
-#include "chainparams.h"
-#include "wallet/wallet.h"
+#include <bench/bench.h>
+#include <chainparams.h>
+#include <wallet/wallet.h>
 
 #include <set>
 
@@ -52,7 +52,7 @@ static void CoinSelection(benchmark::State &state) {
             addCoin(1000 * COIN, wallet, vCoins);
         addCoin(3 * COIN, wallet, vCoins);
 
-        std::set<std::pair<const CWalletTx *, unsigned int>> setCoinsRet;
+        std::set<CInputCoin> setCoinsRet;
         Amount nValueRet;
         bool success = wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins,
                                                  setCoinsRet, nValueRet);
@@ -62,4 +62,4 @@ static void CoinSelection(benchmark::State &state) {
     }
 }
 
-BENCHMARK(CoinSelection);
+BENCHMARK(CoinSelection, 650);

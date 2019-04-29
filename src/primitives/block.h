@@ -6,9 +6,9 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
-#include "primitives/transaction.h"
-#include "serialize.h"
-#include "uint256.h"
+#include <primitives/transaction.h>
+#include <serialize.h>
+#include <uint256.h>
 
 /**
  * Nodes collect new transactions into a block, hash them into a hash tree, and
@@ -70,14 +70,14 @@ public:
 
     CBlock(const CBlockHeader &header) {
         SetNull();
-        *((CBlockHeader *)this) = header;
+        *(static_cast<CBlockHeader *>(this)) = header;
     }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(*(CBlockHeader *)this);
+        READWRITE(*static_cast<CBlockHeader *>(this));
         READWRITE(vtx);
     }
 
@@ -111,7 +111,8 @@ struct CBlockLocator {
 
     CBlockLocator() {}
 
-    CBlockLocator(const std::vector<uint256> &vHaveIn) { vHave = vHaveIn; }
+    explicit CBlockLocator(const std::vector<uint256> &vHaveIn)
+        : vHave(vHaveIn) {}
 
     ADD_SERIALIZE_METHODS;
 

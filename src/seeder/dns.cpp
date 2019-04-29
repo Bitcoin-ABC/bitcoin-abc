@@ -465,19 +465,19 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
                                 typ == TYPE_AAAA || typ == QTYPE_ANY);
             int n = 0;
             while (n < naddr) {
-                int ret = 1;
+                int mustbreak = 1;
                 if (addr[n].v == 4) {
-                    ret = write_record_a(&outpos, outend - max_auth_size, "",
-                                         offset, CLASS_IN, opt->datattl,
-                                         &addr[n]);
+                    mustbreak = write_record_a(&outpos, outend - max_auth_size,
+                                               "", offset, CLASS_IN,
+                                               opt->datattl, &addr[n]);
                 } else if (addr[n].v == 6) {
-                    ret = write_record_aaaa(&outpos, outend - max_auth_size, "",
-                                            offset, CLASS_IN, opt->datattl,
-                                            &addr[n]);
+                    mustbreak = write_record_aaaa(
+                        &outpos, outend - max_auth_size, "", offset, CLASS_IN,
+                        opt->datattl, &addr[n]);
                 }
 
-                //      printf("wrote A record: %i\n", ret);
-                if (ret) {
+                //      printf("wrote A record: %i\n", mustbreak);
+                if (mustbreak) {
                     break;
                 }
 
@@ -563,7 +563,8 @@ int dnsserver(dns_opt_t *opt) {
     uint8_t inbuf[BUFLEN], outbuf[BUFLEN];
     struct iovec iov[1] = {
         {
-            .iov_base = inbuf, .iov_len = sizeof(inbuf),
+            .iov_base = inbuf,
+            .iov_len = sizeof(inbuf),
         },
     };
 

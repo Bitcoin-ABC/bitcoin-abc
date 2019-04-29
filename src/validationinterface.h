@@ -8,8 +8,7 @@
 
 #include "primitives/transaction.h" // CTransaction(Ref)
 
-#include <boost/signals2/signal.hpp>
-
+#include <functional>
 #include <memory>
 
 class CBlock;
@@ -21,6 +20,9 @@ class CReserveScript;
 class CValidationInterface;
 class CValidationState;
 class uint256;
+class CScheduler;
+class CTxMemPool;
+enum class MemPoolRemovalReason;
 
 // These functions dispatch to one or all registered wallets
 
@@ -30,6 +32,26 @@ void RegisterValidationInterface(CValidationInterface *pwalletIn);
 void UnregisterValidationInterface(CValidationInterface *pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllValidationInterfaces();
+/**
+ * Pushes a function to callback onto the notification queue, guaranteeing any
+ * callbacks generated prior to now are finished when the function is called.
+ *
+ * Be very careful blocking on func to be called if any locks are held -
+ * validation interface clients may not be able to make progress as they often
+ * wait for things like cs_main, so blocking until func is called with cs_main
+ * will result in a deadlock (that DEBUG_LOCKORDER will miss).
+ */
+void CallFunctionInValidationInterfaceQueue(std::function<void()> func);
+/**
+ * This is a synonym for the following, which asserts certain locks are not
+ * held:
+ *     std::promise<void> promise;
+ *     CallFunctionInValidationInterfaceQueue([&promise] {
+ *         promise.set_value();
+ *     });
+ *     promise.get_future().wait();
+ */
+void SyncWithValidationInterfaceQueue();
 
 class CValidationInterface {
 protected:
@@ -53,17 +75,47 @@ protected:
      * Called on a background thread.
      */
     virtual void TransactionAddedToMempool(const CTransactionRef &ptxn) {}
+    /**
+     * Notifies listeners of a transaction leaving mempool.
+     *
+     * This only fires for transactions which leave mempool because of expiry,
+     * size limiting, reorg (changes in lock times/coinbase maturity), or
+     * replacement. This does not include any transactions which are included
+     * in BlockConnectedDisconnected either in block->vtx or in txnConflicted.
+     *
+     * Called on a background thread.
+     */
+    virtual void TransactionRemovedFromMempool(const CTransactionRef &ptx) {}
+    /**
+     * Notifies listeners of a block being connected.
+     * Provides a vector of transactions evicted from the mempool as a result.
+     */
     virtual void
     BlockConnected(const std::shared_ptr<const CBlock> &block,
                    const CBlockIndex *pindex,
                    const std::vector<CTransactionRef> &txnConflicted) {}
+    /** Notifies listeners of a block being disconnected */
     virtual void BlockDisconnected(const std::shared_ptr<const CBlock> &block) {
     }
+    /** Notifies listeners of the new active block chain on-disk. */
     virtual void SetBestChain(const CBlockLocator &locator) {}
+    /** Notifies listeners about an inventory item being seen on the network. */
     virtual void Inventory(const uint256 &hash) {}
+    /** Tells listeners to broadcast their data. */
     virtual void ResendWalletTransactions(int64_t nBestBlockTime,
                                           CConnman *connman) {}
+    /**
+     * Notifies listeners of a block validation result.
+     * If the provided CValidationState IsValid, the provided block
+     * is guaranteed to be the current best block at the time the
+     * callback was generated (not necessarily now)
+     */
     virtual void BlockChecked(const CBlock &, const CValidationState &) {}
+    /**
+     * Notifies listeners that a block which builds directly on our current tip
+     * has been received and connected to the headers tree, though not validated
+     * yet.
+     */
     virtual void NewPoWValidBlock(const CBlockIndex *pindex,
                                   const std::shared_ptr<const CBlock> &block){};
     friend void ::RegisterValidationInterface(CValidationInterface *);
@@ -71,43 +123,53 @@ protected:
     friend void ::UnregisterAllValidationInterfaces();
 };
 
-struct CMainSignals {
-    /** Notifies listeners of updated block chain tip */
-    boost::signals2::signal<void(const CBlockIndex *, const CBlockIndex *,
-                                 bool fInitialDownload)>
-        UpdatedBlockTip;
-    /** Notifies listeners of a transaction having been added to mempool. */
-    boost::signals2::signal<void(const CTransactionRef &)>
-        TransactionAddedToMempool;
+struct MainSignalsInstance;
+class CMainSignals {
+private:
+    std::unique_ptr<MainSignalsInstance> m_internals;
+
+    friend void ::RegisterValidationInterface(CValidationInterface *);
+    friend void ::UnregisterValidationInterface(CValidationInterface *);
+    friend void ::UnregisterAllValidationInterfaces();
+    friend void ::CallFunctionInValidationInterfaceQueue(
+        std::function<void()> func);
+
+    void MempoolEntryRemoved(CTransactionRef tx, MemPoolRemovalReason reason);
+
+public:
     /**
-     * Notifies listeners of a block being connected.
-     * Provides a vector of transactions evicted from the mempool as a result.
+     * Register a CScheduler to give callbacks which should run in the
+     * background (may only be called once)
      */
-    boost::signals2::signal<void(const std::shared_ptr<const CBlock> &,
-                                 const CBlockIndex *pindex,
-                                 const std::vector<CTransactionRef> &)>
-        BlockConnected;
-    /** Notifies listeners of a block being disconnected */
-    boost::signals2::signal<void(const std::shared_ptr<const CBlock> &)>
-        BlockDisconnected;
-    /** Notifies listeners of a new active block chain. */
-    boost::signals2::signal<void(const CBlockLocator &)> SetBestChain;
-    /** Notifies listeners about an inventory item being seen on the network. */
-    boost::signals2::signal<void(const uint256 &)> Inventory;
-    /** Tells listeners to broadcast their data. */
-    boost::signals2::signal<void(int64_t nBestBlockTime, CConnman *connman)>
-        Broadcast;
-    /** Notifies listeners of a block validation result */
-    boost::signals2::signal<void(const CBlock &, const CValidationState &)>
-        BlockChecked;
+    void RegisterBackgroundSignalScheduler(CScheduler &scheduler);
     /**
-     * Notifies listeners that a block which builds directly on our current tip
-     * has been received and connected to the headers tree, though not validated
-     * yet.
+     * Unregister a CScheduler to give callbacks which should run in the
+     * background - these callbacks will now be dropped!
      */
-    boost::signals2::signal<void(const CBlockIndex *,
-                                 const std::shared_ptr<const CBlock> &)>
-        NewPoWValidBlock;
+    void UnregisterBackgroundSignalScheduler();
+    /** Call any remaining callbacks on the calling thread */
+    void FlushBackgroundCallbacks();
+
+    size_t CallbacksPending();
+
+    /** Register with mempool to call TransactionRemovedFromMempool callbacks */
+    void RegisterWithMempoolSignals(CTxMemPool &pool);
+    /** Unregister with mempool */
+    void UnregisterWithMempoolSignals(CTxMemPool &pool);
+
+    void UpdatedBlockTip(const CBlockIndex *, const CBlockIndex *,
+                         bool fInitialDownload);
+    void TransactionAddedToMempool(const CTransactionRef &);
+    void BlockConnected(const std::shared_ptr<const CBlock> &,
+                        const CBlockIndex *pindex,
+                        const std::vector<CTransactionRef> &);
+    void BlockDisconnected(const std::shared_ptr<const CBlock> &);
+    void SetBestChain(const CBlockLocator &);
+    void Inventory(const uint256 &);
+    void Broadcast(int64_t nBestBlockTime, CConnman *connman);
+    void BlockChecked(const CBlock &, const CValidationState &);
+    void NewPoWValidBlock(const CBlockIndex *,
+                          const std::shared_ptr<const CBlock> &);
 };
 
 CMainSignals &GetMainSignals();

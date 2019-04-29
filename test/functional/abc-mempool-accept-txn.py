@@ -8,15 +8,39 @@ This test checks acceptance of transactions by the mempool
 It is derived from the much more complex p2p-fullblocktest.
 """
 
-from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import (assert_raises_rpc_error, assert_equal)
-from test_framework.comptool import TestManager, TestInstance
-from test_framework.blocktools import *
 import time
-from test_framework.key import CECKey
-from test_framework.script import *
-import struct
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+)
 from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
+from test_framework.comptool import TestInstance, TestManager
+from test_framework.key import CECKey
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    ToHex,
+)
+from test_framework.mininode import network_thread_start
+from test_framework.script import (
+    CScript,
+    hash160,
+    OP_2DUP,
+    OP_CHECKSIG,
+    OP_CHECKSIGVERIFY,
+    OP_EQUAL,
+    OP_HASH160,
+    OP_TRUE,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
+)
+from test_framework.test_framework import ComparisonTestFramework
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 # Error for too many sigops in one TX
 TXNS_TOO_MANY_SIGOPS_ERROR = b'bad-txns-too-many-sigops'
@@ -54,19 +78,20 @@ class FullBlockTest(ComparisonTestFramework):
 
     def add_options(self, parser):
         super().add_options(parser)
-        parser.add_option(
+        parser.add_argument(
             "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
 
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
         self.test.add_all_connections(self.nodes)
-        # Start up network handling in another thread
-        NetworkThread().start()
+        network_thread_start()
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
+        block.vtx = [block.vtx[0]] + \
+            sorted(block.vtx[1:], key=lambda tx: tx.get_id())
 
     # this is a little handier to use than the version in blocktools.py
     def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):

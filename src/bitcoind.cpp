@@ -17,11 +17,10 @@
 #include "init.h"
 #include "noui.h"
 #include "rpc/server.h"
-#include "scheduler.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "walletinitinterface.h"
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread.hpp>
 
 #include <cstdio>
@@ -47,17 +46,11 @@
  * <code>Files</code> at the top of the page to start navigating the code.
  */
 
-void WaitForShutdown(boost::thread_group *threadGroup) {
-    bool fShutdown = ShutdownRequested();
-    // Tell the main threads to shutdown.
-    while (!fShutdown) {
+void WaitForShutdown() {
+    while (!ShutdownRequested()) {
         MilliSleep(200);
-        fShutdown = ShutdownRequested();
     }
-    if (threadGroup) {
-        Interrupt(*threadGroup);
-        threadGroup->join_all();
-    }
+    Interrupt();
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -65,13 +58,12 @@ void WaitForShutdown(boost::thread_group *threadGroup) {
 // Start
 //
 bool AppInit(int argc, char *argv[]) {
-    boost::thread_group threadGroup;
-    CScheduler scheduler;
-
     // FIXME: Ideally, we'd like to build the config here, but that's currently
     // not possible as the whole application has too many global state. However,
     // this is a first step.
     auto &config = const_cast<Config &>(GetConfig());
+    RPCServer rpcServer;
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
     bool fRet = false;
 
@@ -83,8 +75,7 @@ bool AppInit(int argc, char *argv[]) {
     gArgs.ParseParameters(argc, argv);
 
     // Process help and version before taking care about datadir
-    if (gArgs.IsArgSet("-?") || gArgs.IsArgSet("-h") ||
-        gArgs.IsArgSet("-help") || gArgs.IsArgSet("-version")) {
+    if (HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
         std::string strUsage = strprintf(_("%s Daemon"), _(PACKAGE_NAME)) +
                                " " + _("version") + " " + FormatFullVersion() +
                                "\n";
@@ -96,7 +87,7 @@ bool AppInit(int argc, char *argv[]) {
                         "  bitcoind [options]                     " +
                         strprintf(_("Start %s Daemon"), _(PACKAGE_NAME)) + "\n";
 
-            strUsage += "\n" + HelpMessage(HMM_BITCOIND);
+            strUsage += "\n" + HelpMessage(HelpMessageMode::BITCOIND);
         }
 
         fprintf(stdout, "%s", strUsage.c_str());
@@ -119,25 +110,24 @@ bool AppInit(int argc, char *argv[]) {
         // Check for -testnet or -regtest parameter (Params() calls are only
         // valid after this clause)
         try {
-            SelectParams(ChainNameFromCommandLine());
+            SelectParams(gArgs.GetChainName());
         } catch (const std::exception &e) {
             fprintf(stderr, "Error: %s\n", e.what());
             return false;
         }
 
-        // Command-line RPC
-        bool fCommandLine = false;
-        for (int i = 1; i < argc; i++)
-            if (!IsSwitchChar(argv[i][0]) &&
-                !boost::algorithm::istarts_with(argv[i], "bitcoin:"))
-                fCommandLine = true;
-
-        if (fCommandLine) {
-            fprintf(stderr, "Error: There is no RPC client functionality in "
-                            "bitcoind anymore. Use the bitcoin-cli utility "
-                            "instead.\n");
-            exit(EXIT_FAILURE);
+        // Error out when loose non-argument tokens are encountered on command
+        // line
+        for (int i = 1; i < argc; i++) {
+            if (!IsSwitchChar(argv[i][0])) {
+                fprintf(stderr,
+                        "Error: Command line contains unexpected token '%s', "
+                        "see bitcoind -h for a list of options.\n",
+                        argv[i]);
+                exit(EXIT_FAILURE);
+            }
         }
+
         // -server defaults to true for bitcoind but not for the GUI so do this
         // here
         gArgs.SoftSetBoolArg("-server", true);
@@ -149,7 +139,7 @@ bool AppInit(int argc, char *argv[]) {
             // up on console
             exit(1);
         }
-        if (!AppInitParameterInteraction(config)) {
+        if (!AppInitParameterInteraction(config, rpcServer)) {
             // InitError will have been called with detailed error, which ends
             // up on console
             exit(1);
@@ -178,7 +168,12 @@ bool AppInit(int argc, char *argv[]) {
 #endif // HAVE_DECL_DAEMON
         }
 
-        fRet = AppInitMain(config, threadGroup, scheduler);
+        // Lock data directory after daemonization
+        if (!AppInitLockDataDirectory()) {
+            // If locking the data directory failed, exit immediately
+            exit(EXIT_FAILURE);
+        }
+        fRet = AppInitMain(config, httpRPCRequestProcessor);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {
@@ -186,13 +181,9 @@ bool AppInit(int argc, char *argv[]) {
     }
 
     if (!fRet) {
-        Interrupt(threadGroup);
-        // threadGroup.join_all(); was left out intentionally here, because we
-        // didn't re-test all of the startup-failure cases to make sure they
-        // don't result in a hang due to some
-        // thread-blocking-waiting-for-another-thread-during-startup case.
+        Interrupt();
     } else {
-        WaitForShutdown(&threadGroup);
+        WaitForShutdown();
     }
     Shutdown();
 

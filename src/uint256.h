@@ -18,7 +18,7 @@
 /** Template base class for fixed-sized opaque blobs. */
 template <unsigned int BITS> class base_blob {
 protected:
-    enum { WIDTH = BITS / 8 };
+    static constexpr int WIDTH = BITS / 8;
     uint8_t data[WIDTH];
 
 public:
@@ -61,8 +61,14 @@ public:
     friend inline bool operator<(const base_blob &a, const base_blob &b) {
         return a.Compare(b) < 0;
     }
+    friend inline bool operator<=(const base_blob &a, const base_blob &b) {
+        return a.Compare(b) <= 0;
+    }
     friend inline bool operator>(const base_blob &a, const base_blob &b) {
         return a.Compare(b) > 0;
+    }
+    friend inline bool operator>=(const base_blob &a, const base_blob &b) {
+        return a.Compare(b) >= 0;
     }
 
     std::string GetHex() const;
@@ -105,7 +111,7 @@ public:
 class uint160 : public base_blob<160> {
 public:
     uint160() {}
-    uint160(const base_blob<160> &b) : base_blob<160>(b) {}
+    explicit uint160(const base_blob<160> &b) : base_blob<160>(b) {}
     explicit uint160(const std::vector<uint8_t> &vch) : base_blob<160>(vch) {}
 };
 
@@ -118,7 +124,7 @@ public:
 class uint256 : public base_blob<256> {
 public:
     uint256() {}
-    uint256(const base_blob<256> &b) : base_blob<256>(b) {}
+    explicit uint256(const base_blob<256> &b) : base_blob<256>(b) {}
     explicit uint256(const std::vector<uint8_t> &vch) : base_blob<256>(vch) {}
 
     /**

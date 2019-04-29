@@ -350,6 +350,7 @@ int secp256k1_ecdsa_sign(const secp256k1_context* ctx, secp256k1_ecdsa_signature
     secp256k1_scalar sec, non, msg;
     int ret = 0;
     int overflow = 0;
+    const unsigned char secp256k1_ecdsa_der_algo16[17] = "ECDSA+DER       ";
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
     ARG_CHECK(msg32 != NULL);
@@ -366,7 +367,7 @@ int secp256k1_ecdsa_sign(const secp256k1_context* ctx, secp256k1_ecdsa_signature
         unsigned int count = 0;
         secp256k1_scalar_set_b32(&msg, msg32, NULL);
         while (1) {
-            ret = noncefp(nonce32, msg32, seckey, NULL, (void*)noncedata, count);
+            ret = noncefp(nonce32, msg32, seckey, secp256k1_ecdsa_der_algo16, (void*)noncedata, count);
             if (!ret) {
                 break;
             }
@@ -588,4 +589,8 @@ int secp256k1_ec_pubkey_combine(const secp256k1_context* ctx, secp256k1_pubkey *
 
 #ifdef ENABLE_MODULE_RECOVERY
 # include "modules/recovery/main_impl.h"
+#endif
+
+#ifdef ENABLE_MODULE_SCHNORR
+# include "modules/schnorr/main_impl.h"
 #endif

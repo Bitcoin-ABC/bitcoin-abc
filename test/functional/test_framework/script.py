@@ -7,11 +7,22 @@
 This file is modified from python-bitcoinlib.
 """
 
-from .mininode import CTransaction, CTxOut, sha256, hash256, uint256_from_str, ser_uint256, ser_string
+from .bignum import bn2vch
 from binascii import hexlify
 import hashlib
-
+import struct
 import sys
+
+from .messages import (
+    CTransaction,
+    CTxOut,
+    hash256,
+    ser_string,
+    ser_uint256,
+    sha256,
+    uint256_from_str,
+)
+
 bchr = chr
 bord = ord
 if sys.version > '3':
@@ -21,13 +32,8 @@ if sys.version > '3':
 
     def bord(x): return x
 
-import struct
 
-from .bignum import bn2vch
-
-MAX_SCRIPT_SIZE = 10000
 MAX_SCRIPT_ELEMENT_SIZE = 520
-MAX_SCRIPT_OPCODES = 201
 
 OPCODE_NAMES = {}
 
@@ -62,7 +68,7 @@ class CScriptOp(int):
         """Encode a small integer op, returning an opcode"""
         if not (0 <= n <= 16):
             raise ValueError(
-                'Integer must be in range 0 <= n <= 16, got %d' % n)
+                'Integer must be in range 0 <= n <= 16, got {}'.format(n))
 
         if n == 0:
             return OP_0
@@ -75,7 +81,7 @@ class CScriptOp(int):
             return 0
 
         if not (self == OP_0 or OP_1 <= self <= OP_16):
-            raise ValueError('op %r is not an OP_N' % self)
+            raise ValueError('op {!r} is not an OP_N'.format(self))
 
         return int(self - OP_1 + 1)
 
@@ -93,7 +99,7 @@ class CScriptOp(int):
         if self in OPCODE_NAMES:
             return OPCODE_NAMES[self]
         else:
-            return 'CScriptOp(0x%x)' % self
+            return 'CScriptOp(0x{:x})'.format(self)
 
     def __new__(cls, n):
         try:
@@ -257,133 +263,6 @@ OP_PUBKEY = CScriptOp(0xfe)
 
 OP_INVALIDOPCODE = CScriptOp(0xff)
 
-VALID_OPCODES = {
-    OP_1NEGATE,
-    OP_RESERVED,
-    OP_1,
-    OP_2,
-    OP_3,
-    OP_4,
-    OP_5,
-    OP_6,
-    OP_7,
-    OP_8,
-    OP_9,
-    OP_10,
-    OP_11,
-    OP_12,
-    OP_13,
-    OP_14,
-    OP_15,
-    OP_16,
-
-    OP_NOP,
-    OP_VER,
-    OP_IF,
-    OP_NOTIF,
-    OP_VERIF,
-    OP_VERNOTIF,
-    OP_ELSE,
-    OP_ENDIF,
-    OP_VERIFY,
-    OP_RETURN,
-
-    OP_TOALTSTACK,
-    OP_FROMALTSTACK,
-    OP_2DROP,
-    OP_2DUP,
-    OP_3DUP,
-    OP_2OVER,
-    OP_2ROT,
-    OP_2SWAP,
-    OP_IFDUP,
-    OP_DEPTH,
-    OP_DROP,
-    OP_DUP,
-    OP_NIP,
-    OP_OVER,
-    OP_PICK,
-    OP_ROLL,
-    OP_ROT,
-    OP_SWAP,
-    OP_TUCK,
-
-    OP_CAT,
-    OP_SPLIT,
-    OP_NUM2BIN,
-    OP_BIN2NUM,
-    OP_SIZE,
-
-    OP_INVERT,
-    OP_AND,
-    OP_OR,
-    OP_XOR,
-    OP_EQUAL,
-    OP_EQUALVERIFY,
-    OP_RESERVED1,
-    OP_RESERVED2,
-
-    OP_1ADD,
-    OP_1SUB,
-    OP_2MUL,
-    OP_2DIV,
-    OP_NEGATE,
-    OP_ABS,
-    OP_NOT,
-    OP_0NOTEQUAL,
-
-    OP_ADD,
-    OP_SUB,
-    OP_MUL,
-    OP_DIV,
-    OP_MOD,
-    OP_LSHIFT,
-    OP_RSHIFT,
-
-    OP_BOOLAND,
-    OP_BOOLOR,
-    OP_NUMEQUAL,
-    OP_NUMEQUALVERIFY,
-    OP_NUMNOTEQUAL,
-    OP_LESSTHAN,
-    OP_GREATERTHAN,
-    OP_LESSTHANOREQUAL,
-    OP_GREATERTHANOREQUAL,
-    OP_MIN,
-    OP_MAX,
-
-    OP_WITHIN,
-
-    OP_RIPEMD160,
-    OP_SHA1,
-    OP_SHA256,
-    OP_HASH160,
-    OP_HASH256,
-    OP_CODESEPARATOR,
-    OP_CHECKSIG,
-    OP_CHECKSIGVERIFY,
-    OP_CHECKMULTISIG,
-    OP_CHECKMULTISIGVERIFY,
-    OP_CHECKDATASIG,
-    OP_CHECKDATASIGVERIFY,
-
-    OP_NOP1,
-    OP_CHECKLOCKTIMEVERIFY,
-    OP_CHECKSEQUENCEVERIFY,
-    OP_NOP4,
-    OP_NOP5,
-    OP_NOP6,
-    OP_NOP7,
-    OP_NOP8,
-    OP_NOP9,
-    OP_NOP10,
-
-    OP_SMALLINTEGER,
-    OP_PUBKEYS,
-    OP_PUBKEYHASH,
-    OP_PUBKEY,
-}
-
 OPCODE_NAMES.update({
     OP_0: 'OP_0',
     OP_PUSHDATA1: 'OP_PUSHDATA1',
@@ -505,126 +384,6 @@ OPCODE_NAMES.update({
     OP_INVALIDOPCODE: 'OP_INVALIDOPCODE',
 })
 
-OPCODES_BY_NAME = {
-    'OP_0': OP_0,
-    'OP_PUSHDATA1': OP_PUSHDATA1,
-    'OP_PUSHDATA2': OP_PUSHDATA2,
-    'OP_PUSHDATA4': OP_PUSHDATA4,
-    'OP_1NEGATE': OP_1NEGATE,
-    'OP_RESERVED': OP_RESERVED,
-    'OP_1': OP_1,
-    'OP_2': OP_2,
-    'OP_3': OP_3,
-    'OP_4': OP_4,
-    'OP_5': OP_5,
-    'OP_6': OP_6,
-    'OP_7': OP_7,
-    'OP_8': OP_8,
-    'OP_9': OP_9,
-    'OP_10': OP_10,
-    'OP_11': OP_11,
-    'OP_12': OP_12,
-    'OP_13': OP_13,
-    'OP_14': OP_14,
-    'OP_15': OP_15,
-    'OP_16': OP_16,
-    'OP_NOP': OP_NOP,
-    'OP_VER': OP_VER,
-    'OP_IF': OP_IF,
-    'OP_NOTIF': OP_NOTIF,
-    'OP_VERIF': OP_VERIF,
-    'OP_VERNOTIF': OP_VERNOTIF,
-    'OP_ELSE': OP_ELSE,
-    'OP_ENDIF': OP_ENDIF,
-    'OP_VERIFY': OP_VERIFY,
-    'OP_RETURN': OP_RETURN,
-    'OP_TOALTSTACK': OP_TOALTSTACK,
-    'OP_FROMALTSTACK': OP_FROMALTSTACK,
-    'OP_2DROP': OP_2DROP,
-    'OP_2DUP': OP_2DUP,
-    'OP_3DUP': OP_3DUP,
-    'OP_2OVER': OP_2OVER,
-    'OP_2ROT': OP_2ROT,
-    'OP_2SWAP': OP_2SWAP,
-    'OP_IFDUP': OP_IFDUP,
-    'OP_DEPTH': OP_DEPTH,
-    'OP_DROP': OP_DROP,
-    'OP_DUP': OP_DUP,
-    'OP_NIP': OP_NIP,
-    'OP_OVER': OP_OVER,
-    'OP_PICK': OP_PICK,
-    'OP_ROLL': OP_ROLL,
-    'OP_ROT': OP_ROT,
-    'OP_SWAP': OP_SWAP,
-    'OP_TUCK': OP_TUCK,
-    'OP_CAT': OP_CAT,
-    'OP_SPLIT': OP_SPLIT,
-    'OP_NUM2BIN': OP_NUM2BIN,
-    'OP_BIN2NUM': OP_BIN2NUM,
-    'OP_SIZE': OP_SIZE,
-    'OP_INVERT': OP_INVERT,
-    'OP_AND': OP_AND,
-    'OP_OR': OP_OR,
-    'OP_XOR': OP_XOR,
-    'OP_EQUAL': OP_EQUAL,
-    'OP_EQUALVERIFY': OP_EQUALVERIFY,
-    'OP_RESERVED1': OP_RESERVED1,
-    'OP_RESERVED2': OP_RESERVED2,
-    'OP_1ADD': OP_1ADD,
-    'OP_1SUB': OP_1SUB,
-    'OP_2MUL': OP_2MUL,
-    'OP_2DIV': OP_2DIV,
-    'OP_NEGATE': OP_NEGATE,
-    'OP_ABS': OP_ABS,
-    'OP_NOT': OP_NOT,
-    'OP_0NOTEQUAL': OP_0NOTEQUAL,
-    'OP_ADD': OP_ADD,
-    'OP_SUB': OP_SUB,
-    'OP_MUL': OP_MUL,
-    'OP_DIV': OP_DIV,
-    'OP_MOD': OP_MOD,
-    'OP_LSHIFT': OP_LSHIFT,
-    'OP_RSHIFT': OP_RSHIFT,
-    'OP_BOOLAND': OP_BOOLAND,
-    'OP_BOOLOR': OP_BOOLOR,
-    'OP_NUMEQUAL': OP_NUMEQUAL,
-    'OP_NUMEQUALVERIFY': OP_NUMEQUALVERIFY,
-    'OP_NUMNOTEQUAL': OP_NUMNOTEQUAL,
-    'OP_LESSTHAN': OP_LESSTHAN,
-    'OP_GREATERTHAN': OP_GREATERTHAN,
-    'OP_LESSTHANOREQUAL': OP_LESSTHANOREQUAL,
-    'OP_GREATERTHANOREQUAL': OP_GREATERTHANOREQUAL,
-    'OP_MIN': OP_MIN,
-    'OP_MAX': OP_MAX,
-    'OP_WITHIN': OP_WITHIN,
-    'OP_RIPEMD160': OP_RIPEMD160,
-    'OP_SHA1': OP_SHA1,
-    'OP_SHA256': OP_SHA256,
-    'OP_HASH160': OP_HASH160,
-    'OP_HASH256': OP_HASH256,
-    'OP_CODESEPARATOR': OP_CODESEPARATOR,
-    'OP_CHECKSIG': OP_CHECKSIG,
-    'OP_CHECKSIGVERIFY': OP_CHECKSIGVERIFY,
-    'OP_CHECKMULTISIG': OP_CHECKMULTISIG,
-    'OP_CHECKMULTISIGVERIFY': OP_CHECKMULTISIGVERIFY,
-    'OP_CHECKDATASIG': OP_CHECKDATASIG,
-    'OP_CHECKDATASIGVERIFY': OP_CHECKDATASIGVERIFY,
-    'OP_NOP1': OP_NOP1,
-    'OP_CHECKLOCKTIMEVERIFY': OP_CHECKLOCKTIMEVERIFY,
-    'OP_CHECKSEQUENCEVERIFY': OP_CHECKSEQUENCEVERIFY,
-    'OP_NOP4': OP_NOP4,
-    'OP_NOP5': OP_NOP5,
-    'OP_NOP6': OP_NOP6,
-    'OP_NOP7': OP_NOP7,
-    'OP_NOP8': OP_NOP8,
-    'OP_NOP9': OP_NOP9,
-    'OP_NOP10': OP_NOP10,
-    'OP_SMALLINTEGER': OP_SMALLINTEGER,
-    'OP_PUBKEYS': OP_PUBKEYS,
-    'OP_PUBKEYHASH': OP_PUBKEYHASH,
-    'OP_PUBKEY': OP_PUBKEY,
-}
-
 
 class CScriptInvalidError(Exception):
     """Base class for CScript exceptions"""
@@ -703,7 +462,7 @@ class CScript(bytes):
             return CScript(super(CScript, self).__add__(other))
         except TypeError:
             raise TypeError(
-                'Can not add a %r instance to a CScript' % other.__class__)
+                'Can not add a {!r} instance to a CScript'.format(other.__class__))
 
     def join(self, iterable):
         # join makes no sense for a CScript()
@@ -739,7 +498,7 @@ class CScript(bytes):
                 datasize = None
                 pushdata_type = None
                 if opcode < OP_PUSHDATA1:
-                    pushdata_type = 'PUSHDATA(%d)' % opcode
+                    pushdata_type = 'PUSHDATA({})'.format(opcode)
                     datasize = opcode
 
                 elif opcode == OP_PUSHDATA1:
@@ -775,7 +534,7 @@ class CScript(bytes):
                 # Check for truncation
                 if len(data) < datasize:
                     raise CScriptTruncatedPushDataError(
-                        '%s: truncated data' % pushdata_type, data)
+                        '{}: truncated data'.format(pushdata_type, data))
 
                 i += datasize
 
@@ -806,7 +565,7 @@ class CScript(bytes):
         # need to change
         def _repr(o):
             if isinstance(o, bytes):
-                return b"x('%s')" % hexlify(o).decode('ascii')
+                return "x('{}')".format(hexlify(o).decode('ascii')).encode()
             else:
                 return repr(o)
 
@@ -817,10 +576,10 @@ class CScript(bytes):
             try:
                 op = _repr(next(i))
             except CScriptTruncatedPushDataError as err:
-                op = '%s...<ERROR: %s>' % (_repr(err.data), err)
+                op = '{}...<ERROR: {}>'.format(_repr(err.data), err)
                 break
             except CScriptInvalidError as err:
-                op = '<ERROR: %s>' % err
+                op = '<ERROR: {}>'.format(err)
                 break
             except StopIteration:
                 break
@@ -828,7 +587,7 @@ class CScript(bytes):
                 if op is not None:
                     ops.append(op)
 
-        return "CScript([%s])" % ', '.join(ops)
+        return "CScript([{}])".format(', '.join(ops))
 
     def GetSigOpCount(self, fAccurate):
         """Get the SigOp count.
@@ -885,7 +644,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
     if inIdx >= len(txTo.vin):
-        return (HASH_ONE, "inIdx %d out of range (%d)" % (inIdx, len(txTo.vin)))
+        return (HASH_ONE, "inIdx {} out of range ({})".format(inIdx, len(txTo.vin)))
     txtmp = CTransaction(txTo)
 
     for txin in txtmp.vin:
@@ -903,7 +662,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     elif (hashtype & 0x1f) == SIGHASH_SINGLE:
         outIdx = inIdx
         if outIdx >= len(txtmp.vout):
-            return (HASH_ONE, "outIdx %d out of range (%d)" % (outIdx, len(txtmp.vout)))
+            return (HASH_ONE, "outIdx {} out of range ({})".format(outIdx, len(txtmp.vout)))
 
         tmp = txtmp.vout[outIdx]
         txtmp.vout = []

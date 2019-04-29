@@ -31,12 +31,12 @@ const unsigned int BIP32_EXTKEY_SIZE = 74;
 class CKeyID : public uint160 {
 public:
     CKeyID() : uint160() {}
-    CKeyID(const uint160 &in) : uint160(in) {}
+    explicit CKeyID(const uint160 &in) : uint160(in) {}
 };
 
 typedef uint256 ChainCode;
 
-/** An encapsulated public key. */
+/** An encapsulated secp256k1 public key. */
 class CPubKey {
 private:
     /**
@@ -47,8 +47,12 @@ private:
 
     //! Compute the length of a pubkey with a given first byte.
     static unsigned int GetLen(uint8_t chHeader) {
-        if (chHeader == 2 || chHeader == 3) return 33;
-        if (chHeader == 4 || chHeader == 6 || chHeader == 7) return 65;
+        if (chHeader == 2 || chHeader == 3) {
+            return 33;
+        }
+        if (chHeader == 4 || chHeader == 6 || chHeader == 7) {
+            return 65;
+        }
         return 0;
     }
 
@@ -62,10 +66,11 @@ public:
     //! Initialize a public key using begin/end iterators to byte data.
     template <typename T> void Set(const T pbegin, const T pend) {
         int len = pend == pbegin ? 0 : GetLen(pbegin[0]);
-        if (len && len == (pend - pbegin))
+        if (len && len == (pend - pbegin)) {
             memcpy(vch, (uint8_t *)&pbegin[0], len);
-        else
+        } else {
             Invalidate();
+        }
     }
 
     //! Construct a public key using begin/end iterators to byte data.
@@ -74,7 +79,9 @@ public:
     }
 
     //! Construct a public key from a byte vector.
-    CPubKey(const std::vector<uint8_t> &_vch) { Set(_vch.begin(), _vch.end()); }
+    explicit CPubKey(const std::vector<uint8_t> &_vch) {
+        Set(_vch.begin(), _vch.end());
+    }
 
     //! Simple read-only vector-like interface to the pubkey data.
     unsigned int size() const { return GetLen(vch[0]); }
@@ -107,8 +114,9 @@ public:
         } else {
             // invalid pubkey, skip available data
             char dummy;
-            while (len--)
+            while (len--) {
                 s.read(&dummy, 1);
+            }
             Invalidate();
         }
     }
@@ -134,13 +142,21 @@ public:
     bool IsCompressed() const { return size() == 33; }
 
     /**
-     * Verify a DER signature (~72 bytes).
+     * Verify a DER-serialized ECDSA signature (~72 bytes).
      * If this public key is not fully valid, the return value will be false.
      */
-    bool Verify(const uint256 &hash, const std::vector<uint8_t> &vchSig) const;
+    bool VerifyECDSA(const uint256 &hash,
+                     const std::vector<uint8_t> &vchSig) const;
 
     /**
-     * Check whether a signature is normalized (lower-S).
+     * Verify a Schnorr signature (=64 bytes).
+     * If this public key is not fully valid, the return value will be false.
+     */
+    bool VerifySchnorr(const uint256 &hash,
+                       const std::vector<uint8_t> &vchSig) const;
+
+    /**
+     * Check whether a DER-serialized ECDSA signature is normalized (lower-S).
      */
     static bool
     CheckLowS(const boost::sliced_range<const std::vector<uint8_t>> &vchSig);
@@ -148,7 +164,7 @@ public:
         return CheckLowS(vchSig | boost::adaptors::sliced(0, vchSig.size()));
     }
 
-    //! Recover a public key from a compact signature.
+    //! Recover a public key from a compact ECDSA signature.
     bool RecoverCompact(const uint256 &hash,
                         const std::vector<uint8_t> &vchSig);
 
@@ -193,9 +209,11 @@ struct CExtPubKey {
     }
     template <typename Stream> void Unserialize(Stream &s) {
         unsigned int len = ::ReadCompactSize(s);
-        uint8_t code[BIP32_EXTKEY_SIZE];
-        if (len != BIP32_EXTKEY_SIZE)
+        if (len != BIP32_EXTKEY_SIZE) {
             throw std::runtime_error("Invalid extended key size\n");
+        }
+
+        uint8_t code[BIP32_EXTKEY_SIZE];
         s.read((char *)&code[0], len);
         Decode(code);
     }

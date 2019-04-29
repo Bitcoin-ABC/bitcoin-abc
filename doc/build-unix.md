@@ -2,7 +2,7 @@ UNIX BUILD NOTES
 ====================
 Some notes on how to build Bitcoin ABC in Unix.
 
-(for OpenBSD specific instructions, see [build-openbsd.md](build-openbsd.md))
+(For FreeBSD specific instructions, see `build-freebsd.md` in this directory.)
 
 Note
 ---------------------
@@ -17,9 +17,15 @@ the usage of the absolute path.
 Build
 ---------------------
 
+Before you start building, please make sure that your compiler supports C++14.
+
+It is recommended to create a build directory to build out-of-tree.
+
 ```bash
 ./autogen.sh
-./configure
+mkdir build
+cd build
+../configure
 make
 make install # optional
 ```
@@ -109,17 +115,12 @@ Dependencies for the GUI: Ubuntu & Debian
 -----------------------------------------
 
 If you want to build Bitcoin-Qt, make sure that the required packages for Qt development
-are installed. Either Qt 5 or Qt 4 are necessary to build the GUI.
-If both Qt 4 and Qt 5 are installed, Qt 5 will be used. Pass `--with-gui=qt4` to configure to choose Qt4.
+are installed. Qt 5 is necessary to build the GUI.
 To build without GUI pass `--without-gui`.
 
-To build with Qt 5 (recommended) you need the following:
+To build with Qt 5 you need the following:
 
     sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
-
-Alternatively, to build with Qt 4 you need the following:
-
-    sudo apt-get install libqt4-dev libprotobuf-dev protobuf-compiler
 
 libqrencode (optional) can be installed with:
 
@@ -138,7 +139,7 @@ Optional:
 
     sudo dnf install miniupnpc-devel
 
-To build with Qt 5 (recommended) you need the following:
+To build with Qt 5 you need the following:
 
     sudo dnf install qt5-qttools-devel qt5-qtbase-devel protobuf-devel
 
@@ -238,7 +239,7 @@ Setup and Build Example: Arch Linux
 This example lists the steps necessary to setup and build a command line only, non-wallet distribution of the latest changes on Arch Linux:
 
     pacman -S git base-devel boost libevent python
-    git clone https://github.com/Bitcoin-ABC/bitcoin-abc
+    git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
     cd bitcoin-abc/
     ./autogen.sh
     ./configure --disable-wallet --without-gui --without-miniupnpc
@@ -266,49 +267,3 @@ To build executables for ARM:
 
 
 For further documentation on the depends system see [README.md](../depends/README.md) in the depends directory.
-
-Building on FreeBSD
---------------------
-
-(Updated as of FreeBSD 11.0)
-
-Clang is installed by default as `cc` compiler, this makes it easier to get
-started than on [OpenBSD](build-openbsd.md). Installing dependencies:
-
-    pkg install autoconf automake libtool pkgconf
-    pkg install boost-libs openssl libevent gmake
-
-(`libressl` instead of `openssl` will also work)
-
-For the wallet (optional):
-
-    pkg install db5
-
-This will give a warning "configure: WARNING: Found Berkeley DB other
-than 4.8; wallets opened by this build will not be portable!", but as FreeBSD never
-had a binary release, this may not matter. If backwards compatibility
-with 4.8-built Bitcoin Core is needed follow the steps under "Berkeley DB" above.
-
-Also, if you intend to run the regression tests (qa tests):
-
-    pkg install python3
-
-Then build using:
-
-    ./autogen.sh
-  
-With wallet support:
-
-    ./configure --without-gui --without-miniupnpc --with-incompatible-bdb BDB_CFLAGS="-I/usr/local/include/db5" BDB_LIBS="-L/usr/local/lib -ldb_cxx-5"
-
-Without wallet support:
-
-    ./configure --without-gui --without-miniupnpc --disable-wallet
-
-Then to compile:
-
-    gmake
-
-*Note on debugging*: The version of `gdb` installed by default is [ancient and considered harmful](https://wiki.freebsd.org/GdbRetirement).
-It is not suitable for debugging a multi-threaded C++ program, not even for getting backtraces. Please install the package `gdb` and
-use the versioned gdb command e.g. `gdb7111`.

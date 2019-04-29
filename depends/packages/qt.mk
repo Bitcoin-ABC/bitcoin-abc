@@ -28,26 +28,23 @@ $(package)_config_opts += -c++11
 $(package)_config_opts += -confirm-license
 $(package)_config_opts += -dbus-runtime
 $(package)_config_opts += -hostprefix $(build_prefix)
-$(package)_config_opts += -no-alsa
-$(package)_config_opts += -no-audio-backend
 $(package)_config_opts += -no-cups
 $(package)_config_opts += -no-egl
 $(package)_config_opts += -no-eglfs
-$(package)_config_opts += -no-feature-style-windowsmobile
-$(package)_config_opts += -no-feature-style-windowsce
 $(package)_config_opts += -no-freetype
 $(package)_config_opts += -no-gif
 $(package)_config_opts += -no-glib
-$(package)_config_opts += -no-gstreamer
 $(package)_config_opts += -no-icu
 $(package)_config_opts += -no-iconv
 $(package)_config_opts += -no-kms
 $(package)_config_opts += -no-linuxfb
 $(package)_config_opts += -no-libudev
-$(package)_config_opts += -no-mitshm
 $(package)_config_opts += -no-mtdev
+<<<<<<< HEAD
 $(package)_config_opts += -no-nis
 $(package)_config_opts += -no-pulseaudio
+=======
+>>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
 $(package)_config_opts += -no-openvg
 $(package)_config_opts += -no-reduce-relocations
 $(package)_config_opts += -no-qml-debug
@@ -62,7 +59,6 @@ $(package)_config_opts += -no-sql-sqlite
 $(package)_config_opts += -no-sql-sqlite2
 $(package)_config_opts += -no-use-gold-linker
 $(package)_config_opts += -no-xinput2
-$(package)_config_opts += -no-xrender
 $(package)_config_opts += -nomake examples
 $(package)_config_opts += -nomake tests
 $(package)_config_opts += -opensource
@@ -74,11 +70,22 @@ $(package)_config_opts += -prefix $(host_prefix)
 $(package)_config_opts += -qt-libpng
 $(package)_config_opts += -qt-libjpeg
 $(package)_config_opts += -qt-pcre
+<<<<<<< HEAD
 $(package)_config_opts += -qt-zlib
 $(package)_config_opts += -reduce-exports
 $(package)_config_opts += -static
 $(package)_config_opts += -silent
 $(package)_config_opts += -v
+=======
+$(package)_config_opts += -system-zlib
+$(package)_config_opts += -static
+$(package)_config_opts += -silent
+$(package)_config_opts += -v
+$(package)_config_opts += -no-feature-printer
+$(package)_config_opts += -no-feature-printdialog
+$(package)_config_opts += -no-feature-concurrent
+$(package)_config_opts += -no-feature-xml
+>>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
 
 ifneq ($(build_os),darwin)
 $(package)_config_opts_darwin = -xplatform macx-clang-linux
@@ -90,16 +97,18 @@ $(package)_config_opts_darwin += -device-option MAC_TARGET=$(host)
 $(package)_config_opts_darwin += -device-option MAC_LD64_VERSION=$(LD64_VERSION)
 endif
 
-$(package)_config_opts_linux  = -qt-xkbcommon
+$(package)_config_opts_linux  = -qt-xkbcommon-x11
 $(package)_config_opts_linux += -qt-xcb
 $(package)_config_opts_linux += -system-freetype
-$(package)_config_opts_linux += -no-sm
+$(package)_config_opts_linux += -no-feature-sessionmanager
 $(package)_config_opts_linux += -fontconfig
 $(package)_config_opts_linux += -no-opengl
-$(package)_config_opts_arm_linux  = -platform linux-g++ -xplatform $(host)
+$(package)_config_opts_arm_linux += -platform linux-g++ -xplatform bitcoin-linux-g++
 $(package)_config_opts_i686_linux  = -xplatform linux-g++-32
+$(package)_config_opts_x86_64_linux = -xplatform linux-g++-64
 $(package)_config_opts_mingw32  = -no-opengl -xplatform win32-g++ -device-option CROSS_COMPILE="$(host)-"
 $(package)_build_env  = QT_RCC_TEST=1
+$(package)_build_env += QT_RCC_SOURCE_DATE_OVERRIDE=1
 endef
 
 define $(package)_fetch_cmds
@@ -125,7 +134,12 @@ endef
 
 define $(package)_preprocess_cmds
   sed -i.old "s|updateqm.commands = \$$$$\$$$$LRELEASE|updateqm.commands = $($(package)_extract_dir)/qttools/bin/lrelease|" qttranslations/translations/translations.pro && \
+<<<<<<< HEAD
   sed -i.old "s/src_plugins.depends = src_sql src_xml src_network/src_plugins.depends = src_xml src_network/" qtbase/src/src.pro && \
+=======
+  sed -i.old "/updateqm.depends =/d" qttranslations/translations/translations.pro && \
+  sed -i.old "s/src_plugins.depends = src_sql src_network/src_plugins.depends = src_network/" qtbase/src/src.pro && \
+>>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
   sed -i.old "s|X11/extensions/XIproto.h|X11/X.h|" qtbase/src/plugins/platforms/xcb/qxcbxsettings.cpp && \
   sed -i.old 's/if \[ "$$$$XPLATFORM_MAC" = "yes" \]; then xspecvals=$$$$(macSDKify/if \[ "$$$$BUILD_ON_MAC" = "yes" \]; then xspecvals=$$$$(macSDKify/' qtbase/configure && \
   sed -i.old 's/CGEventCreateMouseEvent(0, kCGEventMouseMoved, pos, 0)/CGEventCreateMouseEvent(0, kCGEventMouseMoved, pos, kCGMouseButtonLeft)/' qtbase/src/plugins/platforms/cocoa/qcocoacursor.mm && \
@@ -134,6 +148,7 @@ define $(package)_preprocess_cmds
   cp -f qtbase/mkspecs/macx-clang/Info.plist.app qtbase/mkspecs/macx-clang-linux/ &&\
   cp -f qtbase/mkspecs/macx-clang/qplatformdefs.h qtbase/mkspecs/macx-clang-linux/ &&\
   cp -f $($(package)_patch_dir)/mac-qmake.conf qtbase/mkspecs/macx-clang-linux/qmake.conf && \
+<<<<<<< HEAD
   patch -p1 < $($(package)_patch_dir)/mingw-uuidof.patch && \
   patch -p1 < $($(package)_patch_dir)/pidlist_absolute.patch && \
   patch -p1 < $($(package)_patch_dir)/fix-xcb-include-order.patch && \
@@ -144,6 +159,23 @@ define $(package)_preprocess_cmds
   sed -i.old "s|QMAKE_CFLAGS            = |QMAKE_CFLAGS            = $($(package)_cflags) $($(package)_cppflags) |" qtbase/mkspecs/win32-g++/qmake.conf && \
   sed -i.old "s|QMAKE_LFLAGS            = |QMAKE_LFLAGS            = $($(package)_ldflags) |" qtbase/mkspecs/win32-g++/qmake.conf && \
   sed -i.old "s|QMAKE_CXXFLAGS          = |QMAKE_CXXFLAGS            = $($(package)_cxxflags) $($(package)_cppflags) |" qtbase/mkspecs/win32-g++/qmake.conf
+=======
+  cp -r qtbase/mkspecs/linux-arm-gnueabi-g++ qtbase/mkspecs/bitcoin-linux-g++ && \
+  sed -i.old "s/arm-linux-gnueabi-/$(host)-/g" qtbase/mkspecs/bitcoin-linux-g++/qmake.conf && \
+  patch -p1 -i $($(package)_patch_dir)/fix_qt_pkgconfig.patch &&\
+  patch -p1 -i $($(package)_patch_dir)/fix_configure_mac.patch &&\
+  patch -p1 -i $($(package)_patch_dir)/fix_no_printer.patch &&\
+  patch -p1 -i $($(package)_patch_dir)/fix_rcc_determinism.patch &&\
+  patch -p1 -i $($(package)_patch_dir)/xkb-default.patch &&\
+  echo "!host_build: QMAKE_CFLAGS     += $($(package)_cflags) $($(package)_cppflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
+  echo "!host_build: QMAKE_CXXFLAGS   += $($(package)_cxxflags) $($(package)_cppflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
+  echo "!host_build: QMAKE_LFLAGS     += $($(package)_ldflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
+  echo "QMAKE_LINK_OBJECT_MAX = 10" >> qtbase/mkspecs/win32-g++/qmake.conf &&\
+  echo "QMAKE_LINK_OBJECT_SCRIPT = object_script" >> qtbase/mkspecs/win32-g++/qmake.conf &&\
+  sed -i.old "s|QMAKE_CFLAGS            = |!host_build: QMAKE_CFLAGS            = $($(package)_cflags) $($(package)_cppflags) |" qtbase/mkspecs/win32-g++/qmake.conf && \
+  sed -i.old "s|QMAKE_LFLAGS            = |!host_build: QMAKE_LFLAGS            = $($(package)_ldflags) |" qtbase/mkspecs/win32-g++/qmake.conf && \
+  sed -i.old "s|QMAKE_CXXFLAGS          = |!host_build: QMAKE_CXXFLAGS            = $($(package)_cxxflags) $($(package)_cppflags) |" qtbase/mkspecs/win32-g++/qmake.conf
+>>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
 endef
 
 define $(package)_config_cmds
@@ -153,8 +185,16 @@ define $(package)_config_cmds
   ./configure $($(package)_config_opts) && \
   $(MAKE) sub-src-clean && \
   cd ../qttranslations && ../qtbase/bin/qmake qttranslations.pro -o Makefile && \
+<<<<<<< HEAD
   cd translations && ../../qtbase/bin/qmake translations.pro -o Makefile && cd ../.. &&\
   cd qttools/src/linguist/lrelease/ && ../../../../qtbase/bin/qmake lrelease.pro -o Makefile
+=======
+  cd translations && ../../qtbase/bin/qmake translations.pro -o Makefile && cd ../.. && \
+  cd qttools/src/linguist && ../../../qtbase/bin/qmake linguist.pro -o Makefile && \
+  cd lconvert && ../../../../qtbase/bin/qmake lconvert.pro -o Makefile && cd .. && \
+  cd lrelease && ../../../../qtbase/bin/qmake lrelease.pro -o Makefile && cd .. && \
+  cd lupdate && ../../../../qtbase/bin/qmake lupdate.pro -o Makefile && cd ../../../..
+>>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
 endef
 
 define $(package)_build_cmds
@@ -173,6 +213,10 @@ define $(package)_stage_cmds
 endef
 
 define $(package)_postprocess_cmds
+<<<<<<< HEAD
   rm -rf native/mkspecs/ native/lib/ lib/cmake/ && \
   rm -f lib/lib*.la lib/*.prl plugins/*/*.prl
+=======
+  rm -rf native/lib/ lib/lib*.la
+>>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
 endef

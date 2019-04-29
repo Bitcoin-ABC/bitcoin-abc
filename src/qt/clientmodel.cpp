@@ -9,6 +9,7 @@
 #include "guiutil.h"
 #include "peertablemodel.h"
 
+#include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "clientversion.h"
@@ -18,6 +19,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "validation.h"
+#include "warnings.h"
 
 #include <cstdint>
 
@@ -32,6 +34,8 @@ static int64_t nLastBlockTipUpdateNotification = 0;
 ClientModel::ClientModel(OptionsModel *_optionsModel, QObject *parent)
     : QObject(parent), optionsModel(_optionsModel), peerTableModel(0),
       banTableModel(0), pollTimer(0) {
+    cachedBestHeaderHeight = -1;
+    cachedBestHeaderTime = -1;
     peerTableModel = new PeerTableModel(this);
     banTableModel = new BanTableModel(this);
     pollTimer = new QTimer(this);
@@ -48,14 +52,17 @@ ClientModel::~ClientModel() {
 int ClientModel::getNumConnections(unsigned int flags) const {
     CConnman::NumConnections connections = CConnman::CONNECTIONS_NONE;
 
-    if (flags == CONNECTIONS_IN)
+    if (flags == CONNECTIONS_IN) {
         connections = CConnman::CONNECTIONS_IN;
-    else if (flags == CONNECTIONS_OUT)
+    } else if (flags == CONNECTIONS_OUT) {
         connections = CConnman::CONNECTIONS_OUT;
-    else if (flags == CONNECTIONS_ALL)
+    } else if (flags == CONNECTIONS_ALL) {
         connections = CConnman::CONNECTIONS_ALL;
+    }
 
-    if (g_connman) return g_connman->GetNodeCount(connections);
+    if (g_connman) {
+        return g_connman->GetNodeCount(connections);
+    }
     return 0;
 }
 
@@ -65,43 +72,60 @@ int ClientModel::getNumBlocks() const {
 }
 
 int ClientModel::getHeaderTipHeight() const {
-    LOCK(cs_main);
-    if (!pindexBestHeader) return 0;
-    return pindexBestHeader->nHeight;
+    if (cachedBestHeaderHeight == -1) {
+        // make sure we initially populate the cache via a cs_main lock
+        // otherwise we need to wait for a tip update
+        LOCK(cs_main);
+        if (pindexBestHeader) {
+            cachedBestHeaderHeight = pindexBestHeader->nHeight;
+            cachedBestHeaderTime = pindexBestHeader->GetBlockTime();
+        }
+    }
+    return cachedBestHeaderHeight;
 }
 
 int64_t ClientModel::getHeaderTipTime() const {
-    LOCK(cs_main);
-    if (!pindexBestHeader) return 0;
-    return pindexBestHeader->GetBlockTime();
+    if (cachedBestHeaderTime == -1) {
+        LOCK(cs_main);
+        if (pindexBestHeader) {
+            cachedBestHeaderHeight = pindexBestHeader->nHeight;
+            cachedBestHeaderTime = pindexBestHeader->GetBlockTime();
+        }
+    }
+    return cachedBestHeaderTime;
 }
 
 quint64 ClientModel::getTotalBytesRecv() const {
-    if (!g_connman) return 0;
+    if (!g_connman) {
+        return 0;
+    }
     return g_connman->GetTotalBytesRecv();
 }
 
 quint64 ClientModel::getTotalBytesSent() const {
-    if (!g_connman) return 0;
+    if (!g_connman) {
+        return 0;
+    }
     return g_connman->GetTotalBytesSent();
 }
 
 QDateTime ClientModel::getLastBlockDate() const {
     LOCK(cs_main);
 
-    if (chainActive.Tip())
+    if (chainActive.Tip()) {
         return QDateTime::fromTime_t(chainActive.Tip()->GetBlockTime());
+    }
 
     // Genesis block's time of current network
     return QDateTime::fromTime_t(Params().GenesisBlock().GetBlockTime());
 }
 
 long ClientModel::getMempoolSize() const {
-    return mempool.size();
+    return g_mempool.size();
 }
 
 size_t ClientModel::getMempoolDynamicUsage() const {
-    return mempool.DynamicMemoryUsage();
+    return g_mempool.DynamicMemoryUsage();
 }
 
 double ClientModel::getVerificationProgress(const CBlockIndex *tipIn) const {
@@ -181,14 +205,15 @@ bool ClientModel::inInitialBlockDownload() const {
 }
 
 enum BlockSource ClientModel::getBlockSource() const {
-    if (fReindex)
-        return BLOCK_SOURCE_REINDEX;
-    else if (fImporting)
-        return BLOCK_SOURCE_DISK;
-    else if (getNumConnections() > 0)
-        return BLOCK_SOURCE_NETWORK;
+    if (fReindex) {
+        return BlockSource::REINDEX;
+    } else if (fImporting) {
+        return BlockSource::DISK;
+    } else if (getNumConnections() > 0) {
+        return BlockSource::NETWORK;
+    }
 
-    return BLOCK_SOURCE_NONE;
+    return BlockSource::NONE;
 }
 
 void ClientModel::setNetworkActive(bool active) {
@@ -315,12 +340,19 @@ static void BlockTipChanged(ClientModel *clientmodel, bool initialSync,
     // during initial sync, only update the UI if the last update
     // was > 250ms (MODEL_UPDATE_DELAY) ago
     int64_t now = 0;
-    if (initialSync) now = GetTimeMillis();
+    if (initialSync) {
+        now = GetTimeMillis();
+    }
 
     int64_t &nLastUpdateNotification = fHeader
                                            ? nLastHeaderTipUpdateNotification
                                            : nLastBlockTipUpdateNotification;
 
+    if (fHeader) {
+        // cache best headers time and height to reduce future cs_main locks
+        clientmodel->cachedBestHeaderHeight = pIndex->nHeight;
+        clientmodel->cachedBestHeaderTime = pIndex->GetBlockTime();
+    }
     // if we are in-sync, update the UI regardless of last update time
     if (!initialSync || now - nLastUpdateNotification > MODEL_UPDATE_DELAY) {
         // pass a async signal to the UI thread

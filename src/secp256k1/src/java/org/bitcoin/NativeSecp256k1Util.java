@@ -37,6 +37,12 @@ public class NativeSecp256k1Util{
         System.out.println("PASS: " + message);
     }
 
+    public static void checkArgument(boolean expression) {
+      if (!expression) {
+        throw new IllegalArgumentException();
+      }
+    }
+
     public static class AssertFailException extends Exception {
       public AssertFailException(String message) {
         super( message );

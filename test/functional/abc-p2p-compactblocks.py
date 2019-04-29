@@ -11,15 +11,38 @@ this one can be extended, to cover the checks done for bigger blocks
 (e.g. sigops limits).
 """
 
-from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import *
-from test_framework.comptool import TestManager, TestInstance, RejectResult
-from test_framework.blocktools import *
-import time
-from test_framework.script import *
-from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
-                                  MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT)
 from collections import deque
+import random
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+    make_conform_to_ctor,
+)
+from test_framework.comptool import TestInstance, TestManager
+from test_framework.cdefs import ONE_MEGABYTE
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    HeaderAndShortIDs,
+    msg_cmpctblock,
+    msg_sendcmpct,
+    ser_compact_size,
+)
+from test_framework.mininode import (
+    mininode_lock,
+    network_thread_start,
+    network_thread_join,
+    P2PInterface,
+)
+from test_framework.script import CScript, OP_RETURN, OP_TRUE
+from test_framework.test_framework import ComparisonTestFramework
+from test_framework.txtools import pad_tx
+from test_framework.util import assert_equal, wait_until
 
 
 class PreviousSpendableOutput():
@@ -30,7 +53,7 @@ class PreviousSpendableOutput():
 
 
 # TestNode: A peer we use to send messages to bitcoind, and store responses.
-class TestNode(NodeConnCB):
+class TestNode(P2PInterface):
 
     def __init__(self):
         self.last_sendcmpct = None
@@ -39,17 +62,17 @@ class TestNode(NodeConnCB):
         self.last_headers = None
         super().__init__()
 
-    def on_sendcmpct(self, conn, message):
+    def on_sendcmpct(self, message):
         self.last_sendcmpct = message
 
-    def on_cmpctblock(self, conn, message):
+    def on_cmpctblock(self, message):
         self.last_cmpctblock = message
         self.last_cmpctblock.header_and_shortids.header.calc_sha256()
 
-    def on_getheaders(self, conn, message):
+    def on_getheaders(self, message):
         self.last_getheaders = message
 
-    def on_headers(self, conn, message):
+    def on_headers(self, message):
         self.last_headers = message
         for x in self.last_headers.headers:
             x.calc_sha256()
@@ -80,18 +103,17 @@ class FullBlockTest(ComparisonTestFramework):
                             '-limitdescendantcount=999999',
                             '-limitdescendantsize=999999',
                             '-maxmempool=99999',
-                            "-excessiveblocksize=%d" % self.excessive_block_size]]
+                            "-excessiveblocksize={}".format(self.excessive_block_size)]]
 
     def add_options(self, parser):
         super().add_options(parser)
-        parser.add_option(
+        parser.add_argument(
             "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
 
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
         self.test.add_all_connections(self.nodes)
-        # Start up network handling in another thread
-        NetworkThread().start()
+        network_thread_start()
         # Set the blocksize to 2MB as initial condition
         self.nodes[0].setexcessiveblock(self.excessive_block_size)
         self.test.run()
@@ -126,7 +148,7 @@ class FullBlockTest(ComparisonTestFramework):
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
 
-            # Make sure we have plenty engough to spend going forward.
+            # Make sure we have plenty enough to spend going forward.
             spendable_outputs = deque([spend])
 
             def get_base_transaction():
@@ -139,6 +161,7 @@ class FullBlockTest(ComparisonTestFramework):
                 for i in range(4):
                     tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                     spendable_outputs.append(PreviousSpendableOutput(tx, i))
+                pad_tx(tx)
                 return tx
 
             tx = get_base_transaction()
@@ -166,6 +189,7 @@ class FullBlockTest(ComparisonTestFramework):
             # If we have a block size requirement, just fill
             # the block until we get there
             current_block_size = len(block.serialize())
+            overage_bytes = 0
             while current_block_size < block_size:
                 # We will add a new transaction. That means the size of
                 # the field enumerating how many transaction go in the block
@@ -173,20 +197,22 @@ class FullBlockTest(ComparisonTestFramework):
                 current_block_size -= len(ser_compact_size(len(block.vtx)))
                 current_block_size += len(ser_compact_size(len(block.vtx) + 1))
 
+                # Add padding to fill the block.
+                left_to_fill = block_size - current_block_size
+
+                # Don't go over the 1 mb limit for a txn
+                if left_to_fill > 500000:
+                    # Make sure we eat up non-divisible by 100 amounts quickly
+                    # Also keep transaction less than 1 MB
+                    left_to_fill = 500000 + left_to_fill % 100
+
                 # Create the new transaction
                 tx = get_base_transaction()
-
-                # Add padding to fill the block.
-                script_length = block_size - current_block_size - base_tx_size
-                if script_length > 510000:
-                    if script_length < 1000000:
-                        # Make sure we don't find ourselves in a position where we
-                        # need to generate a transaction smaller than what we expected.
-                        script_length = script_length // 2
-                    else:
-                        script_length = 500000
-                script_output = CScript([b'\x00' * script_length])
-                tx.vout.append(CTxOut(0, script_output))
+                pad_tx(tx, left_to_fill - overage_bytes)
+                if len(tx.serialize()) + current_block_size > block_size:
+                    # Our padding was too big try again
+                    overage_bytes += 1
+                    continue
 
                 # Add the tx to the list of transactions to be included
                 # in the block.
@@ -195,6 +221,7 @@ class FullBlockTest(ComparisonTestFramework):
 
             # Now that we added a bunch of transaction, we need to recompute
             # the merkle root.
+            make_conform_to_ctor(block)
             block.hashMerkleRoot = block.calc_merkle_root()
 
         # Check that the block size is what's expected
@@ -237,22 +264,6 @@ class FullBlockTest(ComparisonTestFramework):
         def tip(number):
             self.tip = self.blocks[number]
 
-        # adds transactions to the block and updates state
-        def update_block(block_number, new_transactions):
-            block = self.blocks[block_number]
-            self.add_transactions_to_block(block, new_transactions)
-            old_sha256 = block.sha256
-            block.hashMerkleRoot = block.calc_merkle_root()
-            block.solve()
-            # Update the internal state just like in next_block
-            self.tip = block
-            if block.sha256 != old_sha256:
-                self.block_heights[
-                    block.sha256] = self.block_heights[old_sha256]
-                del self.block_heights[old_sha256]
-            self.blocks[block_number] = block
-            return block
-
         # shorthand for functions
         block = self.next_block
 
@@ -281,14 +292,39 @@ class FullBlockTest(ComparisonTestFramework):
         for i in range(100):
             out.append(get_spendable_output())
 
-        # Check that compact block also work for big blocks
+        # There can be only one network thread running at a time.
+        # Adding a new P2P connection here will try to start the network thread
+        # at init, which will throw an assertion because it's already running.
+        # This requires a few steps to avoid this:
+        #   1/ Disconnect all the TestManager nodes
+        #   2/ Terminate the network thread
+        #   3/ Add the new P2P connection
+        #   4/ Reconnect all the TestManager nodes
+        #   5/ Restart the network thread
+
+        # Disconnect all the TestManager nodes
+        [n.disconnect_node() for n in self.test.p2p_connections]
+        self.test.wait_for_disconnections()
+        self.test.clear_all_connections()
+
+        # Wait for the network thread to terminate
+        network_thread_join()
+
+        # Add the new connection
         node = self.nodes[0]
-        peer = TestNode()
-        peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), node, peer))
+        node.add_p2p_connection(TestNode())
+
+        # Reconnect TestManager nodes
+        self.test.add_all_connections(self.nodes)
+
+        # Restart the network thread
+        network_thread_start()
 
         # Wait for connection to be etablished
+        peer = node.p2p
         peer.wait_for_verack()
 
+        # Check that compact block also work for big blocks
         # Wait for SENDCMPCT
         def received_sendcmpct():
             return (peer.last_sendcmpct != None)

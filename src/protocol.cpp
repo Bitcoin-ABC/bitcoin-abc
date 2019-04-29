@@ -13,6 +13,9 @@
 #ifndef WIN32
 #include <arpa/inet.h>
 #endif
+#include <atomic>
+
+static std::atomic<bool> g_initial_block_download_completed(false);
 
 namespace NetMsgType {
 const char *VERSION = "version";
@@ -41,6 +44,8 @@ const char *SENDCMPCT = "sendcmpct";
 const char *CMPCTBLOCK = "cmpctblock";
 const char *GETBLOCKTXN = "getblocktxn";
 const char *BLOCKTXN = "blocktxn";
+const char *AVAPOLL = "avapoll";
+const char *AVARESPONSE = "avaresponse";
 
 bool IsBlockLike(const std::string &strCommand) {
     return strCommand == NetMsgType::BLOCK ||
@@ -177,6 +182,18 @@ bool CMessageHeader::IsOversized(const Config &config) const {
     }
 
     return false;
+}
+
+ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
+    if ((services & NODE_NETWORK_LIMITED) &&
+        g_initial_block_download_completed) {
+        return ServiceFlags(NODE_NETWORK_LIMITED);
+    }
+    return ServiceFlags(NODE_NETWORK);
+}
+
+void SetServiceFlagsIBDCache(bool state) {
+    g_initial_block_download_completed = state;
 }
 
 CAddress::CAddress() : CService() {

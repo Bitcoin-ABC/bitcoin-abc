@@ -2650,10 +2650,6 @@
         <translation>해당 금액(%s/kB) 보다 적은 수수료는 중계, 채굴, 트랜잭션 생성에서 수수료 면제로 간주됩니다 (기본값: %s)</translation>
     </message>
     <message>
-        <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
-        <translation>paytxfee가 설정되어 있지 않다면 평균 n 블록안에 승인이 이루어지도록 충분한 수수료가 포함됩니다 (기본값: %u)</translation>
-    </message>
-    <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)</source>
         <translation>유효하지 않은 금액 -maxtxfee=&lt;amount&gt;: '%s' (트랜잭션이 막히는 상황을 방지하게 위해 적어도 %s 의 중계 수수료를 지정해야 합니다)</translation>
     </message>

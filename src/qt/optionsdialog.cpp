@@ -17,12 +17,6 @@
 #include "txdb.h"       // for -dbcache defaults
 #include "validation.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 
-#ifdef ENABLE_WALLET
-#include "wallet/wallet.h" // for CWallet::GetRequiredFee()
-#endif
-
-#include <boost/thread.hpp>
-
 #include <QDataWidgetMapper>
 #include <QDir>
 #include <QIntValidator>
@@ -94,41 +88,21 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
 
         /** check if the locale name consists of 2 parts (language_country) */
         if (langStr.contains("_")) {
-#if QT_VERSION >= 0x040800
             /** display language strings as "native language - native country
              * (locale name)", e.g. "Deutsch - Deutschland (de)" */
             ui->lang->addItem(locale.nativeLanguageName() + QString(" - ") +
                                   locale.nativeCountryName() + QString(" (") +
                                   langStr + QString(")"),
                               QVariant(langStr));
-#else
-            /** display language strings as "language - country (locale name)",
-             * e.g. "German - Germany (de)" */
-            ui->lang->addItem(QLocale::languageToString(locale.language()) +
-                                  QString(" - ") +
-                                  QLocale::countryToString(locale.country()) +
-                                  QString(" (") + langStr + QString(")"),
-                              QVariant(langStr));
-#endif
         } else {
-#if QT_VERSION >= 0x040800
             /** display language strings as "native language (locale name)",
              * e.g. "Deutsch (de)" */
             ui->lang->addItem(locale.nativeLanguageName() + QString(" (") +
                                   langStr + QString(")"),
                               QVariant(langStr));
-#else
-            /** display language strings as "language (locale name)", e.g.
-             * "German (de)" */
-            ui->lang->addItem(QLocale::languageToString(locale.language()) +
-                                  QString(" (") + langStr + QString(")"),
-                              QVariant(langStr));
-#endif
         }
     }
-#if QT_VERSION >= 0x040700
     ui->thirdPartyTxUrls->setPlaceholderText("https://example.com/tx/%s");
-#endif
 
     ui->unit->setModel(new BitcoinUnits(this));
 
@@ -334,7 +308,7 @@ void OptionsDialog::updateDefaultProxyNets() {
         ? ui->proxyReachIPv6->setChecked(true)
         : ui->proxyReachIPv6->setChecked(false);
 
-    GetProxy(NET_TOR, proxy);
+    GetProxy(NET_ONION, proxy);
     strProxy = proxy.proxy.ToStringIP() + ":" + proxy.proxy.ToStringPort();
     strDefaultProxyGUI = ui->proxyIp->text() + ":" + ui->proxyPort->text();
     (strProxy == strDefaultProxyGUI.toStdString())
@@ -349,7 +323,8 @@ QValidator::State ProxyAddressValidator::validate(QString &input,
                                                   int &pos) const {
     Q_UNUSED(pos);
     // Validate the proxy
-    CService serv(LookupNumeric(input.toStdString().c_str(), 9050));
+    CService serv(
+        LookupNumeric(input.toStdString().c_str(), DEFAULT_GUI_PROXY_PORT));
     proxyType addrProxy = proxyType(serv, true);
     if (addrProxy.IsValid()) return QValidator::Acceptable;
 

@@ -3,11 +3,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "script.h"
+#include <script/script.h>
 
-#include "script/script_flags.h"
-#include "tinyformat.h"
-#include "utilstrencodings.h"
+#include <script/script_flags.h>
+#include <tinyformat.h>
+#include <utilstrencodings.h>
 
 #include <algorithm>
 
@@ -258,11 +258,11 @@ const char *GetOpName(opcodetype opcode) {
         case OP_INVALIDOPCODE:
             return "OP_INVALIDOPCODE";
 
-        // Note:
-        //  The template matching params OP_SMALLINTEGER/etc are defined in
-        //  opcodetype enum as kind of implementation hack, they are *NOT*
-        //  real opcodes. If found in real Script, just let the default:
-        //  case deal with them.
+            // Note:
+            //  The template matching params OP_SMALLINTEGER/etc are defined in
+            //  opcodetype enum as kind of implementation hack, they are *NOT*
+            //  real opcodes. If found in real Script, just let the default:
+            //  case deal with them.
 
         default:
             return "OP_UNKNOWN";
@@ -394,10 +394,10 @@ uint32_t CScript::GetSigOpCount(uint32_t flags,
     // get the last item that the scriptSig
     // pushes onto the stack:
     const_iterator pc = scriptSig.begin();
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> vData;
     while (pc < scriptSig.end()) {
         opcodetype opcode;
-        if (!scriptSig.GetOp(pc, opcode, data)) {
+        if (!scriptSig.GetOp(pc, opcode, vData)) {
             return 0;
         }
         if (opcode > OP_16) {
@@ -406,7 +406,7 @@ uint32_t CScript::GetSigOpCount(uint32_t flags,
     }
 
     /// ... and return its opcount:
-    CScript subscript(data.begin(), data.end());
+    CScript subscript(vData.begin(), vData.end());
     return subscript.GetSigOpCount(flags, true);
 }
 
@@ -453,6 +453,13 @@ bool CScript::IsWitnessProgram(int &version,
         return true;
     }
     return false;
+}
+
+// Wrapper returning only the predicate
+bool CScript::IsWitnessProgram() const {
+    int version;
+    std::vector<uint8_t> program;
+    return IsWitnessProgram(version, program);
 }
 
 bool CScript::IsPushOnly(const_iterator pc) const {

@@ -7,10 +7,10 @@
 #ifndef BITCOIN_SCRIPT_INTERPRETER_H
 #define BITCOIN_SCRIPT_INTERPRETER_H
 
-#include "primitives/transaction.h"
-#include "script/script_flags.h"
-#include "script_error.h"
-#include "sighashtype.h"
+#include <primitives/transaction.h>
+#include <script/script_error.h>
+#include <script/script_flags.h>
+#include <script/sighashtype.h>
 
 #include <cstdint>
 #include <string>
@@ -31,9 +31,9 @@ class BaseSignatureChecker {
 public:
     virtual bool VerifySignature(const std::vector<uint8_t> &vchSig,
                                  const CPubKey &vchPubKey,
-                                 const uint256 &sighash) const;
+                                 const uint256 &sighash, uint32_t flags) const;
 
-    virtual bool CheckSig(const std::vector<uint8_t> &scriptSig,
+    virtual bool CheckSig(const std::vector<uint8_t> &vchSigIn,
                           const std::vector<uint8_t> &vchPubKey,
                           const CScript &scriptCode, uint32_t flags) const {
         return false;
@@ -67,7 +67,7 @@ public:
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
 
     // The overriden functions are now final.
-    bool CheckSig(const std::vector<uint8_t> &scriptSig,
+    bool CheckSig(const std::vector<uint8_t> &vchSigIn,
                   const std::vector<uint8_t> &vchPubKey,
                   const CScript &scriptCode,
                   uint32_t flags) const final override;

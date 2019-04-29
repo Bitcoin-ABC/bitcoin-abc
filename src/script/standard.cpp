@@ -3,12 +3,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "script/standard.h"
+#include <script/standard.h>
 
-#include "pubkey.h"
-#include "script/script.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include <pubkey.h>
+#include <script/script.h>
+#include <util.h>
+#include <utilstrencodings.h>
 
 typedef std::vector<uint8_t> valtype;
 
@@ -50,16 +50,14 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
 
         // Bitcoin address tx, sender provides hash of pubkey, receiver provides
         // signature and pubkey
-        mTemplates.insert(
-            std::make_pair(TX_PUBKEYHASH,
-                           CScript() << OP_DUP << OP_HASH160 << OP_PUBKEYHASH
+        mTemplates.insert(std::make_pair(
+            TX_PUBKEYHASH, CScript() << OP_DUP << OP_HASH160 << OP_PUBKEYHASH
                                      << OP_EQUALVERIFY << OP_CHECKSIG));
 
         // Sender provides N pubkeys, receivers provides M signatures
-        mTemplates.insert(
-            std::make_pair(TX_MULTISIG,
-                           CScript() << OP_SMALLINTEGER << OP_PUBKEYS
-                                     << OP_SMALLINTEGER << OP_CHECKMULTISIG));
+        mTemplates.insert(std::make_pair(
+            TX_MULTISIG, CScript() << OP_SMALLINTEGER << OP_PUBKEYS
+                                   << OP_SMALLINTEGER << OP_CHECKMULTISIG));
     }
 
     vSolutionsRet.clear();
@@ -241,7 +239,7 @@ private:
     CScript *script;
 
 public:
-    CScriptVisitor(CScript *scriptin) { script = scriptin; }
+    explicit CScriptVisitor(CScript *scriptin) { script = scriptin; }
 
     bool operator()(const CNoDestination &dest) const {
         script->clear();

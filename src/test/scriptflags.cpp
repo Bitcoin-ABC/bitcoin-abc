@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "test/scriptflags.h"
+#include <script/interpreter.h>
 
-#include "script/interpreter.h"
+#include <test/scriptflags.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -32,6 +32,8 @@ static std::map<std::string, uint32_t> mapFlagNames = {
     {"SIGHASH_FORKID", SCRIPT_ENABLE_SIGHASH_FORKID},
     {"REPLAY_PROTECTION", SCRIPT_ENABLE_REPLAY_PROTECTION},
     {"CHECKDATASIG", SCRIPT_ENABLE_CHECKDATASIG},
+    {"SCHNORR", SCRIPT_ENABLE_SCHNORR},
+    {"ALLOW_SEGWIT_RECOVERY", SCRIPT_ALLOW_SEGWIT_RECOVERY},
 };
 
 uint32_t ParseScriptFlags(std::string strFlags) {

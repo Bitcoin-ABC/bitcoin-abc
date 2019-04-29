@@ -7,8 +7,8 @@
 #ifndef BITCOIN_SCRIPT_SIGENCODING_H
 #define BITCOIN_SCRIPT_SIGENCODING_H
 
-#include "script_error.h"
-#include "sighashtype.h"
+#include <script/script_error.h>
+#include <script/sighashtype.h>
 
 #include <cstdint>
 #include <vector>
@@ -37,11 +37,20 @@ bool CheckDataSignatureEncoding(const valtype &vchSig, uint32_t flags,
 
 /**
  * Check that the signature provided to authentify a transaction is properly
- * encoded. Signatures passed to OP_CHECKSIG, OP_CHECKMULTISIG and their verify
- * variants must be checked using this function.
+ * encoded. Signatures passed to OP_CHECKSIG and its verify variant must be
+ * checked using this function.
  */
 bool CheckTransactionSignatureEncoding(const valtype &vchSig, uint32_t flags,
                                        ScriptError *serror);
+
+/**
+ * Check that the signature provided to authentify a transaction is properly
+ * encoded ECDSA signature. Signatures passed to OP_CHECKMULTISIG and its verify
+ * variant must be checked using this function.
+ */
+bool CheckTransactionECDSASignatureEncoding(const valtype &vchSig,
+                                            uint32_t flags,
+                                            ScriptError *serror);
 
 /**
  * Check that a public key is encoded properly.

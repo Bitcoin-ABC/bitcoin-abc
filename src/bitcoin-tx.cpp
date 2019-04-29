@@ -44,7 +44,7 @@ static int AppInitRawTx(int argc, char *argv[]) {
     // Check for -testnet or -regtest parameter (Params() calls are only valid
     // after this clause)
     try {
-        SelectParams(ChainNameFromCommandLine());
+        SelectParams(gArgs.GetChainName());
     } catch (const std::exception &e) {
         fprintf(stderr, "Error: %s\n", e.what());
         return EXIT_FAILURE;
@@ -52,8 +52,7 @@ static int AppInitRawTx(int argc, char *argv[]) {
 
     fCreateBlank = gArgs.GetBoolArg("-create", false);
 
-    if (argc < 2 || gArgs.IsArgSet("-?") || gArgs.IsArgSet("-h") ||
-        gArgs.IsArgSet("-help")) {
+    if (argc < 2 || HelpRequested(gArgs)) {
         // First part of help message is specific to this utility
         std::string strUsage =
             strprintf(_("%s bitcoin-tx utility version"), _(PACKAGE_NAME)) +
@@ -101,15 +100,17 @@ static int AppInitRawTx(int argc, char *argv[]) {
             "outmultisig=VALUE:REQUIRED:PUBKEYS:PUBKEY1:PUBKEY2:....[:FLAGS]",
             _("Add Pay To n-of-m Multi-sig output to TX. n = REQUIRED, m = "
               "PUBKEYS") +
-                ". " + _("Optionally add the \"S\" flag to wrap the output in "
-                         "a pay-to-script-hash."));
+                ". " +
+                _("Optionally add the \"S\" flag to wrap the output in a "
+                  "pay-to-script-hash."));
         strUsage += HelpMessageOpt(
             "sign=SIGHASH-FLAGS",
             _("Add zero or more signatures to transaction") + ". " +
                 _("This command requires JSON registers:") +
                 _("prevtxs=JSON object") + ", " + _("privatekeys=JSON object") +
-                ". " + _("See signrawtransaction docs for format of sighash "
-                         "flags, JSON objects."));
+                ". " +
+                _("See signrawtransaction docs for format of sighash flags, "
+                  "JSON objects."));
         fprintf(stdout, "%s", strUsage.c_str());
 
         strUsage = HelpMessageGroup(_("Register Commands:"));
@@ -519,24 +520,6 @@ static bool findSigHashFlags(SigHashType &sigHashType,
     return false;
 }
 
-uint256 ParseHashUO(std::map<std::string, UniValue> &o, std::string strKey) {
-    if (!o.count(strKey)) {
-        return uint256();
-    }
-
-    return ParseHashUV(o[strKey], strKey);
-}
-
-std::vector<uint8_t> ParseHexUO(std::map<std::string, UniValue> &o,
-                                std::string strKey) {
-    if (!o.count(strKey)) {
-        std::vector<uint8_t> emptyVec;
-        return emptyVec;
-    }
-
-    return ParseHexUV(o[strKey], strKey);
-}
-
 static Amount AmountFromValue(const UniValue &value) {
     if (!value.isNum() && !value.isStr()) {
         throw std::runtime_error("Amount is not a number or string");
@@ -732,18 +715,17 @@ static void MutateTx(CMutableTransaction &tx, const std::string &command,
     } else if (command == "outaddr") {
         MutateTxAddOutAddr(tx, commandVal, chainParams);
     } else if (command == "outpubkey") {
+        ecc.reset(new Secp256k1Init());
         MutateTxAddOutPubKey(tx, commandVal);
     } else if (command == "outmultisig") {
+        ecc.reset(new Secp256k1Init());
         MutateTxAddOutMultiSig(tx, commandVal);
     } else if (command == "outscript") {
         MutateTxAddOutScript(tx, commandVal);
     } else if (command == "outdata") {
         MutateTxAddOutData(tx, commandVal);
     } else if (command == "sign") {
-        if (!ecc) {
-            ecc.reset(new Secp256k1Init());
-        }
-
+        ecc.reset(new Secp256k1Init());
         MutateTxSign(tx, commandVal);
     } else if (command == "load") {
         RegisterLoad(commandVal);

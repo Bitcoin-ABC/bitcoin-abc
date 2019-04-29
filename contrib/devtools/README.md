@@ -8,18 +8,6 @@ check-doc.py
 Check if all command line args are documented. The return value indicates the
 number of undocumented args.
 
-clang-format-diff.py
-===================
-
-A script to format unified git diffs according to [.clang-format](../../src/.clang-format).
-
-For instance, to format the last commit with 0 lines of context,
-the script should be called from the git root folder as follows.
-
-```
-git diff -U0 HEAD~1.. | ./contrib/devtools/clang-format-diff.py -p1 -i -v
-```
-
 copyright\_header.py
 ====================
 
@@ -85,6 +73,14 @@ gen-manpages.sh
 A small script to automatically create manpages in ../../doc/man by running the release binaries with the -help option.
 This requires help2man which can be found at: https://www.gnu.org/software/help2man/
 
+With in-tree builds this tool can be run from any directory within the
+repostitory. To use this tool with out-of-tree builds set `BUILDDIR`. For
+example:
+
+```bash
+BUILDDIR=$PWD/build contrib/devtools/gen-manpages.sh
+```
+
 git-subtree-check.sh
 ====================
 
@@ -101,40 +97,6 @@ maintained:
 Usage: `git-subtree-check.sh DIR (COMMIT)`
 
 `COMMIT` may be omitted, in which case `HEAD` is used.
-
-github-merge.py
-===============
-
-A small script to automate merging pull-requests securely and sign them with GPG.
-
-For example:
-
-  ./github-merge.py 3077
-
-(in any git repository) will help you merge pull request #3077 for the
-bitcoin/bitcoin repository.
-
-What it does:
-* Fetch master and the pull request.
-* Locally construct a merge commit.
-* Show the diff that merge results in.
-* Ask you to verify the resulting source tree (so you can do a make
-check or whatever).
-* Ask you whether to GPG sign the merge commit.
-* Ask you whether to push the result upstream.
-
-This means that there are no potential race conditions (where a
-pullreq gets updated while you're reviewing it, but before you click
-merge), and when using GPG signatures, that even a compromised GitHub
-couldn't mess with the sources.
-
-Setup
----------
-Configuring the github-merge tool for the bitcoin repository is done in the following way:
-
-    git config githubmerge.repository bitcoin/bitcoin
-    git config githubmerge.testcmd "make -j4 check" (adapt to whatever you want to use for testing)
-    git config --global user.signingkey mykeyid (if you want to GPG sign)
 
 optimize-pngs.py
 ================

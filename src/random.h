@@ -12,7 +12,9 @@
 
 #include <cstdint>
 
-/* Seed OpenSSL PRNG with additional entropy data */
+/**
+ * Seed OpenSSL PRNG with additional entropy data.
+ */
 void RandAddSeed();
 
 /**

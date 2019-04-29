@@ -1746,10 +1746,6 @@
         <translation>Ko bo prejeto ustrezno opozorilo, ali ko bo opažena zelo dolga razvejitev, izvedi navedeni ukazni niz. (Niz %s bo nadomeščen z vsebino sporočila.)</translation>
     </message>
     <message>
-        <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
-        <translation>Če opcija -paytxfee ni nastavljena, nastavi znesek provizije tako visoko, da bodo transakcije potrjene v povprečno n blokih. (privzeto: %u)</translation>
-    </message>
-    <message>
         <source>Randomize credentials for every proxy connection. This enables Tor stream isolation (default: %u)</source>
         <translation>Na vsak posredniški strežnik se prijavi z drugimi naključnimi podatki. Tako je omogočena osamitev tokov v omrežju Tor (privzeto: %u)</translation>
     </message>

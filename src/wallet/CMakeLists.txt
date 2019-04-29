@@ -12,11 +12,14 @@ find_package(Event REQUIRED)
 add_library(wallet
 	crypter.cpp
 	db.cpp
+	fees.cpp
 	finaltx.cpp
+	init.cpp
 	rpcdump.cpp
 	rpcwallet.cpp
 	wallet.cpp
 	walletdb.cpp
+	walletutil.cpp
 )
 
 target_link_libraries(wallet util univalue Event ${BDBXX_LIBRARY})

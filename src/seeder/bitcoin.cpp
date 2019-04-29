@@ -42,7 +42,7 @@ class CSeederNode {
         nHeaderStart = vSend.size();
         vSend << CMessageHeader(netMagic, pszCommand, 0);
         nMessageStart = vSend.size();
-        //    printf("%s: SEND %s\n", ToString(you).c_str(), pszCommand);
+        // printf("%s: SEND %s\n", ToString(you).c_str(), pszCommand);
     }
 
     void AbortMessage() {
@@ -117,21 +117,20 @@ class CSeederNode {
         }
     }
 
-    bool ProcessMessage(std::string strCommand, CDataStream &vRecv) {
-        //    printf("%s: RECV %s\n", ToString(you).c_str(),
-        //    strCommand.c_str());
+    bool ProcessMessage(std::string strCommand, CDataStream &recv) {
+        // printf("%s: RECV %s\n", ToString(you).c_str(), strCommand.c_str());
         if (strCommand == "version") {
             int64_t nTime;
             CAddress addrMe;
             CAddress addrFrom;
             uint64_t nNonce = 1;
             uint64_t nServiceInt;
-            vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+            recv >> nVersion >> nServiceInt >> nTime >> addrMe;
             you.nServices = ServiceFlags(nServiceInt);
             if (nVersion == 10300) nVersion = 300;
-            if (nVersion >= 106 && !vRecv.empty()) vRecv >> addrFrom >> nNonce;
-            if (nVersion >= 106 && !vRecv.empty()) vRecv >> strSubVer;
-            if (nVersion >= 209 && !vRecv.empty()) vRecv >> nStartingHeight;
+            if (nVersion >= 106 && !recv.empty()) recv >> addrFrom >> nNonce;
+            if (nVersion >= 106 && !recv.empty()) recv >> strSubVer;
+            if (nVersion >= 209 && !recv.empty()) recv >> nStartingHeight;
 
             if (nVersion >= 209) {
                 BeginMessage("verack");
@@ -139,23 +138,23 @@ class CSeederNode {
             }
             vSend.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
             if (nVersion < 209) {
-                this->vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
+                vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
                 GotVersion();
             }
             return false;
         }
 
         if (strCommand == "verack") {
-            this->vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
+            vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
             GotVersion();
             return false;
         }
 
         if (strCommand == "addr" && vAddr) {
             std::vector<CAddress> vAddrNew;
-            vRecv >> vAddrNew;
+            recv >> vAddrNew;
             // printf("%s: got %i addresses\n", ToString(you).c_str(),
-            // (int)vAddrNew.size());
+            //        (int)vAddrNew.size());
             int64_t now = time(nullptr);
             std::vector<CAddress>::iterator it = vAddrNew.begin();
             if (vAddrNew.size() > 1) {
@@ -163,15 +162,17 @@ class CSeederNode {
             }
             while (it != vAddrNew.end()) {
                 CAddress &addr = *it;
-                //        printf("%s: got address %s\n", ToString(you).c_str(),
+                // printf("%s: got address %s\n", ToString(you).c_str(),
                 //        addr.ToString().c_str(), (int)(vAddr->size()));
                 it++;
-                if (addr.nTime <= 100000000 || addr.nTime > now + 600)
+                if (addr.nTime <= 100000000 || addr.nTime > now + 600) {
                     addr.nTime = now - 5 * 86400;
-                if (addr.nTime > now - 604800) vAddr->push_back(addr);
-                //        printf("%s: added address %s (#%i)\n",
-                //        ToString(you).c_str(), addr.ToString().c_str(),
-                //        (int)(vAddr->size()));
+                }
+                if (addr.nTime > now - 604800) {
+                    vAddr->push_back(addr);
+                }
+                // printf("%s: added address %s (#%i)\n", ToString(you).c_str(),
+                //        addr.ToString().c_str(), (int)(vAddr->size()));
                 if (vAddr->size() > 1000) {
                     doneAfter = 1;
                     return true;
@@ -233,17 +234,20 @@ class CSeederNode {
             CDataStream vMsg(vRecv.begin(), vRecv.begin() + nMessageSize,
                              vRecv.GetType(), vRecv.GetVersion());
             vRecv.ignore(nMessageSize);
-            if (ProcessMessage(strCommand, vMsg)) return true;
-            //      printf("%s: done processing %s\n", ToString(you).c_str(),
-            //      strCommand.c_str());
+            if (ProcessMessage(strCommand, vMsg)) {
+                return true;
+            }
+            // printf("%s: done processing %s\n", ToString(you).c_str(),
+            //        strCommand.c_str());
         } while (1);
         return false;
     }
 
 public:
     CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
-        : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
-          nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0), doneAfter(0),
+        : sock(INVALID_SOCKET), vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0),
+          nHeaderStart(-1), nMessageStart(-1), nVersion(0), vAddr(vAddrIn),
+          ban(0), doneAfter(0),
           you(ip, ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH)) {
         if (time(nullptr) > 1329696000) {
             vSend.SetVersion(209);
@@ -252,9 +256,36 @@ public:
     }
 
     bool Run() {
-        bool proxyConnectionFailed = false;
-        if (!ConnectSocket(you, sock, nConnectTimeout,
-                           &proxyConnectionFailed)) {
+        // FIXME: This logic is duplicated with CConnman::ConnectNode for no
+        // good reason.
+        bool connected = false;
+        proxyType proxy;
+
+        if (you.IsValid()) {
+            bool proxyConnectionFailed = false;
+
+            if (GetProxy(you.GetNetwork(), proxy)) {
+                sock = CreateSocket(proxy.proxy);
+                if (sock == INVALID_SOCKET) {
+                    return false;
+                }
+                connected = ConnectThroughProxy(
+                    proxy, you.ToStringIP(), you.GetPort(), sock,
+                    nConnectTimeout, &proxyConnectionFailed);
+            } else {
+                // no proxy needed (none set for target network)
+                sock = CreateSocket(you);
+                if (sock == INVALID_SOCKET) {
+                    return false;
+                }
+                // no proxy needed (none set for target network)
+                connected = ConnectSocketDirectly(you, sock, nConnectTimeout);
+            }
+        }
+
+        if (!connected) {
+            // printf("Cannot connect to %s\n", ToString(you).c_str());
+            CloseSocket(sock);
             return false;
         }
 
@@ -263,9 +294,9 @@ public:
 
         bool res = true;
         int64_t now;
-        while (now = time(nullptr),
-               ban == 0 && (doneAfter == 0 || doneAfter > now) &&
-                   sock != INVALID_SOCKET) {
+        while (now = time(nullptr), ban == 0 &&
+                                        (doneAfter == 0 || doneAfter > now) &&
+                                        sock != INVALID_SOCKET) {
             char pchBuf[0x10000];
             fd_set set;
             FD_ZERO(&set);
@@ -290,7 +321,7 @@ public:
                 memcpy(&vRecv[nPos], pchBuf, nBytes);
             } else if (nBytes == 0) {
                 // printf("%s: BAD (connection closed prematurely)\n",
-                // ToString(you).c_str());
+                //        ToString(you).c_str());
                 res = false;
                 break;
             } else {
@@ -331,7 +362,7 @@ bool TestNode(const CService &cip, int &ban, int &clientV,
         clientV = node.GetClientVersion();
         clientSV = node.GetClientSubVersion();
         blocks = node.GetStartingHeight();
-        //  printf("%s: %s!!!\n", cip.ToString().c_str(), ret ? "GOOD" : "BAD");
+        // printf("%s: %s!!!\n", cip.ToString().c_str(), ret ? "GOOD" : "BAD");
         return ret;
     } catch (std::ios_base::failure &e) {
         ban = 0;

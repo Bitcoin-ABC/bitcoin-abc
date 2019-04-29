@@ -2587,10 +2587,6 @@ Var vänlig och försök igen.</translation>
         <translation>Avgifter (i %s/kB) mindre än detta betraktas som nollavgift för vidarebefordran, mining och transaktionsskapande (förvalt: %s)</translation>
     </message>
     <message>
-        <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
-        <translation>Om paytxfee inte är satt, inkludera tillräcklig avgift så att transaktionen börjar att konfirmeras inom n blocks (förvalt: %u)</translation>
-    </message>
-    <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)</source>
         <translation>Otillåtet belopp för -maxtxfee=&lt;belopp&gt;: '%s' (måste åtminstånde vara minrelay avgift %s för att förhindra stoppade transkationer)</translation>
     </message>

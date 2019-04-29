@@ -9,7 +9,7 @@
 #
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
+from test_framework.util import assert_equal, assert_raises_rpc_error, create_tx
 
 # Create one-input, one-output, no-fee transaction:
 
@@ -55,7 +55,8 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         timelock_tx = timelock_tx.replace("ffffffff", "11111191", 1)
         timelock_tx = timelock_tx[:-8] + \
             hex(self.nodes[0].getblockcount() + 2)[2:] + "000000"
-        timelock_tx = self.nodes[0].signrawtransaction(timelock_tx)["hex"]
+        timelock_tx = self.nodes[0].signrawtransactionwithwallet(timelock_tx)[
+            "hex"]
         # This will raise an exception because the timelock transaction is too immature to spend
         assert_raises_rpc_error(-26, "bad-txns-nonfinal",
                                 self.nodes[0].sendrawtransaction, timelock_tx)

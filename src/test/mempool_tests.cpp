@@ -2,17 +2,149 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "policy/policy.h"
-#include "txmempool.h"
-#include "util.h"
+#include <txmempool.h>
 
-#include "test/test_bitcoin.h"
+#include <policy/policy.h>
+#include <reverse_iterator.h>
+#include <util.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
+
+#include <algorithm>
 #include <list>
 #include <vector>
 
 BOOST_FIXTURE_TEST_SUITE(mempool_tests, TestingSetup)
+
+BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
+    CTxMemPool testPool;
+    TestMemPoolEntryHelper entry;
+    CMutableTransaction parentOfAll;
+
+    std::vector<CTxIn> outpoints;
+    const size_t maxOutputs = 3;
+
+    // Construct a parent for the rest of the chain
+    parentOfAll.vin.resize(1);
+    parentOfAll.vin[0].scriptSig = CScript();
+    // Give us a couple outpoints so we can spend them
+    for (size_t i = 0; i < maxOutputs; i++) {
+        parentOfAll.vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
+    }
+    TxId parentOfAllId = parentOfAll.GetId();
+    testPool.addUnchecked(parentOfAllId, entry.FromTx(parentOfAll));
+
+    // Add some outpoints to the tracking vector
+    for (size_t i = 0; i < maxOutputs; i++) {
+        outpoints.emplace_back(COutPoint(parentOfAllId, i));
+    }
+
+    Amount totalFee = Amount::zero();
+    size_t totalSize = CTransaction(parentOfAll).GetTotalSize();
+    size_t totalBillableSize = CTransaction(parentOfAll).GetBillableSize();
+
+    // Generate 100 transactions
+    for (size_t totalTransactions = 0; totalTransactions < 100;
+         totalTransactions++) {
+        CMutableTransaction mtx;
+
+        uint64_t minAncestors = std::numeric_limits<size_t>::max();
+        uint64_t maxAncestors = 0;
+        Amount minFees = MAX_MONEY;
+        Amount maxFees = Amount::zero();
+        uint64_t minSize = std::numeric_limits<size_t>::max();
+        uint64_t maxSize = 0;
+        uint64_t minBillableSize = std::numeric_limits<size_t>::max();
+        uint64_t maxBillableSize = 0;
+        // Consume random inputs, but make sure we don't consume more than
+        // available
+        for (size_t input = std::min(InsecureRandRange(maxOutputs) + 1,
+                                     uint64_t(outpoints.size()));
+             input > 0; input--) {
+            std::swap(outpoints[InsecureRandRange(outpoints.size())],
+                      outpoints.back());
+            mtx.vin.emplace_back(outpoints.back());
+            outpoints.pop_back();
+
+            // We don't know exactly how many ancestors this transaction has
+            // due to possible duplicates.  Calculate a valid range based on
+            // parents.
+
+            CTxMemPoolEntry parent =
+                *testPool.mapTx.find(mtx.vin.back().prevout.GetTxId());
+
+            minAncestors =
+                std::min(minAncestors, parent.GetCountWithAncestors());
+            maxAncestors += parent.GetCountWithAncestors();
+            minFees = std::min(minFees, parent.GetModFeesWithAncestors());
+            maxFees += parent.GetModFeesWithAncestors();
+            minSize = std::min(minSize, parent.GetSizeWithAncestors());
+            maxSize += parent.GetSizeWithAncestors();
+            minBillableSize = std::min(minBillableSize,
+                                       parent.GetBillableSizeWithAncestors());
+            maxBillableSize += parent.GetBillableSizeWithAncestors();
+        }
+
+        // Produce random number of outputs
+        for (size_t output = InsecureRandRange(maxOutputs) + 1; output > 0;
+             output--) {
+            mtx.vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
+        }
+
+        CTransaction tx(mtx);
+        TxId curId = tx.GetId();
+
+        // Record the outputs
+        for (size_t output = tx.vout.size(); output > 0; output--) {
+            outpoints.emplace_back(COutPoint(curId, output));
+        }
+
+        Amount randFee = int64_t(InsecureRandRange(300)) * SATOSHI;
+
+        testPool.addUnchecked(curId, entry.Fee(randFee).FromTx(tx));
+
+        // Add this transaction to the totals.
+        minAncestors += 1;
+        maxAncestors += 1;
+        minFees += randFee;
+        maxFees += randFee;
+        minSize += CTransaction(tx).GetTotalSize();
+        maxSize += CTransaction(tx).GetTotalSize();
+        minBillableSize += CTransaction(tx).GetBillableSize();
+        maxBillableSize += CTransaction(tx).GetBillableSize();
+
+        // Calculate overall values
+        totalFee += randFee;
+        totalSize += CTransaction(tx).GetTotalSize();
+        totalBillableSize += CTransaction(tx).GetBillableSize();
+        CTxMemPoolEntry parentEntry = *testPool.mapTx.find(parentOfAllId);
+        CTxMemPoolEntry latestEntry = *testPool.mapTx.find(curId);
+
+        // Ensure values are within the expected ranges
+        BOOST_CHECK(latestEntry.GetCountWithAncestors() >= minAncestors);
+        BOOST_CHECK(latestEntry.GetCountWithAncestors() <= maxAncestors);
+
+        BOOST_CHECK(latestEntry.GetSizeWithAncestors() >= minSize);
+        BOOST_CHECK(latestEntry.GetSizeWithAncestors() <= maxSize);
+
+        BOOST_CHECK(latestEntry.GetBillableSizeWithAncestors() >=
+                    minBillableSize);
+        BOOST_CHECK(latestEntry.GetBillableSizeWithAncestors() <=
+                    maxBillableSize);
+
+        BOOST_CHECK(latestEntry.GetModFeesWithAncestors() >= minFees);
+        BOOST_CHECK(latestEntry.GetModFeesWithAncestors() <= maxFees);
+
+        BOOST_CHECK_EQUAL(parentEntry.GetCountWithDescendants(),
+                          testPool.mapTx.size());
+        BOOST_CHECK_EQUAL(parentEntry.GetSizeWithDescendants(), totalSize);
+        BOOST_CHECK_EQUAL(parentEntry.GetBillableSizeWithDescendants(),
+                          totalBillableSize);
+        BOOST_CHECK_EQUAL(parentEntry.GetModFeesWithDescendants(), totalFee);
+    }
+}
 
 BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     // Test CTxMemPool::remove functionality
@@ -203,6 +335,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     sortedOrder[2] = tx1.GetId().ToString(); // 10000
     sortedOrder[3] = tx4.GetId().ToString(); // 15000
     sortedOrder[4] = tx2.GetId().ToString(); // 20000
+    LOCK(pool.cs);
     CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest1");
 
     /* low fee but with high fee child */
@@ -430,6 +563,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     }
     sortedOrder[4] = tx3.GetId().ToString(); // 0
 
+    LOCK(pool.cs);
     CheckSort<ancestor_score>(pool, sortedOrder,
                               "MempoolAncestorIndexingTest1");
 
@@ -658,10 +792,100 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
                 CTxMemPool::ROLLING_FEE_HALFLIFE / 4);
     BOOST_CHECK_EQUAL(
         pool.GetMinFee(pool.DynamicMemoryUsage() * 9 / 2).GetFeePerK(),
-        (maxFeeRateRemoved.GetFeePerK() + feeIncrement) / 8);
+        (maxFeeRateRemoved.GetFeePerK() + feeIncrement) / 8 + SATOSHI);
     // ... with a 1/4 halflife when mempool is < 1/4 its target size
 
     SetMockTime(0);
+}
+
+// expectedSize can be smaller than correctlyOrderedIds.size(), since we
+// might be testing intermediary states. Just avoiding some slice operations,
+void CheckDisconnectPoolOrder(DisconnectedBlockTransactions &disconnectPool,
+                              std::vector<TxId> correctlyOrderedIds,
+                              unsigned int expectedSize) {
+    int i = 0;
+    BOOST_CHECK_EQUAL(disconnectPool.GetQueuedTx().size(), expectedSize);
+    // Txns in queuedTx's insertion_order index are sorted from children to
+    // parent txn
+    for (const CTransactionRef &tx :
+         reverse_iterate(disconnectPool.GetQueuedTx().get<insertion_order>())) {
+        BOOST_CHECK(tx->GetId() == correctlyOrderedIds[i]);
+        i++;
+    }
+}
+
+typedef std::vector<CMutableTransaction *> vecptx;
+
+BOOST_AUTO_TEST_CASE(TestImportMempool) {
+    CMutableTransaction chainedTxn[5];
+    std::vector<TxId> correctlyOrderedIds;
+    COutPoint lastOutpoint;
+
+    // Construct a chain of 5 transactions
+    for (int i = 0; i < 5; i++) {
+        chainedTxn[i].vin.emplace_back(lastOutpoint);
+        chainedTxn[i].vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
+        correctlyOrderedIds.push_back(chainedTxn[i].GetId());
+        lastOutpoint = COutPoint(correctlyOrderedIds[i], 0);
+    }
+
+    // The first 3 txns simulate once confirmed transactions that have been
+    // disconnected. We test 3 different orders: in order, one case of mixed
+    // order and inverted order.
+    vecptx disconnectedTxnsInOrder = {&chainedTxn[0], &chainedTxn[1],
+                                      &chainedTxn[2]};
+    vecptx disconnectedTxnsMixedOrder = {&chainedTxn[1], &chainedTxn[2],
+                                         &chainedTxn[0]};
+    vecptx disconnectedTxnsInvertedOrder = {&chainedTxn[2], &chainedTxn[1],
+                                            &chainedTxn[0]};
+
+    // The last 2 txns simulate a chain of unconfirmed transactions in the
+    // mempool. We test 2 different orders: in and out of order.
+    vecptx unconfTxnsInOrder = {&chainedTxn[3], &chainedTxn[4]};
+    vecptx unconfTxnsOutOfOrder = {&chainedTxn[4], &chainedTxn[3]};
+
+    // Now we test all combinations of the previously defined orders for
+    // disconnected and unconfirmed txns. The expected outcome is to have these
+    // transactions in the correct order in queuedTx, as defined in
+    // correctlyOrderedIds.
+    for (auto &disconnectedTxns :
+         {disconnectedTxnsInOrder, disconnectedTxnsMixedOrder,
+          disconnectedTxnsInvertedOrder}) {
+        for (auto &unconfTxns : {unconfTxnsInOrder, unconfTxnsOutOfOrder}) {
+            // addForBlock inserts disconnectTxns in disconnectPool. They
+            // simulate transactions that were once confirmed in a block
+            std::vector<CTransactionRef> vtx;
+            for (auto tx : disconnectedTxns) {
+                vtx.push_back(MakeTransactionRef(*tx));
+            }
+            DisconnectedBlockTransactions disconnectPool;
+            disconnectPool.addForBlock(vtx);
+            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                     disconnectedTxns.size());
+
+            // If the mempool is empty, importMempool doesn't change
+            // disconnectPool
+            CTxMemPool testPool;
+            disconnectPool.importMempool(testPool);
+            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                     disconnectedTxns.size());
+
+            // Add all unconfirmed transactions in testPool
+            for (auto tx : unconfTxns) {
+                TestMemPoolEntryHelper entry;
+                testPool.addUnchecked(tx->GetId(), entry.FromTx(*tx));
+            }
+
+            // Now we test importMempool with a non empty mempool
+            disconnectPool.importMempool(testPool);
+            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                     disconnectedTxns.size() +
+                                         unconfTxns.size());
+            // We must clear disconnectPool to not trigger the assert in its
+            // destructor
+            disconnectPool.clear();
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

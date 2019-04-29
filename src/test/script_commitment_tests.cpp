@@ -2,20 +2,21 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "script/script.h"
-#include "test/test_bitcoin.h"
+#include <script/script.h>
 
-#include "chainparams.h"
-#include "config.h"
-#include "consensus/validation.h"
-#include "validation.h"
+#include <chainparams.h>
+#include <config.h>
+#include <consensus/validation.h>
+#include <validation.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <string>
 #include <vector>
 
-BOOST_FIXTURE_TEST_SUITE(script_commitmenet_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(script_commitment_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(test_is_commitment) {
     std::vector<uint8_t> data{};

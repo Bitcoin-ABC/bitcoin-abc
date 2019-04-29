@@ -4,9 +4,17 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test descendant package tracking code."""
 
+from decimal import Decimal
+
+from test_framework.messages import COIN
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.mininode import COIN
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    satoshi_round,
+    sync_blocks,
+    sync_mempools,
+)
 
 MAX_ANCESTORS = 25
 MAX_DESCENDANTS = 25
@@ -27,7 +35,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         for i in range(num_outputs):
             outputs[node.getnewaddress()] = send_value
         rawtx = node.createrawtransaction(inputs, outputs)
-        signedtx = node.signrawtransaction(rawtx)
+        signedtx = node.signrawtransactionwithwallet(rawtx)
         txid = node.sendrawtransaction(signedtx['hex'])
         fulltx = node.getrawtransaction(txid, 1)
         # make sure we didn't generate a change output
@@ -222,13 +230,13 @@ class MempoolPackagesTest(BitcoinTestFramework):
         for i in range(2):
             outputs[self.nodes[0].getnewaddress()] = send_value
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
-        signedtx = self.nodes[0].signrawtransaction(rawtx)
+        signedtx = self.nodes[0].signrawtransactionwithwallet(rawtx)
         txid = self.nodes[0].sendrawtransaction(signedtx['hex'])
         tx0_id = txid
         value = send_value
 
         # Create tx1
-        (tx1_id, tx1_value) = self.chain_transaction(
+        tx1_id, _ = self.chain_transaction(
             self.nodes[0], tx0_id, 0, value, fee, 1)
 
         # Create tx2-7
@@ -248,7 +256,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         inputs = [{'txid': tx1_id, 'vout': 0}, {'txid': txid, 'vout': 0}]
         outputs = {self.nodes[0].getnewaddress(): send_value + value - 4 * fee}
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
-        signedtx = self.nodes[0].signrawtransaction(rawtx)
+        signedtx = self.nodes[0].signrawtransactionwithwallet(rawtx)
         txid = self.nodes[0].sendrawtransaction(signedtx['hex'])
         sync_mempools(self.nodes)
 

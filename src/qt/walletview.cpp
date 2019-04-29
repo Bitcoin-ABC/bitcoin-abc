@@ -74,6 +74,10 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, const Config *cfg,
     connect(overviewPage, SIGNAL(outOfSyncWarningClicked()), this,
             SLOT(requestedSyncWarningInfo()));
 
+    // Highlight transaction after send
+    connect(sendCoinsPage, SIGNAL(coinsSent(uint256)), transactionView,
+            SLOT(focusTransaction(uint256)));
+
     // Double-clicking on a transaction on the transaction history page shows
     // details
     connect(transactionView, SIGNAL(doubleClicked(QModelIndex)),
@@ -100,23 +104,29 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui) {
         connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui,
                 SLOT(gotoHistoryPage()));
 
+        // Navigate to transaction history page after send
+        connect(sendCoinsPage, SIGNAL(coinsSent(uint256)), gui,
+                SLOT(gotoHistoryPage()));
+
         // Receive and report messages
         connect(this, SIGNAL(message(QString, QString, unsigned int)), gui,
                 SLOT(message(QString, QString, unsigned int)));
 
         // Pass through encryption status changed signals
-        connect(this, SIGNAL(encryptionStatusChanged(int)), gui,
-                SLOT(setEncryptionStatus(int)));
+        connect(this, SIGNAL(encryptionStatusChanged()), gui,
+                SLOT(updateWalletStatus()));
 
         // Pass through transaction notifications
-        connect(this, SIGNAL(incomingTransaction(QString, int, Amount, QString,
-                                                 QString, QString)),
-                gui, SLOT(incomingTransaction(QString, int, Amount, QString,
-                                              QString, QString)));
+        connect(this,
+                SIGNAL(incomingTransaction(QString, int, Amount, QString,
+                                           QString, QString, QString)),
+                gui,
+                SLOT(incomingTransaction(QString, int, Amount, QString, QString,
+                                         QString, QString)));
 
         // Connect HD enabled state signal
-        connect(this, SIGNAL(hdEnabledStatusChanged(int)), gui,
-                SLOT(setHDStatus(int)));
+        connect(this, SIGNAL(hdEnabledStatusChanged()), gui,
+                SLOT(updateWalletStatus()));
     }
 }
 
@@ -135,8 +145,10 @@ void WalletView::setWalletModel(WalletModel *_walletModel) {
     overviewPage->setWalletModel(_walletModel);
     receiveCoinsPage->setModel(_walletModel);
     sendCoinsPage->setModel(_walletModel);
-    usedReceivingAddressesPage->setModel(_walletModel->getAddressTableModel());
-    usedSendingAddressesPage->setModel(_walletModel->getAddressTableModel());
+    usedReceivingAddressesPage->setModel(
+        _walletModel ? _walletModel->getAddressTableModel() : nullptr);
+    usedSendingAddressesPage->setModel(
+        _walletModel ? _walletModel->getAddressTableModel() : nullptr);
 
     if (_walletModel) {
         // Receive and pass through messages from wallet model
@@ -144,12 +156,12 @@ void WalletView::setWalletModel(WalletModel *_walletModel) {
                 this, SIGNAL(message(QString, QString, unsigned int)));
 
         // Handle changes in encryption status
-        connect(_walletModel, SIGNAL(encryptionStatusChanged(int)), this,
-                SIGNAL(encryptionStatusChanged(int)));
+        connect(_walletModel, SIGNAL(encryptionStatusChanged()), this,
+                SIGNAL(encryptionStatusChanged()));
         updateEncryptionStatus();
 
         // update HD status
-        Q_EMIT hdEnabledStatusChanged(_walletModel->hdEnabled());
+        Q_EMIT hdEnabledStatusChanged();
 
         // Balloon pop-up for new transaction
         connect(_walletModel->getTransactionTableModel(),
@@ -195,7 +207,8 @@ void WalletView::processNewTransaction(const QModelIndex &parent, int start,
 
     Q_EMIT incomingTransaction(date,
                                walletModel->getOptionsModel()->getDisplayUnit(),
-                               int64_t(amount) * SATOSHI, type, address, label);
+                               int64_t(amount) * SATOSHI, type, address, label,
+                               walletModel->getWalletName());
 }
 
 void WalletView::gotoOverviewPage() {
@@ -253,7 +266,7 @@ void WalletView::showOutOfSyncWarning(bool fShow) {
 }
 
 void WalletView::updateEncryptionStatus() {
-    Q_EMIT encryptionStatusChanged(walletModel->getEncryptionStatus());
+    Q_EMIT encryptionStatusChanged();
 }
 
 void WalletView::encryptWallet(bool status) {

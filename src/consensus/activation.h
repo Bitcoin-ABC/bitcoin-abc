@@ -16,13 +16,13 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
 /** Check if DAA HF has activated. */
 bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev);
 
-/** Check if Nov 15, 2018 HF has activated. */
+/** Check if Nov 15, 2018 HF has activated using block height. */
+bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight);
+/** Check if Nov 15, 2018 HF has activated using previous block index. */
 bool IsMagneticAnomalyEnabled(const Config &config,
                               const CBlockIndex *pindexPrev);
-/**
- * Also check if Nov 15, 2018 HF has activated, but with an API that isn't as
- * safe.
- */
-bool IsMagneticAnomalyEnabled(const Config &config, int64_t nMedianTimePast);
+
+/** Check if May 15th, 2019 protocol upgrade has activated. */
+bool IsGreatWallEnabled(const Config &config, const CBlockIndex *pindexPrev);
 
 #endif // BITCOIN_CONSENSUS_ACTIVATION_H

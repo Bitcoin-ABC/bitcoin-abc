@@ -18,7 +18,7 @@ static void GetResults(std::map<Amount, CAccountingEntry> &results) {
     std::list<CAccountingEntry> aes;
 
     results.clear();
-    BOOST_CHECK(pwalletMain->ReorderTransactions() == DB_LOAD_OK);
+    BOOST_CHECK(pwalletMain->ReorderTransactions() == DBErrors::LOAD_OK);
     pwalletMain->ListAccountCreditDebit("", aes);
     for (CAccountingEntry &ae : aes) {
         results[ae.nOrderPos * SATOSHI] = ae;
@@ -27,7 +27,7 @@ static void GetResults(std::map<Amount, CAccountingEntry> &results) {
 
 BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     std::vector<CWalletTx *> vpwtx;
-    CWalletTx wtx;
+    CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
     CAccountingEntry ae;
     std::map<Amount, CAccountingEntry> results;
 
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
 
     wtx.mapValue["comment"] = "z";
     pwalletMain->AddToWallet(wtx);
-    vpwtx.push_back(&pwalletMain->mapWallet[wtx.GetId()]);
+    vpwtx.push_back(&pwalletMain->mapWallet.at(wtx.GetId()));
     vpwtx[0]->nTimeReceived = (unsigned int)1333333335;
     vpwtx[0]->nOrderPos = -1;
 
@@ -77,24 +77,24 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
 
     wtx.mapValue["comment"] = "y";
     {
-        CMutableTransaction tx(wtx);
+        CMutableTransaction tx(*wtx.tx);
         // Just to change the hash :)
         --tx.nLockTime;
         wtx.SetTx(MakeTransactionRef(std::move(tx)));
     }
     pwalletMain->AddToWallet(wtx);
-    vpwtx.push_back(&pwalletMain->mapWallet[wtx.GetId()]);
+    vpwtx.push_back(&pwalletMain->mapWallet.at(wtx.GetId()));
     vpwtx[1]->nTimeReceived = (unsigned int)1333333336;
 
     wtx.mapValue["comment"] = "x";
     {
-        CMutableTransaction tx(wtx);
+        CMutableTransaction tx(*wtx.tx);
         // Just to change the hash :)
         --tx.nLockTime;
         wtx.SetTx(MakeTransactionRef(std::move(tx)));
     }
     pwalletMain->AddToWallet(wtx);
-    vpwtx.push_back(&pwalletMain->mapWallet[wtx.GetId()]);
+    vpwtx.push_back(&pwalletMain->mapWallet.at(wtx.GetId()));
     vpwtx[2]->nTimeReceived = (unsigned int)1333333329;
     vpwtx[2]->nOrderPos = -1;
 

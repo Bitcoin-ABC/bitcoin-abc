@@ -7,11 +7,11 @@
 #ifndef BITCOIN_PRIMITIVES_TRANSACTION_H
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
-#include "amount.h"
-#include "feerate.h"
-#include "primitives/txid.h"
-#include "script/script.h"
-#include "serialize.h"
+#include <amount.h>
+#include <feerate.h>
+#include <primitives/txid.h>
+#include <script/script.h>
+#include <serialize.h>
 
 static const int SERIALIZE_TRANSACTION = 0x00;
 
@@ -300,6 +300,10 @@ public:
     // size)
     unsigned int CalculateModifiedSize(unsigned int nTxSize = 0) const;
 
+    // Computes an adjusted tx size so that the UTXIs are billed partially
+    // upfront.
+    size_t GetBillableSize() const;
+
     /**
      * Get the total transaction size in bytes.
      * @return Total transaction size in bytes
@@ -381,7 +385,7 @@ struct PrecomputedTransactionData {
         : hashPrevouts(txdata.hashPrevouts), hashSequence(txdata.hashSequence),
           hashOutputs(txdata.hashOutputs) {}
 
-    PrecomputedTransactionData(const CTransaction &tx);
+    explicit PrecomputedTransactionData(const CTransaction &tx);
 };
 
 #endif // BITCOIN_PRIMITIVES_TRANSACTION_H

@@ -25,17 +25,20 @@ GENERATED_TEST_FILES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.r
 
 # test_bitcoin binary #
 BITCOIN_TESTS =\
-  test/arith_uint256_tests.cpp \
   test/scriptnum10.h \
+  test/activation_tests.cpp \
   test/addrman_tests.cpp \
-  test/amount_tests.cpp \
   test/allocator_tests.cpp \
+  test/amount_tests.cpp \
+  test/arith_uint256_tests.cpp \
+  test/avalanche_tests.cpp \
   test/base32_tests.cpp \
   test/base58_tests.cpp \
   test/base64_tests.cpp \
   test/bip32_tests.cpp \
   test/blockcheck_tests.cpp \
   test/blockencodings_tests.cpp \
+  test/blockfilter_tests.cpp \
   test/blockindex_tests.cpp \
   test/blockstatus_tests.cpp \
   test/bloom_tests.cpp \
@@ -56,18 +59,21 @@ BITCOIN_TESTS =\
   test/dstencode_tests.cpp \
   test/excessiveblock_tests.cpp \
   test/feerate_tests.cpp \
+  test/finalization_tests.cpp \
   test/getarg_tests.cpp \
   test/hash_tests.cpp \
   test/inv_tests.cpp \
   test/jsonutil.cpp \
   test/jsonutil.h \
   test/key_tests.cpp \
+  test/lcg_tests.cpp \
+  test/lcg.h \
   test/limitedmap_tests.cpp \
   test/main_tests.cpp \
   test/mempool_tests.cpp \
   test/merkle_tests.cpp \
   test/miner_tests.cpp \
-  test/monolith_opcodes.cpp \
+  test/monolith_opcodes_tests.cpp \
   test/multisig_tests.cpp \
   test/net_tests.cpp \
   test/netbase_tests.cpp \
@@ -75,12 +81,17 @@ BITCOIN_TESTS =\
   test/policyestimator_tests.cpp \
   test/pow_tests.cpp \
   test/prevector_tests.cpp \
+  test/radix_tests.cpp \
   test/raii_event_tests.cpp \
   test/random_tests.cpp \
+  test/rcu_tests.cpp \
   test/reverselock_tests.cpp \
   test/rpc_tests.cpp \
+  test/rpc_server_tests.cpp \
+  test/rwcollection_tests.cpp \
   test/sanity_tests.cpp \
   test/scheduler_tests.cpp \
+  test/schnorr_tests.cpp \
   test/script_commitment_tests.cpp \
   test/script_P2SH_tests.cpp \
   test/script_tests.cpp \
@@ -88,6 +99,7 @@ BITCOIN_TESTS =\
   test/scriptflags.h \
   test/scriptnum_tests.cpp \
   test/serialize_tests.cpp \
+  test/sigcache_tests.cpp \
   test/sigencoding_tests.cpp \
   test/sighash_tests.cpp \
   test/sighashtype_tests.cpp \
@@ -96,21 +108,20 @@ BITCOIN_TESTS =\
   test/sigutil.h \
   test/skiplist_tests.cpp \
   test/streams_tests.cpp \
+  test/sync_tests.cpp \
   test/test_bitcoin.cpp \
   test/test_bitcoin.h \
   test/test_bitcoin_main.cpp \
-  test/testutil.cpp \
-  test/testutil.h \
   test/timedata_tests.cpp \
   test/transaction_tests.cpp \
   test/txvalidationcache_tests.cpp \
-  test/versionbits_tests.cpp \
   test/uint256_tests.cpp \
   test/undo_tests.cpp \
   test/univalue_tests.cpp \
   test/util_tests.cpp \
   test/validation_tests.cpp \
-  test/work_comparator_tests.cpp
+  test/work_comparator_tests.cpp \
+  rpc/test/server_tests.cpp
 
 if ENABLE_WALLET
 BITCOIN_TESTS += \
@@ -119,7 +130,7 @@ BITCOIN_TESTS += \
   wallet/test/accounting_tests.cpp \
   wallet/test/wallet_tests.cpp \
   wallet/test/walletdb_tests.cpp \
-  wallet/test/crypto_tests.cpp
+  wallet/test/wallet_crypto_tests.cpp
 endif
 
 test_test_bitcoin_SOURCES = $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
@@ -128,6 +139,7 @@ test_test_bitcoin_LDADD =
 if ENABLE_WALLET
 test_test_bitcoin_LDADD += $(LIBBITCOIN_WALLET)
 endif
+
 test_test_bitcoin_LDADD += $(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CONSENSUS) $(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
   $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS)
 test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)

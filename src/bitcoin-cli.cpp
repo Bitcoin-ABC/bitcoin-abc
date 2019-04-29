@@ -41,6 +41,13 @@ std::string HelpMessageCli() {
         "-conf=<file>", strprintf(_("Specify configuration file (default: %s)"),
                                   BITCOIN_CONF_FILENAME));
     strUsage += HelpMessageOpt("-datadir=<dir>", _("Specify data directory"));
+    strUsage += HelpMessageOpt(
+        "-getinfo",
+        _("Get general information from the remote server. Note that unlike "
+          "server-side RPC calls, the results of -getinfo is the result of "
+          "multiple non-atomic requests. Some entries in the result may "
+          "represent results from different states (e.g. wallet balance may be "
+          "as of a different block from the chain state reported)"));
     AppendParamsHelpMessages(strUsage);
     strUsage += HelpMessageOpt(
         "-named",
@@ -108,8 +115,7 @@ static int AppInitRPC(int argc, char *argv[]) {
     // Parameters
     //
     gArgs.ParseParameters(argc, argv);
-    if (argc < 2 || gArgs.IsArgSet("-?") || gArgs.IsArgSet("-h") ||
-        gArgs.IsArgSet("-help") || gArgs.IsArgSet("-version")) {
+    if (argc < 2 || HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
         std::string strUsage =
             strprintf(_("%s RPC client version"), _(PACKAGE_NAME)) + " " +
             FormatFullVersion() + "\n";
@@ -151,7 +157,7 @@ static int AppInitRPC(int argc, char *argv[]) {
     // Check for -testnet or -regtest parameter (BaseParams() calls are only
     // valid after this clause)
     try {
-        SelectBaseParams(ChainNameFromCommandLine());
+        SelectBaseParams(gArgs.GetChainName());
     } catch (const std::exception &e) {
         fprintf(stderr, "Error: %s\n", e.what());
         return EXIT_FAILURE;
@@ -224,7 +230,113 @@ static void http_error_cb(enum evhttp_request_error err, void *ctx) {
 }
 #endif
 
-static UniValue CallRPC(const std::string &strMethod, const UniValue &params) {
+/**
+ * Class that handles the conversion from a command-line to a JSON-RPC request,
+ * as well as converting back to a JSON object that can be shown as result.
+ */
+class BaseRequestHandler {
+public:
+    virtual UniValue PrepareRequest(const std::string &method,
+                                    const std::vector<std::string> &args) = 0;
+    virtual UniValue ProcessReply(const UniValue &batch_in) = 0;
+};
+
+/** Process getinfo requests */
+class GetinfoRequestHandler : public BaseRequestHandler {
+public:
+    const int ID_NETWORKINFO = 0;
+    const int ID_BLOCKCHAININFO = 1;
+    const int ID_WALLETINFO = 2;
+
+    /** Create a simulated `getinfo` request. */
+    UniValue PrepareRequest(const std::string &method,
+                            const std::vector<std::string> &args) override {
+        UniValue result(UniValue::VARR);
+        result.push_back(
+            JSONRPCRequestObj("getnetworkinfo", NullUniValue, ID_NETWORKINFO));
+        result.push_back(JSONRPCRequestObj("getblockchaininfo", NullUniValue,
+                                           ID_BLOCKCHAININFO));
+        result.push_back(
+            JSONRPCRequestObj("getwalletinfo", NullUniValue, ID_WALLETINFO));
+        return result;
+    }
+
+    /** Collect values from the batch and form a simulated `getinfo` reply. */
+    UniValue ProcessReply(const UniValue &batch_in) override {
+        UniValue result(UniValue::VOBJ);
+        std::vector<UniValue> batch = JSONRPCProcessBatchReply(batch_in, 3);
+        // Errors in getnetworkinfo() and getblockchaininfo() are fatal, pass
+        // them on getwalletinfo() is allowed to fail in case there is no
+        // wallet.
+        if (!batch[ID_NETWORKINFO]["error"].isNull()) {
+            return batch[ID_NETWORKINFO];
+        }
+        if (!batch[ID_BLOCKCHAININFO]["error"].isNull()) {
+            return batch[ID_BLOCKCHAININFO];
+        }
+        result.pushKV("version", batch[ID_NETWORKINFO]["result"]["version"]);
+        result.pushKV("protocolversion",
+                      batch[ID_NETWORKINFO]["result"]["protocolversion"]);
+        if (!batch[ID_WALLETINFO].isNull()) {
+            result.pushKV("walletversion",
+                          batch[ID_WALLETINFO]["result"]["walletversion"]);
+            result.pushKV("balance", batch[ID_WALLETINFO]["result"]["balance"]);
+        }
+        result.pushKV("blocks", batch[ID_BLOCKCHAININFO]["result"]["blocks"]);
+        result.pushKV("timeoffset",
+                      batch[ID_NETWORKINFO]["result"]["timeoffset"]);
+        result.pushKV("connections",
+                      batch[ID_NETWORKINFO]["result"]["connections"]);
+        result.pushKV("proxy",
+                      batch[ID_NETWORKINFO]["result"]["networks"][0]["proxy"]);
+        result.pushKV("difficulty",
+                      batch[ID_BLOCKCHAININFO]["result"]["difficulty"]);
+        result.pushKV(
+            "testnet",
+            UniValue(batch[ID_BLOCKCHAININFO]["result"]["chain"].get_str() ==
+                     "test"));
+        if (!batch[ID_WALLETINFO].isNull()) {
+            result.pushKV("walletversion",
+                          batch[ID_WALLETINFO]["result"]["walletversion"]);
+            result.pushKV("balance", batch[ID_WALLETINFO]["result"]["balance"]);
+            result.pushKV("keypoololdest",
+                          batch[ID_WALLETINFO]["result"]["keypoololdest"]);
+            result.pushKV("keypoolsize",
+                          batch[ID_WALLETINFO]["result"]["keypoolsize"]);
+            if (!batch[ID_WALLETINFO]["result"]["unlocked_until"].isNull()) {
+                result.pushKV("unlocked_until",
+                              batch[ID_WALLETINFO]["result"]["unlocked_until"]);
+            }
+            result.pushKV("paytxfee",
+                          batch[ID_WALLETINFO]["result"]["paytxfee"]);
+        }
+        result.pushKV("relayfee", batch[ID_NETWORKINFO]["result"]["relayfee"]);
+        result.pushKV("warnings", batch[ID_NETWORKINFO]["result"]["warnings"]);
+        return JSONRPCReplyObj(result, NullUniValue, 1);
+    }
+};
+
+/** Process default single requests */
+class DefaultRequestHandler : public BaseRequestHandler {
+public:
+    UniValue PrepareRequest(const std::string &method,
+                            const std::vector<std::string> &args) override {
+        UniValue params;
+        if (gArgs.GetBoolArg("-named", DEFAULT_NAMED)) {
+            params = RPCConvertNamedValues(method, args);
+        } else {
+            params = RPCConvertValues(method, args);
+        }
+        return JSONRPCRequestObj(method, params, 1);
+    }
+
+    UniValue ProcessReply(const UniValue &reply) override {
+        return reply.get_obj();
+    }
+};
+
+static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
+                        const std::vector<std::string> &args) {
     std::string host;
     // In preference order, we choose the following for the port:
     //     1. -rpcport
@@ -281,8 +393,7 @@ static UniValue CallRPC(const std::string &strMethod, const UniValue &params) {
         (std::string("Basic ") + EncodeBase64(strRPCUserColonPass)).c_str());
 
     // Attach request data
-    std::string strRequest =
-        JSONRPCRequestObj(strMethod, params, 1).write() + "\n";
+    std::string strRequest = rh->PrepareRequest(strMethod, args).write() + "\n";
     struct evbuffer *output_buffer =
         evhttp_request_get_output_buffer(req.get());
     assert(output_buffer);
@@ -333,7 +444,7 @@ static UniValue CallRPC(const std::string &strMethod, const UniValue &params) {
     if (!valReply.read(response.body)) {
         throw std::runtime_error("couldn't parse reply from server");
     }
-    const UniValue &reply = valReply.get_obj();
+    const UniValue reply = rh->ProcessReply(valReply);
     if (reply.empty()) {
         throw std::runtime_error(
             "expected reply to have result, error and id properties");
@@ -367,26 +478,27 @@ int CommandLineRPC(int argc, char *argv[]) {
                 args.push_back(line);
             }
         }
-        if (args.size() < 1) {
-            throw std::runtime_error(
-                "too few parameters (need at least command)");
-        }
-        std::string strMethod = args[0];
-        // Remove trailing method name from arguments vector
-        args.erase(args.begin());
-
-        UniValue params;
-        if (gArgs.GetBoolArg("-named", DEFAULT_NAMED)) {
-            params = RPCConvertNamedValues(strMethod, args);
+        std::unique_ptr<BaseRequestHandler> rh;
+        std::string method;
+        if (gArgs.GetBoolArg("-getinfo", false)) {
+            rh.reset(new GetinfoRequestHandler());
+            method = "";
         } else {
-            params = RPCConvertValues(strMethod, args);
+            rh.reset(new DefaultRequestHandler());
+            if (args.size() < 1) {
+                throw std::runtime_error(
+                    "too few parameters (need at least command)");
+            }
+            method = args[0];
+            // Remove trailing method name from arguments vector
+            args.erase(args.begin());
         }
 
         // Execute and handle connection failures with -rpcwait
         const bool fWait = gArgs.GetBoolArg("-rpcwait", false);
         do {
             try {
-                const UniValue reply = CallRPC(strMethod, params);
+                const UniValue reply = CallRPC(rh.get(), method, args);
 
                 // Parse reply
                 const UniValue &result = find_value(reply, "result");

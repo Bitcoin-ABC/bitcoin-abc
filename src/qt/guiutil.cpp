@@ -41,10 +41,8 @@
 #include "shlwapi.h"
 #endif
 
-#include <boost/filesystem/fstream.hpp>
-#if BOOST_FILESYSTEM_VERSION >= 3
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-#endif
+#include <boost/filesystem/fstream.hpp>
 #include <boost/scoped_array.hpp>
 
 #include <QAbstractItemView>
@@ -61,20 +59,13 @@
 #include <QSettings>
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
-
-#if QT_VERSION < 0x050000
-#include <QUrl>
-#else
 #include <QUrlQuery>
-#endif
 
 #if QT_VERSION >= 0x50200
 #include <QFontDatabase>
 #endif
 
-#if BOOST_FILESYSTEM_VERSION >= 3
 static fs::detail::utf8_codecvt_facet utf8;
-#endif
 
 #if defined(Q_OS_MAC)
 // These Mac includes must be done in the global namespace
@@ -106,11 +97,7 @@ QFont fixedPitchFont() {
     return QFontDatabase::systemFont(QFontDatabase::FixedFont);
 #else
     QFont font("Monospace");
-#if QT_VERSION >= 0x040800
     font.setStyleHint(QFont::Monospace);
-#else
-    font.setStyleHint(QFont::TypeWriter);
-#endif
     return font;
 #endif
 }
@@ -160,13 +147,11 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
     parent->setFocusProxy(widget);
 
     widget->setFont(fixedPitchFont());
-#if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
     widget->setPlaceholderText(
         QObject::tr("Enter a Bitcoin address (e.g. %1)")
             .arg(QString::fromStdString(DummyAddress(GetConfig()))));
-#endif
     widget->setValidator(
         new BitcoinAddressEntryValidator(Params().CashAddrPrefix(), parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
@@ -218,12 +203,8 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
     }
     rv.amount = Amount::zero();
 
-#if QT_VERSION < 0x050000
-    QList<QPair<QString, QString>> items = uri.queryItems();
-#else
     QUrlQuery uriQuery(uri);
     QList<QPair<QString, QString>> items = uriQuery.queryItems();
-#endif
     for (QList<QPair<QString, QString>>::iterator i = items.begin();
          i != items.end(); i++) {
         bool fShouldReturnFalse = false;
@@ -313,11 +294,7 @@ bool isDust(const QString &address, const Amount amount,
 }
 
 QString HtmlEscape(const QString &str, bool fMultiLine) {
-#if QT_VERSION < 0x050000
-    QString escaped = Qt::escape(str);
-#else
     QString escaped = str.toHtmlEscaped();
-#endif
     if (fMultiLine) {
         escaped = escaped.replace("\n", "<br>\n");
     }
@@ -329,7 +306,9 @@ QString HtmlEscape(const std::string &str, bool fMultiLine) {
 }
 
 void copyEntryData(QAbstractItemView *view, int column, int role) {
-    if (!view || !view->selectionModel()) return;
+    if (!view || !view->selectionModel()) {
+        return;
+    }
     QModelIndexList selection = view->selectionModel()->selectedRows(column);
 
     if (!selection.isEmpty()) {
@@ -339,7 +318,9 @@ void copyEntryData(QAbstractItemView *view, int column, int role) {
 }
 
 QList<QModelIndex> getEntryData(QAbstractItemView *view, int column) {
-    if (!view || !view->selectionModel()) return QList<QModelIndex>();
+    if (!view || !view->selectionModel()) {
+        return QList<QModelIndex>();
+    }
     return view->selectionModel()->selectedRows(column);
 }
 
@@ -350,13 +331,8 @@ QString getSaveFileName(QWidget *parent, const QString &caption,
     QString myDir;
     // Default to user documents location
     if (dir.isEmpty()) {
-#if QT_VERSION < 0x050000
-        myDir = QDesktopServices::storageLocation(
-            QDesktopServices::DocumentsLocation);
-#else
         myDir =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-#endif
     } else {
         myDir = dir;
     }
@@ -377,7 +353,9 @@ QString getSaveFileName(QWidget *parent, const QString &caption,
     if (!result.isEmpty()) {
         if (info.suffix().isEmpty() && !selectedSuffix.isEmpty()) {
             /* No suffix specified, add selected suffix */
-            if (!result.endsWith(".")) result.append(".");
+            if (!result.endsWith(".")) {
+                result.append(".");
+            }
             result.append(selectedSuffix);
         }
     }
@@ -394,15 +372,10 @@ QString getOpenFileName(QWidget *parent, const QString &caption,
                         QString *selectedSuffixOut) {
     QString selectedFilter;
     QString myDir;
-    if (dir.isEmpty()) // Default to user documents location
-    {
-#if QT_VERSION < 0x050000
-        myDir = QDesktopServices::storageLocation(
-            QDesktopServices::DocumentsLocation);
-#else
+    // Default to user documents location
+    if (dir.isEmpty()) {
         myDir =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-#endif
     } else {
         myDir = dir;
     }
@@ -433,7 +406,9 @@ Qt::ConnectionType blockingGUIThreadConnection() {
 
 bool checkPoint(const QPoint &p, const QWidget *w) {
     QWidget *atW = QApplication::widgetAt(w->mapToGlobal(p));
-    if (!atW) return false;
+    if (!atW) {
+        return false;
+    }
     return atW->topLevelWidget() == w;
 }
 
@@ -449,9 +424,10 @@ void openDebugLogfile() {
     fs::path pathDebug = GetDataDir() / "debug.log";
 
     /* Open debug.log with the associated application */
-    if (fs::exists(pathDebug))
+    if (fs::exists(pathDebug)) {
         QDesktopServices::openUrl(
             QUrl::fromLocalFile(boostPathToQString(pathDebug)));
+    }
 }
 
 void SubstituteFonts(const QString &language) {
@@ -472,21 +448,24 @@ void SubstituteFonts(const QString &language) {
 #if defined(MAC_OS_X_VERSION_MAX_ALLOWED) &&                                   \
     MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_8
     if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_8) {
-        if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_9)
+        if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_9) {
             /* On a 10.9 - 10.9.x system */
             QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
-        else {
+        } else {
             /* 10.10 or later system */
             if (language == "zh_CN" || language == "zh_TW" ||
-                language == "zh_HK") // traditional or simplified Chinese
+                language == "zh_HK") {
+                // traditional or simplified Chinese
                 QFont::insertSubstitution(".Helvetica Neue DeskInterface",
                                           "Heiti SC");
-            else if (language == "ja") // Japanesee
+            } else if (language == "ja") {
+                // Japanesee
                 QFont::insertSubstitution(".Helvetica Neue DeskInterface",
                                           "Songti SC");
-            else
+            } else {
                 QFont::insertSubstitution(".Helvetica Neue DeskInterface",
                                           "Lucida Grande");
+            }
         }
     }
 #endif
@@ -536,12 +515,8 @@ void TableViewLastColumnResizingFixer::disconnectViewHeadersSignals() {
 // Refactored here for readability.
 void TableViewLastColumnResizingFixer::setViewHeaderResizeMode(
     int logicalIndex, QHeaderView::ResizeMode resizeMode) {
-#if QT_VERSION < 0x050000
-    tableView->horizontalHeader()->setResizeMode(logicalIndex, resizeMode);
-#else
     tableView->horizontalHeader()->setSectionResizeMode(logicalIndex,
                                                         resizeMode);
-#endif
 }
 
 void TableViewLastColumnResizingFixer::resizeColumn(int nColumnIndex,
@@ -638,12 +613,14 @@ TableViewLastColumnResizingFixer::TableViewLastColumnResizingFixer(
 
 #ifdef WIN32
 static fs::path StartupShortcutPath() {
-    std::string chain = ChainNameFromCommandLine();
-    if (chain == CBaseChainParams::MAIN)
+    std::string chain = gArgs.GetChainName();
+    if (chain == CBaseChainParams::MAIN) {
         return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin.lnk";
+    }
     // Remove this special case when CBaseChainParams::TESTNET = "testnet4"
-    if (chain == CBaseChainParams::TESTNET)
+    if (chain == CBaseChainParams::TESTNET) {
         return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin (testnet).lnk";
+    }
     return GetSpecialFolderPath(CSIDL_STARTUP) /
            strprintf("Bitcoin (%s).lnk", chain);
 }
@@ -729,29 +706,37 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 
 static fs::path GetAutostartDir() {
     char *pszConfigHome = getenv("XDG_CONFIG_HOME");
-    if (pszConfigHome) return fs::path(pszConfigHome) / "autostart";
+    if (pszConfigHome) {
+        return fs::path(pszConfigHome) / "autostart";
+    }
     char *pszHome = getenv("HOME");
-    if (pszHome) return fs::path(pszHome) / ".config" / "autostart";
+    if (pszHome) {
+        return fs::path(pszHome) / ".config" / "autostart";
+    }
     return fs::path();
 }
 
 static fs::path GetAutostartFilePath() {
-    std::string chain = ChainNameFromCommandLine();
-    if (chain == CBaseChainParams::MAIN)
+    std::string chain = gArgs.GetChainName();
+    if (chain == CBaseChainParams::MAIN) {
         return GetAutostartDir() / "bitcoin.desktop";
+    }
     return GetAutostartDir() / strprintf("bitcoin-%s.lnk", chain);
 }
 
 bool GetStartOnSystemStartup() {
     fs::ifstream optionFile(GetAutostartFilePath());
-    if (!optionFile.good()) return false;
+    if (!optionFile.good()) {
+        return false;
+    }
     // Scan through file for "Hidden=true":
     std::string line;
     while (!optionFile.eof()) {
         getline(optionFile, line);
         if (line.find("Hidden") != std::string::npos &&
-            line.find("true") != std::string::npos)
+            line.find("true") != std::string::npos) {
             return false;
+        }
     }
     optionFile.close();
 
@@ -759,28 +744,32 @@ bool GetStartOnSystemStartup() {
 }
 
 bool SetStartOnSystemStartup(bool fAutoStart) {
-    if (!fAutoStart)
+    if (!fAutoStart) {
         fs::remove(GetAutostartFilePath());
-    else {
+    } else {
         char pszExePath[MAX_PATH + 1];
         memset(pszExePath, 0, sizeof(pszExePath));
         if (readlink("/proc/self/exe", pszExePath, sizeof(pszExePath) - 1) ==
-            -1)
+            -1) {
             return false;
+        }
 
         fs::create_directories(GetAutostartDir());
 
         fs::ofstream optionFile(GetAutostartFilePath(),
                                 std::ios_base::out | std::ios_base::trunc);
-        if (!optionFile.good()) return false;
-        std::string chain = ChainNameFromCommandLine();
+        if (!optionFile.good()) {
+            return false;
+        }
+        std::string chain = gArgs.GetChainName();
         // Write a bitcoin.desktop file to the autostart directory:
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
-        if (chain == CBaseChainParams::MAIN)
+        if (chain == CBaseChainParams::MAIN) {
             optionFile << "Name=Bitcoin\n";
-        else
+        } else {
             optionFile << strprintf("Name=Bitcoin (%s)\n", chain);
+        }
         optionFile << "Exec=" << pszExePath
                    << strprintf(" -min -testnet=%d -regtest=%d\n",
                                 gArgs.GetBoolArg("-testnet", false),
@@ -815,14 +804,16 @@ LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,
 
 #if defined(MAC_OS_X_VERSION_MAX_ALLOWED) &&                                   \
     MAC_OS_X_VERSION_MAX_ALLOWED >= 10100
-        if (&LSSharedFileListItemCopyResolvedURL)
+        if (&LSSharedFileListItemCopyResolvedURL) {
             currentItemURL = LSSharedFileListItemCopyResolvedURL(
                 item, resolutionFlags, nullptr);
+        }
 #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) &&                                  \
     MAC_OS_X_VERSION_MIN_REQUIRED < 10100
-        else
+        else {
             LSSharedFileListItemResolve(item, resolutionFlags, &currentItemURL,
                                         nullptr);
+        }
 #endif
 #else
         LSSharedFileListItemResolve(item, resolutionFlags, &currentItemURL,
@@ -892,34 +883,11 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 
 #endif
 
-void saveWindowGeometry(const QString &strSetting, QWidget *parent) {
-    QSettings settings;
-    settings.setValue(strSetting + "Pos", parent->pos());
-    settings.setValue(strSetting + "Size", parent->size());
-}
-
-void restoreWindowGeometry(const QString &strSetting, const QSize &defaultSize,
-                           QWidget *parent) {
-    QSettings settings;
-    QPoint pos = settings.value(strSetting + "Pos").toPoint();
-    QSize size = settings.value(strSetting + "Size", defaultSize).toSize();
-
-    if (!pos.x() && !pos.y()) {
-        QRect screen = QApplication::desktop()->screenGeometry();
-        pos.setX((screen.width() - size.width()) / 2);
-        pos.setY((screen.height() - size.height()) / 2);
-    }
-
-    parent->resize(size);
-    parent->move(pos);
-}
-
 void setClipboard(const QString &str) {
     QApplication::clipboard()->setText(str, QClipboard::Clipboard);
     QApplication::clipboard()->setText(str, QClipboard::Selection);
 }
 
-#if BOOST_FILESYSTEM_VERSION >= 3
 fs::path qstringToBoostPath(const QString &path) {
     return fs::path(path.toStdString(), utf8);
 }
@@ -927,16 +895,6 @@ fs::path qstringToBoostPath(const QString &path) {
 QString boostPathToQString(const fs::path &path) {
     return QString::fromStdString(path.string(utf8));
 }
-#else
-#warning Conversion between boost path and QString can use invalid character encoding with boost_filesystem v2 and older
-fs::path qstringToBoostPath(const QString &path) {
-    return fs::path(path.toStdString());
-}
-
-QString boostPathToQString(const fs::path &path) {
-    return QString::fromStdString(path.string());
-}
-#endif
 
 QString formatDurationStr(int secs) {
     QStringList strList;
@@ -945,11 +903,18 @@ QString formatDurationStr(int secs) {
     int mins = (secs % 3600) / 60;
     int seconds = secs % 60;
 
-    if (days) strList.append(QString(QObject::tr("%1 d")).arg(days));
-    if (hours) strList.append(QString(QObject::tr("%1 h")).arg(hours));
-    if (mins) strList.append(QString(QObject::tr("%1 m")).arg(mins));
-    if (seconds || (!days && !hours && !mins))
+    if (days) {
+        strList.append(QString(QObject::tr("%1 d")).arg(days));
+    }
+    if (hours) {
+        strList.append(QString(QObject::tr("%1 h")).arg(hours));
+    }
+    if (mins) {
+        strList.append(QString(QObject::tr("%1 m")).arg(mins));
+    }
+    if (seconds || (!days && !hours && !mins)) {
         strList.append(QString(QObject::tr("%1 s")).arg(seconds));
+    }
 
     return strList.join(" ");
 }
@@ -957,9 +922,9 @@ QString formatDurationStr(int secs) {
 QString formatServicesStr(quint64 mask) {
     QStringList strList;
 
-    // Just scan the last 8 bits for now.
-    for (int i = 0; i < 8; i++) {
-        uint64_t check = 1 << i;
+    // Don't display experimental service bits
+    for (uint64_t check = 1; check <= NODE_LAST_NON_EXPERIMENTAL_SERVICE_BIT;
+         check <<= 1) {
         if (mask & check) {
             switch (check) {
                 case NODE_NETWORK:
@@ -977,16 +942,20 @@ QString formatServicesStr(quint64 mask) {
                 case NODE_BITCOIN_CASH:
                     strList.append("CASH");
                     break;
+                case NODE_NETWORK_LIMITED:
+                    strList.append("LIMITED");
+                    break;
                 default:
                     strList.append(QString("%1[%2]").arg("UNKNOWN").arg(check));
             }
         }
     }
 
-    if (strList.size())
+    if (strList.size()) {
         return strList.join(" & ");
-    else
+    } else {
         return QObject::tr("None");
+    }
 }
 
 QString formatPingTime(double dPingTime) {
@@ -1029,6 +998,20 @@ QString formatNiceTimeOffset(qint64 secs) {
                                               remainder / WEEK_IN_SECONDS));
     }
     return timeBehindText;
+}
+
+QString formatBytes(uint64_t bytes) {
+    if (bytes < 1024) {
+        return QString(QObject::tr("%1 B")).arg(bytes);
+    }
+    if (bytes < 1024 * 1024) {
+        return QString(QObject::tr("%1 KB")).arg(bytes / 1024);
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+        return QString(QObject::tr("%1 MB")).arg(bytes / 1024 / 1024);
+    }
+
+    return QString(QObject::tr("%1 GB")).arg(bytes / 1024 / 1024 / 1024);
 }
 
 void ClickableLabel::mouseReleaseEvent(QMouseEvent *event) {

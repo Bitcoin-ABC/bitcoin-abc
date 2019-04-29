@@ -2,17 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "tx_verify.h"
+#include <consensus/tx_verify.h>
 
-#include "chain.h"
-#include "coins.h"
-#include "consensus/activation.h"
-#include "consensus/consensus.h"
-#include "consensus/validation.h"
-#include "primitives/transaction.h"
-#include "script/script_flags.h"
-#include "utilmoneystr.h" // For FormatMoney
-#include "version.h"      // For PROTOCOL_VERSION
+#include <chain.h>
+#include <coins.h>
+#include <consensus/activation.h>
+#include <consensus/consensus.h>
+#include <consensus/validation.h>
+#include <primitives/transaction.h>
+#include <script/script_flags.h>
+#include <utilmoneystr.h> // For FormatMoney
+#include <version.h>      // For PROTOCOL_VERSION
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {
@@ -46,7 +46,7 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (IsMagneticAnomalyEnabled(config, nMedianTimePast)) {
+    if (IsMagneticAnomalyEnabled(config, nHeight)) {
         // Size limit
         if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) <
             MIN_TX_SIZE) {
@@ -310,10 +310,10 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
     }
 
     if (nValueIn < tx.GetValueOut()) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout",
-                         false, strprintf("value in (%s) < value out (%s)",
-                                          FormatMoney(nValueIn),
-                                          FormatMoney(tx.GetValueOut())));
+        return state.DoS(
+            100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
+            strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn),
+                      FormatMoney(tx.GetValueOut())));
     }
 
     // Tally transaction fees

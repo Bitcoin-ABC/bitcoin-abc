@@ -1,14 +1,14 @@
 bitcoin-seeder
 ==============
 
-Bitcoin-seeder is a crawler for the Bitcoin network, which exposes a list
-of reliable nodes via a built-in DNS server.
+Bitcoin-seeder is a crawler for the Bitcoin Cash network, which exposes a list
+of reliable nodes via a built-in DNS server. It is derived from Pieter Wuille's
+bitcoin-seeder, modified for use on the Bitcoin Cash network.
 
 Features:
 * regularly revisits known nodes to check their availability
 * bans nodes after enough failures, or bad behaviour
-* accepts nodes down to v0.3.19 to request new IP addresses from,
-  but only reports good post-v0.3.24 nodes.
+* uses the Cash Magic when establishing connections.
 * keeps statistics over (exponential) windows of 2 hours, 8 hours,
   1 day and 1 week, to base decisions on.
 * very low memory (a few tens of megabytes) and cpu requirements.
@@ -51,3 +51,13 @@ $ iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-port 5353
 
 If properly configured, this will allow you to run dnsseed in userspace, using
 the -p 5353 option.
+
+Generate Seed Lists
+-------------------
+
+Bitcoin-seeder is also be used to generate the seed lists that are compiled
+into every Bitcoin ABC release. It produces the `dnsseed.dump` files that are
+used as inputs to the scripts in [contrib/seeds](/contrib/seeds) to generate
+the seed lists. To generate seed lists, the seeder should be run continuously
+for 30 days or more.
+

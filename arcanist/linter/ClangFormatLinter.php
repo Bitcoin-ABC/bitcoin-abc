@@ -26,9 +26,7 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
   }
 
   public function getLinterConfigurationOptions() {
-    $options = array(
-    );
-
+    $options = array();
     return $options + parent::getLinterConfigurationOptions();
   }
 
@@ -57,8 +55,7 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
   }
 
   protected function getMandatoryFlags() {
-    return array(
-    );
+    return array();
   }
 
   protected function parseLinterOutput($path, $err, $stdout, $stderr) {
@@ -86,6 +83,7 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
       ->setDescription("'$path' has code style errors.")
       ->setOriginalText($orig)
       ->setReplacementText($stdout);
+
     return array($message);
   }
 }

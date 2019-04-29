@@ -9,20 +9,13 @@
 
 WalletModelTransaction::WalletModelTransaction(
     const QList<SendCoinsRecipient> &_recipients)
-    : recipients(_recipients), walletTransaction(0), keyChange(0), fee() {
-    walletTransaction = new CWalletTx();
-}
+    : recipients(_recipients), walletTransaction(0), fee() {}
 
-WalletModelTransaction::~WalletModelTransaction() {
-    delete keyChange;
-    delete walletTransaction;
-}
-
-QList<SendCoinsRecipient> WalletModelTransaction::getRecipients() {
+QList<SendCoinsRecipient> WalletModelTransaction::getRecipients() const {
     return recipients;
 }
 
-CWalletTx *WalletModelTransaction::getTransaction() {
+CTransactionRef &WalletModelTransaction::getTransaction() {
     return walletTransaction;
 }
 
@@ -31,7 +24,7 @@ unsigned int WalletModelTransaction::getTransactionSize() {
                               : CTransaction(*walletTransaction).GetTotalSize();
 }
 
-Amount WalletModelTransaction::getTransactionFee() {
+Amount WalletModelTransaction::getTransactionFee() const {
     return fee;
 }
 
@@ -56,7 +49,7 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
                     i++;
                 }
 
-                subtotal += walletTransaction->tx->vout[i].nValue;
+                subtotal += walletTransaction->vout[i].nValue;
                 i++;
             }
             rcp.amount = subtotal;
@@ -66,13 +59,13 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
                 i++;
             }
 
-            rcp.amount = walletTransaction->tx->vout[i].nValue;
+            rcp.amount = walletTransaction->vout[i].nValue;
             i++;
         }
     }
 }
 
-Amount WalletModelTransaction::getTotalTransactionAmount() {
+Amount WalletModelTransaction::getTotalTransactionAmount() const {
     Amount totalTransactionAmount = Amount::zero();
     for (const SendCoinsRecipient &rcp : recipients) {
         totalTransactionAmount += rcp.amount;
@@ -81,9 +74,9 @@ Amount WalletModelTransaction::getTotalTransactionAmount() {
 }
 
 void WalletModelTransaction::newPossibleKeyChange(CWallet *wallet) {
-    keyChange = new CReserveKey(wallet);
+    keyChange.reset(new CReserveKey(wallet));
 }
 
 CReserveKey *WalletModelTransaction::getPossibleKeyChange() {
-    return keyChange;
+    return keyChange.get();
 }

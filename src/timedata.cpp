@@ -77,9 +77,8 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
         std::vector<int64_t> vSorted = vTimeOffsets.sorted();
         // Only let other nodes change our time by so much
         if (abs64(nMedian) <=
-            std::max<int64_t>(0,
-                              gArgs.GetArg("-maxtimeadjustment",
-                                           DEFAULT_MAX_TIME_ADJUSTMENT))) {
+            std::max<int64_t>(0, gArgs.GetArg("-maxtimeadjustment",
+                                              DEFAULT_MAX_TIME_ADJUSTMENT))) {
             nTimeOffset = nMedian;
         } else {
             nTimeOffset = 0;

@@ -1,5 +1,6 @@
 {
   "conduit_uri" : "https://reviews.bitcoinabc.org/",
+  "repository.callsign": "ABC",
   "base" : "git:HEAD^, hg:.^",
   "git.default-relative-commit" : "HEAD^",
   "git:arc.feature.start.default" : "origin/master",

@@ -9,14 +9,19 @@
 
 #include "utiltime.h"
 
+#include <atomic>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 
 //!< For unit testing
-static int64_t nMockTime = 0;
+static std::atomic<int64_t> nMockTime(0);
 
 int64_t GetTime() {
-    if (nMockTime) return nMockTime;
+    int64_t mocktime = nMockTime.load(std::memory_order_relaxed);
+    if (mocktime) {
+        return mocktime;
+    }
 
     time_t now = time(nullptr);
     assert(now > 0);
@@ -24,7 +29,11 @@ int64_t GetTime() {
 }
 
 void SetMockTime(int64_t nMockTimeIn) {
-    nMockTime = nMockTimeIn;
+    nMockTime.store(nMockTimeIn, std::memory_order_relaxed);
+}
+
+int64_t GetMockTime() {
+    return nMockTime.load(std::memory_order_relaxed);
 }
 
 int64_t GetTimeMillis() {
@@ -47,13 +56,6 @@ int64_t GetSystemTimeInSeconds() {
     return GetTimeMicros() / 1000000;
 }
 
-/** Return a time useful for the debug log */
-int64_t GetLogTimeMicros() {
-    if (nMockTime) return nMockTime * 1000000;
-
-    return GetTimeMicros();
-}
-
 void MilliSleep(int64_t n) {
     boost::this_thread::sleep_for(boost::chrono::milliseconds(n));
 }
@@ -66,4 +68,16 @@ std::string DateTimeStrFormat(const char *pszFormat, int64_t nTime) {
     ss.imbue(loc);
     ss << boost::posix_time::from_time_t(nTime);
     return ss.str();
+}
+
+std::string FormatISO8601DateTime(int64_t nTime) {
+    return DateTimeStrFormat("%Y-%m-%dT%H:%M:%SZ", nTime);
+}
+
+std::string FormatISO8601Date(int64_t nTime) {
+    return DateTimeStrFormat("%Y-%m-%d", nTime);
+}
+
+std::string FormatISO8601Time(int64_t nTime) {
+    return DateTimeStrFormat("%H:%M:%SZ", nTime);
 }

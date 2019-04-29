@@ -3,11 +3,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "primitives/transaction.h"
+#include <primitives/transaction.h>
 
-#include "hash.h"
-#include "tinyformat.h"
-#include "utilstrencodings.h"
+#include <hash.h>
+#include <tinyformat.h>
+#include <utilstrencodings.h>
 
 std::string COutPoint::ToString() const {
     return strprintf("COutPoint(%s, %u)", txid.ToString().substr(0, 10), n);
@@ -73,10 +73,9 @@ CTransaction::CTransaction(CMutableTransaction &&tx)
 
 Amount CTransaction::GetValueOut() const {
     Amount nValueOut = Amount::zero();
-    for (std::vector<CTxOut>::const_iterator it(vout.begin()); it != vout.end();
-         ++it) {
-        nValueOut += it->nValue;
-        if (!MoneyRange(it->nValue) || !MoneyRange(nValueOut)) {
+    for (const auto &tx_out : vout) {
+        nValueOut += tx_out.nValue;
+        if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut)) {
             throw std::runtime_error(std::string(__func__) +
                                      ": value out of range");
         }
@@ -112,6 +111,10 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const {
         }
     }
     return nTxSize;
+}
+
+size_t CTransaction::GetBillableSize() const {
+    return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
 }
 
 unsigned int CTransaction::GetTotalSize() const {

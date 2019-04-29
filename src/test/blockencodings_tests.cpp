@@ -2,13 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "blockencodings.h"
-#include "chainparams.h"
-#include "config.h"
-#include "consensus/merkle.h"
-#include "random.h"
+#include <blockencodings.h>
 
-#include "test/test_bitcoin.h"
+#include <chainparams.h>
+#include <config.h>
+#include <consensus/merkle.h>
+#include <random.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -65,6 +66,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
     CBlock block(BuildBlockTestCase());
 
     pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(*block.vtx[2]));
+    LOCK(pool.cs);
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);
@@ -133,12 +135,12 @@ public:
     std::vector<uint64_t> shorttxids;
     std::vector<PrefilledTransaction> prefilledtxn;
 
-    TestHeaderAndShortIDs(const CBlockHeaderAndShortTxIDs &orig) {
+    explicit TestHeaderAndShortIDs(const CBlockHeaderAndShortTxIDs &orig) {
         CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
         stream << orig;
         stream >> *this;
     }
-    TestHeaderAndShortIDs(const CBlock &block)
+    explicit TestHeaderAndShortIDs(const CBlock &block)
         : TestHeaderAndShortIDs(CBlockHeaderAndShortTxIDs(block)) {}
 
     uint64_t GetShortID(const uint256 &txhash) const {
@@ -175,6 +177,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
     CBlock block(BuildBlockTestCase());
 
     pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(*block.vtx[2]));
+    LOCK(pool.cs);
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);
@@ -256,6 +259,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
     CBlock block(BuildBlockTestCase());
 
     pool.addUnchecked(block.vtx[1]->GetId(), entry.FromTx(*block.vtx[1]));
+    LOCK(pool.cs);
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[1]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);

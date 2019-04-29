@@ -43,10 +43,6 @@ cd ..
 git clone https://github.com/devrandom/gitian-builder.git
 cd gitian-builder
 
-# This is required for multiarch support.  Once the associated pull-requests
-# are merged, these should be removed.
-git remote add deadalnix https://github.com/devrandom/gitian-builder.git
-git fetch deadalnix
 git config --global user.email "vagrant@vagrant.com"
 git config --global user.name "vagrant"
 
@@ -57,8 +53,8 @@ echo "!!! Provisioning Complete !!!!"
 echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 echo 
 echo "As the user ${BUILDUSER} run the following commands to produce a linux build:"
-echo "export COMMIT=v0.16.0"
+echo "export COMMIT=v0.18.3"
 echo "export URL=https://github.com/Bitcoin-ABC/bitcoin-abc.git"
 echo "cd gitian-builder"
-echo './bin/make-base-vm --lxc --suite xenial --arch amd64'
+echo './bin/make-base-vm --lxc --distro debian --suite stretch --arch amd64'
 echo './bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} /vagrant/contrib/gitian-descriptors/gitian-linux.yml'

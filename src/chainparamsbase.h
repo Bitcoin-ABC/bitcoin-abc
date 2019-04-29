@@ -66,4 +66,5 @@ std::string ChainNameFromCommandLine();
  * a network.
  */
 bool AreBaseParamsConfigured();
+
 #endif // BITCOIN_CHAINPARAMSBASE_H

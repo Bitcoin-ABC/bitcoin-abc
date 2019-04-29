@@ -23,9 +23,9 @@
 #include <QTextDocument>
 
 ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle,
-                                       const Config *cfg, QWidget *parent)
+                                       const Config *configIn, QWidget *parent)
     : QDialog(parent), ui(new Ui::ReceiveCoinsDialog), columnResizingFixer(0),
-      model(0), platformStyle(_platformStyle), cfg(cfg) {
+      model(0), platformStyle(_platformStyle), config(configIn) {
     ui->setupUi(this);
 
     if (!_platformStyle->getImagesOnButtons()) {
@@ -112,7 +112,6 @@ void ReceiveCoinsDialog::clear() {
     ui->reqAmount->clear();
     ui->reqLabel->setText("");
     ui->reqMessage->setText("");
-    ui->reuseAddress->setChecked(false);
     updateDisplayUnit();
 }
 
@@ -138,30 +137,14 @@ void ReceiveCoinsDialog::on_receiveButton_clicked() {
 
     QString address;
     QString label = ui->reqLabel->text();
-    if (ui->reuseAddress->isChecked()) {
-        /* Choose existing receiving address */
-        AddressBookPage dlg(platformStyle, AddressBookPage::ForSelection,
-                            AddressBookPage::ReceivingTab, this);
-        dlg.setModel(model->getAddressTableModel());
-        if (dlg.exec()) {
-            address = dlg.getReturnValue();
-            // If no label provided, use the previously used label
-            if (label.isEmpty()) {
-                label = model->getAddressTableModel()->labelForAddress(address);
-            }
-        } else {
-            return;
-        }
-    } else {
-        /* Generate new receiving address */
-        address = model->getAddressTableModel()->addRow(
-            AddressTableModel::Receive, label, "");
-    }
+    /* Generate new receiving address */
+    address = model->getAddressTableModel()->addRow(AddressTableModel::Receive,
+                                                    label, "");
     SendCoinsRecipient info(address, label, ui->reqAmount->value(),
                             ui->reqMessage->text());
-    ReceiveRequestDialog *dialog = new ReceiveRequestDialog(cfg, this);
+    ReceiveRequestDialog *dialog = new ReceiveRequestDialog(config, this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->setModel(model->getOptionsModel());
+    dialog->setModel(model);
     dialog->setInfo(info);
     dialog->show();
     clear();
@@ -174,8 +157,8 @@ void ReceiveCoinsDialog::on_recentRequestsView_doubleClicked(
     const QModelIndex &index) {
     const RecentRequestsTableModel *submodel =
         model->getRecentRequestsTableModel();
-    ReceiveRequestDialog *dialog = new ReceiveRequestDialog(cfg, this);
-    dialog->setModel(model->getOptionsModel());
+    ReceiveRequestDialog *dialog = new ReceiveRequestDialog(config, this);
+    dialog->setModel(model);
     dialog->setInfo(submodel->entry(index.row()).recipient);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->show();
@@ -277,8 +260,8 @@ void ReceiveCoinsDialog::copyURI() {
 
     const RecentRequestsTableModel *const submodel =
         model->getRecentRequestsTableModel();
-    const QString uri =
-        GUIUtil::formatBitcoinURI(*cfg, submodel->entry(sel.row()).recipient);
+    const QString uri = GUIUtil::formatBitcoinURI(
+        *config, submodel->entry(sel.row()).recipient);
     GUIUtil::setClipboard(uri);
 }
 

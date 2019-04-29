@@ -4,17 +4,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "interpreter.h"
+#include <script/interpreter.h>
 
-#include "crypto/ripemd160.h"
-#include "crypto/sha1.h"
-#include "crypto/sha256.h"
-#include "primitives/transaction.h"
-#include "pubkey.h"
-#include "script/script.h"
-#include "script/script_flags.h"
-#include "script/sigencoding.h"
-#include "uint256.h"
+#include <crypto/ripemd160.h>
+#include <crypto/sha1.h>
+#include <crypto/sha256.h>
+#include <primitives/transaction.h>
+#include <pubkey.h>
+#include <script/script.h>
+#include <script/script_flags.h>
+#include <script/sigencoding.h>
+#include <uint256.h>
 
 bool CastToBool(const valtype &vch) {
     for (size_t i = 0; i < vch.size(); i++) {
@@ -942,7 +942,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                 .Write(vchMessage.data(), vchMessage.size())
                                 .Finalize(vchHash.data());
                             fSuccess = checker.VerifySignature(
-                                vchSig, CPubKey(vchPubKey), uint256(vchHash));
+                                vchSig, CPubKey(vchPubKey), uint256(vchHash),
+                                flags);
                         }
 
                         if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) &&
@@ -1028,7 +1029,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             // pubkey/signature evaluation distinguishable by
                             // CHECKMULTISIG NOT if the STRICTENC flag is set.
                             // See the script_(in)valid tests for details.
-                            if (!CheckTransactionSignatureEncoding(
+                            if (!CheckTransactionECDSASignatureEncoding(
                                     vchSig, flags, serror) ||
                                 !CheckPubKeyEncoding(vchPubKey, flags,
                                                      serror)) {
@@ -1464,8 +1465,13 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 
 bool BaseSignatureChecker::VerifySignature(const std::vector<uint8_t> &vchSig,
                                            const CPubKey &pubkey,
-                                           const uint256 &sighash) const {
-    return pubkey.Verify(sighash, vchSig);
+                                           const uint256 &sighash,
+                                           uint32_t flags) const {
+    if ((flags & SCRIPT_ENABLE_SCHNORR) && (vchSig.size() == 64)) {
+        return pubkey.VerifySchnorr(sighash, vchSig);
+    } else {
+        return pubkey.VerifyECDSA(sighash, vchSig);
+    }
 }
 
 bool TransactionSignatureChecker::CheckSig(
@@ -1487,7 +1493,7 @@ bool TransactionSignatureChecker::CheckSig(
     uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, sigHashType, amount,
                                     this->txdata, flags);
 
-    if (!VerifySignature(vchSig, pubkey, sighash)) {
+    if (!VerifySignature(vchSig, pubkey, sighash, flags)) {
         return false;
     }
 
@@ -1633,6 +1639,13 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         const valtype &pubKeySerialized = stack.back();
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
         popstack(stack);
+
+        // Bail out early if ALLOW_SEGWIT_RECOVERY is set, the redeem script is
+        // a p2sh segwit program and it was the only item pushed into the stack
+        if ((flags & SCRIPT_ALLOW_SEGWIT_RECOVERY) != 0 && stack.empty() &&
+            pubKey2.IsWitnessProgram()) {
+            return set_success(serror);
+        }
 
         if (!EvalScript(stack, pubKey2, flags, checker, serror)) {
             // serror is set

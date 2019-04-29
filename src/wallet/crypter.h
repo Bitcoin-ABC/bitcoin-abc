@@ -9,6 +9,8 @@
 #include "serialize.h"
 #include "support/allocators/secure.h"
 
+#include <atomic>
+
 class uint256;
 
 const unsigned int WALLET_CRYPTO_KEY_SIZE = 32;
@@ -64,14 +66,14 @@ public:
 
 typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;
 
-namespace wallet_crypto {
+namespace wallet_crypto_tests {
 class TestCrypter;
 }
 
 /** Encryption/decryption context with key information */
 class CCrypter {
     // for test access to chKey/chIV
-    friend class wallet_crypto::TestCrypter;
+    friend class wallet_crypto_tests::TestCrypter;
 
 private:
     std::vector<uint8_t, secure_allocator<uint8_t>> vchKey;
@@ -120,7 +122,7 @@ private:
 
     //! if fUseCrypto is true, mapKeys must be empty
     //! if fUseCrypto is false, vMasterKey must be empty
-    bool fUseCrypto;
+    std::atomic<bool> fUseCrypto;
 
     //! keeps track of whether Unlock has run a thorough check before
     bool fDecryptionThoroughlyChecked;
@@ -139,44 +141,16 @@ public:
         : fUseCrypto(false), fDecryptionThoroughlyChecked(false) {}
 
     bool IsCrypted() const { return fUseCrypto; }
-
-    bool IsLocked() const {
-        if (!IsCrypted()) return false;
-        bool result;
-        {
-            LOCK(cs_KeyStore);
-            result = vMasterKey.empty();
-        }
-        return result;
-    }
-
+    bool IsLocked() const;
     bool Lock();
 
     virtual bool AddCryptedKey(const CPubKey &vchPubKey,
                                const std::vector<uint8_t> &vchCryptedSecret);
     bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) override;
-    bool HaveKey(const CKeyID &address) const override {
-        LOCK(cs_KeyStore);
-        if (!IsCrypted()) {
-            return CBasicKeyStore::HaveKey(address);
-        }
-
-        return mapCryptedKeys.count(address) > 0;
-    }
+    bool HaveKey(const CKeyID &address) const override;
     bool GetKey(const CKeyID &address, CKey &keyOut) const override;
     bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const override;
-    void GetKeys(std::set<CKeyID> &setAddress) const override {
-        if (!IsCrypted()) {
-            CBasicKeyStore::GetKeys(setAddress);
-            return;
-        }
-        setAddress.clear();
-        CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
-        while (mi != mapCryptedKeys.end()) {
-            setAddress.insert((*mi).first);
-            mi++;
-        }
-    }
+    std::set<CKeyID> GetKeys() const override;
 
     /**
      * Wallet status (encrypted, locked) changed.

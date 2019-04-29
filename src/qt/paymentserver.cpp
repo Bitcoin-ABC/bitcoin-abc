@@ -40,12 +40,7 @@
 #include <QSslSocket>
 #include <QStringList>
 #include <QTextDocument>
-
-#if QT_VERSION < 0x050000
-#include <QUrl>
-#else
 #include <QUrlQuery>
-#endif
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
 // BIP70 payment protocol messages
@@ -94,20 +89,12 @@ static QString ipcServerName() {
 static QList<QString> savedPaymentRequests;
 
 static void ReportInvalidCertificate(const QSslCertificate &cert) {
-#if QT_VERSION < 0x050000
-    qDebug() << QString("%1: Payment server found an invalid certificate: ")
-                    .arg(__func__)
-             << cert.serialNumber()
-             << cert.subjectInfo(QSslCertificate::CommonName)
-             << cert.subjectInfo(QSslCertificate::OrganizationalUnitName);
-#else
     qDebug() << QString("%1: Payment server found an invalid certificate: ")
                     .arg(__func__)
              << cert.serialNumber()
              << cert.subjectInfo(QSslCertificate::CommonName)
              << cert.subjectInfo(QSslCertificate::DistinguishedNameQualifier)
              << cert.subjectInfo(QSslCertificate::OrganizationalUnitName);
-#endif
 }
 
 //
@@ -167,13 +154,11 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
             continue;
         }
 
-#if QT_VERSION >= 0x050000
         // Blacklisted certificate
         if (cert.isBlacklisted()) {
             ReportInvalidCertificate(cert);
             continue;
         }
-#endif
         QByteArray certData = cert.toDer();
         const uint8_t *data = (const uint8_t *)certData.data();
 
@@ -446,11 +431,7 @@ bool PaymentServer::handleURI(const QString &scheme, const QString &s) {
         return false;
     }
 
-#if QT_VERSION < 0x050000
-    QUrl uri(s);
-#else
     QUrlQuery uri((QUrl(s)));
-#endif
     if (uri.hasQueryItem("r")) {
         // payment request URI
         QByteArray temp;
@@ -701,7 +682,7 @@ void PaymentServer::fetchRequest(const QUrl &url) {
 }
 
 void PaymentServer::fetchPaymentACK(CWallet *wallet,
-                                    SendCoinsRecipient recipient,
+                                    const SendCoinsRecipient &recipient,
                                     QByteArray transaction) {
     const payments::PaymentDetails &details =
         recipient.paymentRequest.getDetails();
@@ -722,10 +703,9 @@ void PaymentServer::fetchPaymentACK(CWallet *wallet,
     payment.add_transactions(transaction.data(), transaction.size());
 
     // Create a new refund address, or re-use:
-    QString account = tr("Refund from %1").arg(recipient.authenticatedMerchant);
-    std::string strAccount = account.toStdString();
-    std::set<CTxDestination> refundAddresses =
-        wallet->GetAccountAddresses(strAccount);
+    std::string label =
+        tr("Refund from %1").arg(recipient.authenticatedMerchant).toStdString();
+    std::set<CTxDestination> refundAddresses = wallet->GetLabelAddresses(label);
     if (!refundAddresses.empty()) {
         CScript s = GetScriptForDestination(*refundAddresses.begin());
         payments::Output *refund_to = payment.add_refund_to();
@@ -734,7 +714,7 @@ void PaymentServer::fetchPaymentACK(CWallet *wallet,
         CPubKey newKey;
         if (wallet->GetKeyFromPool(newKey)) {
             CKeyID keyID = newKey.GetID();
-            wallet->SetAddressBook(keyID, strAccount, "refund");
+            wallet->SetAddressBook(keyID, label, "refund");
 
             CScript s = GetScriptForDestination(keyID);
             payments::Output *refund_to = payment.add_refund_to();
@@ -861,8 +841,8 @@ bool PaymentServer::verifyExpired(
     bool fVerified = (requestDetails.has_expires() &&
                       (int64_t)requestDetails.expires() < GetTime());
     if (fVerified) {
-        const QString requestExpires = QString::fromStdString(DateTimeStrFormat(
-            "%Y-%m-%d %H:%M:%S", (int64_t)requestDetails.expires()));
+        const QString requestExpires = QString::fromStdString(
+            FormatISO8601DateTime((int64_t)requestDetails.expires()));
         qWarning() << QString(
                           "PaymentServer::%1: Payment request expired \"%2\".")
                           .arg(__func__)

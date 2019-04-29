@@ -8,6 +8,7 @@
 #include "paymentrequestdata.h"
 
 #include "amount.h"
+#include "interfaces/node.h"
 #include "random.h"
 #include "script/script.h"
 #include "script/standard.h"
@@ -64,7 +65,8 @@ static SendCoinsRecipient handleRequest(PaymentServer *server,
 
 void PaymentServerTests::paymentServerTests() {
     SelectParams(CBaseChainParams::MAIN);
-    OptionsModel optionsModel;
+    auto node = interfaces::MakeNode();
+    OptionsModel optionsModel(*node);
     PaymentServer *server = new PaymentServer(nullptr, false);
     X509_STORE *caStore = X509_STORE_new();
     X509_STORE_add_cert(caStore, parse_b64der_cert(caCert1_BASE64));
@@ -214,6 +216,6 @@ void PaymentServerTests::paymentServerTests() {
     delete server;
 }
 
-void RecipientCatcher::getRecipient(SendCoinsRecipient r) {
+void RecipientCatcher::getRecipient(const SendCoinsRecipient &r) {
     recipient = r;
 }

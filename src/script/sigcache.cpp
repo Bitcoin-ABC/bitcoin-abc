@@ -3,18 +3,33 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "sigcache.h"
+#include <script/sigcache.h>
 
-#include "cuckoocache.h"
-#include "memusage.h"
-#include "pubkey.h"
-#include "random.h"
-#include "uint256.h"
-#include "util.h"
+#include <cuckoocache.h>
+#include <memusage.h>
+#include <pubkey.h>
+#include <random.h>
+#include <uint256.h>
+#include <util.h>
 
-#include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace {
+
+/**
+ * Declare which flags absolutely do not affect VerifySignature() result.
+ * We this to reduce unnecessary cache misses (such as when policy and consensus
+ * flags differ on unrelated aspects).
+ */
+static const uint32_t INVARIANT_FLAGS =
+    SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_DERSIG |
+    SCRIPT_VERIFY_LOW_S | SCRIPT_VERIFY_NULLDUMMY | SCRIPT_VERIFY_SIGPUSHONLY |
+    SCRIPT_VERIFY_MINIMALDATA | SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS |
+    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
+    SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_VERIFY_MINIMALIF |
+    SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE |
+    SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_ENABLE_REPLAY_PROTECTION |
+    SCRIPT_ENABLE_CHECKDATASIG | SCRIPT_ALLOW_SEGWIT_RECOVERY;
 
 /**
  * Valid signature cache, to avoid doing expensive ECDSA signature checking
@@ -23,7 +38,8 @@ namespace {
  */
 class CSignatureCache {
 private:
-    //! Entries are SHA256(nonce || signature hash || public key || signature):
+    //! Entries are SHA256(nonce || flags || signature hash || public key ||
+    //! signature):
     uint256 nonce;
     typedef CuckooCache::cache<uint256, SignatureCacheHasher> map_type;
     map_type setValid;
@@ -32,11 +48,13 @@ private:
 public:
     CSignatureCache() { GetRandBytes(nonce.begin(), 32); }
 
-    void ComputeEntry(uint256 &entry, const uint256 &hash,
-                      const std::vector<uint8_t> &vchSig,
-                      const CPubKey &pubkey) {
+    void ComputeEntry(uint256 &entry, const std::vector<uint8_t> &vchSig,
+                      const CPubKey &pubkey, const uint256 &hash,
+                      uint32_t flags) {
+        flags &= ~INVARIANT_FLAGS;
         CSHA256()
             .Write(nonce.begin(), 32)
+            .Write(reinterpret_cast<uint8_t *>(&flags), sizeof(flags))
             .Write(hash.begin(), 32)
             .Write(&pubkey[0], pubkey.size())
             .Write(&vchSig[0], vchSig.size())
@@ -70,9 +88,8 @@ void InitSignatureCache() {
     // nMaxCacheSize is unsigned. If -maxsigcachesize is set to zero,
     // setup_bytes creates the minimum possible cache (2 elements).
     size_t nMaxCacheSize =
-        std::min(std::max(int64_t(0),
-                          gArgs.GetArg("-maxsigcachesize",
-                                       DEFAULT_MAX_SIG_CACHE_SIZE)),
+        std::min(std::max(int64_t(0), gArgs.GetArg("-maxsigcachesize",
+                                                   DEFAULT_MAX_SIG_CACHE_SIZE)),
                  MAX_MAX_SIG_CACHE_SIZE) *
         (size_t(1) << 20);
     size_t nElems = signatureCache.setup_bytes(nMaxCacheSize);
@@ -81,20 +98,36 @@ void InitSignatureCache() {
               (nElems * sizeof(uint256)) >> 20, nMaxCacheSize >> 20, nElems);
 }
 
-bool CachingTransactionSignatureChecker::VerifySignature(
-    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
-    const uint256 &sighash) const {
+template <typename F>
+bool RunMemoizedCheck(const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
+                      const uint256 &sighash, uint32_t flags, bool storeOrErase,
+                      const F &fun) {
     uint256 entry;
-    signatureCache.ComputeEntry(entry, sighash, vchSig, pubkey);
-    if (signatureCache.Get(entry, !store)) {
+    signatureCache.ComputeEntry(entry, vchSig, pubkey, sighash, flags);
+    if (signatureCache.Get(entry, !storeOrErase)) {
         return true;
     }
-    if (!TransactionSignatureChecker::VerifySignature(vchSig, pubkey,
-                                                      sighash)) {
+    if (!fun()) {
         return false;
     }
-    if (store) {
+    if (storeOrErase) {
         signatureCache.Set(entry);
     }
     return true;
+}
+
+bool CachingTransactionSignatureChecker::IsCached(
+    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
+    const uint256 &sighash, uint32_t flags) const {
+    return RunMemoizedCheck(vchSig, pubkey, sighash, flags, true,
+                            [] { return false; });
+}
+
+bool CachingTransactionSignatureChecker::VerifySignature(
+    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
+    const uint256 &sighash, uint32_t flags) const {
+    return RunMemoizedCheck(vchSig, pubkey, sighash, flags, store, [&] {
+        return TransactionSignatureChecker::VerifySignature(vchSig, pubkey,
+                                                            sighash, flags);
+    });
 }

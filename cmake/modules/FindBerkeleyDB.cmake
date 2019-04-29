@@ -9,24 +9,20 @@ include(BrewHelper)
 find_brew_prefix(BREW_HINT berkeley-db)
 
 find_path(BDB_INCLUDE_DIR
-	NAMES
-		db.h
+	NAMES db.h
 	HINTS ${BREW_HINT}
 )
 find_library(BDB_LIBRARY
-	NAMES
-		db libdb
+	NAMES db libdb
 	HINTS ${BREW_HINT}
 )
 
 find_path(BDBXX_INCLUDE_DIR
-	NAMES
-		db_cxx.h
+	NAMES db_cxx.h
 	HINTS ${BREW_HINT}
 )
 find_library(BDBXX_LIBRARY
-	NAMES
-		db_cxx libdb_cxx
+	NAMES db_cxx libdb_cxx
 	HINTS ${BREW_HINT}
 )
 

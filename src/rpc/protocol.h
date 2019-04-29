@@ -6,7 +6,7 @@
 #ifndef BITCOIN_RPCPROTOCOL_H
 #define BITCOIN_RPCPROTOCOL_H
 
-#include "fs.h"
+#include <fs.h>
 
 #include <cstdint>
 #include <list>
@@ -45,8 +45,6 @@ enum RPCErrorCode {
     //! General application defined errors
     //!< std::exception thrown in command handling
     RPC_MISC_ERROR = -1,
-    //!< Server is in safe mode, and command is not allowed in safe mode
-    RPC_FORBIDDEN_BY_SAFE_MODE = -2,
     //!< Unexpected type was passed as parameter
     RPC_TYPE_ERROR = -3,
     //!< Token price
@@ -69,6 +67,8 @@ enum RPCErrorCode {
     RPC_VERIFY_ALREADY_IN_CHAIN = -27,
     //!< Client still warming up
     RPC_IN_WARMUP = -28,
+    //!< RPC method is deprecated
+    RPC_METHOD_DEPRECATED = -32,
 
     //! Aliases for backward compatibility
     RPC_TRANSACTION_ERROR = RPC_VERIFY_ERROR,
@@ -96,8 +96,8 @@ enum RPCErrorCode {
     RPC_WALLET_ERROR = -4,
     //!< Not enough funds in wallet or account
     RPC_WALLET_INSUFFICIENT_FUNDS = -6,
-    //!< Invalid account name
-    RPC_WALLET_INVALID_ACCOUNT_NAME = -11,
+    //!< Invalid label name
+    RPC_WALLET_INVALID_LABEL_NAME = -11,
     //!< Keypool ran out, call keypoolrefill first
     RPC_WALLET_KEYPOOL_RAN_OUT = -12,
     //!< Enter the wallet passphrase with walletpassphrase first
@@ -114,7 +114,14 @@ enum RPCErrorCode {
     //!< Invalid wallet specified
     RPC_WALLET_NOT_FOUND = -18,
     //!< No wallet specified (error when there are multiple wallets loaded)
-    RPC_WALLET_NOT_SPECIFIED = -19
+    RPC_WALLET_NOT_SPECIFIED = -19,
+    //!< Backwards compatible aliases
+    RPC_WALLET_INVALID_ACCOUNT_NAME = RPC_WALLET_INVALID_LABEL_NAME,
+
+    //! Unused reserved codes, kept around for backwards compatibility. Do not
+    //! reuse.
+    //!< Server is in safe mode, and command is not allowed in safe mode
+    RPC_FORBIDDEN_BY_SAFE_MODE = -2,
 };
 
 UniValue JSONRPCRequestObj(const std::string &strMethod, const UniValue &params,
@@ -133,5 +140,7 @@ bool GenerateAuthCookie(std::string *cookie_out);
 bool GetAuthCookie(std::string *cookie_out);
 /** Delete RPC authentication cookie from disk */
 void DeleteAuthCookie();
+/** Parse JSON-RPC batch reply into a vector */
+std::vector<UniValue> JSONRPCProcessBatchReply(const UniValue &in, size_t num);
 
 #endif // BITCOIN_RPCPROTOCOL_H
