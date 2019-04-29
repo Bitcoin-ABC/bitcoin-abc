@@ -4237,9 +4237,8 @@ void CWallet::ListLockedCoins(std::vector<COutPoint> &vOutpts) const {
 
 /** @} */ // end of Actions
 
-void CWallet::GetKeyBirthTimes(
-    interfaces::Chain::Lock &locked_chain,
-    std::map<CTxDestination, int64_t> &mapKeyBirth) const {
+void CWallet::GetKeyBirthTimes(interfaces::Chain::Lock &locked_chain,
+                               std::map<CKeyID, int64_t> &mapKeyBirth) const {
     // mapKeyMetadata
     AssertLockHeld(cs_wallet);
     mapKeyBirth.clear();
@@ -4247,7 +4246,7 @@ void CWallet::GetKeyBirthTimes(
     // Get birth times for keys with metadata.
     for (const auto &entry : mapKeyMetadata) {
         if (entry.second.nCreateTime) {
-            mapKeyBirth[PKHash(entry.first)] = entry.second.nCreateTime;
+            mapKeyBirth[entry.first] = entry.second.nCreateTime;
         }
     }
 
@@ -4258,7 +4257,7 @@ void CWallet::GetKeyBirthTimes(
         tip_height && *tip_height > 144 ? *tip_height - 144 : 0;
     std::map<CKeyID, int> mapKeyFirstBlock;
     for (const CKeyID &keyid : GetKeys()) {
-        if (mapKeyBirth.count(PKHash(keyid)) == 0) {
+        if (mapKeyBirth.count(keyid) == 0) {
             mapKeyFirstBlock[keyid] = max_height;
         }
     }
@@ -4293,7 +4292,7 @@ void CWallet::GetKeyBirthTimes(
     // Extract block timestamps for those keys.
     for (const auto &entry : mapKeyFirstBlock) {
         // block times can be 2h off
-        mapKeyBirth[PKHash(entry.first)] =
+        mapKeyBirth[entry.first] =
             locked_chain.getBlockTime(entry.second) - TIMESTAMP_WINDOW;
     }
 }

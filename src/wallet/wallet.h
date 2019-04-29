@@ -1159,7 +1159,7 @@ public:
     bool EncryptWallet(const SecureString &strWalletPassphrase);
 
     void GetKeyBirthTimes(interfaces::Chain::Lock &locked_chain,
-                          std::map<CTxDestination, int64_t> &mapKeyBirth) const
+                          std::map<CKeyID, int64_t> &mapKeyBirth) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     unsigned int ComputeTimeSmart(const CWalletTx &wtx) const;
 
