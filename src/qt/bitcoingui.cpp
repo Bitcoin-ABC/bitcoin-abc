@@ -1102,10 +1102,11 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
     progressBar->setToolTip(tooltip);
 }
 
-void BitcoinGUI::message(const QString &title, const QString &message,
+void BitcoinGUI::message(const QString &title, QString message,
                          unsigned int style, bool *ret) {
-    // default title
-    QString strTitle = tr("Bitcoin");
+    // Default title. On macOS, the window title is ignored (as required by the
+    // macOS Guidelines).
+    QString strTitle{PACKAGE_NAME};
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
@@ -1119,23 +1120,25 @@ void BitcoinGUI::message(const QString &title, const QString &message,
         switch (style) {
             case CClientUIInterface::MSG_ERROR:
                 msgType = tr("Error");
+                message = tr("Error: %1").arg(message);
                 break;
             case CClientUIInterface::MSG_WARNING:
                 msgType = tr("Warning");
+                message = tr("Warning: %1").arg(message);
                 break;
             case CClientUIInterface::MSG_INFORMATION:
                 msgType = tr("Information");
+                // No need to prepend the prefix here.
                 break;
             default:
                 break;
         }
     }
-    // Append title to "Bitcoin - "
+
     if (!msgType.isEmpty()) {
         strTitle += " - " + msgType;
     }
 
-    // Check for error/warning icon
     if (style & CClientUIInterface::ICON_ERROR) {
         nMBoxIcon = QMessageBox::Critical;
         nNotifyIcon = Notificator::Critical;
@@ -1144,7 +1147,6 @@ void BitcoinGUI::message(const QString &title, const QString &message,
         nNotifyIcon = Notificator::Warning;
     }
 
-    // Display message
     if (style & CClientUIInterface::MODAL) {
         // Check for buttons, use OK as default, if none was supplied
         QMessageBox::StandardButton buttons;
