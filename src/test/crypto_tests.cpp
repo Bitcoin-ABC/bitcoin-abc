@@ -21,9 +21,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <openssl/aes.h>
-#include <openssl/evp.h>
-
 #include <vector>
 
 BOOST_FIXTURE_TEST_SUITE(crypto_tests, BasicTestingSetup)
