@@ -75,7 +75,7 @@ static bool WalletAppInit(int argc, char *argv[]) {
     LogInstance().m_print_to_console =
         gArgs.GetBoolArg("-printtoconsole", gArgs.GetBoolArg("-debug", false));
 
-    if (!fs::is_directory(GetDataDir(false))) {
+    if (!CheckDataDirOption()) {
         tfm::format(std::cerr,
                     "Error: Specified data directory \"%s\" does not exist.\n",
                     gArgs.GetArg("-datadir", "").c_str());

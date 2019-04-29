@@ -850,8 +850,9 @@ const fs::path &GetDataDir(bool fNetSpecific) {
         return path;
     }
 
-    if (gArgs.IsArgSet("-datadir")) {
-        path = fs::system_complete(gArgs.GetArg("-datadir", ""));
+    std::string datadir = gArgs.GetArg("-datadir", "");
+    if (!datadir.empty()) {
+        path = fs::system_complete(datadir);
         if (!fs::is_directory(path)) {
             path = "";
             return path;
@@ -876,6 +877,11 @@ const fs::path &GetDataDir(bool fNetSpecific) {
     }
 
     return path;
+}
+
+bool CheckDataDirOption() {
+    std::string datadir = gArgs.GetArg("-datadir", "");
+    return datadir.empty() || fs::is_directory(fs::system_complete(datadir));
 }
 
 void ClearDatadirCache() {
@@ -1084,7 +1090,7 @@ bool ArgsManager::ReadConfigFiles(std::string &error,
 
     // If datadir is changed in .conf file:
     ClearDatadirCache();
-    if (!fs::is_directory(GetDataDir(false))) {
+    if (!CheckDataDirOption()) {
         error = strprintf("specified data directory \"%s\" does not exist.",
                           gArgs.GetArg("-datadir", "").c_str());
         return false;
@@ -1358,6 +1364,9 @@ int64_t GetStartupTime() {
 }
 
 fs::path AbsPathForConfigVal(const fs::path &path, bool net_specific) {
+    if (path.is_absolute()) {
+        return path;
+    }
     return fs::absolute(path, GetDataDir(net_specific));
 }
 
