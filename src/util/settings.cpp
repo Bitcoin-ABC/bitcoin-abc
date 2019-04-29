@@ -142,7 +142,7 @@ bool WriteSettings(const fs::path &path,
 SettingsValue GetSetting(const Settings &settings, const std::string &section,
                          const std::string &name,
                          bool ignore_default_section_config,
-                         bool get_chain_name) {
+                         bool ignore_nonpersistent, bool get_chain_name) {
     SettingsValue result;
     // Done merging any more settings sources.
     bool done = false;
@@ -181,6 +181,12 @@ SettingsValue GetSetting(const Settings &settings, const std::string &section,
             if (ignore_default_section_config &&
                 source == Source::CONFIG_FILE_DEFAULT_SECTION &&
                 !never_ignore_negated_setting) {
+                return;
+            }
+
+            // Ignore nonpersistent settings if requested.
+            if (ignore_nonpersistent &&
+                (source == Source::COMMAND_LINE || source == Source::FORCED)) {
                 return;
             }
 

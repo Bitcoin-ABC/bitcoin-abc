@@ -11,6 +11,7 @@
 #include <netaddress.h> // For Network
 
 #include <support/allocators/secure.h> // For SecureString
+#include <util/settings.h>             // For util::SettingsValue
 #include <util/translation.h>
 
 #include <cstddef>
@@ -84,6 +85,23 @@ public:
 
     //! Return whether shutdown was requested.
     virtual bool shutdownRequested() = 0;
+
+    //! Return whether a particular setting in <datadir>/settings.json
+    //! would be ignored because it is also specified in the command line.
+    virtual bool isPersistentSettingIgnored(const std::string &name) = 0;
+
+    //! Return setting value from <datadir>/settings.json or bitcoin.conf.
+    virtual util::SettingsValue
+    getPersistentSetting(const std::string &name) = 0;
+
+    //! Update a setting in <datadir>/settings.json.
+    virtual void updateRwSetting(const std::string &name,
+                                 const util::SettingsValue &value) = 0;
+
+    //! Force a setting value to be applied, overriding any other configuration
+    //! source, but not being persisted.
+    virtual void forceSetting(const std::string &name,
+                              const util::SettingsValue &value) = 0;
 
     //! Map port.
     virtual void mapPort(bool use_upnp, bool use_natpmp) = 0;

@@ -142,6 +142,10 @@ struct SectionInfo {
     int m_line;
 };
 
+std::string SettingToString(const util::SettingsValue &, const std::string &);
+int64_t SettingToInt(const util::SettingsValue &, int64_t);
+bool SettingToBool(const util::SettingsValue &, bool);
+
 class ArgsManager {
 public:
     enum Flags {
@@ -423,6 +427,12 @@ public:
      * Write settings file. Push errors to vector, or log them if null.
      */
     bool WriteSettingsFile(std::vector<std::string> *errors = nullptr) const;
+
+    /**
+     * Get current setting from config file or read/write settings file,
+     * ignoring nonpersistent command line or forced settings values.
+     */
+    util::SettingsValue GetPersistentSetting(const std::string &name) const;
 
     /**
      * Access settings with lock held.
