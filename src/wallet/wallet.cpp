@@ -525,8 +525,7 @@ void CWallet::SyncMetaData(
 /**
  * Outpoint is spent if any non-conflicted transaction, spends it:
  */
-bool CWallet::IsSpent(interfaces::Chain::Lock &locked_chain,
-                      const COutPoint &outpoint) const {
+bool CWallet::IsSpent(const COutPoint &outpoint) const {
     std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range =
         mapTxSpends.equal_range(outpoint);
 
@@ -534,7 +533,7 @@ bool CWallet::IsSpent(interfaces::Chain::Lock &locked_chain,
         const TxId &wtxid = it->second;
         std::map<TxId, CWalletTx>::const_iterator mit = mapWallet.find(wtxid);
         if (mit != mapWallet.end()) {
-            int depth = mit->second.GetDepthInMainChain(locked_chain);
+            int depth = mit->second.GetDepthInMainChain();
             if (depth > 0 || (depth == 0 && !mit->second.isAbandoned())) {
                 // Spent
                 return true;
@@ -981,8 +980,8 @@ bool CWallet::TransactionCanBeAbandoned(const TxId &txid) const {
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
     const CWalletTx *wtx = GetWalletTx(txid);
-    return wtx && !wtx->isAbandoned() &&
-           wtx->GetDepthInMainChain(*locked_chain) == 0 && !wtx->InMempool();
+    return wtx && !wtx->isAbandoned() && wtx->GetDepthInMainChain() == 0 &&
+           !wtx->InMempool();
 }
 
 void CWallet::MarkInputsDirty(const CTransactionRef &tx) {
@@ -994,10 +993,9 @@ void CWallet::MarkInputsDirty(const CTransactionRef &tx) {
     }
 }
 
-bool CWallet::AbandonTransaction(interfaces::Chain::Lock &locked_chain,
-                                 const TxId &txid) {
+bool CWallet::AbandonTransaction(const TxId &txid) {
     // Temporary. Removed in upcoming lock cleanup
-    auto locked_chain_recursive = chain().lock();
+    auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
     WalletBatch batch(*database, "r+");
@@ -1009,7 +1007,7 @@ bool CWallet::AbandonTransaction(interfaces::Chain::Lock &locked_chain,
     auto it = mapWallet.find(txid);
     assert(it != mapWallet.end());
     CWalletTx &origtx = it->second;
-    if (origtx.GetDepthInMainChain(locked_chain) != 0 || origtx.InMempool()) {
+    if (origtx.GetDepthInMainChain() != 0 || origtx.InMempool()) {
         return false;
     }
 
@@ -1022,7 +1020,7 @@ bool CWallet::AbandonTransaction(interfaces::Chain::Lock &locked_chain,
         it = mapWallet.find(now);
         assert(it != mapWallet.end());
         CWalletTx &wtx = it->second;
-        int currentconfirm = wtx.GetDepthInMainChain(locked_chain);
+        int currentconfirm = wtx.GetDepthInMainChain();
         // If the orig tx was not in block, none of its spends can be.
         assert(currentconfirm <= 0);
         // If (currentconfirm < 0) {Tx and spends are already conflicted, no
@@ -1085,7 +1083,7 @@ void CWallet::MarkConflicted(const BlockHash &hashBlock, int conflicting_height,
         auto it = mapWallet.find(now);
         assert(it != mapWallet.end());
         CWalletTx &wtx = it->second;
-        int currentconfirm = wtx.GetDepthInMainChain(*locked_chain);
+        int currentconfirm = wtx.GetDepthInMainChain();
         if (conflictconfirms < currentconfirm) {
             // Block is 'more conflicted' than current confirm; update.
             // Mark transaction as conflicted with this block.
@@ -1842,8 +1840,7 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
     return result;
 }
 
-void CWallet::ReacceptWalletTransactions(
-    interfaces::Chain::Lock &locked_chain) {
+void CWallet::ReacceptWalletTransactions() {
     // If transactions aren't being broadcasted, don't let them into local
     // mempool either.
     if (!fBroadcastTransactions) {
@@ -1859,7 +1856,7 @@ void CWallet::ReacceptWalletTransactions(
         CWalletTx &wtx = item.second;
         assert(wtx.GetId() == wtxid);
 
-        int nDepth = wtx.GetDepthInMainChain(locked_chain);
+        int nDepth = wtx.GetDepthInMainChain();
 
         if (!wtx.IsCoinBase() && (nDepth == 0 && !wtx.isAbandoned())) {
             mapSorted.insert(std::make_pair(wtx.nOrderPos, &wtx));
@@ -1870,13 +1867,11 @@ void CWallet::ReacceptWalletTransactions(
     for (const std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
         std::string unused_err_string;
-        wtx.SubmitMemoryPoolAndRelay(unused_err_string, false, locked_chain);
+        wtx.SubmitMemoryPoolAndRelay(unused_err_string, false);
     }
 }
 
-bool CWalletTx::SubmitMemoryPoolAndRelay(
-    std::string &err_string, bool relay,
-    interfaces::Chain::Lock &locked_chain) {
+bool CWalletTx::SubmitMemoryPoolAndRelay(std::string &err_string, bool relay) {
     // Can't relay if wallet is not broadcasting
     if (!pwallet->GetBroadcastTransactions()) {
         return false;
@@ -1891,7 +1886,7 @@ bool CWalletTx::SubmitMemoryPoolAndRelay(
         return false;
     }
     // Don't try to submit conflicted or confirmed transactions.
-    if (GetDepthInMainChain(locked_chain) != 0) {
+    if (GetDepthInMainChain() != 0) {
         return false;
     }
 
@@ -1950,11 +1945,10 @@ Amount CWalletTx::GetDebit(const isminefilter &filter) const {
     return debit;
 }
 
-Amount CWalletTx::GetCredit(interfaces::Chain::Lock &locked_chain,
-                            const isminefilter &filter) const {
+Amount CWalletTx::GetCredit(const isminefilter &filter) const {
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
-    if (IsImmatureCoinBase(locked_chain)) {
+    if (IsImmatureCoinBase()) {
         return Amount::zero();
     }
 
@@ -1971,17 +1965,15 @@ Amount CWalletTx::GetCredit(interfaces::Chain::Lock &locked_chain,
     return credit;
 }
 
-Amount CWalletTx::GetImmatureCredit(interfaces::Chain::Lock &locked_chain,
-                                    bool fUseCache) const {
-    if (IsImmatureCoinBase(locked_chain) && IsInMainChain(locked_chain)) {
+Amount CWalletTx::GetImmatureCredit(bool fUseCache) const {
+    if (IsImmatureCoinBase() && IsInMainChain()) {
         return GetCachableAmount(IMMATURE_CREDIT, ISMINE_SPENDABLE, !fUseCache);
     }
 
     return Amount::zero();
 }
 
-Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
-                                     bool fUseCache,
+Amount CWalletTx::GetAvailableCredit(bool fUseCache,
                                      const isminefilter &filter) const {
     if (pwallet == nullptr) {
         return Amount::zero();
@@ -1994,7 +1986,7 @@ Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
 
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
-    if (IsImmatureCoinBase(locked_chain)) {
+    if (IsImmatureCoinBase()) {
         return Amount::zero();
     }
 
@@ -2009,7 +2001,7 @@ Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
     Amount nCredit = Amount::zero();
     const TxId &txid = GetId();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
-        if (!pwallet->IsSpent(locked_chain, COutPoint(txid, i)) &&
+        if (!pwallet->IsSpent(COutPoint(txid, i)) &&
             (allow_used_addresses || !pwallet->IsUsedDestination(txid, i))) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, filter);
@@ -2027,10 +2019,8 @@ Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
     return nCredit;
 }
 
-Amount
-CWalletTx::GetImmatureWatchOnlyCredit(interfaces::Chain::Lock &locked_chain,
-                                      const bool fUseCache) const {
-    if (IsImmatureCoinBase(locked_chain) && IsInMainChain(locked_chain)) {
+Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool fUseCache) const {
+    if (IsImmatureCoinBase() && IsInMainChain()) {
         return GetCachableAmount(IMMATURE_CREDIT, ISMINE_WATCH_ONLY,
                                  !fUseCache);
     }
@@ -2060,7 +2050,7 @@ bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain) const {
         return false;
     }
 
-    int nDepth = GetDepthInMainChain(locked_chain);
+    int nDepth = GetDepthInMainChain();
     if (nDepth >= 1) {
         return true;
     }
@@ -2162,8 +2152,7 @@ void CWallet::ResendWalletTransactions() {
                 continue;
             }
             std::string unused_err_string;
-            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true,
-                                             *locked_chain)) {
+            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true)) {
                 ++submitted_tx_count;
             }
         }
@@ -2197,13 +2186,11 @@ CWallet::Balance CWallet::GetBalance(const int min_depth,
     for (const auto &entry : mapWallet) {
         const CWalletTx &wtx = entry.second;
         const bool is_trusted{wtx.IsTrusted(*locked_chain)};
-        const int tx_depth{wtx.GetDepthInMainChain(*locked_chain)};
-        const Amount tx_credit_mine{
-            wtx.GetAvailableCredit(*locked_chain, /* fUseCache */ true,
-                                   ISMINE_SPENDABLE | reuse_filter)};
-        const Amount tx_credit_watchonly{
-            wtx.GetAvailableCredit(*locked_chain, /* fUseCache */ true,
-                                   ISMINE_WATCH_ONLY | reuse_filter)};
+        const int tx_depth{wtx.GetDepthInMainChain()};
+        const Amount tx_credit_mine{wtx.GetAvailableCredit(
+            /* fUseCache */ true, ISMINE_SPENDABLE | reuse_filter)};
+        const Amount tx_credit_watchonly{wtx.GetAvailableCredit(
+            /* fUseCache */ true, ISMINE_WATCH_ONLY | reuse_filter)};
         if (is_trusted && tx_depth >= min_depth) {
             ret.m_mine_trusted += tx_credit_mine;
             ret.m_watchonly_trusted += tx_credit_watchonly;
@@ -2212,9 +2199,8 @@ CWallet::Balance CWallet::GetBalance(const int min_depth,
             ret.m_mine_untrusted_pending += tx_credit_mine;
             ret.m_watchonly_untrusted_pending += tx_credit_watchonly;
         }
-        ret.m_mine_immature += wtx.GetImmatureCredit(*locked_chain);
-        ret.m_watchonly_immature +=
-            wtx.GetImmatureWatchOnlyCredit(*locked_chain);
+        ret.m_mine_immature += wtx.GetImmatureCredit();
+        ret.m_watchonly_immature += wtx.GetImmatureWatchOnlyCredit();
     }
     return ret;
 }
@@ -2269,11 +2255,11 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
             continue;
         }
 
-        if (wtx.IsImmatureCoinBase(locked_chain)) {
+        if (wtx.IsImmatureCoinBase()) {
             continue;
         }
 
-        int nDepth = wtx.GetDepthInMainChain(locked_chain);
+        int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < 0) {
             continue;
         }
@@ -2333,7 +2319,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
                 continue;
             }
 
-            if (IsSpent(locked_chain, outpoint)) {
+            if (IsSpent(outpoint)) {
                 continue;
             }
 
@@ -2402,7 +2388,7 @@ CWallet::ListCoins(interfaces::Chain::Lock &locked_chain) const {
     for (const auto &output : lockedCoins) {
         auto it = mapWallet.find(output.GetTxId());
         if (it != mapWallet.end()) {
-            int depth = it->second.GetDepthInMainChain(locked_chain);
+            int depth = it->second.GetDepthInMainChain();
             if (depth >= 0 && output.GetN() < it->second.tx->vout.size() &&
                 IsMine(it->second.tx->vout[output.GetN()]) ==
                     ISMINE_SPENDABLE) {
@@ -3252,7 +3238,7 @@ void CWallet::CommitTransaction(
     }
 
     std::string err_string;
-    if (!wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain)) {
+    if (!wtx.SubmitMemoryPoolAndRelay(err_string, true)) {
         WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast "
                         "immediately, %s\n",
                         err_string);
@@ -3478,11 +3464,11 @@ CWallet::GetAddressBalances(interfaces::Chain::Lock &locked_chain) {
             continue;
         }
 
-        if (wtx.IsImmatureCoinBase(locked_chain)) {
+        if (wtx.IsImmatureCoinBase()) {
             continue;
         }
 
-        int nDepth = wtx.GetDepthInMainChain(locked_chain);
+        int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < (wtx.IsFromMe(ISMINE_ALL) ? 0 : 1)) {
             continue;
         }
@@ -3497,7 +3483,7 @@ CWallet::GetAddressBalances(interfaces::Chain::Lock &locked_chain) {
                 continue;
             }
 
-            Amount n = IsSpent(locked_chain, COutPoint(walletEntry.first, i))
+            Amount n = IsSpent(COutPoint(walletEntry.first, i))
                            ? Amount::zero()
                            : wtx.tx->vout[i].nValue;
 
@@ -4361,7 +4347,7 @@ void CWallet::postInitProcess() {
 
     // Add wallet transactions that aren't already in a block to mempool.
     // Do this here as mempool requires genesis block to be loaded.
-    ReacceptWalletTransactions(*locked_chain);
+    ReacceptWalletTransactions();
 
     // Update wallet transactions with current mempool transactions.
     chain().requestMempoolTransactions(*this);
@@ -4384,8 +4370,7 @@ CKeyPool::CKeyPool(const CPubKey &vchPubKeyIn, bool internalIn) {
     m_pre_split = false;
 }
 
-int CWalletTx::GetDepthInMainChain(
-    interfaces::Chain::Lock &locked_chain) const {
+int CWalletTx::GetDepthInMainChain() const {
     assert(pwallet != nullptr);
     AssertLockHeld(pwallet->cs_wallet);
     if (isUnconfirmed() || isAbandoned()) {
@@ -4396,22 +4381,20 @@ int CWalletTx::GetDepthInMainChain(
            (isConflicted() ? -1 : 1);
 }
 
-int CWalletTx::GetBlocksToMaturity(
-    interfaces::Chain::Lock &locked_chain) const {
+int CWalletTx::GetBlocksToMaturity() const {
     if (!IsCoinBase()) {
         return 0;
     }
 
-    int chain_depth = GetDepthInMainChain(locked_chain);
+    int chain_depth = GetDepthInMainChain();
     // coinbase tx should not be conflicted
     assert(chain_depth >= 0);
     return std::max(0, (COINBASE_MATURITY + 1) - chain_depth);
 }
 
-bool CWalletTx::IsImmatureCoinBase(
-    interfaces::Chain::Lock &locked_chain) const {
+bool CWalletTx::IsImmatureCoinBase() const {
     // note GetBlocksToMaturity is 0 for non-coinbase tx
-    return GetBlocksToMaturity(locked_chain) > 0;
+    return GetBlocksToMaturity() > 0;
 }
 
 std::vector<OutputGroup>

@@ -155,7 +155,7 @@ LegacyScriptPubKeyMan &EnsureLegacyScriptPubKeyMan(CWallet &wallet) {
 static void WalletTxToJSON(interfaces::Chain &chain,
                            interfaces::Chain::Lock &locked_chain,
                            const CWalletTx &wtx, UniValue &entry) {
-    int confirms = wtx.GetDepthInMainChain(locked_chain);
+    int confirms = wtx.GetDepthInMainChain();
     entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase()) {
         entry.pushKV("generated", true);
@@ -719,7 +719,7 @@ static UniValue getreceivedbyaddress(const Config &config,
 
         for (const CTxOut &txout : wtx.tx->vout) {
             if (txout.scriptPubKey == scriptPubKey) {
-                if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
+                if (wtx.GetDepthInMainChain() >= nMinDepth) {
                     nAmount += txout.nValue;
                 }
             }
@@ -795,7 +795,7 @@ static UniValue getreceivedbylabel(const Config &config,
             CTxDestination address;
             if (ExtractDestination(txout.scriptPubKey, address) &&
                 pwallet->IsMine(address) && setAddress.count(address)) {
-                if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
+                if (wtx.GetDepthInMainChain() >= nMinDepth) {
                     nAmount += txout.nValue;
                 }
             }
@@ -1218,7 +1218,7 @@ ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
             continue;
         }
 
-        int nDepth = wtx.GetDepthInMainChain(locked_chain);
+        int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < nMinDepth) {
             continue;
         }
@@ -1505,8 +1505,7 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
     }
 
     // Received
-    if (listReceived.size() > 0 &&
-        wtx.GetDepthInMainChain(locked_chain) >= nMinDepth) {
+    if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth) {
         for (const COutputEntry &r : listReceived) {
             std::string label;
             if (pwallet->mapAddressBook.count(r.destination)) {
@@ -1522,9 +1521,9 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
             }
             MaybePushAddress(entry, r.destination);
             if (wtx.IsCoinBase()) {
-                if (wtx.GetDepthInMainChain(locked_chain) < 1) {
+                if (wtx.GetDepthInMainChain() < 1) {
                     entry.pushKV("category", "orphan");
-                } else if (wtx.IsImmatureCoinBase(locked_chain)) {
+                } else if (wtx.IsImmatureCoinBase()) {
                     entry.pushKV("category", "immature");
                 } else {
                     entry.pushKV("category", "generate");
@@ -1876,7 +1875,7 @@ static UniValue listsinceblock(const Config &config,
     for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         CWalletTx tx = pairWtx.second;
 
-        if (depth == -1 || tx.GetDepthInMainChain(*locked_chain) < depth) {
+        if (depth == -1 || tx.GetDepthInMainChain() < depth) {
             ListTransactions(*locked_chain, pwallet, tx, 0, true, transactions,
                              filter, nullptr /* filter_label */);
         }
@@ -2044,7 +2043,7 @@ static UniValue gettransaction(const Config &config,
     }
     const CWalletTx &wtx = it->second;
 
-    Amount nCredit = wtx.GetCredit(*locked_chain, filter);
+    Amount nCredit = wtx.GetCredit(filter);
     Amount nDebit = wtx.GetDebit(filter);
     Amount nNet = nCredit - nDebit;
     Amount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit
@@ -2122,7 +2121,7 @@ static UniValue abandontransaction(const Config &config,
                            "Invalid or non-wallet transaction id");
     }
 
-    if (!pwallet->AbandonTransaction(*locked_chain, txid)) {
+    if (!pwallet->AbandonTransaction(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not eligible for abandonment");
     }
@@ -2637,7 +2636,7 @@ static UniValue lockunspent(const Config &config,
                                "Invalid parameter, vout index out of bounds");
         }
 
-        if (pwallet->IsSpent(*locked_chain, output)) {
+        if (pwallet->IsSpent(output)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected unspent output");
         }

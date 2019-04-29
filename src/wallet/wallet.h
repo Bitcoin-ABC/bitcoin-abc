@@ -456,21 +456,17 @@ public:
 
     //! filter decides which addresses will count towards the debit
     Amount GetDebit(const isminefilter &filter) const;
-    Amount GetCredit(interfaces::Chain::Lock &locked_chain,
-                     const isminefilter &filter) const;
-    Amount GetImmatureCredit(interfaces::Chain::Lock &locked_chain,
-                             bool fUseCache = true) const;
+    Amount GetCredit(const isminefilter &filter) const;
+    Amount GetImmatureCredit(bool fUseCache = true) const;
     // TODO: Remove "NO_THREAD_SAFETY_ANALYSIS" and replace it with the correct
     // annotation "EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)". The
     // annotation "NO_THREAD_SAFETY_ANALYSIS" was temporarily added to avoid
     // having to resolve the issue of member access into incomplete type
     // CWallet.
-    Amount GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
-                              bool fUseCache = true,
+    Amount GetAvailableCredit(bool fUseCache = true,
                               const isminefilter &filter = ISMINE_SPENDABLE)
         const NO_THREAD_SAFETY_ANALYSIS;
-    Amount GetImmatureWatchOnlyCredit(interfaces::Chain::Lock &locked_chain,
-                                      const bool fUseCache = true) const;
+    Amount GetImmatureWatchOnlyCredit(const bool fUseCache = true) const;
     Amount GetChange() const;
 
     // Get the marginal bytes if spending the specified output from this
@@ -498,8 +494,7 @@ public:
 
     // Pass this transaction to node for mempool insertion and relay to peers if
     // flag set to true
-    bool SubmitMemoryPoolAndRelay(std::string &err_string, bool relay,
-                                  interfaces::Chain::Lock &locked_chain);
+    bool SubmitMemoryPoolAndRelay(std::string &err_string, bool relay);
 
     // TODO: Remove "NO_THREAD_SAFETY_ANALYSIS" and replace it with the correct
     // annotation "EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)". The annotation
@@ -521,18 +516,15 @@ public:
     // resolve the issue of member access into incomplete type CWallet. Note
     // that we still have the runtime check "AssertLockHeld(pwallet->cs_wallet)"
     // in place.
-    int GetDepthInMainChain(interfaces::Chain::Lock &locked_chain) const
-        NO_THREAD_SAFETY_ANALYSIS;
-    bool IsInMainChain(interfaces::Chain::Lock &locked_chain) const {
-        return GetDepthInMainChain(locked_chain) > 0;
-    }
+    int GetDepthInMainChain() const NO_THREAD_SAFETY_ANALYSIS;
+    bool IsInMainChain() const { return GetDepthInMainChain() > 0; }
 
     /**
      * @return number of blocks to maturity for this transaction:
      *  0 : is not a coinbase transaction, or is a mature coinbase transaction
      * >0 : is a coinbase transaction which matures in this many blocks
      */
-    int GetBlocksToMaturity(interfaces::Chain::Lock &locked_chain) const;
+    int GetBlocksToMaturity() const;
     bool isAbandoned() const {
         return m_confirm.status == CWalletTx::ABANDONED;
     }
@@ -556,7 +548,7 @@ public:
     void setConfirmed() { m_confirm.status = CWalletTx::CONFIRMED; }
     TxId GetId() const { return tx->GetId(); }
     bool IsCoinBase() const { return tx->IsCoinBase(); }
-    bool IsImmatureCoinBase(interfaces::Chain::Lock &locked_chain) const;
+    bool IsImmatureCoinBase() const;
 };
 
 class COutput {
@@ -908,8 +900,7 @@ public:
                             const CoinSelectionParams &coin_selection_params,
                             bool &bnb_used) const;
 
-    bool IsSpent(interfaces::Chain::Lock &locked_chain,
-                 const COutPoint &outpoint) const
+    bool IsSpent(const COutPoint &outpoint) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     // Whether this or any UTXO with the same CTxDestination has been spent.
@@ -1029,8 +1020,7 @@ public:
                                          const WalletRescanReserver &reserver,
                                          bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
-    void ReacceptWalletTransactions(interfaces::Chain::Lock &locked_chain)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void ReacceptWalletTransactions() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ResendWalletTransactions();
     struct Balance {
         //! Trusted, at depth=GetBalance.min_depth or more
@@ -1267,8 +1257,7 @@ public:
      * Mark a transaction (and it in-wallet descendants) as abandoned so its
      * inputs may be respent.
      */
-    bool AbandonTransaction(interfaces::Chain::Lock &locked_chain,
-                            const TxId &txid);
+    bool AbandonTransaction(const TxId &txid);
 
     //! Verify wallet naming and perform salvage on the wallet if required
     static bool Verify(const CChainParams &chainParams,
