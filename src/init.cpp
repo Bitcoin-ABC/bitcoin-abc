@@ -349,7 +349,6 @@ void Shutdown(NodeContext &node) {
                   fsbridge::get_filesystem_error_message(e));
     }
 
-    node.args = nullptr;
     LogPrintf("%s: done\n", __func__);
 }
 
