@@ -21,28 +21,31 @@ bool noui_ThreadSafeMessageBox(const std::string &message,
                                const std::string &caption, unsigned int style) {
     bool fSecure = style & CClientUIInterface::SECURE;
     style &= ~CClientUIInterface::SECURE;
+    bool prefix = !(style & CClientUIInterface::MSG_NOPREFIX);
+    style &= ~CClientUIInterface::MSG_NOPREFIX;
 
     std::string strCaption;
-    // Check for usage of predefined caption
-    switch (style) {
-        case CClientUIInterface::MSG_ERROR:
-            strCaption += _("Error").translated;
-            break;
-        case CClientUIInterface::MSG_WARNING:
-            strCaption += _("Warning").translated;
-            break;
-        case CClientUIInterface::MSG_INFORMATION:
-            strCaption += _("Information").translated;
-            break;
-        default:
-            // Use supplied caption (can be empty)
-            strCaption += caption;
+    if (prefix) {
+        switch (style) {
+            case CClientUIInterface::MSG_ERROR:
+                strCaption = "Error: ";
+                break;
+            case CClientUIInterface::MSG_WARNING:
+                strCaption = "Warning: ";
+                break;
+            case CClientUIInterface::MSG_INFORMATION:
+                strCaption = "Information: ";
+                break;
+            default:
+                // Use supplied caption (can be empty)
+                strCaption = caption + ": ";
+        }
     }
 
     if (!fSecure) {
-        LogPrintf("%s: %s\n", strCaption, message);
+        LogPrintf("%s%s\n", strCaption, message);
     }
-    tfm::format(std::cerr, "%s: %s\n", strCaption, message);
+    tfm::format(std::cerr, "%s%s\n", strCaption.c_str(), message.c_str());
     return false;
 }
 
