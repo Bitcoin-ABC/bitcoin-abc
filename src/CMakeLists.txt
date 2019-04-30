@@ -16,6 +16,7 @@ option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
 option(ENABLE_HARDENING "Harden the executables" ON)
+option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 
 # Cmake uses the CMAKE_BUILD_TYPE variable to select the build configuration.
 # By default it supports more configurations that needed for Bitcoin ABC, and
@@ -48,6 +49,20 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 	# Build all static so there is no dll file to distribute.
 	add_compiler_flag(-static)
+endif()
+
+if(ENABLE_REDUCE_EXPORTS)
+	# Default visibility is set by CMAKE_<LANG>_VISIBILITY_PRESET, but this
+	# doesn't tell if the visibility set is effective.
+	# Check if the flag -fvisibility=hidden is supported, as using the hidden
+	# visibility is a requirement to reduce exports.
+	check_compiler_flag(HAS_CXX_FVISIBILITY CXX -fvisibility=hidden)
+	if(NOT HAS_CXX_FVISIBILITY)
+		message(FATAL_ERROR "Cannot set default symbol visibility. Use -DENABLE_REDUCE_EXPORTS=OFF.")
+	endif()
+
+	# Also hide symbols from static libraries
+	add_linker_flag(-Wl,--exclude-libs,ALL)
 endif()
 
 # All windows code is PIC, forcing it on just adds useless compile warnings
