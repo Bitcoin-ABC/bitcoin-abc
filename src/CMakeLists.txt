@@ -18,6 +18,7 @@ option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
 option(ENABLE_HARDENING "Harden the executables" ON)
 option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
+option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
 
 # Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
 if(ENABLE_SANITIZERS)
@@ -192,6 +193,44 @@ target_include_directories(util
 		# To access the config.
 		${CMAKE_CURRENT_BINARY_DIR}
 )
+
+if(ENABLE_GLIBC_BACK_COMPAT)
+	# glibc absorbed clock_gettime in 2.17. librt (its previous location) is
+	# safe to link in anyway for back-compat.
+	find_library(RT_LIBRARY rt)
+	target_link_libraries(util ${RT_LIBRARY})
+
+	#__fdelt_chk's params and return type have changed from long unsigned int to
+	# long int. See which one is present here.
+	include(CheckPrototypeDefinition)
+
+	set(CMAKE_REQUIRED_DEFINITIONS -D_FORTIFY_SOURCE=2)
+	# Without some optimization the compiler won't detect the prototype conflict
+	# and always succeed to build.
+	set(CMAKE_REQUIRED_FLAGS -O2)
+
+	check_prototype_definition(
+		__fdelt_warn
+		"extern long unsigned int __fdelt_warn(long unsigned int a)"
+		"0"
+		"sys/select.h"
+		FDELT_PROTOTYPE_LONG_UNSIGNED_INT
+	)
+
+	if(FDELT_PROTOTYPE_LONG_UNSIGNED_INT)
+		set(FDELT_TYPE "long unsigned int")
+	else()
+		set(FDELT_TYPE "long int")
+	endif()
+
+	target_compile_definitions(util PRIVATE "-DFDELT_TYPE=${FDELT_TYPE}")
+
+	# Wrap some glibc functions with ours
+	add_linker_flag(-Wl,--wrap=__divmoddi4)
+	add_linker_flag(-Wl,--wrap=log2f)
+
+	target_sources(util PRIVATE compat/glibc_compat.cpp)
+endif()
 
 # Target specific configs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
