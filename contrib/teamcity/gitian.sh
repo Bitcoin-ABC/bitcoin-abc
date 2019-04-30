@@ -28,8 +28,11 @@ if [[ "${OS_NAME}" == "osx" ]]; then
   mv MacOSX10.11.sdk.tar.gz inputs
 fi
 
+## Determine the number of build threads
+THREADS=$(nproc || sysctl -n hw.ncpu)
+
 ./bin/make-base-vm --lxc --distro debian --suite stretch --arch amd64
-./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} ../contrib/gitian-descriptors/gitian-${OS_NAME}.yml
+./bin/gbuild -j${THREADS} -m3500 --commit bitcoin=${COMMIT} --url bitcoin=${URL} ../contrib/gitian-descriptors/gitian-${OS_NAME}.yml
 
 cd ..
 mkdir ${OS_NAME}
