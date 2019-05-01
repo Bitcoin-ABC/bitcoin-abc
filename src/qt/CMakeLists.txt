@@ -293,6 +293,7 @@ if(BUILD_BITCOIN_WALLET)
 			openuridialog.cpp
 			overviewpage.cpp
 			paymentserver.cpp
+			qrimagewidget.cpp
 			receivecoinsdialog.cpp
 			receiverequestdialog.cpp
 			recentrequeststablemodel.cpp
