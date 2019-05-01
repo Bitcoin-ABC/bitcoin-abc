@@ -31,6 +31,7 @@
 #include <util/vector.h>
 #include <wallet/coincontrol.h>
 #include <wallet/context.h>
+#include <wallet/load.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
@@ -200,6 +201,22 @@ static std::string LabelFromValue(const UniValue &value) {
         throw JSONRPCError(RPC_WALLET_INVALID_LABEL_NAME, "Invalid label name");
     }
     return label;
+}
+
+static void UpdateWalletSetting(interfaces::Chain &chain,
+                                const std::string &wallet_name,
+                                const UniValue &load_on_startup,
+                                std::vector<bilingual_str> &warnings) {
+    if (load_on_startup.isTrue() && !AddWalletSetting(chain, wallet_name)) {
+        warnings.emplace_back(
+            Untranslated("Wallet load on startup setting could not be updated, "
+                         "so wallet may not be loaded next node startup."));
+    } else if (load_on_startup.isFalse() &&
+               !RemoveWalletSetting(chain, wallet_name)) {
+        warnings.emplace_back(
+            Untranslated("Wallet load on startup setting could not be updated, "
+                         "so wallet may still be loaded next node startup."));
+    }
 }
 
 static UniValue getnewaddress(const Config &config,
@@ -3106,6 +3123,10 @@ static UniValue loadwallet(const Config &config,
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The wallet directory or .dat file."},
+            {"load_on_startup", RPCArg::Type::BOOL, /* default */ "null",
+             "Save wallet name to persistent settings and load on startup. "
+             "True to add wallet to startup list, false to remove, null to "
+             "leave unchanged."},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -3145,6 +3166,9 @@ static UniValue loadwallet(const Config &config,
     if (!wallet) {
         throw JSONRPCError(RPC_WALLET_ERROR, error.original);
     }
+
+    UpdateWalletSetting(*context.chain, location.GetName(), request.params[1],
+                        warnings);
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
@@ -3255,6 +3279,10 @@ static UniValue createwallet(const Config &config,
             {"descriptors", RPCArg::Type::BOOL, /* default */ "false",
              "Create a native descriptor wallet. The wallet will use "
              "descriptors internally to handle address creation"},
+            {"load_on_startup", RPCArg::Type::BOOL, /* default */ "null",
+             "Save wallet name to persistent settings and load on startup. "
+             "True to add wallet to startup list, false to remove, null to "
+             "leave unchanged."},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -3319,6 +3347,9 @@ static UniValue createwallet(const Config &config,
             // no default case, so the compiler can warn about missing cases
     }
 
+    UpdateWalletSetting(*context.chain, request.params[0].get_str(),
+                        request.params[6], warnings);
+
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
     obj.pushKV("warning", Join(warnings, Untranslated("\n")).original);
@@ -3337,8 +3368,18 @@ static UniValue unloadwallet(const Config &config,
             {"wallet_name", RPCArg::Type::STR,
              /* default */ "the wallet name from the RPC request",
              "The name of the wallet to unload."},
+            {"load_on_startup", RPCArg::Type::BOOL, /* default */ "null",
+             "Save wallet name to persistent settings and load on startup. "
+             "True to add wallet to startup list, false to remove, null to "
+             "leave unchanged."},
         },
-        RPCResult{RPCResult::Type::NONE, "", ""},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "warning",
+                       "Warning message if wallet was not unloaded cleanly."},
+                  }},
         RPCExamples{HelpExampleCli("unloadwallet", "wallet_name") +
                     HelpExampleRpc("unloadwallet", "wallet_name")},
     }
@@ -3367,9 +3408,15 @@ static UniValue unloadwallet(const Config &config,
         throw JSONRPCError(RPC_MISC_ERROR, "Requested wallet already unloaded");
     }
 
-    UnloadWallet(std::move(wallet));
+    interfaces::Chain &chain = wallet->chain();
+    std::vector<bilingual_str> warnings;
 
-    return NullUniValue;
+    UnloadWallet(std::move(wallet));
+    UpdateWalletSetting(chain, wallet_name, request.params[1], warnings);
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("warning", Join(warnings, Untranslated("\n")).original);
+    return result;
 }
 
 static UniValue listunspent(const Config &config,
@@ -4934,7 +4981,7 @@ Span<const CRPCCommand> GetWalletRPCCommands() {
         { "wallet",             "abandontransaction",           abandontransaction,           {"txid"} },
         { "wallet",             "addmultisigaddress",           addmultisigaddress,           {"nrequired","keys","label"} },
         { "wallet",             "backupwallet",                 backupwallet,                 {"destination"} },
-        { "wallet",             "createwallet",                 createwallet,                 {"wallet_name", "disable_private_keys", "blank", "passphrase", "avoid_reuse", "descriptors"} },
+        { "wallet",             "createwallet",                 createwallet,                 {"wallet_name", "disable_private_keys", "blank", "passphrase", "avoid_reuse", "descriptors", "load_on_startup"} },
         { "wallet",             "encryptwallet",                encryptwallet,                {"passphrase"} },
         { "wallet",             "getaddressesbylabel",          getaddressesbylabel,          {"label"} },
         { "wallet",             "getaddressinfo",               getaddressinfo,               {"address"} },
@@ -4958,7 +5005,7 @@ Span<const CRPCCommand> GetWalletRPCCommands() {
         { "wallet",             "listunspent",                  listunspent,                  {"minconf","maxconf","addresses","include_unsafe","query_options"} },
         { "wallet",             "listwalletdir",                listwalletdir,                {} },
         { "wallet",             "listwallets",                  listwallets,                  {} },
-        { "wallet",             "loadwallet",                   loadwallet,                   {"filename"} },
+        { "wallet",             "loadwallet",                   loadwallet,                   {"filename", "load_on_startup"} },
         { "wallet",             "lockunspent",                  lockunspent,                  {"unlock","transactions"} },
         { "wallet",             "rescanblockchain",             rescanblockchain,             {"start_height", "stop_height"} },
         { "wallet",             "sendmany",                     sendmany,                     {"dummy","amounts","minconf","comment","subtractfeefrom"} },
@@ -4969,7 +5016,7 @@ Span<const CRPCCommand> GetWalletRPCCommands() {
         { "wallet",             "setwalletflag",                 setwalletflag,                 {"flag","value"} },
         { "wallet",             "signmessage",                  signmessage,                  {"address","message"} },
         { "wallet",             "signrawtransactionwithwallet", signrawtransactionwithwallet, {"hextring","prevtxs","sighashtype"} },
-        { "wallet",             "unloadwallet",                 unloadwallet,                 {"wallet_name"} },
+        { "wallet",             "unloadwallet",                 unloadwallet,                 {"wallet_name", "load_on_startup"} },
         { "wallet",             "upgradewallet",                upgradewallet,                {"version"} },
         { "wallet",             "walletcreatefundedpsbt",       walletcreatefundedpsbt,       {"inputs","outputs","locktime","options","bip32derivs"} },
         { "wallet",             "walletlock",                   walletlock,                   {} },

@@ -811,12 +811,35 @@ class TestNodeCLI():
 
 
 class RPCOverloadWrapper():
-    def __init__(self, rpc, cli=False):
+    def __init__(self, rpc, cli=False, descriptors=False):
         self.rpc = rpc
         self.is_cli = cli
+        # FIXME: self.descriptors and createwallet are supposed to be
+        #  introduced by PR16528 but it will take more time to backport it,
+        #  so this is added now to be able to progress on other backports.
+        #  For now, descriptors is always False
+        self.descriptors = descriptors
 
     def __getattr__(self, name):
         return getattr(self.rpc, name)
+
+    def createwallet(self, wallet_name, disable_private_keys=None, blank=None,
+                     passphrase='', avoid_reuse=None, descriptors=None, load_on_startup=None):
+        if self.is_cli:
+            if disable_private_keys is None:
+                disable_private_keys = 'null'
+            if blank is None:
+                blank = 'null'
+            if passphrase is None:
+                passphrase = ''
+            if avoid_reuse is None:
+                avoid_reuse = 'null'
+            if load_on_startup is None:
+                load_on_startup = 'null'
+        if descriptors is None:
+            descriptors = self.descriptors
+        return self.__getattr__('createwallet')(
+            wallet_name, disable_private_keys, blank, passphrase, avoid_reuse, descriptors, load_on_startup)
 
     def importprivkey(self, privkey, label=None, rescan=None):
         wallet_info = self.getwalletinfo()
