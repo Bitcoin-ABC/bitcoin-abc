@@ -920,85 +920,83 @@ static CBlock GetBlockChecked(const Config &config,
 }
 
 static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() < 1 ||
-        request.params.size() > 2) {
-        throw std::runtime_error(RPCHelpMan{
-            "getblock",
-            "\nIf verbosity is 0 or false, returns a string that is "
-            "serialized, hex-encoded data for block 'hash'.\n"
-            "If verbosity is 1 or true, returns an Object with information "
-            "about block <hash>.\n"
-            "If verbosity is 2, returns an Object with information about "
-            "block <hash> and information about each transaction.\n",
-            {
-                {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
-                 "The block hash"},
-                {"verbosity", RPCArg::Type::NUM, /* default */ "1",
-                 "0 for hex-encoded data, 1 for a json object, and 2 for "
-                 "json object with transaction data"},
-            },
-            {
-                RPCResult{
-                    "for verbosity = 0",
-                    "\"data\"                   (string) A string that is "
-                    "serialized, hex-encoded data for block 'hash'.\n"},
-                RPCResult{
-                    "for verbosity = 1",
-                    "{\n"
-                    "  \"hash\" : \"hash\",       (string) The block hash "
-                    "(same as provided)\n"
-                    "  \"confirmations\" : n,   (numeric) The number of "
-                    "confirmations, or -1 if the block is not on the main "
-                    "chain\n"
-                    "  \"size\" : n,            (numeric) The block size\n"
-                    "  \"height\" : n,          (numeric) The block height or "
-                    "index\n"
-                    "  \"version\" : n,         (numeric) The block version\n"
-                    "  \"versionHex\" : \"00000000\", (string) The block "
-                    "version formatted in hexadecimal\n"
-                    "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
-                    "  \"tx\" : [               (array of string) The "
-                    "transaction ids\n"
-                    "     \"transactionid\"     (string) The transaction id\n"
-                    "     ,...\n"
-                    "  ],\n"
-                    "  \"time\" : ttt,          (numeric) The block time in "
-                    "seconds since epoch (Jan 1 1970 GMT)\n"
-                    "  \"mediantime\" : ttt,    (numeric) The median block "
-                    "time in seconds since epoch (Jan 1 1970 GMT)\n"
-                    "  \"nonce\" : n,           (numeric) The nonce\n"
-                    "  \"bits\" : \"1d00ffff\",   (string) The bits\n"
-                    "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
-                    "  \"chainwork\" : \"xxxx\",  (string) Expected number of "
-                    "hashes required to produce the chain up to this block (in "
-                    "hex)\n"
-                    "  \"nTx\" : n,             (numeric) The number of "
-                    "transactions in the block.\n"
-                    "  \"previousblockhash\" : \"hash\",  (string) The hash of "
-                    "the previous block\n"
-                    "  \"nextblockhash\" : \"hash\"       (string) The hash of "
-                    "the next block\n"
-                    "}\n"},
-                RPCResult{
-                    "for verbosity = 2",
-                    "{\n"
-                    "  ...,                   Same output as verbosity = 1\n"
-                    "  \"tx\" : [               (array of Objects) The "
-                    "transactions in the format of the getrawtransaction RPC; "
-                    "different from verbosity = 1 \"tx\" result\n"
-                    "    ...\n"
-                    "  ],\n"
-                    "  ...                    Same output as verbosity = 1\n"
-                    "}\n"},
-            },
-            RPCExamples{HelpExampleCli("getblock",
-                                       "\"00000000c937983704a73af28acdec37b049d"
+    const RPCHelpMan help{
+        "getblock",
+        "\nIf verbosity is 0 or false, returns a string that is "
+        "serialized, hex-encoded data for block 'hash'.\n"
+        "If verbosity is 1 or true, returns an Object with information "
+        "about block <hash>.\n"
+        "If verbosity is 2, returns an Object with information about "
+        "block <hash> and information about each transaction.\n",
+        {
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The block hash"},
+            {"verbosity", RPCArg::Type::NUM, /* default */ "1",
+             "0 for hex-encoded data, 1 for a json object, and 2 for "
+             "json object with transaction data"},
+        },
+        {
+            RPCResult{"for verbosity = 0",
+                      "\"data\"                   (string) A string that is "
+                      "serialized, hex-encoded data for block 'hash'.\n"},
+            RPCResult{
+                "for verbosity = 1",
+                "{\n"
+                "  \"hash\" : \"hash\",       (string) The block hash "
+                "(same as provided)\n"
+                "  \"confirmations\" : n,   (numeric) The number of "
+                "confirmations, or -1 if the block is not on the main "
+                "chain\n"
+                "  \"size\" : n,            (numeric) The block size\n"
+                "  \"height\" : n,          (numeric) The block height or "
+                "index\n"
+                "  \"version\" : n,         (numeric) The block version\n"
+                "  \"versionHex\" : \"00000000\", (string) The block "
+                "version formatted in hexadecimal\n"
+                "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
+                "  \"tx\" : [               (array of string) The "
+                "transaction ids\n"
+                "     \"transactionid\"     (string) The transaction id\n"
+                "     ,...\n"
+                "  ],\n"
+                "  \"time\" : ttt,          (numeric) The block time in "
+                "seconds since epoch (Jan 1 1970 GMT)\n"
+                "  \"mediantime\" : ttt,    (numeric) The median block "
+                "time in seconds since epoch (Jan 1 1970 GMT)\n"
+                "  \"nonce\" : n,           (numeric) The nonce\n"
+                "  \"bits\" : \"1d00ffff\",   (string) The bits\n"
+                "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
+                "  \"chainwork\" : \"xxxx\",  (string) Expected number of "
+                "hashes required to produce the chain up to this block (in "
+                "hex)\n"
+                "  \"nTx\" : n,             (numeric) The number of "
+                "transactions in the block.\n"
+                "  \"previousblockhash\" : \"hash\",  (string) The hash of "
+                "the previous block\n"
+                "  \"nextblockhash\" : \"hash\"       (string) The hash of "
+                "the next block\n"
+                "}\n"},
+            RPCResult{
+                "for verbosity = 2",
+                "{\n"
+                "  ...,                   Same output as verbosity = 1\n"
+                "  \"tx\" : [               (array of Objects) The "
+                "transactions in the format of the getrawtransaction RPC; "
+                "different from verbosity = 1 \"tx\" result\n"
+                "    ...\n"
+                "  ],\n"
+                "  ...                    Same output as verbosity = 1\n"
+                "}\n"},
+        },
+        RPCExamples{
+            HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d"
                                        "214adbda81d7e2a3dd146f6ed09\"") +
-                        HelpExampleRpc("getblock",
-                                       "\"00000000c937983704a73af28acdec37b049d"
+            HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d"
                                        "214adbda81d7e2a3dd146f6ed09\"")},
-        }
-                                     .ToString());
+    };
+
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
     }
 
     LOCK(cs_main);
