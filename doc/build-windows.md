@@ -123,36 +123,6 @@ Once the source code is ready the build steps are below:
     cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win64.cmake -DBUILD_BITCOIN_SEEDER=OFF # seeder not supported in Windows yet
     ninja
 
-## Building for 32-bit Windows
-
-To build executables for Windows 32-bit, install the following dependencies:
-
-    sudo apt install g++-mingw-w64-i686 mingw-w64-i686-dev
-
-For Ubuntu Xenial 16.04 and later, including Ubuntu Bionic on the Windows Subsystem for Linux <sup>[2](#footnote2)</sup>:
-
-    sudo update-alternatives --config i686-w64-mingw32-g++  # Set the default mingw32 g++ compiler option to posix.
-    sudo update-alternatives --config i686-w64-mingw32-gcc  # Set the default mingw32 gcc compiler option to posix.
-
-Note that for WSL the Bitcoin ABC source path MUST be somewhere in the default mount file system, for
-example /usr/src/bitcoin-abc, AND not under /mnt/d/.
-This means you cannot use a directory that located directly on the host Windows file system to perform the build.
-
-Acquire the source in the usual way:
-
-    git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
-
-Then build using:
-
-    PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
-    cd depends
-    make build-win32
-    cd ..
-    mkdir build
-    cd build
-    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win32.cmake -DBUILD_BITCOIN_SEEDER=OFF # seeder not supported in Windows yet
-    ninja
-
 ## Depends system
 
 For further documentation on the depends system see [README.md](../depends/README.md) in the depends directory.
@@ -165,7 +135,7 @@ executables to a directory on the windows drive in the same directory structure
 as they appear in the release `.zip` archive. This can be done in the following
 way. This will install to `c:\workspace\bitcoin-abc`, for example:
 
-    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win32.cmake -DBUILD_BITCOIN_SEEDER=OFF -DCMAKE_INSTALL_PREFIX=/mnt/c/workspace/bitcoin-abc
+    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win64.cmake -DBUILD_BITCOIN_SEEDER=OFF -DCMAKE_INSTALL_PREFIX=/mnt/c/workspace/bitcoin-abc
     ninja install
 
 Footnotes
@@ -178,8 +148,8 @@ Installing the Mingw-w64 packages from the Ubuntu 17.10 distribution solves the 
 an officially supported approach and it's only recommended if you are prepared to reinstall WSL/Ubuntu should
 something break.
 
-<a name="footnote2">2</a>: Starting from Ubuntu Xenial 16.04, both the 32 and 64 bit Mingw-w64 packages install two different
-compiler options to allow a choice between either posix or win32 threads. The default option is win32 threads which is the more
+<a name="footnote2">2</a>: Starting from Ubuntu Xenial 16.04, the Mingw-w64 packages install two different compiler
+options to allow a choice between either posix or win32 threads. The default option is win32 threads which is the more
 efficient since it will result in binary code that links directly with the Windows kernel32.lib. Unfortunately, the headers
 required to support win32 threads conflict with some of the classes in the C++11 standard library, in particular std::mutex.
 It's not possible to build the Bitcoin ABC code using the win32 version of the Mingw-w64 cross compilers (at least not without

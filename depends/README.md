@@ -14,7 +14,6 @@ Where `<platform>` is one of the following:
  - linux-arm
  - linux-aarch64
  - osx
- - win32
  - win64
 
 For example, building the dependencies for macOS:
@@ -47,7 +46,7 @@ No other options are needed, the paths are automatically configured.
 
     sudo apt-get install imagemagick libbz2-dev libcap-dev librsvg2-bin libtiff-tools python3-setuptools
 
-#### For Win32/Win64 cross compilation
+#### For Win64 cross compilation
 
 - see [build-windows.md](../doc/build-windows.md#cross-compilation-for-ubuntu-and-windows-subsystem-for-linux)
 
