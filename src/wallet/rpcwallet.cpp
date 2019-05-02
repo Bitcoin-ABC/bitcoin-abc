@@ -86,14 +86,14 @@ GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
                : nullptr;
 }
 
-std::string HelpRequiringPassphrase(CWallet *const pwallet) {
+std::string HelpRequiringPassphrase(const CWallet *pwallet) {
     return pwallet && pwallet->IsCrypted()
                ? "\nRequires wallet passphrase to be set with walletpassphrase "
                  "call."
                : "";
 }
 
-bool EnsureWalletIsAvailable(CWallet *const pwallet, bool avoidException) {
+bool EnsureWalletIsAvailable(const CWallet *pwallet, bool avoidException) {
     if (pwallet) {
         return true;
     }
@@ -111,7 +111,7 @@ bool EnsureWalletIsAvailable(CWallet *const pwallet, bool avoidException) {
                        "through /wallet/<filename> uri-path).");
 }
 
-void EnsureWalletIsUnlocked(CWallet *const pwallet) {
+void EnsureWalletIsUnlocked(const CWallet *pwallet) {
     if (pwallet->IsLocked()) {
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED,
                            "Error: Please enter the wallet passphrase with "

@@ -43,9 +43,9 @@ void RegisterWalletRPCCommands(
 std::shared_ptr<CWallet>
 GetWalletForJSONRPCRequest(const JSONRPCRequest &request);
 
-std::string HelpRequiringPassphrase(CWallet *);
-void EnsureWalletIsUnlocked(CWallet *);
-bool EnsureWalletIsAvailable(CWallet *, bool avoidException);
+std::string HelpRequiringPassphrase(const CWallet *);
+void EnsureWalletIsUnlocked(const CWallet *);
+bool EnsureWalletIsAvailable(const CWallet *, bool avoidException);
 
 UniValue signrawtransactionwithwallet(const Config &config,
                                       const JSONRPCRequest &request);
