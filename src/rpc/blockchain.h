@@ -5,6 +5,8 @@
 #ifndef BITCOIN_RPC_BLOCKCHAIN_H
 #define BITCOIN_RPC_BLOCKCHAIN_H
 
+#include <sync.h>
+
 #include <univalue.h>
 
 class CBlock;
@@ -12,6 +14,8 @@ class CBlockIndex;
 class Config;
 class CTxMemPool;
 class JSONRPCRequest;
+
+extern RecursiveMutex cs_main;
 
 UniValue getblockchaininfo(const Config &config, const JSONRPCRequest &request);
 
@@ -28,7 +32,8 @@ void RPCNotifyBlockChange(bool ibd, const CBlockIndex *pindex);
 
 /** Block description to JSON */
 UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
-                     const CBlockIndex *blockindex, bool txDetails = false);
+                     const CBlockIndex *blockindex, bool txDetails = false)
+    LOCKS_EXCLUDED(cs_main);
 
 /** Mempool information to JSON */
 UniValue MempoolInfoToJSON(const CTxMemPool &pool);
@@ -38,6 +43,7 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose = false);
 
 /** Block header to JSON */
 UniValue blockheaderToJSON(const CBlockIndex *tip,
-                           const CBlockIndex *blockindex);
+                           const CBlockIndex *blockindex)
+    LOCKS_EXCLUDED(cs_main);
 
 #endif // BITCOIN_RPC_BLOCKCHAIN_H
