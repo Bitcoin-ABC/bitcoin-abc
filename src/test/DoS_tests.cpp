@@ -96,7 +96,8 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     peerLogic->FinalizeNode(config, dummyNode1.GetId(), dummy);
 }
 
-void AddRandomOutboundPeer(const Config &config, std::vector<CNode *> &vNodes,
+void AddRandomOutboundPeer(const Config &config,
+                           std::vector<std::unique_ptr<CNode>> &vNodes,
                            PeerLogicValidation &peerLogic) {
     CAddress addr(ip(GetRandInt(0xffffffff)), NODE_NONE);
     vNodes.emplace_back(new CNode(id++, ServiceFlags(NODE_NETWORK), 0,
@@ -123,7 +124,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     options.nMaxFeeler = 1;
 
     connman->Init(options);
-    std::vector<CNode *> vNodes;
+    std::vector<std::unique_ptr<CNode>> vNodes;
 
     // Mock some outbound peers
     for (int i = 0; i < nMaxOutbound; ++i) {
@@ -133,7 +134,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     peerLogic->CheckForStaleTipAndEvictPeers(consensusParams);
 
     // No nodes should be marked for disconnection while we have no extra peers
-    for (const CNode *node : vNodes) {
+    for (auto const &node : vNodes) {
         BOOST_CHECK(node->fDisconnect == false);
     }
 
@@ -145,7 +146,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     BOOST_CHECK(connman->GetTryNewOutboundPeer());
 
     // Still no peers should be marked for disconnection
-    for (const CNode *node : vNodes) {
+    for (auto const &node : vNodes) {
         BOOST_CHECK(node->fDisconnect == false);
     }
 
@@ -175,7 +176,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     BOOST_CHECK(vNodes.back()->fDisconnect == false);
 
     bool dummy;
-    for (const CNode *node : vNodes) {
+    for (auto const &node : vNodes) {
         peerLogic->FinalizeNode(config, node->GetId(), dummy);
     }
 
