@@ -355,9 +355,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         headers_message = msg_headers()
         headers_message.headers.append(CBlockHeader(block_293))
         test_node.send_message(headers_message)
-        # FIXME: Uncomment this line once Core backport 015a525 is completed.
-        # Current behavior does not ban peers that give us headers on invalid chains.
-        # test_node.wait_for_disconnect()
+        test_node.wait_for_disconnect()
 
         # 9. Connect node1 to node0 and ensure it is able to sync
         connect_nodes(self.nodes[0], self.nodes[1])
