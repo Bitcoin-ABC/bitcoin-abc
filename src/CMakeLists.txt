@@ -19,6 +19,20 @@ option(ENABLE_HARDENING "Harden the executables" ON)
 option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
 
+# Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
+if(ENABLE_SANITIZERS)
+	set(ECM_ENABLE_SANITIZERS ${ENABLE_SANITIZERS})
+	find_package(ECM NO_MODULE)
+	if(ECM_MODULE_PATH)
+		list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+		include(ECMEnableSanitizers)
+	else()
+		message(FATAL_ERROR
+			"ECM is required to enable the sanitizers (https://api.kde.org/ecm/index.html)"
+		)
+	endif()
+endif()
+
 # Cmake uses the CMAKE_BUILD_TYPE variable to select the build configuration.
 # By default it supports more configurations that needed for Bitcoin ABC, and
 # all the releases types set NDEBUG which is unwanted as it disables the assert
