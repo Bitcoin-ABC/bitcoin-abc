@@ -5,8 +5,10 @@
 #ifndef BITCOIN_BLOCKFILTER_H
 #define BITCOIN_BLOCKFILTER_H
 
+#include <primitives/block.h>
 #include <serialize.h>
 #include <uint256.h>
+#include <undo.h>
 
 #include <cstdint>
 #include <set>
@@ -69,6 +71,68 @@ public:
      * efficient that checking Match on multiple elements separately.
      */
     bool MatchAny(const ElementSet &elements) const;
+};
+
+constexpr uint8_t BASIC_FILTER_P = 19;
+constexpr uint32_t BASIC_FILTER_M = 784931;
+
+enum BlockFilterType : uint8_t {
+    BASIC = 0,
+};
+
+/**
+ * Complete block filter struct as defined in BIP 157. Serialization matches
+ * payload of "cfilter" messages.
+ */
+class BlockFilter {
+private:
+    BlockFilterType m_filter_type;
+    uint256 m_block_hash;
+    GCSFilter m_filter;
+
+public:
+    // Construct a new BlockFilter of the specified type from a block.
+    BlockFilter(BlockFilterType filter_type, const CBlock &block,
+                const CBlockUndo &block_undo);
+
+    BlockFilterType GetFilterType() const { return m_filter_type; }
+
+    const GCSFilter &GetFilter() const { return m_filter; }
+
+    const std::vector<uint8_t> &GetEncodedFilter() const {
+        return m_filter.GetEncoded();
+    }
+
+    // Compute the filter hash.
+    uint256 GetHash() const;
+
+    // Compute the filter header given the previous one.
+    uint256 ComputeHeader(const uint256 &prev_header) const;
+
+    template <typename Stream> void Serialize(Stream &s) const {
+        s << m_block_hash << static_cast<uint8_t>(m_filter_type)
+          << m_filter.GetEncoded();
+    }
+
+    template <typename Stream> void Unserialize(Stream &s) {
+        std::vector<uint8_t> encoded_filter;
+        uint8_t filter_type;
+
+        s >> m_block_hash >> filter_type >> encoded_filter;
+
+        m_filter_type = static_cast<BlockFilterType>(filter_type);
+
+        switch (m_filter_type) {
+            case BlockFilterType::BASIC:
+                m_filter = GCSFilter(m_block_hash.GetUint64(0),
+                                     m_block_hash.GetUint64(1), BASIC_FILTER_P,
+                                     BASIC_FILTER_M, std::move(encoded_filter));
+                break;
+
+            default:
+                throw std::ios_base::failure("unknown filter_type");
+        }
+    }
 };
 
 #endif // BITCOIN_BLOCKFILTER_H

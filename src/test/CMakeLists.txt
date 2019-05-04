@@ -34,6 +34,7 @@ gen_json_header(JSON_HEADERS
 	data/base58_keys_valid.json
 	data/base58_encode_decode.json
 	data/base58_keys_invalid.json
+	data/blockfilters.json
 	data/tx_invalid.json
 	data/tx_valid.json
 	data/sighash.json
