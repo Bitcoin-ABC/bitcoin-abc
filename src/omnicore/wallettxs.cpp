@@ -82,7 +82,7 @@ bool CheckFee(const std::string& fromAddress, size_t nDataSize)
     inputTotal = SelectCoins(fromAddress, coinControl, 0);
 
     // calculate the estimated fee per KB based on the currently set confirm target
-    CFeeRate feeRate = mempool.estimateFee(nTxConfirmTarget);
+    CFeeRate feeRate = g_mempool.estimateFee(nTxConfirmTarget);
 
     // if there is not enough data (and zero is estimated) then base minimum on a fairly high/safe 50,000 satoshi fee per KB
     if (feeRate == CFeeRate(Amount(0))) {
@@ -189,7 +189,7 @@ static int64_t GetEstimatedFeePerKb()
 		pwalletMain = vpwallets[0];
 	}
     if (pwalletMain) {
-        nFee = pwalletMain->GetMinimumFee(1000, nTxConfirmTarget, mempool).GetSatoshis();
+        nFee = GetMinimumFee(1000, g_mempool).GetSatoshis();
     }
 #endif
 
@@ -256,7 +256,7 @@ int64_t SelectCoins(const std::string& fromAddress, CCoinControl& coinControl, i
         if (!wtx.GetAvailableCredit().GetSatoshis()) {
             continue;
         }
-	const CTransaction &tmpTx = wtx.getTx();
+	    const CTransaction &tmpTx = wtx.getTx();
         for (unsigned int n = 0; n < tmpTx.vout.size(); n++) {
             const CTxOut& txOut = tmpTx.vout[n];
 

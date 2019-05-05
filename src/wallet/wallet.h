@@ -215,6 +215,10 @@ public:
 		return tx.get()->ToString();
 	}
 
+    const CTransaction& getTx() const{
+        return *(tx.get());
+    }
+
     void SetTx(CTransactionRef arg) { tx = std::move(arg); }
 
     ADD_SERIALIZE_METHODS;
