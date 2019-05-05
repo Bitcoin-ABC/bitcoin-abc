@@ -770,7 +770,7 @@ UniValue whc_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
     if (result != true) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, error_str(RPC_INVALID_PARAMETER));
     } else {
-        return wtx.GetId().GetHex();
+        return wtx->GetId().GetHex();
     }
 }
 
@@ -943,7 +943,7 @@ bool createNewtransaction(CWallet *const pwallet, const std::string &address,
     if(!address.empty()){
         coinControl.destChange = DecodeCashAddr(address, params);
         if (!pwallet->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired,
-                                        nChangePosRet, strError, &coinControl )) {
+                                        nChangePosRet, strError, coinControl )) {
             if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
                 strError = strprintf("Error: This transaction requires a "
                                              "transaction fee of at least %s",
@@ -953,7 +953,7 @@ bool createNewtransaction(CWallet *const pwallet, const std::string &address,
         }
     }else{
         if (!pwallet->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired,
-                                        nChangePosRet, strError)) {
+                                        nChangePosRet, strError, coinControl)) {
             if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
                 strError = strprintf("Error: This transaction requires a "
                                              "transaction fee of at least %s",
@@ -1175,31 +1175,31 @@ static const ContextFreeRPCCommand commands[] =
   //  ------------------------------------ ------------------------------- ------------------------------ ----------
 #ifdef ENABLE_WALLET
     //change_003
-    { "omni layer (transaction creation)", "whc_sendrawtx",               &whc_sendrawtx,               false, {} },
-    { "omni layer (transaction creation)", "whc_send",                    &whc_send,                    false, {} },
-    { "omni layer (transaction creation)", "whc_sendissuancecrowdsale",   &whc_sendissuancecrowdsale,   false, {} },
-    { "omni layer (transaction creation)", "whc_sendissuancefixed",       &whc_sendissuancefixed,       false, {} },
-    { "omni layer (transaction creation)", "whc_sendissuancemanaged",     &whc_sendissuancemanaged,     false, {} },
-    { "omni layer (transaction creation)", "whc_sendsto",                 &whc_sendsto,                 false, {} },
-    { "omni layer (transaction creation)", "whc_burnbchgetwhc",           &whc_burnbchgetwhc,           false, {} },
-    { "omni layer (transaction creation)", "whc_sendgrant",               &whc_sendgrant,               false, {} },
-    { "omni layer (transaction creation)", "whc_sendrevoke",              &whc_sendrevoke,              false, {} },
-    { "omni layer (transaction creation)", "whc_sendclosecrowdsale",      &whc_sendclosecrowdsale,      false, {} },
-    { "omni layer (transaction creation)", "whc_sendchangeissuer",        &whc_sendchangeissuer,        false, {} },
-    { "omni layer (transaction creation)", "whc_sendall",                 &whc_sendall,                 false, {} },
-    { "omni layer (transaction creation)", "whc_particrowsale",           &whc_particrowsale,           false, {} },
-    { "omni layer (transaction creation)", "whc_issuanceERC721property",        &whc_issuanceERC721property,           false, {} },
-    { "omni layer (transaction creation)", "whc_issuanceERC721Token",           &whc_issuanceERC721Token,           false, {} },
-    { "omni layer (transaction creation)", "whc_transferERC721Token",           &whc_transferERC721Token,           false, {} },
-    { "omni layer (transaction creation)", "whc_destroyERC721Token",           &whc_destroyERC721Token,           false, {} },
+    { "omni layer (transaction creation)", "whc_sendrawtx",               &whc_sendrawtx, {} },
+    { "omni layer (transaction creation)", "whc_send",                    &whc_send, {} },
+    { "omni layer (transaction creation)", "whc_sendissuancecrowdsale",   &whc_sendissuancecrowdsale, {} },
+    { "omni layer (transaction creation)", "whc_sendissuancefixed",       &whc_sendissuancefixed, {} },
+    { "omni layer (transaction creation)", "whc_sendissuancemanaged",     &whc_sendissuancemanaged, {} },
+    { "omni layer (transaction creation)", "whc_sendsto",                 &whc_sendsto, {} },
+    { "omni layer (transaction creation)", "whc_burnbchgetwhc",           &whc_burnbchgetwhc, {} },
+    { "omni layer (transaction creation)", "whc_sendgrant",               &whc_sendgrant, {} },
+    { "omni layer (transaction creation)", "whc_sendrevoke",              &whc_sendrevoke, {} },
+    { "omni layer (transaction creation)", "whc_sendclosecrowdsale",      &whc_sendclosecrowdsale, {} },
+    { "omni layer (transaction creation)", "whc_sendchangeissuer",        &whc_sendchangeissuer, {} },
+    { "omni layer (transaction creation)", "whc_sendall",                 &whc_sendall, {} },
+    { "omni layer (transaction creation)", "whc_particrowsale",           &whc_particrowsale, {} },
+    { "omni layer (transaction creation)", "whc_issuanceERC721property",        &whc_issuanceERC721property, {} },
+    { "omni layer (transaction creation)", "whc_issuanceERC721Token",           &whc_issuanceERC721Token, {} },
+    { "omni layer (transaction creation)", "whc_transferERC721Token",           &whc_transferERC721Token, {} },
+    { "omni layer (transaction creation)", "whc_destroyERC721Token",           &whc_destroyERC721Token, {} },
 	/* depreciated: */
-    { "omni layer (transaction creation)", "whc_sendfreeze",              &whc_sendfreeze,              false, {} },
-    { "omni layer (transaction creation)", "whc_sendunfreeze",            &whc_sendunfreeze,            false, {} },
+    { "omni layer (transaction creation)", "whc_sendfreeze",              &whc_sendfreeze, {} },
+    { "omni layer (transaction creation)", "whc_sendunfreeze",            &whc_sendunfreeze, {} },
 
     /* depreciated: */
-    { "hidden",                            "sendrawtx_MP",                 &whc_sendrawtx,               false, {} },
-    { "hidden",                            "send_MP",                      &whc_send,                    false, {} },
-    { "hidden",                            "sendtoowners_MP",              &whc_sendsto,                 false, {} },
+    { "hidden",                            "sendrawtx_MP",                 &whc_sendrawtx, {} },
+    { "hidden",                            "send_MP",                      &whc_send, {} },
+    { "hidden",                            "sendtoowners_MP",              &whc_sendsto, {} },
 
 #endif
 };

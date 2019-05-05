@@ -5,7 +5,7 @@
 #include "wallet/wallet.h"
 #include <univalue.h>
 
-bool createNewtransaction(CWallet *const pwallet, const std::string &address, Amount nValue, CWalletTx &wtxNew);
+bool createNewtransaction(CWallet *const pwallet, const std::string &address, Amount nValue, CTransactionRef &wtxNew);
 UniValue whc_sendrawtx(Config const&, JSONRPCRequest const&);
 UniValue whc_send(Config const&, JSONRPCRequest const&);
 UniValue whc_particrowsale(Config const&, JSONRPCRequest const&);
