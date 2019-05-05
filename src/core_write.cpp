@@ -152,6 +152,13 @@ std::string ScriptToAsmStr(const CScript &script,
     return str;
 }
 
+std::string EncodeHexTx(const CTransactionRef &txRef, const int serialFlags) {
+    if(txRef.get() != NULL){
+        return EncodeHexTx(*(txRef.get()), serialFlags);
+    }
+    return "";
+}
+
 std::string EncodeHexTx(const CTransaction &tx, const int serialFlags) {
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION | serialFlags);
     ssTx << tx;

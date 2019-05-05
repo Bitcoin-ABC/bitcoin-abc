@@ -27,6 +27,7 @@ std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
 
 // core_write.cpp
 std::string FormatScript(const CScript &script);
+std::string EncodeHexTx(const CTransactionRef &txRef, const int serialFlags = 0);
 std::string EncodeHexTx(const CTransaction &tx, const int serializeFlags = 0);
 void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
                         bool fIncludeHex);

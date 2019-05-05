@@ -2784,7 +2784,7 @@ static const ContextFreeRPCCommand commands[] =
         {"omni layer (data retrieval)", "whc_listblocktransactions", &whc_listblocktransactions, {}},
         {"omni layer (data retrieval)", "whc_listpendingtransactions", &whc_listpendingtransactions, {}},
         {"omni layer (data retrieval)", "whc_getallbalancesforaddress", &whc_getallbalancesforaddress, {}},
-        {"omni layer (data retrieval)", "whc_getcurrentconsensushash", &whc_getcurrentconsensushash, false, {}},
+        {"omni layer (data retrieval)", "whc_getcurrentconsensushash", &whc_getcurrentconsensushash, {}},
         {"omni layer (data retrieval)", "whc_getpayload", &whc_getpayload, {}},
         {"omni layer (data retrieval)", "whc_getseedblocks", &whc_getseedblocks, {}},
         { "omni layer (data retrieval)", "whc_getbalanceshash", &whc_getbalanceshash, {}},
@@ -2800,7 +2800,7 @@ static const ContextFreeRPCCommand commands[] =
         { "omni layer (data retrieval)", "whc_listtransactions", &whc_listtransactions, {}},
         { "omni layer (configuration)",  "whc_setautocommit", &whc_setautocommit, {}},
 #endif
-        {"hidden", "mscrpc", &mscrpc, true, {}},
+        {"hidden", "mscrpc", &mscrpc, {}},
         /* depreciated: */
         {"hidden", "getinfo_MP", &whc_getinfo, {}},
         {"hidden", "getbalance_MP", &whc_getbalance, {}},
