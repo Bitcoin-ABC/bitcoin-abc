@@ -965,7 +965,8 @@ bool createNewtransaction(CWallet *const pwallet, const std::string &address,
 
 
     CValidationState retstate;
-    if (!pwallet->CommitTransaction(wtxNew, reservekey, g_connman.get(), retstate)) {
+    mapValue_t mapValue;
+    if (!pwallet->CommitTransaction(wtxNew, mapValue, {}, "", reservekey, g_connman.get(), retstate)) {
         strError = strprintf("Error: The transaction was rejected! Reason given: %s",
                           retstate.GetRejectReason());
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
