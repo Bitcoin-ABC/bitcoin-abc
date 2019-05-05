@@ -2407,7 +2407,7 @@ int mastercore::WalletTxBuilder(const std::string& senderAddress, const std::str
     }
 
     // Ask the wallet to create the transaction (note mining fee determined by Bitcoin Core params)
-    if (!pwalletMain->CreateTransaction(vecRecipients, wtx, reserveKey, nFeeRet, nChangePosInOut, strFailReason, &coinControl)) {
+    if (!pwalletMain->CreateTransaction(vecRecipients, wtx, reserveKey, nFeeRet, nChangePosInOut, strFailReason, coinControl)) {
         PrintToLog("%s: ERROR: wallet transaction creation failed: %s\n", __func__, strFailReason);
         return MP_ERR_CREATE_TX;
     }
@@ -2421,7 +2421,7 @@ int mastercore::WalletTxBuilder(const std::string& senderAddress, const std::str
 	    CValidationState state;
         PrintToLog("%s: %s; nFeeRet = %d\n", __func__, wtx.ToString(), nFeeRet.GetSatoshis());
         if (!pwalletMain->CommitTransaction(wtx, reserveKey, g_connman.get(), state)) return MP_ERR_COMMIT_TX;
-        txid = wtxNew.GetId();
+        txid = wtx.GetId();
         return 0;
     }
 #else

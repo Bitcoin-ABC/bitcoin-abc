@@ -2060,7 +2060,7 @@ UniValue whc_listpendingtransactions(const Config &config, const JSONRPCRequest 
     }
 
     std::vector<uint256> vTxid;
-    mempool.queryHashes(vTxid);
+    g_mempool.queryHashes(vTxid);
 
     UniValue result(UniValue::VARR);
     for (const uint256 &hash : vTxid) {
@@ -2767,76 +2767,55 @@ UniValue whc_listERC721PropertyTokens(const Config &config, const JSONRPCRequest
 
 static const ContextFreeRPCCommand commands[] =
         { //  category                             name                            actor (function)               okSafeMode
-                //  ------------------------------------ ------------------------------- ------------------------------ ----------
-                //change_003
-                {"omni layer (data retrieval)", "whc_getinfo", &whc_getinfo, true, {}},
-//    { "omni layer (data retrieval)", "omni_getactivations",            &omni_getactivations,             true  , {}},
-                {"omni layer (data retrieval)", "whc_getallbalancesforid", &whc_getallbalancesforid, false, {}},
-                {"omni layer (data retrieval)", "whc_getbalance", &whc_getbalance, false, {}},
-                {"omni layer (data retrieval)", "whc_getfrozenbalance", &whc_getfrozenbalance, false, {}},
-                {"omni layer (data retrieval)", "whc_getfrozenbalanceforid", &whc_getfrozenbalanceforid, false, {}},
-                {"omni layer (data retrieval)", "whc_getfrozenbalanceforaddress", &whc_getfrozenbalanceforaddress,
-                 false, {}},
-                {"omni layer (data retrieval)", "whc_gettransaction", &whc_gettransaction, false, {}},
-                {"omni layer (data retrieval)", "whc_getproperty", &whc_getproperty, false, {}},
-                {"omni layer (data retrieval)", "whc_listproperties", &whc_listproperties, false, {}},
-                {"omni layer (data retrieval)", "whc_getcrowdsale", &whc_getcrowdsale, false, {}},
-                {"omni layer (data retrieval)", "whc_getgrants", &whc_getgrants, false, {}},
-//    { "omni layer (data retrieval)", "omni_getactivedexsells",         &omni_getactivedexsells,          false , {}},
-//    { "omni layer (data retrieval)", "whc_getactivecrowdsales",       &whc_getactivecrowdsales,        false , {}},
-//    { "omni layer (data retrieval)", "omni_getorderbook",              &omni_getorderbook,               false , {}},
-//    { "omni layer (data retrieval)", "omni_gettrade",                  &omni_gettrade,                   false , {}},
-                {"omni layer (data retrieval)", "whc_getsto", &whc_getsto, false, {}},
-                {"omni layer (data retrieval)", "whc_listblocktransactions", &whc_listblocktransactions, false, {}},
-                {"omni layer (data retrieval)", "whc_listpendingtransactions", &whc_listpendingtransactions, false, {}},
-                {"omni layer (data retrieval)", "whc_getallbalancesforaddress", &whc_getallbalancesforaddress, false,
-                 {}},
-//    { "omni layer (data retrieval)", "omni_gettradehistoryforaddress", &omni_gettradehistoryforaddress,  false , {}},
-//    { "omni layer (data retrieval)", "omni_gettradehistoryforpair",    &omni_gettradehistoryforpair,     false , {}},
-                {"omni layer (data retrieval)", "whc_getcurrentconsensushash", &whc_getcurrentconsensushash, false, {}},
-                {"omni layer (data retrieval)", "whc_getpayload", &whc_getpayload, false, {}},
-                {"omni layer (data retrieval)", "whc_getseedblocks", &whc_getseedblocks, false, {}},
-//    { "omni layer (data retrieval)", "omni_getmetadexhash",            &omni_getmetadexhash,             false , {}},
-//    { "omni layer (data retrieval)", "omni_getfeecache",               &omni_getfeecache,                false , {}},
-//    { "omni layer (data retrieval)", "omni_getfeetrigger",             &omni_getfeetrigger,              false , {}},
-//    { "omni layer (data retrieval)", "omni_getfeedistribution",        &omni_getfeedistribution,         false , {}},
-//    { "omni layer (data retrieval)", "omni_getfeedistributions",       &omni_getfeedistributions,        false , {}},
-    { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
-    { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,             false , {}},
-    { "omni layer (data retrieval)",  "whc_ownerOfERC721Token",           &whc_ownerOfERC721Token,             false , {}},
-    { "omni layer (data retrieval)",  "whc_getERC721TokenNews",           &whc_getERC721TokenNews,             false , {}},
-    { "omni layer (data retrieval)",  "whc_getERC721PropertyNews",           &whc_getERC721PropertyNews,             false , {}},
-    { "omni layer (data retrieval)",  "whc_getERC721AddressTokens",           &whc_getERC721AddressTokens,             false , {}},
-    { "omni layer (data retrieval)",  "whc_getERC721PropertyDestroyTokens",           &whc_getERC721PropertyDestroyTokens,        false , {}},
-    { "omni layer (data retrieval)",  "whc_listERC721PropertyTokens",           &whc_listERC721PropertyTokens,        false , {}},
-
-//    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
+        //  ---------------------------- ------------------------------- ------------------------------ ----------
+        //change_003
+        {"omni layer (data retrieval)", "whc_getinfo", &whc_getinfo, {}},
+        {"omni layer (data retrieval)", "whc_getallbalancesforid", &whc_getallbalancesforid, {}},
+        {"omni layer (data retrieval)", "whc_getbalance", &whc_getbalance, {}},
+        {"omni layer (data retrieval)", "whc_getfrozenbalance", &whc_getfrozenbalance, {}},
+        {"omni layer (data retrieval)", "whc_getfrozenbalanceforid", &whc_getfrozenbalanceforid, {}},
+        {"omni layer (data retrieval)", "whc_getfrozenbalanceforaddress", &whc_getfrozenbalanceforaddress, {}},
+        {"omni layer (data retrieval)", "whc_gettransaction", &whc_gettransaction, {}},
+        {"omni layer (data retrieval)", "whc_getproperty", &whc_getproperty, {}},
+        {"omni layer (data retrieval)", "whc_listproperties", &whc_listproperties, {}},
+        {"omni layer (data retrieval)", "whc_getcrowdsale", &whc_getcrowdsale, {}},
+        {"omni layer (data retrieval)", "whc_getgrants", &whc_getgrants, {}},
+        {"omni layer (data retrieval)", "whc_getsto", &whc_getsto, {}},
+        {"omni layer (data retrieval)", "whc_listblocktransactions", &whc_listblocktransactions, {}},
+        {"omni layer (data retrieval)", "whc_listpendingtransactions", &whc_listpendingtransactions, {}},
+        {"omni layer (data retrieval)", "whc_getallbalancesforaddress", &whc_getallbalancesforaddress, {}},
+        {"omni layer (data retrieval)", "whc_getcurrentconsensushash", &whc_getcurrentconsensushash, false, {}},
+        {"omni layer (data retrieval)", "whc_getpayload", &whc_getpayload, {}},
+        {"omni layer (data retrieval)", "whc_getseedblocks", &whc_getseedblocks, {}},
+        { "omni layer (data retrieval)", "whc_getbalanceshash", &whc_getbalanceshash, {}},
+        { "omni layer (data retrieval)",  "whc_getactivecrowd", &whc_getactivecrowd, {}},
+        { "omni layer (data retrieval)",  "whc_ownerOfERC721Token", &whc_ownerOfERC721Token, {}},
+        { "omni layer (data retrieval)",  "whc_getERC721TokenNews", &whc_getERC721TokenNews, {}},
+        { "omni layer (data retrieval)",  "whc_getERC721PropertyNews", &whc_getERC721PropertyNews, {}},
+        { "omni layer (data retrieval)",  "whc_getERC721AddressTokens", &whc_getERC721AddressTokens, {}},
+        { "omni layer (data retrieval)",  "whc_getERC721PropertyDestroyTokens", &whc_getERC721PropertyDestroyTokens, {}},
+        { "omni layer (data retrieval)",  "whc_listERC721PropertyTokens", &whc_listERC721PropertyTokens, {}},
 
 #ifdef ENABLE_WALLET
-        { "omni layer (data retrieval)", "whc_listtransactions",          &whc_listtransactions,           false , {}},
-    //    { "omni layer (data retrieval)", "whc_getfeeshare",               &whc_getfeeshare,                false , {}},
-        { "omni layer (configuration)",  "whc_setautocommit",             &whc_setautocommit,              true  , {}},
+        { "omni layer (data retrieval)", "whc_listtransactions", &whc_listtransactions, {}},
+        { "omni layer (configuration)",  "whc_setautocommit", &whc_setautocommit, {}},
 #endif
-                {"hidden", "mscrpc", &mscrpc, true, {}},
-
-                /* depreciated: */
-                {"hidden", "getinfo_MP", &whc_getinfo, true, {}},
-                {"hidden", "getbalance_MP", &whc_getbalance, false, {}},
-                {"hidden", "getallbalancesforaddress_MP", &whc_getallbalancesforaddress, false, {}},
-                {"hidden", "getallbalancesforid_MP", &whc_getallbalancesforid, false, {}},
-                {"hidden", "getproperty_MP", &whc_getproperty, false, {}},
-                {"hidden", "listproperties_MP", &whc_listproperties, false, {}},
-                {"hidden", "getcrowdsale_MP", &whc_getcrowdsale, false, {}},
-                {"hidden", "getgrants_MP", &whc_getgrants, false, {}},
-//    { "hidden",                      "getactivedexsells_MP",           &omni_getactivedexsells,          false , {}},
-                {"hidden", "getactivecrowdsales_MP", &whc_getactivecrowdsales, false, {}},
-                {"hidden", "getsto_MP", &whc_getsto, false, {}},
-//    { "hidden",                      "getorderbook_MP",                &omni_getorderbook,               false , {}},
-//    { "hidden",                      "gettrade_MP",                    &omni_gettrade,                   false , {}},
-                {"hidden", "gettransaction_MP", &whc_gettransaction, false, {}},
-                {"hidden", "listblocktransactions_MP", &whc_listblocktransactions, false, {}},
+        {"hidden", "mscrpc", &mscrpc, true, {}},
+        /* depreciated: */
+        {"hidden", "getinfo_MP", &whc_getinfo, {}},
+        {"hidden", "getbalance_MP", &whc_getbalance, {}},
+        {"hidden", "getallbalancesforaddress_MP", &whc_getallbalancesforaddress, {}},
+        {"hidden", "getallbalancesforid_MP", &whc_getallbalancesforid, {}},
+        {"hidden", "getproperty_MP", &whc_getproperty, {}},
+        {"hidden", "listproperties_MP", &whc_listproperties, {}},
+        {"hidden", "getcrowdsale_MP", &whc_getcrowdsale, {}},
+        {"hidden", "getgrants_MP", &whc_getgrants, {}},
+        {"hidden", "getactivecrowdsales_MP", &whc_getactivecrowdsales, {}},
+        {"hidden", "getsto_MP", &whc_getsto, {}},
+        {"hidden", "gettransaction_MP", &whc_gettransaction, {}},
+        {"hidden", "listblocktransactions_MP", &whc_listblocktransactions, {}},
 #ifdef ENABLE_WALLET
-                { "hidden",                      "listtransactions_MP",            &whc_listtransactions,           false , {}},
+        { "hidden", "listtransactions_MP", &whc_listtransactions , {}},
 #endif
         };
 

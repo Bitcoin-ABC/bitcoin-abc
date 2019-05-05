@@ -119,3 +119,10 @@ CMakeLists.txt
 src/wormholed-tx
 src/bench/bench_wormhole
 src/omnicore/res/omnicore-setup-win.nsi
+
+# Clion
+cmake-build-debug/CMakeFiles/clion-log.txt
+cmake-build-debug/test/*
+cmake-build-debug/src/*
+cmake-build-debug/*
+.idea/*
