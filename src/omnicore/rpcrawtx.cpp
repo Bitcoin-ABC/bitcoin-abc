@@ -182,12 +182,12 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
         fHaveChain = !existingCoin.IsSpent();
     }
 
-    bool fHaveMempool = mempool.exists(txid);
+    bool fHaveMempool = g_mempool.exists(txid);
     if (!fHaveMempool && !fHaveChain) {
         // Push to local node and sync with wallets.
         CValidationState state;
         bool fMissingInputs;
-        if (!AcceptToMemoryPool(config, mempool, state, tx,
+        if (!AcceptToMemoryPool(config, g_mempool, state, tx,
                                 fLimitFree, &fMissingInputs, false,
                                 nMaxRawTxFee)) {
             if (state.IsInvalid()) {
@@ -431,14 +431,12 @@ UniValue whc_createrawtx_change(const Config &config,const JSONRPCRequest &reque
 static const ContextFreeRPCCommand commands[] =
 { //  category                         name                          actor (function)             okSafeMode
   //  -------------------------------- ----------------------------- ---------------------------- ----------
-    //change_003
-    { "omni layer (raw transactions)", "whc_decodetransaction",     &whc_decodetransaction,     true, {}},
-    { "omni layer (raw transactions)", "whc_createrawtx_opreturn",  &whc_createrawtx_opreturn,  true, {}},
-//    { "omni layer (raw transactions)", "whc_createrawtx_multisig",  &whc_createrawtx_multisig,  true, {}},
-    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
-    { "omni layer (raw transactions)", "whc_createrawtx_input",     &whc_createrawtx_input,     true, {}},
-    { "omni layer (raw transactions)", "whc_createrawtx_reference", &whc_createrawtx_reference, true, {}},
-    { "omni layer (raw transactions)", "whc_createrawtx_change",    &whc_createrawtx_change,    true, {}},
+    { "omni layer (raw transactions)", "whc_decodetransaction",     &whc_decodetransaction, {}},
+    { "omni layer (raw transactions)", "whc_createrawtx_opreturn",  &whc_createrawtx_opreturn, {}},
+    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction, {}},
+    { "omni layer (raw transactions)", "whc_createrawtx_input",     &whc_createrawtx_input, {}},
+    { "omni layer (raw transactions)", "whc_createrawtx_reference", &whc_createrawtx_reference, {}},
+    { "omni layer (raw transactions)", "whc_createrawtx_change",    &whc_createrawtx_change, {}},
 
 };
 
