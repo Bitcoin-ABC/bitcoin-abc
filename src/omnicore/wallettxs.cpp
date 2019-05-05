@@ -19,6 +19,7 @@
 #include "cashaddrenc.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
+#include "wallet/fees.h"
 #ifdef ENABLE_WALLET
 #include "script/ismine.h"
 #include "wallet/wallet.h"
@@ -82,7 +83,7 @@ bool CheckFee(const std::string& fromAddress, size_t nDataSize)
     inputTotal = SelectCoins(fromAddress, coinControl, 0);
 
     // calculate the estimated fee per KB based on the currently set confirm target
-    CFeeRate feeRate = g_mempool.estimateFee(nTxConfirmTarget);
+    CFeeRate feeRate = g_mempool.estimateFee();
 
     // if there is not enough data (and zero is estimated) then base minimum on a fairly high/safe 50,000 satoshi fee per KB
     if (feeRate == CFeeRate(Amount(0))) {
