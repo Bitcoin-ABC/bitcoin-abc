@@ -759,7 +759,8 @@ UniValue whc_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
 	}
 
     CWalletRef pwalletMain = NULL;
-    CWalletTx wtx;
+    CTransactionRef wtx;
+
     if (vpwallets.size() > 0) {
         pwalletMain = vpwallets[0];
     }
@@ -889,7 +890,7 @@ UniValue whc_sendunfreeze(const Config &config,const JSONRPCRequest &request) {
 }
 
 bool createNewtransaction(CWallet *const pwallet, const std::string &address,
-                          Amount nValue, CWalletTx &wtxNew){
+                          Amount nValue, CTransactionRef &wtxNew){
     // Check amount
     if (nValue <= Amount(0)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");

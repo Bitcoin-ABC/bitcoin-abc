@@ -85,7 +85,7 @@ void PendingCheck()
     LOCK(cs_pending);
 
     std::vector<uint256> vecMemPoolTxids;
-    mempool.queryHashes(vecMemPoolTxids);
+    g_mempool.queryHashes(vecMemPoolTxids);
 
     for (PendingMap::iterator it = my_pending.begin(); it != my_pending.end(); ++it) {
         const uint256& txid = it->first;
