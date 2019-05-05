@@ -615,7 +615,6 @@ add_executable(src
         test/mempool_tests.cpp
         test/merkle_tests.cpp
         test/miner_tests.cpp
-        test/monolith_opcodes.cpp
         test/multisig_tests.cpp
         test/net_tests.cpp
         test/netbase_tests.cpp
@@ -648,8 +647,6 @@ add_executable(src
         test/test_bitcoin.h
         test/test_bitcoin_fuzzy.cpp
         test/test_bitcoin_main.cpp
-        test/testutil.cpp
-        test/testutil.h
         test/timedata_tests.cpp
         test/transaction_tests.cpp
         test/txvalidationcache_tests.cpp
@@ -658,7 +655,6 @@ add_executable(src
         test/univalue_tests.cpp
         test/util_tests.cpp
         test/validation_tests.cpp
-        test/versionbits_tests.cpp
         univalue/gen/gen.cpp
         univalue/include/univalue.h
         univalue/lib/univalue.cpp
@@ -672,7 +668,6 @@ add_executable(src
         univalue/test/test_json.cpp
         univalue/test/unitester.cpp
         wallet/test/accounting_tests.cpp
-        wallet/test/crypto_tests.cpp
         wallet/test/wallet_test_fixture.cpp
         wallet/test/wallet_test_fixture.h
         wallet/test/wallet_tests.cpp
@@ -831,7 +826,6 @@ add_executable(src
         validationinterface.cpp
         validationinterface.h
         version.h
-        versionbits.cpp
         versionbits.h
         warnings.cpp
         warnings.h
