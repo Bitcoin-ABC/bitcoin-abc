@@ -115,13 +115,30 @@ add_library(bitcoin-qt-base
 
 target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
 
+# Add the minimal integration plugin, and other plugins according to the target
+# platform.
+set(QT_PLUGIN_COMPONENTS QMinimalIntegrationPlugin)
+set(QT_PLUGIN_PLATFORM_DEFINITIONS -DQT_QPA_PLATFORM_MINIMAL=1)
+
+# Linux support
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	list(APPEND QT_PLUGIN_COMPONENTS QXcbIntegrationPlugin)
+	list(APPEND QT_PLUGIN_PLATFORM_DEFINITIONS -DQT_QPA_PLATFORM_XCB=1)
+endif()
+
 # Windows support
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	list(APPEND QT_PLUGIN_COMPONENTS QWindowsIntegrationPlugin)
+	list(APPEND QT_PLUGIN_PLATFORM_DEFINITIONS -DQT_QPA_PLATFORM_WINDOWS=1)
+
 	target_sources(bitcoin-qt-base PRIVATE winshutdownmonitor.cpp)
 endif()
 
 # OSX support
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	list(APPEND QT_PLUGIN_COMPONENTS QCocoaIntegrationPlugin)
+	list(APPEND QT_PLUGIN_PLATFORM_DEFINITIONS -DQT_QPA_PLATFORM_COCOA=1)
+
 	target_sources(bitcoin-qt-base PRIVATE 
 		macdockiconhandler.mm
 		macnotificationhandler.mm
@@ -161,6 +178,8 @@ macro(CONVERT_PRL_LIBS_TO_CMAKE _qt_component)
 endmacro()
 
 if(QT_STATIC_BUILD)
+	list(APPEND QT_REQUIRED_COMPONENTS ${QT_PLUGIN_COMPONENTS})
+
 	foreach(qt_module ${QT_REQUIRED_COMPONENTS})
 		CONVERT_PRL_LIBS_TO_CMAKE(${qt_module})
 	endforeach()
@@ -176,6 +195,25 @@ if(QT_STATIC_BUILD)
 	endif()
 	include(${STATIC_DEPENDENCIES_CMAKE_FILE})
 	list(REMOVE_DUPLICATES STATIC_LIB_DEPENDENCIES)
+
+	# According to Qt documentation (https://doc.qt.io/qt-5/plugins-howto.html):
+	# "Plugins can be linked statically into your application.
+	# If you build the static version of Qt, this is the only option for
+	# including Qt's predefined plugins."
+	# So if the Qt build is static, the plugins should also be static and we
+	# need to define QT_STATICPLUGIN to tell the code to import <QTPlugin>.
+	target_compile_definitions(bitcoin-qt-base PUBLIC -DQT_STATICPLUGIN=1)
+
+	# Add the platform plugin definition if required
+	# Setting this definition tells the code what is the target for Q_IMPORT_PLUGIN().
+	foreach(qt_platform_definition ${QT_PLUGIN_PLATFORM_DEFINITIONS})
+		target_compile_definitions(bitcoin-qt-base PUBLIC "${qt_platform_definition}")
+	endforeach()
+
+	# Link the required plugins
+	foreach(qt_plugin ${QT_PLUGIN_COMPONENTS})
+		target_link_libraries(bitcoin-qt-base Qt5::${qt_plugin})
+	endforeach()
 endif()
 
 target_link_libraries(bitcoin-qt-base
