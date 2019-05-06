@@ -147,7 +147,8 @@ UniValue blockToJSON(const Config &config, const CBlock &block,
     return result;
 }
 
-UniValue getblockcount(const Config &config, const JSONRPCRequest &request) {
+static UniValue getblockcount(const Config &config,
+                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getblockcount\n"
@@ -163,7 +164,8 @@ UniValue getblockcount(const Config &config, const JSONRPCRequest &request) {
     return chainActive.Height();
 }
 
-UniValue getbestblockhash(const Config &config, const JSONRPCRequest &request) {
+static UniValue getbestblockhash(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getbestblockhash\n"
@@ -207,7 +209,8 @@ void RPCNotifyBlockChange(bool ibd, const CBlockIndex *pindex) {
     cond_blockchange.notify_all();
 }
 
-UniValue waitfornewblock(const Config &config, const JSONRPCRequest &request) {
+static UniValue waitfornewblock(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
             "waitfornewblock (timeout)\n"
@@ -257,7 +260,8 @@ UniValue waitfornewblock(const Config &config, const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue waitforblock(const Config &config, const JSONRPCRequest &request) {
+static UniValue waitforblock(const Config &config,
+                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -313,8 +317,8 @@ UniValue waitforblock(const Config &config, const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue waitforblockheight(const Config &config,
-                            const JSONRPCRequest &request) {
+static UniValue waitforblockheight(const Config &config,
+                                   const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -366,8 +370,9 @@ UniValue waitforblockheight(const Config &config,
     return ret;
 }
 
-UniValue syncwithvalidationinterfacequeue(const Config &config,
-                                          const JSONRPCRequest &request) {
+static UniValue
+syncwithvalidationinterfacequeue(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 0) {
         throw std::runtime_error(
             "syncwithvalidationinterfacequeue\n"
@@ -381,7 +386,8 @@ UniValue syncwithvalidationinterfacequeue(const Config &config,
     return NullUniValue;
 }
 
-UniValue getdifficulty(const Config &config, const JSONRPCRequest &request) {
+static UniValue getdifficulty(const Config &config,
+                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error("getdifficulty\n"
                                  "\nReturns the proof-of-work difficulty as a "
@@ -399,7 +405,7 @@ UniValue getdifficulty(const Config &config, const JSONRPCRequest &request) {
     return GetDifficulty(chainActive.Tip());
 }
 
-std::string EntryDescriptionString() {
+static std::string EntryDescriptionString() {
     return "    \"size\" : n,             (numeric) transaction size.\n"
            "    \"fee\" : n,              (numeric) transaction fee in " +
            CURRENCY_UNIT +
@@ -432,7 +438,7 @@ std::string EntryDescriptionString() {
            "       ... ]\n";
 }
 
-void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
+static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
     AssertLockHeld(g_mempool.cs);
 
     info.pushKV("size", (int)e.GetTxSize());
@@ -488,7 +494,8 @@ UniValue mempoolToJSON(bool fVerbose = false) {
     }
 }
 
-UniValue getrawmempool(const Config &config, const JSONRPCRequest &request) {
+static UniValue getrawmempool(const Config &config,
+                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
             "getrawmempool ( verbose )\n"
@@ -521,8 +528,8 @@ UniValue getrawmempool(const Config &config, const JSONRPCRequest &request) {
     return mempoolToJSON(fVerbose);
 }
 
-UniValue getmempoolancestors(const Config &config,
-                             const JSONRPCRequest &request) {
+static UniValue getmempoolancestors(const Config &config,
+                                    const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -591,8 +598,8 @@ UniValue getmempoolancestors(const Config &config,
     }
 }
 
-UniValue getmempooldescendants(const Config &config,
-                               const JSONRPCRequest &request) {
+static UniValue getmempooldescendants(const Config &config,
+                                      const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -660,7 +667,8 @@ UniValue getmempooldescendants(const Config &config,
     }
 }
 
-UniValue getmempoolentry(const Config &config, const JSONRPCRequest &request) {
+static UniValue getmempoolentry(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "getmempoolentry txid\n"
@@ -693,7 +701,8 @@ UniValue getmempoolentry(const Config &config, const JSONRPCRequest &request) {
     return info;
 }
 
-UniValue getblockhash(const Config &config, const JSONRPCRequest &request) {
+static UniValue getblockhash(const Config &config,
+                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "getblockhash height\n"
@@ -718,7 +727,8 @@ UniValue getblockhash(const Config &config, const JSONRPCRequest &request) {
     return pblockindex->GetBlockHash().GetHex();
 }
 
-UniValue getblockheader(const Config &config, const JSONRPCRequest &request) {
+static UniValue getblockheader(const Config &config,
+                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -793,7 +803,7 @@ UniValue getblockheader(const Config &config, const JSONRPCRequest &request) {
     return blockheaderToJSON(pblockindex);
 }
 
-UniValue getblock(const Config &config, const JSONRPCRequest &request) {
+static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -977,7 +987,8 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
     return true;
 }
 
-UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
+static UniValue pruneblockchain(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "pruneblockchain\n"
@@ -1040,7 +1051,8 @@ UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
     return uint64_t(height);
 }
 
-UniValue gettxoutsetinfo(const Config &config, const JSONRPCRequest &request) {
+static UniValue gettxoutsetinfo(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "gettxoutsetinfo\n"
@@ -1173,7 +1185,8 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue verifychain(const Config &config, const JSONRPCRequest &request) {
+static UniValue verifychain(const Config &config,
+                            const JSONRPCRequest &request) {
     int nCheckLevel = gArgs.GetArg("-checklevel", DEFAULT_CHECKLEVEL);
     int nCheckDepth = gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS);
     if (request.fHelp || request.params.size() > 2) {
@@ -1355,7 +1368,8 @@ struct CompareBlocksByHeight {
     }
 };
 
-UniValue getchaintips(const Config &config, const JSONRPCRequest &request) {
+static UniValue getchaintips(const Config &config,
+                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getchaintips\n"
@@ -1490,7 +1504,8 @@ UniValue mempoolInfoToJSON() {
     return ret;
 }
 
-UniValue getmempoolinfo(const Config &config, const JSONRPCRequest &request) {
+static UniValue getmempoolinfo(const Config &config,
+                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getmempoolinfo\n"
@@ -1514,7 +1529,8 @@ UniValue getmempoolinfo(const Config &config, const JSONRPCRequest &request) {
     return mempoolInfoToJSON();
 }
 
-UniValue preciousblock(const Config &config, const JSONRPCRequest &request) {
+static UniValue preciousblock(const Config &config,
+                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "preciousblock \"blockhash\"\n"
@@ -1594,7 +1610,8 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue invalidateblock(const Config &config, const JSONRPCRequest &request) {
+static UniValue invalidateblock(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "invalidateblock \"blockhash\"\n"
@@ -1672,7 +1689,8 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue reconsiderblock(const Config &config, const JSONRPCRequest &request) {
+static UniValue reconsiderblock(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "reconsiderblock \"blockhash\"\n"
@@ -1750,7 +1768,8 @@ UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue getchaintxstats(const Config &config, const JSONRPCRequest &request) {
+static UniValue getchaintxstats(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 2) {
         throw std::runtime_error(
             "getchaintxstats ( nblocks blockhash )\n"
@@ -1845,7 +1864,8 @@ UniValue getchaintxstats(const Config &config, const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue savemempool(const Config &config, const JSONRPCRequest &request) {
+static UniValue savemempool(const Config &config,
+                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error("savemempool\n"
                                  "\nDumps the mempool to disk. It will fail "
