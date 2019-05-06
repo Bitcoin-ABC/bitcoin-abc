@@ -87,30 +87,6 @@ CMPAccept* DEx_getAccept(const std::string& addressSeller, uint32_t propertyId, 
     return NULL;
 }
 
-namespace legacy
-{
-/**
- * Legacy calculation of Master Core 0.0.9.
- *
- * @see:
- * https://github.com/mastercoin-MSC/mastercore/blob/mscore-0.0.9/src/mastercore_dex.cpp#L439-L449
- */
-static int64_t calculateDesiredBTC(const int64_t amountOffered, const int64_t amountDesired, const int64_t amountAvailable)
-{
-    uint64_t nValue = static_cast<uint64_t>(amountOffered);
-    uint64_t amount_des = static_cast<uint64_t>(amountDesired);
-    uint64_t balanceReallyAvailable = static_cast<uint64_t>(amountAvailable);
-
-    double BTC;
-
-    BTC = amount_des * balanceReallyAvailable;
-    BTC /= (double) nValue;
-    amount_des = rounduint64(BTC);
-
-    return static_cast<int64_t>(amount_des);
-}
-}
-
 /**
  * Determines the amount of bitcoins desired, in case it needs to be recalculated.
  *
@@ -385,32 +361,6 @@ int DEx_acceptDestroy(const std::string& addressBuyer, const std::string& addres
 
     rc = 0;
     return rc;
-}
-
-namespace legacy
-{
-/**
- * Legacy calculation of Master Core 0.0.9.
- *
- * @see:
- * https://github.com/mastercoin-MSC/mastercore/blob/mscore-0.0.9/src/mastercore_dex.cpp#L660-L668
- */
-static int64_t calculateDExPurchase(const int64_t amountOffered, const int64_t amountDesired, const int64_t amountPaid)
-{
-    uint64_t acceptOfferAmount = static_cast<uint64_t>(amountOffered);
-    uint64_t acceptBTCDesired = static_cast<uint64_t>(amountDesired);
-    uint64_t BTC_paid = static_cast<uint64_t>(amountPaid);
-
-    const double BTC_desired_original = acceptBTCDesired;
-    const double offer_amount_original = acceptOfferAmount;
-
-    double perc_X = (double) BTC_paid / BTC_desired_original;
-    double Purchased = offer_amount_original * perc_X;
-
-    uint64_t units_purchased = rounduint64(Purchased);
-
-    return static_cast<int64_t>(units_purchased);
-}
 }
 
 /**

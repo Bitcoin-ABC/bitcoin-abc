@@ -74,10 +74,10 @@ public:
       : block(0), idx(0), property(0), amount_forsale(0), desired_property(0), amount_desired(0),
         amount_remaining(0), subaction(0) {}
 
-    CMPMetaDEx(const std::string& addr, int b, uint32_t c, int64_t nValue, uint32_t cd, int64_t ad,
+    CMPMetaDEx(const std::string& addrVal, int b, uint32_t c, int64_t nValue, uint32_t cd, int64_t ad,
                const uint256& tx, uint32_t i, uint8_t suba)
       : block(b), txid(tx), idx(i), property(c), amount_forsale(nValue), desired_property(cd), amount_desired(ad),
-        amount_remaining(nValue), subaction(suba), addr(addr) {}
+        amount_remaining(nValue), subaction(suba), addr(addrVal) {}
 
     CMPMetaDEx(const std::string& addr, int b, uint32_t c, int64_t nValue, uint32_t cd, int64_t ad,
                const uint256& tx, uint32_t i, uint8_t suba, int64_t ar)

@@ -1204,8 +1204,8 @@ static const ContextFreeRPCCommand commands[] =
 #endif
 };
 
-void RegisterOmniTransactionCreationRPCCommands(CRPCTable &tableRPC)
+void RegisterOmniTransactionCreationRPCCommands(CRPCTable &tableRPCVal)
 {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
-        tableRPC.appendCommand(commands[vcidx].name, &commands[vcidx]);
+        tableRPCVal.appendCommand(commands[vcidx].name, &commands[vcidx]);
 }

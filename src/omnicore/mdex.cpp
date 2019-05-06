@@ -95,6 +95,7 @@ static bool rangeInt64(const rational_t& value)
     return (rangeInt64(value.numerator()) && rangeInt64(value.denominator()));
 }
 
+#if 0
 // Used by CMPMetaDEx::displayUnitPrice
 static int64_t xToRoundUpInt64(const rational_t& value)
 {
@@ -105,6 +106,7 @@ static int64_t xToRoundUpInt64(const rational_t& value)
 
     return result.convert_to<int64_t>();
 }
+#endif
 
 std::string xToString(const dec_float& value)
 {
@@ -660,11 +662,11 @@ int mastercore::MetaDEx_CANCEL_EVERYTHING(const uint256& txid, unsigned int bloc
 
             PrintToLog("  # Price Level: %s\n", xToString(price));
 
-            for (md_Set::iterator it = indexes.begin(); it != indexes.end();) {
-                PrintToLog("%s= %s\n", xToString(price), it->ToString());
+            for (md_Set::iterator indexit = indexes.begin(); indexit != indexes.end();) {
+                PrintToLog("%s= %s\n", xToString(price), indexit->ToString());
 
-                if (it->getAddr() != sender_addr) {
-                    ++it;
+                if (indexit->getAddr() != sender_addr) {
+                    ++indexit;
                     continue;
                 }
 
@@ -672,14 +674,14 @@ int mastercore::MetaDEx_CANCEL_EVERYTHING(const uint256& txid, unsigned int bloc
                 PrintToLog("%s(): REMOVING %s\n", __FUNCTION__, it->ToString());
 
                 // move from reserve to balance
-                assert(update_tally_map(it->getAddr(), it->getProperty(), -it->getAmountRemaining(), METADEX_RESERVE));
-                assert(update_tally_map(it->getAddr(), it->getProperty(), it->getAmountRemaining(), BALANCE));
+                assert(update_tally_map(indexit->getAddr(), indexit->getProperty(), -indexit->getAmountRemaining(), METADEX_RESERVE));
+                assert(update_tally_map(indexit->getAddr(), indexit->getProperty(), indexit->getAmountRemaining(), BALANCE));
 
                 // record the cancellation
                 bool bValid = true;
-                p_txlistdb->recordMetaDExCancelTX(txid, it->getHash(), bValid, block, it->getProperty(), it->getAmountRemaining());
+                p_txlistdb->recordMetaDExCancelTX(txid, indexit->getHash(), bValid, block, indexit->getProperty(), indexit->getAmountRemaining());
 
-                indexes.erase(it++);
+                indexes.erase(indexit++);
             }
         }
     }
@@ -701,13 +703,13 @@ int mastercore::MetaDEx_SHUTDOWN_ALLPAIR()
         md_PricesMap& prices = my_it->second;
         for (md_PricesMap::iterator it = prices.begin(); it != prices.end(); ++it) {
             md_Set& indexes = it->second;
-            for (md_Set::iterator it = indexes.begin(); it != indexes.end();) {
-                if (it->getDesProperty() > OMNI_PROPERTY_TWHC && it->getProperty() > OMNI_PROPERTY_TWHC) { // no OMNI/TOMNI side to the trade
-                    PrintToLog("%s(): REMOVING %s\n", __FUNCTION__, it->ToString());
+            for (md_Set::iterator indexit = indexes.begin(); indexit != indexes.end();) {
+                if (indexit->getDesProperty() > OMNI_PROPERTY_TWHC && indexit->getProperty() > OMNI_PROPERTY_TWHC) { // no OMNI/TOMNI side to the trade
+                    PrintToLog("%s(): REMOVING %s\n", __FUNCTION__, indexit->ToString());
                     // move from reserve to balance
-                    assert(update_tally_map(it->getAddr(), it->getProperty(), -it->getAmountRemaining(), METADEX_RESERVE));
-                    assert(update_tally_map(it->getAddr(), it->getProperty(), it->getAmountRemaining(), BALANCE));
-                    indexes.erase(it++);
+                    assert(update_tally_map(indexit->getAddr(), indexit->getProperty(), -indexit->getAmountRemaining(), METADEX_RESERVE));
+                    assert(update_tally_map(indexit->getAddr(), indexit->getProperty(), indexit->getAmountRemaining(), BALANCE));
+                    indexes.erase(indexit++);
                 }
             }
         }
@@ -747,8 +749,8 @@ bool mastercore::MetaDEx_isOpen(const uint256& txid, uint32_t propertyIdForSale)
         md_PricesMap & prices = my_it->second;
         for (md_PricesMap::iterator it = prices.begin(); it != prices.end(); ++it) {
             md_Set & indexes = (it->second);
-            for (md_Set::iterator it = indexes.begin(); it != indexes.end(); ++it) {
-                CMPMetaDEx obj = *it;
+            for (md_Set::iterator indexit = indexes.begin(); indexit != indexes.end(); ++indexit) {
+                CMPMetaDEx obj = *indexit;
                 if( obj.getHash().GetHex() == txid.GetHex() ) return true;
             }
         }
@@ -823,8 +825,8 @@ void mastercore::MetaDEx_debug_print(bool bShowPriceLevel, bool bDisplay)
 
             if (bShowPriceLevel) PrintToLog("  # Price Level: %s\n", xToString(price));
 
-            for (md_Set::iterator it = indexes.begin(); it != indexes.end(); ++it) {
-                const CMPMetaDEx& obj = *it;
+            for (md_Set::iterator indexit = indexes.begin(); indexit != indexes.end(); ++indexit) {
+                const CMPMetaDEx& obj = *indexit;
 
                 if (bDisplay) PrintToConsole("%s= %s\n", xToString(price), obj.ToString());
                 else PrintToLog("%s= %s\n", xToString(price), obj.ToString());

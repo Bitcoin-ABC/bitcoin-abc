@@ -294,8 +294,8 @@ uint256 GetMetaDExHash(const uint32_t propertyId)
             const md_PricesMap& prices = my_it->second;
             for (md_PricesMap::const_iterator it = prices.begin(); it != prices.end(); ++it) {
                 const md_Set& indexes = it->second;
-                for (md_Set::const_iterator it = indexes.begin(); it != indexes.end(); ++it) {
-                    const CMPMetaDEx& obj = *it;
+                for (md_Set::const_iterator indexit = indexes.begin(); indexit != indexes.end(); ++indexit) {
+                    const CMPMetaDEx& obj = *indexit;
                     std::string dataStr = GenerateConsensusString(obj);
                     vecMetaDExTrades.push_back(std::make_pair(arith_uint256(obj.getHash().ToString()), dataStr));
                 }

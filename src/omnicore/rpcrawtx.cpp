@@ -175,10 +175,10 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
         nMaxRawTxFee = Amount(0);
     }
 
-    CCoinsViewCache &view = *pcoinsTip;
+    CCoinsViewCache &viewTmp = *pcoinsTip;
     bool fHaveChain = false;
     for (size_t o = 0; !fHaveChain && o < tx->vout.size(); o++) {
-        const Coin &existingCoin = view.AccessCoin(COutPoint(txid, o));
+        const Coin &existingCoin = viewTmp.AccessCoin(COutPoint(txid, o));
         fHaveChain = !existingCoin.IsSpent();
     }
 
@@ -440,8 +440,8 @@ static const ContextFreeRPCCommand commands[] =
 
 };
 
-void RegisterOmniRawTransactionRPCCommands(CRPCTable &tableRPC)
+void RegisterOmniRawTransactionRPCCommands(CRPCTable &tableRPCVal)
 {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
-        tableRPC.appendCommand(commands[vcidx].name, &commands[vcidx]);
+        tableRPCVal.appendCommand(commands[vcidx].name, &commands[vcidx]);
 }

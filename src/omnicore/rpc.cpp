@@ -292,10 +292,10 @@ UniValue omni_getfeedistributions(const Config &config, const JSONRPCRequest &re
             std::set<std::pair<std::string, int64_t> > sRecipients = p_feehistory->GetFeeDistribution(id);
             int mtype = getPropertyType(propertyId);
             if (!sRecipients.empty()) {
-                for (std::set<std::pair<std::string, int64_t> >::iterator it = sRecipients.begin();
-                     it != sRecipients.end(); it++) {
-                    std::string address = (*it).first;
-                    int64_t amount = (*it).second;
+                for (std::set<std::pair<std::string, int64_t> >::iterator itRecip = sRecipients.begin();
+                     itRecip != sRecipients.end(); itRecip++) {
+                    std::string address = (*itRecip).first;
+                    int64_t amount = (*itRecip).second;
                     UniValue recipient(UniValue::VOBJ);
                     recipient.push_back(Pair("address", address));
                     if (mtype) {
@@ -1522,8 +1522,8 @@ UniValue omni_getorderbook(const Config &config, const JSONRPCRequest &request) 
             const md_PricesMap &prices = my_it->second;
             for (md_PricesMap::const_iterator it = prices.begin(); it != prices.end(); ++it) {
                 const md_Set &indexes = it->second;
-                for (md_Set::const_iterator it = indexes.begin(); it != indexes.end(); ++it) {
-                    const CMPMetaDEx &obj = *it;
+                for (md_Set::const_iterator indexIt = indexes.begin(); indexIt != indexes.end(); ++indexIt) {
+                    const CMPMetaDEx &obj = *indexIt;
                     if (obj.getProperty() != propertyIdForSale) continue;
                     if (!filterDesired || obj.getDesProperty() == propertyIdDesired) vecMetaDexObjects.push_back(obj);
                 }
@@ -1768,14 +1768,14 @@ UniValue omni_getactivedexsells(const Config &config, const JSONRPCRequest &requ
                                                        (acceptCombo.size() - (acceptCombo.find("+") + 1)));
                 int blockOfAccept = accept.getAcceptBlock();
                 int blocksLeftToPay = (blockOfAccept + selloffer.getBlockTimeLimit()) - curBlock;
-                int64_t amountAccepted = accept.getAcceptAmountRemaining();
+                int64_t amountAcceptedTmp = accept.getAcceptAmountRemaining();
                 // TODO: don't recalculate!
                 int64_t amountToPayInBTC = calculateDesiredBTC(accept.getOfferAmountOriginal(),
-                                                               accept.getBTCDesiredOriginal(), amountAccepted);
+                                                               accept.getBTCDesiredOriginal(), amountAcceptedTmp);
                 matchedAccept.push_back(Pair("buyer", buyer));
                 matchedAccept.push_back(Pair("block", blockOfAccept));
                 matchedAccept.push_back(Pair("blocksleft", blocksLeftToPay));
-                matchedAccept.push_back(Pair("amount", FormatDivisibleMP(amountAccepted, 8)));
+                matchedAccept.push_back(Pair("amount", FormatDivisibleMP(amountAcceptedTmp, 8)));
                 matchedAccept.push_back(Pair("amounttopay", FormatDivisibleMP(amountToPayInBTC, 8)));
                 acceptsMatched.push_back(matchedAccept);
             }
@@ -2819,7 +2819,7 @@ static const ContextFreeRPCCommand commands[] =
 #endif
         };
 
-void RegisterOmniDataRetrievalRPCCommands(CRPCTable &tableRPC) {
+void RegisterOmniDataRetrievalRPCCommands(CRPCTable &tableRPCVal) {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
-        tableRPC.appendCommand(commands[vcidx].name, &commands[vcidx]);
+	    tableRPCVal.appendCommand(commands[vcidx].name, &commands[vcidx]);
 }

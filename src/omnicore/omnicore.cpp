@@ -2636,8 +2636,8 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
 
     std::sort (loadOrder.begin(), loadOrder.end());
 
-    for (std::vector<std::pair<std::string, uint256> >::iterator it = loadOrder.begin(); it != loadOrder.end(); ++it) {
-        uint256 hash = (*it).second;
+    for (std::vector<std::pair<std::string, uint256> >::iterator itOrder = loadOrder.begin(); itOrder != loadOrder.end(); ++itOrder) {
+        uint256 hash = (*itOrder).second;
         uint256 blockHash;
         CTransactionRef wtx;
         CMPTransaction mp_obj;
@@ -2707,8 +2707,8 @@ void CMPTxList::LoadActivations(int blockHeight)
 
     std::sort (loadOrder.begin(), loadOrder.end());
 
-    for (std::vector<std::pair<int64_t, uint256> >::iterator it = loadOrder.begin(); it != loadOrder.end(); ++it) {
-        uint256 hash = (*it).second;
+    for (std::vector<std::pair<int64_t, uint256> >::iterator itOrder = loadOrder.begin(); itOrder != loadOrder.end(); ++itOrder) {
+        uint256 hash = (*itOrder).second;
         uint256 blockHash;
         CTransactionRef wtx;
         CMPTransaction mp_obj;
@@ -2726,8 +2726,8 @@ void CMPTxList::LoadActivations(int blockHeight)
             PrintToLog("ERROR: While loading activation transaction %s: failed to retrieve block index.\n", hash.GetHex());
             continue;
         }
-        int blockHeight = pBlockIndex->nHeight;
-        if (0 != ParseTransaction(*(wtx.get()), blockHeight, 0, mp_obj)) {
+        int blockHeightTmp = pBlockIndex->nHeight;
+        if (0 != ParseTransaction(*(wtx.get()), blockHeightTmp, 0, mp_obj)) {
             PrintToLog("ERROR: While loading activation transaction %s: failed ParseTransaction.\n", hash.GetHex());
             continue;
         }
@@ -2775,8 +2775,8 @@ void CMPTxList::LoadAlerts(int blockHeight)
 
     std::sort (loadOrder.begin(), loadOrder.end());
 
-    for (std::vector<std::pair<int64_t, uint256> >::iterator it = loadOrder.begin(); it != loadOrder.end(); ++it) {
-        uint256 txid = (*it).second;
+    for (std::vector<std::pair<int64_t, uint256> >::iterator itOrder = loadOrder.begin(); itOrder != loadOrder.end(); ++itOrder) {
+        uint256 txid = (*itOrder).second;
         uint256 blockHash;
         CTransactionRef wtx;
         CMPTransaction mp_obj;
@@ -3414,11 +3414,10 @@ void CMPSTOList::recordSTOReceive(string address, const uint256 &txid, int nBloc
           const string newValue = strprintf("%s:%d:%u:%lu,", txid.ToString(), nBlock, propertyId, amount);
           strValue += newValue;
           // write updated record
-          Status status;
           if (pdb)
           {
-              status = pdb->Put(writeoptions, key, strValue);
-              PrintToLog("STODBDEBUG : %s(): %s, line %d, file: %s\n", __FUNCTION__, status.ToString(), __LINE__, __FILE__);
+              Status statusTmp = pdb->Put(writeoptions, key, strValue);
+              PrintToLog("STODBDEBUG : %s(): %s, line %d, file: %s\n", __FUNCTION__, statusTmp.ToString(), __LINE__, __FILE__);
           }
       }
   }
@@ -3702,8 +3701,8 @@ void CMPTradeList::getTradesForAddress(std::string address, std::vector<uint256>
       mapTrades.insert(std::make_pair(sortKey, txid));
   }
   delete it;
-  for (std::map<std::string,uint256>::iterator it = mapTrades.begin(); it != mapTrades.end(); it++) {
-      vecTransactions.push_back(it->second);
+  for (std::map<std::string,uint256>::iterator itTra = mapTrades.begin();  itTra != mapTrades.end(); itTra++) {
+      vecTransactions.push_back(itTra->second);
   }
 }
 

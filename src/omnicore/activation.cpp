@@ -82,8 +82,8 @@ void AddPendingActivation(uint16_t featureId, int activationBlock, uint32_t minC
  */
 void CheckLiveActivations(int blockHeight)
 {
-    std::vector<FeatureActivation> vecPendingActivations = GetPendingActivations();
-    for (std::vector<FeatureActivation>::iterator it = vecPendingActivations.begin(); it != vecPendingActivations.end(); ++it) {
+    std::vector<FeatureActivation> vecPendingActivationsTmp = GetPendingActivations();
+    for (std::vector<FeatureActivation>::iterator it = vecPendingActivationsTmp.begin(); it != vecPendingActivationsTmp.end(); ++it) {
         const FeatureActivation& liveActivation = *it;
         if (liveActivation.activationBlock > blockHeight) {
             continue;

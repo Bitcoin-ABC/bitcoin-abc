@@ -398,9 +398,9 @@ bool CMPTransaction::interpret_ERC721_issuetoken(){
     memcpy(erc721token_attribute, p, sizeof(erc721token_attribute));
     p += 32;
     char *ptmp = (char*)p;
-    std::string url = std::string(ptmp);
-    p += url.size() + 1;
-    memcpy(erc721_tokenurl, url.data(), sizeof(erc721_tokenurl) - 1);
+    std::string urlTmp = std::string(ptmp);
+    p += urlTmp.size() + 1;
+    memcpy(erc721_tokenurl, urlTmp.data(), sizeof(erc721_tokenurl) - 1);
 
     if (isOverrun((char*)p)) {
         PrintToLog("%s(): rejected: malformed string value(s)\n", __func__);
