@@ -18,6 +18,10 @@ if(QT_CORE_TYPE MATCHES STATIC)
 	set(QT_STATIC_BUILD ON)
 endif()
 
+# Determine the Qt libraries directory from the QT5::Core library location
+get_target_property(QT_CORE_LIB_LOCATION Qt5::Core LOCATION)
+get_filename_component(QT5_LIB_DIR "${QT_CORE_LIB_LOCATION}" DIRECTORY)
+
 set(STATIC_DEPENDENCIES_CMAKE_FILE "${CMAKE_BINARY_DIR}/QtStaticDependencies.cmake")
 if(EXISTS ${STATIC_DEPENDENCIES_CMAKE_FILE})
 	file(REMOVE ${STATIC_DEPENDENCIES_CMAKE_FILE})
@@ -40,9 +44,9 @@ if(QT_STATIC_BUILD)
 	foreach(qt_module ${QT_REQUIRED_COMPONENTS})
 		CONVERT_PRL_LIBS_TO_CMAKE(${qt_module})
 	endforeach()
-    # HACK: We must explicitly add LIB path of the Qt installation
-    # to correctly find qtpcre
-    link_directories(${_qt5_install_prefix}/../)
+	# HACK: We must explicitly add LIB path of the Qt installation
+	# to correctly find qtpcre
+	link_directories("${QT5_LIB_DIR}")
 
 	# Now that we generated the dependencies, import them.
 	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CONVERT_PRL_PATH}")
