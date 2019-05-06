@@ -33,6 +33,7 @@ use strict;
 use warnings;
 
 my $qt_lib;
+my $qt_lib_install_dir;
 my $component_name;
 my $out_name;
 my $compiler;
@@ -42,6 +43,12 @@ processArgs();
 sub processArgs {
     GetOptions (
         "lib=s" => \$qt_lib,
+        # The installed Qt library directory might be different from the given
+        # library location. This is especially the case of the plugins wich are
+        # located in a separated 'plugin' directory.
+        # Let the caller set this installation dependent location rather than
+        # trying to determine it from the given library location. 
+        "qt_lib_install_dir=s" => \$qt_lib_install_dir,
         "component=s" => \$component_name,
         "out=s" => \$out_name,
         "compiler=s" => \$compiler
@@ -116,7 +123,7 @@ sub squash_prl_libs {
             $lib = "$libs[$i] $libs[$i + 1]";
             ++$i;
         }
-        $lib =~ s"\$\$\[QT_INSTALL_LIBS\]"$qt_lib_dir"g;
+        $lib =~ s"\$\$\[QT_INSTALL_LIBS\]"$qt_lib_install_dir"g;
 
         if (lc($compiler) eq 'msvc') {
             # convert backslashes
