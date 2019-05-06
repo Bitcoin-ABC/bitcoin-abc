@@ -8,6 +8,7 @@
 
 #include "crypto/chacha20.h"
 #include "crypto/common.h"
+#include "crypto/sha256.h"
 #include "uint256.h"
 
 #include <cstdint>

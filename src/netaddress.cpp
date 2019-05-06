@@ -11,6 +11,7 @@
 #include "netaddress.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
+#include "crypto/sha256.h"
 
 static const uint8_t pchIPv4[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff};
 static const uint8_t pchOnionCat[] = {0xFD, 0x87, 0xD8, 0x7E, 0xEB, 0x43};

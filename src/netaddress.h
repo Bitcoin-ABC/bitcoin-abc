@@ -11,6 +11,7 @@
 
 #include "compat.h"
 #include "serialize.h"
+#include "crypto/sha256.h"
 
 #include <cstdint>
 #include <string>
