@@ -31,3 +31,11 @@ if(BUILD_BITCOIN_QT)
 		COMPONENT bitcoin-qt
 	)
 endif()
+
+if(BUILD_BITCOIN_WALLET)
+	install(
+		FILES bitcoin-wallet.1
+		DESTINATION "${MAN_DESTINATION}"
+		COMPONENT bitcoin-wallet
+	)
+endif()
