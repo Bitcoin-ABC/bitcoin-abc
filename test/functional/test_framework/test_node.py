@@ -73,17 +73,12 @@ class TestNode():
         self.default_args = ["-datadir=" + self.datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
                              "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
 
-<<<<<<< HEAD
-        self.cli = TestNodeCLI(
-            os.getenv("BITCOINCLI", "wormholed-cli"), self.datadir)
-=======
-        cli_path = os.getenv("BITCOINCLI", "bitcoin-cli")
+        cli_path = os.getenv("BITCOINCLI", "wormholed-cli")
         if not os.path.isfile(cli_path):
             raise FileNotFoundError(
-                "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOINCLI=<path/to/bitcoin-cli> {}".format(cli_path, sys.argv[0]))
+                "Binary '{}' could not be found.\nTry setting it manually:\n\tWORMHOLEDCLI=<path/to/wormholed-cli> {}".format(cli_path, sys.argv[0]))
         self.cli = TestNodeCLI(cli_path, self.datadir)
         self.use_cli = use_cli
->>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
 
         self.running = False
         self.process = None

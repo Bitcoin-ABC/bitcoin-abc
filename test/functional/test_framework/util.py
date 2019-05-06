@@ -45,16 +45,8 @@ def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
 
 def assert_equal(thing1, thing2, *args):
     if thing1 != thing2 or any(thing1 != arg for arg in args):
-<<<<<<< HEAD
-        raise AssertionError("not(%s)" % " == ".join(str(arg)
-                                                     for arg in (thing1, thing2) + args))
-def assert_emptylist(l1):
-    if len(l1) !=0 :
-        raise AssertionError("not empty list")
-=======
         raise AssertionError("not({})".format(" == ".join(str(arg)
                                                           for arg in (thing1, thing2) + args)))
->>>>>>> f2225b39dcc4690005a77b2837e27a878e1f245c
 
 def assert_notemptylist(l1):
     if len(l1) == 0 :
