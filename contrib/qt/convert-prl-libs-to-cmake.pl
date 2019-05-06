@@ -83,6 +83,9 @@ get_target_property(_link_libs Qt5::${_component} INTERFACE_LINK_LIBRARIES)
 if (_link_libs)
     set(_list_sep ";")
 else ()
+    # Avoid linking "-l_link_libs_NOTFOUND" if the component's
+    # INTERFACE_LINK_LIBRARY property is empty.
+    set(_link_libs "")
     set(_list_sep "")
 endif ()
 set_target_properties(Qt5::${_component} PROPERTIES
