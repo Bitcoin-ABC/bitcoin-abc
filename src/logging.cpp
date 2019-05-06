@@ -10,6 +10,7 @@
 
 bool fLogIPs = DEFAULT_LOGIPS;
 const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
+std::atomic<bool> fReopenOmniCoreLog(false);
 
 /**
  * NOTE: the logger instance is leaked on exit. This is ugly, but will be

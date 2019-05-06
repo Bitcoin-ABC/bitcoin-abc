@@ -290,6 +290,7 @@ void Shutdown() {
  */
 void HandleSIGTERM(int) {
     fRequestShutdown = true;
+    fReopenOmniCoreLog = true;
 }
 
 void HandleSIGHUP(int) {
