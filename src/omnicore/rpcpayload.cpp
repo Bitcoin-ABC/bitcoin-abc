@@ -879,8 +879,8 @@ static const ContextFreeRPCCommand commands[] =
     { "omni layer (payload creation)", "whc_createpayload_unfreeze",            &whc_createpayload_unfreeze, {} },
 };
 
-void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPC)
+void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPCVal)
 {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
-        tableRPC.appendCommand(commands[vcidx].name, &commands[vcidx]);
+        tableRPCVal.appendCommand(commands[vcidx].name, &commands[vcidx]);
 }

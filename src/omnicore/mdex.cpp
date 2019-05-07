@@ -728,12 +728,12 @@ int mastercore::MetaDEx_SHUTDOWN()
         md_PricesMap& prices = my_it->second;
         for (md_PricesMap::iterator it = prices.begin(); it != prices.end(); ++it) {
             md_Set& indexes = it->second;
-            for (md_Set::iterator it = indexes.begin(); it != indexes.end();) {
-                PrintToLog("%s(): REMOVING %s\n", __FUNCTION__, it->ToString());
+            for (md_Set::iterator indexit = indexes.begin(); indexit != indexes.end();) {
+                PrintToLog("%s(): REMOVING %s\n", __FUNCTION__, indexit->ToString());
                 // move from reserve to balance
-                assert(update_tally_map(it->getAddr(), it->getProperty(), -it->getAmountRemaining(), METADEX_RESERVE));
-                assert(update_tally_map(it->getAddr(), it->getProperty(), it->getAmountRemaining(), BALANCE));
-                indexes.erase(it++);
+                assert(update_tally_map(indexit->getAddr(), indexit->getProperty(), -indexit->getAmountRemaining(), METADEX_RESERVE));
+                assert(update_tally_map(indexit->getAddr(), indexit->getProperty(), indexit->getAmountRemaining(), BALANCE));
+                indexes.erase(indexit++);
             }
         }
     }
