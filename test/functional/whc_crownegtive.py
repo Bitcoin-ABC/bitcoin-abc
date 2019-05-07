@@ -208,7 +208,7 @@ class WHC_TOKEN_MANAGE(BitcoinTestFramework):
         tx = self.nodes[0].whc_createrawtx_input("", item["txid"], item["vout"])
         tx = self.nodes[0].whc_createrawtx_opreturn(tx, payload)
         tx = self.nodes[0].whc_createrawtx_reference(tx, item["address"], round(float(item["amount"]) - 0.01, 8))
-        tx = self.nodes[0].signrawtransaction(tx)
+        tx = self.nodes[0].signrawtransactionwithwallet(tx)
         txhash = self.nodes[0].sendrawtransaction(tx["hex"])
         self.nodes[0].generatetoaddress(1, item["address"])
         return txhash

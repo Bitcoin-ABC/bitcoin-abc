@@ -61,7 +61,7 @@ class WHC_SendRawTx_Test(BitcoinTestFramework):
         p1 = payload[:28] + '1' + payload[29:]
         tx2 = self.nodes[0].whc_createrawtx_opreturn(tx, p1)
         tx3 = self.nodes[0].whc_createrawtx_reference(tx2, addr1, round(float(spent["amount"]) - 0.01, 8))
-        tx4 = self.nodes[0].signrawtransaction(tx3)
+        tx4 = self.nodes[0].signrawtransactionwithwallet(tx3)
 
         # test whc_sendrawtransaction
         try:

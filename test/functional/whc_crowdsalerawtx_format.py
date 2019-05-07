@@ -41,7 +41,7 @@ class WHC_RawTx_Test(BitcoinTestFramework):
                                                                     deadline, 10, 0, "10000000000")
         ret = self.nodes[0].whc_createrawtx_opreturn(ret, payload)
         ret = self.nodes[0].whc_createrawtx_reference(ret, address, 49.99)
-        ret = self.nodes[0].signrawtransaction(ret)
+        ret = self.nodes[0].signrawtransactionwithwallet(ret)
         self.nodes[0].sendrawtransaction(ret["hex"])
         ret = self.nodes[0].decoderawtransaction(ret["hex"])
         self.nodes[0].generatetoaddress(1, address)
@@ -55,7 +55,7 @@ class WHC_RawTx_Test(BitcoinTestFramework):
         ret = self.nodes[0].whc_createrawtx_opreturn(ret, payload)
         ret = self.nodes[0].whc_createrawtx_reference(ret, address, 49.99)
         ret = self.nodes[0].whc_createrawtx_reference(ret, address_dst)
-        ret = self.nodes[0].signrawtransaction(ret)
+        ret = self.nodes[0].signrawtransactionwithwallet(ret)
         ret = self.nodes[0].decoderawtransaction(ret["hex"])
         assert ret["vout"][0]["n"] == 0
         assert ret["vout"][0]["scriptPubKey"]["asm"][:9] == "OP_RETURN"

@@ -46,7 +46,7 @@ class WHC_TOKEN_FIXED(BitcoinTestFramework):
         ret = self.nodes[0].whc_createrawtx_opreturn(ret, payload)
         ret = self.nodes[0].whc_createrawtx_reference(ret, address, 49.99)
         ret = self.nodes[0].whc_createrawtx_reference(ret, address_dst)
-        ret = self.nodes[0].signrawtransaction(ret)
+        ret = self.nodes[0].signrawtransactionwithwallet(ret)
         self.nodes[0].sendrawtransaction(ret["hex"])
         self.nodes[0].generatetoaddress(10, address)
         time.sleep(1)

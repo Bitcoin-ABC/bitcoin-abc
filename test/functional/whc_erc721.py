@@ -649,7 +649,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         tx = self.nodes[0].whc_createrawtx_opreturn(tx, payload)
         tx = self.nodes[0].whc_createrawtx_reference(tx, item["address"], round(float(item["amount"]) - 0.01, 8))
         tx = self.nodes[0].whc_createrawtx_reference(tx, receive, amount)
-        tx = self.nodes[0].signrawtransaction(tx)
+        tx = self.nodes[0].signrawtransactionwithwallet(tx)
         txhash = self.nodes[0].sendrawtransaction(tx["hex"])
         self.nodes[0].generatetoaddress(1, item["address"])
         return txhash
@@ -662,7 +662,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             tx = self.nodes[0].whc_createrawtx_reference(tx, item["address"], round(float(item["amount"]) - 0.01, 8))
         else:
             tx = self.nodes[0].whc_createrawtx_reference(tx, receiver, round(float(item["amount"]) - 0.01, 8))
-        tx = self.nodes[0].signrawtransaction(tx)
+        tx = self.nodes[0].signrawtransactionwithwallet(tx)
         txhash = self.nodes[0].sendrawtransaction(tx["hex"])
         self.nodes[0].generatetoaddress(1, item["address"])
         return txhash

@@ -23,7 +23,7 @@ class WHC_SendAll_Test(BitcoinTestFramework):
         pecosystem = payload[:-1] + "4"
         optx = self.nodes[0].whc_createrawtx_opreturn(rawtx, pecosystem)
         comtx = self.nodes[0].whc_createrawtx_reference(optx, addr0, float(ret[0]["amount"]) - 0.05)
-        oktx = self.nodes[0].signrawtransaction(comtx)
+        oktx = self.nodes[0].signrawtransactionwithwallet(comtx)
         txhash = self.nodes[0].sendrawtransaction(oktx["hex"])
 
         self.nodes[0].generatetoaddress(1, addr0)

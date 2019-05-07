@@ -38,7 +38,7 @@ class WHC_TOKEN_MANAGE(BitcoinTestFramework):
             p = payload[:15] + '9' + payload[16:]
             ret = self.nodes[0].whc_createrawtx_opreturn(ret, p)
             ret = self.nodes[0].whc_createrawtx_reference(ret, item["address"], round(float(item["amount"]) - 0.01, 8))
-            ret = self.nodes[0].signrawtransaction(ret)
+            ret = self.nodes[0].signrawtransactionwithwallet(ret)
             ret = self.nodes[0].sendrawtransaction(ret["hex"])
             self.nodes[0].generatetoaddress(1, address)
             trans = self.nodes[0].whc_gettransaction(ret)
@@ -53,7 +53,7 @@ class WHC_TOKEN_MANAGE(BitcoinTestFramework):
             payload = self.nodes[0].whc_createpayload_grant(managed_property_id, "50", "")
             ret = self.nodes[0].whc_createrawtx_opreturn(ret, payload)
             ret = self.nodes[0].whc_createrawtx_reference(ret, item["address"], round(float(item["amount"]) - 0.01, 8))
-            ret = self.nodes[0].signrawtransaction(ret)
+            ret = self.nodes[0].signrawtransactionwithwallet(ret)
             ret = self.nodes[0].sendrawtransaction(ret["hex"])
             self.nodes[0].generatetoaddress(1, address)
             trans = self.nodes[0].whc_gettransaction(ret)
