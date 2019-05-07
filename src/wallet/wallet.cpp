@@ -1733,62 +1733,65 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
 
     CBlockIndex *pindex = pindexStart;
     CBlockIndex *ret = nullptr;
+    {
+        LOCK2(cs_main, cs_wallet);
+        fAbortRescan = false;
+        fScanningWallet = true;
 
-    LOCK2(cs_main, cs_wallet);
-    fAbortRescan = false;
-    fScanningWallet = true;
-
-    // Show rescan progress in GUI as dialog or on splashscreen, if -rescan on
-    // startup.
-    ShowProgress(_("Rescanning..."), 0);
-    double dProgressStart =
-        GuessVerificationProgress(chainParams.TxData(), pindex);
-    double dProgressTip =
-        GuessVerificationProgress(chainParams.TxData(), chainActive.Tip());
-    while (pindex && !fAbortRescan) {
-        if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0) {
-            ShowProgress(
-                _("Rescanning..."),
-                std::max(1,
-                         std::min<int>(99, (GuessVerificationProgress(
-                                                chainParams.TxData(), pindex) -
-                                            dProgressStart) /
-                                               (dProgressTip - dProgressStart) *
-                                               100)));
-        }
-
-        CBlock block;
-        if (ReadBlockFromDisk(block, pindex, GetConfig())) {
-            for (size_t posInBlock = 0; posInBlock < block.vtx.size();
-                 ++posInBlock) {
-                AddToWalletIfInvolvingMe(block.vtx[posInBlock], pindex,
-                                         posInBlock, fUpdate);
+        // Show rescan progress in GUI as dialog or on splashscreen, if -rescan
+        // on startup.
+        ShowProgress(_("Rescanning..."), 0);
+        double dProgressStart =
+            GuessVerificationProgress(chainParams.TxData(), pindex);
+        double dProgressTip =
+            GuessVerificationProgress(chainParams.TxData(), chainActive.Tip());
+        while (pindex && !fAbortRescan) {
+            if (pindex->nHeight % 100 == 0 &&
+                dProgressTip - dProgressStart > 0.0) {
+                ShowProgress(
+                    _("Rescanning..."),
+                    std::max(1, std::min<int>(
+                                    99, (GuessVerificationProgress(
+                                             chainParams.TxData(), pindex) -
+                                         dProgressStart) /
+                                            (dProgressTip - dProgressStart) *
+                                            100)));
             }
-        } else {
-            ret = pindex;
-        }
-        if (pindex == pindexStop) {
-            break;
+
+            CBlock block;
+            if (ReadBlockFromDisk(block, pindex, GetConfig())) {
+                for (size_t posInBlock = 0; posInBlock < block.vtx.size();
+                     ++posInBlock) {
+                    AddToWalletIfInvolvingMe(block.vtx[posInBlock], pindex,
+                                             posInBlock, fUpdate);
+                }
+            } else {
+                ret = pindex;
+            }
+            if (pindex == pindexStop) {
+                break;
+            }
+
+            pindex = chainActive.Next(pindex);
+            if (GetTime() >= nNow + 60) {
+                nNow = GetTime();
+                LogPrintf(
+                    "Still rescanning. At block %d. Progress=%f\n",
+                    pindex->nHeight,
+                    GuessVerificationProgress(chainParams.TxData(), pindex));
+            }
         }
 
-        pindex = chainActive.Next(pindex);
-        if (GetTime() >= nNow + 60) {
-            nNow = GetTime();
-            LogPrintf("Still rescanning. At block %d. Progress=%f\n",
+        if (pindex && fAbortRescan) {
+            LogPrintf("Rescan aborted at block %d. Progress=%f\n",
                       pindex->nHeight,
                       GuessVerificationProgress(chainParams.TxData(), pindex));
         }
+
+        // Hide progress dialog in GUI.
+        ShowProgress(_("Rescanning..."), 100);
+        fScanningWallet = false;
     }
-
-    if (pindex && fAbortRescan) {
-        LogPrintf("Rescan aborted at block %d. Progress=%f\n", pindex->nHeight,
-                  GuessVerificationProgress(chainParams.TxData(), pindex));
-    }
-
-    // Hide progress dialog in GUI.
-    ShowProgress(_("Rescanning..."), 100);
-    fScanningWallet = false;
-
     return ret;
 }
 
