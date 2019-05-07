@@ -671,7 +671,7 @@ int mastercore::MetaDEx_CANCEL_EVERYTHING(const uint256& txid, unsigned int bloc
                 }
 
                 rc = 0;
-                PrintToLog("%s(): REMOVING %s\n", __FUNCTION__, it->ToString());
+                PrintToLog("%s(): REMOVING %s\n", __FUNCTION__, indexit->ToString());
 
                 // move from reserve to balance
                 assert(update_tally_map(indexit->getAddr(), indexit->getProperty(), -indexit->getAmountRemaining(), METADEX_RESERVE));
