@@ -2,27 +2,26 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "sendcoinsdialog.h"
-#include "ui_sendcoinsdialog.h"
+#include <qt/forms/ui_sendcoinsdialog.h>
+#include <qt/sendcoinsdialog.h>
 
-#include "addresstablemodel.h"
-#include "bitcoinunits.h"
-#include "clientmodel.h"
-#include "coincontroldialog.h"
-#include "guiutil.h"
-#include "optionsmodel.h"
-#include "platformstyle.h"
-#include "sendcoinsentry.h"
-#include "walletmodel.h"
-
-#include "chainparams.h"
-#include "dstencode.h"
-#include "txmempool.h"
-#include "ui_interface.h"
-#include "validation.h" // mempool and minRelayTxFee
-#include "wallet/coincontrol.h"
-#include "wallet/fees.h"
-#include "wallet/wallet.h"
+#include <chainparams.h>
+#include <dstencode.h>
+#include <interfaces/node.h>
+#include <qt/addresstablemodel.h>
+#include <qt/bitcoinunits.h>
+#include <qt/clientmodel.h>
+#include <qt/coincontroldialog.h>
+#include <qt/guiutil.h>
+#include <qt/optionsmodel.h>
+#include <qt/platformstyle.h>
+#include <qt/sendcoinsentry.h>
+#include <qt/walletmodel.h>
+#include <txmempool.h>
+#include <ui_interface.h>
+#include <wallet/coincontrol.h>
+#include <wallet/fees.h>
+#include <wallet/wallet.h>
 
 #include <QMessageBox>
 #include <QScrollBar>
@@ -165,16 +164,10 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
             }
         }
 
-        setBalance(_model->getBalance(), _model->getUnconfirmedBalance(),
-                   _model->getImmatureBalance(), _model->getWatchBalance(),
-                   _model->getWatchUnconfirmedBalance(),
-                   _model->getWatchImmatureBalance());
-        connect(
-            _model,
-            SIGNAL(
-                balanceChanged(Amount, Amount, Amount, Amount, Amount, Amount)),
-            this,
-            SLOT(setBalance(Amount, Amount, Amount, Amount, Amount, Amount)));
+        interfaces::WalletBalances balances = _model->wallet().getBalances();
+        setBalance(balances);
+        connect(_model, SIGNAL(balanceChanged(interfaces::WalletBalances)),
+                this, SLOT(setBalance(interfaces::WalletBalances)));
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
                 this, SLOT(updateDisplayUnit()));
         updateDisplayUnit();
@@ -205,7 +198,7 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this,
                 SLOT(coinControlUpdateLabels()));
 
-        ui->customFee->setSingleStep(GetMinimumFee(1000, g_mempool));
+        ui->customFee->setSingleStep(model->node().getMinimumFee(1000));
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
@@ -246,7 +239,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
         SendCoinsEntry *entry =
             qobject_cast<SendCoinsEntry *>(ui->entries->itemAt(i)->widget());
         if (entry) {
-            if (entry->validate()) {
+            if (entry->validate(model->node())) {
                 recipients.append(entry->getValue());
             } else {
                 valid = false;
@@ -401,7 +394,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
         accept();
         CoinControlDialog::coinControl()->UnSelectAll();
         coinControlUpdateLabels();
-        Q_EMIT coinsSent(currentTransaction.getTransaction()->GetId());
+        Q_EMIT coinsSent(currentTransaction.getWtx()->get().GetId());
     }
     fNewRecipientAllowed = true;
 }
@@ -529,27 +522,15 @@ bool SendCoinsDialog::handlePaymentRequest(const SendCoinsRecipient &rv) {
     return true;
 }
 
-void SendCoinsDialog::setBalance(const Amount balance,
-                                 const Amount unconfirmedBalance,
-                                 const Amount immatureBalance,
-                                 const Amount watchBalance,
-                                 const Amount watchUnconfirmedBalance,
-                                 const Amount watchImmatureBalance) {
-    Q_UNUSED(unconfirmedBalance);
-    Q_UNUSED(immatureBalance);
-    Q_UNUSED(watchBalance);
-    Q_UNUSED(watchUnconfirmedBalance);
-    Q_UNUSED(watchImmatureBalance);
-
+void SendCoinsDialog::setBalance(const interfaces::WalletBalances &balances) {
     if (model && model->getOptionsModel()) {
         ui->labelBalance->setText(BitcoinUnits::formatWithUnit(
-            model->getOptionsModel()->getDisplayUnit(), balance));
+            model->getOptionsModel()->getDisplayUnit(), balances.balance));
     }
 }
 
 void SendCoinsDialog::updateDisplayUnit() {
-    setBalance(model->getBalance(), Amount::zero(), Amount::zero(),
-               Amount::zero(), Amount::zero(), Amount::zero());
+    setBalance(model->wallet().getBalances());
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     updateMinFeeLabel();
     updateSmartFeeLabel();
@@ -601,7 +582,8 @@ void SendCoinsDialog::processSendCoinsReturn(
             msgParams.first =
                 tr("A fee higher than %1 is considered an absurdly high fee.")
                     .arg(BitcoinUnits::formatWithUnit(
-                        model->getOptionsModel()->getDisplayUnit(), maxTxFee));
+                        model->getOptionsModel()->getDisplayUnit(),
+                        model->node().getMaxTxFee()));
             break;
         case WalletModel::PaymentRequestExpired:
             msgParams.first = tr("Payment request expired.");
@@ -643,7 +625,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
     }
 
     // Calculate available amount to send.
-    Amount amount = model->getBalance(&coin_control);
+    Amount amount = model->wallet().getAvailableBalance(coin_control);
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendCoinsEntry *e =
             qobject_cast<SendCoinsEntry *>(ui->entries->itemAt(i)->widget());
@@ -662,7 +644,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
 
 void SendCoinsDialog::setMinimumFee() {
     ui->radioCustomPerKilobyte->setChecked(true);
-    ui->customFee->setValue(GetMinimumFee(1000, g_mempool));
+    ui->customFee->setValue(model->node().getMinimumFee(1000));
 }
 
 void SendCoinsDialog::updateFeeSectionControls() {
@@ -700,7 +682,7 @@ void SendCoinsDialog::updateMinFeeLabel() {
             tr("Pay only the required fee of %1")
                 .arg(BitcoinUnits::formatWithUnit(
                          model->getOptionsModel()->getDisplayUnit(),
-                         GetMinimumFee(1000, g_mempool)) +
+                         model->node().getMinimumFee(1000)) +
                      "/kB"));
     }
 }
@@ -718,12 +700,12 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         return;
     }
 
-    CFeeRate feeRate = g_mempool.estimateFee();
+    CFeeRate feeRate = model->node().estimateSmartFee();
 
     ui->labelSmartFee->setText(
         BitcoinUnits::formatWithUnit(
             model->getOptionsModel()->getDisplayUnit(),
-            std::max(feeRate.GetFeePerK(), GetMinimumFee(1000, g_mempool))) +
+            std::max(feeRate.GetFeePerK(), model->node().getMinimumFee(1000))) +
         "/kB");
     // not enough data => minfee
     if (feeRate <= CFeeRate(Amount::zero())) {
@@ -837,7 +819,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                 tr("Warning: Invalid Bitcoin address"));
         } else {
             // Valid address
-            if (!model->IsSpendable(dest)) {
+            if (!model->wallet().isSpendable(dest)) {
                 ui->labelCoinControlChangeLabel->setText(
                     tr("Warning: Unknown change address"));
 

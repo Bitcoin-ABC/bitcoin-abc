@@ -3,45 +3,38 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "bitcoingui.h"
+#include <qt/bitcoingui.h>
 
-#include "chainparams.h"
-#include "clientmodel.h"
-#include "config.h"
-#include "guiconstants.h"
-#include "guiutil.h"
-#include "httprpc.h"
-#include "intro.h"
-#include "networkstyle.h"
-#include "optionsmodel.h"
-#include "platformstyle.h"
-#include "splashscreen.h"
-#include "utilitydialog.h"
-#include "winshutdownmonitor.h"
+#include <chainparams.h>
+#include <config.h>
+#include <httprpc.h>
+#include <init.h>
+#include <interfaces/handler.h>
+#include <interfaces/node.h>
+#include <qt/clientmodel.h>
+#include <qt/guiconstants.h>
+#include <qt/guiutil.h>
+#include <qt/intro.h>
+#include <qt/networkstyle.h>
+#include <qt/optionsmodel.h>
+#include <qt/platformstyle.h>
+#include <qt/splashscreen.h>
+#include <qt/utilitydialog.h>
+#include <qt/winshutdownmonitor.h>
+#include <rpc/server.h>
+#include <ui_interface.h>
+#include <uint256.h>
+#include <util.h>
+#include <walletinitinterface.h>
+#include <warnings.h>
 
 #ifdef ENABLE_WALLET
-#include "paymentserver.h"
-#include "walletmodel.h"
+#include <qt/paymentserver.h>
+#include <qt/walletmodel.h>
 #endif
-
-#include "init.h"
-#include "interfaces/handler.h"
-#include "interfaces/node.h"
-#include "rpc/server.h"
-#include "ui_interface.h"
-#include "uint256.h"
-#include "util.h"
-#include "warnings.h"
-
-#ifdef ENABLE_WALLET
-#include "wallet/wallet.h"
-#endif
-#include "walletinitinterface.h"
-
-#include <cstdint>
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/thread.hpp>
@@ -70,6 +63,8 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 #endif
+
+#include <cstdint>
 
 // Declare meta types used for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(bool *)
@@ -358,7 +353,7 @@ void BitcoinApplication::createWindow(const Config *config,
 }
 
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
-    SplashScreen *splash = new SplashScreen(0, networkStyle);
+    SplashScreen *splash = new SplashScreen(m_node, 0, networkStyle);
     // We don't hold a direct pointer to the splash screen after creation, but
     // the splash screen will take care of deleting itself when slotFinish
     // happens.
@@ -469,14 +464,15 @@ void BitcoinApplication::initializeResult(bool success) {
     paymentServer->setOptionsModel(optionsModel);
 #endif
 
-    clientModel = new ClientModel(optionsModel);
+    clientModel = new ClientModel(m_node, optionsModel);
     window->setClientModel(clientModel);
 
 #ifdef ENABLE_WALLET
     bool fFirstWallet = true;
-    for (CWalletRef pwallet : vpwallets) {
-        WalletModel *const walletModel =
-            new WalletModel(platformStyle, pwallet, optionsModel);
+    auto wallets = m_node.getWallets();
+    for (auto &wallet : wallets) {
+        WalletModel *const walletModel = new WalletModel(
+            std::move(wallet), m_node, platformStyle, optionsModel);
 
         window->addWallet(walletModel);
         if (fFirstWallet) {
@@ -484,11 +480,12 @@ void BitcoinApplication::initializeResult(bool success) {
             fFirstWallet = false;
         }
 
-        connect(walletModel,
-                SIGNAL(coinsSent(CWallet *, SendCoinsRecipient, QByteArray)),
-                paymentServer,
-                SLOT(fetchPaymentACK(CWallet *, const SendCoinsRecipient &,
-                                     QByteArray)));
+        connect(
+            walletModel,
+            SIGNAL(coinsSent(WalletModel *, SendCoinsRecipient, QByteArray)),
+            paymentServer,
+            SLOT(fetchPaymentACK(WalletModel *, const SendCoinsRecipient &,
+                                 QByteArray)));
 
         m_wallet_models.push_back(walletModel);
     }
@@ -656,7 +653,7 @@ int main(int argc, char *argv[]) {
 
     /// 5. Now that settings and translations are available, ask user for data
     /// directory. User language is set up: pick a data directory.
-    if (!Intro::pickDataDirectory()) {
+    if (!Intro::pickDataDirectory(*node)) {
         return EXIT_SUCCESS;
     }
 
@@ -700,7 +697,7 @@ int main(int argc, char *argv[]) {
     }
 #ifdef ENABLE_WALLET
     // Parse URIs on command line -- this can affect Params()
-    PaymentServer::ipcParseCommandLine(argc, argv);
+    PaymentServer::ipcParseCommandLine(*node, argc, argv);
 #endif
 
     QScopedPointer<const NetworkStyle> networkStyle(NetworkStyle::instantiate(

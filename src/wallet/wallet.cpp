@@ -3,35 +3,36 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "wallet/wallet.h"
+#include <wallet/wallet.h>
 
-#include "chain.h"
-#include "checkpoints.h"
-#include "config.h"
-#include "consensus/consensus.h"
-#include "consensus/validation.h"
-#include "dstencode.h"
-#include "fs.h"
-#include "init.h"
-#include "key.h"
-#include "keystore.h"
-#include "net.h"
-#include "policy/policy.h"
-#include "primitives/block.h"
-#include "primitives/transaction.h"
-#include "scheduler.h"
-#include "script/script.h"
-#include "script/sighashtype.h"
-#include "script/sign.h"
-#include "timedata.h"
-#include "txmempool.h"
-#include "ui_interface.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "validation.h"
-#include "wallet/coincontrol.h"
-#include "wallet/fees.h"
-#include "wallet/finaltx.h"
+#include <chain.h>
+#include <checkpoints.h>
+#include <config.h>
+#include <consensus/consensus.h>
+#include <consensus/validation.h>
+#include <dstencode.h>
+#include <fs.h>
+#include <init.h>
+#include <key.h>
+#include <keystore.h>
+#include <net.h>
+#include <policy/policy.h>
+#include <primitives/block.h>
+#include <primitives/transaction.h>
+#include <rpc/server.h> // for IsDeprecatedRPCEnabled
+#include <scheduler.h>
+#include <script/script.h>
+#include <script/sighashtype.h>
+#include <script/sign.h>
+#include <timedata.h>
+#include <txmempool.h>
+#include <ui_interface.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <validation.h>
+#include <wallet/coincontrol.h>
+#include <wallet/fees.h>
+#include <wallet/finaltx.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -2788,6 +2789,12 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     if (nChangePosInOut != -1) {
         tx.vout.insert(tx.vout.begin() + nChangePosInOut,
                        tx_new->vout[nChangePosInOut]);
+        // we dont have the normal Create/Commit cycle, and dont want to
+        // risk reusing change, so just remove the key from the keypool
+        // here.
+        if (!IsDeprecatedRPCEnabled(gArgs, "fundrawtransaction")) {
+            reservekey.KeepKey();
+        }
     }
 
     // Copy output sizes from new transaction; they may have had the fee
@@ -2808,9 +2815,13 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
         }
     }
 
+    // DEPRECATED, remove in 0.20 with -reserveChangeKey
     // Optionally keep the change output key.
-    if (keepReserveKey) {
-        reservekey.KeepKey();
+    if (IsDeprecatedRPCEnabled(gArgs, "fundrawtransaction")) {
+
+        if (keepReserveKey) {
+            reservekey.KeepKey();
+        }
     }
 
     return true;

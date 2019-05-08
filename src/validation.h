@@ -8,20 +8,20 @@
 #define BITCOIN_VALIDATION_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "amount.h"
-#include "blockfileinfo.h"
-#include "coins.h"
-#include "consensus/consensus.h"
-#include "consensus/params.h"
-#include "diskblockpos.h"
-#include "fs.h"
-#include "protocol.h" // For CMessageHeader::MessageMagic
-#include "script/script_error.h"
-#include "sync.h"
-#include "versionbits.h"
+#include <amount.h>
+#include <blockfileinfo.h>
+#include <coins.h>
+#include <consensus/consensus.h>
+#include <consensus/params.h>
+#include <diskblockpos.h>
+#include <fs.h>
+#include <protocol.h> // For CMessageHeader::MessageMagic
+#include <script/script_error.h>
+#include <sync.h>
+#include <versionbits.h>
 
 #include <algorithm>
 #include <atomic>
@@ -426,7 +426,8 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
  * Guess verification progress (as a fraction between 0.0=genesis and
  * 1.0=current tip).
  */
-double GuessVerificationProgress(const ChainTxData &data, CBlockIndex *pindex);
+double GuessVerificationProgress(const ChainTxData &data,
+                                 const CBlockIndex *pindex);
 
 /**
  * Calculate the amount of disk space the block & undo files currently use.

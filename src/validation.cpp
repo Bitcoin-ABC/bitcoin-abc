@@ -4,54 +4,54 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "validation.h"
-#include "omnicore/omnicore.h"
-#include "arith_uint256.h"
-#include "blockindexworkcomparator.h"
-#include "blockvalidity.h"
-#include "chainparams.h"
-#include "checkpoints.h"
-#include "checkqueue.h"
-#include "config.h"
-#include "consensus/activation.h"
-#include "consensus/consensus.h"
-#include "consensus/merkle.h"
-#include "consensus/tx_verify.h"
-#include "consensus/validation.h"
-#include "fs.h"
-#include "hash.h"
-#include "init.h"
-#include "policy/fees.h"
-#include "policy/policy.h"
-#include "pow.h"
-#include "primitives/block.h"
-#include "primitives/transaction.h"
-#include "random.h"
-#include "reverse_iterator.h"
-#include "script/script.h"
-#include "script/scriptcache.h"
-#include "script/sigcache.h"
-#include "script/standard.h"
-#include "timedata.h"
-#include "tinyformat.h"
-#include "txdb.h"
-#include "txmempool.h"
-#include "ui_interface.h"
-#include "undo.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "utilstrencodings.h"
-#include "validationinterface.h"
-#include "warnings.h"
+#include <validation.h>
+
+#include <arith_uint256.h>
+#include <blockindexworkcomparator.h>
+#include <blockvalidity.h>
+#include <chainparams.h>
+#include <checkpoints.h>
+#include <checkqueue.h>
+#include <config.h>
+#include <consensus/activation.h>
+#include <consensus/consensus.h>
+#include <consensus/merkle.h>
+#include <consensus/tx_verify.h>
+#include <consensus/validation.h>
+#include <fs.h>
+#include <hash.h>
+#include <init.h>
+#include <policy/fees.h>
+#include <policy/policy.h>
+#include <pow.h>
+#include <primitives/block.h>
+#include <primitives/transaction.h>
+#include <random.h>
+#include <reverse_iterator.h>
+#include <script/script.h>
+#include <script/scriptcache.h>
+#include <script/sigcache.h>
+#include <script/standard.h>
+#include <timedata.h>
+#include <tinyformat.h>
+#include <txdb.h>
+#include <txmempool.h>
+#include <ui_interface.h>
+#include <undo.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <utilstrencodings.h>
+#include <validationinterface.h>
+#include <warnings.h>
+
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/thread.hpp>
 
 #include <atomic>
 #include <future>
 #include <sstream>
 #include <thread>
-
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/thread.hpp>
 
 #if defined(NDEBUG)
 #error "Bitcoin cannot be compiled without assertions."
@@ -1715,10 +1715,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
                                CCoinsViewCache &view, bool fJustCheck) {
     AssertLockHeld(cs_main);
     assert(pindex);
-    // pindex->phashBlock can be null if called by
-    // CreateNewBlock/TestBlockValidity
-    assert((pindex->phashBlock == nullptr) ||
-           (*pindex->phashBlock == block.GetHash()));
+    assert(*pindex->phashBlock == block.GetHash());
     int64_t nTimeStart = GetTimeMicros();
 
     // Check it again in case a previous version let a bad block in
@@ -1802,10 +1799,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
     // applied to all blocks except the two in the chain that violate it. This
     // prevents exploiting the issue against nodes during their initial block
     // download.
-    bool fEnforceBIP30 = (!pindex->phashBlock) || // Enforce on CreateNewBlock
-                                                  // invocations which don't
-                                                  // have a hash.
-                         !((pindex->nHeight == 91842 &&
+    bool fEnforceBIP30 = !((pindex->nHeight == 91842 &&
                             pindex->GetBlockHash() ==
                                 uint256S("0x00000000000a4d0a398161ffc163c503763"
                                          "b1f4360639393e0e4c8e300e0caec")) ||
@@ -2956,6 +2950,7 @@ bool CChainState::ActivateBestChain(const Config &config,
 
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
+    int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
     do {
         boost::this_thread::interruption_point();
 
@@ -3031,6 +3026,11 @@ bool CChainState::ActivateBestChain(const Config &config,
         if (pindexFork != pindexNewTip) {
             uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
         }
+
+        if (nStopAtHeight && pindexNewTip &&
+            pindexNewTip->nHeight >= nStopAtHeight) {
+            StartShutdown();
+        }
     } while (pindexNewTip != pindexMostWork);
 
     const CChainParams &params = config.GetChainParams();
@@ -3039,12 +3039,6 @@ bool CChainState::ActivateBestChain(const Config &config,
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(params, state, FlushStateMode::PERIODIC)) {
         return false;
-    }
-
-    int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
-    if (nStopAtHeight && pindexNewTip &&
-        pindexNewTip->nHeight >= nStopAtHeight) {
-        StartShutdown();
     }
 
     return true;
@@ -4170,9 +4164,11 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainActive.Tip());
     CCoinsViewCache viewNew(pcoinsTip.get());
+    uint256 block_hash(block.GetHash());
     CBlockIndex indexDummy(block);
     indexDummy.pprev = pindexPrev;
     indexDummy.nHeight = pindexPrev->nHeight + 1;
+    indexDummy.phashBlock = &block_hash;
 
     // NOTE: CheckBlockHeader is called by CheckBlock
     if (!ContextualCheckBlockHeader(config, block, state, pindexPrev,
@@ -5623,9 +5619,8 @@ bool LoadMempool(const Config &config) {
 
             Amount amountdelta = nFeeDelta * SATOSHI;
             if (amountdelta != Amount::zero()) {
-                g_mempool.PrioritiseTransaction(tx->GetId(),
-                                                tx->GetId().ToString(),
-                                                prioritydummy, amountdelta);
+                g_mempool.PrioritiseTransaction(tx->GetId(), prioritydummy,
+                                                amountdelta);
             }
             CValidationState state;
             if (nTime + nExpiryTimeout > nNow) {
@@ -5649,8 +5644,7 @@ bool LoadMempool(const Config &config) {
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {
-            g_mempool.PrioritiseTransaction(i.first, i.first.ToString(),
-                                            prioritydummy, i.second);
+            g_mempool.PrioritiseTransaction(i.first, prioritydummy, i.second);
         }
     } catch (const std::exception &e) {
         LogPrintf("Failed to deserialize mempool data on disk: %s. Continuing "
@@ -5715,7 +5709,8 @@ void DumpMempool(void) {
 }
 
 //! Guess how far we are in the verification process at the given block index
-double GuessVerificationProgress(const ChainTxData &data, CBlockIndex *pindex) {
+double GuessVerificationProgress(const ChainTxData &data,
+                                 const CBlockIndex *pindex) {
     if (pindex == nullptr) {
         return 0.0;
     }

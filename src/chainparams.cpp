@@ -4,16 +4,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "chainparams.h"
-#include "consensus/merkle.h"
+#include <chainparams.h>
 
-#include "tinyformat.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include <chainparamsseeds.h>
+#include <consensus/merkle.h>
+#include <tinyformat.h>
+#include <util.h>
+#include <utilstrencodings.h>
 
 #include <cassert>
-
-#include "chainparamsseeds.h"
 
 static CBlock CreateGenesisBlock(const char *pszTimestamp,
                                  const CScript &genesisOutputScript,
@@ -115,12 +114,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000e69facb8ace3926ead407c");
+            "000000000000000000000000000000000000000000e8edfe3e3b6bddc3523c75");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "000000000000000001cfa7b6cb48a93d07d8e7f474edcf4fe9b32b7525afe971");
+            "00000000000000000042fdb6b3730df1508a405ef98b1bdb857d4238b1c0a597");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;

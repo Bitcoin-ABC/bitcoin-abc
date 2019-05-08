@@ -4,10 +4,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "feerate.h"
-#include "amount.h"
+#include <feerate.h>
 
-#include "tinyformat.h"
+#include <amount.h>
+#include <tinyformat.h>
 
 CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {
     assert(nBytes_ <= uint64_t(std::numeric_limits<int64_t>::max()));

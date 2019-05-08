@@ -10,6 +10,7 @@ find_package(BerkeleyDB REQUIRED)
 find_package(Event REQUIRED)
 
 add_library(wallet
+	../interfaces/wallet.cpp
 	crypter.cpp
 	db.cpp
 	fees.cpp

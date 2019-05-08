@@ -6,7 +6,7 @@
 #ifndef BITCOIN_UINT256_H
 #define BITCOIN_UINT256_H
 
-#include "crypto/common.h"
+#include <crypto/common.h>
 
 #include <cassert>
 #include <cstdint>

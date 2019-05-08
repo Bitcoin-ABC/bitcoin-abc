@@ -1,11 +1,11 @@
-#include "bitcoin.h"
+#include <seeder/bitcoin.h>
 
-#include "db.h"
-#include "hash.h"
-#include "netbase.h"
-#include "serialize.h"
-#include "streams.h"
-#include "uint256.h"
+#include <hash.h>
+#include <netbase.h>
+#include <seeder/db.h>
+#include <serialize.h>
+#include <streams.h>
+#include <uint256.h>
 
 #include <algorithm>
 

@@ -6,9 +6,9 @@
 #ifndef BITCOIN_NET_PROCESSING_H
 #define BITCOIN_NET_PROCESSING_H
 
-#include "consensus/params.h"
-#include "net.h"
-#include "validationinterface.h"
+#include <consensus/params.h>
+#include <net.h>
+#include <validationinterface.h>
 
 class Config;
 
@@ -107,9 +107,9 @@ private:
 };
 
 struct CNodeStateStats {
-    int nMisbehavior;
-    int nSyncHeight;
-    int nCommonHeight;
+    int nMisbehavior = 0;
+    int nSyncHeight = -1;
+    int nCommonHeight = -1;
     std::vector<int> vHeightInFlight;
 };
 

@@ -25,13 +25,11 @@
             ]
         },
         "lint-format-strings": {
-            "type": "script-and-regex",
+            "type": "lint-format-strings",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)"
-            ],
-            "script-and-regex.script": "test/lint/lint-format-strings.sh",
-            "script-and-regex.regex": "/^(?P<file>.+): (?P<message>.+:.+)$/m"
+            ]
         },
         "check-doc": {
             "type": "check-doc",

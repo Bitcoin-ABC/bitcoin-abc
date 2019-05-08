@@ -6,7 +6,7 @@
 #ifndef BITCOIN_CLIENTVERSION_H
 #define BITCOIN_CLIENTVERSION_H
 
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 
 /**
  * Converts the parameter X to a string after macro replacement on X has been

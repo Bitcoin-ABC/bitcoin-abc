@@ -1,10 +1,10 @@
-#include "bitcoin.h"
-#include "clientversion.h"
-#include "db.h"
-#include "dns.h"
-#include "logging.h"
-#include "protocol.h"
-#include "streams.h"
+#include <clientversion.h>
+#include <logging.h>
+#include <protocol.h>
+#include <seeder/bitcoin.h>
+#include <seeder/db.h>
+#include <seeder/dns.h>
+#include <streams.h>
 
 #include <algorithm>
 #include <atomic>
@@ -165,7 +165,7 @@ public:
 };
 
 extern "C" {
-#include "dns.h"
+#include <seeder/dns.h>
 }
 
 CAddrDb db;

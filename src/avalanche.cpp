@@ -2,14 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "avalanche.h"
+#include <avalanche.h>
 
-#include "chain.h"
-#include "config/bitcoin-config.h"
-#include "netmessagemaker.h"
-#include "reverse_iterator.h"
-#include "scheduler.h"
-#include "validation.h"
+#include <chain.h>
+#include <config/bitcoin-config.h>
+#include <netmessagemaker.h>
+#include <reverse_iterator.h>
+#include <scheduler.h>
+#include <validation.h>
 
 #include <tuple>
 

@@ -102,7 +102,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
 #endif
     setWindowTitle(windowTitle);
 
-    rpcConsole = new RPCConsole(_platformStyle, 0);
+    rpcConsole = new RPCConsole(node, _platformStyle, 0);
     helpMessageDialog = new HelpMessageDialog(node, this, false);
 #ifdef ENABLE_WALLET
     if (enableWallet) {
@@ -526,9 +526,9 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
         modalOverlay->setKnownBestHeight(
             _clientModel->getHeaderTipHeight(),
             QDateTime::fromTime_t(_clientModel->getHeaderTipTime()));
-        setNumBlocks(_clientModel->getNumBlocks(),
-                     _clientModel->getLastBlockDate(),
-                     _clientModel->getVerificationProgress(nullptr), false);
+        setNumBlocks(m_node.getNumBlocks(),
+                     QDateTime::fromTime_t(m_node.getLastBlockTime()),
+                     m_node.getVerificationProgress(), false);
         connect(_clientModel,
                 SIGNAL(numBlocksChanged(int, QDateTime, double, bool)), this,
                 SLOT(setNumBlocks(int, QDateTime, double, bool)));
@@ -778,7 +778,7 @@ void BitcoinGUI::updateNetworkState() {
 
     QString tooltip;
 
-    if (clientModel->getNetworkActive()) {
+    if (m_node.getNetworkActive()) {
         tooltip = tr("%n active connection(s) to Bitcoin network", "", count) +
                   QString(".<br>") + tr("Click to disable network activity.");
     } else {
@@ -1044,7 +1044,7 @@ void BitcoinGUI::incomingTransaction(const QString &date, int unit,
     QString msg = tr("Date: %1\n").arg(date) +
                   tr("Amount: %1\n")
                       .arg(BitcoinUnits::formatWithUnit(unit, amount, true));
-    if (WalletModel::isMultiwallet() && !walletName.isEmpty()) {
+    if (m_node.getWallets().size() > 1 && !walletName.isEmpty()) {
         msg += tr("Wallet: %1\n").arg(walletName);
     }
     msg += tr("Type: %1\n").arg(type);
@@ -1157,7 +1157,7 @@ void BitcoinGUI::updateWalletStatus() {
     }
     WalletModel *const walletModel = walletView->getWalletModel();
     setEncryptionStatus(walletModel->getEncryptionStatus());
-    setHDStatus(walletModel->hdEnabled());
+    setHDStatus(walletModel->wallet().hdEnabled());
 }
 #endif // ENABLE_WALLET
 
@@ -1259,9 +1259,7 @@ void BitcoinGUI::unsubscribeFromCoreSignals() {
 }
 
 void BitcoinGUI::toggleNetworkActive() {
-    if (clientModel) {
-        clientModel->setNetworkActive(!clientModel->getNetworkActive());
-    }
+    m_node.setNetworkActive(!m_node.getNetworkActive());
 }
 
 UnitDisplayStatusBarControl::UnitDisplayStatusBarControl(

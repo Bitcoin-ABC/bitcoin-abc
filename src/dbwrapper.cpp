@@ -2,19 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "dbwrapper.h"
+#include <dbwrapper.h>
 
-#include "random.h"
-#include "util.h"
+#include <random.h>
+#include <util.h>
 
 #include <boost/filesystem.hpp>
 
-#include <algorithm>
-#include <cstdint>
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
 #include <memenv.h>
+
+#include <algorithm>
+#include <cstdint>
 
 class CBitcoinLevelDBLogger : public leveldb::Logger {
 public:

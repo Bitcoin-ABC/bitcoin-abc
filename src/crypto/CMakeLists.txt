@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Bitcoin developers
+# Copyright (c) 2017-2019 The Bitcoin developers
 
 project(crypto)
 
@@ -13,6 +13,7 @@ add_library(crypto
 	sha256.cpp
 	sha256_sse4.cpp
 	sha512.cpp
+	siphash.cpp
 )
 
 target_include_directories(crypto

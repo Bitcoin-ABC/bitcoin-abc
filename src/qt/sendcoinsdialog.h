@@ -5,7 +5,7 @@
 #ifndef BITCOIN_QT_SENDCOINSDIALOG_H
 #define BITCOIN_QT_SENDCOINSDIALOG_H
 
-#include "walletmodel.h"
+#include <qt/walletmodel.h>
 
 #include <QDialog>
 #include <QMessageBox>
@@ -55,10 +55,7 @@ public Q_SLOTS:
     void accept() override;
     SendCoinsEntry *addEntry();
     void updateTabsAndLabels();
-    void setBalance(const Amount balance, const Amount unconfirmedBalance,
-                    const Amount immatureBalance, const Amount watchOnlyBalance,
-                    const Amount watchUnconfBalance,
-                    const Amount watchImmatureBalance);
+    void setBalance(const interfaces::WalletBalances &balances);
 
 Q_SIGNALS:
     void coinsSent(const uint256 &txid);

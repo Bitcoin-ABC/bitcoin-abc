@@ -2,22 +2,22 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "base58.h"
-#include "chain.h"
-#include "config.h"
-#include "core_io.h"
-#include "dstencode.h"
-#include "init.h"
-#include "merkleblock.h"
-#include "rpc/server.h"
-#include "rpcwallet.h"
-#include "script/script.h"
-#include "script/standard.h"
-#include "sync.h"
-#include "util.h"
-#include "utiltime.h"
-#include "validation.h"
-#include "wallet.h"
+#include <base58.h>
+#include <chain.h>
+#include <config.h>
+#include <core_io.h>
+#include <dstencode.h>
+#include <init.h>
+#include <merkleblock.h>
+#include <rpc/server.h>
+#include <script/script.h>
+#include <script/standard.h>
+#include <sync.h>
+#include <util.h>
+#include <utiltime.h>
+#include <validation.h>
+#include <wallet/rpcwallet.h>
+#include <wallet/wallet.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>

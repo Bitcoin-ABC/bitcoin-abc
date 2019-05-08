@@ -6,12 +6,12 @@
 #ifndef BITCOIN_COINS_H
 #define BITCOIN_COINS_H
 
-#include "compressor.h"
-#include "core_memusage.h"
-#include "hash.h"
-#include "memusage.h"
-#include "serialize.h"
-#include "uint256.h"
+#include <compressor.h>
+#include <core_memusage.h>
+#include <crypto/siphash.h>
+#include <memusage.h>
+#include <serialize.h>
+#include <uint256.h>
 
 #include <cassert>
 #include <cstdint>

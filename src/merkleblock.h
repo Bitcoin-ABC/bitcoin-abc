@@ -6,10 +6,10 @@
 #ifndef BITCOIN_MERKLEBLOCK_H
 #define BITCOIN_MERKLEBLOCK_H
 
-#include "bloom.h"
-#include "primitives/block.h"
-#include "serialize.h"
-#include "uint256.h"
+#include <bloom.h>
+#include <primitives/block.h>
+#include <serialize.h>
+#include <uint256.h>
 
 #include <vector>
 

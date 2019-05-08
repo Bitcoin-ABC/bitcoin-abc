@@ -1,7 +1,7 @@
 #ifndef BITCOIN_SEEDER_BITCOIN_H
 #define BITCOIN_SEEDER_BITCOIN_H
 
-#include "protocol.h"
+#include <protocol.h>
 
 #include <string>
 #include <vector>

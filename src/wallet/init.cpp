@@ -4,16 +4,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "init.h"
-#include "config.h"
-#include "net.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "validation.h"
-#include "wallet/rpcwallet.h"
-#include "wallet/wallet.h"
-#include "wallet/walletutil.h"
-#include "walletinitinterface.h"
+#include <config.h>
+#include <init.h>
+#include <net.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <validation.h>
+#include <wallet/rpcwallet.h>
+#include <wallet/wallet.h>
+#include <wallet/walletutil.h>
+#include <walletinitinterface.h>
 
 class WalletInit : public WalletInitInterface {
 public:

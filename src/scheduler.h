@@ -5,7 +5,7 @@
 #ifndef BITCOIN_SCHEDULER_H
 #define BITCOIN_SCHEDULER_H
 
-#include "sync.h"
+#include <sync.h>
 
 //
 // NOTE:

@@ -2,14 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "bloom.h"
+#include <bloom.h>
 
-#include "hash.h"
-#include "primitives/transaction.h"
-#include "random.h"
-#include "script/script.h"
-#include "script/standard.h"
-#include "streams.h"
+#include <hash.h>
+#include <primitives/transaction.h>
+#include <random.h>
+#include <script/script.h>
+#include <script/standard.h>
+#include <streams.h>
 
 #include <cmath>
 #include <cstdlib>

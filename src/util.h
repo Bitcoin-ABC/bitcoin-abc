@@ -11,15 +11,18 @@
 #define BITCOIN_UTIL_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "compat.h"
-#include "fs.h"
-#include "logging.h"
-#include "sync.h"
-#include "tinyformat.h"
-#include "utiltime.h"
+#include <compat.h>
+#include <fs.h>
+#include <logging.h>
+#include <sync.h>
+#include <tinyformat.h>
+#include <utiltime.h>
+
+#include <boost/signals2/signal.hpp>
+#include <boost/thread/condition_variable.hpp> // for boost::thread_interrupted
 
 #include <atomic>
 #include <cstdint>
@@ -29,9 +32,6 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-
-#include <boost/signals2/signal.hpp>
-#include <boost/thread/condition_variable.hpp> // for boost::thread_interrupted
 
 // Application startup time (used for uptime calculation)
 int64_t GetStartupTime();

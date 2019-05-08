@@ -7,6 +7,7 @@ DIST_SUBDIRS = secp256k1 univalue
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS) $(SANITIZER_LDFLAGS)
 AM_CXXFLAGS = $(DEBUG_CXXFLAGS) $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS) $(SANITIZER_CXXFLAGS)
 AM_CPPFLAGS = $(DEBUG_CPPFLAGS) $(HARDENED_CPPFLAGS)
+AM_LIBTOOLFLAGS = --preserve-dup-deps
 EXTRA_LIBRARIES =
 
 if EMBEDDED_UNIVALUE
@@ -142,6 +143,7 @@ BITCOIN_CORE_H = \
   init.h \
   interfaces/handler.h \
   interfaces/node.h \
+  interfaces/wallet.h \
   key.h \
   keystore.h \
   dbwrapper.h \
@@ -295,6 +297,7 @@ endif
 libwormholed_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libwormholed_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libwormholed_wallet_a_SOURCES = \
+  interfaces/wallet.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/finaltx.cpp \
@@ -327,7 +330,9 @@ crypto_libwormholed_crypto_a_SOURCES = \
   crypto/sha256.cpp \
   crypto/sha256.h \
   crypto/sha512.cpp \
-  crypto/sha512.h
+  crypto/sha512.h \
+  crypto/siphash.cpp \
+  crypto/siphash.h
 
 if USE_ASM
 crypto_libwormholed_crypto_a_SOURCES += crypto/sha256_sse4.cpp

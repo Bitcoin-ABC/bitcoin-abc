@@ -4,8 +4,8 @@
 #ifndef BITCOIN_CASHADDRENC_H
 #define BITCOIN_CASHADDRENC_H
 
-#include "script/standard.h"
-#include "pubkey.h"
+#include <script/standard.h>
+
 #include <string>
 #include <vector>
 

@@ -19,6 +19,7 @@
 #include "transactionview.h"
 #include "walletmodel.h"
 
+#include "interfaces/node.h"
 #include "ui_interface.h"
 
 #include <QAction>
@@ -181,7 +182,8 @@ void WalletView::setWalletModel(WalletModel *_walletModel) {
 void WalletView::processNewTransaction(const QModelIndex &parent, int start,
                                        int end) {
     // Prevent balloon-spam when initial block download is in progress
-    if (!walletModel || !clientModel || clientModel->inInitialBlockDownload()) {
+    if (!walletModel || !clientModel ||
+        clientModel->node().isInitialBlockDownload()) {
         return;
     }
 
@@ -292,7 +294,7 @@ void WalletView::backupWallet() {
         return;
     }
 
-    if (!walletModel->backupWallet(filename)) {
+    if (!walletModel->wallet().backupWallet(filename.toLocal8Bit().data())) {
         Q_EMIT message(
             tr("Backup Failed"),
             tr("There was an error trying to save the wallet data to %1.")

@@ -6,18 +6,18 @@
 #ifndef BITCOIN_TXMEMPOOL_H
 #define BITCOIN_TXMEMPOOL_H
 
-#include "amount.h"
-#include "coins.h"
-#include "indirectmap.h"
-#include "primitives/transaction.h"
-#include "random.h"
-#include "sync.h"
+#include <amount.h>
+#include <coins.h>
+#include <crypto/siphash.h>
+#include <indirectmap.h>
+#include <primitives/transaction.h>
+#include <random.h>
+#include <sync.h>
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index_container.hpp>
-
 #include <boost/signals2/signal.hpp>
 
 #include <map>
@@ -625,8 +625,8 @@ public:
     bool HasNoInputsOf(const CTransaction &tx) const;
 
     /** Affect CreateNewBlock prioritisation of transactions */
-    void PrioritiseTransaction(const uint256 hash, const std::string strHash,
-                               double dPriorityDelta, const Amount nFeeDelta);
+    void PrioritiseTransaction(const uint256 &hash, double dPriorityDelta,
+                               const Amount nFeeDelta);
     void ApplyDeltas(const uint256 hash, double &dPriorityDelta,
                      Amount &nFeeDelta) const;
     void ClearPrioritisation(const uint256 hash);

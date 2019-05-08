@@ -1,18 +1,18 @@
 --- Good ones ---
-printme("%d", 1); => no error
-printme("%d%d%d", 1, 2, 3); => no error
-printme("%a%b%z", 1, "anything", 3); => no error
+printf("%d", 1); => no error
+printf("%d%d%d", 1, 2, 3); => no error
+printf("%a%b%z", 1, "anything", 3); => no error
 
 --- Comments ---
-// This is a c++ comment, should not throw printme("%d", 1, 2); => no error
+// This is a c++ comment, should not throw printf("%d", 1, 2); => no error
 
 --- Preprocessor ---
-#define printme(%d, 1, 2); => no error
+#define printf(%d, 1, 2); => no error
 
 -- Too many arguments ---
-printme("%d", 1, 2); => error
-printme("%a %b", 1, 2, "anything"); => error
+printf("%d", 1, 2); => error
+printf("%a %b", 1, 2, "anything"); => error
 
 --- Not enough argument ---
-printme("%d"); should throw => error
-printme("%a%b%z", 1, "anything"); => error
+printf("%d"); should throw => error
+printf("%a%b%z", 1, "anything"); => error

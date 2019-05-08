@@ -5,12 +5,12 @@
 #ifndef BITCOIN_AVALANCHE_H
 #define BITCOIN_AVALANCHE_H
 
-#include "blockindexworkcomparator.h"
-#include "net.h"
-#include "protocol.h" // for CInv
-#include "rwcollection.h"
-#include "serialize.h"
-#include "uint256.h"
+#include <blockindexworkcomparator.h>
+#include <net.h>
+#include <protocol.h> // for CInv
+#include <rwcollection.h>
+#include <serialize.h>
+#include <uint256.h>
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>

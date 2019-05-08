@@ -3,25 +3,25 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "txmempool.h"
+#include <txmempool.h>
 
-#include "chain.h"
-#include "chainparams.h" // for GetConsensus.
-#include "clientversion.h"
-#include "config.h"
-#include "consensus/consensus.h"
-#include "consensus/tx_verify.h"
-#include "consensus/validation.h"
-#include "policy/fees.h"
-#include "policy/policy.h"
-#include "reverse_iterator.h"
-#include "streams.h"
-#include "timedata.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "utiltime.h"
-#include "validation.h"
-#include "version.h"
+#include <chain.h>
+#include <chainparams.h> // for GetConsensus.
+#include <clientversion.h>
+#include <config.h>
+#include <consensus/consensus.h>
+#include <consensus/tx_verify.h>
+#include <consensus/validation.h>
+#include <policy/fees.h>
+#include <policy/policy.h>
+#include <reverse_iterator.h>
+#include <streams.h>
+#include <timedata.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <utiltime.h>
+#include <validation.h>
+#include <version.h>
 
 #include <algorithm>
 
@@ -963,8 +963,7 @@ CFeeRate CTxMemPool::estimateFee() const {
     return std::max(GetConfig().GetMinFeePerKB(), GetMinFee(maxMempoolSize));
 }
 
-void CTxMemPool::PrioritiseTransaction(const uint256 hash,
-                                       const std::string strHash,
+void CTxMemPool::PrioritiseTransaction(const uint256 &hash,
                                        double dPriorityDelta,
                                        const Amount nFeeDelta) {
     {
@@ -996,8 +995,8 @@ void CTxMemPool::PrioritiseTransaction(const uint256 hash,
             }
         }
     }
-    LogPrintf("PrioritiseTransaction: %s priority += %f, fee += %d\n", strHash,
-              dPriorityDelta, FormatMoney(nFeeDelta));
+    LogPrintf("PrioritiseTransaction: %s priority += %f, fee += %d\n",
+              hash.ToString(), dPriorityDelta, FormatMoney(nFeeDelta));
 }
 
 void CTxMemPool::ApplyDeltas(const uint256 hash, double &dPriorityDelta,

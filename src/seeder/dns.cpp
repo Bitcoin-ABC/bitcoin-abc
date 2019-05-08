@@ -1,11 +1,4 @@
-#include "dns.h"
-
-#include <cctype>
-#include <cstdbool>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
+#include <seeder/dns.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -13,6 +6,13 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <cctype>
+#include <cstdbool>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #define BUFLEN 512
 

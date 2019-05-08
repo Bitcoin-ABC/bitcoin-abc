@@ -25,4 +25,7 @@ bool IsMagneticAnomalyEnabled(const Config &config,
 /** Check if May 15th, 2019 protocol upgrade has activated. */
 bool IsGreatWallEnabled(const Config &config, const CBlockIndex *pindexPrev);
 
+/** Check if Nov 15th, 2019 protocol upgrade has activated. */
+bool IsGravitonEnabled(const Config &config, const CBlockIndex *pindexPrev);
+
 #endif // BITCOIN_CONSENSUS_ACTIVATION_H

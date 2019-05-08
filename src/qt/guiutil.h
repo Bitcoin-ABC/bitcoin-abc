@@ -5,8 +5,8 @@
 #ifndef BITCOIN_QT_GUIUTIL_H
 #define BITCOIN_QT_GUIUTIL_H
 
-#include "amount.h"
-#include "fs.h"
+#include <amount.h>
+#include <fs.h>
 
 #include <QEvent>
 #include <QHeaderView>
@@ -21,6 +21,10 @@ class QValidatedLineEdit;
 class SendCoinsRecipient;
 class CChainParams;
 class Config;
+
+namespace interfaces {
+class Node;
+}
 
 QT_BEGIN_NAMESPACE
 class QAbstractItemView;
@@ -64,7 +68,7 @@ bool parseBitcoinURI(const QString &scheme, QString uri,
 QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info);
 
 // Returns true if given address+amount meets "dust" definition
-bool isDust(const QString &address, const Amount amount,
+bool isDust(interfaces::Node &node, const QString &address, const Amount amount,
             const CChainParams &chainParams);
 
 // HTML escaping for rich text controls

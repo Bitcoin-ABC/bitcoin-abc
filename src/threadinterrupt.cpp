@@ -3,9 +3,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "threadinterrupt.h"
+#include <threadinterrupt.h>
 
-#include "sync.h"
+#include <sync.h>
 
 CThreadInterrupt::operator bool() const {
     return flag.load(std::memory_order_acquire);

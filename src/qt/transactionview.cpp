@@ -260,7 +260,7 @@ void TransactionView::setModel(WalletModel *_model) {
         }
 
         // show/hide column Watch-only
-        updateWatchOnlyColumn(_model->haveWatchOnly());
+        updateWatchOnlyColumn(_model->wallet().haveWatchOnly());
 
         // Watch-only signal
         connect(_model, SIGNAL(notifyWatchonlyChanged(bool)), this,
@@ -356,6 +356,10 @@ void TransactionView::changedAmount(const QString &amount) {
 }
 
 void TransactionView::exportClicked() {
+    if (!model || !model->getOptionsModel()) {
+        return;
+    }
+
     // CSV is currently the only supported format
     QString filename = GUIUtil::getSaveFileName(
         this, tr("Export Transaction History"), QString(),
@@ -370,7 +374,7 @@ void TransactionView::exportClicked() {
     // name, column, role
     writer.setModel(transactionProxyModel);
     writer.addColumn(tr("Confirmed"), 0, TransactionTableModel::ConfirmedRole);
-    if (model && model->haveWatchOnly()) {
+    if (model->wallet().haveWatchOnly()) {
         writer.addColumn(tr("Watch-only"), TransactionTableModel::Watchonly);
     }
     writer.addColumn(tr("Date"), 0, TransactionTableModel::DateRole);
@@ -412,7 +416,7 @@ void TransactionView::contextualMenu(const QPoint &point) {
                     .data(TransactionTableModel::TxHashRole)
                     .toString()
                     .toStdString());
-    abandonAction->setEnabled(model->transactionCanBeAbandoned(txid));
+    abandonAction->setEnabled(model->wallet().transactionCanBeAbandoned(txid));
 
     if (index.isValid()) {
         contextMenu->popup(transactionView->viewport()->mapToGlobal(point));
@@ -435,7 +439,7 @@ void TransactionView::abandonTx() {
     txid.SetHex(hashQStr.toStdString());
 
     // Abandon the wallet transaction over the walletModel
-    model->abandonTransaction(txid);
+    model->wallet().abandonTransaction(txid);
 
     // Update the table
     model->getTransactionTableModel()->updateTransaction(hashQStr, CT_UPDATED,

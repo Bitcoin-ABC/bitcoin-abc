@@ -2,24 +2,25 @@
 The following tests will throw an error if skip-argument is not 1
 
 --- Good ones ---
-printme(skipped, "%d", 1);
-printme(skipped, "%a%b%z", 1, "anything", 3);
+fprintf(skipped, "%d", 1);
+fprintf(skipped, "%a%b%z", 1, "anything", 3);
 
 -- Too many arguments ---
-printme(skipped, "%d", 1, 2); => error
+fprintf(skipped, "%d", 1, 2); => error
 
 --- Not enough argument ---
-printme(skipped, "%d"); should throw => error
+fprintf(skipped, "%d"); should throw => error
 
 ++++++++++ With --skip_arguments=2 ++++++++++
 The following tests will throw an error if skip-argument is not 2
 
 --- Good ones ---
-printme(skip1, skip2, "%d", 1);
-printme(skip1, skip2, "%a%b%z", 1, "anything", 3);
+snprintf(skip1, skip2, "%d", 1);
+snprintf(skip1, skip2, "%a%b%z", 1, "anything", 3);
 
 -- Too many arguments ---
-printme(skip1, skip2, "%d", 1, 2); => error
+snprintf(skip1, skip2, "%d", 1, 2); => error
 
 --- Not enough argument ---
-printme(skip1, skip2, "%d"); should throw => error
+snprintf(skip1, skip2, "%d"); should throw => error
+snprintf(skip1, "%d"); should throw => parse error

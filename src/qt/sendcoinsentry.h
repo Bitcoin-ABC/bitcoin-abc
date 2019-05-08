@@ -5,7 +5,7 @@
 #ifndef BITCOIN_QT_SENDCOINSENTRY_H
 #define BITCOIN_QT_SENDCOINSENTRY_H
 
-#include "walletmodel.h"
+#include <qt/walletmodel.h>
 
 #include <QStackedWidget>
 
@@ -30,7 +30,7 @@ public:
     ~SendCoinsEntry();
 
     void setModel(WalletModel *model);
-    bool validate();
+    bool validate(interfaces::Node &node);
     SendCoinsRecipient getValue();
 
     /** Return whether the entry is still empty and unedited */

@@ -4,58 +4,50 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "init.h"
+#include <init.h>
 
-#include "addrman.h"
-#include "amount.h"
-#include "chain.h"
-#include "chainparams.h"
-#include "checkpoints.h"
-#include "compat/sanity.h"
-#include "config.h"
-#include "consensus/validation.h"
-#include "diskblockpos.h"
-#include "fs.h"
-#include "httprpc.h"
-#include "httpserver.h"
-#include "key.h"
-#include "miner.h"
-#include "net.h"
-#include "net_processing.h"
-#include "netbase.h"
-#include "policy/policy.h"
-#include "rpc/register.h"
-#include "rpc/server.h"
-#include "scheduler.h"
-#include "script/scriptcache.h"
-#include "script/sigcache.h"
-#include "script/standard.h"
-#include "timedata.h"
-#include "torcontrol.h"
-#include "txdb.h"
-#include "txmempool.h"
-#include "ui_interface.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "validation.h"
-#include "omnicore/omnicore.h"
-#include "validationinterface.h"
+#include <addrman.h>
+#include <amount.h>
+#include <chain.h>
+#include <chainparams.h>
+#include <checkpoints.h>
+#include <compat/sanity.h>
+#include <config.h>
+#include <consensus/validation.h>
+#include <diskblockpos.h>
+#include <fs.h>
+#include <httprpc.h>
+#include <httpserver.h>
+#include <key.h>
+#include <miner.h>
+#include <net.h>
+#include <net_processing.h>
+#include <netbase.h>
+#include <policy/policy.h>
+#include <rpc/register.h>
+#include <rpc/server.h>
+#include <scheduler.h>
+#include <script/scriptcache.h>
+#include <script/sigcache.h>
+#include <script/standard.h>
+#include <timedata.h>
+#include <torcontrol.h>
+#include <txdb.h>
+#include <txmempool.h>
+#include <ui_interface.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <validation.h>
+#include <validationinterface.h>
+
 #ifdef ENABLE_WALLET
-#include "wallet/rpcdump.h"
+#include <wallet/rpcdump.h>
 #endif
-#include "walletinitinterface.h"
-#include "warnings.h"
-
-#include <cstdint>
-#include <cstdio>
-#include <memory>
-
-#ifndef WIN32
-#include <csignal>
-#endif
+#include <walletinitinterface.h>
+#include <warnings.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -65,8 +57,15 @@
 #include <boost/thread.hpp>
 
 #if ENABLE_ZMQ
-#include "zmq/zmqnotificationinterface.h"
+#include <zmq/zmqnotificationinterface.h>
 #endif
+
+#ifndef WIN32
+#include <csignal>
+#endif
+#include <cstdint>
+#include <cstdio>
+#include <memory>
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;

@@ -3,9 +3,10 @@
 
 // key.h and pubkey.h are not used here, but gcc doesn't want to instantiate
 // CTxDestination if types are unknown
-#include "key.h"
-#include "pubkey.h"
-#include "script/standard.h"
+#include <key.h>
+#include <pubkey.h>
+#include <script/standard.h>
+
 #include <string>
 
 class Config;

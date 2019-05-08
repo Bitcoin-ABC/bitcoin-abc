@@ -6,16 +6,16 @@
 #ifndef BITCOIN_CHAIN_H
 #define BITCOIN_CHAIN_H
 
-#include "arith_uint256.h"
-#include "blockstatus.h"
-#include "blockvalidity.h"
-#include "consensus/params.h"
-#include "diskblockpos.h"
-#include "pow.h"
-#include "primitives/block.h"
-#include "sync.h"
-#include "tinyformat.h"
-#include "uint256.h"
+#include <arith_uint256.h>
+#include <blockstatus.h>
+#include <blockvalidity.h>
+#include <consensus/params.h>
+#include <diskblockpos.h>
+#include <pow.h>
+#include <primitives/block.h>
+#include <sync.h>
+#include <tinyformat.h>
+#include <uint256.h>
 
 #include <unordered_map>
 #include <vector>

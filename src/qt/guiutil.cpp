@@ -2,26 +2,26 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "guiutil.h"
+#include <qt/guiutil.h>
 
-#include "bitcoinaddressvalidator.h"
-#include "bitcoinunits.h"
-#include "dstencode.h"
-#include "qvalidatedlineedit.h"
-#include "walletmodel.h"
-
-#include "cashaddr.h"
-#include "config.h"
-#include "dstencode.h"
-#include "fs.h"
-#include "init.h"
-#include "policy/policy.h"
-#include "primitives/transaction.h"
-#include "protocol.h"
-#include "script/script.h"
-#include "script/standard.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include <base58.h>
+#include <cashaddr.h>
+#include <chainparams.h>
+#include <config.h>
+#include <dstencode.h>
+#include <fs.h>
+#include <interfaces/node.h>
+#include <policy/policy.h>
+#include <primitives/transaction.h>
+#include <protocol.h>
+#include <qt/bitcoinaddressvalidator.h>
+#include <qt/bitcoinunits.h>
+#include <qt/qvalidatedlineedit.h>
+#include <qt/walletmodel.h>
+#include <script/script.h>
+#include <script/standard.h>
+#include <util.h>
+#include <utilstrencodings.h>
 
 #ifdef WIN32
 #ifdef _WIN32_WINNT
@@ -36,9 +36,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include "shellapi.h"
-#include "shlobj.h"
-#include "shlwapi.h"
+#include <shellapi.h>
+#include <shlobj.h>
+#include <shlwapi.h>
 #endif
 
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
@@ -285,12 +285,12 @@ QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
     return ret;
 }
 
-bool isDust(const QString &address, const Amount amount,
+bool isDust(interfaces::Node &node, const QString &address, const Amount amount,
             const CChainParams &chainParams) {
     CTxDestination dest = DecodeDestination(address.toStdString(), chainParams);
     CScript script = GetScriptForDestination(dest);
     CTxOut txOut(amount, script);
-    return txOut.IsDust(dustRelayFee);
+    return txOut.IsDust(node.getDustRelayFee());
 }
 
 QString HtmlEscape(const QString &str, bool fMultiLine) {

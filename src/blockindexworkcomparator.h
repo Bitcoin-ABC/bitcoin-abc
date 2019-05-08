@@ -6,7 +6,7 @@
 #define BITCOIN_BLOCK_INDEX_WORK_COMPARATOR_H
 
 // TODO: Split chain.h apart and only include CBlockIndex
-#include "chain.h"
+#include <chain.h>
 
 struct CBlockIndexWorkComparator {
     bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {

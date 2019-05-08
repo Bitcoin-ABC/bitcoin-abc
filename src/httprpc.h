@@ -5,8 +5,8 @@
 #ifndef BITCOIN_HTTPRPC_H
 #define BITCOIN_HTTPRPC_H
 
-#include "httpserver.h"
-#include "rpc/server.h"
+#include <httpserver.h>
+#include <rpc/server.h>
 
 #include <map>
 #include <string>

@@ -6,12 +6,11 @@
 #define BITCOIN_NETADDRESS_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
-#include "compat.h"
-#include "serialize.h"
-#include "crypto/sha256.h"
+#include <compat.h>
+#include <serialize.h>
 
 #include <cstdint>
 #include <string>
