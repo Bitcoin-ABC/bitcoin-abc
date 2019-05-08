@@ -796,7 +796,8 @@ public:
 
     bool ActivateBestChain(
         const Config &config, BlockValidationState &state,
-        std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
+        std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>())
+        LOCKS_EXCLUDED(cs_main);
 
     /**
      * If a block header hasn't already been seen, call CheckBlockHeader on it,
@@ -832,10 +833,12 @@ public:
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
     /** Mark a block as invalid. */
     bool InvalidateBlock(const Config &config, BlockValidationState &state,
-                         CBlockIndex *pindex) LOCKS_EXCLUDED(m_cs_chainstate);
+                         CBlockIndex *pindex)
+        LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
     /** Park a block. */
     bool ParkBlock(const Config &config, BlockValidationState &state,
-                   CBlockIndex *pindex) LOCKS_EXCLUDED(m_cs_chainstate);
+                   CBlockIndex *pindex)
+        LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
     /**
      * Finalize a block.
      * A finalized block can not be reorged in any way.
