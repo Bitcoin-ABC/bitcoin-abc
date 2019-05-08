@@ -152,7 +152,9 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
         std::string(json_tests::tx_invalid,
                     json_tests::tx_invalid + sizeof(json_tests::tx_invalid)));
 
-    ScriptError err;
+    // Initialize to SCRIPT_ERR_OK. The tests expect err to be changed to a
+    // value other than SCRIPT_ERR_OK.
+    ScriptError err = SCRIPT_ERR_OK;
     for (size_t idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
         std::string strTest = test.write();
