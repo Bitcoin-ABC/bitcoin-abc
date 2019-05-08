@@ -164,5 +164,16 @@ if(ENABLE_QRCODE AND BUILD_BITCOIN_WALLET AND BUILD_BITCOIN_QT)
 	set(USE_QRCODE 1 CACHE INTERNAL "QR code is enabled")
 endif()
 
+# Try to find miniupnpc
+if(ENABLE_UPNP)
+	find_package(MiniUPnPc REQUIRED)
+
+	# The expected behavior is as follow:
+	#  - If UPnP is enabled USE_UPNP must be defined
+	#  - If UPnP should be the default port map method, USE_UPNP should be
+	#    defined to 1, otherwise it should be defined to 0.
+	set(USE_UPNP ${START_WITH_UPNP} CACHE INTERNAL "UPnP is enabled")
+endif()
+
 # Generate the config
 configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)

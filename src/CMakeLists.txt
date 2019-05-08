@@ -20,6 +20,8 @@ option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
 option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
+option(ENABLE_UPNP "Enable UPnP support" ON)
+option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 
 # Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
 if(ENABLE_SANITIZERS)
@@ -377,6 +379,24 @@ target_link_libraries(server
 	leveldb
 	memenv
 )
+
+if(ENABLE_UPNP)
+	target_include_directories(server PUBLIC ${MINIUPNPC_INCLUDE_DIR})
+	target_link_libraries(server ${MINIUPNPC_LIBRARY})
+
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		find_library(IPHLPAPI_LIBRARY NAMES iphlpapi)
+		if(NOT IPHLPAPI_LIBRARY)
+			message(FATAL_ERROR "Lib iphlpapi is missing")
+		endif()
+		target_link_libraries(server ${IPHLPAPI_LIBRARY})
+
+		target_compile_definitions(server
+			PUBLIC -DSTATICLIB
+			PUBLIC -DMINIUPNP_STATICLIB
+		)
+	endif()
+endif()
 
 # Test suite.
 add_subdirectory(test)
