@@ -124,6 +124,14 @@ class AddressTypeTest(BitcoinTestFramework):
         # getdescriptorinfo roundtrips
         assert(info['desc'] == self.nodes[0].getdescriptorinfo(
             info['desc'][:-9])['descriptor'])
+        assert_equal(
+            info['desc'][-8:], self.nodes[0].getdescriptorinfo(info['desc'][:-9])['checksum'])
+        # Verify that keeping the checksum and feeding it to getdescriptorinfo
+        # roundtrips
+        assert info['desc'] == self.nodes[0].getdescriptorinfo(info['desc'])[
+            'descriptor']
+        assert_equal(info['desc'][-8:],
+                     self.nodes[0].getdescriptorinfo(info['desc'])['checksum'])
 
         if not multisig and typ == 'legacy':
             # P2PKH

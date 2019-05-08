@@ -169,6 +169,8 @@ UniValue getdescriptorinfo(const Config &config,
         RPCResult{"{\n"
                   "  \"descriptor\" : \"desc\",         (string) The "
                   "descriptor in canonical form, without private keys\n"
+                  "  \"checksum\" : \"chksum\",         (string) The checksum "
+                  "for the input descriptor\n"
                   "  \"isrange\" : true|false,        (boolean) Whether the "
                   "descriptor is ranged\n"
                   "  \"issolvable\" : true|false,     (boolean) Whether the "
@@ -195,6 +197,8 @@ UniValue getdescriptorinfo(const Config &config,
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("descriptor", desc->ToString());
+    result.pushKV("checksum",
+                  GetDescriptorChecksum(request.params[0].get_str()));
     result.pushKV("isrange", desc->IsRange());
     result.pushKV("issolvable", desc->IsSolvable());
     result.pushKV("hasprivatekeys", provider.keys.size() > 0);

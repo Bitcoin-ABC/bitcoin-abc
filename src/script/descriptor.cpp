@@ -1119,6 +1119,15 @@ std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
     return nullptr;
 }
 
+std::string GetDescriptorChecksum(const std::string &descriptor) {
+    std::string ret;
+    Span<const char> sp(descriptor.data(), descriptor.size());
+    if (!CheckChecksum(sp, false, &ret)) {
+        return "";
+    }
+    return ret;
+}
+
 std::unique_ptr<Descriptor> InferDescriptor(const CScript &script,
                                             const SigningProvider &provider) {
     return InferScript(script, ParseScriptContext::TOP, provider);
