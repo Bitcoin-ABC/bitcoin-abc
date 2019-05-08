@@ -1,7 +1,7 @@
 group: deprecated-2017Q2
 sudo: required
 dist: trusty
-os: linux
+os: ubuntu:16.04
 language: generic
 addons:
   apt:

@@ -42,6 +42,7 @@
 #include <utilmoneystr.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include "omnicore/omnicore.h"
 
 #ifdef ENABLE_WALLET
 #include <wallet/rpcdump.h>
