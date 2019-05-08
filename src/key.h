@@ -46,7 +46,7 @@ private:
     //! The actual byte data
     std::vector<uint8_t, secure_allocator<uint8_t>> keydata;
 
-    //! Check whether the 32-byte array pointed to be vch is valid keydata.
+    //! Check whether the 32-byte array pointed to by vch is valid keydata.
     static bool Check(const uint8_t *vch);
 
 public:
