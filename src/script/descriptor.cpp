@@ -1066,39 +1066,52 @@ std::unique_ptr<DescriptorImpl> InferScript(const CScript &script,
 
 } // namespace
 
-std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
-                                  FlatSigningProvider &out,
-                                  bool require_checksum) {
-    Span<const char> sp(descriptor.data(), descriptor.size());
-
-    // Checksum checks
+/**
+ * Check a descriptor checksum, and update desc to be the checksum-less part.
+ */
+bool CheckChecksum(Span<const char> &sp, bool require_checksum,
+                   std::string *out_checksum = nullptr) {
     auto check_split = Split(sp, '#');
     if (check_split.size() > 2) {
         // Multiple '#' symbols
-        return nullptr;
+        return false;
     }
     if (check_split.size() == 1 && require_checksum) {
         // Missing checksum
-        return nullptr;
+        return false;
     }
     if (check_split.size() == 2) {
         if (check_split[1].size() != 8) {
             // Unexpected length for checksum
-            return nullptr;
+            return false;
         }
-        auto checksum = DescriptorChecksum(check_split[0]);
-        if (checksum.empty()) {
-            // Invalid characters in payload
-            return nullptr;
-        }
+    }
+    auto checksum = DescriptorChecksum(check_split[0]);
+    if (checksum.empty()) {
+        // Invalid characters in payload
+        return false;
+    }
+    if (check_split.size() == 2) {
         if (!std::equal(checksum.begin(), checksum.end(),
                         check_split[1].begin())) {
             // Checksum mismatch
-            return nullptr;
+            return false;
         }
     }
+    if (out_checksum) {
+        *out_checksum = std::move(checksum);
+    }
     sp = check_split[0];
+    return true;
+}
 
+std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
+                                  FlatSigningProvider &out,
+                                  bool require_checksum) {
+    Span<const char> sp(descriptor.data(), descriptor.size());
+    if (!CheckChecksum(sp, require_checksum)) {
+        return nullptr;
+    }
     auto ret = ParseScript(sp, ParseScriptContext::TOP, out);
     if (sp.size() == 0 && ret) {
         return std::unique_ptr<Descriptor>(std::move(ret));
