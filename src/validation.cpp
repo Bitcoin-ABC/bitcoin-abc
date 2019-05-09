@@ -2081,8 +2081,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
             }
             int64_t nMempoolSizeMax =
                 gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-            // Compensate for extra memory peak (x1.5-x1.9) at flush time.
-            int64_t cacheSize = pcoinsTip->DynamicMemoryUsage() * 2;
+            int64_t cacheSize = pcoinsTip->DynamicMemoryUsage();
             int64_t nTotalSpace =
                 nCoinCacheUsage +
                 std::max<int64_t>(nMempoolSizeMax - nMempoolUsage, 0);
