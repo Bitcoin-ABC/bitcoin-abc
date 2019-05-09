@@ -1,14 +1,13 @@
 group: deprecated-2017Q2
 sudo: required
-dist: trusty
-os: ubuntu:16.04
+dist: xenial
 language: generic
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-7
+      - g++
 cache:
   directories:
   - depends/built
@@ -16,7 +15,7 @@ cache:
   - $HOME/.ccache
 env:
   global:
-    - MAKEJOBS=-j3
+    - MAKEJOBS=-j4
     - RUN_TESTS=true
     - CHECK_DOC=0
     - BOOST_TEST_RANDOM=1$TRAVIS_BUILD_ID
