@@ -55,4 +55,7 @@
 #cmakedefine ENABLE_WALLET 1
 #cmakedefine ENABLE_ZMQ 1
 
+/* Define if QR support should be compiled in */
+#cmakedefine USE_QRCODE 1
+
 #endif // BITCOIN_BITCOIN_CONFIG_H

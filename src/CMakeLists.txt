@@ -19,6 +19,7 @@ option(ENABLE_HARDENING "Harden the executables" ON)
 option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
 option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
+option(ENABLE_QRCODE "Enable QR code display" ON)
 
 # Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
 if(ENABLE_SANITIZERS)

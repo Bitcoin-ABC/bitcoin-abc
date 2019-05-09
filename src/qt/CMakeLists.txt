@@ -225,6 +225,11 @@ if(BUILD_BITCOIN_WALLET)
 	)
 
 	target_link_libraries(bitcoin-qt-base wallet)
+
+	if(ENABLE_QRCODE)
+		target_include_directories(bitcoin-qt-base PUBLIC ${QRENCODE_INCLUDE_DIR})
+		target_link_libraries(bitcoin-qt-base ${QRENCODE_LIBRARY})
+	endif()
 endif()
 
 # The executable
