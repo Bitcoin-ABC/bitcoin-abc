@@ -62,7 +62,7 @@ uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos,
     // Calculate left hash.
     uint256 left = CalcHash(height - 1, pos * 2, vTxid), right;
     // Calculate right hash if not beyond the end of the array - copy left hash
-    // otherwise1.
+    // otherwise.
     if (pos * 2 + 1 < CalcTreeWidth(height - 1)) {
         right = CalcHash(height - 1, pos * 2 + 1, vTxid);
     } else {
