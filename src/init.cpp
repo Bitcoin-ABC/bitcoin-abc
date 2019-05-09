@@ -429,10 +429,11 @@ void SetupServerArgs() {
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg(
         "-blocksonly",
-        strprintf("Whether to operate in a blocks only mode (default: %d)",
-                  DEFAULT_BLOCKSONLY),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::OPTIONS);
+        strprintf(
+            "Whether to reject transactions from network peers. Transactions "
+            "from the wallet or RPC are not affected. (default: %u)",
+            DEFAULT_BLOCKSONLY),
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-conf=<file>",
                  strprintf("Specify configuration file. Relative paths will be "
                            "prefixed by datadir location. (default: %s)",
@@ -2287,7 +2288,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // see Step 2: parameter interactions for more information about these
     fListen = gArgs.GetBoolArg("-listen", DEFAULT_LISTEN);
     fDiscover = gArgs.GetBoolArg("-discover", true);
-    fRelayTxes = !gArgs.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY);
+    g_relay_txes = !gArgs.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY);
 
     for (const std::string &strAddr : gArgs.GetArgs("-externalip")) {
         CService addrLocal;

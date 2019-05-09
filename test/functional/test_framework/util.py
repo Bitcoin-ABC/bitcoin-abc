@@ -256,7 +256,7 @@ def wait_until(predicate, *, attempts=float('inf'),
         time.sleep(0.05)
 
     # Print the cause of the timeout
-    predicate_source = inspect.getsourcelines(predicate)
+    predicate_source = "''''\n" + inspect.getsource(predicate) + "'''"
     logger.error("wait_until() failed. Predicate: {}".format(predicate_source))
     if attempt >= attempts:
         raise AssertionError("Predicate {} not true after {} attempts".format(

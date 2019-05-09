@@ -499,7 +499,7 @@ static void PushNodeVersion(const Config &config, CNode *pnode,
                              .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
                                    uint64_t(nLocalNodeServices), nTime, addrYou,
                                    addrMe, nonce, userAgent(config),
-                                   nNodeStartingHeight, ::fRelayTxes));
+                                   nNodeStartingHeight, ::g_relay_txes));
 
     if (fLogIPs) {
         LogPrint(BCLog::NET,
@@ -2547,7 +2547,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             return error("message inv size() = %u", vInv.size());
         }
 
-        bool fBlocksOnly = !fRelayTxes;
+        bool fBlocksOnly = !g_relay_txes;
 
         // Allow whitelisted peers to send data other than blocks in blocks only
         // mode if whitelistrelay is true
@@ -2852,7 +2852,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // Stop processing the transaction early if
         // We are in blocks only mode and peer is either not whitelisted or
         // whitelistrelay is off
-        if (!fRelayTxes && !pfrom->HasPermission(PF_RELAY)) {
+        if (!g_relay_txes && !pfrom->HasPermission(PF_RELAY)) {
             LogPrint(BCLog::NET,
                      "transaction sent in violation of protocol peer=%d\n",
                      pfrom->GetId());

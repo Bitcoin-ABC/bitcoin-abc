@@ -622,7 +622,7 @@ static UniValue getnetworkinfo(const Config &config,
         obj.pushKV("localservices",
                    strprintf("%016x", g_rpc_node->connman->GetLocalServices()));
     }
-    obj.pushKV("localrelay", fRelayTxes);
+    obj.pushKV("localrelay", g_relay_txes);
     obj.pushKV("timeoffset", GetTimeOffset());
     if (g_rpc_node->connman) {
         obj.pushKV("networkactive", g_rpc_node->connman->GetNetworkActive());
