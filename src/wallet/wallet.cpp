@@ -751,12 +751,7 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
 
         // If we are using HD, replace the HD master key (seed) with a new one.
         if (IsHDEnabled()) {
-            CKey key;
-            CPubKey masterPubKey = GenerateNewHDMasterKey();
-            // preserve the old chains version to not break backward
-            // compatibility
-            CHDChain oldChain = GetHDChain();
-            if (!SetHDMasterKey(masterPubKey, &oldChain)) {
+            if (!SetHDMasterKey(GenerateNewHDMasterKey())) {
                 return false;
             }
         }
@@ -1545,17 +1540,15 @@ CPubKey CWallet::GenerateNewHDMasterKey() {
     return pubkey;
 }
 
-bool CWallet::SetHDMasterKey(const CPubKey &pubkey,
-                             CHDChain *possibleOldChain) {
+bool CWallet::SetHDMasterKey(const CPubKey &pubkey) {
     LOCK(cs_wallet);
 
     // Store the keyid (hash160) together with the child index counter in the
     // database as a hdchain object.
     CHDChain newHdChain;
-    if (possibleOldChain) {
-        // preserve the old chains version
-        newHdChain.nVersion = possibleOldChain->nVersion;
-    }
+    newHdChain.nVersion = CanSupportFeature(FEATURE_HD_SPLIT)
+                              ? CHDChain::VERSION_HD_CHAIN_SPLIT
+                              : CHDChain::VERSION_HD_BASE;
     newHdChain.masterKeyID = pubkey.GetID();
     SetHDChain(newHdChain, false);
 

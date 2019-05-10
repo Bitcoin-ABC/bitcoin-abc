@@ -1217,11 +1217,11 @@ public:
 
     /**
      * Set the current HD master key (will reset the chain child index counters)
-     * If possibleOldChain is provided, the parameters from the old chain
-     * (version) will be preserved.
+     * Sets the master key's version based on the current wallet version (so the
+     * caller must ensure the current wallet version is correct before calling
+     *  this function).
      */
-    bool SetHDMasterKey(const CPubKey &key,
-                        CHDChain *possibleOldChain = nullptr);
+    bool SetHDMasterKey(const CPubKey &key);
 
     /**
      * Blocks until the wallet state is up-to-date to /at least/ the current
