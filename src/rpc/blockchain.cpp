@@ -26,6 +26,7 @@
 #include <sync.h>
 #include <txdb.h>
 #include <txmempool.h>
+#include <undo.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/validation.h>
@@ -927,6 +928,20 @@ static CBlock GetBlockChecked(const Config &config,
     }
 
     return block;
+}
+
+static CBlockUndo GetUndoChecked(const CBlockIndex *pblockindex) {
+    CBlockUndo blockUndo;
+    if (IsBlockPruned(pblockindex)) {
+        throw JSONRPCError(RPC_MISC_ERROR,
+                           "Undo data not available (pruned data)");
+    }
+
+    if (!UndoReadFromDisk(blockUndo, pblockindex)) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Can't read undo data from disk");
+    }
+
+    return blockUndo;
 }
 
 static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
@@ -2072,9 +2087,7 @@ static UniValue getblockstats(const Config &config,
         "in " +
             CURRENCY_UNIT +
             ".\n"
-            "It won't work for some heights with pruning.\n"
-            "It won't work without -txindex for utxo_size_inc, *fee or "
-            "*feerate stats.\n",
+            "It won't work for some heights with pruning.\n",
         {
             {"hash_or_height",
              RPCArg::Type::NUM,
@@ -2196,6 +2209,7 @@ static UniValue getblockstats(const Config &config,
     }
 
     const CBlock block = GetBlockChecked(config, pindex);
+    const CBlockUndo blockUndo = GetUndoChecked(pindex);
 
     // Calculate everything if nothing selected (default)
     const bool do_all = stats.size() == 0;
@@ -2210,12 +2224,6 @@ static UniValue getblockstats(const Config &config,
     const bool do_calculate_size =
         do_mediantxsize || loop_inputs ||
         SetHasKeys(stats, "total_size", "avgtxsize", "mintxsize", "maxtxsize");
-
-    if (loop_inputs && !g_txindex) {
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            "One or more of the selected stats requires -txindex enabled");
-    }
 
     const int64_t blockMaxSize = config.GetMaxBlockSize();
     Amount maxfee = Amount::zero();
@@ -2234,9 +2242,8 @@ static UniValue getblockstats(const Config &config,
     std::vector<Amount> feerate_array;
     std::vector<int64_t> txsize_array;
 
-    const Consensus::Params &params = config.GetChainParams().GetConsensus();
-
-    for (const auto &tx : block.vtx) {
+    for (size_t i = 0; i < block.vtx.size(); ++i) {
+        const auto &tx = block.vtx.at(i);
         outputs += tx->vout.size();
         Amount tx_total_out = Amount::zero();
         if (loop_outputs) {
@@ -2269,17 +2276,9 @@ static UniValue getblockstats(const Config &config,
 
         if (loop_inputs) {
             Amount tx_total_in = Amount::zero();
-            for (const CTxIn &in : tx->vin) {
-                CTransactionRef tx_in;
-                BlockHash hashBlock;
-                if (!GetTransaction(in.prevout.GetTxId(), tx_in, params,
-                                    hashBlock)) {
-                    throw JSONRPCError(RPC_INTERNAL_ERROR,
-                                       std::string("Unexpected internal error "
-                                                   "(tx index seems corrupt)"));
-                }
-
-                CTxOut prevoutput = tx_in->vout[in.prevout.GetN()];
+            const auto &txundo = blockUndo.vtxundo.at(i - 1);
+            for (const Coin &coin : txundo.vprevout) {
+                const CTxOut &prevoutput = coin.GetTxOut();
 
                 tx_total_in += prevoutput.nValue;
                 utxo_size_inc -=
