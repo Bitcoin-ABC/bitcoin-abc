@@ -76,7 +76,7 @@ def build():
         subprocess.check_call(
             'mv build/out/bitcoin-*-win-unsigned.tar.gz inputs/', shell=True)
         subprocess.check_call(
-            'mv build/out/bitcoin-*.zip build/out/bitcoin-*.exe ../bitcoin-binaries/'+args.version, shell=True)
+            'mv build/out/bitcoin-*.zip build/out/bitcoin-*.exe build/out/src/bitcoin-*.tar.gz ../bitcoin-binaries/'+args.version, shell=True)
 
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
@@ -87,7 +87,7 @@ def build():
         subprocess.check_call(
             'mv build/out/bitcoin-*-osx-unsigned.tar.gz inputs/', shell=True)
         subprocess.check_call(
-            'mv build/out/bitcoin-*.tar.gz build/out/bitcoin-*.dmg ../bitcoin-binaries/'+args.version, shell=True)
+            'mv build/out/bitcoin-*.tar.gz build/out/bitcoin-*.dmg build/out/src/bitcoin-*.tar.gz ../bitcoin-binaries/'+args.version, shell=True)
 
     os.chdir(workdir)
 
