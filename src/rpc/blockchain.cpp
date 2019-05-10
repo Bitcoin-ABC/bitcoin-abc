@@ -2499,12 +2499,7 @@ static UniValue scantxoutset(const Config &config,
                 desc_str = desc_uni.get_str();
                 UniValue range_uni = find_value(scanobject, "range");
                 if (!range_uni.isNull()) {
-                    range = ParseRange(range_uni);
-                    if (range.first < 0 || (range.second >> 31) != 0 ||
-                        range.second >= range.first + 1000000) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                           "range out of range");
-                    }
+                    range = ParseDescriptorRange(range_uni);
                 }
             } else {
                 throw JSONRPCError(

@@ -26,6 +26,7 @@
 #include <univalue.h>
 
 #include <cstdint>
+#include <tuple>
 
 static std::string EncodeDumpString(const std::string &str) {
     std::stringstream ret;
@@ -1287,14 +1288,7 @@ static UniValue ProcessImportDescriptor(ImportData &import_data,
                 RPC_INVALID_PARAMETER,
                 "Descriptor is ranged, please specify the range");
         }
-        auto range = ParseRange(data["range"]);
-        range_start = range.first;
-        range_end = range.second;
-        if (range_start < 0 || (range_end >> 31) != 0 ||
-            range_end - range_start >= 1000000) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "Invalid descriptor range specified");
-        }
+        std::tie(range_start, range_end) = ParseDescriptorRange(data["range"]);
     }
 
     const UniValue &priv_keys =

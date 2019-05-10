@@ -13,6 +13,8 @@
 
 #include <univalue.h>
 
+#include <tuple>
+
 #include <boost/variant/static_visitor.hpp>
 
 void RPCTypeCheck(const UniValue &params,
@@ -692,7 +694,7 @@ std::string RPCArg::ToString(const bool oneline) const {
     assert(false);
 }
 
-std::pair<int64_t, int64_t> ParseRange(const UniValue &value) {
+static std::pair<int64_t, int64_t> ParseRange(const UniValue &value) {
     if (value.isNum()) {
         return {0, value.get_int64()};
     }
@@ -708,4 +710,20 @@ std::pair<int64_t, int64_t> ParseRange(const UniValue &value) {
     }
     throw JSONRPCError(RPC_INVALID_PARAMETER,
                        "Range must be specified as end or as [begin,end]");
+}
+
+std::pair<int64_t, int64_t> ParseDescriptorRange(const UniValue &value) {
+    int64_t low, high;
+    std::tie(low, high) = ParseRange(value);
+    if (low < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "Range should be greater or equal than 0");
+    }
+    if ((high >> 31) != 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "End of range is too high");
+    }
+    if (high >= low + 1000000) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Range is too large");
+    }
+    return {low, high};
 }

@@ -8,7 +8,7 @@ import shutil
 from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 def descriptors(out):
@@ -88,6 +88,42 @@ class ScantxoutsetTest(BitcoinTestFramework):
             "start", ["addr(" + addr + ")"])['total_amount'], Decimal("0.002"))
         assert_equal(self.nodes[0].scantxoutset(
             "start", ["addr(" + addr + ")"])['total_amount'], Decimal("0.002"))
+
+        self.log.info("Test range validation.")
+        assert_raises_rpc_error(-8,
+                                "End of range is too high",
+                                self.nodes[0].scantxoutset,
+                                "start",
+                                [{"desc": "desc",
+                                  "range": -1}])
+        assert_raises_rpc_error(-8,
+                                "Range should be greater or equal than 0",
+                                self.nodes[0].scantxoutset,
+                                "start",
+                                [{"desc": "desc",
+                                  "range": [-1,
+                                            10]}])
+        assert_raises_rpc_error(-8,
+                                "End of range is too high",
+                                self.nodes[0].scantxoutset,
+                                "start",
+                                [{"desc": "desc",
+                                  "range": [(2 << 31 + 1) - 1000000,
+                                            (2 << 31 + 1)]}])
+        assert_raises_rpc_error(-8,
+                                "Range specified as [begin,end] must not have begin after end",
+                                self.nodes[0].scantxoutset,
+                                "start",
+                                [{"desc": "desc",
+                                  "range": [2,
+                                            1]}])
+        assert_raises_rpc_error(-8,
+                                "Range is too large",
+                                self.nodes[0].scantxoutset,
+                                "start",
+                                [{"desc": "desc",
+                                  "range": [0,
+                                            1000001]}])
 
         self.log.info("Test extended key derivation.")
         # Run various scans, and verify that the sum of the amounts of the matches corresponds to the expected subset.
