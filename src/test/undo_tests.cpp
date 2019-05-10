@@ -4,6 +4,7 @@
 
 #include <undo.h>
 
+#include <chain.h>
 #include <chainparams.h>
 #include <consensus/validation.h>
 #include <validation.h>

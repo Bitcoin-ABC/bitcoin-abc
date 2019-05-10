@@ -6,9 +6,11 @@
 #include <validation.h>
 
 #include <chainparams.h>
+#include <clientversion.h>
 #include <config.h>
 #include <consensus/consensus.h>
 #include <primitives/transaction.h>
+#include <streams.h>
 #include <util.h>
 
 #include <test/test_bitcoin.h>

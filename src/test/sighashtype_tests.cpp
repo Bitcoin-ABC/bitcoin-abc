@@ -4,6 +4,8 @@
 
 #include <script/sighashtype.h>
 
+#include <streams.h>
+
 #include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>

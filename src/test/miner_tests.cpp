@@ -5,6 +5,7 @@
 
 #include <miner.h>
 
+#include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
 #include <config.h>

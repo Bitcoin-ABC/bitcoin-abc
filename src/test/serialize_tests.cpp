@@ -6,6 +6,7 @@
 
 #include <hash.h>
 #include <streams.h>
+#include <utilstrencodings.h>
 
 #include <test/test_bitcoin.h>
 

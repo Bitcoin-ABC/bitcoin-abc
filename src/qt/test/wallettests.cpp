@@ -1,5 +1,6 @@
 #include <qt/test/wallettests.h>
 
+#include <chain.h>
 #include <chainparams.h>
 #include <config.h>
 #include <dstencode.h>

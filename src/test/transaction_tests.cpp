@@ -17,6 +17,8 @@
 #include <script/script_error.h>
 #include <script/sign.h>
 #include <script/standard.h>
+#include <streams.h>
+#include <util.h>
 #include <utilstrencodings.h>
 #include <validation.h>
 

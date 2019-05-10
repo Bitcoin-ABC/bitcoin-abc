@@ -5,6 +5,8 @@
 #include <crypto/siphash.h>
 #include <hash.h>
 
+#include <clientversion.h>
+#include <streams.h>
 #include <utilstrencodings.h>
 
 #include <test/test_bitcoin.h>

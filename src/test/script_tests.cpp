@@ -12,6 +12,7 @@
 #include <key.h>
 #include <keystore.h>
 #include <rpc/server.h>
+#include <streams.h>
 #include <util.h>
 #include <utilstrencodings.h>
 

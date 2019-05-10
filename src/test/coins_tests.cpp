@@ -4,8 +4,10 @@
 
 #include <coins.h>
 
+#include <clientversion.h>
 #include <consensus/validation.h>
 #include <script/standard.h>
+#include <streams.h>
 #include <uint256.h>
 #include <undo.h>
 #include <utilstrencodings.h>

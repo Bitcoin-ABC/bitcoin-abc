@@ -11,6 +11,7 @@
 #include <script/script_error.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
+#include <tinyformat.h>
 #include <uint256.h>
 
 #include <test/test_bitcoin.h>

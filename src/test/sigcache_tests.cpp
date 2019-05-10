@@ -9,6 +9,8 @@
 #include <base58.h>
 #include <dstencode.h>
 #include <key.h>
+#include <streams.h>
+#include <tinyformat.h>
 #include <utilstrencodings.h>
 
 #include <test/test_bitcoin.h>
