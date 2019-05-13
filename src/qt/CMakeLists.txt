@@ -165,6 +165,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoin-qt-base PRIVATE winshutdownmonitor.cpp)
 endif()
 
+target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+
 target_link_libraries(bitcoin-qt-base
 	server
 	rpcclient
