@@ -32,8 +32,8 @@ set(OSX_EXTRA_FLAGS
 	" -mlinker-version=253.9"
 )
 
-string(APPEND CMAKE_C_FLAGS ${OSX_EXTRA_FLAGS})
-string(APPEND CMAKE_CXX_FLAGS ${OSX_EXTRA_FLAGS} " -stdlib=libc++")
+string(APPEND CMAKE_C_FLAGS_INIT ${OSX_EXTRA_FLAGS})
+string(APPEND CMAKE_CXX_FLAGS_INIT ${OSX_EXTRA_FLAGS} " -stdlib=libc++")
 
 # Ensure we use an OSX specific version of ar, ranlib and nm.
 find_program(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)
