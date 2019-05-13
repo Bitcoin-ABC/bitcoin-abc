@@ -335,7 +335,8 @@ void SetupServerArgs() {
                    "see a really long fork (%s in cmd is replaced by message)"),
                  false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-blocksdir=<dir>",
-                 _("Specify blocks directory (default: <datadir>/blocks)"),
+                 _("Specify directory to hold blocks subdirectory for *.dat "
+                   "files (default: <datadir>)"),
                  false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-blocknotify=<cmd>",
                  _("Execute command when the best block changes (%s in cmd is "
