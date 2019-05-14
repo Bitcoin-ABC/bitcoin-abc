@@ -42,9 +42,6 @@
 #include <utilmoneystr.h>
 #include <validation.h>
 #include <validationinterface.h>
-#ifdef ENABLE_WALLET
-#include <wallet/rpcdump.h>
-#endif
 #include <walletinitinterface.h>
 #include <warnings.h>
 
@@ -1603,9 +1600,6 @@ bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
 
     RegisterAllRPCCommands(config, rpcServer, tableRPC);
     g_wallet_init_interface->RegisterRPC(tableRPC);
-#ifdef ENABLE_WALLET
-    RegisterDumpRPCCommands(tableRPC);
-#endif
 
     nConnectTimeout = gArgs.GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
     if (nConnectTimeout <= 0) {

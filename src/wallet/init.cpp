@@ -10,6 +10,7 @@
 #include <util.h>
 #include <utilmoneystr.h>
 #include <validation.h>
+#include <wallet/rpcdump.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
@@ -291,6 +292,7 @@ void WalletInit::RegisterRPC(CRPCTable &t) {
     }
 
     RegisterWalletRPCCommands(t);
+    RegisterDumpRPCCommands(t);
 }
 
 bool WalletInit::Verify(const CChainParams &chainParams) {
