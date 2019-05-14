@@ -14,8 +14,6 @@
 #include <uint256.h>
 #include <util.h>
 
-#include <boost/thread.hpp>
-
 #include <cstdint>
 
 static const char DB_COIN = 'C';

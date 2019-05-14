@@ -21,8 +21,6 @@
 #include <utilstrencodings.h>
 #include <walletinitinterface.h>
 
-#include <boost/thread.hpp>
-
 #include <cstdio>
 
 /* Introduction text for doxygen: */

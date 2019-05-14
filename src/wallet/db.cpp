@@ -13,7 +13,6 @@
 #include <utilstrencodings.h>
 #include <wallet/walletutil.h>
 
-#include <boost/thread.hpp>
 #include <boost/version.hpp>
 
 #include <cstdint>

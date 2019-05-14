@@ -19,8 +19,6 @@
 #include <wallet/rpcwallet.h>
 #include <wallet/walletdb.h>
 
-#include <boost/thread.hpp>
-
 #include <algorithm>
 #include <atomic>
 #include <cstdint>

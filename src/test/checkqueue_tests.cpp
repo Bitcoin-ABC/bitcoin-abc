@@ -7,14 +7,14 @@
 #include <validation.h>
 
 #include <atomic>
-#include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
 #include <checkqueue.h>
 #include <condition_variable>
 #include <mutex>
 #include <test/test_bitcoin.h>
 #include <thread>
 #include <vector>
+
+#include <boost/test/unit_test.hpp>
 
 #include <memory>
 #include <random.h>

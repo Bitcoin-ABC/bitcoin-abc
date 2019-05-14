@@ -13,8 +13,6 @@
 #include <scheduler.h>
 #include <txmempool.h>
 
-#include <boost/thread.hpp>
-
 /**
  * Version of Boost::test prior to 1.64 have issues when dealing with nullptr_t.
  * In order to work around this, we ensure that the null pointers are typed in a

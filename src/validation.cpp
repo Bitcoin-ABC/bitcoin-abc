@@ -46,7 +46,6 @@
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/thread.hpp>
 
 #include <atomic>
 #include <future>
