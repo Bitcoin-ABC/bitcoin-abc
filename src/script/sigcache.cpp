@@ -83,7 +83,8 @@ public:
 static CSignatureCache signatureCache;
 } // namespace
 
-// To be called once in AppInit2/TestingSetup to initialize the signatureCache
+// To be called once in AppInitMain/BasicTestingSetup to initialize the
+// signatureCache.
 void InitSignatureCache() {
     // nMaxCacheSize is unsigned. If -maxsigcachesize is set to zero,
     // setup_bytes creates the minimum possible cache (2 elements).

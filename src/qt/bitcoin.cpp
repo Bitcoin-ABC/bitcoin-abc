@@ -456,7 +456,7 @@ void BitcoinApplication::initializeResult(bool success) {
         quit();
         return;
     }
-    // Log this only after AppInit2 finishes, as then logging setup is
+    // Log this only after AppInitMain finishes, as then logging setup is
     // guaranteed complete.
     qWarning() << "Platform customization:" << platformStyle->getName();
 #ifdef ENABLE_WALLET
