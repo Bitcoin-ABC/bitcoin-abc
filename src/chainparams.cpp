@@ -114,12 +114,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000e8edfe3e3b6bddc3523c75");
+            "000000000000000000000000000000000000000000eafdfa9271c11ceae5513a");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "00000000000000000042fdb6b3730df1508a405ef98b1bdb857d4238b1c0a597");
+            "000000000000000001b4b8e36aec7d4f9671a47872cb9a74dc16ca398c7dcc18");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
@@ -234,6 +234,9 @@ public:
                 // Magnetic anomaly activation.
                 {556767, uint256S("0000000000000000004626ff6e3b936941d341c5932e"
                                   "ce4357eeccac44e6d56c")},
+                // Great wall activation.
+                {582680, uint256S("000000000000000001b4b8e36aec7d4f9671a47872cb"
+                                  "9a74dc16ca398c7dcc18")},
             }};
 
         // Data as of block
