@@ -535,7 +535,10 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose) {
             const uint256 &txid = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
             entryToJSON(pool, info, e);
-            o.pushKV(txid.ToString(), info);
+            // Mempool has unique entries so there is no advantage in using
+            // UniValue::pushKV, which checks if the key already exists in O(N).
+            // UniValue::__pushKV is used instead which currently is O(1).
+            o.__pushKV(txid.ToString(), info);
         }
         return o;
     } else {
