@@ -14,6 +14,8 @@
 #include <uint256.h>
 #include <util.h>
 
+#include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
+
 #include <cstdint>
 
 static const char DB_COIN = 'C';
