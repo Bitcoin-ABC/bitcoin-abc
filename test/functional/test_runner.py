@@ -359,17 +359,19 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
         build_timings.save_timings(test_results)
 
     if coverage:
-        coverage.report_rpc_coverage()
+        coverage_passed = coverage.report_rpc_coverage()
 
         logging.debug("Cleaning up coverage data")
         coverage.cleanup()
+    else:
+        coverage_passed = True
 
     # Clear up the temp directory if all subdirectories are gone
     if not os.listdir(tmpdir):
         os.rmdir(tmpdir)
 
-    all_passed = all(
-        map(lambda test_result: test_result.was_successful, test_results))
+    all_passed = all(map(
+        lambda test_result: test_result.was_successful, test_results)) and coverage_passed
 
     sys.exit(not all_passed)
 
@@ -650,8 +652,10 @@ class RPCCoverage():
         if uncovered:
             print("Uncovered RPC commands:")
             print("".join(("  - {}\n".format(i)) for i in sorted(uncovered)))
+            return False
         else:
             print("All RPC commands covered.")
+            return True
 
     def cleanup(self):
         return shutil.rmtree(self.dir)
