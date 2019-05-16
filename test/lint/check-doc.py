@@ -22,7 +22,7 @@ FOLDER_TEST = '/src/**/test/'
 
 EXTENSIONS = ["*.c", "*.h", "*.cpp", "*.cc", "*.hpp"]
 REGEX_ARG = '(?:ForceSet|SoftSet|Get|Is)(?:Bool)?Args?(?:Set)?\(\s*"(-[^"]+)"'
-REGEX_DOC = 'HelpMessageOpt\(\s*"(-[^"=]+?)(?:=|")'
+REGEX_DOC = 'AddArg\(\s*"(-[^"=]+?)(?:=|")'
 
 # list unsupported, deprecated and duplicate args as they need no documentation
 SET_DOC_OPTIONAL = set(['-benchmark',

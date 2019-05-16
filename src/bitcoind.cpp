@@ -70,6 +70,12 @@ bool AppInit(int argc, char *argv[]) {
     //
     // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's
     // main()
+    SetupServerArgs();
+#if HAVE_DECL_DAEMON
+    gArgs.AddArg("-daemon",
+                 _("Run in the background as a daemon and accept commands"),
+                 false, OptionsCategory::OPTIONS);
+#endif
     gArgs.ParseParameters(argc, argv);
 
     // Process help and version before taking care about datadir
@@ -83,7 +89,7 @@ bool AppInit(int argc, char *argv[]) {
             strUsage += "\nUsage:  bitcoind [options]                     "
                         "Start " PACKAGE_NAME " Daemon\n";
 
-            strUsage += "\n" + HelpMessage(HelpMessageMode::BITCOIND);
+            strUsage += "\n" + gArgs.GetHelpMessage();
         }
 
         fprintf(stdout, "%s", strUsage.c_str());

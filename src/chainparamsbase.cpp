@@ -14,16 +14,14 @@ const std::string CBaseChainParams::MAIN = "main";
 const std::string CBaseChainParams::TESTNET = "test";
 const std::string CBaseChainParams::REGTEST = "regtest";
 
-void AppendParamsHelpMessages(std::string &strUsage, bool debugHelp) {
-    strUsage += HelpMessageGroup(_("Chain selection options:"));
-    strUsage += HelpMessageOpt("-testnet", _("Use the test chain"));
-    if (debugHelp) {
-        strUsage += HelpMessageOpt(
-            "-regtest", "Enter regression test mode, which uses a special "
-                        "chain in which blocks can be solved instantly. "
-                        "This is intended for regression testing tools and app "
-                        "development.");
-    }
+void SetupChainParamsBaseOptions() {
+    gArgs.AddArg("-regtest",
+                 "Enter regression test mode, which uses a special chain in "
+                 "which blocks can be solved instantly. This is intended for "
+                 "regression testing tools and app development.",
+                 true, OptionsCategory::CHAINPARAMS);
+    gArgs.AddArg("-testnet", _("Use the test chain"), false,
+                 OptionsCategory::CHAINPARAMS);
 }
 
 /**

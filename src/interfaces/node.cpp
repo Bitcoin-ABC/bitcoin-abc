@@ -96,9 +96,7 @@ namespace {
                 StopMapPort();
             }
         }
-        std::string helpMessage(HelpMessageMode mode) override {
-            return HelpMessage(mode);
-        }
+        void setupServerArgs() override { return SetupServerArgs(); }
         bool getProxy(Network net, proxyType &proxy_info) override {
             return GetProxy(net, proxy_info);
         }

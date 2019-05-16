@@ -105,6 +105,22 @@ inline bool IsSwitchChar(char c) {
 #endif
 }
 
+enum class OptionsCategory {
+    OPTIONS,
+    CONNECTION,
+    WALLET,
+    WALLET_DEBUG_TEST,
+    ZMQ,
+    DEBUG_TEST,
+    CHAINPARAMS,
+    NODE_RELAY,
+    BLOCK_CREATION,
+    RPC,
+    GUI,
+    COMMANDS,
+    REGISTER_COMMANDS
+};
+
 class ArgsManager {
 protected:
     friend class ArgsManagerHelper;
@@ -114,6 +130,9 @@ protected:
     std::map<std::string, std::vector<std::string>> m_config_args;
     std::string m_network;
     std::set<std::string> m_network_only_args;
+    std::map<std::pair<OptionsCategory, std::string>,
+             std::pair<std::string, bool>>
+        m_available_args;
 
     void ReadConfigStream(std::istream &stream);
 
@@ -221,8 +240,19 @@ public:
      */
     std::string GetChainName() const;
 
+    /**
+     * Add argument
+     */
+    void AddArg(const std::string &name, const std::string &help,
+                const bool debug_only, const OptionsCategory &cat);
+
     // Remove an arg setting, used only in testing
     void ClearArg(const std::string &strArg);
+
+    /**
+     * Get the help string
+     */
+    std::string GetHelpMessage();
 };
 
 extern ArgsManager gArgs;
