@@ -70,10 +70,11 @@ std::string GetWarnings(const std::string &strFor) {
               "may need to upgrade, or other nodes may need to upgrade.");
     }
 
-    if (strFor == "gui")
+    if (strFor == "gui") {
         return strGUI;
-    else if (strFor == "statusbar")
+    } else if (strFor == "statusbar") {
         return strStatusBar;
+    }
     assert(!"GetWarnings(): invalid parameter");
     return "error";
 }
