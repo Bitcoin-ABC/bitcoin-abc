@@ -24,6 +24,9 @@ set(COPYRIGHT_HOLDERS "The %s developers")
 set(COPYRIGHT_HOLDERS_SUBSTITUTION Bitcoin)
 string(REPLACE "%s" ${COPYRIGHT_HOLDERS_SUBSTITUTION} COPYRIGHT_HOLDERS_FINAL ${COPYRIGHT_HOLDERS})
 
+# Generate the version.h file
+configure_file(version.h.cmake.in version.h ESCAPE_QUOTES)
+
 # Endianness
 check_include_files("endian.h" HAVE_ENDIAN_H)
 check_include_files("sys/endian.h" HAVE_SYS_ENDIAN_H)
