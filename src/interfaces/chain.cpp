@@ -36,7 +36,7 @@
 namespace interfaces {
 namespace {
 
-    class LockImpl : public Chain::Lock {
+    class LockImpl : public Chain::Lock, public UniqueLock<RecursiveMutex> {
         Optional<int> getHeight() override {
             int height = ::ChainActive().Height();
             if (height >= 0) {
@@ -165,10 +165,7 @@ namespace {
                                       nullptr /* missing inputs */,
                                       false /* bypass limits */, absurd_fee);
         }
-    };
 
-    class LockingStateImpl : public LockImpl,
-                             public UniqueLock<RecursiveMutex> {
         using UniqueLock::UniqueLock;
     };
 
@@ -261,15 +258,12 @@ namespace {
     class ChainImpl : public Chain {
     public:
         std::unique_ptr<Chain::Lock> lock(bool try_lock) override {
-            auto result = std::make_unique<LockingStateImpl>(
+            auto result = std::make_unique<LockImpl>(
                 ::cs_main, "cs_main", __FILE__, __LINE__, try_lock);
             if (try_lock && result && !*result) {
                 return {};
             }
             return result;
-        }
-        std::unique_ptr<Chain::Lock> assumeLocked() override {
-            return std::make_unique<LockImpl>();
         }
         bool findBlock(const BlockHash &hash, CBlock *block, int64_t *time,
                        int64_t *time_max) override {
