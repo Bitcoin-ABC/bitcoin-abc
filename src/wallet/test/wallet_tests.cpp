@@ -296,8 +296,8 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
     SetMockTime(mockTime);
     CBlockIndex *block = nullptr;
     if (blockTime > 0) {
-        LockAnnotation lock(::cs_main);
         auto locked_chain = wallet.chain().lock();
+        LockAnnotation lock(::cs_main);
         auto inserted =
             mapBlockIndex.emplace(BlockHash(GetRandHash()), new CBlockIndex);
         assert(inserted.second);
