@@ -95,7 +95,8 @@ enum {
     //
     SCRIPT_ENABLE_REPLAY_PROTECTION = (1U << 17),
 
-    // Is OP_CHECKDATASIG and variant are enabled.
+    // Is OP_CHECKDATASIG and variant are enabled, and must be counted towards
+    // Sigops limits.
     //
     SCRIPT_ENABLE_CHECKDATASIG = (1U << 18),
 
