@@ -86,7 +86,7 @@ static const uint32_t STANDARD_SCRIPT_VERIFY_FLAGS =
     SCRIPT_VERIFY_NULLDUMMY | SCRIPT_VERIFY_SIGPUSHONLY |
     SCRIPT_VERIFY_MINIMALDATA | SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS |
     SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
-    SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
+    SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_ENABLE_CHECKDATASIG;
 
 /**
  * For convenience, standard but not mandatory verify flags.
@@ -104,14 +104,6 @@ static const uint32_t STANDARD_LOCKTIME_VERIFY_FLAGS =
 Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFee);
 
 bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFee);
-
-/**
- * Used as the flags parameters to check for sigops as if OP_CHECKDATASIG is
- * enabled. Can be removed after OP_CHECKDATASIG is activated as the flag is
- * made standard.
- */
-static const uint32_t STANDARD_CHECKDATASIG_VERIFY_FLAGS =
-    STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG;
 
 bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType);
 

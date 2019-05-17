@@ -165,8 +165,8 @@ bool AreInputsStandard(const CTransaction &tx,
             }
 
             CScript subscript(stack.back().begin(), stack.back().end());
-            if (subscript.GetSigOpCount(STANDARD_CHECKDATASIG_VERIFY_FLAGS,
-                                        true) > MAX_P2SH_SIGOPS) {
+            if (subscript.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, true) >
+                MAX_P2SH_SIGOPS) {
                 return false;
             }
         }

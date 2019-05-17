@@ -222,7 +222,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, *config);
     pblock->nNonce = 0;
     pblocktemplate->entries[0].txSigOps = GetSigOpCountWithoutP2SH(
-        *pblocktemplate->entries[0].tx, STANDARD_CHECKDATASIG_VERIFY_FLAGS);
+        *pblocktemplate->entries[0].tx, STANDARD_SCRIPT_VERIFY_FLAGS);
 
     // Copy all the transactions into the block
     // FIXME: This should be removed as it is significant overhead.

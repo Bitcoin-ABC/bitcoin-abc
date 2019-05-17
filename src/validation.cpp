@@ -588,8 +588,8 @@ static bool AcceptToMemoryPoolWorker(
                                  "bad-txns-nonstandard-inputs");
         }
 
-        int64_t nSigOpsCount = GetTransactionSigOpCount(
-            tx, view, STANDARD_CHECKDATASIG_VERIFY_FLAGS);
+        int64_t nSigOpsCount =
+            GetTransactionSigOpCount(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS);
 
         Amount nValueOut = tx.GetValueOut();
         Amount nFees = nValueIn - nValueOut;
