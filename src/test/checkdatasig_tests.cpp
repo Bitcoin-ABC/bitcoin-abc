@@ -68,7 +68,8 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
     for (uint32_t flags : flagset) {
         // Make sure that we get a bad opcode when the activation flag is not
         // passed.
-        CheckError(flags, original_stack, script, SCRIPT_ERR_BAD_OPCODE);
+        CheckError(flags & ~SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
+                   SCRIPT_ERR_BAD_OPCODE);
 
         // The script execute as expected if the opcodes are activated.
         CheckPass(flags | SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
@@ -81,7 +82,8 @@ static void CheckErrorForAllFlags(const stacktype &original_stack,
     for (uint32_t flags : flagset) {
         // Make sure that we get a bad opcode when the activation flag is not
         // passed.
-        CheckError(flags, original_stack, script, SCRIPT_ERR_BAD_OPCODE);
+        CheckError(flags & ~SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
+                   SCRIPT_ERR_BAD_OPCODE);
 
         // The script generates the proper error if the opcodes are activated.
         CheckError(flags | SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
@@ -250,6 +252,11 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
                        SCRIPT_ERR_CHECKDATASIGVERIFY);
         }
     }
+}
+
+BOOST_AUTO_TEST_CASE(checkdatasig_inclusion_in_standard_and_mandatory_flags) {
+    BOOST_CHECK(!(STANDARD_SCRIPT_VERIFY_FLAGS & SCRIPT_ENABLE_CHECKDATASIG));
+    BOOST_CHECK(!(MANDATORY_SCRIPT_VERIFY_FLAGS & SCRIPT_ENABLE_CHECKDATASIG));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

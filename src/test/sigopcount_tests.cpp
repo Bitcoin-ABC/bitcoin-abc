@@ -6,7 +6,7 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <key.h>
-#include <policy/policy.h> // For STANDARD_CHECKDATASIG_VERIFY_FLAGS.
+#include <policy/policy.h>
 #include <pubkey.h>
 #include <script/interpreter.h>
 #include <script/script.h>
@@ -30,19 +30,24 @@ BOOST_FIXTURE_TEST_SUITE(sigopcount_tests, BasicTestingSetup)
 
 void CheckScriptSigOps(const CScript &script, uint32_t accurate_sigops,
                        uint32_t inaccurate_sigops, uint32_t datasigops) {
-    const uint32_t stdflags = STANDARD_SCRIPT_VERIFY_FLAGS;
-    const uint32_t datasigflags = STANDARD_CHECKDATASIG_VERIFY_FLAGS;
+    const uint32_t nodatasigflags =
+        STANDARD_SCRIPT_VERIFY_FLAGS & ~SCRIPT_ENABLE_CHECKDATASIG;
+    const uint32_t datasigflags =
+        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG;
 
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(stdflags, false), inaccurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(nodatasigflags, false),
+                      inaccurate_sigops);
     BOOST_CHECK_EQUAL(script.GetSigOpCount(datasigflags, false),
                       inaccurate_sigops + datasigops);
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(stdflags, true), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(nodatasigflags, true),
+                      accurate_sigops);
     BOOST_CHECK_EQUAL(script.GetSigOpCount(datasigflags, true),
                       accurate_sigops + datasigops);
 
     const CScript p2sh = GetScriptForDestination(CScriptID(script));
     const CScript scriptSig = CScript() << OP_0 << Serialize(script);
-    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(stdflags, scriptSig), accurate_sigops);
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(nodatasigflags, scriptSig),
+                      accurate_sigops);
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(datasigflags, scriptSig),
                       accurate_sigops + datasigops);
 
@@ -51,7 +56,8 @@ void CheckScriptSigOps(const CScript &script, uint32_t accurate_sigops,
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(SCRIPT_VERIFY_NONE, scriptSig), 0U);
 
     // Check that GetSigOpCount report the exact count when not passed a P2SH.
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(stdflags, p2sh), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(nodatasigflags, p2sh),
+                      accurate_sigops);
     BOOST_CHECK_EQUAL(script.GetSigOpCount(datasigflags, p2sh),
                       accurate_sigops + datasigops);
     BOOST_CHECK_EQUAL(script.GetSigOpCount(SCRIPT_VERIFY_NONE, p2sh),
@@ -87,10 +93,14 @@ BOOST_AUTO_TEST_CASE(GetSigOpCount) {
     CScript scriptSig2;
     scriptSig2 << OP_1 << ToByteVector(dummy) << ToByteVector(dummy)
                << Serialize(s3);
-    BOOST_CHECK_EQUAL(
-        p2sh.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, scriptSig2), 3U);
-    BOOST_CHECK_EQUAL(
-        p2sh.GetSigOpCount(STANDARD_CHECKDATASIG_VERIFY_FLAGS, scriptSig2), 3U);
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount((STANDARD_SCRIPT_VERIFY_FLAGS &
+                                          ~SCRIPT_ENABLE_CHECKDATASIG),
+                                         scriptSig2),
+                      3U);
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS |
+                                             SCRIPT_ENABLE_CHECKDATASIG,
+                                         scriptSig2),
+                      3U);
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(SCRIPT_VERIFY_NONE, scriptSig2), 0U);
 
     const CScript s4 = CScript(s1) << OP_IF << OP_CHECKDATASIG << OP_ENDIF;
