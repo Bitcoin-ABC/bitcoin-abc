@@ -13,7 +13,7 @@ Bitcoin ABC Release Process
     - Any known issues or limitations should be documented in release notes
     - Known bugs should have tickets
     - Run `arc lint --everything` and check there is no linter error
-    - Verify IBD without checkpoints and without assumevalid.
+    - Verify IBD with `-checkpoints=0 -assumevalid=0`
  
 3. Update the documents / code which needs to be updated every release
     - Check that doc/release-notes.md is complete, and fill in any missing items.
