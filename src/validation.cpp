@@ -4474,22 +4474,12 @@ static bool LoadBlockIndexDB(const Consensus::Params &params)
 
 bool LoadChainTip(const Config &config) {
     AssertLockHeld(cs_main);
+    // Never called when the coins view is empty
+    assert(!pcoinsTip->GetBestBlock().IsNull());
 
     if (::ChainActive().Tip() &&
         ::ChainActive().Tip()->GetBlockHash() == pcoinsTip->GetBestBlock()) {
         return true;
-    }
-
-    if (pcoinsTip->GetBestBlock().IsNull() && mapBlockIndex.size() == 1) {
-        // In case we just added the genesis block, connect it now, so
-        // that we always have a ::ChainActive().Tip() when we return.
-        LogPrintf("%s: Connecting genesis block...\n", __func__);
-        CValidationState state;
-        if (!ActivateBestChain(config, state)) {
-            LogPrintf("%s: failed to activate chain (%s)\n", __func__,
-                      FormatStateMessage(state));
-            return false;
-        }
     }
 
     // Load pointer to end of best chain
