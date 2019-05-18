@@ -100,8 +100,8 @@ class BitcoinTestFramework():
                             help="Attach a python debugger if test fails")
         parser.add_argument("--usecli", dest="usecli", default=False, action="store_true",
                             help="use bitcoin-cli instead of RPC for all commands")
-        parser.add_argument("--with-greatwallactivation", dest="greatwallactivation", default=False, action="store_true",
-                            help="Activate great wall update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
+        parser.add_argument("--with-gravitonactivation", dest="gravitonactivation", default=False, action="store_true",
+                            help="Activate graviton update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
         self.add_options(parser)
         self.options = parser.parse_args()
 
@@ -251,9 +251,9 @@ class BitcoinTestFramework():
         for i in range(num_nodes):
             self.nodes.append(TestNode(i, self.options.tmpdir, extra_args[i], rpchost, rpc_port=rpc_port(i), p2p_port=p2p_port(i),
                                        timewait=timewait, binary=binary[i], stderr=None, mocktime=self.mocktime, coverage_dir=self.options.coveragedir, use_cli=self.options.usecli))
-            if self.options.greatwallactivation:
+            if self.options.gravitonactivation:
                 self.nodes[i].extend_default_args(
-                    ["-greatwallactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+                    ["-gravitonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
 
     def start_node(self, i, *args, **kwargs):
         """Start a bitcoind"""
@@ -424,9 +424,9 @@ class BitcoinTestFramework():
                 if i > 0:
                     self.nodes[i].extend_default_args(
                         ["-connect=127.0.0.1:" + str(p2p_port(0))])
-                if self.options.greatwallactivation:
+                if self.options.gravitonactivation:
                     self.nodes[i].extend_default_args(
-                        ["-greatwallactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+                        ["-gravitonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
                 self.start_node(i)
 
             # Wait for RPC connections to be ready

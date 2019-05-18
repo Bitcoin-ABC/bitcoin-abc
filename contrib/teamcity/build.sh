@@ -61,10 +61,10 @@ if [[ -z "${DISABLE_TESTS}" ]]; then
 			echo "Skipping rpc testing due to disabled wallet functionality."
 		elif [[ "${BRANCH}" == "master" ]]; then
 			./test/functional/test_runner.py --cutoff=600 --tmpdirprefix=output
-			./test/functional/test_runner.py --cutoff=600 --tmpdirprefix=output --with-greatwallactivation
+			./test/functional/test_runner.py --cutoff=600 --tmpdirprefix=output --with-gravitonactivation
 		else
 			./test/functional/test_runner.py --tmpdirprefix=output
-			./test/functional/test_runner.py --tmpdirprefix=output --with-greatwallactivation
+			./test/functional/test_runner.py --tmpdirprefix=output --with-gravitonactivation
 		fi
 	else
 		echo "*** Functional tests have been skipped"
