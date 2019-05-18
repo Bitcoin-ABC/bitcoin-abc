@@ -66,12 +66,10 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
                                        const CScript &script,
                                        const stacktype &expected) {
     for (uint32_t flags : flagset) {
-        // Make sure that we get a bad opcode when the activation flag is not
-        // passed.
-        CheckError(flags & ~SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
-                   SCRIPT_ERR_BAD_OPCODE);
-
-        // The script execute as expected if the opcodes are activated.
+        // The script executes as expected regardless of whether or not
+        // SCRIPT_ENABLE_CHECKDATASIG flag is passed.
+        CheckPass(flags & ~SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
+                  expected);
         CheckPass(flags | SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
                   expected);
     }
@@ -80,12 +78,10 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
 static void CheckErrorForAllFlags(const stacktype &original_stack,
                                   const CScript &script, ScriptError expected) {
     for (uint32_t flags : flagset) {
-        // Make sure that we get a bad opcode when the activation flag is not
-        // passed.
+        // The script generates the proper error regardless of whether or not
+        // SCRIPT_ENABLE_CHECKDATASIG flag is passed.
         CheckError(flags & ~SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
-                   SCRIPT_ERR_BAD_OPCODE);
-
-        // The script generates the proper error if the opcodes are activated.
+                   expected);
         CheckError(flags | SCRIPT_ENABLE_CHECKDATASIG, original_stack, script,
                    expected);
     }

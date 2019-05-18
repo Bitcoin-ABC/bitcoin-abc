@@ -913,11 +913,6 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                     case OP_CHECKDATASIG:
                     case OP_CHECKDATASIGVERIFY: {
-                        // Make sure this remains an error before activation.
-                        if ((flags & SCRIPT_ENABLE_CHECKDATASIG) == 0) {
-                            return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
-                        }
-
                         // (sig message pubkey -- bool)
                         if (stack.size() < 3) {
                             return set_error(
