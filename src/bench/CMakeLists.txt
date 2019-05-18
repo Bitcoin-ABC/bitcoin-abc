@@ -52,6 +52,7 @@ add_executable(bitcoin-bench
 	prevector.cpp
 	rollingbloom.cpp
 	rpc_mempool.cpp
+	util_time.cpp
 
 	# Add the generated headers to trigger the conversion command
 	${BENCH_DATA_GENERATED_HEADERS}
