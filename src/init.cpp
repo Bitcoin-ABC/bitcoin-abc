@@ -2455,6 +2455,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // From here on out fReindex and fReset mean something
                 // different!
                 if (!LoadBlockIndex(params)) {
+                    if (ShutdownRequested()) {
+                        break;
+                    }
                     strLoadError = _("Error loading block database").translated;
                     break;
                 }

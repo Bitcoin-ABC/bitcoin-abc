@@ -274,6 +274,9 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
     // Load mapBlockIndex
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
+        if (ShutdownRequested()) {
+            return false;
+        }
         std::pair<char, uint256> key;
         if (!pcursor->GetKey(key) || key.first != DB_BLOCK_INDEX) {
             break;

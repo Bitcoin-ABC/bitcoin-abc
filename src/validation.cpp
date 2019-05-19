@@ -4376,6 +4376,9 @@ bool CChainState::LoadBlockIndex(const Consensus::Params &params,
 
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
     for (const std::pair<int, CBlockIndex *> &item : vSortedByHeight) {
+        if (ShutdownRequested()) {
+            return false;
+        }
         CBlockIndex *pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) +
                              GetBlockProof(*pindex);
