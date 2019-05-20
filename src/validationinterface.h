@@ -97,7 +97,22 @@ protected:
     /** Notifies listeners of a block being disconnected */
     virtual void BlockDisconnected(const std::shared_ptr<const CBlock> &block) {
     }
-    /** Notifies listeners of the new active block chain on-disk. */
+    /**
+     * Notifies listeners of the new active block chain on-disk.
+     *
+     * Prior to this callback, any updates are not guaranteed to persist on disk
+     * (ie clients need to handle shutdown/restart safety by being able to
+     * understand when some updates were lost due to unclean shutdown).
+     *
+     * When this callback is invoked, the validation changes done by any prior
+     * callback are guaranteed to exist on disk and survive a restart, including
+     * an unclean shutdown.
+     *
+     * Provides a locator describing the best chain, which is likely useful for
+     * storing current state on disk in client DBs.
+     *
+     * Called on a background thread.
+     */
     virtual void ChainStateFlushed(const CBlockLocator &locator) {}
     /** Notifies listeners about an inventory item being seen on the network. */
     virtual void Inventory(const uint256 &hash) {}

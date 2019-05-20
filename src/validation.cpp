@@ -2043,13 +2043,12 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
     LOCK(cs_main);
     static int64_t nLastWrite = 0;
     static int64_t nLastFlush = 0;
-    static int64_t nLastSetChain = 0;
     std::set<int> setFilesToPrune;
-    bool fFlushForPrune = false;
-    bool fDoFullFlush = false;
-    int64_t nNow = 0;
+    bool full_flush_completed = false;
     try {
         {
+            bool fFlushForPrune = false;
+            bool fDoFullFlush = false;
             LOCK(cs_LastBlockFile);
             if (fPruneMode && (fCheckForPruning || nManualPruneHeight > 0) &&
                 !fReindex) {
@@ -2068,16 +2067,13 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
                     }
                 }
             }
-            nNow = GetTimeMicros();
+            int64_t nNow = GetTimeMicros();
             // Avoid writing/flushing immediately after startup.
             if (nLastWrite == 0) {
                 nLastWrite = nNow;
             }
             if (nLastFlush == 0) {
                 nLastFlush = nNow;
-            }
-            if (nLastSetChain == 0) {
-                nLastSetChain = nNow;
             }
             int64_t nMempoolSizeMax =
                 gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
@@ -2168,17 +2164,13 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
                     return AbortNode(state, "Failed to write to coin database");
                 }
                 nLastFlush = nNow;
+                full_flush_completed = true;
             }
         }
 
-        if (fDoFullFlush ||
-            ((mode == FlushStateMode::ALWAYS ||
-              mode == FlushStateMode::PERIODIC) &&
-             nNow >
-                 nLastSetChain + (int64_t)DATABASE_WRITE_INTERVAL * 1000000)) {
+        if (full_flush_completed) {
             // Update best block in wallet (so we can detect restored wallets).
             GetMainSignals().ChainStateFlushed(chainActive.GetLocator());
-            nLastSetChain = nNow;
         }
     } catch (const std::runtime_error &e) {
         return AbortNode(state, std::string("System error while flushing: ") +
