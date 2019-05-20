@@ -2177,7 +2177,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
              nNow >
                  nLastSetChain + (int64_t)DATABASE_WRITE_INTERVAL * 1000000)) {
             // Update best block in wallet (so we can detect restored wallets).
-            GetMainSignals().SetBestChain(chainActive.GetLocator());
+            GetMainSignals().ChainStateFlushed(chainActive.GetLocator());
             nLastSetChain = nNow;
         }
     } catch (const std::runtime_error &e) {

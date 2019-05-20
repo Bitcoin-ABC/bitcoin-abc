@@ -486,7 +486,7 @@ bool CWallet::ChangeWalletPassphrase(
     return false;
 }
 
-void CWallet::SetBestChain(const CBlockLocator &loc) {
+void CWallet::ChainStateFlushed(const CBlockLocator &loc) {
     CWalletDB walletdb(*dbw);
     walletdb.WriteBestBlock(loc);
 }
@@ -4296,7 +4296,7 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
             return nullptr;
         }
 
-        walletInstance->SetBestChain(chainActive.GetLocator());
+        walletInstance->ChainStateFlushed(chainActive.GetLocator());
     } else if (gArgs.IsArgSet("-usehd")) {
         bool useHD = gArgs.GetBoolArg("-usehd", DEFAULT_USE_HD_WALLET);
         if (walletInstance->IsHDEnabled() && !useHD) {
@@ -4378,7 +4378,7 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
                                                       reserver, true);
         }
         LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
-        walletInstance->SetBestChain(chainActive.GetLocator());
+        walletInstance->ChainStateFlushed(chainActive.GetLocator());
         walletInstance->dbw->IncrementUpdateCounter();
 
         // Restore wallet transaction metadata after -zapwallettxes=1

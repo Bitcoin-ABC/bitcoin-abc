@@ -55,7 +55,7 @@ protected:
                    const CBlockIndex *pindex,
                    const std::vector<CTransactionRef> &txn_conflicted) override;
 
-    void SetBestChain(const CBlockLocator &locator) override;
+    void ChainStateFlushed(const CBlockLocator &locator) override;
 
 public:
     /// Constructs the TxIndex, which becomes available to be queried.

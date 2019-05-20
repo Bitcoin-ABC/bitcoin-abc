@@ -246,7 +246,7 @@ public:
             // UNIX timestamp of last known number of transactions.
             1522608016,
             // Total number of transactions between genesis and that timestamp
-            // (the tx=... number in the SetBestChain debug.log lines)
+            // (the tx=... number in the ChainStateFlushed debug.log lines)
             248589038,
             // Estimated number of transactions per second after that timestamp.
             3.2};
