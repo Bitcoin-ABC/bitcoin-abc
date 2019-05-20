@@ -95,7 +95,8 @@ bool VoteRecord::addNodeToQuorum(NodeId nodeid) {
     }
 
     // MMIX Linear Congruent Generator.
-    const uint64_t r1 = 6364136223846793005 * nodeid + 1442695040888963407;
+    const uint64_t r1 =
+        6364136223846793005 * uint64_t(nodeid) + 1442695040888963407;
     // Fibonacci hashing.
     const uint64_t r2 = 11400714819323198485ull * (nodeid ^ seed);
     // Combine and extract hash.
