@@ -271,8 +271,7 @@ static bool rest_block(const Config &config, HTTPRequest *req,
             UniValue objBlock;
             {
                 LOCK(cs_main);
-                objBlock =
-                    blockToJSON(config, block, pblockindex, showTxDetails);
+                objBlock = blockToJSON(block, pblockindex, showTxDetails);
             }
             std::string strJSON = objBlock.write() + "\n";
             req->WriteHeader("Content-Type", "application/json");
