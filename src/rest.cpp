@@ -62,9 +62,6 @@ struct CCoin {
     }
 };
 
-extern UniValue mempoolInfoToJSON();
-extern UniValue mempoolToJSON(bool fVerbose = false);
-
 static bool RESTERR(HTTPRequest *req, enum HTTPStatusCode status,
                     std::string message) {
     req->WriteHeader("Content-Type", "text/plain");

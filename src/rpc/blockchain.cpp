@@ -471,7 +471,7 @@ static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
     info.pushKV("depends", depends);
 }
 
-UniValue mempoolToJSON(bool fVerbose = false) {
+UniValue mempoolToJSON(bool fVerbose) {
     if (fVerbose) {
         LOCK(g_mempool.cs);
         UniValue o(UniValue::VOBJ);
