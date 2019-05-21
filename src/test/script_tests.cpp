@@ -2080,25 +2080,25 @@ BOOST_AUTO_TEST_CASE(script_build) {
             .EditPush(64, "01", "41")
             .ScriptError(SCRIPT_ERR_EVAL_FALSE));
 
-    // Tests SCRIPT_ALLOW_SEGWIT_RECOVERY
-    const uint32_t allowSegwitRecoveryFlags = SCRIPT_VERIFY_CLEANSTACK |
-                                              SCRIPT_VERIFY_P2SH |
-                                              SCRIPT_ALLOW_SEGWIT_RECOVERY;
+    // Tests Segwit Recovery transactions and SCRIPT_DISALLOW_SEGWIT_RECOVERY
+    const uint32_t allowSegwitRecoveryFlags =
+        SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_P2SH;
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()),
-                    "v0 P2SH-P2WPKH but no SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_P2SH, true)
+                    "v0 P2SH-P2WPKH with SCRIPT_DISALLOW_SEGWIT_RECOVERY",
+                    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_P2SH |
+                        SCRIPT_DISALLOW_SEGWIT_RECOVERY,
+                    true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()),
-                    "v0 P2SH-P2WPKH with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "Valid Segwit Recovery with v0 P2SH-P2WPKH",
                     allowSegwitRecoveryFlags, true)
             .PushRedeem());
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()),
-                    "v0 P2SH-P2WPKH with extra stack item and "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "v0 P2SH-P2WPKH Segwit Recovery with extra stack item",
                     allowSegwitRecoveryFlags, true)
             .Num(0)
             .PushRedeem()
@@ -2108,82 +2108,82 @@ BOOST_AUTO_TEST_CASE(script_build) {
          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}));
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
-                    "v0 P2SH-P2WSH but no SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_P2SH, true)
+                    "v0 P2SH-P2WSH with SCRIPT_DISALLOW_SEGWIT_RECOVERY",
+                    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_P2SH |
+                        SCRIPT_DISALLOW_SEGWIT_RECOVERY,
+                    true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
+                                "Valid Segwit Recovery with v0 P2SH-P2WSH",
+                                allowSegwitRecoveryFlags, true)
+                        .PushRedeem());
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
-                    "v0 P2SH-P2WSH with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "v0 P2SH-P2WSH Segwit Recovery with extra stack item",
                     allowSegwitRecoveryFlags, true)
-            .PushRedeem());
-    tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
-                                "v0 P2SH-P2WSH with extra stack item and "
-                                "SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                                allowSegwitRecoveryFlags, true)
-                        .Num(0)
-                        .PushRedeem()
-                        .ScriptError(SCRIPT_ERR_CLEANSTACK));
-    // Tests the limits of IsWitnessProgram along with
-    // SCRIPT_ALLOW_SEGWIT_RECOVERY
+            .Num(0)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    // Tests the limits of IsWitnessProgram without
+    // SCRIPT_DISALLOW_SEGWIT_RECOVERY.
     std::vector<uint8_t> shortprogram({90, 1});
     tests.push_back(
         TestBuilder(CScript() << OP_0
                               << std::vector<uint8_t>(shortprogram.begin(),
                                                       shortprogram.end() - 1),
-                    "Invalid witness program (too short) with "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "Segwit Recovery with invalid witness program (too short)",
                     allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
     tests.push_back(
-        TestBuilder(CScript() << OP_0 << shortprogram,
-                    "Valid witness program (min allowed length) with "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                    allowSegwitRecoveryFlags, true)
+        TestBuilder(
+            CScript() << OP_0 << shortprogram,
+            "Segwit Recovery with valid witness program (min allowed length)",
+            allowSegwitRecoveryFlags, true)
             .PushRedeem());
     std::vector<uint8_t> longprogram(
         {90, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
          14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
          28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40});
     tests.push_back(
-        TestBuilder(CScript() << OP_0
-                              << std::vector<uint8_t>(longprogram.begin(),
-                                                      longprogram.end() - 1),
-                    "Valid witness program (max allowed length) with "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                    allowSegwitRecoveryFlags, true)
-            .PushRedeem());
-    tests.push_back(TestBuilder(CScript() << OP_0 << longprogram,
-                                "Invalid witness program (too long) with "
-                                "SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                                allowSegwitRecoveryFlags, true)
-                        .PushRedeem()
-                        .ScriptError(SCRIPT_ERR_CLEANSTACK));
-    tests.push_back(
-        TestBuilder(CScript() << OP_16 << ToByteVector(dummy256),
-                    "Valid witness program (max allowed version) with "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                    allowSegwitRecoveryFlags, true)
+        TestBuilder(
+            CScript() << OP_0
+                      << std::vector<uint8_t>(longprogram.begin(),
+                                              longprogram.end() - 1),
+            "Segwit Recovery with valid witness program (max allowed length)",
+            allowSegwitRecoveryFlags, true)
             .PushRedeem());
     tests.push_back(
-        TestBuilder(CScript() << OP_1NEGATE << ToByteVector(dummy256),
-                    "Invalid witness program (invalid version -1) with "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+        TestBuilder(CScript() << OP_0 << longprogram,
+                    "Segwit Recovery with invalid witness program (too long)",
                     allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
     tests.push_back(
-        TestBuilder(CScript() << 17 << ToByteVector(dummy256),
-                    "Invalid witness program (invalid version 17) with "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
-                    allowSegwitRecoveryFlags, true)
+        TestBuilder(
+            CScript() << OP_16 << ToByteVector(dummy256),
+            "Segwit Recovery with valid witness program (max allowed version)",
+            allowSegwitRecoveryFlags, true)
+            .PushRedeem());
+    tests.push_back(
+        TestBuilder(
+            CScript() << OP_1NEGATE << ToByteVector(dummy256),
+            "Segwit Recovery with invalid witness program (invalid version -1)",
+            allowSegwitRecoveryFlags, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_CLEANSTACK));
+    tests.push_back(
+        TestBuilder(
+            CScript() << 17 << ToByteVector(dummy256),
+            "Segwit Recovery with invalid witness program (invalid version 17)",
+            allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(dummy256) << OP_1,
-                    "Invalid witness program (more than 2 stack "
-                    "items) with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "Segwit Recovery with invalid witness program (more than 2 "
+                    "stack items)",
                     allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
@@ -2200,11 +2200,28 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     allowSegwitRecoveryFlags, true)
             .PushRedeem());
     tests.push_back(
+        TestBuilder(CScript() << OP_0 << std::vector<uint8_t>({0, 0}),
+                    "Otherwise valid segwit recovery, in spite of false value "
+                    "being left "
+                    "on stack (0), but with SCRIPT_DISALLOW_SEGWIT_RECOVERY",
+                    allowSegwitRecoveryFlags | SCRIPT_DISALLOW_SEGWIT_RECOVERY,
+                    true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
+    tests.push_back(
         TestBuilder(
-            CScript() << OP_RESERVED << ToByteVector(dummy256),
-            "Invalid witness program (OP_RESERVED in version field) with "
-            "SCRIPT_ALLOW_SEGWIT_RECOVERY",
-            allowSegwitRecoveryFlags, true)
+            CScript() << OP_0 << std::vector<uint8_t>({0, 0x80}),
+            "Otherwise valid segwit recovery, in spite of false value being "
+            "left "
+            "on stack (minus 0), but with SCRIPT_DISALLOW_SEGWIT_RECOVERY",
+            allowSegwitRecoveryFlags | SCRIPT_DISALLOW_SEGWIT_RECOVERY, true)
+            .PushRedeem()
+            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
+    tests.push_back(
+        TestBuilder(CScript() << OP_RESERVED << ToByteVector(dummy256),
+                    "Segwit Recovery with invalid witness program (OP_RESERVED "
+                    "in version field)",
+                    allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_BAD_OPCODE));
     const uint8_t nonmin_push_00[] = {1, 0};
@@ -2212,8 +2229,8 @@ BOOST_AUTO_TEST_CASE(script_build) {
         TestBuilder(
             CScript(&nonmin_push_00[0], &nonmin_push_00[sizeof(nonmin_push_00)])
                 << ToByteVector(keys.pubkey0.GetID()),
-            "Invalid witness program (non-minimal push in version field) with "
-            "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+            "Segwit Recovery with invalid witness program (non-minimal push in "
+            "version field)",
             allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
@@ -2222,22 +2239,22 @@ BOOST_AUTO_TEST_CASE(script_build) {
         TestBuilder((CScript() << OP_0) +
                         CScript(&nonmin_push_45aa[0],
                                 &nonmin_push_45aa[sizeof(nonmin_push_45aa)]),
-                    "Invalid witness program (non-minimal push in program "
-                    "field) with SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "Segwit Recovery with invalid witness program (non-minimal "
+                    "push in program field)",
                     allowSegwitRecoveryFlags, true)
             .PushRedeem()
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(dummy256),
-                    "v0 P2SH-P2WPKH whose redeem script hash does not match "
-                    "P2SH output and SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "v0 P2SH-P2WPKH Segwit Recovery whose redeem script hash "
+                    "does not match "
+                    "P2SH output",
                     allowSegwitRecoveryFlags, true)
             .Push(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()))
             .ScriptError(SCRIPT_ERR_EVAL_FALSE));
     tests.push_back(
         TestBuilder(CScript() << OP_1,
-                    "v0 P2SH-P2WPKH spending a non-P2SH output and "
-                    "SCRIPT_ALLOW_SEGWIT_RECOVERY",
+                    "v0 P2SH-P2WPKH Segwit Recovery spending a non-P2SH output",
                     allowSegwitRecoveryFlags)
             .Push(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()))
             .ScriptError(SCRIPT_ERR_CLEANSTACK));

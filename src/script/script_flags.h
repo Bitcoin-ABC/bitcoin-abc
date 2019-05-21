@@ -12,6 +12,7 @@ enum {
     SCRIPT_VERIFY_NONE = 0,
 
     // Evaluate P2SH subscripts (softfork safe, BIP16).
+    // Note: The Segwit Recovery feature is an exception to P2SH
     SCRIPT_VERIFY_P2SH = (1U << 0),
 
     // Passing a non-strict-DER signature or one with undefined hashtype to a
@@ -63,6 +64,7 @@ enum {
     // be true".
     // (softfork safe, BIP62 rule 6)
     // Note: CLEANSTACK should never be used without P2SH or WITNESS.
+    // Note: The Segwit Recovery feature is an exception to CLEANSTACK
     SCRIPT_VERIFY_CLEANSTACK = (1U << 8),
 
     // Verify CHECKLOCKTIMEVERIFY
@@ -106,8 +108,9 @@ enum {
     //
     SCRIPT_ENABLE_SCHNORR = (1U << 19),
 
-    // Allows the recovery of coins sent to p2sh segwit addresses
-    SCRIPT_ALLOW_SEGWIT_RECOVERY = (1U << 20),
+    // The exception to CLEANSTACK and P2SH for the recovery of coins sent
+    // to p2sh segwit addresses is not allowed.
+    SCRIPT_DISALLOW_SEGWIT_RECOVERY = (1U << 20),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPTFLAGS_H
