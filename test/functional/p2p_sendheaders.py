@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2016 The Bitcoin Core developers
+# Copyright (c) 2014-2017 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test behavior of headers messages to announce blocks.
@@ -428,12 +428,13 @@ class SendHeadersTest(BitcoinTestFramework):
                 inv_node.check_last_announcement(inv=[tip], headers=[])
                 test_node.check_last_announcement(inv=[tip], headers=[])
                 if i == 0:
-                    # Just get the data -- shouldn't cause headers announcements to resume
+                    self.log.debug(
+                        "Just get the data -- shouldn't cause headers announcements to resume")
                     test_node.send_get_data([tip])
                     test_node.wait_for_block(tip)
                 elif i == 1:
-                    # Send a getheaders message that shouldn't trigger headers announcements
-                    # to resume (best header sent will be too old)
+                    self.log.debug(
+                        "Send a getheaders message that shouldn't trigger headers announcements to resume (best header sent will be too old)")
                     test_node.send_get_headers(
                         locator=[fork_point], hashstop=new_block_hashes[1])
                     test_node.send_get_data([tip])
@@ -441,9 +442,8 @@ class SendHeadersTest(BitcoinTestFramework):
                 elif i == 2:
                     test_node.send_get_data([tip])
                     test_node.wait_for_block(tip)
-                    # This time, try sending either a getheaders to trigger resumption
-                    # of headers announcements, or mine a new block and inv it, also
-                    # triggering resumption of headers announcements.
+                    self.log.debug(
+                        "This time, try sending either a getheaders to trigger resumption of headers announcements, or mine a new block and inv it, also triggering resumption of headers announcements.")
                     if j == 0:
                         test_node.send_get_headers(locator=[tip], hashstop=0)
                         test_node.sync_with_ping()
