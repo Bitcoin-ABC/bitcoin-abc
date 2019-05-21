@@ -4,7 +4,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test various command line arguments and configuration file parameters."""
 import os
-import time
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import get_datadir_path
@@ -46,7 +45,6 @@ class ConfArgsTest(BitcoinTestFramework):
         # Create the directory and ensure the config file now works
         os.mkdir(new_data_dir)
         self.start_node(0, ['-conf='+conf_file, '-wallet=w1'])
-        time.sleep(5)
         self.stop_node(0)
         assert os.path.isfile(os.path.join(
             new_data_dir, 'regtest', 'wallets', 'w1'))
