@@ -269,6 +269,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
         "and unspent outputs until rescan completes.\n"
         "If you have the full public key, you should call importpubkey instead "
         "of this.\n"
+        "Hint: use importmulti to import more than one address.\n"
         "\nNote: If you import a non-standard raw script in hex form, outputs "
         "sending to it will be treated\n"
         "as change, and not show up in many RPCs.\n",
@@ -522,6 +523,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
         "Adds a public key (in hex) that can be watched as if it were in "
         "your wallet but cannot be used to spend. Requires a new wallet "
         "backup.\n"
+        "Hint: use importmulti to import more than one public key.\n"
         "\nNote: This call can take minutes to complete if rescan is true, "
         "during that time, other rpc calls\n"
         "may report that the imported pubkey exists but related transactions "
