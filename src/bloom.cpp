@@ -14,6 +14,8 @@
 #include <cmath>
 #include <cstdlib>
 
+#include <algorithm>
+
 #define LN2SQUARED 0.4804530139182014246671025263266649717305529515945455
 #define LN2 0.6931471805599453094172321214581765680755001343602552
 
@@ -323,7 +325,5 @@ void CRollingBloomFilter::reset() {
     nTweak = GetRand(std::numeric_limits<unsigned int>::max());
     nEntriesThisGeneration = 0;
     nGeneration = 1;
-    for (auto &d : data) {
-        d = 0;
-    }
+    std::fill(data.begin(), data.end(), 0);
 }
