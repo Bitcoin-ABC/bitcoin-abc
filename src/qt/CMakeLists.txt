@@ -11,53 +11,6 @@ find_brew_prefix(QT5_PREFIX qt5)
 set(QT_REQUIRED_COMPONENTS Core Widgets Network Test)
 find_package(Qt5 COMPONENTS ${QT_REQUIRED_COMPONENTS} REQUIRED HINTS "${QT5_PREFIX}")
 
-# Find out more about Qt. This is similar to
-# http://code.qt.io/cgit/qt/qtwebkit.git/tree/Source/cmake/OptionsQt.cmake
-get_target_property(QT_CORE_TYPE Qt5::Core TYPE)
-if(QT_CORE_TYPE MATCHES STATIC)
-	set(QT_STATIC_BUILD ON)
-endif()
-
-# Determine the Qt libraries directory from the QT5::Core library location
-get_target_property(QT_CORE_LIB_LOCATION Qt5::Core LOCATION)
-get_filename_component(QT5_LIB_DIR "${QT_CORE_LIB_LOCATION}" DIRECTORY)
-
-set(STATIC_DEPENDENCIES_CMAKE_FILE "${CMAKE_BINARY_DIR}/QtStaticDependencies.cmake")
-if(EXISTS ${STATIC_DEPENDENCIES_CMAKE_FILE})
-	file(REMOVE ${STATIC_DEPENDENCIES_CMAKE_FILE})
-endif()
-
-set(CONVERT_PRL_PATH "${CONTRIB_PATH}/qt/convert-prl-libs-to-cmake.pl")
-macro(CONVERT_PRL_LIBS_TO_CMAKE _qt_component)
-	if(TARGET Qt5::${_qt_component})
-		get_target_property(_lib_location Qt5::${_qt_component} LOCATION)
-		execute_process(COMMAND ${PERL_EXECUTABLE} "${CONVERT_PRL_PATH}"
-			--lib "${_lib_location}"
-			--qt_lib_install_dir "${QT5_LIB_DIR}"
-			--out "${STATIC_DEPENDENCIES_CMAKE_FILE}"
-			--component "${_qt_component}"
-			--compiler "${CMAKE_CXX_COMPILER_ID}"
-		)
-	endif()
-endmacro()
-
-if(QT_STATIC_BUILD)
-	foreach(qt_module ${QT_REQUIRED_COMPONENTS})
-		CONVERT_PRL_LIBS_TO_CMAKE(${qt_module})
-	endforeach()
-	# HACK: We must explicitly add LIB path of the Qt installation
-	# to correctly find qtpcre
-	link_directories("${QT5_LIB_DIR}")
-
-	# Now that we generated the dependencies, import them.
-	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CONVERT_PRL_PATH}")
-	if(NOT EXISTS ${STATIC_DEPENDENCIES_CMAKE_FILE})
-		message(FATAL_ERROR "Unable to find ${STATIC_DEPENDENCIES_CMAKE_FILE}")
-	endif()
-	include(${STATIC_DEPENDENCIES_CMAKE_FILE})
-	list(REMOVE_DUPLICATES STATIC_LIB_DEPENDENCIES)
-endif()
-
 # Localisation
 add_subdirectory(locale)
 
@@ -160,6 +113,8 @@ add_library(bitcoin-qt-base
 	qrc_bitcoin_locale.cpp
 )
 
+target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+
 # Windows support
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoin-qt-base PRIVATE winshutdownmonitor.cpp)
@@ -171,9 +126,57 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		macdockiconhandler.mm
 		macnotificationhandler.mm
 	)
+
+	set_property(TARGET bitcoin-qt-base PROPERTY AUTOMOC_MOC_OPTIONS "-DQ_OS_MAC")
 endif()
 
-target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+# Find out more about Qt. This is similar to
+# http://code.qt.io/cgit/qt/qtwebkit.git/tree/Source/cmake/OptionsQt.cmake
+get_target_property(QT_CORE_TYPE Qt5::Core TYPE)
+if(QT_CORE_TYPE MATCHES STATIC)
+	set(QT_STATIC_BUILD ON)
+endif()
+
+# Determine the Qt libraries directory from the QT5::Core library location
+get_target_property(QT_CORE_LIB_LOCATION Qt5::Core LOCATION)
+get_filename_component(QT5_LIB_DIR "${QT_CORE_LIB_LOCATION}" DIRECTORY)
+
+set(STATIC_DEPENDENCIES_CMAKE_FILE "${CMAKE_BINARY_DIR}/QtStaticDependencies.cmake")
+if(EXISTS ${STATIC_DEPENDENCIES_CMAKE_FILE})
+	file(REMOVE ${STATIC_DEPENDENCIES_CMAKE_FILE})
+endif()
+
+set(CONVERT_PRL_PATH "${CONTRIB_PATH}/qt/convert-prl-libs-to-cmake.pl")
+macro(CONVERT_PRL_LIBS_TO_CMAKE _qt_component)
+	if(TARGET Qt5::${_qt_component})
+		get_target_property(_lib_location Qt5::${_qt_component} LOCATION)
+		execute_process(COMMAND ${PERL_EXECUTABLE} "${CONVERT_PRL_PATH}"
+			--lib "${_lib_location}"
+			--qt_lib_install_dir "${QT5_LIB_DIR}"
+			--out "${STATIC_DEPENDENCIES_CMAKE_FILE}"
+			--component "${_qt_component}"
+			--compiler "${CMAKE_CXX_COMPILER_ID}"
+		)
+	endif()
+endmacro()
+
+if(QT_STATIC_BUILD)
+	foreach(qt_module ${QT_REQUIRED_COMPONENTS})
+		CONVERT_PRL_LIBS_TO_CMAKE(${qt_module})
+	endforeach()
+
+	# HACK: We must explicitly add LIB path of the Qt installation
+	# to correctly find qtpcre
+	link_directories("${QT5_LIB_DIR}")
+
+	# Now that we generated the dependencies, import them.
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CONVERT_PRL_PATH}")
+	if(NOT EXISTS ${STATIC_DEPENDENCIES_CMAKE_FILE})
+		message(FATAL_ERROR "Unable to find ${STATIC_DEPENDENCIES_CMAKE_FILE}")
+	endif()
+	include(${STATIC_DEPENDENCIES_CMAKE_FILE})
+	list(REMOVE_DUPLICATES STATIC_LIB_DEPENDENCIES)
+endif()
 
 target_link_libraries(bitcoin-qt-base
 	server
@@ -183,10 +186,6 @@ target_link_libraries(bitcoin-qt-base
 	OpenSSL::SSL
 	${Protobuf_LIBRARIES}
 )
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_property(TARGET bitcoin-qt-base PROPERTY AUTOMOC_MOC_OPTIONS "-DQ_OS_MAC")
-endif()
 
 # Wallet
 if(BUILD_BITCOIN_WALLET)
