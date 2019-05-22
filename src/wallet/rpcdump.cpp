@@ -119,7 +119,8 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
         "during that time, other rpc calls\n"
         "may report that the imported key exists but related transactions are "
         "still missing, leading to temporarily incorrect/bogus balances and "
-        "unspent outputs until rescan completes.\n",
+        "unspent outputs until rescan completes.\n"
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {
             {"privkey", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The private key (see dumpprivkey)"},
@@ -231,7 +232,8 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "abortrescan",
         "Stops current wallet rescan triggered by an RPC call, e.g. by an "
-        "importprivkey call.\n",
+        "importprivkey call.\n"
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {},
         RPCResults{},
         RPCExamples{"\nImport a private key\n" +
@@ -272,7 +274,8 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
         "Hint: use importmulti to import more than one address.\n"
         "\nNote: If you import a non-standard raw script in hex form, outputs "
         "sending to it will be treated\n"
-        "as change, and not show up in many RPCs.\n",
+        "as change, and not show up in many RPCs.\n"
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The Bitcoin address (or hex-encoded script)"},
@@ -528,7 +531,8 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
         "during that time, other rpc calls\n"
         "may report that the imported pubkey exists but related transactions "
         "are still missing, leading to temporarily incorrect/bogus balances "
-        "and unspent outputs until rescan completes.\n",
+        "and unspent outputs until rescan completes.\n"
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {
             {"pubkey", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The hex-encoded public key"},
@@ -628,7 +632,8 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "importwallet",
         "Imports keys from a wallet dump file (see dumpwallet). Requires a "
-        "new wallet backup to include imported keys.\n",
+        "new wallet backup to include imported keys.\n"
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The wallet file"},
@@ -1548,7 +1553,8 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
         "be returned.\n"
         "Conversely, if all the private keys are provided and the "
         "address/script is spendable, the watchonly option must be set to "
-        "false, or a warning will be returned.\n",
+        "false, or a warning will be returned.\n"
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {
             {"requests",
              RPCArg::Type::ARR,

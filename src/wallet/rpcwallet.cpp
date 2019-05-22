@@ -3884,7 +3884,8 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "rescanblockchain",
-        "Rescan the local blockchain for wallet related transactions.\n",
+        "Rescan the local blockchain for wallet related transactions.\n"
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {
             {"start_height", RPCArg::Type::NUM, /* default */ "0",
              "block height where the rescan should start"},
