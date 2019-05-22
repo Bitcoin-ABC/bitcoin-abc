@@ -507,8 +507,7 @@ static bool AcceptToMemoryPoolWorker(
 
     // Is it already in the memory pool?
     if (pool.exists(txid)) {
-        return state.Invalid(false, REJECT_ALREADY_KNOWN,
-                             "txn-already-in-mempool");
+        return state.Invalid(false, REJECT_DUPLICATE, "txn-already-in-mempool");
     }
 
     // Check for conflicts with in-memory transactions
@@ -516,7 +515,7 @@ static bool AcceptToMemoryPoolWorker(
         auto itConflicting = pool.mapNextTx.find(txin.prevout);
         if (itConflicting != pool.mapNextTx.end()) {
             // Disable replacement feature for good
-            return state.Invalid(false, REJECT_CONFLICT,
+            return state.Invalid(false, REJECT_DUPLICATE,
                                  "txn-mempool-conflict");
         }
     }
