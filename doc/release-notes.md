@@ -11,3 +11,4 @@ This release includes the following features and fixes:
     noincludeconf=1
     includeconf=relative.conf
   as bitcoin.conf will still include `relative.conf`.
+ - The `createrawtransaction` RPC will now accept an array or dictionary (kept for compatibility) for the `outputs` parameter. This means the order of transaction outputs can be specified by the client.
