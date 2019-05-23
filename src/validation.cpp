@@ -817,8 +817,7 @@ static bool AcceptToMemoryPoolWorker(
 static bool AcceptToMemoryPoolWithTime(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
-    int64_t nAcceptTime, bool fOverrideMempoolLimit = false,
-    const Amount nAbsurdFee = Amount::zero()) {
+    int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee) {
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
@@ -5603,8 +5602,11 @@ bool LoadMempool(const Config &config) {
             CValidationState state;
             if (nTime + nExpiryTimeout > nNow) {
                 LOCK(cs_main);
-                AcceptToMemoryPoolWithTime(config, g_mempool, state, tx, true,
-                                           nullptr, nTime);
+                AcceptToMemoryPoolWithTime(config, g_mempool, state, tx,
+                                           true /* fLimitFree */,
+                                           nullptr /* pfMissingInputs */, nTime,
+                                           false /* fOverrideMempoolLimit */,
+                                           Amount::zero() /* nAbsurdFee */);
                 if (state.IsValid()) {
                     ++count;
                 } else {
