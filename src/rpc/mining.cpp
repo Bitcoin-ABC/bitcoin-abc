@@ -576,6 +576,7 @@ static UniValue getblocktemplate(const Config &config,
                 if (g_best_block_cv.wait_until(lock, checktxtime) ==
                     std::cv_status::timeout) {
                     // Timeout: Check transactions for update
+                    // without holding ::mempool.cs to avoid deadlocks
                     if (g_mempool.GetTransactionsUpdated() !=
                         nTransactionsUpdatedLastLP) {
                         break;

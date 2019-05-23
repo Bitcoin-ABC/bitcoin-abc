@@ -21,6 +21,7 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/signals2/signal.hpp>
 
+#include <atomic>
 #include <map>
 #include <set>
 #include <string>
@@ -468,7 +469,7 @@ private:
     //! Value n means that n times in 2^32 we check.
     uint32_t nCheckFrequency GUARDED_BY(cs);
     //! Used by getblocktemplate to trigger CreateNewBlock() invocation
-    unsigned int nTransactionsUpdated;
+    std::atomic<uint32_t> nTransactionsUpdated;
 
     //! sum of all mempool tx's sizes.
     uint64_t totalTxSize;

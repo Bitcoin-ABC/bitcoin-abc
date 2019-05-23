@@ -405,12 +405,10 @@ bool CTxMemPool::isSpent(const COutPoint &outpoint) const {
 }
 
 unsigned int CTxMemPool::GetTransactionsUpdated() const {
-    LOCK(cs);
     return nTransactionsUpdated;
 }
 
 void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
-    LOCK(cs);
     nTransactionsUpdated += n;
 }
 
