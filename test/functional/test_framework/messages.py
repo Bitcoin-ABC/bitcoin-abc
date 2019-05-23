@@ -401,6 +401,7 @@ class CTransaction():
     def rehash(self):
         self.sha256 = None
         self.calc_sha256()
+        return self.hash
 
     # self.sha256 and self.hash -- those are expected to be the txid.
     def calc_sha256(self):

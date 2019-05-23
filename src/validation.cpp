@@ -423,11 +423,10 @@ static bool IsReplayProtectionEnabledForCurrentBlock(const Config &config) {
 
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
 // were somehow broken and returning the wrong scriptPubKeys
-static bool
-CheckInputsFromMempoolAndCache(const CTransaction &tx, CValidationState &state,
-                               const CCoinsViewCache &view, CTxMemPool &pool,
-                               const uint32_t flags, bool cacheSigStore,
-                               PrecomputedTransactionData &txdata) {
+static bool CheckInputsFromMempoolAndCache(
+    const CTransaction &tx, CValidationState &state,
+    const CCoinsViewCache &view, const CTxMemPool &pool, const uint32_t flags,
+    bool cacheSigStore, PrecomputedTransactionData &txdata) {
     AssertLockHeld(cs_main);
 
     // pool.cs should be locked already, but go ahead and re-take the lock here
@@ -467,7 +466,7 @@ static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
     int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee,
-    std::vector<COutPoint> &coins_to_uncache) {
+    std::vector<COutPoint> &coins_to_uncache, bool test_accept) {
     AssertLockHeld(cs_main);
 
     const CTransaction &tx = *ptx;
@@ -791,6 +790,11 @@ static bool AcceptToMemoryPoolWorker(
                       "otherwise cause instability!\n");
         }
 
+        if (test_accept) {
+            // Tx was accepted, but not added
+            return true;
+        }
+
         // Store transaction in memory.
         pool.addUnchecked(txid, entry, setAncestors);
 
@@ -814,14 +818,16 @@ static bool AcceptToMemoryPoolWorker(
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool AcceptToMemoryPoolWithTime(
-    const Config &config, CTxMemPool &pool, CValidationState &state,
-    const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
-    int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee) {
+static bool
+AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
+                           CValidationState &state, const CTransactionRef &tx,
+                           bool fLimitFree, bool *pfMissingInputs,
+                           int64_t nAcceptTime, bool fOverrideMempoolLimit,
+                           const Amount nAbsurdFee, bool test_accept) {
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
-        fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache);
+        fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache, test_accept);
     if (!res) {
         for (const COutPoint &outpoint : coins_to_uncache) {
             pcoinsTip->Uncache(outpoint);
@@ -839,10 +845,11 @@ static bool AcceptToMemoryPoolWithTime(
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
                         bool fLimitFree, bool *pfMissingInputs,
-                        bool fOverrideMempoolLimit, const Amount nAbsurdFee) {
-    return AcceptToMemoryPoolWithTime(config, pool, state, tx, fLimitFree,
-                                      pfMissingInputs, GetTime(),
-                                      fOverrideMempoolLimit, nAbsurdFee);
+                        bool fOverrideMempoolLimit, const Amount nAbsurdFee,
+                        bool test_accept) {
+    return AcceptToMemoryPoolWithTime(
+        config, pool, state, tx, fLimitFree, pfMissingInputs, GetTime(),
+        fOverrideMempoolLimit, nAbsurdFee, test_accept);
 }
 
 /**
@@ -5602,11 +5609,11 @@ bool LoadMempool(const Config &config) {
             CValidationState state;
             if (nTime + nExpiryTimeout > nNow) {
                 LOCK(cs_main);
-                AcceptToMemoryPoolWithTime(config, g_mempool, state, tx,
-                                           true /* fLimitFree */,
-                                           nullptr /* pfMissingInputs */, nTime,
-                                           false /* fOverrideMempoolLimit */,
-                                           Amount::zero() /* nAbsurdFee */);
+                AcceptToMemoryPoolWithTime(
+                    config, g_mempool, state, tx, true /* fLimitFree */,
+                    nullptr /* pfMissingInputs */, nTime,
+                    false /* fOverrideMempoolLimit */,
+                    Amount::zero() /* nAbsurdFee */, false /* test_accept */);
                 if (state.IsValid()) {
                     ++count;
                 } else {
