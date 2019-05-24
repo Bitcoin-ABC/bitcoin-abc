@@ -58,6 +58,7 @@ from test_framework.script import (
     OP_TRUE,
 )
 from test_framework.test_framework import ComparisonTestFramework
+from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
 
 base_relative_locktime = 10
@@ -142,6 +143,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
         spendtx = self.create_transaction(
             node, prev_tx.hash, self.nodeaddress, (prev_tx.vout[0].nValue - 1000) / COIN)
         spendtx.nVersion = prev_tx.nVersion
+        pad_tx(spendtx)
         spendtx.rehash()
         return spendtx
 
