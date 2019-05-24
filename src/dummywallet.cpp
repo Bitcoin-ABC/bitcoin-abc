@@ -3,11 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <logging.h>
+#include <support/allocators/secure.h>
 #include <util/system.h>
 #include <walletinitinterface.h>
 
 class CChainParams;
 class CWallet;
+enum class WalletCreationStatus;
 
 namespace interfaces {
 class Chain;
@@ -53,6 +55,14 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
                                     const std::string &name, std::string &error,
                                     std::string &warning) {
+    throw std::logic_error("Wallet function called in non-wallet build.");
+}
+
+WalletCreationStatus
+CreateWallet(const CChainParams &chainParams, interfaces::Chain &chain,
+             const SecureString &passphrase, uint64_t wallet_creation_flags,
+             const std::string &name, std::string &error, std::string &warning,
+             std::shared_ptr<CWallet> &result) {
     throw std::logic_error("Wallet function called in non-wallet build.");
 }
 

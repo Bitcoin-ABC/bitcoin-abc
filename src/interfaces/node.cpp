@@ -23,6 +23,7 @@
 #include <primitives/block.h>
 #include <rpc/server.h>
 #include <shutdown.h>
+#include <support/allocators/secure.h>
 #include <sync.h>
 #include <txmempool.h>
 #include <ui_interface.h>
@@ -45,6 +46,11 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
                                     const std::string &name, std::string &error,
                                     std::string &warning);
+WalletCreationStatus
+CreateWallet(const CChainParams &params, interfaces::Chain &chain,
+             const SecureString &passphrase, uint64_t wallet_creation_flags,
+             const std::string &name, std::string &error, std::string &warning,
+             std::shared_ptr<CWallet> &result);
 
 namespace interfaces {
 
@@ -277,6 +283,18 @@ namespace {
                    std::string &error, std::string &warning) const override {
             return MakeWallet(
                 LoadWallet(params, *m_context.chain, name, error, warning));
+        }
+        WalletCreationStatus
+        createWallet(const CChainParams &params, const SecureString &passphrase,
+                     uint64_t wallet_creation_flags, const std::string &name,
+                     std::string &error, std::string &warning,
+                     std::unique_ptr<Wallet> &result) override {
+            std::shared_ptr<CWallet> wallet;
+            WalletCreationStatus status = CreateWallet(
+                params, *m_context.chain, passphrase, wallet_creation_flags,
+                name, error, warning, wallet);
+            result = MakeWallet(wallet);
+            return status;
         }
         std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override {
             return MakeHandler(::uiInterface.InitMessage_connect(fn));

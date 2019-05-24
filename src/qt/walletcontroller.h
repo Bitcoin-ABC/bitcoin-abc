@@ -6,6 +6,7 @@
 #define BITCOIN_QT_WALLETCONTROLLER_H
 
 #include <qt/walletmodel.h>
+#include <support/allocators/secure.h>
 #include <sync.h>
 
 #include <QMutex>
@@ -19,6 +20,7 @@
 #include <QProgressDialog>
 #include <QString>
 #include <QThread>
+#include <QTimer>
 
 class OptionsModel;
 class PlatformStyle;
@@ -28,6 +30,9 @@ class Handler;
 class Node;
 } // namespace interfaces
 
+class AskPassphraseDialog;
+class CreateWalletActivity;
+class CreateWalletDialog;
 class OpenWalletActivity;
 class WalletControllerActivity;
 
@@ -102,6 +107,30 @@ protected:
     std::string m_warning_message;
 
     const CChainParams &m_chainparams;
+};
+
+class CreateWalletActivity : public WalletControllerActivity {
+    Q_OBJECT
+
+public:
+    CreateWalletActivity(WalletController *wallet_controller,
+                         QWidget *parent_widget,
+                         const CChainParams &chainparams);
+    virtual ~CreateWalletActivity();
+
+    void create();
+
+Q_SIGNALS:
+    void created(WalletModel *wallet_model);
+
+private:
+    void askPassphrase();
+    void createWallet();
+    void finish();
+
+    SecureString m_passphrase;
+    CreateWalletDialog *m_create_wallet_dialog{nullptr};
+    AskPassphraseDialog *m_passphrase_dialog{nullptr};
 };
 
 class OpenWalletActivity : public WalletControllerActivity {

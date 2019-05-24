@@ -5,10 +5,11 @@
 #ifndef BITCOIN_INTERFACES_NODE_H
 #define BITCOIN_INTERFACES_NODE_H
 
-#include <addrdb.h>     // For banmap_t
-#include <amount.h>     // For Amount
-#include <net.h>        // For CConnman::NumConnections
-#include <netaddress.h> // For Network
+#include <addrdb.h>                    // For banmap_t
+#include <amount.h>                    // For Amount
+#include <net.h>                       // For CConnman::NumConnections
+#include <netaddress.h>                // For Network
+#include <support/allocators/secure.h> // For SecureString
 
 #include <cstddef>
 #include <cstdint>
@@ -31,6 +32,7 @@ class proxyType;
 class RPCServer;
 class RPCTimerInterface;
 class UniValue;
+enum class WalletCreationStatus;
 
 namespace interfaces {
 class Handler;
@@ -207,6 +209,13 @@ public:
                                                const std::string &name,
                                                std::string &error,
                                                std::string &warning) const = 0;
+
+    //! Create a wallet from file
+    virtual WalletCreationStatus
+    createWallet(const CChainParams &params, const SecureString &passphrase,
+                 uint64_t wallet_creation_flags, const std::string &name,
+                 std::string &error, std::string &warning,
+                 std::unique_ptr<Wallet> &result) = 0;
 
     //! Register handler for init messages.
     using InitMessageFn = std::function<void(const std::string &message)>;
