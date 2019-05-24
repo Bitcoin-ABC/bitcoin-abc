@@ -17,9 +17,10 @@
 #include <QMessageBox>
 #include <QPushButton>
 
-AskPassphraseDialog::AskPassphraseDialog(Mode _mode, QWidget *parent)
+AskPassphraseDialog::AskPassphraseDialog(Mode _mode, QWidget *parent,
+                                         SecureString *passphrase_out)
     : QDialog(parent), ui(new Ui::AskPassphraseDialog), mode(_mode),
-      model(nullptr), fCapsLock(false) {
+      model(nullptr), fCapsLock(false), m_passphrase_out(passphrase_out) {
     ui->setupUi(this);
 
     ui->passEdit1->setMinimumSize(ui->passEdit1->sizeHint());
@@ -91,7 +92,7 @@ void AskPassphraseDialog::setModel(WalletModel *_model) {
 
 void AskPassphraseDialog::accept() {
     SecureString oldpass, newpass1, newpass2;
-    if (!model) {
+    if (!model && mode != Encrypt) {
         return;
     }
     oldpass.reserve(MAX_PASSPHRASE_SIZE);
@@ -121,30 +122,40 @@ void AskPassphraseDialog::accept() {
                 QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
             if (retval == QMessageBox::Yes) {
                 if (newpass1 == newpass2) {
-                    if (model->setWalletEncrypted(true, newpass1)) {
+                    QString encryption_reminder =
+                        tr("Remember that encrypting your wallet cannot fully "
+                           "protect your bitcoins from being stolen by malware "
+                           "infecting your computer.");
+                    if (m_passphrase_out) {
+                        m_passphrase_out->assign(newpass1);
                         QMessageBox::warning(
-                            this, tr("Wallet encrypted"),
+                            this, tr("Wallet to be encrypted"),
                             "<qt>" +
-                                tr("Your wallet is now encrypted. "
-                                   "Remember that encrypting your wallet "
-                                   "cannot fully protect your bitcoins from "
-                                   "being stolen by malware infecting your "
-                                   "computer.") +
-                                "<br><br><b>" +
-                                tr("IMPORTANT: Any previous backups you have "
-                                   "made of your wallet file should be "
-                                   "replaced with the newly generated, "
-                                   "encrypted wallet file. "
-                                   "For security reasons, previous backups of "
-                                   "the unencrypted wallet file will become "
-                                   "useless as soon as you start using the "
-                                   "new, encrypted wallet.") +
-                                "</b></qt>");
+                                tr("Your wallet is about to be encrypted. ") +
+                                encryption_reminder + "</b></qt>");
                     } else {
-                        QMessageBox::critical(
-                            this, tr("Wallet encryption failed"),
-                            tr("Wallet encryption failed due to an internal "
-                               "error. Your wallet was not encrypted."));
+                        assert(model != nullptr);
+                        if (model->setWalletEncrypted(true, newpass1)) {
+                            QMessageBox::warning(
+                                this, tr("Wallet encrypted"),
+                                "<qt>" + tr("Your wallet is now encrypted. ") +
+                                    encryption_reminder + "<br><br><b>" +
+                                    tr("IMPORTANT: Any previous backups you "
+                                       "have made of your wallet file should "
+                                       "be replaced with the newly generated, "
+                                       "encrypted wallet file. For security "
+                                       "reasons, previous backups of the "
+                                       "unencrypted wallet file will become "
+                                       "useless as soon as you start using the "
+                                       "new, encrypted wallet.") +
+                                    "</b></qt>");
+                        } else {
+                            QMessageBox::critical(
+                                this, tr("Wallet encryption failed"),
+                                tr("Wallet encryption failed due to an "
+                                   "internal error. Your wallet was not "
+                                   "encrypted."));
+                        }
                     }
                     QDialog::accept(); // Success
                 } else {
@@ -243,8 +254,8 @@ void AskPassphraseDialog::toggleShowPassword(bool show) {
 
 bool AskPassphraseDialog::eventFilter(QObject *object, QEvent *event) {
     /* Detect Caps Lock.
-     * There is no good OS-independent way to check a key state in Qt, but we
-     * can detect Caps Lock by checking for the following condition:
+     * There is no good OS-independent way to check a key state in Qt, but
+     * we can detect Caps Lock by checking for the following condition:
      * Shift key is down and the result is a lower case character, or
      * Shift key is not down and the result is an upper case character.
      */
