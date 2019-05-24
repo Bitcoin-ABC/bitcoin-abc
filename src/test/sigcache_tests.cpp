@@ -38,7 +38,7 @@ static const uint32_t TEST_INVARIANT_FLAGS =
     SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_VERIFY_MINIMALIF |
     SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE |
     SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_ENABLE_REPLAY_PROTECTION |
-    SCRIPT_ENABLE_CHECKDATASIG | SCRIPT_ALLOW_SEGWIT_RECOVERY;
+    SCRIPT_VERIFY_CHECKDATASIG_SIGOPS | SCRIPT_ALLOW_SEGWIT_RECOVERY;
 /* We will be testing that these flags DO affect the cache entry. The expected
  * behaviour is that flags which are not explicitly listed as invariant in
  * script/sigcache.cpp will affect the cache entry. Here we will thus enforce

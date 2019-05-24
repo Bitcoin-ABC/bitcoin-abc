@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(opcodes_random_flags) {
     // The first lcg.next() call is still 0x00000000 though.
     MMIXLinearCongruentialGenerator lcg(1234);
     for (int i = 0; i < 4096; i++) {
-        uint32_t flags = lcg.next() | SCRIPT_ENABLE_CHECKDATASIG;
+        uint32_t flags = lcg.next() | SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
 
         const bool hasForkId = (flags & SCRIPT_ENABLE_SIGHASH_FORKID) != 0;
         const bool hasSchnorr = (flags & SCRIPT_ENABLE_SCHNORR) != 0;

@@ -221,7 +221,7 @@ static bool CheckTransactionCommon(const CTransaction &tx,
         }
     }
 
-    if (GetSigOpCountWithoutP2SH(tx, SCRIPT_ENABLE_CHECKDATASIG) >
+    if (GetSigOpCountWithoutP2SH(tx, SCRIPT_VERIFY_CHECKDATASIG_SIGOPS) >
         MAX_TX_SIGOPS_COUNT) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
     }

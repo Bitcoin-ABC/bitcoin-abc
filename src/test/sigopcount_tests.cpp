@@ -31,9 +31,9 @@ BOOST_FIXTURE_TEST_SUITE(sigopcount_tests, BasicTestingSetup)
 void CheckScriptSigOps(const CScript &script, uint32_t accurate_sigops,
                        uint32_t inaccurate_sigops, uint32_t datasigops) {
     const uint32_t nodatasigflags =
-        STANDARD_SCRIPT_VERIFY_FLAGS & ~SCRIPT_ENABLE_CHECKDATASIG;
+        STANDARD_SCRIPT_VERIFY_FLAGS & ~SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
     const uint32_t datasigflags =
-        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG;
+        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
 
     BOOST_CHECK_EQUAL(script.GetSigOpCount(nodatasigflags, false),
                       inaccurate_sigops);
@@ -94,11 +94,11 @@ BOOST_AUTO_TEST_CASE(GetSigOpCount) {
     scriptSig2 << OP_1 << ToByteVector(dummy) << ToByteVector(dummy)
                << Serialize(s3);
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount((STANDARD_SCRIPT_VERIFY_FLAGS &
-                                          ~SCRIPT_ENABLE_CHECKDATASIG),
+                                          ~SCRIPT_VERIFY_CHECKDATASIG_SIGOPS),
                                          scriptSig2),
                       3U);
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS |
-                                             SCRIPT_ENABLE_CHECKDATASIG,
+                                             SCRIPT_VERIFY_CHECKDATASIG_SIGOPS,
                                          scriptSig2),
                       3U);
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(SCRIPT_VERIFY_NONE, scriptSig2), 0U);

@@ -99,7 +99,7 @@ enum {
     // OP_CHECKDATASIG(VERIFY) as always valid, this flag only affects sigops
     // counting.
     //
-    SCRIPT_ENABLE_CHECKDATASIG = (1U << 18),
+    SCRIPT_VERIFY_CHECKDATASIG_SIGOPS = (1U << 18),
 
     // Are Schnorr signatures enabled for OP_CHECK(DATA)SIG(VERIFY) and
     // 65-byte signatures banned for OP_CHECKMULTISIG(VERIFY)?
