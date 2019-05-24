@@ -13,3 +13,4 @@ This release includes the following features and fixes:
   as bitcoin.conf will still include `relative.conf`.
  - The `createrawtransaction` RPC will now accept an array or dictionary (kept for compatibility) for the `outputs` parameter. This means the order of transaction outputs can be specified by the client.
  - The new RPC `testmempoolaccept` can be used to test acceptance of a transaction to the mempool without adding it.
+ - An `initialblockdownload` boolean has been added to the `getblockchaininfo` RPC to indicate whether the node is currently in IBD or not.
