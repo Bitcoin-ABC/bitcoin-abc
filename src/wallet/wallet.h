@@ -146,7 +146,7 @@ enum WalletFlags : uint64_t {
     WALLET_FLAG_BLANK_WALLET = (1ULL << 33),
 };
 
-static constexpr uint64_t g_known_wallet_flags =
+static constexpr uint64_t KNOWN_WALLET_FLAGS =
     WALLET_FLAG_DISABLE_PRIVATE_KEYS | WALLET_FLAG_BLANK_WALLET |
     WALLET_FLAG_KEY_ORIGIN_METADATA;
 
