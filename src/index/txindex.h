@@ -6,6 +6,7 @@
 #define BITCOIN_INDEX_TXINDEX_H
 
 #include <primitives/block.h>
+#include <primitives/transaction.h>
 #include <threadinterrupt.h>
 #include <txdb.h>
 #include <uint256.h>
@@ -71,8 +72,15 @@ public:
     /// this method does not block and immediately returns false.
     bool BlockUntilSyncedToCurrentChain();
 
-    /// Look up the on-disk location of a transaction by hash.
-    bool FindTx(const uint256 &txid, CDiskTxPos &pos) const;
+    /// Look up a transaction by hash.
+    ///
+    /// @param[in]   tx_hash  The hash of the transaction to be returned.
+    /// @param[out]  block_hash  The hash of the block the transaction is found
+    /// in.
+    /// @param[out]  tx  The transaction itself.
+    /// @return  true if transaction is found, false otherwise
+    bool FindTx(const uint256 &tx_hash, uint256 &block_hash,
+                CTransactionRef &tx) const;
 
     void Interrupt();
 
@@ -83,5 +91,8 @@ public:
     /// Stops the instance from staying in sync with blockchain updates.
     void Stop();
 };
+
+/// The global transaction index, used in GetTransaction. May be null.
+extern std::unique_ptr<TxIndex> g_txindex;
 
 #endif // BITCOIN_INDEX_TXINDEX_H

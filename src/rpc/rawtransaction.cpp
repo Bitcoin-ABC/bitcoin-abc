@@ -10,6 +10,7 @@
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <dstencode.h>
+#include <index/txindex.h>
 #include <init.h>
 #include <keystore.h>
 #include <merkleblock.h>
@@ -44,6 +45,8 @@ static void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
     TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags());
 
     if (!hashBlock.IsNull()) {
+        LOCK(cs_main);
+
         entry.pushKV("blockhash", hashBlock.GetHex());
         CBlockIndex *pindex = LookupBlockIndex(hashBlock);
         if (pindex) {
@@ -161,8 +164,6 @@ static UniValue getrawtransaction(const Config &config,
                            "\"mytxid\" true \"myblockhash\""));
     }
 
-    LOCK(cs_main);
-
     bool in_active_chain = true;
     TxId txid = TxId(ParseHashV(request.params[0], "parameter 1"));
     CBlockIndex *blockindex = nullptr;
@@ -183,6 +184,8 @@ static UniValue getrawtransaction(const Config &config,
     }
 
     if (!request.params[2].isNull()) {
+        LOCK(cs_main);
+
         uint256 blockhash = ParseHashV(request.params[2], "parameter 3");
         blockindex = LookupBlockIndex(blockhash);
         if (!blockindex) {
@@ -190,6 +193,11 @@ static UniValue getrawtransaction(const Config &config,
                                "Block hash not found");
         }
         in_active_chain = chainActive.Contains(blockindex);
+    }
+
+    bool f_txindex_ready = false;
+    if (g_txindex && !blockindex) {
+        f_txindex_ready = g_txindex->BlockUntilSyncedToCurrentChain();
     }
 
     CTransactionRef tx;
@@ -201,10 +209,14 @@ static UniValue getrawtransaction(const Config &config,
                 throw JSONRPCError(RPC_MISC_ERROR, "Block not available");
             }
             errmsg = "No such transaction found in the provided block";
+        } else if (!g_txindex) {
+            errmsg = "No such mempool transaction. Use -txindex to enable "
+                     "blockchain transaction queries";
+        } else if (!f_txindex_ready) {
+            errmsg = "No such mempool transaction. Blockchain transactions are "
+                     "still in the process of being indexed";
         } else {
-            errmsg = fTxIndex ? "No such mempool or blockchain transaction"
-                              : "No such mempool transaction. Use -txindex to "
-                                "enable blockchain transaction queries";
+            errmsg = "No such mempool or blockchain transaction";
         }
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            errmsg +
@@ -274,18 +286,18 @@ static UniValue gettxoutproof(const Config &config,
         oneTxId = txid;
     }
 
-    LOCK(cs_main);
-
     CBlockIndex *pblockindex = nullptr;
 
     uint256 hashBlock;
     if (!request.params[1].isNull()) {
+        LOCK(cs_main);
         hashBlock = uint256S(request.params[1].get_str());
         pblockindex = LookupBlockIndex(hashBlock);
         if (!pblockindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         }
     } else {
+        LOCK(cs_main);
         // Loop through txids and try to find which block they're in. Exit loop
         // once a block is found.
         for (const auto &txid : setTxIds) {
@@ -296,6 +308,14 @@ static UniValue gettxoutproof(const Config &config,
             }
         }
     }
+
+    // Allow txindex to catch up if we need to query it and before we acquire
+    // cs_main.
+    if (g_txindex && !pblockindex) {
+        g_txindex->BlockUntilSyncedToCurrentChain();
+    }
+
+    LOCK(cs_main);
 
     if (pblockindex == nullptr) {
         CTransactionRef tx;

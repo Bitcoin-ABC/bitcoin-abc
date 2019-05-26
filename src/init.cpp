@@ -21,6 +21,7 @@
 #include <fs.h>
 #include <httprpc.h>
 #include <httpserver.h>
+#include <index/txindex.h>
 #include <key.h>
 #include <miner.h>
 #include <net.h>
@@ -179,6 +180,9 @@ void Interrupt() {
     if (g_connman) {
         g_connman->Interrupt();
     }
+    if (g_txindex) {
+        g_txindex->Interrupt();
+    }
 }
 
 void Shutdown() {
@@ -213,6 +217,9 @@ void Shutdown() {
     }
     peerLogic.reset();
     g_connman.reset();
+    if (g_txindex) {
+        g_txindex.reset();
+    }
 
     StopTorControl();
 
@@ -2046,13 +2053,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     nTotalCache = std::max(nTotalCache, nMinDbCache << 20);
     // total cache cannot be greater than nMaxDbcache
     nTotalCache = std::min(nTotalCache, nMaxDbCache << 20);
-    int64_t nBlockTreeDBCache = nTotalCache / 8;
-    nBlockTreeDBCache = std::min(nBlockTreeDBCache,
-                                 (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)
-                                      ? nMaxBlockDBAndTxIndexCache
-                                      : nMaxBlockDBCache)
-                                     << 20);
+    int64_t nBlockTreeDBCache =
+        std::min(nTotalCache / 8, nMaxBlockDBCache << 20);
     nTotalCache -= nBlockTreeDBCache;
+    int64_t nTxIndexCache =
+        std::min(nTotalCache / 8, gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)
+                                      ? nMaxTxIndexCache << 20
+                                      : 0);
+    nTotalCache -= nTxIndexCache;
     // use 25%-50% of the remainder for disk cache
     int64_t nCoinDBCache =
         std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23));
@@ -2066,6 +2074,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     LogPrintf("Cache configuration:\n");
     LogPrintf("* Using %.1fMiB for block index database\n",
               nBlockTreeDBCache * (1.0 / 1024 / 1024));
+    if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
+        LogPrintf("* Using %.1fMiB for transaction index database\n",
+                  nTxIndexCache * (1.0 / 1024 / 1024));
+    }
     LogPrintf("* Using %.1fMiB for chain state database\n",
               nCoinDBCache * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1fMiB for in-memory UTXO set (plus up to %.1fMiB of "
@@ -2106,9 +2118,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     break;
                 }
 
-                // LoadBlockIndex will load fTxIndex from the db, or set it if
-                // we're reindexing. It will also load fHavePruned if we've
-                // ever removed a block file from disk.
+                // LoadBlockIndex will load fHavePruned if we've ever removed a
+                // block file from disk.
                 // Note that it also sets fReindex based on the disk flag!
                 // From here on out fReindex and fReset mean something
                 // different!
@@ -2125,13 +2136,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                         chainparams.GetConsensus().hashGenesisBlock)) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?"));
-                }
-
-                // Check for changed -txindex state
-                if (fTxIndex != gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
-                    strLoadError = _("You need to rebuild the database using "
-                                     "-reindex-chainstate to change -txindex");
-                    break;
                 }
 
                 // Check for changed -prune state.  What we are concerned about
@@ -2291,12 +2295,20 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     config.SetCashAddrEncoding(
         gArgs.GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
 
-    // Step 8: load wallet
+    // Step 8: load indexers
+    if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
+        auto txindex_db =
+            std::make_unique<TxIndexDB>(nTxIndexCache, false, fReindex);
+        g_txindex = std::make_unique<TxIndex>(std::move(txindex_db));
+        g_txindex->Start();
+    }
+
+    // Step 9: load wallet
     if (!g_wallet_init_interface.Open(chainparams)) {
         return false;
     }
 
-    // Step 9: data directory maintenance
+    // Step 10: data directory maintenance
 
     // if pruning, unset the service bit and perform the initial blockstore
     // prune after any wallet rescanning has taken place.
@@ -2309,7 +2321,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
     }
 
-    // Step 10: import blocks
+    // Step 11: import blocks
     if (!CheckDiskSpace(/* additional_bytes */ 0, /* blocks_dir */ false)) {
         InitError(
             strprintf(_("Error: Disk space is low for %s"), GetDataDir()));
@@ -2358,7 +2370,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         return false;
     }
 
-    // Step 11: start node
+    // Step 12: start node
 
     int chain_active_height;
 
@@ -2444,7 +2456,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         return false;
     }
 
-    // Step 12: finished
+    // Step 13: finished
 
     SetRPCWarmupFinished();
     uiInterface.InitMessage(_("Done loading"));
