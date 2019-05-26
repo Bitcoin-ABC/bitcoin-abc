@@ -321,8 +321,12 @@ class TestManager():
         # Wait until verack is received
         self.wait_for_verack()
 
-        test_number = 1
-        for test_instance in self.test_generator.get_tests():
+        test_number = 0
+        tests = self.test_generator.get_tests()
+        for test_instance in tests:
+            test_number += 1
+            logger.info("Running test {}: {} line {}".format(
+                test_number, tests.gi_code.co_filename, tests.gi_frame.f_lineno))
             # We use these variables to keep track of the last block
             # and last transaction in the tests, which are used
             # if we're not syncing on every block or every tx.
@@ -433,9 +437,6 @@ class TestManager():
                 if (not self.check_mempool(tx.sha256, tx_outcome)):
                     raise AssertionError(
                         "Mempool test failed at test {}".format(test_number))
-
-            logger.info("Test {}: PASS".format(test_number))
-            test_number += 1
 
         [c.disconnect_node() for c in self.p2p_connections]
         self.wait_for_disconnections()
