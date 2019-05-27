@@ -1573,7 +1573,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
     // - Schnorr/ECDSA signatures with varying flags SCHNORR / STRICTENC.
     // - test with different key / mismatching key
 
-    // CHECKSIG
+    // CHECKSIG and Schnorr
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
                     "CHECKSIG Schnorr w/ neither STRICTENC,SCHNORR", 0)
@@ -1621,7 +1621,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 SCRIPT_ENABLE_SCHNORR | SCRIPT_VERIFY_STRICTENC)
                         .PushSigSchnorr(keys.key1));
 
-    // CHECKSIGVERIFY
+    // CHECKSIGVERIFY and Schnorr
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIGVERIFY
                               << OP_1,
@@ -1676,7 +1676,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .PushSigSchnorr(keys.key1)
                         .ScriptError(SCRIPT_ERR_CHECKSIGVERIFY));
 
-    // CHECKDATASIG
+    // CHECKDATASIG and Schnorr
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
                               << OP_CHECKDATASIG,
@@ -1758,7 +1758,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                     SCRIPT_VERIFY_STRICTENC)
                         .PushDataSigSchnorr(keys.key1, {1}));
 
-    // CHECKDATASIGVERIFY
+    // CHECKDATASIGVERIFY and Schnorr
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
                               << OP_CHECKDATASIGVERIFY << OP_1,
@@ -1842,7 +1842,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .PushDataSigSchnorr(keys.key1, {1})
                         .ScriptError(SCRIPT_ERR_CHECKDATASIGVERIFY));
 
-    // CHECKMULTISIG 1-of-1
+    // CHECKMULTISIG 1-of-1 and Schnorr
     tests.push_back(
         TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
                               << OP_CHECKMULTISIG,
@@ -1932,7 +1932,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .PushSigSchnorr(keys.key2)
                         .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
 
-    // CHECKMULTISIGVERIFY 1-of-1
+    // CHECKMULTISIGVERIFY 1-of-1 and Schnorr
     tests.push_back(
         TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
                               << OP_CHECKMULTISIGVERIFY << OP_1,
@@ -2021,7 +2021,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .PushSigSchnorr(keys.key1)
                         .Push(keys.pubkey1C));
 
-    // Test of different pubkey encodings
+    // Test of different pubkey encodings with Schnorr
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0C) << OP_CHECKSIG,
                     "Schnorr P2PK with compressed pubkey",
