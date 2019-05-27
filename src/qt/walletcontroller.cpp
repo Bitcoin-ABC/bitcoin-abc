@@ -39,7 +39,7 @@ WalletController::~WalletController() {
     m_activity_thread.wait();
 }
 
-std::vector<WalletModel *> WalletController::getWallets() const {
+std::vector<WalletModel *> WalletController::getOpenWallets() const {
     QMutexLocker locker(&m_mutex);
     return m_wallets;
 }

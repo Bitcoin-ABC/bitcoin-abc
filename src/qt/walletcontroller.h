@@ -42,7 +42,8 @@ public:
                      OptionsModel *options_model, QObject *parent);
     ~WalletController();
 
-    std::vector<WalletModel *> getWallets() const;
+    //! Returns wallet models currently open.
+    std::vector<WalletModel *> getOpenWallets() const;
 
     //! Returns all wallet names in the wallet dir mapped to whether the wallet
     //! is loaded.
