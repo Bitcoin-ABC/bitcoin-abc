@@ -10,7 +10,7 @@
 
 #include <QMutex>
 
-#include <list>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -43,7 +43,10 @@ public:
     ~WalletController();
 
     std::vector<WalletModel *> getWallets() const;
-    std::vector<std::string> getWalletsAvailableToOpen() const;
+
+    //! Returns all wallet names in the wallet dir mapped to whether the wallet
+    //! is loaded.
+    std::map<std::string, bool> listWalletDir() const;
 
     OpenWalletActivity *openWallet(const CChainParams &params,
                                    const std::string &name,
