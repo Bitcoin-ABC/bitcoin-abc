@@ -10,21 +10,23 @@ endif()
 
 find_path(MINIUPNPC_INCLUDE_DIR miniupnpc/miniupnpc.h)
 
-set(MINIUPNPC_REQUIRED_HEADERS
-	miniupnpc/miniwget.h
-	miniupnpc/upnpcommands.h
-	miniupnpc/upnperrors.h
-)
+if(MINIUPNPC_INCLUDE_DIR)
+	set(MINIUPNPC_REQUIRED_HEADERS
+		miniupnpc/miniwget.h
+		miniupnpc/upnpcommands.h
+		miniupnpc/upnperrors.h
+	)
 
-include(SanitizeHelper)
-set(CMAKE_REQUIRED_INCLUDES ${MINIUPNPC_INCLUDE_DIR})
-foreach(_miniupnpc_header ${MINIUPNPC_REQUIRED_HEADERS})
-	sanitize_variable(HAVE_MINIUPNPC_ ${_miniupnpc_header} HEADER_FOUND)
-	check_include_files(${_miniupnpc_header} ${HEADER_FOUND})
-	if(NOT ${HEADER_FOUND})
-		set(MINIUPNPC_MISSING_HEADER ON)
-	endif()
-endforeach()
+	include(SanitizeHelper)
+	set(CMAKE_REQUIRED_INCLUDES ${MINIUPNPC_INCLUDE_DIR})
+	foreach(_miniupnpc_header ${MINIUPNPC_REQUIRED_HEADERS})
+		sanitize_variable(HAVE_MINIUPNPC_ ${_miniupnpc_header} HEADER_FOUND)
+		check_include_files(${_miniupnpc_header} ${HEADER_FOUND})
+		if(NOT ${HEADER_FOUND})
+			set(MINIUPNPC_MISSING_HEADER ON)
+		endif()
+	endforeach()
+endif()
 
 if(NOT MINIUPNPC_MISSING_HEADER)
 	find_library(MINIUPNPC_LIBRARY NAMES miniupnpc libminiupnpc)
