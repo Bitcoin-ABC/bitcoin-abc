@@ -42,27 +42,25 @@ static Mutex cs_blockchange;
 static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock;
 
-static double GetDifficultyFromBits(uint32_t nBits) {
-    int nShift = (nBits >> 24) & 0xff;
-    double dDiff = 0x0000ffff / double(nBits & 0x00ffffff);
+/**
+ * Calculate the difficulty for a given block index.
+ */
+double GetDifficulty(const CBlockIndex *blockindex) {
+    assert(blockindex);
+
+    int nShift = (blockindex->nBits >> 24) & 0xff;
+    double dDiff = double(0x0000ffff) / double(blockindex->nBits & 0x00ffffff);
 
     while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
-
     while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
 
     return dDiff;
-}
-
-double GetDifficulty(const CBlockIndex *blockindex) {
-    assert(blockindex);
-
-    return GetDifficultyFromBits(blockindex->nBits);
 }
 
 static int ComputeNextBlockAndDepth(const CBlockIndex *tip,

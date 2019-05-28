@@ -15,8 +15,7 @@ class JSONRPCRequest;
 UniValue getblockchaininfo(const Config &config, const JSONRPCRequest &request);
 
 /**
- * Get the difficulty of the net wrt the given block index, or the chain tip
- * if not provided.
+ * Get the required difficulty of the next block w/r/t the given block index.
  *
  * @return A floating point number that is a multiple of the main net minimum
  * difficulty (4295032833 hashes).
