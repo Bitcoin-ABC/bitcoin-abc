@@ -290,12 +290,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000000043cb761ba833f844c5");
+            "00000000000000000000000000000000000000000000004c83317c9efa4724bd");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "00000000000002cb911c0a756a24c2fe6c1a29acaede3569ce430b95d8ff012d");
+            "00000000000000479138892ef0e4fa478ccc938fb94df862ef5bde7e8dee23d3");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
@@ -370,6 +370,9 @@ public:
                 // Nov, 13. DAA activation block.
                 {1188697, uint256S("0000000000170ed0918077bde7b4d36cc4c91be69fa"
                                    "09211f748240dabe047fb")},
+                // Great wall activation.
+                {1303885, uint256S("00000000000000479138892ef0e4fa478ccc938fb94"
+                                   "df862ef5bde7e8dee23d3")},
             }};
 
         // Data as of block
