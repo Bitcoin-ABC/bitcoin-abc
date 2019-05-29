@@ -105,7 +105,7 @@ class TestCase():
         log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
         test_argv = t.split()
         tmpdir = [os.path.join("--tmpdir={}", "{}_{}").format(
-                  self.tmpdir, re.sub(".py$", "", t), portseed)]
+                  self.tmpdir, re.sub(".py$", "", test_argv[0]), portseed)]
         name = t
         time0 = time.time()
         process = subprocess.Popen([os.path.join(self.tests_dir, test_argv[0])] + test_argv[1:] + self.flags + portseed_arg + tmpdir,
