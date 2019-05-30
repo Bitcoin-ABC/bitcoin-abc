@@ -345,19 +345,6 @@ void SetupServerArgs() {
                  _("Execute command when a relevant alert is received or we "
                    "see a really long fork (%s in cmd is replaced by message)"),
                  false, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-blocksdir=<dir>",
-                 _("Specify directory to hold blocks subdirectory for *.dat "
-                   "files (default: <datadir>)"),
-                 false, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-blocknotify=<cmd>",
-                 _("Execute command when the best block changes (%s in cmd is "
-                   "replaced by block hash)"),
-                 false, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
-        "-blocksonly",
-        strprintf(_("Whether to operate in a blocks only mode (default: %d)"),
-                  DEFAULT_BLOCKSONLY),
-        true, OptionsCategory::OPTIONS);
     gArgs.AddArg(
         "-assumevalid=<hex>",
         strprintf(
@@ -367,6 +354,25 @@ void SetupServerArgs() {
             defaultChainParams->GetConsensus().defaultAssumeValid.GetHex(),
             testnetChainParams->GetConsensus().defaultAssumeValid.GetHex()),
         false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-blocksdir=<dir>",
+                 _("Specify directory to hold blocks subdirectory for *.dat "
+                   "files (default: <datadir>)"),
+                 false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-blocknotify=<cmd>",
+                 _("Execute command when the best block changes (%s in cmd is "
+                   "replaced by block hash)"),
+                 false, OptionsCategory::OPTIONS);
+    gArgs.AddArg(
+        "-blockreconstructionextratxn=<n>",
+        strprintf(_("Extra transactions to keep in memory for compact block "
+                    "reconstructions (default: %u)"),
+                  DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN),
+        false, OptionsCategory::OPTIONS);
+    gArgs.AddArg(
+        "-blocksonly",
+        strprintf(_("Whether to operate in a blocks only mode (default: %d)"),
+                  DEFAULT_BLOCKSONLY),
+        true, OptionsCategory::OPTIONS);
     gArgs.AddArg("-conf=<file>",
                  strprintf(_("Specify configuration file (default: %s)"),
                            BITCOIN_CONF_FILENAME),
@@ -383,6 +389,13 @@ void SetupServerArgs() {
         strprintf(
             _("Set database cache size in megabytes (%d to %d, default: %d)"),
             nMinDbCache, nMaxDbCache, nDefaultDbCache),
+        false, OptionsCategory::OPTIONS);
+    gArgs.AddArg(
+        "-debuglogfile=<file>",
+        strprintf(
+            _("Specify location of debug log file: this can be an absolute "
+              "path or a path relative to the data directory (default: %s)"),
+            DEFAULT_DEBUGLOGFILE),
         false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-feefilter",
                  strprintf("Tell other nodes to filter invs to us by "
@@ -409,22 +422,15 @@ void SetupServerArgs() {
     gArgs.AddArg("-loadblock=<file>",
                  _("Imports blocks from external blk000??.dat file on startup"),
                  false, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
-        "-debuglogfile=<file>",
-        strprintf(
-            _("Specify location of debug log file: this can be an absolute "
-              "path or a path relative to the data directory (default: %s)"),
-            DEFAULT_DEBUGLOGFILE),
-        false, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-maxorphantx=<n>",
-                 strprintf(_("Keep at most <n> unconnectable "
-                             "transactions in memory (default: %u)"),
-                           DEFAULT_MAX_ORPHAN_TRANSACTIONS),
-                 false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-maxmempool=<n>",
                  strprintf(_("Keep the transaction memory pool "
                              "below <n> megabytes (default: %u)"),
                            DEFAULT_MAX_MEMPOOL_SIZE),
+                 false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-maxorphantx=<n>",
+                 strprintf(_("Keep at most <n> unconnectable "
+                             "transactions in memory (default: %u)"),
+                           DEFAULT_MAX_ORPHAN_TRANSACTIONS),
                  false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-mempoolexpiry=<n>",
                  strprintf(_("Do not keep transactions in the mempool "
@@ -439,17 +445,6 @@ void SetupServerArgs() {
             defaultChainParams->GetConsensus().nMinimumChainWork.GetHex(),
             testnetChainParams->GetConsensus().nMinimumChainWork.GetHex()),
         true, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-persistmempool",
-                 strprintf(_("Whether to save the mempool on shutdown "
-                             "and load on restart (default: %u)"),
-                           DEFAULT_PERSIST_MEMPOOL),
-                 false, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
-        "-blockreconstructionextratxn=<n>",
-        strprintf(_("Extra transactions to keep in memory for compact block "
-                    "reconstructions (default: %u)"),
-                  DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN),
-        false, OptionsCategory::OPTIONS);
     gArgs.AddArg(
         "-par=<n>",
         strprintf(_("Set the number of script verification threads (%u to %d, "
@@ -457,6 +452,11 @@ void SetupServerArgs() {
                   -GetNumCores(), MAX_SCRIPTCHECK_THREADS,
                   DEFAULT_SCRIPTCHECK_THREADS),
         false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-persistmempool",
+                 strprintf(_("Whether to save the mempool on shutdown "
+                             "and load on restart (default: %u)"),
+                           DEFAULT_PERSIST_MEMPOOL),
+                 false, OptionsCategory::OPTIONS);
 #ifndef WIN32
     gArgs.AddArg(
         "-pid=<file>",
@@ -587,14 +587,14 @@ void SetupServerArgs() {
         "-onlynet=<net>",
         _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)"),
         false, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-permitbaremultisig",
-                 strprintf(_("Relay non-P2SH multisig (default: %d)"),
-                           DEFAULT_PERMIT_BAREMULTISIG),
-                 false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-peerbloomfilters",
                  strprintf(_("Support filtering of blocks and transaction with "
                              "bloom filters (default: %d)"),
                            DEFAULT_PEERBLOOMFILTERS),
+                 false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-permitbaremultisig",
+                 strprintf(_("Relay non-P2SH multisig (default: %d)"),
+                           DEFAULT_PERMIT_BAREMULTISIG),
                  false, OptionsCategory::CONNECTION);
     gArgs.AddArg(
         "-port=<port>",
