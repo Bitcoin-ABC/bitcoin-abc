@@ -70,17 +70,17 @@ inline void __attribute__((always_inline)) Unshuffle(__m128i &s0, __m128i &s1) {
     s1 = _mm_alignr_epi8(t2, t1, 0x08);
 }
 
-__m128i inline __attribute__((always_inline)) Load(const unsigned char *in) {
+__m128i inline __attribute__((always_inline)) Load(const uint8_t *in) {
     return _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)in), MASK);
 }
 
-inline void __attribute__((always_inline)) Save(unsigned char *out, __m128i s) {
+inline void __attribute__((always_inline)) Save(uint8_t *out, __m128i s) {
     _mm_storeu_si128((__m128i *)out, _mm_shuffle_epi8(s, MASK));
 }
 }
 
 namespace sha256_shani {
-void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks) {
+void Transform(uint32_t *s, const uint8_t *chunk, size_t blocks) {
     __m128i m0, m1, m2, m3, s0, s1, so0, so1;
 
     /* Load state */
@@ -145,7 +145,7 @@ void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks) {
 
 namespace sha256d64_shani {
 
-void Transform_2way(unsigned char *out, const unsigned char *in) {
+void Transform_2way(uint8_t *out, const uint8_t *in) {
     __m128i am0, am1, am2, am3, as0, as1, aso0, aso1;
     __m128i bm0, bm1, bm2, bm3, bs0, bs1, bso0, bso1;
 

@@ -671,7 +671,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                 }
                 nTimeBegin = std::min(nTimeBegin, nTime);
             } else if (IsHex(vstr[0])) {
-                std::vector<unsigned char> vData(ParseHex(vstr[0]));
+                std::vector<uint8_t> vData(ParseHex(vstr[0]));
                 CScript script = CScript(vData.begin(), vData.end());
                 if (pwallet->HaveCScript(script)) {
                     LogPrintf(
