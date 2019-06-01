@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <bench/bench.h>
-#include <bloom.h>
 #include <crypto/ripemd160.h>
 #include <crypto/sha1.h>
 #include <crypto/sha256.h>
@@ -12,7 +11,6 @@
 #include <hash.h>
 #include <random.h>
 #include <uint256.h>
-#include <util/time.h>
 
 #include <iostream>
 #include <string>

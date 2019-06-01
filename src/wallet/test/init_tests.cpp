@@ -3,12 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
-#include <init.h>
 #include <noui.h>
 #include <test/lib/logging.h>
 #include <util/system.h>
-#include <wallet/wallet.h>
-#include <walletinitinterface.h>
 
 #include <test/setup_common.h>
 #include <wallet/test/init_test_fixture.h>

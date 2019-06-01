@@ -5,12 +5,10 @@
 #include <coins.h>
 
 #include <clientversion.h>
-#include <consensus/validation.h>
 #include <script/standard.h>
 #include <streams.h>
 #include <undo.h>
 #include <util/strencodings.h>
-#include <validation.h>
 
 #include <test/setup_common.h>
 
@@ -18,6 +16,9 @@
 
 #include <map>
 #include <vector>
+
+void UpdateCoins(CCoinsViewCache &inputs, const CTransaction &tx,
+                 CTxUndo &txundo, int nHeight);
 
 namespace {
 

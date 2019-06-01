@@ -9,7 +9,6 @@
 #include <qt/coincontroldialog.h>
 #include <qt/forms/ui_coincontroldialog.h>
 
-#include <base58.h>
 #include <cashaddrenc.h>
 #include <interfaces/node.h>
 #include <key_io.h>
@@ -20,7 +19,6 @@
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
 #include <qt/walletmodel.h>
-#include <validation.h> // For mempool
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
 

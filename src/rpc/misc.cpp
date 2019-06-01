@@ -3,27 +3,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <chain.h>
-#include <clientversion.h>
+#include <chainparams.h>
 #include <config.h>
-#include <core_io.h>
 #include <httpserver.h>
 #include <key_io.h>
 #include <logging.h>
-#include <net.h>
-#include <netbase.h>
 #include <outputtype.h>
 #include <rpc/blockchain.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
 #include <script/descriptor.h>
-#include <timedata.h>
 #include <util/check.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/validation.h>
-#include <validation.h>
-#include <warnings.h>
 
 #include <univalue.h>
 

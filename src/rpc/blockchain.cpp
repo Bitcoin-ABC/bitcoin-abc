@@ -14,7 +14,6 @@
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <hash.h>
-#include <index/txindex.h>
 #include <key_io.h>
 #include <node/coinstats.h>
 #include <policy/policy.h>

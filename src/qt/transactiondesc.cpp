@@ -22,8 +22,6 @@
 #include <timedata.h>
 #include <util/system.h>
 #include <validation.h>
-#include <wallet/db.h>
-#include <wallet/wallet.h>
 
 #include <cstdint>
 #include <string>

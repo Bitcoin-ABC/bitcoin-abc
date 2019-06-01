@@ -6,6 +6,7 @@
 #include <wallet/wallet.h>
 
 #include <chain.h>
+#include <chainparams.h>
 #include <checkpoints.h>
 #include <config.h>
 #include <consensus/consensus.h>
@@ -16,7 +17,6 @@
 #include <key.h>
 #include <key_io.h>
 #include <keystore.h>
-#include <net.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -26,9 +26,6 @@
 #include <script/script.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
-#include <shutdown.h>
-#include <timedata.h>
-#include <txmempool.h>
 #include <ui_interface.h>
 #include <util/bip32.h>
 #include <util/error.h>

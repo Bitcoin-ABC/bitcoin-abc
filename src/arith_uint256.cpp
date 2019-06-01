@@ -7,7 +7,6 @@
 
 #include <crypto/common.h>
 #include <uint256.h>
-#include <util/strencodings.h>
 
 #include <cstdio>
 #include <cstring>

@@ -8,7 +8,6 @@
 #include <crypto/common.h>
 #include <hash.h>
 #include <tinyformat.h>
-#include <util/strencodings.h>
 
 BlockHash CBlockHeader::GetHash() const {
     return BlockHash(SerializeHash(*this));

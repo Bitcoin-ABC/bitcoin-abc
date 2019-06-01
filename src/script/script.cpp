@@ -6,7 +6,6 @@
 #include <script/script.h>
 
 #include <script/script_flags.h>
-#include <tinyformat.h>
 #include <util/strencodings.h>
 
 #include <algorithm>

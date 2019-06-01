@@ -7,7 +7,6 @@
 #include <prevector.h>
 #include <random.h>
 #include <util/system.h>
-#include <validation.h>
 
 #include <boost/thread/thread.hpp>
 

@@ -5,7 +5,6 @@
 #include <zmq/zmqnotificationinterface.h>
 #include <zmq/zmqpublishnotifier.h>
 
-#include <streams.h>
 #include <util/system.h>
 #include <validation.h>
 #include <version.h>

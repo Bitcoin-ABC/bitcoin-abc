@@ -7,7 +7,6 @@
 
 #include <hash.h>
 #include <serialize.h>
-#include <streams.h>
 
 #include <cmath>
 

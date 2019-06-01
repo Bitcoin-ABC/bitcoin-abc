@@ -5,7 +5,6 @@
 #include <rpc/server.h>
 
 #include <banman.h>
-#include <chainparams.h>
 #include <clientversion.h>
 #include <config.h>
 #include <core_io.h>
@@ -19,7 +18,6 @@
 #include <rpc/util.h>
 #include <sync.h>
 #include <timedata.h>
-#include <ui_interface.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <validation.h>

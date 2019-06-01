@@ -10,7 +10,6 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/time.h>
-#include <version.h>
 
 #include <cstdint>
 

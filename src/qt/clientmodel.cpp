@@ -4,8 +4,6 @@
 
 #include <qt/clientmodel.h>
 
-#include <chain.h>
-#include <chainparams.h>
 #include <checkpoints.h>
 #include <clientversion.h>
 #include <config.h>
@@ -17,11 +15,7 @@
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/peertablemodel.h>
-#include <txmempool.h>
-#include <ui_interface.h>
 #include <util/system.h>
-#include <validation.h>
-#include <warnings.h>
 
 #include <QDebug>
 #include <QTimer>

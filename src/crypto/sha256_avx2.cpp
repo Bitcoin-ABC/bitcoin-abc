@@ -4,7 +4,6 @@
 #include <immintrin.h>
 
 #include <crypto/common.h>
-#include <crypto/sha256.h>
 
 namespace sha256d64_avx2 {
 namespace {

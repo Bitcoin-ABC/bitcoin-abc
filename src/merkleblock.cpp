@@ -7,7 +7,6 @@
 
 #include <consensus/consensus.h>
 #include <hash.h>
-#include <util/strencodings.h>
 
 CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter *filter,
                            const std::set<TxId> *txids) {

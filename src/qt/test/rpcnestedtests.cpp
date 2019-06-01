@@ -4,15 +4,11 @@
 
 #include <qt/test/rpcnestedtests.h>
 
-#include <chainparams.h>
 #include <config.h>
-#include <consensus/validation.h>
 #include <interfaces/node.h>
 #include <qt/rpcconsole.h>
-#include <rpc/register.h>
 #include <rpc/server.h>
 #include <util/system.h>
-#include <validation.h>
 
 #include <test/setup_common.h>
 

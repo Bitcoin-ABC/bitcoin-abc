@@ -2,8 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <core_io.h>
-
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <psbt.h>
@@ -12,7 +10,6 @@
 #include <serialize.h>
 #include <streams.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <version.h>
 
 #include <univalue.h>

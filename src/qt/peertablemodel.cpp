@@ -10,7 +10,6 @@
 
 #include <interfaces/node.h>
 #include <sync.h>
-#include <validation.h> // for cs_main
 
 #include <algorithm>
 

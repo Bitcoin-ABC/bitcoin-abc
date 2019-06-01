@@ -5,10 +5,8 @@
 #include <wallet/test/wallet_test_fixture.h>
 
 #include <chainparams.h>
-#include <rpc/server.h>
 #include <validationinterface.h>
 #include <wallet/rpcdump.h>
-#include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)

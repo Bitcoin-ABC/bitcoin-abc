@@ -5,25 +5,18 @@
 #include <interfaces/wallet.h>
 
 #include <amount.h>
-#include <chain.h>
+#include <chainparams.h>
 #include <consensus/validation.h>
-#include <init.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
-#include <net.h>
 #include <policy/fees.h>
-#include <policy/policy.h>
 #include <primitives/transaction.h>
-#include <rpc/server.h>
-#include <scheduler.h>
 #include <script/ismine.h>
 #include <script/standard.h>
 #include <support/allocators/secure.h>
 #include <sync.h>
-#include <timedata.h>
 #include <ui_interface.h>
 #include <util/system.h>
-#include <validation.h>
 #include <wallet/fees.h>
 #include <wallet/load.h>
 #include <wallet/rpcdump.h>

@@ -12,8 +12,6 @@
 
 #include <chainparamsbase.h>
 #include <fs.h>
-#include <random.h>
-#include <serialize.h>
 #include <util/strencodings.h>
 #include <util/time.h>
 #include <util/translation.h>

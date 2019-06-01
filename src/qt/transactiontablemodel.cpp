@@ -6,7 +6,6 @@
 
 #include <core_io.h>
 #include <interfaces/handler.h>
-#include <interfaces/node.h>
 #include <qt/addresstablemodel.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
@@ -15,10 +14,7 @@
 #include <qt/transactiondesc.h>
 #include <qt/transactionrecord.h>
 #include <qt/walletmodel.h>
-#include <sync.h>
 #include <uint256.h>
-#include <util/system.h>
-#include <validation.h>
 
 #include <algorithm>
 

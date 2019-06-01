@@ -6,7 +6,6 @@
 #include <keystore.h>
 #include <policy/policy.h>
 #include <script/interpreter.h>
-#include <script/ismine.h>
 #include <script/script.h>
 #include <script/script_error.h>
 #include <script/sighashtype.h>

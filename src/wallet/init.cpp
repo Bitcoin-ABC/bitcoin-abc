@@ -8,14 +8,10 @@
 #include <init.h>
 #include <interfaces/chain.h>
 #include <net.h>
-#include <scheduler.h>
-#include <util/error.h>
 #include <util/moneystr.h>
 #include <util/system.h>
 #include <util/translation.h>
-#include <validation.h>
 #include <wallet/rpcdump.h>
-#include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
 #include <walletinitinterface.h>

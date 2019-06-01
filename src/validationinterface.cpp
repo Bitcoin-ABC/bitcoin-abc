@@ -7,8 +7,6 @@
 
 #include <scheduler.h>
 #include <txmempool.h>
-#include <util/system.h>
-#include <validation.h>
 
 #include <atomic>
 #include <future>

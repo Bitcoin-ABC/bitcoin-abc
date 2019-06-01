@@ -26,13 +26,10 @@
 #include <qt/splashscreen.h>
 #include <qt/utilitydialog.h>
 #include <qt/winshutdownmonitor.h>
-#include <rpc/server.h>
 #include <ui_interface.h>
 #include <uint256.h>
 #include <util/system.h>
 #include <util/threadnames.h>
-#include <walletinitinterface.h>
-#include <warnings.h>
 
 #ifdef ENABLE_WALLET
 #include <qt/paymentserver.h>
