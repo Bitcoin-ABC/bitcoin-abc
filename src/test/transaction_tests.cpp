@@ -794,24 +794,4 @@ BOOST_AUTO_TEST_CASE(txsize_activation_test) {
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-undersize");
 }
 
-BOOST_AUTO_TEST_CASE(tx_transaction_fee) {
-    std::vector<size_t> sizes = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
-    for (size_t inputs : sizes) {
-        for (size_t outputs : sizes) {
-            CMutableTransaction mtx;
-            mtx.vin.resize(inputs);
-            mtx.vout.resize(outputs);
-            CTransaction tx(mtx);
-            auto txBillableSize = tx.GetBillableSize();
-            auto txSize = tx.GetTotalSize();
-            BOOST_CHECK(txBillableSize > 0);
-            if (inputs > outputs) {
-                BOOST_CHECK(txBillableSize <= txSize);
-            } else {
-                BOOST_CHECK(txBillableSize >= txSize);
-            }
-        }
-    }
-}
-
 BOOST_AUTO_TEST_SUITE_END()

@@ -272,10 +272,6 @@ public:
     // size)
     unsigned int CalculateModifiedSize(unsigned int nTxSize = 0) const;
 
-    // Computes an adjusted tx size so that the UTXIs are billed partially
-    // upfront.
-    size_t GetBillableSize() const;
-
     /**
      * Get the total transaction size in bytes.
      * @return Total transaction size in bytes
