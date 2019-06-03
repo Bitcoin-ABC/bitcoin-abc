@@ -1337,6 +1337,21 @@ bool CWallet::DummySignTx(CMutableTransaction &txNew,
     return true;
 }
 
+OutputType ParseOutputType(const std::string &str,
+                           OutputType default_type = OutputType::DEFAULT);
+const std::string &FormatOutputType(OutputType type);
+
+/**
+ * Get a destination of the requested type (if possible) to the specified key.
+ * The caller must make sure LearnRelatedScripts has been called beforehand.
+ */
+CTxDestination GetDestinationForKey(const CPubKey &key, OutputType);
+
+/**
+ * Get all destinations (potentially) supported by the wallet for the given key.
+ */
+std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key);
+
 /** RAII object to check and reserve a wallet rescan */
 class WalletRescanReserver {
 private:
@@ -1369,20 +1384,5 @@ public:
         }
     }
 };
-
-OutputType ParseOutputType(const std::string &str,
-                           OutputType default_type = OutputType::DEFAULT);
-const std::string &FormatOutputType(OutputType type);
-
-/**
- * Get a destination of the requested type (if possible) to the specified key.
- * The caller must make sure LearnRelatedScripts has been called beforehand.
- */
-CTxDestination GetDestinationForKey(const CPubKey &key, OutputType);
-
-/**
- * Get all destinations (potentially) supported by the wallet for the given key.
- */
-std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key);
 
 #endif // BITCOIN_WALLET_WALLET_H
