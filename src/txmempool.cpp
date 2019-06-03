@@ -42,7 +42,6 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
 
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
-    nBillableSizeWithDescendants = GetTxBillableSize();
     nModFeesWithDescendants = nFee;
     Amount nValueIn = tx->GetValueOut() + nFee;
     assert(inChainInputValue <= nValueIn);
@@ -108,13 +107,11 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
     // setAllDescendants now contains all in-mempool descendants of updateIt.
     // Update and add to cached descendant map
     int64_t modifySize = 0;
-    int64_t modifyBillableSize = 0;
     int64_t modifyCount = 0;
     Amount modifyFee = Amount::zero();
     for (txiter cit : setAllDescendants) {
         if (!setExclude.count(cit->GetTx().GetId())) {
             modifySize += cit->GetTxSize();
-            modifyBillableSize += cit->GetTxBillableSize();
             modifyFee += cit->GetModifiedFee();
             modifyCount++;
             cachedDescendants[updateIt].insert(cit);
@@ -126,8 +123,7 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
         }
     }
     mapTx.modify(updateIt,
-                 update_descendant_state(modifySize, modifyBillableSize,
-                                         modifyFee, modifyCount));
+                 update_descendant_state(modifySize, modifyFee, modifyCount));
 }
 
 // txidsToUpdate is the set of transaction hashes from a disconnected block
@@ -275,12 +271,10 @@ void CTxMemPool::UpdateAncestorsOf(bool add, txiter it,
     }
     const int64_t updateCount = (add ? 1 : -1);
     const int64_t updateSize = updateCount * it->GetTxSize();
-    const int64_t updateBillableSize = updateCount * it->GetTxBillableSize();
     const Amount updateFee = updateCount * it->GetModifiedFee();
     for (txiter ancestorIt : setAncestors) {
-        mapTx.modify(ancestorIt,
-                     update_descendant_state(updateSize, updateBillableSize,
-                                             updateFee, updateCount));
+        mapTx.modify(ancestorIt, update_descendant_state(updateSize, updateFee,
+                                                         updateCount));
     }
 }
 
@@ -368,13 +362,10 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
 }
 
 void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
-                                            int64_t modifyBillableSize,
                                             Amount modifyFee,
                                             int64_t modifyCount) {
     nSizeWithDescendants += modifySize;
     assert(int64_t(nSizeWithDescendants) > 0);
-    nBillableSizeWithDescendants += modifyBillableSize;
-    assert(int64_t(nBillableSizeWithDescendants) >= 0);
     nModFeesWithDescendants += modifyFee;
     nCountWithDescendants += modifyCount;
     assert(int64_t(nCountWithDescendants) > 0);
@@ -971,7 +962,7 @@ void CTxMemPool::PrioritiseTransaction(const uint256 &hash,
                                       nNoLimit, nNoLimit, dummy, false);
             for (txiter ancestorIt : setAncestors) {
                 mapTx.modify(ancestorIt,
-                             update_descendant_state(0, 0, nFeeDelta, 0));
+                             update_descendant_state(0, nFeeDelta, 0));
             }
 
             // Now update all descendants' modified fees with ancestors

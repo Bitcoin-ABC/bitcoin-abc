@@ -43,7 +43,6 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
 
     Amount totalFee = Amount::zero();
     size_t totalSize = CTransaction(parentOfAll).GetTotalSize();
-    size_t totalBillableSize = CTransaction(parentOfAll).GetBillableSize();
 
     // Generate 100 transactions
     for (size_t totalTransactions = 0; totalTransactions < 100;
@@ -111,7 +110,6 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         // Calculate overall values
         totalFee += randFee;
         totalSize += CTransaction(tx).GetTotalSize();
-        totalBillableSize += CTransaction(tx).GetBillableSize();
         CTxMemPoolEntry parentEntry = *testPool.mapTx.find(parentOfAllId);
         CTxMemPoolEntry latestEntry = *testPool.mapTx.find(curId);
 
@@ -128,8 +126,6 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         BOOST_CHECK_EQUAL(parentEntry.GetCountWithDescendants(),
                           testPool.mapTx.size());
         BOOST_CHECK_EQUAL(parentEntry.GetSizeWithDescendants(), totalSize);
-        BOOST_CHECK_EQUAL(parentEntry.GetBillableSizeWithDescendants(),
-                          totalBillableSize);
         BOOST_CHECK_EQUAL(parentEntry.GetModFeesWithDescendants(), totalFee);
     }
 }

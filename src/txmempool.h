@@ -119,7 +119,6 @@ private:
     uint64_t nCountWithDescendants;
     //!< ... and size
     uint64_t nSizeWithDescendants;
-    uint64_t nBillableSizeWithDescendants;
 
     //!< ... and total fees (all including us)
     Amount nModFeesWithDescendants;
@@ -155,8 +154,8 @@ public:
     const LockPoints &GetLockPoints() const { return lockPoints; }
 
     // Adjusts the descendant state, if this entry is not dirty.
-    void UpdateDescendantState(int64_t modifySize, int64_t modifyBillableSize,
-                               Amount modifyFee, int64_t modifyCount);
+    void UpdateDescendantState(int64_t modifySize, Amount modifyFee,
+                               int64_t modifyCount);
     // Adjusts the ancestor state
     void UpdateAncestorState(int64_t modifySize, Amount modifyFee,
                              int64_t modifyCount, int modifySigOps);
@@ -168,9 +167,6 @@ public:
 
     uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
     uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
-    uint64_t GetBillableSizeWithDescendants() const {
-        return nBillableSizeWithDescendants;
-    }
     Amount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
 
     bool GetSpendsCoinbase() const { return spendsCoinbase; }
@@ -188,19 +184,17 @@ public:
 
 // Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
 struct update_descendant_state {
-    update_descendant_state(int64_t _modifySize, int64_t _modifyBillableSize,
-                            Amount _modifyFee, int64_t _modifyCount)
-        : modifySize(_modifySize), modifyBillableSize(_modifyBillableSize),
-          modifyFee(_modifyFee), modifyCount(_modifyCount) {}
+    update_descendant_state(int64_t _modifySize, Amount _modifyFee,
+                            int64_t _modifyCount)
+        : modifySize(_modifySize), modifyFee(_modifyFee),
+          modifyCount(_modifyCount) {}
 
     void operator()(CTxMemPoolEntry &e) {
-        e.UpdateDescendantState(modifySize, modifyBillableSize, modifyFee,
-                                modifyCount);
+        e.UpdateDescendantState(modifySize, modifyFee, modifyCount);
     }
 
 private:
     int64_t modifySize;
-    int64_t modifyBillableSize;
     Amount modifyFee;
     int64_t modifyCount;
 };
