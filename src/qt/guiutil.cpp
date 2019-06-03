@@ -44,6 +44,7 @@
 #include <QLineEdit>
 #include <QList>
 #include <QMouseEvent>
+#include <QProcess>
 #include <QProgressDialog>
 #include <QScreen>
 #include <QSettings>
@@ -402,8 +403,17 @@ bool openBitcoinConf() {
     configFile.close();
 
     /* Open bitcoin.conf with the associated application */
-    return QDesktopServices::openUrl(
+    bool res = QDesktopServices::openUrl(
         QUrl::fromLocalFile(boostPathToQString(pathConfig)));
+#ifdef Q_OS_MAC
+    // Workaround for macOS-specific behavior; see #15409.
+    if (!res) {
+        res = QProcess::startDetached(
+            "/usr/bin/open", QStringList{"-t", boostPathToQString(pathConfig)});
+    }
+#endif
+
+    return res;
 }
 
 QStringList splitSkipEmptyParts(const QString &s, const QString &separator) {
