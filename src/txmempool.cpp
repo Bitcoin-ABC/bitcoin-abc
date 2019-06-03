@@ -36,7 +36,6 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
       spendsCoinbase(_spendsCoinbase), sigOpCount(_sigOpsCount),
       lockPoints(lp) {
     nTxSize = tx->GetTotalSize();
-    nTxBillableSize = tx->GetBillableSize();
     nModSize = tx->CalculateModifiedSize(GetTxSize());
     nUsageSize = RecursiveDynamicUsage(tx);
 
@@ -894,7 +893,7 @@ void CTxMemPool::queryHashes(std::vector<uint256> &vtxid) {
 static TxMempoolInfo
 GetInfo(CTxMemPool::indexed_transaction_set::const_iterator it) {
     return TxMempoolInfo{it->GetSharedTx(), it->GetTime(),
-                         CFeeRate(it->GetFee(), it->GetTxBillableSize()),
+                         CFeeRate(it->GetFee(), it->GetTxSize()),
                          it->GetModifiedFee() - it->GetFee()};
 }
 

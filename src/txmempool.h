@@ -86,8 +86,6 @@ private:
     Amount nFee;
     //!< ... and avoid recomputing tx size
     size_t nTxSize;
-    //!< ... and billable size for billing
-    size_t nTxBillableSize;
     //!< ... and modified size for priority
     size_t nModSize;
     //!< ... and total memory usage
@@ -144,7 +142,6 @@ public:
     double GetPriority(unsigned int currentHeight) const;
     const Amount GetFee() const { return nFee; }
     size_t GetTxSize() const { return nTxSize; }
-    size_t GetTxBillableSize() const { return nTxBillableSize; }
 
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
