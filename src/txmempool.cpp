@@ -51,7 +51,6 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
 
     nCountWithAncestors = 1;
     nSizeWithAncestors = GetTxSize();
-    nBillableSizeWithAncestors = GetTxBillableSize();
     nModFeesWithAncestors = nFee;
     nSigOpCountWithAncestors = sigOpCount;
 }
@@ -122,7 +121,6 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
             // Update ancestor state for each descendant
             mapTx.modify(cit,
                          update_ancestor_state(updateIt->GetTxSize(),
-                                               updateIt->GetTxBillableSize(),
                                                updateIt->GetModifiedFee(), 1,
                                                updateIt->GetSigOpCount()));
         }
@@ -290,18 +288,15 @@ void CTxMemPool::UpdateEntryForAncestors(txiter it,
                                          const setEntries &setAncestors) {
     int64_t updateCount = setAncestors.size();
     int64_t updateSize = 0;
-    int64_t updateBillableSize = 0;
     int64_t updateSigOpsCount = 0;
     Amount updateFee = Amount::zero();
 
     for (txiter ancestorIt : setAncestors) {
         updateSize += ancestorIt->GetTxSize();
-        updateBillableSize += ancestorIt->GetTxBillableSize();
         updateFee += ancestorIt->GetModifiedFee();
         updateSigOpsCount += ancestorIt->GetSigOpCount();
     }
-    mapTx.modify(it, update_ancestor_state(updateSize, updateBillableSize,
-                                           updateFee, updateCount,
+    mapTx.modify(it, update_ancestor_state(updateSize, updateFee, updateCount,
                                            updateSigOpsCount));
 }
 
@@ -328,14 +323,11 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
             CalculateDescendants(removeIt, setDescendants);
             setDescendants.erase(removeIt); // don't update state for self
             int64_t modifySize = -int64_t(removeIt->GetTxSize());
-            int64_t modifyBillableSize =
-                -int64_t(removeIt->GetTxBillableSize());
             Amount modifyFee = -1 * removeIt->GetModifiedFee();
             int modifySigOps = -removeIt->GetSigOpCount();
             for (txiter dit : setDescendants) {
-                mapTx.modify(
-                    dit, update_ancestor_state(modifySize, modifyBillableSize,
-                                               modifyFee, -1, modifySigOps));
+                mapTx.modify(dit, update_ancestor_state(modifySize, modifyFee,
+                                                        -1, modifySigOps));
             }
         }
     }
@@ -388,14 +380,11 @@ void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
     assert(int64_t(nCountWithDescendants) > 0);
 }
 
-void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize,
-                                          int64_t modifyBillableSize,
-                                          Amount modifyFee, int64_t modifyCount,
+void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
+                                          int64_t modifyCount,
                                           int modifySigOps) {
     nSizeWithAncestors += modifySize;
     assert(int64_t(nSizeWithAncestors) > 0);
-    nBillableSizeWithAncestors += modifyBillableSize;
-    assert(int64_t(nBillableSizeWithAncestors) >= 0);
     nModFeesWithAncestors += modifyFee;
     nCountWithAncestors += modifyCount;
     assert(int64_t(nCountWithAncestors) > 0);
@@ -991,7 +980,7 @@ void CTxMemPool::PrioritiseTransaction(const uint256 &hash,
             setDescendants.erase(it);
             for (txiter descendantIt : setDescendants) {
                 mapTx.modify(descendantIt,
-                             update_ancestor_state(0, 0, nFeeDelta, 0, 0));
+                             update_ancestor_state(0, nFeeDelta, 0, 0));
             }
         }
     }

@@ -56,8 +56,6 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         Amount maxFees = Amount::zero();
         uint64_t minSize = std::numeric_limits<size_t>::max();
         uint64_t maxSize = 0;
-        uint64_t minBillableSize = std::numeric_limits<size_t>::max();
-        uint64_t maxBillableSize = 0;
         // Consume random inputs, but make sure we don't consume more than
         // available
         for (size_t input = std::min(InsecureRandRange(maxOutputs) + 1,
@@ -82,9 +80,6 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
             maxFees += parent.GetModFeesWithAncestors();
             minSize = std::min(minSize, parent.GetSizeWithAncestors());
             maxSize += parent.GetSizeWithAncestors();
-            minBillableSize = std::min(minBillableSize,
-                                       parent.GetBillableSizeWithAncestors());
-            maxBillableSize += parent.GetBillableSizeWithAncestors();
         }
 
         // Produce random number of outputs
@@ -112,8 +107,6 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         maxFees += randFee;
         minSize += CTransaction(tx).GetTotalSize();
         maxSize += CTransaction(tx).GetTotalSize();
-        minBillableSize += CTransaction(tx).GetBillableSize();
-        maxBillableSize += CTransaction(tx).GetBillableSize();
 
         // Calculate overall values
         totalFee += randFee;
@@ -128,11 +121,6 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
 
         BOOST_CHECK(latestEntry.GetSizeWithAncestors() >= minSize);
         BOOST_CHECK(latestEntry.GetSizeWithAncestors() <= maxSize);
-
-        BOOST_CHECK(latestEntry.GetBillableSizeWithAncestors() >=
-                    minBillableSize);
-        BOOST_CHECK(latestEntry.GetBillableSizeWithAncestors() <=
-                    maxBillableSize);
 
         BOOST_CHECK(latestEntry.GetModFeesWithAncestors() >= minFees);
         BOOST_CHECK(latestEntry.GetModFeesWithAncestors() <= maxFees);
