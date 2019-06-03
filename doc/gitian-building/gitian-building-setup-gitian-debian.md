@@ -15,13 +15,23 @@ We assume that a user `gitianuser` was previously added.
 First we need to set up dependencies. Type/paste the following in the terminal:
 
 ```bash
-sudo apt-get install git ruby apt-cacher-ng qemu-utils debootstrap lxc python-cheetah parted kpartx bridge-utils make ubuntu-archive-keyring curl firewalld apparmor
+sudo apt-get install git ruby apt-cacher-ng qemu-utils debootstrap lxc python-cheetah parted kpartx bridge-utils make ubuntu-archive-keyring curl firewalld apparmor iptables
+```
+
+Find the device name of your network card. You can list your connections with
+```bash
+ip address
+```
+Examples: `eth0`, `eno1`, ...
+Save it to the NET_DEV variable:
+```bash
+sudo -s
+NET_DEV=<your device name>
 ```
 
 Then set up LXC and the rest with the following, which is a complex jumble of settings and workarounds:
 
 ```bash
-sudo -s
 # the version of lxc-start in Debian needs to run as root, so make sure
 # that the build script can execute it without providing a password
 echo "%sudo ALL=NOPASSWD: /usr/bin/lxc-start" > /etc/sudoers.d/gitian-lxc
@@ -32,6 +42,8 @@ echo 'brctl addbr br0' >> /etc/rc.local
 echo 'ip addr add 10.0.3.1/24 broadcast 10.0.3.255 dev br0' >> /etc/rc.local
 echo 'ip link set br0 up' >> /etc/rc.local
 echo 'firewall-cmd --zone=trusted --add-interface=br0' >> /etc/rc.local
+echo "iptables -t nat -A POSTROUTING -o ${NET_DEV} -j MASQUERADE" >> /etc/rc.local
+echo 'echo 1 > /proc/sys/net/ipv4/ip_forward' >> /etc/rc.local
 echo 'exit 0' >> /etc/rc.local
 chmod +x /etc/rc.local
 # make sure that USE_LXC is always set when logging in as gitianuser,
