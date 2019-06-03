@@ -177,3 +177,14 @@ bool AreInputsStandard(const CTransaction &tx,
 
 CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
 uint32_t nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
+
+int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigOpCost,
+                                  unsigned int bytes_per_sigop) {
+    return nSize;
+}
+
+int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCost,
+                                  unsigned int bytes_per_sigop) {
+    return GetVirtualTransactionSize(::GetSerializeSize(tx, PROTOCOL_VERSION),
+                                     nSigOpCost, bytes_per_sigop);
+}
