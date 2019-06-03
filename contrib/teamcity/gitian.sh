@@ -18,13 +18,13 @@ export LXC_GUEST_IP=10.0.3.5
 cd ~/gitian-builder
 
 if [[ "${OS_NAME}" == "osx" ]]; then
-  OSX_SDK="MacOSX10.11.sdk.tar.gz"
-  OSX_SDK_SHA256="4732b52b5ebe300c8c91cbeed6d19d59c1ff9c56c7a1dd6cfa518b9c2c72abde"
+  OSX_SDK="MacOSX10.14.sdk.tar.gz"
+  OSX_SDK_SHA256="2322086a96349db832abbcadea493b79db843553a2e604163238d99fa058a286"
   mkdir -p inputs
   pushd inputs
   if ! echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c; then
     rm -f "${OSX_SDK}"
-    wget https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/"${OSX_SDK}"
+    wget https://storage.googleapis.com/27cd7b2a42a430926cc621acdc3bda72a8ed2b0efc080e3/"${OSX_SDK}"
     echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c
   fi
   popd
