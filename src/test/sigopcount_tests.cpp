@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(GetSigOpCount) {
 
 /**
  * Verifies script execution of the zeroth scriptPubKey of tx output and zeroth
- * scriptSig and witness of tx input.
+ * scriptSig of tx input.
  */
 ScriptError VerifyWithFlag(const CTransaction &output,
                            const CMutableTransaction &input, int flags) {
@@ -127,8 +127,8 @@ ScriptError VerifyWithFlag(const CTransaction &output,
 }
 
 /**
- * Builds a creationTx from scriptPubKey and a spendingTx from scriptSig and
- * witness such that spendingTx spends output zero of creationTx. Also inserts
+ * Builds a creationTx from scriptPubKey and a spendingTx from scriptSig
+ * such that spendingTx spends output zero of creationTx. Also inserts
  * creationTx's output into the coins view.
  */
 void BuildTxs(CMutableTransaction &spendingTx, CCoinsViewCache &coins,

@@ -688,9 +688,6 @@ def SignatureHash(script, txTo, inIdx, hashtype):
 
 # TODO: Allow cached hashPrevouts/hashSequence/hashOutputs to be provided.
 # Performance optimization probably not necessary for python tests, however.
-# Note that this corresponds to sigversion == 1 in EvalScript, which is used
-# for version 0 witnesses.
-
 
 def SignatureHashForkId(script, txTo, inIdx, hashtype, amount):
 

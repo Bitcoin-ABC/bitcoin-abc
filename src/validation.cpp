@@ -1213,7 +1213,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         assert(!coin.IsSpent());
 
         // We very carefully only pass in things to CScriptCheck which are
-        // clearly committed to by tx' witness hash. This provides a sanity
+        // clearly committed to by tx's hash. This provides a sanity
         // check that our caching is not introducing consensus failures through
         // additional data in, eg, the coins being spent being checked as a part
         // of CScriptCheck.
