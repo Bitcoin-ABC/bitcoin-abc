@@ -16,7 +16,7 @@ thread_local RCUInfos RCUInfos::infos{};
 /**
  * How many time a busy loop runs before yelding.
  */
-static const int RCU_ACTIVE_LOOP_COUNT = 10;
+static constexpr int RCU_ACTIVE_LOOP_COUNT = 10;
 
 /**
  * We maintain a linked list of all the RCUInfos for each active thread. Upon
