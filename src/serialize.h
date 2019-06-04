@@ -53,7 +53,7 @@ template <typename T> inline T *NCONST_PTR(const T *val) {
     return const_cast<T *>(val);
 }
 
-/*
+/**
  * Lowest-level serialization and conversion.
  * @note Sizes of these types are verified in the tests
  */
@@ -498,7 +498,7 @@ template <typename I> CVarInt<I> WrapVarInt(I &n) {
  */
 
 /**
- *  string
+ * string
  */
 template <typename Stream, typename C>
 void Serialize(Stream &os, const std::basic_string<C> &str);
@@ -910,7 +910,7 @@ inline void WriteCompactSize(CSizeComputer &s, uint64_t nSize) {
 }
 
 template <typename T>
-size_t GetSerializeSize(const T &t, int nType, int nVersion = 0) {
+size_t GetSerializeSize(const T &t, int nType, int nVersion) {
     return (CSizeComputer(nType, nVersion) << t).size();
 }
 

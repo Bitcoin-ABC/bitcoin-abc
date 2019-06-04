@@ -185,6 +185,7 @@ int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigOpCost,
 
 int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCost,
                                   unsigned int bytes_per_sigop) {
-    return GetVirtualTransactionSize(::GetSerializeSize(tx, PROTOCOL_VERSION),
-                                     nSigOpCost, bytes_per_sigop);
+    return GetVirtualTransactionSize(
+        ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION), nSigOpCost,
+        bytes_per_sigop);
 }
