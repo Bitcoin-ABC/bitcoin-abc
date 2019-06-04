@@ -482,7 +482,7 @@ public:
 
 class CInputCoin {
 public:
-    CInputCoin(const CWalletTx *walletTx, unsigned int i) : wtx(walletTx) {
+    CInputCoin(const CWalletTx *walletTx, unsigned int i) {
         if (!walletTx) {
             throw std::invalid_argument("walletTx should not be null");
         }
@@ -496,7 +496,6 @@ public:
 
     COutPoint outpoint;
     CTxOut txout;
-    const CWalletTx *wtx;
 
     bool operator<(const CInputCoin &rhs) const {
         return outpoint < rhs.outpoint;

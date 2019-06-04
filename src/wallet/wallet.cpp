@@ -2987,7 +2987,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 nValueToSelect += nFeeRet;
             }
 
-            double dPriority = 0;
             // vouts to the payees
             for (const auto &recipient : vecSend) {
                 CTxOut txout(recipient.nAmount, recipient.scriptPubKey);
@@ -3034,22 +3033,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                     strFailReason = _("Insufficient funds");
                     return false;
                 }
-            }
-
-            for (const auto &pcoin : setCoins) {
-                Amount nCredit = pcoin.txout.nValue;
-                // The coin age after the next block (depth+1) is used instead
-                // of the current, reflecting an assumption the user would
-                // accept a bit more delay for a chance at a free transaction.
-                // But mempool inputs might still be in the mempool, so their
-                // age stays 0.
-                int age = pcoin.wtx->GetDepthInMainChain();
-                assert(age >= 0);
-                if (age != 0) {
-                    age += 1;
-                }
-
-                dPriority += (age * nCredit) / SATOSHI;
             }
 
             const Amount nChange = nValueIn - nValueToSelect;
@@ -3125,7 +3108,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
             CTransaction txNewConst(txNew);
             unsigned int nBytes = txNewConst.GetTotalSize();
-            dPriority = txNewConst.ComputePriority(dPriority, nBytes);
 
             // Remove scriptSigs to eliminate the fee calculation dummy
             // signatures.
