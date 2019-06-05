@@ -81,8 +81,6 @@ class SignalInterrupt;
 
 #define MIN_TRANSACTION_SIZE (::GetSerializeSize(CTransaction{}))
 
-static const bool DEFAULT_PEERBLOOMFILTERS = true;
-
 /**
  * Block files containing a block-height within MIN_BLOCKS_TO_KEEP of
  * ActiveChain().Tip() will not be pruned.

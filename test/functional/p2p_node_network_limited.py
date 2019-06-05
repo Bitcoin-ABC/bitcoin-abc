@@ -10,7 +10,6 @@ and that it responds to getdata requests for blocks correctly:
 
 from test_framework.messages import (
     MSG_BLOCK,
-    NODE_BLOOM,
     NODE_NETWORK_LIMITED,
     CInv,
     msg_getdata,
@@ -61,7 +60,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0].add_p2p_connection(P2PIgnoreInv())
 
-        expected_services = NODE_BLOOM | NODE_NETWORK_LIMITED
+        expected_services = NODE_NETWORK_LIMITED
 
         self.log.info("Check that node has signalled expected services.")
         assert_equal(node.nServices, expected_services)
