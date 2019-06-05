@@ -177,6 +177,15 @@ static bool CheckRawECDSASignatureEncoding(const slicedvaltype &sig,
     return true;
 }
 
+static bool CheckRawSchnorrSignatureEncoding(const slicedvaltype &sig,
+                                             uint32_t flags,
+                                             ScriptError *serror) {
+    if (IsSchnorrSig(sig)) {
+        return true;
+    }
+    return set_error(serror, SCRIPT_ERR_SIG_NONSCHNORR);
+}
+
 static bool CheckRawSignatureEncoding(const slicedvaltype &sig, uint32_t flags,
                                       ScriptError *serror) {
     if (IsSchnorrSig(sig)) {
@@ -259,6 +268,18 @@ bool CheckTransactionECDSASignatureEncoding(const valtype &vchSig,
            ScriptError *templateSerror) {
             return CheckRawECDSASignatureEncoding(templateSig, templateFlags,
                                                   templateSerror);
+        });
+}
+
+bool CheckTransactionSchnorrSignatureEncoding(const valtype &vchSig,
+                                              uint32_t flags,
+                                              ScriptError *serror) {
+    return CheckTransactionSignatureEncodingImpl(
+        vchSig, flags, serror,
+        [](const slicedvaltype &templateSig, uint32_t templateFlags,
+           ScriptError *templateSerror) {
+            return CheckRawSchnorrSignatureEncoding(templateSig, templateFlags,
+                                                    templateSerror);
         });
 }
 

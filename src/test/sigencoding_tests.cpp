@@ -44,6 +44,8 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
         BOOST_CHECK(CheckTransactionSignatureEncoding(validSig, flags, &err));
         BOOST_CHECK_EQUAL(!is64, CheckTransactionECDSASignatureEncoding(
                                      validSig, flags, &err));
+        BOOST_CHECK_EQUAL(is64, CheckTransactionSchnorrSignatureEncoding(
+                                    validSig, flags, &err));
 
         // If we have strict encoding, we prevent the use of undefined flags.
         std::array<SigHashType, 2> undefSigHashes{
@@ -65,6 +67,13 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
                 BOOST_CHECK_EQUAL(err, is64 ? SCRIPT_ERR_SIG_BADLENGTH
                                             : SCRIPT_ERR_SIG_HASHTYPE);
             }
+            BOOST_CHECK_EQUAL(CheckTransactionSchnorrSignatureEncoding(
+                                  undefSighash, flags, &err),
+                              !(hasStrictEnc || !is64));
+            if (!is64 || hasStrictEnc) {
+                BOOST_CHECK_EQUAL(err, !is64 ? SCRIPT_ERR_SIG_NONSCHNORR
+                                             : SCRIPT_ERR_SIG_HASHTYPE);
+            }
         }
 
         // If we check strict encoding, then invalid forkid is an error.
@@ -84,6 +93,15 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
         if (is64 || hasStrictEnc) {
             BOOST_CHECK_EQUAL(err, is64
                                        ? SCRIPT_ERR_SIG_BADLENGTH
+                                       : hasForkId ? SCRIPT_ERR_MUST_USE_FORKID
+                                                   : SCRIPT_ERR_ILLEGAL_FORKID);
+        }
+        BOOST_CHECK_EQUAL(
+            CheckTransactionSchnorrSignatureEncoding(invalidSig, flags, &err),
+            !(hasStrictEnc || !is64));
+        if (!is64 || hasStrictEnc) {
+            BOOST_CHECK_EQUAL(err, !is64
+                                       ? SCRIPT_ERR_SIG_NONSCHNORR
                                        : hasForkId ? SCRIPT_ERR_MUST_USE_FORKID
                                                    : SCRIPT_ERR_ILLEGAL_FORKID);
         }
@@ -188,6 +206,7 @@ BOOST_AUTO_TEST_CASE(checksignatureencoding_test) {
         BOOST_CHECK(CheckDataSignatureEncoding({}, flags, &err));
         BOOST_CHECK(CheckTransactionSignatureEncoding({}, flags, &err));
         BOOST_CHECK(CheckTransactionECDSASignatureEncoding({}, flags, &err));
+        BOOST_CHECK(CheckTransactionSchnorrSignatureEncoding({}, flags, &err));
 
         // 64-byte signatures are valid as long as the hashtype is correct.
         CheckSignatureEncodingWithSigHashType(Zero64, flags);
@@ -416,12 +435,16 @@ BOOST_AUTO_TEST_CASE(checkschnorr_test) {
         BOOST_CHECK(
             !CheckTransactionECDSASignatureEncoding(DER65_hb, flags, &err));
         BOOST_CHECK_EQUAL(err, SCRIPT_ERR_SIG_BADLENGTH);
+        BOOST_CHECK(
+            CheckTransactionSchnorrSignatureEncoding(DER65_hb, flags, &err));
 
         BOOST_CHECK(CheckDataSignatureEncoding(Zero64, flags, &err));
         BOOST_CHECK(CheckTransactionSignatureEncoding(Zero65_hb, flags, &err));
         BOOST_CHECK(
             !CheckTransactionECDSASignatureEncoding(Zero65_hb, flags, &err));
         BOOST_CHECK_EQUAL(err, SCRIPT_ERR_SIG_BADLENGTH);
+        BOOST_CHECK(
+            CheckTransactionSchnorrSignatureEncoding(Zero65_hb, flags, &err));
     }
 }
 

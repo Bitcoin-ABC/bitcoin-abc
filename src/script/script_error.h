@@ -63,6 +63,7 @@ typedef enum ScriptError_t {
 
     /* Schnorr */
     SCRIPT_ERR_SIG_BADLENGTH,
+    SCRIPT_ERR_SIG_NONSCHNORR,
 
     /* softfork safeness */
     SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS,

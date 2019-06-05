@@ -53,6 +53,15 @@ bool CheckTransactionECDSASignatureEncoding(const valtype &vchSig,
                                             ScriptError *serror);
 
 /**
+ * Check that the signature provided to authentify a transaction is properly
+ * encoded Schnorr signature (or null). Signatures passed to the new-mode
+ * OP_CHECKMULTISIG and its verify variant must be checked using this function.
+ */
+bool CheckTransactionSchnorrSignatureEncoding(const valtype &vchSig,
+                                              uint32_t flags,
+                                              ScriptError *serror);
+
+/**
  * Check that a public key is encoded properly.
  */
 bool CheckPubKeyEncoding(const valtype &vchPubKey, uint32_t flags,
