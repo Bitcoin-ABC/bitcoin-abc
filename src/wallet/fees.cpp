@@ -13,8 +13,8 @@
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
 
-Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
-                     Amount targetFee) {
+static Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
+                            Amount targetFee) {
     Amount nFeeNeeded = targetFee;
     if (nFeeNeeded == Amount::zero()) {
         nFeeNeeded = pool.estimateFee().GetFeeCeiling(nTxBytes);
