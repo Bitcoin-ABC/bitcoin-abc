@@ -49,7 +49,7 @@
 
 #ifndef WIN32
 typedef unsigned int SOCKET;
-#include <errno.h>
+#include <cerrno>
 #define WSAGetLastError() errno
 #define WSAEINVAL EINVAL
 #define WSAEALREADY EALREADY
