@@ -255,25 +255,25 @@ private:
 
     private:
         union {
-            std::array<std::atomic<RadixElement>, CHILD_PER_LEVEL> childs;
+            std::array<std::atomic<RadixElement>, CHILD_PER_LEVEL> children;
             std::array<RadixElement, CHILD_PER_LEVEL>
-                non_atomic_childs_DO_NOT_USE;
+                non_atomic_children_DO_NOT_USE;
         };
 
     public:
         RadixNode(uint32_t level, const K &key, RadixElement e)
-            : non_atomic_childs_DO_NOT_USE() {
+            : non_atomic_children_DO_NOT_USE() {
             get(level, key)->store(e);
         }
 
         ~RadixNode() {
-            for (RadixElement e : non_atomic_childs_DO_NOT_USE) {
+            for (RadixElement e : non_atomic_children_DO_NOT_USE) {
                 e.release();
             }
         }
 
         std::atomic<RadixElement> *get(uint32_t level, const K &key) {
-            return &childs[(key >> (level * BITS)) & MASK];
+            return &children[(key >> (level * BITS)) & MASK];
         }
     };
 
