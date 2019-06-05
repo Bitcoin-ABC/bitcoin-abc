@@ -106,6 +106,10 @@ enum {
     // The exception to CLEANSTACK and P2SH for the recovery of coins sent
     // to p2sh segwit addresses is not allowed.
     SCRIPT_DISALLOW_SEGWIT_RECOVERY = (1U << 20),
+
+    // Whether to allow new OP_CHECKMULTISIG logic to trigger. (new multisig
+    // logic verifies faster, and only allows Schnorr signatures)
+    SCRIPT_ENABLE_SCHNORR_MULTISIG = (1U << 21),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPT_FLAGS_H

@@ -1763,6 +1763,88 @@ BOOST_AUTO_TEST_CASE(script_build) {
                 .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
     }
 
+    // New-multisig tests follow. New multisig will activate with a bunch of
+    // related flags active from other upgrades, so we do tests with this group
+    // of flags turned on:
+    uint32_t newmultisigflags =
+        SCRIPT_ENABLE_SCHNORR_MULTISIG | SCRIPT_VERIFY_NULLFAIL |
+        SCRIPT_VERIFY_MINIMALDATA | SCRIPT_VERIFY_STRICTENC;
+
+    // Tests of the legacy multisig (null dummy element), but with the
+    // SCRIPT_ENABLE_SCHNORR_MULTISIG flag turned on. These show the desired
+    // legacy behaviour that should be retained.
+    tests.push_back(
+        TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0H)
+                              << ToByteVector(keys.pubkey1C) << OP_2
+                              << OP_CHECKMULTISIG,
+                    "1-of-2 with unchecked hybrid pubkey with SCHNORR_MULTISIG",
+                    newmultisigflags)
+            .Num(0)
+            .PushSigECDSA(keys.key1));
+    tests.push_back(
+        TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey1C)
+                              << ToByteVector(keys.pubkey0H) << OP_2
+                              << OP_CHECKMULTISIG,
+                    "1-of-2 with checked hybrid pubkey with SCHNORR_MULTISIG",
+                    newmultisigflags)
+            .Num(0)
+            .PushSigECDSA(keys.key1)
+            .ScriptError(SCRIPT_ERR_PUBKEYTYPE));
+    tests.push_back(
+        TestBuilder(
+            CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
+                      << OP_CHECKMULTISIG,
+            "Legacy 1-of-1 Schnorr w/ SCHNORR_MULTISIG but no STRICTENC",
+            newmultisigflags & ~SCRIPT_VERIFY_STRICTENC)
+            .Num(0)
+            .PushSigSchnorr(keys.key0)
+            .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
+    tests.push_back(TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0)
+                                          << OP_1 << OP_CHECKMULTISIG,
+                                "Legacy 1-of-1 Schnorr w/ SCHNORR_MULTISIG",
+                                newmultisigflags)
+                        .Num(0)
+                        .PushSigSchnorr(keys.key0)
+                        .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
+    tests.push_back(TestBuilder(CScript() << OP_3 << ToByteVector(keys.pubkey0C)
+                                          << ToByteVector(keys.pubkey1C)
+                                          << ToByteVector(keys.pubkey2C) << OP_3
+                                          << OP_CHECKMULTISIG,
+                                "Legacy 3-of-3 Schnorr w/ SCHNORR_MULTISIG",
+                                newmultisigflags)
+                        .Num(0)
+                        .PushSigSchnorr(keys.key0)
+                        .PushSigSchnorr(keys.key1)
+                        .PushSigSchnorr(keys.key2)
+                        .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
+    tests.push_back(
+        TestBuilder(CScript() << OP_3 << ToByteVector(keys.pubkey0C)
+                              << ToByteVector(keys.pubkey1C)
+                              << ToByteVector(keys.pubkey2C) << OP_3
+                              << OP_CHECKMULTISIG,
+                    "Legacy 3-of-3 mixed Schnorr-ECDSA w/ SCHNORR_MULTISIG",
+                    newmultisigflags)
+            .Num(0)
+            .PushSigECDSA(keys.key0)
+            .PushSigECDSA(keys.key1)
+            .PushSigSchnorr(keys.key2)
+            .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
+    {
+        // Try valid 64-byte ECDSA sig in multisig.
+        std::vector<uint8_t> rdata = ParseHex(
+            "776879206d757374207765207375666665722077697468206563647361");
+        std::vector<uint8_t> sdata(58 - rdata.size(), 33);
+        tests.push_back(TestBuilder(CScript() << OP_1 << OP_SWAP << OP_1
+                                              << OP_CHECKMULTISIG,
+                                    "recovered-pubkey CHECKMULTISIG with "
+                                    "64-byte DER w/ SCHNORR_MULTISIG",
+                                    newmultisigflags)
+                            .Num(0)
+                            .PushECDSASigFromParts(rdata, sdata)
+                            .PushECDSARecoveredPubKey(rdata, sdata)
+                            .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
+    }
+
     std::set<std::string> tests_set;
 
     {
