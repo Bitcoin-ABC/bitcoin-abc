@@ -25,6 +25,7 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
 
     const bool hasForkId = (flags & SCRIPT_ENABLE_SIGHASH_FORKID) != 0;
     const bool hasStrictEnc = (flags & SCRIPT_VERIFY_STRICTENC) != 0;
+    const bool is64 = (vchSig.size() == 64);
 
     std::vector<BaseSigHashType> allBaseTypes{
         BaseSigHashType::ALL, BaseSigHashType::NONE, BaseSigHashType::SINGLE};
@@ -41,8 +42,8 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
         SigHashType sigHash = baseSigHash.withForkId(hasForkId);
         valtype validSig = SignatureWithHashType(vchSig, sigHash);
         BOOST_CHECK(CheckTransactionSignatureEncoding(validSig, flags, &err));
-        BOOST_CHECK(
-            CheckTransactionECDSASignatureEncoding(validSig, flags, &err));
+        BOOST_CHECK_EQUAL(!is64, CheckTransactionECDSASignatureEncoding(
+                                     validSig, flags, &err));
 
         // If we have strict encoding, we prevent the use of undefined flags.
         std::array<SigHashType, 2> undefSigHashes{
@@ -54,11 +55,15 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
             BOOST_CHECK_EQUAL(
                 CheckTransactionSignatureEncoding(undefSighash, flags, &err),
                 !hasStrictEnc);
-            BOOST_CHECK_EQUAL(CheckTransactionECDSASignatureEncoding(
-                                  undefSighash, flags, &err),
-                              !hasStrictEnc);
             if (hasStrictEnc) {
                 BOOST_CHECK_EQUAL(err, SCRIPT_ERR_SIG_HASHTYPE);
+            }
+            BOOST_CHECK_EQUAL(CheckTransactionECDSASignatureEncoding(
+                                  undefSighash, flags, &err),
+                              !(hasStrictEnc || is64));
+            if (is64 || hasStrictEnc) {
+                BOOST_CHECK_EQUAL(err, is64 ? SCRIPT_ERR_SIG_BADLENGTH
+                                            : SCRIPT_ERR_SIG_HASHTYPE);
             }
         }
 
@@ -69,12 +74,18 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
         BOOST_CHECK_EQUAL(
             CheckTransactionSignatureEncoding(invalidSig, flags, &err),
             !hasStrictEnc);
-        BOOST_CHECK_EQUAL(
-            CheckTransactionECDSASignatureEncoding(invalidSig, flags, &err),
-            !hasStrictEnc);
         if (hasStrictEnc) {
             BOOST_CHECK_EQUAL(err, hasForkId ? SCRIPT_ERR_MUST_USE_FORKID
                                              : SCRIPT_ERR_ILLEGAL_FORKID);
+        }
+        BOOST_CHECK_EQUAL(
+            CheckTransactionECDSASignatureEncoding(invalidSig, flags, &err),
+            !(hasStrictEnc || is64));
+        if (is64 || hasStrictEnc) {
+            BOOST_CHECK_EQUAL(err, is64
+                                       ? SCRIPT_ERR_SIG_BADLENGTH
+                                       : hasForkId ? SCRIPT_ERR_MUST_USE_FORKID
+                                                   : SCRIPT_ERR_ILLEGAL_FORKID);
         }
     }
 }
@@ -165,6 +176,7 @@ BOOST_AUTO_TEST_CASE(checksignatureencoding_test) {
          0x04, 0x99, 0x78, 0xea, 0x8d, 0x6e, 0xe5, 0x48, 0x0d, 0x48, 0x5f,
          0xcf, 0x2c, 0xe0, 0xd0, 0x3b, 0x2e, 0xf0},
     };
+    valtype Zero64(64, 0);
 
     MMIXLinearCongruentialGenerator lcg;
     for (int i = 0; i < 4096; i++) {
@@ -172,12 +184,15 @@ BOOST_AUTO_TEST_CASE(checksignatureencoding_test) {
 
         ScriptError err = SCRIPT_ERR_OK;
 
-        // Empty sig is always valid.
+        // Empty sig is always validly encoded.
         BOOST_CHECK(CheckDataSignatureEncoding({}, flags, &err));
         BOOST_CHECK(CheckTransactionSignatureEncoding({}, flags, &err));
         BOOST_CHECK(CheckTransactionECDSASignatureEncoding({}, flags, &err));
 
-        // Signatures are valid as long as the forkid flag is correct.
+        // 64-byte signatures are valid as long as the hashtype is correct.
+        CheckSignatureEncodingWithSigHashType(Zero64, flags);
+
+        // Signatures are valid as long as the hashtype is correct.
         CheckSignatureEncodingWithSigHashType(minimalSig, flags);
 
         if (flags & SCRIPT_VERIFY_LOW_S) {
@@ -372,13 +387,7 @@ BOOST_AUTO_TEST_CASE(checkpubkeyencoding_test) {
 
 BOOST_AUTO_TEST_CASE(checkschnorr_test) {
     // tests using 64 byte sigs (+hashtype byte where relevant)
-    valtype Zero64{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                   0x00, 0x00, 0x00, 0x00};
+    valtype Zero64(64, 0);
     valtype DER64{0x30, 0x3e, 0x02, 0x1d, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
                   0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
                   0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
