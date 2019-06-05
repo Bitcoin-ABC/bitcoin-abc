@@ -1,4 +1,4 @@
-# Try to find the ZeroMQ librairies
+# Try to find the ZeroMQ libraries
 # ZMQ_FOUND - system has ZeroMQ lib
 # ZMQ_INCLUDE_DIR - the ZeroMQ include directory
 # ZMQ_LIBRARY - Libraries needed to use ZeroMQ

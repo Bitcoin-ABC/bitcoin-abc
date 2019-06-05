@@ -473,7 +473,7 @@ class SchnorrActivationTest(BitcoinTestFramework):
         assert schnorr_tx_id not in set(node.getrawmempool())
         assert ecdsa_tx_id not in set(node.getrawmempool())
 
-        # Ok, now we check if a rewind works properly accross the activation.
+        # Ok, now we check if a rewind works properly across the activation.
         # First, rewind the normal post-fork block.
         node.invalidateblock(postforkblock.hash)
         # txes popped back into mempool

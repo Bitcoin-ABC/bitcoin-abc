@@ -23,7 +23,7 @@ USAGE
 -----
 
 Assuming you want to run a dns seed on dnsseed.example.com, you will
-need an authorative NS record in example.com's domain record, pointing
+need an authoritative NS record in example.com's domain record, pointing
 to for example vps.example.com:
 
 $ dig -t NS dnsseed.example.com

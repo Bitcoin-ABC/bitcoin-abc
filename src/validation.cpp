@@ -2599,7 +2599,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
                 arith_uint256 requiredWork = pindexTip->nChainWork;
                 switch (pindexTip->nHeight - pindexFork->nHeight) {
                     // Limit the penality for depth 1, 2 and 3 to half a block
-                    // worth of work to ensure we don't fork accidentaly.
+                    // worth of work to ensure we don't fork accidentally.
                     case 3:
                     case 2:
                         pindexExtraPow = pindexExtraPow->pprev;
@@ -2974,7 +2974,7 @@ bool CChainState::PreciousBlock(const Config &config, CValidationState &state,
         // In case this was parked, unpark it.
         UnparkBlock(pindex);
 
-        // Make sure it is added to the candidate list if apropriate.
+        // Make sure it is added to the candidate list if appropriate.
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) && pindex->nChainTx) {
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
@@ -3262,7 +3262,7 @@ bool CChainState::ReceivedBlockTransactions(const CBlock &block,
             pindex->nChainTx =
                 (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
             if (pindex->nSequenceId == 0) {
-                // We assign a sequence is when transaction are recieved to
+                // We assign a sequence is when transaction are received to
                 // prevent a miner from being able to broadcast a block but not
                 // its content. However, a sequence id may have been set
                 // manually, for instance via PreciousBlock, in which case, we
@@ -3409,7 +3409,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
  * This allows validation of headers on which the PoW hasn't been done.
  * For example: to validate template handed to mining software.
  * Do not call this for any check that depends on the context.
- * For context-dependant calls, see ContextualCheckBlockHeader.
+ * For context-dependent calls, see ContextualCheckBlockHeader.
  */
 static bool CheckBlockHeader(
     const Config &config, const CBlockHeader &block, CValidationState &state,
@@ -3722,7 +3722,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
 /**
  * If the provided block header is valid, add it to the block index.
  *
- * Returns true if the block is succesfully added to the block index.
+ * Returns true if the block is successfully added to the block index.
  */
 bool CChainState::AcceptBlockHeader(const Config &config,
                                     const CBlockHeader &block,

@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(sighash_construction_test) {
 BOOST_AUTO_TEST_CASE(sighash_serialization_test) {
     std::set<uint32_t> forkValues{0, 1, 0xab1fe9, 0xc81eea, 0xffffff};
 
-    // Test all possible sig hash values embeded in signatures.
+    // Test all possible sig hash values embedded in signatures.
     for (uint32_t sigHashType = 0x00; sigHashType <= 0xff; sigHashType++) {
         for (uint32_t forkValue : forkValues) {
             uint32_t rawType = sigHashType | (forkValue << 8);

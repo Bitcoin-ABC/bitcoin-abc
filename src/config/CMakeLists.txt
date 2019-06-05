@@ -7,7 +7,7 @@ include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(CheckCXXSourceCompiles)
 
-# Package informations
+# Package information
 set(PACKAGE_NAME "Bitcoin ABC")
 
 # Version

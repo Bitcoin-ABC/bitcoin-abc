@@ -1122,7 +1122,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                         const valtype &data = stacktop(-2);
 
-                        // Make sure the split point is apropriate.
+                        // Make sure the split point is appropriate.
                         uint64_t position =
                             CScriptNum(stacktop(-1), fRequireMinimal).getint();
                         if (position > data.size()) {

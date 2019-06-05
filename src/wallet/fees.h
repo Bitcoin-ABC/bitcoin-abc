@@ -19,7 +19,7 @@ class CTxMemPool;
 Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool);
 
 /**
- * Estimate the minimum fee considering overriden fee rate from coin control
+ * Estimate the minimum fee considering overridden fee rate from coin control
  */
 Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
                      const CCoinControl &coinControl);

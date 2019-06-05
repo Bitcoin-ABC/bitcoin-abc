@@ -107,7 +107,7 @@ def get_csv_status(node):
     for sf in softforks:
         if sf['id'] == 'csv' and sf['version'] == 5:
             return sf['reject']['status']
-    raise AssertionError('Cannot find CSV fork activation informations')
+    raise AssertionError('Cannot find CSV fork activation information')
 
 
 class BIP68_112_113Test(ComparisonTestFramework):

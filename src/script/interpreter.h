@@ -66,7 +66,7 @@ public:
                                 const PrecomputedTransactionData &txdataIn)
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
 
-    // The overriden functions are now final.
+    // The overridden functions are now final.
     bool CheckSig(const std::vector<uint8_t> &vchSigIn,
                   const std::vector<uint8_t> &vchPubKey,
                   const CScript &scriptCode,

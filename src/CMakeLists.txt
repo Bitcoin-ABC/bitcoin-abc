@@ -159,7 +159,7 @@ add_subdirectory(secp256k1)
 add_subdirectory(univalue)
 
 # Because the Bitcoin ABc source code is disorganised, we
-# end up with a bunch of libraries without any aparent
+# end up with a bunch of libraries without any apparent
 # cohesive structure. This is inherited from Bitcoin Core
 # and reflecting this.
 # TODO: Improve the structure once cmake is rocking.

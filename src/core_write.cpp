@@ -121,7 +121,7 @@ std::string ScriptToAsmStr(const CScript &script,
                     uint32_t flags = SCRIPT_VERIFY_STRICTENC;
                     if (vch.back() & SIGHASH_FORKID) {
                         // If the transaction is using SIGHASH_FORKID, we need
-                        // to set the apropriate flag.
+                        // to set the appropriate flag.
                         // TODO: Remove after the Hard Fork.
                         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
                     }

@@ -153,7 +153,7 @@ def main():
     parser.add_argument('--coverage', action='store_true',
                         help='generate a basic coverage report for the RPC interface')
     parser.add_argument(
-        '--exclude', '-x', help='specify a comma-seperated-list of scripts to exclude. Do not include the .py extension in the name.')
+        '--exclude', '-x', help='specify a comma-separated-list of scripts to exclude. Do not include the .py extension in the name.')
     parser.add_argument('--extended', action='store_true',
                         help='run the extended test suite in addition to the basic tests')
     parser.add_argument('--cutoff', type=int, default=DEFAULT_EXTENDED_CUTOFF,
@@ -171,7 +171,7 @@ def main():
     parser.add_argument('--tmpdirprefix', '-t',
                         default=tempfile.gettempdir(), help="Root directory for datadirs")
     parser.add_argument('--junitouput', '-ju',
-                        default=os.path.join(build_dir, 'junit_results.xml'), help="file that will store JUnit formated test results.")
+                        default=os.path.join(build_dir, 'junit_results.xml'), help="file that will store JUnit formatted test results.")
 
     args, unknown_args = parser.parse_known_args()
 

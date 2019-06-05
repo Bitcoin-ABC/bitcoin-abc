@@ -58,7 +58,7 @@ final class CheckDocLinter extends ArcanistExternalLinter {
 
   protected function parseLinterOutput($path, $err, $stdout, $stderr) {
     /* Split stdout:
-     * 0 => Empty (before first 'Args' occurence)
+     * 0 => Empty (before first 'Args' occurrence)
      * 1 => Args used: count
      * 2 => Args documented: count
      * 3 => Args undocumented: count and list

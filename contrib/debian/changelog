@@ -220,7 +220,7 @@ bitcoin (0.5.0~rc1-natty1) natty; urgency=low
 
   * Add test_bitcoin to build test
   * Fix clean
-  * Remove unnecessary build-dependancies
+  * Remove unnecessary build-dependencies
 
  -- Matt Corallo <matt@bluematt.me>  Wed, 26 Oct 2011 14:37:18 -0400
 

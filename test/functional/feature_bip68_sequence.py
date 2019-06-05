@@ -407,7 +407,7 @@ class BIP68Test(BitcoinTestFramework):
         for sf in softforks:
             if sf['id'] == 'csv' and sf['version'] == 5:
                 return sf['reject']['status']
-        raise AssertionError('Cannot find CSV fork activation informations')
+        raise AssertionError('Cannot find CSV fork activation information')
 
     # Make sure that BIP68 isn't being used to validate blocks, prior to
     # versionbits activation.  If more blocks are mined prior to this test

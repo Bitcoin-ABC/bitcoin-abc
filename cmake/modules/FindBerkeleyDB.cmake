@@ -1,4 +1,4 @@
-# Try to find the BerkeleyDB librairies
+# Try to find the BerkeleyDB libraries
 # BDB_FOUND - system has Berkeley DB lib
 # BDB_INCLUDE_DIR - the Berkeley DB include directory
 # BDB_LIBRARY - Library needed to use Berkeley DB

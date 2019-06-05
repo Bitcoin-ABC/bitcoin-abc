@@ -74,7 +74,7 @@ static constexpr int RCU_ACTIVE_LOOP_COUNT = 10;
  *                   ^
  *           Nadded -|
  *
- * After a succesful deletion, threadInfos now points to NChild and the CAS to
+ * After a successful deletion, threadInfos now points to NChild and the CAS to
  * move it to Nadded will fail, causing the insertion process to fail.
  *
  * We also run into problems when several nodes are deleted concurrently.
@@ -181,7 +181,7 @@ void RCUInfos::synchronize() {
     // system. Let's make sure threads that land here proceed one by one.
     // XXX: The best option long term is most likely to use a futex on one of
     // the thread causing synchronization delay so this thread can be waked up
-    // at an apropriate time.
+    // at an appropriate time.
     static std::condition_variable cond;
     static Mutex cs;
     WAIT_LOCK(cs, lock);

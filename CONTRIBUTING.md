@@ -174,7 +174,7 @@ as the Diff number, reviewers, etc.).
 
 - When reviewers approve your Diff, it should be listed as "ready to Land"
 in Phabricator. When you want to commit your diff to the repository, check out
-type my-topic-branch in git, then type `arc land`. You have now succesfully
+type my-topic-branch in git, then type `arc land`. You have now successfully
 committed a change to the Bitcoin ABC repository.
 
 - When reviewing a Diff, apply the changeset on your local by using

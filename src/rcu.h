@@ -107,7 +107,7 @@ public:
     }
 
     /**
-     * Construct a new RCUPtr without transfering owership.
+     * Construct a new RCUPtr without transferring owership.
      */
     static RCUPtr copy(T *ptr) {
         if (ptr != nullptr) {

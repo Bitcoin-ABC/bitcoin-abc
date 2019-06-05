@@ -12,7 +12,7 @@ set(CMAKE_RC_COMPILER ${TOOLCHAIN_PREFIX}-windres)
 #   set 1st to dir with the cross compiler's C/C++ headers/libs
 set(CMAKE_FIND_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/${TOOLCHAIN_PREFIX};/usr/${TOOLCHAIN_PREFIX}")
 
-# We also may have built dependancies for the native plateform.
+# We also may have built dependencies for the native plateform.
 set(CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/${TOOLCHAIN_PREFIX}/native")
 
 # modify default behavior of FIND_XXX() commands to
