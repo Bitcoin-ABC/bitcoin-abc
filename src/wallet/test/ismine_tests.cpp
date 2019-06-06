@@ -2,12 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <chainparams.h>
 #include <key.h>
-#include <keystore.h>
 #include <script/script.h>
 #include <script/script_error.h>
 #include <script/standard.h>
 #include <wallet/ismine.h>
+#include <wallet/wallet.h>
 
 #include <test/util/setup_common.h>
 
@@ -26,13 +27,16 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     CKey uncompressedKey;
     uncompressedKey.MakeNewKey(false);
     CPubKey uncompressedPubkey = uncompressedKey.GetPubKey();
+    std::unique_ptr<interfaces::Chain> chain = interfaces::MakeChain();
 
     CScript scriptPubKey;
     isminetype result;
 
     // P2PK compressed
     {
-        CBasicKeyStore keystore;
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
         scriptPubKey = GetScriptForRawPubKey(pubkeys[0]);
 
         // Keystore does not have key
@@ -47,7 +51,9 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
 
     // P2PK uncompressed
     {
-        CBasicKeyStore keystore;
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
         scriptPubKey = GetScriptForRawPubKey(uncompressedPubkey);
 
         // Keystore does not have key
@@ -62,7 +68,9 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
 
     // P2PKH compressed
     {
-        CBasicKeyStore keystore;
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
         scriptPubKey = GetScriptForDestination(PKHash(pubkeys[0]));
 
         // Keystore does not have key
@@ -77,7 +85,9 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
 
     // P2PKH uncompressed
     {
-        CBasicKeyStore keystore;
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
         scriptPubKey = GetScriptForDestination(PKHash(uncompressedPubkey));
 
         // Keystore does not have key
@@ -92,7 +102,9 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
 
     // P2SH
     {
-        CBasicKeyStore keystore;
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
 
         CScript redeemScript = GetScriptForDestination(PKHash(pubkeys[0]));
         scriptPubKey = GetScriptForDestination(ScriptHash(redeemScript));
@@ -114,7 +126,9 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
 
     // (P2PKH inside) P2SH inside P2SH (invalid)
     {
-        CBasicKeyStore keystore;
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
 
         CScript redeemscript_inner =
             GetScriptForDestination(PKHash(pubkeys[0]));
@@ -122,17 +136,20 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
             GetScriptForDestination(ScriptHash(redeemscript_inner));
         scriptPubKey = GetScriptForDestination(ScriptHash(redeemscript));
 
-        keystore.AddCScript(redeemscript);
-        keystore.AddCScript(redeemscript_inner);
-        keystore.AddCScript(scriptPubKey);
-        keystore.AddKey(keys[0]);
+        BOOST_CHECK(keystore.AddCScript(redeemscript));
+        BOOST_CHECK(keystore.AddCScript(redeemscript_inner));
+        BOOST_CHECK(keystore.AddCScript(scriptPubKey));
+        BOOST_CHECK(keystore.AddKey(keys[0]));
+
         result = IsMine(keystore, scriptPubKey);
         BOOST_CHECK_EQUAL(result, ISMINE_NO);
     }
 
     // scriptPubKey multisig
     {
-        CBasicKeyStore keystore;
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
 
         scriptPubKey =
             GetScriptForMultisig(2, {uncompressedPubkey, pubkeys[1]});
@@ -162,9 +179,11 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
 
     // P2SH multisig
     {
-        CBasicKeyStore keystore;
-        keystore.AddKey(uncompressedKey);
-        keystore.AddKey(keys[1]);
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
+        BOOST_CHECK(keystore.AddKey(uncompressedKey));
+        BOOST_CHECK(keystore.AddKey(keys[1]));
 
         CScript redeemScript =
             GetScriptForMultisig(2, {uncompressedPubkey, pubkeys[1]});
@@ -175,15 +194,17 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
         BOOST_CHECK_EQUAL(result, ISMINE_NO);
 
         // Keystore has redeemScript
-        keystore.AddCScript(redeemScript);
+        BOOST_CHECK(keystore.AddCScript(redeemScript));
         result = IsMine(keystore, scriptPubKey);
         BOOST_CHECK_EQUAL(result, ISMINE_SPENDABLE);
     }
 
     // OP_RETURN
     {
-        CBasicKeyStore keystore;
-        keystore.AddKey(keys[0]);
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
+        BOOST_CHECK(keystore.AddKey(keys[0]));
 
         scriptPubKey.clear();
         scriptPubKey << OP_RETURN << ToByteVector(pubkeys[0]);
@@ -194,8 +215,10 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
 
     // Nonstandard
     {
-        CBasicKeyStore keystore;
-        keystore.AddKey(keys[0]);
+        CWallet keystore(Params(), chain.get(), WalletLocation(),
+                         WalletDatabase::CreateDummy());
+        LOCK(keystore.cs_wallet);
+        BOOST_CHECK(keystore.AddKey(keys[0]));
 
         scriptPubKey.clear();
         scriptPubKey << OP_9 << OP_ADD << OP_11 << OP_EQUAL;

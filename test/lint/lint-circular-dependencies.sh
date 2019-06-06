@@ -25,6 +25,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "wallet/fees -> wallet/wallet -> wallet/fees"
     "wallet/rpcwallet -> wallet/wallet -> wallet/rpcwallet"
     "wallet/wallet -> wallet/walletdb -> wallet/wallet"
+    "wallet/ismine -> wallet/wallet -> wallet/ismine"
     "txmempool -> validation -> validationinterface -> txmempool"
     "avalanche -> validation -> avalanche"
     "chainparams -> protocol -> chainparams"

@@ -6,10 +6,9 @@
 #include <wallet/ismine.h>
 
 #include <key.h>
-#include <keystore.h>
 #include <script/script.h>
 #include <script/sign.h>
-#include <script/standard.h>
+#include <wallet/wallet.h>
 
 typedef std::vector<uint8_t> valtype;
 
@@ -38,7 +37,7 @@ enum class IsMineResult {
     INVALID = 3,    //! Not spendable by anyone (P2SH inside P2SH)
 };
 
-bool HaveKeys(const std::vector<valtype> &pubkeys, const CKeyStore &keystore) {
+bool HaveKeys(const std::vector<valtype> &pubkeys, const CWallet &keystore) {
     for (const valtype &pubkey : pubkeys) {
         CKeyID keyID = CPubKey(pubkey).GetID();
         if (!keystore.HaveKey(keyID)) {
@@ -48,7 +47,7 @@ bool HaveKeys(const std::vector<valtype> &pubkeys, const CKeyStore &keystore) {
     return true;
 }
 
-IsMineResult IsMineInner(const CKeyStore &keystore, const CScript &scriptPubKey,
+IsMineResult IsMineInner(const CWallet &keystore, const CScript &scriptPubKey,
                          IsMineSigVersion sigversion) {
     IsMineResult ret = IsMineResult::NO;
 
@@ -115,7 +114,7 @@ IsMineResult IsMineInner(const CKeyStore &keystore, const CScript &scriptPubKey,
 
 } // namespace
 
-isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey) {
+isminetype IsMine(const CWallet &keystore, const CScript &scriptPubKey) {
     switch (IsMineInner(keystore, scriptPubKey, IsMineSigVersion::TOP)) {
         case IsMineResult::INVALID:
         case IsMineResult::NO:
@@ -128,7 +127,7 @@ isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey) {
     assert(false);
 }
 
-isminetype IsMine(const CKeyStore &keystore, const CTxDestination &dest) {
+isminetype IsMine(const CWallet &keystore, const CTxDestination &dest) {
     CScript script = GetScriptForDestination(dest);
     return IsMine(keystore, script);
 }
