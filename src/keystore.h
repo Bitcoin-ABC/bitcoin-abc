@@ -61,9 +61,4 @@ public:
 CKeyID GetKeyForDestination(const CBasicKeyStore &store,
                             const CTxDestination &dest);
 
-/**
- * Checks if a CKey is in the given CBasicKeystore compressed or otherwise
- */
-bool HaveKey(const CBasicKeyStore &store, const CKey &key);
-
 #endif // BITCOIN_KEYSTORE_H
