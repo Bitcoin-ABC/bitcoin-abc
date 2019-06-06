@@ -161,7 +161,7 @@ bool CBasicKeyStore::HaveWatchOnly() const {
     return (!setWatchOnly.empty());
 }
 
-CKeyID GetKeyForDestination(const CKeyStore &store,
+CKeyID GetKeyForDestination(const CBasicKeyStore &store,
                             const CTxDestination &dest) {
     // Only supports destinations which map to single public keys, i.e. P2PKH.
     if (auto id = boost::get<PKHash>(&dest)) {
@@ -170,7 +170,7 @@ CKeyID GetKeyForDestination(const CKeyStore &store,
     return CKeyID();
 }
 
-bool HaveKey(const CKeyStore &store, const CKey &key) {
+bool HaveKey(const CBasicKeyStore &store, const CKey &key) {
     CKey key2;
     key2.Set(key.begin(), key.end(), !key.IsCompressed());
     return store.HaveKey(key.GetPubKey().GetID()) ||

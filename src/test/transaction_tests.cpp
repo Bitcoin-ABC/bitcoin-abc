@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE(test_Get) {
                       (50 + 21 + 22) * CENT);
 }
 
-static void CreateCreditAndSpend(const CKeyStore &keystore,
+static void CreateCreditAndSpend(const CBasicKeyStore &keystore,
                                  const CScript &outscript,
                                  CTransactionRef &output,
                                  CMutableTransaction &input,

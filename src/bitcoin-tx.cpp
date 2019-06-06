@@ -684,7 +684,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         }
     }
 
-    const CKeyStore &keystore = tempKeystore;
+    const CBasicKeyStore &keystore = tempKeystore;
 
     // Sign what we can:
     for (size_t i = 0; i < mergedTx.vin.size(); i++) {
