@@ -718,10 +718,6 @@ static bool AcceptToMemoryPoolWorker(
             extraFlags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
         }
 
-        if (IsGreatWallEnabledForCurrentBlock(config)) {
-            extraFlags |= SCRIPT_ENABLE_SCHNORR;
-        }
-
         // Make sure whatever we need to activate is actually activated.
         const uint32_t scriptVerifyFlags =
             STANDARD_SCRIPT_VERIFY_FLAGS | extraFlags;
@@ -1241,24 +1237,6 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 }
             }
 
-            // We also, regardless, need to check whether the transaction would
-            // be valid on the other side of the upgrade, so as to avoid
-            // splitting the network between upgraded and non-upgraded nodes.
-            // Note that this will create strange error messages like
-            // "upgrade-conditional-script-failure (Non-canonical DER ...)"
-            // -- the tx was refused entry due to STRICTENC, a mandatory flag,
-            // but after the upgrade the signature would have been interpreted
-            // as valid Schnorr and thus STRICTENC would not happen.
-            CScriptCheck check3(scriptPubKey, amount, tx, i,
-                                mandatoryFlags ^ SCRIPT_ENABLE_SCHNORR,
-                                sigCacheStore, txdata);
-            if (check3()) {
-                return state.Invalid(
-                    false, REJECT_INVALID,
-                    strprintf("upgrade-conditional-script-failure (%s)",
-                              ScriptErrorString(check.GetScriptError())));
-            }
-
             // Failures of other flags indicate a transaction that is invalid in
             // new blocks, e.g. a invalid P2SH. We DoS ban such nodes as they
             // are not following the protocol. That said during an upgrade
@@ -1601,13 +1579,11 @@ static uint32_t GetNextBlockScriptFlags(const Config &config,
         flags |= SCRIPT_VERIFY_CLEANSTACK;
     }
 
-    // If the Great Wall fork is enabled, we start accepting
+    // Permanently and retroactively, we start accepting
     // 65/64-byte Schnorr signatures in CHECKSIG and CHECKDATASIG respectively,
     // and their verify variants. We also stop accepting 65 byte signatures in
     // CHECKMULTISIG and its verify variant.
-    if (IsGreatWallEnabled(config, pindex)) {
-        flags |= SCRIPT_ENABLE_SCHNORR;
-    }
+    flags |= SCRIPT_ENABLE_SCHNORR;
 
     // We make sure this node will have replay protection during the next hard
     // fork.

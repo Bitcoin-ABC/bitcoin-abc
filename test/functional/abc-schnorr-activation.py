@@ -4,19 +4,15 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-This tests the activation of Schnorr transaction signatures:
-- rejection prior to upgrade both in mempool and blocks.
-- acceptance after upgrade both in mempool and blocks.
-- check non-banning for peers who send txns that would be valid on the
-  other side of the upgrade. (e.g., if we are still before upgrade and
-  peer is post-upgrade)
-- optional: tests of valid 64-byte DER signatures (same length as Schnorr).
-  This requires a temporary patch to bitcoind; see fakeDER64 comment below.
-- advance and rewind mempool drop tests.
+This tests the treatment of Schnorr transaction signatures:
+- acceptance both in mempool and blocks.
+- check banning for peers who send txns with 64 byte ECDSA DER sigs.
 
 Derived from abc-replay-protection.py with improvements borrowed from
-abc-segwit-recovery-activation.py.
+abc-segwit-recovery-activation.py. Later reduced down to this feature test.
 """
+
+import time
 
 from test_framework.blocktools import (
     create_block,
@@ -36,7 +32,6 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.mininode import (
-    mininode_lock,
     network_thread_start,
     P2PInterface,
 )
@@ -52,58 +47,18 @@ from test_framework.script import (
     SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, sync_blocks
+from test_framework.util import assert_raises_rpc_error, sync_blocks
 
-# far into the future
-GREAT_WALL_START_TIME = 2000000000
+# A mandatory (bannable) error occurs when people pass Schnorr signatures into OP_CHECKMULTISIG.
+RPC_SCHNORR_MULTISIG_ERROR = '16: mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)'
 
-# First blocks (initial coinbases, pre-fork test blocks) happen 1 day before.
-FIRST_BLOCK_TIME = GREAT_WALL_START_TIME - 86400
+# A mandatory (bannable) error occurs when people send invalid Schnorr sigs into OP_CHECKSIG.
+RPC_NULLFAIL_ERROR = '16: mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation)'
 
-# If we don't do this, autoreplay protection will activate simultaneous with
-# great_wall and all our sigs will mysteriously fail.
-REPLAY_PROTECTION_START_TIME = GREAT_WALL_START_TIME * 2
-
-
-# A mandatory (bannable) error occurs when people pass Schnorr signatures
-# into OP_CHECKMULTISIG. The precise error cause changes before/after upgrade
-# (DER / BADLENGTH) so we just match the start of the error.
-RPC_SCHNORR_MULTISIG_ERROR = '16: mandatory-script-verify-flag-failed'
-
-# These non-mandatory (forgiven) errors occur when your signature isn't valid
-# now, but would be valid on the other side of the upgrade.
-# Error due to passing a Schnorr signature to CHECKSIG before upgrade, but it
-# would have been valid after.
-EARLY_SCHNORR_ERROR = b'upgrade-conditional-script-failure (Non-canonical DER signature)'
-RPC_EARLY_SCHNORR_ERROR = '16: ' + \
-    EARLY_SCHNORR_ERROR.decode('utf8')
-# Error due to passing a 65-byte ECDSA CHECKSIG to mempool after upgrade, but
-# it would have been valid before.
-LATE_DER64_CHECKSIG_ERROR = b'upgrade-conditional-script-failure (Signature must be zero for failed CHECK(MULTI)SIG operation)'
-RPC_LATE_DER64_CHECKSIG_ERROR = '16: ' + \
-    LATE_DER64_CHECKSIG_ERROR.decode('utf8')
-# Error due to passing a 65-byte ECDSA CHECKMULTISIG to mempool after upgrade,
-# but it would have been valid before.
-LATE_DER64_CHECKMULTISIG_ERROR = b'upgrade-conditional-script-failure (Signature cannot be 65 bytes in CHECKMULTISIG)'
-RPC_LATE_DER64_CHECKMULTISIG_ERROR = '16: ' + \
-    LATE_DER64_CHECKMULTISIG_ERROR.decode('utf8')
-
-
-# For normal test running:
-fakeDER64 = b''
-
-# To properly test activation, we need to make txes with 64 byte DER sigs.
-# (total 65 bytes with the appended hashtype byte, as in CHECKSIG/MULTISIG)
-# The easiest way to do this is to fake them, and then temporarily modify
-# VerifySignature in src/script/interpreter.cpp to always `return true;`
-# for ECDSA sigs, instead of `return pubkey.VerifyECDSA(sighash, vchSig);`
-# Once that patch is done, you can uncomment the following and tests should
-# pass.
-# fakeDER64 = bytes.fromhex('303e021d44444444444444444444444444444444444444444'
-#                           '44444444444444444021d4444444444444444444444444444'
-#                           '444444444444444444444444444444')
-
-assert len(fakeDER64) in [0, 64]
+# This 64-byte signature is used to test exclusion & banning according to
+# the above error messages.
+# Tests of real 64 byte ECDSA signatures can be found in script_tests.
+sig64 = b'\0'*64
 
 
 class PreviousSpendableOutput(object):
@@ -113,7 +68,7 @@ class PreviousSpendableOutput(object):
         self.n = n
 
 
-class SchnorrActivationTest(BitcoinTestFramework):
+class SchnorrTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 2
@@ -121,19 +76,10 @@ class SchnorrActivationTest(BitcoinTestFramework):
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
-        self.extra_args = [['-whitelist=127.0.0.1',
-                            "-greatwallactivationtime={}".format(
-                                GREAT_WALL_START_TIME),
-                            "-replayprotectionactivationtime={}".format(
-                                REPLAY_PROTECTION_START_TIME)],
-                           ["-greatwallactivationtime={}".format(
-                               GREAT_WALL_START_TIME),
-                            "-replayprotectionactivationtime={}".format(
-                                REPLAY_PROTECTION_START_TIME)]]
+        self.extra_args = [['-whitelist=127.0.0.1'],
+                           []]
 
     def run_test(self):
-        for node in self.nodes:
-            node.setmocktime(GREAT_WALL_START_TIME)
         test = TestManager(self, self.options.tmpdir)
         test.add_all_connections([self.nodes[0]])
         # We have made a second node for ban-testing, to which we connect
@@ -148,7 +94,7 @@ class SchnorrActivationTest(BitcoinTestFramework):
     def next_block(self, number, transactions=None, nTime=None):
         if self.tip == None:
             base_block_hash = self.genesis_hash
-            block_time = FIRST_BLOCK_TIME
+            block_time = int(time.time()) + 1
         else:
             base_block_hash = self.tip.sha256
             block_time = self.tip.nTime + 1
@@ -274,36 +220,6 @@ class SchnorrActivationTest(BitcoinTestFramework):
             assert(tx_id in set(node.getrawmempool()))
             return tx_id
 
-        # Check we are not banned when sending a txn that node_ban rejects.
-        def check_for_no_ban_on_rejected_tx(tx, reject_code, reject_reason):
-            # Grab the first connection
-            p2p = node_ban.p2p
-            assert(p2p.state == 'connected')
-
-            # The P2PConnection stores a public counter for each message type
-            # and the last receive message of each type. We use this counter to
-            # identify that we received a new reject message.
-            with mininode_lock:
-                rejects_count = p2p.message_count['reject']
-
-            # Send the transaction directly. We use a ping for synchronization:
-            # if we have been banned, the pong message won't be received, a
-            # timeout occurs and the test fails.
-            p2p.send_message(msg_tx(tx))
-            p2p.sync_with_ping()
-
-            # Check we haven't been disconnected
-            assert(p2p.state == 'connected')
-
-            # Check the reject message matches what we expected
-            with mininode_lock:
-                assert(p2p.message_count['reject'] ==
-                       rejects_count + 1)
-                reject_msg = p2p.last_message['reject']
-                assert(reject_msg.code == reject_code and
-                       reject_msg.reason == reject_reason and
-                       reject_msg.data == tx.sha256)
-
         # Check we are disconnected when sending a txn that node_ban rejects.
         # (Can't actually get banned, since bitcoind won't ban local peers.)
         def check_for_ban_on_rejected_tx(tx):
@@ -328,13 +244,13 @@ class SchnorrActivationTest(BitcoinTestFramework):
         fundings.append(fund)
         fund, ecdsachecksigtx = create_fund_and_spend_tx(out[2], sig='ecdsa')
         fundings.append(fund)
-        if fakeDER64:
-            fund, DER64checksigtx = create_fund_and_spend_tx(
-                out[5], sig=fakeDER64)
-            fundings.append(fund)
-            fund, DER64multisigtx = create_fund_and_spend_tx(
-                out[6], multi=True, sig=fakeDER64)
-            fundings.append(fund)
+
+        fund, sig64checksigtx = create_fund_and_spend_tx(
+            out[5], sig=sig64)
+        fundings.append(fund)
+        fund, sig64multisigtx = create_fund_and_spend_tx(
+            out[6], multi=True, sig=sig64)
+        fundings.append(fund)
 
         for fund in fundings:
             send_transaction_to_mempool(fund)
@@ -345,171 +261,46 @@ class SchnorrActivationTest(BitcoinTestFramework):
         # is set up, too.
         sync_blocks(self.nodes)
 
-        # We are before the upgrade, no Schnorrs get in the mempool.
-        assert_raises_rpc_error(-26, RPC_EARLY_SCHNORR_ERROR,
-                                node.sendrawtransaction, ToHex(schnorrchecksigtx))
-        assert_raises_rpc_error(-26, RPC_SCHNORR_MULTISIG_ERROR,
-                                node.sendrawtransaction, ToHex(schnorrmultisigtx))
-
-        # And blocks containing them are rejected as well.
-        block(2, transactions=[schnorrchecksigtx])
-        yield rejected(RejectResult(16, b'blk-bad-inputs'))
-        # Rewind bad block
-        tip(1)
-
-        block(3, transactions=[schnorrmultisigtx])
-        yield rejected(RejectResult(16, b'blk-bad-inputs'))
-        # Rewind bad block
-        tip(1)
-
-        # So far we were creating blocks well in advance of activation.
-        # Now, start creating blocks that will move mediantime up to near
-        # activation.
-        bfork = block(5555, nTime=GREAT_WALL_START_TIME - 1)
-        yield accepted()
-
-        sync_blocks(self.nodes)
-
-        # Create 5 more blocks with timestamps from GREAT_WALL_START_TIME+0 to +4
-        for i in range(5):
-            block(5200 + i)
-            test.blocks_and_transactions.append([self.tip, True])
-        yield test
-
-        # Check we are just before the activation time.
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     GREAT_WALL_START_TIME - 1)
-
-        # We are just before the upgrade, still no Schnorrs get in the mempool,
-        assert_raises_rpc_error(-26, RPC_EARLY_SCHNORR_ERROR,
-                                node.sendrawtransaction, ToHex(schnorrchecksigtx))
-        assert_raises_rpc_error(-26, RPC_SCHNORR_MULTISIG_ERROR,
-                                node.sendrawtransaction, ToHex(schnorrmultisigtx))
-        # ... nor in blocks.
-        block(10, transactions=[schnorrchecksigtx])
-        yield rejected(RejectResult(16, b'blk-bad-inputs'))
-        # Rewind bad block
-        tip(5204)
-        block(11, transactions=[schnorrmultisigtx])
-        yield rejected(RejectResult(16, b'blk-bad-inputs'))
-        # Rewind bad block
-        tip(5204)
-
-        # Ensure that sending future-valid schnorr txns is *non-bannable*.
-        check_for_no_ban_on_rejected_tx(
-            schnorrchecksigtx, 16, EARLY_SCHNORR_ERROR)
-        # Ensure that sending schnorrs in multisig *is* bannable.
-        check_for_ban_on_rejected_tx(schnorrmultisigtx)
-
-        if fakeDER64:
-            # Throw a couple of "valid" 65-byte ECDSA signatures into the
-            # mempool just prior to the activation.
-            faked_checksig_tx_id = send_transaction_to_mempool(DER64checksigtx)
-            faked_multisig_tx_id = send_transaction_to_mempool(DER64multisigtx)
-
-        # Put a proper ECDSA transaction into the mempool but it won't
-        # be mined...
-        ecdsa_tx_id = send_transaction_to_mempool(ecdsachecksigtx)
-
-        # Activate the Schnorr!
-        forkblock = block(5556)
-        yield accepted()
-
-        # We have exactly hit the activation time.
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     GREAT_WALL_START_TIME)
-
-        # Make sure ECDSA is still in -- we don't want to lose uninvolved txns
-        # when the upgrade happens.
-        assert ecdsa_tx_id in set(node.getrawmempool())
-
-        if fakeDER64:
-            # The 64-byte DER sigs must be ejected.
-            assert faked_checksig_tx_id not in set(node.getrawmempool())
-            assert faked_multisig_tx_id not in set(node.getrawmempool())
-
-            # If we try to re-add them, they fail with non-banning errors.
-            # In CHECKSIG it's invalid Schnorr and hence NULLFAIL.
-            assert_raises_rpc_error(-26, RPC_LATE_DER64_CHECKSIG_ERROR,
-                                    node.sendrawtransaction, ToHex(DER64checksigtx))
-            # In CHECKMULTISIG it's invalid length and hence BAD_LENGTH.
-            assert_raises_rpc_error(-26, RPC_LATE_DER64_CHECKMULTISIG_ERROR,
-                                    node.sendrawtransaction, ToHex(DER64multisigtx))
-            # And they can't be mined either...
-            block(14, transactions=[DER64checksigtx])
-            yield rejected(RejectResult(16, b'blk-bad-inputs'))
-            # Rewind bad block
-            tip(5556)
-            block(15, transactions=[DER64multisigtx])
-            yield rejected(RejectResult(16, b'blk-bad-inputs'))
-            # Rewind bad block
-            tip(5556)
-
-            # Ensure that sending past-valid DER64 txns is *non-bannable*.
-            check_for_no_ban_on_rejected_tx(
-                DER64checksigtx, 16, LATE_DER64_CHECKSIG_ERROR)
-            check_for_no_ban_on_rejected_tx(
-                DER64multisigtx, 16, LATE_DER64_CHECKMULTISIG_ERROR)
-
-        # The multisig throws a different error now
-        assert_raises_rpc_error(-26, RPC_SCHNORR_MULTISIG_ERROR,
-                                node.sendrawtransaction, ToHex(schnorrmultisigtx))
-        # And it still can't be mined
-        block(16, transactions=[schnorrmultisigtx])
-        yield rejected(RejectResult(16, b'blk-bad-inputs'))
-        # Rewind bad block
-        tip(5556)
-
-        # Sending schnorrs in multisig is STILL bannable.
-        check_for_ban_on_rejected_tx(schnorrmultisigtx)
-
-        # The Schnorr CHECKSIG is now valid
+        # Typical ECDSA and Schnorr CHECKSIG are valid
         schnorr_tx_id = send_transaction_to_mempool(schnorrchecksigtx)
+        ecdsa_tx_id = send_transaction_to_mempool(ecdsachecksigtx)
         # It can also be mined
-        postforkblock = block(
-            21, transactions=[schnorrchecksigtx, ecdsachecksigtx])
+        block(2, transactions=[schnorrchecksigtx, ecdsachecksigtx])
         yield accepted()
-        # (we mined the ecdsa tx too)
         assert schnorr_tx_id not in set(node.getrawmempool())
         assert ecdsa_tx_id not in set(node.getrawmempool())
 
-        # Ok, now we check if a rewind works properly across the activation.
-        # First, rewind the normal post-fork block.
-        node.invalidateblock(postforkblock.hash)
-        # txes popped back into mempool
-        assert schnorr_tx_id in set(node.getrawmempool())
-        assert ecdsa_tx_id in set(node.getrawmempool())
+        # Schnorr in multisig is rejected with mandatory error.
+        assert_raises_rpc_error(-26, RPC_SCHNORR_MULTISIG_ERROR,
+                                node.sendrawtransaction, ToHex(schnorrmultisigtx))
+        # And it is banworthy.
+        check_for_ban_on_rejected_tx(schnorrmultisigtx)
+        # And it can't be mined
+        block(13, transactions=[schnorrmultisigtx])
+        yield rejected(RejectResult(16, b'blk-bad-inputs'))
+        # Rewind bad block
+        tip(2)
 
-        # Deactivating upgrade.
-        node.invalidateblock(forkblock.hash)
-        # This should kick out the Schnorr sig, but not the valid ECDSA sig.
-        assert schnorr_tx_id not in set(node.getrawmempool())
-        assert ecdsa_tx_id in set(node.getrawmempool())
-
-        # Check that we also do it properly on deeper rewind.
-        node.reconsiderblock(forkblock.hash)
-        node.reconsiderblock(postforkblock.hash)
-        node.invalidateblock(forkblock.hash)
-        assert schnorr_tx_id not in set(node.getrawmempool())
-        assert ecdsa_tx_id in set(node.getrawmempool())
-
-        # Try an actual reorg (deactivates then activates upgrade in one step)
-        node.reconsiderblock(forkblock.hash)
-        node.reconsiderblock(postforkblock.hash)
-        tip(5204)
-        test = TestInstance(sync_every_block=False)
-        for i in range(3):
-            block(5900 + i)
-            test.blocks_and_transactions.append([self.tip, True])
-        # Perform the reorg
-        yield test
-        # reorg finishes after the fork
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     GREAT_WALL_START_TIME+2)
-        # Schnorr didn't get lost!
-        assert schnorr_tx_id in set(node.getrawmempool())
-        assert ecdsa_tx_id in set(node.getrawmempool())
+        # If we try to submit a bad 64-byte sig, we fail with mandatory errors.
+        # In CHECKSIG it's invalid Schnorr and hence NULLFAIL.
+        assert_raises_rpc_error(-26, RPC_NULLFAIL_ERROR,
+                                node.sendrawtransaction, ToHex(sig64checksigtx))
+        # In CHECKMULTISIG it's invalid length and hence BAD_LENGTH.
+        assert_raises_rpc_error(-26, RPC_SCHNORR_MULTISIG_ERROR,
+                                node.sendrawtransaction, ToHex(sig64multisigtx))
+        # Getting sent these transactions is banworthy.
+        check_for_ban_on_rejected_tx(sig64checksigtx)
+        check_for_ban_on_rejected_tx(sig64multisigtx)
+        # And they can't be mined either...
+        block(14, transactions=[sig64checksigtx])
+        yield rejected(RejectResult(16, b'blk-bad-inputs'))
+        # Rewind bad block
+        tip(2)
+        block(15, transactions=[sig64multisigtx])
+        yield rejected(RejectResult(16, b'blk-bad-inputs'))
+        # Rewind bad block
+        tip(2)
 
 
 if __name__ == '__main__':
-    SchnorrActivationTest().main()
+    SchnorrTest().main()
