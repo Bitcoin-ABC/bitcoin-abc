@@ -1649,11 +1649,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
     // CHECKSIG and Schnorr
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
-                    "CHECKSIG Schnorr w/ neither STRICTENC,SCHNORR", 0)
-            .PushSigSchnorr(keys.key0)
-            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
-    tests.push_back(
-        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
                     "CHECKSIG ECDSA w/ neither STRICTENC,SCHNORR", 0)
             .PushSigECDSA(keys.key0));
     tests.push_back(
@@ -1664,11 +1659,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
                     "CHECKSIG ECDSA w/ SCHNORR", SCRIPT_ENABLE_SCHNORR)
             .PushSigECDSA(keys.key0));
-    tests.push_back(
-        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
-                    "CHECKSIG Schnorr w/ STRICTENC", SCRIPT_VERIFY_STRICTENC)
-            .PushSigSchnorr(keys.key0)
-            .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
                     "CHECKSIG ECDSA w/ STRICTENC", SCRIPT_VERIFY_STRICTENC)
@@ -1698,12 +1688,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIGVERIFY
                               << OP_1,
-                    "CHECKSIGVERIFY Schnorr w/ neither STRICTENC,SCHNORR", 0)
-            .PushSigSchnorr(keys.key0)
-            .ScriptError(SCRIPT_ERR_CHECKSIGVERIFY));
-    tests.push_back(
-        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIGVERIFY
-                              << OP_1,
                     "CHECKSIGVERIFY ECDSA w/ neither STRICTENC,SCHNORR", 0)
             .PushSigECDSA(keys.key0));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey0)
@@ -1716,12 +1700,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 "CHECKSIGVERIFY ECDSA w/ SCHNORR",
                                 SCRIPT_ENABLE_SCHNORR)
                         .PushSigECDSA(keys.key0));
-    tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey0)
-                                          << OP_CHECKSIGVERIFY << OP_1,
-                                "CHECKSIGVERIFY Schnorr w/ STRICTENC",
-                                SCRIPT_VERIFY_STRICTENC)
-                        .PushSigSchnorr(keys.key0)
-                        .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey0)
                                           << OP_CHECKSIGVERIFY << OP_1,
                                 "CHECKSIGVERIFY ECDSA w/ STRICTENC",
@@ -1753,12 +1731,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
                               << OP_CHECKDATASIG,
-                    "CHECKDATASIG Schnorr w/ neither STRICTENC,SCHNORR", 0)
-            .PushDataSigSchnorr(keys.key0, {})
-            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
-    tests.push_back(
-        TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
-                              << OP_CHECKDATASIG,
                     "CHECKDATASIG ECDSA w/ neither STRICTENC,SCHNORR", 0)
             .PushDataSigECDSA(keys.key0, {}));
     tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
@@ -1771,12 +1743,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 "CHECKDATASIG ECDSA w/ SCHNORR",
                                 SCRIPT_ENABLE_SCHNORR)
                         .PushDataSigECDSA(keys.key0, {}));
-    tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
-                                          << OP_CHECKDATASIG,
-                                "CHECKDATASIG Schnorr w/ STRICTENC",
-                                SCRIPT_VERIFY_STRICTENC)
-                        .PushDataSigSchnorr(keys.key0, {})
-                        .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
                                           << OP_CHECKDATASIG,
                                 "CHECKDATASIG ECDSA w/ STRICTENC",
@@ -1817,13 +1783,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
     tests.push_back(
         TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
                               << OP_CHECKDATASIGVERIFY << OP_1,
-                    "CHECKDATASIGVERIFY Schnorr w/ neither STRICTENC,SCHNORR",
-                    0)
-            .PushDataSigSchnorr(keys.key0, {})
-            .ScriptError(SCRIPT_ERR_CHECKDATASIGVERIFY));
-    tests.push_back(
-        TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
-                              << OP_CHECKDATASIGVERIFY << OP_1,
                     "CHECKDATASIGVERIFY ECDSA w/ neither STRICTENC,SCHNORR", 0)
             .PushDataSigECDSA(keys.key0, {}));
     tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
@@ -1836,12 +1795,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 "CHECKDATASIGVERIFY ECDSA w/ SCHNORR",
                                 SCRIPT_ENABLE_SCHNORR)
                         .PushDataSigECDSA(keys.key0, {}));
-    tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
-                                          << OP_CHECKDATASIGVERIFY << OP_1,
-                                "CHECKDATASIGVERIFY Schnorr w/ STRICTENC",
-                                SCRIPT_VERIFY_STRICTENC)
-                        .PushDataSigSchnorr(keys.key0, {})
-                        .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(TestBuilder(CScript() << OP_0 << ToByteVector(keys.pubkey0)
                                           << OP_CHECKDATASIGVERIFY << OP_1,
                                 "CHECKDATASIGVERIFY ECDSA w/ STRICTENC",
@@ -1885,13 +1838,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
     tests.push_back(
         TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
                               << OP_CHECKMULTISIG,
-                    "CHECKMULTISIG Schnorr w/ neither STRICTENC,SCHNORR", 0)
-            .Num(0)
-            .PushSigSchnorr(keys.key0)
-            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
-    tests.push_back(
-        TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
-                              << OP_CHECKMULTISIG,
                     "CHECKMULTISIG ECDSA w/ neither STRICTENC,SCHNORR", 0)
             .Num(0)
             .PushSigECDSA(keys.key0));
@@ -1908,13 +1854,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 SCRIPT_ENABLE_SCHNORR)
                         .Num(0)
                         .PushSigECDSA(keys.key0));
-    tests.push_back(TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0)
-                                          << OP_1 << OP_CHECKMULTISIG,
-                                "CHECKMULTISIG Schnorr w/ STRICTENC",
-                                SCRIPT_VERIFY_STRICTENC)
-                        .Num(0)
-                        .PushSigSchnorr(keys.key0)
-                        .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0)
                                           << OP_1 << OP_CHECKMULTISIG,
                                 "CHECKMULTISIG ECDSA w/ STRICTENC",
@@ -1936,17 +1875,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .PushSigECDSA(keys.key0));
 
     // Test multisig with multiple Schnorr signatures
-    tests.push_back(TestBuilder(CScript() << OP_3 << ToByteVector(keys.pubkey0C)
-                                          << ToByteVector(keys.pubkey1C)
-                                          << ToByteVector(keys.pubkey2C) << OP_3
-                                          << OP_CHECKMULTISIG,
-                                "Schnorr 3-of-3 without SCHNORR flag", 0)
-                        .Num(0)
-                        .PushSigSchnorr(keys.key0)
-                        .PushSigSchnorr(keys.key1)
-                        .PushSigSchnorr(keys.key2)
-                        .ScriptError(SCRIPT_ERR_EVAL_FALSE));
-
     tests.push_back(TestBuilder(CScript() << OP_3 << ToByteVector(keys.pubkey0C)
                                           << ToByteVector(keys.pubkey1C)
                                           << ToByteVector(keys.pubkey2C) << OP_3
@@ -1975,14 +1903,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
     tests.push_back(
         TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
                               << OP_CHECKMULTISIGVERIFY << OP_1,
-                    "CHECKMULTISIGVERIFY Schnorr w/ neither STRICTENC,SCHNORR",
-                    0)
-            .Num(0)
-            .PushSigSchnorr(keys.key0)
-            .ScriptError(SCRIPT_ERR_CHECKMULTISIGVERIFY));
-    tests.push_back(
-        TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
-                              << OP_CHECKMULTISIGVERIFY << OP_1,
                     "CHECKMULTISIGVERIFY ECDSA w/ neither STRICTENC,SCHNORR", 0)
             .Num(0)
             .PushSigECDSA(keys.key0));
@@ -2001,14 +1921,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 SCRIPT_ENABLE_SCHNORR)
                         .Num(0)
                         .PushSigECDSA(keys.key0));
-    tests.push_back(TestBuilder(CScript()
-                                    << OP_1 << ToByteVector(keys.pubkey0)
-                                    << OP_1 << OP_CHECKMULTISIGVERIFY << OP_1,
-                                "CHECKMULTISIGVERIFY Schnorr w/ STRICTENC",
-                                SCRIPT_VERIFY_STRICTENC)
-                        .Num(0)
-                        .PushSigSchnorr(keys.key0)
-                        .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(TestBuilder(CScript()
                                     << OP_1 << ToByteVector(keys.pubkey0)
                                     << OP_1 << OP_CHECKMULTISIGVERIFY << OP_1,
@@ -2368,17 +2280,10 @@ BOOST_AUTO_TEST_CASE(script_build) {
                 .PushECDSARecoveredPubKey(rdata, sdata));
     }
     {
-        // 64-byte ECDSA sig works before schnorr flag activation, but
-        // not after.
+        // 64-byte ECDSA sig does not work.
         std::vector<uint8_t> rdata = ParseHex(
             "776879206d757374207765207375666665722077697468206563647361");
         std::vector<uint8_t> sdata(58 - rdata.size(), 33);
-        tests.push_back(
-            TestBuilder(CScript() << OP_CHECKSIG,
-                        "recovered-pubkey CHECKSIG with 64-byte DER",
-                        SCRIPT_VERIFY_STRICTENC)
-                .PushECDSASigFromParts(rdata, sdata)
-                .PushECDSARecoveredPubKey(rdata, sdata));
         tests.push_back(
             TestBuilder(
                 CScript() << OP_CHECKSIG,
@@ -2411,14 +2316,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
         std::vector<uint8_t> rdata = ParseHex(
             "776879206d757374207765207375666665722077697468206563647361");
         std::vector<uint8_t> sdata(58 - rdata.size(), 33);
-        tests.push_back(
-            TestBuilder(CScript()
-                            << OP_1 << OP_SWAP << OP_1 << OP_CHECKMULTISIG,
-                        "recovered-pubkey CHECKMULTISIG with 64-byte DER",
-                        SCRIPT_VERIFY_STRICTENC)
-                .Num(0)
-                .PushECDSASigFromParts(rdata, sdata)
-                .PushECDSARecoveredPubKey(rdata, sdata));
         tests.push_back(
             TestBuilder(
                 CScript() << OP_1 << OP_SWAP << OP_1 << OP_CHECKMULTISIG,
