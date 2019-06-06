@@ -121,10 +121,9 @@ bool CCrypter::Decrypt(const std::vector<uint8_t> &vchCiphertext,
     return true;
 }
 
-static bool EncryptSecret(const CKeyingMaterial &vMasterKey,
-                          const CKeyingMaterial &vchPlaintext,
-                          const uint256 &nIV,
-                          std::vector<uint8_t> &vchCiphertext) {
+bool EncryptSecret(const CKeyingMaterial &vMasterKey,
+                   const CKeyingMaterial &vchPlaintext, const uint256 &nIV,
+                   std::vector<uint8_t> &vchCiphertext) {
     CCrypter cKeyCrypter;
     std::vector<uint8_t> chIV(WALLET_CRYPTO_IV_SIZE);
     memcpy(chIV.data(), &nIV, WALLET_CRYPTO_IV_SIZE);
@@ -135,9 +134,9 @@ static bool EncryptSecret(const CKeyingMaterial &vMasterKey,
                                vchCiphertext);
 }
 
-static bool DecryptSecret(const CKeyingMaterial &vMasterKey,
-                          const std::vector<uint8_t> &vchCiphertext,
-                          const uint256 &nIV, CKeyingMaterial &vchPlaintext) {
+bool DecryptSecret(const CKeyingMaterial &vMasterKey,
+                   const std::vector<uint8_t> &vchCiphertext,
+                   const uint256 &nIV, CKeyingMaterial &vchPlaintext) {
     CCrypter cKeyCrypter;
     std::vector<uint8_t> chIV(WALLET_CRYPTO_IV_SIZE);
     memcpy(chIV.data(), &nIV, WALLET_CRYPTO_IV_SIZE);
@@ -148,9 +147,9 @@ static bool DecryptSecret(const CKeyingMaterial &vMasterKey,
                                *((CKeyingMaterial *)&vchPlaintext));
 }
 
-static bool DecryptKey(const CKeyingMaterial &vMasterKey,
-                       const std::vector<uint8_t> &vchCryptedSecret,
-                       const CPubKey &vchPubKey, CKey &key) {
+bool DecryptKey(const CKeyingMaterial &vMasterKey,
+                const std::vector<uint8_t> &vchCryptedSecret,
+                const CPubKey &vchPubKey, CKey &key) {
     CKeyingMaterial vchSecret;
     if (!DecryptSecret(vMasterKey, vchCryptedSecret, vchPubKey.GetHash(),
                        vchSecret)) {
@@ -163,189 +162,4 @@ static bool DecryptKey(const CKeyingMaterial &vMasterKey,
 
     key.Set(vchSecret.begin(), vchSecret.end(), vchPubKey.IsCompressed());
     return key.VerifyPubKey(vchPubKey);
-}
-
-bool CCryptoKeyStore::SetCrypted() {
-    LOCK(cs_KeyStore);
-    if (fUseCrypto) {
-        return true;
-    }
-    if (!mapKeys.empty()) {
-        return false;
-    }
-    fUseCrypto = true;
-    return true;
-}
-
-bool CCryptoKeyStore::IsLocked() const {
-    if (!IsCrypted()) {
-        return false;
-    }
-    LOCK(cs_KeyStore);
-    return vMasterKey.empty();
-}
-
-bool CCryptoKeyStore::Lock() {
-    if (!SetCrypted()) {
-        return false;
-    }
-
-    {
-        LOCK(cs_KeyStore);
-        vMasterKey.clear();
-    }
-
-    NotifyStatusChanged(this);
-    return true;
-}
-
-bool CCryptoKeyStore::Unlock(const CKeyingMaterial &vMasterKeyIn,
-                             bool accept_no_keys) {
-    {
-        LOCK(cs_KeyStore);
-        if (!SetCrypted()) {
-            return false;
-        }
-
-        // Always pass when there are no encrypted keys
-        bool keyPass = mapCryptedKeys.empty();
-        bool keyFail = false;
-        CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
-        for (; mi != mapCryptedKeys.end(); ++mi) {
-            const CPubKey &vchPubKey = (*mi).second.first;
-            const std::vector<uint8_t> &vchCryptedSecret = (*mi).second.second;
-            CKey key;
-            if (!DecryptKey(vMasterKeyIn, vchCryptedSecret, vchPubKey, key)) {
-                keyFail = true;
-                break;
-            }
-            keyPass = true;
-            if (fDecryptionThoroughlyChecked) {
-                break;
-            }
-        }
-        if (keyPass && keyFail) {
-            LogPrintf("The wallet is probably corrupted: Some keys decrypt but "
-                      "not all.\n");
-            assert(false);
-        }
-        if (keyFail || (!keyPass && !accept_no_keys)) {
-            return false;
-        }
-        vMasterKey = vMasterKeyIn;
-        fDecryptionThoroughlyChecked = true;
-    }
-    NotifyStatusChanged(this);
-    return true;
-}
-
-bool CCryptoKeyStore::AddKeyPubKey(const CKey &key, const CPubKey &pubkey) {
-    LOCK(cs_KeyStore);
-    if (!IsCrypted()) {
-        return FillableSigningProvider::AddKeyPubKey(key, pubkey);
-    }
-
-    if (IsLocked()) {
-        return false;
-    }
-
-    std::vector<uint8_t> vchCryptedSecret;
-    CKeyingMaterial vchSecret(key.begin(), key.end());
-    if (!EncryptSecret(vMasterKey, vchSecret, pubkey.GetHash(),
-                       vchCryptedSecret)) {
-        return false;
-    }
-
-    if (!AddCryptedKey(pubkey, vchCryptedSecret)) {
-        return false;
-    }
-    return true;
-}
-
-bool CCryptoKeyStore::AddCryptedKey(
-    const CPubKey &vchPubKey, const std::vector<uint8_t> &vchCryptedSecret) {
-    LOCK(cs_KeyStore);
-    if (!SetCrypted()) {
-        return false;
-    }
-
-    mapCryptedKeys[vchPubKey.GetID()] = make_pair(vchPubKey, vchCryptedSecret);
-    ImplicitlyLearnRelatedKeyScripts(vchPubKey);
-    return true;
-}
-
-bool CCryptoKeyStore::HaveKey(const CKeyID &address) const {
-    LOCK(cs_KeyStore);
-    if (!IsCrypted()) {
-        return FillableSigningProvider::HaveKey(address);
-    }
-    return mapCryptedKeys.count(address) > 0;
-}
-
-bool CCryptoKeyStore::GetKey(const CKeyID &address, CKey &keyOut) const {
-    LOCK(cs_KeyStore);
-    if (!IsCrypted()) {
-        return FillableSigningProvider::GetKey(address, keyOut);
-    }
-
-    CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
-    if (mi != mapCryptedKeys.end()) {
-        const CPubKey &vchPubKey = (*mi).second.first;
-        const std::vector<uint8_t> &vchCryptedSecret = (*mi).second.second;
-        return DecryptKey(vMasterKey, vchCryptedSecret, vchPubKey, keyOut);
-    }
-    return false;
-}
-
-bool CCryptoKeyStore::GetPubKey(const CKeyID &address,
-                                CPubKey &vchPubKeyOut) const {
-    LOCK(cs_KeyStore);
-    if (!IsCrypted()) {
-        return FillableSigningProvider::GetPubKey(address, vchPubKeyOut);
-    }
-
-    CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
-    if (mi != mapCryptedKeys.end()) {
-        vchPubKeyOut = (*mi).second.first;
-        return true;
-    }
-
-    // Check for watch-only pubkeys
-    return FillableSigningProvider::GetPubKey(address, vchPubKeyOut);
-}
-
-std::set<CKeyID> CCryptoKeyStore::GetKeys() const {
-    LOCK(cs_KeyStore);
-    if (!IsCrypted()) {
-        return FillableSigningProvider::GetKeys();
-    }
-    std::set<CKeyID> set_address;
-    for (const auto &mi : mapCryptedKeys) {
-        set_address.insert(mi.first);
-    }
-    return set_address;
-}
-
-bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial &vMasterKeyIn) {
-    LOCK(cs_KeyStore);
-    if (!mapCryptedKeys.empty() || IsCrypted()) {
-        return false;
-    }
-
-    fUseCrypto = true;
-    for (const KeyMap::value_type &mKey : mapKeys) {
-        const CKey &key = mKey.second;
-        CPubKey vchPubKey = key.GetPubKey();
-        CKeyingMaterial vchSecret(key.begin(), key.end());
-        std::vector<uint8_t> vchCryptedSecret;
-        if (!EncryptSecret(vMasterKeyIn, vchSecret, vchPubKey.GetHash(),
-                           vchCryptedSecret)) {
-            return false;
-        }
-        if (!AddCryptedKey(vchPubKey, vchCryptedSecret)) {
-            return false;
-        }
-    }
-    mapKeys.clear();
-    return true;
 }

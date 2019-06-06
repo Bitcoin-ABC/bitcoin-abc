@@ -37,6 +37,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/signals2/signal.hpp>
+
 //! Explicitly unload and delete the wallet.
 //! Blocks the current thread after signaling the unload intent so that all
 //! wallet clients release the wallet.
@@ -756,10 +758,34 @@ class WalletRescanReserver;
  * transactions and balances, and provides the ability to create new
  * transactions.
  */
-class CWallet final : public CCryptoKeyStore,
+class CWallet final : public FillableSigningProvider,
                       private interfaces::Chain::Notifications {
 private:
-    static std::atomic<bool> fFlushScheduled;
+    CKeyingMaterial vMasterKey GUARDED_BY(cs_KeyStore);
+
+    //! if fUseCrypto is true, mapKeys must be empty
+    //! if fUseCrypto is false, vMasterKey must be empty
+    std::atomic<bool> fUseCrypto;
+
+    //! keeps track of whether Unlock has run a thorough check before
+    bool fDecryptionThoroughlyChecked;
+
+    using CryptedKeyMap =
+        std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>;
+
+    bool SetCrypted();
+
+    //! will encrypt previously unencrypted keys
+    bool EncryptKeys(CKeyingMaterial &vMasterKeyIn);
+
+    bool Unlock(const CKeyingMaterial &vMasterKeyIn,
+                bool accept_no_keys = false);
+    CryptedKeyMap mapCryptedKeys GUARDED_BY(cs_KeyStore);
+
+    bool AddCryptedKeyInner(const CPubKey &vchPubKey,
+                            const std::vector<uint8_t> &vchCryptedSecret);
+    bool AddKeyPubKeyInner(const CKey &key, const CPubKey &pubkey);
+
     std::atomic<bool> fAbortRescan{false};
     // controlled by WalletRescanReserver
     std::atomic<bool> fScanningWallet{false};
@@ -969,7 +995,8 @@ public:
     CWallet(const CChainParams &chainParamsIn, interfaces::Chain *chain,
             const WalletLocation &location,
             std::unique_ptr<WalletDatabase> databaseIn)
-        : m_chain(chain), m_location(location), database(std::move(databaseIn)),
+        : fUseCrypto(false), fDecryptionThoroughlyChecked(false),
+          m_chain(chain), m_location(location), database(std::move(databaseIn)),
           chainParams(chainParamsIn) {}
 
     ~CWallet() {
@@ -978,6 +1005,10 @@ public:
         delete encrypted_batch;
         encrypted_batch = nullptr;
     }
+
+    bool IsCrypted() const { return fUseCrypto; }
+    bool IsLocked() const;
+    bool Lock();
 
     std::map<TxId, CWalletTx> mapWallet GUARDED_BY(cs_wallet);
 
@@ -1096,9 +1127,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
     bool LoadKey(const CKey &key, const CPubKey &pubkey) {
-        return CCryptoKeyStore::AddKeyPubKey(key, pubkey);
+        return AddKeyPubKeyInner(key, pubkey);
     }
-
     //! Load metadata (used by LoadWallet)
     void LoadKeyMetadata(const CKeyID &keyID, const CKeyMetadata &metadata)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
@@ -1120,11 +1150,15 @@ public:
 
     //! Adds an encrypted key to the store, and saves it to disk.
     bool AddCryptedKey(const CPubKey &vchPubKey,
-                       const std::vector<uint8_t> &vchCryptedSecret) override;
+                       const std::vector<uint8_t> &vchCryptedSecret);
     //! Adds an encrypted key to the store, without saving it to disk (used by
     //! LoadWallet)
     bool LoadCryptedKey(const CPubKey &vchPubKey,
                         const std::vector<uint8_t> &vchCryptedSecret);
+    bool GetKey(const CKeyID &address, CKey &keyOut) const override;
+    bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const override;
+    bool HaveKey(const CKeyID &address) const override;
+    std::set<CKeyID> GetKeys() const override;
     bool AddCScript(const CScript &redeemScript) override;
     bool LoadCScript(const CScript &redeemScript);
 
@@ -1453,6 +1487,12 @@ public:
 
     /** Keypool has new keys */
     boost::signals2::signal<void()> NotifyCanGetAddressesChanged;
+
+    /**
+     * Wallet status (encrypted, locked) changed.
+     * Note: Called without locks held.
+     */
+    boost::signals2::signal<void(CWallet *wallet)> NotifyStatusChanged;
 
     /** Inquire whether this wallet broadcasts transactions. */
     bool GetBroadcastTransactions() const { return fBroadcastTransactions; }
