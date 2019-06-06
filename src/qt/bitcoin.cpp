@@ -10,6 +10,7 @@
 
 #include <chainparams.h>
 #include <config.h>
+#include <fs.h>
 #include <httprpc.h>
 #include <init.h>
 #include <interfaces/handler.h>
@@ -35,8 +36,6 @@
 #include <qt/paymentserver.h>
 #include <qt/walletmodel.h>
 #endif
-
-#include <boost/filesystem/operations.hpp>
 
 #include <QApplication>
 #include <QDebug>

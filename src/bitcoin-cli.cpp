@@ -16,8 +16,6 @@
 #include <util.h>
 #include <utilstrencodings.h>
 
-#include <boost/filesystem/operations.hpp>
-
 #include <event2/buffer.h>
 #include <event2/keyvalq_struct.h>
 

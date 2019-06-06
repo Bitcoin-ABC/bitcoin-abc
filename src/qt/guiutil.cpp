@@ -41,7 +41,6 @@
 #include <shlwapi.h>
 #endif
 
-#include <boost/filesystem/fstream.hpp>
 #include <boost/scoped_array.hpp>
 
 #include <QAbstractItemView>
