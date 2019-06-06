@@ -22,6 +22,7 @@
 #include <timedata.h>
 #include <util/system.h>
 #include <validation.h>
+#include <wallet/ismine.h>
 
 #include <cstdint>
 #include <string>

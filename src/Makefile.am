@@ -216,7 +216,6 @@ BITCOIN_CORE_H = \
   rwcollection.h \
   scheduler.h \
   script/descriptor.h \
-  script/ismine.h \
   script/scriptcache.h \
   script/sigcache.h \
   script/sign.h \
@@ -263,6 +262,7 @@ BITCOIN_CORE_H = \
   wallet/db.h \
   wallet/rpcdump.h \
   wallet/fees.h \
+  wallet/ismine.h \
   wallet/load.h \
   wallet/psbtwallet.h \
   wallet/rpcwallet.h \
@@ -378,6 +378,7 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/coinselection.cpp \
   wallet/db.cpp \
   wallet/fees.cpp \
+  wallet/ismine.cpp \
   wallet/load.cpp \
   wallet/psbtwallet.cpp \
   wallet/rpcdump.cpp \
@@ -517,7 +518,6 @@ libbitcoin_common_a_SOURCES = \
   rpc/util.cpp \
   scheduler.cpp \
   script/descriptor.cpp \
-  script/ismine.cpp \
   script/sign.cpp \
   script/standard.cpp \
   versionbitsinfo.cpp \

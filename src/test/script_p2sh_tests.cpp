@@ -7,7 +7,6 @@
 #include <keystore.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
-#include <script/ismine.h>
 #include <script/script.h>
 #include <script/script_error.h>
 #include <script/sign.h>
@@ -98,8 +97,6 @@ BOOST_AUTO_TEST_CASE(sign) {
         txTo[i].vout.resize(1);
         txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
         txTo[i].vout[0].nValue = SATOSHI;
-        BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey),
-                            strprintf("IsMine %d", i));
     }
 
     for (int i = 0; i < 8; i++) {
@@ -207,8 +204,6 @@ BOOST_AUTO_TEST_CASE(set) {
         txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
         txTo[i].vout[0].nValue = 1 * CENT;
         txTo[i].vout[0].scriptPubKey = inner[i];
-        BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey),
-                            strprintf("IsMine %d", i));
     }
     for (int i = 0; i < 4; i++) {
         BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction(txFrom),

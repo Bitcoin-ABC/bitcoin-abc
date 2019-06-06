@@ -17,6 +17,7 @@ add_library(wallet
 	crypter.cpp
 	db.cpp
 	fees.cpp
+	ismine.cpp
 	load.cpp
 	psbtwallet.cpp
 	rpcdump.cpp

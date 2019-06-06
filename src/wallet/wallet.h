@@ -12,7 +12,6 @@
 #include <interfaces/handler.h>
 #include <outputtype.h>
 #include <primitives/blockhash.h>
-#include <script/ismine.h>
 #include <script/sign.h>
 #include <streams.h>
 #include <tinyformat.h>
@@ -22,6 +21,7 @@
 #include <validationinterface.h>
 #include <wallet/coinselection.h>
 #include <wallet/crypter.h>
+#include <wallet/ismine.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/walletdb.h>
 #include <wallet/walletutil.h>

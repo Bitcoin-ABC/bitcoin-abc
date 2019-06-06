@@ -446,7 +446,6 @@ add_library(script
 	script/bitfield.cpp
 	script/descriptor.cpp
 	script/interpreter.cpp
-	script/ismine.cpp
 	script/script.cpp
 	script/script_error.cpp
 	script/sigencoding.cpp

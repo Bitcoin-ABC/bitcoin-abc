@@ -54,6 +54,7 @@ if(BUILD_BITCOIN_WALLET)
 		../wallet/test/db_tests.cpp
 		../wallet/test/coinselector_tests.cpp
 		../wallet/test/init_tests.cpp
+		../wallet/test/ismine_tests.cpp
 		../wallet/test/psbt_wallet_tests.cpp
 		../wallet/test/wallet_tests.cpp
 		../wallet/test/walletdb_tests.cpp

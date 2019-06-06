@@ -8,7 +8,6 @@
 #include <amount.h>                 // For Amount
 #include <primitives/transaction.h> // For CTxOut
 #include <pubkey.h> // For CKeyID and CScriptID (definitions needed in CTxDestination instantiation)
-#include <script/ismine.h>             // For isminefilter, isminetype
 #include <script/standard.h>           // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString
 #include <ui_interface.h>              // For ChangeType
@@ -29,6 +28,10 @@ class CMutableTransaction;
 class COutPoint;
 class CTransaction;
 class CWallet;
+enum isminetype : unsigned int;
+enum class FeeReason;
+typedef uint8_t isminefilter;
+
 enum class OutputType;
 struct CRecipient;
 struct TxId;
