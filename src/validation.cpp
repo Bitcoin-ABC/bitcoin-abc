@@ -1596,12 +1596,6 @@ static uint32_t GetNextBlockScriptFlags(const Config &config,
         flags |= SCRIPT_VERIFY_CLEANSTACK;
     }
 
-    // Permanently and retroactively, we start accepting
-    // 65/64-byte Schnorr signatures in CHECKSIG and CHECKDATASIG respectively,
-    // and their verify variants. We also stop accepting 65 byte signatures in
-    // CHECKMULTISIG and its verify variant.
-    flags |= SCRIPT_ENABLE_SCHNORR;
-
     // We make sure this node will have replay protection during the next hard
     // fork.
     if (IsReplayProtectionEnabled(config, pindex)) {

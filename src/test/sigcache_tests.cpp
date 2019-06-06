@@ -44,7 +44,7 @@ static const uint32_t TEST_INVARIANT_FLAGS =
  * script/sigcache.cpp will affect the cache entry. Here we will thus enforce
  * that certain flags are omitted from that sigcache.cpp list.
  */
-static const uint32_t TEST_VARIANT_FLAGS = SCRIPT_ENABLE_SCHNORR;
+static const uint32_t TEST_VARIANT_FLAGS = 0;
 
 /**
  * Sigcache is only accessible via CachingTransactionSignatureChecker

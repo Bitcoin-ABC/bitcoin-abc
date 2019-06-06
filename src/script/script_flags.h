@@ -103,11 +103,6 @@ enum {
     //
     SCRIPT_VERIFY_CHECKDATASIG_SIGOPS = (1U << 18),
 
-    // Are Schnorr signatures enabled for OP_CHECK(DATA)SIG(VERIFY) and
-    // 65-byte signatures banned for OP_CHECKMULTISIG(VERIFY)?
-    //
-    SCRIPT_ENABLE_SCHNORR = (1U << 19),
-
     // The exception to CLEANSTACK and P2SH for the recovery of coins sent
     // to p2sh segwit addresses is not allowed.
     SCRIPT_DISALLOW_SEGWIT_RECOVERY = (1U << 20),
