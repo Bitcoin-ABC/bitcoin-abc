@@ -7,10 +7,10 @@
 #include <script/script_error.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
+#include <script/signingprovider.h>
 
 #include <core_io.h>
 #include <key.h>
-#include <keystore.h>
 #include <rpc/util.h>
 #include <streams.h>
 #include <util/strencodings.h>

@@ -6,11 +6,11 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <key.h>
-#include <keystore.h>
 #include <policy/policy.h>
 #include <script/scriptcache.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
+#include <script/signingprovider.h>
 #include <txmempool.h>
 #include <validation.h>
 

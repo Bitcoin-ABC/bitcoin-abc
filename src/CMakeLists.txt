@@ -431,7 +431,6 @@ add_library(common
 	core_write.cpp
 	key.cpp
 	key_io.cpp
-	keystore.cpp
 	merkleblock.cpp
 	net_permissions.cpp
 	netaddress.cpp
@@ -459,6 +458,7 @@ add_library(script
 	script/script_error.cpp
 	script/sigencoding.cpp
 	script/sign.cpp
+	script/signingprovider.cpp
 	script/standard.cpp
 )
 

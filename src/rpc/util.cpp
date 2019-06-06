@@ -5,8 +5,8 @@
 #include <rpc/util.h>
 
 #include <key_io.h>
-#include <keystore.h>
 #include <pubkey.h>
+#include <script/signingprovider.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
 #include <util/string.h>
