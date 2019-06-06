@@ -13,8 +13,16 @@
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
 
-static Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
-                            Amount targetFee) {
+Amount GetRequiredFee(unsigned int nTxBytes) {
+    return GetConfig().GetMinFeePerKB().GetFee(nTxBytes);
+}
+
+Amount GetMinimumFee(unsigned int nTxBytes, const CCoinControl &coinControl,
+                     const CTxMemPool &pool) {
+    Amount targetFee = (coinControl.fOverrideFeeRate && coinControl.m_feerate)
+                           ? coinControl.m_feerate->GetFee(nTxBytes)
+                           : payTxFee.GetFeeCeiling(nTxBytes);
+
     Amount nFeeNeeded = targetFee;
     if (nFeeNeeded == Amount::zero()) {
         nFeeNeeded = pool.estimateFee().GetFeeCeiling(nTxBytes);
@@ -26,8 +34,7 @@ static Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
     }
 
     // Prevent user from paying a fee below minRelayTxFee or minTxFee.
-    nFeeNeeded =
-        std::max(nFeeNeeded, GetConfig().GetMinFeePerKB().GetFee(nTxBytes));
+    nFeeNeeded = std::max(nFeeNeeded, GetRequiredFee(nTxBytes));
 
     // But always obey the maximum.
     if (nFeeNeeded > maxTxFee) {
@@ -35,19 +42,4 @@ static Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
     }
 
     return nFeeNeeded;
-}
-
-Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool) {
-    // payTxFee is the user-set global for desired feerate.
-    return GetMinimumFee(nTxBytes, pool, payTxFee.GetFeeCeiling(nTxBytes));
-}
-
-Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
-                     const CCoinControl &coinControl) {
-    if (coinControl.fOverrideFeeRate && coinControl.m_feerate) {
-        return GetMinimumFee(nTxBytes, pool,
-                             coinControl.m_feerate->GetFee(nTxBytes));
-    } else {
-        return GetMinimumFee(nTxBytes, pool);
-    }
 }

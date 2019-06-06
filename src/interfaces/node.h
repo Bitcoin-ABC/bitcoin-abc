@@ -155,9 +155,6 @@ public:
     virtual bool getNetworkActive() = 0;
 
     //! Get minimum fee.
-    virtual Amount getMinimumFee(unsigned int tx_bytes) = 0;
-
-    //! Get minimum fee with coin control.
     virtual Amount getMinimumFee(unsigned int tx_bytes,
                                  const CCoinControl &coin_control) = 0;
 

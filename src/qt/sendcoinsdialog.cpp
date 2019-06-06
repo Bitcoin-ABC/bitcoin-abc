@@ -198,7 +198,7 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this,
                 SLOT(coinControlUpdateLabels()));
 
-        ui->customFee->setSingleStep(model->node().getMinimumFee(1000));
+        ui->customFee->setSingleStep(GetRequiredFee(1000));
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
@@ -644,7 +644,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
 
 void SendCoinsDialog::setMinimumFee() {
     ui->radioCustomPerKilobyte->setChecked(true);
-    ui->customFee->setValue(model->node().getMinimumFee(1000));
+    ui->customFee->setValue(GetRequiredFee(1000));
 }
 
 void SendCoinsDialog::updateFeeSectionControls() {
@@ -682,7 +682,7 @@ void SendCoinsDialog::updateMinFeeLabel() {
             tr("Pay only the required fee of %1")
                 .arg(BitcoinUnits::formatWithUnit(
                          model->getOptionsModel()->getDisplayUnit(),
-                         model->node().getMinimumFee(1000)) +
+                         GetRequiredFee(1000)) +
                      "/kB"));
     }
 }
@@ -700,12 +700,16 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         return;
     }
 
-    CFeeRate feeRate = model->node().estimateSmartFee();
+    CCoinControl coin_control;
+    updateCoinControlState(coin_control);
+    // Explicitly use only fee estimation rate for smart fee labels
+    coin_control.m_feerate.reset();
+
+    CFeeRate feeRate(model->node().getMinimumFee(1000, coin_control));
 
     ui->labelSmartFee->setText(
-        BitcoinUnits::formatWithUnit(
-            model->getOptionsModel()->getDisplayUnit(),
-            std::max(feeRate.GetFeePerK(), model->node().getMinimumFee(1000))) +
+        BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
+                                     feeRate.GetFeePerK()) +
         "/kB");
     // not enough data => minfee
     if (feeRate <= CFeeRate(Amount::zero())) {

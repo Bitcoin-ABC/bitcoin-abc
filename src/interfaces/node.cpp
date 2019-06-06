@@ -207,16 +207,11 @@ namespace {
         bool getNetworkActive() override {
             return g_connman && g_connman->GetNetworkActive();
         }
-        Amount getMinimumFee(unsigned int tx_bytes) override {
-            Amount result;
-            CHECK_WALLET(result = GetMinimumFee(tx_bytes, g_mempool));
-            return result;
-        }
         Amount getMinimumFee(unsigned int tx_bytes,
                              const CCoinControl &coin_control) override {
             Amount result;
             CHECK_WALLET(result =
-                             GetMinimumFee(tx_bytes, g_mempool, coin_control));
+                             GetMinimumFee(tx_bytes, coin_control, g_mempool));
             return result;
         }
         Amount getMaxTxFee() override { return ::maxTxFee; }

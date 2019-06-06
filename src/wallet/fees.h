@@ -13,15 +13,16 @@ class CCoinControl;
 class CTxMemPool;
 
 /**
+ * Return the minimum required fee taking into account the
+ * floating relay fee and user set minimum transaction fee
+ */
+Amount GetRequiredFee(unsigned int nTxBytes);
+
+/**
  * Estimate the minimum fee considering user set parameters
  * and the required fee
  */
-Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool);
-
-/**
- * Estimate the minimum fee considering overridden fee rate from coin control
- */
-Amount GetMinimumFee(unsigned int nTxBytes, const CTxMemPool &pool,
-                     const CCoinControl &coinControl);
+Amount GetMinimumFee(unsigned int nTxBytes, const CCoinControl &coinControl,
+                     const CTxMemPool &pool);
 
 #endif // BITCOIN_WALLET_FEES_H

@@ -3115,7 +3115,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 vin.scriptSig = CScript();
             }
 
-            Amount nFeeNeeded = GetMinimumFee(nBytes, g_mempool, coinControl);
+            Amount nFeeNeeded = GetMinimumFee(nBytes, coinControl, g_mempool);
 
             // If we made it here and we aren't even able to meet the relay fee
             // on the next pass, give up because we must be at the maximum
@@ -3142,7 +3142,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 // tx size) and so we should add a change output. Only try this
                 // once.
                 Amount fee_needed_for_change = GetMinimumFee(
-                    change_prototype_size, g_mempool, coinControl);
+                    change_prototype_size, coinControl, g_mempool);
                 Amount minimum_value_for_change =
                     GetDustThreshold(change_prototype_txout, dustRelayFee);
                 Amount max_excess_fee =
