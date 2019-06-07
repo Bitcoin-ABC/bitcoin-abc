@@ -32,8 +32,6 @@ SET_DOC_OPTIONAL = set(['-benchmark',
                         '-forcecompactdb',
                         # TODO remove after the Nov 2019 upgrade
                         '-gravitonactivationtime',
-                        # TODO remove after the may 2019 fork
-                        '-greatwallactivationtime',
                         '-h',
                         '-help',
                         '-parkdeepreorg',

@@ -389,11 +389,6 @@ static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
     return IsMagneticAnomalyEnabled(config, chainActive.Tip());
 }
 
-static bool IsGreatWallEnabledForCurrentBlock(const Config &config) {
-    AssertLockHeld(cs_main);
-    return IsGreatWallEnabled(config, chainActive.Tip());
-}
-
 // Command-line argument "-replayprotectionactivationtime=<timestamp>" will
 // cause the node to switch to replay protected SigHash ForkID value when the
 // median timestamp of the previous 11 blocks is greater than or equal to

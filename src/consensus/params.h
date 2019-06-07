@@ -36,8 +36,6 @@ struct Params {
     int daaHeight;
     /** Block height at which the magnetic anomaly activation becomes active */
     int magneticAnomalyHeight;
-    /** Unix time used for MTP activation of 15 May 2019 12:00:00 UTC upgrade */
-    int greatWallActivationTime;
     /** Unix time used for MTP activation of Nov 15 2019 12:00:00 UTC upgrade */
     int gravitonActivationTime;
     /** Proof of work parameters */

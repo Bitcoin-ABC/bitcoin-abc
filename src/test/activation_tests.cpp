@@ -23,30 +23,6 @@ static void SetMTP(std::array<CBlockIndex, 12> &blocks, int64_t mtp) {
     assert(blocks.back().GetMedianTimePast() == mtp);
 }
 
-BOOST_AUTO_TEST_CASE(isgreatwallenabled) {
-    DummyConfig config;
-    CBlockIndex prev;
-
-    const auto activation =
-        config.GetChainParams().GetConsensus().greatWallActivationTime;
-
-    BOOST_CHECK(!IsGreatWallEnabled(config, nullptr));
-
-    std::array<CBlockIndex, 12> blocks;
-    for (size_t i = 1; i < blocks.size(); ++i) {
-        blocks[i].pprev = &blocks[i - 1];
-    }
-
-    SetMTP(blocks, activation - 1);
-    BOOST_CHECK(!IsGreatWallEnabled(config, &blocks.back()));
-
-    SetMTP(blocks, activation);
-    BOOST_CHECK(IsGreatWallEnabled(config, &blocks.back()));
-
-    SetMTP(blocks, activation + 1);
-    BOOST_CHECK(IsGreatWallEnabled(config, &blocks.back()));
-}
-
 BOOST_AUTO_TEST_CASE(isgravitonenabled) {
     DummyConfig config;
     CBlockIndex prev;

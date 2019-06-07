@@ -22,9 +22,6 @@ bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight);
 bool IsMagneticAnomalyEnabled(const Config &config,
                               const CBlockIndex *pindexPrev);
 
-/** Check if May 15th, 2019 protocol upgrade has activated. */
-bool IsGreatWallEnabled(const Config &config, const CBlockIndex *pindexPrev);
-
 /** Check if Nov 15th, 2019 protocol upgrade has activated. */
 bool IsGravitonEnabled(const Config &config, const CBlockIndex *pindexPrev);
 

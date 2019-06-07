@@ -121,9 +121,6 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 556766;
 
-        // Wed, 15 May 2019 12:00:00 UTC hard fork
-        consensus.greatWallActivationTime = 1557921600;
-
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
         consensus.gravitonActivationTime = 1573819200;
 
@@ -289,9 +286,6 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 1267996;
 
-        // Wed, 15 May 2019 12:00:00 UTC hard fork
-        consensus.greatWallActivationTime = 1557921600;
-
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
         consensus.gravitonActivationTime = 1573819200;
 
@@ -408,9 +402,6 @@ public:
 
         // November 15, 2018 hard fork is always on on regtest.
         consensus.magneticAnomalyHeight = 0;
-
-        // Wed, 15 May 2019 12:00:00 UTC hard fork
-        consensus.greatWallActivationTime = 1557921600;
 
         // Nov 15, 2019 12:00:00 UTC protocol upgrade
         consensus.gravitonActivationTime = 1573819200;
