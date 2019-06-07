@@ -200,6 +200,10 @@ struct PubkeyProvider {
      */
     virtual bool ToPrivateString(const SigningProvider &arg,
                                  std::string &out) const = 0;
+
+    /** Derive a private key, if private data is available in arg. */
+    virtual bool GetPrivKey(int pos, const SigningProvider &arg,
+                            CKey &key) const = 0;
 };
 
 class OriginPubkeyProvider final : public PubkeyProvider {
@@ -241,6 +245,10 @@ public:
         ret = "[" + OriginString() + "]" + std::move(sub);
         return true;
     }
+    bool GetPrivKey(int pos, const SigningProvider &arg,
+                    CKey &key) const override {
+        return m_provider->GetPrivKey(pos, arg, key);
+    }
 };
 
 /** An object representing a parsed constant public key in a descriptor. */
@@ -273,6 +281,10 @@ public:
         }
         ret = EncodeSecret(key);
         return true;
+    }
+    bool GetPrivKey(int pos, const SigningProvider &arg,
+                    CKey &key) const override {
+        return arg.GetKey(m_pubkey.GetID(), key);
     }
 };
 
@@ -325,20 +337,11 @@ public:
                    KeyOriginInfo &info) const override {
         if (key) {
             if (IsHardened()) {
-                CExtKey extkey;
-                if (!GetExtKey(arg, extkey)) {
+                CKey priv_key;
+                if (!GetPrivKey(pos, arg, priv_key)) {
                     return false;
                 }
-                for (auto entry : m_path) {
-                    extkey.Derive(extkey, entry);
-                }
-                if (m_derive == DeriveType::UNHARDENED) {
-                    extkey.Derive(extkey, pos);
-                }
-                if (m_derive == DeriveType::HARDENED) {
-                    extkey.Derive(extkey, pos | 0x80000000UL);
-                }
-                *key = extkey.Neuter().pubkey;
+                *key = priv_key.GetPubKey();
             } else {
                 // TODO: optimize by caching
                 CExtPubKey extkey = m_extkey;
@@ -387,6 +390,24 @@ public:
                 out += '\'';
             }
         }
+        return true;
+    }
+    bool GetPrivKey(int pos, const SigningProvider &arg,
+                    CKey &key) const override {
+        CExtKey extkey;
+        if (!GetExtKey(arg, extkey)) {
+            return false;
+        }
+        for (auto entry : m_path) {
+            extkey.Derive(extkey, entry);
+        }
+        if (m_derive == DeriveType::UNHARDENED) {
+            extkey.Derive(extkey, pos);
+        }
+        if (m_derive == DeriveType::HARDENED) {
+            extkey.Derive(extkey, pos | 0x80000000UL);
+        }
+        key = extkey.key;
         return true;
     }
 };
@@ -595,6 +616,22 @@ public:
         return ExpandHelper(pos, DUMMY_SIGNING_PROVIDER, &span, output_scripts,
                             out, nullptr) &&
                span.size() == 0;
+    }
+
+    void ExpandPrivate(int pos, const SigningProvider &provider,
+                       FlatSigningProvider &out) const final {
+        for (const auto &p : m_pubkey_args) {
+            CKey key;
+            if (!p->GetPrivKey(pos, provider, key)) {
+                continue;
+            }
+            out.keys.emplace(key.GetPubKey().GetID(), key);
+        }
+        if (m_subdescriptor_arg) {
+            FlatSigningProvider subprovider;
+            m_subdescriptor_arg->ExpandPrivate(pos, provider, subprovider);
+            out = Merge(out, subprovider);
+        }
     }
 };
 
