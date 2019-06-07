@@ -31,7 +31,7 @@ class BaseSignatureChecker {
 public:
     virtual bool VerifySignature(const std::vector<uint8_t> &vchSig,
                                  const CPubKey &vchPubKey,
-                                 const uint256 &sighash, uint32_t flags) const;
+                                 const uint256 &sighash) const;
 
     virtual bool CheckSig(const std::vector<uint8_t> &vchSigIn,
                           const std::vector<uint8_t> &vchPubKey,
