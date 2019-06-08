@@ -390,6 +390,82 @@ public:
         return *this;
     }
 
+    TestBuilder &PushECDSARecoveredPubKey(
+        const std::vector<uint8_t> &rdata, const std::vector<uint8_t> &sdata,
+        SigHashType sigHashType = SigHashType(), Amount amount = Amount::zero(),
+        uint32_t sigFlags = SCRIPT_ENABLE_SIGHASH_FORKID) {
+        // This calculates a pubkey to verify with a given ECDSA transaction
+        // signature.
+        uint256 hash = SignatureHash(script, CTransaction(spendTx), 0,
+                                     sigHashType, amount, nullptr, sigFlags);
+
+        assert(rdata.size() <= 32);
+        assert(sdata.size() <= 32);
+
+        // Our strategy: make a 'key recovery' signature, and just try all the
+        // recovery IDs. If none of them work then this means the 'r' value
+        // doesn't have any corresponding point, and the caller should pick a
+        // different r.
+        std::vector<uint8_t> vchSig(65, 0);
+        std::copy(rdata.begin(), rdata.end(),
+                  vchSig.begin() + (33 - rdata.size()));
+        std::copy(sdata.begin(), sdata.end(),
+                  vchSig.begin() + (65 - sdata.size()));
+
+        CPubKey key;
+        for (uint8_t recid : {0, 1, 2, 3}) {
+            vchSig[0] = 31 + recid;
+            if (key.RecoverCompact(hash, vchSig)) {
+                // found a match
+                break;
+            }
+        }
+        if (!key.IsValid()) {
+            throw std::runtime_error(
+                std::string("Could not generate pubkey for ") + HexStr(rdata));
+        }
+        std::vector<uint8_t> vchKey(key.begin(), key.end());
+
+        DoPush(vchKey);
+        return *this;
+    }
+
+    TestBuilder &
+    PushECDSASigFromParts(const std::vector<uint8_t> &rdata,
+                          const std::vector<uint8_t> &sdata,
+                          SigHashType sigHashType = SigHashType()) {
+        // Constructs a DER signature out of variable-length r and s arrays &
+        // adds hashtype byte.
+        assert(rdata.size() <= 32);
+        assert(sdata.size() <= 32);
+        assert(rdata.size() > 0);
+        assert(sdata.size() > 0);
+        assert(rdata[0] != 0);
+        assert(sdata[0] != 0);
+        std::vector<uint8_t> vchSig{0x30, 0x00, 0x02};
+        if (rdata[0] & 0x80) {
+            vchSig.push_back(rdata.size() + 1);
+            vchSig.push_back(0);
+            vchSig.insert(vchSig.end(), rdata.begin(), rdata.end());
+        } else {
+            vchSig.push_back(rdata.size());
+            vchSig.insert(vchSig.end(), rdata.begin(), rdata.end());
+        }
+        vchSig.push_back(0x02);
+        if (sdata[0] & 0x80) {
+            vchSig.push_back(sdata.size() + 1);
+            vchSig.push_back(0);
+            vchSig.insert(vchSig.end(), sdata.begin(), sdata.end());
+        } else {
+            vchSig.push_back(sdata.size());
+            vchSig.insert(vchSig.end(), sdata.begin(), sdata.end());
+        }
+        vchSig[1] = vchSig.size() - 2;
+        vchSig.push_back(static_cast<uint8_t>(sigHashType.getRawSigHashType()));
+        DoPush(vchSig);
+        return *this;
+    }
+
     TestBuilder &Push(const CPubKey &pubkey) {
         DoPush(std::vector<uint8_t>(pubkey.begin(), pubkey.end()));
         return *this;
@@ -2258,6 +2334,101 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     allowSegwitRecoveryFlags)
             .Push(CScript() << OP_0 << ToByteVector(keys.pubkey0.GetID()))
             .ScriptError(SCRIPT_ERR_CLEANSTACK));
+
+    {
+        // There is a point with x = 7 + order but not x = 7.
+        // Since r = x mod order, this can have valid signatures, as
+        // demonstrated here.
+        std::vector<uint8_t> rdata{7};
+        std::vector<uint8_t> sdata{7};
+        tests.push_back(TestBuilder(CScript() << OP_CHECKSIG,
+                                    "recovered-pubkey CHECKSIG 7,7 (wrapped r)",
+                                    SCRIPT_VERIFY_STRICTENC)
+                            .PushECDSASigFromParts(rdata, sdata)
+                            .PushECDSARecoveredPubKey(rdata, sdata));
+    }
+    {
+        // Arbitrary r value that is 29 bytes long, to give room for varying
+        // the length of s:
+        std::vector<uint8_t> rdata = ParseHex(
+            "776879206d757374207765207375666665722077697468206563647361");
+        std::vector<uint8_t> sdata(58 - rdata.size() - 1, 33);
+        tests.push_back(
+            TestBuilder(CScript() << OP_CHECKSIG,
+                        "recovered-pubkey CHECKSIG with 63-byte DER",
+                        SCRIPT_VERIFY_STRICTENC)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata));
+        tests.push_back(
+            TestBuilder(
+                CScript() << OP_CHECKSIG,
+                "recovered-pubkey CHECKSIG with 63-byte DER; schnorrflag",
+                SCRIPT_VERIFY_STRICTENC | SCRIPT_ENABLE_SCHNORR)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata));
+    }
+    {
+        // 64-byte ECDSA sig works before schnorr flag activation, but
+        // not after.
+        std::vector<uint8_t> rdata = ParseHex(
+            "776879206d757374207765207375666665722077697468206563647361");
+        std::vector<uint8_t> sdata(58 - rdata.size(), 33);
+        tests.push_back(
+            TestBuilder(CScript() << OP_CHECKSIG,
+                        "recovered-pubkey CHECKSIG with 64-byte DER",
+                        SCRIPT_VERIFY_STRICTENC)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata));
+        tests.push_back(
+            TestBuilder(
+                CScript() << OP_CHECKSIG,
+                "recovered-pubkey CHECKSIG with 64-byte DER; schnorrflag",
+                SCRIPT_VERIFY_STRICTENC | SCRIPT_ENABLE_SCHNORR)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata)
+                .ScriptError(SCRIPT_ERR_EVAL_FALSE));
+    }
+    {
+        std::vector<uint8_t> rdata = ParseHex(
+            "776879206d757374207765207375666665722077697468206563647361");
+        std::vector<uint8_t> sdata(58 - rdata.size() + 1, 33);
+        tests.push_back(
+            TestBuilder(CScript() << OP_CHECKSIG,
+                        "recovered-pubkey CHECKSIG with 65-byte DER",
+                        SCRIPT_VERIFY_STRICTENC)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata));
+        tests.push_back(
+            TestBuilder(
+                CScript() << OP_CHECKSIG,
+                "recovered-pubkey CHECKSIG with 65-byte DER; schnorrflag",
+                SCRIPT_VERIFY_STRICTENC | SCRIPT_ENABLE_SCHNORR)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata));
+    }
+    {
+        // Try 64-byte ECDSA sig again, in multisig.
+        std::vector<uint8_t> rdata = ParseHex(
+            "776879206d757374207765207375666665722077697468206563647361");
+        std::vector<uint8_t> sdata(58 - rdata.size(), 33);
+        tests.push_back(
+            TestBuilder(CScript()
+                            << OP_1 << OP_SWAP << OP_1 << OP_CHECKMULTISIG,
+                        "recovered-pubkey CHECKMULTISIG with 64-byte DER",
+                        SCRIPT_VERIFY_STRICTENC)
+                .Num(0)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata));
+        tests.push_back(
+            TestBuilder(
+                CScript() << OP_1 << OP_SWAP << OP_1 << OP_CHECKMULTISIG,
+                "recovered-pubkey CHECKMULTISIG with 64-byte DER; schnorrflag",
+                SCRIPT_VERIFY_STRICTENC | SCRIPT_ENABLE_SCHNORR)
+                .Num(0)
+                .PushECDSASigFromParts(rdata, sdata)
+                .PushECDSARecoveredPubKey(rdata, sdata)
+                .ScriptError(SCRIPT_ERR_SIG_BADLENGTH));
+    }
 
     std::set<std::string> tests_set;
 
