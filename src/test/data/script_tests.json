@@ -1629,6 +1629,169 @@
 ["0x17 0x3014021077777777777777777777777777777777020001", "0 CHECKSIG NOT", "DERSIG", "SIG_DER", "Zero-length S is incorrectly encoded for DERSIG"],
 ["0x27 0x302402107777777777777777777777777777777702108777777777777777777777777777777701", "0 CHECKSIG NOT", "DERSIG", "SIG_DER", "Negative S is incorrectly encoded for DERSIG"],
 
+["Segwit recovery tests"],
+[
+    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "HASH160 0x14 0x17743beb429c55c942d2ec703b98c4d57c2df5c6 EQUAL",
+    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
+    "CLEANSTACK",
+    "v0 P2SH-P2WPKH with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "HASH160 0x14 0x17743beb429c55c942d2ec703b98c4d57c2df5c6 EQUAL",
+    "CLEANSTACK,P2SH",
+    "OK",
+    "Valid Segwit Recovery with v0 P2SH-P2WPKH"
+],
+[
+    "0 0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "HASH160 0x14 0x17743beb429c55c942d2ec703b98c4d57c2df5c6 EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "v0 P2SH-P2WPKH Segwit Recovery with extra stack item"
+],
+[
+    "0x22 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
+    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
+    "CLEANSTACK",
+    "v0 P2SH-P2WSH with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x22 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
+    "CLEANSTACK,P2SH",
+    "OK",
+    "Valid Segwit Recovery with v0 P2SH-P2WSH"
+],
+[
+    "0 0x22 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "v0 P2SH-P2WSH Segwit Recovery with extra stack item"
+],
+[
+    "0x03 0x00015a",
+    "HASH160 0x14 0x40b6941895022d458de8f4bbfe27f3aaa4fb9a74 EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Segwit Recovery with invalid witness program (too short)"
+],
+[
+    "0x04 0x00025a01",
+    "HASH160 0x14 0x86123d8e050333a605e434ecf73128d83815b36f EQUAL",
+    "CLEANSTACK,P2SH",
+    "OK",
+    "Segwit Recovery with valid witness program (min allowed length)"
+],
+[
+    "0x2a 0x00285a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2021222324252627",
+    "HASH160 0x14 0xdf7b93f88e83471b479fb219ae90e5b633d6b750 EQUAL",
+    "CLEANSTACK,P2SH",
+    "OK",
+    "Segwit Recovery with valid witness program (max allowed length)"
+],
+[
+    "0x2b 0x00295a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728",
+    "HASH160 0x14 0x13aa4fcfd630508e0794dca320cac172c5790aea EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Segwit Recovery with invalid witness program (too long)"
+],
+[
+    "0x22 0x60205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0x9b0c7017004d3818b7c833ddb3cb5547a22034d0 EQUAL",
+    "CLEANSTACK,P2SH",
+    "OK",
+    "Segwit Recovery with valid witness program (max allowed version)"
+],
+[
+    "0x22 0x4f205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0x97aa1e96e49ca6d744d7344f649dd9f94bcc35eb EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Segwit Recovery with invalid witness program (invalid version -1)"
+],
+[
+    "0x23 0x0111205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0x4b5321beb1c09f593ff3c02be4af21c7f949e101 EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Segwit Recovery with invalid witness program (invalid version 17)"
+],
+[
+    "0x23 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f51",
+    "HASH160 0x14 0x8eb812176c9e71732584123dd06d3246e659b199 EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Segwit Recovery with invalid witness program (more than 2 stack items)"
+],
+[
+    "0x04 0x00020000",
+    "HASH160 0x14 0x0e01bcfe7c6f3fd2fd8f81092299369744684733 EQUAL",
+    "CLEANSTACK,P2SH",
+    "OK",
+    "Valid segwit recovery, in spite of false value being left on stack (0)"
+],
+[
+    "0x04 0x00020080",
+    "HASH160 0x14 0x10ddc638cb26615f867dad80efacced9e73766bc EQUAL",
+    "CLEANSTACK,P2SH",
+    "OK",
+    "Valid segwit recovery, in spite of false value being left on stack (minus 0)"
+],
+[
+    "0x04 0x00020000",
+    "HASH160 0x14 0x0e01bcfe7c6f3fd2fd8f81092299369744684733 EQUAL",
+    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
+    "EVAL_FALSE",
+    "Otherwise valid segwit recovery, in spite of false value being left on stack (0), but with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x04 0x00020080",
+    "HASH160 0x14 0x10ddc638cb26615f867dad80efacced9e73766bc EQUAL",
+    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
+    "EVAL_FALSE",
+    "Otherwise valid segwit recovery, in spite of false value being left on stack (minus 0), but with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
+],
+[
+    "0x22 0x50205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "HASH160 0x14 0xbe02794ceede051da41b420e88a86fff2802af06 EQUAL",
+    "CLEANSTACK,P2SH",
+    "BAD_OPCODE",
+    "Segwit Recovery with invalid witness program (OP_RESERVED in version field)"
+],
+[
+    "0x17 0x01001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "HASH160 0x14 0x0718743e67c1ef4911e0421f206c5ff81755718e EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Segwit Recovery with invalid witness program (non-minimal push in version field)"
+],
+[
+    "0x05 0x004c0245aa",
+    "HASH160 0x14 0xd3ec673296c7fd7e1a9e53bfc36f414de303e905 EQUAL",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "Segwit Recovery with invalid witness program (non-minimal push in program field)"
+],
+[
+    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
+    "CLEANSTACK,P2SH",
+    "EVAL_FALSE",
+    "v0 P2SH-P2WPKH Segwit Recovery whose redeem script hash does not match P2SH output"
+],
+[
+    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
+    "1",
+    "CLEANSTACK,P2SH",
+    "CLEANSTACK",
+    "v0 P2SH-P2WPKH Segwit Recovery spending a non-P2SH output"
+],
+
 ["Automatically generated test cases"],
 [
     "0x47 0x3044022022127048516d473153d1f74e46e828496776752e3255f672f760a41e83f54e6f0220502956b739ed82aad916dc4a73e1fd55d02aad514b5211f1ba7d0dadf53c637901",
@@ -3156,167 +3319,6 @@
     "SCHNORR,SIGHASH_FORKID,STRICTENC",
     "EVAL_FALSE",
     "Schnorr P2PK with cheater forkID bit"
-],
-[
-    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
-    "HASH160 0x14 0x17743beb429c55c942d2ec703b98c4d57c2df5c6 EQUAL",
-    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
-    "CLEANSTACK",
-    "v0 P2SH-P2WPKH with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
-],
-[
-    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
-    "HASH160 0x14 0x17743beb429c55c942d2ec703b98c4d57c2df5c6 EQUAL",
-    "CLEANSTACK,P2SH",
-    "OK",
-    "Valid Segwit Recovery with v0 P2SH-P2WPKH"
-],
-[
-    "0 0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
-    "HASH160 0x14 0x17743beb429c55c942d2ec703b98c4d57c2df5c6 EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "v0 P2SH-P2WPKH Segwit Recovery with extra stack item"
-],
-[
-    "0x22 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
-    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
-    "CLEANSTACK",
-    "v0 P2SH-P2WSH with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
-],
-[
-    "0x22 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
-    "CLEANSTACK,P2SH",
-    "OK",
-    "Valid Segwit Recovery with v0 P2SH-P2WSH"
-],
-[
-    "0 0x22 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "v0 P2SH-P2WSH Segwit Recovery with extra stack item"
-],
-[
-    "0x03 0x00015a",
-    "HASH160 0x14 0x40b6941895022d458de8f4bbfe27f3aaa4fb9a74 EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "Segwit Recovery with invalid witness program (too short)"
-],
-[
-    "0x04 0x00025a01",
-    "HASH160 0x14 0x86123d8e050333a605e434ecf73128d83815b36f EQUAL",
-    "CLEANSTACK,P2SH",
-    "OK",
-    "Segwit Recovery with valid witness program (min allowed length)"
-],
-[
-    "0x2a 0x00285a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2021222324252627",
-    "HASH160 0x14 0xdf7b93f88e83471b479fb219ae90e5b633d6b750 EQUAL",
-    "CLEANSTACK,P2SH",
-    "OK",
-    "Segwit Recovery with valid witness program (max allowed length)"
-],
-[
-    "0x2b 0x00295a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728",
-    "HASH160 0x14 0x13aa4fcfd630508e0794dca320cac172c5790aea EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "Segwit Recovery with invalid witness program (too long)"
-],
-[
-    "0x22 0x60205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "HASH160 0x14 0x9b0c7017004d3818b7c833ddb3cb5547a22034d0 EQUAL",
-    "CLEANSTACK,P2SH",
-    "OK",
-    "Segwit Recovery with valid witness program (max allowed version)"
-],
-[
-    "0x22 0x4f205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "HASH160 0x14 0x97aa1e96e49ca6d744d7344f649dd9f94bcc35eb EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "Segwit Recovery with invalid witness program (invalid version -1)"
-],
-[
-    "0x23 0x0111205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "HASH160 0x14 0x4b5321beb1c09f593ff3c02be4af21c7f949e101 EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "Segwit Recovery with invalid witness program (invalid version 17)"
-],
-[
-    "0x23 0x00205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f51",
-    "HASH160 0x14 0x8eb812176c9e71732584123dd06d3246e659b199 EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "Segwit Recovery with invalid witness program (more than 2 stack items)"
-],
-[
-    "0x04 0x00020000",
-    "HASH160 0x14 0x0e01bcfe7c6f3fd2fd8f81092299369744684733 EQUAL",
-    "CLEANSTACK,P2SH",
-    "OK",
-    "Valid segwit recovery, in spite of false value being left on stack (0)"
-],
-[
-    "0x04 0x00020080",
-    "HASH160 0x14 0x10ddc638cb26615f867dad80efacced9e73766bc EQUAL",
-    "CLEANSTACK,P2SH",
-    "OK",
-    "Valid segwit recovery, in spite of false value being left on stack (minus 0)"
-],
-[
-    "0x04 0x00020000",
-    "HASH160 0x14 0x0e01bcfe7c6f3fd2fd8f81092299369744684733 EQUAL",
-    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
-    "EVAL_FALSE",
-    "Otherwise valid segwit recovery, in spite of false value being left on stack (0), but with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
-],
-[
-    "0x04 0x00020080",
-    "HASH160 0x14 0x10ddc638cb26615f867dad80efacced9e73766bc EQUAL",
-    "CLEANSTACK,DISALLOW_SEGWIT_RECOVERY,P2SH",
-    "EVAL_FALSE",
-    "Otherwise valid segwit recovery, in spite of false value being left on stack (minus 0), but with SCRIPT_DISALLOW_SEGWIT_RECOVERY"
-],
-[
-    "0x22 0x50205a0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "HASH160 0x14 0xbe02794ceede051da41b420e88a86fff2802af06 EQUAL",
-    "CLEANSTACK,P2SH",
-    "BAD_OPCODE",
-    "Segwit Recovery with invalid witness program (OP_RESERVED in version field)"
-],
-[
-    "0x17 0x01001491b24bf9f5288532960ac687abb035127b1d28a5",
-    "HASH160 0x14 0x0718743e67c1ef4911e0421f206c5ff81755718e EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "Segwit Recovery with invalid witness program (non-minimal push in version field)"
-],
-[
-    "0x05 0x004c0245aa",
-    "HASH160 0x14 0xd3ec673296c7fd7e1a9e53bfc36f414de303e905 EQUAL",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "Segwit Recovery with invalid witness program (non-minimal push in program field)"
-],
-[
-    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
-    "HASH160 0x14 0x17a6be2f8fe8e94f033e53d17beefda0f3ac4409 EQUAL",
-    "CLEANSTACK,P2SH",
-    "EVAL_FALSE",
-    "v0 P2SH-P2WPKH Segwit Recovery whose redeem script hash does not match P2SH output"
-],
-[
-    "0x16 0x001491b24bf9f5288532960ac687abb035127b1d28a5",
-    "1",
-    "CLEANSTACK,P2SH",
-    "CLEANSTACK",
-    "v0 P2SH-P2WPKH Segwit Recovery spending a non-P2SH output"
 ],
 [
     "0x09 0x300602010702010701 0x21 0x03a7bcb86f12d0635c850b6f0c945e4b4fcb400092a74b8d7e83275eb562d9fbb6",
