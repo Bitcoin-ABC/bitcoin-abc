@@ -67,6 +67,19 @@
             "exclude": [
                 "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
             ]
+        },
+        "spelling": {
+            "type": "spelling",
+            "exclude": [
+                "(^build-aux/m4/)",
+                "(^depends/)",
+                "(^doc/release-notes/)",
+                "(^src/(qt/locale|secp256k1|univalue|leveldb)/)",
+                "(^test/lint/dictionary/)"
+            ],
+            "spelling.dictionaries": [
+                "test/lint/dictionary/english.json"
+            ]
         }
     }
 }
