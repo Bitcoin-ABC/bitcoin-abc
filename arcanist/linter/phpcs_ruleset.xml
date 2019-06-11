@@ -14,8 +14,10 @@
         <exclude name="Generic.Files.EndFileNoNewline.Found" />
         <exclude name="Generic.Files.LowercasedFilename" />
         <exclude name="Generic.Formatting.MultipleStatementAlignment" />
+        <exclude name="Generic.Formatting.SpaceAfterCast.NoSpace" />
         <exclude name="Generic.Formatting.SpaceAfterNot" />
         <exclude name="Generic.Functions.OpeningFunctionBraceBsdAllman" />
+        <exclude name="Generic.Metrics.CyclomaticComplexity.TooHigh" />
         <exclude name="Generic.PHP.ClosingPHPTag" />
         <exclude name="Generic.PHP.UpperCaseConstant" />
         <exclude name="Generic.WhiteSpace.DisallowSpaceIndent" />
