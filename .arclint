@@ -52,7 +52,7 @@
             "exclude": [
                 "(^arcanist/__phutil_library_.+\\.php$)"
             ],
-            "phpcs.standard": "arcanist/linter/phpcs_ruleset.xml"
+            "phpcs.standard": "test/lint/phpcs/bitcoinabc_ruleset.xml"
         },
         "lint-locale-dependence": {
             "type": "lint-locale-dependence",
