@@ -56,6 +56,7 @@ Bitcoin ABC Release Process
     - configure.ac
     - src/config/CMakeLists.txt
     - contrib/gitian-descriptors/*.yml (before a new major release)
+    - contrib/seeds/makeseeds.py (only after a new major release)
 
 11. Update version number on www.bitcoinabc.org
 
