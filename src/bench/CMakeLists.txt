@@ -12,16 +12,21 @@ add_executable(bitcoin-bench
 #	checkblock.cpp TODO Fix including bench/data/*.raw files
 	checkqueue.cpp
 	crypto_hash.cpp
-	gcs_filter.cpp
 	Examples.cpp
+	gcs_filter.cpp
 	lockedpool.cpp
 	mempool_eviction.cpp
+	merkle_root.cpp
 	perf.cpp
 	prevector.cpp
 	rollingbloom.cpp
 )
 
 target_link_libraries(bitcoin-bench common bitcoinconsensus server)
+
+if(BUILD_BITCOIN_WALLET)
+	target_sources(bitcoin-bench PRIVATE coin_selection.cpp)
+endif()
 
 add_custom_target(bench-bitcoin
 	COMMAND
