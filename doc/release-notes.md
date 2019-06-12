@@ -5,3 +5,7 @@ Bitcoin ABC version 0.22.2 is now available from:
 This release includes the following features and fixes:
  - New `minerfund` subfield of `coinbasetxn` in `getblocktemplate` to enable
    easy fetching of valid addresses for infrastructure funding.
+
+RPC changes
+-----------
+The `gettransaction` RPC now accepts a third (boolean) argument `decode`. If set to `true`, a new `decoded` field will be added to the response containing the decoded transaction.
