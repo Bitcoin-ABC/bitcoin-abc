@@ -2558,30 +2558,29 @@ static void ApproximateBestSubset(const std::vector<CInputCoin> &vValue,
 
 bool CWallet::OutputEligibleForSpending(
     const COutput &output,
-    const CoinEligibilityFilter &eligibilty_filter) const {
+    const CoinEligibilityFilter &eligibility_filter) const {
     if (!output.fSpendable) {
         return false;
     }
 
     if (output.nDepth < (output.tx->IsFromMe(ISMINE_ALL)
-                             ? eligibilty_filter.conf_mine
-                             : eligibilty_filter.conf_theirs)) {
+                             ? eligibility_filter.conf_mine
+                             : eligibility_filter.conf_theirs)) {
         return false;
     }
 
     if (!g_mempool.TransactionWithinChainLimit(
-            output.tx->GetId(), eligibilty_filter.max_ancestors)) {
+            output.tx->GetId(), eligibility_filter.max_ancestors)) {
         return false;
     }
 
     return true;
 }
 
-bool CWallet::SelectCoinsMinConf(const Amount nTargetValue,
-                                 const CoinEligibilityFilter &eligibilty_filter,
-                                 std::vector<COutput> vCoins,
-                                 std::set<CInputCoin> &setCoinsRet,
-                                 Amount &nValueRet) const {
+bool CWallet::SelectCoinsMinConf(
+    const Amount nTargetValue, const CoinEligibilityFilter &eligibility_filter,
+    std::vector<COutput> vCoins, std::set<CInputCoin> &setCoinsRet,
+    Amount &nValueRet) const {
     setCoinsRet.clear();
     nValueRet = Amount::zero();
 
@@ -2593,7 +2592,7 @@ bool CWallet::SelectCoinsMinConf(const Amount nTargetValue,
     random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
 
     for (const COutput &output : vCoins) {
-        if (!OutputEligibleForSpending(output, eligibilty_filter)) {
+        if (!OutputEligibleForSpending(output, eligibility_filter)) {
             continue;
         }
 

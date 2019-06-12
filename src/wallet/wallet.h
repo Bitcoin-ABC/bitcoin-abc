@@ -891,7 +891,7 @@ public:
      * assembled.
      */
     bool SelectCoinsMinConf(const Amount nTargetValue,
-                            const CoinEligibilityFilter &eligibilty_filter,
+                            const CoinEligibilityFilter &eligibility_filter,
                             std::vector<COutput> vCoins,
                             std::set<CInputCoin> &setCoinsRet,
                             Amount &nValueRet) const;
@@ -1276,7 +1276,7 @@ public:
     /** Whether a given output is spendable by this wallet */
     bool OutputEligibleForSpending(
         const COutput &output,
-        const CoinEligibilityFilter &eligibilty_filter) const;
+        const CoinEligibilityFilter &eligibility_filter) const;
 };
 
 /** A key allocated from the key pool. */
