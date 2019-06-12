@@ -101,13 +101,13 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 
     // Test starts here
     {
-        LOCK2(cs_main, dummyNode1.cs_sendProcessing);
+        LOCK(dummyNode1.cs_sendProcessing);
         // should result in getheaders
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     {
-        LOCK2(cs_main, dummyNode1.cs_vSend);
+        LOCK(dummyNode1.cs_vSend);
         BOOST_CHECK(dummyNode1.vSendMsg.size() > 0);
         dummyNode1.vSendMsg.clear();
     }
@@ -116,19 +116,19 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     // Wait 21 minutes
     SetMockTime(nStartTime + 21 * 60);
     {
-        LOCK2(cs_main, dummyNode1.cs_sendProcessing);
+        LOCK(dummyNode1.cs_sendProcessing);
         // should result in getheaders
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     {
-        LOCK2(cs_main, dummyNode1.cs_vSend);
+        LOCK(dummyNode1.cs_vSend);
         BOOST_CHECK(dummyNode1.vSendMsg.size() > 0);
     }
     // Wait 3 more minutes
     SetMockTime(nStartTime + 24 * 60);
     {
-        LOCK2(cs_main, dummyNode1.cs_sendProcessing);
+        LOCK(dummyNode1.cs_sendProcessing);
         // should result in disconnect
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
@@ -258,7 +258,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     peerLogic->Misbehaving(dummyNode1.GetId(), DISCOURAGEMENT_THRESHOLD,
                            /* message */ "");
     {
-        LOCK2(cs_main, dummyNode1.cs_sendProcessing);
+        LOCK(dummyNode1.cs_sendProcessing);
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
@@ -276,7 +276,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     peerLogic->Misbehaving(dummyNode2.GetId(), DISCOURAGEMENT_THRESHOLD - 1,
                            /* message */ "");
     {
-        LOCK2(cs_main, dummyNode2.cs_sendProcessing);
+        LOCK(dummyNode2.cs_sendProcessing);
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode2, interruptDummy));
     }
@@ -287,7 +287,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     // 2 reaches discouragement threshold
     peerLogic->Misbehaving(dummyNode2.GetId(), 1, /* message */ "");
     {
-        LOCK2(cs_main, dummyNode2.cs_sendProcessing);
+        LOCK(dummyNode2.cs_sendProcessing);
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode2, interruptDummy));
     }
@@ -327,7 +327,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     peerLogic->Misbehaving(dummyNode.GetId(), DISCOURAGEMENT_THRESHOLD,
                            /* message */ "");
     {
-        LOCK2(cs_main, dummyNode.cs_sendProcessing);
+        LOCK(dummyNode.cs_sendProcessing);
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode, interruptDummy));
     }
