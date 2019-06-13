@@ -104,7 +104,7 @@ struct TestChain100Setup : public TestingSetup {
     ~TestChain100Setup();
 
     // For convenience, coinbase transactions.
-    std::vector<CTransaction> coinbaseTxns;
+    std::vector<CTransaction> m_coinbase_txns;
     // private/public key needed to spend coinbase transactions.
     CKey coinbaseKey;
 };

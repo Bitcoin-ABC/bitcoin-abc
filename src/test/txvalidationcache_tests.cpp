@@ -47,7 +47,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     for (int i = 0; i < 2; i++) {
         spends[i].nVersion = 1;
         spends[i].vin.resize(1);
-        spends[i].vin[0].prevout = COutPoint(coinbaseTxns[0].GetId(), 0);
+        spends[i].vin[0].prevout = COutPoint(m_coinbase_txns[0].GetId(), 0);
         spends[i].vout.resize(1);
         spends[i].vout[0].nValue = 11 * CENT;
         spends[i].vout[0].scriptPubKey = scriptPubKey;
@@ -56,7 +56,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
         std::vector<uint8_t> vchSig;
         uint256 hash = SignatureHash(scriptPubKey, CTransaction(spends[i]), 0,
                                      SigHashType().withForkId(),
-                                     coinbaseTxns[0].vout[0].nValue);
+                                     m_coinbase_txns[0].vout[0].nValue);
         BOOST_CHECK(coinbaseKey.SignECDSA(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         spends[i].vin[0].scriptSig << vchSig;
@@ -178,7 +178,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         mutableFunding_tx.nVersion = 1;
         mutableFunding_tx.vin.resize(1);
         mutableFunding_tx.vin[0].prevout =
-            COutPoint(coinbaseTxns[0].GetId(), 0);
+            COutPoint(m_coinbase_txns[0].GetId(), 0);
         mutableFunding_tx.vout.resize(1);
         mutableFunding_tx.vout[0].nValue = 50 * COIN;
 
@@ -191,7 +191,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         std::vector<uint8_t> nullDummyVchSig;
         uint256 nulldummySigHash = SignatureHash(
             p2pk_scriptPubKey, CTransaction(mutableFunding_tx), 0,
-            SigHashType().withForkId(), coinbaseTxns[0].vout[0].nValue);
+            SigHashType().withForkId(), m_coinbase_txns[0].vout[0].nValue);
         BOOST_CHECK(coinbaseKey.SignECDSA(nulldummySigHash, nullDummyVchSig));
         nullDummyVchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         mutableFunding_tx.vin[0].scriptSig << nullDummyVchSig;

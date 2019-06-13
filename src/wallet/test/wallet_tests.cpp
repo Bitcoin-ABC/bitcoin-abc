@@ -126,11 +126,11 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     // will pick up both blocks, not just the first.
     const int64_t BLOCK_TIME = chainActive.Tip()->GetBlockTimeMax() + 5;
     SetMockTime(BLOCK_TIME);
-    coinbaseTxns.emplace_back(
+    m_coinbase_txns.emplace_back(
         *CreateAndProcessBlock({},
                                GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
              .vtx[0]);
-    coinbaseTxns.emplace_back(
+    m_coinbase_txns.emplace_back(
         *CreateAndProcessBlock({},
                                GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
              .vtx[0]);
@@ -139,7 +139,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     // rescan will start at the block time.
     const int64_t KEY_TIME = BLOCK_TIME + TIMESTAMP_WINDOW;
     SetMockTime(KEY_TIME);
-    coinbaseTxns.emplace_back(
+    m_coinbase_txns.emplace_back(
         *CreateAndProcessBlock({},
                                GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
              .vtx[0]);
@@ -174,9 +174,9 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 
         LOCK(wallet.cs_wallet);
         BOOST_CHECK_EQUAL(wallet.mapWallet.size(), 3);
-        BOOST_CHECK_EQUAL(coinbaseTxns.size(), 103);
-        for (size_t i = 0; i < coinbaseTxns.size(); ++i) {
-            bool found = wallet.GetWalletTx(coinbaseTxns[i].GetId());
+        BOOST_CHECK_EQUAL(m_coinbase_txns.size(), 103);
+        for (size_t i = 0; i < m_coinbase_txns.size(); ++i) {
+            bool found = wallet.GetWalletTx(m_coinbase_txns[i].GetId());
             bool expected = i >= 100;
             BOOST_CHECK_EQUAL(found, expected);
         }
@@ -194,7 +194,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 // debit functions.
 BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
-    CWalletTx wtx(&wallet, MakeTransactionRef(coinbaseTxns.back()));
+    CWalletTx wtx(&wallet, MakeTransactionRef(m_coinbase_txns.back()));
     LOCK2(cs_main, wallet.cs_wallet);
     wtx.hashBlock = chainActive.Tip()->GetBlockHash();
     wtx.nIndex = 0;

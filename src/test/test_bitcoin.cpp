@@ -155,7 +155,7 @@ TestChain100Setup::TestChain100Setup()
     for (int i = 0; i < COINBASE_MATURITY; i++) {
         std::vector<CMutableTransaction> noTxns;
         CBlock b = CreateAndProcessBlock(noTxns, scriptPubKey);
-        coinbaseTxns.push_back(*b.vtx[0]);
+        m_coinbase_txns.push_back(*b.vtx[0]);
     }
 }
 

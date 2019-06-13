@@ -20,7 +20,7 @@ BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup) {
     uint256 block_hash;
 
     // Transaction should not be found in the index before it is started.
-    for (const auto &txn : coinbaseTxns) {
+    for (const auto &txn : m_coinbase_txns) {
         BOOST_CHECK(!txindex.FindTx(txn.GetHash(), block_hash, tx_disk));
     }
 
@@ -39,7 +39,7 @@ BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup) {
     }
 
     // Check that txindex has all txs that were in the chain before it started.
-    for (const auto &txn : coinbaseTxns) {
+    for (const auto &txn : m_coinbase_txns) {
         if (!txindex.FindTx(txn.GetHash(), block_hash, tx_disk)) {
             BOOST_ERROR("FindTx failed");
         } else if (tx_disk->GetHash() != txn.GetHash()) {
