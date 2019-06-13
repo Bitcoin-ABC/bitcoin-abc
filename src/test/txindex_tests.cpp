@@ -3,11 +3,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <index/txindex.h>
+
+#include <chainparams.h>
 #include <script/standard.h>
-#include <test/test_bitcoin.h>
 #include <util.h>
 #include <utiltime.h>
 #include <validation.h>
+
+#include <test/test_bitcoin.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -36,6 +39,12 @@ BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup) {
     while (!txindex.BlockUntilSyncedToCurrentChain()) {
         BOOST_REQUIRE(time_start + timeout_ms > GetTimeMillis());
         MilliSleep(100);
+    }
+
+    // Check that txindex excludes genesis block transactions.
+    const CBlock &genesis_block = Params().GenesisBlock();
+    for (const auto &txn : genesis_block.vtx) {
+        BOOST_CHECK(!txindex.FindTx(txn->GetId(), block_hash, tx_disk));
     }
 
     // Check that txindex has all txs that were in the chain before it started.
