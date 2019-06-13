@@ -664,6 +664,8 @@ public:
     bool m_valid_checksum = false;
     // size of the payload
     uint32_t m_message_size = 0;
+    // used wire size of the message (including header/checksum)
+    uint32_t m_raw_message_size = 0;
     std::string m_command;
 
     CNetMessage(const CDataStream &recv_in) : m_recv(std::move(recv_in)) {}

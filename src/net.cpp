@@ -625,8 +625,7 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
             }
 
             assert(i != mapRecvBytesPerMsgCmd.end());
-            i->second +=
-                m_deserializer->hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
+            i->second += msg.m_raw_message_size;
 
             // push the message to the process queue,
             vRecvMsg.push_back(std::move(msg));
@@ -740,6 +739,7 @@ CNetMessage TransportDeserializer::GetMessage(const Config &config,
     // store command string, payload size
     msg.m_command = hdr.GetCommand();
     msg.m_message_size = hdr.nMessageSize;
+    msg.m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
 
     msg.m_valid_checksum = (memcmp(hash.begin(), hdr.pchChecksum,
                                    CMessageHeader::CHECKSUM_SIZE) == 0);
@@ -1522,8 +1522,7 @@ void CConnman::SocketHandler() {
                         // vRecvMsg contains only completed CNetMessage
                         // the single possible partially deserialized message
                         // are held by TransportDeserializer
-                        nSizeAdded +=
-                            it->m_recv.size() + CMessageHeader::HEADER_SIZE;
+                        nSizeAdded += it->m_raw_message_size;
                     }
                     {
                         LOCK(pnode->cs_vProcessMsg);
