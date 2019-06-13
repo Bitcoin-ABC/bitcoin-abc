@@ -1082,7 +1082,12 @@ static UniValue pruneblockchain(const Config &config,
     }
 
     PruneBlockFilesManual(height);
-    return uint64_t(height);
+    const CBlockIndex *block = ::ChainActive().Tip();
+    assert(block);
+    while (block->pprev && (block->pprev->nStatus.hasData())) {
+        block = block->pprev;
+    }
+    return uint64_t(block->nHeight);
 }
 
 static UniValue gettxoutsetinfo(const Config &config,
