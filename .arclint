@@ -87,6 +87,13 @@
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)"
             ]
+        },
+        "lint-include-quotes": {
+            "type": "lint-include-quotes",
+            "include": "(^src/.*\\.(h|cpp)$)",
+            "exclude": [
+                "(^src/(secp256k1|univalue|leveldb)/)"
+            ]
         }
     }
 }
