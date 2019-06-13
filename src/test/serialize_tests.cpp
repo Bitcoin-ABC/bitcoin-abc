@@ -29,10 +29,12 @@ public:
     CSerializeMethodsTestSingle() = default;
     CSerializeMethodsTestSingle(int intvalin, bool boolvalin,
                                 std::string stringvalin,
-                                const char *charstrvalin, CTransaction txvalin)
+                                const char *charstrvalin,
+                                const CTransactionRef &txvalin)
         : intval(intvalin), boolval(boolvalin),
           stringval(std::move(stringvalin)), charstrval(charstrvalin),
-          txval(MakeTransactionRef(txvalin)) {}
+          txval(txvalin) {}
+
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
@@ -409,10 +411,11 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     std::string stringval("testing");
     const char *charstrval("testing charstr");
     CMutableTransaction txval;
+    CTransactionRef tx_ref{MakeTransactionRef(txval)};
     CSerializeMethodsTestSingle methodtest1(intval, boolval, stringval,
-                                            charstrval, CTransaction(txval));
+                                            charstrval, tx_ref);
     CSerializeMethodsTestMany methodtest2(intval, boolval, stringval,
-                                          charstrval, CTransaction(txval));
+                                          charstrval, tx_ref);
     CSerializeMethodsTestSingle methodtest3;
     CSerializeMethodsTestMany methodtest4;
     CDataStream ss(SER_DISK, PROTOCOL_VERSION);
