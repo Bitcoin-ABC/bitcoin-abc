@@ -570,13 +570,14 @@ void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
         addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToString() : "";
 }
 
-static bool IsOversizedMessage(const Config &config, const CNetMessage &msg) {
-    if (!msg.in_data) {
+static bool IsOversizedMessage(const Config &config,
+                               const TransportDeserializer &deserializer) {
+    if (!deserializer.in_data) {
         // Header only, cannot be oversized.
         return false;
     }
 
-    return msg.hdr.IsOversized(config);
+    return deserializer.hdr.IsOversized(config);
 }
 
 bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
@@ -587,49 +588,49 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
     nLastRecv = nTimeMicros / 1000000;
     nRecvBytes += nBytes;
     while (nBytes > 0) {
-        // Get current incomplete message, or create a new one.
-        if (vRecvMsg.empty() || vRecvMsg.back().complete()) {
-            vRecvMsg.push_back(CNetMessage(config.GetChainParams().NetMagic(),
-                                           SER_NETWORK, INIT_PROTO_VERSION));
-        }
-
-        CNetMessage &msg = vRecvMsg.back();
-
         // Absorb network data.
         int handled;
-        if (!msg.in_data) {
-            handled = msg.readHeader(config, pch, nBytes);
+        if (!m_deserializer->in_data) {
+            handled = m_deserializer->readHeader(config, pch, nBytes);
         } else {
-            handled = msg.readData(pch, nBytes);
+            handled = m_deserializer->readData(pch, nBytes);
         }
 
         if (handled < 0) {
+            m_deserializer->Reset();
             return false;
         }
 
-        if (IsOversizedMessage(config, msg)) {
+        if (IsOversizedMessage(config, *m_deserializer)) {
             LogPrint(BCLog::NET,
                      "Oversized message from peer=%i, disconnecting\n",
                      GetId());
+            m_deserializer->Reset();
             return false;
         }
 
         pch += handled;
         nBytes -= handled;
 
-        if (msg.complete()) {
+        if (m_deserializer->complete()) {
+            // decompose a transport agnostic CNetMessage from the deserializer
+            CNetMessage msg = m_deserializer->GetMessage(config, nTimeMicros);
+
             // Store received bytes per message command to prevent a memory DOS,
             // only allow valid commands.
-            mapMsgCmdSize::iterator i =
-                mapRecvBytesPerMsgCmd.find(msg.hdr.pchCommand.data());
+            mapMsgCmdSize::iterator i = mapRecvBytesPerMsgCmd.find(
+                m_deserializer->hdr.pchCommand.data());
             if (i == mapRecvBytesPerMsgCmd.end()) {
                 i = mapRecvBytesPerMsgCmd.find(NET_MESSAGE_COMMAND_OTHER);
             }
 
             assert(i != mapRecvBytesPerMsgCmd.end());
-            i->second += msg.hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
+            i->second +=
+                m_deserializer->hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
 
-            msg.nTime = nTimeMicros;
+            // push the message to the process queue,
+            vRecvMsg.push_back(std::move(msg));
+
             complete = true;
         }
     }
@@ -663,8 +664,8 @@ int CNode::GetSendVersion() const {
     return nSendVersion;
 }
 
-int CNetMessage::readHeader(const Config &config, const char *pch,
-                            uint32_t nBytes) {
+int TransportDeserializer::readHeader(const Config &config, const char *pch,
+                                      uint32_t nBytes) {
     // copy data to temporary parsing buffer
     uint32_t nRemaining = 24 - nHdrPos;
     uint32_t nCopy = std::min(nRemaining, nBytes);
@@ -696,7 +697,7 @@ int CNetMessage::readHeader(const Config &config, const char *pch,
     return nCopy;
 }
 
-int CNetMessage::readData(const char *pch, uint32_t nBytes) {
+int TransportDeserializer::readData(const char *pch, uint32_t nBytes) {
     unsigned int nRemaining = hdr.nMessageSize - nDataPos;
     unsigned int nCopy = std::min(nRemaining, nBytes);
 
@@ -713,12 +714,50 @@ int CNetMessage::readData(const char *pch, uint32_t nBytes) {
     return nCopy;
 }
 
-const uint256 &CNetMessage::GetMessageHash() const {
+const uint256 &TransportDeserializer::GetMessageHash() const {
     assert(complete());
     if (data_hash.IsNull()) {
         hasher.Finalize(data_hash.begin());
     }
     return data_hash;
+}
+
+CNetMessage TransportDeserializer::GetMessage(const Config &config,
+                                              int64_t time) {
+    // decompose a single CNetMessage from the TransportDeserializer
+    CNetMessage msg(std::move(vRecv));
+
+    // store state about valid header, netmagic and checksum
+    msg.m_valid_header = hdr.IsValid(config);
+    // FIXME Split CheckHeaderMagicAndCommand() into CheckHeaderMagic() and
+    // CheckCommand() to prevent the net magic check code duplication.
+    msg.m_valid_netmagic =
+        (memcmp(std::begin(hdr.pchMessageStart),
+                std::begin(config.GetChainParams().NetMagic()),
+                CMessageHeader::MESSAGE_START_SIZE) == 0);
+    uint256 hash = GetMessageHash();
+
+    // store command string, payload size
+    msg.m_command = hdr.GetCommand();
+    msg.m_message_size = hdr.nMessageSize;
+
+    msg.m_valid_checksum = (memcmp(hash.begin(), hdr.pchChecksum,
+                                   CMessageHeader::CHECKSUM_SIZE) == 0);
+    if (!msg.m_valid_checksum) {
+        LogPrint(
+            BCLog::NET, "CHECKSUM ERROR (%s, %u bytes), expected %s was %s\n",
+            SanitizeString(msg.m_command), msg.m_message_size,
+            HexStr(hash.begin(), hash.begin() + CMessageHeader::CHECKSUM_SIZE),
+            HexStr(hdr.pchChecksum,
+                   hdr.pchChecksum + CMessageHeader::CHECKSUM_SIZE));
+    }
+
+    // store receive time
+    msg.m_time = time;
+
+    // reset the network deserializer (prepare for the next message)
+    Reset();
+    return msg;
 }
 
 size_t CConnman::SocketSendData(CNode *pnode) const
@@ -1480,11 +1519,11 @@ void CConnman::SocketHandler() {
                     size_t nSizeAdded = 0;
                     auto it(pnode->vRecvMsg.begin());
                     for (; it != pnode->vRecvMsg.end(); ++it) {
-                        if (!it->complete()) {
-                            break;
-                        }
+                        // vRecvMsg contains only completed CNetMessage
+                        // the single possible partially deserialized message
+                        // are held by TransportDeserializer
                         nSizeAdded +=
-                            it->vRecv.size() + CMessageHeader::HEADER_SIZE;
+                            it->m_recv.size() + CMessageHeader::HEADER_SIZE;
                     }
                     {
                         LOCK(pnode->cs_vProcessMsg);
@@ -2908,6 +2947,10 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     } else {
         LogPrint(BCLog::NET, "Added connection peer=%d\n", id);
     }
+
+    m_deserializer = std::make_unique<TransportDeserializer>(
+        TransportDeserializer(GetConfig().GetChainParams().NetMagic(),
+                              SER_NETWORK, INIT_PROTO_VERSION));
 }
 
 CNode::~CNode() {

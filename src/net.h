@@ -648,7 +648,35 @@ struct CNodeStats {
     uint32_t m_mapped_as;
 };
 
+/**
+ * Transport protocol agnostic message container.
+ * Ideally it should only contain receive time, payload,
+ * command and size.
+ */
 class CNetMessage {
+public:
+    // received message data
+    CDataStream m_recv;
+    // time (in microseconds) of message receipt.
+    int64_t m_time = 0;
+    bool m_valid_netmagic = false;
+    bool m_valid_header = false;
+    bool m_valid_checksum = false;
+    // size of the payload
+    uint32_t m_message_size = 0;
+    std::string m_command;
+
+    CNetMessage(const CDataStream &recv_in) : m_recv(std::move(recv_in)) {}
+
+    void SetVersion(int nVersionIn) { m_recv.SetVersion(nVersionIn); }
+};
+
+/**
+ * The TransportDeserializer takes care of holding and deserializing the
+ * network receive buffer. It can deserialize the network buffer into a
+ * transport protocol agnostic CNetMessage (command & payload)
+ */
+class TransportDeserializer {
 private:
     mutable CHash256 hasher;
     mutable uint256 data_hash;
@@ -670,15 +698,22 @@ public:
     // Time (in microseconds) of message receipt.
     int64_t nTime;
 
-    CNetMessage(const CMessageHeader::MessageMagic &pchMessageStartIn,
-                int nTypeIn, int nVersionIn)
+    TransportDeserializer(const CMessageHeader::MessageMagic &pchMessageStartIn,
+                          int nTypeIn, int nVersionIn)
         : hdrbuf(nTypeIn, nVersionIn), hdr(pchMessageStartIn),
           vRecv(nTypeIn, nVersionIn) {
+        Reset();
+    }
+
+    void Reset() {
+        vRecv.clear();
+        hdrbuf.clear();
         hdrbuf.resize(24);
         in_data = false;
         nHdrPos = 0;
         nDataPos = 0;
-        nTime = 0;
+        data_hash.SetNull();
+        hasher.Reset();
     }
 
     bool complete() const {
@@ -698,6 +733,8 @@ public:
 
     int readHeader(const Config &config, const char *pch, uint32_t nBytes);
     int readData(const char *pch, uint32_t nBytes);
+
+    CNetMessage GetMessage(const Config &config, int64_t time);
 };
 
 /** Information about a peer */
@@ -705,6 +742,8 @@ class CNode {
     friend class CConnman;
 
 public:
+    std::unique_ptr<TransportDeserializer> m_deserializer;
+
     // socket
     std::atomic<ServiceFlags> nServices{NODE_NONE};
     SOCKET hSocket GUARDED_BY(cs_hSocket);

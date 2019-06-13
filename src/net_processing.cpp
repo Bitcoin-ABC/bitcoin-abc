@@ -3923,7 +3923,6 @@ bool PeerLogicValidation::CheckIfBanned(CNode *pnode) {
 
 bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
                                           std::atomic<bool> &interruptMsgProc) {
-    const CChainParams &chainparams = config.GetChainParams();
     //
     // Message format
     //  (4) message start
@@ -3971,7 +3970,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
         msgs.splice(msgs.begin(), pfrom->vProcessMsg,
                     pfrom->vProcessMsg.begin());
         pfrom->nProcessQueueSize -=
-            msgs.front().vRecv.size() + CMessageHeader::HEADER_SIZE;
+            msgs.front().m_recv.size() + CMessageHeader::HEADER_SIZE;
         pfrom->fPauseRecv =
             pfrom->nProcessQueueSize > connman->GetReceiveFloodSize();
         fMoreWork = !pfrom->vProcessMsg.empty();
@@ -3980,13 +3979,11 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
 
     msg.SetVersion(pfrom->GetRecvVersion());
 
-    // Scan for message start
-    if (memcmp(std::begin(msg.hdr.pchMessageStart),
-               std::begin(chainparams.NetMagic()),
-               CMessageHeader::MESSAGE_START_SIZE) != 0) {
+    // Check network magic
+    if (!msg.m_valid_netmagic) {
         LogPrint(BCLog::NET,
                  "PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n",
-                 SanitizeString(msg.hdr.GetCommand()), pfrom->GetId());
+                 SanitizeString(msg.m_command), pfrom->GetId());
 
         // Make sure we discourage where that come from for some time.
         if (m_banman) {
@@ -3998,32 +3995,23 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
         return false;
     }
 
-    // Read header
-    CMessageHeader &hdr = msg.hdr;
-    if (!hdr.IsValid(config)) {
+    // Check header
+    if (!msg.m_valid_header) {
         LogPrint(BCLog::NET, "PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n",
-                 SanitizeString(hdr.GetCommand()), pfrom->GetId());
+                 SanitizeString(msg.m_command), pfrom->GetId());
         return fMoreWork;
     }
-    std::string strCommand = hdr.GetCommand();
+    const std::string &strCommand = msg.m_command;
 
     // Message size
-    unsigned int nMessageSize = hdr.nMessageSize;
+    unsigned int nMessageSize = msg.m_message_size;
 
     // Checksum
-    CDataStream &vRecv = msg.vRecv;
-    const uint256 &hash = msg.GetMessageHash();
-    if (memcmp(hash.begin(), hdr.pchChecksum, CMessageHeader::CHECKSUM_SIZE) !=
-        0) {
-        LogPrint(
-            BCLog::NET,
-            "%s(%s, %u bytes): CHECKSUM ERROR expected %s was %s from "
-            "peer=%d\n",
-            __func__, SanitizeString(strCommand), nMessageSize,
-            HexStr(hash.begin(), hash.begin() + CMessageHeader::CHECKSUM_SIZE),
-            HexStr(hdr.pchChecksum,
-                   hdr.pchChecksum + CMessageHeader::CHECKSUM_SIZE),
-            pfrom->GetId());
+    CDataStream &vRecv = msg.m_recv;
+    if (!msg.m_valid_checksum) {
+        LogPrint(BCLog::NET, "%s(%s, %u bytes): CHECKSUM ERROR peer=%d\n",
+                 __func__, SanitizeString(strCommand), nMessageSize,
+                 pfrom->GetId());
         if (m_banman) {
             m_banman->Discourage(pfrom->addr);
         }
@@ -4034,7 +4022,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     // Process message
     bool fRet = false;
     try {
-        fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime,
+        fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.m_time,
                               connman, m_banman, interruptMsgProc);
         if (interruptMsgProc) {
             return false;
