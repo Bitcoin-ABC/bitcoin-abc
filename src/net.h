@@ -679,29 +679,47 @@ public:
  * transport protocol agnostic CNetMessage (command & payload)
  */
 class TransportDeserializer {
+public:
+    // prepare for next message
+    virtual void Reset() = 0;
+    // returns true if the current deserialization is complete
+    virtual bool Complete() const = 0;
+    // checks if the potential message in deserialization is oversized
+    virtual bool OversizedMessageDetected(const Config &config) const = 0;
+    // set the serialization context version
+    virtual void SetVersion(int version) = 0;
+    // read and deserialize data
+    virtual int Read(const Config &config, const char *data,
+                     uint32_t bytes) = 0;
+    // decomposes a message from the context
+    virtual CNetMessage GetMessage(const Config &config, int64_t time) = 0;
+    virtual ~TransportDeserializer() {}
+};
+
+class V1TransportDeserializer : public TransportDeserializer {
 private:
     mutable CHash256 hasher;
     mutable uint256 data_hash;
 
-public:
     // Parsing header (false) or data (true)
     bool in_data;
-
     // Partially received header.
     CDataStream hdrbuf;
     // Complete header.
     CMessageHeader hdr;
-    uint32_t nHdrPos;
-
     // Received message data.
     CDataStream vRecv;
+    uint32_t nHdrPos;
     uint32_t nDataPos;
 
-    // Time (in microseconds) of message receipt.
-    int64_t nTime;
+    const uint256 &GetMessageHash() const;
+    int readHeader(const Config &config, const char *pch, uint32_t nBytes);
+    int readData(const char *pch, uint32_t nBytes);
 
-    TransportDeserializer(const CMessageHeader::MessageMagic &pchMessageStartIn,
-                          int nTypeIn, int nVersionIn)
+public:
+    V1TransportDeserializer(
+        const CMessageHeader::MessageMagic &pchMessageStartIn, int nTypeIn,
+        int nVersionIn)
         : hdrbuf(nTypeIn, nVersionIn), hdr(pchMessageStartIn),
           vRecv(nTypeIn, nVersionIn) {
         Reset();
@@ -718,7 +736,7 @@ public:
         hasher.Reset();
     }
 
-    bool complete() const {
+    bool Complete() const {
         if (!in_data) {
             return false;
         }
@@ -726,15 +744,17 @@ public:
         return (hdr.nMessageSize == nDataPos);
     }
 
-    const uint256 &GetMessageHash() const;
-
     void SetVersion(int nVersionIn) {
         hdrbuf.SetVersion(nVersionIn);
         vRecv.SetVersion(nVersionIn);
     }
-
-    int readHeader(const Config &config, const char *pch, uint32_t nBytes);
-    int readData(const char *pch, uint32_t nBytes);
+    bool OversizedMessageDetected(const Config &config) const {
+        return (in_data && hdr.IsOversized(config));
+    }
+    int Read(const Config &config, const char *pch, uint32_t nBytes) {
+        return in_data ? readData(pch, nBytes)
+                       : readHeader(config, pch, nBytes);
+    }
 
     CNetMessage GetMessage(const Config &config, int64_t time);
 };

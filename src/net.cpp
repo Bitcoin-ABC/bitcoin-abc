@@ -570,16 +570,6 @@ void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
         addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToString() : "";
 }
 
-static bool IsOversizedMessage(const Config &config,
-                               const TransportDeserializer &deserializer) {
-    if (!deserializer.in_data) {
-        // Header only, cannot be oversized.
-        return false;
-    }
-
-    return deserializer.hdr.IsOversized(config);
-}
-
 bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
                             uint32_t nBytes, bool &complete) {
     complete = false;
@@ -589,19 +579,14 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
     nRecvBytes += nBytes;
     while (nBytes > 0) {
         // Absorb network data.
-        int handled;
-        if (!m_deserializer->in_data) {
-            handled = m_deserializer->readHeader(config, pch, nBytes);
-        } else {
-            handled = m_deserializer->readData(pch, nBytes);
-        }
+        int handled = m_deserializer->Read(config, pch, nBytes);
 
         if (handled < 0) {
             m_deserializer->Reset();
             return false;
         }
 
-        if (IsOversizedMessage(config, *m_deserializer)) {
+        if (m_deserializer->OversizedMessageDetected(config)) {
             LogPrint(BCLog::NET,
                      "Oversized message from peer=%i, disconnecting\n",
                      GetId());
@@ -612,14 +597,14 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
         pch += handled;
         nBytes -= handled;
 
-        if (m_deserializer->complete()) {
+        if (m_deserializer->Complete()) {
             // decompose a transport agnostic CNetMessage from the deserializer
             CNetMessage msg = m_deserializer->GetMessage(config, nTimeMicros);
 
             // Store received bytes per message command to prevent a memory DOS,
             // only allow valid commands.
-            mapMsgCmdSize::iterator i = mapRecvBytesPerMsgCmd.find(
-                m_deserializer->hdr.pchCommand.data());
+            mapMsgCmdSize::iterator i =
+                mapRecvBytesPerMsgCmd.find(msg.m_command);
             if (i == mapRecvBytesPerMsgCmd.end()) {
                 i = mapRecvBytesPerMsgCmd.find(NET_MESSAGE_COMMAND_OTHER);
             }
@@ -663,8 +648,8 @@ int CNode::GetSendVersion() const {
     return nSendVersion;
 }
 
-int TransportDeserializer::readHeader(const Config &config, const char *pch,
-                                      uint32_t nBytes) {
+int V1TransportDeserializer::readHeader(const Config &config, const char *pch,
+                                        uint32_t nBytes) {
     // copy data to temporary parsing buffer
     uint32_t nRemaining = 24 - nHdrPos;
     uint32_t nCopy = std::min(nRemaining, nBytes);
@@ -696,7 +681,7 @@ int TransportDeserializer::readHeader(const Config &config, const char *pch,
     return nCopy;
 }
 
-int TransportDeserializer::readData(const char *pch, uint32_t nBytes) {
+int V1TransportDeserializer::readData(const char *pch, uint32_t nBytes) {
     unsigned int nRemaining = hdr.nMessageSize - nDataPos;
     unsigned int nCopy = std::min(nRemaining, nBytes);
 
@@ -713,16 +698,16 @@ int TransportDeserializer::readData(const char *pch, uint32_t nBytes) {
     return nCopy;
 }
 
-const uint256 &TransportDeserializer::GetMessageHash() const {
-    assert(complete());
+const uint256 &V1TransportDeserializer::GetMessageHash() const {
+    assert(Complete());
     if (data_hash.IsNull()) {
         hasher.Finalize(data_hash.begin());
     }
     return data_hash;
 }
 
-CNetMessage TransportDeserializer::GetMessage(const Config &config,
-                                              int64_t time) {
+CNetMessage V1TransportDeserializer::GetMessage(const Config &config,
+                                                int64_t time) {
     // decompose a single CNetMessage from the TransportDeserializer
     CNetMessage msg(std::move(vRecv));
 
@@ -2947,9 +2932,9 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
         LogPrint(BCLog::NET, "Added connection peer=%d\n", id);
     }
 
-    m_deserializer = std::make_unique<TransportDeserializer>(
-        TransportDeserializer(GetConfig().GetChainParams().NetMagic(),
-                              SER_NETWORK, INIT_PROTO_VERSION));
+    m_deserializer = std::make_unique<V1TransportDeserializer>(
+        V1TransportDeserializer(GetConfig().GetChainParams().NetMagic(),
+                                SER_NETWORK, INIT_PROTO_VERSION));
 }
 
 CNode::~CNode() {
