@@ -118,6 +118,16 @@ bool AppInit(int argc, char *argv[]) {
             return false;
         }
 
+        // Make sure we create the net-specific data directory early on: if it
+        // is new, this has a side effect of also creating
+        // <datadir>/<net>/wallets/.
+        //
+        // TODO: this should be removed once GetDataDir() no longer creates the
+        // wallets/ subdirectory.
+        // See more info at:
+        // https://reviews.bitcoinabc.org/D3312
+        GetDataDir(true);
+
         // Error out when loose non-argument tokens are encountered on command
         // line
         for (int i = 1; i < argc; i++) {

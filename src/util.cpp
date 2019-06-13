@@ -806,6 +806,12 @@ const fs::path &GetDataDir(bool fNetSpecific) {
 
     if (fs::create_directories(path)) {
         // This is the first run, create wallets subdirectory too
+        //
+        // TODO: this is an ugly way to create the wallets/ directory and
+        // really shouldn't be done here. Once this is fixed, please
+        // also remove the corresponding line in bitcoind.cpp AppInit.
+        // See more info at:
+        // https://reviews.bitcoinabc.org/D3312
         fs::create_directories(path / "wallets");
     }
 
