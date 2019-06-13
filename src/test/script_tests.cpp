@@ -2550,8 +2550,9 @@ BOOST_AUTO_TEST_CASE(script_PushData) {
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 }
 
-CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
-                      CTransaction transaction) {
+CScript sign_multisig(const CScript &scriptPubKey,
+                      const std::vector<CKey> &keys,
+                      const CTransaction &transaction) {
     uint256 hash = SignatureHash(scriptPubKey, transaction, 0, SigHashType(),
                                  Amount::zero());
 
@@ -2573,8 +2574,8 @@ CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
     return result;
 }
 
-CScript sign_multisig(CScript scriptPubKey, const CKey &key,
-                      CTransaction transaction) {
+CScript sign_multisig(const CScript &scriptPubKey, const CKey &key,
+                      const CTransaction &transaction) {
     std::vector<CKey> keys;
     keys.push_back(key);
     return sign_multisig(scriptPubKey, keys, transaction);
@@ -2645,11 +2646,9 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23) {
     CMutableTransaction mutableTxTo23 =
         BuildSpendingTransaction(CScript(), txFrom23);
 
-    // after it has been set up, mutableTxTo23 does not change in this test,
-    // so we can convert it to readonly transaction and use
-    // TransactionSignatureChecker
-    // instead of MutableTransactionSignatureChecker
-
+    // after it has been set up, mutableTxTo23 does not change in this test, so
+    // we can convert it to readonly transaction and use
+    // TransactionSignatureChecker instead of MutableTransactionSignatureChecker
     const CTransaction txTo23(mutableTxTo23);
 
     std::vector<CKey> keys;
@@ -2762,14 +2761,6 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
     CScript &scriptPubKey = txFrom.vout[0].scriptPubKey;
     CScript &scriptSig = txTo.vin[0].scriptSig;
 
-    // Although it looks like CMutableTransaction is not modified after it’s
-    // been set up (it is not passed as parameter to any non-const function),
-    // it is actually modified when new value is assigned to scriptPubKey,
-    // which points to mutableTxFrom.vout[0].scriptPubKey. Therefore we can
-    // not use single instance of CTransaction in this test.
-    // CTransaction creates a copy of CMutableTransaction and is not modified
-    // when scriptPubKey is assigned to.
-
     SignatureData empty;
     SignatureData combined = CombineSignatures(
         scriptPubKey, MutableTransactionSignatureChecker(&txTo, 0, amount),
@@ -2777,8 +2768,7 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
     BOOST_CHECK(combined.scriptSig.empty());
 
     // Single signature case:
-    SignSignature(keystore, CTransaction(txFrom), txTo, 0,
-                  SigHashType()); // changes scriptSig
+    SignSignature(keystore, CTransaction(txFrom), txTo, 0, SigHashType());
     combined = CombineSignatures(
         scriptPubKey, MutableTransactionSignatureChecker(&txTo, 0, amount),
         SignatureData(scriptSig), empty);
