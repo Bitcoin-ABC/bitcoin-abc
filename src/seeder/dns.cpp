@@ -385,14 +385,14 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
     outbuf[3] &= ~15;
     // check qr
     if (inbuf[2] & 128) {
-        /* fprintf(stdout, "Got response?\n"); */
+        /* tfm::format(std::cout, "Got response?\n"); */
         responseCode = DNSResponseCode::FORMAT_ERROR;
         goto error;
     }
 
     // check opcode
     if (((inbuf[2] & 120) >> 3) != 0) {
-        /* fprintf(stdout, "Opcode nonzero?\n"); */
+        /* tfm::format(std::cout, "Opcode nonzero?\n"); */
         responseCode = DNSResponseCode::NOT_IMPLEMENTED;
         goto error;
     }
@@ -404,13 +404,13 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
     // check questions
     nquestion = (inbuf[4] << 8) + inbuf[5];
     if (nquestion == 0) {
-        /* fprintf(stdout, "No questions?\n"); */
+        /* tfm::format(std::cout, "No questions?\n"); */
         responseCode = DNSResponseCode::OK;
         goto error;
     }
 
     if (nquestion > 1) {
-        /* fprintf(stdout, "Multiple questions %i?\n", nquestion); */
+        /* tfm::format(std::cout, "Multiple questions %i?\n", nquestion); */
         responseCode = DNSResponseCode::NOT_IMPLEMENTED;
         goto error;
     }
@@ -466,8 +466,8 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
         uint8_t *outpos = outbuf + (inpos - inbuf);
         uint8_t *outend = outbuf + BUFLEN;
 
-        //   fprintf(stdout, "DNS: Request host='%s' type=%i class=%i\n", name,
-        //   typ, cls);
+        //   tfm::format(std::cout, "DNS: Request host='%s' type=%i class=%i\n",
+        //   name, typ, cls);
 
         // calculate max size of authority section
 
@@ -485,8 +485,8 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
             if (max_auth_size < newpos - outpos) {
                 max_auth_size = newpos - outpos;
             }
-            //    fprintf(stdout, "Authority section will claim %i bytes max\n",
-            //    max_auth_size);
+            //    tfm::format(std::cout, "Authority section will claim %i bytes
+            //    max\n", max_auth_size);
         }
 
         // Answer section
@@ -496,7 +496,7 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
             (cls == CLASS_IN || cls == QCLASS_ANY)) {
             int ret2 = write_record_ns(&outpos, outend - max_auth_size, "",
                                        offset, CLASS_IN, opt->nsttl, opt->ns);
-            //    fprintf(stdout, "wrote NS record: %i\n", ret2);
+            //    tfm::format(std::cout, "wrote NS record: %i\n", ret2);
             if (!ret2) {
                 outbuf[7]++;
                 have_ns++;
@@ -510,7 +510,7 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
                 write_record_soa(&outpos, outend - max_auth_size, "", offset,
                                  CLASS_IN, opt->nsttl, opt->ns, opt->mbox,
                                  time(NULL), 604800, 86400, 2592000, 604800);
-            //    fprintf(stdout, "wrote SOA record: %i\n", ret2);
+            //    tfm::format(std::cout, "wrote SOA record: %i\n", ret2);
             if (!ret2) {
                 outbuf[7]++;
             }
@@ -536,7 +536,8 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
                         opt->datattl, &addr[n]);
                 }
 
-                //      fprintf(stdout, "wrote A record: %i\n", mustbreak);
+                //      tfm::format(std::cout, "wrote A record: %i\n",
+                //      mustbreak);
                 if (mustbreak) {
                     break;
                 }
@@ -550,7 +551,7 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
         if (!have_ns && outbuf[7]) {
             int ret2 = write_record_ns(&outpos, outend, "", offset, CLASS_IN,
                                        opt->nsttl, opt->ns);
-            //    fprintf(stdout, "wrote NS record: %i\n", ret2);
+            //    tfm::format(std::cout, "wrote NS record: %i\n", ret2);
             if (!ret2) {
                 outbuf[9]++;
             }
@@ -562,7 +563,7 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
             int ret2 = write_record_soa(
                 &outpos, outend, "", offset, CLASS_IN, opt->nsttl, opt->ns,
                 opt->mbox, time(NULL), 604800, 86400, 2592000, 604800);
-            //    fprintf(stdout, "wrote SOA record: %i\n", ret2);
+            //    tfm::format(std::cout, "wrote SOA record: %i\n", ret2);
             if (!ret2) {
                 outbuf[9]++;
             }
@@ -644,9 +645,9 @@ int dnsserver(dns_opt_t *opt) {
     for (; 1; ++(opt->nRequests)) {
         ssize_t insize = recvmsg(listenSocket, &msg, 0);
         //    uint8_t *addr = (uint8_t*)&si_other.sin_addr.s_addr;
-        //    fprintf(stdout, "DNS: Request %llu from %i.%i.%i.%i:%i of %i
-        //    bytes\n", (unsigned long long)(opt->nRequests), addr[0], addr[1],
-        //    addr[2], addr[3], ntohs(si_other.sin_port), (int)insize);
+        //    tfm::format(std::cout, "DNS: Request %llu from %i.%i.%i.%i:%i of
+        //    %i bytes\n", (unsigned long long)(opt->nRequests), addr[0],
+        //    addr[1], addr[2], addr[3], ntohs(si_other.sin_port), (int)insize);
         if (insize <= 0) {
             continue;
         }

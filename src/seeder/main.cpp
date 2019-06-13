@@ -63,8 +63,8 @@ public:
         SetupSeederArgs();
         std::string error;
         if (!gArgs.ParseParameters(argc, argv, error)) {
-            fprintf(stderr, "Error parsing command line arguments: %s\n",
-                    error.c_str());
+            tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
+                        error.c_str());
             return EXIT_FAILURE;
         }
         if (HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
@@ -77,7 +77,7 @@ public:
                     gArgs.GetHelpMessage();
             }
 
-            fprintf(stdout, "%s", strUsage.c_str());
+            tfm::format(std::cout, "%s", strUsage.c_str());
             return EXIT_SUCCESS;
         }
 
@@ -377,13 +377,14 @@ extern "C" void *ThreadDumper(void *) {
                 }
                 rename("dnsseed.dat.new", "dnsseed.dat");
             }
-            FILE *d = fsbridge::fopen("dnsseed.dump", "w");
-            fprintf(d, "# address                                        good  "
-                       "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
-                       "%%(30d)  blocks      svcs  version\n");
+            fsbridge::ofstream d{"dnsseed.dump"};
+            tfm::format(
+                d, "# address                                        good  "
+                   "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
+                   "%%(30d)  blocks      svcs  version\n");
             double stat[5] = {0, 0, 0, 0, 0};
             for (CAddrReport rep : v) {
-                fprintf(
+                tfm::format(
                     d,
                     "%-47s  %4d  %11" PRId64
                     "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64
@@ -399,12 +400,10 @@ extern "C" void *ThreadDumper(void *) {
                 stat[3] += rep.uptime[3];
                 stat[4] += rep.uptime[4];
             }
-            fclose(d);
-            FILE *ff = fsbridge::fopen("dnsstats.log", "a");
-            fprintf(ff, "%llu %g %g %g %g %g\n",
-                    (unsigned long long)(time(nullptr)), stat[0], stat[1],
-                    stat[2], stat[3], stat[4]);
-            fclose(ff);
+            fsbridge::ofstream ff{"dnsstats.log", std::ios_base::app};
+            tfm::format(ff, "%llu %g %g %g %g %g\n",
+                        (unsigned long long)(time(nullptr)), stat[0], stat[1],
+                        stat[2], stat[3], stat[4]);
         }
     } while (1);
     return nullptr;
@@ -421,24 +420,25 @@ extern "C" void *ThreadStats(void *) {
         db.GetStats(stats);
         if (first) {
             first = false;
-            fprintf(stdout, "\n\n\n\x1b[3A");
+            tfm::format(std::cout, "\n\n\n\x1b[3A");
         } else {
-            fprintf(stdout, "\x1b[2K\x1b[u");
+            tfm::format(std::cout, "\x1b[2K\x1b[u");
         }
-        fprintf(stdout, "\x1b[s");
+        tfm::format(std::cout, "\x1b[s");
         uint64_t requests = 0;
         uint64_t queries = 0;
         for (unsigned int i = 0; i < dnsThread.size(); i++) {
             requests += dnsThread[i]->dns_opt.nRequests;
             queries += dnsThread[i]->dbQueries;
         }
-        fprintf(stdout,
-                "%s %i/%i available (%i tried in %is, %i new, %i active), %i "
-                "banned; %llu DNS requests, %llu db queries\n",
-                c, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge,
-                stats.nNew, stats.nAvail - stats.nTracked - stats.nNew,
-                stats.nBanned, (unsigned long long)requests,
-                (unsigned long long)queries);
+        tfm::format(
+            std::cout,
+            "%s %i/%i available (%i tried in %is, %i new, %i active), %i "
+            "banned; %llu DNS requests, %llu db queries\n",
+            c, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge,
+            stats.nNew, stats.nAvail - stats.nTracked - stats.nNew,
+            stats.nBanned, (unsigned long long)requests,
+            (unsigned long long)queries);
         Sleep(1000);
     } while (1);
     return nullptr;
@@ -473,87 +473,87 @@ int main(int argc, char **argv) {
         return parseResults;
     }
 
-    fprintf(stdout, "Supporting whitelisted filters: ");
+    tfm::format(std::cout, "Supporting whitelisted filters: ");
     for (std::set<uint64_t>::const_iterator it = opts.filter_whitelist.begin();
          it != opts.filter_whitelist.end(); it++) {
         if (it != opts.filter_whitelist.begin()) {
-            fprintf(stdout, ",");
+            tfm::format(std::cout, ",");
         }
-        fprintf(stdout, "0x%lx", (unsigned long)*it);
+        tfm::format(std::cout, "0x%lx", (unsigned long)*it);
     }
-    fprintf(stdout, "\n");
+    tfm::format(std::cout, "\n");
     if (!opts.tor.empty()) {
         CService service(LookupNumeric(opts.tor.c_str(), 9050));
         if (service.IsValid()) {
-            fprintf(stdout, "Using Tor proxy at %s\n",
-                    service.ToStringIPPort().c_str());
+            tfm::format(std::cout, "Using Tor proxy at %s\n",
+                        service.ToStringIPPort().c_str());
             SetProxy(NET_ONION, proxyType(service));
         }
     }
     if (!opts.ipv4_proxy.empty()) {
         CService service(LookupNumeric(opts.ipv4_proxy.c_str(), 9050));
         if (service.IsValid()) {
-            fprintf(stdout, "Using IPv4 proxy at %s\n",
-                    service.ToStringIPPort().c_str());
+            tfm::format(std::cout, "Using IPv4 proxy at %s\n",
+                        service.ToStringIPPort().c_str());
             SetProxy(NET_IPV4, proxyType(service));
         }
     }
     if (!opts.ipv6_proxy.empty()) {
         CService service(LookupNumeric(opts.ipv6_proxy.c_str(), 9050));
         if (service.IsValid()) {
-            fprintf(stdout, "Using IPv6 proxy at %s\n",
-                    service.ToStringIPPort().c_str());
+            tfm::format(std::cout, "Using IPv6 proxy at %s\n",
+                        service.ToStringIPPort().c_str());
             SetProxy(NET_IPV6, proxyType(service));
         }
     }
     bool fDNS = true;
-    fprintf(stdout, "Using %s.\n", gArgs.GetChainName().c_str());
+    tfm::format(std::cout, "Using %s.\n", gArgs.GetChainName().c_str());
     netMagic = Params().NetMagic();
     if (opts.ns.empty()) {
-        fprintf(stdout, "No nameserver set. Not starting DNS server.\n");
+        tfm::format(std::cout, "No nameserver set. Not starting DNS server.\n");
         fDNS = false;
     }
     if (fDNS && opts.host.empty()) {
-        fprintf(stderr, "No hostname set. Please use -h.\n");
+        tfm::format(std::cerr, "No hostname set. Please use -h.\n");
         return EXIT_FAILURE;
     }
     if (fDNS && opts.mbox.empty()) {
-        fprintf(stderr, "No e-mail address set. Please use -m.\n");
+        tfm::format(std::cerr, "No e-mail address set. Please use -m.\n");
         return EXIT_FAILURE;
     }
     FILE *f = fsbridge::fopen("dnsseed.dat", "r");
     if (f) {
-        fprintf(stdout, "Loading dnsseed.dat...");
+        tfm::format(std::cout, "Loading dnsseed.dat...");
         CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
         cf >> db;
         if (opts.fWipeBan) {
             db.banned.clear();
-            fprintf(stdout, "Ban list wiped...");
+            tfm::format(std::cout, "Ban list wiped...");
         }
         if (opts.fWipeIgnore) {
             db.ResetIgnores();
-            fprintf(stdout, "Ignore list wiped...");
+            tfm::format(std::cout, "Ignore list wiped...");
         }
-        fprintf(stdout, "done\n");
+        tfm::format(std::cout, "done\n");
     }
     pthread_t threadDns, threadSeed, threadDump, threadStats;
     if (fDNS) {
-        fprintf(stdout, "Starting %i DNS threads for %s on %s (port %i)...",
-                opts.nDnsThreads, opts.host.c_str(), opts.ns.c_str(),
-                opts.nPort);
+        tfm::format(
+            std::cout, "Starting %i DNS threads for %s on %s (port %i)...",
+            opts.nDnsThreads, opts.host.c_str(), opts.ns.c_str(), opts.nPort);
         dnsThread.clear();
         for (int i = 0; i < opts.nDnsThreads; i++) {
             dnsThread.push_back(new CDnsThread(&opts, i));
             pthread_create(&threadDns, nullptr, ThreadDNS, dnsThread[i]);
-            fprintf(stdout, ".");
+            tfm::format(std::cout, ".");
             Sleep(20);
         }
-        fprintf(stdout, "done\n");
+        tfm::format(std::cout, "done\n");
     }
-    fprintf(stdout, "Starting seeder...");
+    tfm::format(std::cout, "Starting seeder...");
     pthread_create(&threadSeed, nullptr, ThreadSeeder, nullptr);
-    fprintf(stdout, "done\n");
-    fprintf(stdout, "Starting %i crawler threads...", opts.nThreads);
+    tfm::format(std::cout, "done\n");
+    tfm::format(std::cout, "Starting %i crawler threads...", opts.nThreads);
     pthread_attr_t attr_crawler;
     pthread_attr_init(&attr_crawler);
     pthread_attr_setstacksize(&attr_crawler, 0x20000);
@@ -562,7 +562,7 @@ int main(int argc, char **argv) {
         pthread_create(&thread, &attr_crawler, ThreadCrawler, &opts.nThreads);
     }
     pthread_attr_destroy(&attr_crawler);
-    fprintf(stdout, "done\n");
+    tfm::format(std::cout, "done\n");
     pthread_create(&threadStats, nullptr, ThreadStats, nullptr);
     pthread_create(&threadDump, nullptr, ThreadDumper, nullptr);
     void *res;

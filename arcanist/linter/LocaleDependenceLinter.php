@@ -32,6 +32,12 @@ final class LocaleDependenceLinter extends ArcanistLinter {
       "split",
       "is_space",
     ],
+    "src/seeder/main.cpp" => [
+        "strtoull",
+        "strcasecmp",
+        "strftime",
+    ],
+    "src/seeder/dns.cpp" => ["strcasecmp"],
     "src/torcontrol.cpp" => [
       "atoi",
       "strtol",
@@ -64,7 +70,7 @@ final class LocaleDependenceLinter extends ArcanistLinter {
     "fgetwc",
     "fgetws",
     "fold_case",   // boost::locale::fold_case
-    //"fprintf"      // (via vfprintf)
+    "fprintf",     // (via vfprintf)
     "fputwc",
     "fputws",
     "fscanf",      // (via __vfscanf)
@@ -111,7 +117,7 @@ final class LocaleDependenceLinter extends ArcanistLinter {
     "mbtowc",      // LC_CTYPE
     "mktime",
     "normalize",   // boost::locale::normalize
-    //"printf"       // LC_NUMERIC
+    "printf",      // LC_NUMERIC
     "putwc",
     "putwchar",
     "scanf",       // LC_NUMERIC

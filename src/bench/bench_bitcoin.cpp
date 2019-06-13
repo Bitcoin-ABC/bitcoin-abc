@@ -70,8 +70,8 @@ int main(int argc, char **argv) {
     SetupBenchArgs();
     std::string error;
     if (!gArgs.ParseParameters(argc, argv, error)) {
-        fprintf(stderr, "Error parsing command line arguments: %s\n",
-                error.c_str());
+        tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
+                    error.c_str());
         return EXIT_FAILURE;
     }
 
@@ -87,8 +87,8 @@ int main(int argc, char **argv) {
 
     double scaling_factor;
     if (!ParseDouble(scaling_str, &scaling_factor)) {
-        fprintf(stderr, "Error parsing scaling factor as double: %s\n",
-                scaling_str.c_str());
+        tfm::format(std::cerr, "Error parsing scaling factor as double: %s\n",
+                    scaling_str.c_str());
         return EXIT_FAILURE;
     }
 

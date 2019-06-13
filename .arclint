@@ -63,7 +63,7 @@
             "type": "lint-locale-dependence",
             "include": "(^src/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes/|leveldb/|secp256k1/|seeder/|tinyformat.h|univalue/))"
+                "(^src/(crypto/ctaes/|leveldb/|secp256k1/|tinyformat.h|univalue/))"
             ]
         },
         "lint-cheader": {
