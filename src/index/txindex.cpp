@@ -54,12 +54,12 @@ public:
     explicit DB(size_t n_cache_size, bool f_memory = false,
                 bool f_wipe = false);
 
-    /// Read the disk location of the transaction data with the given hash.
-    /// Returns false if the transaction hash is not indexed.
-    bool ReadTxPos(const uint256 &txid, CDiskTxPos &pos) const;
+    /// Read the disk location of the transaction data with the given ID.
+    /// Returns false if the transaction ID is not indexed.
+    bool ReadTxPos(const TxId &txid, CDiskTxPos &pos) const;
 
     /// Write a batch of transaction positions to the DB.
-    bool WriteTxs(const std::vector<std::pair<uint256, CDiskTxPos>> &v_pos);
+    bool WriteTxs(const std::vector<std::pair<TxId, CDiskTxPos>> &v_pos);
 
     /// Migrate txindex data from the block tree DB, where it may be for older
     /// nodes that have not been upgraded yet to the new database.
@@ -71,12 +71,12 @@ TxIndex::DB::DB(size_t n_cache_size, bool f_memory, bool f_wipe)
     : BaseIndex::DB(GetDataDir() / "indexes" / "txindex", n_cache_size,
                     f_memory, f_wipe) {}
 
-bool TxIndex::DB::ReadTxPos(const uint256 &txid, CDiskTxPos &pos) const {
+bool TxIndex::DB::ReadTxPos(const TxId &txid, CDiskTxPos &pos) const {
     return Read(std::make_pair(DB_TXINDEX, txid), pos);
 }
 
 bool TxIndex::DB::WriteTxs(
-    const std::vector<std::pair<uint256, CDiskTxPos>> &v_pos) {
+    const std::vector<std::pair<TxId, CDiskTxPos>> &v_pos) {
     CDBBatch batch(*this);
     for (const auto &tuple : v_pos) {
         batch.Write(std::make_pair(DB_TXINDEX, tuple.first), tuple.second);
@@ -168,7 +168,7 @@ bool TxIndex::DB::MigrateData(CBlockTreeDB &block_tree_db,
         // Log progress every 10%.
         if (++count % 256 == 0) {
             // Since txids are uniformly random and traversed in increasing
-            // order, the high 16 bits of the hash can be used to estimate the
+            // order, the high 16 bits of the ID can be used to estimate the
             // current progress.
             const uint256 &txid = key.second;
             uint32_t high_nibble =
@@ -248,10 +248,10 @@ bool TxIndex::Init() {
 bool TxIndex::WriteBlock(const CBlock &block, const CBlockIndex *pindex) {
     CDiskTxPos pos(pindex->GetBlockPos(),
                    GetSizeOfCompactSize(block.vtx.size()));
-    std::vector<std::pair<uint256, CDiskTxPos>> vPos;
+    std::vector<std::pair<TxId, CDiskTxPos>> vPos;
     vPos.reserve(block.vtx.size());
     for (const auto &tx : block.vtx) {
-        vPos.emplace_back(tx->GetHash(), pos);
+        vPos.emplace_back(tx->GetId(), pos);
         pos.nTxOffset += ::GetSerializeSize(*tx, SER_DISK, CLIENT_VERSION);
     }
     return m_db->WriteTxs(vPos);
@@ -261,10 +261,10 @@ BaseIndex::DB &TxIndex::GetDB() const {
     return *m_db;
 }
 
-bool TxIndex::FindTx(const uint256 &tx_hash, uint256 &block_hash,
+bool TxIndex::FindTx(const TxId &txid, uint256 &block_hash,
                      CTransactionRef &tx) const {
     CDiskTxPos postx;
-    if (!m_db->ReadTxPos(tx_hash, postx)) {
+    if (!m_db->ReadTxPos(txid, postx)) {
         return false;
     }
 
@@ -280,7 +280,7 @@ bool TxIndex::FindTx(const uint256 &tx_hash, uint256 &block_hash,
     } catch (const std::exception &e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
-    if (tx->GetHash() != tx_hash) {
+    if (tx->GetId() != txid) {
         return error("%s: txid mismatch", __func__);
     }
     block_hash = header.GetHash();

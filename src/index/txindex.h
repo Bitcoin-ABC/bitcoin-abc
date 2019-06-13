@@ -9,9 +9,9 @@
 #include <txdb.h>
 
 /**
- * TxIndex is used to look up transactions included in the blockchain by hash.
+ * TxIndex is used to look up transactions included in the blockchain by ID.
  * The index is written to a LevelDB database and records the filesystem
- * location of each transaction by transaction hash.
+ * location of each transaction by transaction ID.
  */
 class TxIndex final : public BaseIndex {
 protected:
@@ -39,14 +39,14 @@ public:
     // incomplete type.
     virtual ~TxIndex() override;
 
-    /// Look up a transaction by hash.
+    /// Look up a transaction by identifier.
     ///
-    /// @param[in]   tx_hash  The hash of the transaction to be returned.
+    /// @param[in]   txid  The ID of the transaction to be returned.
     /// @param[out]  block_hash  The hash of the block the transaction is found
     /// in.
     /// @param[out]  tx  The transaction itself.
     /// @return  true if transaction is found, false otherwise
-    bool FindTx(const uint256 &tx_hash, uint256 &block_hash,
+    bool FindTx(const TxId &txid, uint256 &block_hash,
                 CTransactionRef &tx) const;
 };
 
