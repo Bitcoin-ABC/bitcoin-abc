@@ -168,35 +168,33 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     keystore.AddKey(coinbaseKey);
     keystore.AddCScript(p2pk_scriptPubKey);
 
-    CMutableTransaction mutableFunding_tx;
+    CMutableTransaction funding_tx;
     // Needed when spending the output of this transaction
     CScript nulldummyPubKeyScript;
     // Create a funding transaction that can fail NULLDUMMY checks. This is for
     // testing consensus vs non-standard rules in `checkinputs_test`.
     {
-        mutableFunding_tx.nVersion = 1;
-        mutableFunding_tx.vin.resize(1);
-        mutableFunding_tx.vin[0].prevout =
-            COutPoint(m_coinbase_txns[0]->GetId(), 0);
-        mutableFunding_tx.vout.resize(1);
-        mutableFunding_tx.vout[0].nValue = 50 * COIN;
+        funding_tx.nVersion = 1;
+        funding_tx.vin.resize(1);
+        funding_tx.vin[0].prevout = COutPoint(m_coinbase_txns[0]->GetId(), 0);
+        funding_tx.vout.resize(1);
+        funding_tx.vout[0].nValue = 50 * COIN;
 
         CKey dummyKey;
         dummyKey.MakeNewKey(true);
         nulldummyPubKeyScript << OP_1 << ToByteVector(coinbaseKey.GetPubKey())
                               << ToByteVector(dummyKey.GetPubKey()) << OP_2
                               << OP_CHECKMULTISIG;
-        mutableFunding_tx.vout[0].scriptPubKey = nulldummyPubKeyScript;
+        funding_tx.vout[0].scriptPubKey = nulldummyPubKeyScript;
         std::vector<uint8_t> nullDummyVchSig;
         uint256 nulldummySigHash = SignatureHash(
-            p2pk_scriptPubKey, CTransaction(mutableFunding_tx), 0,
+            p2pk_scriptPubKey, CTransaction(funding_tx), 0,
             SigHashType().withForkId(), m_coinbase_txns[0]->vout[0].nValue);
         BOOST_CHECK(coinbaseKey.SignECDSA(nulldummySigHash, nullDummyVchSig));
         nullDummyVchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
-        mutableFunding_tx.vin[0].scriptSig << nullDummyVchSig;
+        funding_tx.vin[0].scriptSig << nullDummyVchSig;
     }
 
-    const CTransaction funding_tx = CTransaction(mutableFunding_tx);
     // Spend the funding transaction by mining it into a block
     {
         CBlock block = CreateAndProcessBlock({funding_tx}, p2pk_scriptPubKey);
@@ -210,50 +208,50 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
     // Create 2 outputs that match the three scripts above, spending the first
     // coinbase tx.
-    CMutableTransaction mutableSpend_tx;
-    mutableSpend_tx.nVersion = 1;
-    mutableSpend_tx.vin.resize(1);
-    mutableSpend_tx.vin[0].prevout = COutPoint(funding_tx.GetId(), 0);
-    mutableSpend_tx.vout.resize(4);
-    mutableSpend_tx.vout[0].nValue = 11 * CENT;
-    mutableSpend_tx.vout[0].scriptPubKey = p2sh_scriptPubKey;
-    mutableSpend_tx.vout[1].nValue = 11 * CENT;
-    mutableSpend_tx.vout[1].scriptPubKey =
+    CMutableTransaction spend_tx;
+    spend_tx.nVersion = 1;
+    spend_tx.vin.resize(1);
+    spend_tx.vin[0].prevout = COutPoint(funding_tx.GetId(), 0);
+    spend_tx.vout.resize(4);
+    spend_tx.vout[0].nValue = 11 * CENT;
+    spend_tx.vout[0].scriptPubKey = p2sh_scriptPubKey;
+    spend_tx.vout[1].nValue = 11 * CENT;
+    spend_tx.vout[1].scriptPubKey =
         CScript() << OP_CHECKLOCKTIMEVERIFY << OP_DROP
                   << ToByteVector(coinbaseKey.GetPubKey()) << OP_CHECKSIG;
-    mutableSpend_tx.vout[2].nValue = 11 * CENT;
-    mutableSpend_tx.vout[2].scriptPubKey =
+    spend_tx.vout[2].nValue = 11 * CENT;
+    spend_tx.vout[2].scriptPubKey =
         CScript() << OP_CHECKSEQUENCEVERIFY << OP_DROP
                   << ToByteVector(coinbaseKey.GetPubKey()) << OP_CHECKSIG;
-    mutableSpend_tx.vout[3].nValue = 11 * CENT;
-    mutableSpend_tx.vout[3].scriptPubKey = p2sh_scriptPubKey;
+    spend_tx.vout[3].nValue = 11 * CENT;
+    spend_tx.vout[3].scriptPubKey = p2sh_scriptPubKey;
 
     // Sign the main transaction that we spend from.
     {
         std::vector<uint8_t> vchSig;
         uint256 hash = SignatureHash(
-            nulldummyPubKeyScript, CTransaction(mutableSpend_tx), 0,
+            nulldummyPubKeyScript, CTransaction(spend_tx), 0,
             SigHashType().withForkId(), funding_tx.vout[0].nValue);
         coinbaseKey.SignECDSA(hash, vchSig);
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
 
         // The last item on the stack will be dropped by CHECKMULTISIG This is
         // to check nulldummy enforcement.  It is OP_1 instead of OP_0.
-        mutableSpend_tx.vin[0].scriptSig << OP_1 << vchSig;
+        spend_tx.vin[0].scriptSig << OP_1 << vchSig;
     }
-
-    const CTransaction spend_tx(mutableSpend_tx);
 
     // Test that invalidity under a set of flags doesn't preclude validity under
     // other (eg consensus) flags.
     // spend_tx is invalid according to NULLDUMMY
     {
+        const CTransaction tx(spend_tx);
+
         LOCK(cs_main);
 
         CValidationState state;
-        PrecomputedTransactionData ptd_spend_tx(spend_tx);
+        PrecomputedTransactionData ptd_spend_tx(tx);
 
-        BOOST_CHECK(!CheckInputs(spend_tx, state, pcoinsTip.get(), true,
+        BOOST_CHECK(!CheckInputs(tx, state, pcoinsTip.get(), true,
                                  MANDATORY_SCRIPT_VERIFY_FLAGS |
                                      SCRIPT_VERIFY_NULLDUMMY,
                                  true, true, ptd_spend_tx, nullptr));
@@ -263,7 +261,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // not caching invalidity (if that changes, delete this test case).
         std::vector<CScriptCheck> scriptchecks;
         BOOST_CHECK(
-            CheckInputs(spend_tx, state, pcoinsTip.get(), true,
+            CheckInputs(tx, state, pcoinsTip.get(), true,
                         MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_NULLDUMMY,
                         true, true, ptd_spend_tx, &scriptchecks));
         BOOST_CHECK_EQUAL(scriptchecks.size(), 1);
@@ -272,7 +270,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // not present. Don't add these checks to the cache, so that we can test
         // later that block validation works fine in the absence of cached
         // successes.
-        ValidateCheckInputsForAllFlags(spend_tx, SCRIPT_VERIFY_NULLDUMMY, false,
+        ValidateCheckInputsForAllFlags(tx, SCRIPT_VERIFY_NULLDUMMY, false,
                                        false);
     }
 
