@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(multisig_verify) {
         MutableTransactionSignatureChecker(&txTo[1], 0, amount), &err));
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_SIG_DER, ScriptErrorString(err));
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             keys.assign(1, key[i]);
             keys.push_back(key[j]);
@@ -165,12 +165,14 @@ BOOST_AUTO_TEST_CASE(multisig_verify) {
                                     ScriptErrorString(err));
             }
         }
+    }
 }
 
 BOOST_AUTO_TEST_CASE(multisig_IsStandard) {
     CKey key[4];
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         key[i].MakeNewKey(true);
+    }
 
     txnouttype whichType;
 
@@ -215,8 +217,9 @@ BOOST_AUTO_TEST_CASE(multisig_IsStandard) {
     malformed[5] << OP_1 << ToByteVector(key[0].GetPubKey())
                  << ToByteVector(key[1].GetPubKey());
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++) {
         BOOST_CHECK(!::IsStandard(malformed[i], whichType));
+    }
 }
 
 BOOST_AUTO_TEST_CASE(multisig_Sign) {
