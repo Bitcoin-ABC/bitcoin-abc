@@ -62,7 +62,8 @@ struct BasicTestingSetup {
     ~BasicTestingSetup();
 };
 
-/** Testing setup that configures a complete environment.
+/**
+ * Testing setup that configures a complete environment.
  * Included are data directory, coins database, script check threads setup.
  */
 class CConnman;
@@ -104,7 +105,7 @@ struct TestChain100Setup : public TestingSetup {
     ~TestChain100Setup();
 
     // For convenience, coinbase transactions.
-    std::vector<CTransaction> m_coinbase_txns;
+    std::vector<CTransactionRef> m_coinbase_txns;
     // private/public key needed to spend coinbase transactions.
     CKey coinbaseKey;
 };
