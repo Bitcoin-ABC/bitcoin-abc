@@ -102,10 +102,9 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
 // should fail.
 // Capture this interaction with the upgraded_nop argument: set it when
 // evaluating any script flag that is implemented as an upgraded NOP code.
-void ValidateCheckInputsForAllFlags(const CMutableTransaction &mutableTx,
+void ValidateCheckInputsForAllFlags(const CTransaction &tx,
                                     uint32_t failing_flags, bool add_to_cache,
                                     bool upgraded_nop) {
-    const CTransaction tx(mutableTx);
     PrecomputedTransactionData txdata(tx);
     // If we add many more flags, this loop can get too expensive, but we can
     // rewrite in the future to randomly pick a set of flags to evaluate.
@@ -301,7 +300,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                                      p2pk_scriptPubKey.end());
         invalid_under_p2sh_tx.vin[0].scriptSig << vchSig2;
 
-        ValidateCheckInputsForAllFlags(invalid_under_p2sh_tx,
+        ValidateCheckInputsForAllFlags(CTransaction(invalid_under_p2sh_tx),
                                        SCRIPT_VERIFY_P2SH, true, false);
     }
 
@@ -326,7 +325,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_cltv_tx.vin[0].scriptSig = CScript() << vchSig << 101;
 
-        ValidateCheckInputsForAllFlags(invalid_with_cltv_tx,
+        ValidateCheckInputsForAllFlags(CTransaction(invalid_with_cltv_tx),
                                        SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY, true,
                                        true);
 
@@ -363,8 +362,9 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 101;
 
-        ValidateCheckInputsForAllFlags(
-            invalid_with_csv_tx, SCRIPT_VERIFY_CHECKSEQUENCEVERIFY, true, true);
+        ValidateCheckInputsForAllFlags(CTransaction(invalid_with_csv_tx),
+                                       SCRIPT_VERIFY_CHECKSEQUENCEVERIFY, true,
+                                       true);
 
         // Make it valid, and check again
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 100;
@@ -407,7 +407,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         UpdateTransaction(tx, 1, sigdata);
 
         // This should be valid under all script flags
-        ValidateCheckInputsForAllFlags(tx, 0, true, false);
+        ValidateCheckInputsForAllFlags(CTransaction(tx), 0, true, false);
 
         // Check that if the second input is invalid, but the first input is
         // valid, the transaction is not cached.
