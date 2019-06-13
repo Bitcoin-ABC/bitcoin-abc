@@ -85,7 +85,7 @@ class BitcoinTestFramework():
         parser.add_argument("--srcdir", dest="srcdir", default=os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../../src"),
                             help="Source directory containing bitcoind/bitcoin-cli (default: %(default)s)")
         parser.add_argument("--cachedir", dest="cachedir", default=os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../cache"),
-                            help="Directory for caching pregenerated datadirs (default: %default)")
+                            help="Directory for caching pregenerated datadirs (default: %(default)s)")
         parser.add_argument("--tmpdir", dest="tmpdir",
                             help="Root directory for datadirs")
         parser.add_argument("-l", "--loglevel", dest="loglevel", default="INFO",
@@ -97,7 +97,7 @@ class BitcoinTestFramework():
         parser.add_argument("--coveragedir", dest="coveragedir",
                             help="Write tested RPC commands into this directory")
         parser.add_argument("--configfile", dest="configfile", default=os.path.abspath(os.path.dirname(os.path.realpath(
-            __file__)) + "/../../config.ini"), help="Location of the test framework config file (default: %default)")
+            __file__)) + "/../../config.ini"), help="Location of the test framework config file (default: %(default)s)")
         parser.add_argument("--pdbonfailure", dest="pdbonfailure", default=False, action="store_true",
                             help="Attach a python debugger if test fails")
         parser.add_argument("--usecli", dest="usecli", default=False, action="store_true",
