@@ -102,6 +102,13 @@
                 "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
                 "(^src/tinyformat.h$)"
             ]
+        },
+        "lint-include-source": {
+            "type": "lint-include-source",
+            "include": "(^src/.*\\.(h|c|cpp)$)",
+            "exclude": [
+                "(^src/(secp256k1|univalue|leveldb)/)"
+            ]
         }
     }
 }
