@@ -45,20 +45,27 @@ bool SerializeFileDB(const CChainParams &chainParams, const std::string &prefix,
     FILE *file = fsbridge::fopen(pathTmp, "wb");
     CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull()) {
+        fileout.fclose();
+        remove(pathTmp);
         return error("%s: Failed to open file %s", __func__, pathTmp.string());
     }
 
     // Serialize
     if (!SerializeDB(chainParams, fileout, data)) {
+        fileout.fclose();
+        remove(pathTmp);
         return false;
     }
     if (!FileCommit(fileout.Get())) {
+        fileout.fclose();
+        remove(pathTmp);
         return error("%s: Failed to flush file %s", __func__, pathTmp.string());
     }
     fileout.fclose();
 
     // replace existing file, if any, with new file
     if (!RenameOver(pathTmp, path)) {
+        remove(pathTmp);
         return error("%s: Rename-into-place failed", __func__);
     }
 
