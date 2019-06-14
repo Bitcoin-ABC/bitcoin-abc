@@ -20,6 +20,7 @@ bench_bench_bitcoin_SOURCES = \
   bench/checkqueue.cpp \
   bench/Examples.cpp \
   bench/rollingbloom.cpp \
+  bench/crypto_aes.cpp \
   bench/crypto_hash.cpp \
   bench/ccoins_caching.cpp \
   bench/gcs_filter.cpp \
