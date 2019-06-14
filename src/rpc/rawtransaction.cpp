@@ -836,8 +836,11 @@ static UniValue signrawtransactionwithkey(const Config &config,
             "    ,...\n"
             "  ]\n"
             "}\n"},
-        RPCExamples{HelpExampleCli("signrawtransactionwithkey", "\"myhex\"") +
-                    HelpExampleRpc("signrawtransactionwithkey", "\"myhex\"")},
+        RPCExamples{
+            HelpExampleCli("signrawtransactionwithkey",
+                           "\"myhex\" \"[\\\"key1\\\",\\\"key2\\\"]\"") +
+            HelpExampleRpc("signrawtransactionwithkey",
+                           "\"myhex\", \"[\\\"key1\\\",\\\"key2\\\"]\"")},
     }
         .Check(request);
 
