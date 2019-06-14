@@ -11,6 +11,10 @@
         <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
         <exclude name="Generic.CodeAnalysis.AssignmentInCondition.Found" />
         <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found" />
+        <exclude name="Generic.Commenting.DocComment.NonParamGroup" />
+        <exclude name="Generic.Commenting.DocComment.ParamNotFirst" />
+        <exclude name="Generic.Commenting.DocComment.SpacingBeforeTags" />
+        <exclude name="Generic.Commenting.DocComment.TagValueIndent" />
         <exclude name="Generic.Files.EndFileNoNewline.Found" />
         <exclude name="Generic.Files.LowercasedFilename" />
         <exclude name="Generic.Formatting.MultipleStatementAlignment" />
