@@ -589,8 +589,7 @@ static UniValue getnetworkinfo(const Config &config,
                    int(g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
     }
     obj.pushKV("networks", GetNetworksInfo());
-    obj.pushKV("relayfee",
-               ValueFromAmount(config.GetMinFeePerKB().GetFeePerK()));
+    obj.pushKV("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK()));
     obj.pushKV("excessutxocharge",
                ValueFromAmount(config.GetExcessUTXOCharge()));
     UniValue localAddresses(UniValue::VARR);

@@ -30,9 +30,6 @@ public:
     virtual void SetExcessUTXOCharge(Amount amt) = 0;
     virtual Amount GetExcessUTXOCharge() const = 0;
 
-    virtual void SetMinFeePerKB(CFeeRate amt) = 0;
-    virtual CFeeRate GetMinFeePerKB() const = 0;
-
     virtual void SetRPCUserAndPassword(std::string userAndPassword) = 0;
     virtual std::string GetRPCUserAndPassword() const = 0;
     virtual void SetRPCCORSDomain(std::string corsDomain) = 0;
@@ -53,9 +50,6 @@ public:
     void SetExcessUTXOCharge(Amount) override;
     Amount GetExcessUTXOCharge() const override;
 
-    void SetMinFeePerKB(CFeeRate amt) override;
-    CFeeRate GetMinFeePerKB() const override;
-
     void SetRPCUserAndPassword(std::string userAndPassword) override;
     std::string GetRPCUserAndPassword() const override;
     void SetRPCCORSDomain(std::string corsDomain) override;
@@ -64,7 +58,6 @@ public:
 private:
     bool useCashAddr;
     Amount excessUTXOCharge;
-    CFeeRate feePerKB;
 
     /** RPC authentication configs */
 
@@ -100,11 +93,6 @@ public:
 
     void SetExcessUTXOCharge(Amount amt) override {}
     Amount GetExcessUTXOCharge() const override { return Amount::zero(); }
-
-    void SetMinFeePerKB(CFeeRate amt) override{};
-    CFeeRate GetMinFeePerKB() const override {
-        return CFeeRate(Amount::zero());
-    }
 
     void SetRPCUserAndPassword(std::string userAndPassword) override{};
     std::string GetRPCUserAndPassword() const override { return ""; };

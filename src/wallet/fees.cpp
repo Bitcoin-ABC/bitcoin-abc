@@ -31,7 +31,9 @@ Amount GetMinimumFee(unsigned int nTxBytes, const CCoinControl &coin_control,
 }
 
 CFeeRate GetRequiredFeeRate() {
-    return GetConfig().GetMinFeePerKB();
+    // FIXME: This should be CWallet::minTxFee but it was removed so we use
+    // minRelayFee exclusively instead.
+    return ::minRelayTxFee;
 }
 
 CFeeRate GetMinimumFeeRate(const CCoinControl &coin_control,

@@ -55,9 +55,8 @@ BOOST_AUTO_TEST_CASE(MempoolMinimumFeeEstimate) {
         block.clear();
     }
 
-    // Check that the estimate is above the rolling minimum fee.  This should
-    // be true since we have not trimmed the mempool.
-    BOOST_CHECK(CFeeRate(Amount::zero()) == mpool.estimateFee());
+    // Check that the estimate is above the rolling minimum fee. This should be
+    // true since we have not trimmed the mempool.
     BOOST_CHECK(mpool.GetMinFee(1) <= mpool.estimateFee());
 
     // Check that estimateFee returns the minimum rolling fee even when the

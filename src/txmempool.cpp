@@ -939,7 +939,7 @@ CFeeRate CTxMemPool::estimateFee() const {
     // may disagree with the rollingMinimumFeerate under certain scenarios
     // where the mempool  increases rapidly, or blocks are being mined which
     // do not contain propagated transactions.
-    return std::max(GetConfig().GetMinFeePerKB(), GetMinFee(maxMempoolSize));
+    return std::max(::minRelayTxFee, GetMinFee(maxMempoolSize));
 }
 
 void CTxMemPool::PrioritiseTransaction(const uint256 &hash,

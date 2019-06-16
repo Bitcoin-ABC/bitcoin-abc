@@ -125,7 +125,6 @@ bool IsStandardTx(const CTransaction &tx, std::string &reason);
 bool AreInputsStandard(const CTransaction &tx,
                        const CCoinsViewCache &mapInputs);
 
-extern CFeeRate incrementalRelayFee;
 extern CFeeRate dustRelayFee;
 extern uint32_t nBytesPerSigOp;
 

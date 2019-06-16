@@ -1693,14 +1693,12 @@ bool AppInitParameterInteraction(Config &config) {
     if (gArgs.IsArgSet("-minrelaytxfee")) {
         Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-minrelaytxfee", ""), n);
-        if (!parsed || Amount::zero() == n) {
+        if (!parsed || n == Amount::zero()) {
             return InitError(AmountErrMsg("minrelaytxfee",
                                           gArgs.GetArg("-minrelaytxfee", "")));
         }
         // High fee check is done afterward in WalletParameterInteraction()
-        config.SetMinFeePerKB(CFeeRate(n));
-    } else {
-        config.SetMinFeePerKB(CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB));
+        ::minRelayTxFee = CFeeRate(n);
     }
 
     // Sanity check argument for min fee for including tx in block
