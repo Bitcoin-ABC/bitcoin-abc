@@ -191,7 +191,7 @@ private:
      * statistics from the package selection (for logging statistics).
      */
     void addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated)
-        EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
 
     /** Enum for the results from TestForBlock */
     enum class TestForBlockResult : uint8_t {
@@ -225,7 +225,7 @@ private:
     bool SkipMapTxEntry(CTxMemPool::txiter it,
                         indexed_modified_transaction_set &mapModifiedTx,
                         CTxMemPool::setEntries &failedTx)
-        EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
     /** Sort the package in an order that is valid to appear in a block */
     void SortForBlock(const CTxMemPool::setEntries &package,
                       CTxMemPool::txiter entry,
@@ -237,7 +237,7 @@ private:
      */
     int UpdatePackagesForAdded(const CTxMemPool::setEntries &alreadyAdded,
                                indexed_modified_transaction_set &mapModifiedTx)
-        EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
 };
 
 /** Modify the extranonce in a block */
