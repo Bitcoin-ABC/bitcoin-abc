@@ -207,6 +207,9 @@ namespace {
         bool getNetworkActive() override {
             return g_connman && g_connman->GetNetworkActive();
         }
+        Amount getRequiredFee(unsigned int tx_bytes) override {
+            CHECK_WALLET(return GetRequiredFee(tx_bytes));
+        }
         Amount getMinimumFee(unsigned int tx_bytes,
                              const CCoinControl &coin_control) override {
             Amount result;
