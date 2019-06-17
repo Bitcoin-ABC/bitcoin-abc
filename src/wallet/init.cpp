@@ -56,14 +56,27 @@ void WalletInit::AddWalletOptions() const {
     gArgs.AddArg("-disablewallet",
                  _("Do not load the wallet and disable wallet RPC calls"),
                  false, OptionsCategory::WALLET);
-    gArgs.AddArg("-keypool=<n>",
-                 strprintf(_("Set key pool size to <n> (default: %u)"),
-                           DEFAULT_KEYPOOL_SIZE),
-                 false, OptionsCategory::WALLET);
     gArgs.AddArg("-fallbackfee=<amt>",
                  strprintf(_("A fee rate (in %s/kB) that will be used when fee "
                              "estimation has insufficient data (default: %s)"),
                            CURRENCY_UNIT, FormatMoney(DEFAULT_FALLBACK_FEE)),
+                 false, OptionsCategory::WALLET);
+    gArgs.AddArg("-keypool=<n>",
+                 strprintf(_("Set key pool size to <n> (default: %u)"),
+                           DEFAULT_KEYPOOL_SIZE),
+                 false, OptionsCategory::WALLET);
+    gArgs.AddArg(
+        "-maxtxfee=<amt>",
+        strprintf(_("Maximum total fees (in %s) to use in a single wallet "
+                    "transaction or raw transaction; setting this too low may "
+                    "abort large transactions (default: %s)"),
+                  CURRENCY_UNIT, FormatMoney(DEFAULT_TRANSACTION_MAXFEE)),
+        false, OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg("-mintxfee=<amt>",
+                 strprintf(_("Fees (in %s/kB) smaller than this are considered "
+                             "zero fee for transaction creation (default: %s)"),
+                           CURRENCY_UNIT,
+                           FormatMoney(DEFAULT_TRANSACTION_MINFEE_PER_KB)),
                  false, OptionsCategory::WALLET);
     gArgs.AddArg(
         "-paytxfee=<amt>",
@@ -276,6 +289,23 @@ bool WalletInit::ParameterInteraction() const {
                   "stuck transactions)"),
                 gArgs.GetArg("-maxtxfee", ""), minRelayTxFee.ToString()));
         }
+    }
+
+    if (gArgs.IsArgSet("-mintxfee")) {
+        Amount n = Amount::zero();
+        auto parsed = ParseMoney(gArgs.GetArg("-mintxfee", ""), n);
+        if (!parsed || n == Amount::zero()) {
+            return InitError(
+                AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
+        }
+
+        if (n > HIGH_TX_FEE_PER_KB) {
+            InitWarning(AmountHighWarn("-mintxfee") + " " +
+                        _("This is the minimum transaction fee you pay on "
+                          "every transaction."));
+        }
+
+        CWallet::minTxFee = CFeeRate(n);
     }
 
     bSpendZeroConfChange =

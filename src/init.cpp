@@ -812,13 +812,6 @@ void SetupServerArgs() {
                            "initial block download (default: %u)",
                            DEFAULT_MAX_TIP_AGE),
                  true, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
-        "-maxtxfee=<amt>",
-        strprintf(_("Maximum total fees (in %s) to use in a single wallet "
-                    "transaction or raw transaction; setting this too low may "
-                    "abort large transactions (default: %s)"),
-                  CURRENCY_UNIT, FormatMoney(DEFAULT_TRANSACTION_MAXFEE)),
-        false, OptionsCategory::DEBUG_TEST);
 
     gArgs.AddArg(
         "-printtoconsole",

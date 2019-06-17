@@ -45,6 +45,8 @@ static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
 static const Amount DEFAULT_TRANSACTION_FEE = Amount::zero();
 //! -fallbackfee default
 static const Amount DEFAULT_FALLBACK_FEE(20000 * SATOSHI);
+//! -mintxfee default
+static const Amount DEFAULT_TRANSACTION_MINFEE_PER_KB = 1000 * SATOSHI;
 //! minimum recommended increment for BIP 125 replacement txs
 static const Amount WALLET_INCREMENTAL_RELAY_FEE(5000 * SATOSHI);
 //! Default for -spendzeroconfchange
@@ -1082,6 +1084,7 @@ public:
                      const std::vector<CTxOut> &txouts) const;
     bool DummySignInput(CTxIn &tx_in, const CTxOut &txout) const;
 
+    static CFeeRate minTxFee;
     static CFeeRate fallbackFee;
 
     bool NewKeyPool();
