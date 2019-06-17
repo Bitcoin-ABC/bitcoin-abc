@@ -13,12 +13,14 @@
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 #include <algorithm>
 #include <atomic>
 #include <cinttypes>
 #include <csignal>
 #include <cstdlib>
+#include <functional>
 #include <pthread.h>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;

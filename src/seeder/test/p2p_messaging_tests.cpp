@@ -14,14 +14,12 @@
 #include <util/system.h>
 #include <version.h>
 
+#include <boost/test/unit_test.hpp>
+
 #include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
-
-const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
-
-#include <boost/test/unit_test.hpp>
 
 std::ostream &operator<<(std::ostream &os, const PeerMessagingState &state) {
     os << to_integral(state);

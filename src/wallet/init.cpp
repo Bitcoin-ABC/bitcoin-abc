@@ -12,6 +12,7 @@
 #include <util/error.h>
 #include <util/moneystr.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <validation.h>
 #include <wallet/rpcdump.h>
 #include <wallet/rpcwallet.h>

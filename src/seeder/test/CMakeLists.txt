@@ -9,6 +9,8 @@ create_test_suite(bitcoin-seeder)
 add_dependencies(check check-bitcoin-seeder)
 
 add_boost_unit_tests_to_suite(bitcoin-seeder test_bitcoin-seeder
+	translate_support.cpp
+
 	TESTS
 		p2p_messaging_tests.cpp
 		parse_name_tests.cpp

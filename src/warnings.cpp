@@ -8,6 +8,7 @@
 #include <clientversion.h>
 #include <sync.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 RecursiveMutex cs_warnings;
 std::string strMiscWarning;

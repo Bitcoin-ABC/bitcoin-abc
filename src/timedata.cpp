@@ -13,6 +13,7 @@
 #include <ui_interface.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <warnings.h>
 
 static RecursiveMutex cs_nTimeOffset;

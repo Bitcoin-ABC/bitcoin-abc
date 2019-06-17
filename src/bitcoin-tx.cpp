@@ -20,12 +20,14 @@
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 #include <univalue.h>
 
 #include <boost/algorithm/string.hpp>
 
 #include <cstdio>
+#include <functional>
 #include <memory>
 
 static bool fCreateBlank;

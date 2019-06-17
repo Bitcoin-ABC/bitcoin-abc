@@ -12,9 +12,11 @@
 #include <logging.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <wallet/wallettool.h>
 
 #include <cstdio>
+#include <functional>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 

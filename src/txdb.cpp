@@ -13,6 +13,7 @@
 #include <shutdown.h>
 #include <ui_interface.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
 

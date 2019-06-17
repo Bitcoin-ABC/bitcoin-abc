@@ -23,7 +23,10 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/threadnames.h>
+#include <util/translation.h>
 #include <walletinitinterface.h>
+
+#include <functional>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 

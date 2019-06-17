@@ -241,6 +241,7 @@ BITCOIN_CORE_H = \
   util/settings.h \
   util/threadnames.h \
   util/time.h \
+  util/translation.h \
   util/url.h \
   util/validation.h \
   validation.h \

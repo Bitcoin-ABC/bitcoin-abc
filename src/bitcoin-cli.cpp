@@ -15,6 +15,7 @@
 #include <support/events.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 #include <event2/buffer.h>
 #include <event2/keyvalq_struct.h>
@@ -22,6 +23,7 @@
 #include <univalue.h>
 
 #include <cstdio>
+#include <functional>
 #include <memory>
 #include <tuple>
 

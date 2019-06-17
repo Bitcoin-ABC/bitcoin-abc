@@ -8,6 +8,7 @@
 #include <interfaces/chain.h>
 #include <scheduler.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <wallet/wallet.h>
 
 bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,

@@ -16,6 +16,7 @@
 #include <serialize.h>
 #include <util/strencodings.h>
 #include <util/time.h>
+#include <util/translation.h>
 
 #include <univalue.h>
 

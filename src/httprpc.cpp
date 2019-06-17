@@ -16,6 +16,7 @@
 #include <ui_interface.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <walletinitinterface.h>
 
 #include <boost/algorithm/string.hpp> // boost::trim
