@@ -215,6 +215,7 @@ BITCOIN_CORE_H = \
   rwcollection.h \
   scheduler.h \
   script/descriptor.h \
+  script/keyorigin.h \
   script/scriptcache.h \
   script/sigcache.h \
   script/sign.h \
