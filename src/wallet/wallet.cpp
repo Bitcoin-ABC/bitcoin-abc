@@ -585,8 +585,37 @@ bool CWallet::LoadCScript(const CScript &redeemScript) {
     return FillableSigningProvider::AddCScript(redeemScript);
 }
 
+static bool ExtractPubKey(const CScript &dest, CPubKey &pubKeyOut) {
+    // TODO: Use Solver to extract this?
+    CScript::const_iterator pc = dest.begin();
+    opcodetype opcode;
+    std::vector<uint8_t> vch;
+    if (!dest.GetOp(pc, opcode, vch) || !CPubKey::ValidSize(vch)) {
+        return false;
+    }
+    pubKeyOut = CPubKey(vch);
+    if (!pubKeyOut.IsFullyValid()) {
+        return false;
+    }
+    if (!dest.GetOp(pc, opcode, vch) || opcode != OP_CHECKSIG ||
+        dest.GetOp(pc, opcode, vch)) {
+        return false;
+    }
+    return true;
+}
+
+bool CWallet::AddWatchOnlyInMem(const CScript &dest) {
+    LOCK(cs_KeyStore);
+    setWatchOnly.insert(dest);
+    CPubKey pubKey;
+    if (ExtractPubKey(dest, pubKey)) {
+        mapWatchKeys[pubKey.GetID()] = pubKey;
+    }
+    return true;
+}
+
 bool CWallet::AddWatchOnlyWithDB(WalletBatch &batch, const CScript &dest) {
-    if (!FillableSigningProvider::AddWatchOnly(dest)) {
+    if (!AddWatchOnlyInMem(dest)) {
         return false;
     }
 
@@ -618,8 +647,13 @@ bool CWallet::AddWatchOnly(const CScript &dest, int64_t nCreateTime) {
 
 bool CWallet::RemoveWatchOnly(const CScript &dest) {
     AssertLockHeld(cs_wallet);
-    if (!FillableSigningProvider::RemoveWatchOnly(dest)) {
-        return false;
+    {
+        LOCK(cs_KeyStore);
+        setWatchOnly.erase(dest);
+        CPubKey pubKey;
+        if (ExtractPubKey(dest, pubKey)) {
+            mapWatchKeys.erase(pubKey.GetID());
+        }
     }
 
     if (!HaveWatchOnly()) {
@@ -630,7 +664,17 @@ bool CWallet::RemoveWatchOnly(const CScript &dest) {
 }
 
 bool CWallet::LoadWatchOnly(const CScript &dest) {
-    return FillableSigningProvider::AddWatchOnly(dest);
+    return AddWatchOnlyInMem(dest);
+}
+
+bool CWallet::HaveWatchOnly(const CScript &dest) const {
+    LOCK(cs_KeyStore);
+    return setWatchOnly.count(dest) > 0;
+}
+
+bool CWallet::HaveWatchOnly() const {
+    LOCK(cs_KeyStore);
+    return (!setWatchOnly.empty());
 }
 
 bool CWallet::Unlock(const SecureString &strWalletPassphrase,
@@ -5326,10 +5370,23 @@ bool CWallet::GetKey(const CKeyID &address, CKey &keyOut) const {
     return false;
 }
 
+bool CWallet::GetWatchPubKey(const CKeyID &address, CPubKey &pubkey_out) const {
+    LOCK(cs_KeyStore);
+    WatchKeyMap::const_iterator it = mapWatchKeys.find(address);
+    if (it != mapWatchKeys.end()) {
+        pubkey_out = it->second;
+        return true;
+    }
+    return false;
+}
+
 bool CWallet::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const {
     LOCK(cs_KeyStore);
     if (!IsCrypted()) {
-        return FillableSigningProvider::GetPubKey(address, vchPubKeyOut);
+        if (!FillableSigningProvider::GetPubKey(address, vchPubKeyOut)) {
+            return GetWatchPubKey(address, vchPubKeyOut);
+        }
+        return true;
     }
 
     CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
@@ -5339,7 +5396,7 @@ bool CWallet::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const {
     }
 
     // Check for watch-only pubkeys
-    return FillableSigningProvider::GetPubKey(address, vchPubKeyOut);
+    return GetWatchPubKey(address, vchPubKeyOut);
 }
 
 std::set<CKeyID> CWallet::GetKeys() const {
@@ -5409,6 +5466,5 @@ bool CWallet::AddCryptedKeyInner(const CPubKey &vchPubKey,
     }
 
     mapCryptedKeys[vchPubKey.GetID()] = make_pair(vchPubKey, vchCryptedSecret);
-    ImplicitlyLearnRelatedKeyScripts(vchPubKey);
     return true;
 }

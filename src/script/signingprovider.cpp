@@ -83,33 +83,10 @@ FlatSigningProvider Merge(const FlatSigningProvider &a,
     return ret;
 }
 
-void FillableSigningProvider::ImplicitlyLearnRelatedKeyScripts(
-    const CPubKey &pubkey) {
-    AssertLockHeld(cs_KeyStore);
-    CKeyID key_id = pubkey.GetID();
-    // We must actually know about this key already.
-    assert(HaveKey(key_id) || mapWatchKeys.count(key_id));
-    // This adds the redeemscripts necessary to detect alternative outputs using
-    // the same keys. Also note that having superfluous scripts in the keystore
-    // never hurts. They're only used to guide recursion in signing and IsMine
-    // logic - if a script is present but we can't do anything with it, it has
-    // no effect. "Implicitly" refers to fact that scripts are derived
-    // automatically from existing keys, and are present in memory, even without
-    // being explicitly loaded (e.g. from a file).
-
-    // Right now there are none so do nothing.
-}
-
 bool FillableSigningProvider::GetPubKey(const CKeyID &address,
                                         CPubKey &vchPubKeyOut) const {
     CKey key;
     if (!GetKey(address, key)) {
-        LOCK(cs_KeyStore);
-        WatchKeyMap::const_iterator it = mapWatchKeys.find(address);
-        if (it != mapWatchKeys.end()) {
-            vchPubKeyOut = it->second;
-            return true;
-        }
         return false;
     }
     vchPubKeyOut = key.GetPubKey();
@@ -120,7 +97,6 @@ bool FillableSigningProvider::AddKeyPubKey(const CKey &key,
                                            const CPubKey &pubkey) {
     LOCK(cs_KeyStore);
     mapKeys[pubkey.GetID()] = key;
-    ImplicitlyLearnRelatedKeyScripts(pubkey);
     return true;
 }
 
@@ -185,58 +161,6 @@ bool FillableSigningProvider::GetCScript(const CScriptID &hash,
         return true;
     }
     return false;
-}
-
-static bool ExtractPubKey(const CScript &dest, CPubKey &pubKeyOut) {
-    // TODO: Use Solver to extract this?
-    CScript::const_iterator pc = dest.begin();
-    opcodetype opcode;
-    std::vector<uint8_t> vch;
-    if (!dest.GetOp(pc, opcode, vch) || !CPubKey::ValidSize(vch)) {
-        return false;
-    }
-    pubKeyOut = CPubKey(vch);
-    if (!pubKeyOut.IsFullyValid()) {
-        return false;
-    }
-    if (!dest.GetOp(pc, opcode, vch) || opcode != OP_CHECKSIG ||
-        dest.GetOp(pc, opcode, vch)) {
-        return false;
-    }
-    return true;
-}
-
-bool FillableSigningProvider::AddWatchOnly(const CScript &dest) {
-    LOCK(cs_KeyStore);
-    setWatchOnly.insert(dest);
-    CPubKey pubKey;
-    if (ExtractPubKey(dest, pubKey)) {
-        mapWatchKeys[pubKey.GetID()] = pubKey;
-        ImplicitlyLearnRelatedKeyScripts(pubKey);
-    }
-    return true;
-}
-
-bool FillableSigningProvider::RemoveWatchOnly(const CScript &dest) {
-    LOCK(cs_KeyStore);
-    setWatchOnly.erase(dest);
-    CPubKey pubKey;
-    if (ExtractPubKey(dest, pubKey)) {
-        mapWatchKeys.erase(pubKey.GetID());
-    }
-    // Related CScripts are not removed; having superfluous scripts around is
-    // harmless (see comment in ImplicitlyLearnRelatedKeyScripts).
-    return true;
-}
-
-bool FillableSigningProvider::HaveWatchOnly(const CScript &dest) const {
-    LOCK(cs_KeyStore);
-    return setWatchOnly.count(dest) > 0;
-}
-
-bool FillableSigningProvider::HaveWatchOnly() const {
-    LOCK(cs_KeyStore);
-    return (!setWatchOnly.empty());
 }
 
 CKeyID GetKeyForDestination(const SigningProvider &store,
