@@ -12,7 +12,7 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.setup_clean_chain = True
         self.extra_args = [
-            [], ["-deprecatedrpc=createmultisig", "-deprecatedrpc=validateaddress"]]
+            [], ["-deprecatedrpc=createmultisig", "-deprecatedrpc=validateaddress", "-deprecatedrpc=getblockchaininfo"]]
 
     def run_test(self):
         # This test should be used to verify correct behaviour of deprecated
@@ -35,6 +35,13 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         assert_raises_rpc_error(-5, "Invalid public key",
                                 self.nodes[0].createmultisig, 1, [self.nodes[0].getnewaddress()])
         self.nodes[1].createmultisig(1, [self.nodes[1].getnewaddress()])
+
+        self.log.info(
+            "-deprecatedrpc=getblockchaininfo lets us see old 'softforks' info")
+        binfo_normal = self.nodes[0].getblockchaininfo()
+        assert "softforks" not in binfo_normal
+        binfo_dep = self.nodes[1].getblockchaininfo()
+        assert "softforks" in binfo_dep and len(binfo_dep['softforks']) == 4
 
 
 if __name__ == '__main__':

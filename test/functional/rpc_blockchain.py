@@ -66,7 +66,6 @@ class BlockchainTest(BitcoinTestFramework):
             'mediantime',
             'pruned',
             'size_on_disk',
-            'softforks',
             'verificationprogress',
             'warnings',
         ]

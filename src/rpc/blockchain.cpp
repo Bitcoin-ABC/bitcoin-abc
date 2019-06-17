@@ -1257,6 +1257,11 @@ UniValue getblockchaininfo(const Config &config,
             "getblockchaininfo\n"
             "Returns an object containing various state info regarding "
             "blockchain processing.\n"
+            "DEPRECATION WARNING: The 'softforks' output has been deprecated "
+            "and will be\n"
+            "removed v0.20. For the time being it will only be shown here when "
+            "bitcoind\n"
+            "is started with -deprecatedrpc=getblockchaininfo.\n"
             "\nResult:\n"
             "{\n"
             "  \"chain\": \"xxxx\",              (string) current network name "
@@ -1287,8 +1292,8 @@ UniValue getblockchaininfo(const Config &config,
             "pruning is enabled (only present if pruning is enabled)\n"
             "  \"prune_target_size\": xxxxxx,  (numeric) the target size "
             "used by pruning (only present if automatic pruning is enabled)\n"
-            "  \"softforks\": [                (array) status of softforks in "
-            "progress\n"
+            "  \"softforks\": [                (array) DEPRECATED: status of "
+            "softforks in progress\n"
             "     {\n"
             "        \"id\": \"xxxx\",           (string) name of softfork\n"
             "        \"version\": xx,          (numeric) block version\n"
@@ -1341,14 +1346,16 @@ UniValue getblockchaininfo(const Config &config,
         }
     }
 
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-    UniValue softforks(UniValue::VARR);
-    softforks.push_back(SoftForkDesc("bip34", 2, tip, consensusParams));
-    softforks.push_back(SoftForkDesc("bip66", 3, tip, consensusParams));
-    softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
-    softforks.push_back(SoftForkDesc("csv", 5, tip, consensusParams));
-    obj.pushKV("softforks", softforks);
+    if (IsDeprecatedRPCEnabled(gArgs, "getblockchaininfo")) {
+        const Consensus::Params &consensusParams =
+            config.GetChainParams().GetConsensus();
+        UniValue softforks(UniValue::VARR);
+        softforks.push_back(SoftForkDesc("bip34", 2, tip, consensusParams));
+        softforks.push_back(SoftForkDesc("bip66", 3, tip, consensusParams));
+        softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
+        softforks.push_back(SoftForkDesc("csv", 5, tip, consensusParams));
+        obj.pushKV("softforks", softforks);
+    }
 
     obj.pushKV("warnings", GetWarnings("statusbar"));
     return obj;

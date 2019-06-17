@@ -403,11 +403,8 @@ class BIP68Test(BitcoinTestFramework):
         self.nodes[0].generate(10)
 
     def get_csv_status(self):
-        softforks = self.nodes[0].getblockchaininfo()['softforks']
-        for sf in softforks:
-            if sf['id'] == 'csv' and sf['version'] == 5:
-                return sf['reject']['status']
-        raise AssertionError('Cannot find CSV fork activation information')
+        height = self.nodes[0].getblockchaininfo()['blocks']
+        return height >= 576
 
     # Make sure that BIP68 isn't being used to validate blocks, prior to
     # versionbits activation.  If more blocks are mined prior to this test
