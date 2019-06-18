@@ -64,7 +64,7 @@
 #define MICRO 0.000001
 #define MILLI 0.001
 
-CChainState g_chainstate;
+static CChainState g_chainstate;
 
 CChainState &ChainstateActive() {
     return g_chainstate;
@@ -834,8 +834,8 @@ bool CChainState::IsInitialBlockDownload() const {
     return false;
 }
 
-CBlockIndex const *pindexBestForkTip = nullptr;
-CBlockIndex const *pindexBestForkBase = nullptr;
+static CBlockIndex const *pindexBestForkTip = nullptr;
+static CBlockIndex const *pindexBestForkBase = nullptr;
 
 static void AlertNotify(const std::string &strMessage) {
     uiInterface.NotifyAlertChanged();
@@ -5633,4 +5633,5 @@ public:
         }
         mapBlockIndex.clear();
     }
-} instance_of_cmaincleanup;
+};
+static CMainCleanup instance_of_cmaincleanup;
