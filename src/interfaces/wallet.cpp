@@ -29,7 +29,7 @@ namespace {
     class PendingWalletTxImpl : public PendingWalletTx {
     public:
         explicit PendingWalletTxImpl(CWallet &wallet)
-            : m_wallet(wallet), m_key(&wallet) {}
+            : m_wallet(wallet), m_dest(&wallet) {}
 
         const CTransaction &get() override { return *m_tx; }
 
@@ -39,7 +39,7 @@ namespace {
             LOCK(m_wallet.cs_wallet);
             CValidationState state;
             if (!m_wallet.CommitTransaction(m_tx, std::move(value_map),
-                                            std::move(order_form), m_key,
+                                            std::move(order_form), m_dest,
                                             state)) {
                 reject_reason = state.GetRejectReason();
                 return false;
@@ -49,7 +49,7 @@ namespace {
 
         CTransactionRef m_tx;
         CWallet &m_wallet;
-        CReserveKey m_key;
+        ReserveDestination m_dest;
     };
 
     //! Construct wallet tx struct.
@@ -248,7 +248,7 @@ namespace {
             LOCK(m_wallet->cs_wallet);
             auto pending = std::make_unique<PendingWalletTxImpl>(*m_wallet);
             if (!m_wallet->CreateTransaction(
-                    *locked_chain, recipients, pending->m_tx, pending->m_key,
+                    *locked_chain, recipients, pending->m_tx, pending->m_dest,
                     fee, change_pos, fail_reason, coin_control, sign)) {
                 return {};
             }

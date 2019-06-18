@@ -3154,9 +3154,9 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
-    CReserveKey reservekey(this);
+    ReserveDestination reservedest(this);
     CTransactionRef tx_new;
-    if (!CreateTransaction(*locked_chain, vecSend, tx_new, reservekey, nFeeRet,
+    if (!CreateTransaction(*locked_chain, vecSend, tx_new, reservedest, nFeeRet,
                            nChangePosInOut, strFailReason, coinControl,
                            false)) {
         return false;
@@ -3168,7 +3168,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
         // We don't have the normal Create/Commit cycle, and don't want to
         // risk reusing change, so just remove the key from the keypool
         // here.
-        reservekey.KeepKey();
+        reservedest.KeepDestination();
     }
 
     // Copy output sizes from new transaction; they may have had the fee
@@ -3276,7 +3276,8 @@ CWallet::TransactionChangeType(OutputType change_type,
 
 bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                                 const std::vector<CRecipient> &vecSend,
-                                CTransactionRef &tx, CReserveKey &reservekey,
+                                CTransactionRef &tx,
+                                ReserveDestination &reservedest,
                                 Amount &nFeeRet, int &nChangePosInOut,
                                 std::string &strFailReason,
                                 const CCoinControl &coinControl, bool sign) {
@@ -3318,7 +3319,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
         CoinSelectionParams coin_selection_params;
 
         // Create change script that will be used if we need change
-        // TODO: pass in scriptChange instead of reservekey so
+        // TODO: pass in scriptChange instead of reservedest so
         // change transaction isn't always pay-to-bitcoin-address
         CScript scriptChange;
 
@@ -3345,9 +3346,13 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                         .translated;
                 return false;
             }
-            CPubKey vchPubKey;
-            bool ret;
-            ret = reservekey.GetReservedKey(vchPubKey, true);
+            CTxDestination dest;
+            const OutputType change_type = TransactionChangeType(
+                coinControl.m_change_type ? *coinControl.m_change_type
+                                          : m_default_change_type,
+                vecSend);
+            bool ret =
+                reservedest.GetReservedDestination(change_type, dest, true);
             if (!ret) {
                 strFailReason =
                     _("Keypool ran out, please call keypoolrefill first")
@@ -3355,14 +3360,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                 return false;
             }
 
-            const OutputType change_type = TransactionChangeType(
-                coinControl.m_change_type ? *coinControl.m_change_type
-                                          : m_default_change_type,
-                vecSend);
-
-            LearnRelatedScripts(vchPubKey, change_type);
-            scriptChange = GetScriptForDestination(
-                GetDestinationForKey(vchPubKey, change_type));
+            scriptChange = GetScriptForDestination(dest);
         }
         CTxOut change_prototype_txout(Amount::zero(), scriptChange);
         coin_selection_params.change_output_size =
@@ -3591,8 +3589,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
         }
 
         if (nChangePosInOut == -1) {
-            // Return any reserved key if we don't have change
-            reservekey.ReturnKey();
+            // Return any reserved address if we don't have change
+            reservedest.ReturnDestination();
         }
 
         // Shuffle selected coins and fill in final vin
@@ -3667,7 +3665,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 bool CWallet::CommitTransaction(
     CTransactionRef tx, mapValue_t mapValue,
     std::vector<std::pair<std::string, std::string>> orderForm,
-    CReserveKey &reservekey, CValidationState &state) {
+    ReserveDestination &reservedest, CValidationState &state) {
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
@@ -3681,7 +3679,7 @@ bool CWallet::CommitTransaction(
                                  wtxNew.tx->ToString());
 
     // Take key pair from key pool so it won't be used again.
-    reservekey.KeepKey();
+    reservedest.KeepDestination();
 
     // Add tx to wallet, because if it has change it's also ours, otherwise just
     // for transaction history.
@@ -4331,7 +4329,9 @@ CWallet::GetLabelAddresses(const std::string &label) const {
     return result;
 }
 
-bool CReserveKey::GetReservedKey(CPubKey &pubkey, bool internal) {
+bool ReserveDestination::GetReservedDestination(const OutputType type,
+                                                CTxDestination &dest,
+                                                bool internal) {
     if (!pwallet->CanGetAddresses(internal)) {
         return false;
     }
@@ -4347,25 +4347,29 @@ bool CReserveKey::GetReservedKey(CPubKey &pubkey, bool internal) {
     }
 
     assert(vchPubKey.IsValid());
-    pubkey = vchPubKey;
+    pwallet->LearnRelatedScripts(vchPubKey, type);
+    address = GetDestinationForKey(vchPubKey, type);
+    dest = address;
     return true;
 }
 
-void CReserveKey::KeepKey() {
+void ReserveDestination::KeepDestination() {
     if (nIndex != -1) {
         pwallet->KeepKey(nIndex);
     }
 
     nIndex = -1;
     vchPubKey = CPubKey();
+    address = CNoDestination();
 }
 
-void CReserveKey::ReturnKey() {
+void ReserveDestination::ReturnDestination() {
     if (nIndex != -1) {
         pwallet->ReturnKey(nIndex, fInternal, vchPubKey);
     }
     nIndex = -1;
     vchPubKey = CPubKey();
+    address = CNoDestination();
 }
 
 void CWallet::MarkReserveKeysAsUsed(int64_t keypool_id) {

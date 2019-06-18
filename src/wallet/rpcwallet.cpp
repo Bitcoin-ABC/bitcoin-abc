@@ -274,19 +274,15 @@ static UniValue getrawchangeaddress(const Config &config,
         }
     }
 
-    CReserveKey reservekey(pwallet);
-    CPubKey vchPubKey;
-    if (!reservekey.GetReservedKey(vchPubKey, true)) {
+    ReserveDestination reservedest(pwallet);
+    CTxDestination dest;
+    if (!reservedest.GetReservedDestination(output_type, dest, true)) {
         throw JSONRPCError(
             RPC_WALLET_KEYPOOL_RAN_OUT,
             "Error: Keypool ran out, please call keypoolrefill first");
     }
 
-    reservekey.KeepKey();
-
-    pwallet->LearnRelatedScripts(vchPubKey, output_type);
-    CTxDestination dest = GetDestinationForKey(vchPubKey, output_type);
-
+    reservedest.KeepDestination();
     return EncodeDestination(dest, config);
 }
 
@@ -367,7 +363,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
-    CReserveKey reservekey(pwallet);
+    ReserveDestination reservedest(pwallet);
     Amount nFeeRequired;
     std::string strError;
     std::vector<CRecipient> vecSend;
@@ -377,7 +373,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
 
     CCoinControl coinControl;
     CTransactionRef tx;
-    if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, reservekey,
+    if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, reservedest,
                                     nFeeRequired, nChangePosRet, strError,
                                     coinControl)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
@@ -389,7 +385,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     }
     CValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                                    reservekey, state)) {
+                                    reservedest, state)) {
         strError =
             strprintf("Error: The transaction was rejected! Reason given: %s",
                       FormatStateMessage(state));
@@ -1065,21 +1061,21 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::shuffle(vecSend.begin(), vecSend.end(), FastRandomContext());
 
     // Send
-    CReserveKey keyChange(pwallet);
+    ReserveDestination changedest(pwallet);
     Amount nFeeRequired = Amount::zero();
     int nChangePosRet = -1;
     std::string strFailReason;
     CTransactionRef tx;
     CCoinControl coinControl;
     bool fCreated = pwallet->CreateTransaction(
-        *locked_chain, vecSend, tx, keyChange, nFeeRequired, nChangePosRet,
+        *locked_chain, vecSend, tx, changedest, nFeeRequired, nChangePosRet,
         strFailReason, coinControl);
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     }
     CValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                                    keyChange, state)) {
+                                    changedest, state)) {
         strFailReason = strprintf("Transaction commit failed:: %s",
                                   FormatStateMessage(state));
         throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
