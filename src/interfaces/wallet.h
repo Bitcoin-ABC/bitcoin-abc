@@ -90,8 +90,10 @@ public:
     virtual std::set<CTxDestination>
     getLabelAddresses(const std::string &label) = 0;
 
-    //! Get key from pool.
-    virtual bool getKeyFromPool(bool internal, CPubKey &pub_key) = 0;
+    // Get a new address.
+    virtual bool getNewDestination(const OutputType type,
+                                   const std::string label,
+                                   CTxDestination &dest) = 0;
 
     //! Get public key.
     virtual bool getPubKey(const CKeyID &address, CPubKey &pub_key) = 0;

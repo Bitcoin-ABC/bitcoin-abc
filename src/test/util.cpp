@@ -22,16 +22,11 @@ const std::string ADDRESS_BCHREG_UNSPENDABLE =
 #ifdef ENABLE_WALLET
 std::string getnewaddress(const Config &config, CWallet &w) {
     constexpr auto output_type = OutputType::LEGACY;
-
-    CPubKey new_key;
-    if (!w.GetKeyFromPool(new_key)) {
+    CTxDestination dest;
+    std::string error;
+    if (!w.GetNewDestination(output_type, "", dest, error)) {
         assert(false);
     }
-
-    w.LearnRelatedScripts(new_key, output_type);
-    const auto dest = GetDestinationForKey(new_key, output_type);
-
-    w.SetAddressBook(dest, /* label */ "", "receive");
 
     return EncodeDestination(dest, config);
 }

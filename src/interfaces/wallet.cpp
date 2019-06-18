@@ -148,8 +148,11 @@ namespace {
         getLabelAddresses(const std::string &label) override {
             return m_wallet->GetLabelAddresses(label);
         };
-        bool getKeyFromPool(bool internal, CPubKey &pub_key) override {
-            return m_wallet->GetKeyFromPool(pub_key, internal);
+        bool getNewDestination(const OutputType type, const std::string label,
+                               CTxDestination &dest) override {
+            LOCK(m_wallet->cs_wallet);
+            std::string error;
+            return m_wallet->GetNewDestination(type, label, dest, error);
         }
         const CChainParams &getChainParams() override {
             return m_wallet->chainParams;

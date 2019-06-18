@@ -946,6 +946,9 @@ private:
      */
     BlockHash m_last_block_processed GUARDED_BY(cs_wallet);
 
+    //! Fetches a key from the keypool
+    bool GetKeyFromPool(CPubKey &key, bool internal = false);
+
 public:
     const CChainParams &chainParams;
     /*
@@ -1373,7 +1376,6 @@ public:
                                bool fRequestedInternal);
     void KeepKey(int64_t nIndex);
     void ReturnKey(int64_t nIndex, bool fInternal, const CPubKey &pubkey);
-    bool GetKeyFromPool(CPubKey &key, bool internal = false);
     int64_t GetOldestKeyPoolTime();
     /**
      * Marks all keys in the keypool up to and including reserve_key as used.
@@ -1390,6 +1392,9 @@ public:
     GetAddressBalances(interfaces::Chain::Lock &locked_chain);
 
     std::set<CTxDestination> GetLabelAddresses(const std::string &label) const;
+
+    bool GetNewDestination(const OutputType type, const std::string label,
+                           CTxDestination &dest, std::string &error);
 
     isminetype IsMine(const CTxIn &txin) const;
     /**

@@ -340,34 +340,31 @@ QString AddressTableModel::addRow(const QString &type, const QString &label,
             editStatus = DUPLICATE_ADDRESS;
             return QString();
         }
+        // Add entry
+        walletModel->wallet().setAddressBook(
+            DecodeDestination(strAddress, walletModel->getChainParams()),
+            strLabel, "send");
     } else if (type == Receive) {
         // Generate a new address to associate with given label
-        CPubKey newKey;
-        if (!walletModel->wallet().getKeyFromPool(false /* internal */,
-                                                  newKey)) {
+        CTxDestination dest;
+        if (!walletModel->wallet().getNewDestination(address_type, strLabel,
+                                                     dest)) {
             WalletModel::UnlockContext ctx(walletModel->requestUnlock());
             if (!ctx.isValid()) {
                 // Unlock wallet failed or was cancelled
                 editStatus = WALLET_UNLOCK_FAILURE;
                 return QString();
             }
-            if (!walletModel->wallet().getKeyFromPool(false /* internal */,
-                                                      newKey)) {
+            if (!walletModel->wallet().getNewDestination(address_type, strLabel,
+                                                         dest)) {
                 editStatus = KEY_GENERATION_FAILURE;
                 return QString();
             }
         }
-        walletModel->wallet().learnRelatedScripts(newKey, address_type);
-        strAddress = EncodeCashAddr(GetDestinationForKey(newKey, address_type),
-                                    walletModel->getChainParams());
+        strAddress = EncodeCashAddr(dest, walletModel->getChainParams());
     } else {
         return QString();
     }
-
-    // Add entry
-    walletModel->wallet().setAddressBook(
-        DecodeDestination(strAddress, walletModel->getChainParams()), strLabel,
-        (type == Send ? "send" : "receive"));
     return QString::fromStdString(strAddress);
 }
 
