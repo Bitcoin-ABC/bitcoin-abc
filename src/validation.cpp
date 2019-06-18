@@ -284,8 +284,8 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
 static void FindFilesToPrune(std::set<int> &setFilesToPrune,
                              uint64_t nPruneAfterHeight);
 static FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
-static uint32_t GetBlockScriptFlags(const Config &config,
-                                    const CBlockIndex *pChainTip);
+static uint32_t GetNextBlockScriptFlags(const Config &config,
+                                        const CBlockIndex *pindex);
 
 bool TestLockPointValidity(const LockPoints *lp) {
     AssertLockHeld(cs_main);
@@ -734,12 +734,8 @@ static bool AcceptToMemoryPoolWorker(
             return false;
         }
 
-        // Check again against the current block tip's script verification flags
-        // to cache our script execution flags. This is, of course, useless if
-        // the next block has different script flags from the previous one, but
-        // because the cache tracks script flags for us it will auto-invalidate
-        // and we'll just have a few blocks of extra misses on soft-fork
-        // activation.
+        // Check again against the next block's script verification flags
+        // to cache our script execution flags.
         //
         // This is also useful in case of bugs in the standard flags that cause
         // transactions to pass as valid when they're actually invalid. For
@@ -749,14 +745,14 @@ static bool AcceptToMemoryPoolWorker(
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks (using TestBlockValidity), however allowing such
         // transactions into the mempool can be exploited as a DoS attack.
-        uint32_t currentBlockScriptVerifyFlags =
-            GetBlockScriptFlags(config, chainActive.Tip());
+        uint32_t nextBlockScriptVerifyFlags =
+            GetNextBlockScriptFlags(config, chainActive.Tip());
 
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
-                                            currentBlockScriptVerifyFlags, true,
+                                            nextBlockScriptVerifyFlags, true,
                                             txdata)) {
             return error("%s: BUG! PLEASE REPORT THIS! CheckInputs failed "
-                         "against latest-block but not STANDARD flags %s, %s",
+                         "against next-block but not STANDARD flags %s, %s",
                          __func__, txid.ToString(), FormatStateMessage(state));
         }
 
@@ -1556,9 +1552,10 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
     return nVersion;
 }
 
-// Returns the script flags which should be checked for a given block
-static uint32_t GetBlockScriptFlags(const Config &config,
-                                    const CBlockIndex *pChainTip) {
+// Returns the script flags which should be checked for the block after
+// the given block.
+static uint32_t GetNextBlockScriptFlags(const Config &config,
+                                        const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -1566,27 +1563,27 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     uint32_t flags = SCRIPT_VERIFY_NONE;
 
     // P2SH didn't become active until Apr 1 2012
-    if (pChainTip->GetMedianTimePast() >= P2SH_ACTIVATION_TIME) {
+    if (pindex->GetMedianTimePast() >= P2SH_ACTIVATION_TIME) {
         flags |= SCRIPT_VERIFY_P2SH;
     }
 
     // Start enforcing the DERSIG (BIP66) rule.
-    if ((pChainTip->nHeight + 1) >= consensusParams.BIP66Height) {
+    if ((pindex->nHeight + 1) >= consensusParams.BIP66Height) {
         flags |= SCRIPT_VERIFY_DERSIG;
     }
 
     // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule.
-    if ((pChainTip->nHeight + 1) >= consensusParams.BIP65Height) {
+    if ((pindex->nHeight + 1) >= consensusParams.BIP65Height) {
         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
     }
 
     // Start enforcing CSV (BIP68, BIP112 and BIP113) rule.
-    if ((pChainTip->nHeight + 1) >= consensusParams.CSVHeight) {
+    if ((pindex->nHeight + 1) >= consensusParams.CSVHeight) {
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
     }
 
     // If the UAHF is enabled, we start accepting replay protected txns
-    if (IsUAHFenabled(config, pChainTip)) {
+    if (IsUAHFenabled(config, pindex)) {
         flags |= SCRIPT_VERIFY_STRICTENC;
         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
     }
@@ -1595,7 +1592,7 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     // s in their signature. We also make sure that signature that are supposed
     // to fail (for instance in multisig or other forms of smart contracts) are
     // null.
-    if (IsDAAEnabled(config, pChainTip)) {
+    if (IsDAAEnabled(config, pindex)) {
         flags |= SCRIPT_VERIFY_LOW_S;
         flags |= SCRIPT_VERIFY_NULLFAIL;
     }
@@ -1604,7 +1601,7 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     // transactions using the OP_CHECKDATASIG opcode and it's verify
     // alternative. We also start enforcing push only signatures and
     // clean stack.
-    if (IsMagneticAnomalyEnabled(config, pChainTip)) {
+    if (IsMagneticAnomalyEnabled(config, pindex)) {
         flags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
         flags |= SCRIPT_VERIFY_SIGPUSHONLY;
         flags |= SCRIPT_VERIFY_CLEANSTACK;
@@ -1614,13 +1611,13 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     // 65/64-byte Schnorr signatures in CHECKSIG and CHECKDATASIG respectively,
     // and their verify variants. We also stop accepting 65 byte signatures in
     // CHECKMULTISIG and its verify variant.
-    if (IsGreatWallEnabled(config, pChainTip)) {
+    if (IsGreatWallEnabled(config, pindex)) {
         flags |= SCRIPT_ENABLE_SCHNORR;
     }
 
     // We make sure this node will have replay protection during the next hard
     // fork.
-    if (IsReplayProtectionEnabled(config, pChainTip)) {
+    if (IsReplayProtectionEnabled(config, pindex)) {
         flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
     }
 
@@ -1778,7 +1775,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
-    const uint32_t flags = GetBlockScriptFlags(config, pindex->pprev);
+    const uint32_t flags = GetNextBlockScriptFlags(config, pindex->pprev);
 
     int64_t nTime2 = GetTimeMicros();
     nTimeForks += nTime2 - nTime1;
@@ -2218,8 +2215,8 @@ bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
     // in front of disconnectpool for reprocessing in a future
     // updateMempoolForReorg call
     if (pindexDelete->pprev != nullptr &&
-        GetBlockScriptFlags(config, pindexDelete) !=
-            GetBlockScriptFlags(config, pindexDelete->pprev)) {
+        GetNextBlockScriptFlags(config, pindexDelete) !=
+            GetNextBlockScriptFlags(config, pindexDelete->pprev)) {
         LogPrint(BCLog::MEMPOOL,
                  "Disconnecting mempool due to rewind of upgrade block\n");
         if (disconnectpool) {
@@ -2500,8 +2497,8 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
     // in front of disconnectpool for reprocessing in a future
     // updateMempoolForReorg call
     if (pindexNew->pprev != nullptr &&
-        GetBlockScriptFlags(config, pindexNew) !=
-            GetBlockScriptFlags(config, pindexNew->pprev)) {
+        GetNextBlockScriptFlags(config, pindexNew) !=
+            GetNextBlockScriptFlags(config, pindexNew->pprev)) {
         LogPrint(BCLog::MEMPOOL,
                  "Disconnecting mempool due to acceptance of upgrade block\n");
         disconnectpool.importMempool(g_mempool);
