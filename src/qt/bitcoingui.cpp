@@ -397,6 +397,7 @@ void BitcoinGUI::createActions() {
     m_open_wallet_action = new QAction(tr("Open Wallet"), this);
     m_open_wallet_action->setEnabled(false);
     m_open_wallet_action->setStatusTip(tr("Open a wallet"));
+    m_open_wallet_menu = new QMenu(this);
 
     m_close_wallet_action = new QAction(tr("Close Wallet..."), this);
     m_close_wallet_action->setStatusTip(tr("Close wallet"));
@@ -447,8 +448,8 @@ void BitcoinGUI::createActions() {
                 &WalletFrame::usedReceivingAddresses);
         connect(openAction, &QAction::triggered, this,
                 &BitcoinGUI::openClicked);
-        connect(m_open_wallet_action->menu(), &QMenu::aboutToShow, [this] {
-            m_open_wallet_action->menu()->clear();
+        connect(m_open_wallet_menu, &QMenu::aboutToShow, [this] {
+            m_open_wallet_menu->clear();
             std::vector<std::string> available_wallets =
                 m_wallet_controller->getWalletsAvailableToOpen();
             std::vector<std::string> wallets = m_node.listWalletDir();
@@ -456,7 +457,7 @@ void BitcoinGUI::createActions() {
                 QString name = path.empty()
                                    ? QString("[" + tr("default wallet") + "]")
                                    : QString::fromStdString(path);
-                QAction *action = m_open_wallet_action->menu()->addAction(name);
+                QAction *action = m_open_wallet_menu->addAction(name);
 
                 if (std::find(available_wallets.begin(),
                               available_wallets.end(),
@@ -500,8 +501,8 @@ void BitcoinGUI::createActions() {
                 });
             }
             if (wallets.empty()) {
-                QAction *action = m_open_wallet_action->menu()->addAction(
-                    tr("No wallets available"));
+                QAction *action =
+                    m_open_wallet_menu->addAction(tr("No wallets available"));
                 action->setEnabled(false);
             }
         });
@@ -684,7 +685,7 @@ void BitcoinGUI::setWalletController(WalletController *wallet_controller) {
     m_wallet_controller = wallet_controller;
 
     m_open_wallet_action->setEnabled(true);
-    m_open_wallet_action->setMenu(new QMenu(this));
+    m_open_wallet_action->setMenu(m_open_wallet_menu);
 
     connect(wallet_controller, &WalletController::walletAdded, this,
             &BitcoinGUI::addWallet);
