@@ -258,10 +258,6 @@ static UniValue getrawchangeaddress(const Config &config,
                            "Error: This wallet has no available keys");
     }
 
-    if (!pwallet->IsLocked()) {
-        pwallet->TopUpKeyPool();
-    }
-
     OutputType output_type =
         pwallet->m_default_change_type != OutputType::CHANGE_AUTO
             ? pwallet->m_default_change_type
@@ -274,15 +270,11 @@ static UniValue getrawchangeaddress(const Config &config,
         }
     }
 
-    ReserveDestination reservedest(pwallet);
     CTxDestination dest;
-    if (!reservedest.GetReservedDestination(output_type, dest, true)) {
-        throw JSONRPCError(
-            RPC_WALLET_KEYPOOL_RAN_OUT,
-            "Error: Keypool ran out, please call keypoolrefill first");
+    std::string error;
+    if (!pwallet->GetNewChangeDestination(output_type, dest, error)) {
+        throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, error);
     }
-
-    reservedest.KeepDestination();
     return EncodeDestination(dest, config);
 }
 
