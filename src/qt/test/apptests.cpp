@@ -7,6 +7,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <httprpc.h>
+#include <key.h>
 #include <qt/bitcoin.h>
 #include <qt/bitcoingui.h>
 #include <qt/networkstyle.h>
@@ -89,6 +90,11 @@ void AppTests::appTests() {
 #endif
 
     Config &config = const_cast<Config &>(GetConfig());
+
+    // Already started by the common test setup, so stop it to avoid
+    // interference
+    ECC_Stop();
+    LogInstance().DisconnectTestLogger();
 
     m_app.parameterSetup();
     m_app.createOptionsModel(true /* reset settings */);

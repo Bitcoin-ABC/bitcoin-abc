@@ -14,7 +14,7 @@
 BOOST_FIXTURE_TEST_SUITE(flatfile_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(flatfile_filename) {
-    auto data_dir = SetDataDir("flatfile_test");
+    const auto data_dir = GetDataDir();
 
     FlatFilePos pos(456, 789);
 
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(flatfile_filename) {
 }
 
 BOOST_AUTO_TEST_CASE(flatfile_open) {
-    auto data_dir = SetDataDir("flatfile_test");
+    const auto data_dir = GetDataDir();
     FlatFileSeq seq(data_dir, "a", 16 * 1024);
 
     std::string line1(
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(flatfile_open) {
 }
 
 BOOST_AUTO_TEST_CASE(flatfile_allocate) {
-    auto data_dir = SetDataDir("flatfile_test");
+    const auto data_dir = GetDataDir();
     FlatFileSeq seq(data_dir, "a", 100);
 
     bool out_of_space;
@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(flatfile_allocate) {
 }
 
 BOOST_AUTO_TEST_CASE(flatfile_flush) {
-    auto data_dir = SetDataDir("flatfile_test");
+    const auto data_dir = GetDataDir();
     FlatFileSeq seq(data_dir, "a", 100);
 
     bool out_of_space;

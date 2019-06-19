@@ -40,6 +40,10 @@ void RPCNestedTests::rpcNestedTests() {
     tableRPC.appendCommand("rpcNestedTest", &vRPCCommands[0]);
     // mempool.setSanityCheck(1.0);
 
+    // Already started by the common test setup, so stop it to avoid
+    // interference
+    ECC_Stop();
+    LogInstance().DisconnectTestLogger();
     TestingSetup test;
 
     std::string result;

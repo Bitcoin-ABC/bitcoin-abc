@@ -13,6 +13,7 @@
 #include <pubkey.h>
 #include <random.h>
 #include <scheduler.h>
+#include <util/system.h>
 
 /**
  * Version of Boost::test prior to 1.64 have issues when dealing with nullptr_t.
@@ -61,7 +62,7 @@ static constexpr Amount CENT(COIN / 100);
 
 /**
  * Basic testing setup.
- * This just configures logging and chain parameters.
+ * This just configures logging, data dir and chain parameters.
  */
 struct BasicTestingSetup {
     ECCVerifyHandle globalVerifyHandle;
@@ -70,15 +71,13 @@ struct BasicTestingSetup {
         const std::string &chainName = CBaseChainParams::MAIN);
     ~BasicTestingSetup();
 
-    fs::path SetDataDir(const std::string &name);
-
 private:
     const fs::path m_path_root;
 };
 
 /**
  * Testing setup that configures a complete environment.
- * Included are data directory, coins database, script check threads setup.
+ * Included are coins database, script check threads setup.
  */
 struct TestingSetup : public BasicTestingSetup {
     boost::thread_group threadGroup;

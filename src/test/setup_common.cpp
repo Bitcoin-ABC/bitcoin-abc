@@ -12,6 +12,7 @@
 #include <consensus/validation.h>
 #include <crypto/sha256.h>
 #include <fs.h>
+#include <init.h>
 #include <key.h>
 #include <logging.h>
 #include <miner.h>
@@ -51,6 +52,13 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
     : m_path_root(fs::temp_directory_path() / "test_common_" PACKAGE_NAME /
                   strprintf("%lu_%i", static_cast<unsigned long>(GetTime()),
                             int(InsecureRandRange(1 << 30)))) {
+    fs::create_directories(m_path_root);
+    gArgs.ForceSetArg("-datadir", m_path_root.string());
+    ClearDatadirCache();
+    SelectParams(chainName);
+    gArgs.ForceSetArg("-printtoconsole", "0");
+    InitLogging();
+    LogInstance().StartLogging();
     SHA256AutoDetect();
     ECC_Start();
     SetupEnvironment();
@@ -59,7 +67,6 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
     InitScriptExecutionCache();
 
     fCheckBlockIndex = true;
-    SelectParams(chainName);
     static bool noui_connected = false;
     if (!noui_connected) {
         noui_connect();
@@ -68,20 +75,13 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
 }
 
 BasicTestingSetup::~BasicTestingSetup() {
+    LogInstance().DisconnectTestLogger();
     fs::remove_all(m_path_root);
     ECC_Stop();
 }
 
-fs::path BasicTestingSetup::SetDataDir(const std::string &name) {
-    fs::path ret = m_path_root / name;
-    fs::create_directories(ret);
-    gArgs.ForceSetArg("-datadir", ret.string());
-    return ret;
-}
-
 TestingSetup::TestingSetup(const std::string &chainName)
     : BasicTestingSetup(chainName) {
-    SetDataDir("tempdir");
     const Config &config = GetConfig();
     const CChainParams &chainparams = config.GetChainParams();
 
@@ -99,8 +99,6 @@ TestingSetup::TestingSetup(const std::string &chainName)
     if (RPCIsInWarmup(&rpcWarmupStatus)) {
         SetRPCWarmupFinished();
     }
-
-    ClearDatadirCache();
 
     // We have to run a scheduler thread to prevent ActivateBestChain
     // from blocking due to queue overrun.

@@ -10,7 +10,6 @@
 #include <compat/setenv.h>
 #include <interfaces/node.h>
 #include <key.h>
-#include <util/system.h>
 
 #include <qt/bitcoin.h>
 #include <qt/test/apptests.h>
@@ -26,6 +25,8 @@
 #endif // ENABLE_BIP70
 #include <qt/test/wallettests.h>
 #endif // ENABLE_WALLET
+
+#include <test/setup_common.h>
 
 #include <QApplication>
 #include <QObject>
@@ -53,17 +54,8 @@ extern void noui_connect();
 
 // This is all you need to run all the tests
 int main(int argc, char *argv[]) {
-    SetupEnvironment();
-    SetupNetworking();
-    SelectParams(CBaseChainParams::REGTEST);
-    noui_connect();
-    ClearDatadirCache();
-    fs::path pathTemp =
-        fs::temp_directory_path() / strprintf("test_bitcoin-qt_%lu_%i",
-                                              (unsigned long)GetTime(),
-                                              (int)GetRand(100000));
-    fs::create_directories(pathTemp);
-    gArgs.ForceSetArg("-datadir", pathTemp.string());
+    BasicTestingSetup test{CBaseChainParams::REGTEST};
+
     auto node = interfaces::MakeNode();
 
     bool fInvalid = false;
@@ -124,8 +116,6 @@ int main(int argc, char *argv[]) {
         fInvalid = true;
     }
 #endif
-
-    fs::remove_all(pathTemp);
 
     return fInvalid;
 }
