@@ -101,9 +101,21 @@ public:
     //! deserialized which was too big)
     bool IsWithinSizeConstraints() const;
 
+    //! Scans output scripts for matches and adds those outpoints to the filter
+    //! for spend detection. Returns true if any output matched, or the txid
+    //! matches.
+    bool MatchAndInsertOutputs(const CTransaction &tx);
+
+    //! Scan inputs to see if the spent outpoints are a match, or the input
+    //! scripts contain matching elements.
+    bool MatchInputs(const CTransaction &tx);
+
+    //! Check if the transaction is relevant for any reason.
     //! Also adds any outputs which match the filter to the filter (to match
     //! their spending txes)
-    bool IsRelevantAndUpdate(const CTransaction &tx);
+    bool IsRelevantAndUpdate(const CTransaction &tx) {
+        return MatchAndInsertOutputs(tx) || MatchInputs(tx);
+    }
 
     //! Checks for empty and full filters to avoid wasting cpu
     void UpdateEmptyFull();

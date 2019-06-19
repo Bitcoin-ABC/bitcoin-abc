@@ -18,14 +18,18 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
     vMatch.reserve(block.vtx.size());
     vHashes.reserve(block.vtx.size());
 
+    for (const auto &tx : block.vtx) {
+        vMatch.push_back(filter.MatchAndInsertOutputs(*tx));
+    }
+
     for (size_t i = 0; i < block.vtx.size(); i++) {
         const CTransaction *tx = block.vtx[i].get();
-        const uint256 &txid = tx->GetId();
-        if (filter.IsRelevantAndUpdate(*tx)) {
-            vMatch.push_back(true);
+        const TxId &txid = tx->GetId();
+        if (!vMatch[i]) {
+            vMatch[i] = filter.MatchInputs(*tx);
+        }
+        if (vMatch[i]) {
             vMatchedTxn.push_back(std::make_pair(i, txid));
-        } else {
-            vMatch.push_back(false);
         }
 
         vHashes.push_back(txid);

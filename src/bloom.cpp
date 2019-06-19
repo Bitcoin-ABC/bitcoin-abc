@@ -127,7 +127,7 @@ bool CBloomFilter::IsWithinSizeConstraints() const {
            nHashFuncs <= MAX_HASH_FUNCS;
 }
 
-bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
+bool CBloomFilter::MatchAndInsertOutputs(const CTransaction &tx) {
     bool fFound = false;
     // Match if the filter contains the hash of tx for finding tx when they
     // appear in a block
@@ -176,8 +176,12 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
         }
     }
 
-    if (fFound) {
-        return true;
+    return fFound;
+}
+
+bool CBloomFilter::MatchInputs(const CTransaction &tx) {
+    if (isEmpty) {
+        return false;
     }
 
     for (const CTxIn &txin : tx.vin) {
