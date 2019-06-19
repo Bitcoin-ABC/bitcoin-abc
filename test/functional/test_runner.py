@@ -153,7 +153,7 @@ def main():
     parser.add_argument('--coverage', action='store_true',
                         help='generate a basic coverage report for the RPC interface')
     parser.add_argument(
-        '--exclude', '-x', help='specify a comma-separated-list of scripts to exclude. Do not include the .py extension in the name.')
+        '--exclude', '-x', help='specify a comma-separated-list of scripts to exclude.')
     parser.add_argument('--extended', action='store_true',
                         help='run the extended test suite in addition to the basic tests')
     parser.add_argument('--cutoff', type=int, default=DEFAULT_EXTENDED_CUTOFF,
@@ -175,8 +175,9 @@ def main():
 
     args, unknown_args = parser.parse_known_args()
 
-    # Create a set to store arguments and create the passon string
-    tests = set(arg for arg in unknown_args if arg[:2] != "--")
+    # args to be passed on always start with two dashes; tests are the
+    # remaining unknown args
+    tests = [arg for arg in unknown_args if arg[:2] != "--"]
     passon_args = [arg for arg in unknown_args if arg[:2] == "--"]
     passon_args.append("--configfile={}".format(configfile))
 
@@ -223,8 +224,15 @@ def main():
         # Individual tests have been specified. Run specified tests that exist
         # in the all_scripts list. Accept the name with or without .py
         # extension.
-        test_list = [t for t in all_scripts if
-                     (t in tests or re.sub(".py$", "", t) in tests)]
+        individual_tests = [
+            re.sub("\.py$", "", t) + ".py" for t in tests if not t.endswith('*')]
+        test_list = []
+        for t in individual_tests:
+            if t in all_scripts:
+                test_list.append(t)
+            else:
+                print("{}WARNING!{} Test '{}' not found in full test list.".format(
+                    BOLD[1], BOLD[0], t))
 
         # Allow for wildcard at the end of the name, so a single input can
         # match multiple tests
@@ -232,8 +240,6 @@ def main():
             if test.endswith('*'):
                 test_list.extend(
                     [t for t in all_scripts if t.startswith(test[:-1])])
-        # Make the list unique
-        test_list = list(set(test_list))
 
         # do not cut off explicitly specified tests
         cutoff = sys.maxsize
@@ -247,9 +253,14 @@ def main():
 
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:
-        for exclude_test in args.exclude.split(','):
-            if exclude_test + ".py" in test_list:
-                test_list.remove(exclude_test + ".py")
+        tests_excl = [re.sub("\.py$", "", t) +
+                      ".py" for t in args.exclude.split(',')]
+        for exclude_test in tests_excl:
+            if exclude_test in test_list:
+                test_list.remove(exclude_test)
+            else:
+                print("{}WARNING!{} Test '{}' not found in current test list.".format(
+                    BOLD[1], BOLD[0], exclude_test))
 
     # Use and update timings from build_dir only if separate
     # build directory is used. We do not want to pollute source directory.
