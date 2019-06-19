@@ -125,7 +125,7 @@ class TestCase():
         else:
             status = "Failed"
 
-        return TestResult(name, status, int(time.time() - time0), stdout, stderr)
+        return TestResult(self.test_num, name, status, int(time.time() - time0), stdout, stderr)
 
 
 def on_ci():
@@ -370,14 +370,14 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
         handle_message handles a single message from handle_test_cases
         """
         if isinstance(message, TestCase):
-            running_jobs.add(message.test_case)
+            running_jobs.append((message.test_num, message.test_case))
             print("{}{}{} started".format(BOLD[1], message.test_case, BOLD[0]))
             return
 
         if isinstance(message, TestResult):
             test_result = message
 
-            running_jobs.remove(test_result.name)
+            running_jobs.remove((test_result.num, test_result.name))
             test_results.append(test_result)
 
             if test_result.status == "Passed":
@@ -403,7 +403,7 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
         update_queue.  It serializes the results so we can print nice status update messages.
         """
         printed_status = False
-        running_jobs = set()
+        running_jobs = []
 
         while True:
             message = None
@@ -422,7 +422,7 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
                 update_queue.task_done()
             except Empty as e:
                 if not on_ci():
-                    print("Running jobs: {}".format(", ".join(running_jobs)), end="\r")
+                    print("Running jobs: {}".format(", ".join([j[1] for j in running_jobs])), end="\r")
                     sys.stdout.flush()
                     printed_status = True
 
@@ -502,7 +502,8 @@ class TestResult():
     Simple data structure to store test result values and print them properly
     """
 
-    def __init__(self, name, status, time, stdout, stderr):
+    def __init__(self, num, name, status, time, stdout, stderr):
+        self.num = num
         self.name = name
         self.status = status
         self.time = time
