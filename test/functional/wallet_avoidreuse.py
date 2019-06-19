@@ -16,9 +16,11 @@ from test_framework.util import (
 
 def assert_approx(v, vexp, vspan=0.00001):
     if v < vexp - vspan:
-        raise AssertionError("{} < [{}..{}]".format(str(v), str(vexp - vspan), str(vexp + vspan)))
+        raise AssertionError("{} < [{}..{}]".format(
+            str(v), str(vexp - vspan), str(vexp + vspan)))
     if v > vexp + vspan:
-        raise AssertionError("{} > [{}..{}]".format(str(v), str(vexp - vspan), str(vexp + vspan)))
+        raise AssertionError("{} > [{}..{}]".format(
+            str(v), str(vexp - vspan), str(vexp + vspan)))
 
 
 def reset_balance(node, discardaddr):
@@ -72,6 +74,13 @@ def assert_unspent(node, total_count=None, total_sum=None,
         assert_equal(stats["reused"]["count"], reused_count)
     if reused_sum is not None:
         assert_approx(stats["reused"]["sum"], reused_sum, 0.001)
+
+
+def assert_balances(node, mine):
+    '''Make assertions about a node's getbalances output'''
+    got = node.getbalances()["mine"]
+    for k, v in mine.items():
+        assert_approx(got[k], v, 0.001)
 
 
 class AvoidReuseTest(BitcoinTestFramework):
@@ -171,6 +180,11 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_sum=10,
             reused_supported=True,
             reused_count=0)
+        # getbalances should show no used, 10 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 0, "trusted": 10})
+        # node 0 should not show a used entry, as it does not enable
+        # avoid_reuse
+        assert("used" not in self.nodes[0].getbalances()["mine"])
 
         self.nodes[1].sendtoaddress(retaddr, 5)
         self.nodes[0].generate(1)
@@ -183,6 +197,8 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_sum=5,
             reused_supported=True,
             reused_count=0)
+        # getbalances should show no used, 5 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5})
 
         self.nodes[0].sendtoaddress(fundaddr, 10)
         self.nodes[0].generate(1)
@@ -196,6 +212,8 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_sum=15,
             reused_count=1,
             reused_sum=10)
+        # getbalances should show 10 used, 5 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 10, "trusted": 5})
 
         self.nodes[1].sendtoaddress(
             address=retaddr, amount=10, avoid_reuse=False)
@@ -206,6 +224,8 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_count=1,
             total_sum=5,
             reused_count=0)
+        # getbalances should show no used, 5 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5})
 
         # node 1 should now have about 5 BCH left (for both cases)
         assert_approx(self.nodes[1].getbalance(), 5, 0.001)
@@ -235,6 +255,8 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_sum=10,
             reused_supported=True,
             reused_count=0)
+        # getbalances should show no used, 10 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 0, "trusted": 10})
 
         self.nodes[1].sendtoaddress(retaddr, 5)
         self.nodes[0].generate(1)
@@ -247,6 +269,8 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_sum=5,
             reused_supported=True,
             reused_count=0)
+        # getbalances should show no used, 5 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5})
 
         self.nodes[0].sendtoaddress(fundaddr, 10)
         self.nodes[0].generate(1)
@@ -260,6 +284,8 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_sum=15,
             reused_count=1,
             reused_sum=10)
+        # getbalances should show 10 used, 5 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 10, "trusted": 5})
 
         # node 1 should now have a balance of 5 (no dirty) or 15 (including
         # dirty)
@@ -279,6 +305,8 @@ class AvoidReuseTest(BitcoinTestFramework):
             total_sum=11,
             reused_count=1,
             reused_sum=10)
+        # getbalances should show 10 used, 1 BCH trusted
+        assert_balances(self.nodes[1], mine={"used": 10, "trusted": 1})
 
         # node 1 should now have about 1 BCH left (no dirty) and 11 (including
         # dirty)
