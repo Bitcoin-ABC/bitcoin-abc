@@ -443,11 +443,9 @@ static UniValue sendtoaddress(const Config &config,
                  "                             The recipient will receive "
                  "less bitcoins than you enter in the amount field."},
                 {"avoid_reuse", RPCArg::Type::BOOL,
-                 /* default */ pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)
-                     ? "true"
-                     : "unavailable",
-                 "Avoid spending from dirty addresses; addresses are "
-                 "considered\n"
+                 /* default */ "true",
+                 "(only available if avoid_reuse wallet flag is set) Avoid "
+                 "spending from dirty addresses; addresses are considered\n"
                  "                             dirty if they have previously "
                  "been used in a transaction."},
             },
@@ -870,12 +868,10 @@ static UniValue getbalance(const Config &config,
                  "Also include balance in watch-only addresses (see "
                  "'importaddress')"},
                 {"avoid_reuse", RPCArg::Type::BOOL,
-                 /* default */ pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)
-                     ? "true"
-                     : "unavailable",
-                 "Do not include balance in dirty outputs; addresses are "
-                 "considered dirty if they have previously been used in a "
-                 "transaction."},
+                 /* default */ "true",
+                 "(only available if avoid_reuse wallet flag is set) Do not "
+                 "include balance in dirty outputs; addresses are considered "
+                 "dirty if they have previously been used in a transaction."},
             },
             RPCResult{"amount              (numeric) The total amount in " +
                       CURRENCY_UNIT + " received for this wallet.\n"},
@@ -3438,111 +3434,103 @@ static UniValue listunspent(const Config &config,
         return NullUniValue;
     }
 
-    bool avoid_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
-
-    if (request.fHelp || request.params.size() > 5) {
-        throw std::runtime_error(RPCHelpMan{
-            "listunspent",
-            "\nReturns array of unspent transaction outputs\n"
-            "with between minconf and maxconf (inclusive) confirmations.\n"
-            "Optionally filter to only include txouts paid to specified "
-            "addresses.\n",
+    const RPCHelpMan help{
+        "listunspent",
+        "\nReturns array of unspent transaction outputs\n"
+        "with between minconf and maxconf (inclusive) confirmations.\n"
+        "Optionally filter to only include txouts paid to specified "
+        "addresses.\n",
+        {
+            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+             "The minimum confirmations to filter"},
+            {"maxconf", RPCArg::Type::NUM, /* default */ "9999999",
+             "The maximum confirmations to filter"},
             {
-                {"minconf", RPCArg::Type::NUM, /* default */ "1",
-                 "The minimum confirmations to filter"},
-                {"maxconf", RPCArg::Type::NUM, /* default */ "9999999",
-                 "The maximum confirmations to filter"},
+                "addresses",
+                RPCArg::Type::ARR,
+                /* default */ "empty array",
+                "A json array of bitcoin addresses to filter",
                 {
-                    "addresses",
-                    RPCArg::Type::ARR,
-                    /* default */ "empty array",
-                    "A json array of bitcoin addresses to filter",
-                    {
-                        {"address", RPCArg::Type::STR,
-                         RPCArg::Optional::OMITTED, "bitcoin address"},
-                    },
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
+                     "bitcoin address"},
                 },
-                {"include_unsafe", RPCArg::Type::BOOL, /* default */ "true",
-                 "Include outputs that are not safe to spend\n"
-                 "                  See description of \"safe\" attribute "
-                 "below."},
-                {"query_options",
-                 RPCArg::Type::OBJ,
-                 RPCArg::Optional::OMITTED_NAMED_ARG,
-                 "JSON with query options",
-                 {
-                     {"minimumAmount", RPCArg::Type::AMOUNT, /* default */ "0",
-                      "Minimum value of each UTXO in " + CURRENCY_UNIT + ""},
-                     {"maximumAmount", RPCArg::Type::AMOUNT,
-                      /* default */ "unlimited",
-                      "Maximum value of each UTXO in " + CURRENCY_UNIT + ""},
-                     {"maximumCount", RPCArg::Type::NUM,
-                      /* default */ "unlimited", "Maximum number of UTXOs"},
-                     {"minimumSumAmount", RPCArg::Type::AMOUNT,
-                      /* default */ "unlimited",
-                      "Minimum sum value of all UTXOs in " + CURRENCY_UNIT +
-                          ""},
-                 },
-                 "query_options"},
             },
-            RPCResult{
-                "[                   (array of json object)\n"
-                "  {\n"
-                "    \"txid\" : \"txid\",          (string) the transaction id "
-                "\n"
-                "    \"vout\" : n,               (numeric) the vout value\n"
-                "    \"address\" : \"address\",    (string) the bitcoin "
-                "address\n"
-                "    \"label\" : \"label\",        (string) The associated "
-                "label, or \"\" for the default label\n"
-                "    \"scriptPubKey\" : \"key\",   (string) the script key\n"
-                "    \"amount\" : x.xxx,         (numeric) the transaction "
-                "output amount in " +
-                CURRENCY_UNIT +
-                "\n"
-                "    \"confirmations\" : n,      (numeric) The number of "
-                "confirmations\n"
-                "    \"redeemScript\" : n        (string) The redeemScript if "
-                "scriptPubKey is P2SH\n"
-                "    \"spendable\" : xxx,        (bool) Whether we have the "
-                "private keys to spend this output\n"
-                "    \"solvable\" : xxx,         (bool) Whether we know how to "
-                "spend this output, ignoring the lack of keys\n" +
-                (avoid_reuse ? "    \"reused\" : xxx,           (bool) Whether "
-                               "this output is reused/dirty (sent to an "
-                               "address that was previously spent from)\n"
-                             : "") +
-                "    \"desc\" : xxx,             (string, only when solvable) "
-                "A descriptor for spending this output\n"
-                "    \"safe\" : xxx              (bool) Whether this output is "
-                "considered safe to spend. Unconfirmed transactions\n"
-                "                              from outside keys are "
-                "considered unsafe and are not eligible for spending by\n"
-                "                              fundrawtransaction and "
-                "sendtoaddress.\n"
-                "  }\n"
-                "  ,...\n"
-                "]\n"},
-            RPCExamples{
-                HelpExampleCli("listunspent", "") +
-                HelpExampleCli(
-                    "listunspent",
-                    "6 9999999 "
-                    "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
-                    "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"") +
-                HelpExampleRpc(
-                    "listunspent",
-                    "6, 9999999 "
-                    "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
-                    "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"") +
-                HelpExampleCli(
-                    "listunspent",
-                    "6 9999999 '[]' true '{ \"minimumAmount\": 0.005 }'") +
-                HelpExampleRpc(
-                    "listunspent",
-                    "6, 9999999, [] , true, { \"minimumAmount\": 0.005 } ")},
-        }
-                                     .ToString());
+            {"include_unsafe", RPCArg::Type::BOOL, /* default */ "true",
+             "Include outputs that are not safe to spend\n"
+             "                  See description of \"safe\" attribute below."},
+            {"query_options",
+             RPCArg::Type::OBJ,
+             RPCArg::Optional::OMITTED_NAMED_ARG,
+             "JSON with query options",
+             {
+                 {"minimumAmount", RPCArg::Type::AMOUNT, /* default */ "0",
+                  "Minimum value of each UTXO in " + CURRENCY_UNIT + ""},
+                 {"maximumAmount", RPCArg::Type::AMOUNT,
+                  /* default */ "unlimited",
+                  "Maximum value of each UTXO in " + CURRENCY_UNIT + ""},
+                 {"maximumCount", RPCArg::Type::NUM, /* default */ "unlimited",
+                  "Maximum number of UTXOs"},
+                 {"minimumSumAmount", RPCArg::Type::AMOUNT,
+                  /* default */ "unlimited",
+                  "Minimum sum value of all UTXOs in " + CURRENCY_UNIT + ""},
+             },
+             "query_options"},
+        },
+        RPCResult{
+            "[                   (array of json object)\n"
+            "  {\n"
+            "    \"txid\" : \"txid\",          (string) the transaction id\n"
+            "    \"vout\" : n,               (numeric) the vout value\n"
+            "    \"address\" : \"address\",    (string) the bitcoin address\n"
+            "    \"label\" : \"label\",        (string) The associated label, "
+            "or \"\" for the default label\n"
+            "    \"scriptPubKey\" : \"key\",   (string) the script key\n"
+            "    \"amount\" : x.xxx,         (numeric) the transaction output "
+            "amount in " +
+            CURRENCY_UNIT +
+            "\n"
+            "    \"confirmations\" : n,      (numeric) The number of "
+            "confirmations\n"
+            "    \"redeemScript\" : n        (string) The redeemScript if "
+            "scriptPubKey is P2SH\n"
+            "    \"spendable\" : xxx,        (bool) Whether we have the "
+            "private keys to spend this output\n"
+            "    \"solvable\" : xxx,         (bool) Whether we know how to "
+            "spend this output, ignoring the lack of keys\n"
+            "    \"reused\" : xxx,           (bool) (only present if "
+            "avoid_reuse is set) Whether this output is reused/dirty (sent to "
+            "an address that was previously spent from)\n"
+            "    \"desc\" : xxx,             (string, only when solvable) A "
+            "descriptor for spending this output\n"
+            "    \"safe\" : xxx              (bool) Whether this output is "
+            "considered safe to spend. Unconfirmed transactions\n"
+            "                              from outside keys are considered "
+            "unsafe and are not eligible for spending by\n"
+            "                              fundrawtransaction and "
+            "sendtoaddress.\n"
+            "  }\n"
+            "  ,...\n"
+            "]\n"},
+        RPCExamples{
+            HelpExampleCli("listunspent", "") +
+            HelpExampleCli("listunspent",
+                           "6 9999999 "
+                           "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
+                           "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"") +
+            HelpExampleRpc("listunspent",
+                           "6, 9999999 "
+                           "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
+                           "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"") +
+            HelpExampleCli(
+                "listunspent",
+                "6 9999999 '[]' true '{ \"minimumAmount\": 0.005 }'") +
+            HelpExampleRpc(
+                "listunspent",
+                "6, 9999999, [] , true, { \"minimumAmount\": 0.005 } ")},
+    };
+
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
     }
 
     int nMinDepth = 1;
@@ -3628,6 +3616,8 @@ static UniValue listunspent(const Config &config,
     }
 
     LOCK(pwallet->cs_wallet);
+
+    const bool avoid_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
 
     for (const COutput &out : vecOutputs) {
         CTxDestination address;
