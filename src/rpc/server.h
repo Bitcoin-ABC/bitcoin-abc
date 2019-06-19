@@ -9,20 +9,20 @@
 
 #include <amount.h>
 #include <rpc/command.h>
-#include <rpc/protocol.h>
 #include <rpc/request.h>
 #include <rwcollection.h>
 #include <uint256.h>
 #include <util/system.h>
+
+#include <univalue.h>
+
+#include <boost/noncopyable.hpp>
 
 #include <cstdint>
 #include <functional>
 #include <list>
 #include <map>
 #include <string>
-
-#include <boost/noncopyable.hpp>
-#include <univalue.h>
 
 static const unsigned int DEFAULT_RPC_SERIALIZE_VERSION = 1;
 

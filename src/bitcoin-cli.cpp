@@ -12,6 +12,7 @@
 #include <fs.h>
 #include <rpc/client.h>
 #include <rpc/protocol.h>
+#include <rpc/request.h>
 #include <support/events.h>
 #include <util/strencodings.h>
 #include <util/system.h>

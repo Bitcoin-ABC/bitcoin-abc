@@ -9,6 +9,23 @@
 
 #include <univalue.h>
 
+UniValue JSONRPCRequestObj(const std::string &strMethod, const UniValue &params,
+                           const UniValue &id);
+UniValue JSONRPCReplyObj(const UniValue &result, const UniValue &error,
+                         const UniValue &id);
+std::string JSONRPCReply(const UniValue &result, const UniValue &error,
+                         const UniValue &id);
+UniValue JSONRPCError(int code, const std::string &message);
+
+/** Generate a new RPC authentication cookie and write it to disk */
+bool GenerateAuthCookie(std::string *cookie_out);
+/** Read the RPC authentication cookie from disk */
+bool GetAuthCookie(std::string *cookie_out);
+/** Delete RPC authentication cookie from disk */
+void DeleteAuthCookie();
+/** Parse JSON-RPC batch reply into a vector */
+std::vector<UniValue> JSONRPCProcessBatchReply(const UniValue &in, size_t num);
+
 class JSONRPCRequest {
 public:
     UniValue id;

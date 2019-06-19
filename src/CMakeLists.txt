@@ -320,7 +320,7 @@ add_library(util
 	random.cpp
 	randomenv.cpp
 	rcu.cpp
-	rpc/protocol.cpp
+	rpc/request.cpp
 	support/cleanse.cpp
 	support/lockedpool.cpp
 	sync.cpp
@@ -528,7 +528,6 @@ add_library(server
 	rpc/misc.cpp
 	rpc/net.cpp
 	rpc/rawtransaction.cpp
-	rpc/request.cpp
 	rpc/server.cpp
 	script/scriptcache.cpp
 	script/sigcache.cpp

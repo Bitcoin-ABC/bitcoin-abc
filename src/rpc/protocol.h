@@ -6,15 +6,6 @@
 #ifndef BITCOIN_RPC_PROTOCOL_H
 #define BITCOIN_RPC_PROTOCOL_H
 
-#include <fs.h>
-
-#include <cstdint>
-#include <list>
-#include <map>
-#include <string>
-
-#include <univalue.h>
-
 //! HTTP status codes
 enum HTTPStatusCode {
     HTTP_OK = 200,
@@ -124,22 +115,5 @@ enum RPCErrorCode {
     //! Server is in safe mode, and command is not allowed in safe mode
     RPC_FORBIDDEN_BY_SAFE_MODE = -2,
 };
-
-UniValue JSONRPCRequestObj(const std::string &strMethod, const UniValue &params,
-                           const UniValue &id);
-UniValue JSONRPCReplyObj(const UniValue &result, const UniValue &error,
-                         const UniValue &id);
-std::string JSONRPCReply(const UniValue &result, const UniValue &error,
-                         const UniValue &id);
-UniValue JSONRPCError(int code, const std::string &message);
-
-/** Generate a new RPC authentication cookie and write it to disk */
-bool GenerateAuthCookie(std::string *cookie_out);
-/** Read the RPC authentication cookie from disk */
-bool GetAuthCookie(std::string *cookie_out);
-/** Delete RPC authentication cookie from disk */
-void DeleteAuthCookie();
-/** Parse JSON-RPC batch reply into a vector */
-std::vector<UniValue> JSONRPCProcessBatchReply(const UniValue &in, size_t num);
 
 #endif // BITCOIN_RPC_PROTOCOL_H

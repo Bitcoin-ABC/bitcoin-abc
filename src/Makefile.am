@@ -209,9 +209,9 @@ BITCOIN_CORE_H = \
   rpc/mining.h \
   rpc/protocol.h \
   rpc/rawtransaction_util.h \
+  rpc/register.h \
   rpc/request.h \
   rpc/server.h \
-  rpc/register.h \
   rpc/util.h \
   rwcollection.h \
   scheduler.h \
@@ -335,7 +335,6 @@ libbitcoin_server_a_SOURCES = \
   rpc/misc.cpp \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
-  rpc/request.cpp \
   rpc/server.cpp \
   script/scriptcache.cpp \
   script/sigcache.cpp \
@@ -542,7 +541,7 @@ libbitcoin_util_a_SOURCES = \
   random.cpp \
   randomenv.cpp \
   rcu.cpp \
-  rpc/protocol.cpp \
+  rpc/request.cpp \
   support/cleanse.cpp \
   sync.cpp \
   threadinterrupt.cpp \
