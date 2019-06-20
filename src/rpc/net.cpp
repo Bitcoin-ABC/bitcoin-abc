@@ -10,6 +10,7 @@
 #include <config.h>
 #include <core_io.h>
 #include <net.h>
+#include <net_permissions.h>
 #include <net_processing.h>
 #include <netbase.h>
 #include <policy/policy.h>
@@ -222,6 +223,12 @@ static UniValue getpeerinfo(const Config &config,
             obj.pushKV("inflight", heights);
         }
         obj.pushKV("whitelisted", stats.fWhitelisted);
+        UniValue permissions(UniValue::VARR);
+        for (const auto &permission :
+             NetPermissions::ToStrings(stats.m_permissionFlags)) {
+            permissions.push_back(permission);
+        }
+        obj.pushKV("permissions", permissions);
         obj.pushKV("minfeefilter", ValueFromAmount(stats.minFeeFilter));
 
         UniValue sendPerMsgCmd(UniValue::VOBJ);
