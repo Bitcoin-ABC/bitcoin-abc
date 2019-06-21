@@ -2,10 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <rpc/util.h>
+
 #include <key_io.h>
 #include <keystore.h>
 #include <pubkey.h>
-#include <rpc/util.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
 #include <util/string.h>
@@ -181,10 +182,13 @@ CPubKey AddrToPubKey(const CChainParams &chainparams, CKeyStore *const keystore,
     return vchPubKey;
 }
 
-// Creates a multisig redeemscript from a given list of public keys and number
-// required.
-CScript CreateMultisigRedeemscript(const int required,
-                                   const std::vector<CPubKey> &pubkeys) {
+// Creates a multisig address from a given list of public keys, number of
+// signatures required, and the address type
+CTxDestination AddAndGetMultisigDestination(const int required,
+                                            const std::vector<CPubKey> &pubkeys,
+                                            OutputType type,
+                                            CKeyStore &keystore,
+                                            CScript &script_out) {
     // Gather public keys
     if (required < 1) {
         throw JSONRPCError(
@@ -203,16 +207,28 @@ CScript CreateMultisigRedeemscript(const int required,
                            "address creation > 16\nReduce the number");
     }
 
-    CScript result = GetScriptForMultisig(required, pubkeys);
+    script_out = GetScriptForMultisig(required, pubkeys);
 
-    if (result.size() > MAX_SCRIPT_ELEMENT_SIZE) {
+    if (script_out.size() > MAX_SCRIPT_ELEMENT_SIZE) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
             (strprintf("redeemScript exceeds size limit: %d > %d",
-                       result.size(), MAX_SCRIPT_ELEMENT_SIZE)));
+                       script_out.size(), MAX_SCRIPT_ELEMENT_SIZE)));
     }
 
-    return result;
+    // Check if any keys are uncompressed. If so, the type is legacy
+    for (const CPubKey &pk : pubkeys) {
+        if (!pk.IsCompressed()) {
+            type = OutputType::LEGACY;
+            break;
+        }
+    }
+
+    // Make the address
+    CTxDestination dest =
+        AddAndGetDestinationForScript(keystore, script_out, type);
+
+    return dest;
 }
 
 class DescribeAddressVisitor : public boost::static_visitor<UniValue> {
