@@ -2108,22 +2108,11 @@ void PruneAndFlush() {
     FlushStateToDisk(chainparams, state, FlushStateMode::NONE);
 }
 
-/** Private helper function that concatenates warning messages. */
-static void AppendWarning(std::string &res, const std::string &warn) {
-    if (!res.empty()) {
-        res += ", ";
-    }
-    res += warn;
-}
-
 /**
  * Update chainActive and related internal data structures when adding a new
  * block to the chain tip.
  */
 static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
     chainActive.SetTip(pindexNew);
 
     // New best block
@@ -2135,31 +2124,8 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         g_best_block_cv.notify_all();
     }
 
-    std::string warningMessages;
-    if (!IsInitialBlockDownload()) {
-        int nUpgraded = 0;
-        const CBlockIndex *pindex = chainActive.Tip();
-
-        // Check the version of the last 100 blocks to see if we need to
-        // upgrade:
-        for (int i = 0; i < 100 && pindex != nullptr; i++) {
-            int32_t nExpectedVersion =
-                ComputeBlockVersion(pindex->pprev, consensusParams);
-            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION &&
-                (pindex->nVersion & ~nExpectedVersion) != 0) {
-                ++nUpgraded;
-            }
-            pindex = pindex->pprev;
-        }
-        if (nUpgraded > 0) {
-            AppendWarning(
-                warningMessages,
-                strprintf(_("%d of last 100 blocks have unexpected version"),
-                          nUpgraded));
-        }
-    }
     LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
-              "date='%s' progress=%f cache=%.1fMiB(%utxo)",
+              "date='%s' progress=%f cache=%.1fMiB(%utxo)\n",
               __func__, chainActive.Tip()->GetBlockHash().ToString(),
               chainActive.Height(), chainActive.Tip()->nVersion,
               log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
@@ -2169,10 +2135,6 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
                                         chainActive.Tip()),
               pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
               pcoinsTip->GetCacheSize());
-    if (!warningMessages.empty()) {
-        LogPrintf(" warning='%s'", warningMessages);
-    }
-    LogPrintf("\n");
 }
 
 /**
