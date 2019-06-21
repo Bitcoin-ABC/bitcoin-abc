@@ -119,7 +119,6 @@ static UniValue getnetworkhashps(const Config &config,
 static UniValue generateBlocks(const Config &config,
                                const CScript &coinbase_script, int nGenerate,
                                uint64_t nMaxTries) {
-    static const int nInnerLoopCount = 0x100000;
     int nHeightEnd = 0;
     int nHeight = 0;
 
@@ -150,18 +149,20 @@ static UniValue generateBlocks(const Config &config,
                                 nExcessiveBlockSize, nExtraNonce);
         }
 
-        while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount &&
+        while (nMaxTries > 0 &&
+               pblock->nNonce < std::numeric_limits<uint32_t>::max() &&
                !CheckProofOfWork(pblock->GetHash(), pblock->nBits,
-                                 config.GetChainParams().GetConsensus())) {
+                                 config.GetChainParams().GetConsensus()) &&
+               !ShutdownRequested()) {
             ++pblock->nNonce;
             --nMaxTries;
         }
 
-        if (nMaxTries == 0) {
+        if (nMaxTries == 0 || ShutdownRequested()) {
             break;
         }
 
-        if (pblock->nNonce == nInnerLoopCount) {
+        if (pblock->nNonce == std::numeric_limits<uint32_t>::max()) {
             continue;
         }
 
