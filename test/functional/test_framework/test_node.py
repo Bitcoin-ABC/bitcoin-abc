@@ -61,6 +61,7 @@ class TestNode():
                  bitcoin_cli, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False, emulator=None):
         self.index = i
         self.datadir = datadir
+        self.bitcoinconf = os.path.join(self.datadir, "bitcoin.conf")
         self.stdout_dir = os.path.join(self.datadir, "stdout")
         self.stderr_dir = os.path.join(self.datadir, "stderr")
         self.host = host
