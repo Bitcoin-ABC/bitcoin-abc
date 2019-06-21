@@ -476,8 +476,9 @@ static void UpdatePreferredDownload(CNode *node, CNodeState *state)
     nPreferredDownload -= state->fPreferredDownload;
 
     // Whether this node should be marked as a preferred download node.
-    state->fPreferredDownload = (!node->fInbound || node->fWhitelisted) &&
-                                !node->fOneShot && !node->fClient;
+    state->fPreferredDownload =
+        (!node->fInbound || node->HasPermission(PF_NOBAN)) && !node->fOneShot &&
+        !node->fClient;
 
     nPreferredDownload += state->fPreferredDownload;
 }
@@ -1569,7 +1570,7 @@ static void ProcessGetBlockData(const Config &config, CNode *pfrom,
           (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() >
            HISTORICAL_BLOCK_AGE)) ||
          inv.type == MSG_FILTERED_BLOCK) &&
-        !pfrom->fWhitelisted) {
+        !pfrom->HasPermission(PF_NOBAN)) {
         LogPrint(BCLog::NET,
                  "historical block serving limit reached, disconnect peer=%d\n",
                  pfrom->GetId());
@@ -1581,7 +1582,7 @@ static void ProcessGetBlockData(const Config &config, CNode *pfrom,
     // Avoid leaking prune-height by never sending blocks below the
     // NODE_NETWORK_LIMITED threshold.
     // Add two blocks buffer extension for possible races
-    if (send && !pfrom->fWhitelisted &&
+    if (send && !pfrom->HasPermission(PF_NOBAN) &&
         ((((pfrom->GetLocalServices() & NODE_NETWORK_LIMITED) ==
            NODE_NETWORK_LIMITED) &&
           ((pfrom->GetLocalServices() & NODE_NETWORK) != NODE_NETWORK) &&
@@ -2470,8 +2471,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         // Allow whitelisted peers to send data other than blocks in blocks only
         // mode if whitelistrelay is true
-        if (pfrom->fWhitelisted &&
-            gArgs.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)) {
+        if (pfrom->HasPermission(PF_RELAY)) {
             fBlocksOnly = false;
         }
 
@@ -2701,7 +2701,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         LOCK(cs_main);
-        if (IsInitialBlockDownload() && !pfrom->fWhitelisted) {
+        if (IsInitialBlockDownload() && !pfrom->HasPermission(PF_NOBAN)) {
             LogPrint(BCLog::NET,
                      "Ignoring getheaders from peer=%d because node is in "
                      "initial block download\n",
@@ -2770,9 +2770,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // Stop processing the transaction early if
         // We are in blocks only mode and peer is either not whitelisted or
         // whitelistrelay is off
-        if (!fRelayTxes &&
-            (!pfrom->fWhitelisted ||
-             !gArgs.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY))) {
+        if (!fRelayTxes && !pfrom->HasPermission(PF_RELAY)) {
             LogPrint(BCLog::NET,
                      "transaction sent in violation of protocol peer=%d\n",
                      pfrom->GetId());
@@ -2947,9 +2945,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 }
             }
 
-            if (pfrom->fWhitelisted &&
-                gArgs.GetBoolArg("-whitelistforcerelay",
-                                 DEFAULT_WHITELISTFORCERELAY)) {
+            if (pfrom->HasPermission(PF_FORCERELAY)) {
                 // Always relay transactions received from whitelisted peers,
                 // even if they were already in the mempool or rejected from it
                 // due to policy, allowing the node to function as a gateway for
@@ -3402,7 +3398,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // unless we're still syncing with the network. Such an unrequested
         // block may still be processed, subject to the conditions in
         // AcceptBlock().
-        bool forceProcessing = pfrom->fWhitelisted && !IsInitialBlockDownload();
+        bool forceProcessing =
+            pfrom->HasPermission(PF_NOBAN) && !IsInitialBlockDownload();
         const uint256 hash(pblock->GetHash());
         {
             LOCK(cs_main);
@@ -3557,7 +3554,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     if (strCommand == NetMsgType::MEMPOOL) {
-        if (!(pfrom->GetLocalServices() & NODE_BLOOM) && !pfrom->fWhitelisted) {
+        if (!(pfrom->GetLocalServices() & NODE_BLOOM) &&
+            !pfrom->HasPermission(PF_MEMPOOL)) {
             if (!pfrom->HasPermission(PF_NOBAN)) {
                 LogPrint(BCLog::NET,
                          "mempool request with bloom filters disabled, "
@@ -3568,7 +3566,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             return true;
         }
 
-        if (connman->OutboundTargetReached(false) && !pfrom->fWhitelisted) {
+        if (connman->OutboundTargetReached(false) &&
+            !pfrom->HasPermission(PF_MEMPOOL)) {
             if (!pfrom->HasPermission(PF_NOBAN)) {
                 LogPrint(BCLog::NET,
                          "mempool request with bandwidth limit reached, "
@@ -3788,7 +3787,7 @@ bool PeerLogicValidation::SendRejectsAndCheckIfBanned(CNode *pnode,
 
     if (state.fShouldBan) {
         state.fShouldBan = false;
-        if (pnode->fWhitelisted) {
+        if (pnode->HasPermission(PF_NOBAN)) {
             LogPrintf("Warning: not punishing whitelisted peer %s!\n",
                       pnode->addr.ToString());
         } else if (pnode->m_manual_connection) {
@@ -4503,7 +4502,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         pto->vInventoryBlockToSend.clear();
 
         // Check whether periodic sends should happen
-        bool fSendTrickle = pto->fWhitelisted;
+        bool fSendTrickle = pto->HasPermission(PF_NOBAN);
         if (pto->nNextInvSend < nNow) {
             fSendTrickle = true;
             if (pto->fInbound) {
@@ -4697,7 +4696,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                 // Note: If all our peers are inbound, then we won't disconnect
                 // our sync peer for stalling; we have bigger problems if we
                 // can't get any outbound peers.
-                if (!pto->fWhitelisted) {
+                if (!pto->HasPermission(PF_NOBAN)) {
                     LogPrintf("Timeout downloading headers from peer=%d, "
                               "disconnecting\n",
                               pto->GetId());
@@ -4832,8 +4831,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     // -whitelistforcerelay
     if (pto->nVersion >= FEEFILTER_VERSION &&
         gArgs.GetBoolArg("-feefilter", DEFAULT_FEEFILTER) &&
-        !(pto->fWhitelisted && gArgs.GetBoolArg("-whitelistforcerelay",
-                                                DEFAULT_WHITELISTFORCERELAY))) {
+        !pto->HasPermission(PF_FORCERELAY)) {
         Amount currentFilter =
             g_mempool
                 .GetMinFee(

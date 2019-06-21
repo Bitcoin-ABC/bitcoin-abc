@@ -222,7 +222,7 @@ static UniValue getpeerinfo(const Config &config,
             }
             obj.pushKV("inflight", heights);
         }
-        obj.pushKV("whitelisted", stats.fWhitelisted);
+        obj.pushKV("whitelisted", stats.m_legacyWhitelisted);
         UniValue permissions(UniValue::VARR);
         for (const auto &permission :
              NetPermissions::ToStrings(stats.m_permissionFlags)) {

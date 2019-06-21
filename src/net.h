@@ -573,7 +573,7 @@ struct CNodeStats {
     uint64_t nRecvBytes;
     mapMsgCmdSize mapRecvBytesPerMsgCmd;
     NetPermissionFlags m_permissionFlags;
-    bool fWhitelisted;
+    bool m_legacyWhitelisted;
     double dPingTime;
     double dPingWait;
     double dMinPing;
@@ -689,8 +689,9 @@ public:
     bool HasPermission(NetPermissionFlags permission) const {
         return NetPermissions::HasFlag(m_permissionFlags, permission);
     }
-    // This peer can bypass DoS banning.
-    bool fWhitelisted{false};
+    // This boolean is unusued in actual processing, only present for backward
+    // compatibility at RPC/QT level
+    bool m_legacyWhitelisted{false};
     // If true this node is being used as a short lived feeler.
     bool fFeeler{false};
     bool fOneShot{false};

@@ -534,7 +534,7 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.mapRecvBytesPerMsgCmd = mapRecvBytesPerMsgCmd;
         stats.nRecvBytes = nRecvBytes;
     }
-    stats.fWhitelisted = fWhitelisted;
+    stats.m_legacyWhitelisted = m_legacyWhitelisted;
     stats.m_permissionFlags = m_permissionFlags;
     {
         LOCK(cs_feeFilter);
@@ -868,8 +868,14 @@ bool CConnman::AttemptToEvictConnection() {
     {
         LOCK(cs_vNodes);
 
-        for (CNode *node : vNodes) {
-            if (node->fWhitelisted || !node->fInbound || node->fDisconnect) {
+        for (const CNode *node : vNodes) {
+            if (node->HasPermission(PF_NOBAN)) {
+                continue;
+            }
+            if (!node->fInbound) {
+                continue;
+            }
+            if (node->fDisconnect) {
                 continue;
             }
             LOCK(node->cs_filter);
@@ -1074,7 +1080,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     pnode->m_permissionFlags = permissionFlags;
     // If this flag is present, the user probably expect that RPC and QT report
     // it as whitelisted (backward compatibility)
-    pnode->fWhitelisted = legacyWhitelisted;
+    pnode->m_legacyWhitelisted = legacyWhitelisted;
     pnode->m_prefer_evict = bannedlevel > 0;
     m_msgproc->InitializeNode(*config, pnode);
 

@@ -1310,8 +1310,8 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
                                                          : tr("Outbound"));
     ui->peerHeight->setText(
         QString("%1").arg(QString::number(stats->nodeStats.nStartingHeight)));
-    ui->peerWhitelisted->setText(stats->nodeStats.fWhitelisted ? tr("Yes")
-                                                               : tr("No"));
+    ui->peerWhitelisted->setText(
+        stats->nodeStats.m_legacyWhitelisted ? tr("Yes") : tr("No"));
 
     // This check fails for example if the lock was busy and
     // nodeStateStats couldn't be fetched.
