@@ -18,8 +18,6 @@
 #include <utiltime.h>
 #include <wallet/wallet.h>
 
-#include <boost/version.hpp>
-
 #include <atomic>
 
 //

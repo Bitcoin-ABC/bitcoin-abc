@@ -14,7 +14,6 @@
 #include <wallet/walletutil.h>
 
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
-#include <boost/version.hpp>
 
 #include <cstdint>
 #ifndef WIN32
