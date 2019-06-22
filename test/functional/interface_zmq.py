@@ -5,8 +5,10 @@
 """Test the ZMQ notification interface."""
 import configparser
 import struct
+from io import BytesIO
 
 from test_framework.test_framework import BitcoinTestFramework, SkipTest
+from test_framework.messages import CTransaction
 from test_framework.util import (
     assert_equal,
     bytes_to_hex_str,
@@ -94,7 +96,10 @@ class ZMQTest (BitcoinTestFramework):
 
             # Should receive the coinbase raw transaction.
             hex = self.rawtx.receive()
-            assert_equal(hash256(hex), txid)
+            tx = CTransaction()
+            tx.deserialize(BytesIO(hex))
+            tx.calc_sha256()
+            assert_equal(tx.hash, bytes_to_hex_str(txid))
 
             # Should receive the generated block hash.
             hash = bytes_to_hex_str(self.hashblock.receive())
