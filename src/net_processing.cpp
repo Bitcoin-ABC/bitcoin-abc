@@ -1371,7 +1371,7 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
                 // protocol spec specified allows for us to provide duplicate
                 // txn here, however we MUST always provide at least what the
                 // remote peer needs.
-                typedef std::pair<unsigned int, uint256> PairType;
+                typedef std::pair<size_t, uint256> PairType;
                 for (PairType &pair : merkleBlock.vMatchedTxn) {
                     connman->PushMessage(
                         pfrom, msgMaker.Make(NetMsgType::TX,

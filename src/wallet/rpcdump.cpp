@@ -387,8 +387,8 @@ UniValue importprunedfunds(const Config &config,
     // Search partial merkle tree in proof for our transaction and index in
     // valid block
     std::vector<uint256> vMatch;
-    std::vector<unsigned int> vIndex;
-    unsigned int txnIndex = 0;
+    std::vector<size_t> vIndex;
+    size_t txnIndex = 0;
     if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) ==
         merkleBlock.header.hashMerkleRoot) {
 

@@ -52,7 +52,7 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, const std::set<TxId> &txids) {
     txn = CPartialMerkleTree(vHashes, vMatch);
 }
 
-uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos,
+uint256 CPartialMerkleTree::CalcHash(int height, size_t pos,
                                      const std::vector<uint256> &vTxid) {
     // we can never have zero txs in a merkle block, we always need the
     // coinbase tx if we do not have this assert, we can hit a memory
@@ -77,13 +77,13 @@ uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos,
     return Hash(BEGIN(left), END(left), BEGIN(right), END(right));
 }
 
-void CPartialMerkleTree::TraverseAndBuild(int height, unsigned int pos,
+void CPartialMerkleTree::TraverseAndBuild(int height, size_t pos,
                                           const std::vector<uint256> &vTxid,
                                           const std::vector<bool> &vMatch) {
     // Determine whether this node is the parent of at least one matched txid.
     bool fParentOfMatch = false;
-    for (unsigned int p = pos << height;
-         p < (pos + 1) << height && p < nTransactions; p++) {
+    for (size_t p = pos << height; p < (pos + 1) << height && p < nTransactions;
+         p++) {
         fParentOfMatch |= vMatch[p];
     }
 
@@ -101,10 +101,11 @@ void CPartialMerkleTree::TraverseAndBuild(int height, unsigned int pos,
     }
 }
 
-uint256 CPartialMerkleTree::TraverseAndExtract(
-    int height, unsigned int pos, unsigned int &nBitsUsed,
-    unsigned int &nHashUsed, std::vector<uint256> &vMatch,
-    std::vector<unsigned int> &vnIndex) {
+uint256 CPartialMerkleTree::TraverseAndExtract(int height, size_t pos,
+                                               size_t &nBitsUsed,
+                                               size_t &nHashUsed,
+                                               std::vector<uint256> &vMatch,
+                                               std::vector<size_t> &vnIndex) {
     if (nBitsUsed >= vBits.size()) {
         // Overflowed the bits array - failure
         fBad = true;
@@ -169,7 +170,7 @@ CPartialMerkleTree::CPartialMerkleTree(const std::vector<uint256> &vTxid,
 CPartialMerkleTree::CPartialMerkleTree() : nTransactions(0), fBad(true) {}
 
 uint256 CPartialMerkleTree::ExtractMatches(std::vector<uint256> &vMatch,
-                                           std::vector<unsigned int> &vnIndex) {
+                                           std::vector<size_t> &vnIndex) {
     vMatch.clear();
 
     // An empty set will not work
@@ -198,7 +199,7 @@ uint256 CPartialMerkleTree::ExtractMatches(std::vector<uint256> &vMatch,
     }
 
     // traverse the partial tree.
-    unsigned int nBitsUsed = 0, nHashUsed = 0;
+    size_t nBitsUsed = 0, nHashUsed = 0;
     uint256 hashMerkleRoot =
         TraverseAndExtract(nHeight, 0, nBitsUsed, nHashUsed, vMatch, vnIndex);
 

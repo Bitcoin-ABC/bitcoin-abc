@@ -382,7 +382,7 @@ static UniValue verifytxoutproof(const Config &config,
     UniValue res(UniValue::VARR);
 
     std::vector<uint256> vMatch;
-    std::vector<unsigned int> vIndex;
+    std::vector<size_t> vIndex;
     if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) !=
         merkleBlock.header.hashMerkleRoot) {
         return res;
