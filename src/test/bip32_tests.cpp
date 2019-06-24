@@ -6,7 +6,6 @@
 #include <key.h>
 #include <key_io.h>
 #include <streams.h>
-#include <uint256.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 

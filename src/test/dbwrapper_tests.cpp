@@ -4,7 +4,6 @@
 
 #include <dbwrapper.h>
 
-#include <random.h>
 #include <uint256.h>
 
 #include <test/setup_common.h>

@@ -5,10 +5,10 @@
 #include <util/system.h>
 
 #include <clientversion.h>
-#include <primitives/transaction.h>
 #include <sync.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
+#include <util/time.h>
 
 #include <test/setup_common.h>
 
@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #endif
+#include <thread>
 #include <vector>
 
 BOOST_FIXTURE_TEST_SUITE(util_tests, BasicTestingSetup)

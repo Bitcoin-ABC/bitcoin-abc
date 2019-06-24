@@ -5,7 +5,6 @@
 #include <test/setup_common.h>
 
 #include <banman.h>
-#include <chain.h>
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/consensus.h>
@@ -16,7 +15,7 @@
 #include <key.h>
 #include <logging.h>
 #include <miner.h>
-#include <net_processing.h>
+#include <net.h>
 #include <noui.h>
 #include <pow.h>
 #include <pubkey.h>
@@ -29,8 +28,10 @@
 #include <streams.h>
 #include <txdb.h>
 #include <txmempool.h>
-#include <ui_interface.h>
+#include <util/strencodings.h>
+#include <util/time.h>
 #include <validation.h>
+#include <validationinterface.h>
 
 #include <memory>
 

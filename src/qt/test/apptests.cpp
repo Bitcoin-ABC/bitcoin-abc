@@ -49,7 +49,6 @@
 
 #include <univalue.h>
 
-#include <new>
 #include <string>
 
 namespace {

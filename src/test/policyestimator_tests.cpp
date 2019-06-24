@@ -8,6 +8,7 @@
 #include <txmempool.h>
 #include <uint256.h>
 #include <util/system.h>
+#include <util/time.h>
 
 #include <test/setup_common.h>
 

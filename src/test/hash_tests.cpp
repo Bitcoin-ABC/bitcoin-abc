@@ -13,8 +13,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <vector>
-
 BOOST_FIXTURE_TEST_SUITE(hash_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(murmurhash3) {

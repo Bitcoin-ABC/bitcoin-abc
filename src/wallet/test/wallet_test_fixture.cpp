@@ -6,7 +6,7 @@
 
 #include <chainparams.h>
 #include <rpc/server.h>
-#include <wallet/db.h>
+#include <validationinterface.h>
 #include <wallet/rpcdump.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>

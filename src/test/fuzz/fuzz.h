@@ -6,7 +6,6 @@
 #define BITCOIN_TEST_FUZZ_FUZZ_H
 
 #include <cstdint>
-#include <functional>
 #include <vector>
 
 void test_one_input(std::vector<uint8_t> buffer);

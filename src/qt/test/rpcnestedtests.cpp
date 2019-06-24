@@ -7,7 +7,6 @@
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/validation.h>
-#include <fs.h>
 #include <interfaces/node.h>
 #include <qt/rpcconsole.h>
 #include <rpc/register.h>

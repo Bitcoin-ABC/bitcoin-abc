@@ -6,6 +6,7 @@
 
 #include <clientversion.h>
 #include <streams.h>
+#include <util/system.h>
 
 #include <test/setup_common.h>
 

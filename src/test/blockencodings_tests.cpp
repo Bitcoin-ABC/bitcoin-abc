@@ -8,7 +8,6 @@
 #include <config.h>
 #include <consensus/merkle.h>
 #include <pow.h>
-#include <random.h>
 #include <streams.h>
 #include <txmempool.h>
 

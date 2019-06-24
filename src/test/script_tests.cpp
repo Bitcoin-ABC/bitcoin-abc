@@ -31,7 +31,6 @@
 #include <univalue.h>
 
 #include <cstdint>
-#include <fstream>
 #include <string>
 #include <vector>
 

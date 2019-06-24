@@ -6,7 +6,6 @@
 #include <config/bitcoin-config.h>
 #endif
 
-#include <chainparams.h>
 #include <compat/setenv.h>
 #include <interfaces/node.h>
 #include <key.h>

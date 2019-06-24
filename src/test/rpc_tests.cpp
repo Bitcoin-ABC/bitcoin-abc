@@ -12,6 +12,7 @@
 #include <interfaces/chain.h>
 #include <key_io.h>
 #include <netbase.h>
+#include <util/time.h>
 
 #include <test/setup_common.h>
 

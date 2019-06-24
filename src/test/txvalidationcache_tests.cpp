@@ -7,15 +7,11 @@
 #include <consensus/validation.h>
 #include <key.h>
 #include <keystore.h>
-#include <miner.h>
 #include <policy/policy.h>
-#include <pubkey.h>
-#include <random.h>
 #include <script/scriptcache.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
 #include <txmempool.h>
-#include <util/time.h>
 #include <validation.h>
 
 #include <test/lcg.h>

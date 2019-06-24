@@ -22,8 +22,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <set>
-#include <utility>
 #include <vector>
 
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)

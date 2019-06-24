@@ -4,11 +4,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include <net.h>
 
+#include <addrdb.h>
 #include <addrman.h>
 #include <chainparams.h>
 #include <clientversion.h>
 #include <config.h>
-#include <hash.h>
 #include <netbase.h>
 #include <serialize.h>
 #include <streams.h>

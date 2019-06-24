@@ -17,7 +17,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include <memory>
-#include <random.h>
 #include <unordered_set>
 
 // BasicTestingSetup not sufficient because nScriptCheckThreads is not set

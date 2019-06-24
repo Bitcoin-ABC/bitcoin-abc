@@ -17,6 +17,8 @@
 #include <validation.h>
 #include <validationinterface.h>
 
+#include <thread>
+
 struct RegtestingSetup : public TestingSetup {
     RegtestingSetup() : TestingSetup(CBaseChainParams::REGTEST) {}
 };

@@ -17,7 +17,6 @@
 
 #include <cstdlib>
 #include <map>
-#include <vector>
 
 static std::map<void *, short> tags;
 static std::map<void *, uint16_t> orders;

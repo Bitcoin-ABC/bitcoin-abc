@@ -4,8 +4,6 @@
 
 #include <streams.h>
 
-#include <support/allocators/zeroafterfree.h>
-
 #include <test/setup_common.h>
 
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'

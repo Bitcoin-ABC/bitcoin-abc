@@ -5,9 +5,6 @@
 #ifndef BITCOIN_QT_TEST_RPCNESTEDTESTS_H
 #define BITCOIN_QT_TEST_RPCNESTEDTESTS_H
 
-#include <txdb.h>
-#include <txmempool.h>
-
 #include <QObject>
 #include <QTest>
 

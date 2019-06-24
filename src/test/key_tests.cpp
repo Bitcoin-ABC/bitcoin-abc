@@ -6,7 +6,6 @@
 
 #include <chainparams.h> // For Params()
 #include <key_io.h>
-#include <script/script.h>
 #include <uint256.h>
 #include <util/strencodings.h>
 #include <util/system.h>

@@ -11,11 +11,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <cmath>
 #include <cstdint>
-#include <cstdio>
 #include <iomanip>
-#include <limits>
 #include <sstream>
 #include <string>
 
