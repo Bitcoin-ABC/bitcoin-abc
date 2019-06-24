@@ -7,6 +7,8 @@
 # Test PrioritiseTransaction code
 #
 
+import time
+
 from test_framework.blocktools import (
     create_confirmed_utxos,
     send_big_transactions,
@@ -15,7 +17,7 @@ from test_framework.blocktools import (
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.messages import COIN
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, time
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
@@ -155,8 +157,9 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         mock_time = int(time.time())
         self.nodes[0].setmocktime(mock_time)
         template = self.nodes[0].getblocktemplate()
-        self.nodes[0].prioritisetransaction(txid, 0, -int(self.relayfee*COIN))
-        self.nodes[0].setmocktime(mock_time+10)
+        self.nodes[0].prioritisetransaction(
+            tx2_id, 0, -int(self.relayfee * COIN))
+        self.nodes[0].setmocktime(mock_time + 10)
         new_template = self.nodes[0].getblocktemplate()
 
         assert(template != new_template)
