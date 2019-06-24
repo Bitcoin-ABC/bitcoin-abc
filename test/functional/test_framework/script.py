@@ -689,6 +689,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
 # TODO: Allow cached hashPrevouts/hashSequence/hashOutputs to be provided.
 # Performance optimization probably not necessary for python tests, however.
 
+
 def SignatureHashForkId(script, txTo, inIdx, hashtype, amount):
 
     hashPrevouts = 0
