@@ -177,10 +177,10 @@ of its expiry by itself.
 
 Once the fork has activated, a transaction shall be deemed valid only if
 the following are true in combination:
-- its nHashType has bit 6 set (SIGHASH_FORKID, mask 0x40)
-- a magic 'fork id' value is added to the nHashType before the hash is
+- Its nHashType has bit 6 set (SIGHASH_FORKID, mask 0x40)
+- A magic 'fork id' value is added to the nHashType before the hash is
   calculated (see note 4)
-- it is digested using the new algorithm described in REQ-6-3
+- It is digested using the new algorithm described in REQ-6-3
 
 RATIONALE: To provide strong protection against replay of existing
 transactions on the UAHF chain, only transactions signed with the new

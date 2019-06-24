@@ -28,8 +28,8 @@ you configure. Tests will not run otherwise.
 
 The ZMQ functional test requires a python ZMQ library. To install it:
 
-- on Unix, run `sudo apt-get install python3-zmq`
-- on mac OS, run `pip3 install pyzmq`
+- On Unix, run `sudo apt-get install python3-zmq`
+- On mac OS, run `pip3 install pyzmq`
 
 #### Running the tests
 
@@ -116,11 +116,11 @@ killall bitcoind
 The tests contain logging at different levels (debug, info, warning, etc). By
 default:
 
-- when run through the test_runner harness, *all* logs are written to
+- When run through the test_runner harness, *all* logs are written to
   `test_framework.log` and no logs are output to the console.
-- when run directly, *all* logs are written to `test_framework.log` and INFO
+- When run directly, *all* logs are written to `test_framework.log` and INFO
   level and above are output to the console.
-- when run on Travis, no logs are output to the console. However, if a test
+- When run on Travis, no logs are output to the console. However, if a test
   fails, the `test_framework.log` and bitcoind `debug.log`s will all be dumped
   to the console to help troubleshooting.
 
@@ -276,7 +276,7 @@ on nodes 2 and up.
 
 - Implement a (generator) function called `get_tests()` which yields `TestInstance`s.
 Each `TestInstance` consists of:
-  - a list of `[object, outcome, hash]` entries
+  - A list of `[object, outcome, hash]` entries
     * `object` is a `CBlock`, `CTransaction`, or
     `CBlockHeader`.  `CBlock`'s and `CTransaction`'s are tested for
     acceptance.  `CBlockHeader`s can be used so that the test runner can deliver

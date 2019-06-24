@@ -100,7 +100,7 @@ Enter a file in which to save the key (/home/*username*/.ssh/id_rsa): [Press ent
 
 4. Upload your SSH public key to reviews.bitcoinabc.org
 
-  - go to: `https://reviews.bitcoinabc.org/settings/user/*username*/page/ssh/`
+  - Go to: `https://reviews.bitcoinabc.org/settings/user/*username*/page/ssh/`
 
   - Under "SSH Key Actions", Select "Upload Public Key"
 
