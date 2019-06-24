@@ -4497,8 +4497,10 @@ CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {
     return pindexNew;
 }
 
-bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
-                                  CBlockTreeDB &blocktree) {
+bool BlockManager::LoadBlockIndex(
+    const Consensus::Params &params, CBlockTreeDB &blocktree,
+    std::set<CBlockIndex *, CBlockIndexWorkComparator>
+        &block_index_candidates) {
     AssertLockHeld(cs_main);
     if (!blocktree.LoadBlockIndexGuts(
             params, [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(
@@ -4541,7 +4543,7 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
         }
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
             (pindex->HaveTxsDownloaded() || pindex->pprev == nullptr)) {
-            ::ChainstateActive().setBlockIndexCandidates.insert(pindex);
+            block_index_candidates.insert(pindex);
         }
 
         if (pindex->nStatus.isInvalid() &&
@@ -4583,7 +4585,9 @@ void BlockManager::Unload() {
 
 static bool LoadBlockIndexDB(const Consensus::Params &params)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    if (!g_blockman.LoadBlockIndex(params, *pblocktree)) {
+    if (!g_blockman.LoadBlockIndex(
+            params, *pblocktree,
+            ::ChainstateActive().setBlockIndexCandidates)) {
         return false;
     }
 
