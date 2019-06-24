@@ -114,9 +114,8 @@ CScript COINBASE_FLAGS;
 
 // Internal stuff
 namespace {
-CBlockIndex *&pindexBestInvalid = ::ChainstateActive().pindexBestInvalid;
-CBlockIndex *&pindexBestParked = ::ChainstateActive().pindexBestParked;
-
+CBlockIndex *pindexBestInvalid = nullptr;
+CBlockIndex *pindexBestParked = nullptr;
 /**
  * The best finalized block.
  * This block cannot be reorged in any way except by explicit user action.

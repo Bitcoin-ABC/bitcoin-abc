@@ -815,8 +815,6 @@ public:
     //! The current chain of blockheaders we consult and build on.
     //! @see CChain, CBlockIndex.
     CChain m_chain;
-    CBlockIndex *pindexBestInvalid = nullptr;
-    CBlockIndex *pindexBestParked = nullptr;
     CBlockIndex const *pindexFinalized = nullptr;
     /**
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for
