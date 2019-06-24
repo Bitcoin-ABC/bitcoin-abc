@@ -383,16 +383,11 @@ namespace {
             return std::make_unique<NotificationsHandlerImpl>(
                 std::move(notifications));
         }
-        void waitForNotificationsIfNewBlocksConnected(
-            const BlockHash &old_tip) override {
+        void
+        waitForNotificationsIfTipChanged(const BlockHash &old_tip) override {
             if (!old_tip.IsNull()) {
                 LOCK(::cs_main);
                 if (old_tip == ::ChainActive().Tip()->GetBlockHash()) {
-                    return;
-                }
-                CBlockIndex *block = LookupBlockIndex(old_tip);
-                if (block && block->GetAncestor(::ChainActive().Height()) ==
-                                 ::ChainActive().Tip()) {
                     return;
                 }
             }
