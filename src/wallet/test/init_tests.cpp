@@ -4,6 +4,7 @@
 
 #include <chainparams.h>
 #include <init.h>
+#include <noui.h>
 #include <wallet/wallet.h>
 #include <walletinitinterface.h>
 
@@ -34,19 +35,25 @@ BOOST_AUTO_TEST_CASE(walletinit_verify_walletdir_custom) {
 
 BOOST_AUTO_TEST_CASE(walletinit_verify_walletdir_does_not_exist) {
     SetWalletDir(m_walletdir_path_cases["nonexistent"]);
+    noui_suppress();
     bool result = g_wallet_init_interface.Verify(Params());
+    noui_reconnect();
     BOOST_CHECK(result == false);
 }
 
 BOOST_AUTO_TEST_CASE(walletinit_verify_walletdir_is_not_directory) {
     SetWalletDir(m_walletdir_path_cases["file"]);
+    noui_suppress();
     bool result = g_wallet_init_interface.Verify(Params());
+    noui_reconnect();
     BOOST_CHECK(result == false);
 }
 
 BOOST_AUTO_TEST_CASE(walletinit_verify_walletdir_is_not_relative) {
     SetWalletDir(m_walletdir_path_cases["relative"]);
+    noui_suppress();
     bool result = g_wallet_init_interface.Verify(Params());
+    noui_reconnect();
     BOOST_CHECK(result == false);
 }
 
