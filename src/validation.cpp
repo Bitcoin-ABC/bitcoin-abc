@@ -45,7 +45,6 @@
 #include <validationinterface.h>
 #include <warnings.h>
 
-#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
 
@@ -2109,6 +2108,14 @@ void PruneAndFlush() {
     FlushStateToDisk(chainparams, state, FlushStateMode::NONE);
 }
 
+/** Private helper function that concatenates warning messages. */
+static void AppendWarning(std::string &res, const std::string &warn) {
+    if (!res.empty()) {
+        res += ", ";
+    }
+    res += warn;
+}
+
 /**
  * Update chainActive and related internal data structures when adding a new
  * block to the chain tip.
@@ -2128,7 +2135,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         g_best_block_cv.notify_all();
     }
 
-    std::vector<std::string> warningMessages;
+    std::string warningMessages;
     if (!IsInitialBlockDownload()) {
         int nUpgraded = 0;
         const CBlockIndex *pindex = chainActive.Tip();
@@ -2145,8 +2152,10 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0) {
-            warningMessages.push_back(strprintf(
-                _("%d of last 100 blocks have unexpected version"), nUpgraded));
+            AppendWarning(
+                warningMessages,
+                strprintf(_("%d of last 100 blocks have unexpected version"),
+                          nUpgraded));
         }
     }
     LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
@@ -2161,8 +2170,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
               pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
               pcoinsTip->GetCacheSize());
     if (!warningMessages.empty()) {
-        LogPrintf(" warning='%s'",
-                  boost::algorithm::join(warningMessages, ", "));
+        LogPrintf(" warning='%s'", warningMessages);
     }
     LogPrintf("\n");
 }
