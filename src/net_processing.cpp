@@ -1772,6 +1772,11 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
         }
     }
 
+    // Unknown types in the GetData stay in vRecvGetData and block any future
+    // message from this peer, see vRecvGetData check in ProcessMessages().
+    // Depending on future p2p changes, we might either drop unknown getdata on
+    // the floor or disconnect the peer.
+
     pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
 
     if (!vNotFound.empty()) {
@@ -3982,7 +3987,8 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
         return false;
     }
 
-    // this maintains the order of responses
+    // this maintains the order of responses and prevents vRecvGetData from
+    // growing unbounded
     if (!pfrom->vRecvGetData.empty()) {
         return true;
     }
