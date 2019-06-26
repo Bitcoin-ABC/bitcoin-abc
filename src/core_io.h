@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-class Amount;
+struct Amount;
 class CBlock;
 class CMutableTransaction;
 class CScript;

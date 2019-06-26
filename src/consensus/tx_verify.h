@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-class Amount;
+struct Amount;
 class CBlockIndex;
 class CCoinsViewCache;
 class Config;
