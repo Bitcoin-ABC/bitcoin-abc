@@ -4492,12 +4492,12 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         } else if (nLoadWalletRet == DBErrors::TOO_NEW) {
             InitError(strprintf(
                 _("Error loading %s: Wallet requires newer version of %s"),
-                walletFile, _(PACKAGE_NAME)));
+                walletFile, PACKAGE_NAME));
             return nullptr;
         } else if (nLoadWalletRet == DBErrors::NEED_REWRITE) {
             InitError(strprintf(
                 _("Wallet needed to be rewritten: restart %s to complete"),
-                _(PACKAGE_NAME)));
+                PACKAGE_NAME));
             return nullptr;
         } else {
             InitError(strprintf(_("Error loading %s"), walletFile));

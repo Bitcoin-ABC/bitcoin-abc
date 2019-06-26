@@ -320,9 +320,9 @@ void BitcoinGUI::createActions() {
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
     aboutAction = new QAction(platformStyle->TextColorIcon(":/icons/about"),
-                              tr("&About %1").arg(tr(PACKAGE_NAME)), this);
+                              tr("&About %1").arg(PACKAGE_NAME), this);
     aboutAction->setStatusTip(
-        tr("Show information about %1").arg(tr(PACKAGE_NAME)));
+        tr("Show information about %1").arg(PACKAGE_NAME));
     aboutAction->setMenuRole(QAction::AboutRole);
     aboutAction->setEnabled(false);
     aboutQtAction =
@@ -333,7 +333,7 @@ void BitcoinGUI::createActions() {
     optionsAction = new QAction(platformStyle->TextColorIcon(":/icons/options"),
                                 tr("&Options..."), this);
     optionsAction->setStatusTip(
-        tr("Modify configuration options for %1").arg(tr(PACKAGE_NAME)));
+        tr("Modify configuration options for %1").arg(PACKAGE_NAME));
     optionsAction->setMenuRole(QAction::PreferencesRole);
     optionsAction->setEnabled(false);
     toggleHideAction =
@@ -402,7 +402,7 @@ void BitcoinGUI::createActions() {
     showHelpMessageAction->setStatusTip(
         tr("Show the %1 help message to get a list with possible Bitcoin "
            "command-line options")
-            .arg(tr(PACKAGE_NAME)));
+            .arg(PACKAGE_NAME));
 
     connect(quitAction, &QAction::triggered, qApp, QApplication::quit);
     connect(aboutAction, &QAction::triggered, this, &BitcoinGUI::aboutClicked);
@@ -710,7 +710,7 @@ void BitcoinGUI::createTrayIcon() {
     if (QSystemTrayIcon::isSystemTrayAvailable()) {
         trayIcon =
             new QSystemTrayIcon(m_network_style->getTrayAndWindowIcon(), this);
-        QString toolTip = tr("%1 client").arg(tr(PACKAGE_NAME)) + " " +
+        QString toolTip = tr("%1 client").arg(PACKAGE_NAME) + " " +
                           m_network_style->getTitleAddText();
         trayIcon->setToolTip(toolTip);
     }
@@ -1302,7 +1302,7 @@ void BitcoinGUI::updateProxyIcon() {
 }
 
 void BitcoinGUI::updateWindowTitle() {
-    QString window_title = tr(PACKAGE_NAME);
+    QString window_title = PACKAGE_NAME;
 #ifdef ENABLE_WALLET
     if (walletFrame) {
         WalletModel *const wallet_model = walletFrame->currentWalletModel();

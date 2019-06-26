@@ -7,15 +7,10 @@
 #define UNUSED
 #endif
 static const char UNUSED *bitcoin_strings[] = {
-QT_TRANSLATE_NOOP("bitcoin-abc", "Bitcoin ABC"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "The %s developers"),
-QT_TRANSLATE_NOOP("bitcoin-abc", "Bitcoin"),
 QT_TRANSLATE_NOOP("bitcoin-abc", ""
 "-maxtxfee is set very high! Fees this large could be paid on a single "
 "transaction."),
-QT_TRANSLATE_NOOP("bitcoin-abc", ""
-"Accept relayed transactions received from whitelisted peers even when not "
-"relaying transactions (default: %d)"),
 QT_TRANSLATE_NOOP("bitcoin-abc", ""
 "Can't generate a change-address key. Private keys are disabled for this "
 "wallet."),
@@ -101,7 +96,6 @@ QT_TRANSLATE_NOOP("bitcoin-abc", "Cannot resolve -%s address: '%s'"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Cannot write to data directory '%s'; check permissions."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Change index out of range"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Config setting for %s only applied on %s network when in [%s] section."),
-QT_TRANSLATE_NOOP("bitcoin-abc", "Connect through SOCKS5 proxy"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Copyright (C) %i-%i"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Corrupted block database detected"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Do you want to rebuild the block database now?"),
@@ -142,14 +136,12 @@ QT_TRANSLATE_NOOP("bitcoin-abc", "Loading block index..."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Loading wallet..."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Need to specify a port with -whitebind: '%s'"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Not enough file descriptors available."),
-QT_TRANSLATE_NOOP("bitcoin-abc", "Password for JSON-RPC connections"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Prune cannot be configured with a negative value."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Prune mode is incompatible with -txindex."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Pruning blockstore..."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Reducing -maxconnections from %d to %d, because of system limitations."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Replaying blocks..."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Rescanning..."),
-QT_TRANSLATE_NOOP("bitcoin-abc", "Run in the background as a daemon and accept commands"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Section [%s] is not recognized."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Signing transaction failed"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Specified -walletdir \"%s\" does not exist"),
@@ -181,7 +173,6 @@ QT_TRANSLATE_NOOP("bitcoin-abc", "Unsupported logging category %s=%s."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Upgrading UTXO database"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Upgrading txindex database"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "User Agent comment (%s) contains unsafe characters."),
-QT_TRANSLATE_NOOP("bitcoin-abc", "Username for JSON-RPC connections"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Verifying blocks..."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Verifying wallet(s)..."),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Wallet %s resides outside wallet directory %s"),

@@ -1873,7 +1873,7 @@ static bool LockDataDirectory(bool probeOnly) {
     if (!LockDirectory(datadir, ".lock", probeOnly)) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory "
                                      "%s. %s is probably already running."),
-                                   datadir.string(), _(PACKAGE_NAME)));
+                                   datadir.string(), PACKAGE_NAME));
     }
     return true;
 }
@@ -1892,7 +1892,7 @@ bool AppInitSanityChecks() {
     if (!InitSanityCheck()) {
         return InitError(strprintf(
             _("Initialization sanity check failed. %s is shutting down."),
-            _(PACKAGE_NAME)));
+            PACKAGE_NAME));
     }
 
     // Probe the data directory lock to give an early error message, if possible

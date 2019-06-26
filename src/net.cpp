@@ -2074,7 +2074,7 @@ bool CConnman::BindListenPort(const CService &addrBind, std::string &strError,
         if (nErr == WSAEADDRINUSE) {
             strError = strprintf(_("Unable to bind to %s on this computer. %s "
                                    "is probably already running."),
-                                 addrBind.ToString(), _(PACKAGE_NAME));
+                                 addrBind.ToString(), PACKAGE_NAME);
         } else {
             strError = strprintf(_("Unable to bind to %s on this computer "
                                    "(bind returned error %s)"),

@@ -530,7 +530,7 @@ RPCConsole::RPCConsole(interfaces::Node &node,
     ui->blocksDir->setToolTip(ui->blocksDir->toolTip().arg(
         QString(nonbreaking_hyphen) + "blocksdir"));
     ui->openDebugLogfileButton->setToolTip(
-        ui->openDebugLogfileButton->toolTip().arg(tr(PACKAGE_NAME)));
+        ui->openDebugLogfileButton->toolTip().arg(PACKAGE_NAME));
 
     if (platformStyle->getImagesOnButtons()) {
         ui->openDebugLogfileButton->setIcon(
@@ -939,8 +939,7 @@ void RPCConsole::clear(bool clearHistory) {
 #endif
 
     message(CMD_REPLY,
-            (tr("Welcome to the %1 RPC console.").arg(tr(PACKAGE_NAME)) +
-             "<br>" +
+            (tr("Welcome to the %1 RPC console.").arg(PACKAGE_NAME) + "<br>" +
              tr("Use up and down arrows to navigate history, and "
                 "%1 to clear screen.")
                  .arg("<b>" + clsKey + "</b>") +

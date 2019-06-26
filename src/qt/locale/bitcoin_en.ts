@@ -1069,7 +1069,7 @@
         <translation type="unfinished">Bitcoin</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+6"/>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1942,20 +1942,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bitcoin.cpp" line="+303"/>
-        <source>%1 didn&apos;t yet exit safely...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../modaloverlay.cpp" line="-35"/>
-        <source>unknown</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>QObject::QObject</name>
-    <message>
-        <location filename="../bitcoin.cpp" line="-159"/>
+        <location filename="../bitcoin.cpp" line="+144"/>
         <source>Error parsing command line arguments: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1972,6 +1959,16 @@
     <message>
         <location line="+19"/>
         <source>Error: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+82"/>
+        <source>%1 didn&apos;t yet exit safely...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modaloverlay.cpp" line="-35"/>
+        <source>unknown</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2164,7 +2161,7 @@
     <message>
         <location line="+60"/>
         <location filename="../rpcconsole.cpp" line="+577"/>
-        <location line="+876"/>
+        <location line="+875"/>
         <source>Select a peer to view detailed information.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2315,7 +2312,7 @@
         <translation>Clear console</translation>
     </message>
     <message>
-        <location filename="../rpcconsole.cpp" line="-300"/>
+        <location filename="../rpcconsole.cpp" line="-299"/>
         <source>1 &amp;hour</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2358,7 +2355,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Use up and down arrows to navigate history, and %1 to clear screen.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3875,7 +3872,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>UnitDisplayStatusBarControl</name>
     <message>
-        <location filename="../bitcoingui.cpp" line="+156"/>
+        <location filename="../bitcoingui.cpp" line="+158"/>
         <source>Unit to show amounts in. Click to select another unit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3952,7 +3949,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>bitcoin-abc</name>
     <message>
-        <location filename="../bitcoinstrings.cpp" line="+31"/>
+        <location filename="../bitcoinstrings.cpp" line="+26"/>
         <source>Distributed under the MIT software license, see the accompanying file %s or %s</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3972,12 +3969,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+65"/>
+        <location line="+64"/>
         <source>Error: A fatal internal error occurred, see debug.log for details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+26"/>
         <source>Pruning blockstore...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3988,11 +3985,6 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+2"/>
-        <source>Run in the background as a daemon and accept commands</source>
-        <translation>Run in the background as a daemon and accept commands</translation>
-    </message>
-    <message>
-        <location line="+1"/>
         <source>Section [%s] is not recognized.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4042,22 +4034,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-168"/>
-        <source>Bitcoin ABC</source>
-        <translation type="unfinished">Bitcoin ABC</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="-160"/>
         <source>The %s developers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Accept relayed transactions received from whitelisted peers even when not relaying transactions (default: %d)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>Cannot obtain a lock on data directory %s. %s is probably already running.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4117,7 +4099,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+2"/>
         <source>Copyright (C) %i-%i</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4212,7 +4194,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Not enough file descriptors available.</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Prune cannot be configured with a negative value.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4222,7 +4204,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+12"/>
         <source>The source code is available from %s.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4237,7 +4219,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Verifying blocks...</source>
         <translation>Verifying blocks...</translation>
     </message>
@@ -4247,7 +4229,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-151"/>
+        <location line="-147"/>
         <source>Error: Listening for incoming connections failed (listen returned error %s)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4267,12 +4249,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>Connect through SOCKS5 proxy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+14"/>
+        <location line="+24"/>
         <source>Error reading from database, shutting down.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4297,12 +4274,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+5"/>
         <source>Reducing -maxconnections from %d to %d, because of system limitations.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+4"/>
         <source>Signing transaction failed</source>
         <translation>Signing transaction failed</translation>
     </message>
@@ -4337,12 +4314,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>Username for JSON-RPC connections</source>
-        <translation>Username for JSON-RPC connections</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+12"/>
         <source>Verifying wallet(s)...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4362,17 +4334,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-45"/>
-        <source>Password for JSON-RPC connections</source>
-        <translation>Password for JSON-RPC connections</translation>
-    </message>
-    <message>
-        <location line="-132"/>
+        <location line="-170"/>
         <source>-maxtxfee is set very high! Fees this large could be paid on a single transaction.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="+53"/>
         <source>This is the transaction fee you may pay when fee estimates are not available.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4397,12 +4364,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+40"/>
         <source>Keypool ran out, please call keypoolrefill first</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+19"/>
         <source>Starting network threads...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4442,17 +4409,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Unknown network specified in -onlynet: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="-48"/>
+        <location line="-46"/>
         <source>Insufficient funds</source>
         <translation>Insufficient funds</translation>
     </message>
     <message>
-        <location line="-119"/>
-        <source>Bitcoin</source>
-        <translation type="unfinished">Bitcoin</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="-111"/>
         <source>Can&apos;t generate a change-address key. Private keys are disabled for this wallet.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4492,7 +4454,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Error loading %s: Private keys can only be disabled during creation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4542,7 +4504,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Loading block index...</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+37"/>
         <source>Unsupported logging category %s=%s.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4557,22 +4519,22 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40"/>
+        <location line="-38"/>
         <source>Loading wallet...</source>
         <translation>Loading wallet...</translation>
     </message>
     <message>
-        <location line="-43"/>
+        <location line="-42"/>
         <source>Cannot downgrade wallet</source>
         <translation>Cannot downgrade wallet</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+50"/>
         <source>Rescanning...</source>
         <translation>Rescanning...</translation>
     </message>
     <message>
-        <location line="-43"/>
+        <location line="-42"/>
         <source>Done loading</source>
         <translation>Done loading</translation>
     </message>

@@ -113,16 +113,15 @@ Intro::Intro(QWidget *parent, uint64_t blockchain_size,
     : QDialog(parent), ui(new Ui::Intro), thread(nullptr), signalled(false),
       m_blockchain_size(blockchain_size), m_chain_state_size(chain_state_size) {
     ui->setupUi(this);
-    ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));
-    ui->storageLabel->setText(ui->storageLabel->text().arg(tr(PACKAGE_NAME)));
+    ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(PACKAGE_NAME));
+    ui->storageLabel->setText(ui->storageLabel->text().arg(PACKAGE_NAME));
 
     ui->lblExplanation1->setText(ui->lblExplanation1->text()
-                                     .arg(tr(PACKAGE_NAME))
+                                     .arg(PACKAGE_NAME)
                                      .arg(m_blockchain_size)
                                      .arg(2009)
                                      .arg(tr("Bitcoin")));
-    ui->lblExplanation2->setText(
-        ui->lblExplanation2->text().arg(tr(PACKAGE_NAME)));
+    ui->lblExplanation2->setText(ui->lblExplanation2->text().arg(PACKAGE_NAME));
 
     uint64_t pruneTarget = std::max<int64_t>(0, gArgs.GetArg("-prune", 0));
     requiredSpace = m_blockchain_size;
@@ -143,7 +142,7 @@ Intro::Intro(QWidget *parent, uint64_t blockchain_size,
     requiredSpace += m_chain_state_size;
     ui->sizeWarningLabel->setText(
         tr("%1 will download and store a copy of the Bitcoin block chain.")
-            .arg(tr(PACKAGE_NAME)) +
+            .arg(PACKAGE_NAME) +
         " " + storageRequiresMsg.arg(requiredSpace) + " " +
         tr("The wallet will also be stored in this directory."));
     startThread();
@@ -228,7 +227,7 @@ bool Intro::pickDataDirectory(interfaces::Node &node) {
                 }
                 break;
             } catch (const fs::filesystem_error &) {
-                QMessageBox::critical(nullptr, tr(PACKAGE_NAME),
+                QMessageBox::critical(nullptr, PACKAGE_NAME,
                                       tr("Error: Specified data directory "
                                          "\"%1\" cannot be created.")
                                           .arg(dataDir));
