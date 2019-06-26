@@ -23,6 +23,8 @@
 #include <wallet/db.h>
 #endif
 
+#include <test/setup_common.h>
+
 #include <QAction>
 #include <QEventLoop>
 #include <QLineEdit>
@@ -91,6 +93,8 @@ void AppTests::appTests() {
 
     Config &config = const_cast<Config &>(GetConfig());
 
+    // Create a temp data directory to backup the gui settings to
+    BasicTestingSetup test{CBaseChainParams::REGTEST};
     // Already started by the common test setup, so stop it to avoid
     // interference
     ECC_Stop();
