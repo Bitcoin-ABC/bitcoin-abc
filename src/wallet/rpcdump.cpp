@@ -243,50 +243,6 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
     return true;
 }
 
-static void ImportAddress(CWallet *, const CTxDestination &dest,
-                          const std::string &strLabel);
-static void ImportScript(CWallet *const pwallet, const CScript &script,
-                         const std::string &strLabel, bool isRedeemScript)
-    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
-    if (!isRedeemScript && ::IsMine(*pwallet, script) == ISMINE_SPENDABLE) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "The wallet already contains the "
-                                             "private key for this address or "
-                                             "script");
-    }
-
-    pwallet->MarkDirty();
-
-    if (!pwallet->HaveWatchOnly(script) &&
-        !pwallet->AddWatchOnly(script, 0 /* nCreateTime */)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Error adding address to wallet");
-    }
-
-    if (isRedeemScript) {
-        const CScriptID id(script);
-        if (!pwallet->HaveCScript(id) && !pwallet->AddCScript(script)) {
-            throw JSONRPCError(RPC_WALLET_ERROR,
-                               "Error adding p2sh redeemScript to wallet");
-        }
-        ImportAddress(pwallet, ScriptHash(id), strLabel);
-    } else {
-        CTxDestination destination;
-        if (ExtractDestination(script, destination)) {
-            pwallet->SetAddressBook(destination, strLabel, "receive");
-        }
-    }
-}
-
-static void ImportAddress(CWallet *const pwallet, const CTxDestination &dest,
-                          const std::string &strLabel)
-    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
-    CScript script = GetScriptForDestination(dest);
-    ImportScript(pwallet, script, strLabel, false);
-    // add to address book or update label
-    if (IsValidDestination(dest)) {
-        pwallet->SetAddressBook(dest, strLabel, "receive");
-    }
-}
-
 UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet *const pwallet = wallet.get();
@@ -376,11 +332,28 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
                                    "Cannot use the p2sh flag with an address - "
                                    "use a script instead");
             }
-            ImportAddress(pwallet, dest, strLabel);
+
+            pwallet->MarkDirty();
+
+            pwallet->ImportScriptPubKeys(
+                strLabel, {GetScriptForDestination(dest)},
+                false /* have_solving_data */, true /* apply_label */,
+                1 /* timestamp */);
         } else if (IsHex(request.params[0].get_str())) {
             std::vector<uint8_t> data(ParseHex(request.params[0].get_str()));
-            ImportScript(pwallet, CScript(data.begin(), data.end()), strLabel,
-                         fP2SH);
+            CScript redeem_script(data.begin(), data.end());
+
+            std::set<CScript> scripts = {redeem_script};
+            pwallet->ImportScripts(scripts);
+
+            if (fP2SH) {
+                scripts.insert(GetScriptForDestination(
+                    ScriptHash(CScriptID(redeem_script))));
+            }
+
+            pwallet->ImportScriptPubKeys(
+                strLabel, scripts, false /* have_solving_data */,
+                true /* apply_label */, 1 /* timestamp */);
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Invalid Bitcoin address or script");
