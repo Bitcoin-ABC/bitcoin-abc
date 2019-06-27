@@ -28,7 +28,7 @@ static inline void SeedInsecureRand(bool deterministic = false) {
     insecure_rand_ctx = FastRandomContext(deterministic);
 }
 
-static inline uint32_t insecure_rand() {
+static inline uint32_t InsecureRand32() {
     return insecure_rand_ctx.rand32();
 }
 static inline uint256 InsecureRand256() {

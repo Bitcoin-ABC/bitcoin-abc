@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
             if (InsecureRandRange(5) == 0 || coin.IsSpent()) {
                 CTxOut txout;
-                txout.nValue = int64_t(insecure_rand()) * SATOSHI;
+                txout.nValue = int64_t(InsecureRand32()) * SATOSHI;
                 if (InsecureRandRange(16) == 0 && coin.IsSpent()) {
                     txout.scriptPubKey.assign(1 + InsecureRandBits(6),
                                               OP_RETURN);
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
                 Coin newcoin(txout, 1, false);
                 stack.back()->AddCoin(COutPoint(txid, 0), newcoin,
-                                      !coin.IsSpent() || insecure_rand() & 1);
+                                      !coin.IsSpent() || InsecureRand32() & 1);
             } else {
                 removed_an_entry = true;
                 coin.Clear();
@@ -183,8 +183,8 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
         // One every 10 iterations, remove a random entry from the cache
         if (InsecureRandRange(10) == 0) {
-            COutPoint out(txids[insecure_rand() % txids.size()], 0);
-            int cacheid = insecure_rand() % stack.size();
+            COutPoint out(txids[InsecureRand32() % txids.size()], 0);
+            int cacheid = InsecureRand32() % stack.size();
             stack[cacheid]->Uncache(out);
             uncached_an_entry |= !stack[cacheid]->HaveCoinInCache(out);
         }
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
     std::set<COutPoint> utxoset;
 
     for (int64_t i = 0; i < NUM_SIMULATION_ITERATIONS; i++) {
-        uint32_t randiter = insecure_rand();
+        uint32_t randiter = InsecureRand32();
 
         // 19/20 txs add a new transaction
         if (randiter % 20 < 19) {
@@ -308,8 +308,8 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             // Keep txs unique unless intended to duplicate.
             tx.vout[0].nValue = i * SATOSHI;
             // Random sizes so we can test memory usage accounting
-            tx.vout[0].scriptPubKey.assign(insecure_rand() & 0x3F, 0);
-            unsigned int height = insecure_rand();
+            tx.vout[0].scriptPubKey.assign(InsecureRand32() & 0x3F, 0);
+            unsigned int height = InsecureRand32();
             Coin old_coin;
 
             // 2/20 times create a new coinbase
@@ -448,15 +448,15 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
 
         // One every 10 iterations, remove a random entry from the cache
         if (utxoset.size() > 1 && InsecureRandRange(30) == 0) {
-            stack[insecure_rand() % stack.size()]->Uncache(
+            stack[InsecureRand32() % stack.size()]->Uncache(
                 FindRandomFrom(utxoset)->first);
         }
         if (disconnected_coins.size() > 1 && InsecureRandRange(30) == 0) {
-            stack[insecure_rand() % stack.size()]->Uncache(
+            stack[InsecureRand32() % stack.size()]->Uncache(
                 FindRandomFrom(disconnected_coins)->first);
         }
         if (duplicate_coins.size() > 1 && InsecureRandRange(30) == 0) {
-            stack[insecure_rand() % stack.size()]->Uncache(
+            stack[InsecureRand32() % stack.size()]->Uncache(
                 FindRandomFrom(duplicate_coins)->first);
         }
 

@@ -817,16 +817,17 @@ BOOST_AUTO_TEST_CASE(util_seed_insecure_rand) {
         int err =
             30 * 10000. / mod * sqrt((1. / mod * (1 - 1. / mod)) / 10000.);
         // mask is 2^ceil(log2(mod))-1
-        while (mask < mod - 1)
+        while (mask < mod - 1) {
             mask = (mask << 1) + 1;
+        }
 
         int count = 0;
         // How often does it get a zero from the uniform range [0,mod)?
         for (int i = 0; i < 10000; i++) {
             uint32_t rval;
             do {
-                rval = insecure_rand() & mask;
-            } while (rval >= (uint32_t)mod);
+                rval = InsecureRand32() & mask;
+            } while (rval >= uint32_t(mod));
             count += rval == 0;
         }
         BOOST_CHECK(count <= 10000 / mod + err);
