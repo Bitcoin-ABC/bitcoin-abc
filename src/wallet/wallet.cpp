@@ -1816,15 +1816,10 @@ CBlockIndex *CWallet::ScanForWalletTransactions(
                 GuessVerificationProgress(chainParams.TxData(), pindex);
             dProgressTip = GuessVerificationProgress(chainParams.TxData(), tip);
         }
+        double gvp = dProgressStart;
         while (pindex && !fAbortRescan) {
             if (pindex->nHeight % 100 == 0 &&
                 dProgressTip - dProgressStart > 0.0) {
-                double gvp = 0;
-                {
-                    LOCK(cs_main);
-                    gvp =
-                        GuessVerificationProgress(chainParams.TxData(), pindex);
-                }
                 ShowProgress(
                     _("Rescanning..."),
                     std::max(
@@ -1834,11 +1829,8 @@ CBlockIndex *CWallet::ScanForWalletTransactions(
             }
             if (GetTime() >= nNow + 60) {
                 nNow = GetTime();
-                LOCK(cs_main);
-                LogPrintf(
-                    "Still rescanning. At block %d. Progress=%f\n",
-                    pindex->nHeight,
-                    GuessVerificationProgress(chainParams.TxData(), pindex));
+                LogPrintf("Still rescanning. At block %d. Progress=%f\n",
+                          pindex->nHeight, gvp);
             }
 
             CBlock block;
@@ -1865,6 +1857,7 @@ CBlockIndex *CWallet::ScanForWalletTransactions(
             {
                 LOCK(cs_main);
                 pindex = chainActive.Next(pindex);
+                gvp = GuessVerificationProgress(chainParams.TxData(), pindex);
                 if (tip != chainActive.Tip()) {
                     tip = chainActive.Tip();
                     // in case the tip has changed, update progress max
@@ -1876,8 +1869,7 @@ CBlockIndex *CWallet::ScanForWalletTransactions(
 
         if (pindex && fAbortRescan) {
             LogPrintf("Rescan aborted at block %d. Progress=%f\n",
-                      pindex->nHeight,
-                      GuessVerificationProgress(chainParams.TxData(), pindex));
+                      pindex->nHeight, gvp);
         }
 
         // Hide progress dialog in GUI.

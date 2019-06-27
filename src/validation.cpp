@@ -5601,11 +5601,18 @@ bool DumpMempool(void) {
 }
 
 //! Guess how far we are in the verification process at the given block index
+//! require cs_main if pindex has not been validated yet (because nChainTx might
+//! be unset)
 double GuessVerificationProgress(const ChainTxData &data,
                                  const CBlockIndex *pindex) {
     if (pindex == nullptr) {
         return 0.0;
     }
+
+    // This function assumes the lock on cs_main is already held (see the
+    // above comment). This is a temporary check until PR15997 is backported.
+    // https://github.com/bitcoin/bitcoin/pull/15997
+    AssertLockHeld(cs_main);
 
     int64_t nNow = time(nullptr);
 
