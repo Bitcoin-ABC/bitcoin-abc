@@ -10,6 +10,7 @@
 #include <script/signingprovider.h>
 #include <script/standard.h>
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,8 @@ enum class OutputType {
      */
     CHANGE_AUTO,
 };
+
+extern const std::array<OutputType, 1> OUTPUT_TYPES;
 
 NODISCARD bool ParseOutputType(const std::string &str, OutputType &output_type);
 const std::string &FormatOutputType(OutputType type);

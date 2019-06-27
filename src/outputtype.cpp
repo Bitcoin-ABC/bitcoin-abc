@@ -14,6 +14,8 @@
 
 static const std::string OUTPUT_TYPE_STRING_LEGACY = "legacy";
 
+const std::array<OutputType, 1> OUTPUT_TYPES = {{OutputType::LEGACY}};
+
 bool ParseOutputType(const std::string &type, OutputType &output_type) {
     if (type == OUTPUT_TYPE_STRING_LEGACY) {
         output_type = OutputType::LEGACY;
