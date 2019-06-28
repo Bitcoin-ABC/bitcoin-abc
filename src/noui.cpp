@@ -30,13 +30,13 @@ bool noui_ThreadSafeMessageBox(const std::string &message,
     // Check for usage of predefined caption
     switch (style) {
         case CClientUIInterface::MSG_ERROR:
-            strCaption += _("Error");
+            strCaption += _("Error").translated;
             break;
         case CClientUIInterface::MSG_WARNING:
-            strCaption += _("Warning");
+            strCaption += _("Warning").translated;
             break;
         case CClientUIInterface::MSG_INFORMATION:
-            strCaption += _("Information");
+            strCaption += _("Information").translated;
             break;
         default:
             // Use supplied caption (can be empty)

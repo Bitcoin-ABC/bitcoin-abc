@@ -17,7 +17,7 @@ BanMan::BanMan(fs::path ban_file, const CChainParams &chainparams,
       m_ban_db(std::move(ban_file), chainparams),
       m_default_ban_time(default_ban_time) {
     if (m_client_interface) {
-        m_client_interface->InitMessage(_("Loading banlist..."));
+        m_client_interface->InitMessage(_("Loading banlist...").translated);
     }
 
     int64_t n_start = GetTimeMillis();

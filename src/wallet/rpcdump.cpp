@@ -703,8 +703,9 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
 
         // show progress dialog in GUI
         pwallet->chain().showProgress(
-            strprintf("%s " + _("Importing..."), pwallet->GetDisplayName()), 0,
-            false);
+            strprintf("%s " + _("Importing...").translated,
+                      pwallet->GetDisplayName()),
+            0, false);
         std::vector<std::tuple<CKey, int64_t, bool, std::string>> keys;
         std::vector<std::pair<CScript, int64_t>> scripts;
         while (file.good()) {

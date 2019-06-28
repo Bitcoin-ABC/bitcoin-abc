@@ -405,14 +405,16 @@ bool BerkeleyBatch::VerifyEnvironment(const fs::path &file_path,
 
     // Wallet file must be a plain filename without a directory
     if (walletFile != fs::basename(walletFile) + fs::extension(walletFile)) {
-        errorStr = strprintf(_("Wallet %s resides outside wallet directory %s"),
-                             walletFile, walletDir.string());
+        errorStr = strprintf(
+            _("Wallet %s resides outside wallet directory %s").translated,
+            walletFile, walletDir.string());
         return false;
     }
 
     if (!env->Open(true /* retry */)) {
         errorStr = strprintf(
-            _("Error initializing wallet database environment %s!"), walletDir);
+            _("Error initializing wallet database environment %s!").translated,
+            walletDir);
         return false;
     }
 
@@ -435,11 +437,13 @@ bool BerkeleyBatch::VerifyDatabaseFile(
             warningStr = strprintf(
                 _("Warning: Wallet file corrupt, data salvaged! Original %s "
                   "saved as %s in %s; if your balance or transactions are "
-                  "incorrect you should restore from a backup."),
+                  "incorrect you should restore from a backup.")
+                    .translated,
                 walletFile, backup_filename, walletDir);
         }
         if (r == BerkeleyEnvironment::VerifyResult::RECOVER_FAIL) {
-            errorStr = strprintf(_("%s corrupt, salvage failed"), walletFile);
+            errorStr = strprintf(_("%s corrupt, salvage failed").translated,
+                                 walletFile);
             return false;
         }
     }

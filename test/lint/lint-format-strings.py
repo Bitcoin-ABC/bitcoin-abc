@@ -18,7 +18,7 @@ FALSE_POSITIVES = [
     ("src/index/base.cpp", "FatalError(const char *fmt, const Args &... args)"),
     ("src/netbase.cpp", "LogConnectFailure(bool manual_connection, const char *fmt, const Args &... args)"),
     ("src/util/system.cpp",
-     "strprintf(_(COPYRIGHT_HOLDERS), COPYRIGHT_HOLDERS_SUBSTITUTION)"),
+     "strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION)"),
     ("src/tinyformat.h", "printf(const char *fmt, const Args &... args)"),
     ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
     ("src/wallet/wallet.h",

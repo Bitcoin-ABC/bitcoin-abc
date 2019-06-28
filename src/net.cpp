@@ -2107,11 +2107,13 @@ bool CConnman::BindListenPort(const CService &addrBind, std::string &strError,
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE) {
             strError = strprintf(_("Unable to bind to %s on this computer. %s "
-                                   "is probably already running."),
+                                   "is probably already running.")
+                                     .translated,
                                  addrBind.ToString(), PACKAGE_NAME);
         } else {
             strError = strprintf(_("Unable to bind to %s on this computer "
-                                   "(bind returned error %s)"),
+                                   "(bind returned error %s)")
+                                     .translated,
                                  addrBind.ToString(), NetworkErrorString(nErr));
         }
         LogPrintf("%s\n", strError);
@@ -2123,7 +2125,8 @@ bool CConnman::BindListenPort(const CService &addrBind, std::string &strError,
     // Listen for incoming connections
     if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR) {
         strError = strprintf(_("Error: Listening for incoming connections "
-                               "failed (listen returned error %s)"),
+                               "failed (listen returned error %s)")
+                                 .translated,
                              NetworkErrorString(WSAGetLastError()));
         LogPrintf("%s\n", strError);
         CloseSocket(hListenSocket);
@@ -2274,7 +2277,8 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         if (clientInterface) {
             clientInterface->ThreadSafeMessageBox(
                 _("Failed to listen on any port. Use -listen=0 if you want "
-                  "this."),
+                  "this.")
+                    .translated,
                 "", CClientUIInterface::MSG_ERROR);
         }
         return false;
@@ -2285,7 +2289,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     }
 
     if (clientInterface) {
-        clientInterface->InitMessage(_("Loading P2P addresses..."));
+        clientInterface->InitMessage(_("Loading P2P addresses...").translated);
     }
     // Load addresses from peers.dat
     int64_t nStart = GetTimeMillis();
@@ -2302,7 +2306,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         }
     }
 
-    uiInterface.InitMessage(_("Starting network threads..."));
+    uiInterface.InitMessage(_("Starting network threads...").translated);
 
     fAddressesInitialized = true;
 
@@ -2354,7 +2358,8 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         if (clientInterface) {
             clientInterface->ThreadSafeMessageBox(
                 _("Cannot provide specific connections and have addrman find "
-                  "outgoing connections at the same."),
+                  "outgoing connections at the same.")
+                    .translated,
                 "", CClientUIInterface::MSG_ERROR);
         }
         return false;

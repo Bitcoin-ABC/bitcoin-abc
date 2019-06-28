@@ -1266,6 +1266,7 @@ static bool AbortNode(const std::string &strMessage,
     uiInterface.ThreadSafeMessageBox(
         userMessage.empty() ? _("Error: A fatal internal error occurred, see "
                                 "debug.log for details")
+                                  .translated
                             : userMessage,
         "", CClientUIInterface::MSG_ERROR);
     StartShutdown();
@@ -2021,7 +2022,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                 // Depend on nMinDiskSpace to ensure we can write block index
                 if (!CheckDiskSpace(GetBlocksDir())) {
                     return AbortNode(state, "Disk space is low!",
-                                     _("Error: Disk space is low!"));
+                                     _("Error: Disk space is low!").translated);
                 }
 
                 // First make sure all block and undo data is flushed to disk.
@@ -2070,7 +2071,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                 if (!CheckDiskSpace(GetDataDir(),
                                     48 * 2 * 2 * pcoinsTip->GetCacheSize())) {
                     return AbortNode(state, "Disk space is low!",
-                                     _("Error: Disk space is low!"));
+                                     _("Error: Disk space is low!").translated);
                 }
 
                 // Flush the chainstate (which may refer to block index
@@ -3427,7 +3428,7 @@ static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
             BlockFileSeq().Allocate(pos, nAddSize, out_of_space);
         if (out_of_space) {
             return AbortNode("Disk space is low!",
-                             _("Error: Disk space is low!"));
+                             _("Error: Disk space is low!").translated);
         }
         if (bytes_allocated != 0 && fPruneMode) {
             fCheckForPruning = true;
@@ -3453,7 +3454,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos,
         UndoFileSeq().Allocate(pos, nAddSize, out_of_space);
     if (out_of_space) {
         return AbortNode(state, "Disk space is low!",
-                         _("Error: Disk space is low!"));
+                         _("Error: Disk space is low!").translated);
     }
     if (bytes_allocated != 0 && fPruneMode) {
         fCheckForPruning = true;
@@ -4631,7 +4632,7 @@ bool LoadChainTip(const Config &config) {
 }
 
 CVerifyDB::CVerifyDB() {
-    uiInterface.ShowProgress(_("Verifying blocks..."), 0, false);
+    uiInterface.ShowProgress(_("Verifying blocks...").translated, 0, false);
 }
 
 CVerifyDB::~CVerifyDB() {
@@ -4681,8 +4682,8 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
             reportDone = percentageDone / 10;
         }
 
-        uiInterface.ShowProgress(_("Verifying blocks..."), percentageDone,
-                                 false);
+        uiInterface.ShowProgress(_("Verifying blocks...").translated,
+                                 percentageDone, false);
         if (pindex->nHeight <= ::ChainActive().Height() - nCheckDepth) {
             break;
         }
@@ -4768,7 +4769,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
         while (pindex != ::ChainActive().Tip()) {
             boost::this_thread::interruption_point();
             uiInterface.ShowProgress(
-                _("Verifying blocks..."),
+                _("Verifying blocks...").translated,
                 std::max(
                     1, std::min(99,
                                 100 - (int)(((double)(::ChainActive().Height() -
@@ -4849,7 +4850,7 @@ bool CChainState::ReplayBlocks(const Consensus::Params &params,
         return error("ReplayBlocks(): unknown inconsistent state");
     }
 
-    uiInterface.ShowProgress(_("Replaying blocks..."), 0, false);
+    uiInterface.ShowProgress(_("Replaying blocks...").translated, 0, false);
     LogPrintf("Replaying blocks\n");
 
     // Old tip during the interrupted flush.

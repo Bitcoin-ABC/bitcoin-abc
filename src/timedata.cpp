@@ -106,7 +106,8 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
                     std::string strMessage =
                         strprintf(_("Please check that your computer's date "
                                     "and time are correct! If your clock is "
-                                    "wrong, %s will not work properly."),
+                                    "wrong, %s will not work properly.")
+                                      .translated,
                                   PACKAGE_NAME);
                     SetMiscWarning(strMessage);
                     uiInterface.ThreadSafeMessageBox(

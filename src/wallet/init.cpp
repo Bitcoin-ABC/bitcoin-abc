@@ -219,13 +219,15 @@ bool WalletInit::ParameterInteraction() const {
     if (gArgs.GetArg("-prune", 0) && gArgs.GetBoolArg("-rescan", false)) {
         return InitError(
             _("Rescans are not possible in pruned mode. You will need to use "
-              "-reindex which will download the whole blockchain again."));
+              "-reindex which will download the whole blockchain again.")
+                .translated);
     }
 
     if (minRelayTxFee.GetFeePerK() > HIGH_TX_FEE_PER_KB) {
         InitWarning(
             AmountHighWarn("-minrelaytxfee") + " " +
-            _("The wallet will avoid paying less than the minimum relay fee."));
+            _("The wallet will avoid paying less than the minimum relay fee.")
+                .translated);
     }
 
     if (gArgs.IsArgSet("-maxtxfee")) {
@@ -237,7 +239,8 @@ bool WalletInit::ParameterInteraction() const {
 
         if (nMaxFee > HIGH_MAX_TX_FEE) {
             InitWarning(_("-maxtxfee is set very high! Fees this large could "
-                          "be paid on a single transaction."));
+                          "be paid on a single transaction.")
+                            .translated);
         }
 
         maxTxFee = nMaxFee;
@@ -245,7 +248,8 @@ bool WalletInit::ParameterInteraction() const {
             return InitError(strprintf(
                 _("Invalid amount for -maxtxfee=<amount>: '%s' (must "
                   "be at least the minrelay fee of %s to prevent "
-                  "stuck transactions)"),
+                  "stuck transactions)")
+                    .translated,
                 gArgs.GetArg("-maxtxfee", ""), minRelayTxFee.ToString()));
         }
     }

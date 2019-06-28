@@ -55,8 +55,8 @@ bool TryParsePermissionFlags(const std::string str, NetPermissionFlags &output,
             } else if (permission.length() == 0) {
                 // Allow empty entries
             } else {
-                error =
-                    strprintf(_("Invalid P2P permission: '%s'"), permission);
+                error = strprintf(_("Invalid P2P permission: '%s'").translated,
+                                  permission);
                 return false;
             }
         }
@@ -100,13 +100,14 @@ bool NetWhitebindPermissions::TryParse(const std::string str,
     const std::string strBind = str.substr(offset);
     CService addrBind;
     if (!Lookup(strBind.c_str(), addrBind, 0, false)) {
-        error = strprintf(_("Cannot resolve -%s address: '%s'"), "whitebind",
-                          strBind);
+        error = strprintf(_("Cannot resolve -%s address: '%s'").translated,
+                          "whitebind", strBind);
         return false;
     }
     if (addrBind.GetPort() == 0) {
-        error = strprintf(_("Need to specify a port with -whitebind: '%s'"),
-                          strBind);
+        error = strprintf(
+            _("Need to specify a port with -whitebind: '%s'").translated,
+            strBind);
         return false;
     }
 
@@ -129,8 +130,8 @@ bool NetWhitelistPermissions::TryParse(const std::string str,
     CSubNet subnet;
     LookupSubNet(net.c_str(), subnet);
     if (!subnet.IsValid()) {
-        error =
-            strprintf(_("Invalid netmask specified in -whitelist: '%s'"), net);
+        error = strprintf(
+            _("Invalid netmask specified in -whitelist: '%s'").translated, net);
         return false;
     }
 
