@@ -760,22 +760,22 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             CPubKey pubkey = key.GetPubKey();
             assert(key.VerifyPubKey(pubkey));
             CKeyID keyid = pubkey.GetID();
-            if (pwallet->HaveKey(keyid)) {
-                pwallet->WalletLogPrintf(
-                    "Skipping import of %s (key already present)\n",
-                    EncodeDestination(PKHash(keyid), config));
-                continue;
-            }
+
             pwallet->WalletLogPrintf("Importing %s...\n",
                                      EncodeDestination(PKHash(keyid), config));
-            if (!pwallet->AddKeyPubKey(key, pubkey)) {
+
+            if (!pwallet->ImportPrivKeys({{keyid, key}}, time)) {
+                pwallet->WalletLogPrintf(
+                    "Error importing key for %s\n",
+                    EncodeDestination(PKHash(keyid), config));
                 fGood = false;
                 continue;
             }
-            pwallet->mapKeyMetadata[keyid].nCreateTime = time;
+
             if (has_label) {
                 pwallet->SetAddressBook(PKHash(keyid), label, "receive");
             }
+
             nTimeBegin = std::min(nTimeBegin, time);
             progress++;
         }
@@ -786,28 +786,22 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                 false);
             const CScript &script = script_pair.first;
             int64_t time = script_pair.second;
-            CScriptID id(script);
-            if (pwallet->HaveCScript(id)) {
-                pwallet->WalletLogPrintf(
-                    "Skipping import of %s (script already present)\n",
-                    HexStr(script));
-                continue;
-            }
-            if (!pwallet->AddCScript(script)) {
+
+            if (!pwallet->ImportScripts({script}, time)) {
                 pwallet->WalletLogPrintf("Error importing script %s\n",
                                          HexStr(script));
                 fGood = false;
                 continue;
             }
             if (time > 0) {
-                pwallet->m_script_metadata[id].nCreateTime = time;
                 nTimeBegin = std::min(nTimeBegin, time);
             }
+
             progress++;
         }
+
         // hide progress dialog in GUI
         pwallet->chain().showProgress("", 100, false);
-        pwallet->UpdateTimeFirstKey(nTimeBegin);
     }
     // hide progress dialog in GUI
     pwallet->chain().showProgress("", 100, false);
