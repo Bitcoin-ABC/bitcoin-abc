@@ -229,7 +229,7 @@ def main():
         # in the all_scripts list. Accept the name with or without .py
         # extension.
         individual_tests = [
-            re.sub("\.py$", "", t) + ".py" for t in tests if not t.endswith('*')]
+            re.sub(r"\.py$", "", t) + ".py" for t in tests if not t.endswith('*')]
         test_list = []
         for t in individual_tests:
             if t in all_scripts:
@@ -257,7 +257,7 @@ def main():
 
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:
-        tests_excl = [re.sub("\.py$", "", t) +
+        tests_excl = [re.sub(r"\.py$", "", t) +
                       ".py" for t in args.exclude.split(',')]
         for exclude_test in tests_excl:
             if exclude_test in test_list:

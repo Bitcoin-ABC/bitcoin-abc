@@ -144,7 +144,7 @@ def read_libraries(filename):
         tokens = line.split()
         if len(tokens) > 2 and tokens[1] == '(NEEDED)':
             match = re.match(
-                '^Shared library: \[(.*)\]$', ' '.join(tokens[2:]))
+                r'^Shared library: \[(.*)\]$', ' '.join(tokens[2:]))
             if match:
                 libraries.append(match.group(1))
             else:

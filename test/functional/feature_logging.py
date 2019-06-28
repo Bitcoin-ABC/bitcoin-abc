@@ -33,7 +33,7 @@ class LoggingTest(BitcoinTestFramework):
         invdir = os.path.join(self.nodes[0].datadir, "regtest", "foo")
         invalidname = os.path.join("foo", "foo.log")
         self.stop_node(0)
-        exp_stderr = "Error: Could not open debug log file \S+$"
+        exp_stderr = r"Error: Could not open debug log file \S+$"
         self.nodes[0].assert_start_raises_init_error(
             ["-debuglogfile={}".format(invalidname)], exp_stderr)
         assert not os.path.isfile(os.path.join(invdir, "foo.log"))

@@ -21,8 +21,8 @@ FOLDER_SRC = '/src/**/'
 FOLDER_TEST = '/src/**/test/'
 
 EXTENSIONS = ["*.c", "*.h", "*.cpp", "*.cc", "*.hpp"]
-REGEX_ARG = '(?:ForceSet|SoftSet|Get|Is)(?:Bool)?Args?(?:Set)?\(\s*"(-[^"]+)"'
-REGEX_DOC = 'AddArg\(\s*"(-[^"=]+?)(?:=|")'
+REGEX_ARG = r'(?:ForceSet|SoftSet|Get|Is)(?:Bool)?Args?(?:Set)?\(\s*"(-[^"]+)"'
+REGEX_DOC = r'AddArg\(\s*"(-[^"=]+?)(?:=|")'
 
 # list unsupported, deprecated and duplicate args as they need no documentation
 SET_DOC_OPTIONAL = set(['-benchmark',
