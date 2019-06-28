@@ -180,6 +180,17 @@ Note: gdb attach step may require `sudo`. To get rid of this, you can run:
 echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 ```
 
+##### Prevent using deprecated features
+
+Python will issue a `DeprecationWarning` when a deprecated feature is
+encountered in a script. By default, this warning message is ignored and not
+displayed to the user. This behavior can be changed by setting the environment
+variable `PYTHONWARNINGS` as follow:
+
+`PYTHONWARNINGS=default::DeprecationWarning`
+
+The warning message will now be printed to the `sys.stderr` output.
+
 ### Util tests
 
 Util tests can be run locally by running `test/util/bitcoin-util-test.py`.
