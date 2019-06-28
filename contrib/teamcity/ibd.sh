@@ -12,12 +12,14 @@ set -euo pipefail
 MYPID=$$
 
 # Setup
-mkdir -p ibd
-touch ibd/debug.log
+DATA_DIR="ibd"
+mkdir -p "${DATA_DIR}"
+DEBUG_LOG="${DATA_DIR}/debug.log"
+touch "${DEBUG_LOG}"
 chmod +x bitcoind
 
 # Launch bitcoind using this script's parameters
-./bitcoind -datadir=ibd $* &
+./bitcoind "-datadir=${DATA_DIR}" $* &
 BITCOIND_PID=$!
 
 cleanup() {
@@ -27,14 +29,14 @@ cleanup() {
 trap "cleanup" EXIT
 
 # Show some progress
-tail -f ibd/debug.log | grep 'UpdateTip' | awk 'NR % 10000 == 0' &
+tail -f "${DEBUG_LOG}" | grep 'UpdateTip' | awk 'NR % 10000 == 0' &
 
 # Wait for IBD to finish and kill the daemon
 (
   (
     # Ignore the broken pipe when tail tries to write pipe closed by grep
     set +o pipefail
-    tail -f ibd/debug.log | grep -m 1 'progress=1.000000'
+    tail -f "${DEBUG_LOG}" | grep -m 1 'progress=1.000000'
   )
   echo "Initial block download complete."
 
