@@ -344,7 +344,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
             CScript redeem_script(data.begin(), data.end());
 
             std::set<CScript> scripts = {redeem_script};
-            pwallet->ImportScripts(scripts);
+            pwallet->ImportScripts(scripts, 0 /* timestamp */);
 
             if (fP2SH) {
                 scripts.insert(GetScriptForDestination(
@@ -1487,7 +1487,7 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
 
         // All good, time to import
         pwallet->MarkDirty();
-        if (!pwallet->ImportScripts(import_data.import_scripts)) {
+        if (!pwallet->ImportScripts(import_data.import_scripts, timestamp)) {
             throw JSONRPCError(RPC_WALLET_ERROR,
                                "Error adding script to wallet");
         }
