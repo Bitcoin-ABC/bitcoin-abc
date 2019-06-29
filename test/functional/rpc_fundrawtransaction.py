@@ -681,8 +681,9 @@ class RawTransactionsTest(BitcoinTestFramework):
         inputs = []
         outputs = {self.nodes[3].getnewaddress(): 1}
         rawTx = self.nodes[3].createrawtransaction(inputs, outputs)
+        # uses min_relay_tx_fee (set by settxfee)
         result = self.nodes[3].fundrawtransaction(
-            rawTx)  # uses min_relay_tx_fee (set by settxfee)
+            rawTx)
         result2 = self.nodes[3].fundrawtransaction(
             rawTx, {"feeRate": 2 * min_relay_tx_fee})
         result_fee_rate = result['fee'] * 1000 / \
@@ -692,7 +693,12 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         result3 = self.nodes[3].fundrawtransaction(
             rawTx, {"feeRate": 10 * min_relay_tx_fee})
-        # allow this transaction to be underfunded by 10 bytes.  This is due
+        assert_raises_rpc_error(-4,
+                                "Fee exceeds maximum configured by -maxtxfee",
+                                self.nodes[3].fundrawtransaction,
+                                rawTx,
+                                {"feeRate": 1})
+        # allow this transaction to be underfunded by 10 bytes. This is due
         # to the first transaction possibly being overfunded by up to .9
         # satoshi due to  fee ceilings being used.
         assert_fee_amount(

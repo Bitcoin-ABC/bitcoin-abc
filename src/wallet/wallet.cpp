@@ -2935,6 +2935,12 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
         }
     }
 
+    if (nFeeRet > this->m_default_max_tx_fee) {
+        strFailReason =
+            TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
+        return false;
+    }
+
     return true;
 }
 

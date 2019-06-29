@@ -12,6 +12,7 @@ from decimal import Decimal
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
+    assert_greater_than,
     assert_raises_rpc_error,
     find_output,
 )
@@ -80,6 +81,28 @@ class PSBTTest(BitcoinTestFramework):
         assert_equal(walletprocesspsbt_out['complete'], True)
         self.nodes[1].sendrawtransaction(
             self.nodes[1].finalizepsbt(walletprocesspsbt_out['psbt'])['hex'])
+
+        # feeRate of 0.1 BCH / KB produces a total fee slightly below -maxtxfee
+        res = self.nodes[1].walletcreatefundedpsbt([
+            {"txid": txid, "vout": p2sh_pos},
+            {"txid": txid, "vout": p2pkh_pos}
+        ], {self.nodes[1].getnewaddress(): 29.99}, 0, {"feeRate": 0.1})
+        assert_greater_than(res["fee"], 0.06)
+        assert_greater_than(0.07, res["fee"])
+
+        # feeRate of 10 BCH / KB produces a total fee well above -maxtxfee
+        # previously this was silenty capped at -maxtxfee
+        assert_raises_rpc_error(
+            -4,
+            "Fee exceeds maximum configured by -maxtxfee",
+            self.nodes[1].walletcreatefundedpsbt,
+            [
+                {"txid": txid, "vout": p2sh_pos},
+                {"txid": txid, "vout": p2pkh_pos},
+            ],
+            {self.nodes[1].getnewaddress(): 29.99},
+            0,
+            {"feeRate": 10})
 
         # partially sign multisig things with node 1
         psbtx = self.nodes[1].walletcreatefundedpsbt([{"txid": txid, "vout": p2sh_pos}], {
