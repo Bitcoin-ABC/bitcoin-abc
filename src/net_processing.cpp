@@ -1462,9 +1462,6 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
             if (!push) {
                 vNotFound.push_back(inv);
             }
-
-            // Track requests for our stuff.
-            GetMainSignals().Inventory(inv.hash);
         }
     } // release cs_main
 
@@ -2235,9 +2232,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     pfrom->AskFor(inv);
                 }
             }
-
-            // Track requests for our stuff
-            GetMainSignals().Inventory(inv.hash);
         }
     }
 

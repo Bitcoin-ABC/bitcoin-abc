@@ -278,9 +278,6 @@ TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) const {
             status = tr("Open until %1")
                          .arg(GUIUtil::dateTimeStr(wtx->status.open_for));
             break;
-        case TransactionStatus::Offline:
-            status = tr("Offline");
-            break;
         case TransactionStatus::Unconfirmed:
             status = tr("Unconfirmed");
             break;
@@ -303,10 +300,6 @@ TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) const {
                 tr("Immature (%1 confirmations, will be available after %2)")
                     .arg(wtx->status.depth)
                     .arg(wtx->status.depth + wtx->status.matures_in);
-            break;
-        case TransactionStatus::MaturesWarning:
-            status = tr("This block was not received by any other nodes and "
-                        "will probably not be accepted!");
             break;
         case TransactionStatus::NotAccepted:
             status = tr("Generated but not accepted");
@@ -444,8 +437,6 @@ TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx) const {
         case TransactionStatus::OpenUntilBlock:
         case TransactionStatus::OpenUntilDate:
             return COLOR_TX_STATUS_OPENUNTILDATE;
-        case TransactionStatus::Offline:
-            return COLOR_TX_STATUS_OFFLINE;
         case TransactionStatus::Unconfirmed:
             return QIcon(":/icons/transaction_0");
         case TransactionStatus::Abandoned:
@@ -472,7 +463,6 @@ TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx) const {
             int part = (wtx->status.depth * 4 / total) + 1;
             return QIcon(QString(":/icons/transaction_%1").arg(part));
         }
-        case TransactionStatus::MaturesWarning:
         case TransactionStatus::NotAccepted:
             return QIcon(":/icons/transaction_0");
         default:
