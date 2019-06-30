@@ -129,7 +129,9 @@ private:
     bool TryEnter(const char *pszName, const char *pszFile, int nLine) {
         EnterCritical(pszName, pszFile, nLine, (void *)(Base::mutex()), true);
         Base::try_lock();
-        if (!Base::owns_lock()) LeaveCritical();
+        if (!Base::owns_lock()) {
+            LeaveCritical();
+        }
         return Base::owns_lock();
     }
 
@@ -238,19 +240,25 @@ private:
 
 public:
     void Acquire() {
-        if (fHaveGrant) return;
+        if (fHaveGrant) {
+            return;
+        }
         sem->wait();
         fHaveGrant = true;
     }
 
     void Release() {
-        if (!fHaveGrant) return;
+        if (!fHaveGrant) {
+            return;
+        }
         sem->post();
         fHaveGrant = false;
     }
 
     bool TryAcquire() {
-        if (!fHaveGrant && sem->try_wait()) fHaveGrant = true;
+        if (!fHaveGrant && sem->try_wait()) {
+            fHaveGrant = true;
+        }
         return fHaveGrant;
     }
 
@@ -265,10 +273,11 @@ public:
 
     explicit CSemaphoreGrant(CSemaphore &sema, bool fTry = false)
         : sem(&sema), fHaveGrant(false) {
-        if (fTry)
+        if (fTry) {
             TryAcquire();
-        else
+        } else {
             Acquire();
+        }
     }
 
     ~CSemaphoreGrant() { Release(); }

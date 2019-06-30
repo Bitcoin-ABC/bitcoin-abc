@@ -117,17 +117,22 @@ static void push_lock(void *c, const CLockLocation &locklocation) {
     lockstack->push_back(std::make_pair(c, locklocation));
 
     for (const std::pair<void *, CLockLocation> &i : (*lockstack)) {
-        if (i.first == c) break;
+        if (i.first == c) {
+            break;
+        }
 
         std::pair<void *, void *> p1 = std::make_pair(i.first, c);
-        if (lockdata.lockorders.count(p1)) continue;
+        if (lockdata.lockorders.count(p1)) {
+            continue;
+        }
         lockdata.lockorders[p1] = (*lockstack);
 
         std::pair<void *, void *> p2 = std::make_pair(c, i.first);
         lockdata.invlockorders.insert(p2);
-        if (lockdata.lockorders.count(p2))
+        if (lockdata.lockorders.count(p2)) {
             potential_deadlock_detected(p1, lockdata.lockorders[p2],
                                         lockdata.lockorders[p1]);
+        }
     }
 }
 
@@ -155,7 +160,9 @@ std::string LocksHeld() {
 void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
                             void *cs) {
     for (const std::pair<void *, CLockLocation> &i : *lockstack) {
-        if (i.first == cs) return;
+        if (i.first == cs) {
+            return;
+        }
     }
     fprintf(stderr,
             "Assertion failed: lock %s not held in %s:%i; locks held:\n%s",
