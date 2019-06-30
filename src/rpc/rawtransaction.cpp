@@ -741,8 +741,8 @@ static UniValue combinerawtransaction(const Config &config,
             "    ]\n"
 
             "\nResult:\n"
-            "\"hex\" : \"value\",           (string) The hex-encoded raw "
-            "transaction with signature(s)\n"
+            "\"hex\"            (string) The hex-encoded raw transaction with "
+            "signature(s)\n"
 
             "\nExamples:\n" +
             HelpExampleCli("combinerawtransaction",
