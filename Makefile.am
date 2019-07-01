@@ -10,7 +10,7 @@ endif
 
 export PYTHONPATH
 
-.PHONY: deploy FORCE
+.PHONY: deploy check-devtools FORCE
 
 GZIP_ENV="-9n"
 
@@ -274,3 +274,11 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-man
 clean-local:
 	rm -rf coverage_percent.txt test_bitcoin.coverage/ total.coverage/ test/tmp/ cache/ $(OSX_APP)
 	rm -rf test/functional/__pycache__ test/functional/test_framework/__pycache__ test/cache
+
+DEVTOOLS_TESTS = \
+	contrib/devtools/chainparams/test_make_chainparams.py
+
+check-devtools: $(DEVTOOLS_TESTS)
+	cd $(<D) && "./$(<F)"
+
+check-local: check-devtools

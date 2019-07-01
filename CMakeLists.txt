@@ -31,4 +31,6 @@ add_custom_target(check)
 
 add_subdirectory(src)
 add_subdirectory(test)
+
+add_subdirectory(contrib/devtools)
 add_subdirectory(doc)
