@@ -99,7 +99,9 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(editAction);
-    if (tab == SendingTab) contextMenu->addAction(deleteAction);
+    if (tab == SendingTab) {
+        contextMenu->addAction(deleteAction);
+    }
     contextMenu->addSeparator();
 
     // Connect signals for context menu actions
@@ -123,7 +125,9 @@ AddressBookPage::~AddressBookPage() {
 
 void AddressBookPage::setModel(AddressTableModel *_model) {
     this->model = _model;
-    if (!_model) return;
+    if (!_model) {
+        return;
+    }
 
     proxyModel = new QSortFilterProxyModel(this);
     proxyModel->setSourceModel(_model);
@@ -171,11 +175,17 @@ void AddressBookPage::onCopyLabelAction() {
 }
 
 void AddressBookPage::onEditAction() {
-    if (!model) return;
+    if (!model) {
+        return;
+    }
 
-    if (!ui->tableView->selectionModel()) return;
+    if (!ui->tableView->selectionModel()) {
+        return;
+    }
     QModelIndexList indexes = ui->tableView->selectionModel()->selectedRows();
-    if (indexes.isEmpty()) return;
+    if (indexes.isEmpty()) {
+        return;
+    }
 
     EditAddressDialog dlg(tab == SendingTab
                               ? EditAddressDialog::EditSendingAddress
@@ -188,7 +198,9 @@ void AddressBookPage::onEditAction() {
 }
 
 void AddressBookPage::on_newAddress_clicked() {
-    if (!model) return;
+    if (!model) {
+        return;
+    }
 
     EditAddressDialog dlg(tab == SendingTab
                               ? EditAddressDialog::NewSendingAddress
@@ -202,7 +214,9 @@ void AddressBookPage::on_newAddress_clicked() {
 
 void AddressBookPage::on_deleteAddress_clicked() {
     QTableView *table = ui->tableView;
-    if (!table->selectionModel()) return;
+    if (!table->selectionModel()) {
+        return;
+    }
 
     QModelIndexList indexes = table->selectionModel()->selectedRows();
     if (!indexes.isEmpty()) {
@@ -213,7 +227,9 @@ void AddressBookPage::on_deleteAddress_clicked() {
 void AddressBookPage::selectionChanged() {
     // Set button states based on selected tab and selection
     QTableView *table = ui->tableView;
-    if (!table->selectionModel()) return;
+    if (!table->selectionModel()) {
+        return;
+    }
 
     if (table->selectionModel()->hasSelection()) {
         switch (tab) {
@@ -239,7 +255,9 @@ void AddressBookPage::selectionChanged() {
 
 void AddressBookPage::done(int retval) {
     QTableView *table = ui->tableView;
-    if (!table->selectionModel() || !table->model()) return;
+    if (!table->selectionModel() || !table->model()) {
+        return;
+    }
 
     // Figure out which address was selected, and return it
     QModelIndexList indexes =
@@ -264,7 +282,9 @@ void AddressBookPage::on_exportButton_clicked() {
         GUIUtil::getSaveFileName(this, tr("Export Address List"), QString(),
                                  tr("Comma separated file (*.csv)"), nullptr);
 
-    if (filename.isNull()) return;
+    if (filename.isNull()) {
+        return;
+    }
 
     CSVModelWriter writer(filename);
 

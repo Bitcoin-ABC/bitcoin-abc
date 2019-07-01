@@ -45,7 +45,9 @@ EditAddressDialog::~EditAddressDialog() {
 
 void EditAddressDialog::setModel(AddressTableModel *_model) {
     this->model = _model;
-    if (!_model) return;
+    if (!_model) {
+        return;
+    }
 
     mapper->setModel(_model);
     mapper->addMapping(ui->labelEdit, AddressTableModel::Label);
@@ -57,7 +59,9 @@ void EditAddressDialog::loadRow(int row) {
 }
 
 bool EditAddressDialog::saveCurrentRow() {
-    if (!model) return false;
+    if (!model) {
+        return false;
+    }
 
     switch (mode) {
         case NewReceivingAddress:
@@ -78,7 +82,9 @@ bool EditAddressDialog::saveCurrentRow() {
 }
 
 void EditAddressDialog::accept() {
-    if (!model) return;
+    if (!model) {
+        return;
+    }
 
     if (!saveCurrentRow()) {
         switch (model->getEditStatus()) {

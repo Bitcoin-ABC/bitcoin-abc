@@ -17,7 +17,8 @@ QT_BEGIN_NAMESPACE
 class QDataWidgetMapper;
 QT_END_NAMESPACE
 
-/** Dialog for editing an address and associated information.
+/**
+ * Dialog for editing an address and associated information.
  */
 class EditAddressDialog : public QDialog {
     Q_OBJECT

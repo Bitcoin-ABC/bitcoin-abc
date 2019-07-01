@@ -53,11 +53,11 @@ translateTransactionType(const QString &strPurpose, bool isMine) {
     AddressTableEntry::Type addressType = AddressTableEntry::Hidden;
     // "refund" addresses aren't shown, and change addresses aren't in
     // mapAddressBook at all.
-    if (strPurpose == "send")
+    if (strPurpose == "send") {
         addressType = AddressTableEntry::Sending;
-    else if (strPurpose == "receive")
+    } else if (strPurpose == "receive") {
         addressType = AddressTableEntry::Receiving;
-    else if (strPurpose == "unknown" || strPurpose == "") {
+    } else if (strPurpose == "unknown" || strPurpose == "") {
         // if purpose not set, guess
         addressType = (isMine ? AddressTableEntry::Receiving
                               : AddressTableEntry::Sending);
@@ -175,7 +175,9 @@ int AddressTableModel::columnCount(const QModelIndex &parent) const {
 }
 
 QVariant AddressTableModel::data(const QModelIndex &index, int role) const {
-    if (!index.isValid()) return QVariant();
+    if (!index.isValid()) {
+        return QVariant();
+    }
 
     AddressTableEntry *rec =
         static_cast<AddressTableEntry *>(index.internalPointer());
@@ -212,7 +214,9 @@ QVariant AddressTableModel::data(const QModelIndex &index, int role) const {
 
 bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
                                 int role) {
-    if (!index.isValid()) return false;
+    if (!index.isValid()) {
+        return false;
+    }
     AddressTableEntry *rec =
         static_cast<AddressTableEntry *>(index.internalPointer());
     std::string strPurpose =
@@ -275,7 +279,9 @@ QVariant AddressTableModel::headerData(int section, Qt::Orientation orientation,
 }
 
 Qt::ItemFlags AddressTableModel::flags(const QModelIndex &index) const {
-    if (!index.isValid()) return 0;
+    if (!index.isValid()) {
+        return 0;
+    }
     AddressTableEntry *rec =
         static_cast<AddressTableEntry *>(index.internalPointer());
 
