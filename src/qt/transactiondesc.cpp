@@ -9,6 +9,7 @@
 #include <consensus/consensus.h>
 #include <interfaces/node.h>
 #include <key_io.h>
+#include <policy/policy.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>
 #include <qt/paymentserver.h>
@@ -291,6 +292,9 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
         "<b>" + tr("Transaction ID") + ":</b> " + rec->getTxID() + "<br>";
     strHTML += "<b>" + tr("Transaction total size") + ":</b> " +
                QString::number(wtx.tx->GetTotalSize()) + " bytes<br>";
+    strHTML += "<b>" + tr("Transaction virtual size") + ":</b> " +
+               QString::number(GetVirtualTransactionSize(*wtx.tx)) +
+               " bytes<br>";
     strHTML += "<b>" + tr("Output index") + ":</b> " +
                QString::number(rec->getOutputIndex()) + "<br>";
 
