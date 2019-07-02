@@ -652,8 +652,7 @@ void CWallet::SyncMetaData(
 /**
  * Outpoint is spent if any non-conflicted transaction, spends it:
  */
-bool CWallet::IsSpent(const TxId &txid, uint32_t n) const {
-    const COutPoint outpoint(txid, n);
+bool CWallet::IsSpent(const COutPoint &outpoint) const {
     std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range =
         mapTxSpends.equal_range(outpoint);
 
@@ -2033,8 +2032,9 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     }
 
     Amount nCredit = Amount::zero();
+    const TxId &txid = GetId();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
-        if (!pwallet->IsSpent(GetId(), i)) {
+        if (!pwallet->IsSpent(COutPoint(txid, i))) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             if (!MoneyRange(nCredit)) {
@@ -2079,8 +2079,9 @@ Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool fUseCache) const {
     }
 
     Amount nCredit = Amount::zero();
+    const TxId &txid = GetId();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
-        if (!pwallet->IsSpent(GetId(), i)) {
+        if (!pwallet->IsSpent(COutPoint(txid, i))) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, ISMINE_WATCH_ONLY);
             if (!MoneyRange(nCredit)) {
@@ -2447,17 +2448,19 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
                 continue;
             }
 
+            const COutPoint outpoint(wtxid, i);
+
             if (coinControl && coinControl->HasSelected() &&
                 !coinControl->fAllowOtherInputs &&
-                !coinControl->IsSelected(COutPoint(entry.first, i))) {
+                !coinControl->IsSelected(outpoint)) {
                 continue;
             }
 
-            if (IsLockedCoin(entry.first, i)) {
+            if (IsLockedCoin(outpoint)) {
                 continue;
             }
 
-            if (IsSpent(wtxid, i)) {
+            if (IsSpent(outpoint)) {
                 continue;
             }
 
@@ -3779,7 +3782,7 @@ std::map<CTxDestination, Amount> CWallet::GetAddressBalances() {
                 continue;
             }
 
-            Amount n = IsSpent(walletEntry.first, i)
+            Amount n = IsSpent(COutPoint(walletEntry.first, i))
                            ? Amount::zero()
                            : pcoin->tx->vout[i].nValue;
 
@@ -4013,12 +4016,11 @@ void CWallet::UnlockAllCoins() {
     setLockedCoins.clear();
 }
 
-bool CWallet::IsLockedCoin(const TxId &txid, uint32_t n) const {
+bool CWallet::IsLockedCoin(const COutPoint &outpoint) const {
     // setLockedCoins
     AssertLockHeld(cs_wallet);
-    COutPoint outpt(txid, n);
 
-    return setLockedCoins.count(outpt) > 0;
+    return setLockedCoins.count(outpoint) > 0;
 }
 
 void CWallet::ListLockedCoins(std::vector<COutPoint> &vOutpts) const {

@@ -3038,13 +3038,12 @@ static UniValue lockunspent(const Config &config,
                                "Invalid parameter, vout index out of bounds");
         }
 
-        if (pwallet->IsSpent(outpt.GetTxId(), outpt.GetN())) {
+        if (pwallet->IsSpent(outpt)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected unspent output");
         }
 
-        const bool is_locked =
-            pwallet->IsLockedCoin(outpt.GetTxId(), outpt.GetN());
+        const bool is_locked = pwallet->IsLockedCoin(outpt);
 
         if (fUnlock && !is_locked) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,

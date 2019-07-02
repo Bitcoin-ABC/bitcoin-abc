@@ -892,11 +892,11 @@ public:
                             const CoinSelectionParams &coin_selection_params,
                             bool &bnb_used) const;
 
-    bool IsSpent(const TxId &txid, uint32_t n) const;
+    bool IsSpent(const COutPoint &outpoint) const;
     std::vector<OutputGroup> GroupOutputs(const std::vector<COutput> &outputs,
                                           bool single_coin) const;
 
-    bool IsLockedCoin(const TxId &txid, uint32_t n) const;
+    bool IsLockedCoin(const COutPoint &outpoint) const;
     void LockCoin(const COutPoint &output);
     void UnlockCoin(const COutPoint &output);
     void UnlockAllCoins();

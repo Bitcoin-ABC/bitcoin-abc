@@ -108,7 +108,7 @@ namespace {
         result.txout = wtx.tx->vout[n];
         result.time = wtx.GetTxTime();
         result.depth_in_main_chain = depth;
-        result.is_spent = wallet.IsSpent(wtx.GetId(), n);
+        result.is_spent = wallet.IsSpent(COutPoint(wtx.GetId(), n));
         return result;
     }
 
@@ -213,7 +213,7 @@ namespace {
         }
         bool isLockedCoin(const COutPoint &output) override {
             LOCK2(cs_main, m_wallet.cs_wallet);
-            return m_wallet.IsLockedCoin(output.GetTxId(), output.GetN());
+            return m_wallet.IsLockedCoin(output);
         }
         void listLockedCoins(std::vector<COutPoint> &outputs) override {
             LOCK2(cs_main, m_wallet.cs_wallet);
