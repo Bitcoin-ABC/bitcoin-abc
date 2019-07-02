@@ -10,6 +10,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <config.h>
 #include <init.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
@@ -712,7 +713,7 @@ void BitcoinGUI::showHelpMessageClicked() {
 
 #ifdef ENABLE_WALLET
 void BitcoinGUI::openClicked() {
-    OpenURIDialog dlg(config, this);
+    OpenURIDialog dlg(config->GetChainParams(), this);
     if (dlg.exec()) {
         Q_EMIT receivedURI(dlg.getURI());
     }

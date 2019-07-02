@@ -7,7 +7,7 @@
 
 #include <QDialog>
 
-class Config;
+class CChainParams;
 
 namespace Ui {
 class OpenURIDialog;
@@ -17,7 +17,7 @@ class OpenURIDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit OpenURIDialog(const Config *configIn, QWidget *parent);
+    explicit OpenURIDialog(const CChainParams &params, QWidget *parent);
     ~OpenURIDialog();
 
     QString getURI();
@@ -30,7 +30,7 @@ private Q_SLOTS:
 
 private:
     Ui::OpenURIDialog *ui;
-    const Config *config;
+    const QString uriScheme;
 };
 
 #endif // BITCOIN_QT_OPENURIDIALOG_H

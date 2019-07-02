@@ -4,7 +4,6 @@
 
 #include <qt/guiutil.h>
 
-#include <base58.h>
 #include <cashaddr.h>
 #include <chainparams.h>
 #include <config.h>
