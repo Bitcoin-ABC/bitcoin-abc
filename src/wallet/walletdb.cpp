@@ -266,9 +266,9 @@ public:
     }
 };
 
-bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
-                  CWalletScanState &wss, std::string &strType,
-                  std::string &strErr) {
+static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
+                         CDataStream &ssValue, CWalletScanState &wss,
+                         std::string &strType, std::string &strErr) {
     try {
         // Unserialize
         // Taking advantage of the fact that pair serialization is just the two

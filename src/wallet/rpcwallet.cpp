@@ -109,7 +109,7 @@ void EnsureWalletIsUnlocked(CWallet *const pwallet) {
     }
 }
 
-void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry) {
+static void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry) {
     int confirms = wtx.GetDepthInMainChain();
     entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase()) {
@@ -138,7 +138,7 @@ void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry) {
     }
 }
 
-std::string LabelFromValue(const UniValue &value) {
+static std::string LabelFromValue(const UniValue &value) {
     std::string label = value.get_str();
     if (label == "*") {
         throw JSONRPCError(RPC_WALLET_INVALID_LABEL_NAME, "Invalid label name");
@@ -223,7 +223,8 @@ CTxDestination GetLabelDestination(CWallet *const pwallet,
     return dest;
 }
 
-UniValue getlabeladdress(const Config &config, const JSONRPCRequest &request) {
+static UniValue getlabeladdress(const Config &config,
+                                const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
@@ -311,7 +312,7 @@ static UniValue getrawchangeaddress(const Config &config,
     return EncodeDestination(dest);
 }
 
-UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
+static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
@@ -823,8 +824,8 @@ static UniValue getreceivedbyaddress(const Config &config,
     return ValueFromAmount(nAmount);
 }
 
-UniValue getreceivedbylabel(const Config &config,
-                            const JSONRPCRequest &request) {
+static UniValue getreceivedbylabel(const Config &config,
+                                   const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
@@ -1368,8 +1369,8 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     return tx->GetId().GetHex();
 }
 
-UniValue addmultisigaddress(const Config &config,
-                            const JSONRPCRequest &request) {
+static UniValue addmultisigaddress(const Config &config,
+                                   const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
@@ -1481,8 +1482,8 @@ struct tallyitem {
     }
 };
 
-UniValue ListReceived(const Config &config, CWallet *const pwallet,
-                      const UniValue &params, bool by_label) {
+static UniValue ListReceived(const Config &config, CWallet *const pwallet,
+                             const UniValue &params, bool by_label) {
     // Minimum confirmations
     int nMinDepth = 1;
     if (!params[0].isNull()) {
@@ -1699,8 +1700,8 @@ static UniValue listreceivedbyaddress(const Config &config,
     return ListReceived(config, pwallet, request.params, false);
 }
 
-UniValue listreceivedbylabel(const Config &config,
-                             const JSONRPCRequest &request) {
+static UniValue listreceivedbylabel(const Config &config,
+                                    const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
@@ -1767,9 +1768,10 @@ static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
  * @param  ret        The UniValue into which the result is stored.
  * @param  filter     The "is mine" filter bool.
  */
-void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
-                      const std::string &strAccount, int nMinDepth, bool fLong,
-                      UniValue &ret, const isminefilter &filter) {
+static void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
+                             const std::string &strAccount, int nMinDepth,
+                             bool fLong, UniValue &ret,
+                             const isminefilter &filter) {
     Amount nFee;
     std::string strSentAccount;
     std::list<COutputEntry> listReceived;
@@ -1847,8 +1849,8 @@ void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
     }
 }
 
-void AcentryToJSON(const CAccountingEntry &acentry,
-                   const std::string &strAccount, UniValue &ret) {
+static void AcentryToJSON(const CAccountingEntry &acentry,
+                          const std::string &strAccount, UniValue &ret) {
     bool fAllAccounts = (strAccount == std::string("*"));
 
     if (fAllAccounts || acentry.strAccount == strAccount) {
@@ -4105,7 +4107,8 @@ public:
     }
 };
 
-UniValue DescribeWalletAddress(CWallet *pwallet, const CTxDestination &dest) {
+static UniValue DescribeWalletAddress(CWallet *pwallet,
+                                      const CTxDestination &dest) {
     UniValue ret(UniValue::VOBJ);
     UniValue detail = DescribeAddress(dest);
     ret.pushKVs(detail);
