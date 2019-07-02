@@ -3194,12 +3194,6 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
         }
     }
 
-    if (nFeeRet > this->m_default_max_tx_fee) {
-        strFailReason =
-            TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
-        return false;
-    }
-
     return true;
 }
 
@@ -3522,15 +3516,6 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 
             Amount nFeeNeeded = GetMinimumFee(*this, nBytes, coinControl);
 
-            // If we made it here and we aren't even able to meet the relay fee
-            // on the next pass, give up because we must be at the maximum
-            // allowed fee.
-            if (nFeeNeeded < chain().relayMinFee().GetFee(nBytes)) {
-                strFailReason =
-                    _("Transaction too large for fee policy").translated;
-                return false;
-            }
-
             if (nFeeRet >= nFeeNeeded) {
                 // Reduce fee to only the needed amount if possible. This
                 // prevents potential overpayment in fees if the coins selected
@@ -3661,6 +3646,12 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
             strFailReason = _("Transaction too large").translated;
             return false;
         }
+    }
+
+    if (nFeeRet > m_default_max_tx_fee) {
+        strFailReason =
+            TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
+        return false;
     }
 
     if (gArgs.GetBoolArg("-walletrejectlongchains",

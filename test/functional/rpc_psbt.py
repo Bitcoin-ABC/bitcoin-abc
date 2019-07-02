@@ -91,7 +91,7 @@ class PSBTTest(BitcoinTestFramework):
         assert_greater_than(0.07, res["fee"])
 
         # feeRate of 10 BCH / KB produces a total fee well above -maxtxfee
-        # previously this was silenty capped at -maxtxfee
+        # previously this was silently capped at -maxtxfee
         assert_raises_rpc_error(
             -4,
             "Fee exceeds maximum configured by -maxtxfee",
