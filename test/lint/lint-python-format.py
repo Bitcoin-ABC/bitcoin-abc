@@ -120,9 +120,18 @@ def build_replacement(error):
         # Where to close the parenthesis if there is a single specifier ?
         # It is whether at the end or before the first ',', ']', '}' (if
         # enclosed in a function call, a list or a dictionary).
+        #
+        # There is a special case to be handled when the qualifier is an array.
+        # In this case, ensure there is one more ']' than '['.
         close_before = [",", "]", "}"]
+        opening_count = 0
         for i, c in enumerate(qualifier):
+            if c == "[":
+                opening_count += 1
             if c in close_before:
+                if(c == "]" and opening_count > 0):
+                    opening_count -= 1
+                    continue
                 return qualifier[:i] + ")" + qualifier[i:]
         return qualifier + ")"
 
@@ -249,6 +258,14 @@ def main(file):
         "%d %-10s %%" % (len("string2"),
             "string2"))]
     => ["test {:05d} % {}".format(len("string1"), "{} {:10s} %".format(len("string2"), "string2"))]
+    (73) "test %s" % an_array[0]
+    => "test {}".format(an_array[0])
+    (75) "test %s" % an_array[0][0]
+    => "test {}".format(an_array[0][0])
+    (77) ["test %s" % an_array[0]]
+    => ["test {}".format(an_array[0])]
+    (79) {"test":" ["test %s" % an_array[0][0]]}
+    => {"test":" ["test {}".format(an_array[0][0])]}
     """
     errors = find_errors(file)
     # Python dictionnaries do not guarantee ordering, sort by line number
