@@ -106,7 +106,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
 #ifdef ENABLE_WALLET
     if (enableWallet) {
         /** Create wallet frame and make it the central widget */
-        walletFrame = new WalletFrame(_platformStyle, config, this);
+        walletFrame = new WalletFrame(_platformStyle, this);
         setCentralWidget(walletFrame);
     } else
 #endif // ENABLE_WALLET

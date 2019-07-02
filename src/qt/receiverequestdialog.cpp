@@ -6,7 +6,6 @@
 #include <qt/forms/ui_receiverequestdialog.h>
 #include <qt/receiverequestdialog.h>
 
-#include <config.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
@@ -76,10 +75,8 @@ void QRImageWidget::contextMenuEvent(QContextMenuEvent *event) {
     contextMenu->exec(event->globalPos());
 }
 
-ReceiveRequestDialog::ReceiveRequestDialog(const Config *configIn,
-                                           QWidget *parent)
-    : QDialog(parent), ui(new Ui::ReceiveRequestDialog), model(0),
-      config(configIn) {
+ReceiveRequestDialog::ReceiveRequestDialog(QWidget *parent)
+    : QDialog(parent), ui(new Ui::ReceiveRequestDialog), model(0) {
     ui->setupUi(this);
 
 #ifndef USE_QRCODE
@@ -107,9 +104,6 @@ void ReceiveRequestDialog::setModel(WalletModel *_model) {
 
 void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info) {
     this->info = _info;
-    // Display addresses with currently configured encoding.
-    this->info.address =
-        GUIUtil::convertToConfiguredAddressFormat(*config, this->info.address);
     update();
 }
 
@@ -119,7 +113,7 @@ void ReceiveRequestDialog::update() {
     if (target.isEmpty()) target = info.address;
     setWindowTitle(tr("Request payment to %1").arg(target));
 
-    QString uri = GUIUtil::formatBitcoinURI(*config, info);
+    QString uri = GUIUtil::formatBitcoinURI(info);
     ui->btnSaveAs->setEnabled(false);
     QString html;
     html += "<html><font face='verdana, arial, helvetica, sans-serif'>";
@@ -146,7 +140,7 @@ void ReceiveRequestDialog::update() {
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE
-    int fontSize = config->UseCashAddrEncoding() ? 10 : 12;
+    int fontSize = 10;
 
     ui->lblQRCode->setText("");
     if (!uri.isEmpty()) {
@@ -196,7 +190,7 @@ void ReceiveRequestDialog::update() {
 }
 
 void ReceiveRequestDialog::on_btnCopyURI_clicked() {
-    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(*config, info));
+    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(info));
 }
 
 void ReceiveRequestDialog::on_btnCopyAddress_clicked() {

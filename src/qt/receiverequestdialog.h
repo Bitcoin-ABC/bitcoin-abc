@@ -12,8 +12,6 @@
 #include <QLabel>
 #include <QPainter>
 
-class Config;
-
 namespace Ui {
 class ReceiveRequestDialog;
 }
@@ -49,7 +47,7 @@ class ReceiveRequestDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ReceiveRequestDialog(const Config *configIn, QWidget *parent = 0);
+    explicit ReceiveRequestDialog(QWidget *parent = 0);
     ~ReceiveRequestDialog();
 
     void setModel(WalletModel *model);
@@ -65,7 +63,6 @@ private:
     Ui::ReceiveRequestDialog *ui;
     WalletModel *model;
     SendCoinsRecipient info;
-    const Config *config;
 };
 
 #endif // BITCOIN_QT_RECEIVEREQUESTDIALOG_H

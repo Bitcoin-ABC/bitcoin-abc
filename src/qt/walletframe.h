@@ -14,7 +14,6 @@ class PlatformStyle;
 class SendCoinsRecipient;
 class WalletModel;
 class WalletView;
-class Config;
 
 QT_BEGIN_NAMESPACE
 class QStackedWidget;
@@ -32,7 +31,7 @@ class WalletFrame : public QFrame {
 
 public:
     explicit WalletFrame(const PlatformStyle *platformStyle,
-                         const Config *configIn, BitcoinGUI *_gui = 0);
+                         BitcoinGUI *_gui = 0);
     ~WalletFrame();
 
     void setClientModel(ClientModel *clientModel);
@@ -60,7 +59,6 @@ private:
     bool bOutOfSync;
 
     const PlatformStyle *platformStyle;
-    const Config *config;
 
 public:
     WalletView *currentWalletView();

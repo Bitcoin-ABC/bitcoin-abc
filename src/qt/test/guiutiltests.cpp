@@ -37,24 +37,17 @@ void GUIUtilTests::dummyAddressTest() {
 
 void GUIUtilTests::toCurrentEncodingTest() {
     GUIUtilTestConfig config;
+    const CChainParams &params = config.GetChainParams();
 
     // garbage in, garbage out
-    QVERIFY(GUIUtil::convertToConfiguredAddressFormat(config, "garbage") ==
-            "garbage");
+    QVERIFY(GUIUtil::convertToCashAddr(params, "garbage") == "garbage");
 
     QString cashaddr_pubkey =
         "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
     QString base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
 
-    config.SetCashAddrEncoding(true);
-    QVERIFY(GUIUtil::convertToConfiguredAddressFormat(
-                config, cashaddr_pubkey) == cashaddr_pubkey);
-    QVERIFY(GUIUtil::convertToConfiguredAddressFormat(config, base58_pubkey) ==
+    QVERIFY(GUIUtil::convertToCashAddr(params, cashaddr_pubkey) ==
             cashaddr_pubkey);
-
-    config.SetCashAddrEncoding(false);
-    QVERIFY(GUIUtil::convertToConfiguredAddressFormat(
-                config, cashaddr_pubkey) == base58_pubkey);
-    QVERIFY(GUIUtil::convertToConfiguredAddressFormat(config, base58_pubkey) ==
-            base58_pubkey);
+    QVERIFY(GUIUtil::convertToCashAddr(params, base58_pubkey) ==
+            cashaddr_pubkey);
 }

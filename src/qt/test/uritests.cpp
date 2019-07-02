@@ -173,6 +173,36 @@ void URITests::uriTestsCashAddr() {
     QVERIFY(!GUIUtil::parseBitcoinURI(scheme, uri, &rv));
 }
 
+void URITests::uriTestFormatURI() {
+    {
+        SendCoinsRecipient r;
+        r.address = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
+        r.message = "test";
+        QString uri = GUIUtil::formatBitcoinURI(r);
+        QVERIFY(uri == "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
+                       "message=test");
+    }
+
+    {
+        // Garbage goes through (address checksum is invalid)
+        SendCoinsRecipient r;
+        r.address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
+        r.message = "test";
+        QString uri = GUIUtil::formatBitcoinURI(r);
+        QVERIFY(uri == "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message=test");
+    }
+
+    {
+        // Legacy addresses are converted.
+        SendCoinsRecipient r;
+        r.address = "12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX";
+        r.message = "test";
+        QString uri = GUIUtil::formatBitcoinURI(r);
+        QVERIFY(uri == "bitcoincash:qqgekzvw96vq5g57zwdfa5q6g609rrn0ycp33uc325?"
+                       "message=test");
+    }
+}
+
 namespace {
 class UriTestConfig : public DummyConfig {
 public:
@@ -185,28 +215,6 @@ private:
 };
 
 } // namespace
-
-void URITests::uriTestFormatURI() {
-    {
-        UriTestConfig cfg(true);
-        SendCoinsRecipient r;
-        r.address = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
-        r.message = "test";
-        QString uri = GUIUtil::formatBitcoinURI(cfg, r);
-        QVERIFY(uri == "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
-                       "message=test");
-    }
-
-    {
-        UriTestConfig cfg(false);
-        SendCoinsRecipient r;
-        r.address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
-        r.message = "test";
-        QString uri = GUIUtil::formatBitcoinURI(cfg, r);
-        QVERIFY(uri ==
-                "bitcoincash:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message=test");
-    }
-}
 
 void URITests::uriTestScheme() {
     {

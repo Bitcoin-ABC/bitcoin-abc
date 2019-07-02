@@ -3,7 +3,6 @@
 #include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>
-#include <config.h>
 #include <dstencode.h>
 #include <interfaces/node.h>
 #include <qt/bitcoinamountfield.h>
@@ -179,8 +178,7 @@ void TestGUI() {
     QCOMPARE(balanceText, balanceComparison);
 
     // Check Request Payment button
-    const Config &config = GetConfig();
-    ReceiveCoinsDialog receiveCoinsDialog(platformStyle.get(), &config);
+    ReceiveCoinsDialog receiveCoinsDialog(platformStyle.get());
     receiveCoinsDialog.setModel(&walletModel);
     RecentRequestsTableModel *requestTableModel =
         walletModel.getRecentRequestsTableModel();
@@ -212,8 +210,8 @@ void TestGUI() {
             QString paymentText = rlist->toPlainText();
             QStringList paymentTextList = paymentText.split('\n');
             QCOMPARE(paymentTextList.at(0), QString("Payment information"));
-            QVERIFY(paymentTextList.at(1).indexOf(
-                        QString("URI: bitcoincash:")) != -1);
+            QVERIFY(paymentTextList.at(1).indexOf(QString("URI: bchreg:")) !=
+                    -1);
             QVERIFY(paymentTextList.at(2).indexOf(QString("Address:")) != -1);
             QCOMPARE(paymentTextList.at(3),
                      QString("Amount: 0.00000001 ") +

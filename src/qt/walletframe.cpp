@@ -14,9 +14,8 @@
 #include <cassert>
 #include <cstdio>
 
-WalletFrame::WalletFrame(const PlatformStyle *_platformStyle,
-                         const Config *configIn, BitcoinGUI *_gui)
-    : QFrame(_gui), gui(_gui), platformStyle(_platformStyle), config(configIn) {
+WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, BitcoinGUI *_gui)
+    : QFrame(_gui), gui(_gui), platformStyle(_platformStyle) {
     // Leave HBox hook for adding a list view later
     QHBoxLayout *walletFrameLayout = new QHBoxLayout(this);
     setContentsMargins(0, 0, 0, 0);
@@ -45,7 +44,7 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
         return false;
     }
 
-    WalletView *walletView = new WalletView(platformStyle, config, this);
+    WalletView *walletView = new WalletView(platformStyle, this);
     walletView->setBitcoinGUI(gui);
     walletView->setClientModel(clientModel);
     walletView->setWalletModel(walletModel);

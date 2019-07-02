@@ -127,17 +127,14 @@ std::string DummyAddress(const CChainParams &params) {
 // Addresses are stored in the database with the encoding that the client was
 // configured with at the time of creation.
 //
-// This converts to clients current configuration.
-QString convertToConfiguredAddressFormat(const Config &config,
-                                         const QString &addr) {
-    if (!IsValidDestinationString(addr.toStdString(),
-                                  config.GetChainParams())) {
+// This converts to cashaddr.
+QString convertToCashAddr(const CChainParams &params, const QString &addr) {
+    if (!IsValidDestinationString(addr.toStdString(), params)) {
         // We have something sketchy as input. Do not try to convert.
         return addr;
     }
-    CTxDestination dst =
-        DecodeDestination(addr.toStdString(), config.GetChainParams());
-    return QString::fromStdString(EncodeDestination(dst, config));
+    CTxDestination dst = DecodeDestination(addr.toStdString(), params);
+    return QString::fromStdString(EncodeCashAddr(dst, params));
 }
 
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
@@ -250,12 +247,8 @@ bool parseBitcoinURI(const QString &scheme, QString uri,
     return parseBitcoinURI(scheme, uriInstance, out);
 }
 
-QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
-    QString ret = info.address;
-    if (!config.UseCashAddrEncoding()) {
-        // prefix address with uri scheme for base58 encoded addresses.
-        ret = (bitcoinURIScheme(config) + ":%1").arg(ret);
-    }
+QString formatBitcoinURI(const SendCoinsRecipient &info) {
+    QString ret = convertToCashAddr(Params(), info.address);
     int paramCount = 0;
 
     if (info.amount != Amount::zero()) {
