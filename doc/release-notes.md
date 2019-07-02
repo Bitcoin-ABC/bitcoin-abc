@@ -5,3 +5,4 @@ Bitcoin ABC version 0.19.10 is now available from:
 This release includes the following features and fixes:
   - Add a `spentby` field to the following RPCs: `getrawmempool`,
   `getmempooldescendents`, `getmempoolsancestors`, `getmempoolentry`.
+  - Default to use CashAddr in most places in the GUI even when `usecashaddr=0` is specified.

@@ -188,7 +188,7 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
 
 static std::string ipcParseURI(const QString &arg, const CChainParams &params,
                                bool useCashAddr) {
-    const QString scheme = GUIUtil::bitcoinURIScheme(params, useCashAddr);
+    const QString scheme = QString::fromStdString(params.CashAddrPrefix());
     if (!arg.startsWith(scheme + ":", Qt::CaseInsensitive)) {
         return {};
     }

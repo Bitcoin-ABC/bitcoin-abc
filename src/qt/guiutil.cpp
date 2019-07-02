@@ -7,7 +7,6 @@
 #include <cashaddr.h>
 #include <cashaddrenc.h>
 #include <chainparams.h>
-#include <config.h>
 #include <dstencode.h>
 #include <fs.h>
 #include <interfaces/node.h>
@@ -157,18 +156,6 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent) {
     amountValidator->setBottom(0.0);
     widget->setValidator(amountValidator);
     widget->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-}
-
-QString bitcoinURIScheme(const CChainParams &params, bool useCashAddr) {
-    if (!useCashAddr) {
-        return "bitcoincash";
-    }
-    return QString::fromStdString(params.CashAddrPrefix());
-}
-
-QString bitcoinURIScheme(const Config &config) {
-    return bitcoinURIScheme(config.GetChainParams(),
-                            config.UseCashAddrEncoding());
 }
 
 static bool IsCashAddrEncoded(const QUrl &uri) {
