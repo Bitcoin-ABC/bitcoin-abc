@@ -4,7 +4,9 @@
 
 #include <qt/transactionrecord.h>
 
+#include <cashaddrenc.h>
 #include <chain.h>
+#include <chainparams.h> // For Params()
 #include <consensus/consensus.h>
 #include <dstencode.h>
 #include <interfaces/wallet.h>
@@ -54,7 +56,8 @@ TransactionRecord::decomposeTransaction(const interfaces::WalletTx &wtx) {
                 if (wtx.txout_address_is_mine[i]) {
                     // Received by Bitcoin Address
                     sub.type = TransactionRecord::RecvWithAddress;
-                    sub.address = EncodeDestination(wtx.txout_address[i]);
+                    sub.address =
+                        EncodeCashAddr(wtx.txout_address[i], Params());
                 } else {
                     // Received by IP connection (deprecated features), or a
                     // multisignature or other non-simple transaction
@@ -121,7 +124,8 @@ TransactionRecord::decomposeTransaction(const interfaces::WalletTx &wtx) {
                 if (!boost::get<CNoDestination>(&wtx.txout_address[nOut])) {
                     // Sent to Bitcoin Address
                     sub.type = TransactionRecord::SendToAddress;
-                    sub.address = EncodeDestination(wtx.txout_address[nOut]);
+                    sub.address =
+                        EncodeCashAddr(wtx.txout_address[nOut], Params());
                 } else {
                     // Sent to IP, or other non-address transaction like OP_EVAL
                     sub.type = TransactionRecord::SendToOther;

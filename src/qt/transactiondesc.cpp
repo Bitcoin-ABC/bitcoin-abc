@@ -4,6 +4,7 @@
 
 #include <qt/transactiondesc.h>
 
+#include <cashaddrenc.h>
 #include <chain.h>
 #include <consensus/consensus.h>
 #include <dstencode.h>
@@ -205,8 +206,8 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
                             !name.empty()) {
                             strHTML += GUIUtil::HtmlEscape(name) + " ";
                         }
-                        strHTML +=
-                            GUIUtil::HtmlEscape(EncodeDestination(address));
+                        strHTML += GUIUtil::HtmlEscape(
+                            EncodeCashAddr(address, wallet.getChainParams()));
                         if (toSelf == ISMINE_SPENDABLE) {
                             strHTML += " (own address)";
                         } else if (toSelf & ISMINE_WATCH_ONLY) {
@@ -371,8 +372,8 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
                     if (wallet.getAddress(address, &name) && !name.empty()) {
                         strHTML += GUIUtil::HtmlEscape(name) + " ";
                     }
-                    strHTML +=
-                        QString::fromStdString(EncodeDestination(address));
+                    strHTML += QString::fromStdString(
+                        EncodeCashAddr(address, wallet.getChainParams()));
                 }
                 strHTML = strHTML + " " + tr("Amount") + "=" +
                           BitcoinUnits::formatHtmlWithUnit(unit, vout.nValue);

@@ -4,6 +4,7 @@
 
 #include <qt/addresstablemodel.h>
 
+#include <cashaddrenc.h>
 #include <dstencode.h>
 #include <interfaces/node.h>
 #include <qt/guiutil.h>
@@ -80,7 +81,8 @@ public:
                 QString::fromStdString(address.purpose), address.is_mine);
             cachedAddressTable.append(AddressTableEntry(
                 addressType, QString::fromStdString(address.name),
-                QString::fromStdString(EncodeDestination(address.dest))));
+                QString::fromStdString(EncodeCashAddr(
+                    address.dest, parent->walletModel->getChainParams()))));
         }
         // qLowerBound() and qUpperBound() require our cachedAddressTable list
         // to be sorted in asc order. Even though the map is already sorted this
@@ -351,7 +353,8 @@ QString AddressTableModel::addRow(const QString &type, const QString &label,
         }
         walletModel->wallet().learnRelatedScripts(newKey, g_address_type);
         strAddress =
-            EncodeDestination(GetDestinationForKey(newKey, g_address_type));
+            EncodeCashAddr(GetDestinationForKey(newKey, g_address_type),
+                           walletModel->getChainParams());
     } else {
         return QString();
     }

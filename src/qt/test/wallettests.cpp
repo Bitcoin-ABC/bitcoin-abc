@@ -1,5 +1,6 @@
 #include <qt/test/wallettests.h>
 
+#include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
@@ -58,7 +59,7 @@ uint256 SendCoins(CWallet &wallet, SendCoinsDialog &sendCoinsDialog,
     SendCoinsEntry *entry =
         qobject_cast<SendCoinsEntry *>(entries->itemAt(0)->widget());
     entry->findChild<QValidatedLineEdit *>("payTo")->setText(
-        QString::fromStdString(EncodeDestination(address)));
+        QString::fromStdString(EncodeCashAddr(address, Params())));
     entry->findChild<BitcoinAmountField *>("payAmount")->setValue(amount);
     uint256 txid;
     boost::signals2::scoped_connection c =

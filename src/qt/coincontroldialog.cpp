@@ -5,6 +5,7 @@
 #include <qt/coincontroldialog.h>
 #include <qt/forms/ui_coincontroldialog.h>
 
+#include <cashaddrenc.h>
 #include <dstencode.h>
 #include <interfaces/node.h>
 #include <policy/policy.h>
@@ -690,8 +691,8 @@ void CoinControlDialog::updateView() {
         CCoinControlWidgetItem *itemWalletAddress =
             new CCoinControlWidgetItem();
         itemWalletAddress->setCheckState(COLUMN_CHECKBOX, Qt::Unchecked);
-        QString sWalletAddress =
-            QString::fromStdString(EncodeDestination(coins.first));
+        QString sWalletAddress = QString::fromStdString(
+            EncodeCashAddr(coins.first, model->getChainParams()));
         QString sWalletLabel =
             model->getAddressTableModel()->labelForAddress(sWalletAddress);
         if (sWalletLabel.isEmpty()) {
@@ -733,8 +734,8 @@ void CoinControlDialog::updateView() {
             CTxDestination outputAddress;
             QString sAddress = "";
             if (ExtractDestination(out.txout.scriptPubKey, outputAddress)) {
-                sAddress =
-                    QString::fromStdString(EncodeDestination(outputAddress));
+                sAddress = QString::fromStdString(
+                    EncodeCashAddr(outputAddress, model->getChainParams()));
 
                 // if listMode or change => show bitcoin address. In tree mode,
                 // address is not shown again for direct wallet address outputs

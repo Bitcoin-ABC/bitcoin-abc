@@ -4,7 +4,7 @@
 
 #include <qt/walletmodel.h>
 
-#include <config.h>
+#include <cashaddrenc.h>
 #include <dstencode.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
@@ -350,7 +350,8 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel,
                                      const std::string &label, bool isMine,
                                      const std::string &purpose,
                                      ChangeType status) {
-    QString strAddress = QString::fromStdString(EncodeDestination(address));
+    QString strAddress = QString::fromStdString(
+        EncodeCashAddr(address, walletmodel->getChainParams()));
     QString strLabel = QString::fromStdString(label);
     QString strPurpose = QString::fromStdString(purpose);
 
@@ -473,5 +474,5 @@ bool WalletModel::isMultiwallet() {
 }
 
 const CChainParams &WalletModel::getChainParams() const {
-    return GetConfig().GetChainParams();
+    return Params();
 }
