@@ -1387,8 +1387,8 @@ static UniValue sendrawtransaction(const Config &config,
     return txid.GetHex();
 }
 
-UniValue testmempoolaccept(const Config &config,
-                           const JSONRPCRequest &request) {
+static UniValue testmempoolaccept(const Config &config,
+                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
