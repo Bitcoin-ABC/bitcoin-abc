@@ -183,7 +183,7 @@ struct HTTPReply {
     std::string body;
 };
 
-const char *http_errorstring(int code) {
+static const char *http_errorstring(int code) {
     switch (code) {
 #if LIBEVENT_VERSION_NUMBER >= 0x02010300
         case EVREQ_HTTP_TIMEOUT:
@@ -472,7 +472,7 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
     return reply;
 }
 
-int CommandLineRPC(int argc, char *argv[]) {
+static int CommandLineRPC(int argc, char *argv[]) {
     std::string strPrint;
     int nRet = 0;
     try {
