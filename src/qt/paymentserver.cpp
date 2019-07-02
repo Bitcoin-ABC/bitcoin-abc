@@ -5,7 +5,6 @@
 #include <qt/paymentserver.h>
 
 #include <chainparams.h>
-#include <config.h>
 #include <dstencode.h>
 #include <interfaces/node.h>
 #include <policy/policy.h>
@@ -427,7 +426,8 @@ void PaymentServer::uiReady() {
     savedPaymentRequests.clear();
 }
 
-bool PaymentServer::handleURI(const QString &scheme, const QString &s) {
+bool PaymentServer::handleURI(const CChainParams &params, const QString &s) {
+    const QString scheme = QString::fromStdString(params.CashAddrPrefix());
     if (!s.startsWith(scheme + ":", Qt::CaseInsensitive)) {
         return false;
     }
@@ -460,7 +460,7 @@ bool PaymentServer::handleURI(const QString &scheme, const QString &s) {
     SendCoinsRecipient recipient;
     if (GUIUtil::parseBitcoinURI(scheme, s, &recipient)) {
         if (!IsValidDestinationString(recipient.address.toStdString(),
-                                      GetConfig().GetChainParams())) {
+                                      params)) {
             Q_EMIT message(
                 tr("URI handling"),
                 tr("Invalid payment address %1").arg(recipient.address),
@@ -486,14 +486,7 @@ void PaymentServer::handleURIOrFile(const QString &s) {
     }
 
     // bitcoincash: CashAddr URI
-    QString schemeCash = GUIUtil::bitcoinURIScheme(Params(), true);
-    if (handleURI(schemeCash, s)) {
-        return;
-    }
-
-    // bitcoincash: Legacy URI
-    QString schemeLegacy = GUIUtil::bitcoinURIScheme(Params(), false);
-    if (handleURI(schemeLegacy, s)) {
+    if (handleURI(Params(), s)) {
         return;
     }
 
