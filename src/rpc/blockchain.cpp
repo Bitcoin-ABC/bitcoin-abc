@@ -16,7 +16,6 @@
 #include <core_io.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
-#include <key_io.h>
 #include <node/coinstats.h>
 #include <node/context.h>
 #include <policy/policy.h>
@@ -177,7 +176,8 @@ static UniValue getblockcount(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockcount",
-        "Returns the number of blocks in the longest blockchain.\n",
+        "\nReturns the height of the most-work fully-validated chain.\n"
+        "The genesis block has height 0.\n",
         {},
         RPCResult{"n    (numeric) The current block count\n"},
         RPCExamples{HelpExampleCli("getblockcount", "") +
@@ -193,8 +193,8 @@ static UniValue getbestblockhash(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "getbestblockhash",
-        "Returns the hash of the best (tip) block in the longest "
-        "blockchain.\n",
+        "Returns the hash of the best (tip) block in the "
+        "most-work fully-validated chain.\n",
         {},
         RPCResult{"\"hex\"      (string) the block hash, hex-encoded\n"},
         RPCExamples{HelpExampleCli("getbestblockhash", "") +
@@ -1344,8 +1344,8 @@ UniValue getblockchaininfo(const Config &config,
             "{\n"
             "  \"chain\": \"xxxx\",            (string) current network name "
             "as defined in BIP70 (main, test, regtest)\n"
-            "  \"blocks\": xxxxxx,             (numeric) the current number of "
-            "blocks processed in the server\n"
+            "  \"blocks\": xxxxxx,             the height of the most-work "
+            "fully-validated chain. The genesis block has height 0\n"
             "  \"headers\": xxxxxx,            (numeric) the current number of "
             "headers we have validated\n"
             "  \"bestblockhash\": \"...\",     (string) the hash of the "
