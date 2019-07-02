@@ -44,7 +44,7 @@
  * <code>Files</code> at the top of the page to start navigating the code.
  */
 
-void WaitForShutdown() {
+static void WaitForShutdown() {
     while (!ShutdownRequested()) {
         MilliSleep(200);
     }
@@ -55,7 +55,7 @@ void WaitForShutdown() {
 //
 // Start
 //
-bool AppInit(int argc, char *argv[]) {
+static bool AppInit(int argc, char *argv[]) {
     // FIXME: Ideally, we'd like to build the config here, but that's currently
     // not possible as the whole application has too many global state. However,
     // this is a first step.
