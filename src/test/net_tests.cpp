@@ -72,7 +72,7 @@ private:
     uint64_t nMaxBlockSize;
 };
 
-CDataStream AddrmanToStream(CAddrManSerializationMock &_addrman) {
+static CDataStream AddrmanToStream(CAddrManSerializationMock &_addrman) {
     CDataStream ssPeersIn(SER_DISK, CLIENT_VERSION);
     ssPeersIn << FLATDATA(Params().DiskMagic());
     ssPeersIn << _addrman;

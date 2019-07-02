@@ -93,7 +93,7 @@ static ScriptErrorDesc script_errors[] = {
     {SCRIPT_ERR_MOD_BY_ZERO, "MOD_BY_ZERO"},
 };
 
-const char *FormatScriptError(ScriptError_t err) {
+static const char *FormatScriptError(ScriptError_t err) {
     for (size_t i = 0; i < ARRAYLEN(script_errors); ++i) {
         if (script_errors[i].err == err) {
             return script_errors[i].name;
@@ -105,7 +105,7 @@ const char *FormatScriptError(ScriptError_t err) {
     return "";
 }
 
-ScriptError_t ParseScriptError(const std::string &name) {
+static ScriptError_t ParseScriptError(const std::string &name) {
     for (size_t i = 0; i < ARRAYLEN(script_errors); ++i) {
         if (script_errors[i].name == name) {
             return script_errors[i].err;
@@ -1883,9 +1883,9 @@ BOOST_AUTO_TEST_CASE(script_PushData) {
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 }
 
-CScript sign_multisig(const CScript &scriptPubKey,
-                      const std::vector<CKey> &keys,
-                      const CTransaction &transaction) {
+static CScript sign_multisig(const CScript &scriptPubKey,
+                             const std::vector<CKey> &keys,
+                             const CTransaction &transaction) {
     uint256 hash = SignatureHash(scriptPubKey, transaction, 0, SigHashType(),
                                  Amount::zero());
 
@@ -1907,8 +1907,8 @@ CScript sign_multisig(const CScript &scriptPubKey,
     return result;
 }
 
-CScript sign_multisig(const CScript &scriptPubKey, const CKey &key,
-                      const CTransaction &transaction) {
+static CScript sign_multisig(const CScript &scriptPubKey, const CKey &key,
+                             const CTransaction &transaction) {
     std::vector<CKey> keys;
     keys.push_back(key);
     return sign_multisig(scriptPubKey, keys, transaction);

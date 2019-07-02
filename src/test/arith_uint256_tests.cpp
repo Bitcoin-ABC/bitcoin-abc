@@ -21,7 +21,7 @@
 BOOST_FIXTURE_TEST_SUITE(arith_uint256_tests, BasicTestingSetup)
 
 /// Convert vector to arith_uint256, via uint256 blob
-inline arith_uint256 arith_uint256V(const std::vector<uint8_t> &vch) {
+static inline arith_uint256 arith_uint256V(const std::vector<uint8_t> &vch) {
     return UintToArith256(uint256(vch));
 }
 
@@ -64,7 +64,7 @@ const arith_uint256 MaxL =
     arith_uint256V(std::vector<uint8_t>(MaxArray, MaxArray + 32));
 
 const arith_uint256 HalfL = (OneL << 255);
-std::string ArrayToString(const uint8_t A[], unsigned int width) {
+static std::string ArrayToString(const uint8_t A[], unsigned int width) {
     std::stringstream Stream;
     Stream << std::hex;
     for (unsigned int i = 0; i < width; ++i) {
@@ -138,8 +138,9 @@ BOOST_AUTO_TEST_CASE(basics) {
     BOOST_CHECK(tmpL == ~MaxL);
 }
 
-void shiftArrayRight(uint8_t *to, const uint8_t *from, unsigned int arrayLength,
-                     unsigned int bitsToShift) {
+static void shiftArrayRight(uint8_t *to, const uint8_t *from,
+                            unsigned int arrayLength,
+                            unsigned int bitsToShift) {
     for (unsigned int T = 0; T < arrayLength; ++T) {
         unsigned int F = (T + bitsToShift / 8);
         if (F < arrayLength) {
@@ -153,8 +154,8 @@ void shiftArrayRight(uint8_t *to, const uint8_t *from, unsigned int arrayLength,
     }
 }
 
-void shiftArrayLeft(uint8_t *to, const uint8_t *from, unsigned int arrayLength,
-                    unsigned int bitsToShift) {
+static void shiftArrayLeft(uint8_t *to, const uint8_t *from,
+                           unsigned int arrayLength, unsigned int bitsToShift) {
     for (unsigned int T = 0; T < arrayLength; ++T) {
         if (T >= bitsToShift / 8) {
             unsigned int F = T - bitsToShift / 8;
@@ -427,7 +428,7 @@ BOOST_AUTO_TEST_CASE(divide) {
     BOOST_CHECK_THROW(R2L / ZeroL, uint_error);
 }
 
-bool almostEqual(double d1, double d2) {
+static bool almostEqual(double d1, double d2) {
     return fabs(d1 - d2) <=
            4 * fabs(d1) * std::numeric_limits<double>::epsilon();
 }

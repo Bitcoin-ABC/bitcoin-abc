@@ -335,9 +335,11 @@ BOOST_AUTO_TEST_CASE(test_Get) {
                       (50 + 21 + 22) * CENT);
 }
 
-void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
-                          CTransactionRef &output, CMutableTransaction &input,
-                          bool success = true) {
+static void CreateCreditAndSpend(const CKeyStore &keystore,
+                                 const CScript &outscript,
+                                 CTransactionRef &output,
+                                 CMutableTransaction &input,
+                                 bool success = true) {
     CMutableTransaction outputm;
     outputm.nVersion = 1;
     outputm.vin.resize(1);
@@ -373,8 +375,9 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     BOOST_CHECK(input.vout[0] == inputm.vout[0]);
 }
 
-void CheckWithFlag(const CTransactionRef &output,
-                   const CMutableTransaction &input, int flags, bool success) {
+static void CheckWithFlag(const CTransactionRef &output,
+                          const CMutableTransaction &input, int flags,
+                          bool success) {
     ScriptError error;
     CTransaction inputi(input);
     bool ret = VerifyScript(
@@ -399,7 +402,7 @@ static CScript PushAll(const std::vector<valtype> &values) {
     return result;
 }
 
-void ReplaceRedeemScript(CScript &script, const CScript &redeemScript) {
+static void ReplaceRedeemScript(CScript &script, const CScript &redeemScript) {
     std::vector<valtype> stack;
     EvalScript(stack, script, SCRIPT_VERIFY_STRICTENC, BaseSignatureChecker());
     BOOST_CHECK(stack.size() > 0);

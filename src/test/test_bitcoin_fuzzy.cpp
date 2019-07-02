@@ -46,7 +46,7 @@ enum TEST_ID {
     TEST_ID_END
 };
 
-bool read_stdin(std::vector<char> &data) {
+static bool read_stdin(std::vector<char> &data) {
     char buffer[1024];
     ssize_t length = 0;
     while ((length = read(STDIN_FILENO, buffer, 1024)) > 0) {

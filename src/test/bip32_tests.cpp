@@ -94,7 +94,7 @@ TestVector test3 =
       0);
 // clang-format on
 
-void RunTest(const TestVector &test) {
+static void RunTest(const TestVector &test) {
     std::vector<uint8_t> seed = ParseHex(test.strHexMaster);
     CExtKey key;
     CExtPubKey pubkey;

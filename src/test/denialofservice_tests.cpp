@@ -33,7 +33,7 @@ struct COrphanTx {
 };
 extern std::map<uint256, COrphanTx> mapOrphanTransactions;
 
-CService ip(uint32_t i) {
+static CService ip(uint32_t i) {
     struct in_addr s;
     s.s_addr = i;
     return CService(CNetAddr(s), Params().GetDefaultPort());
@@ -310,7 +310,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     peerLogic->FinalizeNode(config, dummyNode.GetId(), dummy);
 }
 
-CTransactionRef RandomOrphan() {
+static CTransactionRef RandomOrphan() {
     std::map<uint256, COrphanTx>::iterator it;
     LOCK(cs_main);
     it = mapOrphanTransactions.lower_bound(InsecureRand256());

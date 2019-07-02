@@ -48,7 +48,8 @@ BOOST_AUTO_TEST_CASE(test_cuckoocache_no_fakes) {
  * This helper returns the hit rate when megabytes*load worth of entries are
  * inserted into a megabytes sized cache
  */
-template <typename Cache> double test_cache(size_t megabytes, double load) {
+template <typename Cache>
+static double test_cache(size_t megabytes, double load) {
     SeedInsecureRand(true);
     std::vector<uint256> hashes;
     Cache set{};
@@ -98,7 +99,7 @@ template <typename Cache> double test_cache(size_t megabytes, double load) {
  * how you measure around load 1.0 as after load 1.0 your normalized hit rate
  * becomes effectively perfect, ignoring freshness.
  */
-double normalize_hit_rate(double hits, double load) {
+static double normalize_hit_rate(double hits, double load) {
     return hits * std::max(load, 1.0);
 }
 
@@ -120,7 +121,7 @@ BOOST_AUTO_TEST_CASE(cuckoocache_hit_rate_ok) {
 
 /** This helper checks that erased elements are preferentially inserted onto and
  * that the hit rate of "fresher" keys is reasonable*/
-template <typename Cache> void test_cache_erase(size_t megabytes) {
+template <typename Cache> static void test_cache_erase(size_t megabytes) {
     double load = 1;
     SeedInsecureRand(true);
     std::vector<uint256> hashes;
@@ -189,7 +190,8 @@ BOOST_AUTO_TEST_CASE(cuckoocache_erase_ok) {
         megabytes);
 }
 
-template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
+template <typename Cache>
+static void test_cache_erase_parallel(size_t megabytes) {
     double load = 1;
     SeedInsecureRand(true);
     std::vector<uint256> hashes;
@@ -282,7 +284,7 @@ BOOST_AUTO_TEST_CASE(cuckoocache_erase_parallel_ok) {
         CuckooCache::cache<uint256, SignatureCacheHasher>>(megabytes);
 }
 
-template <typename Cache> void test_cache_generations() {
+template <typename Cache> static void test_cache_generations() {
     // This test checks that for a simulation of network activity, the fresh hit
     // rate is never below 99%, and the number of times that it is worse than
     // 99.9% are less than 1% of the time.
