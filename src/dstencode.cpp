@@ -29,7 +29,3 @@ bool IsValidDestinationString(const std::string &addr,
                               const CChainParams &params) {
     return IsValidDestination(DecodeDestination(addr, params));
 }
-
-std::string EncodeDestination(const CTxDestination &dst) {
-    return EncodeDestination(dst, GetConfig());
-}

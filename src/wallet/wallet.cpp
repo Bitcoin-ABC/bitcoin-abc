@@ -369,7 +369,8 @@ bool CWallet::LoadCScript(const CScript &redeemScript) {
      * not add them to the wallet and warn.
      */
     if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE) {
-        std::string strAddr = EncodeDestination(CScriptID(redeemScript));
+        std::string strAddr =
+            EncodeDestination(CScriptID(redeemScript), GetConfig());
         LogPrintf("%s: Warning: This wallet contains a redeemScript of size %i "
                   "which exceeds maximum size %i thus can never be redeemed. "
                   "Do not use address %s.\n",

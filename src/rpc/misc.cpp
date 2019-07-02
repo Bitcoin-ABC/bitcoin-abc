@@ -83,7 +83,7 @@ static UniValue validateaddress(const Config &config,
         }
 #endif
         if (ret["address"].isNull()) {
-            std::string currentAddress = EncodeDestination(dest);
+            std::string currentAddress = EncodeDestination(dest, config);
             ret.pushKV("address", currentAddress);
 
             CScript scriptPubKey = GetScriptForDestination(dest);
@@ -190,7 +190,7 @@ static UniValue createmultisig(const Config &config,
     CScriptID innerID(inner);
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("address", EncodeDestination(innerID));
+    result.pushKV("address", EncodeDestination(innerID, config));
     result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
 
     return result;

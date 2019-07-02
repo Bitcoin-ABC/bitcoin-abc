@@ -17,8 +17,4 @@ CTxDestination DecodeDestination(const std::string &addr, const CChainParams &);
 bool IsValidDestinationString(const std::string &addr,
                               const CChainParams &params);
 
-// Temporary workaround. Don't rely on global state, pass all parameters in new
-// code.
-std::string EncodeDestination(const CTxDestination &);
-
 #endif // BITCOIN_DSTENCODE_H

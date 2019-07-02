@@ -4,6 +4,7 @@
 
 #include <core_io.h>
 
+#include <config.h>
 #include <dstencode.h>
 #include <primitives/transaction.h>
 #include <script/script.h>
@@ -188,7 +189,7 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
 
     UniValue a(UniValue::VARR);
     for (const CTxDestination &addr : addresses) {
-        a.push_back(EncodeDestination(addr));
+        a.push_back(EncodeDestination(addr, GetConfig()));
     }
     out.pushKV("addresses", a);
 }

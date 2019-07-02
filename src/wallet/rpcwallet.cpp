@@ -207,7 +207,7 @@ static UniValue getnewaddress(const Config &config,
 
     pwallet->SetAddressBook(dest, label, "receive");
 
-    return EncodeDestination(dest);
+    return EncodeDestination(dest, config);
 }
 
 CTxDestination GetLabelDestination(CWallet *const pwallet,
@@ -256,7 +256,7 @@ static UniValue getlabeladdress(const Config &config,
 
     UniValue ret(UniValue::VSTR);
 
-    ret = EncodeDestination(GetLabelDestination(pwallet, label));
+    ret = EncodeDestination(GetLabelDestination(pwallet, label), config);
     return ret;
 }
 
@@ -309,7 +309,7 @@ static UniValue getrawchangeaddress(const Config &config,
     pwallet->LearnRelatedScripts(vchPubKey, output_type);
     CTxDestination dest = GetDestinationForKey(vchPubKey, output_type);
 
-    return EncodeDestination(dest);
+    return EncodeDestination(dest, config);
 }
 
 static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
@@ -448,7 +448,7 @@ static UniValue getaddressesbyaccount(const Config &config,
         const CTxDestination &dest = item.first;
         const std::string &strName = item.second.name;
         if (strName == strAccount) {
-            ret.push_back(EncodeDestination(dest));
+            ret.push_back(EncodeDestination(dest, config));
         }
     }
 
@@ -650,7 +650,7 @@ static UniValue listaddressgroupings(const Config &config,
         UniValue jsonGrouping(UniValue::VARR);
         for (const CTxDestination &address : grouping) {
             UniValue addressInfo(UniValue::VARR);
-            addressInfo.push_back(EncodeDestination(address));
+            addressInfo.push_back(EncodeDestination(address, config));
             addressInfo.push_back(ValueFromAmount(balances[address]));
 
             if (pwallet->mapAddressBook.find(address) !=
@@ -1461,11 +1461,11 @@ static UniValue addmultisigaddress(const Config &config,
 
     // Return old style interface
     if (IsDeprecatedRPCEnabled(gArgs, "addmultisigaddress")) {
-        return EncodeDestination(dest);
+        return EncodeDestination(dest, config);
     }
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("address", EncodeDestination(dest));
+    result.pushKV("address", EncodeDestination(dest, config));
     result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
     return result;
 }
@@ -1599,7 +1599,7 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
             if (fIsWatchonly) {
                 obj.pushKV("involvesWatchonly", true);
             }
-            obj.pushKV("address", EncodeDestination(address));
+            obj.pushKV("address", EncodeDestination(address, config));
             obj.pushKV("account", label);
             obj.pushKV("amount", ValueFromAmount(nAmount));
             obj.pushKV("confirmations",
@@ -1753,7 +1753,7 @@ static UniValue listreceivedbylabel(const Config &config,
 
 static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
     if (IsValidDestination(dest)) {
-        entry.pushKV("address", EncodeDestination(dest));
+        entry.pushKV("address", EncodeDestination(dest, GetConfig()));
     }
 }
 
@@ -3513,7 +3513,7 @@ static UniValue listunspent(const Config &config,
         entry.pushKV("vout", out.i);
 
         if (fValidAddress) {
-            entry.pushKV("address", EncodeDestination(address));
+            entry.pushKV("address", EncodeDestination(address, config));
 
             if (pwallet->mapAddressBook.count(address)) {
                 entry.pushKV("label", pwallet->mapAddressBook[address].name);
@@ -4042,7 +4042,7 @@ public:
             subobj.pushKVs(detail);
             UniValue wallet_detail = boost::apply_visitor(*this, embedded);
             subobj.pushKVs(wallet_detail);
-            subobj.pushKV("address", EncodeDestination(embedded));
+            subobj.pushKV("address", EncodeDestination(embedded, GetConfig()));
             subobj.pushKV("scriptPubKey",
                           HexStr(subscript.begin(), subscript.end()));
             // Always report the pubkey at the top level, so that
@@ -4052,7 +4052,7 @@ public:
             }
             obj.pushKV("embedded", std::move(subobj));
             if (include_addresses) {
-                a.push_back(EncodeDestination(embedded));
+                a.push_back(EncodeDestination(embedded, GetConfig()));
             }
         } else if (which_type == TX_MULTISIG) {
             // Also report some information on multisig scripts (which do not
@@ -4064,7 +4064,7 @@ public:
             for (size_t i = 1; i < solutions_data.size() - 1; ++i) {
                 CPubKey key(solutions_data[i].begin(), solutions_data[i].end());
                 if (include_addresses) {
-                    a.push_back(EncodeDestination(key.GetID()));
+                    a.push_back(EncodeDestination(key.GetID(), GetConfig()));
                 }
                 pubkeys.push_back(HexStr(key.begin(), key.end()));
             }
@@ -4200,7 +4200,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
-    std::string currentAddress = EncodeDestination(dest);
+    std::string currentAddress = EncodeDestination(dest, config);
     ret.pushKV("address", currentAddress);
 
     CScript scriptPubKey = GetScriptForDestination(dest);

@@ -639,7 +639,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                 CKeyID keyid = pubkey.GetID();
                 if (pwallet->HaveKey(keyid)) {
                     LogPrintf("Skipping import of %s (key already present)\n",
-                              EncodeDestination(keyid));
+                              EncodeDestination(keyid, config));
                     continue;
                 }
                 int64_t nTime = DecodeDumpTime(vstr[1]);
@@ -660,7 +660,8 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                         fLabel = true;
                     }
                 }
-                LogPrintf("Importing %s...\n", EncodeDestination(keyid));
+                LogPrintf("Importing %s...\n",
+                          EncodeDestination(keyid, config));
                 if (!pwallet->AddKeyPubKey(key, pubkey)) {
                     fGood = false;
                     continue;
@@ -859,7 +860,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
          it != vKeyBirth.end(); it++) {
         const CKeyID &keyid = it->second;
         std::string strTime = FormatISO8601DateTime(it->first);
-        std::string strAddr = EncodeDestination(keyid);
+        std::string strAddr = EncodeDestination(keyid, config);
         CKey key;
         if (pwallet->GetKey(keyid, key)) {
             file << strprintf("%s %s ", CBitcoinSecret(key).ToString(),
@@ -888,7 +889,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     for (const CScriptID &scriptid : scripts) {
         CScript script;
         std::string create_time = "0";
-        std::string address = EncodeDestination(scriptid);
+        std::string address = EncodeDestination(scriptid, config);
         // get birth times for scripts with metadata
         auto it = pwallet->m_script_metadata.find(scriptid);
         if (it != pwallet->m_script_metadata.end()) {
