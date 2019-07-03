@@ -27,14 +27,7 @@
 #include <ui_interface.h>
 #include <validation.h>
 
-#include <atomic>
-#include <chrono>
-#include <condition_variable>
-#include <cstdio>
-#include <functional>
-#include <list>
 #include <memory>
-#include <thread>
 
 void CConnmanTest::AddNode(CNode &node) {
     LOCK(g_connman->cs_vNodes);
@@ -223,70 +216,3 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx,
                            spendsCoinbase, sigOpCost, lp);
 }
 
-namespace {
-// A place to put misc. setup code eg "the travis workaround" that needs to run
-// at program startup and exit
-struct Init {
-    Init();
-    ~Init();
-
-    std::list<std::function<void(void)>> cleanup;
-};
-
-Init init;
-
-Init::Init() {
-    if (getenv("TRAVIS_NOHANG_WORKAROUND")) {
-        // This is a workaround for MinGW/Win32 builds on Travis sometimes
-        // hanging due to no output received by Travis after a 10-minute
-        // timeout.
-        // The strategy here is to let the jobs finish however long they take
-        // on Travis, by feeding Travis output.  We start a parallel thread
-        // that just prints out '.' once per second.
-        struct Private {
-            Private() : stop(false) {}
-            std::atomic_bool stop;
-            std::thread thr;
-            std::condition_variable cond;
-            std::mutex mut;
-        } *p = new Private;
-
-        p->thr = std::thread([p] {
-            // thread func.. print dots
-            std::unique_lock<std::mutex> lock(p->mut);
-            unsigned ctr = 0;
-            while (!p->stop) {
-                if (ctr) {
-                    // skip first period to allow app to print first
-                    std::cerr << "." << std::flush;
-                }
-                if (!(++ctr % 79)) {
-                    // newline once in a while to keep travis happy
-                    std::cerr << std::endl;
-                }
-                p->cond.wait_for(lock, std::chrono::milliseconds(1000));
-            }
-        });
-
-        cleanup.emplace_back([p]() {
-            // cleanup function to kill the thread and delete the struct
-            p->mut.lock();
-            p->stop = true;
-            p->cond.notify_all();
-            p->mut.unlock();
-            if (p->thr.joinable()) {
-                p->thr.join();
-            }
-            delete p;
-        });
-    }
-}
-
-Init::~Init() {
-    for (auto &f : cleanup) {
-        if (f) {
-            f();
-        }
-    }
-}
-} // end anonymous namespace

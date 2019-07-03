@@ -3,8 +3,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 TESTS += test/test_bitcoin
-LOG_DRIVER = $(srcdir)/test/test-bitcoin-driver
-EXTRA_DIST += test/test-bitcoin-driver
 bin_PROGRAMS += test/test_bitcoin
 noinst_PROGRAMS += test/test_bitcoin_fuzzy
 TEST_SRCDIR = test
