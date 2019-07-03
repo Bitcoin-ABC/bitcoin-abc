@@ -117,7 +117,7 @@ static UniValue getnetworkhashps(const Config &config,
         !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-static UniValue generateBlocks(const Config &config,
+static UniValue generateBlocks(const Config &config, const CTxMemPool &mempool,
                                const CScript &coinbase_script, int nGenerate,
                                uint64_t nMaxTries) {
     int nHeightEnd = 0;
@@ -131,8 +131,6 @@ static UniValue generateBlocks(const Config &config,
     }
 
     const uint64_t nExcessiveBlockSize = config.GetMaxBlockSize();
-
-    const CTxMemPool &mempool = EnsureMemPool();
 
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
@@ -227,9 +225,12 @@ static UniValue generatetodescriptor(const Config &config,
             strprintf("Cannot derive script without private keys"));
     }
 
+    const CTxMemPool &mempool = EnsureMemPool();
+
     CHECK_NONFATAL(coinbase_script.size() == 1);
 
-    return generateBlocks(config, coinbase_script.at(0), num_blocks, max_tries);
+    return generateBlocks(config, mempool, coinbase_script.at(0), num_blocks,
+                          max_tries);
 }
 
 static UniValue generatetoaddress(const Config &config,
@@ -269,9 +270,12 @@ static UniValue generatetoaddress(const Config &config,
                            "Error: Invalid address");
     }
 
+    const CTxMemPool &mempool = EnsureMemPool();
+
     CScript coinbase_script = GetScriptForDestination(destination);
 
-    return generateBlocks(config, coinbase_script, nGenerate, nMaxTries);
+    return generateBlocks(config, mempool, coinbase_script, nGenerate,
+                          nMaxTries);
 }
 
 static UniValue getmininginfo(const Config &config,

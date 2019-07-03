@@ -20,7 +20,24 @@
 
 #include <thread>
 
-BOOST_FIXTURE_TEST_SUITE(validation_block_tests, RegTestingSetup)
+namespace validation_block_tests {
+struct MinerTestingSetup : public RegTestingSetup {
+    std::shared_ptr<CBlock> Block(const Config &config,
+                                  const BlockHash &prev_hash);
+    std::shared_ptr<const CBlock> GoodBlock(const Config &config,
+                                            const BlockHash &prev_hash);
+    std::shared_ptr<const CBlock> BadBlock(const Config &config,
+                                           const BlockHash &prev_hash);
+    std::shared_ptr<CBlock> FinalizeBlock(const Consensus::Params &params,
+                                          std::shared_ptr<CBlock> pblock);
+    void BuildChain(const Config &config, const BlockHash &root, int height,
+                    const unsigned int invalid_rate,
+                    const unsigned int branch_rate, const unsigned int max_size,
+                    std::vector<std::shared_ptr<const CBlock>> &blocks);
+};
+} // namespace validation_block_tests
+
+BOOST_FIXTURE_TEST_SUITE(validation_block_tests, MinerTestingSetup)
 
 struct TestSubscriber : public CValidationInterface {
     uint256 m_expected_tip;
@@ -52,15 +69,16 @@ struct TestSubscriber : public CValidationInterface {
     }
 };
 
-std::shared_ptr<CBlock> Block(const Config &config, const CTxMemPool &mempool,
-                              const BlockHash &prev_hash) {
+std::shared_ptr<CBlock> MinerTestingSetup::Block(const Config &config,
+                                                 const BlockHash &prev_hash) {
     static int i = 0;
     static uint64_t time = config.GetChainParams().GenesisBlock().nTime;
 
     CScript pubKey;
     pubKey << i++ << OP_TRUE;
 
-    auto ptemplate = BlockAssembler(config, mempool).CreateNewBlock(pubKey);
+    auto ptemplate =
+        BlockAssembler(config, *m_node.mempool).CreateNewBlock(pubKey);
     auto pblock = std::make_shared<CBlock>(ptemplate->block);
     pblock->hashPrevBlock = prev_hash;
     pblock->nTime = ++time;
@@ -85,8 +103,9 @@ std::shared_ptr<CBlock> Block(const Config &config, const CTxMemPool &mempool,
     return pblock;
 }
 
-std::shared_ptr<CBlock> FinalizeBlock(const Consensus::Params &params,
-                                      std::shared_ptr<CBlock> pblock) {
+std::shared_ptr<CBlock>
+MinerTestingSetup::FinalizeBlock(const Consensus::Params &params,
+                                 std::shared_ptr<CBlock> pblock) {
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 
     while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, params)) {
@@ -97,18 +116,16 @@ std::shared_ptr<CBlock> FinalizeBlock(const Consensus::Params &params,
 }
 
 // construct a valid block
-std::shared_ptr<const CBlock> GoodBlock(const Config &config,
-                                        const CTxMemPool &mempool,
-                                        const BlockHash &prev_hash) {
+std::shared_ptr<const CBlock>
+MinerTestingSetup::GoodBlock(const Config &config, const BlockHash &prev_hash) {
     return FinalizeBlock(config.GetChainParams().GetConsensus(),
-                         Block(config, mempool, prev_hash));
+                         Block(config, prev_hash));
 }
 
 // construct an invalid block (but with a valid header)
-std::shared_ptr<const CBlock> BadBlock(const Config &config,
-                                       const CTxMemPool &mempool,
-                                       const BlockHash &prev_hash) {
-    auto pblock = Block(config, mempool, prev_hash);
+std::shared_ptr<const CBlock>
+MinerTestingSetup::BadBlock(const Config &config, const BlockHash &prev_hash) {
+    auto pblock = Block(config, prev_hash);
 
     CMutableTransaction coinbase_spend;
     coinbase_spend.vin.push_back(
@@ -122,11 +139,11 @@ std::shared_ptr<const CBlock> BadBlock(const Config &config,
     return ret;
 }
 
-void BuildChain(const Config &config, const CTxMemPool &mempool,
-                const BlockHash &root, int height,
-                const unsigned int invalid_rate, const unsigned int branch_rate,
-                const unsigned int max_size,
-                std::vector<std::shared_ptr<const CBlock>> &blocks) {
+void MinerTestingSetup::BuildChain(
+    const Config &config, const BlockHash &root, int height,
+    const unsigned int invalid_rate, const unsigned int branch_rate,
+    const unsigned int max_size,
+    std::vector<std::shared_ptr<const CBlock>> &blocks) {
     if (height <= 0 || blocks.size() >= max_size) {
         return;
     }
@@ -135,18 +152,17 @@ void BuildChain(const Config &config, const CTxMemPool &mempool,
     bool gen_fork = InsecureRandRange(100) < branch_rate;
 
     const std::shared_ptr<const CBlock> pblock =
-        gen_invalid ? BadBlock(config, mempool, root)
-                    : GoodBlock(config, mempool, root);
+        gen_invalid ? BadBlock(config, root) : GoodBlock(config, root);
     blocks.push_back(pblock);
     if (!gen_invalid) {
-        BuildChain(config, mempool, pblock->GetHash(), height - 1, invalid_rate,
+        BuildChain(config, pblock->GetHash(), height - 1, invalid_rate,
                    branch_rate, max_size, blocks);
     }
 
     if (gen_fork) {
-        blocks.push_back(GoodBlock(config, mempool, root));
-        BuildChain(config, mempool, blocks.back()->GetHash(), height - 1,
-                   invalid_rate, branch_rate, max_size, blocks);
+        blocks.push_back(GoodBlock(config, root));
+        BuildChain(config, blocks.back()->GetHash(), height - 1, invalid_rate,
+                   branch_rate, max_size, blocks);
     }
 }
 
@@ -158,9 +174,8 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     std::vector<std::shared_ptr<const CBlock>> blocks;
     while (blocks.size() < 50) {
         blocks.clear();
-        BuildChain(config, *m_node.mempool,
-                   chainParams.GenesisBlock().GetHash(), 100, 15, 10, 500,
-                   blocks);
+        BuildChain(config, chainParams.GenesisBlock().GetHash(), 100, 15, 10,
+                   500, blocks);
     }
 
     bool ignored;
@@ -260,8 +275,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
     // Process all mined blocks
     BOOST_REQUIRE(
         ProcessBlock(std::make_shared<CBlock>(chainParams.GenesisBlock())));
-    auto last_mined = GoodBlock(config, *m_node.mempool,
-                                chainParams.GenesisBlock().GetHash());
+    auto last_mined = GoodBlock(config, chainParams.GenesisBlock().GetHash());
     BOOST_REQUIRE(ProcessBlock(last_mined));
 
     // Run the test multiple times
@@ -289,15 +303,13 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
                                      << OP_EQUALVERIFY << OP_CHECKSIG));
             }
             txs.push_back(MakeTransactionRef(mtx));
-            last_mined =
-                GoodBlock(config, *m_node.mempool, last_mined->GetHash());
+            last_mined = GoodBlock(config, last_mined->GetHash());
             BOOST_REQUIRE(ProcessBlock(last_mined));
         }
 
         // Mature the inputs of the txs
         for (int j = COINBASE_MATURITY; j > 0; --j) {
-            last_mined =
-                GoodBlock(config, *m_node.mempool, last_mined->GetHash());
+            last_mined = GoodBlock(config, last_mined->GetHash());
             BOOST_REQUIRE(ProcessBlock(last_mined));
         }
 
@@ -305,11 +317,10 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
         const BlockHash tip_init{last_mined->GetHash()};
 
         std::vector<std::shared_ptr<const CBlock>> reorg;
-        last_mined = GoodBlock(config, *m_node.mempool, split_hash);
+        last_mined = GoodBlock(config, split_hash);
         reorg.push_back(last_mined);
         for (size_t j = COINBASE_MATURITY + txs.size() + 1; j > 0; --j) {
-            last_mined =
-                GoodBlock(config, *m_node.mempool, last_mined->GetHash());
+            last_mined = GoodBlock(config, last_mined->GetHash());
             reorg.push_back(last_mined);
         }
 

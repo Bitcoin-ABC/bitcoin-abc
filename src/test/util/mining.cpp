@@ -9,6 +9,7 @@
 #include <consensus/merkle.h>
 #include <key_io.h>
 #include <miner.h>
+#include <node/context.h>
 #include <pow/pow.h>
 #include <script/standard.h>
 #include <validation.h>
@@ -16,16 +17,18 @@
 const std::string ADDRESS_BCHREG_UNSPENDABLE =
     "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt";
 
-CTxIn generatetoaddress(const Config &config, const std::string &address) {
+CTxIn generatetoaddress(const Config &config, const NodeContext &node,
+                        const std::string &address) {
     const auto dest = DecodeDestination(address, config.GetChainParams());
     assert(IsValidDestination(dest));
     const auto coinbase_script = GetScriptForDestination(dest);
 
-    return MineBlock(config, coinbase_script);
+    return MineBlock(config, node, coinbase_script);
 }
 
-CTxIn MineBlock(const Config &config, const CScript &coinbase_scriptPubKey) {
-    auto block = PrepareBlock(config, coinbase_scriptPubKey);
+CTxIn MineBlock(const Config &config, const NodeContext &node,
+                const CScript &coinbase_scriptPubKey) {
+    auto block = PrepareBlock(config, node, coinbase_scriptPubKey);
 
     while (!CheckProofOfWork(block->GetHash(), block->nBits,
                              config.GetChainParams().GetConsensus())) {
@@ -40,9 +43,11 @@ CTxIn MineBlock(const Config &config, const CScript &coinbase_scriptPubKey) {
 }
 
 std::shared_ptr<CBlock> PrepareBlock(const Config &config,
+                                     const NodeContext &node,
                                      const CScript &coinbase_scriptPubKey) {
+    assert(node.mempool);
     auto block =
-        std::make_shared<CBlock>(BlockAssembler{config, ::g_mempool}
+        std::make_shared<CBlock>(BlockAssembler{config, *node.mempool}
                                      .CreateNewBlock(coinbase_scriptPubKey)
                                      ->block);
 
