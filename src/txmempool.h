@@ -323,7 +323,6 @@ public:
 // Multi_index tag names
 struct descendant_score {};
 struct entry_time {};
-struct mining_score {};
 struct ancestor_score {};
 
 /**
@@ -398,8 +397,6 @@ typedef std::pair<double, Amount> TXModifier;
  * - transaction hash
  * - feerate [we use max(feerate of tx, feerate of tx with all descendants)]
  * - time in mempool
- * - mining score (feerate modified by any fee deltas from
- * PrioritiseTransaction)
  *
  * Note: the term "descendant" refers to in-mempool transactions that depend on
  * this one, while "ancestor" refers to in-mempool transactions that a given
@@ -490,11 +487,6 @@ public:
                                  boost::multi_index::tag<entry_time>,
                                  boost::multi_index::identity<CTxMemPoolEntry>,
                                  CompareTxMemPoolEntryByEntryTime>,
-                             // sorted by score (for mining prioritization)
-                             boost::multi_index::ordered_unique<
-                                 boost::multi_index::tag<mining_score>,
-                                 boost::multi_index::identity<CTxMemPoolEntry>,
-                                 CompareTxMemPoolEntryByScore>,
                              // sorted by fee rate with ancestors
                              boost::multi_index::ordered_non_unique<
                                  boost::multi_index::tag<ancestor_score>,

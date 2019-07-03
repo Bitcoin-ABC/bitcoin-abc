@@ -455,35 +455,6 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
 
     pool.removeRecursive(pool.mapTx.find(tx9.GetId())->GetTx());
     pool.removeRecursive(pool.mapTx.find(tx8.GetId())->GetTx());
-    /* Now check the sort on the mining score index.
-     * Final order should be:
-     *
-     * tx7 (2M)
-     * tx2 (20k)
-     * tx4 (15000)
-     * tx1/tx5 (10000)
-     * tx3/6 (0)
-     * (Ties resolved by hash)
-     */
-    sortedOrder.clear();
-    sortedOrder.push_back(tx7.GetId().ToString());
-    sortedOrder.push_back(tx2.GetId().ToString());
-    sortedOrder.push_back(tx4.GetId().ToString());
-    if (tx1.GetId() < tx5.GetId()) {
-        sortedOrder.push_back(tx5.GetId().ToString());
-        sortedOrder.push_back(tx1.GetId().ToString());
-    } else {
-        sortedOrder.push_back(tx1.GetId().ToString());
-        sortedOrder.push_back(tx5.GetId().ToString());
-    }
-    if (tx3.GetId() < tx6.GetId()) {
-        sortedOrder.push_back(tx6.GetId().ToString());
-        sortedOrder.push_back(tx3.GetId().ToString());
-    } else {
-        sortedOrder.push_back(tx3.GetId().ToString());
-        sortedOrder.push_back(tx6.GetId().ToString());
-    }
-    CheckSort<mining_score>(pool, sortedOrder, "MempoolIndexingTest8");
 }
 
 BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
