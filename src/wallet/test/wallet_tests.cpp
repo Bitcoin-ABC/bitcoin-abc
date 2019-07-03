@@ -284,6 +284,8 @@ public:
     ListCoinsTestingSetup() {
         CreateAndProcessBlock({},
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
+        g_address_type = OutputType::DEFAULT;
+        g_change_type = OutputType::DEFAULT;
         wallet = std::make_unique<CWallet>(Params(), "mock",
                                            CWalletDBWrapper::CreateMock());
         bool firstRun;
