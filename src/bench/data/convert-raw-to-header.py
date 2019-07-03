@@ -8,7 +8,7 @@ def main(test_name, input_file):
     with open(input_file, "rb") as f:
         contents = f.read()
 
-    print("static unsigned const char {}[] = {{".format(test_name))
+    print("static unsigned const char {}_raw[] = {{".format(test_name))
     print(", ".join(map(lambda x: "0x{:02x}".format(x), contents)))
     print("};")
 
