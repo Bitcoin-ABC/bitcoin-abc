@@ -2290,10 +2290,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
     }
 
-    // Encoded addresses using cashaddr instead of base58
-    // Activates by default on Jan, 14
-    config.SetCashAddrEncoding(
-        gArgs.GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
+    // Encoded addresses using cashaddr instead of base58.
+    // We do this by default to avoid confusion with BTC addresses.
+    config.SetCashAddrEncoding(gArgs.GetBoolArg("-usecashaddr", true));
 
     // Step 8: load indexers
     if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
