@@ -38,7 +38,9 @@ QRImageWidget::QRImageWidget(QWidget *parent) : QLabel(parent), contextMenu(0) {
 }
 
 QImage QRImageWidget::exportImage() {
-    if (!pixmap()) return QImage();
+    if (!pixmap()) {
+        return QImage();
+    }
     return pixmap()->toImage();
 }
 
@@ -57,7 +59,9 @@ void QRImageWidget::mousePressEvent(QMouseEvent *event) {
 }
 
 void QRImageWidget::saveImage() {
-    if (!pixmap()) return;
+    if (!pixmap()) {
+        return;
+    }
     QString fn = GUIUtil::getSaveFileName(this, tr("Save QR Code"), QString(),
                                           tr("PNG Image (*.png)"), nullptr);
     if (!fn.isEmpty()) {
@@ -66,12 +70,16 @@ void QRImageWidget::saveImage() {
 }
 
 void QRImageWidget::copyImage() {
-    if (!pixmap()) return;
+    if (!pixmap()) {
+        return;
+    }
     QApplication::clipboard()->setImage(exportImage());
 }
 
 void QRImageWidget::contextMenuEvent(QContextMenuEvent *event) {
-    if (!pixmap()) return;
+    if (!pixmap()) {
+        return;
+    }
     contextMenu->exec(event->globalPos());
 }
 
@@ -94,9 +102,10 @@ ReceiveRequestDialog::~ReceiveRequestDialog() {
 void ReceiveRequestDialog::setModel(WalletModel *_model) {
     this->model = _model;
 
-    if (_model)
+    if (_model) {
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
                 this, SLOT(update()));
+    }
 
     // update the display unit if necessary
     update();
@@ -108,9 +117,13 @@ void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info) {
 }
 
 void ReceiveRequestDialog::update() {
-    if (!model) return;
+    if (!model) {
+        return;
+    }
     QString target = info.label;
-    if (target.isEmpty()) target = info.address;
+    if (target.isEmpty()) {
+        target = info.address;
+    }
     setWindowTitle(tr("Request payment to %1").arg(target));
 
     QString uri = GUIUtil::formatBitcoinURI(info);
@@ -122,17 +135,20 @@ void ReceiveRequestDialog::update() {
     html += "<a href=\"" + uri + "\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
     html += "<b>" + tr("Address") +
             "</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
-    if (info.amount != Amount::zero())
+    if (info.amount != Amount::zero()) {
         html += "<b>" + tr("Amount") + "</b>: " +
                 BitcoinUnits::formatHtmlWithUnit(
                     model->getOptionsModel()->getDisplayUnit(), info.amount) +
                 "<br>";
-    if (!info.label.isEmpty())
+    }
+    if (!info.label.isEmpty()) {
         html += "<b>" + tr("Label") +
                 "</b>: " + GUIUtil::HtmlEscape(info.label) + "<br>";
-    if (!info.message.isEmpty())
+    }
+    if (!info.message.isEmpty()) {
         html += "<b>" + tr("Message") +
                 "</b>: " + GUIUtil::HtmlEscape(info.message) + "<br>";
+    }
     if (model->isMultiwallet()) {
         html += "<b>" + tr("Wallet") +
                 "</b>: " + GUIUtil::HtmlEscape(model->getWalletName()) + "<br>";

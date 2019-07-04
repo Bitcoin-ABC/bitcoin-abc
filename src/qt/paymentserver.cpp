@@ -135,8 +135,9 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
         certList = QSslCertificate::fromPath(certFile);
         // Use those certificates when fetching payment requests, too:
         QSslSocket::setDefaultCaCertificates(certList);
-    } else
+    } else {
         certList = QSslSocket::systemCaCertificates();
+    }
 
     int nRootCerts = 0;
     const QDateTime currentTime = QDateTime::currentDateTime();
@@ -605,10 +606,8 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus &request,
                 QString::fromStdString(EncodeCashAddr(dest, Params())));
         } else if (!recipient.authenticatedMerchant.isEmpty()) {
             // Unauthenticated payment requests to custom bitcoin addresses are
-            // not supported
-            // (there is no good way to tell the user where they are paying in a
-            // way they'd
-            // have a chance of understanding).
+            // not supported (there is no good way to tell the user where they
+            // are paying in a way they'd have a chance of understanding).
             Q_EMIT message(tr("Payment request rejected"),
                            tr("Unverified payment requests to custom payment "
                               "scripts are unsupported."),

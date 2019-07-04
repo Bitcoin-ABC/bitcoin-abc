@@ -242,10 +242,11 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
             }
 
             Amount nTxFee = nDebit - wtx.tx->GetValueOut();
-            if (nTxFee > Amount::zero())
+            if (nTxFee > Amount::zero()) {
                 strHTML += "<b>" + tr("Transaction fee") + ":</b> " +
                            BitcoinUnits::formatHtmlWithUnit(unit, -1 * nTxFee) +
                            "<br>";
+            }
         } else {
             //
             // Mixed debit transaction

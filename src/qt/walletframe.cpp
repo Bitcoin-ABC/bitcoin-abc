@@ -67,7 +67,9 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
 }
 
 bool WalletFrame::setCurrentWallet(const QString &name) {
-    if (mapWalletViews.count(name) == 0) return false;
+    if (mapWalletViews.count(name) == 0) {
+        return false;
+    }
 
     WalletView *walletView = mapWalletViews.value(name);
     walletStack->setCurrentWidget(walletView);
@@ -77,7 +79,9 @@ bool WalletFrame::setCurrentWallet(const QString &name) {
 }
 
 bool WalletFrame::removeWallet(const QString &name) {
-    if (mapWalletViews.count(name) == 0) return false;
+    if (mapWalletViews.count(name) == 0) {
+        return false;
+    }
 
     WalletView *walletView = mapWalletViews.take(name);
     walletStack->removeWidget(walletView);
@@ -86,14 +90,17 @@ bool WalletFrame::removeWallet(const QString &name) {
 
 void WalletFrame::removeAllWallets() {
     QMap<QString, WalletView *>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         walletStack->removeWidget(i.value());
+    }
     mapWalletViews.clear();
 }
 
 bool WalletFrame::handlePaymentRequest(const SendCoinsRecipient &recipient) {
     WalletView *walletView = currentWalletView();
-    if (!walletView) return false;
+    if (!walletView) {
+        return false;
+    }
 
     return walletView->handlePaymentRequest(recipient);
 }
@@ -101,72 +108,93 @@ bool WalletFrame::handlePaymentRequest(const SendCoinsRecipient &recipient) {
 void WalletFrame::showOutOfSyncWarning(bool fShow) {
     bOutOfSync = fShow;
     QMap<QString, WalletView *>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->showOutOfSyncWarning(fShow);
+    }
 }
 
 void WalletFrame::gotoOverviewPage() {
     QMap<QString, WalletView *>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoOverviewPage();
+    }
 }
 
 void WalletFrame::gotoHistoryPage() {
     QMap<QString, WalletView *>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoHistoryPage();
+    }
 }
 
 void WalletFrame::gotoReceiveCoinsPage() {
     QMap<QString, WalletView *>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoReceiveCoinsPage();
+    }
 }
 
 void WalletFrame::gotoSendCoinsPage(QString addr) {
     QMap<QString, WalletView *>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoSendCoinsPage(addr);
+    }
 }
 
 void WalletFrame::gotoSignMessageTab(QString addr) {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->gotoSignMessageTab(addr);
+    if (walletView) {
+        walletView->gotoSignMessageTab(addr);
+    }
 }
 
 void WalletFrame::gotoVerifyMessageTab(QString addr) {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->gotoVerifyMessageTab(addr);
+    if (walletView) {
+        walletView->gotoVerifyMessageTab(addr);
+    }
 }
 
 void WalletFrame::encryptWallet(bool status) {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->encryptWallet(status);
+    if (walletView) {
+        walletView->encryptWallet(status);
+    }
 }
 
 void WalletFrame::backupWallet() {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->backupWallet();
+    if (walletView) {
+        walletView->backupWallet();
+    }
 }
 
 void WalletFrame::changePassphrase() {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->changePassphrase();
+    if (walletView) {
+        walletView->changePassphrase();
+    }
 }
 
 void WalletFrame::unlockWallet() {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->unlockWallet();
+    if (walletView) {
+        walletView->unlockWallet();
+    }
 }
 
 void WalletFrame::usedSendingAddresses() {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->usedSendingAddresses();
+    if (walletView) {
+        walletView->usedSendingAddresses();
+    }
 }
 
 void WalletFrame::usedReceivingAddresses() {
     WalletView *walletView = currentWalletView();
-    if (walletView) walletView->usedReceivingAddresses();
+    if (walletView) {
+        walletView->usedReceivingAddresses();
+    }
 }
 
 WalletView *WalletFrame::currentWalletView() {

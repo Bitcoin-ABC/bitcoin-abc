@@ -38,9 +38,10 @@ bool CCoinControlWidgetItem::operator<(const QTreeWidgetItem &other) const {
     int column = treeWidget()->sortColumn();
     if (column == CoinControlDialog::COLUMN_AMOUNT ||
         column == CoinControlDialog::COLUMN_DATE ||
-        column == CoinControlDialog::COLUMN_CONFIRMATIONS)
+        column == CoinControlDialog::COLUMN_CONFIRMATIONS) {
         return data(column, Qt::UserRole).toLongLong() <
                other.data(column, Qt::UserRole).toLongLong();
+    }
     return QTreeWidgetItem::operator<(other);
 }
 
@@ -158,13 +159,15 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
     // restore list mode and sortorder as a convenience feature
     QSettings settings;
     if (settings.contains("nCoinControlMode") &&
-        !settings.value("nCoinControlMode").toBool())
+        !settings.value("nCoinControlMode").toBool()) {
         ui->radioTreeMode->click();
+    }
     if (settings.contains("nCoinControlSortColumn") &&
-        settings.contains("nCoinControlSortOrder"))
+        settings.contains("nCoinControlSortOrder")) {
         sortView(settings.value("nCoinControlSortColumn").toInt(),
                  (static_cast<Qt::SortOrder>(
                      settings.value("nCoinControlSortOrder").toInt())));
+    }
 }
 
 CoinControlDialog::~CoinControlDialog() {
@@ -205,12 +208,13 @@ void CoinControlDialog::buttonSelectAllClicked() {
         }
     }
     ui->treeWidget->setEnabled(false);
-    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); i++) {
         if (ui->treeWidget->topLevelItem(i)->checkState(COLUMN_CHECKBOX) !=
             state) {
             ui->treeWidget->topLevelItem(i)->setCheckState(COLUMN_CHECKBOX,
                                                            state);
         }
+    }
     ui->treeWidget->setEnabled(true);
     if (state == Qt::Unchecked) {
         // just to be sure
@@ -819,8 +823,9 @@ void CoinControlDialog::updateView() {
     if (treeMode) {
         for (int i = 0; i < ui->treeWidget->topLevelItemCount(); i++) {
             if (ui->treeWidget->topLevelItem(i)->checkState(COLUMN_CHECKBOX) ==
-                Qt::PartiallyChecked)
+                Qt::PartiallyChecked) {
                 ui->treeWidget->topLevelItem(i)->setExpanded(true);
+            }
         }
     }
 
