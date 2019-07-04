@@ -42,9 +42,11 @@ class HTTPBasicsTest(BitcoinTestFramework):
     def setup_chain(self):
         super().setup_chain()
         # Append rpcauth to bitcoin.conf before initialization
+        self.rtpassword = "cA773lm788buwYe4g4WT+05pKyNruVKjQ25x3n0DQcM="
         rpcauth = "rpcauth=rt:93648e835a54c573682c2eb19f882535$7681e9c5b74bdd85e78166031d2058e1069b3ed7ed967c93fc63abba06f31144"
-        rpcuser = "rpcuser=rpcuser💻"
-        rpcpassword = "rpcpassword=rpcpassword🔑"
+
+        self.rpcuser = "rpcuser💻"
+        self.rpcpassword = "rpcpassword🔑"
 
         config = configparser.ConfigParser()
         config.read_file(open(self.options.configfile, encoding='utf-8'))
@@ -74,8 +76,8 @@ class HTTPBasicsTest(BitcoinTestFramework):
             f.write(rpcauth2 + "\n")
             f.write(rpcauth3 + "\n")
         with open(os.path.join(get_datadir_path(self.options.tmpdir, 1), "bitcoin.conf"), 'a', encoding='utf8') as f:
-            f.write(rpcuser + "\n")
-            f.write(rpcpassword + "\n")
+            f.write("rpcuser={}\n".format(self.rpcuser))
+            f.write("rpcpassword={}\n".format(self.rpcpassword))
 
     def test_auth(self, node, user, password):
         self.log.info('Correct...')
@@ -100,10 +102,8 @@ class HTTPBasicsTest(BitcoinTestFramework):
         ##################################################
         url = urllib.parse.urlparse(self.nodes[0].url)
 
-        password = "cA773lm788buwYe4g4WT+05pKyNruVKjQ25x3n0DQcM="
-
         self.test_auth(self.nodes[0], url.username, url.password)
-        self.test_auth(self.nodes[0], 'rt', password)
+        self.test_auth(self.nodes[0], 'rt', self.rtpassword)
         self.test_auth(self.nodes[0], 'rt2', self.rt2password)
         self.test_auth(self.nodes[0], self.user, self.password)
 
@@ -112,7 +112,7 @@ class HTTPBasicsTest(BitcoinTestFramework):
         ###############################################################
         url = urllib.parse.urlparse(self.nodes[1].url)
 
-        self.test_auth(self.nodes[1], "rpcuser💻", "rpcpassword🔑")
+        self.test_auth(self.nodes[1], self.rpcuser, self.rpcpassword)
 
 
 if __name__ == '__main__':
