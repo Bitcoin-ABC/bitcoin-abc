@@ -215,4 +215,3 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx,
     return CTxMemPoolEntry(tx, nFee, nTime, dPriority, nHeight, inChainValue,
                            spendsCoinbase, sigOpCost, lp);
 }
-

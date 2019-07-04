@@ -14,7 +14,7 @@ namespace {
 class GUIUtilTestConfig : public DummyConfig {
 public:
     GUIUtilTestConfig()
-        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(false) {}
+        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(true) {}
     void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
     bool UseCashAddrEncoding() const override { return useCashAddr; }
 
@@ -30,13 +30,7 @@ void GUIUtilTests::dummyAddressTest() {
 
     std::string dummyaddr;
 
-    config.SetCashAddrEncoding(false);
-    dummyaddr = GUIUtil::DummyAddress(config);
-    QVERIFY(!IsValidDestinationString(dummyaddr, params));
-    QVERIFY(!dummyaddr.empty());
-
-    config.SetCashAddrEncoding(true);
-    dummyaddr = GUIUtil::DummyAddress(config);
+    dummyaddr = GUIUtil::DummyAddress(params);
     QVERIFY(!IsValidDestinationString(dummyaddr, params));
     QVERIFY(!dummyaddr.empty());
 }

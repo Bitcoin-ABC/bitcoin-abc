@@ -35,7 +35,8 @@ class QUrl;
 class QWidget;
 QT_END_NAMESPACE
 
-/** Utility functions used by the Bitcoin Qt UI.
+/**
+ * Utility functions used by the Bitcoin Qt UI.
  */
 namespace GUIUtil {
 
@@ -47,7 +48,7 @@ QString dateTimeStr(qint64 nTime);
 QFont fixedPitchFont();
 
 // Generate an invalid, but convincing address.
-std::string DummyAddress(const Config &config);
+std::string DummyAddress(const CChainParams &params);
 
 // Convert an address into the user chosen format
 QString convertToConfiguredAddressFormat(const Config &config,

@@ -5,6 +5,7 @@
 #include <qt/guiutil.h>
 
 #include <cashaddr.h>
+#include <cashaddrenc.h>
 #include <chainparams.h>
 #include <config.h>
 #include <dstencode.h>
@@ -97,21 +98,22 @@ QFont fixedPitchFont() {
 #endif
 }
 
-static std::string MakeAddrInvalid(std::string addr, const Config &config) {
+static std::string MakeAddrInvalid(std::string addr,
+                                   const CChainParams &params) {
     if (addr.size() < 2) {
         return "";
     }
 
     // Checksum is at the end of the address. Swapping chars to make it invalid.
     std::swap(addr[addr.size() - 1], addr[addr.size() - 2]);
-    if (!IsValidDestinationString(addr, config.GetChainParams())) {
+    if (!IsValidDestinationString(addr, params)) {
         return addr;
     }
 
     return "";
 }
 
-std::string DummyAddress(const Config &config) {
+std::string DummyAddress(const CChainParams &params) {
     // Just some dummy data to generate a convincing random-looking (but
     // consistent) address
     static const std::vector<uint8_t> dummydata = {
@@ -119,7 +121,7 @@ std::string DummyAddress(const Config &config) {
         0xb6, 0x7d, 0x06, 0x52, 0x99, 0x92, 0x59, 0x15, 0xae, 0xb1};
 
     const CTxDestination dstKey = CKeyID(uint160(dummydata));
-    return MakeAddrInvalid(EncodeDestination(dstKey, config), config);
+    return MakeAddrInvalid(EncodeCashAddr(dstKey, params), params);
 }
 
 // Addresses are stored in the database with the encoding that the client was
@@ -146,7 +148,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
     // and this is the only place, where this address is supplied.
     widget->setPlaceholderText(
         QObject::tr("Enter a Bitcoin address (e.g. %1)")
-            .arg(QString::fromStdString(DummyAddress(GetConfig()))));
+            .arg(QString::fromStdString(DummyAddress(Params()))));
     widget->setValidator(
         new BitcoinAddressEntryValidator(Params().CashAddrPrefix(), parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
