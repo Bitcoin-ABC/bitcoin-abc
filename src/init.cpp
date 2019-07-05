@@ -373,10 +373,12 @@ void SetupServerArgs() {
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
                  OptionsCategory::OPTIONS);
+#if defined(HAVE_SYSTEM)
     gArgs.AddArg("-alertnotify=<cmd>",
                  "Execute command when a relevant alert is received or we see "
                  "a really long fork (%s in cmd is replaced by message)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+#endif
     gArgs.AddArg(
         "-assumevalid=<hex>",
         strprintf(
@@ -390,10 +392,12 @@ void SetupServerArgs() {
                  "Specify directory to hold blocks subdirectory for *.dat "
                  "files (default: <datadir>)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+#if defined(HAVE_SYSTEM)
     gArgs.AddArg("-blocknotify=<cmd>",
                  "Execute command when the best block changes (%s in cmd is "
                  "replaced by block hash)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+#endif
     gArgs.AddArg("-blockreconstructionextratxn=<n>",
                  strprintf("Extra transactions to keep in memory for compact "
                            "block reconstructions (default: %u)",
@@ -1172,6 +1176,7 @@ std::string LicenseInfo() {
            "\n";
 }
 
+#if defined(HAVE_SYSTEM)
 static void BlockNotifyCallback(bool initialSync,
                                 const CBlockIndex *pBlockIndex) {
     if (initialSync || !pBlockIndex) {
@@ -1186,6 +1191,7 @@ static void BlockNotifyCallback(bool initialSync,
         t.detach();
     }
 }
+#endif
 
 static bool fHaveGenesis = false;
 static Mutex g_genesis_wait_mutex;
@@ -2655,9 +2661,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         fHaveGenesis = true;
     }
 
+#if defined(HAVE_SYSTEM)
     if (gArgs.IsArgSet("-blocknotify")) {
         uiInterface.NotifyBlockTip_connect(BlockNotifyCallback);
     }
+#endif
 
     std::vector<fs::path> vImportFiles;
     for (const std::string &strFile : gArgs.GetArgs("-loadblock")) {

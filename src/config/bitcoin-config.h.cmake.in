@@ -60,6 +60,8 @@
 
 #cmakedefine HAVE_SYSCTL_ARND 1
 
+#cmakedefine HAVE_SYSTEM 1
+
 #cmakedefine CHAR_EQUALS_INT8 0
 #cmakedefine HAVE_LARGE_FILE_SUPPORT 1
 

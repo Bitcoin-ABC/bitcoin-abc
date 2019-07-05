@@ -5,6 +5,7 @@
 
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
+include(CheckCXXSymbolExists)
 include(CheckCXXSourceCompiles)
 
 # Version
@@ -215,6 +216,13 @@ endif()
 
 if(ENABLE_DBUS_NOTIFICATIONS)
 	set(USE_DBUS 1)
+endif()
+
+# Check if std::system or ::wsystem is available
+check_cxx_symbol_exists(std::system "cstdlib" _HAVE_STD_SYSTEM)
+check_cxx_symbol_exists(::wsystem "" _HAVE_WSYSTEM)
+if(_HAVE_STD_SYSTEM OR _HAVE_WSYSTEM)
+	set(HAVE_SYSTEM 1)
 endif()
 
 # Generate the config

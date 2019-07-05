@@ -1167,6 +1167,7 @@ fs::path GetSpecialFolderPath(int nFolder, bool fCreate) {
 }
 #endif
 
+#if defined(HAVE_SYSTEM)
 void runCommand(const std::string &strCommand) {
     if (strCommand.empty()) {
         return;
@@ -1184,6 +1185,7 @@ void runCommand(const std::string &strCommand) {
                   nErr);
     }
 }
+#endif
 
 void SetupEnvironment() {
 #ifdef HAVE_MALLOPT_ARENA_MAX

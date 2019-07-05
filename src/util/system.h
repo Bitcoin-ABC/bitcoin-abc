@@ -82,7 +82,9 @@ fs::path GetConfigFile(const std::string &confPath);
 #ifdef WIN32
 fs::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
+#if defined(HAVE_SYSTEM)
 void runCommand(const std::string &strCommand);
+#endif
 
 NODISCARD bool ParseKeyValue(std::string &key, std::string &val);
 

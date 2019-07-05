@@ -1222,6 +1222,7 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
     // Notify UI of new or updated transaction.
     NotifyTransactionChanged(this, txid, fInsertedNew ? CT_NEW : CT_UPDATED);
 
+#if defined(HAVE_SYSTEM)
     // Notify an external script when a wallet transaction comes in or is
     // updated.
     std::string strCmd = gArgs.GetArg("-walletnotify", "");
@@ -1232,6 +1233,7 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
         // Thread runs free.
         t.detach();
     }
+#endif
 
     return true;
 }

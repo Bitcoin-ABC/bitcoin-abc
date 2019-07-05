@@ -114,10 +114,12 @@ void WalletInit::AddWalletOptions() const {
                  "Specify directory to hold wallets (default: "
                  "<datadir>/wallets if it exists, otherwise <datadir>)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
+#if defined(HAVE_SYSTEM)
     gArgs.AddArg("-walletnotify=<cmd>",
                  "Execute command when a wallet transaction changes (%s in cmd "
                  "is replaced by TxID)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
+#endif
     gArgs.AddArg(
         "-zapwallettxes=<mode>",
         "Delete all wallet transactions and only recover those parts of the "
