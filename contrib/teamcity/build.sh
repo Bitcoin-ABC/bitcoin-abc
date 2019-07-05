@@ -23,8 +23,9 @@ THREADS=$(nproc || sysctl -n hw.ncpu)
 
 # Default to nothing
 : ${DISABLE_WALLET:=}
+: ${CONFIGURE_FLAGS:=}
 
-CONFIGURE_FLAGS=("--prefix=`pwd`")
+CONFIGURE_FLAGS+=("--prefix=`pwd`")
 if [[ ! -z "${DISABLE_WALLET}" ]]; then
 	echo "*** Building without wallet"
 	CONFIGURE_FLAGS+=("--disable-wallet")
