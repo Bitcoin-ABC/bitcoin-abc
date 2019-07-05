@@ -152,7 +152,7 @@ def nonce_function_rfc6979(privkeybytes, msg32, algo16=b'', ndata=b''):
         if k > 0 and k < SECP256K1_ORDER:
             break
         K = hmac.HMAC(K, V+b'\x00', 'sha256').digest()
-        V = HMAC_K(V)
+        V = hmac.HMAC(K, V, 'sha256').digest()
     return k
 
 
