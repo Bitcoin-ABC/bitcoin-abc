@@ -1525,6 +1525,10 @@ bool DescriptorScriptPubKeyMan::GetNewDestination(const OutputType type,
 }
 
 isminetype DescriptorScriptPubKeyMan::IsMine(const CScript &script) const {
+    LOCK(cs_desc_man);
+    if (m_map_script_pub_keys.count(script) > 0) {
+        return ISMINE_SPENDABLE;
+    }
     return ISMINE_NO;
 }
 
@@ -1590,7 +1594,7 @@ DescriptorScriptPubKeyMan::GetSolvingProvider(const CScript &script) const {
 
 bool DescriptorScriptPubKeyMan::CanProvide(const CScript &script,
                                            SignatureData &sigdata) {
-    return false;
+    return IsMine(script);
 }
 
 bool DescriptorScriptPubKeyMan::SignTransaction(
