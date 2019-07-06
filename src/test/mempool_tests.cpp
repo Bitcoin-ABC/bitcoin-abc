@@ -20,6 +20,7 @@ BOOST_FIXTURE_TEST_SUITE(mempool_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
     CTxMemPool testPool;
+    LOCK(testPool.cs);
     TestMemPoolEntryHelper entry;
     CMutableTransaction parentOfAll;
 
@@ -229,6 +230,7 @@ BOOST_AUTO_TEST_CASE(MempoolClearTest) {
     }
 
     CTxMemPool testPool;
+    LOCK(testPool.cs);
 
     // Nothing in pool, clear should do nothing:
     testPool.clear();

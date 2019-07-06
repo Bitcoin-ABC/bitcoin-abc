@@ -184,7 +184,7 @@ private:
 
     // Methods for how to add transactions to a block.
     /** Add transactions based on tx "priority" */
-    void addPriorityTxs();
+    void addPriorityTxs() EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
     /**
      * Add transactions based on feerate including unconfirmed ancestors.
      * Increments nPackagesSelected / nDescendantsUpdated with corresponding
@@ -204,7 +204,8 @@ private:
     /** Test if tx will still "fit" in the block */
     TestForBlockResult TestForBlock(CTxMemPool::txiter iter);
     /** Test if tx still has unconfirmed parents not yet in block */
-    bool isStillDependent(CTxMemPool::txiter iter);
+    bool isStillDependent(CTxMemPool::txiter iter)
+        EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
 
     // helper functions for addPackageTxs()
     /** Remove confirmed (inBlock) entries from given set */
