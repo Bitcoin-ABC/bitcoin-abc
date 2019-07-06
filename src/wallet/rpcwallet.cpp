@@ -3005,6 +3005,9 @@ static UniValue getwalletinfo(const Config &config,
                 {RPCResult::Type::BOOL, "avoid_reuse",
                  "whether this wallet tracks clean/dirty coins in terms of "
                  "reuse"},
+                {RPCResult::Type::BOOL, "descriptors",
+                 "whether this wallet uses descriptors for scriptPubKey "
+                 "management"},
             }},
         },
         RPCExamples{HelpExampleCli("getwalletinfo", "") +
@@ -3060,6 +3063,8 @@ static UniValue getwalletinfo(const Config &config,
     }
     obj.pushKV("avoid_reuse",
                pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE));
+    obj.pushKV("descriptors",
+               pwallet->IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS));
     return obj;
 }
 
