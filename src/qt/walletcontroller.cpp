@@ -133,8 +133,10 @@ WalletModel *WalletController::getOrCreateWallet(
         // Handler callback runs in a different thread so fix wallet model
         // thread affinity.
         wallet_model->moveToThread(thread());
-        QMetaObject::invokeMethod(this, "addWallet", Qt::QueuedConnection,
-                                  Q_ARG(WalletModel *, wallet_model));
+        bool invoked =
+            QMetaObject::invokeMethod(this, "addWallet", Qt::QueuedConnection,
+                                      Q_ARG(WalletModel *, wallet_model));
+        assert(invoked);
     }
 
     return wallet_model;

@@ -74,7 +74,9 @@ TxId SendCoins(CWallet &wallet, SendCoinsDialog &sendCoinsDialog,
                 }
             });
     ConfirmSend();
-    QMetaObject::invokeMethod(&sendCoinsDialog, "on_sendButton_clicked");
+    bool invoked =
+        QMetaObject::invokeMethod(&sendCoinsDialog, "on_sendButton_clicked");
+    assert(invoked);
     return txid;
 }
 
