@@ -464,8 +464,6 @@ static void SetupUIArgs() {
                  OptionsCategory::GUI);
 }
 
-#ifndef BITCOIN_QT_TEST
-
 static void MigrateSettings() {
     assert(!QApplication::applicationName().isEmpty());
 
@@ -754,4 +752,3 @@ int GuiMain(int argc, char *argv[]) {
     }
     return EXIT_FAILURE;
 }
-#endif // BITCOIN_QT_TEST
