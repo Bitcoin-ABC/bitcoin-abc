@@ -4,7 +4,6 @@
 
 #include <qt/guiutil.h>
 
-#include <cashaddr.h>
 #include <cashaddrenc.h>
 #include <chainparams.h>
 #include <dstencode.h>
@@ -158,12 +157,6 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent) {
     widget->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 }
 
-static bool IsCashAddrEncoded(const QUrl &uri) {
-    const std::string addr = (uri.scheme() + ":" + uri.path()).toStdString();
-    auto decoded = cashaddr::Decode(addr, "");
-    return !decoded.first.empty();
-}
-
 bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
                      SendCoinsRecipient *out) {
     // return if URI has wrong scheme.
@@ -172,12 +165,8 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
     }
 
     SendCoinsRecipient rv;
-    if (IsCashAddrEncoded(uri)) {
-        rv.address = uri.scheme() + ":" + uri.path();
-    } else {
-        // strip out uri scheme for base58 encoded addresses
-        rv.address = uri.path();
-    }
+    rv.address = uri.scheme() + ":" + uri.path();
+
     // Trim any following forward slash which may have been added by the OS
     if (rv.address.endsWith("/")) {
         rv.address.truncate(rv.address.length() - 1);
