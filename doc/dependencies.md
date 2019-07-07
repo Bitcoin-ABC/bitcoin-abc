@@ -9,7 +9,6 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | Boost | [1.70.0](https://www.boost.org/users/download/) | 1.58.0 | No |  |  |
 | Clang |  | [3.4](http://llvm.org/releases/download.html) (C++14 support) |  |  |  |
 | CMake |  | [3.13](https://cmake.org/download/) |  |  |  |
-| D-Bus | [1.10.18](https://cgit.freedesktop.org/dbus/dbus/tree/NEWS?h=dbus-1.10) |  | No | Yes |  |
 | Expat | [2.2.6](https://libexpat.github.io/) |  | No | Yes |  |
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
 | FreeType | [2.7.1](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
