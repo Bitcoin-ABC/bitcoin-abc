@@ -4861,6 +4861,9 @@ CWallet::GetSolvingProvider(const CScript &script,
 }
 
 LegacyScriptPubKeyMan *CWallet::GetLegacyScriptPubKeyMan() const {
+    if (IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS)) {
+        return nullptr;
+    }
     // Legacy wallets only have one ScriptPubKeyMan which is a
     // LegacyScriptPubKeyMan. Everything in m_internal_spk_managers and
     // m_external_spk_managers point to the same legacyScriptPubKeyMan.
@@ -4878,7 +4881,7 @@ LegacyScriptPubKeyMan *CWallet::GetOrCreateLegacyScriptPubKeyMan() {
 
 void CWallet::SetupLegacyScriptPubKeyMan() {
     if (!m_internal_spk_managers.empty() || !m_external_spk_managers.empty() ||
-        !m_spk_managers.empty()) {
+        !m_spk_managers.empty() || IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS)) {
         return;
     }
 
