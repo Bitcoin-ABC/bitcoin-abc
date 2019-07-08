@@ -1504,6 +1504,22 @@ public:
 
     //! Connect the signals from ScriptPubKeyMans to the signals in CWallet
     void ConnectScriptPubKeyManNotifiers();
+
+    //! Instantiate a descriptor ScriptPubKeyMan from the WalletDescriptor and
+    //! load it
+    void LoadDescriptorScriptPubKeyMan(uint256 id, WalletDescriptor &desc);
+
+    //! Sets the active ScriptPubKeyMan for the specified type and internal
+    //! @param[in] id The unique id for the ScriptPubKeyMan
+    //! @param[in] type The OutputType this ScriptPubKeyMan provides addresses
+    //!                 for
+    //! @param[in] internal Whether this ScriptPubKeyMan provides change
+    //!                     addresses
+    //! @param[in] memonly Whether to record this update to the database. Set to
+    //!                    true for wallet loading, normally false when actually
+    //!                    updating the wallet.
+    void SetActiveScriptPubKeyMan(uint256 id, OutputType type, bool internal,
+                                  bool memonly = false);
 };
 
 /**

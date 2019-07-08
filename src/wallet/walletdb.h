@@ -220,6 +220,9 @@ public:
     /// Erase destination data tuple from wallet database.
     bool EraseDestData(const CTxDestination &address, const std::string &key);
 
+    bool WriteActiveScriptPubKeyMan(uint8_t type, const uint256 &id,
+                                    bool internal);
+
     DBErrors LoadWallet(CWallet *pwallet);
     DBErrors FindWalletTx(std::vector<TxId> &txIds,
                           std::vector<CWalletTx> &vWtx);
