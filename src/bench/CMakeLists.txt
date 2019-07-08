@@ -53,6 +53,7 @@ add_executable(bitcoin-bench
 	merkle_root.cpp
 	prevector.cpp
 	rollingbloom.cpp
+	rpc_blockchain.cpp
 	rpc_mempool.cpp
 	util_time.cpp
 
