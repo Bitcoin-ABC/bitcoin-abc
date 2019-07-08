@@ -1639,7 +1639,13 @@ DescriptorScriptPubKeyMan::GetMetadata(const CTxDestination &dest) const {
 }
 
 uint256 DescriptorScriptPubKeyMan::GetID() const {
-    return uint256();
+    LOCK(cs_desc_man);
+    std::string desc_str = m_wallet_descriptor.descriptor->ToString();
+    uint256 id;
+    CSHA256()
+        .Write((uint8_t *)desc_str.data(), desc_str.size())
+        .Finalize(id.begin());
+    return id;
 }
 
 void DescriptorScriptPubKeyMan::SetType(OutputType type, bool internal) {
