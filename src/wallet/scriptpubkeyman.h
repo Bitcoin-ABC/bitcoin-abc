@@ -618,8 +618,18 @@ public:
 };
 
 class DescriptorScriptPubKeyMan : public ScriptPubKeyMan {
+private:
+    WalletDescriptor m_wallet_descriptor GUARDED_BY(cs_desc_man);
+
+    // Map of scripts to descriptor range index
+    using ScriptPubKeyMap = std::map<CScript, int32_t>;
+
+    ScriptPubKeyMap m_map_script_pub_keys GUARDED_BY(cs_desc_man);
+
 public:
-    using ScriptPubKeyMan::ScriptPubKeyMan;
+    DescriptorScriptPubKeyMan(WalletStorage &storage,
+                              WalletDescriptor &descriptor)
+        : ScriptPubKeyMan(storage), m_wallet_descriptor(descriptor) {}
 
     mutable RecursiveMutex cs_desc_man;
 
