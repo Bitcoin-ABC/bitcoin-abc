@@ -93,17 +93,17 @@ endif()
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_compiler_flag(-fPIC)
 endif()
-	
+
 if(ENABLE_HARDENING)
 	# Enable stack protection
 	add_cxx_compiler_flag(-fstack-protector-all -Wstack-protector)
-	
+
 	# Enable some buffer overflow checking
 	add_compiler_flag(-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
-	
+
 	# Enable ASLR (these flags are primarily targeting MinGw)
 	add_linker_flag(-Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)
-	
+
 	# Make the relocated sections read-only
 	add_linker_flag(-Wl,-z,relro -Wl,-z,now)
 
@@ -246,7 +246,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 	find_library(WS2_32_LIBRARY NAMES ws2_32)
 	target_link_libraries(util ${WS2_32_LIBRARY})
-	
+
 	target_compile_definitions(util PUBLIC BOOST_THREAD_USE_LIB)
 endif()
 

@@ -24,7 +24,7 @@ configure_file(config.ini.in config.ini @ONLY)
 
 ###
 # Setup symlinks for testing
-### 
+###
 macro(make_link src dest)
   add_custom_command(
     OUTPUT "${dest}"

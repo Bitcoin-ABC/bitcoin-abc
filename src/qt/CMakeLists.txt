@@ -139,7 +139,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	list(APPEND QT_PLUGIN_COMPONENTS QCocoaIntegrationPlugin)
 	list(APPEND QT_PLUGIN_PLATFORM_DEFINITIONS -DQT_QPA_PLATFORM_COCOA=1)
 
-	target_sources(bitcoin-qt-base PRIVATE 
+	target_sources(bitcoin-qt-base PRIVATE
 		macdockiconhandler.mm
 		macnotificationhandler.mm
 	)
