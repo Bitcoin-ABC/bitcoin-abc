@@ -266,8 +266,8 @@ def main():
                 print("{}WARNING!{} Test '{}' not found in current test list.".format(
                     BOLD[1], BOLD[0], exclude_test))
 
-    # Use and update timings from build_dir only if separate
-    # build directory is used. We do not want to pollute source directory.
+    # Update timings from build_dir only if separate build directory is used.
+    # We do not want to pollute source directory.
     build_timings = None
     if (src_dir != build_dir):
         build_timings = Timings(os.path.join(build_dir, 'timing.json'))
@@ -278,7 +278,7 @@ def main():
 
     # Add test parameters and remove long running tests if needed
     test_list = get_tests_to_run(
-        test_list, TEST_PARAMS, cutoff, src_timings, build_timings)
+        test_list, TEST_PARAMS, cutoff, src_timings)
 
     if not test_list:
         print("No valid test scripts specified. Check that your test is in one "
@@ -567,7 +567,7 @@ def get_all_scripts_from_disk(test_dir, non_scripts):
     return list(python_files - set(non_scripts))
 
 
-def get_tests_to_run(test_list, test_params, cutoff, src_timings, build_timings=None):
+def get_tests_to_run(test_list, test_params, cutoff, src_timings):
     """
     Returns only test that will not run longer that cutoff.
     Long running tests are returned first to favor running tests in parallel
@@ -575,13 +575,7 @@ def get_tests_to_run(test_list, test_params, cutoff, src_timings, build_timings=
     """
 
     def get_test_time(test):
-        if build_timings is not None:
-            timing = next(
-                (x['time'] for x in build_timings.existing_timings if x['name'] == test), None)
-            if timing is not None:
-                return timing
-
-        # try source directory. Return 0 if test is unknown to always run it
+        # Return 0 if test is unknown to always run it
         return next(
             (x['time'] for x in src_timings.existing_timings if x['name'] == test), 0)
 
