@@ -41,6 +41,13 @@ fi
 
 ../configure "${CONFIGURE_FLAGS[@]}"
 
+# Sanitizers options, not used if sanitizers are not enabled
+SAN_SUPP_DIR="${TOPLEVEL}/test/sanitizer_suppressions"
+export ASAN_OPTIONS=""
+export LSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/lsan"
+export TSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/tsan"
+export UBSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/ubsan:print_stacktrace=1:halt_on_error=1"
+
 # Run build
 make -j ${THREADS}
 
