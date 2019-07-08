@@ -116,6 +116,13 @@
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)"
             ]
+        },
+        "lint-source-filename": {
+            "type": "lint-source-filename",
+            "include": "(^src/.*\\.(h|c|cpp)$)",
+            "exclude": [
+                "(^src/(secp256k1|univalue|leveldb)/)"
+            ]
         }
     }
 }
