@@ -76,7 +76,7 @@ static void CleanupScriptCode(CScript &scriptCode,
     // Drop the signature in scripts when SIGHASH_FORKID is not used.
     SigHashType sigHashType = GetHashType(vchSig);
     if (!(flags & SCRIPT_ENABLE_SIGHASH_FORKID) || !sigHashType.hasForkId()) {
-        FindAndDelete(scriptCode, CScript(vchSig));
+        FindAndDelete(scriptCode, CScript() << vchSig);
     }
 }
 

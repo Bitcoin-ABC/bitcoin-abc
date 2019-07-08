@@ -472,7 +472,9 @@ public:
 
     explicit CScript(opcodetype b) { operator<<(b); }
     explicit CScript(const CScriptNum &b) { operator<<(b); }
-    explicit CScript(const std::vector<uint8_t> &b) { operator<<(b); }
+    // delete non-existent constructor to defend against future introduction
+    // e.g. via prevector
+    explicit CScript(const std::vector<uint8_t> &b) = delete;
 
     CScript &operator<<(int64_t b) { return push_int64(b); }
 

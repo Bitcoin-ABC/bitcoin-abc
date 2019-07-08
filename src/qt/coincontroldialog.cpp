@@ -464,8 +464,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         nPayAmount += amount;
 
         if (amount > Amount::zero()) {
-            CTxOut txout(amount,
-                         static_cast<CScript>(std::vector<uint8_t>(24, 0)));
+            // Assumes a p2pkh script size
+            CTxOut txout(amount, CScript() << std::vector<uint8_t>(24, 0));
             txDummy.vout.push_back(txout);
             fDust |= IsDust(txout, model->node().getDustRelayFee());
         }
@@ -551,8 +551,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
             // Never create dust outputs; if we would, just add the dust to the
             // fee.
             if (nChange > Amount::zero() && nChange < MIN_CHANGE) {
-                CTxOut txout(nChange,
-                             static_cast<CScript>(std::vector<uint8_t>(24, 0)));
+                // Assumes a p2pkh script size
+                CTxOut txout(nChange, CScript() << std::vector<uint8_t>(24, 0));
                 if (IsDust(txout, model->node().getDustRelayFee())) {
                     nPayFee += nChange;
                     nChange = Amount::zero();
