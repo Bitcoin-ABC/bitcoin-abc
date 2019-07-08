@@ -20,6 +20,7 @@ phutil_register_library_map(array(
     'IncludeSourceLinter' => 'linter/IncludeSourceLinter.php',
     'LocaleDependenceLinter' => 'linter/LocaleDependenceLinter.php',
     'PythonFormatLinter' => 'linter/PythonFormatLinter.php',
+    'StdintLinter' => 'linter/StdintLinter.php',
     'TestsLinter' => 'linter/TestsLinter.php',
   ),
   'function' => array(),
@@ -35,6 +36,7 @@ phutil_register_library_map(array(
     'IncludeSourceLinter' => 'ArcanistLinter',
     'LocaleDependenceLinter' => 'ArcanistLinter',
     'PythonFormatLinter' => 'ArcanistExternalLinter',
+    'StdintLinter' => 'ArcanistLinter',
     'TestsLinter' => 'ArcanistExternalLinter',
   ),
 ));
