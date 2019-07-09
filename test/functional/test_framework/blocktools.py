@@ -6,6 +6,9 @@
 
 from .script import (
     CScript,
+    CScriptNum,
+    CScriptOp,
+    OP_1,
     OP_CHECKSIG,
     OP_DUP,
     OP_EQUALVERIFY,
@@ -22,7 +25,6 @@ from .messages import (
     CTxOut,
     FromHex,
     ToHex,
-    ser_string,
 )
 from .txtools import pad_tx
 from .util import assert_equal, satoshi_round
@@ -56,20 +58,13 @@ def make_conform_to_ctor(block):
         sorted(block.vtx[1:], key=lambda tx: tx.get_id())
 
 
-def serialize_script_num(value):
-    r = bytearray(0)
-    if value == 0:
-        return r
-    neg = value < 0
-    absvalue = -value if neg else value
-    while (absvalue):
-        r.append(int(absvalue & 0xff))
-        absvalue >>= 8
-    if r[-1] & 0x80:
-        r.append(0x80 if neg else 0)
-    elif neg:
-        r[-1] |= 0x80
-    return r
+def script_BIP34_coinbase_height(height):
+    if height <= 16:
+        res = CScriptOp.encode_op_n(height)
+        # Append dummy to increase scriptSig size above 2
+        # (see bad-cb-length consensus rule)
+        return CScript([res, OP_1])
+    return CScript([CScriptNum(height)])
 
 
 def create_coinbase(height, pubkey=None):
@@ -79,7 +74,8 @@ def create_coinbase(height, pubkey=None):
     otherwise an anyone-can-spend output."""
     coinbase = CTransaction()
     coinbase.vin.append(CTxIn(COutPoint(0, 0xffffffff),
-                              ser_string(serialize_script_num(height)), 0xffffffff))
+                              script_BIP34_coinbase_height(height),
+                              0xffffffff))
     coinbaseoutput = CTxOut()
     coinbaseoutput.nValue = 50 * COIN
     halvings = int(height / 150)  # regtest
