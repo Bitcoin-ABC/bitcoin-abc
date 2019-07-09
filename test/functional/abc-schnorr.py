@@ -10,8 +10,6 @@ This tests the treatment of Schnorr transaction signatures:
 Derived from a variety of functional tests.
 """
 
-import time
-
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
@@ -20,11 +18,12 @@ from test_framework.blocktools import (
 )
 from test_framework.key import CECKey
 from test_framework.messages import (
-    COIN,
+    CBlock,
     COutPoint,
     CTransaction,
     CTxIn,
     CTxOut,
+    FromHex,
     ToHex,
 )
 from test_framework.mininode import (
@@ -58,50 +57,11 @@ RPC_NULLFAIL_ERROR = 'mandatory-script-verify-flag-failed (Signature must be zer
 sig64 = b'\0'*64
 
 
-class PreviousSpendableOutput(object):
-
-    def __init__(self, tx=CTransaction(), n=-1):
-        self.tx = tx
-        self.n = n
-
-
 class SchnorrTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
-        self.setup_clean_chain = True
         self.block_heights = {}
-        self.tip = None
-        self.blocks = {}
-
-    def next_block(self, number, transactions=None, nTime=None):
-        if self.tip == None:
-            base_block_hash = self.genesis_hash
-            block_time = int(time.time()) + 1
-        else:
-            base_block_hash = self.tip.sha256
-            block_time = self.tip.nTime + 1
-        if nTime:
-            block_time = nTime
-        # First create the coinbase
-        height = self.block_heights[base_block_hash] + 1
-        coinbase = create_coinbase(height)
-        coinbase.rehash()
-        block = create_block(base_block_hash, coinbase, block_time)
-
-        # add in transactions
-        if transactions:
-            block.vtx.extend(transactions)
-            make_conform_to_ctor(block)
-            block.hashMerkleRoot = block.calc_merkle_root()
-
-        # Do PoW, which is cheap on regnet
-        block.solve()
-        self.tip = block
-        self.block_heights[block.sha256] = height
-        assert number not in self.blocks
-        self.blocks[number] = block
-        return block
 
     def bootstrap_p2p(self, *, num_connections=1):
         """Add a P2P connection to the node.
@@ -121,58 +81,60 @@ class SchnorrTest(BitcoinTestFramework):
         network_thread_join()
         self.bootstrap_p2p(**kwargs)
 
+    def getbestblock(self, node):
+        """Get the best block. Register its height so we can use build_block."""
+        block_height = node.getblockcount()
+        blockhash = node.getblockhash(block_height)
+        block = FromHex(CBlock(), node.getblock(blockhash, 0))
+        block.calc_sha256()
+        self.block_heights[block.sha256] = block_height
+        return block
+
+    def build_block(self, parent, transactions=(), nTime=None):
+        """Make a new block with an OP_1 coinbase output.
+
+        Requires parent to have its height registered."""
+        parent.calc_sha256()
+        block_height = self.block_heights[parent.sha256] + 1
+        block_time = (parent.nTime + 1) if nTime is None else nTime
+
+        block = create_block(
+            parent.sha256, create_coinbase(block_height), block_time)
+        block.vtx.extend(transactions)
+        make_conform_to_ctor(block)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        self.block_heights[block.sha256] = block_height
+        return block
+
+    def check_for_ban_on_rejected_block(self, block, reject_code=None, reject_reason=None):
+        """Check we are disconnected when sending a block that the node rejects.
+
+        (Can't actually get banned, since bitcoind won't ban local peers.)"""
+        self.nodes[0].p2p.send_blocks_and_test(
+            [block], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason)
+        self.nodes[0].p2p.wait_for_disconnect()
+        self.reconnect_p2p()
+
     def run_test(self):
+        node, = self.nodes
+
         self.bootstrap_p2p()
-        self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_heights[self.genesis_hash] = 0
-        spendable_outputs = []
 
-        # shorthand
-        block = self.next_block
-        node = self.nodes[0]
-
-        # save the current tip so its coinbase can be spent by a later block
-        def save_spendable_output():
-            spendable_outputs.append(self.tip)
-
-        # get a coinbase that we previously marked as spendable
-        def get_spendable_output():
-            return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
-        # submit current tip and check it was accepted
-        def accepted():
-            node.p2p.send_blocks_and_test([self.tip], node)
-
-        # submit current tip and check it was rejected (and we are banned)
-        def rejected(reject_code, reject_reason):
-            node.p2p.send_blocks_and_test(
-                [self.tip], node, success=False, reject_code=reject_code, reject_reason=reject_reason)
-            node.p2p.wait_for_disconnect()
-            self.reconnect_p2p()
-
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
+        tip = self.getbestblock(node)
 
         self.log.info("Create some blocks with OP_1 coinbase for spending.")
+        blocks = []
+        for _ in range(10):
+            tip = self.build_block(tip)
+            blocks.append(tip)
+        node.p2p.send_blocks_and_test(blocks, node, success=True)
+        out = [block.vtx[0] for block in blocks]
 
-        # Create a new block
-        block(0)
-        save_spendable_output()
-        accepted()
+        self.log.info("Mature the blocks and get out of IBD.")
+        node.generate(100)
 
-        # Now we need that block to mature so we can spend the coinbase.
-        matureblocks = []
-        for i in range(199):
-            block(5000 + i)
-            matureblocks.append(self.tip)
-            save_spendable_output()
-        node.p2p.send_blocks_and_test(matureblocks, node)
-
-        # collect spendable outputs now to avoid cluttering the code later on
-        out = []
-        for i in range(100):
-            out.append(get_spendable_output())
+        tip = self.getbestblock(node)
 
         self.log.info("Setting up spends to test and mining the fundings.")
 
@@ -189,15 +151,16 @@ class SchnorrTest(BitcoinTestFramework):
             else:
                 script = CScript([public_key, OP_CHECKSIG])
 
+            value = spend.vout[0].nValue
+
             # Fund transaction
-            txfund = create_transaction(
-                spend.tx, spend.n, b'', 50 * COIN, script)
+            txfund = create_transaction(spend, 0, b'', value, script)
             txfund.rehash()
 
             # Spend transaction
             txspend = CTransaction()
             txspend.vout.append(
-                CTxOut(50 * COIN - 1000, CScript([OP_TRUE])))
+                CTxOut(value-1000, CScript([OP_TRUE])))
             txspend.vin.append(
                 CTxIn(COutPoint(txfund.sha256, 0), b''))
 
@@ -205,7 +168,7 @@ class SchnorrTest(BitcoinTestFramework):
             sighashtype = SIGHASH_ALL | SIGHASH_FORKID
             hashbyte = bytes([sighashtype & 0xff])
             sighash = SignatureHashForkId(
-                script, txspend, 0, sighashtype, 50 * COIN)
+                script, txspend, 0, sighashtype, value)
             if sig == 'schnorr':
                 txsig = schnorr.sign(privkeybytes, sighash) + hashbyte
             elif sig == 'ecdsa':
@@ -248,17 +211,15 @@ class SchnorrTest(BitcoinTestFramework):
             out[6], multi=True, sig=sig64)
         fundings.append(fund)
 
-        for fund in fundings:
-            send_transaction_to_mempool(fund)
-        block(1, transactions=fundings)
-        accepted()
+        tip = self.build_block(tip, fundings)
+        node.p2p.send_blocks_and_test([tip], node)
 
         self.log.info("Typical ECDSA and Schnorr CHECKSIG are valid.")
         schnorr_tx_id = send_transaction_to_mempool(schnorrchecksigtx)
         ecdsa_tx_id = send_transaction_to_mempool(ecdsachecksigtx)
         # It can also be mined
-        block(2, transactions=[schnorrchecksigtx, ecdsachecksigtx])
-        accepted()
+        tip = self.build_block(tip, [schnorrchecksigtx, ecdsachecksigtx])
+        node.p2p.send_blocks_and_test([tip], node)
         assert schnorr_tx_id not in set(node.getrawmempool())
         assert ecdsa_tx_id not in set(node.getrawmempool())
 
@@ -268,10 +229,8 @@ class SchnorrTest(BitcoinTestFramework):
         # And it is banworthy.
         check_for_ban_on_rejected_tx(schnorrmultisigtx)
         # And it can't be mined
-        block(13, transactions=[schnorrmultisigtx])
-        rejected(16, b'blk-bad-inputs')
-        # Rewind bad block
-        tip(2)
+        self.check_for_ban_on_rejected_block(
+            self.build_block(tip, [schnorrmultisigtx]), 16, b'blk-bad-inputs')
 
         self.log.info("Bad 64-byte sig is rejected with mandatory error.")
         # In CHECKSIG it's invalid Schnorr and hence NULLFAIL.
@@ -284,14 +243,10 @@ class SchnorrTest(BitcoinTestFramework):
         check_for_ban_on_rejected_tx(sig64checksigtx)
         check_for_ban_on_rejected_tx(sig64multisigtx)
         # And they can't be mined either...
-        block(14, transactions=[sig64checksigtx])
-        rejected(16, b'blk-bad-inputs')
-        # Rewind bad block
-        tip(2)
-        block(15, transactions=[sig64multisigtx])
-        rejected(16, b'blk-bad-inputs')
-        # Rewind bad block
-        tip(2)
+        self.check_for_ban_on_rejected_block(
+            self.build_block(tip, [sig64checksigtx]), 16, b'blk-bad-inputs')
+        self.check_for_ban_on_rejected_block(
+            self.build_block(tip, [sig64multisigtx]), 16, b'blk-bad-inputs')
 
 
 if __name__ == '__main__':
