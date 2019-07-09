@@ -676,6 +676,18 @@
 ["STRICTENC to provide a compact way to provide a delibrately invalid signature."],
 ["0", "0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 CHECKSIG NOT", "STRICTENC", "OK"],
 ["0 0", "1 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 1 CHECKMULTISIG NOT", "STRICTENC", "OK"],
+["0", "0x02 0xBEEF CHECKSIG NOT", "STRICTENC", "PUBKEYTYPE", "Even with a null signature, the public key has to be correctly encoded."],
+["0 0", "1 0x02 0xBEEF 1 CHECKMULTISIG NOT", "STRICTENC", "PUBKEYTYPE"],
+["0", "0x21 0x020000000000000000000000000000000000000000000000000000000000000000 CHECKSIG NOT", "STRICTENC", "OK",  "Invalid public keys are fine, as long as correctly encoded."],
+["0 0", "1 0x21 0x020000000000000000000000000000000000000000000000000000000000000000 1 CHECKMULTISIG NOT", "STRICTENC", "OK"],
+
+["Introducing NULLFAIL doesn't change any of the above behaviour since signature is null"],
+["0", "0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 CHECKSIG NOT", "STRICTENC,NULLFAIL", "OK"],
+["0 0", "1 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 1 CHECKMULTISIG NOT", "STRICTENC,NULLFAIL", "OK"],
+["0", "0x02 0xBEEF CHECKSIG NOT", "STRICTENC,NULLFAIL", "PUBKEYTYPE"],
+["0 0", "1 0x02 0xBEEF 1 CHECKMULTISIG NOT", "STRICTENC,NULLFAIL", "PUBKEYTYPE"],
+["0", "0x21 0x020000000000000000000000000000000000000000000000000000000000000000 CHECKSIG NOT", "STRICTENC,NULLFAIL", "OK"],
+["0 0", "1 0x21 0x020000000000000000000000000000000000000000000000000000000000000000 1 CHECKMULTISIG NOT", "STRICTENC,NULLFAIL", "OK"],
 
 ["CHECKMULTISIG evaluation order tests. CHECKMULTISIG evaluates signatures and"],
 ["pubkeys in a specific order, and will exit early if the number of signatures"],
@@ -696,6 +708,29 @@
     "2 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 2 CHECKMULTISIG NOT",
     "STRICTENC", "OK",
     "2-of-2 CHECKMULTISIG NOT with both pubkeys valid, but second signature invalid. Valid pubkey fails, and CHECKMULTISIG exits early, prior to evaluation of second invalid signature."
+],
+
+["STRICTENC+NULLFAIL ordering tests with null signatures"],
+[
+    "0 0 0",
+    "2 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 2 CHECKMULTISIG NOT",
+    "P2SH,STRICTENC,NULLFAIL",
+    "OK",
+    "Nulled 2-of-2 with valid pubkeys"
+],
+[
+    "0 0 0",
+    "2 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 0x02 0xBEEF 2 CHECKMULTISIG NOT",
+    "P2SH,STRICTENC,NULLFAIL",
+    "PUBKEYTYPE",
+    "Nulled 2-of-2 with top pubkey invalidly encoded"
+],
+[
+    "0 0 0",
+    "2 0x02 0xBEEF 0x21 0x02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0 2 CHECKMULTISIG NOT",
+    "P2SH,STRICTENC,NULLFAIL",
+    "OK",
+    "Nulled 2-of-2 with top pubkey validly encoded, but another pubkey is invalidly encoded"
 ],
 
 ["Increase test coverage for DERSIG"],
