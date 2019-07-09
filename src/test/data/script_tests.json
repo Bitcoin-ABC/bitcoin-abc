@@ -895,6 +895,8 @@
 ["0x03 0xabcdef 3", "NUM2BIN", "P2SH,STRICTENC", "OK"],
 ["0x01 0x80 0", "NUM2BIN 0 EQUAL", "P2SH,STRICTENC", "OK", "Negative zero"],
 ["0x01 0x80 3", "NUM2BIN 0x03 0x000000 EQUAL", "P2SH,STRICTENC", "OK", "Negative zero, larger output"],
+["0x01 0x80 1", "NUM2BIN 0x01 0x00 EQUAL", "P2SH,STRICTENC", "OK", "NUM2BIN does not always return input verbatim, when same size (1) requested"],
+["0x04 0x00000080 4", "NUM2BIN 0x04 0x00000000 EQUAL", "P2SH,STRICTENC", "OK", "NUM2BIN does not always return input verbatim, when same size (4) requested"],
 ["0x05 0xabcdef4243 5", "NUM2BIN 0x05 0xabcdef4243 EQUAL", "P2SH,STRICTENC", "OK", "NUM2BIN where len(a) > 4"],
 ["0x05 0xabcdef4243 6", "NUM2BIN 0x06 0xabcdef424300 EQUAL", "P2SH,STRICTENC", "OK", "pads output properly"],
 ["0x05 0xabcdef4243 4", "NUM2BIN", "P2SH,STRICTENC", "IMPOSSIBLE_ENCODING", "output too small"],
