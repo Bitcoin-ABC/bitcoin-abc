@@ -623,11 +623,22 @@ private:
 
     // Map of scripts to descriptor range index
     using ScriptPubKeyMap = std::map<CScript, int32_t>;
+    using CryptedKeyMap =
+        std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>;
+    using KeyMap = std::map<CKeyID, CKey>;
 
     ScriptPubKeyMap m_map_script_pub_keys GUARDED_BY(cs_desc_man);
 
     OutputType m_address_type;
     bool m_internal;
+
+    KeyMap m_map_keys GUARDED_BY(cs_desc_man);
+    CryptedKeyMap m_map_crypted_keys GUARDED_BY(cs_desc_man);
+
+    bool SetCrypted();
+
+    //! keeps track of whether Unlock has run a thorough check before
+    bool m_decryption_thoroughly_checked = false;
 
 public:
     DescriptorScriptPubKeyMan(WalletStorage &storage,
@@ -694,6 +705,10 @@ public:
     void SetType(OutputType type, bool internal) override;
 
     void SetCache(const DescriptorCache &cache);
+
+    bool AddKey(const CKeyID &key_id, const CKey &key);
+    bool AddCryptedKey(const CKeyID &key_id, const CPubKey &pubkey,
+                       const std::vector<uint8_t> &crypted_key);
 };
 
 #endif // BITCOIN_WALLET_SCRIPTPUBKEYMAN_H
