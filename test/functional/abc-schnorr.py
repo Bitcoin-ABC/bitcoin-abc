@@ -129,7 +129,7 @@ class SchnorrTest(BitcoinTestFramework):
             tip = self.build_block(tip)
             blocks.append(tip)
         node.p2p.send_blocks_and_test(blocks, node, success=True)
-        out = [block.vtx[0] for block in blocks]
+        spendable_outputs = [block.vtx[0] for block in blocks]
 
         self.log.info("Mature the blocks and get out of IBD.")
         node.generate(100)
@@ -137,6 +137,7 @@ class SchnorrTest(BitcoinTestFramework):
         tip = self.getbestblock(node)
 
         self.log.info("Setting up spends to test and mining the fundings.")
+        fundings = []
 
         # Generate a key pair
         privkeybytes = b"Schnorr!" * 4
@@ -145,17 +146,20 @@ class SchnorrTest(BitcoinTestFramework):
         # get uncompressed public key serialization
         public_key = private_key.get_pubkey()
 
-        def create_fund_and_spend_tx(spend, multi=False, sig='schnorr'):
+        def create_fund_and_spend_tx(multi=False, sig='schnorr'):
+            spendfrom = spendable_outputs.pop()
+
             if multi:
                 script = CScript([OP_1, public_key, OP_1, OP_CHECKMULTISIG])
             else:
                 script = CScript([public_key, OP_CHECKSIG])
 
-            value = spend.vout[0].nValue
+            value = spendfrom.vout[0].nValue
 
             # Fund transaction
-            txfund = create_transaction(spend, 0, b'', value, script)
+            txfund = create_transaction(spendfrom, 0, b'', value, script)
             txfund.rehash()
+            fundings.append(txfund)
 
             # Spend transaction
             txspend = CTransaction()
@@ -181,7 +185,7 @@ class SchnorrTest(BitcoinTestFramework):
                 txspend.vin[0].scriptSig = CScript([txsig])
             txspend.rehash()
 
-            return txfund, txspend
+            return txspend
 
         def send_transaction_to_mempool(tx):
             tx_id = node.sendrawtransaction(ToHex(tx))
@@ -195,21 +199,11 @@ class SchnorrTest(BitcoinTestFramework):
                 [tx], self.nodes[0], success=False, expect_disconnect=True)
             self.reconnect_p2p()
 
-        # Setup fundings
-        fundings = []
-        fund, schnorrchecksigtx = create_fund_and_spend_tx(out[0])
-        fundings.append(fund)
-        fund, schnorrmultisigtx = create_fund_and_spend_tx(out[1], multi=True)
-        fundings.append(fund)
-        fund, ecdsachecksigtx = create_fund_and_spend_tx(out[2], sig='ecdsa')
-        fundings.append(fund)
-
-        fund, sig64checksigtx = create_fund_and_spend_tx(
-            out[5], sig=sig64)
-        fundings.append(fund)
-        fund, sig64multisigtx = create_fund_and_spend_tx(
-            out[6], multi=True, sig=sig64)
-        fundings.append(fund)
+        schnorrchecksigtx = create_fund_and_spend_tx()
+        schnorrmultisigtx = create_fund_and_spend_tx(multi=True)
+        ecdsachecksigtx = create_fund_and_spend_tx(sig='ecdsa')
+        sig64checksigtx = create_fund_and_spend_tx(sig=sig64)
+        sig64multisigtx = create_fund_and_spend_tx(multi=True, sig=sig64)
 
         tip = self.build_block(tip, fundings)
         node.p2p.send_blocks_and_test([tip], node)
