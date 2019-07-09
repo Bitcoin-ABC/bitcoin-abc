@@ -128,9 +128,8 @@ public:
             } catch (std::ios_base::failure &) {
                 /**
                  * flag as external address if we can't read the internal
-                 * boolean
-                 * (this will be the case for any wallet before the HD chain
-                 * split version)
+                 * boolean (this will be the case for any wallet before the HD
+                 * chain split version)
                  */
                 fInternal = false;
             }
@@ -172,7 +171,9 @@ static inline void ReadOrderPos(int64_t &nOrderPos, mapValue_t &mapValue) {
 
 static inline void WriteOrderPos(const int64_t &nOrderPos,
                                  mapValue_t &mapValue) {
-    if (nOrderPos == -1) return;
+    if (nOrderPos == -1) {
+        return;
+    }
     mapValue["n"] = i64tostr(nOrderPos);
 }
 

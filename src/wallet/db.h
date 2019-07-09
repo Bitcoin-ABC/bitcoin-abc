@@ -121,27 +121,34 @@ public:
         return std::make_unique<CWalletDBWrapper>(path);
     }
 
-    /** Return object for accessing dummy database with no read/write
-     * capabilities. */
+    /**
+     * Return object for accessing dummy database with no read/write
+     * capabilities.
+     */
     static std::unique_ptr<CWalletDBWrapper> CreateDummy() {
         return std::make_unique<CWalletDBWrapper>();
     }
 
-    /** Return object for accessing temporary in-memory database. */
+    /**
+     * Return object for accessing temporary in-memory database.
+     */
     static std::unique_ptr<CWalletDBWrapper> CreateMock() {
         return std::make_unique<CWalletDBWrapper>("", true /* mock */);
     }
 
-    /** Rewrite the entire database on disk, with the exception of key pszSkip
-     * if non-zero
+    /**
+     * Rewrite the entire database on disk, with the exception of key pszSkip if
+     * non-zero
      */
     bool Rewrite(const char *pszSkip = nullptr);
 
-    /** Back up the entire database to a file.
+    /**
+     * Back up the entire database to a file.
      */
     bool Backup(const std::string &strDest);
 
-    /** Make sure all changes are flushed to disk.
+    /**
+     * Make sure all changes are flushed to disk.
      */
     void Flush(bool shutdown);
 
