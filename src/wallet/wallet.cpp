@@ -3985,9 +3985,7 @@ bool CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
     {
         LOCK(cs_wallet);
 
-        if (!IsLocked()) {
-            TopUpKeyPool();
-        }
+        TopUpKeyPool();
 
         bool fReturningInternal = fRequestedInternal;
         fReturningInternal &=
@@ -4087,9 +4085,8 @@ bool CWallet::GetNewDestination(const OutputType type, const std::string label,
                                 CTxDestination &dest, std::string &error) {
     LOCK(cs_wallet);
     error.clear();
-    if (!IsLocked()) {
-        TopUpKeyPool();
-    }
+
+    TopUpKeyPool();
 
     // Generate a new key that is added to wallet
     CPubKey new_key;
@@ -4108,9 +4105,8 @@ bool CWallet::GetNewChangeDestination(const OutputType type,
                                       CTxDestination &dest,
                                       std::string &error) {
     error.clear();
-    if (!IsLocked()) {
-        TopUpKeyPool();
-    }
+
+    TopUpKeyPool();
 
     ReserveDestination reservedest(this);
     if (!reservedest.GetReservedDestination(type, dest, true)) {
