@@ -39,6 +39,12 @@ typedef std::vector<uint8_t> valtype;
 
 BOOST_FIXTURE_TEST_SUITE(transaction_tests, BasicTestingSetup)
 
+static COutPoint buildOutPoint(const UniValue &vinput) {
+    TxId txid;
+    txid.SetHex(vinput[0].get_str());
+    return COutPoint(txid, vinput[1].get_int());
+}
+
 BOOST_AUTO_TEST_CASE(tx_valid) {
     // Read tests from test/data/tx_valid.json
     // Format is an array of arrays
@@ -78,8 +84,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     fValid = false;
                     break;
                 }
-                COutPoint outpoint(uint256S(vinput[0].get_str()),
-                                   vinput[1].get_int());
+                COutPoint outpoint = buildOutPoint(vinput);
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
                 if (vinput.size() >= 4) {
@@ -181,8 +186,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     fValid = false;
                     break;
                 }
-                COutPoint outpoint(uint256S(vinput[0].get_str()),
-                                   vinput[1].get_int());
+                COutPoint outpoint = buildOutPoint(vinput);
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
                 if (vinput.size() >= 4) {
@@ -438,8 +442,8 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
 
     for (size_t ij = 0; ij < OUTPUT_COUNT; ij++) {
         size_t i = mtx.vin.size();
-        uint256 prevId = uint256S(
-            "0000000000000000000000000000000000000000000000000000000000000100");
+        TxId prevId(uint256S("0000000000000000000000000000000000000000000000000"
+                             "000000000000100"));
         COutPoint outpoint(prevId, i);
 
         mtx.vin.resize(mtx.vin.size() + 1);
