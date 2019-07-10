@@ -862,6 +862,9 @@ public:
         assert(NotifyUnload.empty());
     }
 
+    /* Returns the chain params used by this wallet. */
+    const CChainParams &GetChainParams() const override { return chainParams; }
+
     bool IsCrypted() const;
     bool IsLocked() const override;
     bool Lock();

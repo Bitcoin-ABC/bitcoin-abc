@@ -19,6 +19,7 @@
 #include <boost/signals2/signal.hpp>
 
 enum class OutputType;
+class CChainParams;
 struct bilingual_str;
 
 // Wallet storage things that ScriptPubKeyMans need in order to be able to store
@@ -33,6 +34,7 @@ public:
     virtual ~WalletStorage() = default;
     virtual const std::string GetDisplayName() const = 0;
     virtual WalletDatabase &GetDatabase() = 0;
+    virtual const CChainParams &GetChainParams() const = 0;
     virtual bool IsWalletFlagSet(uint64_t) const = 0;
     virtual void UnsetBlankWalletFlag(WalletBatch &) = 0;
     virtual bool CanSupportFeature(enum WalletFeature) const = 0;
@@ -674,6 +676,9 @@ public:
     void MarkUnusedAddresses(const CScript &script) override;
 
     bool IsHDEnabled() const override;
+
+    //! Setup descriptors based on the given CExtkey
+    bool SetupDescriptorGeneration(const CExtKey &master_key);
 
     bool HavePrivateKeys() const override;
 

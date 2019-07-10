@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <chainparams.h>
 #include <config.h>
 #include <key_io.h>
 #include <outputtype.h>
@@ -1598,6 +1599,69 @@ bool DescriptorScriptPubKeyMan::AddDescriptorKeyWithDB(WalletBatch &batch,
         m_map_keys[pubkey.GetID()] = key;
         return batch.WriteDescriptorKey(GetID(), pubkey, key.GetPrivKey());
     }
+}
+
+bool DescriptorScriptPubKeyMan::SetupDescriptorGeneration(
+    const CExtKey &master_key) {
+    LOCK(cs_desc_man);
+    assert(m_storage.IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS));
+
+    // Ignore when there is already a descriptor
+    if (m_wallet_descriptor.descriptor) {
+        return false;
+    }
+
+    int64_t creation_time = GetTime();
+
+    std::string xpub = EncodeExtPubKey(master_key.Neuter());
+
+    // Build descriptor string
+    std::string desc_prefix;
+    std::string desc_suffix = "/*)";
+    switch (m_address_type) {
+        case OutputType::LEGACY: {
+            desc_prefix = "pkh(" + xpub + "/44'";
+            break;
+        }
+        default:
+            assert(false);
+    }
+
+    // Mainnet derives at 0', testnet and regtest derive at 1'
+    if (m_storage.GetChainParams().IsTestChain()) {
+        desc_prefix += "/1'";
+    } else {
+        desc_prefix += "/0'";
+    }
+
+    std::string internal_path = m_internal ? "/1" : "/0";
+    std::string desc_str = desc_prefix + "/0'" + internal_path + desc_suffix;
+
+    // Make the descriptor
+    FlatSigningProvider keys;
+    std::string error;
+    std::unique_ptr<Descriptor> desc = Parse(desc_str, keys, error, false);
+    WalletDescriptor w_desc(std::move(desc), creation_time, 0, 0, 0);
+    m_wallet_descriptor = w_desc;
+
+    // Store the master private key, and descriptor
+    WalletBatch batch(m_storage.GetDatabase());
+    if (!AddDescriptorKeyWithDB(batch, master_key.key,
+                                master_key.key.GetPubKey())) {
+        throw std::runtime_error(
+            std::string(__func__) +
+            ": writing descriptor master private key failed");
+    }
+    if (!batch.WriteDescriptor(GetID(), m_wallet_descriptor)) {
+        throw std::runtime_error(std::string(__func__) +
+                                 ": writing descriptor failed");
+    }
+
+    // TopUp
+    TopUp();
+
+    m_storage.UnsetBlankWalletFlag(batch);
+    return true;
 }
 
 bool DescriptorScriptPubKeyMan::IsHDEnabled() const {
