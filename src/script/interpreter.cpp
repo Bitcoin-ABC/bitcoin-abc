@@ -1067,25 +1067,21 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             }
                         }
 
-                        // Clean up stack of actual arguments
-                        size_t i = idxDummy;
-                        size_t ikey2 = idxSigCount;
-                        while (i-- > 1) {
-                            // If the operation failed, we require that all
-                            // signatures must be empty vector
-                            if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) &&
-                                !ikey2 && stacktop(-1).size()) {
-                                return set_error(serror,
-                                                 SCRIPT_ERR_SIG_NULLFAIL);
+                        // If the operation failed, we require that all
+                        // signatures must be empty vector
+                        if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
+                            for (int i = 0; i < nSigsCount; i++) {
+                                if (stacktop(-idxTopSig - i).size()) {
+                                    return set_error(serror,
+                                                     SCRIPT_ERR_SIG_NULLFAIL);
+                                }
                             }
-                            if (ikey2 > 0) {
-                                ikey2--;
-                            }
-                            popstack(stack);
                         }
 
-                        // pop dummy element.
-                        popstack(stack);
+                        // Clean up stack of all arguments
+                        for (size_t i = 0; i < idxDummy; i++) {
+                            popstack(stack);
+                        }
 
                         stack.push_back(fSuccess ? vchTrue : vchFalse);
                         if (opcode == OP_CHECKMULTISIGVERIFY) {
