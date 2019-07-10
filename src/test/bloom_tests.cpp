@@ -226,17 +226,16 @@ BOOST_AUTO_TEST_CASE(bloom_match) {
     BOOST_CHECK_MESSAGE(filter.IsRelevantAndUpdate(tx),
                         "Simple Bloom filter didn't match output address");
 
+    const TxId txid(uint256S(
+        "0x90c122d70786e899529d71dbeba91ba216982fb6ba58f3bdaab65e73b7e9260b"));
+
     filter = CBloomFilter(10, 0.000001, 0, BLOOM_UPDATE_ALL);
-    filter.insert(COutPoint(uint256S("0x90c122d70786e899529d71dbeba91ba216982fb"
-                                     "6ba58f3bdaab65e73b7e9260b"),
-                            0));
+    filter.insert(COutPoint(txid, 0));
     BOOST_CHECK_MESSAGE(filter.IsRelevantAndUpdate(tx),
                         "Simple Bloom filter didn't match COutPoint");
 
     filter = CBloomFilter(10, 0.000001, 0, BLOOM_UPDATE_ALL);
-    COutPoint prevOutPoint(uint256S("0x90c122d70786e899529d71dbeba91ba216982fb6"
-                                    "ba58f3bdaab65e73b7e9260b"),
-                           0);
+    COutPoint prevOutPoint(txid, 0);
     {
         std::vector<uint8_t> data(32 + sizeof(uint32_t));
         memcpy(&data[0], prevOutPoint.GetTxId().begin(), 32);
@@ -260,17 +259,16 @@ BOOST_AUTO_TEST_CASE(bloom_match) {
                         "Simple Bloom filter matched random address");
 
     filter = CBloomFilter(10, 0.000001, 0, BLOOM_UPDATE_ALL);
-    filter.insert(COutPoint(uint256S("0x90c122d70786e899529d71dbeba91ba216982fb"
-                                     "6ba58f3bdaab65e73b7e9260b"),
-                            1));
+    filter.insert(COutPoint(txid, 1));
     BOOST_CHECK_MESSAGE(!filter.IsRelevantAndUpdate(tx),
                         "Simple Bloom filter matched COutPoint for an output "
                         "we didn't care about");
 
+    const TxId lowtxid(uint256S(
+        "0x000000d70786e899529d71dbeba91ba216982fb6ba58f3bdaab65e73b7e9260b"));
+
     filter = CBloomFilter(10, 0.000001, 0, BLOOM_UPDATE_ALL);
-    filter.insert(COutPoint(uint256S("0x000000d70786e899529d71dbeba91ba216982fb"
-                                     "6ba58f3bdaab65e73b7e9260b"),
-                            0));
+    filter.insert(COutPoint(lowtxid, 0));
     BOOST_CHECK_MESSAGE(!filter.IsRelevantAndUpdate(tx),
                         "Simple Bloom filter matched COutPoint for an output "
                         "we didn't care about");
@@ -1074,15 +1072,13 @@ BOOST_AUTO_TEST_CASE(merkle_block_4_test_p2pubkey_only) {
     BOOST_CHECK(merkleBlock.header.GetHash() == block.GetHash());
 
     // We should match the generation outpoint
-    BOOST_CHECK(
-        filter.contains(COutPoint(uint256S("0x147caa76786596590baa4e98f5d9f48b8"
-                                           "6c7765e489f7a6ff3360fe5c674360b"),
-                                  0)));
+    const TxId txid1(uint256S(
+        "0x147caa76786596590baa4e98f5d9f48b86c7765e489f7a6ff3360fe5c674360b"));
+    BOOST_CHECK(filter.contains(COutPoint(txid1, 0)));
     // ... but not the 4th transaction's output (its not pay-2-pubkey)
-    BOOST_CHECK(
-        !filter.contains(COutPoint(uint256S("0x02981fa052f0481dbc5868f4fc216603"
-                                            "5a10f27a03cfd2de67326471df5bc041"),
-                                   0)));
+    const TxId txid2(uint256S(
+        "0x02981fa052f0481dbc5868f4fc2166035a10f27a03cfd2de67326471df5bc041"));
+    BOOST_CHECK(!filter.contains(COutPoint(txid2, 0)));
 }
 
 BOOST_AUTO_TEST_CASE(merkle_block_4_test_update_none) {
@@ -1185,14 +1181,12 @@ BOOST_AUTO_TEST_CASE(merkle_block_4_test_update_none) {
     BOOST_CHECK(merkleBlock.header.GetHash() == block.GetHash());
 
     // We shouldn't match any outpoints (UPDATE_NONE)
-    BOOST_CHECK(
-        !filter.contains(COutPoint(uint256S("0x147caa76786596590baa4e98f5d9f48b"
-                                            "86c7765e489f7a6ff3360fe5c674360b"),
-                                   0)));
-    BOOST_CHECK(
-        !filter.contains(COutPoint(uint256S("0x02981fa052f0481dbc5868f4fc216603"
-                                            "5a10f27a03cfd2de67326471df5bc041"),
-                                   0)));
+    const TxId txid1(uint256S(
+        "0x147caa76786596590baa4e98f5d9f48b86c7765e489f7a6ff3360fe5c674360b"));
+    BOOST_CHECK(!filter.contains(COutPoint(txid1, 0)));
+    const TxId txid2(uint256S(
+        "0x02981fa052f0481dbc5868f4fc2166035a10f27a03cfd2de67326471df5bc041"));
+    BOOST_CHECK(!filter.contains(COutPoint(txid2, 0)));
 }
 
 static std::vector<uint8_t> RandomData() {
