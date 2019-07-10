@@ -3011,8 +3011,8 @@ static UniValue lockunspent(const Config &config,
                                {"vout", UniValueType(UniValue::VNUM)},
                            });
 
-        const std::string &txid = find_value(o, "txid").get_str();
-        if (!IsHex(txid)) {
+        const std::string &strTxId = find_value(o, "txid").get_str();
+        if (!IsHex(strTxId)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected hex txid");
         }
@@ -3023,16 +3023,15 @@ static UniValue lockunspent(const Config &config,
                                "Invalid parameter, vout must be positive");
         }
 
-        const COutPoint output(uint256S(txid), nOutput);
-
-        const auto it = pwallet->mapWallet.find(output.GetTxId());
+        const TxId txid(uint256S(strTxId));
+        const auto it = pwallet->mapWallet.find(txid);
         if (it == pwallet->mapWallet.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, unknown transaction");
         }
 
+        const COutPoint output(txid, nOutput);
         const CWalletTx &trans = it->second;
-
         if (output.GetN() >= trans.tx->vout.size()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, vout index out of bounds");
@@ -3044,7 +3043,6 @@ static UniValue lockunspent(const Config &config,
         }
 
         const bool is_locked = pwallet->IsLockedCoin(output);
-
         if (fUnlock && !is_locked) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected locked output");
