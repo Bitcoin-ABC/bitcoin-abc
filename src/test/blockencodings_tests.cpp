@@ -23,6 +23,10 @@ struct RegtestingSetup : public TestingSetup {
 
 BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, RegtestingSetup)
 
+static COutPoint InsecureRandOutPoint() {
+    return COutPoint(TxId(InsecureRand256()), 0);
+}
+
 static CBlock BuildBlockTestCase() {
     CBlock block;
     CMutableTransaction tx;
@@ -37,12 +41,12 @@ static CBlock BuildBlockTestCase() {
     block.hashPrevBlock = InsecureRand256();
     block.nBits = 0x207fffff;
 
-    tx.vin[0].prevout = COutPoint(InsecureRand256(), 0);
+    tx.vin[0].prevout = InsecureRandOutPoint();
     block.vtx[1] = MakeTransactionRef(tx);
 
     tx.vin.resize(10);
     for (size_t i = 0; i < tx.vin.size(); i++) {
-        tx.vin[i].prevout = COutPoint(InsecureRand256(), 0);
+        tx.vin[i].prevout = InsecureRandOutPoint();
     }
     block.vtx[2] = MakeTransactionRef(tx);
 
