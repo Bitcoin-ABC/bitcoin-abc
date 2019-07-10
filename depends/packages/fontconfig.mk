@@ -6,7 +6,7 @@ $(package)_sha256_hash=cf0c30807d08f6a28ab46c61b8dbd55c97d2f292cf88f3a07d3384687
 $(package)_dependencies=freetype expat
 
 define $(package)_set_vars
-  $(package)_config_opts=--disable-docs --disable-static
+  $(package)_config_opts=--disable-docs --disable-static --disable-libxml2 --disable-iconv
 endef
 
 define $(package)_config_cmds
