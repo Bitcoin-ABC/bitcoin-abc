@@ -961,17 +961,16 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                     case OP_CHECKMULTISIG:
                     case OP_CHECKMULTISIGVERIFY: {
-                        // ([sig ...] num_of_signatures [pubkey ...]
+                        // ([dummy] [sig ...] num_of_signatures [pubkey ...]
                         // num_of_pubkeys -- bool)
-
-                        size_t i = 1;
-                        if (stack.size() < i) {
+                        const size_t idxKeyCount = 1;
+                        if (stack.size() < idxKeyCount) {
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
-
-                        int nKeysCount =
-                            CScriptNum(stacktop(-i), fRequireMinimal).getint();
+                        const int nKeysCount =
+                            CScriptNum(stacktop(-idxKeyCount), fRequireMinimal)
+                                .getint();
                         if (nKeysCount < 0 ||
                             nKeysCount > MAX_PUBKEYS_PER_MULTISIG) {
                             return set_error(serror, SCRIPT_ERR_PUBKEY_COUNT);
@@ -980,26 +979,29 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         if (nOpCount > MAX_OPS_PER_SCRIPT) {
                             return set_error(serror, SCRIPT_ERR_OP_COUNT);
                         }
-                        size_t ikey = ++i;
-                        // ikey2 is the position of last non-signature item in
-                        // the stack. Top stack item = 1. With
-                        // SCRIPT_VERIFY_NULLFAIL, this is used for cleanup if
-                        // operation fails.
-                        size_t ikey2 = nKeysCount + 2;
-                        i += nKeysCount;
-                        if (stack.size() < i) {
+
+                        // stack depth of the top pubkey
+                        const size_t idxTopKey = idxKeyCount + 1;
+
+                        // stack depth of nSigsCount
+                        const size_t idxSigCount = idxTopKey + nKeysCount;
+                        if (stack.size() < idxSigCount) {
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
-
-                        int nSigsCount =
-                            CScriptNum(stacktop(-i), fRequireMinimal).getint();
+                        const int nSigsCount =
+                            CScriptNum(stacktop(-idxSigCount), fRequireMinimal)
+                                .getint();
                         if (nSigsCount < 0 || nSigsCount > nKeysCount) {
                             return set_error(serror, SCRIPT_ERR_SIG_COUNT);
                         }
-                        size_t isig = ++i;
-                        i += nSigsCount;
-                        if (stack.size() < i) {
+
+                        // stack depth of the top signature
+                        const size_t idxTopSig = idxSigCount + 1;
+
+                        // stack depth of the dummy element
+                        const size_t idxDummy = idxTopSig + nSigsCount;
+                        if (stack.size() < idxDummy) {
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
@@ -1010,12 +1012,16 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                         // Remove signature for pre-fork scripts
                         for (int k = 0; k < nSigsCount; k++) {
-                            valtype &vchSig = stacktop(-isig - k);
+                            valtype &vchSig = stacktop(-idxTopSig - k);
                             CleanupScriptCode(scriptCode, vchSig, flags);
                         }
 
                         bool fSuccess = true;
-                        while (fSuccess && nSigsCount > 0) {
+                        size_t ikey = idxTopKey;
+                        size_t isig = idxTopSig;
+                        int nSigsRemaining = nSigsCount;
+                        int nKeysRemaining = nKeysCount;
+                        while (fSuccess && nSigsRemaining > 0) {
                             valtype &vchSig = stacktop(-isig);
                             valtype &vchPubKey = stacktop(-ikey);
 
@@ -1037,20 +1043,22 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                             if (fOk) {
                                 isig++;
-                                nSigsCount--;
+                                nSigsRemaining--;
                             }
                             ikey++;
-                            nKeysCount--;
+                            nKeysRemaining--;
 
                             // If there are more signatures left than keys left,
                             // then too many signatures have failed. Exit early,
                             // without checking any further signatures.
-                            if (nSigsCount > nKeysCount) {
+                            if (nSigsRemaining > nKeysRemaining) {
                                 fSuccess = false;
                             }
                         }
 
                         // Clean up stack of actual arguments
+                        size_t i = idxDummy;
+                        size_t ikey2 = idxSigCount;
                         while (i-- > 1) {
                             // If the operation failed, we require that all
                             // signatures must be empty vector
