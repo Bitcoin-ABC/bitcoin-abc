@@ -165,8 +165,6 @@ public:
         vSeeds.emplace_back("seed.bitprim.org");
         // Amaury SÉCHET
         vSeeds.emplace_back("seed.deadalnix.me");
-        // criptolayer.net
-        vSeeds.emplace_back("seeder.criptolayer.net");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
@@ -321,8 +319,6 @@ public:
         vSeeds.emplace_back("testnet-seed.bitprim.org");
         // Amaury SÉCHET
         vSeeds.emplace_back("testnet-seed.deadalnix.me");
-        // criptolayer.net
-        vSeeds.emplace_back("testnet-seeder.criptolayer.net");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
