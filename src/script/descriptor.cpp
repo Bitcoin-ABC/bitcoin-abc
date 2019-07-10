@@ -739,6 +739,7 @@ public:
                 return nullopt;
         }
     }
+    bool IsSingleType() const final { return true; }
 };
 
 /** A parsed raw(H) descriptor. */
@@ -772,6 +773,7 @@ public:
                 return nullopt;
         }
     }
+    bool IsSingleType() const final { return true; }
 };
 
 /** A parsed pk(P) descriptor. */
@@ -786,6 +788,7 @@ protected:
 public:
     PKDescriptor(std::unique_ptr<PubkeyProvider> prov)
         : DescriptorImpl(Vector(std::move(prov)), {}, "pk") {}
+    bool IsSingleType() const final { return true; }
 };
 
 /** A parsed pkh(P) descriptor. */
@@ -805,6 +808,7 @@ public:
     Optional<OutputType> GetOutputType() const override {
         return OutputType::LEGACY;
     }
+    bool IsSingleType() const final { return true; }
 };
 
 /** A parsed combo(P) descriptor. */
@@ -826,6 +830,7 @@ protected:
 public:
     ComboDescriptor(std::unique_ptr<PubkeyProvider> prov)
         : DescriptorImpl(Vector(std::move(prov)), {}, "combo") {}
+    bool IsSingleType() const final { return false; }
 };
 
 /** A parsed multi(...) descriptor. */
@@ -855,6 +860,7 @@ public:
         : DescriptorImpl(std::move(providers), {},
                          sorted ? "sortedmulti" : "multi"),
           m_threshold(threshold), m_sorted(sorted) {}
+    bool IsSingleType() const final { return true; }
 };
 
 /** A parsed sh(...) descriptor. */
@@ -872,6 +878,7 @@ public:
     Optional<OutputType> GetOutputType() const override {
         return OutputType::LEGACY;
     }
+    bool IsSingleType() const final { return true; }
 };
 
 ////////////////////////////////////////////////////////////////////////////

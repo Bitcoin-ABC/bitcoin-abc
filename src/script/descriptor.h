@@ -103,6 +103,12 @@ struct Descriptor {
     virtual std::string ToString() const = 0;
 
     /**
+     * Whether this descriptor will return one scriptPubKey or multiple (aka is
+     * or is not combo)
+     */
+    virtual bool IsSingleType() const = 0;
+
+    /**
      * Convert the descriptor to a private string. This fails if the provided
      * provider does not have the relevant private keys.
      */
