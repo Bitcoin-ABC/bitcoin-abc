@@ -239,9 +239,8 @@ namespace {
             auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             CTransactionRef tx;
-            if (!m_wallet->CreateTransaction(*locked_chain, recipients, tx, fee,
-                                             change_pos, fail_reason,
-                                             coin_control, sign)) {
+            if (!m_wallet->CreateTransaction(recipients, tx, fee, change_pos,
+                                             fail_reason, coin_control, sign)) {
                 return {};
             }
             return tx;
@@ -319,7 +318,7 @@ namespace {
             LOCK(m_wallet->cs_wallet);
             auto mi = m_wallet->mapWallet.find(txid);
             if (mi != m_wallet->mapWallet.end()) {
-                num_blocks = locked_chain->getHeight().value_or(-1);
+                num_blocks = m_wallet->GetLastBlockHeight();
                 in_mempool = mi->second.InMempool();
                 order_form = mi->second.vOrderForm;
                 tx_status = MakeWalletTxStatus(*locked_chain, mi->second);

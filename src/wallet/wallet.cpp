@@ -2774,8 +2774,8 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     LOCK(cs_wallet);
 
     CTransactionRef tx_new;
-    if (!CreateTransaction(*locked_chain, vecSend, tx_new, nFeeRet,
-                           nChangePosInOut, error, coinControl, false)) {
+    if (!CreateTransaction(vecSend, tx_new, nFeeRet, nChangePosInOut, error,
+                           coinControl, false)) {
         return false;
     }
 
@@ -2886,8 +2886,7 @@ CWallet::TransactionChangeType(OutputType change_type,
     return m_default_address_type;
 }
 
-bool CWallet::CreateTransactionInternal(interfaces::Chain::Lock &locked_chainIn,
-                                        const std::vector<CRecipient> &vecSend,
+bool CWallet::CreateTransactionInternal(const std::vector<CRecipient> &vecSend,
                                         CTransactionRef &tx, Amount &nFeeRet,
                                         int &nChangePosInOut,
                                         bilingual_str &error,
@@ -3260,16 +3259,14 @@ bool CWallet::CreateTransactionInternal(interfaces::Chain::Lock &locked_chainIn,
     return true;
 }
 
-bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chain,
-                                const std::vector<CRecipient> &vecSend,
+bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                                 CTransactionRef &tx, Amount &nFeeRet,
                                 int &nChangePosInOut, bilingual_str &error,
                                 const CCoinControl &coin_control, bool sign) {
     int nChangePosIn = nChangePosInOut;
     CTransactionRef tx2 = tx;
-    bool res =
-        CreateTransactionInternal(locked_chain, vecSend, tx, nFeeRet,
-                                  nChangePosInOut, error, coin_control, sign);
+    bool res = CreateTransactionInternal(vecSend, tx, nFeeRet, nChangePosInOut,
+                                         error, coin_control, sign);
     // try with avoidpartialspends unless it's enabled already
     if (res &&
         nFeeRet >
@@ -3282,8 +3279,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chain,
         int nChangePosInOut2 = nChangePosIn;
         // fired and forgotten; if an error occurs, we discard the results
         bilingual_str error2;
-        if (CreateTransactionInternal(locked_chain, vecSend, tx2, nFeeRet2,
-                                      nChangePosInOut2, error2, tmp_cc, sign)) {
+        if (CreateTransactionInternal(vecSend, tx2, nFeeRet2, nChangePosInOut2,
+                                      error2, tmp_cc, sign)) {
             // if fee of this alternative one is within the range of the max
             // fee, we use this one
             const bool use_aps = nFeeRet2 <= nFeeRet + m_max_aps_fee;
@@ -4313,7 +4310,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
     }
 
-    const Optional<int> tip_height = locked_chain->getHeight();
+    const Optional<int> tip_height = chain.getHeight();
     if (tip_height) {
         walletInstance->m_last_block_processed =
             locked_chain->getBlockHash(*tip_height);

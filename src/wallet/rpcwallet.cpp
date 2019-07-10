@@ -360,8 +360,7 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
-                                 CWallet *const pwallet,
+static CTransactionRef SendMoney(CWallet *const pwallet,
                                  const CTxDestination &address, Amount nValue,
                                  bool fSubtractFeeFromAmount,
                                  const CCoinControl &coin_control,
@@ -391,8 +390,8 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     vecSend.push_back(recipient);
 
     CTransactionRef tx;
-    if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, nFeeRequired,
-                                    nChangePosRet, error, coin_control)) {
+    if (!pwallet->CreateTransaction(vecSend, tx, nFeeRequired, nChangePosRet,
+                                    error, coin_control)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
             error = strprintf(Untranslated("Error: This transaction requires a "
                                            "transaction fee of at least %s"),
@@ -502,8 +501,8 @@ static UniValue sendtoaddress(const Config &config,
     EnsureWalletIsUnlocked(pwallet);
 
     CTransactionRef tx =
-        SendMoney(*locked_chain, pwallet, dest, nAmount, fSubtractFeeFromAmount,
-                  coin_control, std::move(mapValue));
+        SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control,
+                  std::move(mapValue));
     return tx->GetId().GetHex();
 }
 
@@ -1059,9 +1058,8 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     bilingual_str error;
     CTransactionRef tx;
     CCoinControl coinControl;
-    bool fCreated =
-        pwallet->CreateTransaction(*locked_chain, vecSend, tx, nFeeRequired,
-                                   nChangePosRet, error, coinControl);
+    bool fCreated = pwallet->CreateTransaction(
+        vecSend, tx, nFeeRequired, nChangePosRet, error, coinControl);
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
     }

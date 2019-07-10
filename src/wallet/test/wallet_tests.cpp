@@ -539,8 +539,8 @@ public:
         CCoinControl dummy;
         {
             auto locked_chain = m_chain->lock();
-            BOOST_CHECK(wallet->CreateTransaction(
-                *locked_chain, {recipient}, tx, fee, changePos, error, dummy));
+            BOOST_CHECK(wallet->CreateTransaction({recipient}, tx, fee,
+                                                  changePos, error, dummy));
         }
         wallet->CommitTransaction(tx, {}, {});
         CMutableTransaction blocktx;

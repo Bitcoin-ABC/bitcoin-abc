@@ -794,8 +794,7 @@ private:
      */
     int m_last_block_processed_height GUARDED_BY(cs_wallet) = -1;
 
-    bool CreateTransactionInternal(interfaces::Chain::Lock &locked_chain,
-                                   const std::vector<CRecipient> &vecSend,
+    bool CreateTransactionInternal(const std::vector<CRecipient> &vecSend,
                                    CTransactionRef &tx, Amount &nFeeRet,
                                    int &nChangePosInOut, bilingual_str &error,
                                    const CCoinControl &coin_control, bool sign);
@@ -1111,11 +1110,11 @@ public:
      * @note passing nChangePosInOut as -1 will result in setting a random
      * position
      */
-    bool CreateTransaction(interfaces::Chain::Lock &locked_chain,
-                           const std::vector<CRecipient> &vecSend,
+    bool CreateTransaction(const std::vector<CRecipient> &vecSend,
                            CTransactionRef &tx, Amount &nFeeRet,
                            int &nChangePosInOut, bilingual_str &error,
                            const CCoinControl &coin_control, bool sign = true);
+
     /**
      * Submit the transaction to the node's mempool and then relay to peers.
      * Should be called after CreateTransaction unless you want to abort
