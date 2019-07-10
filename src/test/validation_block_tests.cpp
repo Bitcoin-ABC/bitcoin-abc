@@ -92,7 +92,7 @@ const std::shared_ptr<const CBlock> BadBlock(const Config &config,
 
     CMutableTransaction coinbase_spend;
     coinbase_spend.vin.push_back(
-        CTxIn(COutPoint(pblock->vtx[0]->GetHash(), 0), CScript(), 0));
+        CTxIn(COutPoint(pblock->vtx[0]->GetId(), 0), CScript(), 0));
     coinbase_spend.vout.push_back(pblock->vtx[0]->vout[0]);
 
     CTransactionRef tx = MakeTransactionRef(coinbase_spend);

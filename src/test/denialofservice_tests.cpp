@@ -359,7 +359,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     for (int i = 0; i < 50; i++) {
         CMutableTransaction tx;
         tx.vin.resize(1);
-        tx.vin[0].prevout = COutPoint(InsecureRand256(), 0);
+        tx.vin[0].prevout = COutPoint(TxId(InsecureRand256()), 0);
         tx.vin[0].scriptSig << OP_1;
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;

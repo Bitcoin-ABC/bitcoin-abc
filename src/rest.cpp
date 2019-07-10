@@ -490,7 +490,6 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
         }
 
         for (size_t i = (fCheckMemPool) ? 1 : 0; i < uriParts.size(); i++) {
-            uint256 txid;
             int32_t nOutput;
             std::string strTxid = uriParts[i].substr(0, uriParts[i].find("-"));
             std::string strOutput =
@@ -500,8 +499,9 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
                 return RESTERR(req, HTTP_BAD_REQUEST, "Parse error");
             }
 
+            TxId txid;
             txid.SetHex(strTxid);
-            vOutPoints.push_back(COutPoint(txid, (uint32_t)nOutput));
+            vOutPoints.push_back(COutPoint(txid, uint32_t(nOutput)));
         }
 
         if (vOutPoints.size() > 0) {

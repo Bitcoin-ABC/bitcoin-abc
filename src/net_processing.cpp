@@ -1187,10 +1187,11 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
             // included in a block. As this is best effort, we only check for
             // output 0 and 1. This works well enough in practice and we get
             // diminishing returns with 2 onward.
+            const TxId txid(inv.hash);
             return recentRejects->contains(inv.hash) ||
                    g_mempool.exists(inv.hash) ||
-                   pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 0)) ||
-                   pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 1));
+                   pcoinsTip->HaveCoinInCache(COutPoint(txid, 0)) ||
+                   pcoinsTip->HaveCoinInCache(COutPoint(txid, 1));
         }
         case MSG_BLOCK:
             return LookupBlockIndex(inv.hash) != nullptr;
@@ -2477,8 +2478,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         bool fMissingInputs = false;
         CValidationState state;
 
-        pfrom->setAskFor.erase(inv.hash);
-        mapAlreadyAskedFor.erase(inv.hash);
+        const TxId txid(inv.hash);
+        pfrom->setAskFor.erase(txid);
+        mapAlreadyAskedFor.erase(txid);
 
         if (!AlreadyHave(inv) &&
             AcceptToMemoryPool(config, g_mempool, state, ptx, true,
@@ -2486,7 +2488,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             g_mempool.check(pcoinsTip.get());
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
-                vWorkQueue.emplace_back(inv.hash, i);
+                vWorkQueue.emplace_back(txid, i);
             }
 
             pfrom->nLastTXTime = GetTime();
@@ -2511,7 +2513,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      mi != itByPrev->second.end(); ++mi) {
                     const CTransactionRef &porphanTx = (*mi)->second.tx;
                     const CTransaction &orphanTx = *porphanTx;
-                    const uint256 &orphanId = orphanTx.GetId();
+                    const TxId &orphanId = orphanTx.GetId();
                     NodeId fromPeer = (*mi)->second.fromPeer;
                     bool fMissingInputs2 = false;
                     // Use a dummy CValidationState so someone can't setup nodes

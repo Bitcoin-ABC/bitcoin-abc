@@ -46,7 +46,7 @@ struct CoinEntry {
 
     template <typename Stream> void Unserialize(Stream &s) {
         s >> key;
-        uint256 id;
+        TxId id;
         s >> id;
         uint32_t n = 0;
         s >> VARINT(n);

@@ -1158,10 +1158,10 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
 
     UniValue ret(UniValue::VOBJ);
 
-    std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    std::string strTxId = request.params[0].get_str();
+    TxId txid(uint256S(strTxId));
     int n = request.params[1].get_int();
-    COutPoint out(hash, n);
+    COutPoint out(txid, n);
     bool fMempool = true;
     if (!request.params[2].isNull()) {
         fMempool = request.params[2].get_bool();

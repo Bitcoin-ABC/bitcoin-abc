@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
         // Do a random modification.
         {
             // txid we're going to modify in this iteration.
-            TxId txid = txids[InsecureRandRange(txids.size())];
+            const TxId txid = txids[InsecureRandRange(txids.size())];
             Coin &coin = result[COutPoint(txid, 0)];
             // Determine whether to test HaveCoin before or after Access* (or
             // both). As these functions can influence each other's behaviour by
@@ -276,7 +276,7 @@ UtxoData utxoData;
 
 UtxoData::iterator FindRandomFrom(const std::set<COutPoint> &utxoSet) {
     assert(utxoSet.size());
-    auto utxoSetIt = utxoSet.lower_bound(COutPoint(InsecureRand256(), 0));
+    auto utxoSetIt = utxoSet.lower_bound(COutPoint(TxId(InsecureRand256()), 0));
     if (utxoSetIt == utxoSet.end()) {
         utxoSetIt = utxoSet.begin();
     }

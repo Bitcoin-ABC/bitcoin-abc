@@ -39,7 +39,7 @@ static void UndoBlock(const CBlock &block, CCoinsViewCache &view,
     ApplyBlockUndo(blockUndo, block, &pindex, view);
 }
 
-static bool HasSpendableCoin(const CCoinsViewCache &view, const uint256 &txid) {
+static bool HasSpendableCoin(const CCoinsViewCache &view, const TxId &txid) {
     return !view.AccessCoin(COutPoint(txid, 0)).IsSpent();
 }
 
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     block.vtx[0] = MakeTransactionRef(tx);
 
     tx.vout[0].scriptPubKey = CScript() << OP_TRUE;
-    tx.vin[0].prevout = COutPoint(InsecureRand256(), 0);
+    tx.vin[0].prevout = COutPoint(TxId(InsecureRand256()), 0);
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL;
     tx.vin[0].scriptSig.resize(0);
     tx.nVersion = 2;
