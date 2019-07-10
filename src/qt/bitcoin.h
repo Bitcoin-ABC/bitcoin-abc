@@ -12,7 +12,6 @@
 #include <QApplication>
 
 #include <memory>
-#include <vector>
 
 class BitcoinGUI;
 class ClientModel;
