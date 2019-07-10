@@ -59,9 +59,9 @@ enum class WalletCreationStatus { SUCCESS, CREATION_FAILED, ENCRYPTION_FAILED };
 
 std::shared_ptr<CWallet>
 CreateWallet(const CChainParams &params, interfaces::Chain &chain,
+             const SecureString &passphrase, uint64_t wallet_creation_flags,
              const std::string &name, std::string &error, std::string &warning,
-             WalletCreationStatus &status, const SecureString &passphrase,
-             uint64_t wallet_creation_flags);
+             WalletCreationStatus &status);
 
 //! Default for -keypool
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
