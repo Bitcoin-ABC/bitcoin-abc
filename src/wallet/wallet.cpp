@@ -3154,9 +3154,8 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
-    ReserveDestination reservedest(this);
     CTransactionRef tx_new;
-    if (!CreateTransaction(*locked_chain, vecSend, tx_new, reservedest, nFeeRet,
+    if (!CreateTransaction(*locked_chain, vecSend, tx_new, nFeeRet,
                            nChangePosInOut, strFailReason, coinControl,
                            false)) {
         return false;
@@ -3272,12 +3271,12 @@ CWallet::TransactionChangeType(OutputType change_type,
 
 bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                                 const std::vector<CRecipient> &vecSend,
-                                CTransactionRef &tx,
-                                ReserveDestination &reservedest,
-                                Amount &nFeeRet, int &nChangePosInOut,
+                                CTransactionRef &tx, Amount &nFeeRet,
+                                int &nChangePosInOut,
                                 std::string &strFailReason,
                                 const CCoinControl &coinControl, bool sign) {
     Amount nValue = Amount::zero();
+    ReserveDestination reservedest(this);
     int nChangePosRequest = nChangePosInOut;
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto &recipient : vecSend) {
@@ -3660,7 +3659,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 bool CWallet::CommitTransaction(
     CTransactionRef tx, mapValue_t mapValue,
     std::vector<std::pair<std::string, std::string>> orderForm,
-    ReserveDestination &reservedest, CValidationState &state) {
+    CValidationState &state) {
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
@@ -3672,9 +3671,6 @@ bool CWallet::CommitTransaction(
 
     WalletLogPrintfToBeContinued("CommitTransaction:\n%s",
                                  wtxNew.tx->ToString());
-
-    // Take key pair from key pool so it won't be used again.
-    reservedest.KeepDestination();
 
     // Add tx to wallet, because if it has change it's also ours, otherwise just
     // for transaction history.

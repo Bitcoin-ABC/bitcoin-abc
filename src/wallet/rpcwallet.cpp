@@ -355,7 +355,6 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
-    ReserveDestination reservedest(pwallet);
     Amount nFeeRequired;
     std::string strError;
     std::vector<CRecipient> vecSend;
@@ -365,9 +364,8 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
 
     CCoinControl coinControl;
     CTransactionRef tx;
-    if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, reservedest,
-                                    nFeeRequired, nChangePosRet, strError,
-                                    coinControl)) {
+    if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, nFeeRequired,
+                                    nChangePosRet, strError, coinControl)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
             strError = strprintf("Error: This transaction requires a "
                                  "transaction fee of at least %s",
@@ -377,7 +375,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     }
     CValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                                    reservedest, state)) {
+                                    state)) {
         strError =
             strprintf("Error: The transaction was rejected! Reason given: %s",
                       FormatStateMessage(state));
@@ -1053,21 +1051,20 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::shuffle(vecSend.begin(), vecSend.end(), FastRandomContext());
 
     // Send
-    ReserveDestination changedest(pwallet);
     Amount nFeeRequired = Amount::zero();
     int nChangePosRet = -1;
     std::string strFailReason;
     CTransactionRef tx;
     CCoinControl coinControl;
-    bool fCreated = pwallet->CreateTransaction(
-        *locked_chain, vecSend, tx, changedest, nFeeRequired, nChangePosRet,
-        strFailReason, coinControl);
+    bool fCreated =
+        pwallet->CreateTransaction(*locked_chain, vecSend, tx, nFeeRequired,
+                                   nChangePosRet, strFailReason, coinControl);
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     }
     CValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                                    changedest, state)) {
+                                    state)) {
         strFailReason = strprintf("Transaction commit failed:: %s",
                                   FormatStateMessage(state));
         throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
