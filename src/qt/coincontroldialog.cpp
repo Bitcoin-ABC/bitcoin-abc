@@ -489,9 +489,9 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
         // unselect already spent, very unlikely scenario, this could happen
         // when selected are spent elsewhere, like rpc or another computer
-        const COutPoint &outpt = vCoinControl[i++];
+        const COutPoint &output = vCoinControl[i++];
         if (out.is_spent) {
-            coinControl()->UnSelect(outpt);
+            coinControl()->UnSelect(output);
             continue;
         }
 
