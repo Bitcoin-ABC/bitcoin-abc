@@ -625,11 +625,14 @@ private:
 
     // Map of scripts to descriptor range index
     using ScriptPubKeyMap = std::map<CScript, int32_t>;
+    // Map of pubkeys involved in scripts to descriptor range index
+    using PubKeyMap = std::map<CPubKey, int32_t>;
     using CryptedKeyMap =
         std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>;
     using KeyMap = std::map<CKeyID, CKey>;
 
     ScriptPubKeyMap m_map_script_pub_keys GUARDED_BY(cs_desc_man);
+    PubKeyMap m_map_pubkeys GUARDED_BY(cs_desc_man);
     int32_t m_max_cached_index = -1;
 
     OutputType m_address_type;
@@ -647,6 +650,21 @@ private:
                                 const CPubKey &pubkey);
 
     KeyMap GetKeys() const EXCLUSIVE_LOCKS_REQUIRED(cs_desc_man);
+
+    // Fetch the SigningProvider for the given script and optionally include
+    // private keys
+    std::unique_ptr<FlatSigningProvider>
+    GetSigningProvider(const CScript &script,
+                       bool include_private = false) const;
+    // Fetch the SigningProvider for the given pubkey and always include private
+    // keys. This should only be called by signing code.
+    std::unique_ptr<FlatSigningProvider>
+    GetSigningProvider(const CPubKey &pubkey) const;
+    // Fetch the SigningProvider for a given index and optionally include
+    // private keys. Called by the above functions.
+    std::unique_ptr<FlatSigningProvider>
+    GetSigningProvider(int32_t index, bool include_private = false) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_desc_man);
 
 public:
     DescriptorScriptPubKeyMan(WalletStorage &storage,
