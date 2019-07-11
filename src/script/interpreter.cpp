@@ -964,8 +964,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         // ([sig ...] num_of_signatures [pubkey ...]
                         // num_of_pubkeys -- bool)
 
-                        int i = 1;
-                        if ((int)stack.size() < i) {
+                        size_t i = 1;
+                        if (stack.size() < i) {
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
@@ -980,14 +980,14 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         if (nOpCount > MAX_OPS_PER_SCRIPT) {
                             return set_error(serror, SCRIPT_ERR_OP_COUNT);
                         }
-                        int ikey = ++i;
+                        size_t ikey = ++i;
                         // ikey2 is the position of last non-signature item in
                         // the stack. Top stack item = 1. With
                         // SCRIPT_VERIFY_NULLFAIL, this is used for cleanup if
                         // operation fails.
-                        int ikey2 = nKeysCount + 2;
+                        size_t ikey2 = nKeysCount + 2;
                         i += nKeysCount;
-                        if ((int)stack.size() < i) {
+                        if (stack.size() < i) {
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
@@ -997,9 +997,9 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         if (nSigsCount < 0 || nSigsCount > nKeysCount) {
                             return set_error(serror, SCRIPT_ERR_SIG_COUNT);
                         }
-                        int isig = ++i;
+                        size_t isig = ++i;
                         i += nSigsCount;
-                        if ((int)stack.size() < i) {
+                        if (stack.size() < i) {
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
