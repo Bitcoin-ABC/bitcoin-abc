@@ -1654,7 +1654,16 @@ bool DescriptorScriptPubKeyMan::GetReservedDestination(const OutputType type,
 }
 
 void DescriptorScriptPubKeyMan::ReturnDestination(int64_t index, bool internal,
-                                                  const CTxDestination &addr) {}
+                                                  const CTxDestination &addr) {
+    LOCK(cs_desc_man);
+    // Only return when the index was the most recent
+    if (m_wallet_descriptor.next_index - 1 == index) {
+        m_wallet_descriptor.next_index--;
+    }
+    WalletBatch(m_storage.GetDatabase())
+        .WriteDescriptor(GetID(), m_wallet_descriptor);
+    NotifyCanGetAddressesChanged();
+}
 
 std::map<CKeyID, CKey> DescriptorScriptPubKeyMan::GetKeys() const {
     AssertLockHeld(cs_desc_man);
