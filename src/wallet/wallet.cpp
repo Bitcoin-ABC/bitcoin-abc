@@ -353,8 +353,8 @@ CreateWallet(interfaces::Chain &chain, const std::string &name,
                 } else {
                     for (auto spk_man : wallet->GetActiveScriptPubKeyMans()) {
                         if (!spk_man->SetupGeneration()) {
-                            error = Untranslated(
-                                "Unable to generate initial keys");
+                            error =
+                                Untranslated("Unable to generate initial keys");
                             status = DatabaseStatus::FAILED_CREATE;
                             return nullptr;
                         }

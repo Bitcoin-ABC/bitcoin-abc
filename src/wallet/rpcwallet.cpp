@@ -4736,9 +4736,9 @@ static UniValue walletcreatefundedpsbt(const Config &config,
             {
                 "inputs",
                 RPCArg::Type::ARR,
-                RPCArg::Optional::NO,
-                "The inputs. Leave empty to add inputs automatically. See "
-                "add_inputs option.",
+                RPCArg::Optional::OMITTED_NAMED_ARG,
+                "Leave empty to add inputs automatically. See add_inputs "
+                "option.",
                 {
                     {
                         "",
