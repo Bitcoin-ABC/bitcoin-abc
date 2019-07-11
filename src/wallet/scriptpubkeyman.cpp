@@ -1583,12 +1583,62 @@ isminetype DescriptorScriptPubKeyMan::IsMine(const CScript &script) const {
 
 bool DescriptorScriptPubKeyMan::CheckDecryptionKey(
     const CKeyingMaterial &master_key, bool accept_no_keys) {
-    return false;
+    LOCK(cs_desc_man);
+    if (!m_map_keys.empty()) {
+        return false;
+    }
+
+    // Always pass when there are no encrypted keys
+    bool keyPass = m_map_crypted_keys.empty();
+    bool keyFail = false;
+    for (const auto &mi : m_map_crypted_keys) {
+        const CPubKey &pubkey = mi.second.first;
+        const std::vector<uint8_t> &crypted_secret = mi.second.second;
+        CKey key;
+        if (!DecryptKey(master_key, crypted_secret, pubkey, key)) {
+            keyFail = true;
+            break;
+        }
+        keyPass = true;
+        if (m_decryption_thoroughly_checked) {
+            break;
+        }
+    }
+    if (keyPass && keyFail) {
+        LogPrintf("The wallet is probably corrupted: Some keys decrypt but not "
+                  "all.\n");
+        throw std::runtime_error(
+            "Error unlocking wallet: some keys decrypt but not all. Your "
+            "wallet file may be corrupt.");
+    }
+    if (keyFail || (!keyPass && !accept_no_keys)) {
+        return false;
+    }
+    m_decryption_thoroughly_checked = true;
+    return true;
 }
 
 bool DescriptorScriptPubKeyMan::Encrypt(const CKeyingMaterial &master_key,
                                         WalletBatch *batch) {
-    return false;
+    LOCK(cs_desc_man);
+    if (!m_map_crypted_keys.empty()) {
+        return false;
+    }
+
+    for (const KeyMap::value_type &key_in : m_map_keys) {
+        const CKey &key = key_in.second;
+        CPubKey pubkey = key.GetPubKey();
+        CKeyingMaterial secret(key.begin(), key.end());
+        std::vector<uint8_t> crypted_secret;
+        if (!EncryptSecret(master_key, secret, pubkey.GetHash(),
+                           crypted_secret)) {
+            return false;
+        }
+        m_map_crypted_keys[pubkey.GetID()] = make_pair(pubkey, crypted_secret);
+        batch->WriteCryptedDescriptorKey(GetID(), pubkey, crypted_secret);
+    }
+    m_map_keys.clear();
+    return true;
 }
 
 bool DescriptorScriptPubKeyMan::GetReservedDestination(const OutputType type,
