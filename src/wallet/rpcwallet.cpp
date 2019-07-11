@@ -2972,7 +2972,8 @@ static UniValue getwalletinfo(const Config &config,
                  "the total number of transactions in the wallet"},
                 {RPCResult::Type::NUM_TIME, "keypoololdest",
                  "the " + UNIX_EPOCH_TIME +
-                     " of the oldest pre-generated key in the key pool"},
+                     " of the oldest pre-generated key in the key pool. Legacy "
+                     "wallets only."},
                 {RPCResult::Type::NUM, "keypoolsize",
                  "how many new keys are pre-generated (only counts external "
                  "keys)"},
@@ -3025,6 +3026,7 @@ static UniValue getwalletinfo(const Config &config,
 
     size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
     const auto bal = pwallet->GetBalance();
+    int64_t kp_oldest = pwallet->GetOldestKeyPoolTime();
     obj.pushKV("walletname", pwallet->GetName());
     obj.pushKV("walletversion", pwallet->GetVersion());
     obj.pushKV("balance", ValueFromAmount(bal.m_mine_trusted));
@@ -3032,7 +3034,9 @@ static UniValue getwalletinfo(const Config &config,
                ValueFromAmount(bal.m_mine_untrusted_pending));
     obj.pushKV("immature_balance", ValueFromAmount(bal.m_mine_immature));
     obj.pushKV("txcount", (int)pwallet->mapWallet.size());
-    obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
+    if (kp_oldest > 0) {
+        obj.pushKV("keypoololdest", kp_oldest);
+    }
     obj.pushKV("keypoolsize", (int64_t)kpExternalSize);
 
     LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
