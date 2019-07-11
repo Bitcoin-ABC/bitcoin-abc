@@ -57,3 +57,7 @@ bool CreateWalletDialog::isDisablePrivateKeysChecked() const {
 bool CreateWalletDialog::isMakeBlankWalletChecked() const {
     return ui->blank_wallet_checkbox->isChecked();
 }
+
+bool CreateWalletDialog::isDescriptorWalletChecked() const {
+    return ui->descriptor_checkbox->isChecked();
+}

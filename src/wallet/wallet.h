@@ -1523,6 +1523,9 @@ public:
     //!                    updating the wallet.
     void SetActiveScriptPubKeyMan(uint256 id, OutputType type, bool internal,
                                   bool memonly = false);
+
+    //! Create new DescriptorScriptPubKeyMans and add them to the wallet
+    void SetupDescriptorScriptPubKeyMans();
 };
 
 /**
