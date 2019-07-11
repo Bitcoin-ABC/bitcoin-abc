@@ -41,12 +41,27 @@ fi
 
 ../configure "${CONFIGURE_FLAGS[@]}"
 
-# Sanitizers options, not used if sanitizers are not enabled
+# Base directories for sanitizer related files 
 SAN_SUPP_DIR="${TOPLEVEL}/test/sanitizer_suppressions"
-export ASAN_OPTIONS=""
-export LSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/lsan"
-export TSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/tsan"
-export UBSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/ubsan:print_stacktrace=1:halt_on_error=1"
+SAN_LOG_DIR="${BUILD_DIR}/sanitizer_logs"
+
+# Create the log directory if it doesn't exist and clear it
+mkdir -p "${SAN_LOG_DIR}"
+rm -rf "${SAN_LOG_DIR}"/*
+
+# Sanitizers options, not used if sanitizers are not enabled
+export ASAN_OPTIONS="log_path=${SAN_LOG_DIR}/asan.log"
+export LSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/lsan:log_path=${SAN_LOG_DIR}/lsan.log"
+export TSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/tsan:log_path=${SAN_LOG_DIR}/tsan.log"
+export UBSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/ubsan:print_stacktrace=1:halt_on_error=1:log_path=${SAN_LOG_DIR}/ubsan.log"
+
+function print_sanitizers_log() {
+	for log in "${SAN_LOG_DIR}"/*.log.*
+	do
+		echo "*** Output of ${log} ***"
+		cat "${log}"
+	done
+}
 
 # Run build
 make -j ${THREADS}
@@ -59,7 +74,7 @@ if [[ -z "${DISABLE_TESTS}" ]]; then
 	echo "*** Running tests"
 
 	# Run unit tests
-	make -j ${THREADS} check
+	make -j ${THREADS} check || (print_sanitizers_log && exit 1)
 
 	# FIXME Remove when the functional tests are running with debug enabled
 	if [[ -z "${ENABLE_DEBUG}" ]]; then
