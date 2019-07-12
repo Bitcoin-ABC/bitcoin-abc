@@ -3700,12 +3700,12 @@ static UniValue listunspent(const Config &config,
 }
 
 void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
-                     Amount &fee_out, int &change_position, UniValue options) {
+                     Amount &fee_out, int &change_position, UniValue options,
+                     CCoinControl &coinControl) {
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-    CCoinControl coinControl;
     change_position = -1;
     bool lockUnspents = false;
     UniValue subtractFeeFromOutputs;
@@ -3720,6 +3720,7 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
             RPCTypeCheckObj(
                 options,
                 {
+                    {"add_inputs", UniValueType(UniValue::VBOOL)},
                     {"changeAddress", UniValueType(UniValue::VSTR)},
                     {"changePosition", UniValueType(UniValue::VNUM)},
                     {"includeWatching", UniValueType(UniValue::VBOOL)},
@@ -3729,6 +3730,10 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
                     {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
                 },
                 true, true);
+
+            if (options.exists("add_inputs")) {
+                coinControl.m_add_inputs = options["add_inputs"].get_bool();
+            }
 
             if (options.exists("changeAddress")) {
                 CTxDestination dest =
@@ -3929,7 +3934,9 @@ static UniValue fundrawtransaction(const Config &config,
 
     Amount fee;
     int change_position;
-    FundTransaction(pwallet, tx, fee, change_position, request.params[1]);
+    CCoinControl coin_control;
+    FundTransaction(pwallet, tx, fee, change_position, request.params[1],
+                    coin_control);
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("hex", EncodeHexTx(CTransaction(tx)));
@@ -4798,14 +4805,15 @@ static UniValue walletcreatefundedpsbt(const Config &config,
     RPCHelpMan{
         "walletcreatefundedpsbt",
         "Creates and funds a transaction in the Partially Signed Transaction "
-        "format. Inputs will be added if supplied inputs are not enough\n"
+        "format.\n"
         "Implements the Creator and Updater roles.\n",
         {
             {
                 "inputs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of json objects",
+                "The inputs. Leave empty to add inputs automatically. See "
+                "add_inputs option.",
                 {
                     {
                         "",
@@ -4873,6 +4881,9 @@ static UniValue walletcreatefundedpsbt(const Config &config,
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "",
              {
+                 {"add_inputs", RPCArg::Type::BOOL, /* default */ "false",
+                  "If inputs are specified, automatically include more if they "
+                  "are not enough."},
                  {"changeAddress", RPCArg::Type::STR_HEX,
                   /* default */ "pool address",
                   "The bitcoin address to receive the change"},
@@ -4942,7 +4953,12 @@ static UniValue walletcreatefundedpsbt(const Config &config,
     CMutableTransaction rawTx =
         ConstructTransaction(wallet->GetChainParams(), request.params[0],
                              request.params[1], request.params[2]);
-    FundTransaction(pwallet, rawTx, fee, change_position, request.params[3]);
+    CCoinControl coin_control;
+    // Automatically select coins, unless at least one is manually selected. Can
+    // be overridden by options.add_inputs.
+    coin_control.m_add_inputs = rawTx.vin.size() == 0;
+    FundTransaction(pwallet, rawTx, fee, change_position, request.params[3],
+                    coin_control);
 
     // Make a blank psbt
     PartiallySignedTransaction psbtx(rawTx);

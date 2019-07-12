@@ -11,8 +11,8 @@ import os
 from decimal import Decimal
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
+    assert_approx,
     assert_equal,
-    assert_greater_than,
     assert_raises_rpc_error,
     find_output,
 )
@@ -34,6 +34,19 @@ class PSBTTest(BitcoinTestFramework):
         # Create and fund a raw tx for sending 10 BTC
         psbtx1 = self.nodes[0].walletcreatefundedpsbt(
             [], {self.nodes[2].getnewaddress(): 10})['psbt']
+
+        # If inputs are specified, do not automatically add more:
+        utxo1 = self.nodes[0].listunspent()[0]
+        assert_raises_rpc_error(-4,
+                                "Insufficient funds",
+                                self.nodes[0].walletcreatefundedpsbt,
+                                [{"txid": utxo1['txid'],
+                                  "vout": utxo1['vout']}],
+                                {self.nodes[2].getnewaddress(): 90})
+
+        psbtx1 = self.nodes[0].walletcreatefundedpsbt([{"txid": utxo1['txid'], "vout": utxo1['vout']}], {
+                                                      self.nodes[2].getnewaddress(): 90}, 0, {"add_inputs": True})['psbt']
+        assert_equal(len(self.nodes[0].decodepsbt(psbtx1)['tx']['vin']), 2)
 
         # Node 1 should not be able to add anything to it but still return the
         # psbtx same as before
@@ -84,26 +97,39 @@ class PSBTTest(BitcoinTestFramework):
             self.nodes[1].finalizepsbt(walletprocesspsbt_out['psbt'])['hex'])
 
         # feeRate of 0.1 BCH / KB produces a total fee slightly below -maxtxfee
-        res = self.nodes[1].walletcreatefundedpsbt([
-            {"txid": txid, "vout": p2sh_pos},
-            {"txid": txid, "vout": p2pkh_pos}
-        ], {self.nodes[1].getnewaddress(): 29.99}, 0, {"feeRate": 0.1})
-        assert_greater_than(res["fee"], 0.06)
-        assert_greater_than(0.07, res["fee"])
+        res = self.nodes[1].walletcreatefundedpsbt(
+            [
+                {
+                    "txid": txid, "vout": p2sh_pos}, {
+                    "txid": txid, "vout": p2pkh_pos}], {
+                        self.nodes[1].getnewaddress(): 29.99}, 0, {
+                            "feeRate": 0.1, "add_inputs": True})
+        assert_approx(res["fee"], 0.065, 0.005)
 
         # feeRate of 10 BCH / KB produces a total fee well above -maxtxfee
         # previously this was silently capped at -maxtxfee
-        assert_raises_rpc_error(
-            -4,
-            "Fee exceeds maximum configured by -maxtxfee",
-            self.nodes[1].walletcreatefundedpsbt,
-            [
-                {"txid": txid, "vout": p2sh_pos},
-                {"txid": txid, "vout": p2pkh_pos},
-            ],
-            {self.nodes[1].getnewaddress(): 29.99},
-            0,
-            {"feeRate": 10})
+        assert_raises_rpc_error(-4,
+                                "Fee exceeds maximum configured by -maxtxfee",
+                                self.nodes[1].walletcreatefundedpsbt,
+                                [{"txid": txid,
+                                  "vout": p2sh_pos},
+                                 {"txid": txid,
+                                     "vout": p2pkh_pos}],
+                                {self.nodes[1].getnewaddress(): 29.99},
+                                0,
+                                {"feeRate": 10,
+                                    "add_inputs": True})
+        assert_raises_rpc_error(-4,
+                                "Fee exceeds maximum configured by -maxtxfee",
+                                self.nodes[1].walletcreatefundedpsbt,
+                                [{"txid": txid,
+                                  "vout": p2sh_pos},
+                                    {"txid": txid,
+                                     "vout": p2pkh_pos}],
+                                {self.nodes[1].getnewaddress(): 1},
+                                0,
+                                {"feeRate": 10,
+                                    "add_inputs": False})
 
         # partially sign multisig things with node 1
         psbtx = self.nodes[1].walletcreatefundedpsbt([{"txid": txid, "vout": p2sh_pos}], {
@@ -204,7 +230,7 @@ class PSBTTest(BitcoinTestFramework):
         # Regression test for 14473 (mishandling of already-signed
         # transaction):
         psbtx_info = self.nodes[0].walletcreatefundedpsbt([{"txid": unspent["txid"], "vout":unspent["vout"]}], [
-                                                          {self.nodes[2].getnewaddress():unspent["amount"] + 1}])
+                                                          {self.nodes[2].getnewaddress():unspent["amount"] + 1}], 0, {"add_inputs": True})
         complete_psbt = self.nodes[0].walletprocesspsbt(psbtx_info["psbt"])
         double_processed_psbt = self.nodes[0].walletprocesspsbt(
             complete_psbt["psbt"])
