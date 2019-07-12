@@ -1280,8 +1280,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool ImportScriptPubKeys(const std::string &label,
                              const std::set<CScript> &script_pub_keys,
-                             const bool have_solving_data, const bool internal,
-                             const int64_t timestamp)
+                             const bool have_solving_data,
+                             const bool apply_label, const int64_t timestamp)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     CFeeRate m_pay_tx_fee{DEFAULT_PAY_TX_FEE};

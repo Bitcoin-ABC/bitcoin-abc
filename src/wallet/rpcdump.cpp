@@ -1529,7 +1529,7 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                                "Error adding address to wallet");
         }
         if (!pwallet->ImportScriptPubKeys(label, script_pub_keys,
-                                          have_solving_data, internal,
+                                          have_solving_data, !internal,
                                           timestamp)) {
             throw JSONRPCError(RPC_WALLET_ERROR,
                                "Error adding address to wallet");
