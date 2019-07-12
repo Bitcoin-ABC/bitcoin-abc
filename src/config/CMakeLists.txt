@@ -13,7 +13,7 @@ set(PACKAGE_NAME "Bitcoin ABC" CACHE STRING "Package name")
 # Version
 set(CLIENT_VERSION_MAJOR 0 CACHE STRING "Major version number")
 set(CLIENT_VERSION_MINOR 19 CACHE STRING "Minor version number")
-set(CLIENT_VERSION_REVISION 10 CACHE STRING "Revision version number")
+set(CLIENT_VERSION_REVISION 11 CACHE STRING "Revision version number")
 set(CLIENT_VERSION_BUILD 0 CACHE STRING "Build version number")
 
 option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
