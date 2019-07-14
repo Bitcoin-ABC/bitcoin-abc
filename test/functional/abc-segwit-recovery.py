@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2015-2016 The Bitcoin Core developers
-# Copyright (c) 2017-2019 The Bitcoin developers
+# Copyright (c) 2019 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
@@ -16,20 +15,18 @@ from test_framework.blocktools import (
     create_coinbase,
     make_conform_to_ctor,
 )
-from test_framework.comptool import TestInstance, TestManager
 from test_framework.messages import (
     COIN,
     COutPoint,
     CTransaction,
     CTxIn,
     CTxOut,
-    msg_tx,
     ToHex,
 )
 from test_framework.mininode import (
-    mininode_lock,
+    network_thread_join,
     network_thread_start,
-    P2PInterface,
+    P2PDataStore,
 )
 from test_framework.script import (
     CScript,
@@ -87,18 +84,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
                             "-acceptnonstdtxn"],
                            ["-acceptnonstdtxn=0"]]
 
-    def run_test(self):
-        # Move the mocktime up to activation
-        for node in self.nodes:
-            node.setmocktime(TEST_TIME)
-        test = TestManager(self, self.options.tmpdir)
-        # TestManager only connects to node_nonstd (nodes[0])
-        test.add_all_connections([self.nodes[0]])
-        # We connect directly to node_std (nodes[1])
-        self.nodes[1].add_p2p_connection(P2PInterface())
-        network_thread_start()
-        test.run()
-
     def next_block(self, number):
         if self.tip == None:
             base_block_hash = self.genesis_hash
@@ -120,7 +105,29 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         self.blocks[number] = block
         return block
 
-    def get_tests(self):
+    def bootstrap_p2p(self, *, num_connections=1):
+        """Add a P2P connection to the node.
+
+        Helper to connect and wait for version handshake."""
+        for node in self.nodes:
+            for _ in range(num_connections):
+                node.add_p2p_connection(P2PDataStore())
+        network_thread_start()
+        for node in self.nodes:
+            node.p2p.wait_for_verack()
+
+    def reconnect_p2p(self, **kwargs):
+        """Tear down and bootstrap the P2P connection to the node.
+
+        The node gets disconnected several times in this test. This helper
+        method reconnects the p2p and restarts the network thread."""
+        for node in self.nodes:
+            node.disconnect_p2ps()
+        network_thread_join()
+        self.bootstrap_p2p(**kwargs)
+
+    def run_test(self):
+        self.bootstrap_p2p()
         self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
@@ -138,16 +145,16 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
 
-        # returns a test case that asserts that the current tip was accepted
-        def accepted():
-            return TestInstance([[self.tip, True]])
+        # submit current tip and check it was accepted
+        def accepted(node):
+            node.p2p.send_blocks_and_test([self.tip], node)
 
-        # returns a test case that asserts that the current tip was rejected
-        def rejected(reject=None):
-            if reject is None:
-                return TestInstance([[self.tip, False]])
-            else:
-                return TestInstance([[self.tip, reject]])
+        # submit current tip and check it was rejected (and we are banned)
+        def rejected(node, reject_code, reject_reason):
+            node.p2p.send_blocks_and_test(
+                [self.tip], node, success=False, reject_code=reject_code, reject_reason=reject_reason)
+            node.p2p.wait_for_disconnect()
+            self.reconnect_p2p()
 
         # move the tip back to a previous block
         def tip(number):
@@ -217,47 +224,23 @@ class SegwitRecoveryTest(BitcoinTestFramework):
 
             return txfund, txspend
 
-        # Check we are not banned when sending a txn that node_nonstd rejects.
-        def check_for_no_ban_on_rejected_tx(tx, reject_code, reject_reason):
-            # Check that our connection to node_std is open
-            assert(node_std.p2p.state == 'connected')
-
-            # The P2PConnection stores a public counter for each message type
-            # and the last receive message of each type. We use this counter to
-            # identify that we received a new reject message.
-            with mininode_lock:
-                rejects_count = node_std.p2p.message_count['reject']
-
-            # Send the transaction directly. We use a ping for synchronization:
-            # if we have been banned, the pong message won't be received, a
-            # timeout occurs and the test fails.
-            node_std.p2p.send_message(msg_tx(tx))
-            node_std.p2p.sync_with_ping()
-
-            # Check we haven't been disconnected
-            assert(node_std.p2p.state == 'connected')
-
-            # Check the reject message matches what we expected
-            with mininode_lock:
-                assert(node_std.p2p.message_count['reject'] ==
-                       rejects_count + 1)
-                reject_msg = node_std.p2p.last_message['reject']
-                assert(reject_msg.code == reject_code and
-                       reject_msg.reason == reject_reason and
-                       reject_msg.data == tx.sha256)
+        # Check we are not banned when sending a txn that is rejected.
+        def check_for_no_ban_on_rejected_tx(node, tx, reject_code, reject_reason):
+            node.p2p.send_txs_and_test(
+                [tx], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason)
 
         # Create a new block
         block(0)
         save_spendable_output()
-        yield accepted()
+        accepted(node_nonstd)
 
         # Now we need that block to mature so we can spend the coinbase.
-        test = TestInstance(sync_every_block=False)
-        for i in range(100):
+        matureblocks = []
+        for i in range(199):
             block(5000 + i)
-            test.blocks_and_transactions.append([self.tip, True])
+            matureblocks.append(self.tip)
             save_spendable_output()
-        yield test
+        node_nonstd.p2p.send_blocks_and_test(matureblocks, node_nonstd)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
@@ -273,16 +256,21 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # nonstandard.
         b = block(5555)
         update_block(5555, [txfund, txfund_case0])
-        yield accepted()
+        accepted(node_nonstd)
 
-        # Since the TestManager is not connected to node_std, we must check
-        # both nodes are synchronized before continuing.
+        # Check both nodes are synchronized before continuing.
         sync_blocks(self.nodes)
 
         # Check that upgraded nodes checking for standardness are not banning
         # nodes sending segwit spending txns.
-        check_for_no_ban_on_rejected_tx(txspend, 64, CLEANSTACK_ERROR)
-        check_for_no_ban_on_rejected_tx(txspend_case0, 64, EVAL_FALSE_ERROR)
+        check_for_no_ban_on_rejected_tx(
+            node_nonstd, txspend, 64, CLEANSTACK_ERROR)
+        check_for_no_ban_on_rejected_tx(
+            node_nonstd, txspend_case0, 64, EVAL_FALSE_ERROR)
+        check_for_no_ban_on_rejected_tx(
+            node_std, txspend, 64, CLEANSTACK_ERROR)
+        check_for_no_ban_on_rejected_tx(
+            node_std, txspend_case0, 64, EVAL_FALSE_ERROR)
 
         # Segwit recovery txns are never accepted into the mempool,
         # as they are included in standard flags.
@@ -298,7 +286,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # Blocks containing segwit spending txns are accepted in both nodes.
         block(5)
         postforkblock = update_block(5, [txspend, txspend_case0])
-        yield accepted()
+        accepted(node_nonstd)
         sync_blocks(self.nodes)
 
 
