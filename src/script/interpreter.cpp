@@ -1006,6 +1006,17 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
 
+                        // A bug causes CHECKMULTISIG to consume one extra
+                        // argument whose contents were not checked in any way.
+                        //
+                        // Unfortunately this is a potential source of
+                        // mutability, so optionally verify it is exactly equal
+                        // to zero.
+                        if ((flags & SCRIPT_VERIFY_NULLDUMMY) &&
+                            stacktop(-idxDummy).size()) {
+                            return set_error(serror, SCRIPT_ERR_SIG_NULLDUMMY);
+                        }
+
                         // Subset of script starting at the most recent
                         // codeseparator
                         CScript scriptCode(pbegincodehash, pend);
@@ -1073,24 +1084,10 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             popstack(stack);
                         }
 
-                        // A bug causes CHECKMULTISIG to consume one extra
-                        // argument whose contents were not checked in any way.
-                        //
-                        // Unfortunately this is a potential source of
-                        // mutability, so optionally verify it is exactly equal
-                        // to zero prior to removing it from the stack.
-                        if (stack.size() < 1) {
-                            return set_error(
-                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
-                        }
-                        if ((flags & SCRIPT_VERIFY_NULLDUMMY) &&
-                            stacktop(-1).size()) {
-                            return set_error(serror, SCRIPT_ERR_SIG_NULLDUMMY);
-                        }
+                        // pop dummy element.
                         popstack(stack);
 
                         stack.push_back(fSuccess ? vchTrue : vchFalse);
-
                         if (opcode == OP_CHECKMULTISIGVERIFY) {
                             if (fSuccess) {
                                 popstack(stack);
