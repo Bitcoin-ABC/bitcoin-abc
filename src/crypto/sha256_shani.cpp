@@ -77,7 +77,7 @@ __m128i inline __attribute__((always_inline)) Load(const uint8_t *in) {
 inline void __attribute__((always_inline)) Save(uint8_t *out, __m128i s) {
     _mm_storeu_si128((__m128i *)out, _mm_shuffle_epi8(s, MASK));
 }
-}
+} // namespace
 
 namespace sha256_shani {
 void Transform(uint32_t *s, const uint8_t *chunk, size_t blocks) {
@@ -141,7 +141,7 @@ void Transform(uint32_t *s, const uint8_t *chunk, size_t blocks) {
     _mm_storeu_si128((__m128i *)s, s0);
     _mm_storeu_si128((__m128i *)(s + 4), s1);
 }
-}
+} // namespace sha256_shani
 
 namespace sha256d64_shani {
 
@@ -353,6 +353,6 @@ void Transform_2way(uint8_t *out, const uint8_t *in) {
     Save(out + 32, bs0);
     Save(out + 48, bs1);
 }
-}
+} // namespace sha256d64_shani
 
 #endif

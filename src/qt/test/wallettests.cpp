@@ -241,7 +241,7 @@ void TestGUI() {
     QCOMPARE(requestTableModel->rowCount({}), currentRowCount - 1);
 }
 
-}
+} // namespace
 
 void WalletTests::walletTests() {
     TestGUI();

@@ -7,12 +7,12 @@
 #include <amount.h>
 #include <interfaces/node.h>
 #include <qt/optionsmodel.h>
+#include <qt/test/paymentrequestdata.h>
 #include <random.h>
 #include <script/script.h>
 #include <script/standard.h>
 #include <util.h>
 #include <utilstrencodings.h>
-#include <qt/test/paymentrequestdata.h>
 
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>

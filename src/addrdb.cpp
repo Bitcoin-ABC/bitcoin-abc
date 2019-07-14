@@ -111,7 +111,7 @@ bool DeserializeFileDB(const CChainParams &chainParams, const fs::path &path,
     return DeserializeDB(chainParams, filein, data);
 }
 
-}
+} // namespace
 
 CBanDB::CBanDB(const CChainParams &chainParamsIn) : chainParams(chainParamsIn) {
     pathBanlist = GetDataDir() / "banlist.dat";

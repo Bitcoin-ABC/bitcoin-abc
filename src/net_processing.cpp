@@ -3699,7 +3699,7 @@ public:
         return mp->CompareDepthAndScore(*b, *a);
     }
 };
-}
+} // namespace
 
 bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                                        std::atomic<bool> &interruptMsgProc) {

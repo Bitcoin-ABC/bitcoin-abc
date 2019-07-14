@@ -14,7 +14,7 @@ class SendCoinsRecipient;
 namespace interfaces {
 class Node;
 class PendingWalletTx;
-}
+} // namespace interfaces
 
 /** Data model for a walletmodel transaction. */
 class WalletModelTransaction {

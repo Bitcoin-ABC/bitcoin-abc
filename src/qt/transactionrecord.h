@@ -16,7 +16,7 @@ class Node;
 class Wallet;
 struct WalletTx;
 struct WalletTxStatus;
-}
+} // namespace interfaces
 
 /**
  * UI model for transaction status. The transaction status is the part of a

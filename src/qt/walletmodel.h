@@ -31,7 +31,7 @@ class CPubKey;
 
 namespace interfaces {
 class Node;
-} // namespace interface
+} // namespace interfaces
 
 QT_BEGIN_NAMESPACE
 class QTimer;

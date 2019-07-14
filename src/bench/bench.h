@@ -129,7 +129,7 @@ private:
     int64_t m_width;
     int64_t m_height;
 };
-}
+} // namespace benchmark
 
 // BENCHMARK(foo, num_iters_for_one_second) expands to:  benchmark::BenchRunner
 // bench_11foo("foo", num_iterations);

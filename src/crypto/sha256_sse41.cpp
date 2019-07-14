@@ -91,7 +91,7 @@ namespace {
         WriteLE32(out + 64 + offset, _mm_extract_epi32(v, 1));
         WriteLE32(out + 96 + offset, _mm_extract_epi32(v, 0));
     }
-}
+} // namespace
 
 void Transform_4way(uint8_t *out, const uint8_t *in) {
     // Transform 1
@@ -439,6 +439,6 @@ void Transform_4way(uint8_t *out, const uint8_t *in) {
     Write4(out, 24, Add(g, K(0x1f83d9abul)));
     Write4(out, 28, Add(h, K(0x5be0cd19ul)));
 }
-}
+} // namespace sha256d64_sse41
 
 #endif

@@ -16,7 +16,7 @@ namespace interfaces {
 class Handler;
 class Node;
 class Wallet;
-};
+}; // namespace interfaces
 
 /** Class for the splashscreen with information of the running client.
  *

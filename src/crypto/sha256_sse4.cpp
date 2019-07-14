@@ -952,7 +952,7 @@ void Transform(uint32_t *s, const uint8_t *chunk, size_t blocks) {
         : "cc", "memory", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5",
           "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "xmm11", "xmm12");
 }
-}
+} // namespace sha256_sse4
 
 /*
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

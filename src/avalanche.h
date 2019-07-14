@@ -48,7 +48,7 @@ static const int AVALANCHE_MAX_INFLIGHT_POLL = 10;
  * Special NodeId that represent no node.
  */
 static const NodeId NO_NODE = -1;
-}
+} // namespace
 
 /**
  * Vote history.

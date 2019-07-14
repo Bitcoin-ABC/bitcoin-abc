@@ -20,7 +20,7 @@ class CBlockIndex;
 namespace interfaces {
 class Handler;
 class Node;
-}
+} // namespace interfaces
 
 QT_BEGIN_NAMESPACE
 class QTimer;
