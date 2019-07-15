@@ -18,15 +18,20 @@ struct Amount {
 private:
     int64_t amount;
 
-    explicit constexpr Amount(int64_t _amount) : amount(_amount) {}
-
 public:
+    template <typename T>
+    explicit constexpr Amount(T _camount) : amount(_camount) {
+        static_assert(std::is_integral<T>(),
+                      "Only integer types can be used as amounts");
+    }
     constexpr Amount() : amount(0) {}
     constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
 
     static constexpr Amount zero() { return Amount(0); }
     static constexpr Amount satoshi() { return Amount(1); }
 
+    // Allow access to underlying value for non-monetary operations
+    int64_t GetSatoshis() const { return amount; }
     /**
      * Implement standard operators
      */
@@ -147,17 +152,19 @@ static constexpr Amount CENT = COIN / 100;
 
 extern const std::string CURRENCY_UNIT;
 
+static const Amount INITIAL_REWARD = 25 * COIN;
+
 /**
  * No amount larger than this (in satoshi) is valid.
  *
  * Note that this constant is *not* the total money supply, which in Bitcoin
- * currently happens to be less than 21,000,000 BCH for various reasons, but
+ * currently happens to be less than 72,000,000 BCH for various reasons, but
  * rather a sanity check. As this sanity check is used by consensus-critical
  * validation code, the exact value of the MAX_MONEY constant is consensus
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  */
-static const Amount MAX_MONEY = 21000000 * COIN;
+static const Amount MAX_MONEY = 72000000 * COIN;
 inline bool MoneyRange(const Amount nValue) {
     return nValue >= Amount::zero() && nValue <= MAX_MONEY;
 }

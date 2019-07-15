@@ -199,20 +199,6 @@ void PaymentServerTests::paymentServerTests() {
     // compares 50001 <= BIP70_MAX_PAYMENTREQUEST_SIZE == false
     QCOMPARE(PaymentServer::verifySize(tempFile.size()), false);
 
-    // Payment request with amount overflow (amount is set to 21000001 BCH):
-    data = DecodeBase64(paymentrequest5_cert2_BASE64);
-    byteArray = QByteArray((const char *)&data[0], data.size());
-    r.paymentRequest.parse(byteArray);
-    // Ensure the request is initialized
-    QVERIFY(r.paymentRequest.IsInitialized());
-    // Extract address and amount from the request
-    QList<std::pair<CScript, Amount>> sendingTos = r.paymentRequest.getPayTo();
-    for (const std::pair<CScript, Amount> &sendingTo : sendingTos) {
-        CTxDestination dest;
-        if (ExtractDestination(sendingTo.first, dest))
-            QCOMPARE(PaymentServer::verifyAmount(sendingTo.second), false);
-    }
-
     delete server;
 }
 

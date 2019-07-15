@@ -178,7 +178,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         funding_tx.vin.resize(1);
         funding_tx.vin[0].prevout = COutPoint(m_coinbase_txns[0]->GetId(), 0);
         funding_tx.vout.resize(1);
-        funding_tx.vout[0].nValue = 50 * COIN;
+        funding_tx.vout[0].nValue = INITIAL_REWARD;
 
         CKey dummyKey;
         dummyKey.MakeNewKey(true);

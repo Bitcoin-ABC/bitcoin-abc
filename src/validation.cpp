@@ -958,6 +958,33 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
     return true;
 }
 
+static int64_t getSubsidy(unsigned int halvings) {
+    static int64_t subsidys[] = {
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0
+    };
+    if(subsidys[0] == 0) { // init
+        Amount nInitSubsidy = INITIAL_REWARD;
+        int64_t prevSubsidy = nInitSubsidy.GetSatoshis();
+        for (int nHalvings = 1; nHalvings < 64; nHalvings++) {
+            subsidys[nHalvings] = (Amount(prevSubsidy << 2) / 5).GetSatoshis();
+            prevSubsidy = subsidys[nHalvings];
+        }
+        subsidys[0] = nInitSubsidy.GetSatoshis();
+    }
+
+    if(halvings >= 64) {
+        return 0;
+    }
+    return subsidys[halvings];
+}
+
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
     // Force block reward to zero when right shift is undefined.
@@ -965,10 +992,9 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
         return Amount::zero();
     }
 
-    Amount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur
-    // approximately every 4 years.
-    return ((nSubsidy / SATOSHI) >> halvings) * SATOSHI;
+    // Subsidy is cut in half every 576,000 blocks which will occur
+    // approximately every 400 days.
+    return Amount(getSubsidy(halvings));
 }
 
 bool IsInitialBlockDownload() {

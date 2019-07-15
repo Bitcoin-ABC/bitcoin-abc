@@ -140,18 +140,19 @@ BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
     // Block counter.
     size_t i;
 
+    int64_t expectBlockTime = params.nPowTargetSpacing;
     // Pile up some blocks every 10 mins to establish some history.
     for (i = 1; i < 2050; i++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 600, initialBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime, initialBits);
     }
 
     CBlockHeader blkHeaderDummy;
     uint32_t nBits =
         GetNextCashWorkRequired(&blocks[2049], &blkHeaderDummy, config);
 
-    // Difficulty stays the same as long as we produce a block every 10 mins.
+    // Difficulty stays the same as long as we produce a block every 2 mins.
     for (size_t j = 0; j < 10; i++, j++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 600, nBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime, nBits);
         BOOST_CHECK_EQUAL(
             GetNextCashWorkRequired(&blocks[i], &blkHeaderDummy, config),
             nBits);
@@ -160,30 +161,30 @@ BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
     // Make sure we skip over blocks that are out of wack. To do so, we produce
     // a block that is far in the future, and then produce a block with the
     // expected timestamp.
-    blocks[i] = GetBlockIndex(&blocks[i - 1], 6000, nBits);
+    blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime * 10, nBits);
     BOOST_CHECK_EQUAL(
         GetNextCashWorkRequired(&blocks[i++], &blkHeaderDummy, config), nBits);
-    blocks[i] = GetBlockIndex(&blocks[i - 1], 2 * 600 - 6000, nBits);
+    blocks[i] = GetBlockIndex(&blocks[i - 1], 2 * expectBlockTime - expectBlockTime * 10, nBits);
     BOOST_CHECK_EQUAL(
         GetNextCashWorkRequired(&blocks[i++], &blkHeaderDummy, config), nBits);
 
     // The system should continue unaffected by the block with a bogous
     // timestamps.
     for (size_t j = 0; j < 20; i++, j++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 600, nBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime, nBits);
         BOOST_CHECK_EQUAL(
             GetNextCashWorkRequired(&blocks[i], &blkHeaderDummy, config),
             nBits);
     }
 
     // We start emitting blocks slightly faster. The first block has no impact.
-    blocks[i] = GetBlockIndex(&blocks[i - 1], 550, nBits);
+    blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime - 5, nBits);
     BOOST_CHECK_EQUAL(
         GetNextCashWorkRequired(&blocks[i++], &blkHeaderDummy, config), nBits);
 
     // Now we should see difficulty increase slowly.
     for (size_t j = 0; j < 10; i++, j++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 550, nBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime - 5, nBits);
         const uint32_t nextBits =
             GetNextCashWorkRequired(&blocks[i], &blkHeaderDummy, config);
 
@@ -204,7 +205,7 @@ BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
 
     // If we dramatically shorten block production, difficulty increases faster.
     for (size_t j = 0; j < 20; i++, j++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 10, nBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], 1, nBits);
         const uint32_t nextBits =
             GetNextCashWorkRequired(&blocks[i], &blkHeaderDummy, config);
 
@@ -225,7 +226,7 @@ BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
 
     // We start to emit blocks significantly slower. The first block has no
     // impact.
-    blocks[i] = GetBlockIndex(&blocks[i - 1], 6000, nBits);
+    blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime * 10, nBits);
     nBits = GetNextCashWorkRequired(&blocks[i++], &blkHeaderDummy, config);
 
     // Check the actual value.
@@ -233,7 +234,7 @@ BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
 
     // If we dramatically slow down block production, difficulty decreases.
     for (size_t j = 0; j < 93; i++, j++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 6000, nBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime * 10, nBits);
         const uint32_t nextBits =
             GetNextCashWorkRequired(&blocks[i], &blkHeaderDummy, config);
 
@@ -255,14 +256,14 @@ BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
 
     // Due to the window of time being bounded, next block's difficulty actually
     // gets harder.
-    blocks[i] = GetBlockIndex(&blocks[i - 1], 6000, nBits);
+    blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime * 10, nBits);
     nBits = GetNextCashWorkRequired(&blocks[i++], &blkHeaderDummy, config);
     BOOST_CHECK_EQUAL(nBits, 0x1c2ee9bf);
 
     // And goes down again. It takes a while due to the window being bounded and
     // the skewed block causes 2 blocks to get out of the window.
     for (size_t j = 0; j < 192; i++, j++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 6000, nBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime * 10, nBits);
         const uint32_t nextBits =
             GetNextCashWorkRequired(&blocks[i], &blkHeaderDummy, config);
 
@@ -285,7 +286,7 @@ BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
     // Once the difficulty reached the minimum allowed level, it doesn't get any
     // easier.
     for (size_t j = 0; j < 5; i++, j++) {
-        blocks[i] = GetBlockIndex(&blocks[i - 1], 6000, nBits);
+        blocks[i] = GetBlockIndex(&blocks[i - 1], expectBlockTime * 10, nBits);
         const uint32_t nextBits =
             GetNextCashWorkRequired(&blocks[i], &blkHeaderDummy, config);
 
