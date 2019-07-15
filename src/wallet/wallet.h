@@ -866,6 +866,9 @@ public:
         return m_chain ? m_chain->lock() : nullptr;
     }
 
+    /** Interface to assert chain access */
+    bool HaveChain() const { return m_chain ? true : false; }
+
     std::map<TxId, CWalletTx> mapWallet GUARDED_BY(cs_wallet);
 
     typedef std::multimap<int64_t, CWalletTx *> TxItems;
