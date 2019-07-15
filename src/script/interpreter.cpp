@@ -1028,13 +1028,13 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         }
 
                         bool fSuccess = true;
-                        size_t ikey = idxTopKey;
-                        size_t isig = idxTopSig;
                         int nSigsRemaining = nSigsCount;
                         int nKeysRemaining = nKeysCount;
                         while (fSuccess && nSigsRemaining > 0) {
-                            valtype &vchSig = stacktop(-isig);
-                            valtype &vchPubKey = stacktop(-ikey);
+                            valtype &vchSig = stacktop(
+                                -idxTopSig - (nSigsCount - nSigsRemaining));
+                            valtype &vchPubKey = stacktop(
+                                -idxTopKey - (nKeysCount - nKeysRemaining));
 
                             // Note how this makes the exact order of
                             // pubkey/signature evaluation distinguishable by
@@ -1053,10 +1053,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                                         scriptCode, flags);
 
                             if (fOk) {
-                                isig++;
                                 nSigsRemaining--;
                             }
-                            ikey++;
                             nKeysRemaining--;
 
                             // If there are more signatures left than keys left,
