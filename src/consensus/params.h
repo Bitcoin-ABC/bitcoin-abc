@@ -32,8 +32,6 @@ struct Params {
     int CSVHeight;
     /** Block height at which UAHF kicks in */
     int uahfHeight;
-    /** Block height at which the new DAA becomes active */
-    int daaHeight;
     /** Block height at which the magnetic anomaly activation becomes active */
     int magneticAnomalyHeight;
     /** Unix time used for MTP activation of Nov 15 2019 12:00:00 UTC upgrade */

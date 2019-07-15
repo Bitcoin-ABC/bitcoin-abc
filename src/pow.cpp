@@ -104,11 +104,7 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
         return pindexPrev->nBits;
     }
 
-    if (IsDAAEnabled(config, pindexPrev)) {
-        return GetNextCashWorkRequired(pindexPrev, pblock, config);
-    }
-
-    return GetNextEDAWorkRequired(pindexPrev, pblock, config);
+    return GetNextCashWorkRequired(pindexPrev, pblock, config);
 }
 
 uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,
@@ -263,7 +259,9 @@ uint32_t GetNextCashWorkRequired(const CBlockIndex *pindexPrev,
 
     // Compute the difficulty based on the full adjustment interval.
     const uint32_t nHeight = pindexPrev->nHeight;
-    assert(nHeight >= params.DifficultyAdjustmentInterval());
+    if(nHeight < 144 + 3) {
+        return config.GetChainParams().GenesisBlock().nBits;
+    }
 
     // Get the last suitable block of the difficulty interval.
     const CBlockIndex *pindexLast = GetSuitableBlock(pindexPrev);

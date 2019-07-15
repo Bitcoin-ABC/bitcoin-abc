@@ -467,6 +467,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         next->nHeight = prev->nHeight + 1;
         next->BuildSkip();
         chainActive.SetTip(next);
+        next->nBits = prev->nBits;
+        next->nChainWork =
+                (next->pprev ? next->pprev->nChainWork : 0) +
+                GetBlockProof(*next);
     }
     BOOST_CHECK(
         pblocktemplate =
@@ -481,6 +485,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         next->nHeight = prev->nHeight + 1;
         next->BuildSkip();
         chainActive.SetTip(next);
+        next->nBits = prev->nBits;
+        next->nChainWork =
+                (next->pprev ? next->pprev->nChainWork : 0) +
+                GetBlockProof(*next);
     }
     BOOST_CHECK(
         pblocktemplate =
