@@ -3634,13 +3634,6 @@ static bool ContextualCheckBlockHeader(const Config &config,
     return true;
 }
 
-/**
- * NOTE: This function is not currently invoked by ConnectBlock(), so we
- * should consider upgrade issues if we change which consensus rules are
- * enforced in this function (eg by adding a new consensus rule). See comment
- * in ConnectBlock().
- * Note that -reindex-chainstate skips the validation that happens here!
- */
 bool ContextualCheckTransactionForCurrentBlock(const Config &config,
                                                const CTransaction &tx,
                                                CValidationState &state,
@@ -3678,6 +3671,13 @@ bool ContextualCheckTransactionForCurrentBlock(const Config &config,
                                       nLockTimeCutoff, nMedianTimePast);
 }
 
+/**
+ * NOTE: This function is not currently invoked by ConnectBlock(), so we
+ * should consider upgrade issues if we change which consensus rules are
+ * enforced in this function (eg by adding a new consensus rule). See comment
+ * in ConnectBlock().
+ * Note that -reindex-chainstate skips the validation that happens here!
+ */
 static bool ContextualCheckBlock(const Config &config, const CBlock &block,
                                  CValidationState &state,
                                  const CBlockIndex *pindexPrev) {
