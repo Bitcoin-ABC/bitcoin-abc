@@ -1830,7 +1830,7 @@ bool AppInitParameterInteraction(Config &config) {
 
     fRequireStandard =
         !gArgs.GetBoolArg("-acceptnonstdtxn", !chainparams.RequireStandard());
-    if (chainparams.RequireStandard() && !fRequireStandard) {
+    if (!chainparams.IsTestChain() && !fRequireStandard) {
         return InitError(
             strprintf("acceptnonstdtxn is not currently supported for %s chain",
                       chainparams.NetworkIDString()));

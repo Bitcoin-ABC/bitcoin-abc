@@ -112,7 +112,8 @@ class MempoolLimitSigopsTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [
-            ["-maxmempool=5", '-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME)]]
+            ["-maxmempool=5", '-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME),
+                "-acceptnonstdtxn=1"]]
         self.block_heights = {}
 
     def skip_test_if_missing_module(self):

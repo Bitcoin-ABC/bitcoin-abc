@@ -32,6 +32,9 @@ class InvalidTxRequestTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
+        self.extra_args = [
+            ["-acceptnonstdtxn=1", ]
+        ]
         self.setup_clean_chain = True
 
     def bootstrap_p2p(self, *, num_connections=1):
@@ -170,7 +173,8 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         # disconnects without sending the reject message
         self.log.info(
             'Test a transaction that is rejected, with BIP61 disabled')
-        self.restart_node(0, ['-enablebip61=0', '-persistmempool=0'])
+        self.restart_node(
+            0, self.extra_args[0] + ['-enablebip61=0', '-persistmempool=0'])
         self.reconnect_p2p(num_connections=1)
         node.p2p.send_txs_and_test(
             [tx1], node, success=False, reject_reason="{} from peer=0 was not accepted: mandatory-script-verify-flag-failed (Invalid OP_IF construction) (code 16)".format(tx1.hash), expect_disconnect=True)

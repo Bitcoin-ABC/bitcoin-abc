@@ -66,6 +66,8 @@ class SchnorrTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.block_heights = {}
+        self.extra_args = [[
+            "-acceptnonstdtxn=1"]]
 
     def bootstrap_p2p(self, *, num_connections=1):
         """Add a P2P connection to the node.

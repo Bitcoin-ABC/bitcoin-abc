@@ -131,7 +131,8 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [['-whitelist=127.0.0.1',
-                            EXTRA_ARG]]
+                            EXTRA_ARG,
+                            '-acceptnonstdtxn=1']]
 
     def next_block(self, number):
         if self.tip is None:

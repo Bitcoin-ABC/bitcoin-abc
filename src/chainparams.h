@@ -66,6 +66,8 @@ public:
     bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
     /** Policy: Filter transactions that do not match well-defined patterns */
     bool RequireStandard() const { return fRequireStandard; }
+    /** If this is a test chain */
+    bool IsTestChain() const { return m_is_test_chain; }
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
     /** Minimum free space (in GB) needed for data directory */
     uint64_t AssumedBlockchainSize() const { return m_assumed_blockchain_size; }
@@ -76,11 +78,8 @@ public:
     uint64_t AssumedChainStateSize() const {
         return m_assumed_chain_state_size;
     }
-    /**
-     * Make miner stop after a block is found. In RPC, don't return until
-     * nGenProcLimit blocks are generated.
-     */
-    bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
+    /** Whether it is possible to mine blocks on demand (no retargeting) */
+    bool MineBlocksOnDemand() const { return consensus.fPowNoRetargeting; }
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
     /** Return the list of hostnames to look up for DNS seeds */
@@ -111,7 +110,7 @@ protected:
     std::vector<SeedSpec6> vFixedSeeds;
     bool fDefaultConsistencyChecks;
     bool fRequireStandard;
-    bool fMineBlocksOnDemand;
+    bool m_is_test_chain;
     CCheckpointData checkpointData;
     ChainTxData chainTxData;
 };

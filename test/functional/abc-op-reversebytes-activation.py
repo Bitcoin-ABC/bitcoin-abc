@@ -53,7 +53,8 @@ class OpReversebytesActivationTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.block_heights = {}
         self.extra_args = [
-            ["-phononactivationtime={}".format(PHONON_START_TIME)]]
+            ["-phononactivationtime={}".format(PHONON_START_TIME),
+             "-acceptnonstdtxn=1"]]
 
     def bootstrap_p2p(self, *, num_connections=1):
         """Add a P2P connection to the node.

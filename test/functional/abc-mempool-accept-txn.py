@@ -71,7 +71,8 @@ class FullBlockTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [
-            ['-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME)]]
+            ['-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME),
+             '-acceptnonstdtxn=1']]
 
     def add_options(self, parser):
         super().add_options(parser)

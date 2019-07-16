@@ -83,7 +83,8 @@ class InputSigChecksActivationTest(BitcoinTestFramework):
         self.extra_args = [["-phononactivationtime={}".format(
             SIGCHECKS_ACTIVATION_TIME),
             "-replayprotectionactivationtime={}".format(
-            REPLAY_PROTECTION_START_TIME), ]]
+            REPLAY_PROTECTION_START_TIME),
+            "-acceptnonstdtxn=1"]]
 
     def getbestblock(self, node):
         """Get the best block. Register its height so we can use build_block."""

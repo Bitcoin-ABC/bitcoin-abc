@@ -53,7 +53,8 @@ class PhononPolicyChangeTest(BitcoinTestFramework):
         self.extra_args = [[
             "-phononactivationtime={}".format(PHONON_START_TIME),
             "-replayprotectionactivationtime={}".format(
-                REPLAY_PROTECTION_TIME)]]
+                REPLAY_PROTECTION_TIME),
+            "-acceptnonstdtxn=1"]]
 
     def bootstrap_p2p(self):
         self.nodes[0].add_p2p_connection(P2PDataStore())

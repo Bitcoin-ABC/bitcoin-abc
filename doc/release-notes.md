@@ -6,6 +6,16 @@ This release includes the following features and fixes:
  - Removed deprecated `getinfo` RPC.
  - Update univalue to 1.0.5
 
+Tests
+-----
+
+- The regression test chain, that can be enabled by the `-regtest` command line
+  flag, now requires transactions to not violate standard policy by default.
+  Making the default the same as for mainnet, makes it easier to test mainnet
+  behavior on regtest. Be reminded that the testnet still allows non-standard
+  txs by default and that the policy can be locally adjusted with the
+  `-acceptnonstdtxn` command line flag for both test chains.
+
 Configuration
 ------------
 

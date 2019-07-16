@@ -61,7 +61,9 @@ class ReplayProtectionTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [['-whitelist=127.0.0.1',
-                            "-replayprotectionactivationtime={}".format(REPLAY_PROTECTION_START_TIME)]]
+                            "-replayprotectionactivationtime={}".format(
+                                REPLAY_PROTECTION_START_TIME),
+                            "-acceptnonstdtxn=1"]]
 
     def next_block(self, number):
         if self.tip is None:

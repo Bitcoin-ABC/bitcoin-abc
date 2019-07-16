@@ -133,7 +133,7 @@ class SigopsDeactivationTest(BitcoinTestFramework):
             REPLAY_PROTECTION_START_TIME)]
         # many standardness rules are actually enforced on regtest, except for
         # P2SH sigops.
-        self.extra_args = [timeargs, timeargs + ['-acceptnonstdtxn=0']]
+        self.extra_args = [timeargs + ['-acceptnonstdtxn=1'], timeargs]
 
     def getbestblock(self, node):
         """Get the best block. Register its height so we can use build_block."""
