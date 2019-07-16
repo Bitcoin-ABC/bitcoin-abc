@@ -57,8 +57,7 @@ namespace {
     }
 
     //! Construct wallet tx status struct.
-    WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock &locked_chain,
-                                      const CWalletTx &wtx) {
+    WalletTxStatus MakeWalletTxStatus(CWallet &wallet, const CWalletTx &wtx) {
         WalletTxStatus result;
         result.block_height = wtx.m_confirm.block_height > 0
                                   ? wtx.m_confirm.block_height
@@ -69,9 +68,9 @@ namespace {
         result.lock_time = wtx.tx->nLockTime;
         TxValidationState state;
         result.is_final =
-            locked_chain.contextualCheckTransactionForCurrentBlock(
-                Params().GetConsensus(), *wtx.tx, state);
-        result.is_trusted = wtx.IsTrusted(locked_chain);
+            wallet.chain().contextualCheckTransactionForCurrentBlock(*wtx.tx,
+                                                                     state);
+        result.is_trusted = wtx.IsTrusted();
         result.is_abandoned = wtx.isAbandoned();
         result.is_coinbase = wtx.IsCoinBase();
         result.is_in_main_chain = wtx.IsInMainChain();
@@ -307,7 +306,7 @@ namespace {
             block_time = -1;
             CHECK_NONFATAL(m_wallet->chain().findBlock(
                 m_wallet->GetLastBlockHash(), FoundBlock().time(block_time)));
-            tx_status = MakeWalletTxStatus(*locked_chain, mi->second);
+            tx_status = MakeWalletTxStatus(*m_wallet, mi->second);
             return true;
         }
         WalletTx getWalletTxDetails(const TxId &txid, WalletTxStatus &tx_status,
@@ -321,7 +320,7 @@ namespace {
                 num_blocks = m_wallet->GetLastBlockHeight();
                 in_mempool = mi->second.InMempool();
                 order_form = mi->second.vOrderForm;
-                tx_status = MakeWalletTxStatus(*locked_chain, mi->second);
+                tx_status = MakeWalletTxStatus(*m_wallet, mi->second);
                 return MakeWalletTx(*m_wallet, mi->second);
             }
             return {};
@@ -393,7 +392,7 @@ namespace {
             auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             CoinsList result;
-            for (const auto &entry : m_wallet->ListCoins(*locked_chain)) {
+            for (const auto &entry : m_wallet->ListCoins()) {
                 auto &group = result[entry.first];
                 for (const auto &coin : entry.second) {
                     group.emplace_back(COutPoint(coin.tx->GetId(), coin.i),

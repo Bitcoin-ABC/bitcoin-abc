@@ -2087,17 +2087,16 @@ bool CWalletTx::InMempool() const {
     return fInMempool;
 }
 
-bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain) const {
+bool CWalletTx::IsTrusted() const {
     std::set<TxId> s;
-    return IsTrusted(locked_chain, s);
+    return IsTrusted(s);
 }
 
-bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain,
-                          std::set<TxId> &trusted_parents) const {
+bool CWalletTx::IsTrusted(std::set<TxId> &trusted_parents) const {
     // Quick answer in most cases
     TxValidationState state;
-    if (!locked_chain.contextualCheckTransactionForCurrentBlock(
-            this->pwallet->chainParams.GetConsensus(), *tx, state)) {
+    if (!pwallet->chain().contextualCheckTransactionForCurrentBlock(*tx,
+                                                                    state)) {
         return false;
     }
 
@@ -2139,7 +2138,7 @@ bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain,
             continue;
         }
         // Recurse to check that the parent is also trusted
-        if (!parent->IsTrusted(locked_chain, trusted_parents)) {
+        if (!parent->IsTrusted(trusted_parents)) {
             return false;
         }
         trusted_parents.insert(parent->GetId());
@@ -2247,7 +2246,7 @@ CWallet::Balance CWallet::GetBalance(const int min_depth,
     std::set<TxId> trusted_parents;
     for (const auto &entry : mapWallet) {
         const CWalletTx &wtx = entry.second;
-        const bool is_trusted{wtx.IsTrusted(*locked_chain, trusted_parents)};
+        const bool is_trusted{wtx.IsTrusted(trusted_parents)};
         const int tx_depth{wtx.GetDepthInMainChain()};
         const Amount tx_credit_mine{wtx.GetAvailableCredit(
             /* fUseCache */ true, ISMINE_SPENDABLE | reuse_filter)};
@@ -2273,7 +2272,7 @@ Amount CWallet::GetAvailableBalance(const CCoinControl *coinControl) const {
 
     Amount balance = Amount::zero();
     std::vector<COutput> vCoins;
-    AvailableCoins(*locked_chain, vCoins, true, coinControl);
+    AvailableCoins(vCoins, true, coinControl);
     for (const COutput &out : vCoins) {
         if (out.fSpendable) {
             balance += out.tx->tx->vout[out.i].nValue;
@@ -2282,8 +2281,7 @@ Amount CWallet::GetAvailableBalance(const CCoinControl *coinControl) const {
     return balance;
 }
 
-void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
-                             std::vector<COutput> &vCoins, bool fOnlySafe,
+void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
                              const CCoinControl *coinControl,
                              const Amount nMinimumAmount,
                              const Amount nMaximumAmount,
@@ -2305,16 +2303,14 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
     const int max_depth = {coinControl ? coinControl->m_max_depth
                                        : DEFAULT_MAX_DEPTH};
 
-    const Consensus::Params params = this->chainParams.GetConsensus();
-
     std::set<TxId> trusted_parents;
     for (const auto &entry : mapWallet) {
         const TxId &wtxid = entry.first;
         const CWalletTx &wtx = entry.second;
 
         TxValidationState state;
-        if (!locked_chain.contextualCheckTransactionForCurrentBlock(
-                params, *wtx.tx, state)) {
+        if (!chain().contextualCheckTransactionForCurrentBlock(*wtx.tx,
+                                                               state)) {
             continue;
         }
 
@@ -2334,7 +2330,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
             continue;
         }
 
-        bool safeTx = wtx.IsTrusted(locked_chain, trusted_parents);
+        bool safeTx = wtx.IsTrusted(trusted_parents);
 
         // Bitcoin-ABC: Removed check that prevents consideration of coins from
         // transactions that are replacing other transactions. This check based
@@ -2428,14 +2424,13 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
     }
 }
 
-std::map<CTxDestination, std::vector<COutput>>
-CWallet::ListCoins(interfaces::Chain::Lock &locked_chain) const {
+std::map<CTxDestination, std::vector<COutput>> CWallet::ListCoins() const {
     AssertLockHeld(cs_wallet);
 
     std::map<CTxDestination, std::vector<COutput>> result;
     std::vector<COutput> availableCoins;
 
-    AvailableCoins(locked_chain, availableCoins);
+    AvailableCoins(availableCoins);
 
     for (const auto &coin : availableCoins) {
         CTxDestination address;
@@ -2927,7 +2922,7 @@ bool CWallet::CreateTransactionInternal(const std::vector<CRecipient> &vecSend,
         txNew.nLockTime = GetLocktimeForNewTransaction(
             chain(), GetLastBlockHash(), GetLastBlockHeight());
         std::vector<COutput> vAvailableCoins;
-        AvailableCoins(*locked_chain, vAvailableCoins, true, &coin_control);
+        AvailableCoins(vAvailableCoins, true, &coin_control);
         // Parameters for coin selection, init with dummy
         CoinSelectionParams coin_selection_params;
 
@@ -3591,7 +3586,7 @@ CWallet::GetAddressBalances(interfaces::Chain::Lock &locked_chain) {
     for (const auto &walletEntry : mapWallet) {
         const CWalletTx &wtx = walletEntry.second;
 
-        if (!wtx.IsTrusted(locked_chain, trusted_parents)) {
+        if (!wtx.IsTrusted(trusted_parents)) {
             continue;
         }
 
@@ -4164,7 +4159,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
 
         auto locked_chain = chain.lock();
-        walletInstance->ChainStateFlushed(locked_chain->getTipLocator());
+        walletInstance->ChainStateFlushed(chain.getTipLocator());
     } else if (wallet_creation_flags & WALLET_FLAG_DISABLE_PRIVATE_KEYS) {
         // Make it impossible to disable private keys after creation
         error = strprintf(_("Error loading %s: Private keys can only be "
@@ -4304,7 +4299,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         CBlockLocator locator;
         if (batch.ReadBestBlock(locator)) {
             if (const Optional<int> fork_height =
-                    locked_chain->findLocatorFork(locator)) {
+                    chain.findLocatorFork(locator)) {
                 rescan_height = *fork_height;
             }
         }
@@ -4331,7 +4326,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
             // but fail the rescan with a generic error.
             int block_height = *tip_height;
             while (block_height > 0 &&
-                   locked_chain->haveBlockOnDisk(block_height - 1) &&
+                   chain.haveBlockOnDisk(block_height - 1) &&
                    rescan_height != block_height) {
                 --block_height;
             }
@@ -4362,7 +4357,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
         if (time_first_key) {
             if (Optional<int> first_block =
-                    locked_chain->findFirstBlockWithTimeAndHeight(
+                    chain.findFirstBlockWithTimeAndHeight(
                         *time_first_key - TIMESTAMP_WINDOW, rescan_height,
                         nullptr)) {
                 rescan_height = *first_block;
@@ -4382,7 +4377,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                 return nullptr;
             }
         }
-        walletInstance->ChainStateFlushed(locked_chain->getTipLocator());
+        walletInstance->ChainStateFlushed(chain.getTipLocator());
         walletInstance->database->IncrementUpdateCounter();
 
         // Restore wallet transaction metadata after -zapwallettxes=1

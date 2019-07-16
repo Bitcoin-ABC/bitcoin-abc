@@ -524,9 +524,8 @@ public:
     bool IsEquivalentTo(const CWalletTx &tx) const;
 
     bool InMempool() const;
-    bool IsTrusted(interfaces::Chain::Lock &locked_chain) const;
-    bool IsTrusted(interfaces::Chain::Lock &locked_chain,
-                   std::set<TxId> &trusted_parents) const;
+    bool IsTrusted() const;
+    bool IsTrusted(std::set<TxId> &trusted_parents) const;
 
     int64_t GetTxTime() const;
 
@@ -908,8 +907,7 @@ public:
     /**
      * populate vCoins with vector of available COutputs.
      */
-    void AvailableCoins(interfaces::Chain::Lock &locked_chain,
-                        std::vector<COutput> &vCoins, bool fOnlySafe = true,
+    void AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe = true,
                         const CCoinControl *coinControl = nullptr,
                         const Amount nMinimumAmount = SATOSHI,
                         const Amount nMaximumAmount = MAX_MONEY,
@@ -921,8 +919,7 @@ public:
      * Return list of available coins and locked coins grouped by non-change
      * output address.
      */
-    std::map<CTxDestination, std::vector<COutput>>
-    ListCoins(interfaces::Chain::Lock &locked_chain) const
+    std::map<CTxDestination, std::vector<COutput>> ListCoins() const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**

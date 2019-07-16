@@ -178,7 +178,7 @@ static void WalletTxToJSON(interfaces::Chain &chain,
                                        FoundBlock().time(block_time)));
         entry.pushKV("blocktime", block_time);
     } else {
-        entry.pushKV("trusted", wtx.IsTrusted(locked_chain));
+        entry.pushKV("trusted", wtx.IsTrusted());
     }
     uint256 hash = wtx.GetId();
     entry.pushKV("txid", hash.GetHex());
@@ -652,8 +652,7 @@ static UniValue signmessage(const Config &config,
     return EncodeBase64(vchSig.data(), vchSig.size());
 }
 
-static Amount GetReceived(interfaces::Chain::Lock &locked_chain,
-                          const CWallet &wallet, const UniValue &params,
+static Amount GetReceived(const CWallet &wallet, const UniValue &params,
                           bool by_label)
     EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet) {
     std::set<CTxDestination> address_set;
@@ -689,8 +688,8 @@ static Amount GetReceived(interfaces::Chain::Lock &locked_chain,
         const CWalletTx &wtx = wtx_pair.second;
         TxValidationState txState;
         if (wtx.IsCoinBase() ||
-            !locked_chain.contextualCheckTransactionForCurrentBlock(
-                wallet.chainParams.GetConsensus(), *wtx.tx, txState) ||
+            !wallet.chain().contextualCheckTransactionForCurrentBlock(
+                *wtx.tx, txState) ||
             wtx.GetDepthInMainChain() < min_depth) {
             continue;
         }
@@ -752,7 +751,7 @@ static UniValue getreceivedbyaddress(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    return ValueFromAmount(GetReceived(*locked_chain, *pwallet, request.params,
+    return ValueFromAmount(GetReceived(*pwallet, request.params,
                                        /* by_label */ false));
 }
 
@@ -797,7 +796,7 @@ static UniValue getreceivedbylabel(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    return ValueFromAmount(GetReceived(*locked_chain, *pwallet, request.params,
+    return ValueFromAmount(GetReceived(*pwallet, request.params,
                                        /* by_label */ true));
 }
 
@@ -1208,8 +1207,8 @@ ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
 
         TxValidationState state;
         if (wtx.IsCoinBase() ||
-            !locked_chain.contextualCheckTransactionForCurrentBlock(
-                pwallet->chainParams.GetConsensus(), *wtx.tx, state)) {
+            !pwallet->chain().contextualCheckTransactionForCurrentBlock(
+                *wtx.tx, state)) {
             continue;
         }
 
@@ -3508,8 +3507,8 @@ static UniValue listunspent(const Config &config,
         cctl.m_max_depth = nMaxDepth;
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
-        pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe,
-                                &cctl, nMinimumAmount, nMaximumAmount,
+        pwallet->AvailableCoins(vecOutputs, !include_unsafe, &cctl,
+                                nMinimumAmount, nMaximumAmount,
                                 nMinimumSumAmount, nMaximumCount);
     }
 

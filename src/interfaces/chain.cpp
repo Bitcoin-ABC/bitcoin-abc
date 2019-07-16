@@ -66,62 +66,6 @@ namespace {
     }
 
     class LockImpl : public Chain::Lock, public UniqueLock<RecursiveMutex> {
-        bool haveBlockOnDisk(int height) override {
-            LockAssertion lock(::cs_main);
-            CBlockIndex *block = ::ChainActive()[height];
-            return block && (block->nStatus.hasData() != 0) && block->nTx > 0;
-        }
-        Optional<int>
-        findFirstBlockWithTimeAndHeight(int64_t time, int height,
-                                        BlockHash *hash) override {
-            LockAssertion lock(::cs_main);
-            CBlockIndex *block =
-                ::ChainActive().FindEarliestAtLeast(time, height);
-            if (block) {
-                if (hash) {
-                    *hash = block->GetBlockHash();
-                }
-                return block->nHeight;
-            }
-            return nullopt;
-        }
-        Optional<int> findFork(const BlockHash &hash,
-                               Optional<int> *height) override {
-            LockAssertion lock(::cs_main);
-            const CBlockIndex *block = LookupBlockIndex(hash);
-            const CBlockIndex *fork =
-                block ? ::ChainActive().FindFork(block) : nullptr;
-            if (height) {
-                if (block) {
-                    *height = block->nHeight;
-                } else {
-                    height->reset();
-                }
-            }
-            if (fork) {
-                return fork->nHeight;
-            }
-            return nullopt;
-        }
-        CBlockLocator getTipLocator() override {
-            LockAssertion lock(::cs_main);
-            return ::ChainActive().GetLocator();
-        }
-        Optional<int> findLocatorFork(const CBlockLocator &locator) override {
-            LockAssertion lock(::cs_main);
-            if (CBlockIndex *fork =
-                    FindForkInGlobalIndex(::ChainActive(), locator)) {
-                return fork->nHeight;
-            }
-            return nullopt;
-        }
-        bool contextualCheckTransactionForCurrentBlock(
-            const Consensus::Params &params, const CTransaction &tx,
-            TxValidationState &state) override {
-            LockAssertion lock(::cs_main);
-            return ContextualCheckTransactionForCurrentBlock(params, tx, state);
-        }
-
         using UniqueLock::UniqueLock;
     }; // namespace interfaces
 
@@ -256,6 +200,43 @@ namespace {
             CBlockIndex *block = ::ChainActive()[height];
             assert(block);
             return block->GetBlockHash();
+        }
+        bool haveBlockOnDisk(int height) override {
+            LOCK(cs_main);
+            CBlockIndex *block = ::ChainActive()[height];
+            return block && (block->nStatus.hasData() != 0) && block->nTx > 0;
+        }
+        Optional<int>
+        findFirstBlockWithTimeAndHeight(int64_t time, int height,
+                                        BlockHash *hash) override {
+            LOCK(cs_main);
+            CBlockIndex *block =
+                ::ChainActive().FindEarliestAtLeast(time, height);
+            if (block) {
+                if (hash) {
+                    *hash = block->GetBlockHash();
+                }
+                return block->nHeight;
+            }
+            return nullopt;
+        }
+        CBlockLocator getTipLocator() override {
+            LOCK(cs_main);
+            return ::ChainActive().GetLocator();
+        }
+        bool contextualCheckTransactionForCurrentBlock(
+            const CTransaction &tx, TxValidationState &state) override {
+            LockAssertion lock(::cs_main);
+            return ContextualCheckTransactionForCurrentBlock(
+                m_params.GetConsensus(), tx, state);
+        }
+        Optional<int> findLocatorFork(const CBlockLocator &locator) override {
+            LOCK(cs_main);
+            if (CBlockIndex *fork =
+                    FindForkInGlobalIndex(::ChainActive(), locator)) {
+                return fork->nHeight;
+            }
+            return nullopt;
         }
         bool findBlock(const BlockHash &hash,
                        const FoundBlock &block) override {
