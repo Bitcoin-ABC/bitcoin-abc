@@ -93,6 +93,38 @@ private:
      */
     CCriticalSection m_cs_chainstate;
 
+    /**
+     * Every received block is assigned a unique and increasing identifier, so
+     * we know which one to give priority in case of a fork.
+     * Blocks loaded from disk are assigned id 0, so start the counter at 1.
+     */
+    std::atomic<int32_t> nBlockSequenceId{1};
+    /** Decreasing counter (used by subsequent preciousblock calls). */
+    int32_t nBlockReverseSequenceId = -1;
+    /** chainwork for the last block that preciousblock has been applied to. */
+    arith_uint256 nLastPreciousChainwork = 0;
+
+    /**
+     * In order to efficiently track invalidity of headers, we keep the set of
+     * blocks which we tried to connect and found to be invalid here (ie which
+     * were set to BLOCK_FAILED_VALID since the last restart). We can then
+     * walk this set and check if a new header is a descendant of something in
+     * this set, preventing us from having to walk mapBlockIndex when we try
+     * to connect a bad block and fail.
+     *
+     * While this is more complicated than marking everything which descends
+     * from an invalid block as invalid at the time we discover it to be
+     * invalid, doing so would require walking all of mapBlockIndex to find all
+     * descendants. Since this case should be very rare, keeping track of all
+     * BLOCK_FAILED_VALID blocks in a set should be just fine and work just as
+     * well.
+     *
+     * Because we already walk mapBlockIndex in height-order at startup, we go
+     * ahead and mark descendants of invalid blocks as FAILED_CHILD at that
+     * time, instead of putting things in this set.
+     */
+    std::set<CBlockIndex *> g_failed_blocks;
+
 public:
     CChain chainActive;
     BlockMap mapBlockIndex;
@@ -238,38 +270,6 @@ int nLastBlockFile = 0;
  * we're in prune mode.
  */
 bool fCheckForPruning = false;
-
-/**
- * Every received block is assigned a unique and increasing identifier, so we
- * know which one to give priority in case of a fork.
- * Blocks loaded from disk are assigned id 0, so start the counter at 1.
- */
-std::atomic<int32_t> nBlockSequenceId{1};
-/** Decreasing counter (used by subsequent preciousblock calls). */
-int32_t nBlockReverseSequenceId = -1;
-/** chainwork for the last block that preciousblock has been applied to. */
-arith_uint256 nLastPreciousChainwork = 0;
-
-/**
- * In order to efficiently track invalidity of headers, we keep the set of
- * blocks which we tried to connect and found to be invalid here (ie which
- * were set to BLOCK_FAILED_VALID since the last restart). We can then
- * walk this set and check if a new header is a descendant of something in
- * this set, preventing us from having to walk mapBlockIndex when we try
- * to connect a bad block and fail.
- *
- * While this is more complicated than marking everything which descends
- * from an invalid block as invalid at the time we discover it to be
- * invalid, doing so would require walking all of mapBlockIndex to find all
- * descendants. Since this case should be very rare, keeping track of all
- * BLOCK_FAILED_VALID blocks in a set should be just fine and work just as
- * well.
- *
- * Because we already walk mapBlockIndex in height-order at startup, we go
- * ahead and mark descendants of invalid blocks as FAILED_CHILD at that time,
- * instead of putting things in this set.
- */
-std::set<CBlockIndex *> g_failed_blocks;
 
 /** Dirty block index entries. */
 std::set<const CBlockIndex *> setDirtyBlockIndex;
@@ -2113,13 +2113,8 @@ void PruneAndFlush() {
     FlushStateToDisk(chainparams, state, FlushStateMode::NONE);
 }
 
-/**
- * Update chainActive and related internal data structures when adding a new
- * block to the chain tip.
- */
+/** Check warning conditions and do some notifications on new chain tip set. */
 static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
-    chainActive.SetTip(pindexNew);
-
     // New best block
     g_mempool.AddTransactionsUpdated(1);
 
@@ -2129,17 +2124,16 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         g_best_block_cv.notify_all();
     }
 
-    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
-              "date='%s' progress=%f cache=%.1fMiB(%utxo)\n",
-              __func__, chainActive.Tip()->GetBlockHash().ToString(),
-              chainActive.Height(), chainActive.Tip()->nVersion,
-              log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
-              (unsigned long)chainActive.Tip()->nChainTx,
-              FormatISO8601DateTime(chainActive.Tip()->GetBlockTime()),
-              GuessVerificationProgress(config.GetChainParams().TxData(),
-                                        chainActive.Tip()),
-              pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
-              pcoinsTip->GetCacheSize());
+    LogPrintf(
+        "%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
+        "date='%s' progress=%f cache=%.1fMiB(%utxo)\n",
+        __func__, pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
+        pindexNew->nVersion, log(pindexNew->nChainWork.getdouble()) / log(2.0),
+        (unsigned long)pindexNew->nChainTx,
+        FormatISO8601DateTime(pindexNew->GetBlockTime()),
+        GuessVerificationProgress(config.GetChainParams().TxData(), pindexNew),
+        pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
+        pcoinsTip->GetCacheSize());
 }
 
 /**
@@ -2210,6 +2204,8 @@ bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
     if (pindexFinalized == pindexDelete) {
         pindexFinalized = pindexDelete->pprev;
     }
+
+    chainActive.SetTip(pindexDelete->pprev);
 
     // Update chainActive and related variables.
     UpdateTip(config, pindexDelete->pprev);
@@ -2482,6 +2478,7 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
     }
 
     // Update chainActive & related variables.
+    chainActive.SetTip(pindexNew);
     UpdateTip(config, pindexNew);
 
     int64_t nTime6 = GetTimeMicros();
@@ -4866,6 +4863,8 @@ bool RewindBlockIndex(const Config &config) {
 // May NOT be used after any connections are up as much of the peer-processing
 // logic assumes a consistent block index state
 void CChainState::UnloadBlockIndex() {
+    nBlockSequenceId = 1;
+    g_failed_blocks.clear();
     setBlockIndexCandidates.clear();
 }
 
@@ -4885,9 +4884,7 @@ void UnloadBlockIndex() {
     mapBlocksUnlinked.clear();
     vinfoBlockFile.clear();
     nLastBlockFile = 0;
-    nBlockSequenceId = 1;
     setDirtyBlockIndex.clear();
-    g_failed_blocks.clear();
     setDirtyFileInfo.clear();
 
     for (BlockMap::value_type &entry : mapBlockIndex) {
