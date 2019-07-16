@@ -149,7 +149,8 @@ class AvoidReuseTest(BitcoinTestFramework):
         tempwallet = ".wallet_avoidreuse.py_test_immutable_wallet.dat"
 
         # Create a wallet with disable_private_keys set; this should work
-        self.nodes[1].createwallet(tempwallet, True)
+        self.nodes[1].createwallet(wallet_name=tempwallet,
+                                   disable_private_keys=True)
         w = self.nodes[1].get_wallet_rpc(tempwallet)
 
         # Attempt to unset the disable_private_keys flag; this should not work
@@ -314,68 +315,69 @@ class AvoidReuseTest(BitcoinTestFramework):
         # getbalances should show no used, 5MM XEC trusted
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5000000})
 
-        # For the second send, we transmute it to a related single-key address
-        # to make sure it's also detected as re-use
-        # NB: this is not very useful for ABC, but we keep the new variable
-        # name for consistency.
-        new_fundaddr = fundaddr
+        if not self.options.descriptors:
+            # For the second send, we transmute it to a related single-key address
+            # to make sure it's also detected as re-use
+            # NB: this is not very useful for ABC, but we keep the new variable
+            # name for consistency.
+            new_fundaddr = fundaddr
 
-        self.nodes[0].sendtoaddress(new_fundaddr, 10000000)
-        self.nodes[0].generate(1)
-        self.sync_all()
+            self.nodes[0].sendtoaddress(new_fundaddr, 10000000)
+            self.nodes[0].generate(1)
+            self.sync_all()
 
-        # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
-        # (5MM), one reused (10MM)
-        assert_unspent(
-            self.nodes[1],
-            total_count=2,
-            total_sum=15000000,
-            reused_count=1,
-            reused_sum=10000000)
-        # getbalances should show 10MM used, 5MM XEC trusted
-        assert_balances(
-            self.nodes[1],
-            mine={
-                "used": 10000000,
-                "trusted": 5000000})
+            # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
+            # (5MM), one reused (10MM)
+            assert_unspent(
+                self.nodes[1],
+                total_count=2,
+                total_sum=15000000,
+                reused_count=1,
+                reused_sum=10000000)
+            # getbalances should show 10MM used, 5MM XEC trusted
+            assert_balances(
+                self.nodes[1],
+                mine={
+                    "used": 10000000,
+                    "trusted": 5000000})
 
-        # node 1 should now have a balance of 5MM (no dirty) or 15MM (including
-        # dirty)
-        assert_approx(self.nodes[1].getbalance(), 5000000, 1000)
-        assert_approx(
-            self.nodes[1].getbalance(
-                avoid_reuse=False),
-            15000000,
-            1000)
+            # node 1 should now have a balance of 5MM (no dirty) or 15MM
+            # (including dirty)
+            assert_approx(self.nodes[1].getbalance(), 5000000, 1000)
+            assert_approx(
+                self.nodes[1].getbalance(
+                    avoid_reuse=False),
+                15000000,
+                1000)
 
-        assert_raises_rpc_error(-6, "Insufficient funds",
-                                self.nodes[1].sendtoaddress, retaddr, 10000000)
+            assert_raises_rpc_error(-6, "Insufficient funds",
+                                    self.nodes[1].sendtoaddress, retaddr, 10000000)
 
-        self.nodes[1].sendtoaddress(retaddr, 4000000)
+            self.nodes[1].sendtoaddress(retaddr, 4000000)
 
-        # listunspent should show 2 total outputs (1MM, 10MM XEC), one unused
-        # (1MM), one reused (10MM)
-        assert_unspent(
-            self.nodes[1],
-            total_count=2,
-            total_sum=11000000,
-            reused_count=1,
-            reused_sum=10000000)
-        # getbalances should show 10MM used, 1MM XEC trusted
-        assert_balances(
-            self.nodes[1],
-            mine={
-                "used": 10000000,
-                "trusted": 1000000})
+            # listunspent should show 2 total outputs (1MM, 10MM XEC), one unused
+            # (1MM), one reused (10MM)
+            assert_unspent(
+                self.nodes[1],
+                total_count=2,
+                total_sum=11000000,
+                reused_count=1,
+                reused_sum=10000000)
+            # getbalances should show 10MM used, 1MM XEC trusted
+            assert_balances(
+                self.nodes[1],
+                mine={
+                    "used": 10000000,
+                    "trusted": 1000000})
 
-        # node 1 should now have about 1MM XEC left (no dirty) and 11MM
-        # (including dirty)
-        assert_approx(self.nodes[1].getbalance(), 1000000, 1000)
-        assert_approx(
-            self.nodes[1].getbalance(
-                avoid_reuse=False),
-            11000000,
-            1000)
+            # node 1 should now have about 1MM XEC left (no dirty) and 11MM
+            # (including dirty)
+            assert_approx(self.nodes[1].getbalance(), 1000000, 1000)
+            assert_approx(
+                self.nodes[1].getbalance(
+                    avoid_reuse=False),
+                11000000,
+                1000)
 
     def test_getbalances_used(self):
         '''

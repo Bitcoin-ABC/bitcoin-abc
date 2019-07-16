@@ -102,11 +102,20 @@ TEST_PARAMS = {
     #    testName --param1 --param2
     #    testname --param3
     "rpc_bind.py": [["--ipv4"], ["--ipv6"], ["--nonloopback"]],
+    "rpc_createmultisig.py": [["--descriptors"]],
     "rpc_deriveaddresses.py": [["--usecli"]],
+    # FIXME: "rpc_psbt.py": [["--descriptors"]],
+    "wallet_avoidreuse.py": [["--descriptors"]],
+    # FIXME: "wallet_basic.py": [["--descriptors"]],
+    "wallet_createwallet.py": [["--usecli"]],
+    "wallet_encryption.py": [["--descriptors"]],
+    "wallet_hd.py": [["--descriptors"]],
+    # FIXME: "wallet_keypool.py": [["--descriptors"]],
+    "wallet_keypool_topup.py": [["--descriptors"]],
+    "wallet_labels.py": [["--descriptors"]],
+    "wallet_multiwallet.py": [["--usecli"]],
     "wallet_txn_doublespend.py": [["--mineblock"]],
     "wallet_txn_clone.py": [["--mineblock"]],
-    "wallet_createwallet.py": [["--usecli"]],
-    "wallet_multiwallet.py": [["--usecli"]],
     "wallet_watchonly.py": [["--usecli"]],
 }
 
