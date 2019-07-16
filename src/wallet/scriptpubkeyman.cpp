@@ -1622,4 +1622,7 @@ uint256 DescriptorScriptPubKeyMan::GetID() const {
     return uint256();
 }
 
-void DescriptorScriptPubKeyMan::SetType(OutputType type, bool internal) {}
+void DescriptorScriptPubKeyMan::SetType(OutputType type, bool internal) {
+    this->m_address_type = type;
+    this->m_internal = internal;
+}
