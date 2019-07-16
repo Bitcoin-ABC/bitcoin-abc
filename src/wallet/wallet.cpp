@@ -4313,7 +4313,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
     const Optional<int> tip_height = chain.getHeight();
     if (tip_height) {
         walletInstance->m_last_block_processed =
-            locked_chain->getBlockHash(*tip_height);
+            chain.getBlockHash(*tip_height);
         walletInstance->m_last_block_processed_height = *tip_height;
     } else {
         walletInstance->m_last_block_processed.SetNull();
@@ -4375,9 +4375,8 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                 (ScanResult::SUCCESS !=
                  walletInstance
                      ->ScanForWalletTransactions(
-                         locked_chain->getBlockHash(rescan_height),
-                         rescan_height, {} /* max height */, reserver,
-                         true /* update */)
+                         chain.getBlockHash(rescan_height), rescan_height,
+                         {} /* max height */, reserver, true /* update */)
                      .status)) {
                 error = _("Failed to rescan the wallet during initialization");
                 return nullptr;
