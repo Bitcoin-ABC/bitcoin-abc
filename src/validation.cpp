@@ -1760,8 +1760,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
     // block hash at that height doesn't correspond.
     fEnforceBIP30 =
         fEnforceBIP30 &&
-        (!pindexBIP34height ||
-         !(pindexBIP34height->GetBlockHash() == consensusParams.BIP34Hash));
+        ( pindex->nHeight < consensusParams.BIP34Height);
 
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {

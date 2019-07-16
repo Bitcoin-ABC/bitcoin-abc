@@ -85,16 +85,16 @@ public:
         consensus.nSubsidyHalvingInterval = 576000;
         // 00000000000000ce80a7e057163a4db1d5ad7b20fb6f598c9597b9665c8fb0d4 -
         // April 1, 2012
-        consensus.BIP16Height = 173805;
-        consensus.BIP34Height = 227931;
+        consensus.BIP16Height = 1;
+        consensus.BIP34Height = 1;
         consensus.BIP34Hash = uint256S(
             "000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
         // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
-        consensus.BIP65Height = 388381;
+        consensus.BIP65Height = 1;
         // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
-        consensus.BIP66Height = 363725;
+        consensus.BIP66Height = 1;
         // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
-        consensus.CSVHeight = 419328;
+        consensus.CSVHeight = 0;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -113,7 +113,7 @@ public:
             "00000000000000000401095ca2933cc4729484965e66e6a9f8e937070cc8e971");
 
         // August 1, 2017 hard fork
-        consensus.uahfHeight = 478558;
+        consensus.uahfHeight = 0;
 
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 556766;
@@ -195,16 +195,16 @@ public:
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 576000;
         // 00000000040b4e986385315e14bee30ad876d8b47f748025b26683116d21aa65
-        consensus.BIP16Height = 514;
-        consensus.BIP34Height = 21111;
+        consensus.BIP16Height = 1;
+        consensus.BIP34Height = 1;
         consensus.BIP34Hash = uint256S(
             "0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8");
         // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
-        consensus.BIP65Height = 581885;
+        consensus.BIP65Height = 1;
         // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
-        consensus.BIP66Height = 330776;
+        consensus.BIP66Height = 1;
         // 00000000025e930139bac5c6c31a403776da130831ab85be56578f3fa75369bb
-        consensus.CSVHeight = 770112;
+        consensus.CSVHeight = 0;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -223,7 +223,7 @@ public:
             "00000000001b618c015c41cc218a60a5a94bc42e16e30f1426cfc138615201c3");
 
         // August 1, 2017 hard fork
-        consensus.uahfHeight = 1155875;
+        consensus.uahfHeight = 0;
 
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 1267996;
