@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -335,9 +335,7 @@ enum ServiceFlags : uint64_t {
     // advertising this bit, but no longer do as of protocol version 70011 (=
     // NO_BLOOM_VERSION)
     NODE_BLOOM = (1 << 2),
-    // NODE_XTHIN means the node supports Xtreme Thinblocks. If this is turned
-    // off then the node will not service nor make xthin requests.
-    NODE_XTHIN = (1 << 4),
+    // Bit 4 was NODE_XTHIN, removed in v0.22.12
 
     // Bit 5 was NODE_BITCOIN_CASH, removed in v0.22.8
 

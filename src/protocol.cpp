@@ -273,8 +273,6 @@ static std::string serviceFlagToStr(const size_t bit) {
             return "GETUTXO";
         case NODE_BLOOM:
             return "BLOOM";
-        case NODE_XTHIN:
-            return "XTHIN";
         case NODE_NETWORK_LIMITED:
             return "NETWORK_LIMITED";
         case NODE_COMPACT_FILTERS:
