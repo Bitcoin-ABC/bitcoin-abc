@@ -1,4 +1,5 @@
 // Copyright (c) 2013-2015 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,6 +7,7 @@
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
+#include <dstencode.h>
 #include <validation.h>
 
 #include <test/test_bitcoin.h>
@@ -54,8 +56,10 @@ BOOST_AUTO_TEST_CASE(blockfail) {
     // Coinbase only.
     tx.vin.resize(1);
     tx.vin[0].scriptSig.resize(10);
-    tx.vout.resize(1);
+    tx.vout.resize(2);
     tx.vout[0].nValue = 42 * SATOSHI;
+    tx.vout[1].nValue = 50 * SATOSHI;
+    tx.vout[1].scriptPubKey = GetScriptForDevReward(config);
     auto coinbaseTx = CTransaction(tx);
 
     block.vtx.resize(1);

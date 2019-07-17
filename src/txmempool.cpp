@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -590,8 +591,7 @@ void CTxMemPool::removeForReorg(const Config &config,
 
                 if (coin.IsSpent() ||
                     (coin.IsCoinBase() &&
-                     int64_t(nMemPoolHeight) - coin.GetHeight() <
-                         COINBASE_MATURITY)) {
+                     Consensus::isImmature(coin,int64_t(nMemPoolHeight),txin.prevout))) {
                     txToRemove.insert(it);
                     break;
                 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
 // Copyright (c) 2017-2018 The Bitcoin developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -997,6 +998,18 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     return Amount(getSubsidy(halvings));
 }
 
+Amount GetBlockRewardSubsidy(int nHeight, const Consensus::Params &consensusParams) {//caican need test
+    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
+    // Force block reward to zero when right shift is undefined.
+    if (halvings >= 64) {
+        return Amount(0);
+    }
+
+    Amount nSubsidy = INITIAL_REWARD;
+    // reward Subsidy is cut in half approximately every 400 days.
+    return Amount(nSubsidy.GetSatoshis() >> halvings);
+}
+
 bool IsInitialBlockDownload() {
     // Once this function has returned false, it must remain false.
     static std::atomic<bool> latchToFalse{false};
@@ -1902,7 +1915,8 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
              nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
     Amount blockReward =
-        nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
+        nFees + GetBlockSubsidy(pindex->nHeight, consensusParams)
+        + GetBlockRewardSubsidy(pindex->nHeight, consensusParams);
     if (block.vtx[0]->GetValueOut() > blockReward) {
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much "

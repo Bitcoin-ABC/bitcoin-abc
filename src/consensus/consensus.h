@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,6 +31,11 @@ static const uint64_t MAX_TX_SIGOPS_COUNT = 20000;
  * blocks (network rule).
  */
 static const int COINBASE_MATURITY = 100;
+/**
+ * devloper reward Coinbase transaction outputs can only be spent after this number of new
+ * blocks (network rule).
+ */
+static const int DEVELOPER_REWARD_MATURITY = 200;
 /** Coinbase scripts have their own script size limit. */
 static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
 

@@ -497,10 +497,6 @@ void SetupServerArgs() {
                              "getrawtransaction rpc call (default: %d)"),
                            DEFAULT_TXINDEX),
                  false, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-usecashaddr",
-                 _("Use Cash Address for destination encoding instead "
-                   "of base58 (activate by default on Jan, 14)"),
-                 false, OptionsCategory::OPTIONS);
 
     gArgs.AddArg(
         "-addnode=<ip>",
@@ -2290,9 +2286,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Encoded addresses using cashaddr instead of base58
-    // Activates by default on Jan, 14
-    config.SetCashAddrEncoding(
-        gArgs.GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
+    // Deactivates by default
+    config.SetCashAddrEncoding(false);
 
     // Step 8: load indexers
     if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {

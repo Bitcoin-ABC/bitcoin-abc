@@ -1,6 +1,7 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
 // Copyright (c) 2017-2018 The Bitcoin developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -22,7 +23,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
     CMutableTransaction txNew;
     txNew.nVersion = 1;
     txNew.vin.resize(1);
-    txNew.vout.resize(1);
+    txNew.vout.resize(2);
     txNew.vin[0].scriptSig =
         CScript() << 486604799 << CScriptNum(4)
                   << std::vector<uint8_t>((const uint8_t *)pszTimestamp,
@@ -30,6 +31,9 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
                                               strlen(pszTimestamp));
     txNew.vout[0].nValue = genesisReward;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
+    txNew.vout[1].nValue = genesisReward;
+    txNew.vout[1].scriptPubKey = genesisOutputScript;
+
 
     CBlock genesis;
     genesis.nTime = nTime;
@@ -60,9 +64,9 @@ CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits,
     const char *pszTimestamp =
         "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const CScript genesisOutputScript =
-        CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909"
-                              "a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112"
-                              "de5c384df7ba0b8d578a4c702b6bf11d5f")
+        CScript() << OP_DUP << OP_HASH160
+                  << ParseHex("79f4659ece305b4c5d0a3204dd7db6bff3878783")
+                  << OP_EQUALVERIFY
                   << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce,
                               nBits, nVersion, genesisReward);
@@ -137,15 +141,15 @@ public:
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1,
+        genesis = CreateGenesisBlock(1544508900, 1985224258, 0x1d00ffff, 1,
                                      50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1"
-                        "b60a8ce26f"));
+               uint256S("00000000afd8605076880f5cc370aaaf3c7619e499efebbe947ad3"
+                                "dc0785efed"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b"
-                        "7afdeda33b"));
+               uint256S("b437770a5bf31e18254083837a11fa51c97946862fc90962f41c73"
+                                "c47941d05b"));
 
         // Note that of those which support the service bits prefix, most only
         // support a subset of possible options. This is fine at runtime as
@@ -183,6 +187,9 @@ public:
             248589038,
             // Estimated number of transactions per second after that timestamp.
             3.2};
+
+        consensus.rewardAddress = "1C7qYD9ztUK63eaxo2FCHEfxm8pb7kDpo6";
+        vRewardAddresses.push_back(consensus.rewardAddress);
     }
 };
 
@@ -243,14 +250,14 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis =
-            CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
+                CreateGenesisBlock(1544509900, 498802120, 0x1d00ffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526"
-                        "f8d77f4943"));
+               uint256S("00000000112750091b8e5bca8b1b376d108c22832c9b7aadd2d88b"
+                                "a4a398d26a"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b"
-                        "7afdeda33b"));
+               uint256S("b437770a5bf31e18254083837a11fa51c97946862fc90962f41c73"
+                                "c47941d05b"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -275,6 +282,9 @@ public:
         // 000000000005b07ecf85563034d13efd81c1a29e47e22b20f4fc6919d5b09cd6
         // (height 1223263)
         chainTxData = ChainTxData{1522608381, 15052068, 0.15};
+
+        consensus.rewardAddress = "mt2T2d4SNH5gp6ie1jSXa9vHivjm7R2njs";
+        vRewardAddresses.push_back(consensus.rewardAddress);
     }
 };
 
@@ -333,14 +343,14 @@ public:
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1544519900, 2, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b"
-                        "1a11466e2206"));
+               uint256S("6f8faad14f5a743decaa97ded0ea574299623171b378f9d874416e"
+                                "14e3264a29"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab212"
-                        "7b7afdeda33b"));
+               uint256S("b437770a5bf31e18254083837a11fa51c97946862fc90962f41c73"
+                                "c47941d05b"));
 
         //!< Regtest mode doesn't have any fixed seeds.
         vFixedSeeds.clear();
@@ -364,6 +374,8 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "bchreg";
+        consensus.rewardAddress = "mrdnqGEyhVkLpm4aWbDa79tHd8RJ7rvp5g";
+        vRewardAddresses.push_back(consensus.rewardAddress);
     }
 };
 

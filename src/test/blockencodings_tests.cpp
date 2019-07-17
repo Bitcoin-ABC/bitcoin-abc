@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,6 +8,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/merkle.h>
+#include <dstencode.h>
 #include <pow.h>
 #include <random.h>
 #include <streams.h>
@@ -25,11 +27,15 @@ BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, RegtestingSetup)
 
 static CBlock BuildBlockTestCase() {
     CBlock block;
+    GlobalConfig config;
     CMutableTransaction tx;
     tx.vin.resize(1);
     tx.vin[0].scriptSig.resize(10);
-    tx.vout.resize(1);
+    tx.vout.resize(2);
     tx.vout[0].nValue = 42 * SATOSHI;
+    tx.vout[1].nValue = 50 * SATOSHI;
+    tx.vout[1].scriptPubKey = GetScriptForDevReward(config);
+
 
     block.vtx.resize(3);
     block.vtx[0] = MakeTransactionRef(tx);
@@ -50,7 +56,6 @@ static CBlock BuildBlockTestCase() {
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     assert(!mutated);
 
-    GlobalConfig config;
     while (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
         ++block.nNonce;
     }
@@ -335,10 +340,13 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
 BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
     CTxMemPool pool;
     CMutableTransaction coinbase;
+        GlobalConfig config;
     coinbase.vin.resize(1);
     coinbase.vin[0].scriptSig.resize(10);
-    coinbase.vout.resize(1);
+    coinbase.vout.resize(2);
     coinbase.vout[0].nValue = 42 * SATOSHI;
+    coinbase.vout[1].nValue = 50 * SATOSHI;
+    coinbase.vout[1].scriptPubKey = GetScriptForDevReward(config);
 
     CBlock block;
     block.vtx.resize(1);
@@ -351,7 +359,6 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     assert(!mutated);
 
-    GlobalConfig config;
     while (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
         ++block.nNonce;
     }

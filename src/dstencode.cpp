@@ -1,4 +1,5 @@
 // Copyright (c) 2017 The Bitcoin developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include <dstencode.h>
@@ -32,4 +33,9 @@ bool IsValidDestinationString(const std::string &addr,
 
 std::string EncodeDestination(const CTxDestination &dst) {
     return EncodeDestination(dst, GetConfig());
+}
+
+CScript GetScriptForDevReward(const Config &config) {
+    return GetScriptForDestination(
+            DecodeDestination(config.GetChainParams().GetConsensus().rewardAddress, config.GetChainParams()));
 }

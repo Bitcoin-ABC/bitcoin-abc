@@ -21,4 +21,5 @@ bool IsValidDestinationString(const std::string &addr,
 // code.
 std::string EncodeDestination(const CTxDestination &);
 
+CScript GetScriptForDevReward(const Config &config);
 #endif // BITCOIN_DSTENCODE_H

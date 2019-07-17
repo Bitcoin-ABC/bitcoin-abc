@@ -1,4 +1,5 @@
 // Copyright (c) 2018 The Bitcoin developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,10 +7,12 @@
 
 #include <amount.h>
 #include <chain.h>
-#include <coins.h>
+#include <chainparams.h>
+#include <config.h>
 #include <consensus/activation.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
+#include <dstencode.h>
 #include <primitives/transaction.h>
 #include <script/script_flags.h>
 #include <utilmoneystr.h> // For FormatMoney
@@ -245,6 +248,24 @@ bool CheckCoinbase(const CTransaction &tx, CValidationState &state) {
         tx.vin[0].scriptSig.size() > MAX_COINBASE_SCRIPTSIG_SIZE) {
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
     }
+    if (tx.vout.size() < 2) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-no-2nd-out");
+    }
+    txnouttype type;
+    std::vector<CTxDestination> addresses;
+    int nRequired;
+    if (!ExtractDestinations(tx.vout[1].scriptPubKey, type, addresses, nRequired)) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-address-err");
+    }
+    if (addresses.size() != 1) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-address-len");
+    }
+    std::string addr = EncodeDestination(addresses[0]);
+    if (std::find(GetConfig().GetChainParams().RewardAddresses().begin(),
+                  GetConfig().GetChainParams().RewardAddresses().end(), addr)
+        == GetConfig().GetChainParams().RewardAddresses().end()) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-2nd-vout");
+    }
 
     return true;
 }
@@ -294,12 +315,19 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
         // If prev is coinbase, check that it's matured
         if (coin.IsCoinBase()) {
-            if (nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
+            if (prevout.GetN() == 0 && nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
                 return state.Invalid(
                     false, REJECT_INVALID,
                     "bad-txns-premature-spend-of-coinbase",
                     strprintf("tried to spend coinbase at depth %d",
                               nSpendHeight - coin.GetHeight()));
+            }
+            if (prevout.GetN() == 1 && nSpendHeight - coin.GetHeight() < DEVELOPER_REWARD_MATURITY) {
+                return state.Invalid(
+                        false, REJECT_INVALID,
+                        "bad-txns-premature-spend-of-dev-reward-coinbase",
+                        strprintf("tried to spend dev reward coinbase at depth %d",
+                                  nSpendHeight - coin.GetHeight()));
             }
         }
 
@@ -327,5 +355,16 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
     txfee = txfee_aux;
     return true;
+}
+bool isImmature(const Coin &coin, int64_t tipHeight, const COutPoint &prevout) {
+    if (coin.IsCoinBase()) {
+        if (prevout.GetN() == 0 && tipHeight - coin.GetHeight() < COINBASE_MATURITY) {
+            return true;
+        }
+        if (prevout.GetN() == 1 && tipHeight - coin.GetHeight() < DEVELOPER_REWARD_MATURITY) {
+            return true;
+        }
+    }
+    return false;
 }
 } // namespace Consensus

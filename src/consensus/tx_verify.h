@@ -1,4 +1,5 @@
 // Copyright (c) 2018 The Bitcoin developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,6 +7,7 @@
 #define BITCOIN_CONSENSUS_TX_VERIFY_H
 
 #include <cstdint>
+#include <coins.h>
 #include <vector>
 
 struct Amount;
@@ -34,6 +36,8 @@ namespace Consensus {
 bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
                    const CCoinsViewCache &inputs, int nSpendHeight,
                    Amount &txfee);
+
+bool isImmature(const Coin &coin, int64_t tipHeight, const COutPoint &prevout);
 
 } // namespace Consensus
 
