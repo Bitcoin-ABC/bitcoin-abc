@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import multiprocessing
 import os
 import subprocess
 import sys
@@ -171,6 +172,7 @@ def verify():
 
 def main():
     global args, workdir
+    num_cpus = multiprocessing.cpu_count()
 
     parser = argparse.ArgumentParser(usage='%(prog)s [options] signer version')
     parser.add_argument('-c', '--commit', action='store_true', dest='commit',
@@ -189,7 +191,7 @@ def main():
                         dest='buildsign', help='Build both signed and unsigned binaries')
     parser.add_argument('-o', '--os', dest='os', default='lwm',
                         help='Specify which Operating Systems the build is for. Default is %(default)s. l for Linux, w for Windows, m for MacOS')
-    parser.add_argument('-j', '--jobs', dest='jobs', default='2',
+    parser.add_argument('-j', '--jobs', dest='jobs', default=str(num_cpus),
                         help='Number of processes to use. Default %(default)s')
     parser.add_argument('-m', '--memory', dest='memory', default='2000',
                         help='Memory to allocate in MiB. Default %(default)s')
