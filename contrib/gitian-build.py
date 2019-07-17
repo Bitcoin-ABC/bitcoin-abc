@@ -263,7 +263,7 @@ def main():
     if args.setup:
         setup()
 
-    os.chdir('bitcoin')
+    os.chdir('bitcoin-abc')
     if args.pull:
         subprocess.check_call(
             ['git', 'fetch', args.url, 'refs/pull/'+args.version+'/merge'])
