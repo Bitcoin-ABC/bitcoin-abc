@@ -80,14 +80,17 @@ if [[ -z "${DISABLE_TESTS}" ]]; then
 	if [[ -z "${ENABLE_DEBUG}" ]]; then
 		mkdir -p output/
 		BRANCH=$(git rev-parse --abbrev-ref HEAD)
+		JUNIT_DEFAULT="junit_results_default.xml"
+		JUNIT_NEXT_UPGRADE="junit_results_next_upgrade.xml"
+
 		if [[ ! -z "${DISABLE_WALLET}" ]]; then
 			echo "Skipping rpc testing due to disabled wallet functionality."
 		elif [[ "${BRANCH}" == "master" ]]; then
-			./test/functional/test_runner.py --cutoff=600 --tmpdirprefix=output
-			./test/functional/test_runner.py --cutoff=600 --tmpdirprefix=output --with-gravitonactivation
+			./test/functional/test_runner.py -ju="${JUNIT_DEFAULT}" --cutoff=600 --tmpdirprefix=output
+			./test/functional/test_runner.py -ju="${JUNIT_NEXT_UPGRADE}" --cutoff=600 --tmpdirprefix=output --with-gravitonactivation
 		else
-			./test/functional/test_runner.py --tmpdirprefix=output
-			./test/functional/test_runner.py --tmpdirprefix=output --with-gravitonactivation
+			./test/functional/test_runner.py -ju="${JUNIT_DEFAULT}" --tmpdirprefix=output
+			./test/functional/test_runner.py -ju="${JUNIT_NEXT_UPGRADE}" --tmpdirprefix=output --with-gravitonactivation
 		fi
 	else
 		echo "*** Functional tests have been skipped"
