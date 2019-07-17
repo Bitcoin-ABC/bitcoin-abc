@@ -174,7 +174,7 @@ def main():
                         help='only print results summary and failure logs')
     parser.add_argument('--tmpdirprefix', '-t',
                         default=tempfile.gettempdir(), help="Root directory for datadirs")
-    parser.add_argument('--junitouput', '-ju',
+    parser.add_argument('--junitoutput', '-ju',
                         default=os.path.join(build_dir, 'junit_results.xml'), help="file that will store JUnit formatted test results.")
 
     args, unknown_args = parser.parse_known_args()
@@ -297,11 +297,11 @@ def main():
         shutil.rmtree(os.path.join(build_dir, "test",
                                    "cache"), ignore_errors=True)
 
-    run_tests(test_list, build_dir, tests_dir, args.junitouput,
+    run_tests(test_list, build_dir, tests_dir, args.junitoutput,
               tmpdir, args.jobs, args.coverage, passon_args, args.combinedlogslen, build_timings)
 
 
-def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
+def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
@@ -346,7 +346,7 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, ena
     max_len_name = len(max(test_list, key=len))
     print_results(test_results, tests_dir, max_len_name,
                   runtime, combined_logs_len)
-    save_results_as_junit(test_results, junitouput, runtime)
+    save_results_as_junit(test_results, junitoutput, runtime)
 
     if (build_timings is not None):
         build_timings.save_timings(test_results)
