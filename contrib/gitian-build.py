@@ -193,7 +193,7 @@ def main():
                         help='Specify which Operating Systems the build is for. Default is %(default)s. l for Linux, w for Windows, m for MacOS')
     parser.add_argument('-j', '--jobs', dest='jobs', default=str(num_cpus),
                         help='Number of processes to use. Default %(default)s')
-    parser.add_argument('-m', '--memory', dest='memory', default='2000',
+    parser.add_argument('-m', '--memory', dest='memory', default='3500',
                         help='Memory to allocate in MiB. Default %(default)s')
     parser.add_argument('-k', '--kvm', action='store_true',
                         dest='kvm', help='Use KVM instead of LXC')
