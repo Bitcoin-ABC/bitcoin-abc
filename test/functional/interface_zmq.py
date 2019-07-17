@@ -49,6 +49,7 @@ class ZMQTest (BitcoinTestFramework):
         self.ctx = zmq.Context()
         try:
             self.test_basic()
+            self.test_reorg()
         finally:
             # Destroy the ZMQ context.
             self.log.debug("Destroying ZMQ context")
@@ -129,6 +130,37 @@ class ZMQTest (BitcoinTestFramework):
         ])
 
         assert_equal(self.nodes[1].getzmqnotifications(), [])
+
+    def test_reorg(self):
+        import zmq
+        address = 'tcp://127.0.0.1:28333'
+        socket = self.ctx.socket(zmq.SUB)
+        socket.set(zmq.RCVTIMEO, 60000)
+        hashblock = ZMQSubscriber(socket, b'hashblock')
+
+        # Should only notify the tip if a reorg occurs
+        self.restart_node(
+            0, ['-zmqpub{}={}'.format(hashblock.topic.decode(), address)])
+        socket.connect(address)
+        # Relax so that the subscriber is ready before publishing zmq messages
+        sleep(0.2)
+
+        # Generate 1 block in nodes[0] and receive all notifications
+        self.nodes[0].generatetoaddress(1, ADDRESS_BCHREG_UNSPENDABLE)
+        assert_equal(
+            self.nodes[0].getbestblockhash(),
+            hashblock.receive().hex())
+
+        # Generate 2 blocks in nodes[1]
+        self.nodes[1].generatetoaddress(2, ADDRESS_BCHREG_UNSPENDABLE)
+
+        # nodes[0] will reorg chain after connecting back nodes[1]
+        connect_nodes(self.nodes[0], self.nodes[1])
+
+        # Should receive nodes[1] tip
+        assert_equal(
+            self.nodes[1].getbestblockhash(),
+            hashblock.receive().hex())
 
 
 if __name__ == '__main__':
