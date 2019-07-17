@@ -122,9 +122,6 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 556766;
 
-        // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
-
         /**
          * The message start string is designed to be unlikely to occur in
          * normal data. The characters are rarely used upper ASCII, not valid as
@@ -235,9 +232,6 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 1267996;
 
-        // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
-
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
         diskMagic[2] = 0x09;
@@ -328,9 +322,6 @@ public:
 
         // November 15, 2018 hard fork is always on on regtest.
         consensus.magneticAnomalyHeight = 0;
-
-        // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;

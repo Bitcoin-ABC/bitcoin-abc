@@ -43,13 +43,3 @@ bool IsMagneticAnomalyEnabled(const Config &config,
     return IsMagneticAnomalyEnabled(config, pindexPrev->nHeight);
 }
 
-bool IsGravitonEnabled(const Config &config, const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetArg(
-               "-gravitonactivationtime",
-               config.GetChainParams().GetConsensus().gravitonActivationTime);
-}
