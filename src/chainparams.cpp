@@ -62,7 +62,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
 CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits,
                           int32_t nVersion, const Amount genesisReward) {
     const char *pszTimestamp =
-        "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
+        "SN opened the door for freedom. We must find the road";
     const CScript genesisOutputScript =
         CScript() << OP_DUP << OP_HASH160
                   << ParseHex("79f4659ece305b4c5d0a3204dd7db6bff3878783")
@@ -138,15 +138,15 @@ public:
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1544508900, 1985224258, 0x1d00ffff, 1,
+        genesis = CreateGenesisBlock(1544508901, 1156447749, 0x1d00ffff, 1,
                                      50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("00000000afd8605076880f5cc370aaaf3c7619e499efebbe947ad3"
-                                "dc0785efed"));
+               uint256S("00000000199339188fc3af3e3e43113379ef199ac78190ab4a9deb"
+                                "645662f9fd"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("b437770a5bf31e18254083837a11fa51c97946862fc90962f41c73"
-                                "c47941d05b"));
+               uint256S("db7b10d5f509e2522c4f38ac9fb2d90d261d42883c635e7c8d04d8"
+                                "acc47fd1c6"));
 
         // Note that of those which support the service bits prefix, most only
         // support a subset of possible options. This is fine at runtime as
@@ -244,14 +244,14 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis =
-                CreateGenesisBlock(1544509900, 498802120, 0x1d00ffff, 1, 50 * COIN);
+                CreateGenesisBlock(1544509902, 3601894861, 0x1d00ffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("00000000112750091b8e5bca8b1b376d108c22832c9b7aadd2d88b"
-                                "a4a398d26a"));
+               uint256S("00000000fd0dbd40c9a19646e461365c99db184019cce3b62419e5"
+                                "a9a5cc1a59"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("b437770a5bf31e18254083837a11fa51c97946862fc90962f41c73"
-                                "c47941d05b"));
+               uint256S("db7b10d5f509e2522c4f38ac9fb2d90d261d42883c635e7c8d04d8"
+                                "acc47fd1c6"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -334,14 +334,14 @@ public:
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1544519900, 2, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1544519900, 4, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("6f8faad14f5a743decaa97ded0ea574299623171b378f9d874416e"
-                                "14e3264a29"));
+               uint256S("343e3362520852af17098283c56b5bfd6d7d937eaec1db04044c1f"
+                                "e01b497f2e"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("b437770a5bf31e18254083837a11fa51c97946862fc90962f41c73"
-                                "c47941d05b"));
+               uint256S("db7b10d5f509e2522c4f38ac9fb2d90d261d42883c635e7c8d04d8"
+                                "acc47fd1c6"));
 
         //!< Regtest mode doesn't have any fixed seeds.
         vFixedSeeds.clear();
