@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test) {
     Amount nSum = Amount::zero();
     for (int nHeight = 0; nHeight < 40000000; nHeight += 1000) {
         Amount nSubsidy = GetBlockSubsidy(nHeight, chainParams->GetConsensus());
-        BOOST_CHECK(nSubsidy <= 25 * COIN);
+        BOOST_CHECK(nSubsidy <= INITIAL_REWARD);
         nSum += 1000 * nSubsidy;
         BOOST_CHECK(MoneyRange(nSum));
     }

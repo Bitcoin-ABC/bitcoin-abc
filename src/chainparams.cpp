@@ -138,15 +138,13 @@ public:
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1544508901, 1156447749, 0x1d00ffff, 1,
-                                     50 * COIN);
+        genesis = CreateGenesisBlock(1544508901, 69064047, 0x1d00ffff, 1,
+                                     INITIAL_REWARD);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("00000000199339188fc3af3e3e43113379ef199ac78190ab4a9deb"
-                                "645662f9fd"));
+               uint256S("000000004d9c07f2b94e5ee797efb51e7ed299099f948c9832293085e389a5d5"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("db7b10d5f509e2522c4f38ac9fb2d90d261d42883c635e7c8d04d8"
-                                "acc47fd1c6"));
+               uint256S("e75e490f5b84c4b71e6501cb509510a43d5b2d1b90f11fbcbacbd82e0a256a7f"));
 
         // Note that of those which support the service bits prefix, most only
         // support a subset of possible options. This is fine at runtime as
@@ -244,14 +242,12 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis =
-                CreateGenesisBlock(1544509902, 3601894861, 0x1d00ffff, 1, 50 * COIN);
+                CreateGenesisBlock(1544509902, 4156746073, 0x1d00ffff, 1, INITIAL_REWARD);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("00000000fd0dbd40c9a19646e461365c99db184019cce3b62419e5"
-                                "a9a5cc1a59"));
+               uint256S("00000000b217394e16a89ee18d18be4068b240a86738f52146f82917893b5474"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("db7b10d5f509e2522c4f38ac9fb2d90d261d42883c635e7c8d04d8"
-                                "acc47fd1c6"));
+               uint256S("e75e490f5b84c4b71e6501cb509510a43d5b2d1b90f11fbcbacbd82e0a256a7f"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -334,14 +330,12 @@ public:
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1544519900, 4, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1544519900, 1, 0x207fffff, 1, INITIAL_REWARD);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("343e3362520852af17098283c56b5bfd6d7d937eaec1db04044c1f"
-                                "e01b497f2e"));
+               uint256S("2ca612a3f80dd99fda595c9b0c3c108ba80eef4a861d32bbb6a8406d0a1c483f"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("db7b10d5f509e2522c4f38ac9fb2d90d261d42883c635e7c8d04d8"
-                                "acc47fd1c6"));
+               uint256S("e75e490f5b84c4b71e6501cb509510a43d5b2d1b90f11fbcbacbd82e0a256a7f"));
 
         //!< Regtest mode doesn't have any fixed seeds.
         vFixedSeeds.clear();
