@@ -156,7 +156,7 @@ public:
         // FreeCash seeder TODO add seeds
         vSeeds.clear();
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 35);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 128);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
@@ -185,7 +185,7 @@ public:
             // Estimated number of transactions per second after that timestamp.
             3.2};
 
-        consensus.rewardAddress = "1C7qYD9ztUK63eaxo2FCHEfxm8pb7kDpo6";
+        consensus.rewardAddress = "FGwx11b5jnXkfpTzehuMFdCVnnqc1pCphH";
         vRewardAddresses.push_back(consensus.rewardAddress);
     }
 };

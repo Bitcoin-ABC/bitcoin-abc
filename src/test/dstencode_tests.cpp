@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
         "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
     std::string cashaddr_script =
         "bitcoincash:ppm2qsznhks23z7629mms6s4cwef74vcwvn0h829pq";
-    std::string base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
+    std::string base58_pubkey = "FGeMAtek4UgvFH9vaaYVR1iBZxwdeetcKc";
     std::string base58_script = "3CWFddi6m4ndiGyKqzYvsFYagqDLPVMTzC";
 
     DummyCashAddrConfig config;

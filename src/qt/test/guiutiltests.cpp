@@ -1,4 +1,5 @@
 // Copyright (c) 2017 The Bitcoin developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -50,7 +51,7 @@ void GUIUtilTests::toCurrentEncodingTest() {
 
     QString cashaddr_pubkey =
         "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
-    QString base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
+    QString base58_pubkey = "FGeMAtek4UgvFH9vaaYVR1iBZxwdeetcKc";
 
     config.SetCashAddrEncoding(true);
     QVERIFY(GUIUtil::convertToConfiguredAddressFormat(
