@@ -1898,15 +1898,20 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
              nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs - 1),
              nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
-    Amount blockReward =
-        nFees + GetBlockSubsidy(pindex->nHeight, consensusParams)
-        + GetBlockRewardSubsidy(pindex->nHeight, consensusParams);
-    if (block.vtx[0]->GetValueOut() > blockReward) {
-        return state.DoS(100,
-                         error("ConnectBlock(): coinbase pays too much "
-                               "(actual=%d vs limit=%d)",
-                               block.vtx[0]->GetValueOut(), blockReward),
+    Amount cbReward = GetBlockSubsidy(pindex->nHeight, consensusParams);
+    Amount devReward = GetBlockRewardSubsidy(pindex->nHeight, consensusParams);
+    Amount blockReward = nFees + cbReward;
+    if (block.vtx[0]->vout[0].nValue > blockReward) {
+        return state.DoS(100, error("ConnectBlock(): coinbase pays too much "
+                                    "(actual=%d vs limit=%d)",
+                                    block.vtx[0]->vout[0].nValue, blockReward),
                          REJECT_INVALID, "bad-cb-amount");
+    }
+    if (block.vtx[0]->vout[1].nValue > devReward) {
+        return state.DoS(100, error("ConnectBlock(): dev reward pays too much "
+                                    "(actual=%d vs limit=%d)",
+                                    block.vtx[0]->vout[1].nValue, devReward),
+                         REJECT_INVALID, "bad-dev-amount");
     }
 
     if (!control.Wait()) {
