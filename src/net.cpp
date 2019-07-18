@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -17,6 +18,7 @@
 #include <crypto/common.h>
 #include <crypto/sha256.h>
 #include <hash.h>
+#include <miner.h>
 #include <netbase.h>
 #include <primitives/transaction.h>
 #include <scheduler.h>
@@ -2540,6 +2542,8 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
                     std::function<void()>(
                         std::bind(&CConnman::ThreadMessageHandler, this)));
 
+    GenerateBitcoins(gArgs.GetBoolArg("-gen", DEFAULT_GENERATE), gArgs.GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), *config);
+
     // Dump network addresses
     scheduler.scheduleEvery(
         [this]() {
@@ -2607,6 +2611,9 @@ void CConnman::Stop() {
         DumpData();
         fAddressesInitialized = false;
     }
+
+    // stop miner threads
+    GenerateBitcoins(false, 0, *config);
 
     // Close sockets
     for (CNode *pnode : vNodes) {

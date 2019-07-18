@@ -1247,6 +1247,26 @@
         <source>Current total balance in watch-only addresses</source>
         <translation>观察地址(watch-only address)中的当前总余额 </translation>
     </message>
+    <message>
+        <source>Start Miner</source>
+        <translation>开启挖矿</translation>
+    </message>
+    <message>
+        <source>Stop Miner</source>
+        <translation>停止挖矿</translation>
+    </message>
+    <message>
+        <source>Miner state:</source>
+        <translation>挖矿状态：</translation>
+    </message>
+    <message>
+        <source>Miner started</source>
+        <translation>挖矿已开启...</translation>
+    </message>
+    <message>
+        <source>Miner stopped</source>
+        <translation>挖矿已停止!!!</translation>
+    </message>
 </context>
 <context>
     <name>PaymentServer</name>

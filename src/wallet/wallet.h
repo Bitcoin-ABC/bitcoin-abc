@@ -1,6 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
 // Copyright (c) 2018 The Bitcoin developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -1147,7 +1148,11 @@ public:
         }
     }
 
-    void GetScriptForMining(std::shared_ptr<CReserveScript> &script);
+    void GetScriptForMining(std::shared_ptr<CReserveScript> &script) override;
+    void ResetRequestCount(const uint256 &hash) override {
+        LOCK(cs_wallet);
+        mapRequestCount[hash] = 0;
+    };
 
     unsigned int GetKeyPoolSize() {
         // set{Ex,In}ternalKeyPool

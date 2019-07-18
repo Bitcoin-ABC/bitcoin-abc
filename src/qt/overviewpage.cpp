@@ -1,7 +1,11 @@
 // Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <config.h>
+#include <miner.h>
+#include <util.h>
 #include <qt/forms/ui_overviewpage.h>
 #include <qt/overviewpage.h>
 
@@ -145,6 +149,11 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent)
             SLOT(handleOutOfSyncWarningClicks()));
     connect(ui->labelTransactionsStatus, SIGNAL(clicked()), this,
             SLOT(handleOutOfSyncWarningClicks()));
+
+    ui->threadNumberEdit->setValidator(new QIntValidator(1, 4, this));
+    ui->threadNumberEdit->setText("1");
+    setMinerState();
+    minerStarted = gArgs.GetBoolArg("-gen", DEFAULT_GENERATE);
 }
 
 void OverviewPage::handleTransactionClicked(const QModelIndex &index) {
@@ -288,4 +297,23 @@ void OverviewPage::updateAlerts(const QString &warnings) {
 void OverviewPage::showOutOfSyncWarning(bool fShow) {
     ui->labelWalletStatus->setVisible(fShow);
     ui->labelTransactionsStatus->setVisible(fShow);
+}
+
+void OverviewPage::setMinerState() {
+    ui->lableMinerState->setText(minerStarted?tr("Miner started"):tr("Miner stopped"));
+}
+
+void OverviewPage::on_stopMinerButton_clicked() {
+    GenerateBitcoins(false, 0, GetConfig());
+    minerStarted = false;
+    setMinerState();
+}
+
+void OverviewPage::on_startMinerButton_clicked() {
+    int threadNum = ui->threadNumberEdit->text().toInt();
+    if (threadNum == 0) threadNum = 1;
+    LogPrintf("startMiner, thread:%d\n",threadNum);
+    GenerateBitcoins(true, threadNum, GetConfig());
+    minerStarted = true;
+    setMinerState();
 }

@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -970,6 +971,14 @@ void SetupServerArgs() {
                  strprintf("Timeout during HTTP requests (default: %d)",
                            DEFAULT_HTTP_SERVER_TIMEOUT),
                  true, OptionsCategory::RPC);
+
+    gArgs.AddArg("-gen", strprintf(_("Generate coins (default: %u)"), DEFAULT_GENERATE),
+                 false, OptionsCategory::BLOCK_CREATION);
+    gArgs.AddArg("-genproclimit=<n>",
+                 strprintf(_("Set the number of threads for coin generation if enabled (-1 = all cores, default: %d)"),
+                           DEFAULT_GENERATE_THREADS),
+                 false, OptionsCategory::BLOCK_CREATION);
+
 }
 
 std::string LicenseInfo() {

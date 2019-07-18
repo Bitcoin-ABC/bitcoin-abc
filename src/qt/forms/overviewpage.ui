@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
-    <height>342</height>
+    <width>651</width>
+    <height>504</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -404,6 +404,52 @@
            </layout>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0">
+         <item>
+          <widget class="QLabel" name="lableMinerStateText">
+           <property name="text">
+            <string>Miner state:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lableMinerState">
+           <property name="text">
+            <string>Start or Stop</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="labelThreadNumber">
+           <property name="text">
+            <string>Threads number:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="threadNumberEdit"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="startMinerButton">
+           <property name="text">
+            <string>Start Miner</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="stopMinerButton">
+         <property name="text">
+          <string>Stop Miner</string>
+         </property>
         </widget>
        </item>
        <item>

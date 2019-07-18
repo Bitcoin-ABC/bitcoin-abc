@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -41,6 +42,10 @@ struct MainSignalsInstance {
     boost::signals2::signal<void(const CBlockIndex *,
                                  const std::shared_ptr<const CBlock> &)>
         NewPoWValidBlock;
+    boost::signals2::signal<void(std::shared_ptr<CReserveScript> &)>
+        ScriptForMining;
+    boost::signals2::signal<void(const uint256 &)>
+        BlockFound;
 
     // We are not allowed to assume the scheduler only runs in one thread,
     // but must ensure all callbacks happen in-order, so we end up creating
@@ -110,6 +115,10 @@ void RegisterValidationInterface(CValidationInterface *pwalletIn) {
         boost::bind(&CValidationInterface::BlockChecked, pwalletIn, _1, _2));
     g_signals.m_internals->NewPoWValidBlock.connect(boost::bind(
         &CValidationInterface::NewPoWValidBlock, pwalletIn, _1, _2));
+    g_signals.m_internals->ScriptForMining.connect(boost::bind(
+        &CValidationInterface::GetScriptForMining, pwalletIn, _1));
+    g_signals.m_internals->BlockFound.connect(boost::bind(
+        &CValidationInterface::ResetRequestCount, pwalletIn, _1));
 }
 
 void UnregisterValidationInterface(CValidationInterface *pwalletIn) {
@@ -133,6 +142,10 @@ void UnregisterValidationInterface(CValidationInterface *pwalletIn) {
         &CValidationInterface::UpdatedBlockTip, pwalletIn, _1, _2, _3));
     g_signals.m_internals->NewPoWValidBlock.disconnect(boost::bind(
         &CValidationInterface::NewPoWValidBlock, pwalletIn, _1, _2));
+    g_signals.m_internals->ScriptForMining.disconnect(boost::bind(
+        &CValidationInterface::GetScriptForMining, pwalletIn, _1));
+    g_signals.m_internals->BlockFound.disconnect(boost::bind(
+        &CValidationInterface::ResetRequestCount, pwalletIn, _1));
 }
 
 void UnregisterAllValidationInterfaces() {
@@ -149,6 +162,8 @@ void UnregisterAllValidationInterfaces() {
     g_signals.m_internals->TransactionRemovedFromMempool.disconnect_all_slots();
     g_signals.m_internals->UpdatedBlockTip.disconnect_all_slots();
     g_signals.m_internals->NewPoWValidBlock.disconnect_all_slots();
+    g_signals.m_internals->ScriptForMining.disconnect_all_slots();
+    g_signals.m_internals->BlockFound.disconnect_all_slots();
 }
 
 void CallFunctionInValidationInterfaceQueue(std::function<void()> func) {
@@ -223,4 +238,12 @@ void CMainSignals::BlockChecked(const CBlock &block,
 void CMainSignals::NewPoWValidBlock(
     const CBlockIndex *pindex, const std::shared_ptr<const CBlock> &block) {
     m_internals->NewPoWValidBlock(pindex, block);
+}
+
+void CMainSignals::ScriptForMining(std::shared_ptr<CReserveScript> &script) {
+    m_internals->ScriptForMining(script);
+}
+
+void CMainSignals::BlockFound(const uint256 &hash) {
+    m_internals->BlockFound(hash);
 }

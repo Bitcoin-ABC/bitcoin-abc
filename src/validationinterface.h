@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -158,6 +159,8 @@ protected:
      */
     virtual void NewPoWValidBlock(const CBlockIndex *pindex,
                                   const std::shared_ptr<const CBlock> &block){};
+    virtual void GetScriptForMining(std::shared_ptr<CReserveScript> &){};
+    virtual void ResetRequestCount(const uint256 &hash){};
     friend void ::RegisterValidationInterface(CValidationInterface *);
     friend void ::UnregisterValidationInterface(CValidationInterface *);
     friend void ::UnregisterAllValidationInterfaces();
@@ -211,6 +214,8 @@ public:
     void BlockChecked(const CBlock &, const CValidationState &);
     void NewPoWValidBlock(const CBlockIndex *,
                           const std::shared_ptr<const CBlock> &);
+    void ScriptForMining(std::shared_ptr<CReserveScript> &);
+    void BlockFound(const uint256 &hash);
 };
 
 CMainSignals &GetMainSignals();

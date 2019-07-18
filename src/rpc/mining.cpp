@@ -1,5 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -792,6 +793,48 @@ static UniValue estimatefee(const Config &config,
     return ValueFromAmount(g_mempool.estimateFee().GetFeePerK());
 }
 
+UniValue setgenerate(const Config &config, const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
+        throw std::runtime_error(
+                "setgenerate generate ( genproclimit )\n"
+                        "\nSet 'generate' true or false to turn generation on or off.\n"
+                        "Generation is limited to 'genproclimit' processors, -1 is unlimited.\n"
+                        "See the getgenerate call for the current setting.\n"
+                        "\nArguments:\n"
+                        "1. generate         (boolean, required) Set to true to turn on generation, off to turn off.\n"
+                        "2. genproclimit     (numeric, optional) Set the processor limit for when generation is on. Can be -1 for unlimited.\n"
+                        "\nExamples:\n"
+                        "\nSet the generation on with a limit of one processor\n"
+                + HelpExampleCli("setgenerate", "true 1") +
+                "\nCheck the setting\n"
+                + HelpExampleCli("getgenerate", "") +
+                "\nTurn off generation\n"
+                + HelpExampleCli("setgenerate", "false") +
+                "\nUsing json rpc\n"
+                + HelpExampleRpc("setgenerate", "true, 1")
+        );
+
+    if (Params().MineBlocksOnDemand())
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Use the generate method instead of setgenerate on this network");
+
+    bool fGenerate = true;
+    if (request.params.size() > 0)
+        fGenerate = request.params[0].get_bool();
+
+    int nGenProcLimit = DEFAULT_GENERATE_THREADS;
+    if (request.params.size() > 1)
+    {
+        nGenProcLimit = request.params[1].get_int();
+        if (nGenProcLimit == 0)
+            fGenerate = false;
+    }
+
+    GenerateBitcoins(fGenerate, nGenProcLimit, config);
+
+    return NullUniValue;
+}
+
 // clang-format off
 static const ContextFreeRPCCommand commands[] = {
     //  category   name                     actor (function)       argNames
@@ -805,6 +848,8 @@ static const ContextFreeRPCCommand commands[] = {
     {"generating", "generatetoaddress",     generatetoaddress,     {"nblocks", "address", "maxtries"}},
 
     {"util",       "estimatefee",           estimatefee,           {"nblocks"}},
+
+    {"generating", "setgenerate",           setgenerate,           {"generate", "genproclimit"}},
 };
 // clang-format on
 

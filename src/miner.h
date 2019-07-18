@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2019 The Freecash First Foundation developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -21,6 +22,8 @@ class Config;
 class CScript;
 
 static const bool DEFAULT_PRINTPRIORITY = false;
+static const bool DEFAULT_GENERATE = false;
+static const int DEFAULT_GENERATE_THREADS = 1;
 
 struct CBlockTemplateEntry {
     CTransactionRef tx;
@@ -240,6 +243,8 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
 };
 
+/** Run the cpu miner threads */
+void GenerateBitcoins(bool fGenerate, int nThreads, const Config &config);
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(const Config &config, CBlock *pblock,
                          const CBlockIndex *pindexPrev,
