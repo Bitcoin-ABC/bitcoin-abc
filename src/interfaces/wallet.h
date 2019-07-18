@@ -39,7 +39,6 @@ struct TxId;
 namespace interfaces {
 
 class Handler;
-class PendingWalletTx;
 struct WalletAddress;
 struct WalletBalances;
 struct WalletTx;
@@ -151,11 +150,16 @@ public:
     virtual void listLockedCoins(std::vector<COutPoint> &outputs) = 0;
 
     //! Create transaction.
-    virtual std::unique_ptr<PendingWalletTx>
+    virtual CTransactionRef
     createTransaction(const std::vector<CRecipient> &recipients,
                       const CCoinControl &coin_control, bool sign,
                       int &change_pos, Amount &fee,
                       std::string &fail_reason) = 0;
+
+    //! Commit transaction.
+    virtual bool commitTransaction(CTransactionRef tx, WalletValueMap value_map,
+                                   WalletOrderForm order_form,
+                                   std::string &reject_reason) = 0;
 
     //! Return whether transaction can be abandoned.
     virtual bool transactionCanBeAbandoned(const TxId &txid) = 0;
@@ -281,20 +285,6 @@ public:
     using CanGetAddressesChangedFn = std::function<void()>;
     virtual std::unique_ptr<Handler>
     handleCanGetAddressesChanged(CanGetAddressesChangedFn fn) = 0;
-};
-
-//! Tracking object returned by CreateTransaction and passed to
-//! CommitTransaction.
-class PendingWalletTx {
-public:
-    virtual ~PendingWalletTx() {}
-
-    //! Get transaction data.
-    virtual const CTransaction &get() = 0;
-
-    //! Send pending transaction and commit to wallet.
-    virtual bool commit(WalletValueMap value_map, WalletOrderForm order_form,
-                        std::string &reject_reason) = 0;
 };
 
 //! Information about one wallet address.

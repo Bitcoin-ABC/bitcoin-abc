@@ -18,12 +18,12 @@ QList<SendCoinsRecipient> WalletModelTransaction::getRecipients() const {
     return recipients;
 }
 
-std::unique_ptr<interfaces::PendingWalletTx> &WalletModelTransaction::getWtx() {
+CTransactionRef &WalletModelTransaction::getWtx() {
     return wtx;
 }
 
 unsigned int WalletModelTransaction::getTransactionSize() {
-    return wtx ? wtx->get().GetTotalSize() : 0;
+    return wtx ? wtx->GetTotalSize() : 0;
 }
 
 Amount WalletModelTransaction::getTransactionFee() const {
@@ -35,7 +35,7 @@ void WalletModelTransaction::setTransactionFee(const Amount newFee) {
 }
 
 void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
-    const CTransaction *walletTransaction = &wtx->get();
+    const CTransaction *walletTransaction = wtx.get();
     int i = 0;
     for (SendCoinsRecipient &rcp : recipients) {
 #ifdef ENABLE_BIP70

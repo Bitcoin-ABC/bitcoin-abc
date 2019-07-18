@@ -413,7 +413,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
         accept();
         CoinControlDialog::coinControl()->UnSelectAll();
         coinControlUpdateLabels();
-        Q_EMIT coinsSent(currentTransaction.getWtx()->get().GetId());
+        Q_EMIT coinsSent(currentTransaction.getWtx()->GetId());
     }
     fNewRecipientAllowed = true;
 }
