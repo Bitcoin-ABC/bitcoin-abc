@@ -294,14 +294,14 @@ public:
         consensus.BIP16Height = 0;
         // BIP34 has not activated on regtest (far in the future so block v1 are
         // not rejected in tests)
-        consensus.BIP34Height = 100000000;
+        consensus.BIP34Height = 1;
         consensus.BIP34Hash = uint256();
         // BIP65 activated on regtest (Used in rpc activation tests)
-        consensus.BIP65Height = 1351;
+        consensus.BIP65Height = 1;
         // BIP66 activated on regtest (Used in rpc activation tests)
-        consensus.BIP66Height = 1251;
+        consensus.BIP66Height = 1;
         // CSV activated on regtest (Used in rpc activation tests)
-        consensus.CSVHeight = 576;
+        consensus.CSVHeight = 0;
         consensus.powLimit = uint256S(
             "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks

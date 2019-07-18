@@ -21,7 +21,7 @@ class CTxOut;
  * Default for -blockmaxsize, which controls the maximum size of block the
  * mining code will create.
  */
-static const uint64_t DEFAULT_MAX_GENERATED_BLOCK_SIZE = 2 * ONE_MEGABYTE;
+static const uint64_t DEFAULT_MAX_GENERATED_BLOCK_SIZE = 750000;
 /**
  * Default for -blockprioritypercentage, define the amount of block space
  * reserved to high priority transactions.
