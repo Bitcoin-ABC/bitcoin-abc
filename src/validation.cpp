@@ -1884,6 +1884,27 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
 
         control.Add(vChecks);
 
+        // check outputs
+        for (const CTxOut &txout : tx.vout) {
+            // check op_return length
+            if (fRequireStandard) {
+                const CScript &scriptPubKey = txout.scriptPubKey;
+                if (scriptPubKey.size() >= 1 && scriptPubKey[0] == OP_RETURN &&
+                    scriptPubKey.IsPushOnly(scriptPubKey.begin() + 1)) {
+                    if (!fAcceptDatacarrier) {
+                        return error("ConnectBlock(): output on %s failed with %s",
+                                     tx.GetId().ToString(), "not-allow-datacarrier");
+                    }
+                    unsigned nMaxDatacarrierBytes =
+                            gArgs.GetArg("-datacarriersize", MAX_OP_RETURN_RELAY);
+                    if (scriptPubKey.size() > nMaxDatacarrierBytes) {
+                        return error("ConnectBlock(): output on %s failed with %s",
+                                     tx.GetId().ToString(), "datacarrier-overflow");
+                    }
+                }
+            }
+        }
+
         blockundo.vtxundo.push_back(CTxUndo());
         SpendCoins(view, tx, blockundo.vtxundo.back(), pindex->nHeight);
     }
