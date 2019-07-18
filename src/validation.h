@@ -224,6 +224,8 @@ extern bool fRequireStandard;
 extern bool fCheckBlockIndex;
 extern bool fCheckpointsEnabled;
 extern size_t nCoinCacheUsage;
+extern const int LAST_HALVING;
+extern const Amount LAST_DEV_REWARD;
 
 /**
  * A fee rate smaller than this is considered zero fee (for relaying, mining and

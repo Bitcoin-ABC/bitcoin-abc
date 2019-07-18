@@ -23,13 +23,17 @@ static void TestBlockSubsidyHalvings(const Consensus::Params &consensusParams) {
         int nHeight = nHalvings * consensusParams.nSubsidyHalvingInterval;
         Amount nSubsidy = GetBlockSubsidy(nHeight, consensusParams);
         BOOST_CHECK(nSubsidy <= nInitialSubsidy);
-        BOOST_CHECK_EQUAL(nSubsidy,  4 * nPreviousSubsidy / 5);
+        if (nHalvings >= LAST_HALVING) {
+            BOOST_CHECK_EQUAL(nSubsidy, Amount(23058428));
+        } else {
+            BOOST_CHECK_EQUAL(nSubsidy, 4 * nPreviousSubsidy / 5);
+        }
         nPreviousSubsidy = nSubsidy;
     }
     BOOST_CHECK_EQUAL(
         GetBlockSubsidy(maxHalvings * consensusParams.nSubsidyHalvingInterval,
                         consensusParams),
-        Amount::zero());
+        Amount(23058428));
 }
 
 static void TestBlockSubsidyHalvings(int nSubsidyHalvingInterval) {
@@ -52,9 +56,8 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test) {
         Amount nSubsidy = GetBlockSubsidy(nHeight, chainParams->GetConsensus());
         BOOST_CHECK(nSubsidy <= INITIAL_REWARD);
         nSum += 1000 * nSubsidy;
-        BOOST_CHECK(MoneyRange(nSum));
     }
-    BOOST_CHECK_EQUAL(nSum, int64_t(7199995425408000ULL) * SATOSHI);
+    BOOST_CHECK_EQUAL(nSum, int64_t(7777014086144000ULL) * SATOSHI);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

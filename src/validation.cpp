@@ -204,6 +204,11 @@ CScript COINBASE_FLAGS;
 
 const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 
+/** after 21 times halving mining reward and dev reward will be fixed */
+const int LAST_HALVING = 21;
+
+const Amount LAST_DEV_REWARD = Amount(INITIAL_REWARD.GetSatoshis() >> LAST_HALVING);
+
 // Internal stuff
 namespace {
 CBlockIndex *&pindexBestInvalid = g_chainstate.pindexBestInvalid;
@@ -972,9 +977,9 @@ static int64_t getSubsidy(unsigned int halvings) {
 
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64) {
-        return Amount::zero();
+    // after LAST_HALVING reward will be fixed.
+    if (halvings >= LAST_HALVING) {
+        return Amount(getSubsidy(LAST_HALVING));
     }
 
     // Subsidy is cut in half every 576,000 blocks which will occur
@@ -984,9 +989,9 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
 
 Amount GetBlockRewardSubsidy(int nHeight, const Consensus::Params &consensusParams) {//caican need test
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64) {
-        return Amount(0);
+    // after LAST_HALVING the reward of developers will be fixed.
+    if (halvings >= LAST_HALVING) {
+        return LAST_DEV_REWARD;
     }
 
     Amount nSubsidy = INITIAL_REWARD;
