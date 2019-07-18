@@ -273,7 +273,7 @@ public:
         // (height 1223263)
         chainTxData = ChainTxData{1522608381, 15052068, 0.15};
 
-        consensus.rewardAddress = "mt2T2d4SNH5gp6ie1jSXa9vHivjm7R2njs";
+        consensus.rewardAddress = "mrdnqGEyhVkLpm4aWbDa79tHd8RJ7rvp5g";
         vRewardAddresses.push_back(consensus.rewardAddress);
     }
 };
