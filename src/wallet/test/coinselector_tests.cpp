@@ -467,14 +467,14 @@ BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
         BOOST_CHECK(testWallet.SelectCoinsMinConf(
             95 * CENT, filter_confirmed, GroupCoins(vCoins), setCoinsRet,
             nValueRet, coin_selection_params, bnb_used));
-        // we should get 1 BCH in 1 coin
+        // we should get 1 FCH in 1 coin
         BOOST_CHECK_EQUAL(nValueRet, 1 * COIN);
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 1U);
 
         BOOST_CHECK(testWallet.SelectCoinsMinConf(
             195 * CENT, filter_confirmed, GroupCoins(vCoins), setCoinsRet,
             nValueRet, coin_selection_params, bnb_used));
-        // we should get 2 BCH in 1 coin
+        // we should get 2 FCH in 1 coin
         BOOST_CHECK_EQUAL(nValueRet, 2 * COIN);
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 1U);
 

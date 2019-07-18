@@ -19,10 +19,10 @@
 #define NUM_MULTIPLES_CENT 10000
 
 // amounts 1 .. 10000
-#define NUM_MULTIPLES_1BCH 10000
+#define NUM_MULTIPLES_1FCH 10000
 
 // amounts 50 .. 21000000
-#define NUM_MULTIPLES_50BCH 420000
+#define NUM_MULTIPLES_50FCH 420000
 
 BOOST_FIXTURE_TEST_SUITE(compress_tests, BasicTestingSetup)
 
@@ -57,11 +57,11 @@ BOOST_AUTO_TEST_CASE(compress_amounts) {
         BOOST_CHECK(TestEncode(i * CENT));
     }
 
-    for (int64_t i = 1; i <= NUM_MULTIPLES_1BCH; i++) {
+    for (int64_t i = 1; i <= NUM_MULTIPLES_1FCH; i++) {
         BOOST_CHECK(TestEncode(i * COIN));
     }
 
-    for (int64_t i = 1; i <= NUM_MULTIPLES_50BCH; i++) {
+    for (int64_t i = 1; i <= NUM_MULTIPLES_50FCH; i++) {
         BOOST_CHECK(TestEncode(i * 50 * COIN));
     }
 
