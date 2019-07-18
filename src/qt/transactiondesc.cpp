@@ -328,7 +328,7 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
     }
 
     if (wtx.is_coinbase) {
-        quint32 numBlocksToMaturity = COINBASE_MATURITY + 1;
+        quint32 numBlocksToMaturity = Params().GetConsensus().coinbaseMaturity + 1;
         strHTML +=
             "<br>" +
             tr("Generated coins must mature %1 blocks before they can be "

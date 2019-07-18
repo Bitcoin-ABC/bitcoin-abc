@@ -315,14 +315,16 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
         // If prev is coinbase, check that it's matured
         if (coin.IsCoinBase()) {
-            if (prevout.GetN() == 0 && nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
+            if (prevout.GetN() == 0 && nSpendHeight - coin.GetHeight() <
+                                    GetConfig().GetChainParams().GetConsensus().coinbaseMaturity) {
                 return state.Invalid(
                     false, REJECT_INVALID,
                     "bad-txns-premature-spend-of-coinbase",
                     strprintf("tried to spend coinbase at depth %d",
                               nSpendHeight - coin.GetHeight()));
             }
-            if (prevout.GetN() == 1 && nSpendHeight - coin.GetHeight() < DEVELOPER_REWARD_MATURITY) {
+            if (prevout.GetN() == 1 && nSpendHeight - coin.GetHeight() <
+                                    GetConfig().GetChainParams().GetConsensus().developerRewardMaturity) {
                 return state.Invalid(
                         false, REJECT_INVALID,
                         "bad-txns-premature-spend-of-dev-reward-coinbase",
@@ -358,10 +360,12 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 }
 bool isImmature(const Coin &coin, int64_t tipHeight, const COutPoint &prevout) {
     if (coin.IsCoinBase()) {
-        if (prevout.GetN() == 0 && tipHeight - coin.GetHeight() < COINBASE_MATURITY) {
+        if (prevout.GetN() == 0 && tipHeight - coin.GetHeight() <
+                                GetConfig().GetChainParams().GetConsensus().coinbaseMaturity) {
             return true;
         }
-        if (prevout.GetN() == 1 && tipHeight - coin.GetHeight() < DEVELOPER_REWARD_MATURITY) {
+        if (prevout.GetN() == 1 && tipHeight - coin.GetHeight() <
+                                GetConfig().GetChainParams().GetConsensus().developerRewardMaturity) {
             return true;
         }
     }

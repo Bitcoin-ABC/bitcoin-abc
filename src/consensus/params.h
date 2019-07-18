@@ -50,6 +50,17 @@ struct Params {
     uint256 defaultAssumeValid;
 
     std::string rewardAddress;// use btc format
+    /**
+     * Coinbase transaction outputs can only be spent after this number of new
+     * blocks (network rule).
+     */
+    int coinbaseMaturity;
+    /**
+     * devloper reward Coinbase transaction outputs can only be spent after this number of new
+     * blocks (network rule).
+     */
+    int developerRewardMaturity;
+
 };
 } // namespace Consensus
 

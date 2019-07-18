@@ -4572,7 +4572,7 @@ int CMerkleTx::GetBlocksToMaturity() const {
         return 0;
     }
 
-    return std::max(0, (COINBASE_MATURITY + 1) - GetDepthInMainChain());
+    return std::max(0, (Params().GetConsensus().coinbaseMaturity + 1) - GetDepthInMainChain());
 }
 
 bool CMerkleTx::IsImmatureCoinBase() const {
