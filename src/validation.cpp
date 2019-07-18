@@ -123,7 +123,7 @@ private:
      * ahead and mark descendants of invalid blocks as FAILED_CHILD at that
      * time, instead of putting things in this set.
      */
-    std::set<CBlockIndex *> g_failed_blocks;
+    std::set<CBlockIndex *> m_failed_blocks;
 
 public:
     CChain chainActive;
@@ -1140,7 +1140,7 @@ void CChainState::InvalidBlockFound(CBlockIndex *pindex,
                                     const CValidationState &state) {
     if (!state.CorruptionPossible()) {
         pindex->nStatus = pindex->nStatus.withFailed();
-        g_failed_blocks.insert(pindex);
+        m_failed_blocks.insert(pindex);
         setDirtyBlockIndex.insert(pindex);
         InvalidChainFound(pindex);
     }
@@ -3007,7 +3007,7 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
                                  : pindex->nStatus.withParked();
     setDirtyBlockIndex.insert(pindex);
     if (invalidate) {
-        g_failed_blocks.insert(pindex);
+        m_failed_blocks.insert(pindex);
     }
 
     // DisconnectTip will add transactions to disconnectpool; try to add these
@@ -3074,7 +3074,7 @@ void CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
         pindex->nStatus = newStatus;
         setDirtyBlockIndex.insert(pindex);
         if (newStatus.isValid()) {
-            g_failed_blocks.erase(pindex);
+            m_failed_blocks.erase(pindex);
         }
 
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) && pindex->nChainTx &&
@@ -3105,7 +3105,7 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild) {
             pindex->nStatus = newStatus;
             setDirtyBlockIndex.insert(pindex);
             if (newStatus.isValid()) {
-                g_failed_blocks.erase(pindex);
+                m_failed_blocks.erase(pindex);
             }
         }
         pindex = pindex->pprev;
@@ -3759,7 +3759,7 @@ bool CChainState::AcceptBlockHeader(const Config &config,
         }
 
         if (!pindexPrev->IsValid(BlockValidity::SCRIPTS)) {
-            for (const CBlockIndex *failedit : g_failed_blocks) {
+            for (const CBlockIndex *failedit : m_failed_blocks) {
                 if (pindexPrev->GetAncestor(failedit->nHeight) == failedit) {
                     assert(failedit->nStatus.hasFailed());
                     CBlockIndex *invalid_walk = pindexPrev;
@@ -4864,7 +4864,7 @@ bool RewindBlockIndex(const Config &config) {
 // logic assumes a consistent block index state
 void CChainState::UnloadBlockIndex() {
     nBlockSequenceId = 1;
-    g_failed_blocks.clear();
+    m_failed_blocks.clear();
     setBlockIndexCandidates.clear();
 }
 
