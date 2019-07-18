@@ -86,11 +86,11 @@ if [[ -z "${DISABLE_TESTS}" ]]; then
 		if [[ ! -z "${DISABLE_WALLET}" ]]; then
 			echo "Skipping rpc testing due to disabled wallet functionality."
 		elif [[ "${BRANCH}" == "master" ]]; then
-			./test/functional/test_runner.py -ju="${JUNIT_DEFAULT}" --cutoff=600 --tmpdirprefix=output
-			./test/functional/test_runner.py -ju="${JUNIT_NEXT_UPGRADE}" --cutoff=600 --tmpdirprefix=output --with-gravitonactivation
+			./test/functional/test_runner.py -J="${JUNIT_DEFAULT}" --cutoff=600 --tmpdirprefix=output
+			./test/functional/test_runner.py -J="${JUNIT_NEXT_UPGRADE}" --cutoff=600 --tmpdirprefix=output --with-gravitonactivation
 		else
-			./test/functional/test_runner.py -ju="${JUNIT_DEFAULT}" --tmpdirprefix=output
-			./test/functional/test_runner.py -ju="${JUNIT_NEXT_UPGRADE}" --tmpdirprefix=output --with-gravitonactivation
+			./test/functional/test_runner.py -J="${JUNIT_DEFAULT}" --tmpdirprefix=output
+			./test/functional/test_runner.py -J="${JUNIT_NEXT_UPGRADE}" --tmpdirprefix=output --with-gravitonactivation
 		fi
 	else
 		echo "*** Functional tests have been skipped"
