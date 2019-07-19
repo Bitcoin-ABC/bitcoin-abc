@@ -180,7 +180,8 @@ static bool CheckRawSignatureEncoding(const slicedvaltype &sig, uint32_t flags,
         // as Schnorr signatures (always correctly encoded).
         return true;
     }
-    return CheckRawECDSASignatureEncoding(sig, flags, serror);
+    // always use Schnorr so :
+    return set_error(serror, SCRIPT_ERR_SIG_BADLENGTH);
 }
 
 bool CheckDataSignatureEncoding(const valtype &vchSig, uint32_t flags,

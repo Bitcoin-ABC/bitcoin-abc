@@ -86,9 +86,9 @@ BOOST_AUTO_TEST_CASE(sig_pubkey_hash_variations) {
         uint256 hashMsg2 = Hash(strMsg.begin() + 1, strMsg.end());
 
         std::vector<uint8_t> sig;
-        BOOST_CHECK(key1.SignECDSA(hashMsg, sig));
+        BOOST_CHECK(key1.SignSchnorr(hashMsg, sig));
         std::vector<uint8_t> sig2;
-        BOOST_CHECK(key1.SignECDSA(hashMsg2, sig2));
+        BOOST_CHECK(key1.SignSchnorr(hashMsg2, sig2));
 
         // cross-check
         BOOST_CHECK(!testChecker.VerifyAndStore(sig2, pubkey1, hashMsg));

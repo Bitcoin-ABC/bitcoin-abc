@@ -31,7 +31,7 @@ CScript sign_multisig(const CScript &scriptPubKey,
     result << OP_0;
     for (const CKey &key : keys) {
         std::vector<uint8_t> vchSig;
-        BOOST_CHECK(key.SignECDSA(hash, vchSig));
+        BOOST_CHECK(key.SignSchnorr(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL));
         result << vchSig;
     }
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(multisig_verify) {
     BOOST_CHECK(!VerifyScript(
         s, a_or_b, flags,
         MutableTransactionSignatureChecker(&txTo[1], 0, amount), &err));
-    BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_SIG_DER, ScriptErrorString(err));
+    BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_SIG_BADLENGTH, ScriptErrorString(err));
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {

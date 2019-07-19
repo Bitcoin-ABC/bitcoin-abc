@@ -1023,7 +1023,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             // pubkey/signature evaluation distinguishable by
                             // CHECKMULTISIG NOT if the STRICTENC flag is set.
                             // See the script_(in)valid tests for details.
-                            if (!CheckTransactionECDSASignatureEncoding(
+                            if (!CheckTransactionSignatureEncoding(
                                     vchSig, flags, serror) ||
                                 !CheckPubKeyEncoding(vchPubKey, flags,
                                                      serror)) {
@@ -1460,11 +1460,7 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 bool BaseSignatureChecker::VerifySignature(const std::vector<uint8_t> &vchSig,
                                            const CPubKey &pubkey,
                                            const uint256 &sighash) const {
-    if (vchSig.size() == 64) {
-        return pubkey.VerifySchnorr(sighash, vchSig);
-    } else {
-        return pubkey.VerifyECDSA(sighash, vchSig);
-    }
+    return pubkey.VerifySchnorr(sighash, vchSig);
 }
 
 bool TransactionSignatureChecker::CheckSig(
