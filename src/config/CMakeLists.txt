@@ -8,7 +8,7 @@ include(CheckSymbolExists)
 include(CheckCXXSourceCompiles)
 
 # Package information
-set(PACKAGE_NAME "FreeCash")
+set(PACKAGE_NAME "Freecash")
 
 # Version
 set(CLIENT_VERSION_MAJOR 0)
@@ -21,7 +21,7 @@ option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
 # Copyright
 set(COPYRIGHT_YEAR 2019)
 set(COPYRIGHT_HOLDERS "The %s developers")
-set(COPYRIGHT_HOLDERS_SUBSTITUTION FreeCash)
+set(COPYRIGHT_HOLDERS_SUBSTITUTION Freecash)
 string(REPLACE "%s" ${COPYRIGHT_HOLDERS_SUBSTITUTION} COPYRIGHT_HOLDERS_FINAL ${COPYRIGHT_HOLDERS})
 
 # Generate the version.h file
