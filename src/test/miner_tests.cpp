@@ -185,7 +185,8 @@ void MinerTestingSetup::TestPackageSelection(
     // Test that packages above the min relay fee do get included, even if one
     // of the transactions is below the min relay fee. Remove the low fee
     // transaction and replace with a higher fee transaction
-    m_node.mempool->removeRecursive(CTransaction(tx));
+    m_node.mempool->removeRecursive(CTransaction(tx),
+                                    MemPoolRemovalReason::REPLACED);
     // Now we should be just over the min relay fee.
     tx.vout[0].nValue -= 2 * SATOSHI;
     lowFeeTxId = tx.GetId();

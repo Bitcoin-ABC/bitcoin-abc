@@ -369,8 +369,6 @@ struct TxMempoolInfo {
  * notification signal.
  */
 enum class MemPoolRemovalReason {
-    //! Manually removed or unknown reason
-    UNKNOWN = 0,
     //! Expired from mempool
     EXPIRY,
     //! Removed in size limiting
@@ -627,9 +625,7 @@ public:
     void addUnchecked(const CTxMemPoolEntry &entry, setEntries &setAncestors)
         EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
 
-    void removeRecursive(
-        const CTransaction &tx,
-        MemPoolRemovalReason reason = MemPoolRemovalReason::UNKNOWN);
+    void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason);
     void removeForReorg(const Config &config, const CCoinsViewCache *pcoins,
                         unsigned int nMemPoolHeight, int flags)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -679,10 +675,8 @@ public:
      * updateDescendants to true when removing a tx that was in a block, so that
      * any in-mempool descendants have their ancestor state updated.
      */
-    void
-    RemoveStaged(setEntries &stage, bool updateDescendants,
-                 MemPoolRemovalReason reason = MemPoolRemovalReason::UNKNOWN)
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void RemoveStaged(setEntries &stage, bool updateDescendants,
+                      MemPoolRemovalReason reason) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * When adding transactions from a disconnected block back to the mempool,
@@ -838,9 +832,7 @@ private:
      * transaction that is removed, so we can't remove intermediate transactions
      * in a chain before we've updated all the state for the removal.
      */
-    void
-    removeUnchecked(txiter entry,
-                    MemPoolRemovalReason reason = MemPoolRemovalReason::UNKNOWN)
+    void removeUnchecked(txiter entry, MemPoolRemovalReason reason)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 };
 
