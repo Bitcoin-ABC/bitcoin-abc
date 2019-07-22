@@ -6,5 +6,6 @@
   "git:arc.feature.start.default" : "origin/master",
   "arc.feature.start.default" : "master",
   "history.immutable" : false,
-  "load" : ["arcanist"]
+  "load" : ["arcanist"],
+  "lint.engine": "ExtendedConfigurationDrivenLintEngine"
 }
