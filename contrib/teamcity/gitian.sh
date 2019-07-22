@@ -1,24 +1,15 @@
 #!/bin/bash -e
 
-wget http://archive.ubuntu.com/ubuntu/pool/universe/v/vm-builder/vm-builder_0.12.4+bzr494.orig.tar.gz
-echo "76cbf8c52c391160b2641e7120dbade5afded713afaa6032f733a261f13e6a8e  vm-builder_0.12.4+bzr494.orig.tar.gz" | sha256sum -c
-# (verification -- must return OK)
-tar -zxvf vm-builder_0.12.4+bzr494.orig.tar.gz
-cd vm-builder-0.12.4+bzr494
-sudo python setup.py install
-cd ..
+cd "$(dirname "$0")"
 
-## Install Gitian
-git clone https://github.com/devrandom/gitian-builder.git
-
-export COMMIT=HEAD
-export URL=`pwd`
+export COMMIT=`git rev-parse HEAD`
+export PROJECT_ROOT=`git rev-parse --show-toplevel`
 export USE_LXC=1
-export LXC_BRIDGE=lxcbr0
 export GITIAN_HOST_IP=10.0.3.1
+export LXC_BRIDGE=lxcbr0
 export LXC_GUEST_IP=10.0.3.5
 
-cd gitian-builder
+cd ~/gitian-builder
 
 if [[ "${OS_NAME}" == "osx" ]]; then
   wget https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/MacOSX10.11.sdk.tar.gz
@@ -31,11 +22,11 @@ fi
 ## Determine the number of build threads
 THREADS=$(nproc || sysctl -n hw.ncpu)
 
-./bin/make-base-vm --lxc --distro debian --suite stretch --arch amd64
-./bin/gbuild -j${THREADS} -m3500 --commit bitcoin=${COMMIT} --url bitcoin=${URL} ../contrib/gitian-descriptors/gitian-${OS_NAME}.yml
+./bin/gbuild -j${THREADS} -m3500 --commit bitcoin=${COMMIT} --url bitcoin="${PROJECT_ROOT}" "${PROJECT_ROOT}/contrib/gitian-descriptors/gitian-${OS_NAME}.yml"
 
-cd ..
-mkdir ${OS_NAME}
-cp gitian-builder/result/*.yml ${OS_NAME}/
-mv gitian-builder/build/out/* ${OS_NAME}/
-rm -r ${OS_NAME}/src
+RESULT_DIR="${PROJECT_ROOT}/gitian-results/${OS_NAME}"
+mkdir -p "${RESULT_DIR}"
+mv var/build.log "${PROJECT_ROOT}/gitian-results/"
+mv result/*.yml "${RESULT_DIR}/"    
+mv build/out/* "${RESULT_DIR}/"
+rm -r "${RESULT_DIR}/src"
