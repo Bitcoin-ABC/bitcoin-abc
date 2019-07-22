@@ -53,6 +53,12 @@ struct CTxMemPoolModifiedEntry {
         nSigOpCountWithAncestors = entry->GetSigOpCountWithAncestors();
     }
 
+    Amount GetModifiedFee() const { return iter->GetModifiedFee(); }
+    uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
+    Amount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
+    size_t GetTxSize() const { return iter->GetTxSize(); }
+    const CTransaction &GetTx() const { return iter->GetTx(); }
+
     CTxMemPool::txiter iter;
     uint64_t nSizeWithAncestors;
     Amount nModFeesWithAncestors;
@@ -79,21 +85,6 @@ struct modifiedentry_iter {
     }
 };
 
-// This matches the calculation in CompareTxMemPoolEntryByAncestorFee,
-// except operating on CTxMemPoolModifiedEntry.
-// TODO: refactor to avoid duplication of this logic.
-struct CompareModifiedEntry {
-    bool operator()(const CTxMemPoolModifiedEntry &a,
-                    const CTxMemPoolModifiedEntry &b) const {
-        double f1 = b.nSizeWithAncestors * (a.nModFeesWithAncestors / SATOSHI);
-        double f2 = a.nSizeWithAncestors * (b.nModFeesWithAncestors / SATOSHI);
-        if (f1 == f2) {
-            return CTxMemPool::CompareIteratorByHash()(a.iter, b.iter);
-        }
-        return f1 > f2;
-    }
-};
-
 // A comparator that sorts transactions based on number of ancestors.
 // This is sufficient to sort an ancestor package in an order that is valid
 // to appear in a block.
@@ -117,7 +108,7 @@ typedef boost::multi_index_container<
             // Reuse same tag from CTxMemPool's similar index
             boost::multi_index::tag<ancestor_score>,
             boost::multi_index::identity<CTxMemPoolModifiedEntry>,
-            CompareModifiedEntry>>>
+            CompareTxMemPoolEntryByAncestorFee>>>
     indexed_modified_transaction_set;
 
 typedef indexed_modified_transaction_set::nth_index<0>::type::iterator
