@@ -54,11 +54,10 @@ remove_compiler_flags(-DNDEBUG)
 # FIXME: update CFLAGS with better debug oriented optimization flags
 set(CMAKE_C_FLAGS_DEBUG "-g -O2")
 
+# Disable all optimizations
+set(CMAKE_CXX_FLAGS_DEBUG -O0)
 # Prefer -g3, defaults to -g if unavailable
 add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -g3 -g)
-
-# Prefer -Og, defaults to -O0 if unavailable
-add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -Og -O0)
 
 # Define the debugging symbols DEBUG and DEBUG_LOCKORDER when the Debug build
 # type is selected.
