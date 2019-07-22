@@ -165,7 +165,7 @@ def main():
             print('WARNING: conversion mismatch for argument named {} ({})'.format(
                 argname, list(zip(all_methods_by_argname[argname], converts_by_argname[argname]))))
 
-    sys.exit(errors > 0)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
