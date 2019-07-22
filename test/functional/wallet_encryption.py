@@ -29,10 +29,10 @@ class WalletEncryptionTest(BitcoinTestFramework):
         passphrase2 = "SecondWalletPassphrase"
 
         # Make sure the wallet isn't encrypted first
+        msg = "test message"
         address = self.nodes[0].getnewaddress()
-        privkey = self.nodes[0].dumpprivkey(address)
-        assert_equal(privkey[:1], "c")
-        assert_equal(len(privkey), 52)
+        sig = self.nodes[0].signmessage(address, msg)
+        assert self.nodes[0].verifymessage(address, sig, msg)
         assert_raises_rpc_error(
             -15, "Error: running with an unencrypted wallet, but walletpassphrase was called",
             self.nodes[0].walletpassphrase, 'ff', 1)
@@ -53,7 +53,7 @@ class WalletEncryptionTest(BitcoinTestFramework):
         # Test that the wallet is encrypted
         assert_raises_rpc_error(
             -13, "Please enter the wallet passphrase with walletpassphrase first",
-            self.nodes[0].dumpprivkey, address)
+            self.nodes[0].signmessage, address, msg)
         assert_raises_rpc_error(
             -15, "Error: running with an encrypted wallet, but encryptwallet was called.",
             self.nodes[0].encryptwallet, 'ff')
@@ -66,13 +66,14 @@ class WalletEncryptionTest(BitcoinTestFramework):
 
         # Check that walletpassphrase works
         self.nodes[0].walletpassphrase(passphrase, 2)
-        assert_equal(privkey, self.nodes[0].dumpprivkey(address))
+        sig = self.nodes[0].signmessage(address, msg)
+        assert self.nodes[0].verifymessage(address, sig, msg)
 
         # Check that the timeout is right
         time.sleep(3)
         assert_raises_rpc_error(
             -13, "Please enter the wallet passphrase with walletpassphrase first",
-            self.nodes[0].dumpprivkey, address)
+            self.nodes[0].signmessage, address, msg)
 
         # Test wrong passphrase
         assert_raises_rpc_error(-14, "wallet passphrase entered was incorrect",
@@ -82,13 +83,14 @@ class WalletEncryptionTest(BitcoinTestFramework):
         self.mocktime = 1
         self.nodes[0].setmocktime(self.mocktime)
         self.nodes[0].walletpassphrase(passphrase, 84600)
-        assert_equal(privkey, self.nodes[0].dumpprivkey(address))
+        sig = self.nodes[0].signmessage(address, msg)
+        assert self.nodes[0].verifymessage(address, sig, msg)
         assert_equal(
             self.nodes[0].getwalletinfo()['unlocked_until'], 1 + 84600)
         self.nodes[0].walletlock()
         assert_raises_rpc_error(
             -13, "Please enter the wallet passphrase with walletpassphrase first",
-            self.nodes[0].dumpprivkey, address)
+            self.nodes[0].signmessage, address, msg)
         assert_equal(self.nodes[0].getwalletinfo()['unlocked_until'], 0)
 
         # Test passphrase changes
@@ -96,7 +98,8 @@ class WalletEncryptionTest(BitcoinTestFramework):
         assert_raises_rpc_error(-14, "wallet passphrase entered was incorrect",
                                 self.nodes[0].walletpassphrase, passphrase, 10)
         self.nodes[0].walletpassphrase(passphrase2, 10)
-        assert_equal(privkey, self.nodes[0].dumpprivkey(address))
+        sig = self.nodes[0].signmessage(address, msg)
+        assert self.nodes[0].verifymessage(address, sig, msg)
         self.nodes[0].walletlock()
 
         # Test timeout bounds
