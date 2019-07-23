@@ -31,7 +31,7 @@ class SendCoinsDialog : public QDialog {
 
 public:
     explicit SendCoinsDialog(const PlatformStyle *platformStyle,
-                             QWidget *parent = 0);
+                             QWidget *parent = nullptr);
     ~SendCoinsDialog();
 
     void setClientModel(ClientModel *clientModel);
@@ -116,7 +116,7 @@ class SendConfirmationDialog : public QMessageBox {
 public:
     SendConfirmationDialog(const QString &title, const QString &text,
                            int secDelay = SEND_CONFIRM_DELAY,
-                           QWidget *parent = 0);
+                           QWidget *parent = nullptr);
     int exec();
 
 private Q_SLOTS:

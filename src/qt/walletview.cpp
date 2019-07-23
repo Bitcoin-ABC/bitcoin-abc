@@ -30,7 +30,7 @@
 #include <QVBoxLayout>
 
 WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent)
-    : QStackedWidget(parent), clientModel(0), walletModel(0),
+    : QStackedWidget(parent), clientModel(nullptr), walletModel(nullptr),
       platformStyle(_platformStyle) {
     // Create tabs
     overviewPage = new OverviewPage(platformStyle);

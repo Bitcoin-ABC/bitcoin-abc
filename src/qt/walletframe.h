@@ -31,7 +31,7 @@ class WalletFrame : public QFrame {
 
 public:
     explicit WalletFrame(const PlatformStyle *platformStyle,
-                         BitcoinGUI *_gui = 0);
+                         BitcoinGUI *_gui = nullptr);
     ~WalletFrame();
 
     void setClientModel(ClientModel *clientModel);
