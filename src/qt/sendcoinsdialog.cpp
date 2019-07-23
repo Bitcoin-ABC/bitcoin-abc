@@ -29,9 +29,9 @@
 #include <QTimer>
 
 SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
-                                 QWidget *parent)
+                                 WalletModel *_model, QWidget *parent)
     : QDialog(parent), ui(new Ui::SendCoinsDialog), clientModel(nullptr),
-      model(nullptr), fNewRecipientAllowed(true), fFeeMinimized(true),
+      model(_model), fNewRecipientAllowed(true), fFeeMinimized(true),
       platformStyle(_platformStyle) {
     ui->setupUi(this);
 
@@ -139,6 +139,9 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
     ui->checkBoxMinimumFee->setChecked(
         settings.value("fPayOnlyMinFee").toBool());
     minimizeFeeSection(settings.value("fFeeSectionMinimized").toBool());
+
+    // Set the model properly.
+    setModel(model);
 }
 
 void SendCoinsDialog::setClientModel(ClientModel *_clientModel) {
@@ -417,8 +420,7 @@ void SendCoinsDialog::accept() {
 }
 
 SendCoinsEntry *SendCoinsDialog::addEntry() {
-    SendCoinsEntry *entry = new SendCoinsEntry(platformStyle, this);
-    entry->setModel(model);
+    SendCoinsEntry *entry = new SendCoinsEntry(platformStyle, model, this);
     ui->entries->addWidget(entry);
     connect(entry, SIGNAL(removeEntry(SendCoinsEntry *)), this,
             SLOT(removeEntry(SendCoinsEntry *)));

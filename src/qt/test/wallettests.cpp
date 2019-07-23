@@ -144,16 +144,15 @@ void TestGUI() {
     // Create widgets for sending coins and listing transactions.
     std::unique_ptr<const PlatformStyle> platformStyle(
         PlatformStyle::instantiate("other"));
-    SendCoinsDialog sendCoinsDialog(platformStyle.get());
     auto node = interfaces::MakeNode();
     OptionsModel optionsModel(*node);
     AddWallet(&wallet);
     WalletModel walletModel(std::move(node->getWallets().back()), *node,
                             platformStyle.get(), &optionsModel);
     RemoveWallet(&wallet);
-    sendCoinsDialog.setModel(&walletModel);
 
     // Send two transactions, and verify they are added to transaction list.
+    SendCoinsDialog sendCoinsDialog(platformStyle.get(), &walletModel);
     TransactionTableModel *transactionTableModel =
         walletModel.getTransactionTableModel();
     QCOMPARE(transactionTableModel->rowCount({}), 105);

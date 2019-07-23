@@ -30,8 +30,8 @@ class SendCoinsDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit SendCoinsDialog(const PlatformStyle *platformStyle,
-                             QWidget *parent = nullptr);
+    SendCoinsDialog(const PlatformStyle *platformStyle, WalletModel *model,
+                    QWidget *parent = nullptr);
     ~SendCoinsDialog();
 
     void setClientModel(ClientModel *clientModel);

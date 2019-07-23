@@ -44,10 +44,9 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
         return false;
     }
 
-    WalletView *walletView = new WalletView(platformStyle, this);
+    WalletView *walletView = new WalletView(platformStyle, walletModel, this);
     walletView->setBitcoinGUI(gui);
     walletView->setClientModel(clientModel);
-    walletView->setWalletModel(walletModel);
     walletView->showOutOfSyncWarning(bOutOfSync);
 
     /* TODO we should goto the currently selected page once dynamically adding

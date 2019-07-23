@@ -29,8 +29,9 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent)
-    : QStackedWidget(parent), clientModel(nullptr), walletModel(nullptr),
+WalletView::WalletView(const PlatformStyle *_platformStyle,
+                       WalletModel *_walletModel, QWidget *parent)
+    : QStackedWidget(parent), clientModel(nullptr), walletModel(_walletModel),
       platformStyle(_platformStyle) {
     // Create tabs
     overviewPage = new OverviewPage(platformStyle);
@@ -52,7 +53,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent)
     transactionsPage->setLayout(vbox);
 
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
-    sendCoinsPage = new SendCoinsDialog(platformStyle);
+    sendCoinsPage = new SendCoinsDialog(platformStyle, walletModel);
 
     usedSendingAddressesPage =
         new AddressBookPage(platformStyle, AddressBookPage::ForEditing,
@@ -92,6 +93,9 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent)
     // Pass through messages from transactionView
     connect(transactionView, SIGNAL(message(QString, QString, unsigned int)),
             this, SIGNAL(message(QString, QString, unsigned int)));
+
+    // Set the model properly.
+    setWalletModel(walletModel);
 }
 
 WalletView::~WalletView() {}

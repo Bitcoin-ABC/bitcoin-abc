@@ -25,8 +25,8 @@ class SendCoinsEntry : public QStackedWidget {
     Q_OBJECT
 
 public:
-    explicit SendCoinsEntry(const PlatformStyle *platformStyle,
-                            QWidget *parent = nullptr);
+    SendCoinsEntry(const PlatformStyle *platformStyle, WalletModel *model,
+                   QWidget *parent = nullptr);
     ~SendCoinsEntry();
 
     void setModel(WalletModel *model);

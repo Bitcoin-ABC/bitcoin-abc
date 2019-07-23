@@ -17,8 +17,8 @@
 #include <QClipboard>
 
 SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle,
-                               QWidget *parent)
-    : QStackedWidget(parent), ui(new Ui::SendCoinsEntry), model(nullptr),
+                               WalletModel *_model, QWidget *parent)
+    : QStackedWidget(parent), ui(new Ui::SendCoinsEntry), model(_model),
       platformStyle(_platformStyle) {
     ui->setupUi(this);
 
@@ -31,13 +31,6 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle,
         platformStyle->SingleColorIcon(":/icons/remove"));
     ui->deleteButton_s->setIcon(
         platformStyle->SingleColorIcon(":/icons/remove"));
-
-    ui->messageTextLabel->setToolTip(
-        tr("A message that was attached to the %1 URI which will be"
-           " stored with the transaction for your reference. Note: "
-           "This message will not be sent over the Bitcoin network.")
-            .arg(QString::fromStdString(
-                model->getChainParams().CashAddrPrefix())));
 
     setCurrentWidget(ui->SendCoins);
 
@@ -63,6 +56,9 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle,
     connect(ui->deleteButton_s, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(ui->useAvailableBalanceButton, SIGNAL(clicked()), this,
             SLOT(useAvailableBalanceClicked()));
+
+    // Set the model properly.
+    setModel(model);
 }
 
 SendCoinsEntry::~SendCoinsEntry() {
@@ -93,6 +89,15 @@ void SendCoinsEntry::on_payTo_textChanged(const QString &address) {
 
 void SendCoinsEntry::setModel(WalletModel *_model) {
     this->model = _model;
+
+    if (_model) {
+        ui->messageTextLabel->setToolTip(
+            tr("A message that was attached to the %1 URI which will be stored "
+               "with the transaction for your reference. Note: This message "
+               "will not be sent over the Bitcoin network.")
+                .arg(QString::fromStdString(
+                    _model->getChainParams().CashAddrPrefix())));
+    }
 
     if (_model && _model->getOptionsModel()) {
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
