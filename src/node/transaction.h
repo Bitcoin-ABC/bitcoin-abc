@@ -14,7 +14,14 @@ struct NodeContext;
 struct TxId;
 
 /**
- * Broadcast a transaction
+ * Submit a transaction to the mempool and (optionally) relay it to all P2P
+ * peers.
+ *
+ * Mempool submission can be synchronous (will await mempool entry notification
+ * over the CValidationInterface) or asynchronous (will submit and not wait for
+ * notification), depending on the value of wait_callback. wait_callback MUST
+ * NOT be set while cs_main, cs_mempool or cs_wallet are held to avoid
+ * deadlock.
  *
  * @param[in]  node reference to node context
  * @param[in]  tx the transaction to broadcast
@@ -24,8 +31,7 @@ struct TxId;
  * any fee)
  * @param[in]  relay flag if both mempool insertion and p2p relay are requested
  * @param[in]  wait_callback, wait until callbacks have been processed to avoid
- * stale result due to a sequentially RPC. It MUST NOT be set while cs_main,
- * cs_mempool or cs_wallet are held to avoid deadlock
+ * stale result due to a sequentially RPC.
  * @return error
  */
 NODISCARD TransactionError BroadcastTransaction(
