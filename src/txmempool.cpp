@@ -20,6 +20,7 @@
 #include <util/system.h>
 #include <util/time.h>
 #include <validation.h>
+#include <validationinterface.h>
 #include <version.h>
 
 #include <algorithm>
@@ -463,6 +464,13 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry,
 }
 
 void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
+    CTransactionRef ptx = it->GetSharedTx();
+    NotifyEntryRemoved(ptx, reason);
+    if (reason != MemPoolRemovalReason::BLOCK &&
+        reason != MemPoolRemovalReason::CONFLICT) {
+        GetMainSignals().TransactionRemovedFromMempool(ptx);
+    }
+
     NotifyEntryRemoved(it->GetSharedTx(), reason);
     for (const CTxIn &txin : it->GetTx().vin) {
         mapNextTx.erase(txin.prevout);

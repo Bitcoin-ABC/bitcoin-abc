@@ -319,7 +319,6 @@ void Shutdown(NodeContext &node) {
     node.chain_clients.clear();
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
-    GetMainSignals().UnregisterWithMempoolSignals(g_mempool);
     globalVerifyHandle.reset();
     ECC_Stop();
     if (node.mempool) {
@@ -2122,7 +2121,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         60000);
 
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
-    GetMainSignals().RegisterWithMempoolSignals(g_mempool);
 
     // Create client interfaces for wallets that are supposed to be loaded
     // according to -wallet and -disablewallet options. This only constructs
