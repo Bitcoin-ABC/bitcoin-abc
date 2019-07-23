@@ -11,6 +11,7 @@ phutil_register_library_map(array(
   'class' => array(
     'AssertWithSideEffectsLinter' => 'linter/AssertWithSideEffectsLinter.php',
     'AutoPEP8FormatLinter' => 'linter/AutoPEP8Linter.php',
+    'BoostDependenciesLinter' => 'linter/BoostDependenciesLinter.php',
     'CHeaderLinter' => 'linter/CHeaderLinter.php',
     'CheckDocLinter' => 'linter/CheckDocLinter.php',
     'ClangFormatLinter' => 'linter/ClangFormatLinter.php',
@@ -31,6 +32,7 @@ phutil_register_library_map(array(
   'xmap' => array(
     'AssertWithSideEffectsLinter' => 'ArcanistLinter',
     'AutoPEP8FormatLinter' => 'ArcanistExternalLinter',
+    'BoostDependenciesLinter' => 'GlobalExternalLinter',
     'CHeaderLinter' => 'ArcanistLinter',
     'CheckDocLinter' => 'GlobalExternalLinter',
     'ClangFormatLinter' => 'ArcanistExternalLinter',

@@ -6,8 +6,6 @@
 #
 # Guard against accidental introduction of new Boost dependencies.
 
-EXIT_CODE=0
-
 EXPECTED_BOOST_INCLUDES=(
     boost/algorithm/string.hpp
     boost/algorithm/string/classification.hpp
@@ -60,7 +58,6 @@ for BOOST_INCLUDE in $(git grep '^#include <boost/' -- "*.cpp" "*.h" | cut -f2 -
         fi
     done
     if [[ ${IS_EXPECTED_INCLUDE} == 0 ]]; then
-        EXIT_CODE=1
         echo "A new Boost dependency in the form of \"${BOOST_INCLUDE}\" appears to have been introduced:"
         git grep "${BOOST_INCLUDE}" -- "*.cpp" "*.h"
         echo
@@ -73,8 +70,5 @@ for EXPECTED_BOOST_INCLUDE in "${EXPECTED_BOOST_INCLUDES[@]}"; do
         echo "Please remove it from EXPECTED_BOOST_INCLUDES in $0"
         echo "to make sure this dependency is not accidentally reintroduced."
         echo
-        EXIT_CODE=1
     fi
 done
-
-exit ${EXIT_CODE}
