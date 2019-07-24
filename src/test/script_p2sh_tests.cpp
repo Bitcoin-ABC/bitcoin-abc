@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(norecurse) {
 
     // Should not verify, because it will try to execute OP_INVALIDOPCODE
     BOOST_CHECK(!Verify(scriptSig, p2sh, true, err));
-    BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_BAD_OPCODE, ScriptErrorString(err));
+    BOOST_CHECK_MESSAGE(err == ScriptError::BAD_OPCODE, ScriptErrorString(err));
 
     // Try to recur, and verification should succeed because
     // the inner HASH160 <> EQUAL should only check the hash:
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(norecurse) {
     scriptSig2 << Serialize(invalidAsScript) << Serialize(p2sh);
 
     BOOST_CHECK(Verify(scriptSig2, p2sh2, true, err));
-    BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
+    BOOST_CHECK_MESSAGE(err == ScriptError::OK, ScriptErrorString(err));
 }
 
 BOOST_AUTO_TEST_CASE(set) {
@@ -307,10 +307,11 @@ BOOST_AUTO_TEST_CASE(switchover) {
 
     // Validation should succeed under old rules (hash is correct):
     BOOST_CHECK(Verify(scriptSig, fund, false, err));
-    BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
+    BOOST_CHECK_MESSAGE(err == ScriptError::OK, ScriptErrorString(err));
     // Fail under new:
     BOOST_CHECK(!Verify(scriptSig, fund, true, err));
-    BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_EQUALVERIFY, ScriptErrorString(err));
+    BOOST_CHECK_MESSAGE(err == ScriptError::EQUALVERIFY,
+                        ScriptErrorString(err));
 }
 
 BOOST_AUTO_TEST_CASE(AreInputsStandard) {

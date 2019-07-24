@@ -28,7 +28,7 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
     BaseSignatureChecker sigchecker;
 
     for (uint32_t flags : flagset) {
-        ScriptError err = SCRIPT_ERR_OK;
+        ScriptError err = ScriptError::OK;
         stacktype stack{original_stack};
         bool r = EvalScript(stack, script, flags, sigchecker, &err);
         BOOST_CHECK(r);
@@ -39,11 +39,11 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
 static void CheckError(uint32_t flags, const stacktype &original_stack,
                        const CScript &script, ScriptError expected_error) {
     BaseSignatureChecker sigchecker;
-    ScriptError err = SCRIPT_ERR_OK;
+    ScriptError err = ScriptError::OK;
     stacktype stack{original_stack};
     bool r = EvalScript(stack, script, flags, sigchecker, &err);
     BOOST_CHECK(!r);
-    BOOST_CHECK_EQUAL(err, expected_error);
+    BOOST_CHECK(err == expected_error);
 }
 
 static void CheckErrorForAllFlags(const stacktype &original_stack,
@@ -373,23 +373,23 @@ BOOST_AUTO_TEST_CASE(bitwise_opcodes_test) {
 
     // Check errors conditions.
     // 1. Less than 2 elements on stack.
-    CheckAllBitwiseOpErrors({}, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckAllBitwiseOpErrors({{}}, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckAllBitwiseOpErrors({{0x00}}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckAllBitwiseOpErrors({}, ScriptError::INVALID_STACK_OPERATION);
+    CheckAllBitwiseOpErrors({{}}, ScriptError::INVALID_STACK_OPERATION);
+    CheckAllBitwiseOpErrors({{0x00}}, ScriptError::INVALID_STACK_OPERATION);
     CheckAllBitwiseOpErrors({{0xab, 0xcd, 0xef}},
-                            SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckAllBitwiseOpErrors({a}, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckAllBitwiseOpErrors({b}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                            ScriptError::INVALID_STACK_OPERATION);
+    CheckAllBitwiseOpErrors({a}, ScriptError::INVALID_STACK_OPERATION);
+    CheckAllBitwiseOpErrors({b}, ScriptError::INVALID_STACK_OPERATION);
 
     // 2. Operand of mismatching length
-    CheckAllBitwiseOpErrors({{}, {0x00}}, SCRIPT_ERR_INVALID_OPERAND_SIZE);
-    CheckAllBitwiseOpErrors({{0x00}, {}}, SCRIPT_ERR_INVALID_OPERAND_SIZE);
+    CheckAllBitwiseOpErrors({{}, {0x00}}, ScriptError::INVALID_OPERAND_SIZE);
+    CheckAllBitwiseOpErrors({{0x00}, {}}, ScriptError::INVALID_OPERAND_SIZE);
     CheckAllBitwiseOpErrors({{0x00}, {0xab, 0xcd, 0xef}},
-                            SCRIPT_ERR_INVALID_OPERAND_SIZE);
+                            ScriptError::INVALID_OPERAND_SIZE);
     CheckAllBitwiseOpErrors({{0xab, 0xcd, 0xef}, {0x00}},
-                            SCRIPT_ERR_INVALID_OPERAND_SIZE);
-    CheckAllBitwiseOpErrors({{}, a}, SCRIPT_ERR_INVALID_OPERAND_SIZE);
-    CheckAllBitwiseOpErrors({b, {}}, SCRIPT_ERR_INVALID_OPERAND_SIZE);
+                            ScriptError::INVALID_OPERAND_SIZE);
+    CheckAllBitwiseOpErrors({{}, a}, ScriptError::INVALID_OPERAND_SIZE);
+    CheckAllBitwiseOpErrors({b, {}}, ScriptError::INVALID_OPERAND_SIZE);
 }
 
 /**
@@ -422,13 +422,13 @@ static void CheckStringOp(const valtype &a, const valtype &b,
 
     // Out of bound split.
     CheckErrorForAllFlags({a}, CScript() << (a.size() + 1) << OP_SPLIT,
-                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
+                          ScriptError::INVALID_SPLIT_RANGE);
     CheckErrorForAllFlags({b}, CScript() << (b.size() + 1) << OP_SPLIT,
-                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
+                          ScriptError::INVALID_SPLIT_RANGE);
     CheckErrorForAllFlags({n}, CScript() << (n.size() + 1) << OP_SPLIT,
-                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
+                          ScriptError::INVALID_SPLIT_RANGE);
     CheckErrorForAllFlags({a}, CScript() << (-1) << OP_SPLIT,
-                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
+                          ScriptError::INVALID_SPLIT_RANGE);
 }
 
 BOOST_AUTO_TEST_CASE(string_opcodes_test) {
@@ -502,22 +502,22 @@ BOOST_AUTO_TEST_CASE(string_opcodes_test) {
         valtype extraB = b;
         extraB.push_back(0xad);
 
-        CheckOpError({extraA, b}, OP_CAT, SCRIPT_ERR_PUSH_SIZE);
-        CheckOpError({a, extraB}, OP_CAT, SCRIPT_ERR_PUSH_SIZE);
-        CheckOpError({extraA, extraB}, OP_CAT, SCRIPT_ERR_PUSH_SIZE);
+        CheckOpError({extraA, b}, OP_CAT, ScriptError::PUSH_SIZE);
+        CheckOpError({a, extraB}, OP_CAT, ScriptError::PUSH_SIZE);
+        CheckOpError({extraA, extraB}, OP_CAT, ScriptError::PUSH_SIZE);
     }
 
     // Check error conditions.
-    CheckOpError({}, OP_CAT, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckOpError({}, OP_SPLIT, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckOpError({{}}, OP_CAT, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckOpError({{}}, OP_SPLIT, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckOpError({{0x00}}, OP_CAT, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckOpError({{0x00}}, OP_SPLIT, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckOpError({}, OP_CAT, ScriptError::INVALID_STACK_OPERATION);
+    CheckOpError({}, OP_SPLIT, ScriptError::INVALID_STACK_OPERATION);
+    CheckOpError({{}}, OP_CAT, ScriptError::INVALID_STACK_OPERATION);
+    CheckOpError({{}}, OP_SPLIT, ScriptError::INVALID_STACK_OPERATION);
+    CheckOpError({{0x00}}, OP_CAT, ScriptError::INVALID_STACK_OPERATION);
+    CheckOpError({{0x00}}, OP_SPLIT, ScriptError::INVALID_STACK_OPERATION);
     CheckOpError({{0xab, 0xcd, 0xef}}, OP_CAT,
-                 SCRIPT_ERR_INVALID_STACK_OPERATION);
+                 ScriptError::INVALID_STACK_OPERATION);
     CheckOpError({{0xab, 0xcd, 0xef}}, OP_SPLIT,
-                 SCRIPT_ERR_INVALID_STACK_OPERATION);
+                 ScriptError::INVALID_STACK_OPERATION);
 }
 
 /**
@@ -607,29 +607,29 @@ BOOST_AUTO_TEST_CASE(type_conversion_test) {
                           {0xab, 0xcd, 0x7f, 0x42});
 
     // Empty stack is an error.
-    CheckBin2NumError({}, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckNum2BinError({}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckBin2NumError({}, ScriptError::INVALID_STACK_OPERATION);
+    CheckNum2BinError({}, ScriptError::INVALID_STACK_OPERATION);
 
     // NUM2BIN require 2 elements on the stack.
-    CheckNum2BinError({{0x00}}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckNum2BinError({{0x00}}, ScriptError::INVALID_STACK_OPERATION);
 
     // Values that do not fit in 4 bytes are considered out of range for
     // BIN2NUM.
     CheckBin2NumError({{0xab, 0xcd, 0xef, 0xc2, 0x80}},
-                      SCRIPT_ERR_INVALID_NUMBER_RANGE);
+                      ScriptError::INVALID_NUMBER_RANGE);
     CheckBin2NumError({{0x00, 0x00, 0x00, 0x80, 0x80}},
-                      SCRIPT_ERR_INVALID_NUMBER_RANGE);
+                      ScriptError::INVALID_NUMBER_RANGE);
 
     // NUM2BIN must not generate oversized push.
     valtype largezero(MAX_SCRIPT_ELEMENT_SIZE, 0);
     BOOST_CHECK_EQUAL(largezero.size(), MAX_SCRIPT_ELEMENT_SIZE);
     CheckTypeConversionOp(largezero, {});
 
-    CheckNum2BinError({{}, {0x09, 0x02}}, SCRIPT_ERR_PUSH_SIZE);
+    CheckNum2BinError({{}, {0x09, 0x02}}, ScriptError::PUSH_SIZE);
 
     // Check that the requested encoding is possible.
     CheckNum2BinError({{0xab, 0xcd, 0xef, 0x80}, {0x03}},
-                      SCRIPT_ERR_IMPOSSIBLE_ENCODING);
+                      ScriptError::IMPOSSIBLE_ENCODING);
 }
 
 /**
@@ -653,45 +653,47 @@ static void CheckDivMod(const valtype &a, const valtype &b,
 
     // Div/Mod by zero
     for (uint32_t flags : flagset) {
-        CheckError(flags, {a, {}}, CScript() << OP_DIV, SCRIPT_ERR_DIV_BY_ZERO);
-        CheckError(flags, {b, {}}, CScript() << OP_DIV, SCRIPT_ERR_DIV_BY_ZERO);
+        CheckError(flags, {a, {}}, CScript() << OP_DIV,
+                   ScriptError::DIV_BY_ZERO);
+        CheckError(flags, {b, {}}, CScript() << OP_DIV,
+                   ScriptError::DIV_BY_ZERO);
 
         if (flags & SCRIPT_VERIFY_MINIMALDATA) {
             CheckError(flags, {a, {0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
             CheckError(flags, {a, {0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
             CheckError(flags, {a, {0x00, 0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
             CheckError(flags, {a, {0x00, 0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
 
             CheckError(flags, {b, {0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
             CheckError(flags, {b, {0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
             CheckError(flags, {b, {0x00, 0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
             CheckError(flags, {b, {0x00, 0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_UNKNOWN_ERROR);
+                       ScriptError::UNKNOWN);
         } else {
             CheckError(flags, {a, {0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
             CheckError(flags, {a, {0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
             CheckError(flags, {a, {0x00, 0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
             CheckError(flags, {a, {0x00, 0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
 
             CheckError(flags, {b, {0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
             CheckError(flags, {b, {0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
             CheckError(flags, {b, {0x00, 0x00}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
             CheckError(flags, {b, {0x00, 0x80}}, CScript() << OP_DIV,
-                       SCRIPT_ERR_DIV_BY_ZERO);
+                       ScriptError::DIV_BY_ZERO);
         }
     }
 
@@ -722,17 +724,17 @@ static void CheckDivModError(const stacktype &original_stack,
 }
 
 BOOST_AUTO_TEST_CASE(div_and_mod_opcode_tests) {
-    CheckDivModError({}, SCRIPT_ERR_INVALID_STACK_OPERATION);
-    CheckDivModError({{}}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckDivModError({}, ScriptError::INVALID_STACK_OPERATION);
+    CheckDivModError({{}}, ScriptError::INVALID_STACK_OPERATION);
 
     // CheckOps not valid numbers
     CheckDivModError(
         {{0x01, 0x02, 0x03, 0x04, 0x05}, {0x01, 0x02, 0x03, 0x04, 0x05}},
-        SCRIPT_ERR_UNKNOWN_ERROR);
+        ScriptError::UNKNOWN);
     CheckDivModError({{0x01, 0x02, 0x03, 0x04, 0x05}, {0x01}},
-                     SCRIPT_ERR_UNKNOWN_ERROR);
+                     ScriptError::UNKNOWN);
     CheckDivModError({{0x01, 0x05}, {0x01, 0x02, 0x03, 0x04, 0x05}},
-                     SCRIPT_ERR_UNKNOWN_ERROR);
+                     ScriptError::UNKNOWN);
 
     // 0x185377af / 0x85f41b01 = -4
     // 0x185377af % 0x85f41b01 = 0x00830bab

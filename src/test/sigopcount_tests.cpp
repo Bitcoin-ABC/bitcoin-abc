@@ -121,7 +121,7 @@ static ScriptError VerifyWithFlag(const CTransaction &output,
     bool ret = VerifyScript(
         inputi.vin[0].scriptSig, output.vout[0].scriptPubKey, flags,
         TransactionSignatureChecker(&inputi, 0, output.vout[0].nValue), &error);
-    BOOST_CHECK_EQUAL((ret == true), (error == SCRIPT_ERR_OK));
+    BOOST_CHECK_EQUAL((ret == true), (error == ScriptError::OK));
 
     return error;
 }
@@ -194,9 +194,8 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
             MAX_PUBKEYS_PER_MULTISIG);
         // Sanity check: script verification fails because of an invalid
         // signature.
-        BOOST_CHECK_EQUAL(
-            VerifyWithFlag(CTransaction(creationTx), spendingTx, flags),
-            SCRIPT_ERR_CHECKMULTISIGVERIFY);
+        BOOST_CHECK(VerifyWithFlag(CTransaction(creationTx), spendingTx,
+                                   flags) == ScriptError::CHECKMULTISIGVERIFY);
 
         // Make sure non P2SH sigops are counted even if the flag for P2SH is
         // not passed in.
@@ -221,9 +220,8 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
         BOOST_CHECK_EQUAL(
             GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags),
             2);
-        BOOST_CHECK_EQUAL(
-            VerifyWithFlag(CTransaction(creationTx), spendingTx, flags),
-            SCRIPT_ERR_CHECKMULTISIGVERIFY);
+        BOOST_CHECK(VerifyWithFlag(CTransaction(creationTx), spendingTx,
+                                   flags) == ScriptError::CHECKMULTISIGVERIFY);
 
         // Make sure P2SH sigops are not counted if the flag for P2SH is not
         // passed in.

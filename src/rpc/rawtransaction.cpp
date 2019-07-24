@@ -996,11 +996,11 @@ UniValue SignTransaction(CMutableTransaction &mtx,
 
         UpdateTransaction(mtx, i, sigdata);
 
-        ScriptError serror = SCRIPT_ERR_OK;
+        ScriptError serror = ScriptError::OK;
         if (!VerifyScript(
                 txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
                 TransactionSignatureChecker(&txConst, i, amount), &serror)) {
-            if (serror == SCRIPT_ERR_INVALID_STACK_OPERATION) {
+            if (serror == ScriptError::INVALID_STACK_OPERATION) {
                 // Unable to sign input and verification failed (possible
                 // attempt to partially sign).
                 TxInErrorToJSON(txin, vErrors,

@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                         TransactionSignatureChecker(&tx, i, amount, txdata),
                         &err),
                     strTest);
-                BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK,
+                BOOST_CHECK_MESSAGE(err == ScriptError::OK,
                                     ScriptErrorString(err));
             }
         }
@@ -159,9 +159,9 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
         std::string(json_tests::tx_invalid,
                     json_tests::tx_invalid + sizeof(json_tests::tx_invalid)));
 
-    // Initialize to SCRIPT_ERR_OK. The tests expect err to be changed to a
-    // value other than SCRIPT_ERR_OK.
-    ScriptError err = SCRIPT_ERR_OK;
+    // Initialize to ScriptError::OK. The tests expect err to be changed to a
+    // value other than ScriptError::OK.
+    ScriptError err = ScriptError::OK;
     for (size_t idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
         std::string strTest = test.write();
@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     TransactionSignatureChecker(&tx, i, amount, txdata), &err);
             }
             BOOST_CHECK_MESSAGE(!fValid, strTest);
-            BOOST_CHECK_MESSAGE(err != SCRIPT_ERR_OK, ScriptErrorString(err));
+            BOOST_CHECK_MESSAGE(err != ScriptError::OK, ScriptErrorString(err));
         }
     }
 }
