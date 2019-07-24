@@ -125,7 +125,7 @@ public:
     boost::signals2::signal<void(bool, const CBlockIndex *)> NotifyHeaderTip;
 
     /** Banlist did change. */
-    boost::signals2::signal<void(void)> BannedListChanged;
+    boost::signals2::signal<void()> BannedListChanged;
 };
 
 /** Show warning message **/

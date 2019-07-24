@@ -84,7 +84,7 @@ static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
     wtxn.emplace_back(std::move(wtx));
 }
 
-static void empty_wallet(void) {
+static void empty_wallet() {
     vCoins.clear();
     wtxn.clear();
     balance = Amount::zero();

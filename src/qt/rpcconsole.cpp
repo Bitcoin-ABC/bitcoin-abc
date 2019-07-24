@@ -97,8 +97,7 @@ private:
 class QtRPCTimerBase : public QObject, public RPCTimerBase {
     Q_OBJECT
 public:
-    QtRPCTimerBase(std::function<void(void)> &_func, int64_t millis)
-        : func(_func) {
+    QtRPCTimerBase(std::function<void()> &_func, int64_t millis) : func(_func) {
         timer.setSingleShot(true);
         connect(&timer, SIGNAL(timeout()), this, SLOT(timeout()));
         timer.start(millis);
@@ -109,14 +108,14 @@ private Q_SLOTS:
 
 private:
     QTimer timer;
-    std::function<void(void)> func;
+    std::function<void()> func;
 };
 
 class QtRPCTimerInterface : public RPCTimerInterface {
 public:
     ~QtRPCTimerInterface() {}
     const char *Name() override { return "Qt"; }
-    RPCTimerBase *NewTimer(std::function<void(void)> &func,
+    RPCTimerBase *NewTimer(std::function<void()> &func,
                            int64_t millis) override {
         return new QtRPCTimerBase(func, millis);
     }

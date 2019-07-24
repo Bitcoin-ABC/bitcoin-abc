@@ -229,7 +229,7 @@ static void TestChaCha20(const std::string &hexkey, uint64_t nonce,
     BOOST_CHECK(out == outres);
 }
 
-static std::string LongTestString(void) {
+static std::string LongTestString() {
     std::string ret;
     for (int i = 0; i < 200000; i++) {
         ret += uint8_t(i);

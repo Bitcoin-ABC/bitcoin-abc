@@ -33,7 +33,7 @@ static const int64_t RPC_AUTH_BRUTE_FORCE_DELAY = 250;
  */
 class HTTPRPCTimer : public RPCTimerBase {
 public:
-    HTTPRPCTimer(struct event_base *eventBase, std::function<void(void)> &func,
+    HTTPRPCTimer(struct event_base *eventBase, std::function<void()> &func,
                  int64_t millis)
         : ev(eventBase, false, func) {
         struct timeval tv;
@@ -52,7 +52,7 @@ public:
 
     const char *Name() override { return "HTTP"; }
 
-    RPCTimerBase *NewTimer(std::function<void(void)> &func,
+    RPCTimerBase *NewTimer(std::function<void()> &func,
                            int64_t millis) override {
         return new HTTPRPCTimer(base, func, millis);
     }

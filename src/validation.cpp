@@ -5530,7 +5530,7 @@ bool LoadMempool(const Config &config) {
     return true;
 }
 
-bool DumpMempool(void) {
+bool DumpMempool() {
     int64_t start = GetTimeMicros();
 
     std::map<uint256, Amount> mapDeltas;

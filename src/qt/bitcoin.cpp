@@ -656,7 +656,7 @@ int main(int argc, char *argv[]) {
     //   http://qt-project.org/doc/qt-5/qmetatype.html#qRegisterMetaType)
     //   IMPORTANT if it is no longer a typedef use the normal variant above
     qRegisterMetaType<Amount>("Amount");
-    qRegisterMetaType<std::function<void(void)>>("std::function<void(void)>");
+    qRegisterMetaType<std::function<void()>>("std::function<void()>");
 
     // Need to register any types Qt doesn't know about if you intend
     // to use them with the signal/slot mechanism Qt provides. Even pointers.
