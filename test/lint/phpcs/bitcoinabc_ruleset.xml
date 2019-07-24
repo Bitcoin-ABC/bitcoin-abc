@@ -11,6 +11,8 @@
         <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
         <exclude name="Generic.CodeAnalysis.AssignmentInCondition.Found" />
         <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found" />
+        <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundInExtendedClassAfterLastUsed" />
+        <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundInExtendedClassBeforeLastUsed" />
         <exclude name="Generic.Commenting.DocComment.NonParamGroup" />
         <exclude name="Generic.Commenting.DocComment.ParamNotFirst" />
         <exclude name="Generic.Commenting.DocComment.SpacingBeforeTags" />
