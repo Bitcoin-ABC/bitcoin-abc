@@ -1,5 +1,3 @@
-Language:             Cpp
-Standard:             Cpp11
 ColumnLimit:          80
 IndentWidth:          4
 TabWidth:             4
@@ -16,3 +14,9 @@ AllowShortFunctionsOnASingleLine: Inline
 FixNamespaceComments: true
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, BOOST_REVERSE_FOREACH ]
 CommentPragmas:  '@DISABLE FORMATING FOR THIS COMMENT@'
+---
+Language:             Cpp
+Standard:             Cpp11
+---
+Language:             ObjC
+ObjCBlockIndentWidth: 4

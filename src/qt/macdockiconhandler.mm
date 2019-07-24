@@ -4,24 +4,24 @@
 
 #include "macdockiconhandler.h"
 
+#include <QBuffer>
 #include <QImageWriter>
 #include <QMenu>
-#include <QBuffer>
 #include <QWidget>
 
 #undef slots
 #include <Cocoa/Cocoa.h>
-#include <objc/objc.h>
 #include <objc/message.h>
+#include <objc/objc.h>
 
 static MacDockIconHandler *s_instance = nullptr;
 
-bool dockClickHandler(id self,SEL _cmd,...) {
+bool dockClickHandler(id self, SEL _cmd, ...) {
     Q_UNUSED(self)
     Q_UNUSED(_cmd)
-    
+
     s_instance->handleDockIconClickEvent();
-    
+
     // Return NO (false) to suppress the default OS X actions
     return false;
 }
@@ -29,21 +29,23 @@ bool dockClickHandler(id self,SEL _cmd,...) {
 void setupDockClickHandler() {
     Class cls = objc_getClass("NSApplication");
     id appInst = objc_msgSend((id)cls, sel_registerName("sharedApplication"));
-    
+
     if (appInst != nullptr) {
         id delegate = objc_msgSend(appInst, sel_registerName("delegate"));
-        Class delClass = (Class)objc_msgSend(delegate,  sel_registerName("class"));
-        SEL shouldHandle = sel_registerName("applicationShouldHandleReopen:hasVisibleWindows:");
+        Class delClass =
+            (Class)objc_msgSend(delegate, sel_registerName("class"));
+        SEL shouldHandle = sel_registerName(
+            "applicationShouldHandleReopen:hasVisibleWindows:");
         if (class_getInstanceMethod(delClass, shouldHandle))
-            class_replaceMethod(delClass, shouldHandle, (IMP)dockClickHandler, "B@:");
+            class_replaceMethod(delClass, shouldHandle, (IMP)dockClickHandler,
+                                "B@:");
         else
-            class_addMethod(delClass, shouldHandle, (IMP)dockClickHandler,"B@:");
+            class_addMethod(delClass, shouldHandle, (IMP)dockClickHandler,
+                            "B@:");
     }
 }
 
-
-MacDockIconHandler::MacDockIconHandler() : QObject()
-{
+MacDockIconHandler::MacDockIconHandler() : QObject() {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
     setupDockClickHandler();
@@ -60,19 +62,16 @@ void MacDockIconHandler::setMainWindow(QMainWindow *window) {
     this->mainWindow = window;
 }
 
-MacDockIconHandler::~MacDockIconHandler()
-{
+MacDockIconHandler::~MacDockIconHandler() {
     delete this->m_dummyWidget;
     this->setMainWindow(nullptr);
 }
 
-QMenu *MacDockIconHandler::dockMenu()
-{
+QMenu *MacDockIconHandler::dockMenu() {
     return this->m_dockMenu;
 }
 
-void MacDockIconHandler::setIcon(const QIcon &icon)
-{
+void MacDockIconHandler::setIcon(const QIcon &icon) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSImage *image = nil;
     if (icon.isNull())
@@ -87,13 +86,14 @@ void MacDockIconHandler::setIcon(const QIcon &icon)
         if (!pixmap.isNull() && notificationBuffer.open(QIODevice::ReadWrite)) {
             QImageWriter writer(&notificationBuffer, "PNG");
             if (writer.write(pixmap.toImage())) {
-                NSData* macImgData = [NSData dataWithBytes:notificationBuffer.buffer().data()
-                                             length:notificationBuffer.buffer().size()];
-                image =  [[NSImage alloc] initWithData:macImgData];
+                NSData *macImgData =
+                    [NSData dataWithBytes:notificationBuffer.buffer().data()
+                                   length:notificationBuffer.buffer().size()];
+                image = [[NSImage alloc] initWithData:macImgData];
             }
         }
 
-        if(!image) {
+        if (!image) {
             // if testnet image could not be created, load std. app icon
             image = [[NSImage imageNamed:@"NSApplicationIcon"] retain];
         }
@@ -104,22 +104,17 @@ void MacDockIconHandler::setIcon(const QIcon &icon)
     [pool release];
 }
 
-MacDockIconHandler *MacDockIconHandler::instance()
-{
-    if (!s_instance)
-        s_instance = new MacDockIconHandler();
+MacDockIconHandler *MacDockIconHandler::instance() {
+    if (!s_instance) s_instance = new MacDockIconHandler();
     return s_instance;
 }
 
-void MacDockIconHandler::cleanup()
-{
+void MacDockIconHandler::cleanup() {
     delete s_instance;
 }
 
-void MacDockIconHandler::handleDockIconClickEvent()
-{
-    if (this->mainWindow)
-    {
+void MacDockIconHandler::handleDockIconClickEvent() {
+    if (this->mainWindow) {
         this->mainWindow->activateWindow();
         this->mainWindow->show();
     }
