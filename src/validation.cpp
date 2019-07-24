@@ -2038,7 +2038,8 @@ void CChainState::PruneAndFlush() {
 }
 
 /** Check warning conditions and do some notifications on new chain tip set. */
-static void UpdateTip(const CChainParams &params, CBlockIndex *pindexNew) {
+static void UpdateTip(const CChainParams &params, CBlockIndex *pindexNew)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
     // New best block
     g_mempool.AddTransactionsUpdated(1);
 

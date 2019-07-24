@@ -736,7 +736,7 @@ public:
      * Reduce the size of the mempool by expiring and then trimming the mempool.
      */
     void LimitSize(size_t limit, std::chrono::seconds age)
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
+        EXCLUSIVE_LOCKS_REQUIRED(cs, ::cs_main);
 
     /**
      * Calculate the ancestor and descendant count for the given transaction.

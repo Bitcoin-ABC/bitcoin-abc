@@ -232,6 +232,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     {
         CBlock block = CreateAndProcessBlock({funding_tx}, p2pk_scriptPubKey);
         BOOST_CHECK(::ChainActive().Tip()->GetBlockHash() == block.GetHash());
+        LOCK(cs_main);
         BOOST_CHECK(::ChainstateActive().CoinsTip().GetBestBlock() ==
                     block.GetHash());
     }
