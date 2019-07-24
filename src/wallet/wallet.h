@@ -379,19 +379,13 @@ struct COutputEntry {
  */
 class CMerkleTx {
 public:
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
+    template <typename Stream> void Unserialize(Stream &s) {
         CTransactionRef tx;
         BlockHash hashBlock;
-        int nIndex = 0;
-        // For compatibility with older versions.
         std::vector<uint256> vMerkleBranch;
-        READWRITE(tx);
-        READWRITE(hashBlock);
-        READWRITE(vMerkleBranch);
-        READWRITE(nIndex);
+        int nIndex = 0;
+
+        s >> tx >> hashBlock >> vMerkleBranch >> nIndex;
     }
 };
 
@@ -507,7 +501,6 @@ public:
     int nIndex;
 
     template <typename Stream> void Serialize(Stream &s) const {
-        char fSpent = false;
         mapValue_t mapValueCopy = mapValue;
 
         mapValueCopy["fromaccount"] = "";
@@ -517,25 +510,28 @@ public:
         }
 
         //! Used to be vMerkleBranch
-        std::vector<uint256> dummy_vector;
-        s << tx << hashBlock << dummy_vector << nIndex;
+        std::vector<char> dummy_vector1;
         //! Used to be vtxPrev
-        std::vector<CMerkleTx> vUnused;
-        s << vUnused << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime
-          << nTimeReceived << fFromMe << fSpent;
+        std::vector<char> dummy_vector2;
+        //! Used to be fSpent
+        char dummy_char = false;
+        s << tx << hashBlock << dummy_vector1 << nIndex << dummy_vector2
+          << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime
+          << nTimeReceived << fFromMe << dummy_char;
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
         Init(nullptr);
-        char fSpent;
 
         //! Used to be vMerkleBranch
-        std::vector<uint256> dummy_vector;
-        s >> tx >> hashBlock >> dummy_vector >> nIndex;
+        std::vector<uint256> dummy_vector1;
         //! Used to be vtxPrev
-        std::vector<CMerkleTx> vUnused;
-        s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >>
-            nTimeReceived >> fFromMe >> fSpent;
+        std::vector<CMerkleTx> dummy_vector2;
+        //! Used to be fSpent
+        char dummy_char;
+        s >> tx >> hashBlock >> dummy_vector1 >> nIndex >> dummy_vector2 >>
+            mapValue >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >>
+            fFromMe >> dummy_char;
 
         ReadOrderPos(nOrderPos, mapValue);
         nTimeSmart = mapValue.count("timesmart")
