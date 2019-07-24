@@ -343,10 +343,11 @@ public:
     }
 
     int getint() const {
-        if (m_value > std::numeric_limits<int>::max())
+        if (m_value > std::numeric_limits<int>::max()) {
             return std::numeric_limits<int>::max();
-        else if (m_value < std::numeric_limits<int>::min())
+        } else if (m_value < std::numeric_limits<int>::min()) {
             return std::numeric_limits<int>::min();
+        }
         return m_value;
     }
 
@@ -536,11 +537,17 @@ public:
     bool GetOp2(const_iterator &pc, opcodetype &opcodeRet,
                 std::vector<uint8_t> *pvchRet) const {
         opcodeRet = OP_INVALIDOPCODE;
-        if (pvchRet) pvchRet->clear();
-        if (pc >= end()) return false;
+        if (pvchRet) {
+            pvchRet->clear();
+        }
+        if (pc >= end()) {
+            return false;
+        }
 
         // Read instruction
-        if (end() - pc < 1) return false;
+        if (end() - pc < 1) {
+            return false;
+        }
 
         uint32_t opcode = *pc++;
 
@@ -550,21 +557,29 @@ public:
             if (opcode < OP_PUSHDATA1) {
                 nSize = opcode;
             } else if (opcode == OP_PUSHDATA1) {
-                if (end() - pc < 1) return false;
+                if (end() - pc < 1) {
+                    return false;
+                }
                 nSize = *pc++;
             } else if (opcode == OP_PUSHDATA2) {
-                if (end() - pc < 2) return false;
+                if (end() - pc < 2) {
+                    return false;
+                }
                 nSize = ReadLE16(&pc[0]);
                 pc += 2;
             } else if (opcode == OP_PUSHDATA4) {
-                if (end() - pc < 4) return false;
+                if (end() - pc < 4) {
+                    return false;
+                }
                 nSize = ReadLE32(&pc[0]);
                 pc += 4;
             }
             if (end() - pc < 0 || uint32_t(end() - pc) < nSize) {
                 return false;
             }
-            if (pvchRet) pvchRet->assign(pc, pc + nSize);
+            if (pvchRet) {
+                pvchRet->assign(pc, pc + nSize);
+            }
             pc += nSize;
         }
 
