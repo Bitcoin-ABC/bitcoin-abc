@@ -25,6 +25,7 @@ enum class ScriptError {
     INVALID_NUMBER_RANGE,
     IMPOSSIBLE_ENCODING,
     INVALID_SPLIT_RANGE,
+    INVALID_BIT_COUNT,
 
     /* Failed verify operations */
     VERIFY,

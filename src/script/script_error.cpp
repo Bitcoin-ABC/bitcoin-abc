@@ -45,6 +45,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "The requested encoding is impossible to satisfy";
         case ScriptError::INVALID_SPLIT_RANGE:
             return "Invalid OP_SPLIT range";
+        case ScriptError::INVALID_BIT_COUNT:
+            return "Invalid number of bit set in OP_CHECKMULTISIG";
         case ScriptError::BAD_OPCODE:
             return "Opcode missing or not understood";
         case ScriptError::DISABLED_OPCODE:
