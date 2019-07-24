@@ -292,7 +292,10 @@ public:
 
     std::string ToString() const;
 };
-static_assert(sizeof(CTransaction) == 88);
+#if defined(__x86_64__)
+static_assert(sizeof(CTransaction) == 88,
+              "sizeof CTransaction is expected to be 88 bytes");
+#endif
 
 /**
  * A mutable version of CTransaction.
@@ -333,7 +336,10 @@ public:
         return a.GetId() == b.GetId();
     }
 };
-static_assert(sizeof(CMutableTransaction) == 56);
+#if defined(__x86_64__)
+static_assert(sizeof(CMutableTransaction) == 56,
+              "sizeof CMutableTransaction is expected to be 56 bytes");
+#endif
 
 typedef std::shared_ptr<const CTransaction> CTransactionRef;
 static inline CTransactionRef MakeTransactionRef() {
