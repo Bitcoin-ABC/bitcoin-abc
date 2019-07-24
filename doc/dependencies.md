@@ -7,7 +7,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | --- | --- | --- | --- | --- | --- |
 | Berkeley DB | [5.3.28](http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/downloads/index.html) | 5.3 | No |  |  |
 | Boost | [1.70.0](https://www.boost.org/users/download/) | 1.58.0 | No |  |  |
-| Clang |  | [3.4](http://llvm.org/releases/download.html) (C++14 support) |  |  |  |
+| Clang |  | [3.4](https://releases.llvm.org/download.html) (C++14 support) |  |  |  |
 | CMake |  | [3.13](https://cmake.org/download/) |  |  |  |
 | Expat | [2.2.7](https://libexpat.github.io/) |  | No | Yes |  |
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
@@ -15,7 +15,6 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | GCC |  | [5.0](https://gcc.gnu.org/) (C++14 support) |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
 | libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
-| libjpeg |  |  |  |  | Yes |
 | libpng |  |  |  |  | Yes |
 | libsrvg | |  |  |  |  |
 | MiniUPnPc | [2.0.20180203](http://miniupnp.free.fr/files) | 1.5 | No |  |  |
