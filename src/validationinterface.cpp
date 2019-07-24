@@ -235,12 +235,10 @@ void CMainSignals::BlockConnected(
 }
 
 void CMainSignals::BlockDisconnected(
-    const std::shared_ptr<const CBlock> &pblock) {
-    // TODO: This function was refactored as part of an out-of-order backport
-    // of https://github.com/bitcoin/bitcoin/pull/16688
-    auto event = [pblock, this] {
+    const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
+    auto event = [pblock, pindex, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.BlockDisconnected(pblock);
+            callbacks.BlockDisconnected(pblock, pindex);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: block hash=%s", __func__,

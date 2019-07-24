@@ -165,11 +165,12 @@ namespace {
             const std::shared_ptr<const CBlock> &block,
             const CBlockIndex *index,
             const std::vector<CTransactionRef> &tx_conflicted) override {
-            m_notifications->BlockConnected(*block, tx_conflicted);
+            m_notifications->BlockConnected(*block, tx_conflicted,
+                                            index->nHeight);
         }
-        void
-        BlockDisconnected(const std::shared_ptr<const CBlock> &block) override {
-            m_notifications->BlockDisconnected(*block);
+        void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
+                               const CBlockIndex *index) override {
+            m_notifications->BlockDisconnected(*block, index->nHeight);
         }
         void UpdatedBlockTip(const CBlockIndex *index,
                              const CBlockIndex *fork_index,
