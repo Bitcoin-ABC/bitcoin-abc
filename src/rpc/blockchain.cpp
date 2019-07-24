@@ -1209,19 +1209,21 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     }
 
     Coin coin;
+    CCoinsViewCache *coins_view = &::ChainstateActive().CoinsTip();
+
     if (fMempool) {
         LOCK(g_mempool.cs);
-        CCoinsViewMemPool view(pcoinsTip.get(), g_mempool);
+        CCoinsViewMemPool view(coins_view, g_mempool);
         if (!view.GetCoin(out, coin) || g_mempool.isSpent(out)) {
             return NullUniValue;
         }
     } else {
-        if (!pcoinsTip->GetCoin(out, coin)) {
+        if (!coins_view->GetCoin(out, coin)) {
             return NullUniValue;
         }
     }
 
-    const CBlockIndex *pindex = LookupBlockIndex(pcoinsTip->GetBestBlock());
+    const CBlockIndex *pindex = LookupBlockIndex(coins_view->GetBestBlock());
     ret.pushKV("bestblock", pindex->GetBlockHash().GetHex());
     if (coin.GetHeight() == MEMPOOL_HEIGHT) {
         ret.pushKV("confirmations", 0);
@@ -1268,8 +1270,8 @@ static UniValue verifychain(const Config &config,
         nCheckDepth = request.params[1].get_int();
     }
 
-    return CVerifyDB().VerifyDB(config, pcoinsTip.get(), nCheckLevel,
-                                nCheckDepth);
+    return CVerifyDB().VerifyDB(config, &::ChainstateActive().CoinsTip(),
+                                nCheckLevel, nCheckDepth);
 }
 
 static void BIP9SoftForkDescPushBack(UniValue &softforks,

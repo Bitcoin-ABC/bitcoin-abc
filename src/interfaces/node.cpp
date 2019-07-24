@@ -263,7 +263,7 @@ namespace {
         }
         bool getUnspentOutput(const COutPoint &output, Coin &coin) override {
             LOCK(::cs_main);
-            return ::pcoinsTip->GetCoin(output, coin);
+            return ::ChainstateActive().CoinsTip().GetCoin(output, coin);
         }
         std::string getWalletDir() override { return GetWalletDir().string(); }
         std::vector<std::string> listWalletDir() override {

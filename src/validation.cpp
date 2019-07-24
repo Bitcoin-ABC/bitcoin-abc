@@ -218,8 +218,8 @@ bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
         lockPair.first = lp->height;
         lockPair.second = lp->time;
     } else {
-        // pcoinsTip contains the UTXO set for ::ChainActive().Tip()
-        CCoinsViewMemPool viewMemPool(pcoinsTip.get(), pool);
+        // CoinsTip() contains the UTXO set for ::ChainActive().Tip()
+        CCoinsViewMemPool viewMemPool(&::ChainstateActive().CoinsTip(), pool);
         std::vector<int> prevheights;
         prevheights.resize(tx.vin.size());
         for (size_t txinIndex = 0; txinIndex < tx.vin.size(); txinIndex++) {
@@ -317,7 +317,8 @@ static bool CheckInputsFromMempoolAndCache(
             assert(txFrom->vout.size() > txin.prevout.GetN());
             assert(txFrom->vout[txin.prevout.GetN()] == coin.GetTxOut());
         } else {
-            const Coin &coinFromDisk = pcoinsTip->AccessCoin(txin.prevout);
+            const Coin &coinFromDisk =
+                ::ChainstateActive().CoinsTip().AccessCoin(txin.prevout);
             assert(!coinFromDisk.IsSpent());
             assert(coinFromDisk.GetTxOut() == coin.GetTxOut());
         }
@@ -398,12 +399,13 @@ static bool AcceptToMemoryPoolWorker(
         CCoinsViewCache view(&dummy);
 
         LockPoints lp;
-        CCoinsViewMemPool viewMemPool(pcoinsTip.get(), pool);
+        CCoinsViewCache &coins_cache = ::ChainstateActive().CoinsTip();
+        CCoinsViewMemPool viewMemPool(&coins_cache, pool);
         view.SetBackend(viewMemPool);
 
         // Do all inputs exist?
         for (const CTxIn &txin : tx.vin) {
-            if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
+            if (!coins_cache.HaveCoinInCache(txin.prevout)) {
                 coins_to_uncache.push_back(txin.prevout);
             }
 
@@ -416,7 +418,7 @@ static bool AcceptToMemoryPoolWorker(
                 for (size_t out = 0; out < tx.vout.size(); out++) {
                     // Optimistically just do efficient check of cache for
                     // outputs.
-                    if (pcoinsTip->HaveCoinInCache(COutPoint(txid, out))) {
+                    if (coins_cache.HaveCoinInCache(COutPoint(txid, out))) {
                         return state.Invalid(TxValidationResult::TX_CONFLICT,
                                              REJECT_DUPLICATE,
                                              "txn-already-known");
@@ -637,7 +639,7 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
         // (`CCoinsViewCache::cacheCoins`).
 
         for (const COutPoint &outpoint : coins_to_uncache) {
-            pcoinsTip->Uncache(outpoint);
+            ::ChainstateActive().CoinsTip().Uncache(outpoint);
         }
     }
 
@@ -1881,7 +1883,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
             }
             int64_t nMempoolSizeMax =
                 gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-            int64_t cacheSize = pcoinsTip->DynamicMemoryUsage();
+            int64_t cacheSize = CoinsTip().DynamicMemoryUsage();
             int64_t nTotalSpace =
                 nCoinCacheUsage +
                 std::max<int64_t>(nMempoolSizeMax - nMempoolUsage, 0);
@@ -1954,7 +1956,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
             }
             // Flush best chain related state. This can only be done if the
             // blocks / block index write was also done.
-            if (fDoFullFlush && !pcoinsTip->GetBestBlock().IsNull()) {
+            if (fDoFullFlush && !CoinsTip().GetBestBlock().IsNull()) {
                 // Typical Coin structures on disk are around 48 bytes in size.
                 // Pushing a new one to the database can cause it to be written
                 // twice (once in the log, and once in the tables). This is
@@ -1962,7 +1964,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                 // entry or overwrite one. Still, use a conservative safety
                 // factor of 2.
                 if (!CheckDiskSpace(GetDataDir(),
-                                    48 * 2 * 2 * pcoinsTip->GetCacheSize())) {
+                                    48 * 2 * 2 * CoinsTip().GetCacheSize())) {
                     return AbortNode(
                         state, "Disk space is too low!",
                         _("Error: Disk space is too low!").translated,
@@ -1971,7 +1973,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
 
                 // Flush the chainstate (which may refer to block index
                 // entries).
-                if (!pcoinsTip->Flush()) {
+                if (!CoinsTip().Flush()) {
                     return AbortNode(state, "Failed to write to coin database");
                 }
                 nLastFlush = nNow;
@@ -2028,8 +2030,9 @@ static void UpdateTip(const CChainParams &params, CBlockIndex *pindexNew) {
               pindexNew->GetChainTxCount(),
               FormatISO8601DateTime(pindexNew->GetBlockTime()),
               GuessVerificationProgress(params.TxData(), pindexNew),
-              pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
-              pcoinsTip->GetCacheSize());
+              ::ChainstateActive().CoinsTip().DynamicMemoryUsage() *
+                  (1.0 / (1 << 20)),
+              ::ChainstateActive().CoinsTip().GetCacheSize());
 }
 
 /**
@@ -2062,7 +2065,7 @@ bool CChainState::DisconnectTip(const CChainParams &params,
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
-        CCoinsViewCache view(pcoinsTip.get());
+        CCoinsViewCache view(&CoinsTip());
         assert(view.GetBestBlock() == pindexDelete->GetBlockHash());
         if (DisconnectBlock(block, pindexDelete, view) !=
             DisconnectResult::OK) {
@@ -2313,7 +2316,7 @@ bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
     LogPrint(BCLog::BENCH, "  - Load block from disk: %.2fms [%.2fs]\n",
              (nTime2 - nTime1) * MILLI, nTimeReadFromDisk * MICRO);
     {
-        CCoinsViewCache view(pcoinsTip.get());
+        CCoinsViewCache view(&CoinsTip());
         bool rv = ConnectBlock(blockConnecting, state, pindexNew, view, params,
                                BlockValidationOptions(config));
         GetMainSignals().BlockChecked(blockConnecting, state);
@@ -2680,7 +2683,7 @@ bool CChainState::ActivateBestChainStep(
         disconnectpool.updateMempoolForReorg(config, true, g_mempool);
     }
 
-    g_mempool.check(pcoinsTip.get());
+    g_mempool.check(&CoinsTip());
 
     // Callbacks/notifications for a new best chain.
     if (fInvalidFound) {
@@ -4200,7 +4203,7 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
                        BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == ::ChainActive().Tip());
-    CCoinsViewCache viewNew(pcoinsTip.get());
+    CCoinsViewCache viewNew(&::ChainstateActive().CoinsTip());
     BlockHash block_hash(block.GetHash());
     CBlockIndex indexDummy(block);
     indexDummy.pprev = pindexPrev;
@@ -4598,16 +4601,17 @@ static bool LoadBlockIndexDB(const Consensus::Params &params)
 
 bool LoadChainTip(const Config &config) {
     AssertLockHeld(cs_main);
+    const CCoinsViewCache &coins_cache = ::ChainstateActive().CoinsTip();
     // Never called when the coins view is empty
-    assert(!pcoinsTip->GetBestBlock().IsNull());
+    assert(!coins_cache.GetBestBlock().IsNull());
 
     if (::ChainActive().Tip() &&
-        ::ChainActive().Tip()->GetBlockHash() == pcoinsTip->GetBestBlock()) {
+        ::ChainActive().Tip()->GetBlockHash() == coins_cache.GetBestBlock()) {
         return true;
     }
 
     // Load pointer to end of best chain
-    CBlockIndex *pindex = LookupBlockIndex(pcoinsTip->GetBestBlock());
+    CBlockIndex *pindex = LookupBlockIndex(coins_cache.GetBestBlock());
     if (!pindex) {
         return false;
     }
@@ -4722,7 +4726,8 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
         // check level 3: check for inconsistencies during memory-only
         // disconnect of tip blocks
         if (nCheckLevel >= 3 &&
-            (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <=
+            (coins.DynamicMemoryUsage() +
+             ::ChainstateActive().CoinsTip().DynamicMemoryUsage()) <=
                 nCoinCacheUsage) {
             assert(coins.GetBestBlock() == pindex->GetBlockHash());
             DisconnectResult res =

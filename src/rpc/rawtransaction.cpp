@@ -318,7 +318,8 @@ static UniValue gettxoutproof(const Config &config,
         // Loop through txids and try to find which block they're in. Exit loop
         // once a block is found.
         for (const auto &txid : setTxIds) {
-            const Coin &coin = AccessByTxid(*pcoinsTip, txid);
+            const Coin &coin =
+                AccessByTxid(::ChainstateActive().CoinsTip(), txid);
             if (!coin.IsSpent()) {
                 pblockindex = ::ChainActive()[coin.GetHeight()];
                 break;
@@ -710,7 +711,7 @@ static UniValue combinerawtransaction(const Config &config,
     {
         LOCK(cs_main);
         LOCK(g_mempool.cs);
-        CCoinsViewCache &viewChain = *pcoinsTip;
+        CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
         CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
         // temporarily switch cache backend to db+mempool view
         view.SetBackend(viewMempool);
@@ -1725,7 +1726,7 @@ UniValue utxoupdatepsbt(const Config &config, const JSONRPCRequest &request) {
     CCoinsViewCache view(&viewDummy);
     {
         LOCK2(cs_main, g_mempool.cs);
-        CCoinsViewCache &viewChain = *pcoinsTip;
+        CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
         CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
         // temporarily switch cache backend to db+mempool view
         view.SetBackend(viewMempool);

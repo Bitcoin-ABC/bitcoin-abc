@@ -675,6 +675,10 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
 /** @see CChainState::FlushStateToDisk */
 enum class FlushStateMode { NONE, IF_NEEDED, PERIODIC, ALWAYS };
 
+/** Global variable that points to the active CCoinsView (protected by cs_main)
+ */
+extern std::unique_ptr<CCoinsViewCache> pcoinsTip;
+
 /**
  * Maintains a tree of blocks (stored in `m_block_index`) which is consulted
  * to determine where the most-work tip is.
@@ -813,6 +817,9 @@ public:
      * for the block.
      */
     std::set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexCandidates;
+
+    //! @returns A reference to the in-memory cache of the UTXO set.
+    CCoinsViewCache &CoinsTip() { return *::pcoinsTip; }
 
     /**
      * Update the on-disk chain state.
@@ -988,11 +995,6 @@ BlockMap &BlockIndex();
  * Global variable that points to the coins database (protected by cs_main)
  */
 extern std::unique_ptr<CCoinsViewDB> pcoinsdbview;
-
-/**
- * Global variable that points to the active CCoinsView (protected by cs_main)
- */
-extern std::unique_ptr<CCoinsViewCache> pcoinsTip;
 
 /**
  * Global variable that points to the active block tree (protected by cs_main)

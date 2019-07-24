@@ -61,7 +61,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
                           "-noparkdeepreorg"]
 
         # Set different crash ratios and cache sizes.  Note that not all of
-        # -dbcache goes to pcoinsTip.
+        # -dbcache goes to the in-memory coins cache.
         self.node0_args = ["-dbcrashratio=8", "-dbcache=4"] + self.base_args
         self.node1_args = ["-dbcrashratio=16", "-dbcache=8"] + self.base_args
         self.node2_args = ["-dbcrashratio=24", "-dbcache=16"] + self.base_args

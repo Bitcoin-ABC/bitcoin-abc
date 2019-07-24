@@ -1102,7 +1102,7 @@ void CTxMemPool::LimitSize(size_t limit, std::chrono::seconds age) {
     std::vector<COutPoint> vNoSpendsRemaining;
     TrimToSize(limit, &vNoSpendsRemaining);
     for (const COutPoint &removed : vNoSpendsRemaining) {
-        pcoinsTip->Uncache(removed);
+        ::ChainstateActive().CoinsTip().Uncache(removed);
     }
 }
 
@@ -1415,7 +1415,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     pool.UpdateTransactionsFromBlock(txidsUpdate);
 
     // We also need to remove any now-immature transactions
-    pool.removeForReorg(config, pcoinsTip.get(),
+    pool.removeForReorg(config, &::ChainstateActive().CoinsTip(),
                         ::ChainActive().Tip()->nHeight + 1,
                         STANDARD_LOCKTIME_VERIFY_FLAGS);
 

@@ -574,13 +574,13 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
             // use db+mempool as cache backend in case user likes to query
             // mempool
             LOCK2(cs_main, g_mempool.cs);
-            CCoinsViewCache &viewChain = *pcoinsTip;
+            CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
             CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
             process_utxos(viewMempool, g_mempool);
         } else {
             // no need to lock mempool!
             LOCK(cs_main);
-            process_utxos(*pcoinsTip, CTxMemPool());
+            process_utxos(::ChainstateActive().CoinsTip(), CTxMemPool());
         }
 
         for (size_t i = 0; i < hits.size(); ++i) {

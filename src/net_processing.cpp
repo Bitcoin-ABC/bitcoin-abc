@@ -1578,6 +1578,8 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
                     return true;
                 }
             }
+            const CCoinsViewCache &coins_cache =
+                ::ChainstateActive().CoinsTip();
 
             // Use pcoinsTip->HaveCoinInCache as a quick approximation to
             // exclude requesting or processing some txs which have already been
@@ -1587,8 +1589,8 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
             const TxId txid(inv.hash);
             return recentRejects->contains(inv.hash) ||
                    g_mempool.exists(txid) ||
-                   pcoinsTip->HaveCoinInCache(COutPoint(txid, 0)) ||
-                   pcoinsTip->HaveCoinInCache(COutPoint(txid, 1));
+                   coins_cache.HaveCoinInCache(COutPoint(txid, 0)) ||
+                   coins_cache.HaveCoinInCache(COutPoint(txid, 1));
         }
         case MSG_BLOCK:
             return LookupBlockIndex(BlockHash(inv.hash)) != nullptr;
@@ -2240,7 +2242,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             EraseOrphanTx(orphanTxId);
             done = true;
         }
-        g_mempool.check(pcoinsTip.get());
+        g_mempool.check(&::ChainstateActive().CoinsTip());
     }
 }
 
@@ -3005,7 +3007,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             AcceptToMemoryPool(config, g_mempool, state, ptx,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
-            g_mempool.check(pcoinsTip.get());
+            g_mempool.check(&::ChainstateActive().CoinsTip());
             RelayTransaction(tx.GetId(), *connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
                 auto it_by_prev =
