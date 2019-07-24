@@ -51,6 +51,7 @@ add_executable(bitcoin-bench
 	duplicate_inputs.cpp
 	examples.cpp
 	gcs_filter.cpp
+	hashpadding.cpp
 	lockedpool.cpp
 	mempool_eviction.cpp
 	mempool_stress.cpp
