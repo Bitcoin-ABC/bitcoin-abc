@@ -112,6 +112,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	sanity_tests.cpp
 	scheduler_tests.cpp
 	schnorr_tests.cpp
+	script_bitfield_tests.cpp
 	script_commitment_tests.cpp
 	script_p2sh_tests.cpp
 	script_standard_tests.cpp

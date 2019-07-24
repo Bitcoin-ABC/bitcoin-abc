@@ -61,6 +61,10 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Division by zero error";
         case ScriptError::MOD_BY_ZERO:
             return "Modulo by zero error";
+        case ScriptError::INVALID_BITFIELD_SIZE:
+            return "Bitfield of unexpected size error";
+        case ScriptError::INVALID_BIT_RANGE:
+            return "Bitfield's bit out of the expected range";
         case ScriptError::NEGATIVE_LOCKTIME:
             return "Negative locktime";
         case ScriptError::UNSATISFIED_LOCKTIME:

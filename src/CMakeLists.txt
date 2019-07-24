@@ -308,6 +308,7 @@ add_library(bitcoinconsensus
 	primitives/transaction.cpp
 	pubkey.cpp
 	script/bitcoinconsensus.cpp
+	script/bitfield.cpp
 	script/interpreter.cpp
 	script/script.cpp
 	script/script_error.cpp

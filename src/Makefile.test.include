@@ -101,6 +101,7 @@ BITCOIN_TESTS =\
   test/scheduler_tests.cpp \
   test/schnorr_tests.cpp \
   test/script_commitment_tests.cpp \
+  test/script_bitfield_tests.cpp \
   test/script_p2sh_tests.cpp \
   test/script_standard_tests.cpp \
   test/script_tests.cpp \
