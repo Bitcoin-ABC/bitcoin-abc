@@ -1138,7 +1138,7 @@ static UniValue gettxoutsetinfo(const Config &config,
 
     CCoinsStats stats;
     ::ChainstateActive().ForceFlushStateToDisk();
-    if (GetUTXOStats(pcoinsdbview.get(), stats)) {
+    if (GetUTXOStats(&::ChainstateActive().CoinsDB(), stats)) {
         ret.pushKV("height", int64_t(stats.nHeight));
         ret.pushKV("bestblock", stats.hashBlock.GetHex());
         ret.pushKV("transactions", int64_t(stats.nTransactions));
@@ -2541,7 +2541,8 @@ static UniValue scantxoutset(const Config &config,
         {
             LOCK(cs_main);
             ::ChainstateActive().ForceFlushStateToDisk();
-            pcursor = std::unique_ptr<CCoinsViewCursor>(pcoinsdbview->Cursor());
+            pcursor = std::unique_ptr<CCoinsViewCursor>(
+                ::ChainstateActive().CoinsDB().Cursor());
             CHECK_NONFATAL(pcursor);
             tip = ::ChainActive().Tip();
             CHECK_NONFATAL(tip);

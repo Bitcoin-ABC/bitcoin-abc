@@ -63,14 +63,16 @@ namespace {
 BlockManager g_blockman;
 } // namespace
 
-static CChainState g_chainstate(g_blockman);
+std::unique_ptr<CChainState> g_chainstate;
 
 CChainState &ChainstateActive() {
-    return g_chainstate;
+    assert(g_chainstate);
+    return *g_chainstate;
 }
 
 CChain &ChainActive() {
-    return g_chainstate.m_chain;
+    assert(g_chainstate);
+    return g_chainstate->m_chain;
 }
 
 /**
@@ -164,8 +166,6 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
     return chain.Genesis();
 }
 
-std::unique_ptr<CCoinsViewDB> pcoinsdbview;
-std::unique_ptr<CCoinsViewCache> pcoinsTip;
 std::unique_ptr<CBlockTreeDB> pblocktree;
 
 // See definition for documentation
@@ -410,7 +410,7 @@ static bool AcceptToMemoryPoolWorker(
             }
 
             // Note: this call may add txin.prevout to the coins cache
-            // (pcoinsTip.cacheCoins) by way of FetchCoin(). It should be
+            // (CoinsTip().cacheCoins) by way of FetchCoin(). It should be
             // removed later (via coins_to_uncache) if this tx turns out to be
             // invalid.
             if (!view.HaveCoin(txin.prevout)) {
@@ -735,6 +735,31 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     // Subsidy is cut in half every 210,000 blocks which will occur
     // approximately every 4 years.
     return ((nSubsidy / SATOSHI) >> halvings) * SATOSHI;
+}
+
+CoinsViews::CoinsViews(std::string ldb_name, size_t cache_size_bytes,
+                       bool in_memory, bool should_wipe)
+    : m_dbview(GetDataDir() / ldb_name, cache_size_bytes, in_memory,
+               should_wipe),
+      m_catcherview(&m_dbview) {}
+
+void CoinsViews::InitCache() {
+    m_cacheview = std::make_unique<CCoinsViewCache>(&m_catcherview);
+}
+
+// NOTE: for now m_blockman is set to a global, but this will be changed
+// in a future commit.
+CChainState::CChainState() : m_blockman(g_blockman) {}
+
+void CChainState::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
+                              bool should_wipe, std::string leveldb_name) {
+    m_coins_views = std::make_unique<CoinsViews>(leveldb_name, cache_size_bytes,
+                                                 in_memory, should_wipe);
+}
+
+void CChainState::InitCoinsCache() {
+    assert(m_coins_views != nullptr);
+    m_coins_views->InitCache();
 }
 
 // Note that though this is marked const, we may end up modifying
@@ -1847,6 +1872,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                                    int nManualPruneHeight) {
     int64_t nMempoolUsage = g_mempool.DynamicMemoryUsage();
     LOCK(cs_main);
+    assert(this->CanFlushToDisk());
     static int64_t nLastWrite = 0;
     static int64_t nLastFlush = 0;
     std::set<int> setFilesToPrune;

@@ -112,8 +112,13 @@ TestingSetup::TestingSetup(const std::string &chainName)
     GetMainSignals().RegisterBackgroundSignalScheduler(*g_rpc_node->scheduler);
 
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
-    pcoinsdbview.reset(new CCoinsViewDB(1 << 23, true));
-    pcoinsTip.reset(new CCoinsViewCache(pcoinsdbview.get()));
+    g_chainstate = std::make_unique<CChainState>();
+    ::ChainstateActive().InitCoinsDB(
+        /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
+        /* should_wipe */ false);
+    assert(!::ChainstateActive().CanFlushToDisk());
+    ::ChainstateActive().InitCoinsCache();
+    assert(::ChainstateActive().CanFlushToDisk());
     if (!LoadGenesisBlock(chainparams)) {
         throw std::runtime_error("LoadGenesisBlock failed.");
     }
@@ -152,8 +157,7 @@ TestingSetup::~TestingSetup() {
     m_node.mempool = nullptr;
     m_node.scheduler.reset();
     UnloadBlockIndex();
-    pcoinsTip.reset();
-    pcoinsdbview.reset();
+    g_chainstate.reset();
     pblocktree.reset();
 }
 

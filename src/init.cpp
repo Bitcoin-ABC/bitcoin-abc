@@ -18,7 +18,6 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <checkpoints.h>
-#include <coins.h>
 #include <compat/sanity.h>
 #include <config.h>
 #include <consensus/validation.h>
@@ -143,7 +142,6 @@ NODISCARD static bool CreatePidFile() {
 // ShutdownRequested() getting set, and then does the normal Qt shutdown thing.
 //
 
-static std::unique_ptr<CCoinsViewErrorCatcher> pcoinscatcher;
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
 static boost::thread_group threadGroup;
@@ -244,8 +242,10 @@ void Shutdown(NodeContext &node) {
 
     // FlushStateToDisk generates a ChainStateFlushed callback, which we should
     // avoid missing
-    if (pcoinsTip != nullptr) {
-        ::ChainstateActive().ForceFlushStateToDisk();
+    // g_chainstate is referenced here directly (instead of
+    // ::ChainstateActive()) because it may not have been initialized yet.
+    if (g_chainstate && g_chainstate->CanFlushToDisk()) {
+        g_chainstate->ForceFlushStateToDisk();
     }
 
     // After there are no more peers/RPC left to give us new data which may
@@ -260,12 +260,10 @@ void Shutdown(NodeContext &node) {
 
     {
         LOCK(cs_main);
-        if (pcoinsTip != nullptr) {
-            ::ChainstateActive().ForceFlushStateToDisk();
+        if (g_chainstate && g_chainstate->CanFlushToDisk()) {
+            g_chainstate->ForceFlushStateToDisk();
+            g_chainstate->ResetCoinsViews();
         }
-        pcoinsTip.reset();
-        pcoinscatcher.reset();
-        pcoinsdbview.reset();
         pblocktree.reset();
     }
     for (const auto &client : node.chain_clients) {
@@ -2391,10 +2389,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             const int64_t load_block_index_start_time = GetTimeMillis();
             try {
                 LOCK(cs_main);
+                // This statement makes ::ChainstateActive() usable.
+                g_chainstate = std::make_unique<CChainState>();
                 UnloadBlockIndex();
-                pcoinsTip.reset();
-                pcoinsdbview.reset();
-                pcoinscatcher.reset();
+
                 // new CBlockTreeDB tries to delete the existing file, which
                 // fails if it's still open from the previous loop. Close it
                 // first:
@@ -2467,21 +2465,23 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // At this point we're either in reindex or we've loaded a
                 // useful block tree into BlockIndex()!
 
-                pcoinsdbview.reset(new CCoinsViewDB(
-                    nCoinDBCache, false, fReset || fReindexChainState));
-                pcoinscatcher.reset(
-                    new CCoinsViewErrorCatcher(pcoinsdbview.get()));
-                pcoinscatcher->AddReadErrCallback([]() {
-                    uiInterface.ThreadSafeMessageBox(
-                        _("Error reading from database, shutting down.")
-                            .translated,
-                        "", CClientUIInterface::MSG_ERROR);
-                });
+                ::ChainstateActive().InitCoinsDB(
+                    /* cache_size_bytes */ nCoinDBCache,
+                    /* in_memory */ false,
+                    /* should_wipe */ fReset || fReindexChainState);
+
+                ::ChainstateActive().CoinsErrorCatcher().AddReadErrCallback(
+                    []() {
+                        uiInterface.ThreadSafeMessageBox(
+                            _("Error reading from database, shutting down.")
+                                .translated,
+                            "", CClientUIInterface::MSG_ERROR);
+                    });
 
                 // If necessary, upgrade from older database format.
                 // This is a no-op if we cleared the coinsviewdb with -reindex
                 // or -reindex-chainstate
-                if (!pcoinsdbview->Upgrade()) {
+                if (!::ChainstateActive().CoinsDB().Upgrade()) {
                     strLoadError =
                         _("Error upgrading chainstate database").translated;
                     break;
@@ -2489,7 +2489,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                 // ReplayBlocks is a no-op if we cleared the coinsviewdb with
                 // -reindex or -reindex-chainstate
-                if (!ReplayBlocks(params, pcoinsdbview.get())) {
+                if (!ReplayBlocks(params, &::ChainstateActive().CoinsDB())) {
                     strLoadError =
                         _("Unable to replay blocks. You will need to rebuild "
                           "the database using -reindex-chainstate.")
@@ -2498,12 +2498,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 }
 
                 // The on-disk coinsdb is now in a good state, create the cache
-                pcoinsTip.reset(new CCoinsViewCache(pcoinscatcher.get()));
+                ::ChainstateActive().InitCoinsCache();
+                assert(::ChainstateActive().CanFlushToDisk());
 
-                bool is_coinsview_empty = fReset || fReindexChainState ||
-                                          pcoinsTip->GetBestBlock().IsNull();
+                bool is_coinsview_empty =
+                    fReset || fReindexChainState ||
+                    ::ChainstateActive().CoinsTip().GetBestBlock().IsNull();
                 if (!is_coinsview_empty) {
-                    // LoadChainTip sets ::ChainActive() based on pcoinsTip's
+                    // LoadChainTip sets ::ChainActive() based on CoinsTip()'s
                     // best block
                     if (!LoadChainTip(config)) {
                         strLoadError =
@@ -2539,7 +2541,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     }
 
                     if (!CVerifyDB().VerifyDB(
-                            config, pcoinsdbview.get(),
+                            config, &::ChainstateActive().CoinsDB(),
                             gArgs.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
                             gArgs.GetArg("-checkblocks",
                                          DEFAULT_CHECKBLOCKS))) {

@@ -23,6 +23,7 @@
 #include <script/script_error.h>
 #include <script/script_metrics.h>
 #include <sync.h>
+#include <txdb.h>
 #include <txmempool.h> // For CTxMemPool::cs
 #include <versionbits.h>
 
@@ -41,7 +42,6 @@ class CBlockTreeDB;
 class CBlockUndo;
 class CChainParams;
 class CChain;
-class CCoinsViewDB;
 class CConnman;
 class CInv;
 class Config;
@@ -752,6 +752,44 @@ public:
 };
 
 /**
+ * A convenience class for constructing the CCoinsView* hierarchy used
+ * to facilitate access to the UTXO set.
+ *
+ * This class consists of an arrangement of layered CCoinsView objects,
+ * preferring to store and retrieve coins in memory via `m_cacheview` but
+ * ultimately falling back on cache misses to the canonical store of UTXOs on
+ * disk, `m_dbview`.
+ */
+class CoinsViews {
+public:
+    //! The lowest level of the CoinsViews cache hierarchy sits in a leveldb
+    //! database on disk. All unspent coins reside in this store.
+    CCoinsViewDB m_dbview;
+
+    //! This view wraps access to the leveldb instance and handles read errors
+    //! gracefully.
+    CCoinsViewErrorCatcher m_catcherview;
+
+    //! This is the top layer of the cache hierarchy - it keeps as many coins in
+    //! memory as can fit per the dbcache setting.
+    std::unique_ptr<CCoinsViewCache> m_cacheview;
+
+    //! This constructor initializes CCoinsViewDB and CCoinsViewErrorCatcher
+    //! instances, but it *does not* create a CCoinsViewCache instance by
+    //! default. This is done separately because the presence of the cache has
+    //! implications on whether or not we're allowed to flush the cache's state
+    //! to disk, which should not be done until the health of the database is
+    //! verified.
+    //!
+    //! All arguments forwarded onto CCoinsViewDB.
+    CoinsViews(std::string ldb_name, size_t cache_size_bytes, bool in_memory,
+               bool should_wipe);
+
+    //! Initialize the CCoinsViewCache member.
+    void InitCache();
+};
+
+/**
  * CChainState stores and provides an API to update our local knowledge of the
  * current best chain.
  *
@@ -798,6 +836,10 @@ private:
     //! easily as opposed to referencing a global.
     BlockManager &m_blockman;
 
+    //! Manages the UTXO set, which is a reflection of the contents of
+    //! `m_chain`.
+    std::unique_ptr<CoinsViews> m_coins_views;
+
     /**
      * The best finalized block.
      * This block cannot be reorged in any way except by explicit user action.
@@ -805,7 +847,28 @@ private:
     const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
 
 public:
-    explicit CChainState(BlockManager &blockman) : m_blockman(blockman) {}
+    CChainState(BlockManager &blockman) : m_blockman(blockman) {}
+    CChainState();
+
+    /**
+     * Initialize the CoinsViews UTXO set database management data structures.
+     * The in-memory cache is initialized separately.
+     *
+     * All parameters forwarded to CoinsViews.
+     */
+    void InitCoinsDB(size_t cache_size_bytes, bool in_memory, bool should_wipe,
+                     std::string leveldb_name = "chainstate");
+
+    //! Initialize the in-memory coins cache (to be done after the health of the
+    //! on-disk database is verified).
+    void InitCoinsCache();
+
+    //! @returns whether or not the CoinsViews object has been fully initialized
+    //! and we can
+    //!          safely flush this object to disk.
+    bool CanFlushToDisk() {
+        return m_coins_views && m_coins_views->m_cacheview;
+    }
 
     //! The current chain of blockheaders we consult and build on.
     //! @see CChain, CBlockIndex.
@@ -819,7 +882,22 @@ public:
     std::set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexCandidates;
 
     //! @returns A reference to the in-memory cache of the UTXO set.
-    CCoinsViewCache &CoinsTip() { return *::pcoinsTip; }
+    CCoinsViewCache &CoinsTip() {
+        assert(m_coins_views->m_cacheview);
+        return *m_coins_views->m_cacheview.get();
+    }
+
+    //! @returns A reference to the on-disk UTXO set database.
+    CCoinsViewDB &CoinsDB() { return m_coins_views->m_dbview; }
+
+    //! @returns A reference to a wrapped view of the in-memory UTXO set that
+    //!     handles disk read errors gracefully.
+    CCoinsViewErrorCatcher &CoinsErrorCatcher() {
+        return m_coins_views->m_catcherview;
+    }
+
+    //! Destructs all objects related to accessing the UTXO set.
+    void ResetCoinsViews() { m_coins_views.reset(); }
 
     /**
      * Update the on-disk chain state.
@@ -991,10 +1069,10 @@ CChain &ChainActive();
 /** @returns the global block index map. */
 BlockMap &BlockIndex();
 
-/**
- * Global variable that points to the coins database (protected by cs_main)
- */
-extern std::unique_ptr<CCoinsViewDB> pcoinsdbview;
+// Most often ::ChainstateActive() should be used instead of this, but some code
+// may not be able to assume that this has been initialized yet and so must use
+// it directly, e.g. init.cpp.
+extern std::unique_ptr<CChainState> g_chainstate;
 
 /**
  * Global variable that points to the active block tree (protected by cs_main)
