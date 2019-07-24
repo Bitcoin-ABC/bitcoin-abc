@@ -8,6 +8,7 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <net.h>
+#include <net_processing.h>
 #include <primitives/txid.h>
 #include <txmempool.h>
 #include <util/validation.h>
@@ -76,8 +77,7 @@ TransactionError BroadcastTransaction(const Config &config,
         return TransactionError::P2P_DISABLED;
     }
 
-    CInv inv(MSG_TX, txid);
-    g_connman->ForEachNode([&inv](CNode *pnode) { pnode->PushInventory(inv); });
+    RelayTransaction(txid, *g_connman);
 
     return TransactionError::OK;
 }

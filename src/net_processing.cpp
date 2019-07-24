@@ -1460,9 +1460,9 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     return true;
 }
 
-static void RelayTransaction(const CTransaction &tx, CConnman *connman) {
-    CInv inv(MSG_TX, tx.GetId());
-    connman->ForEachNode([&inv](CNode *pnode) { pnode->PushInventory(inv); });
+void RelayTransaction(const TxId &txid, const CConnman &connman) {
+    CInv inv(MSG_TX, txid);
+    connman.ForEachNode([&inv](CNode *pnode) { pnode->PushInventory(inv); });
 }
 
 static void RelayAddress(const CAddress &addr, bool fReachable,
@@ -2089,7 +2089,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
                                Amount::zero() /* nAbsurdFee */)) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
-            RelayTransaction(orphanTx, connman);
+            RelayTransaction(orphanTxId, *connman);
             for (size_t i = 0; i < orphanTx.vout.size(); i++) {
                 auto it_by_prev =
                     mapOrphanTransactionsByPrev.find(COutPoint(orphanTxId, i));
@@ -2882,7 +2882,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             g_mempool.check(pcoinsTip.get());
-            RelayTransaction(tx, connman);
+            RelayTransaction(tx.GetId(), *connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
                 auto it_by_prev =
                     mapOrphanTransactionsByPrev.find(COutPoint(txid, i));
@@ -2972,7 +2972,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 if (!state.IsInvalid(nDoS) || nDoS == 0) {
                     LogPrintf("Force relaying tx %s from whitelisted peer=%d\n",
                               tx.GetId().ToString(), pfrom->GetId());
-                    RelayTransaction(tx, connman);
+                    RelayTransaction(tx.GetId(), *connman);
                 } else {
                     LogPrintf("Not relaying invalid transaction %s from "
                               "whitelisted peer=%d (%s)\n",

@@ -9,6 +9,7 @@
 #include <interfaces/handler.h>
 #include <interfaces/wallet.h>
 #include <net.h>
+#include <net_processing.h>
 #include <node/coin.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
@@ -292,9 +293,7 @@ namespace {
             return it && (*it)->GetCountWithDescendants() > 1;
         }
         void relayTransaction(const TxId &txid) override {
-            CInv inv(MSG_TX, txid);
-            g_connman->ForEachNode(
-                [&inv](CNode *node) { node->PushInventory(inv); });
+            RelayTransaction(txid, *g_connman);
         }
         void getTransactionAncestry(const TxId &txid, size_t &ancestors,
                                     size_t &descendants) override {
