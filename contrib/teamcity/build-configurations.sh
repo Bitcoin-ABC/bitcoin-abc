@@ -14,7 +14,7 @@ cd "${TOPLEVEL}/contrib/teamcity"
 
 case "$ABC_BUILD_NAME" in
   build-asan)
-    export CONFIGURE_FLAGS="--with-sanitizers=address --disable-ccache"
+    export CONFIGURE_FLAGS="--enable-debug --with-sanitizers=address --disable-ccache"
     ./build.sh
     ;;
 

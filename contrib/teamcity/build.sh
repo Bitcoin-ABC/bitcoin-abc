@@ -42,7 +42,7 @@ mkdir -p "${SAN_LOG_DIR}"
 rm -rf "${SAN_LOG_DIR}"/*
 
 # Sanitizers options, not used if sanitizers are not enabled
-export ASAN_OPTIONS="log_path=${SAN_LOG_DIR}/asan.log"
+export ASAN_OPTIONS="malloc_context_size=0:log_path=${SAN_LOG_DIR}/asan.log"
 export LSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/lsan:log_path=${SAN_LOG_DIR}/lsan.log"
 export TSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/tsan:log_path=${SAN_LOG_DIR}/tsan.log"
 export UBSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/ubsan:print_stacktrace=1:halt_on_error=1:log_path=${SAN_LOG_DIR}/ubsan.log"
