@@ -256,7 +256,6 @@ BOOST_AUTO_TEST_CASE(rcuptr_operator_test) {
 
     // Check various operators.
     BOOST_CHECK_EQUAL(gptr.get(), NULLPTR(RCURefTestItem));
-    BOOST_CHECK_EQUAL(&*gptr, NULLPTR(RCURefTestItem));
     BOOST_CHECK_EQUAL(gptr, NULLPTR(RCURefTestItem));
     BOOST_CHECK(!gptr);
 
