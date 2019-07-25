@@ -13,7 +13,7 @@
 bool fTestNet;
 
 // The network magic to use.
-CMessageHeader::MessageMagic netMagic = {{0xe3, 0xe1, 0xf3, 0xe8}};
+CMessageHeader::MessageMagic netMagic = {{0xe8, 0xf4, 0xf3, 0xe5}};
 
 #define BITCOIN_SEED_NONCE 0x0539a019ca550825ULL
 

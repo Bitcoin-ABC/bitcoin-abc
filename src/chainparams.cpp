@@ -131,10 +131,10 @@ public:
         diskMagic[1] = 0xbe;
         diskMagic[2] = 0xb4;
         diskMagic[3] = 0xd9;
-        netMagic[0] = 0xe3;
-        netMagic[1] = 0xe1;
+        netMagic[0] = 0xe8;
+        netMagic[1] = 0xf4;
         netMagic[2] = 0xf3;
-        netMagic[3] = 0xe8;
+        netMagic[3] = 0xe5;
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
 
@@ -237,7 +237,7 @@ public:
         diskMagic[2] = 0x09;
         diskMagic[3] = 0x07;
         netMagic[0] = 0xf4;
-        netMagic[1] = 0xe5;
+        netMagic[1] = 0xb5;
         netMagic[2] = 0xf3;
         netMagic[3] = 0xf4;
         nDefaultPort = 18333;
