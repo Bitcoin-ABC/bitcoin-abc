@@ -65,7 +65,7 @@ CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits,
         "SN opened the door for freedom. We must find the road";
     const CScript genesisOutputScript =
         CScript() << OP_DUP << OP_HASH160
-                  << ParseHex("79f4659ece305b4c5d0a3204dd7db6bff3878783")
+                  << ParseHex("cf5618a09edc3141eabf6af2f6c7cf387979d7eb")
                   << OP_EQUALVERIFY
                   << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce,
@@ -138,13 +138,13 @@ public:
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1544508901, 69064047, 0x1d00ffff, 1,
+        genesis = CreateGenesisBlock(1544508902, 2741362115, 0x1d00ffff, 1,
                                      INITIAL_REWARD);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("000000004d9c07f2b94e5ee797efb51e7ed299099f948c9832293085e389a5d5"));
+               uint256S("000000004ca8a6bcfce9f7d0aa16ee9360d7b797841ebda91747b78ed96881a2"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("e75e490f5b84c4b71e6501cb509510a43d5b2d1b90f11fbcbacbd82e0a256a7f"));
+               uint256S("c39720718afd9ee5ab42beff5c363c44f4994c14224b5a1400cadcb7526e12a5"));
 
         // Note that of those which support the service bits prefix, most only
         // support a subset of possible options. This is fine at runtime as
@@ -183,7 +183,7 @@ public:
             // Estimated number of transactions per second after that timestamp.
             3.2};
 
-        consensus.rewardAddress = "FGwx11b5jnXkfpTzehuMFdCVnnqc1pCphH";
+        consensus.rewardAddress = "FQjQUaYdD4CoM6xRwy7UtTn7jVMYP5eKG9";
         vRewardAddresses.push_back(consensus.rewardAddress);
         consensus.coinbaseMaturity = 14400;
         consensus.developerRewardMaturity = 144000;
@@ -244,12 +244,12 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis =
-                CreateGenesisBlock(1544509902, 4156746073, 0x1d00ffff, 1, INITIAL_REWARD);
+                CreateGenesisBlock(1544509900, 1906413958, 0x1d00ffff, 1, INITIAL_REWARD);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("00000000b217394e16a89ee18d18be4068b240a86738f52146f82917893b5474"));
+               uint256S("00000000029c1b3c10097adf33c1ce1fc266bf9f85696adfe385ee58021dcd2d"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("e75e490f5b84c4b71e6501cb509510a43d5b2d1b90f11fbcbacbd82e0a256a7f"));
+               uint256S("c39720718afd9ee5ab42beff5c363c44f4994c14224b5a1400cadcb7526e12a5"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -275,7 +275,7 @@ public:
         // (height 1223263)
         chainTxData = ChainTxData{1522608381, 15052068, 0.15};
 
-        consensus.rewardAddress = "mrdnqGEyhVkLpm4aWbDa79tHd8RJ7rvp5g";
+        consensus.rewardAddress = "mzRFJqCXAmRPW3Z1orRhjzTuZpwELwsfqc";
         vRewardAddresses.push_back(consensus.rewardAddress);
         consensus.coinbaseMaturity = 14400;
         consensus.developerRewardMaturity = 144000;
@@ -337,9 +337,9 @@ public:
         genesis = CreateGenesisBlock(1544519900, 1, 0x207fffff, 1, INITIAL_REWARD);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("2ca612a3f80dd99fda595c9b0c3c108ba80eef4a861d32bbb6a8406d0a1c483f"));
+               uint256S("3d464efca9c8e641b6a29c8a89e7a7d859e3b38b73be57eb0e00dc6bcf5f6930"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("e75e490f5b84c4b71e6501cb509510a43d5b2d1b90f11fbcbacbd82e0a256a7f"));
+               uint256S("c39720718afd9ee5ab42beff5c363c44f4994c14224b5a1400cadcb7526e12a5"));
 
         //!< Regtest mode doesn't have any fixed seeds.
         vFixedSeeds.clear();
@@ -363,7 +363,7 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "bchreg";
-        consensus.rewardAddress = "mrdnqGEyhVkLpm4aWbDa79tHd8RJ7rvp5g";
+        consensus.rewardAddress = "mzRFJqCXAmRPW3Z1orRhjzTuZpwELwsfqc";
         vRewardAddresses.push_back(consensus.rewardAddress);
         consensus.coinbaseMaturity = 100;
         consensus.developerRewardMaturity = 100;
