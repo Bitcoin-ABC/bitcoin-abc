@@ -244,7 +244,7 @@ CreateWallet(const CChainParams &params, interfaces::Chain &chain,
 
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
-const BlockHash CMerkleTx::ABANDON_HASH(uint256S(
+const BlockHash CWalletTx::ABANDON_HASH(uint256S(
     "0000000000000000000000000000000000000000000000000000000000000001"));
 
 /** @defgroup mapWallet
@@ -5127,7 +5127,7 @@ CKeyPool::CKeyPool(const CPubKey &vchPubKeyIn, bool internalIn) {
     m_pre_split = false;
 }
 
-void CMerkleTx::SetMerkleBranch(const BlockHash &block_hash, int posInBlock) {
+void CWalletTx::SetMerkleBranch(const BlockHash &block_hash, int posInBlock) {
     // Update the tx's hashBlock
     hashBlock = block_hash;
 
@@ -5135,7 +5135,7 @@ void CMerkleTx::SetMerkleBranch(const BlockHash &block_hash, int posInBlock) {
     nIndex = posInBlock;
 }
 
-int CMerkleTx::GetDepthInMainChain(
+int CWalletTx::GetDepthInMainChain(
     interfaces::Chain::Lock &locked_chain) const {
     if (hashUnset()) {
         return 0;
@@ -5144,7 +5144,7 @@ int CMerkleTx::GetDepthInMainChain(
     return locked_chain.getBlockDepth(hashBlock) * (nIndex == -1 ? -1 : 1);
 }
 
-int CMerkleTx::GetBlocksToMaturity(
+int CWalletTx::GetBlocksToMaturity(
     interfaces::Chain::Lock &locked_chain) const {
     if (!IsCoinBase()) {
         return 0;
@@ -5156,7 +5156,7 @@ int CMerkleTx::GetBlocksToMaturity(
     return std::max(0, (COINBASE_MATURITY + 1) - chain_depth);
 }
 
-bool CMerkleTx::IsImmatureCoinBase(
+bool CWalletTx::IsImmatureCoinBase(
     interfaces::Chain::Lock &locked_chain) const {
     // note GetBlocksToMaturity is 0 for non-coinbase tx
     return GetBlocksToMaturity(locked_chain) > 0;
