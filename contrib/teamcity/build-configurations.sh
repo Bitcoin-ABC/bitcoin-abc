@@ -18,6 +18,11 @@ case "$ABC_BUILD_NAME" in
     ./build.sh
     ;;
 
+  build-ubsan)
+    export CONFIGURE_FLAGS="--enable-debug --with-sanitizers=undefined --disable-ccache CC=clang CXX=clang++"
+    ./build.sh
+    ;;
+
   build-default)
     ./build.sh
     ./build-secp256k1.sh
