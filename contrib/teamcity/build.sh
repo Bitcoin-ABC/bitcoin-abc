@@ -31,14 +31,6 @@ if [[ ! -z "${DISABLE_WALLET}" ]]; then
 	CONFIGURE_FLAGS+=("--disable-wallet")
 fi
 
-# Default to nothing
-: ${ENABLE_DEBUG:=}
-
-if [[ ! -z "${ENABLE_DEBUG}" ]]; then
-	echo "*** Building with debug"
-	CONFIGURE_FLAGS+=("--enable-debug")
-fi
-
 ../configure "${CONFIGURE_FLAGS[@]}"
 
 # Base directories for sanitizer related files 
@@ -76,24 +68,19 @@ if [[ -z "${DISABLE_TESTS}" ]]; then
 	# Run unit tests
 	make -j ${THREADS} check || (print_sanitizers_log && exit 1)
 
-	# FIXME Remove when the functional tests are running with debug enabled
-	if [[ -z "${ENABLE_DEBUG}" ]]; then
-		mkdir -p output/
-		BRANCH=$(git rev-parse --abbrev-ref HEAD)
-		JUNIT_DEFAULT="junit_results_default.xml"
-		JUNIT_NEXT_UPGRADE="junit_results_next_upgrade.xml"
+	mkdir -p output/
+	BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	JUNIT_DEFAULT="junit_results_default.xml"
+	JUNIT_NEXT_UPGRADE="junit_results_next_upgrade.xml"
 
-		if [[ ! -z "${DISABLE_WALLET}" ]]; then
-			echo "Skipping rpc testing due to disabled wallet functionality."
-		elif [[ "${BRANCH}" == "master" ]]; then
-			./test/functional/test_runner.py -J="${JUNIT_DEFAULT}" --cutoff=600 --tmpdirprefix=output
-			./test/functional/test_runner.py -J="${JUNIT_NEXT_UPGRADE}" --cutoff=600 --tmpdirprefix=output --with-gravitonactivation
-		else
-			./test/functional/test_runner.py -J="${JUNIT_DEFAULT}" --tmpdirprefix=output
-			./test/functional/test_runner.py -J="${JUNIT_NEXT_UPGRADE}" --tmpdirprefix=output --with-gravitonactivation
-		fi
+	if [[ ! -z "${DISABLE_WALLET}" ]]; then
+		echo "Skipping rpc testing due to disabled wallet functionality."
+	elif [[ "${BRANCH}" == "master" ]]; then
+		./test/functional/test_runner.py -J="${JUNIT_DEFAULT}" --cutoff=600 --tmpdirprefix=output
+		./test/functional/test_runner.py -J="${JUNIT_NEXT_UPGRADE}" --cutoff=600 --tmpdirprefix=output --with-gravitonactivation
 	else
-		echo "*** Functional tests have been skipped"
+		./test/functional/test_runner.py -J="${JUNIT_DEFAULT}" --tmpdirprefix=output
+		./test/functional/test_runner.py -J="${JUNIT_NEXT_UPGRADE}" --tmpdirprefix=output --with-gravitonactivation
 	fi
 else
 	echo "*** Tests have been skipped"
