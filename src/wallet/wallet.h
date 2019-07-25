@@ -379,38 +379,13 @@ struct COutputEntry {
  */
 class CMerkleTx {
 public:
-    CTransactionRef tx;
-    BlockHash hashBlock;
-
-    /**
-     * An nIndex == -1 means that hashBlock (in nonzero) refers to the earliest
-     * block in the chain we know this or any in-wallet dependency conflicts
-     * with. Older clients interpret nIndex == -1 as unconfirmed for backward
-     * compatibility.
-     */
-    int nIndex;
-
-    CMerkleTx() {
-        SetTx(MakeTransactionRef());
-        Init();
-    }
-
-    explicit CMerkleTx(CTransactionRef arg) {
-        SetTx(std::move(arg));
-        Init();
-    }
-
-    void Init() {
-        hashBlock = BlockHash();
-        nIndex = -1;
-    }
-
-    void SetTx(CTransactionRef arg) { tx = std::move(arg); }
-
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
+        CTransactionRef tx;
+        BlockHash hashBlock;
+        int nIndex = 0;
         // For compatibility with older versions.
         std::vector<uint256> vMerkleBranch;
         READWRITE(tx);
@@ -429,7 +404,7 @@ int CalculateMaximumSignedInputSize(const CTxOut &txout, const CWallet *pwallet,
  * about. It includes any unrecorded transactions needed to link it back to the
  * block chain.
  */
-class CWalletTx : public CMerkleTx {
+class CWalletTx {
 private:
     const CWallet *pwallet;
 
@@ -503,7 +478,7 @@ public:
     mutable Amount nChangeCached;
 
     CWalletTx(const CWallet *pwalletIn, CTransactionRef arg)
-        : CMerkleTx(std::move(arg)) {
+        : tx(std::move(arg)), hashBlock(BlockHash()), nIndex(-1) {
         Init(pwalletIn);
     }
 
@@ -521,6 +496,16 @@ public:
         nOrderPos = -1;
     }
 
+    CTransactionRef tx;
+    BlockHash hashBlock;
+    /**
+     * An nIndex == -1 means that hashBlock (in nonzero) refers to the earliest
+     * block in the chain we know this or any in-wallet dependency conflicts
+     * with. Older clients interpret nIndex == -1 as unconfirmed for backward
+     * compatibility.
+     */
+    int nIndex;
+
     template <typename Stream> void Serialize(Stream &s) const {
         char fSpent = false;
         mapValue_t mapValueCopy = mapValue;
@@ -531,7 +516,9 @@ public:
             mapValueCopy["timesmart"] = strprintf("%u", nTimeSmart);
         }
 
-        s << static_cast<const CMerkleTx &>(*this);
+        //! Used to be vMerkleBranch
+        std::vector<uint256> dummy_vector;
+        s << tx << hashBlock << dummy_vector << nIndex;
         //! Used to be vtxPrev
         std::vector<CMerkleTx> vUnused;
         s << vUnused << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime
@@ -542,7 +529,9 @@ public:
         Init(nullptr);
         char fSpent;
 
-        s >> static_cast<CMerkleTx &>(*this);
+        //! Used to be vMerkleBranch
+        std::vector<uint256> dummy_vector;
+        s >> tx >> hashBlock >> dummy_vector >> nIndex;
         //! Used to be vtxPrev
         std::vector<CMerkleTx> vUnused;
         s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >>
@@ -558,6 +547,8 @@ public:
         mapValue.erase("n");
         mapValue.erase("timesmart");
     }
+
+    void SetTx(CTransactionRef arg) { tx = std::move(arg); }
 
     //! make sure balances are recalculated
     void MarkDirty() {
