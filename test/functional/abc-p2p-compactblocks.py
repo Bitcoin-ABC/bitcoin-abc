@@ -52,8 +52,8 @@ class PreviousSpendableOutput():
         self.n = n  # the output we're spending
 
 
-# TestNode: A peer we use to send messages to bitcoind, and store responses.
-class TestNode(P2PInterface):
+# TestP2PConn: A peer we use to send messages to bitcoind, and store responses.
+class TestP2PConn(P2PInterface):
 
     def __init__(self):
         self.last_sendcmpct = None
@@ -312,7 +312,7 @@ class FullBlockTest(ComparisonTestFramework):
 
         # Add the new connection
         node = self.nodes[0]
-        node.add_p2p_connection(TestNode())
+        node.add_p2p_connection(TestP2PConn())
 
         # Reconnect TestManager nodes
         self.test.add_all_connections(self.nodes)

@@ -50,10 +50,10 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, sync_blocks, wait_until
 
-# TestNode: A peer we use to send messages to bitcoind, and store responses.
+# TestP2PConn: A peer we use to send messages to bitcoind, and store responses.
 
 
-class TestNode(P2PInterface):
+class TestP2PConn(P2PInterface):
     def __init__(self):
         super().__init__()
         self.last_sendcmpct = []
@@ -836,11 +836,11 @@ class CompactBlocksTest(BitcoinTestFramework):
 
     def run_test(self):
         # Setup the p2p connections and start up the network thread.
-        self.test_node = self.nodes[0].add_p2p_connection(TestNode())
+        self.test_node = self.nodes[0].add_p2p_connection(TestP2PConn())
         self.ex_softfork_node = self.nodes[1].add_p2p_connection(
-            TestNode(), services=NODE_NETWORK)
+            TestP2PConn(), services=NODE_NETWORK)
         self.old_node = self.nodes[1].add_p2p_connection(
-            TestNode(), services=NODE_NETWORK)
+            TestP2PConn(), services=NODE_NETWORK)
 
         network_thread_start()
 
