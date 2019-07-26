@@ -11,12 +11,13 @@ import sys
 
 # Source files (relative to root) to scan for dispatch tables
 SOURCES = [
-    "src/rpc/server.cpp",
+    "src/rpc/abc.cpp",
     "src/rpc/blockchain.cpp",
     "src/rpc/mining.cpp",
     "src/rpc/misc.cpp",
     "src/rpc/net.cpp",
     "src/rpc/rawtransaction.cpp",
+    "src/rpc/server.cpp",
     "src/wallet/rpcdump.cpp",
     "src/wallet/rpcwallet.cpp",
 ]
