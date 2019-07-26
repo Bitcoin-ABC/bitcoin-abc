@@ -1918,14 +1918,14 @@ static UniValue savemempool(const Config &config,
 static const ContextFreeRPCCommand commands[] = {
     //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
-    { "blockchain",         "getblockchaininfo",      getblockchaininfo,      {} },
-    { "blockchain",         "getchaintxstats",        &getchaintxstats,       {"nblocks", "blockhash"} },
     { "blockchain",         "getbestblockhash",       getbestblockhash,       {} },
-    { "blockchain",         "getblockcount",          getblockcount,          {} },
     { "blockchain",         "getblock",               getblock,               {"blockhash","verbosity|verbose"} },
+    { "blockchain",         "getblockchaininfo",      getblockchaininfo,      {} },
+    { "blockchain",         "getblockcount",          getblockcount,          {} },
     { "blockchain",         "getblockhash",           getblockhash,           {"height"} },
     { "blockchain",         "getblockheader",         getblockheader,         {"blockhash","verbose"} },
     { "blockchain",         "getchaintips",           getchaintips,           {} },
+    { "blockchain",         "getchaintxstats",        getchaintxstats,        {"nblocks", "blockhash"} },
     { "blockchain",         "getdifficulty",          getdifficulty,          {} },
     { "blockchain",         "getmempoolancestors",    getmempoolancestors,    {"txid","verbose"} },
     { "blockchain",         "getmempooldescendants",  getmempooldescendants,  {"txid","verbose"} },
