@@ -447,19 +447,19 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
             break;
         }
 
-        // Check for -nofoo
-        if (InterpretNegatedOption(key, val)) {
-            m_override_args[key].clear();
-        } else {
-            m_override_args[key].push_back(val);
-        }
-
         // Check that the arg is known
         if (!(IsSwitchChar(key[0]) && key.size() == 1)) {
             if (!IsArgKnown(key)) {
                 error = strprintf("Invalid parameter %s", key.c_str());
                 return false;
             }
+        }
+
+        // Check for -nofoo
+        if (InterpretNegatedOption(key, val)) {
+            m_override_args[key].clear();
+        } else {
+            m_override_args[key].push_back(val);
         }
     }
 
@@ -479,18 +479,23 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
 }
 
 bool ArgsManager::IsArgKnown(const std::string &key) const {
+    assert(key[0] == '-');
+
     size_t option_index = key.find('.');
-    std::string arg_no_net;
     if (option_index == std::string::npos) {
-        arg_no_net = key;
+        option_index = 1;
     } else {
-        arg_no_net =
-            std::string("-") + key.substr(option_index + 1, std::string::npos);
+        ++option_index;
     }
+    if (key.substr(option_index, 2) == "no") {
+        option_index += 2;
+    }
+
+    const std::string base_arg_name = '-' + key.substr(option_index);
 
     LOCK(cs_args);
     for (const auto &arg_map : m_available_args) {
-        if (arg_map.second.count(arg_no_net)) {
+        if (arg_map.second.count(base_arg_name)) {
             return true;
         }
     }
@@ -962,14 +967,6 @@ bool ArgsManager::ReadConfigStream(std::istream &stream,
     }
     for (const std::pair<std::string, std::string> &option : options) {
         std::string strKey = std::string("-") + option.first;
-        std::string strValue = option.second;
-
-        if (InterpretNegatedOption(strKey, strValue)) {
-            m_config_args[strKey].clear();
-        } else {
-            m_config_args[strKey].push_back(strValue);
-        }
-
         // Check that the arg is known
         if (!IsArgKnown(strKey)) {
             if (!ignore_invalid_keys) {
@@ -979,7 +976,15 @@ bool ArgsManager::ReadConfigStream(std::istream &stream,
             } else {
                 LogPrintf("Ignoring unknown configuration value %s\n",
                           option.first);
+                continue;
             }
+        }
+
+        std::string strValue = option.second;
+        if (InterpretNegatedOption(strKey, strValue)) {
+            m_config_args[strKey].clear();
+        } else {
+            m_config_args[strKey].push_back(strValue);
         }
     }
     return true;
