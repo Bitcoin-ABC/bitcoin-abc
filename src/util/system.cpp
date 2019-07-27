@@ -638,7 +638,7 @@ void ArgsManager::AddArg(const std::string &name, const std::string &help,
     std::map<std::string, Arg> &arg_map = m_available_args[cat];
     auto ret = arg_map.emplace(
         name.substr(0, eq_index),
-        Arg{name.substr(eq_index, name.size() - eq_index), help, flags, false});
+        Arg{name.substr(eq_index, name.size() - eq_index), help, flags});
     // Make sure an insertion actually happened.
     assert(ret.second);
 }
