@@ -627,7 +627,8 @@ void ArgsManager::ForceSetMultiArg(const std::string &strArg,
 }
 
 void ArgsManager::AddArg(const std::string &name, const std::string &help,
-                         const bool debug_only, const OptionsCategory &cat) {
+                         unsigned int flags, const bool debug_only,
+                         const OptionsCategory &cat) {
     // Split arg name from its help param
     size_t eq_index = name.find('=');
     if (eq_index == std::string::npos) {
@@ -646,7 +647,8 @@ void ArgsManager::AddArg(const std::string &name, const std::string &help,
 
 void ArgsManager::AddHiddenArgs(const std::vector<std::string> &names) {
     for (const std::string &name : names) {
-        AddArg(name, "", false, OptionsCategory::HIDDEN);
+        AddArg(name, "", ArgsManager::ALLOW_ANY, false,
+               OptionsCategory::HIDDEN);
     }
 }
 

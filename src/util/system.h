@@ -297,7 +297,8 @@ public:
      * Add argument
      */
     void AddArg(const std::string &name, const std::string &help,
-                const bool debug_only, const OptionsCategory &cat);
+                unsigned int flags, const bool debug_only,
+                const OptionsCategory &cat);
 
     // Remove an arg setting, used only in testing
     void ClearArg(const std::string &strArg);
