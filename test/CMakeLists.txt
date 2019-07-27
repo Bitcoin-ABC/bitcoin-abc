@@ -40,6 +40,15 @@ make_link(fuzz/test_runner.py)
 
 include(Coverage)
 include(TestSuite)
+
+set(_TEST_TARGET_DEPENDS "")
+if(BUILD_BITCOIN_CLI)
+	list(APPEND _TEST_TARGET_DEPENDS bitcoin-cli)
+endif()
+if(BUILD_BITCOIN_WALLET)
+	list(APPEND _TEST_TARGET_DEPENDS bitcoin-wallet)
+endif()
+
 macro(add_functional_test_check TARGET COMMENT)
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
@@ -50,7 +59,7 @@ macro(add_functional_test_check TARGET COMMENT)
 			COMMENT "${COMMENT}"
 			DEPENDS
 				bitcoind
-				bitcoin-cli
+				${_TEST_TARGET_DEPENDS}
 				${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
 			USES_TERMINAL
 			VERBATIM

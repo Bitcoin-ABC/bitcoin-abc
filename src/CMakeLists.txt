@@ -569,7 +569,7 @@ if(BUILD_BITCOIN_WALLET)
 		target_sources(bitcoin-wallet PRIVATE bitcoin-wallet-res.rc)
 	endif()
 
-	target_link_libraries(bitcoin-wallet wallet-tool server common bitcoinconsensus util)
+	target_link_libraries(bitcoin-wallet wallet-tool server common util)
 
 	add_to_symbols_check(bitcoin-wallet)
 	add_to_security_check(bitcoin-wallet)
