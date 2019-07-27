@@ -565,7 +565,8 @@ void SetupServerArgs() {
     gArgs.AddArg("-addnode=<ip>",
                  "Add a node to connect to and attempt to keep the connection "
                  "open (see the `addnode` RPC command help for more info)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                 OptionsCategory::CONNECTION);
     gArgs.AddArg(
         "-banscore=<n>",
         strprintf("Threshold for disconnecting misbehaving peers (default: %u)",
@@ -579,12 +580,14 @@ void SetupServerArgs() {
     gArgs.AddArg("-bind=<addr>",
                  "Bind to given address and always listen on it. Use "
                  "[host]:port notation for IPv6",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                 OptionsCategory::CONNECTION);
     gArgs.AddArg(
         "-connect=<ip>",
         "Connect only to the specified node(s); -connect=0 disables automatic "
         "connections (the rules for this peer are the same as for -addnode)",
-        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::CONNECTION);
     gArgs.AddArg("-discover",
                  "Discover own IP addresses (default: 1 when listening and no "
                  "-externalip or -proxy)",
@@ -666,7 +669,8 @@ void SetupServerArgs() {
                            defaultChainParams->GetDefaultPort(),
                            testnetChainParams->GetDefaultPort(),
                            regtestChainParams->GetDefaultPort()),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                 OptionsCategory::CONNECTION);
     gArgs.AddArg("-proxy=<ip:port>", _("Connect through SOCKS5 proxy"),
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg("-proxyrandomize",
@@ -1024,7 +1028,8 @@ void SetupServerArgs() {
         "can be specified multiple times (default: 127.0.0.1 and ::1 i.e., "
         "localhost, or if -rpcallowip has been specified, 0.0.0.0 and :: i.e., "
         "all addresses)",
-        ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+        ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::RPC);
     gArgs.AddArg("-rpccookiefile=<loc>",
                  "Location of the auth cookie. Relative paths will be prefixed "
                  "by a net-specific datadir location. (default: data dir)",
@@ -1047,7 +1052,8 @@ void SetupServerArgs() {
                            defaultBaseParams->RPCPort(),
                            testnetBaseParams->RPCPort(),
                            regtestBaseParams->RPCPort()),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                 OptionsCategory::RPC);
     gArgs.AddArg("-rpcallowip=<ip>",
                  "Allow JSON-RPC connections from specified source. Valid for "
                  "<ip> are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. "

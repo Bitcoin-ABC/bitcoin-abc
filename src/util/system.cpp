@@ -337,16 +337,7 @@ InterpretOption(std::string key, std::string val,
     args[key].push_back(val);
 }
 
-ArgsManager::ArgsManager()
-    : /* These options would cause cross-contamination if values for mainnet
-       * were used while running on regtest/testnet (or vice-versa).
-       * Setting them as section_only_args ensures that sharing a config file
-       * between mainnet and regtest/testnet won't cause problems due to these
-       * parameters by accident. */
-      m_network_only_args{
-          "-addnode", "-connect", "-port",   "-bind",
-          "-rpcport", "-rpcbind", "-wallet",
-      } {
+ArgsManager::ArgsManager() {
     // nothing to do
 }
 
@@ -633,14 +624,19 @@ void ArgsManager::AddArg(const std::string &name, const std::string &help,
     if (eq_index == std::string::npos) {
         eq_index = name.size();
     }
+    std::string arg_name = name.substr(0, eq_index);
 
     LOCK(cs_args);
     std::map<std::string, Arg> &arg_map = m_available_args[cat];
     auto ret = arg_map.emplace(
-        name.substr(0, eq_index),
+        arg_name,
         Arg{name.substr(eq_index, name.size() - eq_index), help, flags});
     // Make sure an insertion actually happened.
     assert(ret.second);
+
+    if (flags & ArgsManager::NETWORK_ONLY) {
+        m_network_only_args.emplace(arg_name);
+    }
 }
 
 void ArgsManager::AddHiddenArgs(const std::vector<std::string> &names) {

@@ -103,7 +103,8 @@ void WalletInit::AddWalletOptions() const {
                  "it does not exist (as a directory containing a wallet.dat "
                  "file and log files). For backwards compatibility this will "
                  "also accept names of existing data files in <walletdir>.)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
+                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                 OptionsCategory::WALLET);
     gArgs.AddArg(
         "-walletbroadcast",
         strprintf("Make the wallet broadcast transactions (default: %d)",

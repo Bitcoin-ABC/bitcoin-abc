@@ -26,7 +26,8 @@ static void SetupWalletToolArgs() {
     gArgs.AddArg("-datadir=<dir>", "Specify data directory",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-wallet=<wallet-name>", "Specify wallet name",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                 OptionsCategory::OPTIONS);
     gArgs.AddArg("-debug=<category>",
                  "Output debugging information (default: 0).",
                  ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
