@@ -435,20 +435,22 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
 
     for (int i = 1; i < argc; i++) {
         std::string key(argv[i]);
+        if (key == "-") {
+            // bitcoin-tx using stdin
+            break;
+        }
         std::string val;
         if (!ParseKeyValue(key, val)) {
             break;
         }
 
-        // Check that the arg is known
-        if (!(IsSwitchChar(key[0]) && key.size() == 1)) {
-            if (!IsArgKnown(key)) {
-                error = strprintf("Invalid parameter %s", key.c_str());
-                return false;
-            }
+        const unsigned int flags = FlagsOfKnownArg(key);
+        if (flags) {
+            InterpretOption(key, val, m_override_args);
+        } else {
+            error = strprintf("Invalid parameter %s", key.c_str());
+            return false;
         }
-
-        InterpretOption(key, val, m_override_args);
     }
 
     // we do not allow -includeconf from command line, so we clear it here
@@ -466,7 +468,7 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
     return true;
 }
 
-bool ArgsManager::IsArgKnown(const std::string &key) const {
+unsigned int ArgsManager::FlagsOfKnownArg(const std::string &key) const {
     assert(key[0] == '-');
 
     size_t option_index = key.find('.');
@@ -483,11 +485,12 @@ bool ArgsManager::IsArgKnown(const std::string &key) const {
 
     LOCK(cs_args);
     for (const auto &arg_map : m_available_args) {
-        if (arg_map.second.count(base_arg_name)) {
-            return true;
+        const auto search = arg_map.second.find(base_arg_name);
+        if (search != arg_map.second.end()) {
+            return search->second.m_flags;
         }
     }
-    return false;
+    return ArgsManager::NONE;
 }
 
 std::vector<std::string> ArgsManager::GetArgs(const std::string &strArg) const {
@@ -958,20 +961,19 @@ bool ArgsManager::ReadConfigStream(std::istream &stream,
     }
     for (const std::pair<std::string, std::string> &option : options) {
         const std::string strKey = std::string("-") + option.first;
-        // Check that the arg is known
-        if (!IsArgKnown(strKey)) {
-            if (!ignore_invalid_keys) {
+        const unsigned int flags = FlagsOfKnownArg(strKey);
+        if (flags) {
+            InterpretOption(strKey, option.second, m_config_args);
+        } else {
+            if (ignore_invalid_keys) {
+                LogPrintf("Ignoring unknown configuration value %s\n",
+                          option.first);
+            } else {
                 error = strprintf("Invalid configuration value %s",
                                   option.first.c_str());
                 return false;
-            } else {
-                LogPrintf("Ignoring unknown configuration value %s\n",
-                          option.first);
-                continue;
             }
         }
-
-        InterpretOption(strKey, option.second, m_config_args);
     }
     return true;
 }
