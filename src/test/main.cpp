@@ -26,7 +26,7 @@ struct CustomArgumentsFixture {
         };
 
         for (const auto &arg : testArgs) {
-            gArgs.AddArg(arg, "", ArgsManager::ALLOW_ANY, false,
+            gArgs.AddArg(arg, "", ArgsManager::ALLOW_ANY,
                          OptionsCategory::HIDDEN);
         }
 

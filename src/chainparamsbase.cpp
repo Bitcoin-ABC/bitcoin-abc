@@ -20,9 +20,10 @@ void SetupChainParamsBaseOptions() {
                  "Enter regression test mode, which uses a special chain in "
                  "which blocks can be solved instantly. This is intended for "
                  "regression testing tools and app development.",
-                 ArgsManager::ALLOW_ANY, true, OptionsCategory::CHAINPARAMS);
+                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                 OptionsCategory::CHAINPARAMS);
     gArgs.AddArg("-testnet", "Use the test chain", ArgsManager::ALLOW_ANY,
-                 false, OptionsCategory::CHAINPARAMS);
+                 OptionsCategory::CHAINPARAMS);
 }
 
 static std::unique_ptr<CBaseChainParams> globalChainBaseParams;

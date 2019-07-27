@@ -36,8 +36,7 @@ static void ResetArgs(ArgsManager &am, const std::string &strArg) {
 
 static void SetupArgs(ArgsManager &am, const std::vector<std::string> &args) {
     for (const std::string &arg : args) {
-        am.AddArg(arg, "", ArgsManager::ALLOW_ANY, false,
-                  OptionsCategory::OPTIONS);
+        am.AddArg(arg, "", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     }
 }
 

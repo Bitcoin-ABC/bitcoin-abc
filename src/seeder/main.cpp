@@ -121,53 +121,46 @@ public:
 private:
     void SetupSeederArgs() {
         gArgs.AddArg("-?", _("Print this help message and exit"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-version", _("Print version and exit"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-host=<host>", _("Hostname of the DNS seed"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-ns=<ns>", _("Hostname of the nameserver"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-mbox=<mbox>",
                      _("E-Mail address reported in SOA records"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-threads=<threads>",
                      _("Number of crawlers to run in parallel (default 96)"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-dnsthreads=<threads>",
                      _("Number of DNS server threads (default 4)"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-port=<port>", _("UDP port to listen on (default 53)"),
-                     ArgsManager::ALLOW_ANY, false,
-                     OptionsCategory::CONNECTION);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg("-onion=<ip:port>", _("Tor proxy IP/Port"),
-                     ArgsManager::ALLOW_ANY, false,
-                     OptionsCategory::CONNECTION);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg("-proxyipv4=<ip:port>", _("IPV4 SOCKS5 proxy IP/Port"),
-                     ArgsManager::ALLOW_ANY, false,
-                     OptionsCategory::CONNECTION);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg("-proxyipv6=<ip:port>", _("IPV6 SOCKS5 proxy IP/Port"),
-                     ArgsManager::ALLOW_ANY, false,
-                     OptionsCategory::CONNECTION);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg("-filter=<f1,f2,...>",
                      _("Allow these flag combinations as filters"),
-                     ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-wipeban", _("Wipe list of banned nodes"),
-                     ArgsManager::ALLOW_ANY, false,
-                     OptionsCategory::CONNECTION);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg("-wipeignore", _("Wipe list of ignored nodes"),
-                     ArgsManager::ALLOW_ANY, false,
-                     OptionsCategory::CONNECTION);
+                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg(
             "-help-debug",
             _("Show all debugging options (usage: --help -help-debug)"),
-            ArgsManager::ALLOW_ANY, false, OptionsCategory::DEBUG_TEST);
+            ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
         SetupChainParamsBaseOptions();
 
-        gArgs.AddArg("-help", "", ArgsManager::ALLOW_ANY, false,
+        gArgs.AddArg("-help", "", ArgsManager::ALLOW_ANY,
                      OptionsCategory::HIDDEN);
-        gArgs.AddArg("-h", "", ArgsManager::ALLOW_ANY, false,
-                     OptionsCategory::HIDDEN);
+        gArgs.AddArg("-h", "", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
     }
 };
 

@@ -21,30 +21,28 @@ const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 static void SetupWalletToolArgs() {
     SetupChainParamsBaseOptions();
 
-    gArgs.AddArg("-?", "This help message", ArgsManager::ALLOW_ANY, false,
+    gArgs.AddArg("-?", "This help message", ArgsManager::ALLOW_ANY,
                  OptionsCategory::OPTIONS);
     gArgs.AddArg("-datadir=<dir>", "Specify data directory",
-                 ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-wallet=<wallet-name>", "Specify wallet name",
-                 ArgsManager::ALLOW_ANY, false, OptionsCategory::OPTIONS);
+                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-debug=<category>",
                  "Output debugging information (default: 0).",
-                 ArgsManager::ALLOW_ANY, false, OptionsCategory::DEBUG_TEST);
+                 ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-printtoconsole",
                  "Send trace/debug info to console (default: 1 when no -debug "
                  "is true, 0 otherwise.",
-                 ArgsManager::ALLOW_ANY, false, OptionsCategory::DEBUG_TEST);
+                 ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
 
-    gArgs.AddArg("info", "Get wallet info", ArgsManager::ALLOW_ANY, false,
+    gArgs.AddArg("info", "Get wallet info", ArgsManager::ALLOW_ANY,
                  OptionsCategory::COMMANDS);
     gArgs.AddArg("create", "Create new wallet file", ArgsManager::ALLOW_ANY,
-                 false, OptionsCategory::COMMANDS);
+                 OptionsCategory::COMMANDS);
 
     // Hidden
-    gArgs.AddArg("-h", "", ArgsManager::ALLOW_ANY, false,
-                 OptionsCategory::HIDDEN);
-    gArgs.AddArg("-help", "", ArgsManager::ALLOW_ANY, false,
-                 OptionsCategory::HIDDEN);
+    gArgs.AddArg("-h", "", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-help", "", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
 }
 
 static bool WalletAppInit(int argc, char *argv[]) {
