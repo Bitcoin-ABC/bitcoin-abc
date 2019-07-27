@@ -4909,6 +4909,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         walletInstance->m_min_fee = CFeeRate(n);
     }
 
+    walletInstance->m_allow_fallback_fee = Params().IsTestChain();
     if (gArgs.IsArgSet("-fallbackfee")) {
         Amount nFeePerK = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-fallbackfee", ""), nFeePerK)) {
