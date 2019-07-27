@@ -201,7 +201,7 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1) {
         throw std::runtime_error(RPCHelpMan{
             "stop",
-            "Stop Bitcoin server.",
+            "\nRequest a graceful shutdown of " PACKAGE_NAME ".",
             {},
             RPCResults{},
             RPCExamples{""},
@@ -216,7 +216,7 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
         UninterruptibleSleep(
             std::chrono::milliseconds{jsonRequest.params[0].get_int()});
     }
-    return "Bitcoin server stopping";
+    return PACKAGE_NAME " stopping";
 }
 
 static UniValue uptime(const Config &config, const JSONRPCRequest &request) {
