@@ -10,6 +10,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 BOOST_FIXTURE_TEST_SUITE(getarg_tests, BasicTestingSetup)
@@ -34,15 +35,19 @@ static void ResetArgs(ArgsManager &am, const std::string &strArg) {
     BOOST_CHECK(am.ParseParameters(vecChar.size(), vecChar.data(), error));
 }
 
-static void SetupArgs(ArgsManager &am, const std::vector<std::string> &args) {
-    for (const std::string &arg : args) {
-        am.AddArg(arg, "", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+static void
+SetupArgs(ArgsManager &am,
+          const std::vector<std::pair<std::string, unsigned int>> &args) {
+    am.ClearArgs();
+    for (const auto &arg : args) {
+        am.AddArg(arg.first, "", arg.second, OptionsCategory::OPTIONS);
     }
 }
 
 BOOST_AUTO_TEST_CASE(boolarg) {
     ArgsManager am;
-    SetupArgs(am, {"-foo"});
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_BOOL);
+    SetupArgs(am, {foo});
     ResetArgs(am, "-foo");
     BOOST_CHECK(am.GetBoolArg("-foo", false));
     BOOST_CHECK(am.GetBoolArg("-foo", true));
@@ -97,7 +102,9 @@ BOOST_AUTO_TEST_CASE(boolarg) {
 
 BOOST_AUTO_TEST_CASE(stringarg) {
     ArgsManager am;
-    SetupArgs(am, {"-foo", "-bar"});
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_STRING);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_STRING);
+    SetupArgs(am, {foo, bar});
     ResetArgs(am, "");
     BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "");
     BOOST_CHECK_EQUAL(am.GetArg("-foo", "eleven"), "eleven");
@@ -121,7 +128,9 @@ BOOST_AUTO_TEST_CASE(stringarg) {
 
 BOOST_AUTO_TEST_CASE(intarg) {
     ArgsManager am;
-    SetupArgs(am, {"-foo", "-bar"});
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_INT);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_INT);
+    SetupArgs(am, {foo, bar});
     ResetArgs(am, "");
     BOOST_CHECK_EQUAL(am.GetArg("-foo", 11), 11);
     BOOST_CHECK_EQUAL(am.GetArg("-foo", 0), 0);
@@ -141,7 +150,9 @@ BOOST_AUTO_TEST_CASE(intarg) {
 
 BOOST_AUTO_TEST_CASE(doubledash) {
     ArgsManager am;
-    SetupArgs(am, {"-foo", "-bar"});
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_ANY);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_ANY);
+    SetupArgs(am, {foo, bar});
     ResetArgs(am, "--foo");
     BOOST_CHECK_EQUAL(am.GetBoolArg("-foo", false), true);
 
@@ -152,7 +163,9 @@ BOOST_AUTO_TEST_CASE(doubledash) {
 
 BOOST_AUTO_TEST_CASE(boolargno) {
     ArgsManager am;
-    SetupArgs(am, {"-foo", "-bar"});
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_BOOL);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_BOOL);
+    SetupArgs(am, {foo, bar});
     ResetArgs(am, "-nofoo");
     BOOST_CHECK(!am.GetBoolArg("-foo", true));
     BOOST_CHECK(!am.GetBoolArg("-foo", false));

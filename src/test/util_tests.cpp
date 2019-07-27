@@ -15,6 +15,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cstdint>
+#include <utility>
 #ifndef WIN32
 #include <csignal>
 #include <sys/types.h>
@@ -189,22 +190,26 @@ struct TestArgsManager : public ArgsManager {
         LOCK(cs_args);
         m_network_only_args.insert(arg);
     }
-    void SetupArgs(int argv, const char *args[]) {
-        for (int i = 0; i < argv; ++i) {
-            AddArg(args[i], "", ArgsManager::ALLOW_ANY,
-                   OptionsCategory::OPTIONS);
+    void
+    SetupArgs(const std::vector<std::pair<std::string, unsigned int>> &args) {
+        for (const auto &arg : args) {
+            AddArg(arg.first, "", arg.second, OptionsCategory::OPTIONS);
         }
     }
 };
 
 BOOST_AUTO_TEST_CASE(util_ParseParameters) {
     TestArgsManager testArgs;
-    const char *avail_args[] = {"-a", "-b", "-ccc", "-d"};
+    const auto a = std::make_pair("-a", ArgsManager::ALLOW_ANY);
+    const auto b = std::make_pair("-b", ArgsManager::ALLOW_ANY);
+    const auto ccc = std::make_pair("-ccc", ArgsManager::ALLOW_ANY);
+    const auto d = std::make_pair("-d", ArgsManager::ALLOW_ANY);
+
     const char *argv_test[] = {"-ignored",      "-a", "-b",  "-ccc=argument",
                                "-ccc=multiple", "f",  "-d=e"};
 
     std::string error;
-    testArgs.SetupArgs(4, avail_args);
+    testArgs.SetupArgs({a, b, ccc, d});
     BOOST_CHECK(testArgs.ParseParameters(0, (char **)argv_test, error));
     BOOST_CHECK(testArgs.GetOverrideArgs().empty() &&
                 testArgs.GetConfigArgs().empty());
@@ -279,11 +284,17 @@ BOOST_AUTO_TEST_CASE(util_ParseKeyValue) {
 
 BOOST_AUTO_TEST_CASE(util_GetBoolArg) {
     TestArgsManager testArgs;
-    const char *avail_args[] = {"-a", "-b", "-c", "-d", "-e", "-f"};
+    const auto a = std::make_pair("-a", ArgsManager::ALLOW_BOOL);
+    const auto b = std::make_pair("-b", ArgsManager::ALLOW_BOOL);
+    const auto c = std::make_pair("-c", ArgsManager::ALLOW_BOOL);
+    const auto d = std::make_pair("-d", ArgsManager::ALLOW_BOOL);
+    const auto e = std::make_pair("-e", ArgsManager::ALLOW_BOOL);
+    const auto f = std::make_pair("-f", ArgsManager::ALLOW_BOOL);
+
     const char *argv_test[] = {"ignored", "-a",       "-nob",   "-c=0",
                                "-d=1",    "-e=false", "-f=true"};
     std::string error;
-    testArgs.SetupArgs(6, avail_args);
+    testArgs.SetupArgs({a, b, c, d, e, f});
     BOOST_CHECK(testArgs.ParseParameters(7, (char **)argv_test, error));
 
     // Each letter should be set.
@@ -316,9 +327,10 @@ BOOST_AUTO_TEST_CASE(util_GetBoolArgEdgeCases) {
     TestArgsManager testArgs;
 
     // Params test
-    const char *avail_args[] = {"-foo", "-bar"};
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_BOOL);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_BOOL);
     const char *argv_test[] = {"ignored", "-nofoo", "-foo", "-nobar=0"};
-    testArgs.SetupArgs(2, avail_args);
+    testArgs.SetupArgs({foo, bar});
     std::string error;
     BOOST_CHECK(testArgs.ParseParameters(4, (char **)argv_test, error));
 
@@ -385,9 +397,17 @@ BOOST_AUTO_TEST_CASE(util_ReadConfigStream) {
                              "iii=2\n";
 
     TestArgsManager test_args;
-    const char *avail_args[] = {"-a",   "-b",   "-ccc", "-d", "-e",
-                                "-fff", "-ggg", "-h",   "-i", "-iii"};
-    test_args.SetupArgs(10, avail_args);
+    const auto a = std::make_pair("-a", ArgsManager::ALLOW_BOOL);
+    const auto b = std::make_pair("-b", ArgsManager::ALLOW_BOOL);
+    const auto ccc = std::make_pair("-ccc", ArgsManager::ALLOW_STRING);
+    const auto d = std::make_pair("-d", ArgsManager::ALLOW_STRING);
+    const auto e = std::make_pair("-e", ArgsManager::ALLOW_ANY);
+    const auto fff = std::make_pair("-fff", ArgsManager::ALLOW_BOOL);
+    const auto ggg = std::make_pair("-ggg", ArgsManager::ALLOW_BOOL);
+    const auto h = std::make_pair("-h", ArgsManager::ALLOW_BOOL);
+    const auto i = std::make_pair("-i", ArgsManager::ALLOW_BOOL);
+    const auto iii = std::make_pair("-iii", ArgsManager::ALLOW_INT);
+    test_args.SetupArgs({a, b, ccc, d, e, fff, ggg, h, i, iii});
 
     test_args.ReadConfigString(str_config);
     // expectation: a, b, ccc, d, fff, ggg, h, i end up in map
@@ -680,8 +700,9 @@ BOOST_AUTO_TEST_CASE(util_SetArg) {
 
 BOOST_AUTO_TEST_CASE(util_GetChainName) {
     TestArgsManager test_args;
-    const char *avail_args[] = {"-testnet", "-regtest"};
-    test_args.SetupArgs(2, avail_args);
+    const auto testnet = std::make_pair("-testnet", ArgsManager::ALLOW_BOOL);
+    const auto regtest = std::make_pair("-regtest", ArgsManager::ALLOW_BOOL);
+    test_args.SetupArgs({testnet, regtest});
 
     const char *argv_testnet[] = {"cmd", "-testnet"};
     const char *argv_regtest[] = {"cmd", "-regtest"};
