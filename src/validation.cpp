@@ -751,6 +751,7 @@ static bool AcceptToMemoryPoolWorker(
 
         if (IsGravitonEnabledForCurrentBlock(config)) {
             extraFlags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
+            extraFlags |= SCRIPT_VERIFY_MINIMALDATA;
         }
 
         // Make sure whatever we need to activate is actually activated.
@@ -1629,6 +1630,7 @@ static uint32_t GetNextBlockScriptFlags(const Config &config,
 
     if (IsGravitonEnabled(config, pindex)) {
         flags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
+        flags |= SCRIPT_VERIFY_MINIMALDATA;
     }
 
     // We make sure this node will have replay protection during the next hard
