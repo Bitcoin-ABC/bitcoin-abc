@@ -198,7 +198,7 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
 
     std::shared_ptr<const CBlock> shared_pblock =
         std::make_shared<const CBlock>(block);
-    ProcessNewBlock(GetConfig(), shared_pblock, true, nullptr);
+    ProcessNewBlock(config, shared_pblock, true, nullptr);
 
     CBlock result = block;
     return result;
