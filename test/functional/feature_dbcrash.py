@@ -294,7 +294,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         # Warn if any of the nodes escaped restart.
         for i in range(3):
             if self.restart_counts[i] == 0:
-                self.log.warn(
+                self.log.warning(
                     "Node {} never crashed during utxo flush!".format(i))
 
 
