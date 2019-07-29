@@ -5,21 +5,15 @@
 """Check RPC argument consistency."""
 
 from collections import defaultdict
+import glob
 import os
 import re
 import sys
 
 # Source files (relative to root) to scan for dispatch tables
-SOURCES = [
-    "src/rpc/abc.cpp",
-    "src/rpc/blockchain.cpp",
-    "src/rpc/mining.cpp",
-    "src/rpc/misc.cpp",
-    "src/rpc/net.cpp",
-    "src/rpc/rawtransaction.cpp",
-    "src/rpc/server.cpp",
-    "src/wallet/rpcdump.cpp",
-    "src/wallet/rpcwallet.cpp",
+SOURCE_PATTERNS = [
+    "src/rpc/*.cpp",
+    "src/wallet/rpc*.cpp",
 ]
 # Source file (relative to root) containing conversion mapping
 SOURCE_CLIENT = 'src/rpc/client.cpp'
@@ -72,7 +66,7 @@ def process_commands(fname):
                     else:
                         args = []
                     cmds.append(RPCCommand(name, args))
-    assert not in_rpcs and cmds, "Something went wrong with parsing the C++ file: update the regexps"
+    assert not in_rpcs, "Something went wrong with parsing the C++ file: update the regexps"
     return cmds
 
 
@@ -108,10 +102,15 @@ def main():
 
     root = sys.argv[1]
 
+    # Find the sources files
+    sources = []
+    for glob_regex in SOURCE_PATTERNS:
+        sources.extend(glob.glob(os.path.join(root, glob_regex)))
+
     # Get all commands from dispatch tables
     cmds = []
-    for fname in SOURCES:
-        cmds += process_commands(os.path.join(root, fname))
+    for fname in set(sources):
+        cmds += process_commands(fname)
 
     cmds_by_name = {}
     for cmd in cmds:
