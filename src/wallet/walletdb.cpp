@@ -39,6 +39,7 @@ const std::string OLD_KEY{"wkey"};
 const std::string ORDERPOSNEXT{"orderposnext"};
 const std::string POOL{"pool"};
 const std::string PURPOSE{"purpose"};
+const std::string SETTINGS{"settings"};
 const std::string TX{"tx"};
 const std::string VERSION{"version"};
 const std::string WATCHMETA{"watchmeta"};
@@ -433,7 +434,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
         } else if (strType != DBKeys::BESTBLOCK &&
                    strType != DBKeys::BESTBLOCK_NOMERKLE &&
                    strType != DBKeys::MINVERSION &&
-                   strType != DBKeys::ACENTRY && strType != DBKeys::VERSION) {
+                   strType != DBKeys::ACENTRY && strType != DBKeys::VERSION &&
+                   strType != DBKeys::SETTINGS) {
             wss.m_unknown_records++;
         }
     } catch (...) {
