@@ -341,6 +341,7 @@ add_library(util
 	util/error.cpp
 	util/moneystr.cpp
 	util/settings.cpp
+	util/spanparsing.cpp
 	util/strencodings.cpp
 	util/string.cpp
 	util/system.cpp

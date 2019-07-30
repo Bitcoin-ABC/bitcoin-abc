@@ -248,6 +248,7 @@ BITCOIN_CORE_H = \
   util/error.h \
   util/macros.h \
   util/moneystr.h \
+  util/spanparsing.h \
   util/system.h \
   util/settings.h \
   util/string.h \
@@ -560,6 +561,7 @@ libbitcoin_util_a_SOURCES = \
   util/system.cpp \
   util/moneystr.cpp \
   util/settings.cpp \
+  util/spanparsing.cpp \
   util/strencodings.cpp \
   util/string.cpp \
   util/threadnames.cpp \
