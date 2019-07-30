@@ -31,6 +31,7 @@ import random
 import time
 
 from test_framework.blocktools import create_confirmed_utxos
+from test_framework.cdefs import DEFAULT_MAX_BLOCK_SIZE
 from test_framework.messages import (
     COIN,
     COutPoint,
@@ -40,7 +41,10 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, hex_str_to_bytes
+from test_framework.util import (
+    assert_equal,
+    hex_str_to_bytes,
+)
 
 
 class ChainstateWriteCrashTest(BitcoinTestFramework):
@@ -48,7 +52,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         self.num_nodes = 4
         self.setup_clean_chain = False
         # Need a bit of extra time for the nodes to start up for this test
-        self.rpc_timeout = 90
+        self.rpc_timeout = 180
 
         # Set -maxmempool=0 to turn off mempool memory sharing with dbcache
         # Set -rpcservertimeout=900 to reduce socket disconnects in this
@@ -64,7 +68,9 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         self.node2_args = ["-dbcrashratio=24", "-dbcache=16"] + self.base_args
 
         # Node3 is a normal node with default args, except will mine full blocks
-        self.node3_args = ["-blockmaxsize=32000000"]
+        # and non-standard txs (e.g. txs with "dust" outputs)
+        self.node3_args = [
+            "-blockmaxsize={}".format(DEFAULT_MAX_BLOCK_SIZE), "-acceptnonstdtxn"]
         self.extra_args = [self.node0_args, self.node1_args,
                            self.node2_args, self.node3_args]
 
