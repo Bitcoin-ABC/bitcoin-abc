@@ -1,12 +1,12 @@
 WINDOWS BUILD NOTES
 ====================
 
-Below are some notes on how to build Bitcoin ABC for Windows.
+Below are some notes on how to build Freecash for Windows.
 
-The options known to work for building Bitcoin ABC on Windows are:
+The options known to work for building Freecash on Windows are:
 
 * On Linux using the [Mingw-w64](https://mingw-w64.org/doku.php) cross compiler tool chain. Ubuntu Trusty 14.04 is recommended
-and is the platform used to build the Bitcoin ABC Windows release binaries.
+and is the platform used to build the Freecash Windows release binaries.
 * On Windows using [Windows
 Subsystem for Linux (WSL)](https://msdn.microsoft.com/commandline/wsl/about) and the Mingw-w64 cross compiler tool chain.
 
@@ -53,11 +53,6 @@ recommended but it is possible to compile the 32-bit version.
 Cross-compilation for Ubuntu and Windows Subsystem for Linux
 ------------------------------------------------------------
 
-At the time of writing the Windows Subsystem for Linux installs Ubuntu Xenial 16.04. The Mingw-w64 package
-for Ubuntu Xenial does not produce working executables for some of the Bitcoin ABC applications.
-It is possible to build on Ubuntu Xenial by installing the cross compiler packages from Ubuntu Artful, see the steps below.
-Building on Ubuntu Artful 17.10 has been verified to work.
-
 The steps below can be performed on Ubuntu (including in a VM) or WSL. The depends system
 will also work on other Linux distributions, however the commands for
 installing the toolchain will be different.
@@ -95,19 +90,19 @@ Ubuntu Xenial 16.04 and Windows Subsystem for Linux <sup>[1](#footnote1),[2](#fo
     sudo apt upgrade
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
 
-Ubuntu Artful 17.10 <sup>[2](#footnote2)</sup>:
+Ubuntu Bionic 18.04 <sup>[1](#footnote1)</sup>:
 
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
 
 Once the tool chain is installed the build steps are common:
 
-Note that for WSL the Bitcoin ABC source path MUST be somewhere in the default mount file system, for
-example /usr/src/bitcoin-abc, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
+Note that for WSL the FreeCash source path MUST be somewhere in the default mount file system, for
+example /usr/src/freecash, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
 This means you cannot use a directory that located directly on the host Windows file system to perform the build.
 
 Acquire the source in the usual way:
 
-    git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
+    git clone https://github.com/freecashorg/freecash.git
 
 Once the source code is ready the build steps are below.
 
@@ -129,13 +124,13 @@ For Ubuntu Xenial 16.04, Ubuntu Artful 17.10 and Windows Subsystem for Linux <su
 
     sudo update-alternatives --config i686-w64-mingw32-g++  # Set the default mingw32 g++ compiler option to posix.
 
-Note that for WSL the Bitcoin ABC source path MUST be somewhere in the default mount file system, for
-example /usr/src/bitcoin-abc, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
+Note that for WSL the FreeCash source path MUST be somewhere in the default mount file system, for
+example /usr/src/freecash, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
 This means you cannot use a directory that located directly on the host Windows file system to perform the build.
 
 Acquire the source in the usual way:
 
-    git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
+    git clone https://github.com/freecashorg/freecash.git
 
 Then build using:
 
@@ -157,23 +152,16 @@ Installation
 After building using the Windows subsystem it can be useful to copy the compiled
 executables to a directory on the windows drive in the same directory structure
 as they appear in the release `.zip` archive. This can be done in the following
-way. This will install to `c:\workspace\bitcoin-abc`, for example:
+way. This will install to `c:\workspace\freecash`, for example:
 
-    make install DESTDIR=/mnt/c/workspace/bitcoin-abc
+    make install DESTDIR=/mnt/c/workspace/freecash
 
 Footnotes
 ---------
 
-<a name="footnote1">1</a>: There is currently a bug in the 64 bit Mingw-w64 cross compiler packaged for WSL/Ubuntu Xenial 16.04 that
-causes two of the bitcoin executables to crash shortly after start up. The bug is related to the
--fstack-protector-all g++ compiler flag which is used to mitigate buffer overflows.
-Installing the Mingw-w64 packages from the Ubuntu 17.10 distribution solves the issue, however, this is not
-an officially supported approach and it's only recommended if you are prepared to reinstall WSL/Ubuntu should
-something break.
-
-<a name="footnote2">2</a>: Starting from Ubuntu Xenial 16.04 both the 32 and 64 bit Mingw-w64 packages install two different
+<a name="footnote1">1</a>: Starting from Ubuntu Xenial 16.04 both the 32 and 64 bit Mingw-w64 packages install two different
 compiler options to allow a choice between either posix or win32 threads. The default option is win32 threads which is the more
 efficient since it will result in binary code that links directly with the Windows kernel32.lib. Unfortunately, the headers
 required to support win32 threads conflict with some of the classes in the C++11 standard library in particular std::mutex.
-It's not possible to build the bitcoin code using the win32 version of the Mingw-w64 cross compilers (at least not without
-modifying headers in the bitcoin source code).
+It's not possible to build the freecash code using the win32 version of the Mingw-w64 cross compilers (at least not without
+modifying headers in the freecash source code).

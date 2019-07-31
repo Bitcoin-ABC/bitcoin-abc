@@ -29,19 +29,19 @@ In case you want to build the disk image with `make deploy` (.dmg / optional), y
 
     brew install librsvg
 
-Build Bitcoin ABC
+Build Freecash
 -----------------
 
 Before you start building, please make sure that your compiler supports C++14.
 
-1. Clone the Bitcoin ABC source code and cd into `bitcoin-abc`
+1. Clone the Freecash source code and cd into `freecash`
 
-        git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
-        cd bitcoin-abc
+        git clone https://github.com/freecashorg/freecash.git
+        cd freecash
 
-2.  Build bitcoin-abc:
+2.  Build freecash:
 
-    Configure and build the headless bitcoin binaries as well as the GUI (if Qt is found).
+    Configure and build the headless freecash binaries as well as the GUI (if Qt is found).
 
     You can disable the GUI build by passing `--without-gui` to configure.
 
@@ -64,19 +64,19 @@ Before you start building, please make sure that your compiler supports C++14.
 Running
 -------
 
-Bitcoin ABC is now available at `./src/bitcoind`
+Freecash is now available at `./src/bitcoind`
 
 Before running, it's recommended you create an RPC configuration file.
 
     echo -e "rpcuser=bitcoinrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
 
-    chmod 600 "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
+    chmod 600 "/Users/${USER}/Library/Application Support/Freecash/freecash.conf"
 
 The first time you run bitcoind, it will start downloading the blockchain. This process could take several hours.
 
 You can monitor the download process by looking at the debug.log file:
 
-    tail -f $HOME/Library/Application\ Support/Bitcoin/debug.log
+    tail -f $HOME/Library/Application\ Support/Freecash/debug.log
 
 Other commands:
 -------
@@ -87,7 +87,7 @@ Other commands:
 
 Using Qt Creator as IDE
 ------------------------
-You can use Qt Creator as an IDE, for bitcoin development.
+You can use Qt Creator as an IDE, for freecash development.
 Download and install the community edition of [Qt Creator](https://www.qt.io/download/).
 Uncheck everything except Qt Creator during the installation process.
 
