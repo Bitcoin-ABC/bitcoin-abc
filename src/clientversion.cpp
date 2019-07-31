@@ -13,7 +13,7 @@
  * for both bitcoind and bitcoin-abc, to make it harder for attackers to
  * target servers or GUI users specifically.
  */
-const std::string CLIENT_NAME("Bitcoin ABC");
+const std::string CLIENT_NAME("Freecash");
 
 /**
  * Client version number

@@ -55,7 +55,7 @@
 #include <thread>
 
 #if defined(NDEBUG)
-#error "Bitcoin cannot be compiled without assertions."
+#error "Freecash cannot be compiled without assertions."
 #endif
 
 #define MICRO 0.000001

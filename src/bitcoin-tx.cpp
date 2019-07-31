@@ -121,9 +121,9 @@ static int AppInitRawTx(int argc, char *argv[]) {
             PACKAGE_NAME " bitcoin-tx utility version " + FormatFullVersion() +
             "\n\n" +
             "Usage:  bitcoin-tx [options] <hex-tx> [commands]  Update "
-            "hex-encoded bitcoin transaction\n" +
+            "hex-encoded freecash transaction\n" +
             "or:     bitcoin-tx [options] -create [commands]   Create "
-            "hex-encoded bitcoin transaction\n" +
+            "hex-encoded freecash transaction\n" +
             "\n";
 
         strUsage += gArgs.GetHelpMessage();

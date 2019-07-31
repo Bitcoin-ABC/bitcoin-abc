@@ -190,7 +190,7 @@ static UniValue generatetoaddress(const Config &config,
             "1. nblocks      (numeric, required) How many blocks are generated "
             "immediately.\n"
             "2. address      (string, required) The address to send the newly "
-            "generated bitcoin to.\n"
+            "generated freecash to.\n"
             "3. maxtries     (numeric, optional) How many iterations to try "
             "(default = 1000000).\n"
             "\nResult:\n"
@@ -516,12 +516,12 @@ static UniValue getblocktemplate(const Config &config,
 
     if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0) {
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED,
-                           "Bitcoin is not connected!");
+                           "Freecash is not connected!");
     }
 
     if (IsInitialBlockDownload()) {
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                           "Bitcoin is downloading blocks...");
+                           "Freecash is downloading blocks...");
     }
 
     static unsigned int nTransactionsUpdatedLast;

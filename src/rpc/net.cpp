@@ -366,7 +366,7 @@ static UniValue getaddednodeinfo(const Config &config,
             "when connected = true\n"
             "       {\n"
             "         \"address\" : \"192.168.0.201:8333\",  (string) The "
-            "bitcoin server IP and port we're connected to\n"
+            "freecash server IP and port we're connected to\n"
             "         \"connected\" : \"outbound\"           (string) "
             "connection, inbound or outbound\n"
             "       }\n"

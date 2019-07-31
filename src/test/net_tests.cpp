@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE(test_userAgent) {
     gArgs.ForceSetMultiArg("-uacomment", uacomment);
 
     const std::string versionMessage =
-        "/Bitcoin ABC:" + std::to_string(CLIENT_VERSION_MAJOR) + "." +
+        "/Freecash:" + std::to_string(CLIENT_VERSION_MAJOR) + "." +
         std::to_string(CLIENT_VERSION_MINOR) + "." +
         std::to_string(CLIENT_VERSION_REVISION) + "(EB8.0; " + uacomment + ")/";
 

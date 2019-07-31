@@ -36,7 +36,7 @@
 #include <validationinterface.h>
 
 #if defined(NDEBUG)
-#error "Bitcoin cannot be compiled without assertions."
+#error "Freecash cannot be compiled without assertions."
 #endif
 
 // Used only to inform the wallet of when we last received a block.

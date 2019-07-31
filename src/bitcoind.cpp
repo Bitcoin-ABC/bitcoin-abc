@@ -167,7 +167,7 @@ bool AppInit(int argc, char *argv[]) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            fprintf(stdout, "Bitcoin server starting\n");
+            fprintf(stdout, "Freecash server starting\n");
 
             // Daemonize
             if (daemon(1, 0)) {

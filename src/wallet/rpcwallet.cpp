@@ -154,7 +154,7 @@ static UniValue getnewaddress(const Config &config,
     if (request.fHelp || request.params.size() > 2) {
         throw std::runtime_error(
             "getnewaddress ( \"label\" )\n"
-            "\nReturns a new Bitcoin address for receiving payments.\n"
+            "\nReturns a new Freecash address for receiving payments.\n"
             "If 'label' is specified, it is added to the address book \n"
             "so payments received with the address will be associated with "
             "'label'.\n"
@@ -165,7 +165,7 @@ static UniValue getnewaddress(const Config &config,
             "the default label. The label does not need to exist, it will be "
             "created if there is no label by the given name.\n"
             "\nResult:\n"
-            "\"address\"    (string) The new bitcoin address\n"
+            "\"address\"    (string) The new freecash address\n"
             "\nExamples:\n" +
             HelpExampleRpc("getnewaddress", ""));
     }
@@ -230,7 +230,7 @@ UniValue getlabeladdress(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "getlabeladdress \"label\"\n"
-            "\nReturns the current Bitcoin address for receiving payments to "
+            "\nReturns the current Freecash address for receiving payments to "
             "this label.\n"
             "\nArguments:\n"
             "1. \"label\"         (string, required) The label name for the "
@@ -239,7 +239,7 @@ UniValue getlabeladdress(const Config &config, const JSONRPCRequest &request) {
             "created and a new address created  if there is no label by the "
             "given name.\n"
             "\nResult:\n"
-            "\"address\"          (string) The label bitcoin address\n"
+            "\"address\"          (string) The label freecash address\n"
             "\nExamples:\n" +
             HelpExampleCli("getlabeladdress", "") +
             HelpExampleCli("getlabeladdress", "\"\"") +
@@ -267,7 +267,7 @@ static UniValue getrawchangeaddress(const Config &config,
     if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
             "getrawchangeaddress\n"
-            "\nReturns a new Bitcoin address, for receiving change.\n"
+            "\nReturns a new Freecash address, for receiving change.\n"
             "This is for use with raw transactions, NOT normal use.\n"
             "\nResult:\n"
             "\"address\"    (string) The address\n"
@@ -321,7 +321,7 @@ UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
             "setlabel \"address\" \"label\"\n"
             "\nSets the label associated with the given address.\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The bitcoin address to "
+            "1. \"address\"         (string, required) The freecash address to "
             "be associated with a label.\n"
             "2. \"label\"           (string, required) The label to assign the "
             "address to.\n"
@@ -338,7 +338,7 @@ UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
         DecodeDestination(request.params[0].get_str(), config.GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           "Invalid Bitcoin address");
+                           "Invalid Freecash address");
     }
 
     std::string label;
@@ -379,7 +379,7 @@ static UniValue getaccount(const Config &config,
             "\nDEPRECATED. Returns the account associated with the given "
             "address.\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The bitcoin address for "
+            "1. \"address\"         (string, required) The freecash address for "
             "account lookup.\n"
             "\nResult:\n"
             "\"accountname\"        (string) the account address\n"
@@ -396,7 +396,7 @@ static UniValue getaccount(const Config &config,
         DecodeDestination(request.params[0].get_str(), config.GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           "Invalid Bitcoin address");
+                           "Invalid Freecash address");
     }
 
     std::string strAccount;
@@ -425,7 +425,7 @@ static UniValue getaddressesbyaccount(const Config &config,
             "1. \"account\"        (string, required) The account name.\n"
             "\nResult:\n"
             "[                     (json array of string)\n"
-            "  \"address\"         (string) a bitcoin address associated with "
+            "  \"address\"         (string) a Freecash address associated with "
             "the given account\n"
             "  ,...\n"
             "]\n"
@@ -523,7 +523,7 @@ static UniValue sendtoaddress(const Config &config,
             "\nSend an amount to a given address.\n" +
             HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
-            "1. \"address\"            (string, required) The bitcoin address "
+            "1. \"address\"            (string, required) The Freecash address "
             "to send to.\n"
             "2. \"amount\"             (numeric or string, required) The "
             "amount in " +
@@ -542,7 +542,7 @@ static UniValue sendtoaddress(const Config &config,
             "5. subtractfeefromamount  (boolean, optional, default=false) The "
             "fee will be deducted from the amount being sent.\n"
             "                             The recipient will receive less "
-            "bitcoins than you enter in the amount field.\n"
+            "freecashs than you enter in the amount field.\n"
             "\nResult:\n"
             "\"txid\"                  (string) The transaction id.\n"
             "\nExamples:\n" +
@@ -619,7 +619,7 @@ static UniValue listaddressgroupings(const Config &config,
             "[\n"
             "  [\n"
             "    [\n"
-            "      \"address\",            (string) The bitcoin address\n"
+            "      \"address\",            (string) The freecash address\n"
             "      amount,                 (numeric) The amount in " +
             CURRENCY_UNIT +
             "\n"
@@ -677,7 +677,7 @@ static UniValue signmessage(const Config &config,
             HelpRequiringPassphrase(pwallet) +
             "\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The bitcoin address to "
+            "1. \"address\"         (string, required) The freecash address to "
             "use for the private key.\n"
             "2. \"message\"         (string, required) The message to create a "
             "signature of.\n"
@@ -750,7 +750,7 @@ static UniValue getreceivedbyaddress(const Config &config,
             "\nReturns the total amount received by the given address in "
             "transactions with at least minconf confirmations.\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The bitcoin address for "
+            "1. \"address\"         (string, required) The freecash address for "
             "transactions.\n"
             "2. minconf             (numeric, optional, default=1) Only "
             "include transactions confirmed at least this many times.\n"
@@ -785,7 +785,7 @@ static UniValue getreceivedbyaddress(const Config &config,
         DecodeDestination(request.params[0].get_str(), config.GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           "Invalid Bitcoin address");
+                           "Invalid Freecash address");
     }
     CScript scriptPubKey = GetScriptForDestination(dest);
     if (!IsMine(*pwallet, scriptPubKey)) {
@@ -1083,7 +1083,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
             "sendfrom \"fromaccount\" \"toaddress\" amount ( minconf "
             "\"comment\" \"comment_to\" )\n"
             "\nDEPRECATED (use sendtoaddress). Sent an amount from an account "
-            "to a bitcoin address." +
+            "to a freecash address." +
             HelpRequiringPassphrase(pwallet) +
             "\n"
             "\nArguments:\n"
@@ -1096,7 +1096,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
             "account's balance computation and transaction history can "
             "reflect\n"
             "                       the spend.\n"
-            "2. \"toaddress\"         (string, required) The bitcoin address "
+            "2. \"toaddress\"         (string, required) The freecash address "
             "to send funds to.\n"
             "3. amount                (numeric or string, required) The amount "
             "in " +
@@ -1145,7 +1145,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
         DecodeDestination(request.params[1].get_str(), config.GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           "Invalid Bitcoin address");
+                           "Invalid Freecash address");
     }
     Amount nAmount = AmountFromValue(request.params[2]);
     if (nAmount <= Amount::zero()) {
@@ -1205,7 +1205,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
             "2. \"amounts\"             (string, required) A json object with "
             "addresses and amounts\n"
             "    {\n"
-            "      \"address\":amount   (numeric or string) The bitcoin "
+            "      \"address\":amount   (numeric or string) The freecash "
             "address is the key, the numeric amount (can be string) in " +
             CURRENCY_UNIT +
             " is the value\n"
@@ -1219,7 +1219,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
             "                           The fee will be equally deducted from "
             "the amount of each selected address.\n"
             "                           Those recipients will receive less "
-            "bitcoins than you enter in their corresponding amount field.\n"
+            "freecashs than you enter in their corresponding amount field.\n"
             "                           If no addresses are specified here, "
             "the sender pays the fee.\n"
             "    [\n"
@@ -1301,7 +1301,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
         CTxDestination dest = DecodeDestination(name_, config.GetChainParams());
         if (!IsValidDestination(dest)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               std::string("Invalid Bitcoin address: ") +
+                               std::string("Invalid Freecash address: ") +
                                    name_);
         }
 
@@ -1379,17 +1379,17 @@ UniValue addmultisigaddress(const Config &config,
             "addmultisigaddress nrequired [\"key\",...] ( \"label\" )\n"
             "\nAdd a nrequired-to-sign multisignature address to the wallet. "
             "Requires a new wallet backup.\n"
-            "Each key is a Bitcoin address or hex-encoded public key.\n"
+            "Each key is a Freecash address or hex-encoded public key.\n"
             "If 'label' is specified (DEPRECATED), assign address to that "
             "label.\n"
 
             "\nArguments:\n"
             "1. nrequired        (numeric, required) The number of required "
             "signatures out of the n keys or addresses.\n"
-            "2. \"keys\"         (string, required) A json array of bitcoin "
+            "2. \"keys\"         (string, required) A json array of freecash "
             "addresses or hex-encoded public keys\n"
             "     [\n"
-            "       \"address\"  (string) bitcoin address or hex-encoded "
+            "       \"address\"  (string) freecash address or hex-encoded "
             "public key\n"
             "       ...,\n"
             "     ]\n"
@@ -1407,7 +1407,7 @@ UniValue addmultisigaddress(const Config &config,
             "please start bitcoind with -deprecatedrpc=addmultisigaddress).\n"
             "        clients should transition to the new output api before "
             "upgrading to v0.20.\n"
-            "\"address\"                         (string) A bitcoin address "
+            "\"address\"                         (string) A freecash address "
             "associated with the keys.\n"
 
             "\nExamples:\n"
@@ -1889,7 +1889,7 @@ static UniValue listtransactions(const Config &config,
             "account name associated with the transaction. \n"
             "                                                It will be \"\" "
             "for the default account.\n"
-            "    \"address\":\"address\",    (string) The bitcoin address of "
+            "    \"address\":\"address\",    (string) The freecash address of "
             "the transaction. Not present for \n"
             "                                                move transactions "
             "(category = move).\n"
@@ -2193,7 +2193,7 @@ static UniValue listsinceblock(const Config &config,
             "    \"account\":\"accountname\",       (string) DEPRECATED. The "
             "account name associated with the transaction. Will be \"\" for "
             "the default account.\n"
-            "    \"address\":\"address\",    (string) The bitcoin address of "
+            "    \"address\":\"address\",    (string) The freecash address of "
             "the transaction. Not present for move transactions (category = "
             "move).\n"
             "    \"category\":\"send|receive\",     (string) The transaction "
@@ -2405,7 +2405,7 @@ static UniValue gettransaction(const Config &config,
             "      \"account\" : \"accountname\",      (string) DEPRECATED. "
             "The account name involved in the transaction, can be \"\" for the "
             "default account.\n"
-            "      \"address\" : \"address\",          (string) The bitcoin "
+            "      \"address\" : \"address\",          (string) The freecash "
             "address involved in the transaction\n"
             "      \"category\" : \"send|receive\",    (string) The category, "
             "either 'send' or 'receive'\n"
@@ -2641,7 +2641,7 @@ static UniValue walletpassphrase(const Config &config,
             "\nStores the wallet decryption key in memory for 'timeout' "
             "seconds.\n"
             "This is needed prior to performing transactions related to "
-            "private keys such as sending bitcoins\n"
+            "private keys such as sending freecashs\n"
             "\nArguments:\n"
             "1. \"passphrase\"     (string, required) The wallet passphrase\n"
             "2. timeout            (numeric, required) The time to keep the "
@@ -2839,7 +2839,7 @@ static UniValue encryptwallet(const Config &config,
             "\nEncrypt your wallet\n" +
             HelpExampleCli("encryptwallet", "\"my pass phrase\"") +
             "\nNow set the passphrase to use the wallet, such as for signing "
-            "or sending bitcoin\n" +
+            "or sending freecash\n" +
             HelpExampleCli("walletpassphrase", "\"my pass phrase\"") +
             "\nNow we can do something like sign\n" +
             HelpExampleCli("signmessage", "\"address\" \"test message\"") +
@@ -2881,7 +2881,7 @@ static UniValue encryptwallet(const Config &config,
     // slack space in .dat files; that is bad if the old data is
     // unencrypted private keys. So:
     StartShutdown();
-    return "wallet encrypted; Bitcoin server stopping, restart to run with "
+    return "wallet encrypted; Freecash server stopping, restart to run with "
            "encrypted wallet. The keypool has been flushed and a new HD seed "
            "was generated (if you are using HD). You need to make a new "
            "backup.";
@@ -2904,7 +2904,7 @@ static UniValue lockunspent(const Config &config,
             "If no transaction outputs are specified when unlocking then all "
             "current locked transaction outputs are unlocked.\n"
             "A locked transaction output will not be chosen by automatic coin "
-            "selection, when spending bitcoins.\n"
+            "selection, when spending freecashs.\n"
             "Locks are stored in memory only. Nodes start with zero locked "
             "outputs, and the locked output list\n"
             "is always cleared (by virtue of process exit) when a node stops "
@@ -3322,10 +3322,10 @@ static UniValue listunspent(const Config &config,
             "confirmations to filter\n"
             "2. maxconf          (numeric, optional, default=9999999) The "
             "maximum confirmations to filter\n"
-            "3. \"addresses\"      (string) A json array of bitcoin addresses "
+            "3. \"addresses\"      (string) A json array of freecash addresses "
             "to filter\n"
             "    [\n"
-            "      \"address\"     (string) bitcoin address\n"
+            "      \"address\"     (string) freecash address\n"
             "      ,...\n"
             "    ]\n"
             "4. include_unsafe (bool, optional, default=true) Include outputs "
@@ -3353,7 +3353,7 @@ static UniValue listunspent(const Config &config,
             "  {\n"
             "    \"txid\" : \"txid\",          (string) the transaction id \n"
             "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"address\" : \"address\",    (string) the bitcoin address\n"
+            "    \"address\" : \"address\",    (string) the freecash address\n"
             "    \"label\" : \"label\",        (string) The associated label, "
             "or \"\" for the default label\n"
             "    \"account\" : \"account\",    (string) DEPRECATED. Backwards "
@@ -3421,7 +3421,7 @@ static UniValue listunspent(const Config &config,
                 DecodeDestination(input.get_str(), config.GetChainParams());
             if (!IsValidDestination(dest)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                   std::string("Invalid Bitcoin address: ") +
+                                   std::string("Invalid Freecash address: ") +
                                        input.get_str());
             }
             if (!destinations.insert(dest).second) {
@@ -3557,7 +3557,7 @@ static UniValue fundrawtransaction(const Config &config,
             "2. options                 (object, optional)\n"
             "   {\n"
             "     \"changeAddress\"          (string, optional, default pool "
-            "address) The bitcoin address to receive the change\n"
+            "address) The freecash address to receive the change\n"
             "     \"changePosition\"         (numeric, optional, default "
             "random) The index of the change output\n"
             "     \"includeWatching\"        (boolean, optional, default "
@@ -3577,7 +3577,7 @@ static UniValue fundrawtransaction(const Config &config,
             "                              The outputs are specified by their "
             "zero-based index, before any change output is added.\n"
             "                              Those recipients will receive less "
-            "bitcoins than you enter in their corresponding amount field.\n"
+            "freecashs than you enter in their corresponding amount field.\n"
             "                              If no outputs are specified here, "
             "the sender pays the fee.\n"
             "                                  [vout_index,...]\n"
@@ -3653,7 +3653,7 @@ static UniValue fundrawtransaction(const Config &config,
                 if (!IsValidDestination(dest)) {
                     throw JSONRPCError(
                         RPC_INVALID_ADDRESS_OR_KEY,
-                        "changeAddress must be a valid bitcoin address");
+                        "changeAddress must be a valid freecash address");
                 }
 
                 coinControl.destChange = dest;
@@ -4102,15 +4102,15 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "getaddressinfo \"address\"\n"
-            "\nReturn information about the given bitcoin address. Some "
+            "\nReturn information about the given freecash address. Some "
             "information requires the address\n"
             "to be in the wallet.\n"
             "\nArguments:\n"
-            "1. \"address\"                    (string, required) The bitcoin "
+            "1. \"address\"                    (string, required) The freecash "
             "address to get the information of.\n"
             "\nResult:\n"
             "{\n"
-            "  \"address\" : \"address\",        (string) The bitcoin address "
+            "  \"address\" : \"address\",        (string) The freecash address "
             "validated\n"
             "  \"scriptPubKey\" : \"hex\",       (string) The hex encoded "
             "scriptPubKey generated by the address\n"
