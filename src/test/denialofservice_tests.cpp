@@ -285,7 +285,10 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
         LOCK(cs_main);
         Misbehaving(dummyNode1.GetId(), 10, "");
     }
-    peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+    {
+        LOCK2(cs_main, dummyNode1.cs_sendProcessing);
+        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+    }
     BOOST_CHECK(!connman->IsBanned(addr1));
     {
         LOCK(cs_main);
