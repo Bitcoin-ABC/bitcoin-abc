@@ -2687,8 +2687,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
                              const Amount nMinimumAmount,
                              const Amount nMaximumAmount,
                              const Amount nMinimumSumAmount,
-                             const uint64_t nMaximumCount, const int nMinDepth,
-                             const int nMaxDepth) const {
+                             const uint64_t nMaximumCount) const {
     AssertLockHeld(cs_wallet);
 
     vCoins.clear();
@@ -2700,6 +2699,10 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
     bool allow_used_addresses =
         !IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE) ||
         (coinControl && !coinControl->m_avoid_address_reuse);
+    const int min_depth = {coinControl ? coinControl->m_min_depth
+                                       : DEFAULT_MIN_DEPTH};
+    const int max_depth = {coinControl ? coinControl->m_max_depth
+                                       : DEFAULT_MAX_DEPTH};
 
     const Consensus::Params params = Params().GetConsensus();
 
@@ -2755,7 +2758,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
             continue;
         }
 
-        if (nDepth < nMinDepth || nDepth > nMaxDepth) {
+        if (nDepth < min_depth || nDepth > max_depth) {
             continue;
         }
 
