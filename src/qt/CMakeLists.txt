@@ -145,6 +145,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	)
 
 	set_property(TARGET bitcoin-qt-base PROPERTY AUTOMOC_MOC_OPTIONS "-DQ_OS_MAC")
+
+	target_link_libraries(bitcoin-qt-base
+		"-framework Foundation"
+		"-framework ApplicationServices"
+		"-framework AppKit"
+	)
 endif()
 
 # Find out more about Qt. This is similar to
