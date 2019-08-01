@@ -109,7 +109,7 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000f22fbd89943b5f5104e4ec");
+            "00");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
@@ -219,7 +219,7 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "00000000000000000000000000000000000000000000004f587a0e52b7984751");
+            "00");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
