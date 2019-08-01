@@ -195,6 +195,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         self.check_mempool_result(
             result_expected=[{'txid': tx.rehash(), 'allowed': True}],
             rawtxs=[ToHex(tx)],
+            maxfeerate=0,
         )
 
         self.log.info('A transaction with no outputs')

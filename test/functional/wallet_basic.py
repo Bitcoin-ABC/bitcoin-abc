@@ -514,7 +514,7 @@ class WalletTest(BitcoinTestFramework):
         raw_tx = self.nodes[0].createrawtransaction([{"txid": singletxid, "vout": 0}], {
             chain_addrs[0]: node0_balance / 2 - Decimal('0.01'), chain_addrs[1]: node0_balance / 2 - Decimal('0.01')})
         signedtx = self.nodes[0].signrawtransactionwithwallet(raw_tx)
-        singletxid = self.nodes[0].sendrawtransaction(signedtx["hex"])
+        singletxid = self.nodes[0].sendrawtransaction(signedtx["hex"], 0)
         self.nodes[0].generate(1)
 
         # Make a long chain of unconfirmed payments without hitting mempool limit
