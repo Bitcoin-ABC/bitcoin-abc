@@ -91,7 +91,7 @@ struct Descriptor {
  * else is wrong, nullptr is returned.
  */
 std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
-                                  FlatSigningProvider &out,
+                                  FlatSigningProvider &out, std::string &error,
                                   bool require_checksum = false);
 
 /**

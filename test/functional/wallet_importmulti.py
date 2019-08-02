@@ -477,7 +477,7 @@ class ImportMultiTest(BitcoinTestFramework):
                                "label": "Descriptor import test"},
                               success=False,
                               error_code=-5,
-                              error_message='Descriptor is invalid')
+                              error_message='Descriptor is invalid, Missing checksum')
 
         xpriv = "tprv8ZgxMBicQKsPeuVhWwi6wuMQGfPKi9Li5GtX35jVNknACgqe3CY4g5xgkfDDJcmtF7o1QnxWDRYw4H5P26PXq7sbcUkEqeR4fg3Kxp2tigg"
         # hdkeypath=m/0'/0'/0' and 1'
