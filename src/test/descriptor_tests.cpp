@@ -16,13 +16,15 @@
 
 namespace {
 
-void CheckUnparsable(const std::string &prv, const std::string &pub) {
+void CheckUnparsable(const std::string &prv, const std::string &pub,
+                     const std::string &expected_error) {
     FlatSigningProvider keys_priv, keys_pub;
     std::string error;
     auto parse_priv = Parse(prv, keys_priv, error);
     auto parse_pub = Parse(pub, keys_pub, error);
     BOOST_CHECK_MESSAGE(!parse_priv, prv);
     BOOST_CHECK_MESSAGE(!parse_pub, pub);
+    BOOST_CHECK(error == expected_error);
 }
 
 constexpr int DEFAULT = 0;
@@ -321,6 +323,16 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "ecac",
             "76a914a8409d1b6dfb1ed2a3e8aa5e0ef2ff26b15b75b788ac"}},
           {{0}, {1}});
+
+    // Too long key fingerprint
+    CheckUnparsable("combo([012345678]"
+                    "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3x"
+                    "z7iAxn8L39njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc)",
+                    "combo([012345678]"
+                    "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbm"
+                    "JbZRkrgZw4koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL)",
+                    "Fingerprint is not 4 bytes (9 characters instead of 8 "
+                    "characters)");
     // BIP 32 path element overflow
     CheckUnparsable(
         "pkh("
@@ -328,7 +340,8 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U/2147483648)",
         "pkh("
         "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDM"
-        "Sgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/2147483648)");
+        "Sgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/2147483648)",
+        "Key path value 2147483648 is out of range");
 
     // Multisig constructions
     Check("multi(1,L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1,"
@@ -389,7 +402,8 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "02f5d1ff7c9029a80a4e36b9a5497027ef7f3e73384a4a94fbfe7c4e9164eec8bc,"
         "02e41deffd1b7cce11cde209a781adcffdabd1b91c0ba0375857a2bfd9302419f3,"
         "02d76625f7956a7fc505ab02556c23ee72d832f1bac391bcd2d3abce5710a13d06,"
-        "0399eb0a5487515802dc14544cf10b3666623762fbed2ec38a3975716e2c29c232))");
+        "0399eb0a5487515802dc14544cf10b3666623762fbed2ec38a3975716e2c29c232))",
+        "P2SH script is too large, 547 bytes is larger than 520 bytes");
 
     // Check for invalid nesting of structures
 
@@ -397,19 +411,22 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
     CheckUnparsable(
         "sh(L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
         "sh("
-        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)");
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)",
+        "A function is needed within P2SH");
     // Old must be top level
     CheckUnparsable(
         "sh(combo("
         "L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1))",
         "sh(combo("
-        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd))");
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd))",
+        "Cannot have combo in non-top level");
     // Cannot embed P2SH inside P2SH
     CheckUnparsable(
         "sh(sh(pk(L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)))",
         "sh(sh(pk("
         "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd))"
-        ")");
+        ")",
+        "Cannot have sh in non-top level");
 
     // Checksums
     Check("sh(multi(2,[00000000/111'/"
@@ -453,7 +470,8 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
         "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
         "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
-        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#");
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#",
+        "Expected 8 character checksum, not 0 characters");
     // Too long checksum
     CheckUnparsable(
         "sh(multi(2,[00000000/111'/"
@@ -467,7 +485,8 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
         "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
         "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
-        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5tq");
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5tq",
+        "Expected 8 character checksum, not 9 characters");
     // Too short checksum
     CheckUnparsable(
         "sh(multi(2,[00000000/111'/"
@@ -481,7 +500,8 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
         "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
         "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
-        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5");
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5",
+        "Expected 8 character checksum, not 7 characters");
     // Error in payload
     CheckUnparsable(
         "sh(multi(3,[00000000/111'/"
@@ -495,7 +515,9 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
         "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
         "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
-        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5t");
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjg09x5t",
+        "Provided checksum 'tjg09x5t' does not match computed checksum "
+        "'d4x0uxyv'");
     // Error in checksum
     CheckUnparsable(
         "sh(multi(2,[00000000/111'/"
@@ -509,7 +531,9 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
         "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
         "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
-        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjq09x4t");
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjq09x4t",
+        "Provided checksum 'tjq09x4t' does not match computed checksum "
+        "'tjg09x5t'");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
