@@ -1025,7 +1025,10 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         if ((flags & SCRIPT_ENABLE_SCHNORR_MULTISIG) &&
                             stacktop(-idxDummy).size() != 0) {
                             // SCHNORR MULTISIG
-                            static_assert(MAX_PUBKEYS_PER_MULTISIG < 32);
+                            static_assert(
+                                MAX_PUBKEYS_PER_MULTISIG < 32,
+                                "Schnorr multisig checkbits implementation "
+                                "assumes < 32 pubkeys.");
                             uint32_t checkBits = 0;
 
                             // Dummy element is to be interpreted as a bitfield
