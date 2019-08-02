@@ -810,8 +810,11 @@ NODISCARD bool ParseKeyPath(const std::vector<Span<const char>> &split,
             hardened = true;
         }
         uint32_t p;
-        if (!ParseUInt32(std::string(elem.begin(), elem.end()), &p) ||
-            p > 0x7FFFFFFFUL) {
+        if (!ParseUInt32(std::string(elem.begin(), elem.end()), &p)) {
+            error = strprintf("Key path value '%s' is not a valid uint32",
+                              std::string(elem.begin(), elem.end()).c_str());
+            return false;
+        } else if (p > 0x7FFFFFFFUL) {
             error = strprintf("Key path value %u is out of range", p);
             return false;
         }
@@ -826,6 +829,10 @@ std::unique_ptr<PubkeyProvider> ParsePubkeyInner(const Span<const char> &sp,
                                                  std::string &error) {
     auto split = Split(sp, '/');
     std::string str(split[0].begin(), split[0].end());
+    if (str.size() == 0) {
+        error = "No key provided";
+        return nullptr;
+    }
     if (split.size() == 1) {
         if (IsHex(str)) {
             std::vector<uint8_t> data = ParseHex(str);
@@ -833,6 +840,8 @@ std::unique_ptr<PubkeyProvider> ParsePubkeyInner(const Span<const char> &sp,
             if (pubkey.IsFullyValid()) {
                 return std::make_unique<ConstPubkeyProvider>(pubkey);
             }
+            error = strprintf("Pubkey '%s' is invalid", str);
+            return nullptr;
         }
         CKey key = DecodeSecret(str);
         if (key.IsValid()) {
@@ -881,9 +890,9 @@ std::unique_ptr<PubkeyProvider> ParsePubkey(const Span<const char> &sp,
         return ParsePubkeyInner(origin_split[0], out, error);
     }
     if (origin_split[0].size() < 1 || origin_split[0][0] != '[') {
-        error = strprintf(
-            "Key origin expected but not found, got '%s' instead",
-            std::string(origin_split[0].begin(), origin_split[0].end()));
+        error = strprintf("Key origin start '[ character expected but not "
+                          "found, got '%c' instead",
+                          origin_split[0][0]);
         return nullptr;
     }
     auto slash_split = Split(origin_split[0].subspan(1), '/');
@@ -941,6 +950,9 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
             return nullptr;
         }
         return std::make_unique<ComboDescriptor>(std::move(pubkey));
+    } else if (ctx != ParseScriptContext::TOP && Func("combo", expr)) {
+        error = "Cannot have combo in non-top level";
+        return nullptr;
     }
     if (Func("multi", expr)) {
         auto threshold = Expr(expr);
@@ -948,13 +960,15 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
         std::vector<std::unique_ptr<PubkeyProvider>> providers;
         if (!ParseUInt32(std::string(threshold.begin(), threshold.end()),
                          &thres)) {
-            error = strprintf("multi threshold %u out of range", thres);
+            error = strprintf(
+                "Multi threshold '%s' is not valid",
+                std::string(threshold.begin(), threshold.end()).c_str());
             return nullptr;
         }
         size_t script_size = 0;
         while (expr.size()) {
             if (!Const(",", expr)) {
-                error = strprintf("multi: expected ',', got '%c'", expr[0]);
+                error = strprintf("Multi: expected ',', got '%c'", expr[0]);
                 return nullptr;
             }
             auto arg = Expr(expr);
@@ -965,14 +979,26 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
             script_size += pk->GetSize() + 1;
             providers.emplace_back(std::move(pk));
         }
-        if (providers.size() < 1 || providers.size() > 16 || thres < 1 ||
-            thres > providers.size()) {
+        if (providers.size() < 1 || providers.size() > 16) {
+            error = strprintf("Cannot have %u keys in multisig; must have "
+                              "between 1 and 16 keys, inclusive",
+                              providers.size());
+            return nullptr;
+        } else if (thres < 1) {
+            error = strprintf(
+                "Multisig threshold cannot be %d, must be at least 1", thres);
+            return nullptr;
+        } else if (thres > providers.size()) {
+            error =
+                strprintf("Multisig threshold cannot be larger than the number "
+                          "of keys; threshold is %d but only %u keys specified",
+                          thres, providers.size());
             return nullptr;
         }
         if (ctx == ParseScriptContext::TOP) {
             if (providers.size() > 3) {
-                error = strprintf("Cannot %u pubkeys in bare multisig; only at "
-                                  "most 3 pubkeys",
+                error = strprintf("Cannot have %u pubkeys in bare multisig; "
+                                  "only at most 3 pubkeys",
                                   providers.size());
                 return nullptr;
             }
@@ -994,6 +1020,9 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
             return nullptr;
         }
         return std::make_unique<SHDescriptor>(std::move(desc));
+    } else if (ctx != ParseScriptContext::TOP && Func("sh", expr)) {
+        error = "Cannot have sh in non-top level";
+        return nullptr;
     }
     if (ctx == ParseScriptContext::TOP && Func("addr", expr)) {
         CTxDestination dest =
@@ -1013,6 +1042,10 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
         auto bytes = ParseHex(str);
         return std::make_unique<RawDescriptor>(
             CScript(bytes.begin(), bytes.end()));
+    }
+    if (ctx == ParseScriptContext::P2SH) {
+        error = "A function is needed within P2SH";
+        return nullptr;
     }
     error = strprintf("%s is not a valid descriptor function",
                       std::string(expr.begin(), expr.end()));

@@ -14,7 +14,7 @@ class DeriveaddressesTest(BitcoinTestFramework):
         self.supports_cli = 1
 
     def run_test(self):
-        assert_raises_rpc_error(-5, "Invalid descriptor",
+        assert_raises_rpc_error(-5, "Missing checksum",
                                 self.nodes[0].deriveaddresses, "a")
 
         descriptor = "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0)#rdfjd0a9"
@@ -23,7 +23,7 @@ class DeriveaddressesTest(BitcoinTestFramework):
 
         descriptor = descriptor[:-9]
         assert_raises_rpc_error(-5,
-                                "Invalid descriptor",
+                                "Missing checksum",
                                 self.nodes[0].deriveaddresses,
                                 descriptor)
 

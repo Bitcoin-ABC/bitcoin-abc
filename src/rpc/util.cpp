@@ -756,9 +756,7 @@ EvalDescriptorStringOrObject(const UniValue &scanobject,
     std::string error;
     auto desc = Parse(desc_str, provider, error);
     if (!desc) {
-        throw JSONRPCError(
-            RPC_INVALID_ADDRESS_OR_KEY,
-            strprintf("Invalid descriptor '%s', %s", desc_str, error));
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
     }
     if (!desc->IsRange()) {
         range.first = 0;

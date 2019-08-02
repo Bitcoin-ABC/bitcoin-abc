@@ -1270,8 +1270,7 @@ static UniValue ProcessImportDescriptor(ImportData &import_data,
     auto parsed_desc =
         Parse(descriptor, keys, error, /* require_checksum = */ true);
     if (!parsed_desc) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           strprintf("Descriptor is invalid, %s", error));
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
     }
 
     have_solving_data = parsed_desc->IsSolvable();

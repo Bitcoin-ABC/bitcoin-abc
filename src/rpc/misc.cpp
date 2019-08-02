@@ -192,8 +192,7 @@ UniValue getdescriptorinfo(const Config &config,
     std::string error;
     auto desc = Parse(request.params[0].get_str(), provider, error);
     if (!desc) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           strprintf("Invalid descriptor, %s", error));
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
     }
 
     UniValue result(UniValue::VOBJ);
@@ -257,8 +256,7 @@ UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
     std::string error;
     auto desc = Parse(desc_str, key_provider, error, /* require_checksum = */ true);
     if (!desc) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           strprintf("Invalid descriptor, %s", error));
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
     }
 
     if (!desc->IsRange() && request.params.size() > 1) {
