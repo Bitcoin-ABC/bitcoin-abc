@@ -4,7 +4,7 @@ include(CheckCCompilerFlag)
 include(SanitizeHelper)
 
 function(check_compiler_flag RESULT LANGUAGE FLAG)
-	sanitize_variable("have_${LANGUAGE}_" ${FLAG} TEST_NAME)
+	sanitize_c_cxx_definition("have_${LANGUAGE}_" ${FLAG} TEST_NAME)
 
 	if("${LANGUAGE}" STREQUAL "C")
 		CHECK_C_COMPILER_FLAG(${FLAG} ${TEST_NAME})
@@ -99,7 +99,7 @@ endfunction()
 # is a workaround that allow for testing the linker flags.
 function(add_linker_flag)
 	foreach(f ${ARGN})
-		sanitize_variable("have_linker_" ${f} FLAG_IS_SUPPORTED)
+		sanitize_c_cxx_definition("have_linker_" ${f} FLAG_IS_SUPPORTED)
 
 		# Some linkers (e.g.: Clang) will issue a -Wunused-command-line-argument
 		# warning when an unknown linker flag is set.
