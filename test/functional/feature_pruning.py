@@ -226,6 +226,7 @@ class PruneTest(BitcoinTestFramework):
             "Mine 220 more large blocks so we have requisite history")
 
         mine_large_blocks(self.nodes[0], 220)
+        sync_blocks(self.nodes[0:3], timeout=120)
 
         usage = calc_usage(self.prunedir)
         self.log.info("Usage should be below target: {}".format(usage))
