@@ -67,7 +67,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
 
 	# Build all static so there is no dll file to distribute.
-	add_compiler_flag(-static)
+	add_compiler_flags(-static)
 endif()
 
 if(ENABLE_REDUCE_EXPORTS)
@@ -81,38 +81,38 @@ if(ENABLE_REDUCE_EXPORTS)
 	endif()
 
 	# Also hide symbols from static libraries
-	add_linker_flag(-Wl,--exclude-libs,ALL)
+	add_linker_flags(-Wl,--exclude-libs,ALL)
 endif()
 
 # Enable statically linking libstdc++
 if(ENABLE_STATIC_LIBSTDCXX)
-	add_linker_flag(-static-libstdc++)
+	add_linker_flags(-static-libstdc++)
 endif()
 
 # All windows code is PIC, forcing it on just adds useless compile warnings
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	add_compiler_flag(-fPIC)
+	add_compiler_flags(-fPIC)
 endif()
 
 if(ENABLE_HARDENING)
 	# Enable stack protection
-	add_cxx_compiler_flag(-fstack-protector-all -Wstack-protector)
+	add_cxx_compiler_flags(-fstack-protector-all -Wstack-protector)
 
 	# Enable some buffer overflow checking
-	add_compiler_flag(-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+	add_compiler_flags(-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
 
 	# Enable ASLR (these flags are primarily targeting MinGw)
-	add_linker_flag(-Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)
+	add_linker_flags(-Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)
 
 	# Make the relocated sections read-only
-	add_linker_flag(-Wl,-z,relro -Wl,-z,now)
+	add_linker_flags(-Wl,-z,relro -Wl,-z,now)
 
 	# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
 	# Unfortunately setting the -pie linker flag this way require CMake >= 3.14,
 	# which is not widely distributed at the time of writing.
 	# FIXME: use the POSITION_INDEPENDENT_CODE property instead
-	add_compiler_flag(-fPIE)
-	add_linker_flag(-pie)
+	add_compiler_flags(-fPIE)
+	add_linker_flags(-pie)
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		# MinGw provides its own libssp for stack smashing protection
@@ -121,8 +121,8 @@ if(ENABLE_HARDENING)
 endif()
 
 # Enable warning
-add_c_compiler_flag(-Wnested-externs -Wstrict-prototypes)
-add_compiler_flag(
+add_c_compiler_flags(-Wnested-externs -Wstrict-prototypes)
+add_compiler_flags(
 	-Wall
 	-Wextra
 	-Wformat
@@ -138,10 +138,10 @@ add_compiler_flag(
 
 option(EXTRA_WARNINGS "Enable extra warnings" OFF)
 if(EXTRA_WARNINGS)
-	add_cxx_compiler_flag(-Wsuggest-override)
+	add_cxx_compiler_flags(-Wsuggest-override)
 else()
-	add_compiler_flag(-Wno-unused-parameter)
-	add_compiler_flag(-Wno-implicit-fallthrough)
+	add_compiler_flags(-Wno-unused-parameter)
+	add_compiler_flags(-Wno-implicit-fallthrough)
 endif()
 
 # Create a target for OpenSSL
@@ -229,8 +229,8 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 	target_compile_definitions(util PRIVATE "-DFDELT_TYPE=${FDELT_TYPE}")
 
 	# Wrap some glibc functions with ours
-	add_linker_flag(-Wl,--wrap=__divmoddi4)
-	add_linker_flag(-Wl,--wrap=log2f)
+	add_linker_flags(-Wl,--wrap=__divmoddi4)
+	add_linker_flags(-Wl,--wrap=log2f)
 
 	target_sources(util PRIVATE compat/glibc_compat.cpp)
 endif()

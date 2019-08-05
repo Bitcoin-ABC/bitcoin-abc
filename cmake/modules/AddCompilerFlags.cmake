@@ -16,7 +16,7 @@ function(check_compiler_flag RESULT LANGUAGE FLAG)
 	set(${RESULT} ${${TEST_NAME}} PARENT_SCOPE)
 endfunction()
 
-function(add_c_compiler_flag)
+function(add_c_compiler_flags)
 	foreach(f ${ARGN})
 		check_compiler_flag(FLAG_IS_SUPPORTED C ${f})
 		if(${FLAG_IS_SUPPORTED})
@@ -26,7 +26,7 @@ function(add_c_compiler_flag)
 	set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} PARENT_SCOPE)
 endfunction()
 
-function(add_cxx_compiler_flag)
+function(add_cxx_compiler_flags)
 	foreach(f ${ARGN})
 		check_compiler_flag(FLAG_IS_SUPPORTED CXX ${f})
 		if(${FLAG_IS_SUPPORTED})
@@ -36,9 +36,9 @@ function(add_cxx_compiler_flag)
 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
 endfunction()
 
-macro(add_compiler_flag)
-	add_c_compiler_flag(${ARGN})
-	add_cxx_compiler_flag(${ARGN})
+macro(add_compiler_flags)
+	add_c_compiler_flags(${ARGN})
+	add_cxx_compiler_flags(${ARGN})
 endmacro()
 
 macro(remove_c_compiler_flags)
@@ -97,7 +97,7 @@ endfunction()
 # However since CMake 3.2 introduced the CMP0056 policy, the
 # CMAKE_EXE_LINKER_FLAGS variable is used by the try_compile function, so there
 # is a workaround that allow for testing the linker flags.
-function(add_linker_flag)
+function(add_linker_flags)
 	foreach(f ${ARGN})
 		sanitize_c_cxx_definition("have_linker_" ${f} FLAG_IS_SUPPORTED)
 
