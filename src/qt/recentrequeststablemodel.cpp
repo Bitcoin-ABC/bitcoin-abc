@@ -134,12 +134,12 @@ bool RecentRequestsTableModel::removeRows(int row, int count,
     Q_UNUSED(parent);
 
     if (count > 0 && row >= 0 && (row + count) <= list.size()) {
-        const RecentRequestEntry *rec;
         for (int i = 0; i < count; ++i) {
-            rec = &list[row + i];
+            const RecentRequestEntry *rec = &list[row + i];
             if (!walletModel->saveReceiveRequest(
-                    rec->recipient.address.toStdString(), rec->id, ""))
+                    rec->recipient.address.toStdString(), rec->id, "")) {
                 return false;
+            }
         }
 
         beginRemoveRows(parent, row, row + count - 1);
