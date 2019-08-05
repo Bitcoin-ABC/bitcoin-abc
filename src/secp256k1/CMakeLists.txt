@@ -6,9 +6,7 @@ project(secp256k1)
 # libsecp256k1 use a different set of flags.
 add_compiler_flag(
 	-pedantic
-	-Wshadow
 	-Wno-unused-function
-	-Wno-nonnull
 	-Wno-overlength-strings
 )
 
