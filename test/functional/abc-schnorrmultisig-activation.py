@@ -59,7 +59,7 @@ REPLAY_PROTECTION_START_TIME = GRAVITON_START_TIME * 2
 
 # Before the upgrade, Schnorr checkmultisig is rejected but forgiven if it would have been valid after the upgrade.
 PREUPGRADE_SCHNORR_MULTISIG_ERROR = dict(reject_code=16,
-                                         reject_reason=b'upgrade-conditional-script-failure (Dummy CHECKMULTISIG argument must be zero)')
+                                         reject_reason=b'upgrade-conditional-script-failure (Signature cannot be 65 bytes in CHECKMULTISIG)')
 
 # Before the upgrade, ECDSA checkmultisig with non-null dummy are rejected with a non-mandatory error.
 PREUPGRADE_ECDSA_NULLDUMMY_ERROR = dict(reject_code=64,
