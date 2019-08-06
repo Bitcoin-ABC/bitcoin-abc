@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(map) {
         BOOST_CHECK_EQUAL(w["2"], "two");
         BOOST_CHECK_EQUAL(w["3"], "three");
 
-        for (const std::pair<std::string, std::string> &p : w) {
+        for (const std::pair<const std::string, std::string> &p : w) {
             BOOST_CHECK_EQUAL(w[p.first], p.second);
         }
     }
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(map) {
         BOOST_CHECK_EQUAL(r->find("1")->first, "1");
         BOOST_CHECK_EQUAL(r->find("1")->second, "one");
 
-        for (const std::pair<std::string, std::string> &p : r) {
+        for (const std::pair<const std::string, std::string> &p : r) {
             BOOST_CHECK_EQUAL(r->at(p.first), p.second);
         }
     }

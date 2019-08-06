@@ -804,8 +804,7 @@ static UniValue getreceivedbyaddress(const Config &config,
 
     // Tally
     Amount nAmount = Amount::zero();
-    for (const std::pair<const uint256, CWalletTx> &pairWtx :
-         pwallet->mapWallet) {
+    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
@@ -879,8 +878,7 @@ static UniValue getreceivedbylabel(const Config &config,
 
     // Tally
     Amount nAmount = Amount::zero();
-    for (const std::pair<const uint256, CWalletTx> &pairWtx :
-         pwallet->mapWallet) {
+    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
         CValidationState state;
         if (wtx.IsCoinBase() || !ContextualCheckTransactionForCurrentBlock(
@@ -1525,8 +1523,7 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
 
     // Tally
     std::map<CTxDestination, tallyitem> mapTally;
-    for (const std::pair<const uint256, CWalletTx> &pairWtx :
-         pwallet->mapWallet) {
+    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
@@ -2128,8 +2125,7 @@ static UniValue listaccounts(const Config &config,
         }
     }
 
-    for (const std::pair<const uint256, CWalletTx> &pairWtx :
-         pwallet->mapWallet) {
+    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
         Amount nFee;
         std::string strSentAccount;
@@ -2333,8 +2329,7 @@ static UniValue listsinceblock(const Config &config,
 
     UniValue transactions(UniValue::VARR);
 
-    for (const std::pair<const uint256, CWalletTx> &pairWtx :
-         pwallet->mapWallet) {
+    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         CWalletTx tx = pairWtx.second;
 
         if (depth == -1 || tx.GetDepthInMainChain() < depth) {

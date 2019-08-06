@@ -82,7 +82,7 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
 
     // Scan templates
     const CScript &script1 = scriptPubKey;
-    for (const std::pair<txnouttype, CScript> &tplate : mTemplates) {
+    for (const std::pair<const txnouttype, CScript> &tplate : mTemplates) {
         const CScript &script2 = tplate.second;
         vSolutionsRet.clear();
 
