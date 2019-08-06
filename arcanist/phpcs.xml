@@ -17,6 +17,8 @@
         <exclude name="Generic.Commenting.DocComment.ParamNotFirst" />
         <exclude name="Generic.Commenting.DocComment.SpacingBeforeTags" />
         <exclude name="Generic.Commenting.DocComment.TagValueIndent" />
+        <exclude name="Generic.Commenting.Fixme.TaskFound" />
+        <exclude name="Generic.Commenting.Todo.TaskFound" />
         <exclude name="Generic.Files.EndFileNoNewline.Found" />
         <exclude name="Generic.Files.LowercasedFilename" />
         <exclude name="Generic.Formatting.MultipleStatementAlignment" />
