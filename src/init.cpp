@@ -414,7 +414,8 @@ void SetupServerArgs() {
         "-blocksonly",
         strprintf(
             "Whether to reject transactions from network peers. Transactions "
-            "from the wallet or RPC are not affected. (default: %u)",
+            "from the wallet, RPC and relay whitelisted inbound peers RPC are"
+            " not affected. (default: %u)",
             DEFAULT_BLOCKSONLY),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-conf=<file>",
@@ -1002,14 +1003,15 @@ void SetupServerArgs() {
     gArgs.AddArg(
         "-whitelistrelay",
         strprintf("Accept relayed transactions received from whitelisted "
-                  "peers even when not relaying transactions (default: %d)",
+                  "inbound peers even when not relaying transactions "
+                  "(default: %d)",
                   DEFAULT_WHITELISTRELAY),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     gArgs.AddArg(
         "-whitelistforcerelay",
-        strprintf("Force relay of transactions from whitelisted peers even if "
-                  "the transactions were already in the mempool or violate "
-                  "local relay policy (default: %d)",
+        strprintf("Force relay of transactions from whitelisted inbound peers"
+                  " even if the transactions were already in the mempool or "
+                  "violate local relay policy (default: %d)",
                   DEFAULT_WHITELISTFORCERELAY),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
 
