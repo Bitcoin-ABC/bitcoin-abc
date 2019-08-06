@@ -31,10 +31,6 @@
 #include <QObject>
 #include <QTest>
 
-#ifdef ENABLE_BIP70
-#include <openssl/ssl.h>
-#endif
-
 #if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
 #if defined(QT_QPA_PLATFORM_MINIMAL)
@@ -72,12 +68,6 @@ int main(int argc, char *argv[]) {
     // QApplication:: and QCoreApplication:: in the tests
     BitcoinApplication app(*node, argc, argv);
     app.setApplicationName("BitcoinABC-Qt-test");
-
-#ifdef ENABLE_BIP70
-    // This is necessary to initialize openssl on the test framework
-    // (at least on Darwin).
-    SSL_library_init();
-#endif
 
     AppTests app_tests(app);
     if (QTest::qExec(&app_tests) != 0) {
