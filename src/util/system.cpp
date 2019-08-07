@@ -302,7 +302,7 @@ bool ParseKeyValue(std::string &key, std::string &val) {
         key.erase(is_index);
     }
 #ifdef WIN32
-    std::transform(key.begin(), key.end(), key.begin(), ToLower);
+    key = ToLower(key);
     if (key[0] == '/') {
         key[0] = '-';
     }
