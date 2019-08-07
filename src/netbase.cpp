@@ -12,6 +12,8 @@
 #include <util.h>
 #include <utilstrencodings.h>
 
+#include <tinyformat.h>
+
 #include <atomic>
 
 #ifndef WIN32
@@ -522,8 +524,19 @@ SOCKET CreateSocket(const CService &addrConnect) {
     return hSocket;
 }
 
+template <typename... Args>
+static void LogConnectFailure(bool manual_connection, const char *fmt,
+                              const Args &... args) {
+    std::string error_message = tfm::format(fmt, args...);
+    if (manual_connection) {
+        LogPrintf("%s\n", error_message);
+    } else {
+        LogPrint(BCLog::NET, "%s\n", error_message);
+    }
+}
+
 bool ConnectSocketDirectly(const CService &addrConnect, const SOCKET &hSocket,
-                           int nTimeout) {
+                           int nTimeout, bool manual_connection) {
     struct sockaddr_storage sockaddr;
     socklen_t len = sizeof(sockaddr);
     if (hSocket == INVALID_SOCKET) {
@@ -567,8 +580,10 @@ bool ConnectSocketDirectly(const CService &addrConnect, const SOCKET &hSocket,
                 return false;
             }
             if (nRet != 0) {
-                LogPrintf("connect() to %s failed after select(): %s\n",
-                          addrConnect.ToString(), NetworkErrorString(nRet));
+                LogConnectFailure(manual_connection,
+                                  "connect() to %s failed after select(): %s",
+                                  addrConnect.ToString(),
+                                  NetworkErrorString(nRet));
                 return false;
             }
         }
@@ -578,8 +593,9 @@ bool ConnectSocketDirectly(const CService &addrConnect, const SOCKET &hSocket,
         else
 #endif
         {
-            LogPrintf("connect() to %s failed: %s\n", addrConnect.ToString(),
-                      NetworkErrorString(WSAGetLastError()));
+            LogConnectFailure(manual_connection, "connect() to %s failed: %s",
+                              addrConnect.ToString(),
+                              NetworkErrorString(WSAGetLastError()));
             return false;
         }
     }
@@ -643,7 +659,7 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
                          int port, const SOCKET &hSocket, int nTimeout,
                          bool *outProxyConnectionFailed) {
     // first connect to proxy server
-    if (!ConnectSocketDirectly(proxy.proxy, hSocket, nTimeout)) {
+    if (!ConnectSocketDirectly(proxy.proxy, hSocket, nTimeout, true)) {
         if (outProxyConnectionFailed) {
             *outProxyConnectionFailed = true;
         }
@@ -663,6 +679,7 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
     }
     return true;
 }
+
 bool LookupSubNet(const char *pszName, CSubNet &ret) {
     std::string strSubnet(pszName);
     size_t slash = strSubnet.find_last_of('/');

@@ -279,7 +279,8 @@ public:
                     return false;
                 }
                 // no proxy needed (none set for target network)
-                connected = ConnectSocketDirectly(you, sock, nConnectTimeout);
+                connected =
+                    ConnectSocketDirectly(you, sock, nConnectTimeout, true);
             }
         }
 
