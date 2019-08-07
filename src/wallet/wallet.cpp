@@ -1804,6 +1804,11 @@ CBlockIndex *CWallet::ScanForWalletTransactions(
 
     CBlockIndex *pindex = pindexStart;
     CBlockIndex *ret = nullptr;
+
+    if (pindex) {
+        LogPrintf("Rescan started from block %d...\n", pindex->nHeight);
+    }
+
     {
         fAbortRescan = false;
 
