@@ -368,7 +368,7 @@ class RawTransactionsTest(BitcoinTestFramework):
             rawTx2, inputs)
         self.log.debug(rawTxPartialSigned1)
         # node1 only has one key, can't comp. sign the tx
-        assert_equal(rawTxPartialSigned['complete'], False)
+        assert_equal(rawTxPartialSigned1['complete'], False)
 
         rawTxPartialSigned2 = self.nodes[2].signrawtransactionwithwallet(
             rawTx2, inputs)
