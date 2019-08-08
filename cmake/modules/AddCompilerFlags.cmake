@@ -100,7 +100,7 @@ function(add_linker_flags)
 		add_compiler_flags_to_var(
 			CMAKE_REQUIRED_FLAGS
 			CXX
-			"-Wunused-command-line-argument"
+			"-Werror=unused-command-line-argument"
 		)
 
 		# Save the current linker flags
@@ -114,7 +114,7 @@ function(add_linker_flags)
 		# Unset the -Werror=unused-command-line-argument flag if it is set.
 		remove_compiler_flags_from_var(
 			CMAKE_REQUIRED_FLAGS
-			"-Wunused-command-line-argument"
+			"-Werror=unused-command-line-argument"
 		)
 
 		# If the flag is not supported restore CMAKE_EXE_LINKER_FLAGS
