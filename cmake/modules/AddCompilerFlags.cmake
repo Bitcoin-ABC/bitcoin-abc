@@ -18,9 +18,13 @@ endfunction()
 
 function(add_compiler_flags_to_var TARGET LANGUAGE)
 	foreach(f ${ARGN})
-		check_compiler_flag(FLAG_IS_SUPPORTED ${LANGUAGE} ${f})
-		if(${FLAG_IS_SUPPORTED})
-			string(APPEND ${TARGET} " ${f}")
+		# If the flag is already set, avoid duplicating it
+		string(FIND "${${TARGET}}" "${f}" FLAG_POSITION)
+		if(${FLAG_POSITION} LESS 0)
+			check_compiler_flag(FLAG_IS_SUPPORTED ${LANGUAGE} ${f})
+			if(${FLAG_IS_SUPPORTED})
+				string(APPEND ${TARGET} " ${f}")
+			endif()
 		endif()
 	endforeach()
 	set(${TARGET} ${${TARGET}} PARENT_SCOPE)
@@ -105,7 +109,12 @@ function(add_linker_flags)
 
 		# Save the current linker flags
 		set(SAVE_CMAKE_EXE_LINKERFLAGS ${CMAKE_EXE_LINKER_FLAGS})
-		string(APPEND CMAKE_EXE_LINKER_FLAGS " ${f}")
+
+		# If the flag is already set, avoid duplicating it
+		string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${f}" FLAG_POSITION)
+		if(${FLAG_POSITION} LESS 0)
+			string(APPEND CMAKE_EXE_LINKER_FLAGS " ${f}")
+		endif()
 
 		# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
 		# calls try_compile, so it will check our flag
