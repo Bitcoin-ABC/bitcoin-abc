@@ -243,6 +243,23 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)",
           SIGNABLE, {{"76a9149a1c78a507689f6f54b847ad1cef1e614ee23f1e88ac"}},
           {{1, 0x80000002UL, 3, 0x80000004UL}});
+    // Missing start bracket in key origin
+    CheckUnparsable(
+        "pkh(deadbeef/1/2'/3/"
+        "4']L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
+        "pkh(deadbeef/1/2'/3/"
+        "4']"
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)",
+        "Key origin start '[ character expected but not found, got 'd' "
+        "instead");
+    // Multiple end brackets in key origin
+    CheckUnparsable(
+        "pkh([deadbeef]/1/2'/3/"
+        "4']L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
+        "pkh([deadbeef]/1/2'/3/"
+        "4']"
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)",
+        "Multiple ']' characters found for a single pubkey");
 
     // Basic single-key uncompressed
     Check(
@@ -342,6 +359,15 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDM"
         "Sgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/2147483648)",
         "Key path value 2147483648 is out of range");
+    // Path is not valid uint
+    CheckUnparsable(
+        "pkh("
+        "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK"
+        "4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U/1aa)",
+        "pkh("
+        "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDM"
+        "Sgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/1aa)",
+        "Key path value '1aa' is not a valid uint32");
 
     // Multisig constructions
     Check("multi(1,L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1,"
@@ -404,6 +430,85 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "02d76625f7956a7fc505ab02556c23ee72d832f1bac391bcd2d3abce5710a13d06,"
         "0399eb0a5487515802dc14544cf10b3666623762fbed2ec38a3975716e2c29c232))",
         "P2SH script is too large, 547 bytes is larger than 520 bytes");
+    // Invalid threshold
+    CheckUnparsable(
+        "multi(a,L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1,"
+        "5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss)",
+        "multi(a,"
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd,"
+        "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8d"
+        "ec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235)",
+        "Multi threshold 'a' is not valid");
+    // Threshold of 0
+    CheckUnparsable(
+        "multi(0,L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1,"
+        "5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss)",
+        "multi(0,"
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd,"
+        "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8d"
+        "ec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235)",
+        "Multisig threshold cannot be 0, must be at least 1");
+    // Threshold larger than number of keys
+    CheckUnparsable(
+        "multi(3,L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1,"
+        "5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss)",
+        "multi(3,"
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd,"
+        "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8d"
+        "ec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235)",
+        "Multisig threshold cannot be larger than the number of keys; "
+        "threshold is 3 but only 2 keys specified");
+    // Threshold larger than number of keys
+    CheckUnparsable(
+        "multi(3,KzoAz5CanayRKex3fSLQ2BwJpN7U52gZvxMyk78nDMHuqrUxuSJy,"
+        "KwGNz6YCCQtYvFzMtrC6D3tKTKdBBboMrLTsjr2NYVBwapCkn7Mr,"
+        "KxogYhiNfwxuswvXV66eFyKcCpm7dZ7TqHVqujHAVUjJxyivxQ9X,"
+        "L2BUNduTSyZwZjwNHynQTF14mv2uz2NRq5n5sYWTb4FkkmqgEE9f)",
+        "multi(3,"
+        "03669b8afcec803a0d323e9a17f3ea8e68e8abe5a278020a929adbec52421adbd0,"
+        "0260b2003c386519fc9eadf2b5cf124dd8eea4c4e68d5e154050a9346ea98ce600,"
+        "0362a74e399c39ed5593852a30147f2959b56bb827dfa3e60e464b02ccf87dc5e8,"
+        "0261345b53de74a4d721ef877c255429961b7e43714171ac06168d7e08c542a8b8)",
+        "Cannot have 4 pubkeys in bare multisig; only at most 3 pubkeys");
+    // Cannot have more than 16 keys in a multisig
+    CheckUnparsable(
+        "sh(multi(16,KzoAz5CanayRKex3fSLQ2BwJpN7U52gZvxMyk78nDMHuqrUxuSJy,"
+        "KwGNz6YCCQtYvFzMtrC6D3tKTKdBBboMrLTsjr2NYVBwapCkn7Mr,"
+        "KxogYhiNfwxuswvXV66eFyKcCpm7dZ7TqHVqujHAVUjJxyivxQ9X,"
+        "L2BUNduTSyZwZjwNHynQTF14mv2uz2NRq5n5sYWTb4FkkmqgEE9f,"
+        "L1okJGHGn1kFjdXHKxXjwVVtmCMR2JA5QsbKCSpSb7ReQjezKeoD,"
+        "KxDCNSST75HFPaW5QKpzHtAyaCQC7p9Vo3FYfi2u4dXD1vgMiboK,"
+        "L5edQjFtnkcf5UWURn6UuuoFrabgDQUHdheKCziwN42aLwS3KizU,"
+        "KzF8UWFcEC7BYTq8Go1xVimMkDmyNYVmXV5PV7RuDicvAocoPB8i,"
+        "L3nHUboKG2w4VSJ5jYZ5CBM97oeK6YuKvfZxrefdShECcjEYKMWZ,"
+        "KyjHo36dWkYhimKmVVmQTq3gERv3pnqA4xFCpvUgbGDJad7eS8WE,"
+        "KwsfyHKRUTZPQtysN7M3tZ4GXTnuov5XRgjdF2XCG8faAPmFruRF,"
+        "KzCUbGhN9LJhdeFfL9zQgTJMjqxdBKEekRGZX24hXdgCNCijkkap,"
+        "KzgpMBwwsDLwkaC5UrmBgCYaBD2WgZ7PBoGYXR8KT7gCA9UTN5a3,"
+        "KyBXTPy4T7YG4q9tcAM3LkvfRpD1ybHMvcJ2ehaWXaSqeGUxEdkP,"
+        "KzJDe9iwJRPtKP2F2AoN6zBgzS7uiuAwhWCfGdNeYJ3PC1HNJ8M8,"
+        "L1xbHrxynrqLKkoYc4qtoQPx6uy5qYXR5ZDYVYBSRmCV5piU3JG9,"
+        "L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1))",
+        "sh(multi(16,"
+        "03669b8afcec803a0d323e9a17f3ea8e68e8abe5a278020a929adbec52421adbd0,"
+        "0260b2003c386519fc9eadf2b5cf124dd8eea4c4e68d5e154050a9346ea98ce600,"
+        "0362a74e399c39ed5593852a30147f2959b56bb827dfa3e60e464b02ccf87dc5e8,"
+        "0261345b53de74a4d721ef877c255429961b7e43714171ac06168d7e08c542a8b8,"
+        "02da72e8b46901a65d4374fe6315538d8f368557dda3a1dcf9ea903f3afe7314c8,"
+        "0318c82dd0b53fd3a932d16e0ba9e278fcc937c582d5781be626ff16e201f72286,"
+        "0297ccef1ef99f9d73dec9ad37476ddb232f1238aff877af19e72ba04493361009,"
+        "02e502cfd5c3f972fe9a3e2a18827820638f96b6f347e54d63deb839011fd5765d,"
+        "03e687710f0e3ebe81c1037074da939d409c0025f17eb86adb9427d28f0f7ae0e9,"
+        "02c04d3a5274952acdbc76987f3184b346a483d43be40874624b29e3692c1df5af,"
+        "02ed06e0f418b5b43a7ec01d1d7d27290fa15f75771cb69b642a51471c29c84acd,"
+        "036d46073cbb9ffee90473f3da429abc8de7f8751199da44485682a989a4bebb24,"
+        "02f5d1ff7c9029a80a4e36b9a5497027ef7f3e73384a4a94fbfe7c4e9164eec8bc,"
+        "02e41deffd1b7cce11cde209a781adcffdabd1b91c0ba0375857a2bfd9302419f3,"
+        "02d76625f7956a7fc505ab02556c23ee72d832f1bac391bcd2d3abce5710a13d06,"
+        "0399eb0a5487515802dc14544cf10b3666623762fbed2ec38a3975716e2c29c232,"
+        "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd))",
+        "Cannot have 17 keys in multisig; must have between 1 and 16 keys, "
+        "inclusive");
 
     // Check for invalid nesting of structures
 
@@ -534,6 +639,29 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))#tjq09x4t",
         "Provided checksum 'tjq09x4t' does not match computed checksum "
         "'tjg09x5t'");
+    // Error in checksum
+    CheckUnparsable(
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39nj"
+        "GVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
+        "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AA"
+        "NYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))##ggssrxfy",
+        "sh(multi(2,[00000000/111'/"
+        "222]"
+        "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4ko"
+        "xb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
+        "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBao"
+        "hPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))##tjq09x4t",
+        "Multiple '#' symbols");
+
+    // Addr and raw tests
+    // Invalid address
+    CheckUnparsable("", "addr(asdf)", "Address is not valid");
+    // Invalid script
+    CheckUnparsable("", "raw(asdf)", "Raw script is not hex");
+    // Invalid chars
+    CheckUnparsable("", "raw(Ü)#00000000", "Invalid characters in payload");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
