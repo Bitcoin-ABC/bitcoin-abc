@@ -4,3 +4,6 @@ Bitcoin ABC version 0.19.12 is now available from:
 
 This release includes the following features and fixes:
   - Add the `getblockstats` RPC to get statistics on a block or a block range.
+  - Logging improvements to reduce noisy network messages.
+  - Logging added during wallet rescans.
+  - Minor bug fixes, stability improvements, and typo corrections.
