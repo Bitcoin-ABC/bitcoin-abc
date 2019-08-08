@@ -13,7 +13,7 @@ ExecStart=/usr/bin/bitcoind -daemon -pid=/var/lib/bitcoind/bitcoind.pid \
 
 Restart=always
 PrivateTmp=true
-TimeoutStopSec=60s
+TimeoutStopSec=600s
 TimeoutStartSec=2s
 StartLimitInterval=120s
 StartLimitBurst=5
