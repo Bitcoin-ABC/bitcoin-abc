@@ -204,7 +204,7 @@ static const int DEFAULT_MAX_REORG_DEPTH = 10;
  * finalization.
  * This value should be >> block propagation and validation time
  */
-static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 2 * 60 * 60;
+static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 12 * 60;
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
