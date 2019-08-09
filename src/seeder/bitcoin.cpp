@@ -224,6 +224,7 @@ bool CSeederNode::Run() {
     uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
     CService myService;
     CAddress me(myService, ServiceFlags(NODE_NETWORK));
+    uint8_t fRelayTxs = 0;
 
     const std::string clientName = gArgs.GetArg("-uaclientname", CLIENT_NAME);
     const std::string clientVersion =
@@ -233,7 +234,7 @@ bool CSeederNode::Run() {
 
     MessageWriter::WriteMessage(vSend, NetMsgType::VERSION, PROTOCOL_VERSION,
                                 nLocalServices, GetTime(), you, me, nLocalNonce,
-                                userAgent, GetRequireHeight());
+                                userAgent, GetRequireHeight(), fRelayTxs);
     Send();
 
     bool res = true;
