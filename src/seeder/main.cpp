@@ -126,6 +126,8 @@ public:
         if (filter_whitelist.empty()) {
             filter_whitelist.insert(NODE_NETWORK);
             filter_whitelist.insert(NODE_NETWORK | NODE_BLOOM);
+            filter_whitelist.insert(NODE_NETWORK_LIMITED);
+            filter_whitelist.insert(NODE_NETWORK_LIMITED | NODE_BLOOM);
         }
         return CONTINUE_EXECUTION;
     }
