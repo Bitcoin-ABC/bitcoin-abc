@@ -362,12 +362,6 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
     }
 
-    if (pwallet->GetBroadcastTransactions() && !pwallet->chain().p2pEnabled()) {
-        throw JSONRPCError(
-            RPC_CLIENT_P2P_DISABLED,
-            "Error: Peer-to-peer functionality missing or disabled");
-    }
-
     // Parse Bitcoin address
     CScript scriptPubKey = GetScriptForDestination(address);
 
@@ -994,12 +988,6 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
-
-    if (pwallet->GetBroadcastTransactions() && !pwallet->chain().p2pEnabled()) {
-        throw JSONRPCError(
-            RPC_CLIENT_P2P_DISABLED,
-            "Error: Peer-to-peer functionality missing or disabled");
-    }
 
     if (!request.params[0].isNull() && !request.params[0].get_str().empty()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,

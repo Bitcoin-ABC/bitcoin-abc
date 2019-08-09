@@ -23,6 +23,10 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                                       std::string &err_string,
                                       const Amount max_tx_fee, bool relay,
                                       bool wait_callback) {
+    // BroadcastTransaction can be called by either sendrawtransaction RPC or
+    // wallet RPCs. node.connman is assigned both before chain clients and
+    // before RPC server is accepting calls, and reset after chain clients and
+    // RPC sever are stopped. node.connman should never be null here.
     assert(node.connman);
     std::promise<void> promise;
     TxId txid = tx->GetId();
