@@ -537,7 +537,7 @@ void SetupServerArgs() {
                  false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-dnsseed",
                  _("Query for peer addresses via DNS lookup, if low on "
-                   "addresses (default: 1 unless -connect/-noconnect)"),
+                   "addresses (default: 1 unless -connect used)"),
                  false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-enablebip61",
                  strprintf(_("Send reject messages per BIP61 (default: %u)"),
@@ -554,7 +554,7 @@ void SetupServerArgs() {
         false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-listen",
                  _("Accept connections from outside (default: 1 if no -proxy "
-                   "or -connect/-noconnect)"),
+                   "or -connect)"),
                  false, OptionsCategory::CONNECTION);
     gArgs.AddArg(
         "-listenonion",
