@@ -1,12 +1,30 @@
 package org.bitcoin;
 
-import javax.xml.bind.DatatypeConverter;
 import static org.bitcoin.NativeSecp256k1Util.*;
 
 /**
  * This class holds test cases defined for testing this library.
  */
 public class NativeSecp256k1Test {
+
+    private static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        assert len % 2 == 0 : "The hex string length should be even !";
+        byte[] byteArray = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            byteArray[i / 2] = (byte)((Character.digit(s.charAt(i), 16) << 4) +
+                Character.digit(s.charAt(i + 1), 16));
+        }
+        return byteArray;
+    }
+
+    private static String byteArrayToHexString(byte[] byteArray) {
+       StringBuilder stringBuilder = new StringBuilder(byteArray.length * 2);
+       for(byte b: byteArray) {
+           stringBuilder.append(String.format("%02X", b));
+       }
+       return stringBuilder.toString();
+    }
 
     //TODO improve comments/add more tests
 
@@ -17,9 +35,9 @@ public class NativeSecp256k1Test {
         boolean result = false;
 
         // sha256hash of "testing"
-        byte[] data = DatatypeConverter.parseHexBinary("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90");
-        byte[] sig = DatatypeConverter.parseHexBinary("3044022079BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817980220294F14E883B3F525B5367756C2A11EF6CF84B730B36C17CB0C56F0AAB2C98589");
-        byte[] pub = DatatypeConverter.parseHexBinary("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
+        byte[] data = hexStringToByteArray("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90");
+        byte[] sig = hexStringToByteArray("3044022079BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817980220294F14E883B3F525B5367756C2A11EF6CF84B730B36C17CB0C56F0AAB2C98589");
+        byte[] pub = hexStringToByteArray("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
 
         result = NativeSecp256k1.verify(data, sig, pub);
         assertEquals(result, true, "testVerifyPos");
@@ -32,9 +50,9 @@ public class NativeSecp256k1Test {
         boolean result = false;
 
         // sha256hash of "testing"
-        byte[] data = DatatypeConverter.parseHexBinary("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A91");
-        byte[] sig = DatatypeConverter.parseHexBinary("3044022079BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817980220294F14E883B3F525B5367756C2A11EF6CF84B730B36C17CB0C56F0AAB2C98589");
-        byte[] pub = DatatypeConverter.parseHexBinary("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
+        byte[] data = hexStringToByteArray("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A91");
+        byte[] sig = hexStringToByteArray("3044022079BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817980220294F14E883B3F525B5367756C2A11EF6CF84B730B36C17CB0C56F0AAB2C98589");
+        byte[] pub = hexStringToByteArray("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
 
         result = NativeSecp256k1.verify(data, sig, pub);
         assertEquals(result, false, "testVerifyNeg");
@@ -46,7 +64,7 @@ public class NativeSecp256k1Test {
     public static void testSecKeyVerifyPos() throws AssertFailException{
         boolean result = false;
 
-        byte[] sec = DatatypeConverter.parseHexBinary("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
+        byte[] sec = hexStringToByteArray("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
 
         result = NativeSecp256k1.secKeyVerify(sec);
         assertEquals(result, true, "testSecKeyVerifyPos");
@@ -58,7 +76,7 @@ public class NativeSecp256k1Test {
     public static void testSecKeyVerifyNeg() throws AssertFailException{
         boolean result = false;
 
-        byte[] sec = DatatypeConverter.parseHexBinary("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        byte[] sec = hexStringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
         result = NativeSecp256k1.secKeyVerify(sec);
         assertEquals(result, false, "testSecKeyVerifyNeg");
@@ -68,10 +86,10 @@ public class NativeSecp256k1Test {
       * This tests public key create() for a valid secretkey.
       */
     public static void testPubKeyCreatePos() throws AssertFailException{
-        byte[] sec = DatatypeConverter.parseHexBinary("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
+        byte[] sec = hexStringToByteArray("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
 
         byte[] resultArr = NativeSecp256k1.computePubkey(sec);
-        String pubkeyString = DatatypeConverter.printHexBinary(resultArr);
+        String pubkeyString = byteArrayToHexString(resultArr);
         assertEquals(pubkeyString, "04C591A8FF19AC9C4E4E5793673B83123437E975285E7B442F4EE2654DFFCA5E2D2103ED494718C697AC9AEBCFD19612E224DB46661011863ED2FC54E71861E2A6", "testPubKeyCreatePos");
     }
 
@@ -79,10 +97,10 @@ public class NativeSecp256k1Test {
       * This tests public key create() for a invalid secretkey.
       */
     public static void testPubKeyCreateNeg() throws AssertFailException{
-        byte[] sec = DatatypeConverter.parseHexBinary("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        byte[] sec = hexStringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
         byte[] resultArr = NativeSecp256k1.computePubkey(sec);
-        String pubkeyString = DatatypeConverter.printHexBinary(resultArr);
+        String pubkeyString = byteArrayToHexString(resultArr);
         assertEquals(pubkeyString, "", "testPubKeyCreateNeg");
     }
 
@@ -91,11 +109,11 @@ public class NativeSecp256k1Test {
       */
     public static void testSignPos() throws AssertFailException{
         // sha256hash of "testing"
-        byte[] data = DatatypeConverter.parseHexBinary("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90");
-        byte[] sec = DatatypeConverter.parseHexBinary("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
+        byte[] data = hexStringToByteArray("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90");
+        byte[] sec = hexStringToByteArray("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
 
         byte[] resultArr = NativeSecp256k1.sign(data, sec);
-        String sigString = DatatypeConverter.printHexBinary(resultArr);
+        String sigString = byteArrayToHexString(resultArr);
         assertEquals(sigString, "3045022100F51D069AA46EDB4E2E77773FE364AA2AF6818AF733EA542CFC4D546640A58D8802204F1C442AC9F26F232451A0C3EE99F6875353FC73902C68055C19E31624F687CC", "testSignPos");
     }
 
@@ -104,11 +122,11 @@ public class NativeSecp256k1Test {
       */
     public static void testSignNeg() throws AssertFailException{
         // sha256hash of "testing"
-        byte[] data = DatatypeConverter.parseHexBinary("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90");
-        byte[] sec = DatatypeConverter.parseHexBinary("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        byte[] data = hexStringToByteArray("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90");
+        byte[] sec = hexStringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
         byte[] resultArr = NativeSecp256k1.sign(data, sec);
-        String sigString = DatatypeConverter.printHexBinary(resultArr);
+        String sigString = byteArrayToHexString(resultArr);
         assertEquals(sigString, "", "testSignNeg");
     }
 
@@ -117,11 +135,11 @@ public class NativeSecp256k1Test {
       */
     public static void testPrivKeyTweakAdd_1() throws AssertFailException {
         // sha256hash of "tweak"
-        byte[] data = DatatypeConverter.parseHexBinary("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3"); 
-        byte[] sec = DatatypeConverter.parseHexBinary("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
+        byte[] data = hexStringToByteArray("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3"); 
+        byte[] sec = hexStringToByteArray("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
 
         byte[] resultArr = NativeSecp256k1.privKeyTweakAdd(sec, data);
-        String sigString = DatatypeConverter.printHexBinary(resultArr);
+        String sigString = byteArrayToHexString(resultArr);
         assertEquals(sigString, "A168571E189E6F9A7E2D657A4B53AE99B909F7E712D1C23CED28093CD57C88F3", "testPrivKeyAdd_1");
     }
 
@@ -130,11 +148,11 @@ public class NativeSecp256k1Test {
       */
     public static void testPrivKeyTweakMul_1() throws AssertFailException {
         // sha256hash of "tweak"
-        byte[] data = DatatypeConverter.parseHexBinary("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3");
-        byte[] sec = DatatypeConverter.parseHexBinary("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
+        byte[] data = hexStringToByteArray("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3");
+        byte[] sec = hexStringToByteArray("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
 
         byte[] resultArr = NativeSecp256k1.privKeyTweakMul(sec, data);
-        String sigString = DatatypeConverter.printHexBinary(resultArr);
+        String sigString = byteArrayToHexString(resultArr);
         assertEquals(sigString, "97F8184235F101550F3C71C927507651BD3F1CDB4A5A33B8986ACF0DEE20FFFC", "testPrivKeyMul_1");
     }
 
@@ -143,11 +161,11 @@ public class NativeSecp256k1Test {
       */
     public static void testPrivKeyTweakAdd_2() throws AssertFailException {
         // sha256hash of "tweak"
-        byte[] data = DatatypeConverter.parseHexBinary("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3");
-        byte[] pub = DatatypeConverter.parseHexBinary("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
+        byte[] data = hexStringToByteArray("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3");
+        byte[] pub = hexStringToByteArray("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
 
         byte[] resultArr = NativeSecp256k1.pubKeyTweakAdd(pub ,data);
-        String sigString = DatatypeConverter.printHexBinary(resultArr);
+        String sigString = byteArrayToHexString(resultArr);
         assertEquals(sigString, "0411C6790F4B663CCE607BAAE08C43557EDC1A4D11D88DFCB3D841D0C6A941AF525A268E2A863C148555C48FB5FBA368E88718A46E205FABC3DBA2CCFFAB0796EF", "testPrivKeyAdd_2");
     }
 
@@ -156,11 +174,11 @@ public class NativeSecp256k1Test {
       */
     public static void testPrivKeyTweakMul_2() throws AssertFailException {
         // sha256hash of "tweak"
-        byte[] data = DatatypeConverter.parseHexBinary("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3");
-        byte[] pub = DatatypeConverter.parseHexBinary("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
+        byte[] data = hexStringToByteArray("3982F19BEF1615BCCFBB05E321C10E1D4CBA3DF0E841C2E41EEB6016347653C3");
+        byte[] pub = hexStringToByteArray("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
 
         byte[] resultArr = NativeSecp256k1.pubKeyTweakMul(pub, data);
-        String sigString = DatatypeConverter.printHexBinary(resultArr);
+        String sigString = byteArrayToHexString(resultArr);
         assertEquals(sigString, "04E0FE6FE55EBCA626B98A807F6CAF654139E14E5E3698F01A9A658E21DC1D2791EC060D4F412A794D5370F672BC94B722640B5F76914151CFCA6E712CA48CC589", "testPrivKeyMul_2");
     }
 
@@ -169,7 +187,7 @@ public class NativeSecp256k1Test {
       */
     public static void testRandomize() throws AssertFailException {
         // sha256hash of "random"
-        byte[] seed = DatatypeConverter.parseHexBinary("A441B15FE9A3CF56661190A0B93B9DEC7D04127288CC87250967CF3B52894D11");
+        byte[] seed = hexStringToByteArray("A441B15FE9A3CF56661190A0B93B9DEC7D04127288CC87250967CF3B52894D11");
 
         boolean result = NativeSecp256k1.randomize(seed);
         assertEquals(result, true, "testRandomize");
@@ -314,9 +332,9 @@ public class NativeSecp256k1Test {
         int i = 0;
         for(SchnorrTestVector test : tests) {
             boolean expected = test.expected;
-            byte[] data = DatatypeConverter.parseHexBinary(test.data);
-            byte[] sig = DatatypeConverter.parseHexBinary(test.sig);
-            byte[] pub = DatatypeConverter.parseHexBinary(test.pubKey);
+            byte[] data = hexStringToByteArray(test.data);
+            byte[] sig = hexStringToByteArray(test.sig);
+            byte[] pub = hexStringToByteArray(test.pubKey);
             boolean result = NativeSecp256k1.schnorrVerify(data, sig, pub);
 
             String testMsg = String.join(" ", "testSchnorrVerify", String.valueOf(i++), String.valueOf(expected), test.comment);
@@ -330,20 +348,20 @@ public class NativeSecp256k1Test {
      */
     public static void testSchnorrSign() throws AssertFailException{
         // sha256(sha256("Very deterministic message"))
-        byte[] data = DatatypeConverter.parseHexBinary("5255683DA567900BFD3E786ED8836A4E7763C221BF1AC20ECE2A5171B9199E8A"); 
-        byte[] sec = DatatypeConverter.parseHexBinary("12B004FFF7F4B69EF8650E767F18F11EDE158148B425660723B9F9A66E61F747");
+        byte[] data = hexStringToByteArray("5255683DA567900BFD3E786ED8836A4E7763C221BF1AC20ECE2A5171B9199E8A"); 
+        byte[] sec = hexStringToByteArray("12B004FFF7F4B69EF8650E767F18F11EDE158148B425660723B9F9A66E61F747");
 
         byte[] resultArr = NativeSecp256k1.schnorrSign(data, sec);
-        String sigString = DatatypeConverter.printHexBinary(resultArr);
+        String sigString = byteArrayToHexString(resultArr);
         assertEquals(sigString, "2C56731AC2F7A7E7F11518FC7722A166B02438924CA9D8B4D111347B81D0717571846DE67AD3D913A8FDF9D8F3F73161A4C48AE81CB183B214765FEB86E255CE", "testSchnorrSign");
     }
 
     public static void testCreateECDHSecret() throws AssertFailException{
-        byte[] sec = DatatypeConverter.parseHexBinary("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
-        byte[] pub = DatatypeConverter.parseHexBinary("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
+        byte[] sec = hexStringToByteArray("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530");
+        byte[] pub = hexStringToByteArray("040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40");
 
         byte[] resultArr = NativeSecp256k1.createECDHSecret(sec, pub);
-        String ecdhString = DatatypeConverter.printHexBinary(resultArr);
+        String ecdhString = byteArrayToHexString(resultArr);
         assertEquals(ecdhString, "2A2A67007A926E6594AF3EB564FC74005B37A9C8AEF2033C4552051B5C87F043", "testCreateECDHSecret");
     }
 
