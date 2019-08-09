@@ -926,10 +926,13 @@ void SetupServerArgs() {
                            DEFAULT_REST_ENABLE),
                  false, OptionsCategory::RPC);
     gArgs.AddArg(
-        "-rpcbind=<addr>",
-        _("Bind to given address to listen for JSON-RPC connections. Use "
-          "[host]:port notation for IPv6. This option can be specified "
-          "multiple times (default: bind to all interfaces)"),
+        "-rpcbind=<addr>[:port]",
+        _("Bind to given address to listen for JSON-RPC connections. This "
+          "option is ignored unless -rpcallowip is also passed. Port is "
+          "optional and overrides -rpcport. Use [host]:port notation for IPv6. "
+          "This option can be specified multiple times (default: 127.0.0.1 and "
+          "::1 i.e., localhost, or if -rpcallowip has been specified, 0.0.0.0 "
+          "and :: i.e., all addresses)"),
         false, OptionsCategory::RPC);
     gArgs.AddArg("-rpccookiefile=<loc>",
                  _("Location of the auth cookie (default: data dir)"), false,
