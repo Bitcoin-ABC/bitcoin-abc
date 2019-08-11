@@ -114,10 +114,10 @@ if(ENABLE_HARDENING)
 	# Unfortunately setting the -pie linker flag this way require CMake >= 3.14,
 	# which is not widely distributed at the time of writing.
 	# FIXME: use the POSITION_INDEPENDENT_CODE property instead
-	add_compiler_flags(-fPIE)
-	add_linker_flags(-pie)
-
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		add_compiler_flag(-fPIE)
+		add_linker_flag(-pie)
+	else()
 		# MinGw provides its own libssp for stack smashing protection
 		link_libraries(ssp)
 	endif()
