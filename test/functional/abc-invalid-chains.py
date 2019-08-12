@@ -6,8 +6,7 @@
 import time
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.comptool import RejectResult, TestInstance, TestManager
-from test_framework.mininode import network_thread_start
+from test_framework.mininode import network_thread_start, P2PDataStore
 from test_framework.util import assert_equal
 from test_framework.blocktools import (
     create_block,
@@ -45,29 +44,13 @@ class InvalidChainsTest(BitcoinTestFramework):
         return block
 
     def run_test(self):
-        self.test = TestManager(self, self.options.tmpdir)
-        self.test.add_all_connections(self.nodes)
-        network_thread_start()
-        self.test.run()
-
-    def get_tests(self):
         node = self.nodes[0]
+        node.add_p2p_connection(P2PDataStore())
+        network_thread_start()
+        node.p2p.wait_for_verack()
+
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
-
-        # returns a test case that asserts that the current tip was accepted
-        def accepted(expectedTipHash=None):
-            if expectedTipHash is None:
-                return TestInstance([[self.tip, True]])
-            else:
-                return TestInstance([[self.tip, True, expectedTipHash]])
-
-        # returns a test case that asserts that the current tip was rejected
-        def rejected(reject=None):
-            if reject is None:
-                return TestInstance([[self.tip, False]])
-            else:
-                return TestInstance([[self.tip, reject]])
 
         # move the tip back to a previous block
         def tip(number):
@@ -85,12 +68,7 @@ class InvalidChainsTest(BitcoinTestFramework):
         #      -- 12 - 13 - 14
 
         # Generate some valid blocks
-        block(0)
-        yield accepted()
-        block(1)
-        yield accepted()
-        block(2)
-        yield accepted()
+        node.p2p.send_blocks_and_test([block(0), block(1), block(2)], node)
 
         # Explicitly invalidate blocks 1 and 2
         # See below for why we do this
@@ -101,12 +79,12 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Mining on top of blocks 1 or 2 is rejected
         tip(1)
-        block(11)
-        yield rejected(RejectResult(16, b'bad-prevblk'))
+        node.p2p.send_blocks_and_test(
+            [block(11)], node, success=False, reject_reason='bad-prevblk', request_block=False)
 
         tip(2)
-        block(21)
-        yield rejected(RejectResult(16, b'bad-prevblk'))
+        node.p2p.send_blocks_and_test(
+            [block(21)], node, success=False, reject_reason='bad-prevblk', request_block=False)
 
         # Reconsider block 2 to remove invalid status from *both* 1 and 2
         # The goal is to test that block 1 is not retaining any internal state
@@ -116,33 +94,17 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Mining on the block 1 chain should be accepted
         # (needs to mine two blocks because less-work chains are not processed)
-        test = TestInstance(sync_every_block=False)
         tip(1)
-        block(12)
-        test.blocks_and_transactions.append([self.tip, None])
-        block(13)
-        test.blocks_and_transactions.append([self.tip, None])
-        yield test
+        node.p2p.send_blocks_and_test([block(12), block(13)], node)
 
         # Mining on the block 2 chain should still be accepted
         # (needs to mine two blocks because less-work chains are not processed)
-        test = TestInstance(sync_every_block=False)
         tip(2)
-        block(22)
-        test.blocks_and_transactions.append([self.tip, None])
-        # Mine block 221 for later
-        block(221)
-        test.blocks_and_transactions.append([self.tip, None])
-        yield test
+        node.p2p.send_blocks_and_test([block(22), block(221)], node)
 
         # Mine more blocks from block 22 to be longest chain
-        test = TestInstance(sync_every_block=False)
         tip(22)
-        block(23)
-        test.blocks_and_transactions.append([self.tip, None])
-        block(24)
-        test.blocks_and_transactions.append([self.tip, None])
-        yield test
+        node.p2p.send_blocks_and_test([block(23), block(24)], node)
 
         # Sanity checks
         assert_equal(self.blocks[24].hash, node.getbestblockhash())
@@ -155,19 +117,18 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Mining on the block 2 chain should be rejected
         tip(24)
-        block(25)
-        yield rejected(RejectResult(16, b'bad-prevblk'))
+        node.p2p.send_blocks_and_test(
+            [block(25)], node, success=False, reject_reason='bad-prevblk', request_block=False)
 
         # Continued mining on the block 1 chain is still ok
         tip(13)
-        block(14)
-        yield accepted()
+        node.p2p.send_blocks_and_test([block(14)], node)
 
         # Mining on a once-valid chain forking from block 2's longest chain,
         # which is now invalid, should also be rejected.
         tip(221)
-        block(222)
-        yield rejected(RejectResult(16, b'bad-prevblk'))
+        node.p2p.send_blocks_and_test(
+            [block(222)], node, success=False, reject_reason='bad-prevblk', request_block=False)
 
 
 if __name__ == '__main__':
