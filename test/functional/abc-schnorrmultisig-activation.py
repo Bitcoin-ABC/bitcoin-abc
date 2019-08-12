@@ -160,8 +160,7 @@ class SchnorrTest(BitcoinTestFramework):
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2p.send_blocks_and_test(
-            [block], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason)
-        self.nodes[0].p2p.wait_for_disconnect()
+            [block], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason, expect_disconnect=True)
         self.reconnect_p2p()
 
     def run_test(self):

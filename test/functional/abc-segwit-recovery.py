@@ -152,8 +152,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # submit current tip and check it was rejected (and we are banned)
         def rejected(node, reject_code, reject_reason):
             node.p2p.send_blocks_and_test(
-                [self.tip], node, success=False, reject_code=reject_code, reject_reason=reject_reason)
-            node.p2p.wait_for_disconnect()
+                [self.tip], node, success=False, reject_code=reject_code, reject_reason=reject_reason, expect_disconnect=True)
             self.reconnect_p2p()
 
         # move the tip back to a previous block

@@ -142,10 +142,12 @@ class InvalidTxRequestTest(BitcoinTestFramework):
 
         # Mempool should be empty
         assert_equal(0, node.getmempoolinfo()['size'])
-        assert_equal(2, len(node.getpeerinfo()))  # p2ps[1] is still connected
+        # p2ps[1] is still connected
+        assert_equal(2, len(node.getpeerinfo()))
 
         self.log.info('Send the withhold tx ... ')
-        node.p2p.send_txs_and_test([tx_withhold], node, success=True)
+        with node.assert_debug_log(expected_msgs=["bad-txns-in-belowout"]):
+            node.p2p.send_txs_and_test([tx_withhold], node, success=True)
 
         # Transactions that should end up in the mempool
         expected_mempool = {
@@ -170,15 +172,8 @@ class InvalidTxRequestTest(BitcoinTestFramework):
             'Test a transaction that is rejected, with BIP61 disabled')
         self.restart_node(0, ['-enablebip61=0', '-persistmempool=0'])
         self.reconnect_p2p(num_connections=1)
-        with node.assert_debug_log(expected_msgs=[
-                "{} from peer=0 was not accepted: mandatory-script-verify-flag-failed (Invalid OP_IF construction) (code 16)".format(
-                    tx1.hash),
-                "disconnecting peer=0",
-        ]):
-            node.p2p.send_txs_and_test(
-                [tx1], node, success=False, expect_disconnect=True)
-        # send_txs_and_test will have waited for disconnect, so we can safely check that no reject has been received
-        assert_equal(node.p2p.reject_code_received, None)
+        node.p2p.send_txs_and_test(
+            [tx1], node, success=False, reject_reason="{} from peer=0 was not accepted: mandatory-script-verify-flag-failed (Invalid OP_IF construction) (code 16)".format(tx1.hash), expect_disconnect=True)
 
 
 if __name__ == '__main__':
