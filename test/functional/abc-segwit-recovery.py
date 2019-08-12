@@ -227,7 +227,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # Check we are not banned when sending a txn that is rejected.
         def check_for_no_ban_on_rejected_tx(node, tx, reject_code, reject_reason):
             node.p2p.send_txs_and_test(
-                [tx], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason)
+                [tx], node, success=False, reject_code=reject_code, reject_reason=reject_reason)
 
         # Create a new block
         block(0)
