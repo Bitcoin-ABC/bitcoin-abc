@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(get_next_work) {
     BOOST_CHECK_EQUAL(
         CalculateNextWorkRequired(&pindexLast, nLastRetargetTime,
                                   config.GetChainParams().GetConsensus()),
-        0x1d00d86a);
+        0x1d00d86aU);
 }
 
 /* Test the constraint on the upper bound for next work */
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(get_next_work_pow_limit) {
     BOOST_CHECK_EQUAL(
         CalculateNextWorkRequired(&pindexLast, nLastRetargetTime,
                                   config.GetChainParams().GetConsensus()),
-        0x1d00ffff);
+        0x1d00ffffU);
 }
 
 /* Test the constraint on the lower bound for actual time taken */
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(get_next_work_lower_limit_actual) {
     BOOST_CHECK_EQUAL(
         CalculateNextWorkRequired(&pindexLast, nLastRetargetTime,
                                   config.GetChainParams().GetConsensus()),
-        0x1c0168fd);
+        0x1c0168fdU);
 }
 
 /* Test the constraint on the upper bound for actual time taken */
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(get_next_work_upper_limit_actual) {
     BOOST_CHECK_EQUAL(
         CalculateNextWorkRequired(&pindexLast, nLastRetargetTime,
                                   config.GetChainParams().GetConsensus()),
-        0x1d00e1fd);
+        0x1d00e1fdU);
 }
 
 BOOST_AUTO_TEST_CASE(GetBlockProofEquivalentTime_test) {

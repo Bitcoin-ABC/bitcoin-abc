@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     BOOST_CHECK(chainActive.Tip()->GetBlockHash() == block.GetHash());
     // spends[1] should have been removed from the mempool when the block with
     // spends[0] is accepted:
-    BOOST_CHECK_EQUAL(g_mempool.size(), 0);
+    BOOST_CHECK_EQUAL(g_mempool.size(), 0U);
 }
 
 // Run CheckInputs (using pcoinsTip) on the given transaction, for all script
@@ -265,7 +265,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             CheckInputs(tx, state, pcoinsTip.get(), true,
                         MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_NULLDUMMY,
                         true, true, ptd_spend_tx, &scriptchecks));
-        BOOST_CHECK_EQUAL(scriptchecks.size(), 1);
+        BOOST_CHECK_EQUAL(scriptchecks.size(), 1U);
 
         // Test that CheckInputs returns true iff cleanstack-enforcing flags are
         // not present. Don't add these checks to the cache, so that we can test
@@ -431,7 +431,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                                 txdata, &scriptchecks));
         // Should get 2 script checks back -- caching is on a whole-transaction
         // basis.
-        BOOST_CHECK_EQUAL(scriptchecks.size(), 2);
+        BOOST_CHECK_EQUAL(scriptchecks.size(), 2U);
     }
 }
 

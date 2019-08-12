@@ -527,7 +527,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     Coin c2;
     ss2 >> c2;
     BOOST_CHECK_EQUAL(c2.IsCoinBase(), true);
-    BOOST_CHECK_EQUAL(c2.GetHeight(), 120891);
+    BOOST_CHECK_EQUAL(c2.GetHeight(), 120891U);
     BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, 110397 * SATOSHI);
     BOOST_CHECK_EQUAL(HexStr(c2.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
@@ -538,9 +538,9 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     Coin c3;
     ss3 >> c3;
     BOOST_CHECK_EQUAL(c3.IsCoinBase(), false);
-    BOOST_CHECK_EQUAL(c3.GetHeight(), 0);
+    BOOST_CHECK_EQUAL(c3.GetHeight(), 0U);
     BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, Amount::zero());
-    BOOST_CHECK_EQUAL(c3.GetTxOut().scriptPubKey.size(), 0);
+    BOOST_CHECK_EQUAL(c3.GetTxOut().scriptPubKey.size(), 0U);
 
     // scriptPubKey that ends beyond the end of the stream
     CDataStream ss4(ParseHex("000007"), SER_DISK, CLIENT_VERSION);

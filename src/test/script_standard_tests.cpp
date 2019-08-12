@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
     s << ToByteVector(pubkeys[0]) << OP_CHECKSIG;
     BOOST_CHECK(Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_PUBKEY);
-    BOOST_CHECK_EQUAL(solutions.size(), 1);
+    BOOST_CHECK_EQUAL(solutions.size(), 1U);
     BOOST_CHECK(solutions[0] == ToByteVector(pubkeys[0]));
 
     // TX_PUBKEYHASH
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
       << OP_EQUALVERIFY << OP_CHECKSIG;
     BOOST_CHECK(Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_PUBKEYHASH);
-    BOOST_CHECK_EQUAL(solutions.size(), 1);
+    BOOST_CHECK_EQUAL(solutions.size(), 1U);
     BOOST_CHECK(solutions[0] == ToByteVector(pubkeys[0].GetID()));
 
     // TX_SCRIPTHASH
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
     s << OP_HASH160 << ToByteVector(CScriptID(redeemScript)) << OP_EQUAL;
     BOOST_CHECK(Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_SCRIPTHASH);
-    BOOST_CHECK_EQUAL(solutions.size(), 1);
+    BOOST_CHECK_EQUAL(solutions.size(), 1U);
     BOOST_CHECK(solutions[0] == ToByteVector(CScriptID(redeemScript)));
 
     // TX_MULTISIG
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
       << OP_CHECKMULTISIG;
     BOOST_CHECK(Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_MULTISIG);
-    BOOST_CHECK_EQUAL(solutions.size(), 4);
+    BOOST_CHECK_EQUAL(solutions.size(), 4U);
     BOOST_CHECK(solutions[0] == std::vector<uint8_t>({1}));
     BOOST_CHECK(solutions[1] == ToByteVector(pubkeys[0]));
     BOOST_CHECK(solutions[2] == ToByteVector(pubkeys[1]));
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
       << ToByteVector(pubkeys[2]) << OP_3 << OP_CHECKMULTISIG;
     BOOST_CHECK(Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_MULTISIG);
-    BOOST_CHECK_EQUAL(solutions.size(), 5);
+    BOOST_CHECK_EQUAL(solutions.size(), 5U);
     BOOST_CHECK(solutions[0] == std::vector<uint8_t>({2}));
     BOOST_CHECK(solutions[1] == ToByteVector(pubkeys[0]));
     BOOST_CHECK(solutions[2] == ToByteVector(pubkeys[1]));
@@ -106,14 +106,14 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
       << std::vector<uint8_t>({255});
     BOOST_CHECK(Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_NULL_DATA);
-    BOOST_CHECK_EQUAL(solutions.size(), 0);
+    BOOST_CHECK_EQUAL(solutions.size(), 0U);
 
     // TX_WITNESS_V0_KEYHASH
     s.clear();
     s << OP_0 << ToByteVector(pubkeys[0].GetID());
     BOOST_CHECK(!Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
-    BOOST_CHECK_EQUAL(solutions.size(), 0);
+    BOOST_CHECK_EQUAL(solutions.size(), 0U);
 
     // TX_WITNESS_V0_SCRIPTHASH
     uint256 scriptHash;
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
     s << OP_0 << ToByteVector(scriptHash);
     BOOST_CHECK(!Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
-    BOOST_CHECK_EQUAL(solutions.size(), 0);
+    BOOST_CHECK_EQUAL(solutions.size(), 0U);
 
     // TX_NONSTANDARD
     s.clear();
@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(script_standard_ExtractDestinations) {
     s << ToByteVector(pubkeys[0]) << OP_CHECKSIG;
     BOOST_CHECK(ExtractDestinations(s, whichType, addresses, nRequired));
     BOOST_CHECK_EQUAL(whichType, TX_PUBKEY);
-    BOOST_CHECK_EQUAL(addresses.size(), 1);
+    BOOST_CHECK_EQUAL(addresses.size(), 1U);
     BOOST_CHECK_EQUAL(nRequired, 1);
     BOOST_CHECK(boost::get<CKeyID>(&addresses[0]) &&
                 *boost::get<CKeyID>(&addresses[0]) == pubkeys[0].GetID());
@@ -361,7 +361,7 @@ BOOST_AUTO_TEST_CASE(script_standard_ExtractDestinations) {
       << OP_EQUALVERIFY << OP_CHECKSIG;
     BOOST_CHECK(ExtractDestinations(s, whichType, addresses, nRequired));
     BOOST_CHECK_EQUAL(whichType, TX_PUBKEYHASH);
-    BOOST_CHECK_EQUAL(addresses.size(), 1);
+    BOOST_CHECK_EQUAL(addresses.size(), 1U);
     BOOST_CHECK_EQUAL(nRequired, 1);
     BOOST_CHECK(boost::get<CKeyID>(&addresses[0]) &&
                 *boost::get<CKeyID>(&addresses[0]) == pubkeys[0].GetID());
@@ -373,7 +373,7 @@ BOOST_AUTO_TEST_CASE(script_standard_ExtractDestinations) {
     s << OP_HASH160 << ToByteVector(CScriptID(redeemScript)) << OP_EQUAL;
     BOOST_CHECK(ExtractDestinations(s, whichType, addresses, nRequired));
     BOOST_CHECK_EQUAL(whichType, TX_SCRIPTHASH);
-    BOOST_CHECK_EQUAL(addresses.size(), 1);
+    BOOST_CHECK_EQUAL(addresses.size(), 1U);
     BOOST_CHECK_EQUAL(nRequired, 1);
     BOOST_CHECK(boost::get<CScriptID>(&addresses[0]) &&
                 *boost::get<CScriptID>(&addresses[0]) ==
@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE(script_standard_ExtractDestinations) {
       << OP_CHECKMULTISIG;
     BOOST_CHECK(ExtractDestinations(s, whichType, addresses, nRequired));
     BOOST_CHECK_EQUAL(whichType, TX_MULTISIG);
-    BOOST_CHECK_EQUAL(addresses.size(), 2);
+    BOOST_CHECK_EQUAL(addresses.size(), 2U);
     BOOST_CHECK_EQUAL(nRequired, 2);
     BOOST_CHECK(boost::get<CKeyID>(&addresses[0]) &&
                 *boost::get<CKeyID>(&addresses[0]) == pubkeys[0].GetID());
