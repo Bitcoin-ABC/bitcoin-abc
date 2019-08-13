@@ -4,11 +4,11 @@ project(bitcoin-seeder)
 
 include_directories(.)
 
-add_executable(bitcoin-seeder
+add_executable(freecash-seeder
 	bitcoin.cpp
 	db.cpp
 	dns.cpp
 	main.cpp
 )
 
-target_link_libraries(bitcoin-seeder common)
+target_link_libraries(freecash-seeder common)

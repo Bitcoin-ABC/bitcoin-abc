@@ -270,8 +270,8 @@ if(BUILD_BITCOIN_WALLET)
 endif()
 
 # The executable
-add_executable(bitcoin-qt WIN32 bitcoin.cpp)
-target_link_libraries(bitcoin-qt bitcoin-qt-base)
+add_executable(freecash-qt WIN32 bitcoin.cpp)
+target_link_libraries(freecash-qt bitcoin-qt-base)
 
 # Test tests
 add_subdirectory(test)

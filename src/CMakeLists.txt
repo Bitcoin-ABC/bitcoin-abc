@@ -428,29 +428,29 @@ endif()
 
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)
-	add_executable(bitcoin-cli bitcoin-cli.cpp)
+	add_executable(freecash-cli bitcoin-cli.cpp)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
+		target_sources(freecash-cli PRIVATE bitcoin-cli-res.rc)
 	endif()
 
-	target_link_libraries(bitcoin-cli common rpcclient Event)
+	target_link_libraries(freecash-cli common rpcclient Event)
 endif()
 
 # bitcoin-tx
 if(BUILD_BITCOIN_TX)
-	add_executable(bitcoin-tx bitcoin-tx.cpp)
+	add_executable(freecash-tx bitcoin-tx.cpp)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-tx PRIVATE bitcoin-tx-res.rc)
+		target_sources(freecash-tx PRIVATE bitcoin-tx-res.rc)
 	endif()
 
-	target_link_libraries(bitcoin-tx bitcoinconsensus)
+	target_link_libraries(freecash-tx bitcoinconsensus)
 endif()
 
 # bitcoind
-add_executable(bitcoind bitcoind.cpp)
-target_link_libraries(bitcoind server)
+add_executable(freecashd bitcoind.cpp)
+target_link_libraries(freecashd server)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_sources(bitcoind PRIVATE bitcoind-res.rc)
+	target_sources(freecashd PRIVATE bitcoind-res.rc)
 endif()
 
 # Bitcoin-qt
