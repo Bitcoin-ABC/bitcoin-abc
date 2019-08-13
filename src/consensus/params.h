@@ -38,6 +38,8 @@ struct Params {
     int magneticAnomalyHeight;
     /** Unix time used for MTP activation of Nov 15 2019 12:00:00 UTC upgrade */
     int gravitonActivationTime;
+    /** Unix time used for MTP activation of 15 May 2020 12:00:00 UTC upgrade */
+    int phononActivationTime;
     /** Proof of work parameters */
     uint256 powLimit;
     bool fPowAllowMinDifficultyBlocks;
