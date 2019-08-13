@@ -12,6 +12,30 @@
 
 #include <boost/test/unit_test.hpp>
 
+// Append given push onto a script, using specific opcode (not necessarily
+// the minimal one, but must be able to contain the given data.)
+void AppendPush(CScript &script, opcodetype opcode,
+                const std::vector<uint8_t> &b) {
+    assert(opcode <= OP_PUSHDATA4);
+    script.push_back(opcode);
+    if (opcode < OP_PUSHDATA1) {
+        assert(b.size() == opcode);
+    } else if (opcode == OP_PUSHDATA1) {
+        assert(b.size() <= 0xff);
+        script.push_back(uint8_t(b.size()));
+    } else if (opcode == OP_PUSHDATA2) {
+        assert(b.size() <= 0xffff);
+        uint8_t _data[2];
+        WriteLE16(_data, b.size());
+        script.insert(script.end(), _data, _data + sizeof(_data));
+    } else if (opcode == OP_PUSHDATA4) {
+        uint8_t _data[4];
+        WriteLE32(_data, b.size());
+        script.insert(script.end(), _data, _data + sizeof(_data));
+    }
+    script.insert(script.end(), b.begin(), b.end());
+}
+
 BOOST_FIXTURE_TEST_SUITE(script_standard_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
@@ -108,6 +132,88 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
     s << OP_9 << OP_ADD << OP_11 << OP_EQUAL;
     BOOST_CHECK(!Solver(s, whichType, solutions));
     BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+    BOOST_CHECK_EQUAL(solutions.size(), 0);
+
+    // Try some non-minimal PUSHDATA pushes in various standard scripts
+    for (auto pushdataop : {OP_PUSHDATA1, OP_PUSHDATA2, OP_PUSHDATA4}) {
+        // mutated TX_PUBKEY
+        s.clear();
+        AppendPush(s, pushdataop, ToByteVector(pubkeys[0]));
+        s << OP_CHECKSIG;
+        BOOST_CHECK(!Solver(s, whichType, solutions));
+        BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 0);
+
+        // mutated TX_PUBKEYHASH
+        s.clear();
+        s << OP_DUP << OP_HASH160;
+        AppendPush(s, pushdataop, ToByteVector(pubkeys[0].GetID()));
+        s << OP_EQUALVERIFY << OP_CHECKSIG;
+        BOOST_CHECK(!Solver(s, whichType, solutions));
+        BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 0);
+
+        // mutated TX_SCRIPTHASH
+        s.clear();
+        s << OP_HASH160;
+        AppendPush(s, pushdataop, ToByteVector(CScriptID(redeemScript)));
+        s << OP_EQUAL;
+        BOOST_CHECK(!Solver(s, whichType, solutions));
+        BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 0);
+
+        // mutated TX_MULTISIG -- pubkey
+        s.clear();
+        s << OP_1;
+        AppendPush(s, pushdataop, ToByteVector(pubkeys[0]));
+        s << ToByteVector(pubkeys[1]) << OP_2 << OP_CHECKMULTISIG;
+        BOOST_CHECK(!Solver(s, whichType, solutions));
+        BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 0);
+
+        // mutated TX_MULTISIG -- num_signatures
+        s.clear();
+        AppendPush(s, pushdataop, {1});
+        s << ToByteVector(pubkeys[0]) << ToByteVector(pubkeys[1]) << OP_2
+          << OP_CHECKMULTISIG;
+        BOOST_CHECK(!Solver(s, whichType, solutions));
+        BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 0);
+
+        // mutated TX_MULTISIG -- num_pubkeys
+        s.clear();
+        s << OP_1 << ToByteVector(pubkeys[0]) << ToByteVector(pubkeys[1]);
+        AppendPush(s, pushdataop, {2});
+        s << OP_CHECKMULTISIG;
+        BOOST_CHECK(!Solver(s, whichType, solutions));
+        BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 0);
+    }
+
+    // also try pushing the num_signatures and num_pubkeys using PUSH_N opcode
+    // instead of OP_N opcode:
+    s.clear();
+    s << std::vector<uint8_t>{1} << ToByteVector(pubkeys[0])
+      << ToByteVector(pubkeys[1]) << OP_2 << OP_CHECKMULTISIG;
+    BOOST_CHECK(!Solver(s, whichType, solutions));
+    BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+    BOOST_CHECK_EQUAL(solutions.size(), 0);
+    s.clear();
+    s << OP_1 << ToByteVector(pubkeys[0]) << ToByteVector(pubkeys[1])
+      << std::vector<uint8_t>{2} << OP_CHECKMULTISIG;
+    BOOST_CHECK(!Solver(s, whichType, solutions));
+    BOOST_CHECK_EQUAL(whichType, TX_NONSTANDARD);
+    BOOST_CHECK_EQUAL(solutions.size(), 0);
+
+    // Non-minimal pushes in OP_RETURN scripts are standard (some OP_RETURN
+    // protocols like SLP rely on this). Also it turns out OP_RESERVED gets past
+    // IsPushOnly and thus is standard here.
+    std::vector<uint8_t> op_return_nonminimal{
+        OP_RETURN,    OP_RESERVED, OP_PUSHDATA1, 0x00, 0x01, 0x01,
+        OP_PUSHDATA4, 0x01,        0x00,         0x00, 0x00, 0xaa};
+    s.assign(op_return_nonminimal.begin(), op_return_nonminimal.end());
+    BOOST_CHECK(Solver(s, whichType, solutions));
+    BOOST_CHECK_EQUAL(whichType, TX_NULL_DATA);
     BOOST_CHECK_EQUAL(solutions.size(), 0);
 }
 

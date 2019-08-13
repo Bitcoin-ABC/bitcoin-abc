@@ -82,6 +82,10 @@ static bool MatchMultisig(const CScript &script, unsigned int &required,
     }
     required = CScript::DecodeOP_N(opcode);
     while (script.GetOp(it, opcode, data) && CPubKey::ValidSize(data)) {
+        if (opcode < 0 || opcode > OP_PUSHDATA4 ||
+            !CheckMinimalPush(data, opcode)) {
+            return false;
+        }
         pubkeys.emplace_back(std::move(data));
     }
     if (!IsSmallInteger(opcode)) {
