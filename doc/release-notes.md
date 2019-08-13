@@ -1,16 +1,23 @@
-Freecash version 0.19.9 is now available from:
+Freecash version 1.0.0 is now available from:
 
-  <https://download.freecash.org/0.19.9/>
+  <https://download.freecash.org/1.0.0/>
 
 This release includes the following features and fixes:
- - Return amounts from `decoderawtransaction` are padded to 8 decimal places.
- - Deprecated 'softforks' information from `getblockchaininfo` RPC call, which
-   had only been reporting on some very old upgrades. To keep this information,
-   start bitcoind with the '-deprecatedrpc=getblockchaininfo' option.
- - A new `-avoidpartialspends` flag has been added (default=false). If enabled,
-   the wallet will try to spend UTXO's that point at the same destination together.
-   This is a privacy increase, as there will no longer be cases where a wallet will
-   inadvertently spend only parts of the coins sent to the same address (note that
-   if someone were to send coins to that address after it was used, those coins
-   will still be included in future coin selections).
- - Add the `minrelaytxfee` output to the `getmempoolinfo` RPC.
+ - always use DAA
+ - change the PowTargetSpacing time and subsidy ratio.block time to 1 min;subsidy rate to 0.8
+ - always activate uahf,BIP34,BIP65,BIP66
+ - change coinbase script type to pubkeyhash
+ - add developer reward
+ - remove ReplayProtection
+ - change the genesis word
+ - make addr start with 'F'
+ - restore cpu mining, add mining button in qt
+ - modify coinbase of genesis block to 25 COIN
+ - set coinbaseMaturity to 14400, set developerRewardMaturity to 144000
+ - make the checking of mining reward and dev reward separated
+ - add op_return check in ConnectBlock()
+ - set max block size to 1MB
+ - after 21 times halving, reward will be fixed
+ - rename BCH to FCH
+ - use Schnorr instead of ECDSA
+ - change the net magic

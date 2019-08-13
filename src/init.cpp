@@ -983,8 +983,8 @@ void SetupServerArgs() {
 
 std::string LicenseInfo() {
     const std::string URL_SOURCE_CODE =
-        "<https://github.com/Bitcoin-ABC/bitcoin-abc>";
-    const std::string URL_WEBSITE = "<https://www.bitcoinabc.org>";
+            "<https://github.com/freecashorg/freecash>";
+    const std::string URL_WEBSITE = "<https://www.freecash.org>";
 
     return CopyrightHolders(
                strprintf(_("Copyright (C) %i-%i"), 2009, COPYRIGHT_YEAR) +
