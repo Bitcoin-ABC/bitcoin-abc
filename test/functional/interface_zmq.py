@@ -8,13 +8,16 @@ from io import BytesIO
 
 from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.messages import CTransaction
+from test_framework.messages import CTransaction, hash256
 from test_framework.util import (
     assert_equal,
     connect_nodes,
-    hash256,
 )
 from time import sleep
+
+
+def hash256_reversed(byte_str):
+    return hash256(byte_str)[::-1]
 
 
 class ZMQSubscriber:
@@ -105,7 +108,7 @@ class ZMQTest (BitcoinTestFramework):
 
             # Should receive the generated raw block.
             block = rawblock.receive()
-            assert_equal(genhashes[x], hash256(block[:80]).hex())
+            assert_equal(genhashes[x], hash256_reversed(block[:80]).hex())
 
         if self.is_wallet_compiled():
             self.log.info("Wait for tx from second node")
@@ -119,7 +122,7 @@ class ZMQTest (BitcoinTestFramework):
 
             # Should receive the broadcasted raw transaction.
             hex = rawtx.receive()
-            assert_equal(payment_txid, hash256(hex).hex())
+            assert_equal(payment_txid, hash256_reversed(hex).hex())
 
         self.log.info("Test the getzmqnotifications RPC")
         assert_equal(self.nodes[0].getzmqnotifications(), [
