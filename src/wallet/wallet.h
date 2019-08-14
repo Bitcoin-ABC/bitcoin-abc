@@ -1416,6 +1416,9 @@ public:
      */
     bool SetWalletFlags(uint64_t overwriteFlags, bool memOnly);
 
+    /** Determine if we are a legacy wallet */
+    bool IsLegacy() const;
+
     /**
      * Returns a bracketed wallet name for displaying in logs, will return
      * [default wallet] if the wallet has no name.
