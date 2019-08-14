@@ -5,18 +5,12 @@ Freecash is a freely evolved crypto currency, which is forked form Bitcoin ABC.
 Goals of Freecash.
 ---------------------
 
-1. Concentratio
-     Focus on the peer to peer electronic cash. 
-2. Inheritance
-     Based on the underlying framework of Bitcoin.
-3. Evolution
-     Continuous improvement for new issues. 
-4. Participance
-     Lower the threshold and provide incentives.
-5. Efficiency
-     Improve the efficiency of evolution and decision making. 
-6. Freedom
-     Achieve free collaboration and competition. 
+Concentratio: focus on the peer to peer electronic cash. 
+Inheritance: based on the underlying framework of Bitcoin.
+Evolution: continuous improvement for new issues. 
+Participance: lower the threshold and provide incentives.
+Efficiency: improve the efficiency of evolution and decision making. 
+Freedom: achieve free collaboration and competition. 
 
 Features of Freecash.
 --------------------
