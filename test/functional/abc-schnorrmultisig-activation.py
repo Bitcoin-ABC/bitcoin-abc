@@ -57,29 +57,23 @@ GRAVITON_START_TIME = 2000000000
 REPLAY_PROTECTION_START_TIME = GRAVITON_START_TIME * 2
 
 
-# Before the upgrade, Schnorr checkmultisig is rejected but forgiven if it would have been valid after the upgrade.
-PREUPGRADE_SCHNORR_MULTISIG_ERROR = dict(reject_code=16,
-                                         reject_reason=b'upgrade-conditional-script-failure (Signature cannot be 65 bytes in CHECKMULTISIG)')
+# Before the upgrade, Schnorr checkmultisig is rejected but forgiven if it
+# would have been valid after the upgrade.
+PREUPGRADE_SCHNORR_MULTISIG_ERROR = 'upgrade-conditional-script-failure (Signature cannot be 65 bytes in CHECKMULTISIG)'
 
-# Before the upgrade, ECDSA checkmultisig with non-null dummy are rejected with a non-mandatory error.
-PREUPGRADE_ECDSA_NULLDUMMY_ERROR = dict(reject_code=64,
-                                        reject_reason=b'non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)')
-# After the upgrade, ECDSA checkmultisig with non-null dummy are invalid since the new mode refuses ECDSA, but still do not result in ban.
-POSTUPGRADE_ECDSA_NULLDUMMY_ERROR = dict(reject_code=16,
-                                         reject_reason=b'upgrade-conditional-script-failure (Only Schnorr signatures allowed in this operation)')
+# Before the upgrade, ECDSA checkmultisig with non-null dummy are rejected with
+# a non-mandatory error.
+PREUPGRADE_ECDSA_NULLDUMMY_ERROR = 'non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)'
+# After the upgrade, ECDSA checkmultisig with non-null dummy are invalid since
+# the new mode refuses ECDSA, but still do not result in ban.
+POSTUPGRADE_ECDSA_NULLDUMMY_ERROR = 'upgrade-conditional-script-failure (Only Schnorr signatures allowed in this operation)'
 
-# A mandatory (bannable) error occurs when people pass Schnorr signatures into legacy OP_CHECKMULTISIG; this is the case on both sides of the upgrade.
-SCHNORR_LEGACY_MULTISIG_ERROR = dict(reject_code=16,
-                                     reject_reason=b'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)')
+# A mandatory (bannable) error occurs when people pass Schnorr signatures into
+# legacy OP_CHECKMULTISIG; this is the case on both sides of the upgrade.
+SCHNORR_LEGACY_MULTISIG_ERROR = 'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)'
 
 # Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = dict(reject_code=16,
-                       reject_reason=b'blk-bad-inputs')
-
-
-def rpc_error(*, reject_code, reject_reason):
-    # RPC indicates rejected items in a slightly different way than p2p.
-    return '{:s} (code {:d})'.format(reject_reason.decode(), reject_code)
+BADINPUTS_ERROR = 'blk-bad-inputs'
 
 
 # This 64-byte signature is used to test exclusion & banning according to
@@ -142,25 +136,25 @@ class SchnorrTest(BitcoinTestFramework):
         self.block_heights[block.sha256] = block_height
         return block
 
-    def check_for_ban_on_rejected_tx(self, tx, reject_code=None, reject_reason=None):
+    def check_for_ban_on_rejected_tx(self, tx, reject_reason=None):
         """Check we are disconnected when sending a txn that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2p.send_txs_and_test(
-            [tx], self.nodes[0], success=False, expect_disconnect=True, reject_code=reject_code, reject_reason=reject_reason)
+            [tx], self.nodes[0], success=False, expect_disconnect=True, reject_reason=reject_reason)
         self.reconnect_p2p()
 
-    def check_for_no_ban_on_rejected_tx(self, tx, reject_code, reject_reason):
+    def check_for_no_ban_on_rejected_tx(self, tx, reject_reason):
         """Check we are not disconnected when sending a txn that the node rejects."""
         self.nodes[0].p2p.send_txs_and_test(
-            [tx], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason)
+            [tx], self.nodes[0], success=False, reject_reason=reject_reason)
 
-    def check_for_ban_on_rejected_block(self, block, reject_code=None, reject_reason=None):
+    def check_for_ban_on_rejected_block(self, block, reject_reason=None):
         """Check we are disconnected when sending a block that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2p.send_blocks_and_test(
-            [block], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason, expect_disconnect=True)
+            [block], self.nodes[0], success=False, reject_reason=reject_reason, expect_disconnect=True)
         self.reconnect_p2p()
 
     def run_test(self):
@@ -246,28 +240,28 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info("Start preupgrade tests")
 
         self.log.info("Sending rejected transactions via RPC")
-        assert_raises_rpc_error(-26, rpc_error(**PREUPGRADE_ECDSA_NULLDUMMY_ERROR),
+        assert_raises_rpc_error(-26, PREUPGRADE_ECDSA_NULLDUMMY_ERROR,
                                 node.sendrawtransaction, ToHex(ecdsa1tx))
-        assert_raises_rpc_error(-26, rpc_error(**SCHNORR_LEGACY_MULTISIG_ERROR),
+        assert_raises_rpc_error(-26, SCHNORR_LEGACY_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(schnorr0tx))
-        assert_raises_rpc_error(-26, rpc_error(**PREUPGRADE_SCHNORR_MULTISIG_ERROR),
+        assert_raises_rpc_error(-26, PREUPGRADE_SCHNORR_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(schnorr1tx))
 
         self.log.info(
             "Sending rejected transactions via net (banning depending on situation)")
         self.check_for_no_ban_on_rejected_tx(
-            ecdsa1tx, **PREUPGRADE_ECDSA_NULLDUMMY_ERROR)
+            ecdsa1tx, PREUPGRADE_ECDSA_NULLDUMMY_ERROR)
         self.check_for_ban_on_rejected_tx(
-            schnorr0tx, **SCHNORR_LEGACY_MULTISIG_ERROR)
+            schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
         self.check_for_no_ban_on_rejected_tx(
-            schnorr1tx, **PREUPGRADE_SCHNORR_MULTISIG_ERROR)
+            schnorr1tx, PREUPGRADE_SCHNORR_MULTISIG_ERROR)
 
         self.log.info(
             "Sending invalid transactions in blocks (and get banned!)")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorr0tx]), **BADINPUTS_ERROR)
+            self.build_block(tip, [schnorr0tx]), BADINPUTS_ERROR)
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorr1tx]), **BADINPUTS_ERROR)
+            self.build_block(tip, [schnorr1tx]), BADINPUTS_ERROR)
 
         self.log.info("Sending valid transaction via net, then mining it")
         node.p2p.send_txs_and_test([ecdsa0tx], node)
@@ -293,7 +287,7 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info(
             "The next block will activate, but the activation block itself must follow old rules")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorr0tx]), **BADINPUTS_ERROR)
+            self.build_block(tip, [schnorr0tx]), BADINPUTS_ERROR)
 
         self.log.info(
             "Send a lecacy ECDSA multisig into mempool, we will check after upgrade to make sure it didn't get cleaned out unnecessarily.")
@@ -319,13 +313,13 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info(
             "Trying to mine a legacy nulldummy violation, but we are just barely too late")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [ecdsa1tx_2]), **BADINPUTS_ERROR)
+            self.build_block(tip, [ecdsa1tx_2]), BADINPUTS_ERROR)
         self.log.info(
             "If we try to submit it by mempool or RPC, the error code has changed but we still aren't banned")
-        assert_raises_rpc_error(-26, rpc_error(**POSTUPGRADE_ECDSA_NULLDUMMY_ERROR),
+        assert_raises_rpc_error(-26, POSTUPGRADE_ECDSA_NULLDUMMY_ERROR,
                                 node.sendrawtransaction, ToHex(ecdsa1tx_2))
         self.check_for_no_ban_on_rejected_tx(
-            ecdsa1tx_2, **POSTUPGRADE_ECDSA_NULLDUMMY_ERROR)
+            ecdsa1tx_2, POSTUPGRADE_ECDSA_NULLDUMMY_ERROR)
 
         self.log.info(
             "Submitting a new Schnorr-multisig via net, and mining it in a block")
@@ -348,9 +342,9 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info(
             "Trying Schnorr in legacy multisig remains invalid and banworthy as ever")
         self.check_for_ban_on_rejected_tx(
-            schnorr0tx, **SCHNORR_LEGACY_MULTISIG_ERROR)
+            schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorr0tx]), **BADINPUTS_ERROR)
+            self.build_block(tip, [schnorr0tx]), BADINPUTS_ERROR)
 
         # Deactivation tests
 
