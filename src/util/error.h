@@ -10,7 +10,7 @@
  * string functions. Types and functions defined here should not require any
  * outside dependencies.
  *
- * Error types defined here can be used in different parts of the bitcoin
+ * Error types defined here can be used in different parts of the
  * codebase, to avoid the need to write boilerplate code catching and
  * translating errors passed across wallet/node/rpc/gui code boundaries.
  */
@@ -34,6 +34,9 @@ enum class TransactionError {
 };
 
 std::string TransactionErrorString(TransactionError error);
+
+std::string ResolveErrMsg(const std::string &optname,
+                          const std::string &strBind);
 
 bilingual_str AmountHighWarn(const std::string &optname);
 

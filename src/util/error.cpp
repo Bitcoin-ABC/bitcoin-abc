@@ -35,6 +35,12 @@ std::string TransactionErrorString(const TransactionError error) {
     assert(false);
 }
 
+std::string ResolveErrMsg(const std::string &optname,
+                          const std::string &strBind) {
+    return strprintf(_("Cannot resolve -%s address: '%s'").translated, optname,
+                     strBind);
+}
+
 bilingual_str AmountHighWarn(const std::string &optname) {
     return strprintf(_("%s is set very high!"), optname);
 }

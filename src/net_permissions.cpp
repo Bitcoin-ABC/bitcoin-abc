@@ -5,6 +5,7 @@
 #include <net_permissions.h>
 
 #include <netbase.h>
+#include <util/error.h>
 #include <util/system.h>
 #include <util/translation.h>
 
@@ -100,8 +101,7 @@ bool NetWhitebindPermissions::TryParse(const std::string str,
     const std::string strBind = str.substr(offset);
     CService addrBind;
     if (!Lookup(strBind.c_str(), addrBind, 0, false)) {
-        error = strprintf(_("Cannot resolve -%s address: '%s'").translated,
-                          "whitebind", strBind);
+        error = ResolveErrMsg("whitebind", strBind);
         return false;
     }
     if (addrBind.GetPort() == 0) {
