@@ -49,19 +49,13 @@ GRAVITON_START_TIME = 2000000000
 REPLAY_PROTECTION_START_TIME = GRAVITON_START_TIME * 2
 
 
-# Both before and after the upgrade, minimal push violations are rejected as nonstandard.
-# After the upgrade they are actually invalid, but we get the same error since MINIMALDATA is internally marked as a "standardness" flag.
-MINIMALPUSH_ERROR = dict(reject_code=64,
-                         reject_reason=b'non-mandatory-script-verify-flag (Data push larger than necessary)')
+# Both before and after the upgrade, minimal push violations are rejected as
+# nonstandard. After the upgrade they are actually invalid, but we get the
+# same error since MINIMALDATA is internally marked as a "standardness" flag.
+MINIMALPUSH_ERROR = 'non-mandatory-script-verify-flag (Data push larger than necessary)'
 
 # Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = dict(reject_code=16,
-                       reject_reason=b'blk-bad-inputs')
-
-
-def rpc_error(*, reject_code, reject_reason):
-    # RPC indicates rejected items in a slightly different way than p2p.
-    return '{:s} (code {:d})'.format(reject_reason.decode(), reject_code)
+BADINPUTS_ERROR = 'blk-bad-inputs'
 
 
 class SchnorrTest(BitcoinTestFramework):
@@ -118,25 +112,25 @@ class SchnorrTest(BitcoinTestFramework):
         self.block_heights[block.sha256] = block_height
         return block
 
-    def check_for_ban_on_rejected_tx(self, tx, reject_code=None, reject_reason=None):
+    def check_for_ban_on_rejected_tx(self, tx, reject_reason=None):
         """Check we are disconnected when sending a txn that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2p.send_txs_and_test(
-            [tx], self.nodes[0], success=False, expect_disconnect=True, reject_code=reject_code, reject_reason=reject_reason)
+            [tx], self.nodes[0], success=False, expect_disconnect=True, reject_reason=reject_reason)
         self.reconnect_p2p()
 
-    def check_for_no_ban_on_rejected_tx(self, tx, reject_code, reject_reason):
+    def check_for_no_ban_on_rejected_tx(self, tx, reject_reason):
         """Check we are not disconnected when sending a txn that the node rejects."""
         self.nodes[0].p2p.send_txs_and_test(
-            [tx], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason)
+            [tx], self.nodes[0], success=False, reject_reason=reject_reason)
 
-    def check_for_ban_on_rejected_block(self, block, reject_code=None, reject_reason=None):
+    def check_for_ban_on_rejected_block(self, block, reject_reason=None):
         """Check we are disconnected when sending a block that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2p.send_blocks_and_test(
-            [block], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason, expect_disconnect=True)
+            [block], self.nodes[0], success=False, reject_reason=reject_reason, expect_disconnect=True)
         self.reconnect_p2p()
 
     def run_test(self):
@@ -200,21 +194,21 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info("Start preupgrade tests")
 
         self.log.info("Sending rejected transactions via RPC")
-        assert_raises_rpc_error(-26, rpc_error(**MINIMALPUSH_ERROR),
+        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
                                 node.sendrawtransaction, ToHex(nonminimaltx))
-        assert_raises_rpc_error(-26, rpc_error(**MINIMALPUSH_ERROR),
+        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
                                 node.sendrawtransaction, ToHex(nonminimaltx_2))
-        assert_raises_rpc_error(-26, rpc_error(**MINIMALPUSH_ERROR),
+        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
                                 node.sendrawtransaction, ToHex(nonminimaltx_3))
 
         self.log.info(
             "Sending rejected transactions via net (no banning)")
         self.check_for_no_ban_on_rejected_tx(
-            nonminimaltx, **MINIMALPUSH_ERROR)
+            nonminimaltx, MINIMALPUSH_ERROR)
         self.check_for_no_ban_on_rejected_tx(
-            nonminimaltx_2, **MINIMALPUSH_ERROR)
+            nonminimaltx_2, MINIMALPUSH_ERROR)
         self.check_for_no_ban_on_rejected_tx(
-            nonminimaltx_3, **MINIMALPUSH_ERROR)
+            nonminimaltx_3, MINIMALPUSH_ERROR)
 
         assert_equal(node.getrawmempool(), [])
 
@@ -248,13 +242,13 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info(
             "Trying to mine a minimaldata violation, but we are just barely too late")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [nonminimaltx_3]), **BADINPUTS_ERROR)
+            self.build_block(tip, [nonminimaltx_3]), BADINPUTS_ERROR)
         self.log.info(
             "If we try to submit it by mempool or RPC we still aren't banned")
-        assert_raises_rpc_error(-26, rpc_error(**MINIMALPUSH_ERROR),
+        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
                                 node.sendrawtransaction, ToHex(nonminimaltx_3))
         self.check_for_no_ban_on_rejected_tx(
-            nonminimaltx_3, **MINIMALPUSH_ERROR)
+            nonminimaltx_3, MINIMALPUSH_ERROR)
 
         self.log.info("Mine a normal block")
         tip = self.build_block(tip)
