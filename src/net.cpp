@@ -992,10 +992,11 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     if (NetPermissions::HasFlag(permissionFlags,
                                 NetPermissionFlags::PF_ISIMPLICIT)) {
         NetPermissions::ClearFlag(permissionFlags, PF_ISIMPLICIT);
-        if (gArgs.GetBoolArg("-whitelistforcerelay", false)) {
+        if (gArgs.GetBoolArg("-whitelistforcerelay",
+                             DEFAULT_WHITELISTFORCERELAY)) {
             NetPermissions::AddFlag(permissionFlags, PF_FORCERELAY);
         }
-        if (gArgs.GetBoolArg("-whitelistrelay", false)) {
+        if (gArgs.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)) {
             NetPermissions::AddFlag(permissionFlags, PF_RELAY);
         }
         NetPermissions::AddFlag(permissionFlags, PF_MEMPOOL);

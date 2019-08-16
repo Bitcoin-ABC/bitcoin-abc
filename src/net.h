@@ -41,6 +41,11 @@ class Config;
 class CNode;
 class CScheduler;
 
+/** Default for -whitelistrelay. */
+static const bool DEFAULT_WHITELISTRELAY = true;
+/** Default for -whitelistforcerelay. */
+static const bool DEFAULT_WHITELISTFORCERELAY = false;
+
 /**
  * Time between pings automatically sent out for latency probing and keepalive
  * (in seconds).
