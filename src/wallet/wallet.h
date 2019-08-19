@@ -40,6 +40,8 @@
 using LoadWalletFn =
     std::function<void(std::unique_ptr<interfaces::Wallet> wallet)>;
 
+struct bilingual_str;
+
 //! Explicitly unload and delete the wallet.
 //! Blocks the current thread after signaling the unload intent so that all
 //! wallet clients release the wallet.
@@ -55,8 +57,8 @@ std::shared_ptr<CWallet> GetWallet(const std::string &name);
 std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
                                     const WalletLocation &location,
-                                    std::string &error,
-                                    std::vector<std::string> &warnings);
+                                    bilingual_str &error,
+                                    std::vector<bilingual_str> &warnings);
 std::unique_ptr<interfaces::Handler> HandleLoadWallet(LoadWalletFn load_wallet);
 
 enum class WalletCreationStatus { SUCCESS, CREATION_FAILED, ENCRYPTION_FAILED };
@@ -65,8 +67,8 @@ WalletCreationStatus CreateWallet(const CChainParams &params,
                                   interfaces::Chain &chain,
                                   const SecureString &passphrase,
                                   uint64_t wallet_creation_flags,
-                                  const std::string &name, std::string &error,
-                                  std::vector<std::string> &warnings,
+                                  const std::string &name, bilingual_str &error,
+                                  std::vector<bilingual_str> &warnings,
                                   std::shared_ptr<CWallet> &result);
 //! -paytxfee default
 constexpr Amount DEFAULT_PAY_TX_FEE = Amount::zero();
@@ -1270,17 +1272,19 @@ public:
     //! Verify wallet naming and perform salvage on the wallet if required
     static bool Verify(const CChainParams &chainParams,
                        interfaces::Chain &chain, const WalletLocation &location,
-                       bool salvage_wallet, std::string &error_string,
-                       std::vector<std::string> &warnings);
+                       bool salvage_wallet, bilingual_str &error_string,
+                       std::vector<bilingual_str> &warnings);
 
     /**
      * Initializes the wallet, returns a new CWallet instance or a null pointer
      * in case of an error.
      */
-    static std::shared_ptr<CWallet> CreateWalletFromFile(
-        const CChainParams &chainParams, interfaces::Chain &chain,
-        const WalletLocation &location, std::string &error,
-        std::vector<std::string> &warnings, uint64_t wallet_creation_flags = 0);
+    static std::shared_ptr<CWallet>
+    CreateWalletFromFile(const CChainParams &chainParams,
+                         interfaces::Chain &chain,
+                         const WalletLocation &location, bilingual_str &error,
+                         std::vector<bilingual_str> &warnings,
+                         uint64_t wallet_creation_flags = 0);
 
     /**
      * Wallet post-init setup

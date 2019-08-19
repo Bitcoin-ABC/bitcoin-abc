@@ -781,13 +781,13 @@ bool WalletBatch::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
 }
 
 bool WalletBatch::VerifyEnvironment(const fs::path &wallet_path,
-                                    std::string &errorStr) {
+                                    bilingual_str &errorStr) {
     return BerkeleyBatch::VerifyEnvironment(wallet_path, errorStr);
 }
 
 bool WalletBatch::VerifyDatabaseFile(const fs::path &wallet_path,
-                                     std::vector<std::string> &warnings,
-                                     std::string &errorStr) {
+                                     std::vector<bilingual_str> &warnings,
+                                     bilingual_str &errorStr) {
     return BerkeleyBatch::VerifyDatabaseFile(wallet_path, warnings, errorStr,
                                              WalletBatch::Recover);
 }

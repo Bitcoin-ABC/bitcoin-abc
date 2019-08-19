@@ -5,6 +5,7 @@
 #include <chainparams.h>
 #include <fs.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
 
@@ -136,7 +137,7 @@ bool ExecuteWalletToolFunc(const std::string &command,
             tfm::format(std::cerr, "Error: no wallet file at %s\n", name);
             return false;
         }
-        std::string error;
+        bilingual_str error;
         if (!WalletBatch::VerifyEnvironment(path, error)) {
             tfm::format(
                 std::cerr,

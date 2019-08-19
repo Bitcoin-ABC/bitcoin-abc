@@ -44,14 +44,15 @@ std::vector<fs::path> ListWalletDir();
 std::vector<std::shared_ptr<CWallet>> GetWallets();
 std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
-                                    const std::string &name, std::string &error,
-                                    std::vector<std::string> &warnings);
+                                    const std::string &name,
+                                    bilingual_str &error,
+                                    std::vector<bilingual_str> &warnings);
 WalletCreationStatus CreateWallet(const CChainParams &params,
                                   interfaces::Chain &chain,
                                   const SecureString &passphrase,
                                   uint64_t wallet_creation_flags,
-                                  const std::string &name, std::string &error,
-                                  std::vector<std::string> &warnings,
+                                  const std::string &name, bilingual_str &error,
+                                  std::vector<bilingual_str> &warnings,
                                   std::shared_ptr<CWallet> &result);
 std::unique_ptr<interfaces::Handler>
 HandleLoadWallet(interfaces::Node::LoadWalletFn load_wallet);
@@ -281,15 +282,15 @@ namespace {
         }
         std::unique_ptr<Wallet>
         loadWallet(const CChainParams &params, const std::string &name,
-                   std::string &error,
-                   std::vector<std::string> &warnings) const override {
+                   bilingual_str &error,
+                   std::vector<bilingual_str> &warnings) const override {
             return MakeWallet(
                 LoadWallet(params, *m_context.chain, name, error, warnings));
         }
         WalletCreationStatus
         createWallet(const CChainParams &params, const SecureString &passphrase,
                      uint64_t wallet_creation_flags, const std::string &name,
-                     std::string &error, std::vector<std::string> &warnings,
+                     bilingual_str &error, std::vector<bilingual_str> &warnings,
                      std::unique_ptr<Wallet> &result) override {
             std::shared_ptr<CWallet> wallet;
             WalletCreationStatus status = CreateWallet(

@@ -10,6 +10,7 @@
 class CChainParams;
 class CWallet;
 enum class WalletCreationStatus;
+struct bilingual_str;
 
 namespace interfaces {
 class Chain;
@@ -55,8 +56,9 @@ std::vector<std::shared_ptr<CWallet>> GetWallets() {
 
 std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
-                                    const std::string &name, std::string &error,
-                                    std::vector<std::string> &warnings) {
+                                    const std::string &name,
+                                    bilingual_str &error,
+                                    std::vector<bilingual_str> &warnings) {
     throw std::logic_error("Wallet function called in non-wallet build.");
 }
 
@@ -64,8 +66,8 @@ WalletCreationStatus CreateWallet(const CChainParams &chainParams,
                                   interfaces::Chain &chain,
                                   const SecureString &passphrase,
                                   uint64_t wallet_creation_flags,
-                                  const std::string &name, std::string &error,
-                                  std::vector<std::string> &warnings,
+                                  const std::string &name, bilingual_str &error,
+                                  std::vector<bilingual_str> &warnings,
                                   std::shared_ptr<CWallet> &result) {
     throw std::logic_error("Wallet function called in non-wallet build.");
 }

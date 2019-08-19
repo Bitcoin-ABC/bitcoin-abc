@@ -425,7 +425,7 @@ bool BerkeleyBatch::Recover(const fs::path &file_path, void *callbackDataIn,
 }
 
 bool BerkeleyBatch::VerifyEnvironment(const fs::path &file_path,
-                                      std::string &errorStr) {
+                                      bilingual_str &errorStr) {
     std::string walletFile;
     std::shared_ptr<BerkeleyEnvironment> env =
         GetWalletEnv(file_path, walletFile);
@@ -437,8 +437,7 @@ bool BerkeleyBatch::VerifyEnvironment(const fs::path &file_path,
 
     if (!env->Open(true /* retry */)) {
         errorStr = strprintf(
-            _("Error initializing wallet database environment %s!").translated,
-            walletDir);
+            _("Error initializing wallet database environment %s!"), walletDir);
         return false;
     }
 
@@ -446,8 +445,9 @@ bool BerkeleyBatch::VerifyEnvironment(const fs::path &file_path,
 }
 
 bool BerkeleyBatch::VerifyDatabaseFile(
-    const fs::path &file_path, std::vector<std::string> &warnings,
-    std::string &errorStr, BerkeleyEnvironment::recoverFunc_type recoverFunc) {
+    const fs::path &file_path, std::vector<bilingual_str> &warnings,
+    bilingual_str &errorStr,
+    BerkeleyEnvironment::recoverFunc_type recoverFunc) {
     std::string walletFile;
     std::shared_ptr<BerkeleyEnvironment> env =
         GetWalletEnv(file_path, walletFile);
@@ -458,16 +458,15 @@ bool BerkeleyBatch::VerifyDatabaseFile(
         BerkeleyEnvironment::VerifyResult r =
             env->Verify(walletFile, recoverFunc, backup_filename);
         if (r == BerkeleyEnvironment::VerifyResult::RECOVER_OK) {
-            warnings.push_back(strprintf(
-                _("Warning: Wallet file corrupt, data salvaged! Original %s "
-                  "saved as %s in %s; if your balance or transactions are "
-                  "incorrect you should restore from a backup.")
-                    .translated,
-                walletFile, backup_filename, walletDir));
+            warnings.push_back(
+                strprintf(_("Warning: Wallet file corrupt, data salvaged!"
+                            " Original %s saved as %s in %s; if your balance "
+                            "or transactions are incorrect you should restore "
+                            "from a backup."),
+                          walletFile, backup_filename, walletDir));
         }
         if (r == BerkeleyEnvironment::VerifyResult::RECOVER_FAIL) {
-            errorStr = strprintf(_("%s corrupt, salvage failed").translated,
-                                 walletFile);
+            errorStr = strprintf(_("%s corrupt, salvage failed"), walletFile);
             return false;
         }
     }
