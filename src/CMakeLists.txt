@@ -73,6 +73,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_compiler_flags(-static)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	add_definitions(-DMAC_OSX)
+endif()
+
 if(ENABLE_REDUCE_EXPORTS)
 	# Default visibility is set by CMAKE_<LANG>_VISIBILITY_PRESET, but this
 	# doesn't tell if the visibility set is effective.
