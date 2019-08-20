@@ -10,6 +10,7 @@
 #include <test/util.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/time.h>
 
 #include <test/util/setup_common.h>
@@ -153,6 +154,20 @@ BOOST_AUTO_TEST_CASE(util_HexStr) {
                std::reverse_iterator<const uint8_t *>(ParseHex_expected)),
         "5f1df16b2b704c8a578d0bbaf74d385cde12c11ee50455f3c438ef4c3fbcf649b6de61"
         "1feae06279a60939e028a8d65c10b73071a6f16719274855feb0fd8a6704");
+}
+
+BOOST_AUTO_TEST_CASE(util_Join) {
+    // Normal version
+    BOOST_CHECK_EQUAL(Join({}, ", "), "");
+    BOOST_CHECK_EQUAL(Join({"foo"}, ", "), "foo");
+    BOOST_CHECK_EQUAL(Join({"foo", "bar"}, ", "), "foo, bar");
+
+    // Version with unary operator
+    const auto op_upper = [](const std::string &s) { return ToUpper(s); };
+    BOOST_CHECK_EQUAL(Join<std::string>({}, ", ", op_upper), "");
+    BOOST_CHECK_EQUAL(Join<std::string>({"foo"}, ", ", op_upper), "FOO");
+    BOOST_CHECK_EQUAL(Join<std::string>({"foo", "bar"}, ", ", op_upper),
+                      "FOO, BAR");
 }
 
 BOOST_AUTO_TEST_CASE(util_FormatParseISO8601DateTime) {

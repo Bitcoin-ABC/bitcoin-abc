@@ -8,6 +8,7 @@
 #include <rpc/util.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 
 #include <univalue.h>
 
@@ -646,13 +647,9 @@ std::string RPCArg::ToString(const bool oneline) const {
         }
         case Type::OBJ:
         case Type::OBJ_USER_KEYS: {
-            std::string res;
-            for (size_t i = 0; i < m_inner.size();) {
-                res += m_inner[i].ToStringObj(oneline);
-                if (++i < m_inner.size()) {
-                    res += ",";
-                }
-            }
+            const std::string res = Join(m_inner, ",", [&](const RPCArg &i) {
+                return i.ToStringObj(oneline);
+            });
             if (m_type == Type::OBJ) {
                 return "{" + res + "}";
             } else {
