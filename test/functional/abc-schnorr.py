@@ -46,21 +46,13 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_raises_rpc_error
 
 # A mandatory (bannable) error occurs when people pass Schnorr signatures into OP_CHECKMULTISIG.
-SCHNORR_MULTISIG_ERROR = dict(reject_code=16,
-                              reject_reason=b'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)')
+SCHNORR_MULTISIG_ERROR = 'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)'
 
 # A mandatory (bannable) error occurs when people send invalid Schnorr sigs into OP_CHECKSIG.
-NULLFAIL_ERROR = dict(reject_code=16,
-                      reject_reason=b'mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation)')
+NULLFAIL_ERROR = 'mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation)'
 
 # Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = dict(reject_code=16,
-                       reject_reason=b'blk-bad-inputs')
-
-
-def rpc_error(*, reject_code, reject_reason):
-    # RPC indicates rejected items in a slightly different way than p2p.
-    return '{:s} (code {:d})'.format(reject_reason.decode(), reject_code)
+BADINPUTS_ERROR = 'blk-bad-inputs'
 
 
 # This 64-byte signature is used to test exclusion & banning according to
@@ -119,20 +111,20 @@ class SchnorrTest(BitcoinTestFramework):
         self.block_heights[block.sha256] = block_height
         return block
 
-    def check_for_ban_on_rejected_tx(self, tx, reject_code=None, reject_reason=None):
+    def check_for_ban_on_rejected_tx(self, tx, reject_reason=None):
         """Check we are disconnected when sending a txn that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2p.send_txs_and_test(
-            [tx], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason, expect_disconnect=True)
+            [tx], self.nodes[0], success=False, reject_reason=reject_reason, expect_disconnect=True)
         self.reconnect_p2p()
 
-    def check_for_ban_on_rejected_block(self, block, reject_code=None, reject_reason=None):
+    def check_for_ban_on_rejected_block(self, block, reject_reason=None):
         """Check we are disconnected when sending a block that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2p.send_blocks_and_test(
-            [block], self.nodes[0], success=False, reject_code=reject_code, reject_reason=reject_reason, expect_disconnect=True)
+            [block], self.nodes[0], success=False, reject_reason=reject_reason, expect_disconnect=True)
         self.reconnect_p2p()
 
     def run_test(self):
@@ -226,31 +218,31 @@ class SchnorrTest(BitcoinTestFramework):
         assert not node.getrawmempool()
 
         self.log.info("Schnorr in multisig is rejected with mandatory error.")
-        assert_raises_rpc_error(-26, rpc_error(**SCHNORR_MULTISIG_ERROR),
+        assert_raises_rpc_error(-26, SCHNORR_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(schnorrmultisigtx))
         # And it is banworthy.
         self.check_for_ban_on_rejected_tx(
-            schnorrmultisigtx, **SCHNORR_MULTISIG_ERROR)
+            schnorrmultisigtx, SCHNORR_MULTISIG_ERROR)
         # And it can't be mined
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorrmultisigtx]), **BADINPUTS_ERROR)
+            self.build_block(tip, [schnorrmultisigtx]), BADINPUTS_ERROR)
 
         self.log.info("Bad 64-byte sig is rejected with mandatory error.")
         # In CHECKSIG it's invalid Schnorr and hence NULLFAIL.
-        assert_raises_rpc_error(-26, rpc_error(**NULLFAIL_ERROR),
+        assert_raises_rpc_error(-26, NULLFAIL_ERROR,
                                 node.sendrawtransaction, ToHex(sig64checksigtx))
         # In CHECKMULTISIG it's invalid length and hence BAD_LENGTH.
-        assert_raises_rpc_error(-26, rpc_error(**SCHNORR_MULTISIG_ERROR),
+        assert_raises_rpc_error(-26, SCHNORR_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(sig64multisigtx))
         # Sending these transactions is banworthy.
-        self.check_for_ban_on_rejected_tx(sig64checksigtx, **NULLFAIL_ERROR)
+        self.check_for_ban_on_rejected_tx(sig64checksigtx, NULLFAIL_ERROR)
         self.check_for_ban_on_rejected_tx(
-            sig64multisigtx, **SCHNORR_MULTISIG_ERROR)
+            sig64multisigtx, SCHNORR_MULTISIG_ERROR)
         # And they can't be mined either...
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [sig64checksigtx]), **BADINPUTS_ERROR)
+            self.build_block(tip, [sig64checksigtx]), BADINPUTS_ERROR)
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [sig64multisigtx]), **BADINPUTS_ERROR)
+            self.build_block(tip, [sig64multisigtx]), BADINPUTS_ERROR)
 
 
 if __name__ == '__main__':
