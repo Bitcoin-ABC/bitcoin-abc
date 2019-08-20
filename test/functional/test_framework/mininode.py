@@ -606,8 +606,7 @@ class P2PDataStore(P2PInterface):
         if response is not None:
             self.send_message(response)
 
-    def send_blocks_and_test(self, blocks, node, *, success=True, request_block=True, reject_code=None, reject_reason=None, expect_disconnect=False, timeout=60):
-        # TODO: Migrate all tests off of using `reject_code` and then remove it.
+    def send_blocks_and_test(self, blocks, node, *, success=True, request_block=True, reject_reason=None, expect_disconnect=False, timeout=60):
         """Send blocks to test node and test whether the tip advances.
 
          - add all blocks to our block_store
@@ -624,9 +623,6 @@ class P2PDataStore(P2PInterface):
                 self.block_store[block.sha256] = block
                 self.last_block_hash = block.sha256
 
-        # TODO: Remove decode() once all callers are migrated to use strings instead of bytes.
-        if isinstance(reject_reason, bytes):
-            reject_reason = reject_reason.decode('utf-8')
         reject_reason = [reject_reason] if reject_reason else []
         with node.assert_debug_log(expected_msgs=reject_reason):
             self.send_message(msg_headers([CBlockHeader(blocks[-1])]))
@@ -646,8 +642,7 @@ class P2PDataStore(P2PInterface):
             else:
                 assert node.getbestblockhash() != blocks[-1].hash
 
-    def send_txs_and_test(self, txs, node, *, success=True, expect_disconnect=False, reject_code=None, reject_reason=None):
-        # TODO: Migrate all tests off of using `reject_code` and then remove it.
+    def send_txs_and_test(self, txs, node, *, success=True, expect_disconnect=False, reject_reason=None):
         """Send txs to test node and test whether they're accepted to the mempool.
 
          - add all txs to our tx_store
@@ -660,9 +655,6 @@ class P2PDataStore(P2PInterface):
             for tx in txs:
                 self.tx_store[tx.sha256] = tx
 
-        # TODO: Remove decode() once all callers are migrated to use strings instead of bytes.
-        if isinstance(reject_reason, bytes):
-            reject_reason = reject_reason.decode('utf-8')
         reject_reason = [reject_reason] if reject_reason else []
         with node.assert_debug_log(expected_msgs=reject_reason):
             for tx in txs:
