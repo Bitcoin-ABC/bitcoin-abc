@@ -44,10 +44,10 @@ from test_framework.util import (
 TEST_TIME = int(time.time())
 
 # Error due to non clean stack
-CLEANSTACK_ERROR = b'non-mandatory-script-verify-flag (Script did not clean its stack)'
-RPC_CLEANSTACK_ERROR = CLEANSTACK_ERROR.decode('utf-8') + " (code 64)"
-EVAL_FALSE_ERROR = b'non-mandatory-script-verify-flag (Script evaluated without error but finished with a false/empty top stack elem'
-RPC_EVAL_FALSE_ERROR = EVAL_FALSE_ERROR.decode('utf-8') + "ent) (code 64)"
+CLEANSTACK_ERROR = 'non-mandatory-script-verify-flag (Script did not clean its stack)'
+RPC_CLEANSTACK_ERROR = CLEANSTACK_ERROR + " (code 64)"
+EVAL_FALSE_ERROR = 'non-mandatory-script-verify-flag (Script evaluated without error but finished with a false/empty top stack elem'
+RPC_EVAL_FALSE_ERROR = EVAL_FALSE_ERROR + "ent) (code 64)"
 
 
 class PreviousSpendableOutput(object):
@@ -149,12 +149,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         def accepted(node):
             node.p2p.send_blocks_and_test([self.tip], node)
 
-        # submit current tip and check it was rejected (and we are banned)
-        def rejected(node, reject_code, reject_reason):
-            node.p2p.send_blocks_and_test(
-                [self.tip], node, success=False, reject_code=reject_code, reject_reason=reject_reason, expect_disconnect=True)
-            self.reconnect_p2p()
-
         # move the tip back to a previous block
         def tip(number):
             self.tip = self.blocks[number]
@@ -224,9 +218,9 @@ class SegwitRecoveryTest(BitcoinTestFramework):
             return txfund, txspend
 
         # Check we are not banned when sending a txn that is rejected.
-        def check_for_no_ban_on_rejected_tx(node, tx, reject_code, reject_reason):
+        def check_for_no_ban_on_rejected_tx(node, tx, reject_reason):
             node.p2p.send_txs_and_test(
-                [tx], node, success=False, reject_code=reject_code, reject_reason=reject_reason)
+                [tx], node, success=False, reject_reason=reject_reason)
 
         # Create a new block
         block(0)
@@ -263,13 +257,13 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # Check that upgraded nodes checking for standardness are not banning
         # nodes sending segwit spending txns.
         check_for_no_ban_on_rejected_tx(
-            node_nonstd, txspend, 64, CLEANSTACK_ERROR)
+            node_nonstd, txspend, CLEANSTACK_ERROR)
         check_for_no_ban_on_rejected_tx(
-            node_nonstd, txspend_case0, 64, EVAL_FALSE_ERROR)
+            node_nonstd, txspend_case0, EVAL_FALSE_ERROR)
         check_for_no_ban_on_rejected_tx(
-            node_std, txspend, 64, CLEANSTACK_ERROR)
+            node_std, txspend, CLEANSTACK_ERROR)
         check_for_no_ban_on_rejected_tx(
-            node_std, txspend_case0, 64, EVAL_FALSE_ERROR)
+            node_std, txspend_case0, EVAL_FALSE_ERROR)
 
         # Segwit recovery txns are never accepted into the mempool,
         # as they are included in standard flags.
