@@ -318,7 +318,8 @@ class TestNode():
         wait_until(self.is_node_stopped, timeout=timeout)
 
     @contextlib.contextmanager
-    def assert_debug_log(self, expected_msgs):
+    def assert_debug_log(self, expected_msgs, timeout=2):
+        time_end = time.time() + timeout
         debug_log = os.path.join(self.datadir, 'regtest', 'debug.log')
         with open(debug_log, encoding='utf-8') as dl:
             dl.seek(0, 2)
@@ -326,15 +327,24 @@ class TestNode():
         try:
             yield
         finally:
-            with open(debug_log, encoding='utf-8') as dl:
-                dl.seek(prev_size)
-                log = dl.read()
-            print_log = " - " + "\n - ".join(log.splitlines())
-            for expected_msg in expected_msgs:
-                if re.search(re.escape(expected_msg), log,
-                             flags=re.MULTILINE) is None:
-                    self._raise_assertion_error(
-                        'Expected message "{}" does not partially match log:\n\n{}\n\n'.format(expected_msg, print_log))
+            while True:
+                found = True
+                with open(debug_log, encoding='utf-8') as dl:
+                    dl.seek(prev_size)
+                    log = dl.read()
+                print_log = " - " + "\n - ".join(log.splitlines())
+                for expected_msg in expected_msgs:
+                    if re.search(re.escape(expected_msg), log,
+                                 flags=re.MULTILINE) is None:
+                        found = False
+                if found:
+                    return
+                if time.time() >= time_end:
+                    break
+                time.sleep(0.05)
+            self._raise_assertion_error(
+                'Expected messages "{}" does not partially match log:\n\n{}\n\n'.format(
+                    str(expected_msgs), print_log))
 
     def assert_start_raises_init_error(
             self, extra_args=None, expected_msg=None, match=ErrorMatch.FULL_TEXT, *args, **kwargs):
