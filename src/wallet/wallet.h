@@ -451,7 +451,7 @@ public:
      * on this bitcoin node, and set to 0 for transactions that were created
      * externally and came in through the network or sendrawtransaction RPC.
      */
-    char fFromMe;
+    bool fFromMe;
     //! position in ordered transaction list
     int64_t nOrderPos;
     std::multimap<int64_t, CWalletTx *>::const_iterator m_it_wtxOrdered;
@@ -514,10 +514,10 @@ public:
         //! Used to be vtxPrev
         std::vector<char> dummy_vector2;
         //! Used to be fSpent
-        char dummy_char = false;
+        bool dummy_bool = false;
         s << tx << hashBlock << dummy_vector1 << nIndex << dummy_vector2
           << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime
-          << nTimeReceived << fFromMe << dummy_char;
+          << nTimeReceived << fFromMe << dummy_bool;
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
@@ -528,10 +528,10 @@ public:
         //! Used to be vtxPrev
         std::vector<CMerkleTx> dummy_vector2;
         //! Used to be fSpent
-        char dummy_char;
+        bool dummy_bool;
         s >> tx >> hashBlock >> dummy_vector1 >> nIndex >> dummy_vector2 >>
             mapValue >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >>
-            fFromMe >> dummy_char;
+            fFromMe >> dummy_bool;
 
         ReadOrderPos(nOrderPos, mapValue);
         nTimeSmart = mapValue.count("timesmart")
