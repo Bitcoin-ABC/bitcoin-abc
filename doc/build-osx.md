@@ -8,8 +8,6 @@ Preparation
 
 1.  Install Xcode from the app store if you don't have it already (it's a dependency for qt5)
 
-    NOTE: Building with Qt4 is still supported, however, could result in a broken UI. Building with Qt5 is recommended.
-
 2.  Install the macOS command line tools:
 
 `xcode-select --install`
