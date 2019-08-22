@@ -1046,6 +1046,11 @@ public:
     bool IsLocked() const;
     bool Lock();
 
+    /** Interface to assert chain access and if successful lock it */
+    std::unique_ptr<interfaces::Chain::Lock> LockChain() {
+        return m_chain ? m_chain->lock() : nullptr;
+    }
+
     std::map<TxId, CWalletTx> mapWallet GUARDED_BY(cs_wallet);
 
     typedef std::multimap<int64_t, CWalletTx *> TxItems;
@@ -1260,8 +1265,7 @@ public:
 
     void MarkDirty();
     bool AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose = true);
-    void LoadToWallet(const CWalletTx &wtxIn)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LoadToWallet(CWalletTx &wtxIn) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void TransactionAddedToMempool(const CTransactionRef &tx) override;
     void
     BlockConnected(const CBlock &block,
