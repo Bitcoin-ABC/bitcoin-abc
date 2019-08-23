@@ -210,7 +210,7 @@ public:
         // 00000000025e930139bac5c6c31a403776da130831ab85be56578f3fa75369bb
         consensus.CSVHeight = 0;
         consensus.powLimit = uint256S(
-            "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+            "0000000b6666ffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60;
         consensus.nPowTargetSpacing = 1 * 60;
@@ -244,10 +244,10 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis =
-                CreateGenesisBlock(1544509900, 1906413958, 0x1d00ffff, 1, INITIAL_REWARD);
+                CreateGenesisBlock(1566820800, 897107542, 0x1d0b6666, 1, INITIAL_REWARD);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("00000000029c1b3c10097adf33c1ce1fc266bf9f85696adfe385ee58021dcd2d"));
+               uint256S("00000008be80eab81b28ab699a40e2163943fbeccd2429c064a399d97129d0f0"));
         assert(genesis.hashMerkleRoot ==
                uint256S("c39720718afd9ee5ab42beff5c363c44f4994c14224b5a1400cadcb7526e12a5"));
 
