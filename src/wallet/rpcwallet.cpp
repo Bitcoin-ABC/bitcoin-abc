@@ -1540,6 +1540,33 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
     }
 }
 
+static const std::string TransactionDescriptionString() {
+    return "    \"confirmations\": n,                        (numeric) The "
+           "number of confirmations for the transaction. Negative "
+           "confirmations means the\n"
+           "                                                       transaction "
+           "conflicted that many blocks ago.\n"
+           "    \"trusted\": xxx,                            (bool) Whether we "
+           "consider the outputs of this unconfirmed transaction safe to "
+           "spend.\n"
+           "    \"blockhash\": \"hashvalue\",                  (string) The "
+           "block hash containing the transaction.\n"
+           "    \"blockindex\": n,                           (numeric) The "
+           "index of the transaction in the block that includes it.\n"
+           "    \"blocktime\": xxx,                          (numeric) The "
+           "block time in seconds since epoch (1 Jan 1970 GMT).\n"
+           "    \"txid\": \"transactionid\",                   (string) The "
+           "transaction id.\n"
+           "    \"time\": xxx,                               (numeric) The "
+           "transaction time in seconds since epoch (midnight Jan 1 1970 "
+           "GMT).\n"
+           "    \"timereceived\": xxx,                       (numeric) The "
+           "time received in seconds since epoch (midnight Jan 1 1970 GMT).\n"
+           "    \"comment\": \"...\",                          (string) If a "
+           "comment is associated with the transaction, only present if not "
+           "empty.\n";
+}
+
 UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet *const pwallet = wallet.get();
@@ -1596,31 +1623,12 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
             CURRENCY_UNIT +
             ". This is negative and only available for the \n"
             "                                         'send' category of "
-            "transactions.\n"
-            "    \"confirmations\": n,       (numeric) The number of "
-            "confirmations for the transaction. Negative confirmations "
-            "indicate the\n"
-            "                                          transaction conflicts "
-            "with the block chain\n"
-            "    \"trusted\": xxx,           (bool) Whether we consider the "
-            "outputs of this unconfirmed transaction safe to spend.\n"
-            "    \"blockhash\": \"hashvalue\", (string) The block hash "
-            "containing the transaction.\n"
-            "    \"blockindex\": n,          (numeric) The index of the "
-            "transaction in the block that includes it.\n"
-            "    \"blocktime\": xxx,         (numeric) The block time in "
-            "seconds since epoch (1 Jan 1970 GMT).\n"
-            "    \"txid\": \"transactionid\",  (string) The transaction id.\n"
-            "    \"time\": xxx,              (numeric) The transaction time in "
-            "seconds since epoch (midnight Jan 1 1970 GMT).\n"
-            "    \"timereceived\": xxx,      (numeric) The time received in "
-            "seconds since epoch (midnight Jan 1 1970 GMT).\n"
-            "    \"comment\": \"...\",         (string) If a comment is "
-            "associated with the transaction.\n"
+            "transactions.\n" +
+            TransactionDescriptionString() +
             "    \"abandoned\": xxx          (bool) 'true' if the transaction "
             "has been abandoned (inputs are respendable). Only available for "
             "the \n"
-            "                                       'send' category of "
+            "                                         'send' category of "
             "transactions.\n"
             "  }\n"
             "]\n"},
@@ -1765,22 +1773,8 @@ static UniValue listsinceblock(const Config &config,
             "in " +
             CURRENCY_UNIT +
             ". This is negative and only available for the 'send' category of "
-            "transactions.\n"
-            "    \"confirmations\": n,       (numeric) The number of "
-            "confirmations for the transaction.\n"
-            "                                          When it's < 0, it means "
-            "the transaction conflicted that many blocks ago.\n"
-            "    \"blockhash\": \"hashvalue\",     (string) The block hash "
-            "containing the transaction.\n"
-            "    \"blockindex\": n,          (numeric) The index of the "
-            "transaction in the block that includes it.\n"
-            "    \"blocktime\": xxx,         (numeric) The block time in "
-            "seconds since epoch (1 Jan 1970 GMT).\n"
-            "    \"txid\": \"transactionid\",  (string) The transaction id.\n"
-            "    \"time\": xxx,              (numeric) The transaction time in "
-            "seconds since epoch (Jan 1 1970 GMT).\n"
-            "    \"timereceived\": xxx,      (numeric) The time received in "
-            "seconds since epoch (Jan 1 1970 GMT).\n"
+            "transactions.\n" +
+            TransactionDescriptionString() +
             "    \"abandoned\": xxx,         (bool) 'true' if the transaction "
             "has been abandoned (inputs are respendable). Only available for "
             "the 'send' category of transactions.\n"
@@ -1942,19 +1936,8 @@ static UniValue gettransaction(const Config &config,
             "  \"fee\": x.xxx,            (numeric) The amount of the fee in " +
             CURRENCY_UNIT +
             ". This is negative and only available for the \n"
-            "                              'send' category of transactions.\n"
-            "  \"confirmations\" : n,     (numeric) The number of "
-            "confirmations\n"
-            "  \"blockhash\" : \"hash\",  (string) The block hash\n"
-            "  \"blockindex\" : xx,       (numeric) The index of the "
-            "transaction in the block that includes it\n"
-            "  \"blocktime\" : ttt,       (numeric) The time in seconds since "
-            "epoch (1 Jan 1970 GMT)\n"
-            "  \"txid\" : \"transactionid\",   (string) The transaction id.\n"
-            "  \"time\" : ttt,            (numeric) The transaction time in "
-            "seconds since epoch (1 Jan 1970 GMT)\n"
-            "  \"timereceived\" : ttt,    (numeric) The time received in "
-            "seconds since epoch (1 Jan 1970 GMT)\n"
+            "                              'send' category of transactions.\n" +
+            TransactionDescriptionString() +
             "  \"details\" : [\n"
             "    {\n"
             "      \"address\" : \"address\",          (string) The bitcoin "
