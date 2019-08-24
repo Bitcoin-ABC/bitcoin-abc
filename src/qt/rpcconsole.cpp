@@ -36,7 +36,6 @@
 #include <QScreen>
 #include <QScrollBar>
 #include <QSettings>
-#include <QSignalMapper>
 #include <QStringList>
 #include <QTime>
 #include <QTimer>
@@ -705,31 +704,14 @@ void RPCConsole::setClientModel(ClientModel *model) {
         peersTableContextMenu->addAction(banAction7d);
         peersTableContextMenu->addAction(banAction365d);
 
-        // Add a signal mapping to allow dynamic context menu arguments. We need
-        // to use int (instead of int64_t), because signal mapper only supports
-        // int or objects, which is okay because max bantime (1 year) is <
-        // int_max.
-        QSignalMapper *signalMapper = new QSignalMapper(this);
-        signalMapper->setMapping(banAction1h, 60 * 60);
-        signalMapper->setMapping(banAction24h, 60 * 60 * 24);
-        signalMapper->setMapping(banAction7d, 60 * 60 * 24 * 7);
-        signalMapper->setMapping(banAction365d, 60 * 60 * 24 * 365);
-        connect(banAction1h, &QAction::triggered, signalMapper,
-                static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-        connect(banAction24h, &QAction::triggered, signalMapper,
-                static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-        connect(banAction7d, &QAction::triggered, signalMapper,
-                static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-        connect(banAction365d, &QAction::triggered, signalMapper,
-                static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-        const auto mappedIntEvent = &QSignalMapper::mappedInt;
-#else
-        const auto mappedIntEvent =
-            static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped);
-#endif
-        connect(signalMapper, mappedIntEvent, this,
-                &RPCConsole::banSelectedNode);
+        connect(banAction1h, &QAction::triggered,
+                [this] { banSelectedNode(60 * 60); });
+        connect(banAction24h, &QAction::triggered,
+                [this] { banSelectedNode(60 * 60 * 24); });
+        connect(banAction7d, &QAction::triggered,
+                [this] { banSelectedNode(60 * 60 * 24 * 7); });
+        connect(banAction365d, &QAction::triggered,
+                [this] { banSelectedNode(60 * 60 * 24 * 365); });
 
         // peer table context menu signals
         connect(ui->peerWidget, &QTableView::customContextMenuRequested, this,

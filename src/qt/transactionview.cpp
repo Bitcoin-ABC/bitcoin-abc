@@ -28,7 +28,6 @@
 #include <QMenu>
 #include <QPoint>
 #include <QScrollBar>
-#include <QSignalMapper>
 #include <QTableView>
 #include <QTimer>
 #include <QUrl>
@@ -179,19 +178,6 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
     contextMenu->addAction(abandonAction);
     contextMenu->addAction(editLabelAction);
 
-    mapperThirdPartyTxUrls = new QSignalMapper(this);
-
-    // Connect actions
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-    const auto mappedStringEvent = &QSignalMapper::mappedString;
-#else
-    const auto mappedStringEvent =
-        static_cast<void (QSignalMapper::*)(const QString &)>(
-            &QSignalMapper::mapped);
-#endif
-    connect(mapperThirdPartyTxUrls, mappedStringEvent, this,
-            &TransactionView::openThirdPartyTxUrl);
-
     connect(dateWidget,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
             &TransactionView::chooseDate);
@@ -281,8 +267,8 @@ void TransactionView::setModel(WalletModel *_model) {
             QStringList listUrls = GUIUtil::splitSkipEmptyParts(
                 _model->getOptionsModel()->getThirdPartyTxUrls(), "|");
             for (int i = 0; i < listUrls.size(); ++i) {
-                QString host =
-                    QUrl(listUrls[i].trimmed(), QUrl::StrictMode).host();
+                QString url = listUrls[i].trimmed();
+                QString host = QUrl(url, QUrl::StrictMode).host();
                 if (!host.isEmpty()) {
                     // use host as menu item label
                     QAction *thirdPartyTxUrlAction = new QAction(host, this);
@@ -291,11 +277,7 @@ void TransactionView::setModel(WalletModel *_model) {
                     }
                     contextMenu->addAction(thirdPartyTxUrlAction);
                     connect(thirdPartyTxUrlAction, &QAction::triggered,
-                            mapperThirdPartyTxUrls,
-                            static_cast<void (QSignalMapper::*)()>(
-                                &QSignalMapper::map));
-                    mapperThirdPartyTxUrls->setMapping(thirdPartyTxUrlAction,
-                                                       listUrls[i].trimmed());
+                            [this, url] { openThirdPartyTxUrl(url); });
                 }
             }
         }
