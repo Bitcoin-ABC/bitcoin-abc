@@ -73,6 +73,10 @@ namespace {
         bool readConfigFiles(std::string &error) override {
             return gArgs.ReadConfigFiles(error, true);
         }
+        void forceSetArg(const std::string &arg,
+                         const std::string &value) override {
+            gArgs.ForceSetArg(arg, value);
+        }
         bool softSetArg(const std::string &arg,
                         const std::string &value) override {
             return gArgs.SoftSetArg(arg, value);
