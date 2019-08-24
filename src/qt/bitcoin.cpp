@@ -611,7 +611,9 @@ int GuiMain(int argc, char *argv[]) {
 
     /// 5. Now that settings and translations are available, ask user for data
     /// directory. User language is set up: pick a data directory.
-    if (!Intro::pickDataDirectory(*node)) {
+    bool did_show_intro = false;
+    // Gracefully exit if the user cancels
+    if (!Intro::showIfNeeded(*node, did_show_intro)) {
         return EXIT_SUCCESS;
     }
 
