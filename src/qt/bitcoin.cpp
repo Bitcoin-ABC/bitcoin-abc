@@ -301,6 +301,10 @@ void BitcoinApplication::parameterSetup() {
     m_node.initParameterInteraction();
 }
 
+void BitcoinApplication::SetPrune(bool prune, bool force) {
+    optionsModel->SetPrune(prune, force);
+}
+
 void BitcoinApplication::requestInitialize(
     Config &config, RPCServer &rpcServer,
     HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
