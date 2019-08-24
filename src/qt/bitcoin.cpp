@@ -612,8 +612,10 @@ int GuiMain(int argc, char *argv[]) {
     /// 5. Now that settings and translations are available, ask user for data
     /// directory. User language is set up: pick a data directory.
     bool did_show_intro = false;
+    // Intro dialog prune check box
+    bool prune = false;
     // Gracefully exit if the user cancels
-    if (!Intro::showIfNeeded(*node, did_show_intro)) {
+    if (!Intro::showIfNeeded(*node, did_show_intro, prune)) {
         return EXIT_SUCCESS;
     }
 
@@ -711,6 +713,11 @@ int GuiMain(int argc, char *argv[]) {
     app.parameterSetup();
     // Load GUI settings from QSettings
     app.createOptionsModel(gArgs.GetBoolArg("-resetguisettings", false));
+
+    if (did_show_intro) {
+        // Store intro dialog settings other than datadir (network specific)
+        app.SetPrune(prune, true);
+    }
 
     // Get global config
     Config &config = const_cast<Config &>(GetConfig());
