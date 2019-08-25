@@ -77,7 +77,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	add_definitions(-DMAC_OSX)
+	add_definitions(-DMAC_OSX -DOBJC_OLD_DISPATCH_PROTOTYPES=0)
 endif()
 
 if(ENABLE_REDUCE_EXPORTS)
