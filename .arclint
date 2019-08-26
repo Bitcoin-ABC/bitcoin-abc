@@ -143,6 +143,10 @@
                 "(__init__\\.py$)"
             ]
         },
+        "lint-bash-shebang": {
+            "type": "lint-bash-shebang",
+            "include": "(\\.sh$)"
+        },
         "shellcheck": {
             "type": "shellcheck",
             "include": "(\\.sh$)",

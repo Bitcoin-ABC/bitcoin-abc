@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ### BEGIN INIT INFO
 # Provides:          TeamCity Build Agent
 # Required-Start:    $remote_fs $syslog

@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 # User to setup for building.  Vagrant is the default
 export BUILDUSER=${BUILDUSER:-vagrant}
