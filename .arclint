@@ -142,6 +142,13 @@
             "exclude": [
                 "(__init__\\.py$)"
             ]
+        },
+        "shellcheck": {
+            "type": "shellcheck",
+            "include": "(\\.sh$)",
+            "exclude": [
+                "(^src/(secp256k1|univalue)/)"
+            ]
         }
     }
 }

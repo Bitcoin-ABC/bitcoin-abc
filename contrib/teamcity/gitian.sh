@@ -2,8 +2,10 @@
 
 cd "$(dirname "$0")"
 
-export COMMIT=`git rev-parse HEAD`
-export PROJECT_ROOT=`git rev-parse --show-toplevel`
+COMMIT=`git rev-parse HEAD`
+export COMMIT
+PROJECT_ROOT=`git rev-parse --show-toplevel`
+export PROJECT_ROOT
 export USE_LXC=1
 export GITIAN_HOST_IP=10.0.3.1
 export LXC_BRIDGE=lxcbr0

@@ -39,7 +39,7 @@ SAN_LOG_DIR="${BUILD_DIR}/sanitizer_logs"
 
 # Create the log directory if it doesn't exist and clear it
 mkdir -p "${SAN_LOG_DIR}"
-rm -rf "${SAN_LOG_DIR}"/*
+rm -rf "${SAN_LOG_DIR:?}"/*
 
 # Sanitizers options, not used if sanitizers are not enabled
 export ASAN_OPTIONS="malloc_context_size=0:log_path=${SAN_LOG_DIR}/asan.log"
