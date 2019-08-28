@@ -796,9 +796,9 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     uint64_t queryRound = AvalancheTest::getRound(p);
     BOOST_CHECK(p.addBlockToReconcile(pindex));
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 60 * 1000; i++) {
         // Technically, this is a race condition, but this should do just fine
-        // as we wait up to 1s for an event that should take 10ms.
+        // as we wait up to 1 minute for an event that should take 10ms.
         boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
         if (AvalancheTest::getRound(p) != queryRound) {
             break;
