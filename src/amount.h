@@ -22,7 +22,15 @@ private:
 
 public:
     constexpr Amount() : amount(0) {}
-    constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
+    constexpr Amount(const Amount &other) : amount(other.amount) {}
+
+    /**
+     * Assignement operator.
+     */
+    constexpr Amount &operator=(const Amount &other) {
+        amount = other.amount;
+        return *this;
+    }
 
     static constexpr Amount zero() { return Amount(0); }
     static constexpr Amount satoshi() { return Amount(1); }
