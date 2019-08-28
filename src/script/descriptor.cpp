@@ -14,6 +14,7 @@
 #include <util/spanparsing.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/vector.h>
 
 #include <memory>
 #include <string>
@@ -591,13 +592,6 @@ public:
     }
 };
 
-/** Construct a vector with one element, which is moved into it. */
-template <typename T> std::vector<T> Singleton(T elem) {
-    std::vector<T> ret;
-    ret.emplace_back(std::move(elem));
-    return ret;
-}
-
 /** A parsed addr(A) descriptor. */
 class AddressDescriptor final : public DescriptorImpl {
     const CTxDestination m_destination;
@@ -609,7 +603,7 @@ protected:
     std::vector<CScript> MakeScripts(const std::vector<CPubKey> &,
                                      const CScript *,
                                      FlatSigningProvider &) const override {
-        return Singleton(GetScriptForDestination(m_destination));
+        return Vector(GetScriptForDestination(m_destination));
     }
 
 public:
@@ -630,7 +624,7 @@ protected:
     std::vector<CScript> MakeScripts(const std::vector<CPubKey> &,
                                      const CScript *,
                                      FlatSigningProvider &) const override {
-        return Singleton(m_script);
+        return Vector(m_script);
     }
 
 public:
@@ -645,12 +639,12 @@ protected:
     std::vector<CScript> MakeScripts(const std::vector<CPubKey> &keys,
                                      const CScript *,
                                      FlatSigningProvider &) const override {
-        return Singleton(GetScriptForRawPubKey(keys[0]));
+        return Vector(GetScriptForRawPubKey(keys[0]));
     }
 
 public:
     PKDescriptor(std::unique_ptr<PubkeyProvider> prov)
-        : DescriptorImpl(Singleton(std::move(prov)), {}, "pk") {}
+        : DescriptorImpl(Vector(std::move(prov)), {}, "pk") {}
 };
 
 /** A parsed pkh(P) descriptor. */
@@ -661,12 +655,12 @@ protected:
                                      FlatSigningProvider &out) const override {
         CKeyID id = keys[0].GetID();
         out.pubkeys.emplace(id, keys[0]);
-        return Singleton(GetScriptForDestination(PKHash(id)));
+        return Vector(GetScriptForDestination(PKHash(id)));
     }
 
 public:
     PKHDescriptor(std::unique_ptr<PubkeyProvider> prov)
-        : DescriptorImpl(Singleton(std::move(prov)), {}, "pkh") {}
+        : DescriptorImpl(Vector(std::move(prov)), {}, "pkh") {}
 };
 
 /** A parsed combo(P) descriptor. */
@@ -687,7 +681,7 @@ protected:
 
 public:
     ComboDescriptor(std::unique_ptr<PubkeyProvider> prov)
-        : DescriptorImpl(Singleton(std::move(prov)), {}, "combo") {}
+        : DescriptorImpl(Vector(std::move(prov)), {}, "combo") {}
 };
 
 /** A parsed multi(...) descriptor. */
@@ -701,7 +695,7 @@ protected:
     std::vector<CScript> MakeScripts(const std::vector<CPubKey> &keys,
                                      const CScript *,
                                      FlatSigningProvider &) const override {
-        return Singleton(GetScriptForMultisig(m_threshold, keys));
+        return Vector(GetScriptForMultisig(m_threshold, keys));
     }
 
 public:
@@ -717,7 +711,7 @@ protected:
     std::vector<CScript> MakeScripts(const std::vector<CPubKey> &,
                                      const CScript *script,
                                      FlatSigningProvider &) const override {
-        return Singleton(GetScriptForDestination(ScriptHash(*script)));
+        return Vector(GetScriptForDestination(ScriptHash(*script)));
     }
 
 public:

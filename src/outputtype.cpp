@@ -8,6 +8,7 @@
 #include <pubkey.h>
 #include <script/script.h>
 #include <script/sign.h>
+#include <util/vector.h>
 
 #include <cassert>
 
@@ -41,7 +42,8 @@ CTxDestination GetDestinationForKey(const CPubKey &key, OutputType type) {
 
 std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key) {
     PKHash keyid(key);
-    return std::vector<CTxDestination>{std::move(keyid)};
+    CTxDestination p2pkh{keyid};
+    return Vector(std::move(p2pkh));
 }
 
 CTxDestination AddAndGetDestinationForScript(FillableSigningProvider &keystore,
