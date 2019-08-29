@@ -38,8 +38,8 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSslCertificate>
+#include <QSslConfiguration>
 #include <QSslError>
-#include <QSslSocket>
 #include <QStringList>
 #include <QTextDocument>
 #include <QUrlQuery>
@@ -484,9 +484,9 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
 
         certList = QSslCertificate::fromPath(certFile);
         // Use those certificates when fetching payment requests, too:
-        QSslSocket::setDefaultCaCertificates(certList);
+        QSslConfiguration::defaultConfiguration().setCaCertificates(certList);
     } else {
-        certList = QSslSocket::systemCaCertificates();
+        certList = QSslConfiguration::systemCaCertificates();
     }
 
     int nRootCerts = 0;
