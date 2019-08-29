@@ -11,7 +11,7 @@
 ###   signature check or the hash check doesn't pass. If an error occurs the return value is 2
 
 function clean_up {
-   for file in $*
+   for file in "$@"
    do
       rm "$file" 2> /dev/null
    done
@@ -55,14 +55,12 @@ else
    exit 2
 fi
 
-#first we fetch the file containing the signature
-WGETOUT=$(wget -N "$BASEDIR$SIGNATUREFILENAME" 2>&1)
-
-#and then see if wget completed successfully
-if [ $? -ne 0 ]; then
+if ! WGETOUT=$(wget -N "$HOST1$BASEDIR$SIGNATUREFILENAME" 2>&1); then
    echo "Error: couldn't fetch signature file. Have you specified the version number in the following format?"
+   # shellcheck disable=SC1087
    echo "[$VERSIONPREFIX]<version>-[$RCVERSIONSTRING[0-9]] (example: ${VERSIONPREFIX}0.10.4-${RCVERSIONSTRING}1)"
    echo "wget output:"
+   # shellcheck disable=SC2001
    echo "$WGETOUT"|sed 's/^/\t/g'
    exit 2
 fi
@@ -85,6 +83,7 @@ if [ $RET -ne 0 ]; then
    fi
 
    echo "gpg output:"
+   # shellcheck disable=SC2001
    echo "$GPGOUT"|sed 's/^/\t/g'
    clean_up $SIGNATUREFILENAME $TMPFILE
    exit "$RET"

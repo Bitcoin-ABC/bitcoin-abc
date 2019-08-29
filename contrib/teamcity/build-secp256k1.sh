@@ -2,10 +2,10 @@
 
 set -eu
 
-TOPLEVEL=`git rev-parse --show-toplevel`
+TOPLEVEL=$(git rev-parse --show-toplevel)
 if [[ -z "${TOPLEVEL}" ]]; then
 	echo "No .git directory found, assuming pwd"
-	TOPLEVEL=`pwd -P`
+	TOPLEVEL=$(pwd -P)
 fi
 SECP_DIR="${TOPLEVEL}/src/secp256k1"
 
@@ -28,4 +28,3 @@ make -j ${THREADS}
 
 # Run Java tests
 make check-java
-

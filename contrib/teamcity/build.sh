@@ -2,10 +2,10 @@
 
 set -eu
 
-TOPLEVEL=`git rev-parse --show-toplevel`
+TOPLEVEL=$(git rev-parse --show-toplevel)
 if [[ -z "${TOPLEVEL}" ]]; then
 	echo "No .git directory found, assuming pwd"
-	TOPLEVEL=`pwd -P`
+	TOPLEVEL=$(pwd -P)
 fi
 
 BUILD_DIR="${TOPLEVEL}/build"
@@ -22,11 +22,11 @@ rm -f build.status test_bitcoin.xml
 THREADS=$(nproc || sysctl -n hw.ncpu)
 
 # Default to nothing
-: ${DISABLE_WALLET:=}
-: ${CONFIGURE_FLAGS:=}
+: "${DISABLE_WALLET:=}"
+: "${CONFIGURE_FLAGS:=}"
 
-CONFIGURE_FLAGS=($CONFIGURE_FLAGS "--prefix=`pwd`")
-if [[ ! -z "${DISABLE_WALLET}" ]]; then
+CONFIGURE_FLAGS=("$CONFIGURE_FLAGS" "--prefix=$(pwd)")
+if [[ -n "${DISABLE_WALLET}" ]]; then
 	echo "*** Building without wallet"
 	CONFIGURE_FLAGS+=("--disable-wallet")
 fi
@@ -59,7 +59,7 @@ function print_sanitizers_log() {
 make -j ${THREADS}
 
 # Default to nothing
-: ${DISABLE_TESTS:=}
+: "${DISABLE_TESTS:=}"
 
 # If DISABLE_TESTS is unset (default), run the tests
 if [[ -z "${DISABLE_TESTS}" ]]; then
@@ -73,7 +73,7 @@ if [[ -z "${DISABLE_TESTS}" ]]; then
 	JUNIT_DEFAULT="junit_results_default.xml"
 	JUNIT_NEXT_UPGRADE="junit_results_next_upgrade.xml"
 
-	if [[ ! -z "${DISABLE_WALLET}" ]]; then
+	if [[ -n "${DISABLE_WALLET}" ]]; then
 		echo "Skipping rpc testing due to disabled wallet functionality."
 	elif [[ "${BRANCH}" == "master" ]]; then
 		./test/functional/test_runner.py -J="${JUNIT_DEFAULT}" --cutoff=600 --tmpdirprefix=output

@@ -19,7 +19,7 @@ touch "${DEBUG_LOG}"
 chmod +x bitcoind
 
 # Launch bitcoind using this script's parameters
-./bitcoind "-datadir=${DATA_DIR}" $* &
+./bitcoind "-datadir=${DATA_DIR}" "$@" &
 BITCOIND_PID=$!
 
 cleanup() {

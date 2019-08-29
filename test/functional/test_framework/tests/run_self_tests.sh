@@ -40,9 +40,9 @@ echo "Running test framework self-tests..."
 # Run all the Python tests we find there.
 for t in *.py
 do
-    echo "`date -u`: Starting self-test: $t"
+    echo "$(date -u): Starting self-test: $t"
     SRCDIR=$RPC_TESTS_DIR/../.. python3 ./$t
-    echo "`date -u`: Finished self-test: $t"
+    echo "$(date -u): Finished self-test: $t"
     echo
 done
 

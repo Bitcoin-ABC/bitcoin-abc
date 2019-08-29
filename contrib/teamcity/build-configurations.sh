@@ -9,7 +9,7 @@ fi
 
 echo "Running build configuration '${ABC_BUILD_NAME}'..."
 
-TOPLEVEL=`git rev-parse --show-toplevel`
+TOPLEVEL=$(git rev-parse --show-toplevel)
 cd "${TOPLEVEL}/contrib/teamcity"
 
 case "$ABC_BUILD_NAME" in
