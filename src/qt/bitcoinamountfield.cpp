@@ -6,6 +6,7 @@
 
 #include <qt/bitcoinunits.h>
 #include <qt/guiconstants.h>
+#include <qt/guiutil.h>
 #include <qt/qvaluecombobox.h>
 
 #include <QAbstractSpinBox>
@@ -90,9 +91,10 @@ public:
 
             const QFontMetrics fm(fontMetrics());
             int h = lineEdit()->minimumSizeHint().height();
-            int w = fm.width(BitcoinUnits::format(
-                BitcoinUnits::BCH, BitcoinUnits::maxMoney(), false,
-                BitcoinUnits::separatorAlways));
+            int w = GUIUtil::TextWidth(
+                fm, BitcoinUnits::format(BitcoinUnits::BCH,
+                                         BitcoinUnits::maxMoney(), false,
+                                         BitcoinUnits::separatorAlways));
             // Cursor blinking space.
             w += 2;
 

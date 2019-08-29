@@ -28,10 +28,10 @@
 #include <db_cxx.h>
 #endif
 
-#include <QDesktopWidget>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
+#include <QScreen>
 #include <QScrollBar>
 #include <QSettings>
 #include <QSignalMapper>
@@ -520,7 +520,7 @@ RPCConsole::RPCConsole(interfaces::Node &node,
     if (!restoreGeometry(
             settings.value("RPCConsoleWindowGeometry").toByteArray())) {
         // Restore failed (perhaps missing setting), center the window
-        move(QApplication::desktop()->availableGeometry().center() -
+        move(QGuiApplication::primaryScreen()->availableGeometry().center() -
              frameGeometry().center());
     }
 

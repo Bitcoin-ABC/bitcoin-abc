@@ -43,13 +43,13 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDateTime>
-#include <QDesktopWidget>
 #include <QDragEnterEvent>
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QScreen>
 #include <QSettings>
 #include <QShortcut>
 #include <QStackedWidget>
@@ -78,7 +78,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
     QSettings settings;
     if (!restoreGeometry(settings.value("MainWindowGeometry").toByteArray())) {
         // Restore failed (perhaps missing setting), center the window
-        move(QApplication::desktop()->availableGeometry().center() -
+        move(QGuiApplication::primaryScreen()->availableGeometry().center() -
              frameGeometry().center());
     }
 
@@ -1419,7 +1419,8 @@ UnitDisplayStatusBarControl::UnitDisplayStatusBarControl(
     int max_width = 0;
     const QFontMetrics fm(font());
     for (const BitcoinUnits::Unit unit : units) {
-        max_width = qMax(max_width, fm.width(BitcoinUnits::longName(unit)));
+        max_width = qMax(max_width,
+                         GUIUtil::TextWidth(fm, BitcoinUnits::longName(unit)));
     }
     setMinimumSize(max_width, 0);
     setAlignment(Qt::AlignRight | Qt::AlignVCenter);

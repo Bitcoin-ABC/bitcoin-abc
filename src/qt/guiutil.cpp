@@ -46,7 +46,6 @@
 #include <QClipboard>
 #include <QDateTime>
 #include <QDesktopServices>
-#include <QDesktopWidget>
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFont>
@@ -978,6 +977,14 @@ bool ItemDelegate::eventFilter(QObject *object, QEvent *event) {
         }
     }
     return QItemDelegate::eventFilter(object, event);
+}
+
+int TextWidth(const QFontMetrics &fm, const QString &text) {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    return fm.horizontalAdvance(text);
+#else
+    return fm.width(text);
+#endif
 }
 
 } // namespace GUIUtil
