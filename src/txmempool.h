@@ -795,8 +795,9 @@ private:
  * This allows transaction replacement to work as expected, as you want to
  * have all inputs "available" to check signatures, and any cycles in the
  * dependency graph are checked directly in AcceptToMemoryPool.
- * It also allows you to sign a double-spend directly in signrawtransaction,
- * as long as the conflicting transaction is not yet confirmed.
+ * It also allows you to sign a double-spend directly in
+ * signrawtransactionwithkey and signrawtransactionwithwallet, as long as the
+ * conflicting transaction is not yet confirmed.
  */
 class CCoinsViewMemPool : public CCoinsViewBacked {
 protected:

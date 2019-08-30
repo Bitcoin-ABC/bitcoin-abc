@@ -80,8 +80,8 @@ static void SetupBitcoinTxArgs() {
                      _("This command requires JSON registers:") +
                      _("prevtxs=JSON object") + ", " +
                      _("privatekeys=JSON object") + ". " +
-                     _("See signrawtransaction docs for format of sighash "
-                       "flags, JSON objects."),
+                     _("See signrawtransactionwithkey docs for format of "
+                       "sighash flags, JSON objects."),
                  false, OptionsCategory::COMMANDS);
 
     gArgs.AddArg("load=NAME:FILENAME",

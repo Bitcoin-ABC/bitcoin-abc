@@ -239,9 +239,6 @@ static UniValue getmininginfo(const Config &config,
             "defined in BIP70 (main, test, regtest)\n"
             "  \"warnings\": \"...\"          (string) any network and "
             "blockchain warnings\n"
-            "  \"errors\": \"...\"            (string) DEPRECATED. Same as "
-            "warnings. Only shown when bitcoind is started with "
-            "-deprecatedrpc=getmininginfo\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getmininginfo", "") +
@@ -261,11 +258,8 @@ static UniValue getmininginfo(const Config &config,
     obj.pushKV("networkhashps", getnetworkhashps(config, request));
     obj.pushKV("pooledtx", uint64_t(g_mempool.size()));
     obj.pushKV("chain", config.GetChainParams().NetworkIDString());
-    if (IsDeprecatedRPCEnabled(gArgs, "getmininginfo")) {
-        obj.pushKV("errors", GetWarnings("statusbar"));
-    } else {
-        obj.pushKV("warnings", GetWarnings("statusbar"));
-    }
+    obj.pushKV("warnings", GetWarnings("statusbar"));
+
     return obj;
 }
 
@@ -763,7 +757,7 @@ static UniValue submitblock(const Config &config,
 
 static UniValue estimatefee(const Config &config,
                             const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() > 1) {
+    if (request.fHelp || request.params.size() > 0) {
         throw std::runtime_error(
             "estimatefee\n"
             "\nEstimates the approximate fee per kilobyte needed for a "
@@ -772,17 +766,6 @@ static UniValue estimatefee(const Config &config,
             "n              (numeric) estimated fee-per-kilobyte\n"
             "\nExample:\n" +
             HelpExampleCli("estimatefee", ""));
-    }
-
-    if ((request.params.size() == 1) &&
-        !IsDeprecatedRPCEnabled(gArgs, "estimatefee")) {
-        // FIXME: Remove this message in 0.20
-        throw JSONRPCError(
-            RPC_METHOD_DEPRECATED,
-            "estimatefee with the nblocks argument is no longer supported\n"
-            "Please call estimatefee with no arguments instead.\n"
-            "\nExample:\n" +
-                HelpExampleCli("estimatefee", ""));
     }
 
     return ValueFromAmount(g_mempool.estimateFee().GetFeePerK());

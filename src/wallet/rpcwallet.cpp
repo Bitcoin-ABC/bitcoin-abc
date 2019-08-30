@@ -1414,12 +1414,6 @@ static UniValue addmultisigaddress(const Config &config,
             "  \"redeemScript\":\"script\"         (string) The string value "
             "of the hex-encoded redemption script.\n"
             "}\n"
-            "\nResult (DEPRECATED. To see this result in v0.19.6 instead, "
-            "please start bitcoind with -deprecatedrpc=addmultisigaddress).\n"
-            "        clients should transition to the new output api before "
-            "upgrading to v0.20.\n"
-            "\"address\"                         (string) A bitcoin address "
-            "associated with the keys.\n"
 
             "\nExamples:\n"
             "\nAdd a multisig address from 2 addresses\n" +
@@ -1468,11 +1462,6 @@ static UniValue addmultisigaddress(const Config &config,
         pwallet->AddAndGetDestinationForScript(inner, output_type);
 
     pwallet->SetAddressBook(dest, label, "send");
-
-    // Return old style interface
-    if (IsDeprecatedRPCEnabled(gArgs, "addmultisigaddress")) {
-        return EncodeDestination(dest, config);
-    }
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("address", EncodeDestination(dest, config));
@@ -3627,7 +3616,8 @@ static UniValue fundrawtransaction(const Config &config,
             "\"subtractFeeFromOutputs\" is specified.\n"
             "Note that inputs which were signed may need to be resigned after "
             "completion since in/outputs have been added.\n"
-            "The inputs added will not be signed, use signrawtransaction for "
+            "The inputs added will not be signed, use "
+            "signrawtransactionwithkey or signrawtransactionwithwallet for "
             "that.\n"
             "Note that all existing inputs must have their previous output "
             "transaction be in the wallet.\n"
@@ -3652,8 +3642,6 @@ static UniValue fundrawtransaction(const Config &config,
             "false) Also select inputs which are watch only\n"
             "     \"lockUnspents\"           (boolean, optional, default "
             "false) Lock selected unspent outputs\n"
-            "     \"reserveChangeKey\"       (boolean, optional) "
-            "DEPRECATED.  Reserves the change output key from the keypool\n"
             "     \"feeRate\"                (numeric, optional, default not "
             "set: makes wallet determine the fee) Set a specific fee rate in " +
             CURRENCY_UNIT +
@@ -3690,7 +3678,8 @@ static UniValue fundrawtransaction(const Config &config,
             "\nAdd sufficient unsigned inputs to meet the output value\n" +
             HelpExampleCli("fundrawtransaction", "\"rawtransactionhex\"") +
             "\nSign the transaction\n" +
-            HelpExampleCli("signrawtransaction", "\"fundedtransactionhex\"") +
+            HelpExampleCli("signrawtransactionwithwallet",
+                           "\"fundedtransactionhex\"") +
             "\nSend the transaction\n" +
             HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\""));
     }
@@ -3704,8 +3693,6 @@ static UniValue fundrawtransaction(const Config &config,
     CCoinControl coinControl;
     int changePosition = -1;
     bool lockUnspents = false;
-    // DEPRECATED, should be removed in 0.20
-    bool reserveChangeKey = false;
     UniValue subtractFeeFromOutputs;
     std::set<int> setSubtractFeeFromOutputs;
 
@@ -3725,8 +3712,6 @@ static UniValue fundrawtransaction(const Config &config,
                     {"changePosition", UniValueType(UniValue::VNUM)},
                     {"includeWatching", UniValueType(UniValue::VBOOL)},
                     {"lockUnspents", UniValueType(UniValue::VBOOL)},
-                    // DEPRECATED, should be removed in 0.20
-                    {"reserveChangeKey", UniValueType(UniValue::VBOOL)},
                     // will be checked below
                     {"feeRate", UniValueType()},
                     {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
@@ -3758,22 +3743,6 @@ static UniValue fundrawtransaction(const Config &config,
 
             if (options.exists("lockUnspents")) {
                 lockUnspents = options["lockUnspents"].get_bool();
-            }
-
-            // DEPRECATED, should be removed in v0.20
-            if (options.exists("reserveChangeKey")) {
-                if (!IsDeprecatedRPCEnabled(gArgs, "fundrawtransaction")) {
-                    throw JSONRPCError(
-                        RPC_METHOD_DEPRECATED,
-                        "fundrawtransaction -reserveChangeKey is deprecated "
-                        "and will be fully removed in v0.20.  To use the "
-                        "-reserveChangeKey option in v0.19, restart bitcoind "
-                        "with -deprecatedrpc=fundrawtransaction.\nProjects "
-                        "should transition to expecting change addresses "
-                        "removed from the keypool before upgrading to v0.20");
-                } else {
-                    reserveChangeKey = options["reserveChangeKey"].get_bool();
-                }
             }
 
             if (options.exists("feeRate")) {
@@ -3831,7 +3800,7 @@ static UniValue fundrawtransaction(const Config &config,
 
     if (!pwallet->FundTransaction(tx, nFeeOut, changePosition, strFailReason,
                                   lockUnspents, setSubtractFeeFromOutputs,
-                                  coinControl, reserveChangeKey)) {
+                                  coinControl)) {
         throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
     }
 

@@ -15,9 +15,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [["-deprecatedrpc=signrawtransaction"],
-                           ["-deprecatedrpc=signrawtransaction", "-wallet=w1",
-                            "-wallet=w2"]]
+        self.extra_args = [[], ["-wallet=w1", "-wallet=w2"]]
 
     def successful_signing_test(self):
         """Creates and signs a valid raw transaction with one input.
@@ -50,11 +48,6 @@ class SignRawTransactionsTest(BitcoinTestFramework):
 
         # 2) No script verification error occurred
         assert 'errors' not in rawTxSigned
-
-        # Perform the same test on signrawtransaction
-        rawTxSigned2 = self.nodes[0].signrawtransaction(
-            rawTx, inputs, privKeys)
-        assert_equal(rawTxSigned, rawTxSigned2)
 
     def script_verification_error_test(self):
         """Creates and signs a raw transaction with valid (vin 0), invalid (vin 1) and one missing (vin 2) input script.
@@ -127,11 +120,6 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         assert_equal(rawTxSigned['errors'][0]['vout'], inputs[1]['vout'])
         assert_equal(rawTxSigned['errors'][1]['txid'], inputs[2]['txid'])
         assert_equal(rawTxSigned['errors'][1]['vout'], inputs[2]['vout'])
-
-        # Perform same test with signrawtransaction
-        rawTxSigned2 = self.nodes[0].signrawtransaction(
-            rawTx, scripts, privKeys)
-        assert_equal(rawTxSigned, rawTxSigned2)
 
     def test_sighashes(self):
         """Creates and signs a raw transaction with various sighashes.
@@ -237,11 +225,6 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         rawTx_w1 = w1.createrawtransaction(inputs, outputs)
 
         rawTxSigned_w1 = w1.signrawtransactionwithwallet(rawTx_w1)
-        assert rawTxSigned_w1['complete']
-        assert 'errors' not in rawTxSigned_w1
-
-        # Perform the same test on signrawtransaction
-        rawTxSigned_w1 = w1.signrawtransaction(rawTx_w1)
         assert rawTxSigned_w1['complete']
         assert 'errors' not in rawTxSigned_w1
 

@@ -39,14 +39,6 @@ static UniValue validateaddress(const Config &config,
         throw std::runtime_error(
             "validateaddress \"address\"\n"
             "\nReturn information about the given bitcoin address.\n"
-            "DEPRECATION WARNING: Parts of this command have been deprecated "
-            "and moved to getaddressinfo. Clients must\n"
-            "transition to using getaddressinfo to access this information "
-            "before upgrading to v0.20. The following deprecated\n"
-            "fields have moved to getaddressinfo and will only be shown here "
-            "with -deprecatedrpc=validateaddress: ismine, iswatchonly,\n"
-            "script, hex, pubkeys, sigsrequired, pubkey, addresses, embedded, "
-            "iscompressed, account, timestamp, hdkeypath, kdmasterkeyid.\n"
             "\nArguments:\n"
             "1. \"address\"                    (string, required) The bitcoin "
             "address to validate\n"
@@ -76,11 +68,6 @@ static UniValue validateaddress(const Config &config,
     ret.pushKV("isvalid", isValid);
 
     if (isValid) {
-#ifdef ENABLE_WALLET
-        if (HasWallets() && IsDeprecatedRPCEnabled(gArgs, "validateaddress")) {
-            ret.pushKVs(getaddressinfo(config, request));
-        }
-#endif
         if (ret["address"].isNull()) {
             std::string currentAddress = EncodeDestination(dest, config);
             ret.pushKV("address", currentAddress);
@@ -108,12 +95,6 @@ static UniValue createmultisig(const Config &config,
             "\nCreates a multi-signature address with n signature of m keys "
             "required.\n"
             "It returns a json object with the address and redeemScript.\n"
-            "DEPRECATION WARNING: Using addresses with createmultisig is "
-            "deprecated. Clients must\n"
-            "transition to using addmultisigaddress to create multisig "
-            "addresses with addresses known\n"
-            "to the wallet before upgrading to v0.20. To use the deprecated "
-            "functionality, start bitcoind with -deprecatedrpc=createmultisig\n"
             "\nArguments:\n"
             "1. nrequired      (numeric, required) The number of required "
             "signatures out of the n keys or addresses.\n"
@@ -162,25 +143,9 @@ static UniValue createmultisig(const Config &config,
                                          keys[i].get_str().length() == 130)) {
             pubkeys.push_back(HexToPubKey(keys[i].get_str()));
         } else {
-#ifdef ENABLE_WALLET
-            CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
-            if (IsDeprecatedRPCEnabled(gArgs, "createmultisig") &&
-                EnsureWalletIsAvailable(pwallet, false)) {
-                pubkeys.push_back(AddrToPubKey(config.GetChainParams(), pwallet,
-                                               keys[i].get_str()));
-            } else
-#endif
-                throw JSONRPCError(
-                    RPC_INVALID_ADDRESS_OR_KEY,
-                    strprintf("Invalid public key: %s\nNote that from v0.19.6, "
-                              "createmultisig no longer accepts addresses."
-                              " Clients must transition to using "
-                              "addmultisigaddress to create multisig addresses "
-                              "with addresses known to the wallet before "
-                              "upgrading to v0.20."
-                              " To use the deprecated functionality, start "
-                              "bitcoind with -deprecatedrpc=createmultisig",
-                              keys[i].get_str()));
+            throw JSONRPCError(
+                RPC_INVALID_ADDRESS_OR_KEY,
+                strprintf("Invalid public key: %s\n", keys[i].get_str()));
         }
     }
 

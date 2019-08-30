@@ -20,7 +20,6 @@
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <random.h>
-#include <rpc/server.h> // for IsDeprecatedRPCEnabled
 #include <script/script.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
@@ -2828,7 +2827,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
                               int &nChangePosInOut, std::string &strFailReason,
                               bool lockUnspents,
                               const std::set<int> &setSubtractFeeFromOutputs,
-                              CCoinControl coinControl, bool keepReserveKey) {
+                              CCoinControl coinControl) {
     std::vector<CRecipient> vecSend;
 
     // Turn the txout set into a CRecipient vector.
@@ -2863,9 +2862,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
         // We don't have the normal Create/Commit cycle, and don't want to
         // risk reusing change, so just remove the key from the keypool
         // here.
-        if (!IsDeprecatedRPCEnabled(gArgs, "fundrawtransaction")) {
-            reservekey.KeepKey();
-        }
+        reservekey.KeepKey();
     }
 
     // Copy output sizes from new transaction; they may have had the fee
@@ -2882,15 +2879,6 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
             if (lockUnspents) {
                 LockCoin(txin.prevout);
             }
-        }
-    }
-
-    // DEPRECATED, remove in 0.20 with -reserveChangeKey
-    // Optionally keep the change output key.
-    if (IsDeprecatedRPCEnabled(gArgs, "fundrawtransaction")) {
-
-        if (keepReserveKey) {
-            reservekey.KeepKey();
         }
     }
 

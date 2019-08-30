@@ -204,16 +204,6 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
-
-        // Cleanup old confirmation target related settings
-        // TODO: Remove these in 0.20
-        QSettings settings;
-        if (settings.value("nSmartFeeSliderPosition").toInt() != 0) {
-            settings.remove("nSmartFeeSliderPosition");
-        }
-        if (settings.value("nConfTarget").toInt() != 0) {
-            settings.remove("nConfTarget");
-        }
     }
 }
 
