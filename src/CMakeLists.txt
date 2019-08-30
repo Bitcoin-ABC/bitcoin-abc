@@ -142,6 +142,7 @@ add_compiler_flags(
 	-Wshadow
 	-Wrange-loop-analysis
 	-Wredundant-decls
+	-Wredundant-move
 )
 
 option(EXTRA_WARNINGS "Enable extra warnings" OFF)
