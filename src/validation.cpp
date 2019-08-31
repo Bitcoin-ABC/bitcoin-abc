@@ -2746,7 +2746,7 @@ bool CChainState::ActivateBestChainStep(
     return true;
 }
 
-static void NotifyHeaderTip() LOCKS_EXCLUDED(cs_main) {
+static bool NotifyHeaderTip() LOCKS_EXCLUDED(cs_main) {
     bool fNotify = false;
     bool fInitialBlockDownload = false;
     static CBlockIndex *pindexHeaderOld = nullptr;
@@ -2767,6 +2767,7 @@ static void NotifyHeaderTip() LOCKS_EXCLUDED(cs_main) {
     if (fNotify) {
         uiInterface.NotifyHeaderTip(fInitialBlockDownload, pindexHeader);
     }
+    return fNotify;
 }
 
 static void LimitValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main) {
@@ -3988,8 +3989,7 @@ bool ProcessNewBlockHeaders(const Config &config,
         }
     }
 
-    NotifyHeaderTip();
-    {
+    if (NotifyHeaderTip()) {
         LOCK(cs_main);
         if (::ChainstateActive().IsInitialBlockDownload() && ppindex &&
             *ppindex) {
