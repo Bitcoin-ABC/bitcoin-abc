@@ -102,8 +102,8 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
 
 static inline bool
 CheckInputs(const CTransaction &tx, TxValidationState &state,
-            const CCoinsViewCache &view, bool fScriptChecks,
-            const uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
+            const CCoinsViewCache &view, const uint32_t flags,
+            bool sigCacheStore, bool scriptCacheStore,
             const PrecomputedTransactionData &txdata, int &nSigChecksOut,
             std::vector<CScriptCheck> *pvChecks,
             CheckInputsLimiter *pBlockLimitSigChecks = nullptr)
@@ -112,9 +112,9 @@ CheckInputs(const CTransaction &tx, TxValidationState &state,
     // cases are using pvChecks, so the verification is done asynchronously.
     static TxSigCheckLimiter nSigChecksTxLimiter;
     nSigChecksTxLimiter = TxSigCheckLimiter();
-    return CheckInputs(tx, state, view, fScriptChecks, flags, sigCacheStore,
-                       scriptCacheStore, txdata, nSigChecksOut,
-                       nSigChecksTxLimiter, pBlockLimitSigChecks, pvChecks);
+    return CheckInputs(tx, state, view, flags, sigCacheStore, scriptCacheStore,
+                       txdata, nSigChecksOut, nSigChecksTxLimiter,
+                       pBlockLimitSigChecks, pvChecks);
 }
 
 // Run CheckInputs (using pcoinsTip) on the given transaction, for all script
@@ -148,8 +148,8 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
         }
 
         int nSigChecksDirect = 0xf00d;
-        bool ret = CheckInputs(tx, state, pcoinsTip.get(), true, test_flags,
-                               true, add_to_cache, txdata, nSigChecksDirect);
+        bool ret = CheckInputs(tx, state, pcoinsTip.get(), test_flags, true,
+                               add_to_cache, txdata, nSigChecksDirect);
 
         // CheckInputs should succeed iff test_flags doesn't intersect with
         // failing_flags
@@ -165,8 +165,8 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
             // Check that we get a cache hit if the tx was valid
             std::vector<CScriptCheck> scriptchecks;
             int nSigChecksCached = 0xbeef;
-            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), true,
-                                    test_flags, true, add_to_cache, txdata,
+            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), test_flags,
+                                    true, add_to_cache, txdata,
                                     nSigChecksCached, &scriptchecks));
             BOOST_CHECK(nSigChecksCached == nSigChecksDirect);
             BOOST_CHECK(scriptchecks.empty());
@@ -175,8 +175,8 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
             // was invalid, or we didn't add to cache.
             std::vector<CScriptCheck> scriptchecks;
             int nSigChecksUncached = 0xbabe;
-            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), true,
-                                    test_flags, true, add_to_cache, txdata,
+            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), test_flags,
+                                    true, add_to_cache, txdata,
                                     nSigChecksUncached, &scriptchecks));
             BOOST_CHECK(!ret || nSigChecksUncached == 0);
             BOOST_CHECK_EQUAL(scriptchecks.size(), tx.vin.size());
@@ -276,7 +276,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData ptd_spend_tx(tx);
         int nSigChecksDummy;
 
-        BOOST_CHECK(!CheckInputs(tx, state, pcoinsTip.get(), true,
+        BOOST_CHECK(!CheckInputs(tx, state, pcoinsTip.get(),
                                  STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
                                  ptd_spend_tx, nSigChecksDummy, nullptr));
 
@@ -284,7 +284,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // ConnectBlock), we should add a script check object for this -- we're
         // not caching invalidity (if that changes, delete this test case).
         std::vector<CScriptCheck> scriptchecks;
-        BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), true,
+        BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(),
                                 STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
                                 ptd_spend_tx, nSigChecksDummy, &scriptchecks));
         BOOST_CHECK_EQUAL(scriptchecks.size(), 1U);
@@ -358,7 +358,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData txdata(transaction);
 
         int nSigChecksRet;
-        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(),
                                 STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
                                 txdata, nSigChecksRet, nullptr));
         BOOST_CHECK(nSigChecksRet == 1);
@@ -397,7 +397,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData txdata(transaction);
 
         int nSigChecksRet;
-        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(),
                                 STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
                                 txdata, nSigChecksRet, nullptr));
         BOOST_CHECK(nSigChecksRet == 1);
@@ -460,8 +460,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
              */
             std::vector<CScriptCheck> scriptchecks1;
             CheckInputsLimiter sigchecklimiter1(1);
-            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                    flags, true, true, txdata, nSigChecksDummy,
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), flags,
+                                    true, true, txdata, nSigChecksDummy,
                                     &scriptchecks1, &sigchecklimiter1));
             // the first check passes but it did consume the limit.
             BOOST_CHECK(scriptchecks1[1]());
@@ -475,7 +475,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             // Serial validation fails with the limiter.
             CheckInputsLimiter sigchecklimiter2(1);
             TxValidationState state2;
-            BOOST_CHECK(!CheckInputs(transaction, state2, pcoinsTip.get(), true,
+            BOOST_CHECK(!CheckInputs(transaction, state2, pcoinsTip.get(),
                                      flags, true, true, txdata, nSigChecksDummy,
                                      nullptr, &sigchecklimiter2));
             BOOST_CHECK(!sigchecklimiter2.check());
@@ -490,23 +490,23 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             std::vector<CScriptCheck> scriptchecks3;
             CheckInputsLimiter sigchecklimiter3(2);
             // first in parallel
-            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                    flags, true, true, txdata, nSigChecksDummy,
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), flags,
+                                    true, true, txdata, nSigChecksDummy,
                                     &scriptchecks3, &sigchecklimiter3));
             BOOST_CHECK(scriptchecks3[1]());
             BOOST_CHECK(scriptchecks3[0]());
             BOOST_CHECK(sigchecklimiter3.check());
             // then in serial, caching the result.
             CheckInputsLimiter sigchecklimiter4(2);
-            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                    flags, true, true, txdata, nSigChecksDummy,
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), flags,
+                                    true, true, txdata, nSigChecksDummy,
                                     nullptr, &sigchecklimiter4));
             BOOST_CHECK(sigchecklimiter4.check());
             // now in parallel again, grabbing the cached result.
             std::vector<CScriptCheck> scriptchecks5;
             CheckInputsLimiter sigchecklimiter5(2);
-            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                    flags, true, true, txdata, nSigChecksDummy,
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), flags,
+                                    true, true, txdata, nSigChecksDummy,
                                     &scriptchecks5, &sigchecklimiter5));
             BOOST_CHECK(scriptchecks5.empty());
             BOOST_CHECK(sigchecklimiter5.check());
@@ -517,7 +517,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
              */
             CheckInputsLimiter sigchecklimiter6(1);
             TxValidationState state6;
-            BOOST_CHECK(!CheckInputs(transaction, state6, pcoinsTip.get(), true,
+            BOOST_CHECK(!CheckInputs(transaction, state6, pcoinsTip.get(),
                                      flags, true, true, txdata, nSigChecksDummy,
                                      nullptr, &sigchecklimiter6));
             BOOST_CHECK_EQUAL(state6.GetRejectReason(), "too-many-sigchecks");
@@ -528,7 +528,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             std::vector<CScriptCheck> scriptchecks7;
             CheckInputsLimiter sigchecklimiter7(1);
             TxValidationState state7;
-            BOOST_CHECK(!CheckInputs(transaction, state7, pcoinsTip.get(), true,
+            BOOST_CHECK(!CheckInputs(transaction, state7, pcoinsTip.get(),
                                      flags, true, true, txdata, nSigChecksDummy,
                                      &scriptchecks7, &sigchecklimiter7));
             BOOST_CHECK_EQUAL(state7.GetRejectReason(), "too-many-sigchecks");
@@ -550,7 +550,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // This transaction is now invalid because the second signature is
         // missing.
         int nSigChecksDummy;
-        BOOST_CHECK(!CheckInputs(transaction, state, pcoinsTip.get(), true,
+        BOOST_CHECK(!CheckInputs(transaction, state, pcoinsTip.get(),
                                  STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
                                  txdata, nSigChecksDummy, nullptr));
 
@@ -558,7 +558,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // was valid)
         std::vector<CScriptCheck> scriptchecks;
         BOOST_CHECK(
-            CheckInputs(transaction, state, pcoinsTip.get(), true,
+            CheckInputs(transaction, state, pcoinsTip.get(),
                         STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENFORCE_SIGCHECKS,
                         true, true, txdata, nSigChecksDummy, &scriptchecks));
         // Should get 2 script checks back -- caching is on a whole-transaction

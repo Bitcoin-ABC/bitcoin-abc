@@ -487,9 +487,8 @@ class ConnectTrace;
  * accurately.
  */
 bool CheckInputs(const CTransaction &tx, TxValidationState &state,
-                 const CCoinsViewCache &view, bool fScriptChecks,
-                 const uint32_t flags, bool sigCacheStore,
-                 bool scriptCacheStore,
+                 const CCoinsViewCache &view, const uint32_t flags,
+                 bool sigCacheStore, bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata, int &nSigChecksOut,
                  TxSigCheckLimiter &txLimitSigChecks,
                  CheckInputsLimiter *pBlockLimitSigChecks,
@@ -501,14 +500,14 @@ bool CheckInputs(const CTransaction &tx, TxValidationState &state,
  */
 static inline bool
 CheckInputs(const CTransaction &tx, TxValidationState &state,
-            const CCoinsViewCache &view, bool fScriptChecks,
-            const uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
+            const CCoinsViewCache &view, const uint32_t flags,
+            bool sigCacheStore, bool scriptCacheStore,
             const PrecomputedTransactionData &txdata, int &nSigChecksOut)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     TxSigCheckLimiter nSigChecksTxLimiter;
-    return CheckInputs(tx, state, view, fScriptChecks, flags, sigCacheStore,
-                       scriptCacheStore, txdata, nSigChecksOut,
-                       nSigChecksTxLimiter, nullptr, nullptr);
+    return CheckInputs(tx, state, view, flags, sigCacheStore, scriptCacheStore,
+                       txdata, nSigChecksOut, nSigChecksTxLimiter, nullptr,
+                       nullptr);
 }
 
 /** Get the BIP9 state for a given deployment at the current tip. */

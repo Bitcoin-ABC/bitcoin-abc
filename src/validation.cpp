@@ -330,8 +330,8 @@ static bool CheckInputsFromMempoolAndCache(
         }
     }
 
-    return CheckInputs(tx, state, view, true, flags, cacheSigStore, true,
-                       txdata, nSigChecksOut);
+    return CheckInputs(tx, state, view, flags, cacheSigStore, true, txdata,
+                       nSigChecksOut);
 }
 
 /**
@@ -518,7 +518,7 @@ static bool AcceptToMemoryPoolWorker(
             nextBlockScriptVerifyFlags | STANDARD_SCRIPT_VERIFY_FLAGS;
         PrecomputedTransactionData txdata(tx);
         int nSigChecksStandard;
-        if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
+        if (!CheckInputs(tx, state, view, scriptVerifyFlags, true, false,
                          txdata, nSigChecksStandard)) {
             // State filled in by CheckInputs.
             return false;
@@ -1029,9 +1029,8 @@ int GetSpendHeight(const CCoinsViewCache &inputs) {
 }
 
 bool CheckInputs(const CTransaction &tx, TxValidationState &state,
-                 const CCoinsViewCache &inputs, bool fScriptChecks,
-                 const uint32_t flags, bool sigCacheStore,
-                 bool scriptCacheStore,
+                 const CCoinsViewCache &inputs, const uint32_t flags,
+                 bool sigCacheStore, bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata, int &nSigChecksOut,
                  TxSigCheckLimiter &txLimitSigChecks,
                  CheckInputsLimiter *pBlockLimitSigChecks,
@@ -1041,15 +1040,6 @@ bool CheckInputs(const CTransaction &tx, TxValidationState &state,
 
     if (pvChecks) {
         pvChecks->reserve(tx.vin.size());
-    }
-
-    // Skip script verification when connecting blocks under the assumevalid
-    // block. Assuming the assumevalid block is valid this is safe because
-    // block merkle hashes are still computed and checked, of course, if an
-    // assumed valid block is invalid due to false scriptSigs this optimization
-    // would allow an invalid chain to be accepted.
-    if (!fScriptChecks) {
-        return true;
     }
 
     // First check if script executions have been cached with the same flags.
@@ -1572,18 +1562,24 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                 pindexBestHeader->GetAncestor(pindex->nHeight) == pindex &&
                 pindexBestHeader->nChainWork >= nMinimumChainWork) {
                 // This block is a member of the assumed verified chain and an
-                // ancestor of the best header. The equivalent time check
-                // discourages hash power from extorting the network via DOS
-                // attack into accepting an invalid block through telling users
-                // they must manually set assumevalid. Requiring a software
-                // change or burying the invalid block, regardless of the
-                // setting, makes it hard to hide the implication of the demand.
-                // This also avoids having release candidates that are hardly
-                // doing any signature verification at all in testing without
-                // having to artificially set the default assumed verified block
-                // further back. The test against nMinimumChainWork prevents the
-                // skipping when denied access to any chain at least as good as
-                // the expected chain.
+                // ancestor of the best header.
+                // Script verification is skipped when connecting blocks under
+                // the assumevalid block. Assuming the assumevalid block is
+                // valid this is safe because block merkle hashes are still
+                // computed and checked, Of course, if an assumed valid block is
+                // invalid due to false scriptSigs this optimization would allow
+                // an invalid chain to be accepted.
+                // The equivalent time check discourages hash power from
+                // extorting the network via DOS attack into accepting an
+                // invalid block through telling users they must manually set
+                // assumevalid. Requiring a software change or burying the
+                // invalid block, regardless of the setting, makes it hard to
+                // hide the implication of the demand. This also avoids having
+                // release candidates that are hardly doing any signature
+                // verification at all in testing without having to artificially
+                // set the default assumed verified block further back. The test
+                // against nMinimumChainWork prevents the skipping when denied
+                // access to any chain at least as good as the expected chain.
                 fScriptChecks =
                     (GetBlockProofEquivalentTime(
                          *pindexBestHeader, *pindex, *pindexBestHeader,
@@ -1777,11 +1773,11 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
         // deferred into vChecks).
         int nSigChecksRet;
         TxValidationState tx_state;
-        if (!CheckInputs(tx, tx_state, view, fScriptChecks, flags,
-                         fCacheResults, fCacheResults,
-                         PrecomputedTransactionData(tx), nSigChecksRet,
-                         nSigChecksTxLimiters[txIndex], &nSigChecksBlockLimiter,
-                         &vChecks)) {
+        if (fScriptChecks &&
+            !CheckInputs(tx, tx_state, view, flags, fCacheResults,
+                         fCacheResults, PrecomputedTransactionData(tx),
+                         nSigChecksRet, nSigChecksTxLimiters[txIndex],
+                         &nSigChecksBlockLimiter, &vChecks)) {
             // Any transaction validation failure in ConnectBlock is a block
             // consensus failure
             state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
