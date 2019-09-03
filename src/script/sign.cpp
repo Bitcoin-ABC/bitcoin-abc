@@ -374,7 +374,7 @@ public:
     }
     bool CreateSig(const SigningProvider &provider,
                    std::vector<uint8_t> &vchSig, const CKeyID &keyid,
-                   const CScript &scriptCode) const {
+                   const CScript &scriptCode) const override {
         // Create a dummy signature that is a valid DER-encoding
         vchSig.assign(72, '\000');
         vchSig[0] = 0x30;
