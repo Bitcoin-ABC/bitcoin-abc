@@ -3990,7 +3990,6 @@ bool ProcessNewBlockHeaders(const Config &config,
     }
 
     if (NotifyHeaderTip()) {
-        LOCK(cs_main);
         if (::ChainstateActive().IsInitialBlockDownload() && ppindex &&
             *ppindex) {
             LogPrintf("Synchronizing blockheaders, height: %d (~%.2f%%)\n",
