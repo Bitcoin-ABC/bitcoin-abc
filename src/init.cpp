@@ -1896,8 +1896,9 @@ bool AppInitParameterInteraction(Config &config) {
         Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-excessutxocharge", ""), n);
         if (!parsed || Amount::zero() > n) {
-            return InitError(AmountErrMsg(
-                "excessutxocharge", gArgs.GetArg("-excessutxocharge", "")));
+            return InitError(AmountErrMsg("excessutxocharge",
+                                          gArgs.GetArg("-excessutxocharge", ""))
+                                 .translated);
         }
         config.SetExcessUTXOCharge(n);
     } else {
@@ -1909,7 +1910,8 @@ bool AppInitParameterInteraction(Config &config) {
         auto parsed = ParseMoney(gArgs.GetArg("-minrelaytxfee", ""), n);
         if (!parsed || n == Amount::zero()) {
             return InitError(AmountErrMsg("minrelaytxfee",
-                                          gArgs.GetArg("-minrelaytxfee", "")));
+                                          gArgs.GetArg("-minrelaytxfee", ""))
+                                 .translated);
         }
         // High fee check is done afterward in WalletParameterInteraction()
         ::minRelayTxFee = CFeeRate(n);
@@ -1922,7 +1924,8 @@ bool AppInitParameterInteraction(Config &config) {
         Amount n = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n)) {
             return InitError(AmountErrMsg("blockmintxfee",
-                                          gArgs.GetArg("-blockmintxfee", "")));
+                                          gArgs.GetArg("-blockmintxfee", ""))
+                                 .translated);
         }
     }
 
@@ -1932,8 +1935,9 @@ bool AppInitParameterInteraction(Config &config) {
         Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-dustrelayfee", ""), n);
         if (!parsed || Amount::zero() == n) {
-            return InitError(AmountErrMsg("dustrelayfee",
-                                          gArgs.GetArg("-dustrelayfee", "")));
+            return InitError(
+                AmountErrMsg("dustrelayfee", gArgs.GetArg("-dustrelayfee", ""))
+                    .translated);
         }
         dustRelayFee = CFeeRate(n);
     }

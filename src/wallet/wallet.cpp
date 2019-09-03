@@ -4884,12 +4884,13 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         if (!ParseMoney(gArgs.GetArg("-mintxfee", ""), n) ||
             n == Amount::zero()) {
             chain.initError(
-                AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
+                AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", ""))
+                    .translated);
             return nullptr;
         }
         if (n > HIGH_TX_FEE_PER_KB) {
             chain.initWarning(
-                AmountHighWarn("-mintxfee") + " " +
+                AmountHighWarn("-mintxfee").translated + " " +
                 _("This is the minimum transaction fee you pay on "
                   "every transaction.")
                     .translated);
@@ -4907,7 +4908,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
         if (nFeePerK > HIGH_TX_FEE_PER_KB) {
             chain.initWarning(
-                AmountHighWarn("-fallbackfee") + " " +
+                AmountHighWarn("-fallbackfee").translated + " " +
                 _("This is the transaction fee you may pay when fee "
                   "estimates are not available.")
                     .translated);
@@ -4921,12 +4922,13 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         Amount nFeePerK = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-paytxfee", ""), nFeePerK)) {
             chain.initError(
-                AmountErrMsg("paytxfee", gArgs.GetArg("-paytxfee", "")));
+                AmountErrMsg("paytxfee", gArgs.GetArg("-paytxfee", ""))
+                    .translated);
             return nullptr;
         }
         if (nFeePerK > HIGH_TX_FEE_PER_KB) {
             chain.initWarning(
-                AmountHighWarn("-paytxfee") + " " +
+                AmountHighWarn("-paytxfee").translated + " " +
                 _("This is the transaction fee you will pay if you "
                   "send a transaction.")
                     .translated);
@@ -4946,7 +4948,8 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         Amount nMaxFee = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-maxtxfee", ""), nMaxFee)) {
             chain.initError(
-                AmountErrMsg("maxtxfee", gArgs.GetArg("-maxtxfee", "")));
+                AmountErrMsg("maxtxfee", gArgs.GetArg("-maxtxfee", ""))
+                    .translated);
             return nullptr;
         }
         if (nMaxFee > HIGH_MAX_TX_FEE) {
@@ -4967,7 +4970,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
 
     if (chain.relayMinFee().GetFeePerK() > HIGH_TX_FEE_PER_KB) {
         chain.initWarning(
-            AmountHighWarn("-minrelaytxfee") + " " +
+            AmountHighWarn("-minrelaytxfee").translated + " " +
             _("The wallet will avoid paying less than the minimum relay fee.")
                 .translated);
     }

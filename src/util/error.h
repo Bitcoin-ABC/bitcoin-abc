@@ -17,6 +17,8 @@
 
 #include <string>
 
+struct bilingual_str;
+
 enum class TransactionError {
     OK, //!< No error
 
@@ -33,9 +35,9 @@ enum class TransactionError {
 
 std::string TransactionErrorString(TransactionError error);
 
-std::string AmountHighWarn(const std::string &optname);
+bilingual_str AmountHighWarn(const std::string &optname);
 
-std::string AmountErrMsg(const std::string &optname,
-                         const std::string &strValue);
+bilingual_str AmountErrMsg(const std::string &optname,
+                           const std::string &strValue);
 
 #endif // BITCOIN_UTIL_ERROR_H

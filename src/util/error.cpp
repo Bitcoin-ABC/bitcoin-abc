@@ -35,12 +35,12 @@ std::string TransactionErrorString(const TransactionError error) {
     assert(false);
 }
 
-std::string AmountHighWarn(const std::string &optname) {
-    return strprintf(_("%s is set very high!").translated, optname);
+bilingual_str AmountHighWarn(const std::string &optname) {
+    return strprintf(_("%s is set very high!"), optname);
 }
 
-std::string AmountErrMsg(const std::string &optname,
-                         const std::string &strValue) {
-    return strprintf(_("Invalid amount for -%s=<amount>: '%s'").translated,
-                     optname, strValue);
+bilingual_str AmountErrMsg(const std::string &optname,
+                           const std::string &strValue) {
+    return strprintf(_("Invalid amount for -%s=<amount>: '%s'"), optname,
+                     strValue);
 }
