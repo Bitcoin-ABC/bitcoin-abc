@@ -160,6 +160,14 @@
             "exclude": [
                 "(^src/(secp256k1|univalue)/)"
             ]
+        },
+        "lint-cpp-void-parameters": {
+            "type": "lint-cpp-void-parameters",
+            "include": "(^src/.*\\.(h|cpp)$)",
+            "exclude": [
+                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/compat/glibc_compat.cpp$)"
+            ]
         }
     }
 }
