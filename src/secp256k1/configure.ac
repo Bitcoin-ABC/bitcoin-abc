@@ -145,7 +145,7 @@ AC_ARG_ENABLE(module_schnorr,
     [enable_module_schnorr=yes])
 
 AC_ARG_ENABLE(external_default_callbacks,
-    AS_HELP_STRING([--enable-external-default-callbacks],[enable external default callback functions (default is no)]),
+    AS_HELP_STRING([--enable-external-default-callbacks],[enable external default callback functions [default=no]]),
     [use_external_default_callbacks=$enableval],
     [use_external_default_callbacks=no])
 
