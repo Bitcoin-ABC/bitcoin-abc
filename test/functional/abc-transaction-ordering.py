@@ -16,20 +16,19 @@ from test_framework.blocktools import (
     create_coinbase,
     make_conform_to_ctor,
 )
-from test_framework.comptool import RejectResult, TestInstance, TestManager
 from test_framework.messages import (
     COutPoint,
     CTransaction,
     CTxIn,
     CTxOut,
 )
-from test_framework.mininode import network_thread_start
+from test_framework.mininode import network_thread_start, P2PDataStore
 from test_framework.script import (
     CScript,
     OP_RETURN,
     OP_TRUE,
 )
-from test_framework.test_framework import ComparisonTestFramework
+from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 # far into the future
@@ -43,11 +42,7 @@ class PreviousSpendableOutput():
         self.n = n  # the output we're spending
 
 
-class TransactionOrderingTest(ComparisonTestFramework):
-
-    # Can either run this test as 1 node with expected answers, or two and compare them.
-    # Change the "outcome" variable from each TestInstance object to only do
-    # the comparison.
+class TransactionOrderingTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
@@ -58,13 +53,6 @@ class TransactionOrderingTest(ComparisonTestFramework):
         self.extra_args = [['-whitelist=127.0.0.1',
                             '-relaypriority=0',
                             "-replayprotectionactivationtime={}".format(REPLAY_PROTECTION_START_TIME)]]
-
-    def run_test(self):
-        self.test = TestManager(self, self.options.tmpdir)
-        self.test.add_all_connections(self.nodes)
-        network_thread_start()
-        # Set the blocksize to 2MB as initial condition
-        self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]
@@ -139,8 +127,12 @@ class TransactionOrderingTest(ComparisonTestFramework):
         self.blocks[number] = block
         return block
 
-    def get_tests(self):
+    def run_test(self):
         node = self.nodes[0]
+        node.add_p2p_connection(P2PDataStore())
+        network_thread_start()
+        node.p2p.wait_for_verack()
+
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
@@ -152,17 +144,6 @@ class TransactionOrderingTest(ComparisonTestFramework):
         # get an output that we previously marked as spendable
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
-        # returns a test case that asserts that the current tip was accepted
-        def accepted():
-            return TestInstance([[self.tip, True]])
-
-        # returns a test case that asserts that the current tip was rejected
-        def rejected(reject=None):
-            if reject is None:
-                return TestInstance([[self.tip, False]])
-            else:
-                return TestInstance([[self.tip, reject]])
 
         # move the tip back to a previous block
         def tip(number):
@@ -189,15 +170,15 @@ class TransactionOrderingTest(ComparisonTestFramework):
         # Create a new block
         block(0)
         save_spendable_output()
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Now we need that block to mature so we can spend the coinbase.
-        test = TestInstance(sync_every_block=False)
+        maturity_blocks = []
         for i in range(99):
             block(5000 + i)
-            test.blocks_and_transactions.append([self.tip, True])
+            maturity_blocks.append(self.tip)
             save_spendable_output()
-        yield test
+        node.p2p.send_blocks_and_test(maturity_blocks, node)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
@@ -207,15 +188,13 @@ class TransactionOrderingTest(ComparisonTestFramework):
         # Let's build some blocks and test them.
         for i in range(17):
             n = i + 1
-            block(n)
-            yield accepted()
+            node.p2p.send_blocks_and_test([block(n)], node)
 
-        block(5556)
-        yield accepted()
+        node.p2p.send_blocks_and_test([block(5556)], node)
 
         # Block with regular ordering are now rejected.
-        block(5557, out[17], tx_count=16)
-        yield rejected(RejectResult(16, b'tx-ordering'))
+        node.p2p.send_blocks_and_test([block(
+            5557, out[17], tx_count=16)], node, success=False, reject_reason='tx-ordering')
 
         # Rewind bad block.
         tip(5556)
@@ -228,11 +207,8 @@ class TransactionOrderingTest(ComparisonTestFramework):
             return b
 
         # Now that the fork activated, we need to order transaction per txid.
-        ordered_block(4445, out[17])
-        yield accepted()
-
-        ordered_block(4446, out[18])
-        yield accepted()
+        node.p2p.send_blocks_and_test([ordered_block(4445, out[17])], node)
+        node.p2p.send_blocks_and_test([ordered_block(4446, out[18])], node)
 
         # Generate a block with a duplicated transaction.
         double_tx_block = ordered_block(4447, out[19])
@@ -240,14 +216,15 @@ class TransactionOrderingTest(ComparisonTestFramework):
         double_tx_block.vtx = double_tx_block.vtx[:8] + \
             [double_tx_block.vtx[8]] + double_tx_block.vtx[8:]
         update_block(4447)
-        yield rejected(RejectResult(16, b'bad-txns-duplicate'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-txns-duplicate')
 
         # Rewind bad block.
         tip(4446)
 
         # Check over two blocks.
         proper_block = ordered_block(4448, out[20])
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         replay_tx_block = ordered_block(4449, out[21])
         assert_equal(len(replay_tx_block.vtx), 16)
@@ -255,7 +232,8 @@ class TransactionOrderingTest(ComparisonTestFramework):
         replay_tx_block.vtx = [replay_tx_block.vtx[0]] + \
             sorted(replay_tx_block.vtx[1:], key=lambda tx: tx.get_id())
         update_block(4449)
-        yield rejected(RejectResult(16, b'bad-txns-BIP30'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-txns-BIP30')
 
 
 if __name__ == '__main__':
