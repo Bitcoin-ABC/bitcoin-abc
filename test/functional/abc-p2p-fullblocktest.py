@@ -26,7 +26,6 @@ from test_framework.cdefs import (
     MAX_TX_SIGOPS_COUNT,
     ONE_MEGABYTE,
 )
-from test_framework.comptool import RejectResult, TestInstance, TestManager
 from test_framework.key import CECKey
 from test_framework.messages import (
     COutPoint,
@@ -36,7 +35,7 @@ from test_framework.messages import (
     ser_compact_size,
     ToHex,
 )
-from test_framework.mininode import network_thread_start
+from test_framework.mininode import network_thread_start, P2PDataStore
 from test_framework.script import (
     CScript,
     hash160,
@@ -51,7 +50,7 @@ from test_framework.script import (
     SIGHASH_FORKID,
     SignatureHashForkId,
 )
-from test_framework.test_framework import ComparisonTestFramework
+from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 REPLAY_PROTECTION_START_TIME = 2000000000
@@ -61,14 +60,11 @@ class PreviousSpendableOutput():
 
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
-        self.n = n  # the output we're spending
+        # the output we're spending
+        self.n = n
 
 
-class FullBlockTest(ComparisonTestFramework):
-
-    # Can either run this test as 1 node with expected answers, or two and compare them.
-    # Change the "outcome" variable from each TestInstance object to only do
-    # the comparison.
+class FullBlockTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
@@ -86,14 +82,6 @@ class FullBlockTest(ComparisonTestFramework):
         super().add_options(parser)
         parser.add_argument(
             "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
-
-    def run_test(self):
-        self.test = TestManager(self, self.options.tmpdir)
-        self.test.add_all_connections(self.nodes)
-        network_thread_start()
-        # Set the blocksize to 2MB as initial condition
-        self.nodes[0].setexcessiveblock(self.excessive_block_size)
-        self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]
@@ -210,8 +198,14 @@ class FullBlockTest(ComparisonTestFramework):
         self.blocks[number] = block
         return block
 
-    def get_tests(self):
+    def run_test(self):
         node = self.nodes[0]
+        node.add_p2p_connection(P2PDataStore())
+        network_thread_start()
+        node.p2p.wait_for_verack()
+        # Set the blocksize to 2MB as initial condition
+        node.setexcessiveblock(self.excessive_block_size)
+
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
@@ -223,17 +217,6 @@ class FullBlockTest(ComparisonTestFramework):
         # get an output that we previously marked as spendable
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
-        # returns a test case that asserts that the current tip was accepted
-        def accepted():
-            return TestInstance([[self.tip, True]])
-
-        # returns a test case that asserts that the current tip was rejected
-        def rejected(reject=None):
-            if reject is None:
-                return TestInstance([[self.tip, False]])
-            else:
-                return TestInstance([[self.tip, reject]])
 
         # move the tip back to a previous block
         def tip(number):
@@ -262,15 +245,15 @@ class FullBlockTest(ComparisonTestFramework):
         # Create a new block
         block(0)
         save_spendable_output()
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Now we need that block to mature so we can spend the coinbase.
-        test = TestInstance(sync_every_block=False)
+        maturity_blocks = []
         for i in range(99):
             block(5000 + i)
-            test.blocks_and_transactions.append([self.tip, True])
+            maturity_blocks.append(self.tip)
             save_spendable_output()
-        yield test
+        node.p2p.send_blocks_and_test(maturity_blocks, node)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
@@ -281,15 +264,16 @@ class FullBlockTest(ComparisonTestFramework):
         for i in range(16):
             n = i + 1
             block(n, spend=out[i], block_size=n * ONE_MEGABYTE)
-            yield accepted()
+            node.p2p.send_blocks_and_test([self.tip], node)
 
         # block of maximal size
         block(17, spend=out[16], block_size=self.excessive_block_size)
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Reject oversized blocks with bad-blk-length error
         block(18, spend=out[17], block_size=self.excessive_block_size + 1)
-        yield rejected(RejectResult(16, b'bad-blk-length'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-length')
 
         # Rewind bad block.
         tip(17)
@@ -299,11 +283,12 @@ class FullBlockTest(ComparisonTestFramework):
             [OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
         block(19, spend=out[17], script=lots_of_checksigs,
               block_size=ONE_MEGABYTE)
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         block(20, spend=out[18], script=lots_of_checksigs,
               block_size=ONE_MEGABYTE, extra_sigops=1)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
         # Rewind bad block
         tip(19)
@@ -311,17 +296,18 @@ class FullBlockTest(ComparisonTestFramework):
         # Accept 40k sigops per block > 1MB and <= 2MB
         block(21, spend=out[18], script=lots_of_checksigs,
               extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=ONE_MEGABYTE + 1)
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Accept 40k sigops per block > 1MB and <= 2MB
         block(22, spend=out[19], script=lots_of_checksigs,
               extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE)
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
         block(23, spend=out[20], script=lots_of_checksigs,
               extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=ONE_MEGABYTE + 1)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
         # Rewind bad block
         tip(22)
@@ -329,7 +315,8 @@ class FullBlockTest(ComparisonTestFramework):
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
         block(24, spend=out[20], script=lots_of_checksigs,
               extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
         # Rewind bad block
         tip(22)
@@ -337,17 +324,18 @@ class FullBlockTest(ComparisonTestFramework):
         # Accept 60k sigops per block > 2MB and <= 3MB
         block(25, spend=out[20], script=lots_of_checksigs, extra_sigops=2 *
               MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE + 1)
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Accept 60k sigops per block > 2MB and <= 3MB
         block(26, spend=out[21], script=lots_of_checksigs,
               extra_sigops=2 * MAX_BLOCK_SIGOPS_PER_MB, block_size=3 * ONE_MEGABYTE)
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
         block(27, spend=out[22], script=lots_of_checksigs, extra_sigops=2 *
               MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE + 1)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
         # Rewind bad block
         tip(26)
@@ -355,7 +343,8 @@ class FullBlockTest(ComparisonTestFramework):
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
         block(28, spend=out[22], script=lots_of_checksigs, extra_sigops=2 *
               MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3 * ONE_MEGABYTE)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
         # Rewind bad block
         tip(26)
@@ -365,7 +354,8 @@ class FullBlockTest(ComparisonTestFramework):
             [OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB + 1))
         block(
             29, spend=out[22], script=too_many_tx_checksigs, block_size=ONE_MEGABYTE + 1)
-        yield rejected(RejectResult(16, b'bad-txn-sigops'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-txn-sigops')
 
         # Rewind bad block
         tip(26)
@@ -388,7 +378,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Add the transaction to the block
         block(30)
         update_block(30, [p2sh_tx])
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Creates a new transaction using the p2sh transaction included in the
         # last block
@@ -413,7 +403,8 @@ class FullBlockTest(ComparisonTestFramework):
         too_many_p2sh_sigops = CScript([OP_CHECKSIG] * (p2sh_sigops_limit + 1))
         block(31, spend=out[23], block_size=ONE_MEGABYTE + 1)
         update_block(31, [spend_p2sh_tx(too_many_p2sh_sigops)])
-        yield rejected(RejectResult(16, b'bad-txn-sigops'))
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-txn-sigops')
 
         # Rewind bad block
         tip(30)
@@ -422,7 +413,7 @@ class FullBlockTest(ComparisonTestFramework):
         max_p2sh_sigops = CScript([OP_CHECKSIG] * (p2sh_sigops_limit))
         block(32, spend=out[23], block_size=ONE_MEGABYTE + 1)
         update_block(32, [spend_p2sh_tx(max_p2sh_sigops)])
-        yield accepted()
+        node.p2p.send_blocks_and_test([self.tip], node)
 
         # Submit a very large block via RPC
         large_block = block(
