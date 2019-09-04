@@ -14,7 +14,8 @@ set -euxo pipefail
 MYPID=$$
 
 # Setup
-TOPLEVEL=$(git rev-parse --show-toplevel)
+: "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
+
 DATA_DIR="${TOPLEVEL}/ibd"
 mkdir -p "${DATA_DIR}"
 DEBUG_LOG="${DATA_DIR}/debug.log"
