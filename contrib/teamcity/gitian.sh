@@ -2,7 +2,7 @@
 
 export LC_ALL=C
 
-set -e
+set -euxo pipefail
 
 cd "$(dirname "$0")"
 

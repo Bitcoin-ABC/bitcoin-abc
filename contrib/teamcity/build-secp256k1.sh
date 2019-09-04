@@ -2,7 +2,7 @@
 
 export LC_ALL=C
 
-set -eu
+set -euxo pipefail
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
 if [[ -z "${TOPLEVEL}" ]]; then

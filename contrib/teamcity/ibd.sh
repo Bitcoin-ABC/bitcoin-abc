@@ -2,7 +2,7 @@
 
 export LC_ALL=C
 
-set -euo pipefail
+set -euxo pipefail
 
 ###
 # Initial Block Download script.
@@ -49,7 +49,10 @@ IBD_PID=$!
 
 # When the IBD subshell finishes, kill bitcoind
 (
+  # Disable verbosity to avoid bloating the output with sleep prints
+  set +x
   while [ -e /proc/${IBD_PID} ]; do sleep 0.1; done
+  set -x
 
   echo "Cleaning up bitcoin daemon (PID: ${BITCOIND_PID})."
   kill ${BITCOIND_PID}

@@ -2,7 +2,7 @@
 
 export LC_ALL=C
 
-set -e
+set -euxo pipefail
 
 if [ -z "$ABC_BUILD_NAME" ]; then
   echo "Error: Environment variable ABC_BUILD_NAME must be set"
