@@ -21,7 +21,6 @@ from test_framework.blocktools import (
     create_transaction,
     make_conform_to_ctor,
 )
-from test_framework.comptool import TestInstance, TestManager
 from test_framework.cdefs import ONE_MEGABYTE
 from test_framework.messages import (
     COutPoint,
@@ -36,11 +35,11 @@ from test_framework.messages import (
 from test_framework.mininode import (
     mininode_lock,
     network_thread_start,
-    network_thread_join,
+    P2PDataStore,
     P2PInterface,
 )
 from test_framework.script import CScript, OP_RETURN, OP_TRUE
-from test_framework.test_framework import ComparisonTestFramework
+from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, wait_until
 
@@ -49,7 +48,8 @@ class PreviousSpendableOutput():
 
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
-        self.n = n  # the output we're spending
+        # the output we're spending
+        self.n = n
 
 
 # TestP2PConn: A peer we use to send messages to bitcoind, and store responses.
@@ -83,11 +83,7 @@ class TestP2PConn(P2PInterface):
             self.last_cmpctblock = None
 
 
-class FullBlockTest(ComparisonTestFramework):
-
-    # Can either run this test as 1 node with expected answers, or two and compare them.
-    # Change the "outcome" variable from each TestInstance object to only do
-    # the comparison.
+class FullBlockTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
@@ -109,14 +105,6 @@ class FullBlockTest(ComparisonTestFramework):
         super().add_options(parser)
         parser.add_argument(
             "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
-
-    def run_test(self):
-        self.test = TestManager(self, self.options.tmpdir)
-        self.test.add_all_connections(self.nodes)
-        network_thread_start()
-        # Set the blocksize to 2MB as initial condition
-        self.nodes[0].setexcessiveblock(self.excessive_block_size)
-        self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]
@@ -235,8 +223,18 @@ class FullBlockTest(ComparisonTestFramework):
         self.blocks[number] = block
         return block
 
-    def get_tests(self):
-        self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
+    def run_test(self):
+        node = self.nodes[0]
+        default_p2p = node.add_p2p_connection(P2PDataStore())
+        test_p2p = node.add_p2p_connection(TestP2PConn())
+        network_thread_start()
+        default_p2p.wait_for_verack()
+        test_p2p.wait_for_verack()
+
+        # Set the blocksize to 2MB as initial condition
+        node.setexcessiveblock(self.excessive_block_size)
+
+        self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
 
@@ -248,17 +246,6 @@ class FullBlockTest(ComparisonTestFramework):
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
 
-        # returns a test case that asserts that the current tip was accepted
-        def accepted():
-            return TestInstance([[self.tip, True]])
-
-        # returns a test case that asserts that the current tip was rejected
-        def rejected(reject=None):
-            if reject is None:
-                return TestInstance([[self.tip, False]])
-            else:
-                return TestInstance([[self.tip, reject]])
-
         # move the tip back to a previous block
         def tip(number):
             self.tip = self.blocks[number]
@@ -269,112 +256,80 @@ class FullBlockTest(ComparisonTestFramework):
         # Create a new block
         block(0)
         save_spendable_output()
-        yield accepted()
+        default_p2p.send_blocks_and_test([self.tip], node)
 
         # Now we need that block to mature so we can spend the coinbase.
-        test = TestInstance(sync_every_block=False)
+        maturity_blocks = []
         for i in range(99):
             block(5000 + i)
-            test.blocks_and_transactions.append([self.tip, True])
+            maturity_blocks.append(self.tip)
             save_spendable_output()
 
         # Get to one block of the May 15, 2018 HF activation
         for i in range(6):
             block(5100 + i)
-            test.blocks_and_transactions.append([self.tip, True])
+            maturity_blocks.append(self.tip)
 
         # Send it all to the node at once.
-        yield test
+        default_p2p.send_blocks_and_test(maturity_blocks, node)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
         for i in range(100):
             out.append(get_spendable_output())
 
-        # There can be only one network thread running at a time.
-        # Adding a new P2P connection here will try to start the network thread
-        # at init, which will throw an assertion because it's already running.
-        # This requires a few steps to avoid this:
-        #   1/ Disconnect all the TestManager nodes
-        #   2/ Terminate the network thread
-        #   3/ Add the new P2P connection
-        #   4/ Reconnect all the TestManager nodes
-        #   5/ Restart the network thread
-
-        # Disconnect all the TestManager nodes
-        [n.disconnect_node() for n in self.test.p2p_connections]
-        self.test.wait_for_disconnections()
-        self.test.clear_all_connections()
-
-        # Wait for the network thread to terminate
-        network_thread_join()
-
-        # Add the new connection
-        node = self.nodes[0]
-        node.add_p2p_connection(TestP2PConn())
-
-        # Reconnect TestManager nodes
-        self.test.add_all_connections(self.nodes)
-
-        # Restart the network thread
-        network_thread_start()
-
-        # Wait for connection to be etablished
-        peer = node.p2p
-        peer.wait_for_verack()
-
         # Check that compact block also work for big blocks
         # Wait for SENDCMPCT
         def received_sendcmpct():
-            return (peer.last_sendcmpct != None)
+            return (test_p2p.last_sendcmpct != None)
         wait_until(received_sendcmpct, timeout=30)
 
         sendcmpct = msg_sendcmpct()
         sendcmpct.version = 1
         sendcmpct.announce = True
-        peer.send_and_ping(sendcmpct)
+        test_p2p.send_and_ping(sendcmpct)
 
         # Exchange headers
         def received_getheaders():
-            return (peer.last_getheaders != None)
+            return (test_p2p.last_getheaders != None)
         wait_until(received_getheaders, timeout=30)
 
         # Return the favor
-        peer.send_message(peer.last_getheaders)
+        test_p2p.send_message(test_p2p.last_getheaders)
 
         # Wait for the header list
         def received_headers():
-            return (peer.last_headers != None)
+            return (test_p2p.last_headers != None)
         wait_until(received_headers, timeout=30)
 
         # It's like we know about the same headers !
-        peer.send_message(peer.last_headers)
+        test_p2p.send_message(test_p2p.last_headers)
 
         # Send a block
         b1 = block(1, spend=out[0], block_size=ONE_MEGABYTE + 1)
-        yield accepted()
+        default_p2p.send_blocks_and_test([self.tip], node)
 
         # Checks the node to forward it via compact block
         def received_block():
-            return (peer.last_cmpctblock != None)
+            return (test_p2p.last_cmpctblock != None)
         wait_until(received_block, timeout=30)
 
         # Was it our block ?
-        cmpctblk_header = peer.last_cmpctblock.header_and_shortids.header
+        cmpctblk_header = test_p2p.last_cmpctblock.header_and_shortids.header
         cmpctblk_header.calc_sha256()
         assert(cmpctblk_header.sha256 == b1.sha256)
 
         # Send a large block with numerous transactions.
-        peer.clear_block_data()
+        test_p2p.clear_block_data()
         b2 = block(2, spend=out[1], extra_txns=70000,
                    block_size=self.excessive_block_size - 1000)
-        yield accepted()
+        default_p2p.send_blocks_and_test([self.tip], node)
 
         # Checks the node forwards it via compact block
         wait_until(received_block, timeout=30)
 
         # Was it our block ?
-        cmpctblk_header = peer.last_cmpctblock.header_and_shortids.header
+        cmpctblk_header = test_p2p.last_cmpctblock.header_and_shortids.header
         cmpctblk_header.calc_sha256()
         assert(cmpctblk_header.sha256 == b2.sha256)
 
@@ -394,7 +349,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Now we create the compact block and send it
         comp_block = HeaderAndShortIDs()
         comp_block.initialize_from_block(b2)
-        peer.send_and_ping(msg_cmpctblock(comp_block.to_p2p()))
+        test_p2p.send_and_ping(msg_cmpctblock(comp_block.to_p2p()))
 
         # Check that compact block is received properly
         assert(int(node.getbestblockhash(), 16) == b2.sha256)
