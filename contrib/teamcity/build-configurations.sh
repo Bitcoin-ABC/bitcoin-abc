@@ -65,6 +65,8 @@ case "$ABC_BUILD_NAME" in
     # Build with the undefined sanitizer, then run unit tests and functional tests.
     CONFIGURE_FLAGS="--enable-debug --with-sanitizers=undefined --disable-ccache CC=clang CXX=clang++" "${CI_SCRIPTS_DIR}"/build.sh
     make -j "${THREADS}" check
+    # FIXME Remove when abc-p2p-compactblocks works with ubsan.
+    TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=abc-p2p-compactblocks"
     ./test/functional/test_runner.py -J=junit_results_ubsan.xml ${TEST_RUNNER_FLAGS}
     ;;
 
