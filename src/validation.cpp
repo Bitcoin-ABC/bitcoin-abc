@@ -4590,7 +4590,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     int nGoodTransactions = 0;
     CValidationState state;
     int reportDone = 0;
-    LogPrintf("[0%%]...");
+    LogPrintfToBeContinued("[0%%]...");
     for (CBlockIndex *pindex = chainActive.Tip(); pindex && pindex->pprev;
          pindex = pindex->pprev) {
         boost::this_thread::interruption_point();
@@ -4602,7 +4602,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
 
         if (reportDone < percentageDone / 10) {
             // report every 10% step
-            LogPrintf("[%d%%]...", percentageDone);
+            LogPrintfToBeContinued("[%d%%]...", percentageDone);
             reportDone = percentageDone / 10;
         }
 

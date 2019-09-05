@@ -168,6 +168,10 @@
                 "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
                 "(^src/compat/glibc_compat.cpp$)"
             ]
+        },
+        "lint-logs": {
+            "type": "lint-logs",
+            "include": "(^src/.*\\.(h|cpp)$)"
         }
     }
 }

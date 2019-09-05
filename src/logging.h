@@ -150,4 +150,12 @@ static inline void MarkUsed(const T &t, const Args &... args) {
     } while (0)
 #endif
 
+/**
+ * These are aliases used to explicitly state that the message should not end
+ * with a newline character. It allows for detecting the missing newlines that
+ * could make the logs hard to read.
+ */
+#define LogPrintfToBeContinued LogPrintf
+#define LogPrintToBeContinued LogPrint
+
 #endif // BITCOIN_LOGGING_H

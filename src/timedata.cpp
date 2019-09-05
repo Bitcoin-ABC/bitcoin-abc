@@ -108,10 +108,10 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
 
         if (LogAcceptCategory(BCLog::NET)) {
             for (int64_t n : vSorted) {
-                LogPrint(BCLog::NET, "%+d  ", n);
+                LogPrintToBeContinued(BCLog::NET, "%+d  ", n);
             }
 
-            LogPrint(BCLog::NET, "|  ");
+            LogPrintToBeContinued(BCLog::NET, "|  ");
             LogPrint(BCLog::NET, "nTimeOffset = %+d  (%+d minutes)\n",
                      nTimeOffset, nTimeOffset / 60);
         }

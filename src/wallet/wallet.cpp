@@ -3341,7 +3341,7 @@ bool CWallet::CommitTransaction(
     wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.fFromMe = true;
 
-    LogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString());
+    LogPrintfToBeContinued("CommitTransaction:\n%s", wtxNew.tx->ToString());
 
     // Take key pair from key pool so it won't be used again.
     reservekey.KeepKey();

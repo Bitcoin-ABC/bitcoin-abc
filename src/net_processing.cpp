@@ -1504,7 +1504,7 @@ inline static void SendBlockTransactions(const CBlock &block,
             LOCK(cs_main);
             Misbehaving(pfrom, 100, "out-of-bound-tx-index");
             LogPrintf(
-                "Peer %d sent us a getblocktxn with out-of-bounds tx indices",
+                "Peer %d sent us a getblocktxn with out-of-bounds tx indices\n",
                 pfrom->GetId());
             return;
         }
@@ -2364,9 +2364,10 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         const CBlockIndex *pindex = LookupBlockIndex(req.blockhash);
         if (!pindex || !pindex->nStatus.hasData()) {
-            LogPrint(BCLog::NET,
-                     "Peer %d sent us a getblocktxn for a block we don't have",
-                     pfrom->GetId());
+            LogPrint(
+                BCLog::NET,
+                "Peer %d sent us a getblocktxn for a block we don't have\n",
+                pfrom->GetId());
             return true;
         }
 
@@ -2379,7 +2380,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             // expensive disk reads, because it will require the peer to
             // actually receive all the data read from disk over the network.
             LogPrint(BCLog::NET,
-                     "Peer %d sent us a getblocktxn for a block > %i deep",
+                     "Peer %d sent us a getblocktxn for a block > %i deep\n",
                      pfrom->GetId(), MAX_BLOCKTXN_DEPTH);
             CInv inv;
             inv.type = MSG_BLOCK;

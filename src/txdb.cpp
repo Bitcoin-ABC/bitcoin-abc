@@ -378,7 +378,7 @@ bool CCoinsViewDB::Upgrade() {
 
     int64_t count = 0;
     LogPrintf("Upgrading utxo-set database...\n");
-    LogPrintf("[0%%]...");
+    LogPrintfToBeContinued("[0%%]...");
     uiInterface.ShowProgress(_("Upgrading UTXO database"), 0, true);
     size_t batch_size = 1 << 24;
     CDBBatch batch(db);
@@ -403,7 +403,7 @@ bool CCoinsViewDB::Upgrade() {
                                      percentageDone, true);
             if (reportDone < percentageDone / 10) {
                 // report max. every 10% step
-                LogPrintf("[%d%%]...", percentageDone);
+                LogPrintfToBeContinued("[%d%%]...", percentageDone);
                 reportDone = percentageDone / 10;
             }
         }

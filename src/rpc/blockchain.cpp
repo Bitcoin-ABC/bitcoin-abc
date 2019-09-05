@@ -1065,7 +1065,7 @@ static UniValue pruneblockchain(const Config &config,
             "Blockchain is shorter than the attempted prune height.");
     } else if (height > chainHeight - MIN_BLOCKS_TO_KEEP) {
         LogPrint(BCLog::RPC, "Attempt to prune blocks close to the tip. "
-                             "Retaining the minimum number of blocks.");
+                             "Retaining the minimum number of blocks.\n");
         height = chainHeight - MIN_BLOCKS_TO_KEEP;
     }
 
