@@ -11,5 +11,4 @@ FILE *fopen(const fs::path &p, const char *mode) {
     return ::fopen(p.string().c_str(), mode);
 }
 
-
 } // namespace fsbridge
