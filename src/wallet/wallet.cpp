@@ -4280,7 +4280,13 @@ bool CWallet::Verify(const CChainParams &chainParams, std::string wallet_file,
         }
     }
 
-    if (!WalletBatch::VerifyEnvironment(wallet_path, error_string)) {
+    try {
+        if (!WalletBatch::VerifyEnvironment(wallet_path, error_string)) {
+            return false;
+        }
+    } catch (const fs::filesystem_error &e) {
+        error_string =
+            strprintf("Error loading wallet %s. %s", wallet_file, e.what());
         return false;
     }
 
