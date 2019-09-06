@@ -35,6 +35,18 @@ case "$ABC_BUILD_NAME" in
     ./build.sh
     ;;
 
+  build-ibd)
+    export DISABLE_TESTS=1
+    ./build.sh
+    ./ibd.sh -disablewallet
+    ;;
+
+  build-ibd-no-assumevalid-checkpoint)
+    export DISABLE_TESTS=1
+    ./build.sh
+    ./ibd.sh -disablewallet -assumevalid=0 -checkpoints=0
+    ;;
+
   *)
     echo "Error: Invalid build name '${ABC_BUILD_NAME}'"
     exit 2

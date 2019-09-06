@@ -14,10 +14,10 @@ set -euxo pipefail
 MYPID=$$
 
 # Setup
-DATA_DIR="ibd"
+TOPLEVEL=$(git rev-parse --show-toplevel)
+DATA_DIR="${TOPLEVEL}/ibd"
 mkdir -p "${DATA_DIR}"
 DEBUG_LOG="${DATA_DIR}/debug.log"
-chmod +x bitcoind
 
 cleanup() {
   # Cleanup background processes spawned by this script.
@@ -31,10 +31,9 @@ tail -f "${DEBUG_LOG}" | grep 'UpdateTip' | awk 'NR % 10000 == 0' &
 callback() {
   echo "Initial block download complete."
 
-  # TODO Add more checks to see if IBD completed as expected,
+  # TODO Add more checks to see if IBD completed as expected.
   # These checks will exit the subshell with a non-zero exit code.
 }
 export -f callback
 
-TOPLEVEL=$(git rev-parse --show-toplevel)
 LOG_FILE="${DEBUG_LOG}" "${TOPLEVEL}/contrib/devtools/bitcoind-exit-on-log.sh" --grep 'progress=1.000000' --params "-datadir=${DATA_DIR}" --callback callback
