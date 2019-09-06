@@ -4,7 +4,7 @@ This issue tracker is only for technical issues related to bitcoin-abc.
 
 General bitcoin questions and/or support requests and are best directed to the [Bitcoin StackExchange](https://bitcoin.stackexchange.com).
 
-For reporting security issues, please contact people privately.
+For reporting security issues, please see [DISCLOSURE_POLICY](DISCLOSURE_POLICY.md).
 
 ### Describe the issue
 
