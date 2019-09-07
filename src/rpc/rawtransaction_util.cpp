@@ -157,12 +157,9 @@ static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
     vErrorsRet.push_back(entry);
 }
 
-UniValue SignTransaction(CMutableTransaction &mtx,
-                         const UniValue &prevTxsUnival,
-                         FillableSigningProvider *keystore,
-                         std::map<COutPoint, Coin> &coins,
-                         bool is_temp_keystore, const UniValue &hashType) {
-    // Add previous txouts given in the RPC call:
+void ParsePrevouts(const UniValue &prevTxsUnival,
+                   FillableSigningProvider *keystore,
+                   std::map<COutPoint, Coin> &coins) {
     if (!prevTxsUnival.isNull()) {
         UniValue prevTxs = prevTxsUnival.get_array();
         for (size_t idx = 0; idx < prevTxs.size(); ++idx) {
@@ -232,7 +229,7 @@ UniValue SignTransaction(CMutableTransaction &mtx,
 
             // If redeemScript and private keys were given, add redeemScript to
             // the keystore so it can be signed
-            if (is_temp_keystore && scriptPubKey.IsPayToScriptHash()) {
+            if (keystore && scriptPubKey.IsPayToScriptHash()) {
                 RPCTypeCheckObj(
                     prevOut, {
                                  {"redeemScript", UniValueType(UniValue::VSTR)},
@@ -246,7 +243,12 @@ UniValue SignTransaction(CMutableTransaction &mtx,
             }
         }
     }
+}
 
+UniValue SignTransaction(CMutableTransaction &mtx,
+                         const SigningProvider *keystore,
+                         std::map<COutPoint, Coin> &coins,
+                         const UniValue &hashType) {
     SigHashType sigHashType = ParseSighashString(hashType);
     if (!sigHashType.hasForkId()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
