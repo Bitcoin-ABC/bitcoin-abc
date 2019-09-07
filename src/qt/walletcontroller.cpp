@@ -214,10 +214,10 @@ void CreateWalletActivity::createWallet() {
 
     std::string name = m_create_wallet_dialog->walletName().toStdString();
     uint64_t flags = 0;
-    if (m_create_wallet_dialog->disablePrivateKeys()) {
+    if (m_create_wallet_dialog->isDisablePrivateKeysChecked()) {
         flags |= WALLET_FLAG_DISABLE_PRIVATE_KEYS;
     }
-    if (m_create_wallet_dialog->blank()) {
+    if (m_create_wallet_dialog->isMakeBlankWalletChecked()) {
         flags |= WALLET_FLAG_BLANK_WALLET;
     }
 
@@ -266,7 +266,7 @@ void CreateWalletActivity::create() {
     connect(m_create_wallet_dialog, &QDialog::rejected,
             [this] { Q_EMIT finished(); });
     connect(m_create_wallet_dialog, &QDialog::accepted, [this] {
-        if (m_create_wallet_dialog->encrypt()) {
+        if (m_create_wallet_dialog->isEncryptWalletChecked()) {
             askPassphrase();
         } else {
             createWallet();
