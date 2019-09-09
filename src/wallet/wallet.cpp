@@ -4697,7 +4697,7 @@ void CWallet::MarkPreSplitKeys() {
 std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
     const CChainParams &chainParams, interfaces::Chain &chain,
     const WalletLocation &location, uint64_t wallet_creation_flags) {
-    const std::string &walletFile =
+    const std::string walletFile =
         WalletDataFilePath(location.GetPath()).string();
 
     // Needed to restore wallet transaction meta data after -zapwallettxes

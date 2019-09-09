@@ -1907,7 +1907,7 @@ bool AppInitParameterInteraction(Config &config) {
                                           gArgs.GetArg("-minrelaytxfee", ""))
                                  .translated);
         }
-        // High fee check is done afterward in WalletParameterInteraction()
+        // High fee check is done afterward in CWallet::CreateWalletFromFile()
         ::minRelayTxFee = CFeeRate(n);
     }
 

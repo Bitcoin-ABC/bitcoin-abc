@@ -83,7 +83,8 @@ def assert_raises_message(exc, message, fun, *args, **kwds):
     except exc as e:
         if message is not None and message not in e.error['message']:
             raise AssertionError(
-                "Expected substring not found:" + e.error['message'])
+                "Expected substring not found in error message:\nsubstring: '{}'\nerror message: '{}'.".format(
+                    message, e.error['message']))
     except Exception as e:
         raise AssertionError(
             "Unexpected exception raised: " + type(e).__name__)
@@ -151,7 +152,8 @@ def try_rpc(code, message, fun, *args, **kwds):
                 "Unexpected JSONRPC error code {}".format(e.error["code"]))
         if (message is not None) and (message not in e.error['message']):
             raise AssertionError(
-                "Expected substring not found:" + e.error['message'])
+                "Expected substring not found in error message:\nsubstring: '{}'\nerror message: '{}'.".format(
+                    message, e.error['message']))
         return True
     except Exception as e:
         raise AssertionError(
