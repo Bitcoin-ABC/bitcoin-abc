@@ -7,6 +7,7 @@
 import os
 
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_node import ErrorMatch
 
 
 class LoggingTest(BitcoinTestFramework):
@@ -35,7 +36,7 @@ class LoggingTest(BitcoinTestFramework):
         self.stop_node(0)
         exp_stderr = r"Error: Could not open debug log file \S+$"
         self.nodes[0].assert_start_raises_init_error(
-            ["-debuglogfile={}".format(invalidname)], exp_stderr)
+            ["-debuglogfile={}".format(invalidname)], exp_stderr, match=ErrorMatch.FULL_REGEX)
         assert not os.path.isfile(os.path.join(invdir, "foo.log"))
 
         # check that invalid log (relative) works after path exists
@@ -49,7 +50,7 @@ class LoggingTest(BitcoinTestFramework):
         invdir = os.path.join(self.options.tmpdir, "foo")
         invalidname = os.path.join(invdir, "foo.log")
         self.nodes[0].assert_start_raises_init_error(
-            ["-debuglogfile={}".format(invalidname)], exp_stderr)
+            ["-debuglogfile={}".format(invalidname)], exp_stderr, match=ErrorMatch.FULL_REGEX)
         assert not os.path.isfile(os.path.join(invdir, "foo.log"))
 
         # check that invalid log (absolute) works after path exists
