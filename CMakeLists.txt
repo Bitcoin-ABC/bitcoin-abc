@@ -1,7 +1,7 @@
 # Copyright (c) 2017 The Bitcoin developers
 
 cmake_minimum_required(VERSION 3.5)
-project(BitcoinABC)
+project(bitcoin-abc)
 
 # Add path for custom modules
 set(CMAKE_MODULE_PATH
