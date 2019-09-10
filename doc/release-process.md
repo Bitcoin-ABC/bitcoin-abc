@@ -37,7 +37,7 @@ Bitcoin ABC Release Process
 5. Increment version number for the next release in:
     - doc/release-notes.md (and copy existing one to versioned doc/release-notes/*.md)
     - configure.ac
-    - src/config/CMakeLists.txt
+    - CMakeLists.txt
     - contrib/gitian-descriptors/*.yml (before a new major release)
     - contrib/seeds/makeseeds.py (only after a new major release)
 

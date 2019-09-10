@@ -1,7 +1,12 @@
 # Copyright (c) 2017 The Bitcoin developers
 
 cmake_minimum_required(VERSION 3.5)
-project(bitcoin-abc)
+project(bitcoin-abc
+	VERSION 0.20.2.0
+	# TODO add description and homepage when CMake > 3.12 is enforced.
+	# DESCRIPTION "Bitcoin ABC is a full node implementation of the Bitcoin Cash protocol."
+	# HOMEPAGE "https://www.bitcoinabc.org"
+)
 
 # Add path for custom modules
 set(CMAKE_MODULE_PATH
