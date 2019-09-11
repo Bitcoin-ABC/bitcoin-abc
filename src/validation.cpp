@@ -2867,6 +2867,11 @@ static void NotifyHeaderTip() {
     }
 }
 
+/**
+ * Make the best chain active, in multiple steps. The result is either failure
+ * or an activated best chain. pblock is either nullptr or a pointer to a block
+ * that is already loaded (to avoid loading it again from disk).
+ */
 bool CChainState::ActivateBestChain(const Config &config,
                                     CValidationState &state,
                                     std::shared_ptr<const CBlock> pblock) {

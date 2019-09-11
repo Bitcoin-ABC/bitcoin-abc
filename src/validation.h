@@ -421,13 +421,7 @@ bool GetTransaction(const Consensus::Params &params, const TxId &txid,
                     bool fAllowSlow = false, CBlockIndex *blockIndex = nullptr);
 
 /**
- * Find the best known block, and make it the active tip of the block chain.
- * If it fails, the tip is not updated.
- *
- * pblock is either nullptr or a pointer to a block that is already loaded
- * in memory (to avoid loading it from disk again).
- *
- * Returns true if a new chain tip was set.
+ * Find the best known block, and make it the tip of the block chain
  */
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
