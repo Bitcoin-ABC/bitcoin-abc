@@ -114,6 +114,7 @@ class TestWritableFile : public WritableFile {
   virtual Status Close();
   virtual Status Flush();
   virtual Status Sync();
+  std::string GetName() const override;
 
  private:
   FileState state_;
@@ -223,6 +224,11 @@ Status TestWritableFile::Sync() {
   }
   return s;
 }
+
+std::string TestWritableFile::GetName() const /*override*/ {
+    return "[testwritablefile]"; 
+}
+
 
 Status FaultInjectionTestEnv::NewWritableFile(const std::string& fname,
                                               WritableFile** result) {

@@ -49,6 +49,7 @@ class LogTest {
       contents_.append(slice.data(), slice.size());
       return Status::OK();
     }
+    std::string GetName() const override { return "[stringdest]"; }
   };
 
   class StringSource : public SequentialFile {
@@ -86,6 +87,8 @@ class LogTest {
 
       return Status::OK();
     }
+
+    std::string GetName() const override { return "[stringsource]"; }
   };
 
   class ReportCollector : public Reader::Reporter {

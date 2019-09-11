@@ -119,6 +119,7 @@ class SpecialEnv : public EnvWrapper {
         }
         return base_->Sync();
       }
+      std::string GetName() const override { return "[datafile]"; }
     };
     class ManifestFile : public WritableFile {
      private:
@@ -143,6 +144,8 @@ class SpecialEnv : public EnvWrapper {
           return base_->Sync();
         }
       }
+      std::string GetName() const override { return "[manifestfile]"; }
+
     };
 
     if (non_writable_.Acquire_Load() != NULL) {
@@ -176,6 +179,7 @@ class SpecialEnv : public EnvWrapper {
         counter_->Increment();
         return target_->Read(offset, n, result, scratch);
       }
+      std::string GetName() const override { return "[countingfile]"; }
     };
 
     Status s = target()->NewRandomAccessFile(f, r);
