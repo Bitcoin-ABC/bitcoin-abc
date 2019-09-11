@@ -68,11 +68,11 @@ std::shared_ptr<CBlock> Block(const Config &config, const uint256 &prev_hash) {
     return pblock;
 }
 
-std::shared_ptr<CBlock> FinalizeBlock(const Config &config,
+std::shared_ptr<CBlock> FinalizeBlock(const Consensus::Params &params,
                                       std::shared_ptr<CBlock> pblock) {
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 
-    while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, config)) {
+    while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, params)) {
         ++(pblock->nNonce);
     }
 
@@ -82,7 +82,8 @@ std::shared_ptr<CBlock> FinalizeBlock(const Config &config,
 // construct a valid block
 const std::shared_ptr<const CBlock> GoodBlock(const Config &config,
                                               const uint256 &prev_hash) {
-    return FinalizeBlock(config, Block(config, prev_hash));
+    return FinalizeBlock(config.GetChainParams().GetConsensus(),
+                         Block(config, prev_hash));
 }
 
 // construct an invalid block (but with a valid header)
@@ -98,7 +99,7 @@ const std::shared_ptr<const CBlock> BadBlock(const Config &config,
     CTransactionRef tx = MakeTransactionRef(coinbase_spend);
     pblock->vtx.push_back(tx);
 
-    auto ret = FinalizeBlock(config, pblock);
+    auto ret = FinalizeBlock(config.GetChainParams().GetConsensus(), pblock);
     return ret;
 }
 

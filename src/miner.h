@@ -20,6 +20,10 @@ class CChainParams;
 class Config;
 class CScript;
 
+namespace Consensus {
+struct Params;
+}
+
 static const bool DEFAULT_PRINTPRIORITY = false;
 
 struct CBlockTemplateEntry {
@@ -235,6 +239,6 @@ private:
 void IncrementExtraNonce(const Config &config, CBlock *pblock,
                          const CBlockIndex *pindexPrev,
                          unsigned int &nExtraNonce);
-int64_t UpdateTime(CBlockHeader *pblock, const Config &config,
+int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,
                    const CBlockIndex *pindexPrev);
 #endif // BITCOIN_MINER_H

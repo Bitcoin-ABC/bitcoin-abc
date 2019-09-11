@@ -55,7 +55,8 @@ static CBlock BuildBlockTestCase() {
     assert(!mutated);
 
     GlobalConfig config;
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, params)) {
         ++block.nNonce;
     }
 
@@ -356,7 +357,8 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
     assert(!mutated);
 
     GlobalConfig config;
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, params)) {
         ++block.nNonce;
     }
 

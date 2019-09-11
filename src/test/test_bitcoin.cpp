@@ -189,7 +189,8 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
         IncrementExtraNonce(config, &block, chainActive.Tip(), extraNonce);
     }
 
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, params)) {
         ++block.nNonce;
     }
 

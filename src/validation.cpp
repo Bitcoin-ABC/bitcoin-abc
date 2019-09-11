@@ -952,7 +952,8 @@ bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
+    if (!CheckProofOfWork(block.GetHash(), block.nBits,
+                          config.GetChainParams().GetConsensus())) {
         return error("ReadBlockFromDisk: Errors in block header at %s",
                      pos.ToString());
     }
@@ -3443,7 +3444,8 @@ static bool CheckBlockHeader(
     BlockValidationOptions validationOptions = BlockValidationOptions()) {
     // Check proof of work matches claimed amount
     if (validationOptions.shouldValidatePoW() &&
-        !CheckProofOfWork(block.GetHash(), block.nBits, config)) {
+        !CheckProofOfWork(block.GetHash(), block.nBits,
+                          config.GetChainParams().GetConsensus())) {
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false,
                          "proof of work failed");
     }
@@ -3585,7 +3587,8 @@ static bool ContextualCheckBlockHeader(const Config &config,
     // Check proof of work
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
-    if (block.nBits != GetNextWorkRequired(pindexPrev, &block, config)) {
+    if (block.nBits !=
+        GetNextWorkRequired(pindexPrev, &block, consensusParams)) {
         LogPrintf("bad bits after height: %d\n", pindexPrev->nHeight);
         return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false,
                          "incorrect proof of work");
@@ -4393,9 +4396,10 @@ CBlockIndex *CChainState::InsertBlockIndex(const uint256 &hash) {
 
 bool CChainState::LoadBlockIndex(const Config &config,
                                  CBlockTreeDB &blocktree) {
-    if (!blocktree.LoadBlockIndexGuts(config, [this](const uint256 &hash) {
-            return this->InsertBlockIndex(hash);
-        })) {
+    if (!blocktree.LoadBlockIndexGuts(config.GetChainParams().GetConsensus(),
+                                      [this](const uint256 &hash) {
+                                          return this->InsertBlockIndex(hash);
+                                      })) {
         return false;
     }
 

@@ -40,7 +40,7 @@
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
 
-int64_t UpdateTime(CBlockHeader *pblock, const Config &config,
+int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,
                    const CBlockIndex *pindexPrev) {
     int64_t nOldTime = pblock->nTime;
     int64_t nNewTime =
@@ -50,12 +50,9 @@ int64_t UpdateTime(CBlockHeader *pblock, const Config &config,
         pblock->nTime = nNewTime;
     }
 
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
     // Updating time can change work required on testnet:
-    if (consensusParams.fPowAllowMinDifficultyBlocks) {
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, config);
+    if (params.fPowAllowMinDifficultyBlocks) {
+        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, params);
     }
 
     return nNewTime - nOldTime;
@@ -212,8 +209,9 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     // Fill in header.
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
-    UpdateTime(pblock, *config, pindexPrev);
-    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, *config);
+    UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
+    pblock->nBits =
+        GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     pblock->nNonce = 0;
     pblocktemplate->entries[0].txSigOps = GetSigOpCountWithoutP2SH(
         *pblocktemplate->entries[0].tx, STANDARD_SCRIPT_VERIFY_FLAGS);

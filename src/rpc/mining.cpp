@@ -145,7 +145,8 @@ UniValue generateBlocks(const Config &config,
         }
 
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount &&
-               !CheckProofOfWork(pblock->GetHash(), pblock->nBits, config)) {
+               !CheckProofOfWork(pblock->GetHash(), pblock->nBits,
+                                 config.GetChainParams().GetConsensus())) {
             ++pblock->nNonce;
             --nMaxTries;
         }
@@ -600,7 +601,7 @@ static UniValue getblocktemplate(const Config &config,
     CBlock *pblock = &pblocktemplate->block;
 
     // Update nTime
-    UpdateTime(pblock, config, pindexPrev);
+    UpdateTime(pblock, config.GetChainParams().GetConsensus(), pindexPrev);
     pblock->nNonce = 0;
 
     UniValue aCaps(UniValue::VARR);

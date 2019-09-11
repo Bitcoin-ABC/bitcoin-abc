@@ -10,26 +10,31 @@
 
 class CBlockHeader;
 class CBlockIndex;
-class Config;
 class uint256;
 
+namespace Consensus {
+struct Params;
+}
+
 uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
-                             const CBlockHeader *pblock, const Config &config);
+                             const CBlockHeader *pblock,
+                             const Consensus::Params &params);
 uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,
                                    int64_t nFirstBlockTime,
-                                   const Config &config);
+                                   const Consensus::Params &params);
 
 /**
  * Check whether a block hash satisfies the proof-of-work requirement specified
  * by nBits
  */
-bool CheckProofOfWork(uint256 hash, uint32_t nBits, const Config &config);
+bool CheckProofOfWork(uint256 hash, uint32_t nBits,
+                      const Consensus::Params &params);
 
 /**
  * Bitcoin cash's difficulty adjustment mechanism.
  */
 uint32_t GetNextCashWorkRequired(const CBlockIndex *pindexPrev,
                                  const CBlockHeader *pblock,
-                                 const Config &config);
+                                 const Consensus::Params &params);
 
 #endif // BITCOIN_POW_H
