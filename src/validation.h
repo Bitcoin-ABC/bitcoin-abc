@@ -632,14 +632,7 @@ bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator);
 
-/**
- * Treats a block as if it were received before others with the same work,
- * making it the active chain tip if applicable. Successive calls to
- * PreciousBlock() will override the effects of earlier calls. The effects of
- * calls to PreciousBlock() are not retained across restarts.
- *
- * Returns true if the provided block index successfully became the chain tip.
- */
+/** Mark a block as precious and reorganize. */
 bool PreciousBlock(const Config &config, CValidationState &state,
                    CBlockIndex *pindex);
 
