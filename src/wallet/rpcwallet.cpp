@@ -808,8 +808,9 @@ static UniValue getreceivedbyaddress(const Config &config,
         const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
-        if (wtx.IsCoinBase() || !ContextualCheckTransactionForCurrentBlock(
-                                    config, *wtx.tx, state)) {
+        if (wtx.IsCoinBase() ||
+            !ContextualCheckTransactionForCurrentBlock(
+                config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
             continue;
         }
 
@@ -881,8 +882,9 @@ static UniValue getreceivedbylabel(const Config &config,
     for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
         CValidationState state;
-        if (wtx.IsCoinBase() || !ContextualCheckTransactionForCurrentBlock(
-                                    config, *wtx.tx, state)) {
+        if (wtx.IsCoinBase() ||
+            !ContextualCheckTransactionForCurrentBlock(
+                config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
             continue;
         }
 
@@ -1519,8 +1521,9 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
         const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
-        if (wtx.IsCoinBase() || !ContextualCheckTransactionForCurrentBlock(
-                                    config, *wtx.tx, state)) {
+        if (wtx.IsCoinBase() ||
+            !ContextualCheckTransactionForCurrentBlock(
+                config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
             continue;
         }
 

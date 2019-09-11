@@ -6,11 +6,10 @@
 
 #include <amount.h>
 #include <chain.h>
-#include <chainparams.h>
 #include <coins.h>
-#include <config.h>
 #include <consensus/activation.h>
 #include <consensus/consensus.h>
+#include <consensus/params.h>
 #include <consensus/validation.h>
 #include <primitives/transaction.h>
 #include <script/script_flags.h>
@@ -38,9 +37,9 @@ static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
     return true;
 }
 
-bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
-                                CValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff,
+bool ContextualCheckTransaction(const Consensus::Params &params,
+                                const CTransaction &tx, CValidationState &state,
+                                int nHeight, int64_t nLockTimeCutoff,
                                 int64_t nMedianTimePast) {
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
@@ -49,8 +48,7 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (IsMagneticAnomalyEnabled(config.GetChainParams().GetConsensus(),
-                                 nHeight)) {
+    if (IsMagneticAnomalyEnabled(params, nHeight)) {
         // Size limit
         if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) <
             MIN_TX_SIZE) {

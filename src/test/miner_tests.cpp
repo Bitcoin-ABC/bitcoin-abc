@@ -542,11 +542,13 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         txid,
         entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
 
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+
     {
         // Locktime passes.
         CValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            config, CTransaction(tx), state, flags));
+            params, CTransaction(tx), state, flags));
     }
 
     // Sequence locks fail.
@@ -572,7 +574,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         CValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            config, CTransaction(tx), state, flags));
+            params, CTransaction(tx), state, flags));
     }
 
     // Sequence locks fail.
@@ -605,7 +607,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         CValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            config, CTransaction(tx), state, flags));
+            params, CTransaction(tx), state, flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -617,7 +619,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         CValidationState state;
         int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast();
         BOOST_CHECK(ContextualCheckTransaction(
-            config, CTransaction(tx), state, chainActive.Tip()->nHeight + 2,
+            params, CTransaction(tx), state, chainActive.Tip()->nHeight + 2,
             nMedianTimePast, nMedianTimePast));
     }
 
@@ -633,7 +635,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         CValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            config, CTransaction(tx), state, flags));
+            params, CTransaction(tx), state, flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -645,7 +647,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         CValidationState state;
         int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast() + 1;
         BOOST_CHECK(ContextualCheckTransaction(
-            config, CTransaction(tx), state, chainActive.Tip()->nHeight + 1,
+            params, CTransaction(tx), state, chainActive.Tip()->nHeight + 1,
             nMedianTimePast, nMedianTimePast));
     }
 
@@ -659,7 +661,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         CValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            config, CTransaction(tx), state, flags));
+            params, CTransaction(tx), state, flags));
     }
 
     // Sequence locks pass.

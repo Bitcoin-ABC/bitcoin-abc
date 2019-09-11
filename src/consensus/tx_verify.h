@@ -11,7 +11,6 @@
 struct Amount;
 class CBlockIndex;
 class CCoinsViewCache;
-class Config;
 class CTransaction;
 class CValidationState;
 
@@ -23,6 +22,7 @@ bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state);
 bool CheckCoinbase(const CTransaction &tx, CValidationState &state);
 
 namespace Consensus {
+struct Params;
 
 /**
  * Check whether all inputs of this transaction are valid (no double spends and
@@ -43,9 +43,9 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
  * simply characteristic that are suceptible to change over time such as feature
  * activation/deactivation and CLTV.
  */
-bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
-                                CValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff,
+bool ContextualCheckTransaction(const Consensus::Params &params,
+                                const CTransaction &tx, CValidationState &state,
+                                int nHeight, int64_t nLockTimeCutoff,
                                 int64_t nMedianTimePast);
 
 /**
