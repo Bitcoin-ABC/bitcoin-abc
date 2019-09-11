@@ -186,7 +186,7 @@ build-linux-arm: download-linux
 build-linux-aarch64: download-linux
 	@$(MAKE) -s HOST=aarch64-linux-gnu install
 build-osx: download-osx
-	@$(MAKE) -s HOST=x86_64-apple-darwin11 install
+	@$(MAKE) -s HOST=x86_64-apple-darwin14 install
 build-win32: download-win
 	@$(MAKE) -s HOST=i686-w64-mingw32 install
 build-win64: download-win
