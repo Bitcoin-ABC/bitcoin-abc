@@ -6,7 +6,9 @@
 
 #include <amount.h>
 #include <chain.h>
+#include <chainparams.h>
 #include <coins.h>
+#include <config.h>
 #include <consensus/activation.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
@@ -47,7 +49,8 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (IsMagneticAnomalyEnabled(config, nHeight)) {
+    if (IsMagneticAnomalyEnabled(config.GetChainParams().GetConsensus(),
+                                 nHeight)) {
         // Size limit
         if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) <
             MIN_TX_SIZE) {

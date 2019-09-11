@@ -4,7 +4,6 @@
 
 #include <chain.h>
 #include <chainparams.h>
-#include <config.h>
 #include <consensus/activation.h>
 
 #include <test/test_bitcoin.h>
@@ -24,13 +23,12 @@ static void SetMTP(std::array<CBlockIndex, 12> &blocks, int64_t mtp) {
 }
 
 BOOST_AUTO_TEST_CASE(isgravitonenabled) {
-    DummyConfig config;
     CBlockIndex prev;
 
-    const auto activation =
-        config.GetChainParams().GetConsensus().gravitonActivationTime;
+    const Consensus::Params &params = Params().GetConsensus();
+    const auto activation = params.gravitonActivationTime;
 
-    BOOST_CHECK(!IsGravitonEnabled(config, nullptr));
+    BOOST_CHECK(!IsGravitonEnabled(params, nullptr));
 
     std::array<CBlockIndex, 12> blocks;
     for (size_t i = 1; i < blocks.size(); ++i) {
@@ -38,13 +36,13 @@ BOOST_AUTO_TEST_CASE(isgravitonenabled) {
     }
 
     SetMTP(blocks, activation - 1);
-    BOOST_CHECK(!IsGravitonEnabled(config, &blocks.back()));
+    BOOST_CHECK(!IsGravitonEnabled(params, &blocks.back()));
 
     SetMTP(blocks, activation);
-    BOOST_CHECK(IsGravitonEnabled(config, &blocks.back()));
+    BOOST_CHECK(IsGravitonEnabled(params, &blocks.back()));
 
     SetMTP(blocks, activation + 1);
-    BOOST_CHECK(IsGravitonEnabled(config, &blocks.back()));
+    BOOST_CHECK(IsGravitonEnabled(params, &blocks.back()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

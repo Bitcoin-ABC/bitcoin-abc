@@ -314,7 +314,7 @@ static void FindFilesToPrune(std::set<int> &setFilesToPrune,
 static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
 static FlatFileSeq BlockFileSeq();
 static FlatFileSeq UndoFileSeq();
-static uint32_t GetNextBlockScriptFlags(const Config &config,
+static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex);
 
 bool TestLockPointValidity(const LockPoints *lp) {
@@ -415,40 +415,40 @@ std::string FormatStateMessage(const CValidationState &state) {
         state.GetRejectCode());
 }
 
-static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
+static bool
+IsMagneticAnomalyEnabledForCurrentBlock(const Consensus::Params &params) {
     AssertLockHeld(cs_main);
-    return IsMagneticAnomalyEnabled(config, chainActive.Tip());
+    return IsMagneticAnomalyEnabled(params, chainActive.Tip());
 }
 
-static bool IsGravitonEnabledForCurrentBlock(const Config &config) {
+static bool IsGravitonEnabledForCurrentBlock(const Consensus::Params &params) {
     AssertLockHeld(cs_main);
-    return IsGravitonEnabled(config, chainActive.Tip());
+    return IsGravitonEnabled(params, chainActive.Tip());
 }
 
 // Command-line argument "-replayprotectionactivationtime=<timestamp>" will
 // cause the node to switch to replay protected SigHash ForkID value when the
 // median timestamp of the previous 11 blocks is greater than or equal to
 // <timestamp>. Defaults to the pre-defined timestamp when not set.
-static bool IsReplayProtectionEnabled(const Config &config,
+static bool IsReplayProtectionEnabled(const Consensus::Params &params,
                                       int64_t nMedianTimePast) {
-    return nMedianTimePast >=
-           gArgs.GetArg(
-               "-replayprotectionactivationtime",
-               config.GetChainParams().GetConsensus().phononActivationTime);
+    return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
+                                           params.phononActivationTime);
 }
 
-static bool IsReplayProtectionEnabled(const Config &config,
+static bool IsReplayProtectionEnabled(const Consensus::Params &params,
                                       const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsReplayProtectionEnabled(config, pindexPrev->GetMedianTimePast());
+    return IsReplayProtectionEnabled(params, pindexPrev->GetMedianTimePast());
 }
 
-static bool IsReplayProtectionEnabledForCurrentBlock(const Config &config) {
+static bool
+IsReplayProtectionEnabledForCurrentBlock(const Consensus::Params &params) {
     AssertLockHeld(cs_main);
-    return IsReplayProtectionEnabled(config, chainActive.Tip());
+    return IsReplayProtectionEnabled(params, chainActive.Tip());
 }
 
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
@@ -498,6 +498,9 @@ static bool AcceptToMemoryPoolWorker(
     int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee,
     std::vector<COutPoint> &coins_to_uncache, bool test_accept) {
     AssertLockHeld(cs_main);
+
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
 
     const CTransaction &tx = *ptx;
     const TxId txid = tx.GetId();
@@ -741,15 +744,15 @@ static bool AcceptToMemoryPoolWorker(
 
         // Set extraFlags as a set of flags that needs to be activated.
         uint32_t extraFlags = SCRIPT_VERIFY_NONE;
-        if (IsReplayProtectionEnabledForCurrentBlock(config)) {
+        if (IsReplayProtectionEnabledForCurrentBlock(consensusParams)) {
             extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
         }
 
-        if (IsMagneticAnomalyEnabledForCurrentBlock(config)) {
+        if (IsMagneticAnomalyEnabledForCurrentBlock(consensusParams)) {
             extraFlags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
         }
 
-        if (IsGravitonEnabledForCurrentBlock(config)) {
+        if (IsGravitonEnabledForCurrentBlock(consensusParams)) {
             extraFlags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
             extraFlags |= SCRIPT_VERIFY_MINIMALDATA;
         }
@@ -779,7 +782,7 @@ static bool AcceptToMemoryPoolWorker(
         // invalid blocks (using TestBlockValidity), however allowing such
         // transactions into the mempool can be exploited as a DoS attack.
         uint32_t nextBlockScriptVerifyFlags =
-            GetNextBlockScriptFlags(config, chainActive.Tip());
+            GetNextBlockScriptFlags(consensusParams, chainActive.Tip());
 
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             nextBlockScriptVerifyFlags, true,
@@ -1572,36 +1575,33 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
 
 // Returns the script flags which should be checked for the block after
 // the given block.
-static uint32_t GetNextBlockScriptFlags(const Config &config,
+static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
     uint32_t flags = SCRIPT_VERIFY_NONE;
 
     // Start enforcing P2SH (BIP16)
-    if ((pindex->nHeight + 1) >= consensusParams.BIP16Height) {
+    if ((pindex->nHeight + 1) >= params.BIP16Height) {
         flags |= SCRIPT_VERIFY_P2SH;
     }
 
     // Start enforcing the DERSIG (BIP66) rule.
-    if ((pindex->nHeight + 1) >= consensusParams.BIP66Height) {
+    if ((pindex->nHeight + 1) >= params.BIP66Height) {
         flags |= SCRIPT_VERIFY_DERSIG;
     }
 
     // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule.
-    if ((pindex->nHeight + 1) >= consensusParams.BIP65Height) {
+    if ((pindex->nHeight + 1) >= params.BIP65Height) {
         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
     }
 
     // Start enforcing CSV (BIP68, BIP112 and BIP113) rule.
-    if ((pindex->nHeight + 1) >= consensusParams.CSVHeight) {
+    if ((pindex->nHeight + 1) >= params.CSVHeight) {
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
     }
 
     // If the UAHF is enabled, we start accepting replay protected txns
-    if (IsUAHFenabled(config, pindex)) {
+    if (IsUAHFenabled(params, pindex)) {
         flags |= SCRIPT_VERIFY_STRICTENC;
         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
     }
@@ -1610,7 +1610,7 @@ static uint32_t GetNextBlockScriptFlags(const Config &config,
     // s in their signature. We also make sure that signature that are supposed
     // to fail (for instance in multisig or other forms of smart contracts) are
     // null.
-    if (IsDAAEnabled(config, pindex)) {
+    if (IsDAAEnabled(params, pindex)) {
         flags |= SCRIPT_VERIFY_LOW_S;
         flags |= SCRIPT_VERIFY_NULLFAIL;
     }
@@ -1619,20 +1619,20 @@ static uint32_t GetNextBlockScriptFlags(const Config &config,
     // transactions using the OP_CHECKDATASIG opcode and it's verify
     // alternative. We also start enforcing push only signatures and
     // clean stack.
-    if (IsMagneticAnomalyEnabled(config, pindex)) {
+    if (IsMagneticAnomalyEnabled(params, pindex)) {
         flags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
         flags |= SCRIPT_VERIFY_SIGPUSHONLY;
         flags |= SCRIPT_VERIFY_CLEANSTACK;
     }
 
-    if (IsGravitonEnabled(config, pindex)) {
+    if (IsGravitonEnabled(params, pindex)) {
         flags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
         flags |= SCRIPT_VERIFY_MINIMALDATA;
     }
 
     // We make sure this node will have replay protection during the next hard
     // fork.
-    if (IsReplayProtectionEnabled(config, pindex)) {
+    if (IsReplayProtectionEnabled(params, pindex)) {
         flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
     }
 
@@ -1809,7 +1809,8 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
-    const uint32_t flags = GetNextBlockScriptFlags(config, pindex->pprev);
+    const uint32_t flags =
+        GetNextBlockScriptFlags(consensusParams, pindex->pprev);
 
     int64_t nTime2 = GetTimeMicros();
     nTimeForks += nTime2 - nTime1;
@@ -2229,12 +2230,15 @@ bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
         return false;
     }
 
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+
     // If this block is deactivating a fork, we move all mempool transactions
     // in front of disconnectpool for reprocessing in a future
     // updateMempoolForReorg call
     if (pindexDelete->pprev != nullptr &&
-        GetNextBlockScriptFlags(config, pindexDelete) !=
-            GetNextBlockScriptFlags(config, pindexDelete->pprev)) {
+        GetNextBlockScriptFlags(consensusParams, pindexDelete) !=
+            GetNextBlockScriptFlags(consensusParams, pindexDelete->pprev)) {
         LogPrint(BCLog::MEMPOOL,
                  "Disconnecting mempool due to rewind of upgrade block\n");
         if (disconnectpool) {
@@ -2513,12 +2517,15 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
     g_mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     disconnectpool.removeForBlock(blockConnecting.vtx);
 
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+
     // If this block is activating a fork, we move all mempool transactions
     // in front of disconnectpool for reprocessing in a future
     // updateMempoolForReorg call
     if (pindexNew->pprev != nullptr &&
-        GetNextBlockScriptFlags(config, pindexNew) !=
-            GetNextBlockScriptFlags(config, pindexNew->pprev)) {
+        GetNextBlockScriptFlags(consensusParams, pindexNew) !=
+            GetNextBlockScriptFlags(consensusParams, pindexNew->pprev)) {
         LogPrint(BCLog::MEMPOOL,
                  "Disconnecting mempool due to acceptance of upgrade block\n");
         disconnectpool.importMempool(g_mempool);
@@ -3703,7 +3710,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
                                         : block.GetBlockTime();
 
     const bool fIsMagneticAnomalyEnabled =
-        IsMagneticAnomalyEnabled(config, pindexPrev);
+        IsMagneticAnomalyEnabled(consensusParams, pindexPrev);
 
     // Check that all transactions are finalized
     const CTransaction *prevTx = nullptr;

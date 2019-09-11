@@ -164,7 +164,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     int nDescendantsUpdated = 0;
     addPackageTxs(nPackagesSelected, nDescendantsUpdated);
 
-    if (IsMagneticAnomalyEnabled(*config, pindexPrev)) {
+    if (IsMagneticAnomalyEnabled(chainparams.GetConsensus(), pindexPrev)) {
         // If magnetic anomaly is enabled, we make sure transaction are
         // canonically ordered.
         // FIXME: Use a zipped list. See T479

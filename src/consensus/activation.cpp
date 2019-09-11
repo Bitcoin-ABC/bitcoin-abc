@@ -5,55 +5,56 @@
 #include <consensus/activation.h>
 
 #include <chain.h>
-#include <chainparams.h>
-#include <config.h>
+#include <consensus/params.h>
 #include <util.h>
 
-static bool IsUAHFenabled(const Config &config, int nHeight) {
-    return nHeight >= config.GetChainParams().GetConsensus().uahfHeight;
+static bool IsUAHFenabled(const Consensus::Params &params, int nHeight) {
+    return nHeight >= params.uahfHeight;
 }
 
-bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
+bool IsUAHFenabled(const Consensus::Params &params,
+                   const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsUAHFenabled(config, pindexPrev->nHeight);
+    return IsUAHFenabled(params, pindexPrev->nHeight);
 }
 
-static bool IsDAAEnabled(const Config &config, int nHeight) {
-    return nHeight >= config.GetChainParams().GetConsensus().daaHeight;
+static bool IsDAAEnabled(const Consensus::Params &params, int nHeight) {
+    return nHeight >= params.daaHeight;
 }
 
-bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
+bool IsDAAEnabled(const Consensus::Params &params,
+                  const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsDAAEnabled(config, pindexPrev->nHeight);
+    return IsDAAEnabled(params, pindexPrev->nHeight);
 }
 
-bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight) {
-    return nHeight >=
-           config.GetChainParams().GetConsensus().magneticAnomalyHeight;
+bool IsMagneticAnomalyEnabled(const Consensus::Params &params,
+                              int32_t nHeight) {
+    return nHeight >= params.magneticAnomalyHeight;
 }
 
-bool IsMagneticAnomalyEnabled(const Config &config,
+bool IsMagneticAnomalyEnabled(const Consensus::Params &params,
                               const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsMagneticAnomalyEnabled(config, pindexPrev->nHeight);
+    return IsMagneticAnomalyEnabled(params, pindexPrev->nHeight);
 }
 
-bool IsGravitonEnabled(const Config &config, const CBlockIndex *pindexPrev) {
+bool IsGravitonEnabled(const Consensus::Params &params,
+                       const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
     return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetArg(
-               "-gravitonactivationtime",
-               config.GetChainParams().GetConsensus().gravitonActivationTime);
+           gArgs.GetArg("-gravitonactivationtime",
+                        params.gravitonActivationTime);
 }
