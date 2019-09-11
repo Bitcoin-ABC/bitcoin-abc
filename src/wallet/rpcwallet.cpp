@@ -2332,12 +2332,14 @@ static UniValue listsinceblock(const Config &config,
         }
     }
 
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+
     // when a reorg'd block is requested, we also list any relevant transactions
     // in the blocks of the chain that was detached
     UniValue removed(UniValue::VARR);
     while (include_removed && paltindex && paltindex != pindex) {
         CBlock block;
-        if (!ReadBlockFromDisk(block, paltindex, config)) {
+        if (!ReadBlockFromDisk(block, paltindex, params)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                                "Can't read block from disk");
         }

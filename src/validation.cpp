@@ -171,7 +171,7 @@ public:
     /** Remove parked status from a block and its descendants. */
     bool UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren);
 
-    bool ReplayBlocks(const Config &config, CCoinsView *view);
+    bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
     bool RewindBlockIndex(const Config &config);
     bool LoadGenesisBlock(const CChainParams &chainparams);
 
@@ -202,7 +202,7 @@ private:
                                    const FlatFilePos &pos);
 
     bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
-                          const Config &config);
+                          const Consensus::Params &params);
 } g_chainstate;
 
 /**
@@ -859,7 +859,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
  * placed in hashBlock. If blockIndex is provided, the transaction is fetched
  * from the corresponding block.
  */
-bool GetTransaction(const Config &config, const TxId &txid,
+bool GetTransaction(const Consensus::Params &params, const TxId &txid,
                     CTransactionRef &txOut, uint256 &hashBlock, bool fAllowSlow,
                     CBlockIndex *blockIndex) {
     CBlockIndex *pindexSlow = blockIndex;
@@ -889,7 +889,7 @@ bool GetTransaction(const Config &config, const TxId &txid,
 
     if (pindexSlow) {
         CBlock block;
-        if (ReadBlockFromDisk(block, pindexSlow, config)) {
+        if (ReadBlockFromDisk(block, pindexSlow, params)) {
             for (const auto &tx : block.vtx) {
                 if (tx->GetId() == txid) {
                     txOut = tx;
@@ -933,7 +933,7 @@ static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
 }
 
 bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
-                       const Config &config) {
+                       const Consensus::Params &params) {
     block.SetNull();
 
     // Open history file to read
@@ -952,8 +952,7 @@ bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetHash(), block.nBits,
-                          config.GetChainParams().GetConsensus())) {
+    if (!CheckProofOfWork(block.GetHash(), block.nBits, params)) {
         return error("ReadBlockFromDisk: Errors in block header at %s",
                      pos.ToString());
     }
@@ -962,14 +961,14 @@ bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
 }
 
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
-                       const Config &config) {
+                       const Consensus::Params &params) {
     FlatFilePos blockPos;
     {
         LOCK(cs_main);
         blockPos = pindex->GetBlockPos();
     }
 
-    if (!ReadBlockFromDisk(block, blockPos, config)) {
+    if (!ReadBlockFromDisk(block, blockPos, params)) {
         return false;
     }
 
@@ -2199,12 +2198,15 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
 bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
                                 DisconnectedBlockTransactions *disconnectpool) {
     CBlockIndex *pindexDelete = chainActive.Tip();
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+
     assert(pindexDelete);
 
     // Read block from disk.
     std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
     CBlock &block = *pblock;
-    if (!ReadBlockFromDisk(block, pindexDelete, config)) {
+    if (!ReadBlockFromDisk(block, pindexDelete, consensusParams)) {
         return AbortNode(state, "Failed to read block");
     }
 
@@ -2230,9 +2232,6 @@ bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
                           FlushStateMode::IF_NEEDED)) {
         return false;
     }
-
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
 
     // If this block is deactivating a fork, we move all mempool transactions
     // in front of disconnectpool for reprocessing in a future
@@ -2438,13 +2437,16 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
                              DisconnectedBlockTransactions &disconnectpool) {
     AssertLockHeld(cs_main);
 
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+
     assert(pindexNew->pprev == chainActive.Tip());
     // Read block from disk.
     int64_t nTime1 = GetTimeMicros();
     std::shared_ptr<const CBlock> pthisBlock;
     if (!pblock) {
         std::shared_ptr<CBlock> pblockNew = std::make_shared<CBlock>();
-        if (!ReadBlockFromDisk(*pblockNew, pindexNew, config)) {
+        if (!ReadBlockFromDisk(*pblockNew, pindexNew, consensusParams)) {
             return AbortNode(state, "Failed to read block");
         }
         pthisBlock = pblockNew;
@@ -2517,9 +2519,6 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
     // Remove conflicting transactions from the mempool.;
     g_mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     disconnectpool.removeForBlock(blockConnecting.vtx);
-
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
 
     // If this block is activating a fork, we move all mempool transactions
     // in front of disconnectpool for reprocessing in a future
@@ -4582,6 +4581,10 @@ CVerifyDB::~CVerifyDB() {
 bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                          int nCheckLevel, int nCheckDepth) {
     LOCK(cs_main);
+
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+
     if (chainActive.Tip() == nullptr || chainActive.Tip()->pprev == nullptr) {
         return true;
     }
@@ -4634,7 +4637,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
         CBlock block;
 
         // check level 0: read from disk
-        if (!ReadBlockFromDisk(block, pindex, config)) {
+        if (!ReadBlockFromDisk(block, pindex, consensusParams)) {
             return error(
                 "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                 pindex->nHeight, pindex->GetBlockHash().ToString());
@@ -4710,7 +4713,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                 false);
             pindex = chainActive.Next(pindex);
             CBlock block;
-            if (!ReadBlockFromDisk(block, pindex, config)) {
+            if (!ReadBlockFromDisk(block, pindex, consensusParams)) {
                 return error(
                     "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
@@ -4739,10 +4742,10 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
  */
 bool CChainState::RollforwardBlock(const CBlockIndex *pindex,
                                    CCoinsViewCache &view,
-                                   const Config &config) {
+                                   const Consensus::Params &params) {
     // TODO: merge with ConnectBlock
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindex, config)) {
+    if (!ReadBlockFromDisk(block, pindex, params)) {
         return error("ReplayBlock(): ReadBlockFromDisk failed at %d, hash=%s",
                      pindex->nHeight, pindex->GetBlockHash().ToString());
     }
@@ -4765,7 +4768,8 @@ bool CChainState::RollforwardBlock(const CBlockIndex *pindex,
     return true;
 }
 
-bool CChainState::ReplayBlocks(const Config &config, CCoinsView *view) {
+bool CChainState::ReplayBlocks(const Consensus::Params &params,
+                               CCoinsView *view) {
     LOCK(cs_main);
 
     CCoinsViewCache cache(view);
@@ -4814,7 +4818,7 @@ bool CChainState::ReplayBlocks(const Config &config, CCoinsView *view) {
         if (pindexOld->nHeight > 0) {
             // Never disconnect the genesis block.
             CBlock block;
-            if (!ReadBlockFromDisk(block, pindexOld, config)) {
+            if (!ReadBlockFromDisk(block, pindexOld, params)) {
                 return error("RollbackBlock(): ReadBlockFromDisk() failed at "
                              "%d, hash=%s",
                              pindexOld->nHeight,
@@ -4848,7 +4852,7 @@ bool CChainState::ReplayBlocks(const Config &config, CCoinsView *view) {
         const CBlockIndex *pindex = pindexNew->GetAncestor(nHeight);
         LogPrintf("Rolling forward %s (%i)\n",
                   pindex->GetBlockHash().ToString(), nHeight);
-        if (!RollforwardBlock(pindex, cache, config)) {
+        if (!RollforwardBlock(pindex, cache, params)) {
             return false;
         }
     }
@@ -4859,8 +4863,8 @@ bool CChainState::ReplayBlocks(const Config &config, CCoinsView *view) {
     return true;
 }
 
-bool ReplayBlocks(const Config &config, CCoinsView *view) {
-    return g_chainstate.ReplayBlocks(config, view);
+bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view) {
+    return g_chainstate.ReplayBlocks(params, view);
 }
 
 bool CChainState::RewindBlockIndex(const Config &config) {
@@ -5162,7 +5166,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                         std::shared_ptr<CBlock> pblockrecursive =
                             std::make_shared<CBlock>();
                         if (ReadBlockFromDisk(*pblockrecursive, it->second,
-                                              config)) {
+                                              chainparams.GetConsensus())) {
                             LogPrint(
                                 BCLog::REINDEX,
                                 "%s: Processing out of order child %s of %s\n",
