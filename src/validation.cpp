@@ -3694,16 +3694,14 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
  * in ConnectBlock().
  * Note that -reindex-chainstate skips the validation that happens here!
  */
-static bool ContextualCheckBlock(const Config &config, const CBlock &block,
-                                 CValidationState &state,
+static bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
+                                 const Consensus::Params &params,
                                  const CBlockIndex *pindexPrev) {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
 
     // Start enforcing BIP113 (Median Time Past).
     int nLockTimeFlags = 0;
-    if (nHeight >= consensusParams.CSVHeight) {
+    if (nHeight >= params.CSVHeight) {
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
 
@@ -3715,7 +3713,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
                                         : block.GetBlockTime();
 
     const bool fIsMagneticAnomalyEnabled =
-        IsMagneticAnomalyEnabled(consensusParams, pindexPrev);
+        IsMagneticAnomalyEnabled(params, pindexPrev);
 
     // Check that all transactions are finalized
     const CTransaction *prevTx = nullptr;
@@ -3742,7 +3740,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
             }
         }
 
-        if (!ContextualCheckTransaction(consensusParams, tx, state, nHeight,
+        if (!ContextualCheckTransaction(params, tx, state, nHeight,
                                         nLockTimeCutoff, nMedianTimePast)) {
             // state set by ContextualCheckTransaction.
             return false;
@@ -3750,7 +3748,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
     }
 
     // Enforce rule that the coinbase starts with serialized block height
-    if (nHeight >= consensusParams.BIP34Height) {
+    if (nHeight >= params.BIP34Height) {
         CScript expect = CScript() << nHeight;
         if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
             !std::equal(expect.begin(), expect.end(),
@@ -4019,8 +4017,11 @@ bool CChainState::AcceptBlock(const Config &config,
         *fNewBlock = true;
     }
 
+    const CChainParams &chainparams = config.GetChainParams();
+
     if (!CheckBlock(config, block, state, BlockValidationOptions(config)) ||
-        !ContextualCheckBlock(config, block, state, pindex->pprev)) {
+        !ContextualCheckBlock(block, state, chainparams.GetConsensus(),
+                              pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
             pindex->nStatus = pindex->nStatus.withFailed();
             setDirtyBlockIndex.insert(pindex);
@@ -4050,8 +4051,6 @@ bool CChainState::AcceptBlock(const Config &config,
     if (!IsInitialBlockDownload() && chainActive.Tip() == pindex->pprev) {
         GetMainSignals().NewPoWValidBlock(pindex, pblock);
     }
-
-    const CChainParams &chainparams = config.GetChainParams();
 
     // Write block to history file
     try {
@@ -4148,7 +4147,8 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
                      FormatStateMessage(state));
     }
 
-    if (!ContextualCheckBlock(config, block, state, pindexPrev)) {
+    if (!ContextualCheckBlock(
+            block, state, config.GetChainParams().GetConsensus(), pindexPrev)) {
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
