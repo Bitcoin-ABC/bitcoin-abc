@@ -1,7 +1,7 @@
 # Copyright (c) 2019 The Bitcoin developers
 
 set(CMAKE_SYSTEM_NAME Linux)
-set(TOOLCHAIN_PREFIX x86_64-pc-linux-gnu)
+set(TOOLCHAIN_PREFIX x86_64-linux-gnu)
 
 # Cross compilers to use for C and C++
 set(CMAKE_C_COMPILER gcc)
