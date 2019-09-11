@@ -9,7 +9,10 @@ set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
 
 # Target environment on the build host system
 # Set 1st to directory with the cross compiler's C/C++ headers/libs
-set(CMAKE_FIND_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/${TOOLCHAIN_PREFIX}")
+set(CMAKE_FIND_ROOT_PATH
+	"${CMAKE_CURRENT_SOURCE_DIR}/depends/${TOOLCHAIN_PREFIX}"
+	"/usr/${TOOLCHAIN_PREFIX}"
+)
 
 # We also may have built dependencies for the native platform.
 set(CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/${TOOLCHAIN_PREFIX}/native")
