@@ -597,7 +597,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     CConnmanTest::ClearNodes();
 }
 
-BOOST_AUTO_TEST_CASE(poll_inflight_timeout) {
+BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
     AvalancheProcessor p(g_connman.get());
 
     std::vector<AvalancheBlockUpdate> updates;
@@ -616,22 +616,34 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout) {
     BOOST_CHECK(p.addPeer(avanodeid, 0));
 
     // Expire requests after some time.
-    p.setQueryTimeoutDuration(std::chrono::milliseconds(10));
+    auto queryTimeDuration = std::chrono::milliseconds(10);
+    p.setQueryTimeoutDuration(queryTimeDuration);
     for (int i = 0; i < 10; i++) {
         AvalancheResponse resp = {
             AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
-        AvalancheTest::runEventLoop(p);
-        // NB: This could wait longer than 1ms in some cases and make the
-        // test flacky. We'll have to come up with a better solution to test
-        // this if that were to be the case. I never was able to trigger this
-        // myself, so it's probably good enough.
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
-        AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(avanodeid, next(resp), updates));
 
-        // Now try again but wait.
+        auto start = std::chrono::steady_clock::now();
         AvalancheTest::runEventLoop(p);
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+        // We cannot guarantee that we'll wait for just 1ms, so we have to bail
+        // if we aren't within the proper time range.
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        AvalancheTest::runEventLoop(p);
+
+        bool ret = p.registerVotes(avanodeid, next(resp), updates);
+        if (std::chrono::steady_clock::now() > start + queryTimeDuration) {
+            // We waited for too long, bail. Because we can't know for sure when
+            // previous steps ran, ret is not deterministic and we do not check
+            // it.
+            i--;
+            continue;
+        }
+
+        // We are within time bounds, so the vote should have worked.
+        BOOST_CHECK(ret);
+
+        // Now try again but wait for expiration.
+        AvalancheTest::runEventLoop(p);
+        std::this_thread::sleep_for(queryTimeDuration);
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(!p.registerVotes(avanodeid, next(resp), updates));
     }
