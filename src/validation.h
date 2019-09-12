@@ -587,8 +587,8 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
  * Returns true if the provided block is valid (has valid header,
  * transactions are valid, block is a valid size, etc.)
  */
-bool CheckBlock(const Config &Config, const CBlock &block,
-                CValidationState &state,
+bool CheckBlock(const CBlock &block, CValidationState &state,
+                const Consensus::Params &params,
                 BlockValidationOptions validationOptions);
 
 /**
