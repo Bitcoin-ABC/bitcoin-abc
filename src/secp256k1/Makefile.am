@@ -114,25 +114,28 @@ exhaustive_tests_LDFLAGS = -static
 TESTS += exhaustive_tests
 endif
 
-JAVAROOT=$(srcdir)/src/java
-JAVAORG=org/bitcoin
+JAVA_ROOT=src/java
+JAVA_ORG=org/bitcoin
+JAVA_SRC=$(top_srcdir)/$(JAVA_ROOT)/$(JAVA_ORG)
+JAVA_BUILD=$(top_builddir)/$(JAVA_ROOT)
+
 JAVA_FILES= \
-  $(JAVAROOT)/$(JAVAORG)/NativeSecp256k1.java \
-  $(JAVAROOT)/$(JAVAORG)/NativeSecp256k1Test.java \
-  $(JAVAROOT)/$(JAVAORG)/NativeSecp256k1Util.java \
-  $(JAVAROOT)/$(JAVAORG)/Secp256k1Context.java
+  $(JAVA_SRC)/NativeSecp256k1.java \
+  $(JAVA_SRC)/NativeSecp256k1Test.java \
+  $(JAVA_SRC)/NativeSecp256k1Util.java \
+  $(JAVA_SRC)/Secp256k1Context.java
 
 if USE_JNI
 
 .stamp-java: $(JAVA_FILES)
 	@echo   Compiling $^
-	$(AM_V_at) javac $^
+	$(AM_V_at)javac -d "$(JAVA_BUILD)" $^
 	@touch $@
 
 if USE_TESTS
 
 check-java: libsecp256k1.la .stamp-java
-	$(AM_V_at)java -Djava.library.path="./:./src:./src/.libs:.libs/" -enableassertions -cp "$(JAVAROOT)" $(JAVAORG)/NativeSecp256k1Test
+	$(AM_V_at)java -Djava.library.path="./:./src:./src/.libs:.libs/" -enableassertions -cp "$(JAVA_BUILD)" $(JAVA_ORG)/NativeSecp256k1Test
 
 endif
 endif
@@ -156,7 +159,7 @@ $(bench_internal_OBJECTS): src/ecmult_static_context.h
 src/ecmult_static_context.h: $(gen_context_BIN)
 	./$(gen_context_BIN)
 
-CLEANFILES = $(gen_context_BIN) src/ecmult_static_context.h $(JAVAROOT)/$(JAVAORG)/*.class .stamp-java
+CLEANFILES = $(gen_context_BIN) src/ecmult_static_context.h $(JAVA_BUILD)/$(JAVA_ORG)/*.class .stamp-java
 endif
 
 EXTRA_DIST = autogen.sh src/gen_context.c src/basic-config.h $(JAVA_FILES)
