@@ -28,7 +28,7 @@ public class Secp256k1Context {
       boolean isEnabled = true;
       long contextRef = -1;
       try {
-          System.loadLibrary("secp256k1");
+          System.loadLibrary("secp256k1_jni");
           contextRef = secp256k1_init_context();
       } catch (UnsatisfiedLinkError e) {
           System.out.println("UnsatisfiedLinkError: " + e.toString());
