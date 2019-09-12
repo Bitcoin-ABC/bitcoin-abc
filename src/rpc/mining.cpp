@@ -490,10 +490,10 @@ static UniValue getblocktemplate(const Config &config,
                 return "inconclusive-not-best-prevblk";
             }
             CValidationState state;
-            BlockValidationOptions validationOptions =
-                BlockValidationOptions(false, true);
             TestBlockValidity(config, state, block, pindexPrev,
-                              validationOptions);
+                              BlockValidationOptions(config)
+                                  .withCheckPoW(false)
+                                  .withCheckMerkleRoot(true));
             return BIP22ValidationResult(config, state);
         }
     }

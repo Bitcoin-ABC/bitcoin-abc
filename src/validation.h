@@ -294,14 +294,28 @@ private:
     bool checkPoW : 1;
     bool checkMerkleRoot : 1;
 
+    uint64_t excessiveBlockSize;
+
 public:
     // Do full validation by default
-    BlockValidationOptions() : checkPoW(true), checkMerkleRoot(true) {}
-    BlockValidationOptions(bool checkPoWIn, bool checkMerkleRootIn)
-        : checkPoW(checkPoWIn), checkMerkleRoot(checkMerkleRootIn) {}
+    BlockValidationOptions(const Config &config);
+
+    BlockValidationOptions withCheckPoW(bool _checkPoW = true) const {
+        BlockValidationOptions ret = *this;
+        ret.checkPoW = _checkPoW;
+        return ret;
+    }
+
+    BlockValidationOptions
+    withCheckMerkleRoot(bool _checkMerkleRoot = true) const {
+        BlockValidationOptions ret = *this;
+        ret.checkMerkleRoot = _checkMerkleRoot;
+        return ret;
+    }
 
     bool shouldValidatePoW() const { return checkPoW; }
     bool shouldValidateMerkleRoot() const { return checkMerkleRoot; }
+    uint64_t getExcessiveBlockSize() const { return excessiveBlockSize; }
 };
 
 /**
@@ -573,9 +587,9 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
  * Returns true if the provided block is valid (has valid header,
  * transactions are valid, block is a valid size, etc.)
  */
-bool CheckBlock(
-    const Config &Config, const CBlock &block, CValidationState &state,
-    BlockValidationOptions validationOptions = BlockValidationOptions());
+bool CheckBlock(const Config &Config, const CBlock &block,
+                CValidationState &state,
+                BlockValidationOptions validationOptions);
 
 /**
  * This is a variant of ContextualCheckTransaction which computes the contextual
@@ -592,10 +606,9 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
  * Check a block is completely valid from start to finish (only works on top of
  * our current best block, with cs_main held)
  */
-bool TestBlockValidity(
-    const Config &config, CValidationState &state, const CBlock &block,
-    CBlockIndex *pindexPrev,
-    BlockValidationOptions validationOptions = BlockValidationOptions());
+bool TestBlockValidity(const Config &config, CValidationState &state,
+                       const CBlock &block, CBlockIndex *pindexPrev,
+                       BlockValidationOptions validationOptions);
 
 /**
  * When there are blocks in the active chain with missing data, rewind the

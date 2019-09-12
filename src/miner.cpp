@@ -224,9 +224,10 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     CValidationState state;
-    BlockValidationOptions validationOptions(false, false);
     if (!TestBlockValidity(*config, state, *pblock, pindexPrev,
-                           validationOptions)) {
+                           BlockValidationOptions(*config)
+                               .withCheckPoW(false)
+                               .withCheckMerkleRoot(false))) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s",
                                            __func__,
                                            FormatStateMessage(state)));
