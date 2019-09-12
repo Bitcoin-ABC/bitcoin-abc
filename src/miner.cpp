@@ -224,7 +224,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     CValidationState state;
-    if (!TestBlockValidity(*config, state, *pblock, pindexPrev,
+    if (!TestBlockValidity(state, config->GetChainParams(), *pblock, pindexPrev,
                            BlockValidationOptions(*config)
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false))) {

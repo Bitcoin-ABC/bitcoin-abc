@@ -490,7 +490,7 @@ static UniValue getblocktemplate(const Config &config,
                 return "inconclusive-not-best-prevblk";
             }
             CValidationState state;
-            TestBlockValidity(config, state, block, pindexPrev,
+            TestBlockValidity(state, config.GetChainParams(), block, pindexPrev,
                               BlockValidationOptions(config)
                                   .withCheckPoW(false)
                                   .withCheckMerkleRoot(true));

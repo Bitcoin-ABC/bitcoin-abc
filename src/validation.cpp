@@ -4125,7 +4125,7 @@ bool ProcessNewBlock(const Config &config,
     return true;
 }
 
-bool TestBlockValidity(const Config &config, CValidationState &state,
+bool TestBlockValidity(CValidationState &state, const CChainParams &params,
                        const CBlock &block, CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
@@ -4138,27 +4138,25 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
     indexDummy.phashBlock = &block_hash;
 
     // NOTE: CheckBlockHeader is called by CheckBlock
-    if (!ContextualCheckBlockHeader(config.GetChainParams(), block, state,
-                                    pindexPrev, GetAdjustedTime())) {
+    if (!ContextualCheckBlockHeader(params, block, state, pindexPrev,
+                                    GetAdjustedTime())) {
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      FormatStateMessage(state));
     }
 
-    if (!CheckBlock(block, state, config.GetChainParams().GetConsensus(),
-                    validationOptions)) {
+    if (!CheckBlock(block, state, params.GetConsensus(), validationOptions)) {
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
 
-    if (!ContextualCheckBlock(
-            block, state, config.GetChainParams().GetConsensus(), pindexPrev)) {
+    if (!ContextualCheckBlock(block, state, params.GetConsensus(),
+                              pindexPrev)) {
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
 
-    if (!g_chainstate.ConnectBlock(block, state, &indexDummy, viewNew,
-                                   config.GetChainParams(), validationOptions,
-                                   true)) {
+    if (!g_chainstate.ConnectBlock(block, state, &indexDummy, viewNew, params,
+                                   validationOptions, true)) {
         return false;
     }
 

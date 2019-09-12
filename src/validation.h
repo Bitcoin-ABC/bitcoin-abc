@@ -606,7 +606,7 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
  * Check a block is completely valid from start to finish (only works on top of
  * our current best block, with cs_main held)
  */
-bool TestBlockValidity(const Config &config, CValidationState &state,
+bool TestBlockValidity(CValidationState &state, const CChainParams &params,
                        const CBlock &block, CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions);
 
