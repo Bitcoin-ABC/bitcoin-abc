@@ -25,6 +25,8 @@ cleanup() {
 }
 trap "cleanup" EXIT
 
+# Make sure the debug log exists so that tail does not fail
+touch "${DEBUG_LOG}"
 # Show some progress
 tail -f "${DEBUG_LOG}" | grep 'UpdateTip' | awk 'NR % 10000 == 0' &
 
