@@ -8,9 +8,8 @@
 #include <key.h>
 #include <random.h>
 #include <util.h>
+#include <utilstrencodings.h>
 #include <validation.h>
-
-#include <boost/lexical_cast.hpp>
 
 #include <memory>
 
@@ -97,7 +96,12 @@ int main(int argc, char **argv) {
     std::string scaling_str = gArgs.GetArg("-scaling", DEFAULT_BENCH_SCALING);
     bool is_list_only = gArgs.GetBoolArg("-list", false);
 
-    double scaling_factor = boost::lexical_cast<double>(scaling_str);
+    double scaling_factor;
+    if (!ParseDouble(scaling_str, &scaling_factor)) {
+        fprintf(stderr, "Error parsing scaling factor as double: %s\n",
+                scaling_str.c_str());
+        return EXIT_FAILURE;
+    }
 
     std::unique_ptr<benchmark::Printer> printer(
         new benchmark::ConsolePrinter());
