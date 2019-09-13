@@ -361,7 +361,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
                 model->getOptionsModel()->getDisplayUnit(), totalAmount)));
     questionString.append(
         QString("<span style='font-size:10pt;font-weight:normal;'><br "
-                "/>(=%2)</span>")
+                "/>(=%1)</span>")
             .arg(alternativeUnits.join(" " + tr("or") + "<br />")));
 
     SendConfirmationDialog confirmationDialog(
