@@ -90,6 +90,7 @@ The following can be set when running make: make FOO=bar
     NO_UPNP: Don't download/build/cache packages needed for enabling upnp
     DEBUG: disable some optimizations and enable more runtime checking
     RAPIDCHECK: build rapidcheck (experimental, requires cmake)
+    NO_PROTOBUF: Don't download/build/cache protobuf (used for BIP70 support)
     HOST_ID_SALT: Optional salt to use when generating host package ids
     BUILD_ID_SALT: Optional salt to use when generating build package ids
     JOBS: Number of jobs to use for each package build
