@@ -292,7 +292,7 @@ public:
  * for non-network block sources and whitelisted peers.
  * @param[out]  fNewBlock A boolean which is set to indicate if the block was
  *                        first received via this call.
- * @return True if the block is accepted as a valid block.
+ * @returns     If the block was processed, independently of block validity
  */
 bool ProcessNewBlock(const Config &config,
                      const std::shared_ptr<const CBlock> pblock,
@@ -908,6 +908,8 @@ public:
      *
      * If FlushStateMode::NONE is used, then FlushStateToDisk(...) won't do
      * anything besides checking if we need to prune.
+     *
+     * @returns true unless a system error occurred
      */
     bool FlushStateToDisk(const CChainParams &chainparams,
                           BlockValidationState &state, FlushStateMode mode,
@@ -920,6 +922,17 @@ public:
     //! changes if we pruned.
     void PruneAndFlush();
 
+    /**
+     * Make the best chain active, in multiple steps. The result is either
+     * failure or an activated best chain. pblock is either nullptr or a pointer
+     * to a block that is already loaded (to avoid loading it again from disk).
+     *
+     * ActivateBestChain is split into steps (see ActivateBestChainStep) so that
+     * we avoid holding cs_main for an extended period of time; the length of
+     * this call may be quite long during reindexing or a substantial reorg.
+     *
+     * @returns true unless a system error occurred
+     */
     bool ActivateBestChain(
         const Config &config, BlockValidationState &state,
         std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>())
