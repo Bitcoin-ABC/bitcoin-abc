@@ -626,7 +626,13 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     connman->ClearNodes();
 }
 
+#if BOOST_VERSION >= 105900
 BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
+#else
+// TODO: Cleanup this branch when boost 1.58 is no longer supported.
+BOOST_AUTO_TEST_CASE(poll_inflight_timeout) {
+    int64_t timeStart = GetTimeMillis();
+#endif
     const Config &config = GetConfig();
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
@@ -654,6 +660,10 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
     auto queryTimeDuration = std::chrono::milliseconds(10);
     p.setQueryTimeoutDuration(queryTimeDuration);
     for (int i = 0; i < 10; i++) {
+#if BOOST_VERSION < 105900
+        // TODO: Cleanup this statement when boost 1.58 is no longer supported.
+        BOOST_REQUIRE(timeStart + 60 * 1000 > GetTimeMillis());
+#endif
         AvalancheResponse resp = {
             AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
 
