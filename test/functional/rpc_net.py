@@ -15,7 +15,7 @@ from test_framework.util import (
     assert_greater_than_or_equal,
     assert_greater_than,
     assert_raises_rpc_error,
-    connect_nodes_bi,
+    connect_nodes,
     p2p_port,
     wait_until,
 )
@@ -31,6 +31,10 @@ class NetTest(BitcoinTestFramework):
                            ["-minrelaytxfee=0.00000500"]]
 
     def run_test(self):
+        self.log.info('Connect nodes both way')
+        connect_nodes(self.nodes[0], self.nodes[1])
+        connect_nodes(self.nodes[1], self.nodes[0])
+
         self._test_connection_count()
         self._test_getnettotals()
         self._test_getnetworkinginfo()
@@ -95,7 +99,10 @@ class NetTest(BitcoinTestFramework):
                    'connections'] == 0, timeout=3)
 
         self.nodes[0].setnetworkactive(state=True)
-        connect_nodes_bi(self.nodes[0], self.nodes[1])
+        self.log.info('Connect nodes both way')
+        connect_nodes(self.nodes[0], self.nodes[1])
+        connect_nodes(self.nodes[1], self.nodes[0])
+
         assert_equal(self.nodes[0].getnetworkinfo()['networkactive'], True)
         assert_equal(self.nodes[0].getnetworkinfo()['connections'], 2)
 

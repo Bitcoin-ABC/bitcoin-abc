@@ -9,6 +9,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
+    connect_nodes,
     connect_nodes_bi,
     wait_until,
 )
@@ -19,6 +20,10 @@ class DisconnectBanTest(BitcoinTestFramework):
         self.num_nodes = 2
 
     def run_test(self):
+        self.log.info("Connect nodes both way")
+        connect_nodes(self.nodes[0], self.nodes[1])
+        connect_nodes(self.nodes[1], self.nodes[0])
+
         self.log.info("Test setban and listbanned RPCs")
 
         self.log.info("setban: successfully ban single IP address")
@@ -85,7 +90,9 @@ class DisconnectBanTest(BitcoinTestFramework):
 
         # Clear ban lists
         self.nodes[1].clearbanned()
-        connect_nodes_bi(self.nodes[0], self.nodes[1])
+        self.log.info("Connect nodes both way")
+        connect_nodes(self.nodes[0], self.nodes[1])
+        connect_nodes(self.nodes[1], self.nodes[0])
 
         self.log.info("Test disconnectnode RPCs")
 
