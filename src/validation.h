@@ -1172,7 +1172,8 @@ private:
     /**
      * Check warning conditions and do some notifications on new chain tip set.
      */
-    void UpdateTip(CBlockIndex *pindexNew) EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+    void UpdateTip(const CBlockIndex *pindexNew)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     friend ChainstateManager;
 };
