@@ -28,6 +28,7 @@ class CChainParams;
 class CTxUndo;
 class Chainstate;
 class ChainstateManager;
+enum class ChainstateRole;
 struct CCheckpointData;
 class Config;
 struct FlatFilePos;
@@ -119,7 +120,8 @@ private:
      * by user with RPC command pruneblockchain
      */
     void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
-                                int nManualPruneHeight, int chain_tip_height);
+                                int nManualPruneHeight, const Chainstate &chain,
+                                ChainstateManager &chainman);
 
     /**
      * Prune block and undo files (blk???.dat and undo???.dat) so that the disk
@@ -141,10 +143,11 @@ private:
      *
      * @param[out]   setFilesToPrune   The set of file indices that can be
      *                                 unlinked will be returned
+     * @param        last_prune        The last height we're able to prune,
+     *                                 according to the prune locks
      */
-    void FindFilesToPrune(std::set<int> &setFilesToPrune,
-                          uint64_t nPruneAfterHeight, int chain_tip_height,
-                          int prune_height, bool is_ibd);
+    void FindFilesToPrune(std::set<int> &setFilesToPrune, int last_prune,
+                          const Chainstate &chain, ChainstateManager &chainman);
 
     RecursiveMutex cs_LastBlockFile;
     std::vector<CBlockFileInfo> m_blockfile_info;

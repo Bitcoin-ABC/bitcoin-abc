@@ -1205,11 +1205,6 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     friend Chainstate;
 
-    //! Return the height of the base block of the snapshot in use, if one
-    //! exists, else nullopt.
-    std::optional<int> GetSnapshotBaseHeight() const
-        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
     //! Return true if a chainstate is considered usable.
     //!
     //! This is false when a background validation chainstate has completed its
@@ -1622,6 +1617,18 @@ public:
     //!   this means when using an assumed-valid chainstate based upon a
     //!   snapshot, return only the fully validated chain.
     Chainstate &GetChainstateForIndexing() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    //! Return the [start, end] (inclusive) of block heights we can prune.
+    //!
+    //! start > end is possible, meaning no blocks can be pruned.
+    std::pair<int, int> GetPruneRange(const Chainstate &chainstate,
+                                      int last_height_can_prune)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    //! Return the height of the base block of the snapshot in use, if one
+    //! exists, else nullopt.
+    std::optional<int> GetSnapshotBaseHeight() const
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /** Dump the recent block headers reception time to a file. */
     bool DumpRecentHeadersTime(const fs::path &filePath) const
