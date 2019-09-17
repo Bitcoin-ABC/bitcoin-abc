@@ -330,8 +330,7 @@ static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
 static FlatFileSeq BlockFileSeq();
 static FlatFileSeq UndoFileSeq();
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
-                                        const CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+                                        const CBlockIndex *pindex);
 
 bool TestLockPointValidity(const LockPoints *lp) {
     AssertLockHeld(cs_main);
@@ -1598,9 +1597,7 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
 // Returns the script flags which should be checked for the block after
 // the given block.
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
-                                        const CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    AssertLockHeld(cs_main);
+                                        const CBlockIndex *pindex) {
     uint32_t flags = SCRIPT_VERIFY_NONE;
 
     // Start enforcing P2SH (BIP16)
