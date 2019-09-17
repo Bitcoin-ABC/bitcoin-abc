@@ -7,6 +7,7 @@
 #ifndef BITCOIN_INIT_H
 #define BITCOIN_INIT_H
 
+#include <node/context.h>
 #include <util/system.h>
 
 #include <memory>
@@ -17,17 +18,6 @@ class CScheduler;
 class CWallet;
 class HTTPRPCRequestProcessor;
 class RPCServer;
-
-namespace interfaces {
-class Chain;
-class ChainClient;
-} // namespace interfaces
-
-//! Pointers to interfaces used during init and destroyed on shutdown.
-struct NodeContext {
-    std::unique_ptr<interfaces::Chain> chain;
-    std::vector<std::unique_ptr<interfaces::ChainClient>> chain_clients;
-};
 
 namespace boost {
 class thread_group;
