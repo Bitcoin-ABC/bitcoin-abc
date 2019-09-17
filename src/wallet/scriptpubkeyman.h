@@ -156,13 +156,6 @@ public:
     }
 };
 
-class KeyIDHasher {
-public:
-    KeyIDHasher() {}
-
-    size_t operator()(const CKeyID &id) const { return id.GetUint64(0); }
-};
-
 /**
  * A class implementing ScriptPubKeyMan manages some (or all) scriptPubKeys used
  * in a wallet. It contains the scripts and keys related to the scriptPubKeys it
@@ -377,7 +370,7 @@ private:
 
     /* the HD chain data model (external chain counters) */
     CHDChain m_hd_chain;
-    std::unordered_map<CKeyID, CHDChain, KeyIDHasher> m_inactive_hd_chains;
+    std::unordered_map<CKeyID, CHDChain, SaltedSipHasher> m_inactive_hd_chains;
 
     /* HD derive new child key (on internal or external chain) */
     void DeriveNewChildKey(WalletBatch &batch, CKeyMetadata &metadata,

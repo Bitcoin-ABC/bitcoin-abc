@@ -39,13 +39,6 @@ public:
     SaltedOutpointHasher();
 
     /**
-     * This *must* return size_t. With Boost 1.46 on 32-bit systems the
-     * unordered_map will behave unpredictably if the custom hasher returns a
-     * uint64_t, resulting in failures when syncing the chain (#4634).
-     * Note: This information above might be outdated as the unordered map
-     * container type has meanwhile been switched to the C++ standard library
-     * implementation.
-     *
      * Having the hash noexcept allows libstdc++'s unordered_map to recalculate
      * the hash during rehash, so it does not have to cache the value. This
      * reduces node's memory by sizeof(size_t). The required recalculation has
@@ -96,6 +89,17 @@ struct BlockHasher {
     size_t operator()(const BlockHash &hash) const {
         return ReadLE64(hash.begin());
     }
+};
+
+class SaltedSipHasher {
+private:
+    /** Salt */
+    const uint64_t m_k0, m_k1;
+
+public:
+    SaltedSipHasher();
+
+    size_t operator()(const Span<const uint8_t> &script) const;
 };
 
 #endif // BITCOIN_UTIL_HASHER_H
