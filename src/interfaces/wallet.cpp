@@ -495,6 +495,7 @@ namespace {
             : m_chain(chain), m_wallet_filenames(std::move(wallet_filenames)) {}
 
         void registerRpcs() override {
+            g_rpc_chain = &m_chain;
             RegisterWalletRPCCommands(m_chain, m_rpc_handlers);
             RegisterDumpRPCCommands(m_chain, m_rpc_handlers);
         }

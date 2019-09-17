@@ -2816,3 +2816,5 @@ void RegisterBlockchainRPCCommands(CRPCTable &t) {
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
     }
 }
+
+NodeContext *g_rpc_node = nullptr;

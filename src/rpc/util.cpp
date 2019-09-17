@@ -14,8 +14,6 @@
 
 #include <boost/variant/static_visitor.hpp>
 
-NodeContext *g_rpc_node = nullptr;
-
 void RPCTypeCheck(const UniValue &params,
                   const std::list<UniValueType> &typesExpected,
                   bool fAllowNull) {
