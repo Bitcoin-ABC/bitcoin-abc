@@ -7,6 +7,7 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
+#include <node/context.h>
 #include <policy/policy.h>
 #include <rpc/server.h>
 #include <validation.h>
@@ -39,7 +40,8 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = ::ChainActive().Tip();
 
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     auto locked_chain = chain->lock();
     LockAssertion lock(::cs_main);
 
@@ -125,7 +127,8 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = ::ChainActive().Tip();
 
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     auto locked_chain = chain->lock();
     LockAssertion lock(::cs_main);
 
@@ -210,7 +213,8 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
             .vtx[0]);
 
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     auto locked_chain = chain->lock();
     LockAssertion lock(::cs_main);
 
@@ -266,7 +270,8 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 // function. Similar tests probably should be written for the other credit and
 // debit functions.
 BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     CWallet wallet(Params(), chain.get(), WalletLocation(),
                    WalletDatabase::CreateDummy());
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
@@ -417,7 +422,8 @@ public:
         return it->second;
     }
 
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain();
+    NodeContext m_node;
+    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
     std::unique_ptr<CWallet> wallet;
 };
 
@@ -491,7 +497,8 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(wallet_disableprivkeys, TestChain100Setup) {
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
         Params(), chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
     wallet->SetMinVersion(FEATURE_LATEST);

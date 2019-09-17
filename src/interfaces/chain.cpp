@@ -11,6 +11,7 @@
 #include <net.h>
 #include <net_processing.h>
 #include <node/coin.h>
+#include <node/context.h>
 #include <node/transaction.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
@@ -248,6 +249,7 @@ namespace {
 
     class ChainImpl : public Chain {
     public:
+        explicit ChainImpl(NodeContext &node) : m_node(node) {}
         std::unique_ptr<Chain::Lock> lock(bool try_lock) override {
             auto lock = std::make_unique<LockImpl>(
                 ::cs_main, "cs_main", __FILE__, __LINE__, try_lock);
@@ -301,9 +303,9 @@ namespace {
                                   std::string &err_string,
                                   const Amount &max_tx_fee,
                                   bool relay) override {
-            const TransactionError err =
-                BroadcastTransaction(config, tx, err_string, max_tx_fee, relay,
-                                     /*wait_callback*/ false);
+            const TransactionError err = BroadcastTransaction(
+                m_node, config, tx, err_string, max_tx_fee, relay,
+                /*wait_callback*/ false);
             // Chain clients only care about failures to accept the tx to the
             // mempool. Disregard non-mempool related failures. Note: this will
             // need to be updated if BroadcastTransactions() is updated to
@@ -408,12 +410,13 @@ namespace {
                 notifications.TransactionAddedToMempool(entry.GetSharedTx());
             }
         }
+        NodeContext &m_node;
     };
 
 } // namespace
 
-std::unique_ptr<Chain> MakeChain() {
-    return std::make_unique<ChainImpl>();
+std::unique_ptr<Chain> MakeChain(NodeContext &node) {
+    return std::make_unique<ChainImpl>(node);
 }
 
 } // namespace interfaces

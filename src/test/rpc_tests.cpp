@@ -8,8 +8,8 @@
 
 #include <config.h>
 #include <core_io.h>
-#include <init.h>
 #include <interfaces/chain.h>
+#include <node/context.h>
 #include <util/time.h>
 
 #include <test/util/setup_common.h>
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign) {
     std::string privkey2 =
         "\"Kyhdf5LuKTRx4ge69ybABsiUAWjVRK4XGxAKk2FQLp2HjGMy87Z4\"";
     NodeContext node;
-    node.chain = interfaces::MakeChain();
+    node.chain = interfaces::MakeChain(node);
     g_rpc_node = &node;
     r = CallRPC(std::string("signrawtransactionwithkey ") + notsigned + " [] " +
                 prevout);
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign_missing_amount) {
          errorWasMissingAmount = false;
 
     NodeContext node;
-    node.chain = interfaces::MakeChain();
+    node.chain = interfaces::MakeChain(node);
     g_rpc_node = &node;
 
     try {

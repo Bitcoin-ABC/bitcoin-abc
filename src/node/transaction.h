@@ -10,11 +10,13 @@
 #include <util/error.h>
 
 class Config;
+struct NodeContext;
 struct TxId;
 
 /**
  * Broadcast a transaction
  *
+ * @param[in]  node reference to node context
  * @param[in]  tx the transaction to broadcast
  * @param[out] &err_string reference to std::string to fill with error string
  * if available
@@ -26,10 +28,8 @@ struct TxId;
  * cs_mempool or cs_wallet are held to avoid deadlock
  * @return error
  */
-NODISCARD TransactionError BroadcastTransaction(const Config &config,
-                                                CTransactionRef tx,
-                                                std::string &err_string,
-                                                Amount max_tx_fee, bool relay,
-                                                bool wait_callback);
+NODISCARD TransactionError BroadcastTransaction(
+    NodeContext &node, const Config &config, CTransactionRef tx,
+    std::string &err_string, Amount max_tx_fee, bool relay, bool wait_callback);
 
 #endif // BITCOIN_NODE_TRANSACTION_H

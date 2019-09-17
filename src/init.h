@@ -7,7 +7,6 @@
 #ifndef BITCOIN_INIT_H
 #define BITCOIN_INIT_H
 
-#include <node/context.h>
 #include <util/system.h>
 
 #include <memory>
@@ -17,6 +16,7 @@ class Config;
 class CScheduler;
 class CWallet;
 class HTTPRPCRequestProcessor;
+struct NodeContext;
 class RPCServer;
 
 namespace boost {
@@ -24,7 +24,7 @@ class thread_group;
 } // namespace boost
 
 /** Interrupt threads */
-void Interrupt();
+void Interrupt(NodeContext &node);
 void Shutdown(NodeContext &node);
 //! Initialize the logging infrastructure
 void InitLogging();

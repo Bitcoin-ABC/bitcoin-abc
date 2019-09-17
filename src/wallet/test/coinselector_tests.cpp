@@ -4,6 +4,7 @@
 
 #include <amount.h>
 #include <chainparams.h> // For Params
+#include <node/context.h>
 #include <primitives/transaction.h>
 #include <random.h>
 #include <wallet/coincontrol.h>
@@ -34,6 +35,8 @@ std::vector<std::unique_ptr<CWalletTx>> wtxn;
 typedef std::set<CInputCoin> CoinSet;
 
 static std::vector<COutput> vCoins;
+static NodeContext testNode;
+static auto testChain = interfaces::MakeChain(testNode);
 static Amount balance = Amount::zero();
 
 CoinEligibilityFilter filter_standard(1, 6, 0);
@@ -301,7 +304,6 @@ BOOST_AUTO_TEST_CASE(bnb_search_test) {
 }
 
 BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
-    auto testChain = interfaces::MakeChain();
     CWallet testWallet(Params(), testChain.get(), WalletLocation(),
                        WalletDatabase::CreateDummy());
 
@@ -730,7 +732,6 @@ BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
 // Tests that with the ideal conditions, the coin selector will always be able
 // to find a solution that can pay the target value
 BOOST_AUTO_TEST_CASE(SelectCoins_test) {
-    auto testChain = interfaces::MakeChain();
     CWallet testWallet(Params(), testChain.get(), WalletLocation(),
                        WalletDatabase::CreateDummy());
 

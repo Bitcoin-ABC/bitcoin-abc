@@ -18,6 +18,7 @@
 #include <net_processing.h>
 #include <netaddress.h>
 #include <netbase.h>
+#include <node/context.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -57,7 +58,6 @@ namespace {
 
     class NodeImpl : public Node {
     public:
-        NodeImpl() { m_context.chain = MakeChain(); }
         void initError(const std::string &message) override {
             InitError(message);
         }
@@ -97,11 +97,12 @@ namespace {
         bool
         appInitMain(Config &config, RPCServer &rpcServer,
                     HTTPRPCRequestProcessor &httpRPCRequestProcessor) override {
+            m_context.chain = MakeChain(m_context);
             return AppInitMain(config, rpcServer, httpRPCRequestProcessor,
                                m_context);
         }
         void appShutdown() override {
-            Interrupt();
+            Interrupt(m_context);
             Shutdown(m_context);
         }
         void startShutdown() override { StartShutdown(); }
@@ -331,6 +332,7 @@ namespace {
                        GuessVerificationProgress(Params().TxData(), block));
                 }));
         }
+        NodeContext *context() override { return &m_context; }
         NodeContext m_context;
     };
 } // namespace

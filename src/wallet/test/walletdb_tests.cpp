@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <interfaces/chain.h>
+#include <node/context.h>
 #include <wallet/wallet.h>
 
 #include <test/util/setup_common.h>
@@ -17,7 +18,8 @@
 
 namespace {
 static std::unique_ptr<CWallet> LoadWallet(WalletBatch &batch) {
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     std::unique_ptr<CWallet> wallet = std::make_unique<CWallet>(
         Params(), chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
     DBErrors res = batch.LoadWallet(wallet.get());

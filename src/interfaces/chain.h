@@ -24,6 +24,7 @@ class Config;
 class CRPCCommand;
 class CScheduler;
 class CValidationState;
+struct NodeContext;
 namespace Consensus {
 struct Params;
 }
@@ -310,7 +311,7 @@ public:
 };
 
 //! Return implementation of Chain interface.
-std::unique_ptr<Chain> MakeChain();
+std::unique_ptr<Chain> MakeChain(NodeContext &node);
 
 //! Return implementation of ChainClient interface for a wallet client. This
 //! function will be undefined in builds where ENABLE_WALLET is false.

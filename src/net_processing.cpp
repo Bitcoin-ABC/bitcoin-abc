@@ -2134,6 +2134,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
 static bool ProcessMessage(const Config &config, CNode *pfrom,
                            const std::string &strCommand, CDataStream &vRecv,
                            int64_t nTimeReceived, CConnman *connman,
+                           BanMan *banman,
                            const std::atomic<bool> &interruptMsgProc,
                            bool enable_bip61) {
     const CChainParams &chainparams = config.GetChainParams();
@@ -2482,7 +2483,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
             }
             pfrom->AddAddressKnown(addr);
-            if (g_banman->IsBanned(addr)) {
+            if (banman->IsBanned(addr)) {
                 // Do not process banned addresses beyond remembering
                 // we received them
                 continue;
@@ -3222,7 +3223,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         if (fProcessBLOCKTXN) {
             return ProcessMessage(config, pfrom, NetMsgType::BLOCKTXN,
-                                  blockTxnMsg, nTimeReceived, connman,
+                                  blockTxnMsg, nTimeReceived, connman, banman,
                                   interruptMsgProc, enable_bip61);
         }
 
@@ -3560,7 +3561,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         std::vector<CAddress> vAddr = connman->GetAddresses();
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {
-            if (!g_banman->IsBanned(addr)) {
+            if (!banman->IsBanned(addr)) {
                 pfrom->PushAddress(addr, insecure_rand);
             }
         }
@@ -3936,8 +3937,9 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     // Process message
     bool fRet = false;
     try {
-        fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime,
-                              connman, interruptMsgProc, m_enable_bip61);
+        fRet =
+            ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime, connman,
+                           m_banman, interruptMsgProc, m_enable_bip61);
         if (interruptMsgProc) {
             return false;
         }

@@ -105,17 +105,16 @@ QModelIndex FindTx(const QAbstractItemModel &model, const uint256 &txid) {
 //     src/qt/test/test_bitcoin-qt -platform xcb      # Linux
 //     src/qt/test/test_bitcoin-qt -platform windows  # Windows
 //     src/qt/test/test_bitcoin-qt -platform cocoa    # macOS
-void TestGUI() {
+void TestGUI(interfaces::Node &node) {
     // Set up wallet and chain with 105 blocks (5 mature blocks for spending).
     TestChain100Setup test;
     for (int i = 0; i < 5; ++i) {
         test.CreateAndProcessBlock(
             {}, GetScriptForRawPubKey(test.coinbaseKey.GetPubKey()));
     }
-
-    auto chain = interfaces::MakeChain();
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-        Params(), chain.get(), WalletLocation(), WalletDatabase::CreateMock());
+        Params(), node.context()->chain.get(), WalletLocation(),
+        WalletDatabase::CreateMock());
 
     bool firstRun;
     wallet->LoadWallet(firstRun);
@@ -146,10 +145,9 @@ void TestGUI() {
     // Create widgets for sending coins and listing transactions.
     std::unique_ptr<const PlatformStyle> platformStyle(
         PlatformStyle::instantiate("other"));
-    auto node = interfaces::MakeNode();
-    OptionsModel optionsModel(*node);
+    OptionsModel optionsModel(node);
     AddWallet(wallet);
-    WalletModel walletModel(std::move(node->getWallets().back()), *node,
+    WalletModel walletModel(interfaces::MakeWallet(wallet), node,
                             platformStyle.get(), &optionsModel);
     RemoveWallet(wallet);
 
@@ -258,5 +256,5 @@ void WalletTests::walletTests() {
         return;
     }
 #endif
-    TestGUI();
+    TestGUI(m_node);
 }

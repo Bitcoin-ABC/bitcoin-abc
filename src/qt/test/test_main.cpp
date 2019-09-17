@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     // All tests must use their own testing setup (if needed).
     { BasicTestingSetup dummy{CBaseChainParams::REGTEST}; }
 
-    auto node = interfaces::MakeNode();
+    std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 
     bool fInvalid = false;
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
         fInvalid = true;
     }
 #endif
-    RPCNestedTests test3;
+    RPCNestedTests test3(*node);
     if (QTest::qExec(&test3) != 0) {
         fInvalid = true;
     }
@@ -110,11 +110,11 @@ int main(int argc, char *argv[]) {
         fInvalid = true;
     }
 #ifdef ENABLE_WALLET
-    WalletTests test7;
+    WalletTests test7(*node);
     if (QTest::qExec(&test7) != 0) {
         fInvalid = true;
     }
-    AddressBookTests test8;
+    AddressBookTests test8(*node);
     if (QTest::qExec(&test8) != 0) {
         fInvalid = true;
     }

@@ -5,6 +5,7 @@
 #include <bench/bench.h>
 #include <chainparams.h>
 #include <interfaces/chain.h>
+#include <node/context.h>
 #include <wallet/coinselection.h>
 #include <wallet/wallet.h>
 
@@ -33,7 +34,8 @@ static void addCoin(const Amount nValue, const CWallet &wallet,
 static void CoinSelection(benchmark::State &state) {
     SelectParams(CBaseChainParams::REGTEST);
 
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     const CWallet wallet(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
     std::vector<std::unique_ptr<CWalletTx>> wtxs;
@@ -105,7 +107,8 @@ static Amount make_hard_case(const CWallet &wallet, int utxos,
 static void BnBExhaustion(benchmark::State &state) {
     SelectParams(CBaseChainParams::REGTEST);
 
-    auto chain = interfaces::MakeChain();
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node);
     const CWallet wallet(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
 

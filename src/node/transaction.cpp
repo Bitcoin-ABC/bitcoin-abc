@@ -9,6 +9,7 @@
 #include <consensus/validation.h>
 #include <net.h>
 #include <net_processing.h>
+#include <node/context.h>
 #include <primitives/txid.h>
 #include <txmempool.h>
 #include <util/validation.h>
@@ -17,7 +18,7 @@
 
 #include <future>
 
-TransactionError BroadcastTransaction(const Config &config,
+TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                                       const CTransactionRef tx,
                                       std::string &err_string,
                                       const Amount max_tx_fee, bool relay,

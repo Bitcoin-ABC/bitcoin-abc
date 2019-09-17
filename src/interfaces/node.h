@@ -26,6 +26,7 @@ struct CNodeStats;
 class Coin;
 class Config;
 class HTTPRPCRequestProcessor;
+struct NodeContext;
 class proxyType;
 class RPCServer;
 class RPCTimerInterface;
@@ -267,6 +268,9 @@ public:
                            int64_t block_time, double verification_progress)>;
     virtual std::unique_ptr<Handler>
     handleNotifyHeaderTip(NotifyHeaderTipFn fn) = 0;
+
+    //! Return pointer to internal chain interface, useful for testing.
+    virtual NodeContext *context() { return nullptr; }
 };
 
 //! Return implementation of Node interface.

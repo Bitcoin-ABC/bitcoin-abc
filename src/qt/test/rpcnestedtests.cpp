@@ -40,7 +40,7 @@ void RPCNestedTests::rpcNestedTests() {
     std::string result;
     std::string result2;
     std::string filtered;
-    auto node = interfaces::MakeNode();
+    interfaces::Node *node = &m_node;
 
     // Simple result filtering with path.
     RPCConsole::RPCExecuteCommandLine(*node, result,

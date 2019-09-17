@@ -15,6 +15,7 @@
 #include <keystore.h>
 #include <merkleblock.h>
 #include <node/coin.h>
+#include <node/context.h>
 #include <node/psbt.h>
 #include <node/transaction.h>
 #include <primitives/transaction.h>
@@ -974,7 +975,7 @@ static UniValue sendrawtransaction(const Config &config,
     std::string err_string;
     AssertLockNotHeld(cs_main);
     const TransactionError err = BroadcastTransaction(
-        config, tx, err_string, max_raw_tx_fee, /*relay*/ true,
+        *g_rpc_node, config, tx, err_string, max_raw_tx_fee, /*relay*/ true,
         /*wait_callback*/ true);
     if (err != TransactionError::OK) {
         throw JSONRPCTransactionError(err, err_string);
