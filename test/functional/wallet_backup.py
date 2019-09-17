@@ -52,6 +52,7 @@ class WalletBackupTest(BitcoinTestFramework):
         # nodes 1, 2,3 are spenders, let's give them a keypool=100
         self.extra_args = [["-keypool=100"],
                            ["-keypool=100"], ["-keypool=100"], []]
+        self.rpc_timeout = 120
 
     def setup_network(self):
         self.setup_nodes()
