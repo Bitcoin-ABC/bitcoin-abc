@@ -11,9 +11,9 @@
 #include <core_memusage.h>
 #include <indirectmap.h>
 #include <primitives/transaction.h>
-#include <salteduint256hasher.h>
 #include <sync.h>
 #include <util/epochguard.h>
+#include <util/hasher.h>
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -412,13 +412,6 @@ enum class MemPoolRemovalReason {
     CONFLICT,
     //! Removed for replacement
     REPLACED
-};
-
-class SaltedTxIdHasher : private SaltedUint256Hasher {
-public:
-    SaltedTxIdHasher() : SaltedUint256Hasher() {}
-
-    size_t operator()(const TxId &txid) const { return hash(txid); }
 };
 
 /**

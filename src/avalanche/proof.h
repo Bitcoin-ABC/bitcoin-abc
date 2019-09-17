@@ -12,6 +12,7 @@
 #include <pubkey.h>
 #include <rcu.h>
 #include <serialize.h>
+#include <util/hasher.h>
 #include <validation.h> // For ChainstateManager and cs_main
 
 #include <array>

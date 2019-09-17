@@ -30,6 +30,7 @@
 #include <txdb.h>
 #include <txmempool.h> // For CTxMemPool::cs
 #include <util/check.h>
+#include <util/hasher.h>
 #include <util/translation.h>
 #include <versionbits.h>
 

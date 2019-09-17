@@ -5,8 +5,8 @@
 #ifndef BITCOIN_AVALANCHE_PROOFID_H
 #define BITCOIN_AVALANCHE_PROOFID_H
 
-#include <salteduint256hasher.h>
 #include <uint256.h>
+#include <util/hasher.h>
 
 #include <string>
 

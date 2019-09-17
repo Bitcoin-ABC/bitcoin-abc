@@ -7,10 +7,10 @@
 #define BITCOIN_COINS_H
 
 #include <compressor.h>
-#include <crypto/siphash.h>
 #include <memusage.h>
 #include <primitives/blockhash.h>
 #include <serialize.h>
+#include <util/hasher.h>
 
 #include <cassert>
 #include <cstdint>
@@ -66,36 +66,6 @@ public:
 
     size_t DynamicMemoryUsage() const {
         return memusage::DynamicUsage(out.scriptPubKey);
-    }
-};
-
-class SaltedOutpointHasher {
-private:
-    /** Salt */
-    const uint64_t k0, k1;
-
-public:
-    SaltedOutpointHasher();
-
-    /**
-     * This *must* return size_t. With Boost 1.46 on 32-bit systems the
-     * unordered_map will behave unpredictably if the custom hasher returns a
-     * uint64_t, resulting in failures when syncing the chain (#4634).
-     * Note: This information above might be outdated as the unordered map
-     * container type has meanwhile been switched to the C++ standard library
-     * implementation.
-     *
-     * Having the hash noexcept allows libstdc++'s unordered_map to recalculate
-     * the hash during rehash, so it does not have to cache the value. This
-     * reduces node's memory by sizeof(size_t). The required recalculation has
-     * a slight performance penalty (around 1.6%), but this is compensated by
-     * memory savings of about 9% which allow for a larger dbcache setting.
-     *
-     * @see
-     * https://gcc.gnu.org/onlinedocs/gcc-9.2.0/libstdc++/manual/manual/unordered_associative.html
-     */
-    size_t operator()(const COutPoint &outpoint) const noexcept {
-        return SipHashUint256Extra(k0, k1, outpoint.GetTxId(), outpoint.GetN());
     }
 };
 

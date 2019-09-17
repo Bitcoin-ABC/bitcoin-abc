@@ -386,6 +386,7 @@ add_library(util
 	util/asmap.cpp
 	util/bip32.cpp
 	util/bytevectorhash.cpp
+	util/hasher.cpp
 	util/error.cpp
 	util/getuniquepath.cpp
 	util/message.cpp
@@ -496,7 +497,6 @@ add_library(common
 	rpc/rawtransaction_util.cpp
 	rpc/util.cpp
 	scheduler.cpp
-	salteduint256hasher.cpp
 	versionbitsinfo.cpp
 	warnings.cpp
 

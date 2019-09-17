@@ -14,7 +14,7 @@
 #include <consensus/validation.h>
 #include <pubkey.h>
 #include <radix.h>
-#include <salteduint256hasher.h>
+#include <util/hasher.h>
 #include <util/time.h>
 
 #include <boost/multi_index/composite_key.hpp>

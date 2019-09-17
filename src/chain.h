@@ -43,18 +43,6 @@ static constexpr int64_t TIMESTAMP_WINDOW = MAX_FUTURE_BLOCK_TIME;
  */
 static constexpr int64_t MAX_BLOCK_TIME_GAP = 90 * 60;
 
-/**
- * Maintain a map of CBlockIndex for all known headers.
- */
-struct BlockHasher {
-    // this used to call `GetCheapHash()` in uint256, which was later moved; the
-    // cheap hash function simply calls ReadLE64() however, so the end result is
-    // identical
-    size_t operator()(const BlockHash &hash) const {
-        return ReadLE64(hash.begin());
-    }
-};
-
 extern RecursiveMutex cs_main;
 
 arith_uint256 GetBlockProof(const CBlockIndex &block);
