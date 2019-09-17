@@ -18,7 +18,7 @@ public:
     bool HasWalletSupport() const override { return false; }
     void AddWalletOptions() const override;
     bool ParameterInteraction() const override { return true; }
-    void Construct(InitInterfaces &interfaces) const override {
+    void Construct(NodeContext &node) const override {
         LogPrintf("No wallet support compiled in!\n");
     }
 };

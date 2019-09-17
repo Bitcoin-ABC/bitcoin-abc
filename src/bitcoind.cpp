@@ -70,8 +70,8 @@ static bool AppInit(int argc, char *argv[]) {
     RPCServer rpcServer;
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
-    InitInterfaces interfaces;
-    interfaces.chain = interfaces::MakeChain();
+    NodeContext node;
+    node.chain = interfaces::MakeChain();
 
     bool fRet = false;
 
@@ -195,8 +195,7 @@ static bool AppInit(int argc, char *argv[]) {
             // If locking the data directory failed, exit immediately
             return false;
         }
-        fRet =
-            AppInitMain(config, rpcServer, httpRPCRequestProcessor, interfaces);
+        fRet = AppInitMain(config, rpcServer, httpRPCRequestProcessor, node);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {
@@ -208,7 +207,7 @@ static bool AppInit(int argc, char *argv[]) {
     } else {
         WaitForShutdown();
     }
-    Shutdown(interfaces);
+    Shutdown(node);
 
     return fRet;
 }

@@ -908,7 +908,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
         keystore.AddKey(key);
     }
 
-    return SignTransaction(*g_rpc_interfaces->chain, mtx, request.params[2],
+    return SignTransaction(*g_rpc_node->chain, mtx, request.params[2],
                            &keystore, true, request.params[3]);
 }
 
