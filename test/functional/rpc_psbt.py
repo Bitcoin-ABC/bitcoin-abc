@@ -315,6 +315,16 @@ class PSBTTest(BitcoinTestFramework):
         assert_raises_rpc_error(-8,
                                 "At least two PSBTs are required to join PSBTs.", self.nodes[1].joinpsbts, [psbt2])
 
+        # Check that joining shuffles the inputs and outputs
+        # 10 attempts should be enough to get a shuffled join
+        shuffled = False
+        for i in range(0, 10):
+            shuffled_joined = self.nodes[0].joinpsbts([psbt, psbt2])
+            shuffled |= joined != shuffled_joined
+            if shuffled:
+                break
+        assert shuffled
+
         # Newly created PSBT needs UTXOs and updating
         addr = self.nodes[1].getnewaddress("")
         txid = self.nodes[0].sendtoaddress(addr, 7)
