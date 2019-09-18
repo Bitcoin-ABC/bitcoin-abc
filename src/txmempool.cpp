@@ -1074,7 +1074,7 @@ void CTxMemPool::RemoveStaged(setEntries &stage, bool updateDescendants,
     }
 }
 
-int CTxMemPool::Expire(int64_t time) {
+int CTxMemPool::Expire(std::chrono::seconds time) {
     LOCK(cs);
     indexed_transaction_set::index<entry_time>::type::iterator it =
         mapTx.get<entry_time>().begin();
@@ -1093,8 +1093,8 @@ int CTxMemPool::Expire(int64_t time) {
     return stage.size();
 }
 
-void CTxMemPool::LimitSize(size_t limit, unsigned long age) {
-    int expired = Expire(GetTime() - age);
+void CTxMemPool::LimitSize(size_t limit, std::chrono::seconds age) {
+    int expired = Expire(GetTime<std::chrono::seconds>() - age);
     if (expired != 0) {
         LogPrint(BCLog::MEMPOOL,
                  "Expired %i transactions from the memory pool\n", expired);
@@ -1426,5 +1426,6 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     // Re-limit mempool size, in case we added any transactions
     g_mempool.LimitSize(
         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
-        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+        std::chrono::hours{
+            gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
 }

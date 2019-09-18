@@ -1734,13 +1734,14 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                     pfrom,
                     msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                 push = true;
-            } else if (pfrom->m_tx_relay->timeLastMempoolReq) {
+            } else if (pfrom->m_tx_relay->m_last_mempool_req.load().count()) {
                 auto txinfo = g_mempool.info(TxId(inv.hash));
                 // To protect privacy, do not answer getdata using the mempool
                 // when that TX couldn't have been INVed in reply to a MEMPOOL
                 // request.
                 if (txinfo.tx &&
-                    txinfo.nTime <= pfrom->m_tx_relay->timeLastMempoolReq) {
+                    txinfo.m_time <=
+                        pfrom->m_tx_relay->m_last_mempool_req.load()) {
                     connman->PushMessage(
                         pfrom,
                         msgMaker.Make(nSendFlags, NetMsgType::TX, *txinfo.tx));
@@ -4677,7 +4678,8 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                         vInv.clear();
                     }
                 }
-                pto->m_tx_relay->timeLastMempoolReq = GetTime();
+                pto->m_tx_relay->m_last_mempool_req =
+                    GetTime<std::chrono::seconds>();
             }
 
             // Determine transactions to relay

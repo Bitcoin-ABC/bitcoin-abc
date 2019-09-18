@@ -625,8 +625,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         if (!bypass_limits) {
             pool.LimitSize(
                 gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
-                gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 *
-                    60);
+                std::chrono::hours{
+                    gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
             if (!pool.exists(txid)) {
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                                  "mempool full");
@@ -5569,7 +5569,7 @@ bool DumpMempool(const CTxMemPool &pool) {
         file << uint64_t(vinfo.size());
         for (const auto &i : vinfo) {
             file << *(i.tx);
-            file << int64_t(i.nTime);
+            file << int64_t(count_seconds(i.m_time));
             file << i.nFeeDelta;
             mapDeltas.erase(i.tx->GetId());
         }

@@ -122,7 +122,7 @@ public:
     size_t GetTxSize() const { return nTxSize; }
     size_t GetTxVirtualSize() const;
 
-    int64_t GetTime() const { return nTime; }
+    std::chrono::seconds GetTime() const { return std::chrono::seconds{nTime}; }
     unsigned int GetHeight() const { return entryHeight; }
     int64_t GetSigOpCount() const { return sigOpCount; }
     Amount GetModifiedFee() const { return nFee + feeDelta; }
@@ -355,7 +355,7 @@ struct TxMempoolInfo {
     CTransactionRef tx;
 
     /** Time the transaction entered the mempool. */
-    int64_t nTime;
+    std::chrono::seconds m_time;
 
     /** Feerate of the transaction. */
     CFeeRate feeRate;
@@ -747,12 +747,12 @@ public:
      * Expire all transaction (and their dependencies) in the mempool older than
      * time. Return the number of removed transactions.
      */
-    int Expire(int64_t time);
+    int Expire(std::chrono::seconds time);
 
     /**
      * Reduce the size of the mempool by expiring and then trimming the mempool.
      */
-    void LimitSize(size_t limit, unsigned long age);
+    void LimitSize(size_t limit, std::chrono::seconds age);
 
     /**
      * Calculate the ancestor and descendant count for the given transaction.
