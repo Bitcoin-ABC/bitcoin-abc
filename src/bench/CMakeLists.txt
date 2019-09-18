@@ -60,6 +60,7 @@ add_executable(bitcoin-bench
 	rpc_blockchain.cpp
 	rpc_mempool.cpp
 	util_time.cpp
+	verify_script.cpp
 
 	# Add the generated headers to trigger the conversion command
 	${BENCH_DATA_GENERATED_HEADERS}
