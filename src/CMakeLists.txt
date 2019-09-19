@@ -169,12 +169,10 @@ add_subdirectory(univalue)
 
 set(OBJ_DIR "${CMAKE_CURRENT_BINARY_DIR}/obj")
 file(MAKE_DIRECTORY "${OBJ_DIR}")
-set(BUILD_HEADER "${OBJ_DIR}/build.h")
-add_custom_command(
-	OUTPUT "${BUILD_HEADER}"
+add_custom_target(build_header
 	COMMAND
 		"${CMAKE_SOURCE_DIR}/share/genbuild.sh"
-		"${BUILD_HEADER}"
+		"${OBJ_DIR}/build.h"
 		"${CMAKE_SOURCE_DIR}"
 )
 
@@ -207,11 +205,9 @@ add_library(util
 	utilstrencodings.cpp
 	utiltime.cpp
 	util/bytevectorhash.cpp
-
-	# obj/build.h
-	${BUILD_HEADER}
 )
 
+add_dependencies(util build_header)
 target_compile_definitions(util PUBLIC HAVE_CONFIG_H HAVE_BUILD_INFO)
 target_include_directories(util
 	PUBLIC
