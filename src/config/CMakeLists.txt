@@ -14,7 +14,6 @@ set(PACKAGE_NAME "Bitcoin ABC" CACHE STRING "Package name")
 set(CLIENT_VERSION_MAJOR ${bitcoin-abc_VERSION_MAJOR} CACHE STRING "Major version number")
 set(CLIENT_VERSION_MINOR ${bitcoin-abc_VERSION_MINOR} CACHE STRING "Minor version number")
 set(CLIENT_VERSION_REVISION ${bitcoin-abc_VERSION_PATCH} CACHE STRING "Revision version number")
-set(CLIENT_VERSION_BUILD ${bitcoin-abc_VERSION_TWEAK} CACHE STRING "Build version number")
 
 option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
 

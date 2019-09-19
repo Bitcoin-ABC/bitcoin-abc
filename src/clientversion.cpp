@@ -49,33 +49,32 @@ const std::string CLIENT_NAME("Bitcoin ABC");
 #define GIT_COMMIT_DATE "$Format:%cD$"
 #endif
 
-#define BUILD_DESC_WITH_SUFFIX(maj, min, rev, build, suffix)                   \
+#define BUILD_DESC_WITH_SUFFIX(maj, min, rev, suffix)                          \
     "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(              \
-        rev) "." DO_STRINGIZE(build) "-" DO_STRINGIZE(suffix)
+        rev) "-" DO_STRINGIZE(suffix)
 
-#define BUILD_DESC_FROM_COMMIT(maj, min, rev, build, commit)                   \
+#define BUILD_DESC_FROM_COMMIT(maj, min, rev, commit)                          \
     "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(              \
-        rev) "." DO_STRINGIZE(build) "-g" commit
+        rev) "-g" commit
 
-#define BUILD_DESC_FROM_UNKNOWN(maj, min, rev, build)                          \
-    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(              \
-        rev) "." DO_STRINGIZE(build) "-unk"
+#define BUILD_DESC_FROM_UNKNOWN(maj, min, rev)                                 \
+    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "-unk"
 
 #ifndef BUILD_DESC
 #ifdef BUILD_SUFFIX
 #define BUILD_DESC                                                             \
     BUILD_DESC_WITH_SUFFIX(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR,         \
-                           CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD,      \
-                           BUILD_SUFFIX)
+                           CLIENT_VERSION_REVISION, BUILD_SUFFIX)
+
 #elif defined(GIT_COMMIT_ID)
 #define BUILD_DESC                                                             \
     BUILD_DESC_FROM_COMMIT(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR,         \
-                           CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD,      \
-                           GIT_COMMIT_ID)
+                           CLIENT_VERSION_REVISION, GIT_COMMIT_ID)
+
 #else
 #define BUILD_DESC                                                             \
     BUILD_DESC_FROM_UNKNOWN(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR,        \
-                            CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD)
+                            CLIENT_VERSION_REVISION)
 #endif
 #endif
 

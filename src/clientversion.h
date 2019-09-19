@@ -13,8 +13,8 @@
 
 // Check that required client information is defined
 #if !defined(CLIENT_VERSION_MAJOR) || !defined(CLIENT_VERSION_MINOR) ||        \
-    !defined(CLIENT_VERSION_REVISION) || !defined(CLIENT_VERSION_BUILD) ||     \
-    !defined(CLIENT_VERSION_IS_RELEASE) || !defined(COPYRIGHT_YEAR)
+    !defined(CLIENT_VERSION_REVISION) || !defined(COPYRIGHT_YEAR) ||           \
+    !defined(CLIENT_VERSION_IS_RELEASE)
 #error Client version information missing: version is not defined by bitcoin-config.h nor defined any other way
 #endif
 
@@ -41,9 +41,9 @@
 #include <string>
 #include <vector>
 
-static const int CLIENT_VERSION =
-    1000000 * CLIENT_VERSION_MAJOR + 10000 * CLIENT_VERSION_MINOR +
-    100 * CLIENT_VERSION_REVISION + 1 * CLIENT_VERSION_BUILD;
+static const int CLIENT_VERSION = 1000000 * CLIENT_VERSION_MAJOR +
+                                  10000 * CLIENT_VERSION_MINOR +
+                                  100 * CLIENT_VERSION_REVISION;
 
 extern const std::string CLIENT_NAME;
 extern const std::string CLIENT_BUILD;
