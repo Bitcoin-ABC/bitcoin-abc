@@ -12,3 +12,6 @@ add_executable(bitcoin-seeder
 )
 
 target_link_libraries(bitcoin-seeder common)
+
+include(BinaryTest)
+add_to_symbols_check(bitcoin-seeder)

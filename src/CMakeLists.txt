@@ -492,6 +492,8 @@ if(BUILD_BITCOIN_SEEDER)
 	add_subdirectory(seeder)
 endif()
 
+include(BinaryTest)
+
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)
 	add_executable(bitcoin-cli bitcoin-cli.cpp)
@@ -500,6 +502,8 @@ if(BUILD_BITCOIN_CLI)
 	endif()
 
 	target_link_libraries(bitcoin-cli common rpcclient Event)
+
+	add_to_symbols_check(bitcoin-cli)
 endif()
 
 # bitcoin-tx
@@ -510,6 +514,8 @@ if(BUILD_BITCOIN_TX)
 	endif()
 
 	target_link_libraries(bitcoin-tx bitcoinconsensus)
+
+	add_to_symbols_check(bitcoin-tx)
 endif()
 
 # bitcoind
@@ -518,6 +524,7 @@ target_link_libraries(bitcoind server)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoind PRIVATE bitcoind-res.rc)
 endif()
+add_to_symbols_check(bitcoind)
 
 # Bitcoin-qt
 if(BUILD_BITCOIN_QT)

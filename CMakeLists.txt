@@ -33,9 +33,10 @@ endif()
 # Find the python interpreter. This is required for several targets.
 find_package(PythonInterp 3.4 REQUIRED)
 
-# Add the magic targets `check` and `check-all`
+# Add the magic targets `check-*`
 add_custom_target(check-all)
 add_custom_target(check)
+add_custom_target(check-symbols)
 
 add_subdirectory(src)
 add_subdirectory(test)
