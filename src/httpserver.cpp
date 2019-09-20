@@ -228,7 +228,7 @@ static void http_request_cb(struct evhttp_request *req, void *arg) {
             }
         }
     }
-    std::unique_ptr<HTTPRequest> hreq(new HTTPRequest(req));
+    auto hreq = std::make_unique<HTTPRequest>(req);
 
     LogPrint(BCLog::HTTP, "Received a %s request for %s from %s\n",
              RequestMethodString(hreq->GetRequestMethod()), hreq->GetURI(),

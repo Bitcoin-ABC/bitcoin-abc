@@ -1939,9 +1939,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // need to reindex later.
 
     assert(!g_connman);
-    g_connman = std::unique_ptr<CConnman>(
-        new CConnman(config, GetRand(std::numeric_limits<uint64_t>::max()),
-                     GetRand(std::numeric_limits<uint64_t>::max())));
+    g_connman = std::make_unique<CConnman>(
+        config, GetRand(std::numeric_limits<uint64_t>::max()),
+        GetRand(std::numeric_limits<uint64_t>::max()));
     CConnman &connman = *g_connman;
 
     peerLogic.reset(new PeerLogicValidation(
