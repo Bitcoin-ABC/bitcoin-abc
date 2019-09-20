@@ -86,7 +86,6 @@ add_custom_target(check-rpcauth
 	COMMAND
 		./util/rpcauth-test.py
 	DEPENDS
-		../share/rpcauth/rpcauth.py
 		${CMAKE_CURRENT_BINARY_DIR}/util/rpcauth-test.py
 )
 
