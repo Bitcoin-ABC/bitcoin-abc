@@ -167,13 +167,55 @@ add_subdirectory(leveldb)
 add_subdirectory(secp256k1)
 add_subdirectory(univalue)
 
+# Find the git root, and returns the full path to the .git/logs/HEAD file if
+# it exists.
+function(find_git_head_logs_file RESULT)
+	find_package(Git)
+	if(GIT_FOUND)
+		execute_process(
+			COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--show-toplevel"
+			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+			OUTPUT_VARIABLE GIT_ROOT
+			RESULT_VARIABLE GIT_RESULT
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+
+		if(GIT_RESULT EQUAL 0)
+			set(GIT_LOGS_DIR "${GIT_ROOT}/.git/logs")
+			set(GIT_HEAD_LOGS_FILE "${GIT_LOGS_DIR}/HEAD")
+			# If the .git/logs/HEAD, create it
+			if(NOT EXISTS "${GIT_HEAD_LOGS_FILE}")
+				# FIXME No longer needed once cmake > 3.10 get enforced.
+				file(MAKE_DIRECTORY "${GIT_LOGS_DIR}")
+				# FIXME Replace with file(TOUCH) when cmake > 3.12 get enforced.
+				file(APPEND "${GIT_HEAD_LOGS_FILE}" "")
+			endif()
+			set(${RESULT} "${GIT_HEAD_LOGS_FILE}" PARENT_SCOPE)
+		endif()
+	endif()
+endfunction()
+
+find_git_head_logs_file(GIT_HEAD_LOGS_FILE)
+
 set(OBJ_DIR "${CMAKE_CURRENT_BINARY_DIR}/obj")
 file(MAKE_DIRECTORY "${OBJ_DIR}")
-add_custom_target(build_header
+set(BUILD_HEADER "${OBJ_DIR}/build.h")
+set(BUILD_HEADER_TMP "${BUILD_HEADER}.tmp")
+
+add_custom_command(
+	DEPENDS
+		"${GIT_HEAD_LOGS_FILE}"
+		"${CMAKE_SOURCE_DIR}/share/genbuild.sh"
+	OUTPUT
+		"${BUILD_HEADER}"
 	COMMAND
 		"${CMAKE_SOURCE_DIR}/share/genbuild.sh"
-		"${OBJ_DIR}/build.h"
+		"${BUILD_HEADER_TMP}"
 		"${CMAKE_SOURCE_DIR}"
+	COMMAND
+		${CMAKE_COMMAND} -E copy_if_different "${BUILD_HEADER_TMP}" "${BUILD_HEADER}"
+	COMMAND
+		${CMAKE_COMMAND} -E remove "${BUILD_HEADER_TMP}"
 )
 
 # Because the Bitcoin ABc source code is disorganised, we
@@ -205,9 +247,11 @@ add_library(util
 	util/strencodings.cpp
 	util/time.cpp
 	util/bytevectorhash.cpp
+
+	# obj/build.h
+	"${BUILD_HEADER}"
 )
 
-add_dependencies(util build_header)
 target_compile_definitions(util PUBLIC HAVE_CONFIG_H HAVE_BUILD_INFO)
 target_include_directories(util
 	PUBLIC
