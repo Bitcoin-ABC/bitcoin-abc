@@ -13,8 +13,8 @@
 #include <consensus/validation.h>
 #include <primitives/transaction.h>
 #include <script/script_flags.h>
-#include <utilmoneystr.h> // For FormatMoney
-#include <version.h>      // For PROTOCOL_VERSION
+#include <util/moneystr.h> // For FormatMoney
+#include <version.h>       // For PROTOCOL_VERSION
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {

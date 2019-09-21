@@ -7,7 +7,7 @@
 
 #include <consensus/consensus.h>
 #include <hash.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 
 CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
     header = block.GetBlockHeader();

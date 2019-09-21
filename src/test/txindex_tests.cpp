@@ -6,8 +6,8 @@
 
 #include <chainparams.h>
 #include <script/standard.h>
-#include <util.h>
-#include <utiltime.h>
+#include <util/system.h>
+#include <util/time.h>
 #include <validation.h>
 
 #include <test/test_bitcoin.h>

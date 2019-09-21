@@ -12,7 +12,7 @@
 #include <qt/rpcconsole.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
-#include <util.h>
+#include <util/system.h>
 #include <validation.h>
 
 #include <test/test_bitcoin.h>

@@ -13,8 +13,8 @@
 #include <keystore.h>
 #include <rpc/server.h>
 #include <streams.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #if defined(HAVE_CONSENSUS_LIB)
 #include <script/bitcoinconsensus.h>

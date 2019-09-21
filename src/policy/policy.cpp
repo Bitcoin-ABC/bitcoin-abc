@@ -10,8 +10,8 @@
 
 #include <script/interpreter.h>
 #include <tinyformat.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 #include <validation.h>
 
 Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {

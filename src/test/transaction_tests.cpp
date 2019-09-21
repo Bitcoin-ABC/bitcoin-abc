@@ -18,8 +18,8 @@
 #include <script/sign.h>
 #include <script/standard.h>
 #include <streams.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 #include <validation.h>
 
 #include <test/data/tx_invalid.json.h>

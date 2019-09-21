@@ -8,8 +8,8 @@
 #include <crypto/hmac_sha256.h>
 #include <net.h>
 #include <netbase.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>

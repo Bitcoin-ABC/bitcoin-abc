@@ -18,7 +18,7 @@
 #include <qt/guiutil.h>
 #include <qt/intro.h>
 #include <qt/paymentrequestplus.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <QCloseEvent>
 #include <QLabel>

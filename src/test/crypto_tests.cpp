@@ -12,7 +12,7 @@
 #include <crypto/sha512.h>
 
 #include <random.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 
 #include <test/test_bitcoin.h>
 

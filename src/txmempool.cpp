@@ -17,9 +17,9 @@
 #include <reverse_iterator.h>
 #include <streams.h>
 #include <timedata.h>
-#include <util.h>
-#include <utilmoneystr.h>
-#include <utiltime.h>
+#include <util/moneystr.h>
+#include <util/system.h>
+#include <util/time.h>
 #include <validation.h>
 #include <version.h>
 

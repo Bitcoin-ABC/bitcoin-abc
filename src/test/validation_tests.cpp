@@ -11,7 +11,7 @@
 #include <consensus/consensus.h>
 #include <primitives/transaction.h>
 #include <streams.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <test/test_bitcoin.h>
 

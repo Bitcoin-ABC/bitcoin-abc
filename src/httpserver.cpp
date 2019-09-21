@@ -12,8 +12,8 @@
 #include <rpc/protocol.h> // For HTTP status codes
 #include <sync.h>
 #include <ui_interface.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>

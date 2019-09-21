@@ -10,7 +10,7 @@
 #include <random.h>
 #include <script/sigcache.h>
 #include <sync.h>
-#include <util.h>
+#include <util/system.h>
 #include <validation.h>
 
 static CuckooCache::cache<uint256, SignatureCacheHasher> scriptExecutionCache;

@@ -9,8 +9,8 @@
 #include <fs.h>
 #include <hash.h>
 #include <protocol.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 #include <wallet/walletutil.h>
 
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)

@@ -4,7 +4,7 @@
 
 #include <rpc/server.h>
 #include <test/test_bitcoin.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <boost/test/unit_test.hpp>
 

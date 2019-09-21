@@ -5,7 +5,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
-#include <utiltime.h>
+#include <util/time.h>
 #include <validation.h>
 
 #include <test/test_bitcoin.h>

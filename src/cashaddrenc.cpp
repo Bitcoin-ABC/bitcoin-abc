@@ -7,7 +7,7 @@
 #include <chainparams.h>
 #include <pubkey.h>
 #include <script/script.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 
 #include <boost/variant/static_visitor.hpp>
 

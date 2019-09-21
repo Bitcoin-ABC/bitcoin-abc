@@ -11,8 +11,8 @@
 #include <random.h>
 #include <script/script.h>
 #include <script/standard.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>

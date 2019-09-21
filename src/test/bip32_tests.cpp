@@ -7,8 +7,8 @@
 #include <key_io.h>
 #include <streams.h>
 #include <uint256.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <test/test_bitcoin.h>
 

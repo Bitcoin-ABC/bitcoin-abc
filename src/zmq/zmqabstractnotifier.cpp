@@ -4,7 +4,7 @@
 
 #include <zmq/zmqabstractnotifier.h>
 
-#include <util.h>
+#include <util/system.h>
 
 CZMQAbstractNotifier::~CZMQAbstractNotifier() {
     assert(!psocket);

@@ -15,7 +15,7 @@
 #include <script/sign.h>
 #include <script/standard.h>
 #include <txmempool.h>
-#include <utiltime.h>
+#include <util/time.h>
 #include <validation.h>
 
 #include <test/sigutil.h>

@@ -14,7 +14,7 @@
 #include <hash.h>
 #include <random.h>
 #include <uint256.h>
-#include <utiltime.h>
+#include <util/time.h>
 
 /* Number of bytes to hash per iteration */
 static const uint64_t BUFFER_SIZE = 1000 * 1000;

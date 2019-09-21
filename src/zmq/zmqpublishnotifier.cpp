@@ -9,7 +9,7 @@
 #include <config.h>
 #include <rpc/server.h>
 #include <streams.h>
-#include <util.h>
+#include <util/system.h>
 #include <validation.h>
 
 #include <cstdarg>

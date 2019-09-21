@@ -24,7 +24,7 @@
 #include <script/standard.h>
 #include <txmempool.h>
 #include <uint256.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 #include <validation.h>
 #include <validationinterface.h>
 #ifdef ENABLE_WALLET

@@ -36,7 +36,7 @@
 #include <qt/walletview.h>
 #endif // ENABLE_WALLET
 #include <ui_interface.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <QAction>
 #include <QApplication>

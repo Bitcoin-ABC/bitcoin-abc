@@ -13,7 +13,7 @@
 #include <rpc/protocol.h>
 #include <rwcollection.h>
 #include <uint256.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <cstdint>
 #include <functional>

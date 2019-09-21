@@ -9,8 +9,8 @@
 #include <script/script.h>
 #include <serialize.h>
 #include <streams.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 #include <version.h>
 
 #include <test/data/sighash.json.h>

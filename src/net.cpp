@@ -21,7 +21,7 @@
 #include <primitives/transaction.h>
 #include <scheduler.h>
 #include <ui_interface.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 
 #ifdef WIN32
 #include <cstring>

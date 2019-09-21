@@ -13,7 +13,7 @@
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
 #include <ui_interface.h>
-#include <util.h>
+#include <util/system.h>
 #include <wallet/wallet.h>
 
 #include <openssl/x509_vfy.h>

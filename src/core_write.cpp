@@ -12,9 +12,9 @@
 #include <script/standard.h>
 #include <serialize.h>
 #include <streams.h>
-#include <util.h>
-#include <utilmoneystr.h>
-#include <utilstrencodings.h>
+#include <util/moneystr.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <univalue.h>
 

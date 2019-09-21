@@ -8,7 +8,7 @@
 #include <init.h>
 #include <scheduler.h>
 #include <txmempool.h>
-#include <util.h>
+#include <util/system.h>
 #include <validation.h>
 
 #include <boost/signals2/signal.hpp>

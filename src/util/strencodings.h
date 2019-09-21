@@ -6,8 +6,8 @@
 /**
  * Utilities for converting data from/to strings.
  */
-#ifndef BITCOIN_UTILSTRENCODINGS_H
-#define BITCOIN_UTILSTRENCODINGS_H
+#ifndef BITCOIN_UTIL_STRENCODINGS_H
+#define BITCOIN_UTIL_STRENCODINGS_H
 
 #include <cstdint>
 #include <string>
@@ -247,4 +247,4 @@ constexpr uint8_t ToUpper(uint8_t c) {
  */
 std::string Capitalize(std::string str);
 
-#endif // BITCOIN_UTILSTRENCODINGS_H
+#endif // BITCOIN_UTIL_STRENCODINGS_H

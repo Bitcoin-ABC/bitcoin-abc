@@ -23,8 +23,8 @@
 #include <script/standard.h>
 #include <timedata.h>
 #include <txmempool.h>
-#include <util.h>
-#include <utilmoneystr.h>
+#include <util/moneystr.h>
+#include <util/system.h>
 #include <validation.h>
 #include <validationinterface.h>
 

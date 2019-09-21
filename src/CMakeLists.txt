@@ -200,10 +200,10 @@ add_library(util
 	sync.cpp
 	threadinterrupt.cpp
 	uint256.cpp
-	util.cpp
-	utilmoneystr.cpp
-	utilstrencodings.cpp
-	utiltime.cpp
+	util/system.cpp
+	util/moneystr.cpp
+	util/strencodings.cpp
+	util/time.cpp
 	util/bytevectorhash.cpp
 )
 
@@ -333,7 +333,7 @@ add_library(bitcoinconsensus
 	script/script_error.cpp
 	script/sigencoding.cpp
 	uint256.cpp
-	utilstrencodings.cpp
+	util/strencodings.cpp
 )
 
 target_link_libraries(bitcoinconsensus common)

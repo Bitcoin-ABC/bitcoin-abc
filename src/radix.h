@@ -6,7 +6,7 @@
 #define BITCOIN_RADIX_H
 
 #include <rcu.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <boost/noncopyable.hpp>
 

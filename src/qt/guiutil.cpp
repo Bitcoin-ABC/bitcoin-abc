@@ -18,8 +18,8 @@
 #include <qt/walletmodel.h>
 #include <script/script.h>
 #include <script/standard.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #ifdef WIN32
 #ifdef _WIN32_WINNT

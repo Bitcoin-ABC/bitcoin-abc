@@ -4,7 +4,7 @@
 
 #include <bench/bench.h>
 #include <crypto/aes.h>
-#include <utiltime.h>
+#include <util/time.h>
 #include <validation.h>
 
 #define BENCH_AES128_ITERATION 800000

@@ -17,9 +17,9 @@
 #include <primitives/transaction.h>
 #include <script/script.h>
 #include <script/sign.h>
-#include <util.h>
-#include <utilmoneystr.h>
-#include <utilstrencodings.h>
+#include <util/moneystr.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <boost/algorithm/string.hpp>
 

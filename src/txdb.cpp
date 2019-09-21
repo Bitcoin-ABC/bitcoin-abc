@@ -13,7 +13,7 @@
 #include <random.h>
 #include <ui_interface.h>
 #include <uint256.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
 

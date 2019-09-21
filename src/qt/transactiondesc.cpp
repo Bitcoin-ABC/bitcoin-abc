@@ -16,7 +16,7 @@
 #include <qt/transactionrecord.h>
 #include <script/script.h>
 #include <timedata.h>
-#include <util.h>
+#include <util/system.h>
 #include <validation.h>
 #include <wallet/db.h>
 #include <wallet/finaltx.h>

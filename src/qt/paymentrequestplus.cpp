@@ -9,7 +9,7 @@
 #include <qt/paymentrequestplus.h>
 
 #include <script/script.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <openssl/x509_vfy.h>
 

@@ -12,8 +12,8 @@
 #include <crypto/sha512.h>
 #include <logging.h> // for LogPrint()
 #include <support/cleanse.h>
-#include <sync.h>     // for WAIT_LOCK
-#include <utiltime.h> // for GetTime()
+#include <sync.h>      // for WAIT_LOCK
+#include <util/time.h> // for GetTime()
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
@@ -41,7 +41,7 @@
 #endif
 #ifdef HAVE_SYSCTL_ARND
 #include <sys/sysctl.h>
-#include <utilstrencodings.h> // for ARRAYLEN
+#include <util/strencodings.h> // for ARRAYLEN
 #endif
 
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)

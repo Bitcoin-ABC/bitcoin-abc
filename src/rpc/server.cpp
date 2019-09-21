@@ -13,8 +13,8 @@
 #include <random.h>
 #include <sync.h>
 #include <ui_interface.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <univalue.h>
 

@@ -11,7 +11,7 @@
 #include <qt/forms/ui_intro.h>
 #include <qt/guiutil.h>
 #include <qt/intro.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <QFileDialog>
 #include <QMessageBox>

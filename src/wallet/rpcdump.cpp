@@ -12,8 +12,8 @@
 #include <script/script.h>
 #include <script/standard.h>
 #include <sync.h>
-#include <util.h>
-#include <utiltime.h>
+#include <util/system.h>
+#include <util/time.h>
 #include <validation.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>

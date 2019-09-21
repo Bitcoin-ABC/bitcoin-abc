@@ -6,7 +6,7 @@
 
 #include <chain.h>
 #include <consensus/params.h>
-#include <util.h>
+#include <util/system.h>
 
 static bool IsUAHFenabled(const Consensus::Params &params, int nHeight) {
     return nHeight >= params.uahfHeight;

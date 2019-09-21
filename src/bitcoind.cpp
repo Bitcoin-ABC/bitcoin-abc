@@ -17,8 +17,8 @@
 #include <init.h>
 #include <noui.h>
 #include <rpc/server.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 #include <walletinitinterface.h>
 
 #include <cstdio>

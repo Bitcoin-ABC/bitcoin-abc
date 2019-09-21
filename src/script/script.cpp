@@ -7,7 +7,7 @@
 
 #include <script/script_flags.h>
 #include <tinyformat.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 
 #include <algorithm>
 

@@ -13,8 +13,8 @@
 #include <rpc/client.h>
 #include <rpc/protocol.h>
 #include <support/events.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
+#include <util/system.h>
 
 #include <event2/buffer.h>
 #include <event2/keyvalq_struct.h>

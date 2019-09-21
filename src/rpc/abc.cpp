@@ -5,7 +5,7 @@
 #include <config.h>
 #include <consensus/consensus.h>
 #include <rpc/server.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 #include <validation.h>
 
 #include <univalue.h>

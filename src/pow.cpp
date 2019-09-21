@@ -12,7 +12,7 @@
 #include <consensus/params.h>
 #include <primitives/block.h>
 #include <uint256.h>
-#include <util.h>
+#include <util/system.h>
 
 /**
  * Compute the next required proof of work using the legacy Bitcoin difficulty
