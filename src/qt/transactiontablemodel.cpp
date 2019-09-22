@@ -757,9 +757,11 @@ void TransactionTableModel::subscribeToCoreSignals() {
     // Connect signals to wallet
     m_handler_transaction_changed =
         walletModel->wallet().handleTransactionChanged(
-            boost::bind(NotifyTransactionChanged, this, _1, _2));
-    m_handler_show_progress = walletModel->wallet().handleShowProgress(
-        boost::bind(ShowProgress, this, _1, _2));
+            std::bind(NotifyTransactionChanged, this, std::placeholders::_1,
+                      std::placeholders::_2));
+    m_handler_show_progress =
+        walletModel->wallet().handleShowProgress(std::bind(
+            ShowProgress, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void TransactionTableModel::unsubscribeFromCoreSignals() {

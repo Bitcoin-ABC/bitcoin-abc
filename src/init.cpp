@@ -51,7 +51,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/thread.hpp>
 
@@ -1904,9 +1903,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Start the lightweight task scheduler thread
     CScheduler::Function serviceLoop =
-        boost::bind(&CScheduler::serviceQueue, &scheduler);
-    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>,
-                                          "scheduler", serviceLoop));
+        std::bind(&CScheduler::serviceQueue, &scheduler);
+    threadGroup.create_thread(std::bind(&TraceThread<CScheduler::Function>,
+                                        "scheduler", serviceLoop));
 
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
     GetMainSignals().RegisterWithMempoolSignals(g_mempool);
@@ -2390,7 +2389,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     threadGroup.create_thread(
-        boost::bind(&ThreadImport, std::ref(config), vImportFiles));
+        std::bind(&ThreadImport, std::ref(config), vImportFiles));
 
     // Wait for genesis block to be processed
     {
