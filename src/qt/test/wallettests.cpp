@@ -53,18 +53,18 @@ void ConfirmSend(QString *text = nullptr, bool cancel = false) {
 }
 
 //! Send coins to address and return txid.
-uint256 SendCoins(CWallet &wallet, SendCoinsDialog &sendCoinsDialog,
-                  const CTxDestination &address, Amount amount) {
+TxId SendCoins(CWallet &wallet, SendCoinsDialog &sendCoinsDialog,
+               const CTxDestination &address, Amount amount) {
     QVBoxLayout *entries = sendCoinsDialog.findChild<QVBoxLayout *>("entries");
     SendCoinsEntry *entry =
         qobject_cast<SendCoinsEntry *>(entries->itemAt(0)->widget());
     entry->findChild<QValidatedLineEdit *>("payTo")->setText(
         QString::fromStdString(EncodeCashAddr(address, Params())));
     entry->findChild<BitcoinAmountField *>("payAmount")->setValue(amount);
-    uint256 txid;
+    TxId txid;
     boost::signals2::scoped_connection c =
         wallet.NotifyTransactionChanged.connect(
-            [&txid](CWallet *, const uint256 &hash, ChangeType status) {
+            [&txid](CWallet *, const TxId &hash, ChangeType status) {
                 if (status == CT_NEW) {
                     txid = hash;
                 }
@@ -142,9 +142,9 @@ void TestGUI() {
     TransactionTableModel *transactionTableModel =
         walletModel.getTransactionTableModel();
     QCOMPARE(transactionTableModel->rowCount({}), 105);
-    uint256 txid1 =
+    TxId txid1 =
         SendCoins(wallet, sendCoinsDialog, CTxDestination(CKeyID()), 5 * COIN);
-    uint256 txid2 =
+    TxId txid2 =
         SendCoins(wallet, sendCoinsDialog, CTxDestination(CKeyID()), 10 * COIN);
     QCOMPARE(transactionTableModel->rowCount({}), 107);
     QVERIFY(FindTx(*transactionTableModel, txid1).isValid());
