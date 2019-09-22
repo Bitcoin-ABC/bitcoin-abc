@@ -7,6 +7,7 @@
 from base64 import b64encode
 from binascii import unhexlify
 from decimal import Decimal, ROUND_DOWN
+from subprocess import CalledProcessError
 import hashlib
 import inspect
 import json
@@ -14,7 +15,6 @@ import logging
 import os
 import random
 import re
-from subprocess import CalledProcessError
 import time
 
 from . import coverage
@@ -273,7 +273,7 @@ def wait_until(predicate, *, attempts=float('inf'),
 # The maximum number of nodes a single test can spawn
 MAX_NODES = 12
 # Don't assign rpc or p2p ports lower than this
-PORT_MIN = 11000
+PORT_MIN = int(os.getenv('TEST_RUNNER_PORT_MIN', default=11000))
 # The number of ports to "reserve" for p2p and rpc, each
 PORT_RANGE = 5000
 
