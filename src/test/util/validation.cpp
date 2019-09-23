@@ -9,9 +9,9 @@
 #include <validationinterface.h>
 
 void ValidationInterfaceTest::BlockConnected(
-    CValidationInterface &obj, const std::shared_ptr<const CBlock> &block,
-    const CBlockIndex *pindex) {
-    obj.BlockConnected(block, pindex);
+    ChainstateRole role, CValidationInterface &obj,
+    const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex) {
+    obj.BlockConnected(role, block, pindex);
 }
 
 void TestChainstateManager::ResetIbd() {

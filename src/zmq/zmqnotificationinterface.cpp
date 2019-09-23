@@ -3,12 +3,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <zmq/zmqnotificationinterface.h>
+
 #include <zmq/zmqpublishnotifier.h>
 #include <zmq/zmqutil.h>
 
 #include <zmq.h>
 
 #include <common/args.h>
+#include <kernel/chain.h>
 #include <logging.h>
 #include <primitives/block.h>
 
@@ -175,7 +177,7 @@ void CZMQNotificationInterface::TransactionRemovedFromMempool(
 }
 
 void CZMQNotificationInterface::BlockConnected(
-    const std::shared_ptr<const CBlock> &pblock,
+    ChainstateRole role, const std::shared_ptr<const CBlock> &pblock,
     const CBlockIndex *pindexConnected) {
     for (const CTransactionRef &ptx : pblock->vtx) {
         const CTransaction &tx = *ptx;

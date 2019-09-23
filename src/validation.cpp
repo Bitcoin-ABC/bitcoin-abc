@@ -6,6 +6,7 @@
 
 #include <validation.h>
 
+#include <kernel/chain.h>
 #include <kernel/chainparams.h>
 #include <kernel/coinstats.h>
 #include <kernel/disconnected_transactions.h>
@@ -2716,7 +2717,8 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
 
         if (full_flush_completed) {
             // Update best block in wallet (so we can detect restored wallets).
-            GetMainSignals().ChainStateFlushed(m_chain.GetLocator());
+            GetMainSignals().ChainStateFlushed(this->GetRole(),
+                                               m_chain.GetLocator());
         }
     } catch (const std::runtime_error &e) {
         return AbortNode(state, std::string("System error while flushing: ") +
@@ -3096,7 +3098,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
         m_chainman.MaybeCompleteSnapshotValidation();
     }
 
-    GetMainSignals().BlockConnected(pthisBlock, pindexNew);
+    GetMainSignals().BlockConnected(this->GetRole(), pthisBlock, pindexNew);
     return true;
 }
 

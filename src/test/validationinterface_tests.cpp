@@ -4,6 +4,7 @@
 
 #include <avalanche/processor.h>
 #include <consensus/validation.h>
+#include <kernel/chain.h>
 #include <primitives/block.h>
 #include <scheduler.h>
 #include <util/check.h>

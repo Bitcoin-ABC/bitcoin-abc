@@ -13,6 +13,7 @@
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
 #include <interfaces/wallet.h>
+#include <kernel/chain.h>
 #include <key.h>
 #include <key_io.h>
 #include <policy/policy.h>
@@ -522,7 +523,7 @@ bool CWallet::ChangeWalletPassphrase(
     return false;
 }
 
-void CWallet::chainStateFlushed(const CBlockLocator &loc) {
+void CWallet::chainStateFlushed(ChainstateRole role, const CBlockLocator &loc) {
     // Don't update the best block until the chain is attached so that in case
     // of a shutdown, the rescan will be restarted at next startup.
     if (m_attaching_chain) {
@@ -1358,7 +1359,8 @@ void CWallet::transactionRemovedFromMempool(const CTransactionRef &tx,
     }
 }
 
-void CWallet::blockConnected(const CBlock &block, int height) {
+void CWallet::blockConnected(ChainstateRole role, const CBlock &block,
+                             int height) {
     const BlockHash &block_hash = block.GetHash();
     LOCK(cs_wallet);
 
@@ -2784,7 +2786,8 @@ CWallet::Create(interfaces::Chain *chain, const std::string &name,
         }
 
         if (chain) {
-            walletInstance->chainStateFlushed(chain->getTipLocator());
+            walletInstance->chainStateFlushed(ChainstateRole::NORMAL,
+                                              chain->getTipLocator());
         }
     } else if (wallet_creation_flags & WALLET_FLAG_DISABLE_PRIVATE_KEYS) {
         // Make it impossible to disable private keys after creation
@@ -3069,7 +3072,8 @@ bool CWallet::AttachChain(const std::shared_ptr<CWallet> &walletInstance,
         }
         // The flag must be reset before calling chainStateFlushed
         walletInstance->m_attaching_chain = false;
-        walletInstance->chainStateFlushed(chain.getTipLocator());
+        walletInstance->chainStateFlushed(ChainstateRole::NORMAL,
+                                          chain.getTipLocator());
         walletInstance->database->IncrementUpdateCounter();
     }
     walletInstance->m_attaching_chain = false;
