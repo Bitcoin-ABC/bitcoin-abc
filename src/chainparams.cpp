@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 
+#include <chainparamsconstants.h>
 #include <chainparamsseeds.h>
 #include <consensus/merkle.h>
 #include <tinyformat.h>
@@ -104,13 +105,13 @@ public:
         consensus.fPowNoRetargeting = false;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000fd614ab0f9f59277fe2975");
+        consensus.nMinimumChainWork =
+            ChainParamsConstants::MAINNET_MINIMUM_CHAIN_WORK;
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
-        consensus.defaultAssumeValid = uint256S(
-            "000000000000000002be7b5e999ab5d40b8cbcbabd0f288695881da496eb65a2");
+        consensus.defaultAssumeValid =
+            ChainParamsConstants::MAINNET_DEFAULT_ASSUME_VALID;
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
@@ -272,13 +273,13 @@ public:
         consensus.fPowNoRetargeting = false;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S(
-            "0000000000000000000000000000000000000000000000512031dc9900995ec4");
+        consensus.nMinimumChainWork =
+            ChainParamsConstants::TESTNET_MINIMUM_CHAIN_WORK;
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
-        consensus.defaultAssumeValid = uint256S(
-            "00000000fbabb53ec6eddb3d56d3262f30dbb6549b391255090d351eccd01c24");
+        consensus.defaultAssumeValid =
+            ChainParamsConstants::TESTNET_DEFAULT_ASSUME_VALID;
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
