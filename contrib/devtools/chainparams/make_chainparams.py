@@ -63,7 +63,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=(
-        "Make chainparams file."
+        "Make chainparams file.\n"
         "Prerequisites: RPC access to a bitcoind node.\n\n"),
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--address', '-a', default="127.0.0.1:8332",
