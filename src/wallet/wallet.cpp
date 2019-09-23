@@ -2424,7 +2424,9 @@ CWallet::ListCoins(interfaces::Chain::Lock &locked_chain) const {
 
     for (const auto &coin : availableCoins) {
         CTxDestination address;
-        if (coin.fSpendable &&
+        if ((coin.fSpendable ||
+             (IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS) &&
+              coin.fSolvable)) &&
             ExtractDestination(
                 FindNonChangeParentOutput(*coin.tx->tx, coin.i).scriptPubKey,
                 address)) {
@@ -2434,13 +2436,17 @@ CWallet::ListCoins(interfaces::Chain::Lock &locked_chain) const {
 
     std::vector<COutPoint> lockedCoins;
     ListLockedCoins(lockedCoins);
+    // Include watch-only for wallets without private keys
+    const bool include_watch_only =
+        IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
+    const isminetype is_mine_filter =
+        include_watch_only ? ISMINE_WATCH_ONLY : ISMINE_SPENDABLE;
     for (const auto &output : lockedCoins) {
         auto it = mapWallet.find(output.GetTxId());
         if (it != mapWallet.end()) {
             int depth = it->second.GetDepthInMainChain();
             if (depth >= 0 && output.GetN() < it->second.tx->vout.size() &&
-                IsMine(it->second.tx->vout[output.GetN()]) ==
-                    ISMINE_SPENDABLE) {
+                IsMine(it->second.tx->vout[output.GetN()]) == is_mine_filter) {
                 CTxDestination address;
                 if (ExtractDestination(
                         FindNonChangeParentOutput(*it->second.tx, output.GetN())
