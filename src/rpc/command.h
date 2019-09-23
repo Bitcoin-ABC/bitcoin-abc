@@ -59,4 +59,4 @@ public:
     UniValue Execute(const JSONRPCRequest &request) const final;
 };
 
-#endif // BITCOIN_RPC_COMMAND_WITH_REQUEST_CONTEXT_H
+#endif // BITCOIN_RPC_COMMAND_H
