@@ -493,6 +493,7 @@ if(BUILD_BITCOIN_SEEDER)
 endif()
 
 include(BinaryTest)
+include(InstallationHelper)
 
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)
@@ -505,6 +506,8 @@ if(BUILD_BITCOIN_CLI)
 
 	add_to_symbols_check(bitcoin-cli)
 	add_to_security_check(bitcoin-cli)
+
+	install_target(bitcoin-cli)
 endif()
 
 # bitcoin-tx
@@ -518,6 +521,8 @@ if(BUILD_BITCOIN_TX)
 
 	add_to_symbols_check(bitcoin-tx)
 	add_to_security_check(bitcoin-tx)
+
+	install_target(bitcoin-tx)
 endif()
 
 # bitcoind
@@ -528,6 +533,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 add_to_symbols_check(bitcoind)
 add_to_security_check(bitcoind)
+
+install_target(bitcoind)
 
 # Bitcoin-qt
 if(BUILD_BITCOIN_QT)
