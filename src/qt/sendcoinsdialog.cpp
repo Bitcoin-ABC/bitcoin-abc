@@ -640,6 +640,9 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
         coin_control = *CoinControlDialog::coinControl();
     }
 
+    // Include watch-only for wallets without private key
+    coin_control.fAllowWatchOnly = model->privateKeysDisabled();
+
     // Calculate available amount to send.
     Amount amount = model->wallet().getAvailableBalance(coin_control);
     for (int i = 0; i < ui->entries->count(); ++i) {
@@ -709,6 +712,8 @@ void SendCoinsDialog::updateCoinControlState(CCoinControl &ctrl) {
     } else {
         ctrl.m_feerate.reset();
     }
+    // Include watch-only for wallets without private key
+    ctrl.fAllowWatchOnly = model->privateKeysDisabled();
 }
 
 void SendCoinsDialog::updateSmartFeeLabel() {
