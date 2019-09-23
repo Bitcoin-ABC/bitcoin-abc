@@ -115,7 +115,7 @@ class GenerateChainParamsTests(unittest.TestCase):
             'rpc': mockRPC,
             'block': None,
         }
-        self.assertEqual(GenerateChainParams(args), "{}\n{}\n".format(
+        self.assertEqual(GenerateChainParams(args), "{}\n{}".format(
                          "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
                          "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1"))
 
@@ -126,7 +126,7 @@ class GenerateChainParamsTests(unittest.TestCase):
             'rpc': mockRPC,
             'block': None,
         }
-        self.assertEqual(GenerateChainParams(args), "{}\n{}\n".format(
+        self.assertEqual(GenerateChainParams(args), "{}\n{}".format(
                          "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
                          "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1"))
 
@@ -137,7 +137,7 @@ class GenerateChainParamsTests(unittest.TestCase):
             'rpc': mockRPC,
             'block': self.blockHash1,
         }
-        self.assertEqual(GenerateChainParams(args), "{}\n{}\n".format(
+        self.assertEqual(GenerateChainParams(args), "{}\n{}".format(
                          "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
                          "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1"))
 

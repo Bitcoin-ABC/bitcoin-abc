@@ -57,7 +57,7 @@ def get_chainparams(rpc_caller, block):
 
 def main(args):
     (chainwork, blockhash) = get_chainparams(args['rpc'], args['block'])
-    output = "{}\n{}\n".format(blockhash, chainwork)
+    output = "{}\n{}".format(blockhash, chainwork)
     return output
 
 
