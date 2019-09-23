@@ -17,3 +17,21 @@ macro(add_to_symbols_check BINARY)
 		add_dependencies(check-symbols "${CUSTOM_TARGET_NAME}")
 	endif()
 endmacro()
+
+macro(add_to_security_check BINARY)
+	set(CUSTOM_TARGET_NAME "check-security-${BINARY}")
+	add_custom_target("${CUSTOM_TARGET_NAME}"
+		COMMAND
+			${CMAKE_COMMAND} -E echo "Running security-check.py on ${BINARY}..."
+		COMMAND
+			"${PYTHON_EXECUTABLE}"
+			"${CMAKE_SOURCE_DIR}/contrib/devtools/security-check.py"
+			"${BINARY}"
+		DEPENDS
+			"${BINARY}"
+	)
+
+	if(TARGET check-security)
+		add_dependencies(check-security "${CUSTOM_TARGET_NAME}")
+	endif()
+endmacro()

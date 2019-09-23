@@ -504,6 +504,7 @@ if(BUILD_BITCOIN_CLI)
 	target_link_libraries(bitcoin-cli common rpcclient Event)
 
 	add_to_symbols_check(bitcoin-cli)
+	add_to_security_check(bitcoin-cli)
 endif()
 
 # bitcoin-tx
@@ -516,6 +517,7 @@ if(BUILD_BITCOIN_TX)
 	target_link_libraries(bitcoin-tx bitcoinconsensus)
 
 	add_to_symbols_check(bitcoin-tx)
+	add_to_security_check(bitcoin-tx)
 endif()
 
 # bitcoind
@@ -525,6 +527,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoind PRIVATE bitcoind-res.rc)
 endif()
 add_to_symbols_check(bitcoind)
+add_to_security_check(bitcoind)
 
 # Bitcoin-qt
 if(BUILD_BITCOIN_QT)

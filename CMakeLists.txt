@@ -37,6 +37,7 @@ find_package(PythonInterp 3.4 REQUIRED)
 add_custom_target(check-all)
 add_custom_target(check)
 add_custom_target(check-symbols)
+add_custom_target(check-security)
 
 add_subdirectory(src)
 add_subdirectory(test)

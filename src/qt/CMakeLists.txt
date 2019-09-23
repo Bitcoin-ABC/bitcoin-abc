@@ -281,6 +281,7 @@ target_link_libraries(bitcoin-qt bitcoin-qt-base)
 
 include(BinaryTest)
 add_to_symbols_check(bitcoin-qt)
+add_to_security_check(bitcoin-qt)
 
 # Test tests
 add_subdirectory(test)
