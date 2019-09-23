@@ -2508,6 +2508,27 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             std::make_unique<ChainstateManager>(chainman_opts, blockman_opts);
         ChainstateManager &chainman = *node.chainman;
 
+        // This is defined and set here instead of inline in validation.h to
+        // avoid a hard dependency between validation and index/base, since the
+        // latter is not in libbitcoinkernel.
+        chainman.restart_indexes = [&node]() {
+            LogPrintf("[snapshot] restarting indexes\n");
+
+            // Drain the validation interface queue to ensure that the old
+            // indexes don't have any pending work.
+            SyncWithValidationInterfaceQueue();
+
+            for (auto *index : node.indexes) {
+                index->Interrupt();
+                index->Stop();
+                if (!(index->Init() && index->StartBackgroundSync())) {
+                    LogPrintf("[snapshot] WARNING failed to restart index %s "
+                              "on snapshot chain\n",
+                              index->GetName());
+                }
+            }
+        };
+
         node::ChainstateLoadOptions options;
         options.mempool = Assert(node.mempool.get());
         options.reindex = node::fReindex;
@@ -3045,8 +3066,11 @@ bool StartIndexBackgroundSync(NodeContext &node) {
     // indexes_start_block='nullptr' means "start from height 0".
     std::optional<const CBlockIndex *> indexes_start_block;
     std::string older_index_name;
-
     ChainstateManager &chainman = *Assert(node.chainman);
+    const Chainstate &chainstate =
+        WITH_LOCK(::cs_main, return chainman.GetChainstateForIndexing());
+    const CChain &index_chain = chainstate.m_chain;
+
     for (auto index : node.indexes) {
         const IndexSummary &summary = index->GetSummary();
         if (summary.synced) {
@@ -3056,11 +3080,10 @@ bool StartIndexBackgroundSync(NodeContext &node) {
         // Get the last common block between the index best block and the active
         // chain
         LOCK(::cs_main);
-        const CChain &active_chain = chainman.ActiveChain();
         const CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(
             BlockHash{summary.best_block_hash});
-        if (!active_chain.Contains(pindex)) {
-            pindex = active_chain.FindFork(pindex);
+        if (!index_chain.Contains(pindex)) {
+            pindex = index_chain.FindFork(pindex);
         }
 
         if (!indexes_start_block || !pindex ||
@@ -3082,7 +3105,7 @@ bool StartIndexBackgroundSync(NodeContext &node) {
             start_block = chainman.ActiveChain().Genesis();
         }
         if (!chainman.m_blockman.CheckBlockDataAvailability(
-                *chainman.ActiveChain().Tip(), *Assert(start_block))) {
+                *index_chain.Tip(), *Assert(start_block))) {
             return InitError(strprintf(
                 Untranslated("%s best block of the index goes beyond pruned "
                              "data. Please disable the index or reindex (which "

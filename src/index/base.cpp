@@ -73,9 +73,11 @@ BaseIndex::~BaseIndex() {
 }
 
 bool BaseIndex::Init() {
-    // m_chainstate member gives indexing code access to node internals. It is
-    // removed in followup https://github.com/bitcoin/bitcoin/pull/24230
-    m_chainstate = &m_chain->context()->chainman->ActiveChainstate();
+    AssertLockNotHeld(cs_main);
+
+    // May need reset if index is being restarted.
+    m_interrupt.reset();
+
     // Register to validation interface before setting the 'm_synced' flag, so
     // that callbacks are not missed once m_synced is true.
     RegisterValidationInterface(this);
@@ -86,7 +88,11 @@ bool BaseIndex::Init() {
     }
 
     LOCK(cs_main);
-    CChain &active_chain = m_chainstate->m_chain;
+    // m_chainstate member gives indexing code access to node internals. It is
+    // removed in followup https://github.com/bitcoin/bitcoin/pull/24230
+    m_chainstate = &m_chain->context()->chainman->GetChainstateForIndexing();
+    CChain &index_chain = m_chainstate->m_chain;
+
     if (locator.IsNull()) {
         SetBestBlockIndex(nullptr);
     } else {
@@ -116,7 +122,7 @@ bool BaseIndex::Init() {
     // empty datadir and an index enabled. If this is the case, indexation will
     // happen solely via `BlockConnected` signals until, possibly, the next
     // restart.
-    m_synced = start_block == active_chain.Tip();
+    m_synced = start_block == index_chain.Tip();
     m_init = true;
     return true;
 }
@@ -145,6 +151,9 @@ void BaseIndex::ThreadSync() {
         int64_t last_locator_write_time = 0;
         while (true) {
             if (m_interrupt) {
+                LogPrintf("%s: m_interrupt set; exiting ThreadSync\n",
+                          GetName());
+
                 SetBestBlockIndex(pindex);
                 // No need to handle errors in Commit. If it fails, the error
                 // will be already be logged. The best way to recover is to
@@ -254,6 +263,17 @@ bool BaseIndex::Rewind(const CBlockIndex *current_tip,
 void BaseIndex::BlockConnected(ChainstateRole role,
                                const std::shared_ptr<const CBlock> &block,
                                const CBlockIndex *pindex) {
+    // Ignore events from the assumed-valid chain; we will process its blocks
+    // (sequentially) after it is fully verified by the background chainstate.
+    // This is to avoid any out-of-order indexing.
+    //
+    // TODO at some point we could parameterize whether a particular index can
+    // be built out of order, but for now just do the conservative simple thing.
+    if (role == ChainstateRole::ASSUMEDVALID) {
+        return;
+    }
+
+    // Ignore BlockConnected signals until we have fully indexed the chain.
     if (!m_synced) {
         return;
     }
@@ -305,6 +325,12 @@ void BaseIndex::BlockConnected(ChainstateRole role,
 
 void BaseIndex::ChainStateFlushed(ChainstateRole role,
                                   const CBlockLocator &locator) {
+    // Ignore events from the assumed-valid chain; we will process its blocks
+    // (sequentially) after it is fully verified by the background chainstate.
+    if (role == ChainstateRole::ASSUMEDVALID) {
+        return;
+    }
+
     if (!m_synced) {
         return;
     }

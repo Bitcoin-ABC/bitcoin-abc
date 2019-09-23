@@ -1229,6 +1229,10 @@ public:
     explicit ChainstateManager(Options options,
                                node::BlockManager::Options blockman_options);
 
+    //! Function to restart active indexes; set dynamically to avoid a circular
+    //! dependency on `base/index.cpp`.
+    std::function<void()> restart_indexes = std::function<void()>();
+
     const Config &GetConfig() const { return m_options.config; }
 
     const CChainParams &GetParams() const {
@@ -1608,6 +1612,16 @@ public:
     //!
     //! @sa node/chainstate:LoadChainstate()
     bool ValidatedSnapshotCleanup() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    //! @returns the chainstate that indexes should consult when ensuring that
+    //!   an index is synced with a chain where we can expect block index
+    //!   entries to have BLOCK_HAVE_DATA beneath the tip.
+    //!
+    //!   In other words, give us the chainstate for which we can reasonably
+    //!   expect that all blocks beneath the tip have been indexed. In practice
+    //!   this means when using an assumed-valid chainstate based upon a
+    //!   snapshot, return only the fully validated chain.
+    Chainstate &GetChainstateForIndexing() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /** Dump the recent block headers reception time to a file. */
     bool DumpRecentHeadersTime(const fs::path &filePath) const
