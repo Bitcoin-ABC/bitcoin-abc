@@ -19,8 +19,8 @@
 #include <wallet/fees.h>
 #include <wallet/ismine.h>
 #include <wallet/load.h>
+#include <wallet/psbtwallet.h>
 #include <wallet/rpcdump.h>
-#include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 
 namespace interfaces {
@@ -329,6 +329,14 @@ namespace {
                 return MakeWalletTx(*m_wallet, mi->second);
             }
             return {};
+        }
+        TransactionError
+        fillPSBT(PartiallySignedTransaction &psbtx, bool &complete,
+                 SigHashType sighash_type =
+                     SigHashType().withForkId() /* SIGHASH_ALL|FORKID */,
+                 bool sign = true, bool bip32derivs = false) override {
+            return FillPSBT(m_wallet.get(), psbtx, complete, sighash_type, sign,
+                            bip32derivs);
         }
         WalletBalances getBalances() override {
             const auto bal = m_wallet->GetBalance();

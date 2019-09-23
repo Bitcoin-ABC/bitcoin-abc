@@ -7,6 +7,7 @@
 
 #include <amount.h>                 // For Amount
 #include <primitives/transaction.h> // For CTxOut
+#include <psbt.h>
 #include <pubkey.h> // For CKeyID and CScriptID (definitions needed in CTxDestination instantiation)
 #include <script/standard.h>           // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString
@@ -188,6 +189,13 @@ public:
                                         WalletTxStatus &tx_status,
                                         WalletOrderForm &order_form,
                                         bool &in_mempool, int &num_blocks) = 0;
+
+    //! Fill PSBT.
+    virtual TransactionError
+    fillPSBT(PartiallySignedTransaction &psbtx, bool &complete,
+             SigHashType sighash_type =
+                 SigHashType().withForkId() /* SIGHASH_ALL|FORKID */,
+             bool sign = true, bool bip32derivs = false) = 0;
 
     //! Get balances.
     virtual WalletBalances getBalances() = 0;
