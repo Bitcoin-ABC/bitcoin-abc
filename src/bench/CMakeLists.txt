@@ -9,7 +9,6 @@ set(BENCH_DATA_RAW_FILES
 # Process raw files.
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data")
 
-find_program(PYTHON python3)
 foreach(_raw_file ${BENCH_DATA_RAW_FILES})
 	string(APPEND
 		_generated_header_output
@@ -21,8 +20,8 @@ foreach(_raw_file ${BENCH_DATA_RAW_FILES})
 
 	add_custom_command(
 		OUTPUT "${_generated_header_output}"
-		COMMAND "${PYTHON}"
-		ARGS
+		COMMAND 
+			"${PYTHON_EXECUTABLE}"
 			"data/convert-raw-to-header.py"
 			"${_test_name}"
 			"${_raw_file}" > "${_generated_header_output}"

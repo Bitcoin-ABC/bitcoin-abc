@@ -2,11 +2,11 @@
 
 add_custom_target(check-devtools)
 
-set(DEVTOOLS_TESTS
+set(DEVTOOLS_TESTS_PYTHON
   ./chainparams/test_make_chainparams.py
 )
 
-foreach(TEST ${DEVTOOLS_TESTS})
+foreach(TEST ${DEVTOOLS_TESTS_PYTHON})
   get_filename_component(TESTNAME ${TEST} NAME)
   get_filename_component(TESTPATH ${TEST} ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
   get_filename_component(WORKDIR ${TESTPATH} DIRECTORY)
@@ -14,6 +14,7 @@ foreach(TEST ${DEVTOOLS_TESTS})
     WORKING_DIRECTORY
       ${WORKDIR}
     COMMAND
+      "${PYTHON_EXECUTABLE}"
       "./${TESTNAME}"
   )
   add_dependencies(check-devtools "check-devtools-${TESTNAME}")

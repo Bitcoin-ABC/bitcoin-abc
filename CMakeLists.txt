@@ -30,6 +30,9 @@ if(NOT CMAKE_BUILD_TYPE)
 		"Select the configuration for the build" FORCE)
 endif()
 
+# Find the python interpreter. This is required for several targets.
+find_package(PythonInterp 3.4 REQUIRED)
+
 # Add the magic targets `check` and `check-all`
 add_custom_target(check-all)
 add_custom_target(check)
