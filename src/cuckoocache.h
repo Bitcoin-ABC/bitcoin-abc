@@ -13,26 +13,28 @@
 #include <memory>
 #include <vector>
 
-/** namespace CuckooCache provides high performance cache primitives
+/**
+ * High-performance cache primitives.
  *
  * Summary:
  *
- * 1) bit_packed_atomic_flags is bit-packed atomic flags for garbage collection
+ * 1. @ref bit_packed_atomic_flags is bit-packed atomic flags for garbage
+ * collection
  *
- * 2) cache is a cache which is performant in memory usage and lookup speed. It
- * is lockfree for erase operations. Elements are lazily erased on the next
- * insert.
+ * 2. @ref cache is a cache which is performant in memory usage and lookup
+ * speed. It is lockfree for erase operations. Elements are lazily erased on the
+ * next insert.
  */
 namespace CuckooCache {
 /**
- * bit_packed_atomic_flags implements a container for garbage collection flags
- * that is only thread unsafe on calls to setup. This class bit-packs collection
- * flags for memory efficiency.
+ * @ref bit_packed_atomic_flags implements a container for garbage collection
+ * flags that is only thread unsafe on calls to setup. This class bit-packs
+ * collection flags for memory efficiency.
  *
- * All operations are std::memory_order_relaxed so external mechanisms must
+ * All operations are `std::memory_order_relaxed` so external mechanisms must
  * ensure that writes and reads are properly synchronized.
  *
- * On setup(n), all bits up to n are marked as collected.
+ * On setup(n), all bits up to `n` are marked as collected.
  *
  * Under the hood, because it is an 8-bit type, it makes sense to use a multiple
  * of 8 for setup, but it will be safe if that is not the case as well.
@@ -41,12 +43,12 @@ class bit_packed_atomic_flags {
     std::unique_ptr<std::atomic<uint8_t>[]> mem;
 
 public:
-    /** No default constructor as there must be some size */
+    /** No default constructor, as there must be some size. */
     bit_packed_atomic_flags() = delete;
 
     /**
-     * bit_packed_atomic_flags constructor creates memory to sufficiently keep
-     * track of garbage collection information for size entries.
+     * bit_packed_atomic_flags constructor creates memory to sufficiently
+     * keep track of garbage collection information for `size` entries.
      *
      * @param size the number of elements to allocate space for
      *
@@ -66,7 +68,7 @@ public:
 
     /**
      * setup marks all entries and ensures that bit_packed_atomic_flags can
-     * store at least size entries
+     * store at least `b` entries.
      *
      * @param b the number of elements to allocate space for
      * @post bit_set, bit_unset, and bit_is_set function properly forall x. x <
@@ -82,7 +84,7 @@ public:
     /**
      * bit_set sets an entry as discardable.
      *
-     * @param s the index of the entry to bit_set.
+     * @param s the index of the entry to bit_set
      * @post immediately subsequent call (assuming proper external memory
      * ordering) to bit_is_set(s) == true.
      */
@@ -91,9 +93,9 @@ public:
     }
 
     /**
-     * bit_unset marks an entry as something that should not be overwritten
+     * bit_unset marks an entry as something that should not be overwritten.
      *
-     * @param s the index of the entry to bit_unset.
+     * @param s the index of the entry to bit_unset
      * @post immediately subsequent call (assuming proper external memory
      * ordering) to bit_is_set(s) == false.
      */
@@ -102,10 +104,10 @@ public:
     }
 
     /**
-     * bit_is_set queries the table for discardability at s
+     * bit_is_set queries the table for discardability at `s`.
      *
-     * @param s the index of the entry to read.
-     * @returns if the bit at index s was set.
+     * @param s the index of the entry to read
+     * @returns true if the bit at index `s` was set, false otherwise
      * */
     inline bool bit_is_set(uint32_t s) const {
         return (1 << (s & 7)) & mem[s >> 3].load(std::memory_order_relaxed);
@@ -113,15 +115,15 @@ public:
 };
 
 /**
- * cache implements a cache with properties similar to a cuckoo-set
+ * @ref cache implements a cache with properties similar to a cuckoo-set.
  *
- *  The cache is able to hold up to (~(uint32_t)0) - 1 elements.
+ *  The cache is able to hold up to `(~(uint32_t)0) - 1` elements.
  *
  *  Read Operations:
- *      - contains(*, false)
+ *      - contains() for `erase=false`
  *
  *  Read+Erase Operations:
- *      - contains(*, true)
+ *      - contains() for `erase=true`
  *
  *  Erase Operations:
  *      - allow_erase()
@@ -138,10 +140,10 @@ public:
  *
  * User Must Guarantee:
  *
- * 1) Write Requires synchronized access (e.g., a lock)
- * 2) Read Requires no concurrent Write, synchronized with the last insert.
- * 3) Erase requires no concurrent Write, synchronized with last insert.
- * 4) An Erase caller must release all memory before allowing a new Writer.
+ * 1. Write requires synchronized access (e.g. a lock)
+ * 2. Read requires no concurrent Write, synchronized with last insert.
+ * 3. Erase requires no concurrent Write, synchronized with last insert.
+ * 4. An Erase caller must release all memory before allowing a new Writer.
  *
  *
  * Note on function names:
@@ -196,7 +198,7 @@ private:
 
     /**
      * depth_limit determines how many elements insert should try to replace.
-     * Should be set to log2(n)
+     * Should be set to log2(n).
      */
     uint8_t depth_limit;
 
@@ -213,7 +215,7 @@ private:
      *
      * We need to map the 32-bit input hash onto a hash bucket in a range [0,
      * size) in a manner which preserves as much of the hash's uniformity as
-     * possible.  Ideally this would be done by bitmasking but the size is
+     * possible. Ideally this would be done by bitmasking but the size is
      * usually not a power of two.
      *
      * The naive approach would be to use a mod -- which isn't perfectly uniform
@@ -231,11 +233,12 @@ private:
      * still slower than other options:
      *
      * Instead we treat the 32-bit random number as a Q32 fixed-point number in
-     * the range [0,1) and simply multiply it by the size.  Then we just shift
-     * the result down by 32-bits to get our bucket number.  The result has
+     * the range [0, 1) and simply multiply it by the size. Then we just shift
+     * the result down by 32-bits to get our bucket number. The result has
      * non-uniformity the same as a mod, but it is much faster to compute. More
      * about this technique can be found at
      *  http://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
+     * .
      *
      * The resulting non-uniformity is also more equally distributed which would
      * be advantageous for something like linear probing, though it shouldn't
@@ -246,8 +249,9 @@ private:
      * high 32 bits of a 32*32->64 multiply, which means the operation is
      * reasonably fast even on a typical 32-bit processor.
      *
-     * @param e the element whose hashes will be returned
-     * @returns std::array<uint32_t, 8> of deterministic hashes derived from e
+     * @param e The element whose hashes will be returned
+     * @returns Deterministic hashes derived from `e` uniformly mapped onto the
+     * range [0, size)
      */
     inline std::array<uint32_t, 8> compute_hashes(const Element &e) const {
         return {{uint32_t(uint64_t(hash_function.template operator()<0>(e)) *
@@ -276,20 +280,22 @@ private:
                           32)}};
     }
 
-    /* end
-     * @returns a constexpr index that can never be inserted to */
+    /**
+     * invalid returns a special index that can never be inserted to
+     * @returns the special constexpr index that can never be inserted to
+     */
     constexpr uint32_t invalid() const { return ~uint32_t(0); }
 
     /**
-     * allow_erase marks the element at index n as discardable.
-     * Threadsafe without any concurrent insert.
+     * allow_erase marks the element at index `n` as discardable. Threadsafe
+     * without any concurrent insert.
      * @param n the index to allow erasure of
      */
     inline void allow_erase(uint32_t n) const { collection_flags.bit_set(n); }
 
     /**
-     * please_keep marks the element at index n as an entry that should be kept.
-     * Threadsafe without any concurrent insert.
+     * please_keep marks the element at index `n` as an entry that should be
+     * kept. Threadsafe without any concurrent insert.
      * @param n the index to prioritize keeping
      */
     inline void please_keep(uint32_t n) const { collection_flags.bit_unset(n); }
@@ -384,7 +390,7 @@ public:
      * negligible compared to the size of the elements.
      *
      * @param bytes the approximate number of bytes to use for this data
-     * structure.
+     * structure
      * @returns the maximum number of elements storable (see setup()
      * documentation for more detail)
      */
@@ -400,10 +406,12 @@ public:
      * It drops the last tried element if it runs out of depth before
      * encountering an open slot.
      *
-     * Thus
+     * Thus:
      *
+     * ```
      * insert(x);
      * return contains(x, false);
+     * ```
      *
      * is not guaranteed to return true.
      *
@@ -441,9 +449,9 @@ public:
              * Swap with the element at the location that was not the last one
              * looked at. Example:
              *
-             * 1) On first iteration, last_loc == invalid(), find returns last,
+             * 1. On first iteration, last_loc == invalid(), find returns last,
              * so last_loc defaults to locs[0].
-             * 2) On further iterations, where last_loc == locs[k], last_loc
+             * 2. On further iterations, where last_loc == locs[k], last_loc
              * will go to locs[k+1 % 8], i.e., next of the 8 indices wrapping
              * around to 0 if needed.
              *
@@ -468,17 +476,19 @@ public:
     }
 
     /**
-     * contains iterates through the hash locations for a given element  and
+     * contains iterates through the hash locations for a given element and
      * checks to see if it is present.
      *
      * contains does not check garbage collected state (in other words, garbage
      * is only collected when the space is needed), so:
      *
+     * ```
      * insert(x);
      * if (contains(x, true))
      *     return contains(x, false);
      * else
      *     return true;
+     * ```
      *
      * executed on a single thread will always return true!
      *
@@ -487,7 +497,7 @@ public:
      * contains returns a bool set true if the element was found.
      *
      * @param e the element to check
-     * @param erase
+     * @param erase whether to attempt setting the garbage collect flag
      *
      * @post if erase is true and the element is found, then the garbage collect
      * flag is set
