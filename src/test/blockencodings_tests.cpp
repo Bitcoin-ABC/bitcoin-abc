@@ -17,11 +17,7 @@
 
 static std::vector<std::pair<TxHash, CTransactionRef>> extra_txn;
 
-struct RegtestingSetup : public TestingSetup {
-    RegtestingSetup() : TestingSetup(CBaseChainParams::REGTEST) {}
-};
-
-BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, RegtestingSetup)
+BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, RegTestingSetup)
 
 static COutPoint InsecureRandOutPoint() {
     return COutPoint(TxId(InsecureRand256()), 0);

@@ -149,8 +149,7 @@ TestingSetup::~TestingSetup() {
     pblocktree.reset();
 }
 
-TestChain100Setup::TestChain100Setup()
-    : TestingSetup(CBaseChainParams::REGTEST) {
+TestChain100Setup::TestChain100Setup() {
     // Generate a 100-block chain:
     coinbaseKey.MakeNewKey(true);
     CScript scriptPubKey = CScript() << ToByteVector(coinbaseKey.GetPubKey())

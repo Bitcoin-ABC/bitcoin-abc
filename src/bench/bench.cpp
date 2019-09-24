@@ -148,7 +148,7 @@ void benchmark::BenchRunner::RunAll(Printer &printer, uint64_t num_evals,
     printer.header();
 
     for (const auto &p : benchmarks()) {
-        TestingSetup test{CBaseChainParams::REGTEST};
+        RegTestingSetup test{};
         assert(::ChainActive().Height() == 0);
 
         if (!std::regex_match(p.first, baseMatch, reFilter)) {
