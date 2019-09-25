@@ -159,6 +159,18 @@ check_cxx_source_compiles("
     }
 " CHAR_EQUALS_INT8)
 
+check_cxx_source_compiles("
+    __attribute__((visibility(\"default\"))) int main() {
+        return 0;
+    }
+" HAVE_FUNC_ATTRIBUTE_VISIBILITY)
+
+check_cxx_source_compiles("
+    __declspec(dllexport) int main() {
+        return 0;
+    }
+" HAVE_FUNC_ATTRIBUTE_DLLEXPORT)
+
 # OpenSSL functionality
 set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_CRYPTO_INCLUDES})
 set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})

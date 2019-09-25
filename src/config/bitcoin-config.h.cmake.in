@@ -54,6 +54,9 @@
 
 #cmakedefine CHAR_EQUALS_INT8 0
 
+#cmakedefine HAVE_FUNC_ATTRIBUTE_VISIBILITY 1
+#cmakedefine HAVE_FUNC_ATTRIBUTE_DLLEXPORT 1
+
 #cmakedefine HAVE_DECL_EVP_MD_CTX_NEW 1
 
 #cmakedefine ENABLE_WALLET 1
