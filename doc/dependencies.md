@@ -14,7 +14,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | FreeType | [2.7.1](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
 | GCC |  | [5.0](https://gcc.gnu.org/) (C++14 support) |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
-| libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
+| libevent | [2.1.11-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
 | libpng |  |  |  |  | Yes |
 | libsrvg | |  |  |  |  |
 | MiniUPnPc | [2.0.20180203](http://miniupnp.free.fr/files) | 1.5 | No |  |  |
