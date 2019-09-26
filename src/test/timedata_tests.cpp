@@ -6,13 +6,14 @@
 
 #include <netaddress.h>
 #include <noui.h>
+#include <test/lib/logging.h>
 #include <warnings.h>
 
 #include <test/setup_common.h>
 
-#include <string>
-
 #include <boost/test/unit_test.hpp>
+
+#include <string>
 
 BOOST_FIXTURE_TEST_SUITE(timedata_tests, BasicTestingSetup)
 
@@ -58,10 +59,12 @@ BOOST_AUTO_TEST_CASE(addtimedata) {
     // Filter size is 1 + 3 = 4: It is always initialized with a single element
     // (offset 0)
 
-    noui_suppress();
-    // filter size 5
-    MultiAddTimeData(1, DEFAULT_MAX_TIME_ADJUSTMENT + 1);
-    noui_reconnect();
+    {
+        ASSERT_DEBUG_LOG(
+            "Please check that your computer's date and time are correct!");
+        // filter size 5
+        MultiAddTimeData(1, DEFAULT_MAX_TIME_ADJUSTMENT + 1);
+    }
 
     BOOST_CHECK(GetWarnings("gui").find("clock is wrong") != std::string::npos);
 

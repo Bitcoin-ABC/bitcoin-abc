@@ -70,6 +70,9 @@ bool BCLog::Logger::StartLogging() {
         if (m_print_to_console) {
             fwrite(s.data(), 1, s.size(), stdout);
         }
+        for (const auto &cb : m_print_callbacks) {
+            cb(s);
+        }
 
         m_msgs_before_open.pop_front();
     }
@@ -87,6 +90,7 @@ void BCLog::Logger::DisconnectTestLogger() {
         fclose(m_fileout);
     }
     m_fileout = nullptr;
+    m_print_callbacks.clear();
 }
 
 struct CLogCategoryDesc {
@@ -223,6 +227,9 @@ void BCLog::Logger::LogPrintStr(const std::string &str) {
         // Print to console.
         fwrite(str_prefixed.data(), 1, str_prefixed.size(), stdout);
         fflush(stdout);
+    }
+    for (const auto &cb : m_print_callbacks) {
+        cb(str_prefixed);
     }
     if (m_print_to_file) {
         assert(m_fileout != nullptr);
