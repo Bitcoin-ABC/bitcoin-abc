@@ -3,7 +3,7 @@ name: "bitcoin-abc-0.20-win"
 enable_cache: true
 distro: "debian"
 suites:
-- "stretch"
+- "buster"
 architectures:
 - "amd64"
 packages:

@@ -53,7 +53,7 @@ Setting up the Gitian image
 ---------------------------
 
 Gitian needs a virtual image of the operating system to build in. Currently
-this is Debian Stretch x86_64. This image will be copied and used every time
+this is Debian Buster x86_64. This image will be copied and used every time
 that a build is started to make sure that the build is deterministic. Creating
 the image will take a while, but only has to be done once.
 
@@ -61,7 +61,7 @@ Execute the following as user `vagrant`:
 
 ```bash
 cd gitian-builder
-./bin/make-base-vm --lxc --distro debian --suite stretch --arch amd64
+./bin/make-base-vm --lxc --distro debian --suite buster --arch amd64
 ```
 
 There will be a lot of warnings printed during the build of the image. These

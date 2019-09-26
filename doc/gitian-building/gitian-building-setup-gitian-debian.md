@@ -90,8 +90,7 @@ Setting up the Gitian image
 ---------------------------
 
 Gitian needs a virtual image of the operating system to build in.
-Currently this is Ubuntu Bionic x86_64, however previous releases were built
-with Ubuntu Trusty x86_64.
+Currently this is Debian 10 Buster x86_64.
 This image will be copied and used every time that a build is started to
 make sure that the build is deterministic.
 Creating the image will take a while, but only has to be done once.
@@ -100,7 +99,7 @@ Execute the following as user `gitianuser`:
 
 ```bash
 cd gitian-builder
-bin/make-base-vm --lxc --arch amd64 --distro debian --suite stretch
+bin/make-base-vm --lxc --arch amd64 --distro debian --suite buster
 ```
 
 There will be a lot of warnings printed during the build of the image. These can be ignored.

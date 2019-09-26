@@ -3,7 +3,7 @@ name: "bitcoin-abc-0.20-osx"
 enable_cache: true
 distro: "debian"
 suites:
-- "stretch"
+- "buster"
 architectures:
 - "amd64"
 packages:
@@ -25,6 +25,7 @@ packages:
 - "libcap-dev"
 - "libz-dev"
 - "libbz2-dev"
+- "libtinfo5"
 - "python"
 - "python-dev"
 - "python-setuptools"

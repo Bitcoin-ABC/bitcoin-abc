@@ -3,7 +3,7 @@ name: "bitcoin-abc-0.20-linux"
 enable_cache: true
 distro: "debian"
 suites:
-- "stretch"
+- "buster"
 architectures:
 - "amd64"
 multiarch:
@@ -28,7 +28,7 @@ packages:
 - "bsdmainutils"
 - "ca-certificates"
 - "python"
-- "lib32stdc++-6-dev"
+- "lib32stdc++-8-dev"
 - "libc6-dev:i386"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"

@@ -84,15 +84,15 @@ So, if you use LXC:
 export PATH="$PATH":${HOME}/gitian-builder/libexec
 export USE_LXC=1
 cd ~/gitian-builder
-./libexec/make-clean-vm --suite stretch --arch amd64
+./libexec/make-clean-vm --suite buster --arch amd64
 
-LXC_ARCH=amd64 LXC_SUITE=stretch on-target -u root dpkg --add-architecture i386
-LXC_ARCH=amd64 LXC_SUITE=stretch on-target -u root apt-get update
-LXC_ARCH=amd64 LXC_SUITE=stretch on-target -u root \
+LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root dpkg --add-architecture i386
+LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root apt-get update
+LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root \
   -e DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install \
   $( sed -ne '/^packages:/,/^[^-]/ {/^- .*/{s/"//g;s/- //;p}}' ../bitcoin-abc/contrib/gitian-descriptors/*|sort|uniq )
-LXC_ARCH=amd64 LXC_SUITE=stretch on-target -u root apt-get -q -y purge grub
-LXC_ARCH=amd64 LXC_SUITE=stretch on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root apt-get -q -y purge grub
+LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
 ```
 
 And then set offline mode for apt-cacher-ng:
@@ -109,8 +109,8 @@ sudo service apt-cacher-ng restart
 Then when building, override the remote URLs that gbuild would otherwise pull from the Gitian descriptors::
 ```bash
 cd ~
-BTCPATH=${HOME}/bitcoin-abc
-COMMIT=<commmit hash or tag>
+export URL=${HOME}/bitcoin-abc
+export COMMIT=<commmit hash or tag>
 
-./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${BTCPATH} ${BTCPATH}/contrib/gitian-descriptors/gitian-win-signer.yml
+./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} ${URL}/contrib/gitian-descriptors/gitian-win.yml
 ```

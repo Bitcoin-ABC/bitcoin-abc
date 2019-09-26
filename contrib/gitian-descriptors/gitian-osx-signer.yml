@@ -2,7 +2,7 @@
 name: "bitcoin-dmg-signer"
 distro: "debian"
 suites:
-- "stretch"
+- "buster"
 architectures:
 - "amd64"
 packages:
