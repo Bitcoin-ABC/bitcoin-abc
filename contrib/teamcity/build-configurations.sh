@@ -97,12 +97,12 @@ case "$ABC_BUILD_NAME" in
 
   build-ibd)
     "${CI_SCRIPTS_DIR}"/build.sh
-    "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet
+    "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -debug=net
     ;;
 
   build-ibd-no-assumevalid-checkpoint)
     "${CI_SCRIPTS_DIR}"/build.sh
-    "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0
+    "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     ;;
 
   *)
