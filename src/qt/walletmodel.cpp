@@ -201,7 +201,8 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
     bilingual_str error;
 
     auto &newTx = transaction.getWtx();
-    newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */,
+    newTx = m_wallet->createTransaction(vecSend, coinControl,
+                                        !privateKeysDisabled() /* sign */,
                                         nChangePosRet, nFeeRequired, error);
     transaction.setTransactionFee(nFeeRequired);
     if (fSubtractFeeFromAmount && newTx) {

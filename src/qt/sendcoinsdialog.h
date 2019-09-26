@@ -118,6 +118,7 @@ public:
                            const QString &informative_text = "",
                            const QString &detailed_text = "",
                            int secDelay = SEND_CONFIRM_DELAY,
+                           const QString &confirmText = "Send",
                            QWidget *parent = nullptr);
     int exec();
 
@@ -129,6 +130,7 @@ private:
     QAbstractButton *yesButton;
     QTimer countDownTimer;
     int secDelay;
+    QString confirmButtonText;
 };
 
 #endif // BITCOIN_QT_SENDCOINSDIALOG_H
