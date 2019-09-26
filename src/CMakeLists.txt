@@ -96,10 +96,7 @@ if(ENABLE_STATIC_LIBSTDCXX)
 	add_linker_flags(-static-libstdc++)
 endif()
 
-# All windows code is PIC, forcing it on just adds useless compile warnings
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	add_compiler_flags(-fPIC)
-endif()
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(ENABLE_HARDENING)
 	# Enable stack protection
@@ -117,11 +114,17 @@ if(ENABLE_HARDENING)
 	# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
 	# Unfortunately setting the -pie linker flag this way require CMake >= 3.14,
 	# which is not widely distributed at the time of writing.
-	# FIXME: use the POSITION_INDEPENDENT_CODE property instead
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	# FIXME: remove the fallback case when cmake >= 3.14 get enforced.
+	if(POLICY CMP0083)
+		cmake_policy(SET CMP0083 NEW)
+		include(CheckPIESupported)
+		check_pie_supported()
+	elseif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		add_compiler_flags(-fPIE)
 		add_linker_flags(-pie)
-	else()
+	endif()
+
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		# MinGw provides its own libssp for stack smashing protection
 		link_libraries(ssp)
 	endif()
