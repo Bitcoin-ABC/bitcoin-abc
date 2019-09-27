@@ -159,6 +159,15 @@ check_cxx_source_compiles("
 " CHAR_EQUALS_INT8)
 
 check_cxx_source_compiles("
+    #include <sys/types.h>
+    #include <type_traits>
+    int main() {
+        static_assert(std::is_same<off_t, off64_t>::value, \"\");
+        return 0;
+    }
+" OFF_T_EQUALS_OFF64_T)
+
+check_cxx_source_compiles("
     __attribute__((visibility(\"default\"))) int main() {
         return 0;
     }

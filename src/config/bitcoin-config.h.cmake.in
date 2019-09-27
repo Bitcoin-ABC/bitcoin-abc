@@ -53,6 +53,7 @@
 #cmakedefine HAVE_SYSCTL_ARND 1
 
 #cmakedefine CHAR_EQUALS_INT8 0
+#cmakedefine OFF_T_EQUALS_OFF64_T 1
 
 #cmakedefine HAVE_FUNC_ATTRIBUTE_VISIBILITY 1
 #cmakedefine HAVE_FUNC_ATTRIBUTE_DLLEXPORT 1

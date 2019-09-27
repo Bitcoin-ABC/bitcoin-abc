@@ -298,6 +298,10 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 	add_linker_flags(-Wl,--wrap=__divmoddi4)
 	add_linker_flags(-Wl,--wrap=log2f)
 
+	if(NOT OFF_T_EQUALS_OFF64_T)
+		add_linker_flags(-Wl,--wrap=fcntl -Wl,--wrap=fcntl64)
+	endif()
+
 	target_sources(util PRIVATE compat/glibc_compat.cpp)
 endif()
 

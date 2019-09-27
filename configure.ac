@@ -617,6 +617,16 @@ AC_C_BIGENDIAN
 dnl Check for pthread compile/link requirements
 AX_PTHREAD
 
+# Check for off_t vs off64_t before AC_SYS_LARGEFILE gets called as it will
+# change the output
+AC_MSG_CHECKING(for if type off_t equals off64_t)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+  #include <type_traits>]],
+ [[ static_assert(std::is_same<off_t, off64_t>::value, ""); ]])],
+ [ AC_MSG_RESULT(yes); need_wrap_fcntl=no; AC_DEFINE(OFF_T_EQUALS_OFF64_T, 1,[Define this symbol if type off_t equals off64_t]) ],
+ [ AC_MSG_RESULT(no); need_wrap_fcntl=yes]
+)
+
 # The following macro will add the necessary defines to bitcoin-config.h, but
 # they also need to be passed down to any subprojects. Pull the results out of
 # the cache and add them to CPPFLAGS.
@@ -663,6 +673,10 @@ if test x$use_glibc_compat != xno; then
   AC_DEFINE_UNQUOTED(FDELT_TYPE, $fdelt_type,[parameter and return value type for __fdelt_chk])
   AX_CHECK_LINK_FLAG([[-Wl,--wrap=__divmoddi4]], [COMPAT_LDFLAGS="$COMPAT_LDFLAGS -Wl,--wrap=__divmoddi4"])
   AX_CHECK_LINK_FLAG([[-Wl,--wrap=log2f]], [COMPAT_LDFLAGS="$COMPAT_LDFLAGS -Wl,--wrap=log2f"])
+  if test x$need_wrap_fcntl = xyes; then
+    AX_CHECK_LINK_FLAG([[-Wl,--wrap=fcntl]], [COMPAT_LDFLAGS="$COMPAT_LDFLAGS -Wl,--wrap=fcntl"])
+    AX_CHECK_LINK_FLAG([[-Wl,--wrap=fcntl64]], [COMPAT_LDFLAGS="$COMPAT_LDFLAGS -Wl,--wrap=fcntl64"])
+  fi
 else
   AC_SEARCH_LIBS([clock_gettime],[rt])
 fi
