@@ -599,7 +599,7 @@ public:
     void removeForReorg(const Config &config, const CCoinsViewCache *pcoins,
                         unsigned int nMemPoolHeight, int flags)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    void removeConflicts(const CTransaction &tx);
+    void removeConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForBlock(const std::vector<CTransactionRef> &vtx,
                         unsigned int nBlockHeight);
 
