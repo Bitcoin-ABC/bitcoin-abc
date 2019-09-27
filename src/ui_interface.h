@@ -17,10 +17,6 @@ namespace signals2 {
 }
 } // namespace boost
 
-namespace interfaces {
-class Wallet;
-} // namespace interfaces
-
 /** General change type (added, updated, removed). */
 enum ChangeType { CT_NEW, CT_UPDATED, CT_DELETED };
 
@@ -117,10 +113,6 @@ public:
      * Status bar alerts changed.
      */
     ADD_SIGNALS_DECL_WRAPPER(NotifyAlertChanged, void, );
-
-    /** A wallet has been loaded. */
-    ADD_SIGNALS_DECL_WRAPPER(LoadWallet, void,
-                             std::unique_ptr<interfaces::Wallet> &wallet);
 
     /**
      * Show progress e.g. for verifychain.

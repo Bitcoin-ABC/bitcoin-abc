@@ -366,9 +366,6 @@ namespace {
         void initError(const std::string &message) override {
             InitError(message);
         }
-        void loadWallet(std::unique_ptr<Wallet> wallet) override {
-            ::uiInterface.LoadWallet(wallet);
-        }
         void showProgress(const std::string &title, int progress,
                           bool resume_possible) override {
             ::uiInterface.ShowProgress(title, progress, resume_possible);

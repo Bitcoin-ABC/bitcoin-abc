@@ -53,10 +53,10 @@ WalletCreationStatus CreateWallet(const CChainParams &params,
                                   const std::string &name, std::string &error,
                                   std::vector<std::string> &warnings,
                                   std::shared_ptr<CWallet> &result);
+std::unique_ptr<interfaces::Handler>
+HandleLoadWallet(interfaces::Node::LoadWalletFn load_wallet);
 
 namespace interfaces {
-
-class Wallet;
 
 namespace {
 
@@ -312,10 +312,7 @@ namespace {
             return MakeHandler(::uiInterface.ShowProgress_connect(fn));
         }
         std::unique_ptr<Handler> handleLoadWallet(LoadWalletFn fn) override {
-            return MakeHandler(::uiInterface.LoadWallet_connect(
-                [fn](std::unique_ptr<Wallet> &wallet) {
-                    fn(std::move(wallet));
-                }));
+            return HandleLoadWallet(std::move(fn));
         }
         std::unique_ptr<Handler> handleNotifyNumConnectionsChanged(
             NotifyNumConnectionsChangedFn fn) override {

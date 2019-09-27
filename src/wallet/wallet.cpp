@@ -45,6 +45,7 @@ const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
 
 static RecursiveMutex cs_wallets;
 static std::vector<std::shared_ptr<CWallet>> vpwallets GUARDED_BY(cs_wallets);
+static std::list<LoadWalletFn> g_load_wallet_fns GUARDED_BY(cs_wallets);
 
 bool AddWallet(const std::shared_ptr<CWallet> &wallet) {
     LOCK(cs_wallets);
@@ -90,6 +91,17 @@ std::shared_ptr<CWallet> GetWallet(const std::string &name) {
         }
     }
     return nullptr;
+}
+
+std::unique_ptr<interfaces::Handler>
+HandleLoadWallet(LoadWalletFn load_wallet) {
+    LOCK(cs_wallets);
+    auto it = g_load_wallet_fns.emplace(g_load_wallet_fns.end(),
+                                        std::move(load_wallet));
+    return interfaces::MakeHandler([it] {
+        LOCK(cs_wallets);
+        g_load_wallet_fns.erase(it);
+    });
 }
 
 static Mutex g_wallet_release_mutex;
@@ -4370,7 +4382,12 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
     }
 
-    chain.loadWallet(interfaces::MakeWallet(walletInstance));
+    {
+        LOCK(cs_wallets);
+        for (auto &load_wallet : g_load_wallet_fns) {
+            load_wallet(interfaces::MakeWallet(walletInstance));
+        }
+    }
 
     // Register with the validation interface. It's ok to do this after rescan
     // since we're still holding locked_chain.

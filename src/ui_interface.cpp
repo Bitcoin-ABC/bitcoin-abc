@@ -23,7 +23,6 @@ struct UISignals {
         NotifyNetworkActiveChanged;
     boost::signals2::signal<CClientUIInterface::NotifyAlertChangedSig>
         NotifyAlertChanged;
-    boost::signals2::signal<CClientUIInterface::LoadWalletSig> LoadWallet;
     boost::signals2::signal<CClientUIInterface::ShowProgressSig> ShowProgress;
     boost::signals2::signal<CClientUIInterface::NotifyBlockTipSig>
         NotifyBlockTip;
@@ -46,7 +45,6 @@ ADD_SIGNALS_IMPL_WRAPPER(InitMessage);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyNumConnectionsChanged);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyNetworkActiveChanged);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyAlertChanged);
-ADD_SIGNALS_IMPL_WRAPPER(LoadWallet);
 ADD_SIGNALS_IMPL_WRAPPER(ShowProgress);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyBlockTip);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyHeaderTip);
@@ -74,10 +72,6 @@ void CClientUIInterface::NotifyNetworkActiveChanged(bool networkActive) {
 }
 void CClientUIInterface::NotifyAlertChanged() {
     return g_ui_signals.NotifyAlertChanged();
-}
-void CClientUIInterface::LoadWallet(
-    std::unique_ptr<interfaces::Wallet> &wallet) {
-    return g_ui_signals.LoadWallet(wallet);
 }
 void CClientUIInterface::ShowProgress(const std::string &title, int nProgress,
                                       bool resume_possible) {

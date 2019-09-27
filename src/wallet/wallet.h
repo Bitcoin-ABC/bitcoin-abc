@@ -37,6 +37,9 @@
 
 #include <boost/signals2/signal.hpp>
 
+using LoadWalletFn =
+    std::function<void(std::unique_ptr<interfaces::Wallet> wallet)>;
+
 //! Explicitly unload and delete the wallet.
 //! Blocks the current thread after signaling the unload intent so that all
 //! wallet clients release the wallet.
@@ -54,6 +57,7 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     const WalletLocation &location,
                                     std::string &error,
                                     std::vector<std::string> &warnings);
+std::unique_ptr<interfaces::Handler> HandleLoadWallet(LoadWalletFn load_wallet);
 
 enum class WalletCreationStatus { SUCCESS, CREATION_FAILED, ENCRYPTION_FAILED };
 
@@ -64,7 +68,6 @@ WalletCreationStatus CreateWallet(const CChainParams &params,
                                   const std::string &name, std::string &error,
                                   std::vector<std::string> &warnings,
                                   std::shared_ptr<CWallet> &result);
-
 //! -paytxfee default
 constexpr Amount DEFAULT_PAY_TX_FEE = Amount::zero();
 //! -fallbackfee default
