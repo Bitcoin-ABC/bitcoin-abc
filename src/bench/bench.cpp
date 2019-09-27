@@ -11,6 +11,8 @@
 
 #include <regex>
 
+const std::function<void(const std::string &)> G_TEST_LOG_FUN{};
+
 namespace {
 
 void GenerateTemplateResults(
