@@ -3708,7 +3708,12 @@ static UniValue fundrawtransaction(const Config &config,
                   "The index of the change output"},
                  {"includeWatching", RPCArg::Type::BOOL,
                   /* default */ "true for watch-only wallets, otherwise false",
-                  "Also select inputs which are watch only"},
+                  "Also select inputs which are watch only.\n"
+                  "Only solvable inputs can be used. Watch-only destinations "
+                  "are solvable if the public key and/or output script was "
+                  "imported,\n"
+                  "e.g. with 'importpubkey' or 'importmulti' with the "
+                  "'pubkeys' or 'desc' field."},
                  {"lockUnspents", RPCArg::Type::BOOL, /* default */ "false",
                   "Lock selected unspent outputs"},
                  {"feeRate", RPCArg::Type::AMOUNT, /* default */
