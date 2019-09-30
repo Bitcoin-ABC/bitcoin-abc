@@ -617,13 +617,13 @@ AC_C_BIGENDIAN
 dnl Check for pthread compile/link requirements
 AX_PTHREAD
 
-# Check for off_t vs off64_t before AC_SYS_LARGEFILE gets called as it will
-# change the output
-AC_MSG_CHECKING(for if type off_t equals off64_t)
+# Check for Large File Supprot before AC_SYS_LARGEFILE gets called as it will
+# change the output.
+AC_MSG_CHECKING(for if LFS is enabled)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
   #include <type_traits>]],
- [[ static_assert(std::is_same<off_t, off64_t>::value, ""); ]])],
- [ AC_MSG_RESULT(yes); need_wrap_fcntl=no; AC_DEFINE(OFF_T_EQUALS_OFF64_T, 1,[Define this symbol if type off_t equals off64_t]) ],
+ [[ static_assert(sizeof(off_t) == 8, ""); ]])],
+ [ AC_MSG_RESULT(yes); need_wrap_fcntl=no; AC_DEFINE(HAVE_LARGE_FILE_SUPPORT, 1,[Define this symbol if LFS is enabled]) ],
  [ AC_MSG_RESULT(no); need_wrap_fcntl=yes]
 )
 

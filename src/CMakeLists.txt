@@ -298,11 +298,17 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 	add_linker_flags(-Wl,--wrap=__divmoddi4)
 	add_linker_flags(-Wl,--wrap=log2f)
 
-	if(NOT OFF_T_EQUALS_OFF64_T)
+	if(NOT HAVE_LARGE_FILE_SUPPORT)
 		add_linker_flags(-Wl,--wrap=fcntl -Wl,--wrap=fcntl64)
 	endif()
 
 	target_sources(util PRIVATE compat/glibc_compat.cpp)
+endif()
+
+# Enable LFS (Large File Support) on targets that don't have it natively.
+if(NOT HAVE_LARGE_FILE_SUPPORT)
+	add_compiler_flags(-D_FILE_OFFSET_BITS=64)
+	add_linker_flags(-Wl,--large-address-aware)
 endif()
 
 # Target specific configs

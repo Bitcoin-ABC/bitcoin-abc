@@ -162,10 +162,10 @@ check_cxx_source_compiles("
     #include <sys/types.h>
     #include <type_traits>
     int main() {
-        static_assert(std::is_same<off_t, off64_t>::value, \"\");
+        static_assert(sizeof(off_t) == 8, \"\");
         return 0;
     }
-" OFF_T_EQUALS_OFF64_T)
+" HAVE_LARGE_FILE_SUPPORT)
 
 check_cxx_source_compiles("
     __attribute__((visibility(\"default\"))) int main() {

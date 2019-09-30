@@ -83,7 +83,7 @@ extern "C" float __wrap_log2f(float x) {
  * compatibility symbol for these architectures. We can link the new `fcntl()`
  * and `fcntl64()` against this symbol with the help of a wrapper.
  */
-#if defined(HAVE_CONFIG_H) && !defined(OFF_T_EQUALS_OFF64_T)
+#if defined(HAVE_CONFIG_H) && !defined(HAVE_LARGE_FILE_SUPPORT)
 extern "C" int fcntl_old(int fd, int cmd, ...);
 #ifdef __i386__
 __asm(".symver fcntl_old,fcntl@GLIBC_2.0");
