@@ -1,19 +1,20 @@
 <?php
 
 /**
- * Enforce using `export LC_ALL=C` in shell scripts.
+ * Enforce using `export LC_ALL=C` or `export LC_ALL=C.UTF-8` in shell scripts.
  */
 final class ShellLocaleLinter extends ArcanistLinter {
 
   const INVALID_LOCALE = 1;
-  const LOCALE_STATEMENT = 'export LC_ALL=C';
+  const LOCALE_STATEMENTS = array('export LC_ALL=C', 'export LC_ALL=C.UTF-8');
 
   public function getInfoName() {
     return 'lint-shell-locale';
   }
 
   public function getInfoDescription() {
-    return pht('Enforce using `'.self::LOCALE_STATEMENT.'` in shell scripts.');
+    return pht('Enforce using `'.join('` or `', self::LOCALE_STATEMENTS).
+               '` in shell scripts.');
   }
 
   public function getLinterName() {
@@ -32,8 +33,9 @@ final class ShellLocaleLinter extends ArcanistLinter {
 
   public function getLintNameMap() {
     return array(
-        self::INVALID_LOCALE => pht('`'.self::LOCALE_STATEMENT.'` should be '.
-                                    'the first statement.'),
+        self::INVALID_LOCALE => pht(
+          '`'.join('` or `', self::LOCALE_STATEMENTS).'` should be '.
+          'the first statement.'),
     );
   }
 
@@ -46,7 +48,8 @@ final class ShellLocaleLinter extends ArcanistLinter {
                               'have only comments and/or empty lines.', $path));
     }
 
-    if (!(trim($matches[0][0]) === self::LOCALE_STATEMENT)) {
+    if (array_search(trim($matches[0][0]),
+        self::LOCALE_STATEMENTS, true) === false) {
       return $this->raiseLintAtPath(
         self::INVALID_LOCALE,
         pht('Shell scripts should set the locale to avoid side effects.')
