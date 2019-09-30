@@ -86,8 +86,17 @@ CMessageHeader::CMessageHeader(const MessageMagic &pchMessageStartIn,
                                unsigned int nMessageSizeIn) {
     memcpy(std::begin(pchMessageStart), std::begin(pchMessageStartIn),
            MESSAGE_START_SIZE);
-    memset(pchCommand.data(), 0, sizeof(pchCommand));
-    strncpy(pchCommand.data(), pszCommand, COMMAND_SIZE);
+    // Copy the command name, zero-padding to COMMAND_SIZE bytes
+    size_t i = 0;
+    for (; i < pchCommand.size() && pszCommand[i] != 0; ++i) {
+        pchCommand[i] = pszCommand[i];
+    }
+    // Assert that the command name passed in is not longer than COMMAND_SIZE
+    assert(pszCommand[i] == 0);
+    for (; i < pchCommand.size(); ++i) {
+        pchCommand[i] = 0;
+    }
+
     nMessageSize = nMessageSizeIn;
     memset(pchChecksum, 0, CHECKSUM_SIZE);
 }

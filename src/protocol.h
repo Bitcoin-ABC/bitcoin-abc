@@ -49,6 +49,13 @@ public:
     typedef std::array<uint8_t, MESSAGE_START_SIZE> MessageMagic;
 
     explicit CMessageHeader(const MessageMagic &pchMessageStartIn);
+
+    /**
+     * Construct a P2P message header from message-start characters, a command
+     * and the size of the message.
+     * @note Passing in a `pszCommand` longer than COMMAND_SIZE will result in a
+     * run-time assertion error.
+     */
     CMessageHeader(const MessageMagic &pchMessageStartIn,
                    const char *pszCommand, unsigned int nMessageSizeIn);
 
