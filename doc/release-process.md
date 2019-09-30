@@ -27,6 +27,12 @@ Bitcoin ABC Release Process
     - Update seeds as per [contrib/seeds/README.md](/contrib/seeds/README.md).
 
 4. Add git tag for release
+    a. Create the tag: `git tag vM.m.r` (M = major version, m = minor version, r = revision)
+    b. Push the tag to Github:
+        ```
+        git push <github remote> master
+        git push <github remote> vM.m.r
+        ```
 
 5. Increment version number for the next release in:
     - doc/release-notes.md (and copy existing one to versioned doc/release-notes/*.md)
