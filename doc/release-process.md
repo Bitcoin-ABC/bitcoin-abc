@@ -51,9 +51,8 @@ Bitcoin ABC Release Process
 
 9. Upload Gitian Builds to [bitcoinabc.org](https://download.bitcoinabc.org/)
 
-10. Create a [GitHub release](https://github.com/Bitcoin-ABC/bitcoin-abc/releases).
-    The Github release name should be the same as the tag (without the prepended 'v'), and
-    the contents of the release notes should be copied from release-notes.md.
+10. Create a [GitHub release](https://github.com/Bitcoin-ABC/bitcoin-abc/releases):
+    `contrib/devtools/github-release.sh -a <path to release binaries> -t <release tag> -o <file containing your Github OAuth token>`
 
 11. Notify maintainers of Ubuntu PPA, AUR, and Docker images to build their packages.
     They should be given 1-day advance notice if possible.
