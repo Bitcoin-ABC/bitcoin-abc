@@ -258,11 +258,13 @@ namespace {
     class ChainImpl : public Chain {
     public:
         std::unique_ptr<Chain::Lock> lock(bool try_lock) override {
-            auto result = std::make_unique<LockImpl>(
+            auto lock = std::make_unique<LockImpl>(
                 ::cs_main, "cs_main", __FILE__, __LINE__, try_lock);
-            if (try_lock && result && !*result) {
+            if (try_lock && lock && !*lock) {
                 return {};
             }
+            // Temporary to avoid CWG 1579
+            std::unique_ptr<Chain::Lock> result = std::move(lock);
             return result;
         }
         bool findBlock(const BlockHash &hash, CBlock *block, int64_t *time,
