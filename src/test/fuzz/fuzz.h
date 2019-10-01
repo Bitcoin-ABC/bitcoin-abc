@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <vector>
 
+void initialize();
 void test_one_input(const std::vector<uint8_t> &buffer);
 
 #endif // BITCOIN_TEST_FUZZ_FUZZ_H

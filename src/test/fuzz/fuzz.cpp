@@ -22,7 +22,8 @@ static bool read_stdin(std::vector<uint8_t> &data) {
     return length == 0;
 }
 
-static void initialize() {
+// Default initialization: Override using a non-weak initialize().
+__attribute__((weak)) void initialize() {
     const static auto verify_handle = std::make_unique<ECCVerifyHandle>();
 }
 
