@@ -57,6 +57,38 @@ TransactionDesc::FormatTxStatus(const interfaces::WalletTx &wtx,
     }
 }
 
+#ifndef ENABLE_BIP70
+// Takes an encoded PaymentRequest as a string and tries to find the Common Name
+// of the X.509 certificate used to sign the PaymentRequest.
+bool GetPaymentRequestMerchant(const std::string &pr, QString &merchant) {
+    // Search for the supported pki type strings
+    if (pr.find(std::string({0x12, 0x0b}) + "x509+sha256") !=
+            std::string::npos ||
+        pr.find(std::string({0x12, 0x09}) + "x509+sha1") != std::string::npos) {
+        // We want the common name of the Subject of the cert. This should be
+        // the second occurrence of the bytes 0x0603550403. The first occurrence
+        // of those is the common name of the issuer. After those bytes will be
+        // either 0x13 or 0x0C, then length, then either the ascii or utf8
+        // string with the common name which is the merchant name
+        size_t cn_pos = pr.find({0x06, 0x03, 0x55, 0x04, 0x03});
+        if (cn_pos != std::string::npos) {
+            cn_pos = pr.find({0x06, 0x03, 0x55, 0x04, 0x03}, cn_pos + 5);
+            if (cn_pos != std::string::npos) {
+                cn_pos += 5;
+                if (pr[cn_pos] == 0x13 || pr[cn_pos] == 0x0c) {
+                    cn_pos++; // Consume the type
+                    int str_len = pr[cn_pos];
+                    cn_pos++; // Consume the string length
+                    merchant = QString::fromUtf8(pr.data() + cn_pos, str_len);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+#endif
+
 QString TransactionDesc::toHTML(interfaces::Node &node,
                                 interfaces::Wallet &wallet,
                                 TransactionRecord *rec, int unit) {
@@ -294,7 +326,6 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
         strHTML += "<br><b>" + tr("Comment") + ":</b><br>" +
                    GUIUtil::HtmlEscape(wtx.value_map["comment"], true) + "<br>";
     }
-
     strHTML +=
         "<b>" + tr("Transaction ID") + ":</b> " + rec->getTxID() + "<br>";
     strHTML += "<b>" + tr("Transaction total size") + ":</b> " +
@@ -308,25 +339,32 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
             strHTML += "<br><b>" + tr("Message") + ":</b><br>" +
                        GUIUtil::HtmlEscape(r.second, true) + "<br>";
         }
-    }
 
-#ifdef ENABLE_BIP70
-    //
-    // PaymentRequest info:
-    //
-    for (const std::pair<std::string, std::string> &r : orderForm) {
+        //
+        // PaymentRequest info:
+        //
         if (r.first == "PaymentRequest") {
+            QString merchant;
+#ifdef ENABLE_BIP70
             PaymentRequestPlus req;
             req.parse(
                 QByteArray::fromRawData(r.second.data(), r.second.size()));
-            QString merchant;
-            if (req.getMerchant(PaymentServer::getCertStore(), merchant)) {
+            if (!req.getMerchant(PaymentServer::getCertStore(), merchant)) {
+                merchant.clear();
+            }
+#else
+            if (!GetPaymentRequestMerchant(r.second, merchant)) {
+                merchant.clear();
+            } else {
+                merchant += tr(" (Certificate was not verified)");
+            }
+#endif
+            if (!merchant.isNull()) {
                 strHTML += "<b>" + tr("Merchant") + ":</b> " +
                            GUIUtil::HtmlEscape(merchant) + "<br>";
             }
         }
     }
-#endif
 
     if (wtx.is_coinbase) {
         quint32 numBlocksToMaturity = COINBASE_MATURITY + 1;
