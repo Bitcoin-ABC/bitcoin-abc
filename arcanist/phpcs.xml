@@ -27,6 +27,7 @@
         <exclude name="Generic.Functions.OpeningFunctionBraceBsdAllman" />
         <exclude name="Generic.Metrics.CyclomaticComplexity.TooHigh" />
         <exclude name="Generic.PHP.ClosingPHPTag" />
+        <exclude name="Generic.PHP.RequireStrictTypes.MissingDeclaration" />
         <exclude name="Generic.PHP.UpperCaseConstant" />
         <exclude name="Generic.WhiteSpace.DisallowSpaceIndent" />
     </rule>
