@@ -158,7 +158,9 @@ else
       curl -X POST -H "Content-Type:application/octet-stream" -H "Authorization: token ${OAUTH_TOKEN}" --data-binary "@${FILEPATH}" "${UPLOAD_URL}?name=${FILENAME}"
     done
   fi
+  echo
   echo "Done uploading assets."
 fi
 
 echo "Done."
+echo "https://github.com/Bitcoin-ABC/bitcoin-abc/releases/tag/${TAG}"
