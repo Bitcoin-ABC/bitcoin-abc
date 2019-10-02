@@ -15,7 +15,7 @@ macro(add_fuzz_target TARGET EXE_NAME)
 	)
 	set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 
-	target_link_libraries(${TARGET} server testutil)
+	target_link_libraries(${TARGET} server testutil rpcclient)
 
 	add_dependencies(bitcoin-fuzzers ${TARGET})
 
@@ -78,7 +78,11 @@ add_regular_fuzz_targets(
 	eval_script
 	integer
 	net_permissions
+	parse_hd_keypath
 	parse_iso8601
+	parse_numbers
+	parse_script
+	parse_univalue
 	process_message
 	psbt
 	script
