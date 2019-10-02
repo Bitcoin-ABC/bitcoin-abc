@@ -77,7 +77,7 @@ static QString ipcServerName() {
 // We store payment URIs and requests received before the main GUI window is up
 // and ready to ask the user to send payment.
 //
-static QList<QString> savedPaymentRequests;
+static QSet<QString> savedPaymentRequests;
 
 static std::string ipcParseURI(const QString &arg, const CChainParams &params,
                                bool useCashAddr) {
@@ -177,7 +177,10 @@ void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
             continue;
         }
 
-        savedPaymentRequests.append(arg);
+        if (savedPaymentRequests.contains(arg)) {
+            continue;
+        }
+        savedPaymentRequests.insert(arg);
 #endif
         chosenNetwork = itemNetwork;
     }
@@ -370,7 +373,7 @@ bool PaymentServer::handleURI(const CChainParams &params, const QString &s) {
 
 void PaymentServer::handleURIOrFile(const QString &s) {
     if (saveURIs) {
-        savedPaymentRequests.append(s);
+        savedPaymentRequests.insert(s);
         return;
     }
 
