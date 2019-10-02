@@ -91,8 +91,10 @@ bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom,
                    CMutableTransaction &txTo, unsigned int nIn,
                    SigHashType sigHashType);
 
-/** Combine two script signatures using a generic signature checker,
- * intelligently, possibly with OP_0 placeholders. */
+/**
+ * Combine two script signatures using a generic signature checker,
+ * intelligently, possibly with OP_0 placeholders.
+ */
 SignatureData CombineSignatures(const CScript &scriptPubKey,
                                 const BaseSignatureChecker &checker,
                                 const SignatureData &scriptSig1,
