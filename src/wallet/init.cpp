@@ -51,7 +51,8 @@ void WalletInit::AddWalletOptions() const {
                  ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     gArgs.AddArg("-fallbackfee=<amt>",
                  strprintf("A fee rate (in %s/kB) that will be used when fee "
-                           "estimation has insufficient data (default: %s)",
+                           "estimation has insufficient data. 0 to entirely "
+                           "disable the fallbackfee feature. (default: %s)",
                            CURRENCY_UNIT, FormatMoney(DEFAULT_FALLBACK_FEE)),
                  ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     gArgs.AddArg("-keypool=<n>",

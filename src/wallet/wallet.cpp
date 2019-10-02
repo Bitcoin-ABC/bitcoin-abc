@@ -4909,7 +4909,6 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         walletInstance->m_min_fee = CFeeRate(n);
     }
 
-    walletInstance->m_allow_fallback_fee = Params().IsTestChain();
     if (gArgs.IsArgSet("-fallbackfee")) {
         Amount nFeePerK = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-fallbackfee", ""), nFeePerK)) {
@@ -4926,10 +4925,11 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                     .translated);
         }
         walletInstance->m_fallback_fee = CFeeRate(nFeePerK);
-        // disable fallback fee in case value was set to 0, enable if non-null
-        // value
-        walletInstance->m_allow_fallback_fee = (nFeePerK != Amount::zero());
     }
+    // Disable fallback fee in case value was set to 0, enable if non-null value
+    walletInstance->m_allow_fallback_fee =
+        walletInstance->m_fallback_fee.GetFeePerK() != Amount::zero();
+
     if (gArgs.IsArgSet("-paytxfee")) {
         Amount nFeePerK = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-paytxfee", ""), nFeePerK)) {

@@ -67,7 +67,7 @@ static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
 //! -paytxfee default
 constexpr Amount DEFAULT_PAY_TX_FEE = Amount::zero();
 //! -fallbackfee default
-static const Amount DEFAULT_FALLBACK_FEE(20000 * SATOSHI);
+static const Amount DEFAULT_FALLBACK_FEE = Amount::zero();
 //! -mintxfee default
 static const Amount DEFAULT_TRANSACTION_MINFEE_PER_KB = 1000 * SATOSHI;
 //! minimum recommended increment for BIP 125 replacement txs
@@ -1373,7 +1373,7 @@ public:
 
     CFeeRate m_pay_tx_fee{DEFAULT_PAY_TX_FEE};
     bool m_spend_zero_conf_change{DEFAULT_SPEND_ZEROCONF_CHANGE};
-    //! will be defined via chainparams
+    //! will be false if -fallbackfee=0
     bool m_allow_fallback_fee{true};
     // Override with -mintxfee
     CFeeRate m_min_fee{DEFAULT_TRANSACTION_MINFEE_PER_KB};
