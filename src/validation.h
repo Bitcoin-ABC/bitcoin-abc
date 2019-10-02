@@ -832,16 +832,17 @@ public:
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
     /** Mark a block as invalid. */
     bool InvalidateBlock(const Config &config, BlockValidationState &state,
-                         CBlockIndex *pindex);
+                         CBlockIndex *pindex) LOCKS_EXCLUDED(m_cs_chainstate);
     /** Park a block. */
     bool ParkBlock(const Config &config, BlockValidationState &state,
-                   CBlockIndex *pindex);
+                   CBlockIndex *pindex) LOCKS_EXCLUDED(m_cs_chainstate);
     /**
      * Finalize a block.
      * A finalized block can not be reorged in any way.
      */
     bool FinalizeBlock(const Config &config, BlockValidationState &state,
-                       CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
+                       CBlockIndex *pindex)
+        LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F>
@@ -911,7 +912,8 @@ private:
                           const Consensus::Params &params)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool UnwindBlock(const Config &config, BlockValidationState &state,
-                     CBlockIndex *pindex, bool invalidate);
+                     CBlockIndex *pindex, bool invalidate)
+        EXCLUSIVE_LOCKS_REQUIRED(m_cs_chainstate);
 };
 
 /**
