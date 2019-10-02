@@ -3737,6 +3737,7 @@ DBErrors CWallet::ZapSelectTx(std::vector<TxId> &txIdsIn,
         const auto &it = mapWallet.find(txid);
         wtxOrdered.erase(it->second.m_it_wtxOrdered);
         mapWallet.erase(it);
+        NotifyTransactionChanged(this, txid, CT_DELETED);
     }
 
     if (nZapSelectTxRet == DBErrors::NEED_REWRITE) {
