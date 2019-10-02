@@ -529,8 +529,8 @@ bool TestLockPointValidity(const LockPoints *lp)
  *
  * See consensus/consensus.h for flag definitions.
  */
-bool CheckSequenceLocks(const CTransaction &tx, int flags,
-                        LockPoints *lp = nullptr,
+bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
+                        int flags, LockPoints *lp = nullptr,
                         bool useExistingLockPoints = false)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
