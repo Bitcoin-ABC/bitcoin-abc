@@ -369,13 +369,25 @@ add_library(common
 	primitives/block.cpp
 	protocol.cpp
 	scheduler.cpp
-	script/ismine.cpp
-	script/sign.cpp
-	script/standard.cpp
 	warnings.cpp
 )
 
 target_link_libraries(common util secp256k1)
+
+# script library
+add_library(script
+	script/bitcoinconsensus.cpp
+	script/bitfield.cpp
+	script/interpreter.cpp
+	script/ismine.cpp
+	script/script.cpp
+	script/script_error.cpp
+	script/sigencoding.cpp
+	script/sign.cpp
+	script/standard.cpp
+)
+
+target_link_libraries(script common)
 
 # libbitcoinconsensus
 add_library(bitcoinconsensus
@@ -383,17 +395,11 @@ add_library(bitcoinconsensus
 	hash.cpp
 	primitives/transaction.cpp
 	pubkey.cpp
-	script/bitcoinconsensus.cpp
-	script/bitfield.cpp
-	script/interpreter.cpp
-	script/script.cpp
-	script/script_error.cpp
-	script/sigencoding.cpp
 	uint256.cpp
 	util/strencodings.cpp
 )
 
-target_link_libraries(bitcoinconsensus common)
+target_link_libraries(bitcoinconsensus script)
 
 # Bitcoin server facilities
 add_library(server

@@ -25,6 +25,6 @@ add_library(wallet
 	walletutil.cpp
 )
 
-target_link_libraries(wallet common univalue Event ${BDBXX_LIBRARY})
+target_link_libraries(wallet script univalue Event ${BDBXX_LIBRARY})
 
 target_include_directories(wallet PUBLIC ${BDBXX_INCLUDE_DIR})
