@@ -1,4 +1,5 @@
 #include <clientversion.h>
+#include <fs.h>
 #include <logging.h>
 #include <protocol.h>
 #include <seeder/bitcoin.h>
@@ -11,7 +12,6 @@
 #include <atomic>
 #include <cinttypes>
 #include <csignal>
-#include <cstdio>
 #include <cstdlib>
 #include <getopt.h>
 #include <pthread.h>
@@ -372,7 +372,7 @@ extern "C" void *ThreadDumper(void *) {
         {
             std::vector<CAddrReport> v = db.GetAll();
             sort(v.begin(), v.end(), StatCompare);
-            FILE *f = fopen("dnsseed.dat.new", "w+");
+            FILE *f = fsbridge::fopen("dnsseed.dat.new", "w+");
             if (f) {
                 {
                     CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
@@ -380,7 +380,7 @@ extern "C" void *ThreadDumper(void *) {
                 }
                 rename("dnsseed.dat.new", "dnsseed.dat");
             }
-            FILE *d = fopen("dnsseed.dump", "w");
+            FILE *d = fsbridge::fopen("dnsseed.dump", "w");
             fprintf(d, "# address                                        good  "
                        "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
                        "%%(30d)  blocks      svcs  version\n");
@@ -403,7 +403,7 @@ extern "C" void *ThreadDumper(void *) {
                 stat[4] += rep.uptime[4];
             }
             fclose(d);
-            FILE *ff = fopen("dnsstats.log", "a");
+            FILE *ff = fsbridge::fopen("dnsstats.log", "a");
             fprintf(ff, "%llu %g %g %g %g %g\n",
                     (unsigned long long)(time(nullptr)), stat[0], stat[1],
                     stat[2], stat[3], stat[4]);
@@ -533,7 +533,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "No e-mail address set. Please use -m.\n");
         exit(1);
     }
-    FILE *f = fopen("dnsseed.dat", "r");
+    FILE *f = fsbridge::fopen("dnsseed.dat", "r");
     if (f) {
         printf("Loading dnsseed.dat...");
         CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
