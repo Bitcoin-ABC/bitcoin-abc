@@ -2133,6 +2133,18 @@
         <translation>%1 給 %2</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>請再次確認交易內容。</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>交易手續費</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>總金額</translation>
+    </message>
+    <message>
         <source>Are you sure you want to send?</source>
         <translation>你確定要付錢出去嗎？</translation>
     </message>

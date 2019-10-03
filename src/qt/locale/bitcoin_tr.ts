@@ -2093,6 +2093,18 @@
         <translation>Bakiye:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Lütfen, işleminizi gözden geçirin.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>İşlem ücreti</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Toplam Tutar</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Yollama etkinliğini teyit ediniz</translation>
     </message>

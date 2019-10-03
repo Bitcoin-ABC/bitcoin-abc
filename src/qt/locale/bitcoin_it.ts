@@ -1802,6 +1802,18 @@ Per specificare più URL separarli con una barra verticale "|".</translation>
         <translation>Saldo:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Per favore, rivedi la tua transazione.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Commissione transazione</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Importo totale</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Conferma l'azione di invio</translation>
     </message>

@@ -2093,6 +2093,18 @@
         <translation>Saldo:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Por favor, revisa tu transacción</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Comisión de transacción</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Monto total</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Confirmar el envío</translation>
     </message>

@@ -1353,6 +1353,18 @@
         <translation>Balanţă:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Va rugam sa revizuiti tranzactia.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Taxă tranzacţie</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Suma totală</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Confirmă operaţiunea de trimitere</translation>
     </message>

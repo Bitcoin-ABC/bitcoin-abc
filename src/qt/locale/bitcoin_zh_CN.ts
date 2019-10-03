@@ -2070,6 +2070,18 @@
         <translation>余额：</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>请检查您的交易。</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>交易费用</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>总额</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>确认发送货币</translation>
     </message>

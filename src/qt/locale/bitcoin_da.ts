@@ -2093,6 +2093,18 @@
         <translation>Saldo:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Venligst, vurder din transaktion.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Transaktionsgebyr</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Total Mængde</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Bekræft afsendelsen</translation>
     </message>

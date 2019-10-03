@@ -1573,6 +1573,18 @@
         <translation>Balance:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Please, review your transaction.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Transaction fee</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Total Amount</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Confirm the send action</translation>
     </message>

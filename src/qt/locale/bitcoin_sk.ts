@@ -1950,6 +1950,18 @@
         <translation>Zostatok:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Prosím, skontrolujte Vašu transakciu.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Transakčný poplatok</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Celková suma</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Potvrďte odoslanie</translation>
     </message>

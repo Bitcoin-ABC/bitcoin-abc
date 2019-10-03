@@ -877,6 +877,18 @@
         <translation>Stanje:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Molim vas, pregledajte svoju transakciju.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Naknada za transakciju</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Ukupni iznos</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Potvrdi akciju slanja</translation>
     </message>

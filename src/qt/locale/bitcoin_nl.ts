@@ -1945,6 +1945,18 @@
         <translation>Saldo:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Controleer uw transactie aub.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Transactiekosten</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Totaalbedrag</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Bevestig de verstuuractie</translation>
     </message>

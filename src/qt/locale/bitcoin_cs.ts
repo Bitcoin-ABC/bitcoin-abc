@@ -2093,6 +2093,18 @@
         <translation>Stav účtu:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Prosím, zkontrolujte vaši transakci.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Transakční poplatek</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Celková částka</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Potvrď odeslání</translation>
     </message>

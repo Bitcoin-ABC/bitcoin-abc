@@ -2089,6 +2089,18 @@
         <translation>Kontostand:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Bitte überprüfen sie ihre Transaktion. </translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Transaktionsgebühr</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Gesamtbetrag</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Überweisung bestätigen</translation>
     </message>

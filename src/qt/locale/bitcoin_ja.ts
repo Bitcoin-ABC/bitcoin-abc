@@ -2093,6 +2093,18 @@
         <translation>残高:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>トランザクションを見直してください。</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>取引手数料</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>合計</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>送る操作を確認する</translation>
     </message>

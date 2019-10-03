@@ -1801,6 +1801,18 @@
         <translation>잔액:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>거래를 재검토 하십시오</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>거래 수수료</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>총액&lt;br&gt;</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>전송 기능 확인</translation>
     </message>

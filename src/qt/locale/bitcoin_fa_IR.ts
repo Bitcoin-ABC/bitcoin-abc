@@ -387,6 +387,18 @@
         <translation>مانده حساب:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>ﻞﻄﻓﺍ,ﺕﺭﺍکﻦﺷ ﺥﻭﺩ ﺭﺍ ﺏﺍﺰﺑیﻥی کﻥیﺩ.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>کﺍﺮﻣﺯﺩ ﺕﺭﺍکﻦﺷ</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>ﻡیﺯﺎﻧ کﻝ</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>تایید عملیات ارسال </translation>
     </message>

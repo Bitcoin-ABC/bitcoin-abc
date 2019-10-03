@@ -1409,6 +1409,18 @@
         <translation>Баланс:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Будь-ласка, перевірте вашу транзакцію.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Комісія за транзакцію</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Всього</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Підтвердити відправлення</translation>
     </message>

@@ -1477,6 +1477,18 @@
         <translation>Balanssi:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Tarkistathan siirtosi.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Siirtokulu</translation>
+    </message>
+    <message>
+        <source>Confirm send coins</source>
+        <translation>Vahvista kolikoiden lähetys</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Vahvista lähetys</translation>
     </message>

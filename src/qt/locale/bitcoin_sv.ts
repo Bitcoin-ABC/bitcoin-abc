@@ -1826,6 +1826,18 @@ Var vänlig och försök igen.</translation>
         <translation>Balans:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>Var vänlig se över din transaktion.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>Transaktionsavgift</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>Totalt</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>Bekräfta sändordern</translation>
     </message>

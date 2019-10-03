@@ -1383,6 +1383,18 @@
         <translation>מאזן:</translation>
     </message>
     <message>
+        <source>Please, review your transaction.</source>
+        <translation>אנא עברו שוב על העסקה שלכם.</translation>
+    </message>
+    <message>
+        <source>Transaction fee</source>
+        <translation>עמלת העברה</translation>
+    </message>
+    <message>
+        <source>Total Amount</source>
+        <translation>סכום כולל</translation>
+    </message>
+    <message>
         <source>Confirm the send action</source>
         <translation>אישור פעולת השליחה</translation>
     </message>
