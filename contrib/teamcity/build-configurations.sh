@@ -16,9 +16,11 @@ TOPLEVEL=$(git rev-parse --show-toplevel)
 export TOPLEVEL
 
 setup() {
-  export BUILD_DIR="${TOPLEVEL}/build"
-
+  : "${BUILD_DIR:=${TOPLEVEL}/build}"
   mkdir -p "${BUILD_DIR}/output"
+  BUILD_DIR=$(cd "${BUILD_DIR}"; pwd)
+  export BUILD_DIR
+
   TEST_RUNNER_FLAGS="--tmpdirprefix=output"
 
   cd "${BUILD_DIR}"
@@ -85,6 +87,7 @@ case "$ABC_BUILD_NAME" in
 
     # Build secp256k1 and run the java tests.
     export TOPLEVEL="${TOPLEVEL}"/src/secp256k1
+    export BUILD_DIR="${TOPLEVEL}"/build
     setup
     CONFIGURE_FLAGS="--enable-jni --enable-experimental --enable-module-ecdh" "${CI_SCRIPTS_DIR}"/build.sh
     make -j "${THREADS}" check-java
