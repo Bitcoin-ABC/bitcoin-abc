@@ -424,22 +424,23 @@ extern "C" void *ThreadStats(void *) {
         db.GetStats(stats);
         if (first) {
             first = false;
-            printf("\n\n\n\x1b[3A");
+            fprintf(stdout, "\n\n\n\x1b[3A");
         } else
-            printf("\x1b[2K\x1b[u");
-        printf("\x1b[s");
+            fprintf(stdout, "\x1b[2K\x1b[u");
+        fprintf(stdout, "\x1b[s");
         uint64_t requests = 0;
         uint64_t queries = 0;
         for (unsigned int i = 0; i < dnsThread.size(); i++) {
             requests += dnsThread[i]->dns_opt.nRequests;
             queries += dnsThread[i]->dbQueries;
         }
-        printf("%s %i/%i available (%i tried in %is, %i new, %i active), %i "
-               "banned; %llu DNS requests, %llu db queries\n",
-               c, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge,
-               stats.nNew, stats.nAvail - stats.nTracked - stats.nNew,
-               stats.nBanned, (unsigned long long)requests,
-               (unsigned long long)queries);
+        fprintf(stdout,
+                "%s %i/%i available (%i tried in %is, %i new, %i active), %i "
+                "banned; %llu DNS requests, %llu db queries\n",
+                c, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge,
+                stats.nNew, stats.nAvail - stats.nTracked - stats.nNew,
+                stats.nBanned, (unsigned long long)requests,
+                (unsigned long long)queries);
         Sleep(1000);
     } while (1);
     return nullptr;
@@ -479,41 +480,42 @@ int main(int argc, char **argv) {
     setbuf(stdout, nullptr);
     CDnsSeedOpts opts;
     opts.ParseCommandLine(argc, argv);
-    printf("Supporting whitelisted filters: ");
+    fprintf(stdout, "Supporting whitelisted filters: ");
     for (std::set<uint64_t>::const_iterator it = opts.filter_whitelist.begin();
          it != opts.filter_whitelist.end(); it++) {
         if (it != opts.filter_whitelist.begin()) {
-            printf(",");
+            fprintf(stdout, ",");
         }
-        printf("0x%lx", (unsigned long)*it);
+        fprintf(stdout, "0x%lx", (unsigned long)*it);
     }
-    printf("\n");
+    fprintf(stdout, "\n");
     if (opts.tor) {
         CService service(LookupNumeric(opts.tor, 9050));
         if (service.IsValid()) {
-            printf("Using Tor proxy at %s\n", service.ToStringIPPort().c_str());
+            fprintf(stdout, "Using Tor proxy at %s\n",
+                    service.ToStringIPPort().c_str());
             SetProxy(NET_ONION, proxyType(service));
         }
     }
     if (opts.ipv4_proxy) {
         CService service(LookupNumeric(opts.ipv4_proxy, 9050));
         if (service.IsValid()) {
-            printf("Using IPv4 proxy at %s\n",
-                   service.ToStringIPPort().c_str());
+            fprintf(stdout, "Using IPv4 proxy at %s\n",
+                    service.ToStringIPPort().c_str());
             SetProxy(NET_IPV4, proxyType(service));
         }
     }
     if (opts.ipv6_proxy) {
         CService service(LookupNumeric(opts.ipv6_proxy, 9050));
         if (service.IsValid()) {
-            printf("Using IPv6 proxy at %s\n",
-                   service.ToStringIPPort().c_str());
+            fprintf(stdout, "Using IPv6 proxy at %s\n",
+                    service.ToStringIPPort().c_str());
             SetProxy(NET_IPV6, proxyType(service));
         }
     }
     bool fDNS = true;
     if (opts.fUseTestNet) {
-        printf("Using testnet.\n");
+        fprintf(stdout, "Using testnet.\n");
         netMagic[0] = 0xf4;
         netMagic[1] = 0xe5;
         netMagic[2] = 0xf3;
@@ -522,7 +524,7 @@ int main(int argc, char **argv) {
         fTestNet = true;
     }
     if (!opts.ns) {
-        printf("No nameserver set. Not starting DNS server.\n");
+        fprintf(stdout, "No nameserver set. Not starting DNS server.\n");
         fDNS = false;
     }
     if (fDNS && !opts.host) {
@@ -535,30 +537,30 @@ int main(int argc, char **argv) {
     }
     FILE *f = fsbridge::fopen("dnsseed.dat", "r");
     if (f) {
-        printf("Loading dnsseed.dat...");
+        fprintf(stdout, "Loading dnsseed.dat...");
         CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
         cf >> db;
         if (opts.fWipeBan) db.banned.clear();
         if (opts.fWipeIgnore) db.ResetIgnores();
-        printf("done\n");
+        fprintf(stdout, "done\n");
     }
     pthread_t threadDns, threadSeed, threadDump, threadStats;
     if (fDNS) {
-        printf("Starting %i DNS threads for %s on %s (port %i)...",
-               opts.nDnsThreads, opts.host, opts.ns, opts.nPort);
+        fprintf(stdout, "Starting %i DNS threads for %s on %s (port %i)...",
+                opts.nDnsThreads, opts.host, opts.ns, opts.nPort);
         dnsThread.clear();
         for (int i = 0; i < opts.nDnsThreads; i++) {
             dnsThread.push_back(new CDnsThread(&opts, i));
             pthread_create(&threadDns, nullptr, ThreadDNS, dnsThread[i]);
-            printf(".");
+            fprintf(stdout, ".");
             Sleep(20);
         }
-        printf("done\n");
+        fprintf(stdout, "done\n");
     }
-    printf("Starting seeder...");
+    fprintf(stdout, "Starting seeder...");
     pthread_create(&threadSeed, nullptr, ThreadSeeder, nullptr);
-    printf("done\n");
-    printf("Starting %i crawler threads...", opts.nThreads);
+    fprintf(stdout, "done\n");
+    fprintf(stdout, "Starting %i crawler threads...", opts.nThreads);
     pthread_attr_t attr_crawler;
     pthread_attr_init(&attr_crawler);
     pthread_attr_setstacksize(&attr_crawler, 0x20000);
@@ -567,7 +569,7 @@ int main(int argc, char **argv) {
         pthread_create(&thread, &attr_crawler, ThreadCrawler, &opts.nThreads);
     }
     pthread_attr_destroy(&attr_crawler);
-    printf("done\n");
+    fprintf(stdout, "done\n");
     pthread_create(&threadStats, nullptr, ThreadStats, nullptr);
     pthread_create(&threadDump, nullptr, ThreadDumper, nullptr);
     void *res;
