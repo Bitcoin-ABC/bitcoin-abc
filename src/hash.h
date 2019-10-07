@@ -6,6 +6,7 @@
 #ifndef BITCOIN_HASH_H
 #define BITCOIN_HASH_H
 
+#include <attributes.h>
 #include <crypto/common.h>
 #include <crypto/ripemd160.h>
 #include <crypto/sha256.h>
@@ -98,7 +99,7 @@ template <typename T1> inline uint160 Hash160(const T1 &in1) {
 /** A writer stream (for serialization) that computes a 256-bit hash. */
 class CHashWriter {
 private:
-    CHash256 ctx;
+    CSHA256 ctx;
 
     const int nType;
     const int nVersion;
@@ -111,13 +112,31 @@ public:
     int GetVersion() const { return nVersion; }
 
     void write(const char *pch, size_t size) {
-        ctx.Write({(const uint8_t *)pch, size});
+        ctx.Write((const uint8_t *)pch, size);
     }
 
-    // invalidates the object
+    /**
+     * Compute the double-SHA256 hash of all data written to this object.
+     *
+     * Invalidates this object.
+     */
     uint256 GetHash() {
         uint256 result;
-        ctx.Finalize(result);
+        ctx.Finalize(result.begin());
+        ctx.Reset()
+            .Write(result.begin(), CSHA256::OUTPUT_SIZE)
+            .Finalize(result.begin());
+        return result;
+    }
+
+    /**
+     * Compute the SHA256 hash of all data written to this object.
+     *
+     * Invalidates this object.
+     */
+    uint256 GetSHA256() {
+        uint256 result;
+        ctx.Finalize(result.begin());
         return result;
     }
 
@@ -125,9 +144,8 @@ public:
      * Returns the first 64 bits from the resulting hash.
      */
     inline uint64_t GetCheapHash() {
-        uint8_t result[CHash256::OUTPUT_SIZE];
-        ctx.Finalize(result);
-        return ReadLE64(result);
+        uint256 result = GetHash();
+        return ReadLE64(result.begin());
     }
 
     template <typename T> CHashWriter &operator<<(const T &obj) {
