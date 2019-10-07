@@ -1370,10 +1370,6 @@ public:
     std::set<int64_t> &setExternalKeyPool GUARDED_BY(cs_wallet) =
         m_spk_man->setExternalKeyPool;
     int64_t &nTimeFirstKey GUARDED_BY(cs_wallet) = m_spk_man->nTimeFirstKey;
-    void MarkPreSplitKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) {
-        AssertLockHeld(m_spk_man->cs_wallet);
-        m_spk_man->MarkPreSplitKeys();
-    }
     using CryptedKeyMap = LegacyScriptPubKeyMan::CryptedKeyMap;
 };
 

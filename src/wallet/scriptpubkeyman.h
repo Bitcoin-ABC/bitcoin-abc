@@ -183,6 +183,9 @@ public:
      * keys in the keypool or can generate new keys */
     virtual bool CanGetAddresses(bool internal = false) { return false; }
 
+    /** Upgrades the wallet to the specified version */
+    virtual bool Upgrade(int prev_version, std::string &error) { return false; }
+
     virtual int64_t GetOldestKeyPoolTime() { return GetTime(); }
 
     virtual size_t KeypoolCountExternalKeys() { return 0; }
@@ -306,6 +309,8 @@ public:
     void UpgradeKeyMetadata() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool IsHDEnabled() const override;
+
+    bool Upgrade(int prev_version, std::string &error) override;
 
     int64_t GetOldestKeyPoolTime() override;
     size_t KeypoolCountExternalKeys() override
