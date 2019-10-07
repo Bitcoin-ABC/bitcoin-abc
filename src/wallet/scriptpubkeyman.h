@@ -180,6 +180,10 @@ public:
     virtual int64_t GetOldestKeyPoolTime() { return GetTime(); }
 
     virtual size_t KeypoolCountExternalKeys() { return 0; }
+
+    virtual const CKeyMetadata *GetMetadata(uint160 id) const {
+        return nullptr;
+    }
 };
 
 class LegacyScriptPubKeyMan : public ScriptPubKeyMan,
@@ -298,6 +302,8 @@ public:
     int64_t GetOldestKeyPoolTime() override;
     size_t KeypoolCountExternalKeys() override
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+
+    const CKeyMetadata *GetMetadata(uint160 id) const override;
 
     bool CanGetAddresses(bool internal = false) override;
 
