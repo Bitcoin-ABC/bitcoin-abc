@@ -18,4 +18,4 @@ UniValue generateBlocks(const Config &config,
                         std::shared_ptr<CReserveScript> coinbaseScript,
                         int nGenerate, uint64_t nMaxTries, bool keepScript);
 
-#endif
+#endif // BITCOIN_RPC_MINING_H

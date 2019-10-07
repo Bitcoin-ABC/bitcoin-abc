@@ -130,4 +130,4 @@ public:
     size_t CallbacksPending();
 };
 
-#endif
+#endif // BITCOIN_SCHEDULER_H

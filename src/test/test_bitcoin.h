@@ -162,4 +162,4 @@ struct TestMemPoolEntryHelper {
 // BOOST_CHECK_*
 std::ostream &operator<<(std::ostream &os, const uint256 &num);
 
-#endif
+#endif // BITCOIN_TEST_TEST_BITCOIN_H

@@ -26,4 +26,4 @@ struct dns_opt_t {
 
 int dnsserver(dns_opt_t *opt);
 
-#endif
+#endif // BITCOIN_SEEDER_DNS_H

@@ -92,4 +92,4 @@ public:
     }
 };
 
-#endif //  BITCOIN_FEERATE_H
+#endif // BITCOIN_FEERATE_H
