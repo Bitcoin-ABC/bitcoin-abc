@@ -75,8 +75,6 @@ FlatSigningProvider Merge(const FlatSigningProvider &a,
  */
 class FillableSigningProvider : public SigningProvider {
 protected:
-    mutable RecursiveMutex cs_KeyStore;
-
     using KeyMap = std::map<CKeyID, CKey>;
     using ScriptMap = std::map<CScriptID, CScript>;
 
@@ -84,6 +82,8 @@ protected:
     ScriptMap mapScripts GUARDED_BY(cs_KeyStore);
 
 public:
+    mutable RecursiveMutex cs_KeyStore;
+
     virtual bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey);
     virtual bool AddKey(const CKey &key) {
         return AddKeyPubKey(key, key.GetPubKey());
