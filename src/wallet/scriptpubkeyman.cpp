@@ -419,6 +419,11 @@ size_t LegacyScriptPubKeyMan::KeypoolCountExternalKeys() {
     return setExternalKeyPool.size() + set_pre_split_keypool.size();
 }
 
+unsigned int LegacyScriptPubKeyMan::GetKeyPoolSize() const {
+    AssertLockHeld(cs_wallet);
+    return setInternalKeyPool.size() + setExternalKeyPool.size();
+}
+
 const CKeyMetadata *LegacyScriptPubKeyMan::GetMetadata(uint160 id) const {
     AssertLockHeld(cs_wallet);
     auto it = mapKeyMetadata.find(CKeyID(id));
