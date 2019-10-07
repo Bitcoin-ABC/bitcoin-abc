@@ -70,6 +70,7 @@ endfunction()
 
 add_regular_fuzz_targets(
 	addrdb
+	block
 	bloom_filter
 	rolling_bloom_filter
 	cashaddr
