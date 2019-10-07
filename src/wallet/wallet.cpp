@@ -4085,14 +4085,14 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         return nullptr;
     } else if (walletInstance->IsWalletFlagSet(
                    WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
-        LOCK(walletInstance->cs_KeyStore);
-        if (!walletInstance->mapKeys.empty() ||
-            !walletInstance->mapCryptedKeys.empty()) {
-            warnings.push_back(
-                strprintf(_("Warning: Private keys detected in wallet {%s} "
-                            "with disabled private keys")
-                              .translated,
-                          walletFile));
+        if (walletInstance->m_spk_man) {
+            if (walletInstance->m_spk_man->HavePrivateKeys()) {
+                warnings.push_back(
+                    strprintf(_("Warning: Private keys detected in wallet {%s} "
+                                "with disabled private keys")
+                                  .translated,
+                              walletFile));
+            }
         }
     }
 
