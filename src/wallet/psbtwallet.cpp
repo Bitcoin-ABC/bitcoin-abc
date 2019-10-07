@@ -44,14 +44,16 @@ TransactionError FillPSBT(const CWallet *pwallet,
         }
 
         complete &=
-            SignPSBTInput(HidingSigningProvider(pwallet, !sign, !bip32derivs),
+            SignPSBTInput(HidingSigningProvider(pwallet->GetSigningProvider(),
+                                                !sign, !bip32derivs),
                           psbtx, i, sighash_type);
     }
 
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that
     // hardware wallets can identify change
     for (size_t i = 0; i < psbtx.tx->vout.size(); ++i) {
-        UpdatePSBTOutput(HidingSigningProvider(pwallet, true, !bip32derivs),
+        UpdatePSBTOutput(HidingSigningProvider(pwallet->GetSigningProvider(),
+                                               true, !bip32derivs),
                          psbtx, i);
     }
 

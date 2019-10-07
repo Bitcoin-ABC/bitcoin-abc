@@ -26,6 +26,11 @@ FALSE_POSITIVES = [
     ("src/wallet/wallet.h",
      "LogPrintf((\"%s \" + fmt).c_str(), GetDisplayName(), parameters...)"),
     ("src/logging.h", "LogPrintf(const char *fmt, const Args &... args)"),
+    ("src/wallet/scriptpubkeyman.h",
+     "WalletLogPrintf(const std::string& fmt, const Params&... parameters)"),
+    ("src/wallet/scriptpubkeyman.cpp", "WalletLogPrintf(fmt, parameters...)"),
+    ("src/wallet/scriptpubkeyman.cpp",
+     "WalletLogPrintf(const std::string& fmt, const Params&... parameters)"),
 ]
 
 FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS = [

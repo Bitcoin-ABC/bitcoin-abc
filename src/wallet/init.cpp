@@ -13,7 +13,6 @@
 #include <util/system.h>
 #include <util/translation.h>
 #include <wallet/rpcdump.h>
-#include <wallet/scriptpubkeyman.h>
 #include <wallet/wallet.h>
 #include <walletinitinterface.h>
 

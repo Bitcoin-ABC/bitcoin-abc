@@ -56,7 +56,7 @@ static inline bool GetAvoidReuseFlag(CWallet *const pwallet,
 /**
  * Checks if a CKey is in the given CWallet compressed or otherwise
  */
-bool HaveKey(const CWallet &wallet, const CKey &key) {
+bool HaveKey(const SigningProvider &wallet, const CKey &key) {
     CKey key2;
     key2.Set(key.begin(), key.end(), !key.IsCompressed());
     return wallet.HaveKey(key.GetPubKey().GetID()) ||
@@ -318,7 +318,7 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
     std::string old_label = pwallet->mapAddressBook[dest].name;
     std::string label = LabelFromValue(request.params[1]);
 
-    if (IsMine(*pwallet, dest)) {
+    if (pwallet->IsMine(dest)) {
         pwallet->SetAddressBook(dest, label, "receive");
     } else {
         pwallet->SetAddressBook(dest, label, "send");
@@ -603,9 +603,11 @@ static UniValue signmessage(const Config &config,
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
     }
 
+    const SigningProvider *provider = pwallet->GetSigningProvider();
+
     CKey key;
     CKeyID keyID(*pkhash);
-    if (!pwallet->GetKey(keyID, key)) {
+    if (!provider->GetKey(keyID, key)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
     }
 
@@ -674,7 +676,7 @@ static UniValue getreceivedbyaddress(const Config &config,
                            "Invalid Bitcoin address");
     }
     CScript scriptPubKey = GetScriptForDestination(dest);
-    if (!IsMine(*pwallet, scriptPubKey)) {
+    if (!pwallet->IsMine(scriptPubKey)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Address not found in wallet");
     }
 
@@ -773,7 +775,7 @@ static UniValue getreceivedbylabel(const Config &config,
         for (const CTxOut &txout : wtx.tx->vout) {
             CTxDestination address;
             if (ExtractDestination(txout.scriptPubKey, address) &&
-                IsMine(*pwallet, address) && setAddress.count(address)) {
+                pwallet->IsMine(address) && setAddress.count(address)) {
                 if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
                     nAmount += txout.nValue;
                 }
@@ -1112,6 +1114,12 @@ static UniValue addmultisigaddress(const Config &config,
     }
         .Check(request);
 
+    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
+    if (!spk_man) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           "This type of wallet does not support this command");
+    }
+
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
@@ -1131,7 +1139,7 @@ static UniValue addmultisigaddress(const Config &config,
              keys_or_addrs[i].get_str().length() == 130)) {
             pubkeys.push_back(HexToPubKey(keys_or_addrs[i].get_str()));
         } else {
-            pubkeys.push_back(AddrToPubKey(config.GetChainParams(), pwallet,
+            pubkeys.push_back(AddrToPubKey(config.GetChainParams(), spk_man,
                                            keys_or_addrs[i].get_str()));
         }
     }
@@ -1141,7 +1149,7 @@ static UniValue addmultisigaddress(const Config &config,
     // Construct using pay-to-script-hash:
     CScript inner;
     CTxDestination dest = AddAndGetMultisigDestination(
-        required, pubkeys, output_type, *pwallet, inner);
+        required, pubkeys, output_type, *spk_man, inner);
     pwallet->SetAddressBook(dest, label, "send");
 
     UniValue result(UniValue::VOBJ);
@@ -1219,7 +1227,7 @@ ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
                 continue;
             }
 
-            isminefilter mine = IsMine(*pwallet, address);
+            isminefilter mine = pwallet->IsMine(address);
             if (!(mine & filter)) {
                 continue;
             }
@@ -1469,7 +1477,7 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
         for (const COutputEntry &s : listSent) {
             UniValue entry(UniValue::VOBJ);
             if (involvesWatchonly ||
-                (::IsMine(*pwallet, s.destination) & ISMINE_WATCH_ONLY)) {
+                (pwallet->IsMine(s.destination) & ISMINE_WATCH_ONLY)) {
                 entry.pushKV("involvesWatchonly", true);
             }
             MaybePushAddress(entry, s.destination);
@@ -1502,7 +1510,7 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
             }
             UniValue entry(UniValue::VOBJ);
             if (involvesWatchonly ||
-                (::IsMine(*pwallet, r.destination) & ISMINE_WATCH_ONLY)) {
+                (pwallet->IsMine(r.destination) & ISMINE_WATCH_ONLY)) {
                 entry.pushKV("involvesWatchonly", true);
             }
             MaybePushAddress(entry, r.destination);
@@ -2791,7 +2799,8 @@ static UniValue getbalances(const Config &config,
         }
         balances.pushKV("mine", balances_mine);
     }
-    if (wallet.HaveWatchOnly()) {
+    auto spk_man = wallet.GetLegacyScriptPubKeyMan();
+    if (spk_man && spk_man->HaveWatchOnly()) {
         UniValue balances_watchonly{UniValue::VOBJ};
         balances_watchonly.pushKV("trusted",
                                   ValueFromAmount(bal.m_watchonly_trusted));
@@ -2888,7 +2897,15 @@ static UniValue getwalletinfo(const Config &config,
     obj.pushKV("txcount", (int)pwallet->mapWallet.size());
     obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
     obj.pushKV("keypoolsize", (int64_t)kpExternalSize);
-    CKeyID seed_id = pwallet->GetHDChain().seed_id;
+
+    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
+    if (spk_man) {
+        CKeyID seed_id = spk_man->GetHDChain().seed_id;
+        if (!seed_id.IsNull()) {
+            obj.pushKV("hdseedid", seed_id.GetHex());
+        }
+    }
+
     if (pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
         obj.pushKV("keypoolsize_hd_internal",
                    int64_t(pwallet->GetKeyPoolSize() - kpExternalSize));
@@ -2897,9 +2914,6 @@ static UniValue getwalletinfo(const Config &config,
         obj.pushKV("unlocked_until", pwallet->nRelockTime);
     }
     obj.pushKV("paytxfee", ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
-    if (!seed_id.IsNull()) {
-        obj.pushKV("hdseedid", seed_id.GetHex());
-    }
     obj.pushKV("private_keys_enabled",
                !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
     if (pwallet->IsScanning()) {
@@ -3453,11 +3467,12 @@ static UniValue listunspent(const Config &config,
                 entry.pushKV("label", i->second.name);
             }
 
+            const SigningProvider *provider = pwallet->GetSigningProvider();
             if (scriptPubKey.IsPayToScriptHash()) {
                 const CScriptID &hash =
                     CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
-                if (pwallet->GetCScript(hash, redeemScript)) {
+                if (provider->GetCScript(hash, redeemScript)) {
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(),
                                                         redeemScript.end()));
                 }
@@ -3471,7 +3486,8 @@ static UniValue listunspent(const Config &config,
         entry.pushKV("spendable", out.fSpendable);
         entry.pushKV("solvable", out.fSolvable);
         if (out.fSolvable) {
-            auto descriptor = InferDescriptor(scriptPubKey, *pwallet);
+            auto descriptor = InferDescriptor(
+                scriptPubKey, *pwallet->GetLegacyScriptPubKeyMan());
             entry.pushKV("desc", descriptor->ToString());
         }
         if (avoid_reuse) {
@@ -3819,7 +3835,8 @@ UniValue signrawtransactionwithwallet(const Config &config,
     // Parse the prevtxs array
     ParsePrevouts(request.params[1], nullptr, coins);
 
-    return SignTransaction(mtx, pwallet, coins, request.params[2]);
+    return SignTransaction(mtx, &*pwallet->GetLegacyScriptPubKeyMan(), coins,
+                           request.params[2]);
 }
 
 UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
@@ -3932,7 +3949,7 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
 
 class DescribeWalletAddressVisitor : public boost::static_visitor<UniValue> {
 public:
-    CWallet *const pwallet;
+    const SigningProvider *const provider;
 
     void ProcessSubScript(const CScript &subscript, UniValue &obj) const {
         // Always present: script type and redeemscript
@@ -3973,8 +3990,8 @@ public:
         }
     }
 
-    explicit DescribeWalletAddressVisitor(CWallet *_pwallet)
-        : pwallet(_pwallet) {}
+    explicit DescribeWalletAddressVisitor(const SigningProvider *_provider)
+        : provider(_provider) {}
 
     UniValue operator()(const CNoDestination &dest) const {
         return UniValue(UniValue::VOBJ);
@@ -3984,7 +4001,7 @@ public:
         CKeyID keyID(pkhash);
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
-        if (pwallet && pwallet->GetPubKey(keyID, vchPubKey)) {
+        if (provider && provider->GetPubKey(keyID, vchPubKey)) {
             obj.pushKV("pubkey", HexStr(vchPubKey));
             obj.pushKV("iscompressed", vchPubKey.IsCompressed());
         }
@@ -3995,7 +4012,7 @@ public:
         CScriptID scriptID(scripthash);
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
-        if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
+        if (provider && provider->GetCScript(scriptID, subscript)) {
             ProcessSubScript(subscript, obj);
         }
         return obj;
@@ -4006,9 +4023,13 @@ static UniValue DescribeWalletAddress(CWallet *pwallet,
                                       const CTxDestination &dest) {
     UniValue ret(UniValue::VOBJ);
     UniValue detail = DescribeAddress(dest);
+    const SigningProvider *provider = nullptr;
+    if (pwallet) {
+        provider = pwallet->GetSigningProvider();
+    }
     ret.pushKVs(detail);
     ret.pushKVs(
-        boost::apply_visitor(DescribeWalletAddressVisitor(pwallet), dest));
+        boost::apply_visitor(DescribeWalletAddressVisitor(provider), dest));
     return ret;
 }
 
@@ -4132,13 +4153,15 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     CScript scriptPubKey = GetScriptForDestination(dest);
     ret.pushKV("scriptPubKey",
                HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+    const SigningProvider *provider = pwallet->GetSigningProvider();
 
-    isminetype mine = IsMine(*pwallet, dest);
+    isminetype mine = pwallet->IsMine(dest);
     ret.pushKV("ismine", bool(mine & ISMINE_SPENDABLE));
-    bool solvable = IsSolvable(*pwallet, scriptPubKey);
+    bool solvable = IsSolvable(*provider, scriptPubKey);
     ret.pushKV("solvable", solvable);
     if (solvable) {
-        ret.pushKV("desc", InferDescriptor(scriptPubKey, *pwallet)->ToString());
+        ret.pushKV("desc",
+                   InferDescriptor(scriptPubKey, *provider)->ToString());
     }
     ret.pushKV("iswatchonly", bool(mine & ISMINE_WATCH_ONLY));
     UniValue detail = DescribeWalletAddress(pwallet, dest);
@@ -4148,7 +4171,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     }
     ret.pushKV("ischange", pwallet->IsChange(scriptPubKey));
     const CKeyMetadata *meta = nullptr;
-    CKeyID key_id = GetKeyForDestination(*pwallet, dest);
+    CKeyID key_id = GetKeyForDestination(*provider, dest);
     if (!key_id.IsNull()) {
         auto it = pwallet->mapKeyMetadata.find(key_id);
         if (it != pwallet->mapKeyMetadata.end()) {
@@ -4342,6 +4365,12 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
+    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
+    if (!spk_man) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           "This type of wallet does not support this command");
+    }
+
     if (pwallet->chain().isInitialBlockDownload()) {
         throw JSONRPCError(
             RPC_CLIENT_IN_INITIAL_DOWNLOAD,
@@ -4374,7 +4403,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
 
     CPubKey master_pub_key;
     if (request.params[1].isNull()) {
-        master_pub_key = pwallet->GenerateNewSeed();
+        master_pub_key = spk_man->GenerateNewSeed();
     } else {
         CKey key = DecodeSecret(request.params[1].get_str());
         if (!key.IsValid()) {
@@ -4382,18 +4411,18 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
                                "Invalid private key");
         }
 
-        if (HaveKey(*pwallet, key)) {
+        if (HaveKey(*spk_man, key)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Already have this key (either as an HD seed or "
                                "as a loose private key)");
         }
 
-        master_pub_key = pwallet->DeriveNewSeed(key);
+        master_pub_key = spk_man->DeriveNewSeed(key);
     }
 
-    pwallet->SetHDSeed(master_pub_key);
+    spk_man->SetHDSeed(master_pub_key);
     if (flush_key_pool) {
-        pwallet->NewKeyPool();
+        spk_man->NewKeyPool();
     }
 
     return NullUniValue;
