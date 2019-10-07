@@ -427,9 +427,9 @@ int64_t LegacyScriptPubKeyMan::GetTimeFirstKey() const {
     return nTimeFirstKey;
 }
 
-const SigningProvider *
+std::unique_ptr<SigningProvider>
 LegacyScriptPubKeyMan::GetSigningProvider(const CScript &script) const {
-    return this;
+    return std::make_unique<LegacySigningProvider>(*this);
 }
 
 bool LegacyScriptPubKeyMan::CanProvide(const CScript &script,

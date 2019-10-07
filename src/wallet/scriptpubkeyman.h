@@ -239,7 +239,7 @@ public:
         return nullptr;
     }
 
-    virtual const SigningProvider *
+    virtual std::unique_ptr<SigningProvider>
     GetSigningProvider(const CScript &script) const {
         return nullptr;
     }
@@ -413,7 +413,7 @@ public:
 
     bool CanGetAddresses(bool internal = false) override;
 
-    const SigningProvider *
+    std::unique_ptr<SigningProvider>
     GetSigningProvider(const CScript &script) const override;
 
     bool CanProvide(const CScript &script, SignatureData &sigdata) override;
@@ -535,6 +535,36 @@ public:
     }
 
     std::set<CKeyID> GetKeys() const override;
+};
+
+/** Wraps a LegacyScriptPubKeyMan so that it can be returned in a new unique_ptr
+ */
+class LegacySigningProvider : public SigningProvider {
+private:
+    const LegacyScriptPubKeyMan &m_spk_man;
+
+public:
+    LegacySigningProvider(const LegacyScriptPubKeyMan &spk_man)
+        : m_spk_man(spk_man) {}
+
+    bool GetCScript(const CScriptID &scriptid, CScript &script) const override {
+        return m_spk_man.GetCScript(scriptid, script);
+    }
+    bool HaveCScript(const CScriptID &scriptid) const override {
+        return m_spk_man.HaveCScript(scriptid);
+    }
+    bool GetPubKey(const CKeyID &address, CPubKey &pubkey) const override {
+        return m_spk_man.GetPubKey(address, pubkey);
+    }
+    bool GetKey(const CKeyID &address, CKey &key) const override {
+        return m_spk_man.GetKey(address, key);
+    }
+    bool HaveKey(const CKeyID &address) const override {
+        return m_spk_man.HaveKey(address);
+    }
+    bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const override {
+        return m_spk_man.GetKeyOrigin(keyid, info);
+    }
 };
 
 #endif // BITCOIN_WALLET_SCRIPTPUBKEYMAN_H

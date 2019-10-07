@@ -1501,7 +1501,8 @@ bool CWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout,
     const CScript &scriptPubKey = txout.scriptPubKey;
     SignatureData sigdata;
 
-    const SigningProvider *provider = GetSigningProvider(scriptPubKey);
+    std::unique_ptr<SigningProvider> provider =
+        GetSigningProvider(scriptPubKey);
     if (!provider) {
         // We don't know about this scriptpbuKey;
         return false;
@@ -2400,7 +2401,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
                 continue;
             }
 
-            const SigningProvider *provider =
+            std::unique_ptr<SigningProvider> provider =
                 GetSigningProvider(wtx.tx->vout[i].scriptPubKey);
 
             bool solvable =
@@ -2732,7 +2733,8 @@ bool CWallet::SignTransaction(CMutableTransaction &tx) {
         SignatureData sigdata;
         SigHashType sigHashType = SigHashType().withForkId();
 
-        const SigningProvider *provider = GetSigningProvider(scriptPubKey);
+        std::unique_ptr<SigningProvider> provider =
+            GetSigningProvider(scriptPubKey);
         if (!provider) {
             // We don't know about this scriptpbuKey;
             return false;
@@ -3216,7 +3218,7 @@ bool CWallet::CreateTransactionInternal(interfaces::Chain::Lock &locked_chainIn,
                 const CScript &scriptPubKey = coin.txout.scriptPubKey;
                 SignatureData sigdata;
 
-                const SigningProvider *provider =
+                std::unique_ptr<SigningProvider> provider =
                     GetSigningProvider(scriptPubKey);
                 if (!provider ||
                     !ProduceSignature(
@@ -4709,13 +4711,13 @@ ScriptPubKeyMan *CWallet::GetScriptPubKeyMan(const uint256 &id) const {
     return nullptr;
 }
 
-const SigningProvider *
+std::unique_ptr<SigningProvider>
 CWallet::GetSigningProvider(const CScript &script) const {
     SignatureData sigdata;
     return GetSigningProvider(script, sigdata);
 }
 
-const SigningProvider *
+std::unique_ptr<SigningProvider>
 CWallet::GetSigningProvider(const CScript &script,
                             SignatureData &sigdata) const {
     for (const auto &spk_man_pair : m_spk_managers) {
