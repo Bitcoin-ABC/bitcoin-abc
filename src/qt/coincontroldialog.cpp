@@ -507,7 +507,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         if (ExtractDestination(out.txout.scriptPubKey, address)) {
             CPubKey pubkey;
             PKHash *pkhash = boost::get<PKHash>(&address);
-            if (pkhash && model->wallet().getPubKey(CKeyID(*pkhash), pubkey)) {
+            if (pkhash && model->wallet().getPubKey(out.txout.scriptPubKey,
+                                                    CKeyID(*pkhash), pubkey)) {
                 nBytesInputs += (pubkey.IsCompressed() ? 148 : 180);
             } else {
                 // in all error cases, simply assume 148 here
