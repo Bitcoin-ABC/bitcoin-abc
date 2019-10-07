@@ -39,6 +39,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
         scriptPubKey = GetScriptForRawPubKey(pubkeys[0]);
 
@@ -56,6 +57,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
         scriptPubKey = GetScriptForRawPubKey(uncompressedPubkey);
 
@@ -74,6 +76,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
         scriptPubKey = GetScriptForDestination(PKHash(pubkeys[0]));
 
@@ -91,6 +94,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
         scriptPubKey = GetScriptForDestination(PKHash(uncompressedPubkey));
 
@@ -109,6 +113,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
 
         CScript redeemScript = GetScriptForDestination(PKHash(pubkeys[0]));
@@ -134,6 +139,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
 
         CScript redeemscript_inner =
@@ -157,6 +163,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
 
         scriptPubKey =
@@ -191,6 +198,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
         BOOST_CHECK(
             keystore.GetLegacyScriptPubKeyMan()->AddKey(uncompressedKey));
@@ -215,6 +223,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
         BOOST_CHECK(keystore.GetLegacyScriptPubKeyMan()->AddKey(keys[0]));
 
@@ -229,6 +238,7 @@ BOOST_AUTO_TEST_CASE(ismine_standard) {
     {
         CWallet keystore(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
+        keystore.SetupLegacyScriptPubKeyMan();
         LOCK(keystore.GetLegacyScriptPubKeyMan()->cs_KeyStore);
         BOOST_CHECK(keystore.GetLegacyScriptPubKeyMan()->AddKey(keys[0]));
 

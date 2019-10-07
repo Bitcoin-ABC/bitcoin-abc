@@ -44,7 +44,7 @@ static std::shared_ptr<CWallet> CreateWallet(const std::string &name,
     wallet_instance->SetMinVersion(FEATURE_HD_SPLIT);
 
     // generate a new HD seed
-    auto spk_man = wallet_instance->GetLegacyScriptPubKeyMan();
+    auto spk_man = wallet_instance->GetOrCreateLegacyScriptPubKeyMan();
     CPubKey seed = spk_man->GenerateNewSeed();
     spk_man->SetHDSeed(seed);
 

@@ -24,6 +24,7 @@ static void WalletBalance(benchmark::State &state, const bool set_dirty,
     CWallet wallet{config.GetChainParams(), chain.get(), WalletLocation(),
                    WalletDatabase::CreateMock()};
     {
+        wallet.SetupLegacyScriptPubKeyMan();
         bool first_run;
         if (wallet.LoadWallet(first_run) != DBErrors::LOAD_OK) {
             assert(false);

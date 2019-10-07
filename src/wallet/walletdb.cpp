@@ -273,7 +273,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             char fYes;
             ssValue >> fYes;
             if (fYes == '1') {
-                pwallet->GetLegacyScriptPubKeyMan()->LoadWatchOnly(script);
+                pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadWatchOnly(
+                    script);
             }
         } else if (strType == DBKeys::KEY) {
             CPubKey vchPubKey;
@@ -322,7 +323,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
                 strErr = "Error reading wallet database: CPrivKey corrupt";
                 return false;
             }
-            if (!pwallet->GetLegacyScriptPubKeyMan()->LoadKey(key, vchPubKey)) {
+            if (!pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadKey(
+                    key, vchPubKey)) {
                 strErr = "Error reading wallet database: "
                          "LegacyScriptPubKeyMan::LoadKey failed";
                 return false;
@@ -355,7 +357,7 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             ssValue >> vchPrivKey;
             wss.nCKeys++;
 
-            if (!pwallet->GetLegacyScriptPubKeyMan()->LoadCryptedKey(
+            if (!pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadCryptedKey(
                     vchPubKey, vchPrivKey)) {
                 strErr = "Error reading wallet database: "
                          "LegacyScriptPubKeyMan::LoadCryptedKey failed";
@@ -368,7 +370,7 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             CKeyMetadata keyMeta;
             ssValue >> keyMeta;
             wss.nKeyMeta++;
-            pwallet->GetLegacyScriptPubKeyMan()->LoadKeyMetadata(
+            pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadKeyMetadata(
                 vchPubKey.GetID(), keyMeta);
         } else if (strType == DBKeys::WATCHMETA) {
             CScript script;
@@ -376,7 +378,7 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             CKeyMetadata keyMeta;
             ssValue >> keyMeta;
             wss.nKeyMeta++;
-            pwallet->GetLegacyScriptPubKeyMan()->LoadScriptMetadata(
+            pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadScriptMetadata(
                 CScriptID(script), keyMeta);
         } else if (strType == DBKeys::DEFAULTKEY) {
             // We don't want or need the default key, but if there is one set,
@@ -394,13 +396,15 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             CKeyPool keypool;
             ssValue >> keypool;
 
-            pwallet->GetLegacyScriptPubKeyMan()->LoadKeyPool(nIndex, keypool);
+            pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadKeyPool(nIndex,
+                                                                     keypool);
         } else if (strType == DBKeys::CSCRIPT) {
             uint160 hash;
             ssKey >> hash;
             CScript script;
             ssValue >> script;
-            if (!pwallet->GetLegacyScriptPubKeyMan()->LoadCScript(script)) {
+            if (!pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadCScript(
+                    script)) {
                 strErr = "Error reading wallet database: "
                          "LegacyScriptPubKeyMan::LoadCScript failed";
                 return false;
@@ -418,7 +422,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
         } else if (strType == DBKeys::HDCHAIN) {
             CHDChain chain;
             ssValue >> chain;
-            pwallet->GetLegacyScriptPubKeyMan()->SetHDChain(chain, true);
+            pwallet->GetOrCreateLegacyScriptPubKeyMan()->SetHDChain(chain,
+                                                                    true);
         } else if (strType == DBKeys::FLAGS) {
             uint64_t flags;
             ssValue >> flags;
@@ -553,7 +558,7 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
 
     // nTimeFirstKey is only reliable if all keys have metadata
     if ((wss.nKeys + wss.nCKeys + wss.nWatchKeys) != wss.nKeyMeta) {
-        auto spk_man = pwallet->GetLegacyScriptPubKeyMan();
+        auto spk_man = pwallet->GetOrCreateLegacyScriptPubKeyMan();
         if (spk_man) {
             LOCK(spk_man->cs_KeyStore);
             spk_man->UpdateTimeFirstKey(1);

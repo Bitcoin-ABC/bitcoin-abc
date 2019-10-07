@@ -144,8 +144,14 @@ void EnsureWalletIsUnlocked(const CWallet *pwallet) {
     }
 }
 
-LegacyScriptPubKeyMan &EnsureLegacyScriptPubKeyMan(CWallet &wallet) {
+// also_create should only be set to true only when the RPC is expected to add
+// things to a blank wallet and make it no longer blank
+LegacyScriptPubKeyMan &EnsureLegacyScriptPubKeyMan(CWallet &wallet,
+                                                   bool also_create) {
     LegacyScriptPubKeyMan *spk_man = wallet.GetLegacyScriptPubKeyMan();
+    if (!spk_man && also_create) {
+        spk_man = wallet.GetOrCreateLegacyScriptPubKeyMan();
+    }
     if (!spk_man) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "This type of wallet does not support this command");
@@ -4498,7 +4504,8 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*pwallet);
+    LegacyScriptPubKeyMan &spk_man =
+        EnsureLegacyScriptPubKeyMan(*pwallet, true);
 
     if (pwallet->chain().isInitialBlockDownload()) {
         throw JSONRPCError(

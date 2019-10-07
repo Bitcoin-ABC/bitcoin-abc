@@ -29,7 +29,7 @@
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
 
 static void AddKey(CWallet &wallet, const CKey &key) {
-    auto spk_man = wallet.GetLegacyScriptPubKeyMan();
+    auto spk_man = wallet.GetOrCreateLegacyScriptPubKeyMan();
     LOCK2(wallet.cs_wallet, spk_man->cs_KeyStore);
     spk_man->AddKeyPubKey(key, key.GetPubKey());
 }
@@ -164,6 +164,7 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
         std::shared_ptr<CWallet> wallet =
             std::make_shared<CWallet>(Params(), chain.get(), WalletLocation(),
                                       WalletDatabase::CreateDummy());
+        wallet->SetupLegacyScriptPubKeyMan();
         AddWallet(wallet);
         UniValue keys;
         keys.setArray();
@@ -246,7 +247,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         std::shared_ptr<CWallet> wallet =
             std::make_shared<CWallet>(Params(), chain.get(), WalletLocation(),
                                       WalletDatabase::CreateDummy());
-        auto spk_man = wallet->GetLegacyScriptPubKeyMan();
+        auto spk_man = wallet->GetOrCreateLegacyScriptPubKeyMan();
         LOCK2(wallet->cs_wallet, spk_man->cs_KeyStore);
         spk_man->mapKeyMetadata[coinbaseKey.GetPubKey().GetID()].nCreateTime =
             KEY_TIME;
@@ -266,6 +267,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         std::shared_ptr<CWallet> wallet =
             std::make_shared<CWallet>(Params(), chain.get(), WalletLocation(),
                                       WalletDatabase::CreateDummy());
+        wallet->SetupLegacyScriptPubKeyMan();
 
         JSONRPCRequest request;
         request.params.setArray();
@@ -296,7 +298,7 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     auto chain = interfaces::MakeChain(node, Params());
     CWallet wallet(Params(), chain.get(), WalletLocation(),
                    WalletDatabase::CreateDummy());
-    auto spk_man = wallet.GetLegacyScriptPubKeyMan();
+    auto spk_man = wallet.GetOrCreateLegacyScriptPubKeyMan();
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
 
     auto locked_chain = chain->lock();
@@ -453,7 +455,8 @@ static void PollutePubKey(CPubKey &pubkey) {
 BOOST_AUTO_TEST_CASE(WatchOnlyPubKeys) {
     CKey key;
     CPubKey pubkey;
-    LegacyScriptPubKeyMan *spk_man = m_wallet.GetLegacyScriptPubKeyMan();
+    LegacyScriptPubKeyMan *spk_man =
+        m_wallet.GetOrCreateLegacyScriptPubKeyMan();
 
     BOOST_CHECK(!spk_man->HaveWatchOnly());
 
@@ -627,6 +630,7 @@ BOOST_FIXTURE_TEST_CASE(wallet_disableprivkeys, TestChain100Setup) {
     auto chain = interfaces::MakeChain(node, Params());
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
         Params(), chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    wallet->SetupLegacyScriptPubKeyMan();
     wallet->SetMinVersion(FEATURE_LATEST);
     wallet->SetWalletFlag(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
     BOOST_CHECK(!wallet->TopUpKeyPool(1000));

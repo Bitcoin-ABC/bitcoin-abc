@@ -141,6 +141,7 @@ inline std::vector<OutputGroup> &GroupCoins(const std::vector<COutput> &coins) {
 // Branch and bound coin selection tests
 BOOST_AUTO_TEST_CASE(bnb_search_test) {
     LOCK(m_wallet.cs_wallet);
+    m_wallet.SetupLegacyScriptPubKeyMan();
 
     // Setup
     std::vector<CInputCoin> utxo_pool;
@@ -313,6 +314,7 @@ BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
     bool bnb_used;
 
     LOCK(testWallet.cs_wallet);
+    testWallet.SetupLegacyScriptPubKeyMan();
 
     // test multiple times to allow for differences in the shuffle order
     for (int i = 0; i < RUN_TESTS; i++) {
@@ -712,6 +714,7 @@ BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
     bool bnb_used;
 
     LOCK(m_wallet.cs_wallet);
+    m_wallet.SetupLegacyScriptPubKeyMan();
 
     empty_wallet();
 
@@ -736,6 +739,7 @@ BOOST_AUTO_TEST_CASE(SelectCoins_test) {
     auto testChain = interfaces::MakeChain(testNode, Params());
     CWallet testWallet(Params(), testChain.get(), WalletLocation(),
                        WalletDatabase::CreateDummy());
+    testWallet.SetupLegacyScriptPubKeyMan();
 
     // Random generator stuff
     std::default_random_engine generator;

@@ -143,7 +143,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
                            "private keys disabled");
     }
 
-    EnsureLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet, true);
 
     WalletRescanReserver reserver(*pwallet);
     bool fRescan = true;
@@ -290,7 +290,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    EnsureLegacyScriptPubKeyMan(*pwallet);
+    EnsureLegacyScriptPubKeyMan(*pwallet, true);
 
     std::string strLabel;
     if (!request.params[1].isNull()) {
@@ -543,7 +543,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    EnsureLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet, true);
 
     std::string strLabel;
     if (!request.params[1].isNull()) {
@@ -639,7 +639,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    EnsureLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet, true);
 
     if (pwallet->chain().havePruned()) {
         // Exit early and print an error.
@@ -1689,7 +1689,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 
     RPCTypeCheck(mainRequest.params, {UniValue::VARR, UniValue::VOBJ});
 
-    EnsureLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet, true);
 
     const UniValue &requests = mainRequest.params[0];
 

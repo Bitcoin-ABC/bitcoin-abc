@@ -36,8 +36,9 @@ static void CoinSelection(benchmark::State &state) {
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    const CWallet wallet(Params(), chain.get(), WalletLocation(),
-                         WalletDatabase::CreateDummy());
+    CWallet wallet(Params(), chain.get(), WalletLocation(),
+                   WalletDatabase::CreateDummy());
+    wallet.SetupLegacyScriptPubKeyMan();
     std::vector<std::unique_ptr<CWalletTx>> wtxs;
     LOCK(wallet.cs_wallet);
 
@@ -109,12 +110,13 @@ static void BnBExhaustion(benchmark::State &state) {
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    const CWallet wallet(Params(), chain.get(), WalletLocation(),
-                         WalletDatabase::CreateDummy());
+    CWallet wallet(Params(), chain.get(), WalletLocation(),
+                   WalletDatabase::CreateDummy());
 
     LOCK(wallet.cs_wallet);
 
     // Setup
+    wallet.SetupLegacyScriptPubKeyMan();
     std::vector<OutputGroup> utxo_pool;
     CoinSet selection;
     Amount value_ret = Amount::zero();
