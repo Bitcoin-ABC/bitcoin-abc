@@ -245,7 +245,7 @@ private:
     using WatchOnlySet = std::set<CScript>;
     using WatchKeyMap = std::map<CKeyID, CPubKey>;
 
-    WalletBatch *encrypted_batch GUARDED_BY(cs_wallet) = nullptr;
+    WalletBatch *encrypted_batch GUARDED_BY(cs_KeyStore) = nullptr;
 
     using CryptedKeyMap =
         std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>;
@@ -254,7 +254,7 @@ private:
     WatchOnlySet setWatchOnly GUARDED_BY(cs_KeyStore);
     WatchKeyMap mapWatchKeys GUARDED_BY(cs_KeyStore);
 
-    int64_t nTimeFirstKey GUARDED_BY(cs_wallet) = 0;
+    int64_t nTimeFirstKey GUARDED_BY(cs_KeyStore) = 0;
 
     bool AddKeyPubKeyInner(const CKey &key, const CPubKey &pubkey);
     bool AddCryptedKeyInner(const CPubKey &vchPubKey,
@@ -269,19 +269,20 @@ private:
      * of the other AddWatchOnly which accepts a timestamp and sets
      * nTimeFirstKey more intelligently for more efficient rescans.
      */
-    bool AddWatchOnly(const CScript &dest) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool AddWatchOnly(const CScript &dest)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     bool AddWatchOnlyWithDB(WalletBatch &batch, const CScript &dest)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     bool AddWatchOnlyInMem(const CScript &dest);
     //! Adds a watch-only address to the store, and saves it to disk.
     bool AddWatchOnlyWithDB(WalletBatch &batch, const CScript &dest,
                             int64_t create_time)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     //! Adds a key to the store, and saves it to disk.
     bool AddKeyPubKeyWithDB(WalletBatch &batch, const CKey &key,
                             const CPubKey &pubkey)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     void AddKeypoolPubkeyWithDB(const CPubKey &pubkey, const bool internal,
                                 WalletBatch &batch);
@@ -299,12 +300,12 @@ private:
     /* HD derive new child key (on internal or external chain) */
     void DeriveNewChildKey(WalletBatch &batch, CKeyMetadata &metadata,
                            CKey &secret, bool internal = false)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
-    std::set<int64_t> setInternalKeyPool GUARDED_BY(cs_wallet);
-    std::set<int64_t> setExternalKeyPool GUARDED_BY(cs_wallet);
-    std::set<int64_t> set_pre_split_keypool GUARDED_BY(cs_wallet);
-    int64_t m_max_keypool_index GUARDED_BY(cs_wallet) = 0;
+    std::set<int64_t> setInternalKeyPool GUARDED_BY(cs_KeyStore);
+    std::set<int64_t> setExternalKeyPool GUARDED_BY(cs_KeyStore);
+    std::set<int64_t> set_pre_split_keypool GUARDED_BY(cs_KeyStore);
+    int64_t m_max_keypool_index GUARDED_BY(cs_KeyStore) = 0;
     std::map<CKeyID, int64_t> m_pool_key_to_index;
     // Tracks keypool indexes to CKeyIDs of keys that have been taken out of the
     // keypool but may be returned to it
@@ -354,7 +355,7 @@ public:
 
     //! Upgrade stored CKeyMetadata objects to store key origin info as
     //! KeyOriginInfo
-    void UpgradeKeyMetadata() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void UpgradeKeyMetadata();
 
     bool IsHDEnabled() const override;
 
@@ -367,8 +368,7 @@ public:
     void RewriteDB() override;
 
     int64_t GetOldestKeyPoolTime() override;
-    size_t KeypoolCountExternalKeys() override
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    size_t KeypoolCountExternalKeys() override;
     unsigned int GetKeyPoolSize() const override;
 
     int64_t GetTimeFirstKey() const override;
@@ -378,14 +378,13 @@ public:
     bool CanGetAddresses(bool internal = false) override;
 
     // Map from Key ID to key metadata.
-    std::map<CKeyID, CKeyMetadata> mapKeyMetadata GUARDED_BY(cs_wallet);
+    std::map<CKeyID, CKeyMetadata> mapKeyMetadata GUARDED_BY(cs_KeyStore);
 
     // Map from Script ID to key metadata (for watch-only keys).
-    std::map<CScriptID, CKeyMetadata> m_script_metadata GUARDED_BY(cs_wallet);
+    std::map<CScriptID, CKeyMetadata> m_script_metadata GUARDED_BY(cs_KeyStore);
 
     //! Adds a key to the store, and saves it to disk.
-    bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) override
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) override;
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
     bool LoadKey(const CKey &key, const CPubKey &pubkey);
     //! Adds an encrypted key to the store, and saves it to disk.
@@ -396,18 +395,16 @@ public:
     bool LoadCryptedKey(const CPubKey &vchPubKey,
                         const std::vector<uint8_t> &vchCryptedSecret);
     void UpdateTimeFirstKey(int64_t nCreateTime)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     //! Adds a CScript to the store
     bool LoadCScript(const CScript &redeemScript);
     //! Load metadata (used by LoadWallet)
-    void LoadKeyMetadata(const CKeyID &keyID, const CKeyMetadata &metadata)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LoadKeyMetadata(const CKeyID &keyID, const CKeyMetadata &metadata);
     void LoadScriptMetadata(const CScriptID &script_id,
-                            const CKeyMetadata &metadata)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+                            const CKeyMetadata &metadata);
     //! Generate a new key
     CPubKey GenerateNewKey(WalletBatch &batch, bool internal = false)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     /* Set the HD chain model (chain child index counters) */
     void SetHDChain(const CHDChain &chain, bool memonly);
@@ -421,10 +418,9 @@ public:
     //! Returns whether there are any watch-only things in the wallet
     bool HaveWatchOnly() const;
     //! Remove a watch only script from the keystore
-    bool RemoveWatchOnly(const CScript &dest)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool RemoveWatchOnly(const CScript &dest);
     bool AddWatchOnly(const CScript &dest, int64_t nCreateTime)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     //! Fetches a pubkey from mapWatchKeys if it exists there
     bool GetWatchPubKey(const CKeyID &address, CPubKey &pubkey_out) const;
@@ -437,26 +433,25 @@ public:
     bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const override;
 
     //! Load a keypool entry
-    void LoadKeyPool(int64_t nIndex, const CKeyPool &keypool)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LoadKeyPool(int64_t nIndex, const CKeyPool &keypool);
     bool NewKeyPool();
-    void MarkPreSplitKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void MarkPreSplitKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     bool ImportScripts(const std::set<CScript> scripts, int64_t timestamp)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     bool ImportPrivKeys(const std::map<CKeyID, CKey> &privkey_map,
                         const int64_t timestamp)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     bool ImportPubKeys(
         const std::vector<CKeyID> &ordered_pubkeys,
         const std::map<CKeyID, CPubKey> &pubkey_map,
         const std::map<CKeyID, std::pair<CPubKey, KeyOriginInfo>> &key_origins,
         const bool add_keypool, const bool internal, const int64_t timestamp)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     bool ImportScriptPubKeys(const std::set<CScript> &script_pub_keys,
                              const bool have_solving_data,
                              const int64_t timestamp)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     /* Returns true if the wallet can generate new keys */
     bool CanGenerateKeys();
@@ -491,7 +486,7 @@ public:
      * Marks all keys in the keypool up to and including reserve_key as used.
      */
     void MarkReserveKeysAsUsed(int64_t keypool_id)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     const std::map<CKeyID, int64_t> &GetAllReserveKeys() const {
         return m_pool_key_to_index;
     }
@@ -507,7 +502,6 @@ public:
     void WalletLogPrintf(const std::string &fmt,
                          const Params &... parameters) const;
     CWallet &m_wallet;
-    RecursiveMutex &cs_wallet;
 };
 
 #endif // BITCOIN_WALLET_SCRIPTPUBKEYMAN_H

@@ -209,8 +209,7 @@ public:
 static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
                          CDataStream &ssValue, CWalletScanState &wss,
                          std::string &strType, std::string &strErr)
-    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet,
-                             pwallet->GetLegacyScriptPubKeyMan()->cs_wallet) {
+    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
     try {
         // Unserialize
         // Taking advantage of the fact that pair serialization is just the two
@@ -464,7 +463,6 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
     DBErrors result = DBErrors::LOAD_OK;
 
     LOCK(pwallet->cs_wallet);
-    AssertLockHeld(pwallet->GetLegacyScriptPubKeyMan()->cs_wallet);
     try {
         int nMinVersion = 0;
         if (m_batch.Read(DBKeys::MINVERSION, nMinVersion)) {
@@ -557,6 +555,7 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
     if ((wss.nKeys + wss.nCKeys + wss.nWatchKeys) != wss.nKeyMeta) {
         auto spk_man = pwallet->GetLegacyScriptPubKeyMan();
         if (spk_man) {
+            LOCK(spk_man->cs_KeyStore);
             spk_man->UpdateTimeFirstKey(1);
         }
     }
@@ -766,7 +765,6 @@ bool WalletBatch::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
     {
         // Required in LoadKeyMetadata():
         LOCK(dummyWallet->cs_wallet);
-        AssertLockHeld(dummyWallet->GetLegacyScriptPubKeyMan()->cs_wallet);
         fReadOK = ReadKeyValue(dummyWallet, ssKey, ssValue, dummyWss, strType,
                                strErr);
     }
