@@ -4255,11 +4255,18 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
 
         // No need to read and scan block if block was created before our wallet
         // birthday (as adjusted for block time variability)
-        if (walletInstance->nTimeFirstKey) {
+        Optional<int64_t> time_first_key;
+        if (auto spk_man = walletInstance->m_spk_man.get()) {
+            int64_t time = spk_man->GetTimeFirstKey();
+            if (!time_first_key || time < *time_first_key) {
+                time_first_key = time;
+            }
+        }
+        if (time_first_key) {
             if (Optional<int> first_block =
                     locked_chain->findFirstBlockWithTimeAndHeight(
-                        walletInstance->nTimeFirstKey - TIMESTAMP_WINDOW,
-                        rescan_height, nullptr)) {
+                        *time_first_key - TIMESTAMP_WINDOW, rescan_height,
+                        nullptr)) {
                 rescan_height = *first_block;
             }
         }

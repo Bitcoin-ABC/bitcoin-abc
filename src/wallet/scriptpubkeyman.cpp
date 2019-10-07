@@ -424,6 +424,11 @@ unsigned int LegacyScriptPubKeyMan::GetKeyPoolSize() const {
     return setInternalKeyPool.size() + setExternalKeyPool.size();
 }
 
+int64_t LegacyScriptPubKeyMan::GetTimeFirstKey() const {
+    AssertLockHeld(cs_wallet);
+    return nTimeFirstKey;
+}
+
 const CKeyMetadata *LegacyScriptPubKeyMan::GetMetadata(uint160 id) const {
     AssertLockHeld(cs_wallet);
     auto it = mapKeyMetadata.find(CKeyID(id));
