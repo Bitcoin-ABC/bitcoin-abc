@@ -10,7 +10,6 @@
 #include <util/strencodings.h>
 #include <util/translation.h>
 #include <wallet/scriptpubkeyman.h>
-#include <wallet/wallet.h>
 
 bool LegacyScriptPubKeyMan::GetNewDestination(const OutputType type,
                                               CTxDestination &dest,
@@ -1450,20 +1449,4 @@ std::set<CKeyID> LegacyScriptPubKeyMan::GetKeys() const {
         set_address.insert(mi.first);
     }
     return set_address;
-}
-
-// Temporary CWallet accessors and aliases.
-LegacyScriptPubKeyMan::LegacyScriptPubKeyMan(CWallet &wallet)
-    : ScriptPubKeyMan(wallet), m_wallet(wallet) {}
-
-void LegacyScriptPubKeyMan::NotifyWatchonlyChanged(bool fHaveWatchOnly) const {
-    return m_wallet.NotifyWatchonlyChanged(fHaveWatchOnly);
-}
-void LegacyScriptPubKeyMan::NotifyCanGetAddressesChanged() const {
-    return m_wallet.NotifyCanGetAddressesChanged();
-}
-template <typename... Params>
-void LegacyScriptPubKeyMan::WalletLogPrintf(
-    const std::string &fmt, const Params &... parameters) const {
-    return m_wallet.WalletLogPrintf(fmt, parameters...);
 }

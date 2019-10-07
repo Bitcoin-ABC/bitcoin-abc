@@ -33,7 +33,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "script/scriptcache -> validation -> script/scriptcache"
     "seeder/bitcoin -> seeder/db -> seeder/bitcoin"
     "chainparams -> protocol -> config -> chainparams"
-    "wallet/scriptpubkeyman -> wallet/wallet -> wallet/scriptpubkeyman"
     "checkpoints -> validation -> checkpoints"
     "pow/aserti32d -> validation -> pow/aserti32d"
     "pow/aserti32d -> validation -> pow/pow -> pow/aserti32d"

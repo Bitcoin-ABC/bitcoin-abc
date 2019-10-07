@@ -25,11 +25,12 @@ FALSE_POSITIVES = [
     ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
     ("src/wallet/wallet.h",
      "LogPrintf((\"%s \" + fmt).c_str(), GetDisplayName(), parameters...)"),
+    ("src/wallet/scriptpubkeyman.h",
+     "WalletLogPrintf(std::string fmt, Params... parameters)"),
+    ("src/wallet/scriptpubkeyman.h",
+     "LogPrintf((\"%s \" + fmt).c_str(), m_storage.GetDisplayName(), parameters...)"),
     ("src/logging.h", "LogPrintf(const char *fmt, const Args &... args)"),
     ("src/wallet/scriptpubkeyman.h",
-     "WalletLogPrintf(const std::string& fmt, const Params&... parameters)"),
-    ("src/wallet/scriptpubkeyman.cpp", "WalletLogPrintf(fmt, parameters...)"),
-    ("src/wallet/scriptpubkeyman.cpp",
      "WalletLogPrintf(const std::string& fmt, const Params&... parameters)"),
 ]
 
