@@ -1374,11 +1374,6 @@ public:
         AssertLockHeld(m_spk_man->cs_wallet);
         m_spk_man->MarkPreSplitKeys();
     }
-    void MarkReserveKeysAsUsed(int64_t keypool_id)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) {
-        AssertLockHeld(m_spk_man->cs_wallet);
-        m_spk_man->MarkReserveKeysAsUsed(keypool_id);
-    }
     using CryptedKeyMap = LegacyScriptPubKeyMan::CryptedKeyMap;
 };
 
