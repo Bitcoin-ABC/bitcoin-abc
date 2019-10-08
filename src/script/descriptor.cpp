@@ -693,6 +693,7 @@ public:
 /** A parsed multi(...) descriptor. */
 class MultisigDescriptor final : public DescriptorImpl {
     const int m_threshold;
+    const bool m_sorted;
 
 protected:
     std::string ToStringExtra() const override {
@@ -701,14 +702,21 @@ protected:
     std::vector<CScript> MakeScripts(const std::vector<CPubKey> &keys,
                                      const CScript *,
                                      FlatSigningProvider &) const override {
+        if (m_sorted) {
+            std::vector<CPubKey> sorted_keys(keys);
+            std::sort(sorted_keys.begin(), sorted_keys.end());
+            return Vector(GetScriptForMultisig(m_threshold, sorted_keys));
+        }
         return Vector(GetScriptForMultisig(m_threshold, keys));
     }
 
 public:
     MultisigDescriptor(int threshold,
-                       std::vector<std::unique_ptr<PubkeyProvider>> providers)
-        : DescriptorImpl(std::move(providers), {}, "multi"),
-          m_threshold(threshold) {}
+                       std::vector<std::unique_ptr<PubkeyProvider>> providers,
+                       bool sorted = false)
+        : DescriptorImpl(std::move(providers), {},
+                         sorted ? "sortedmulti" : "multi"),
+          m_threshold(threshold), m_sorted(sorted) {}
 };
 
 /** A parsed sh(...) descriptor. */
@@ -875,6 +883,7 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
     using namespace spanparsing;
 
     auto expr = Expr(sp);
+    bool sorted_multi = false;
     if (Func("pk", expr)) {
         auto pubkey = ParsePubkey(expr, out, error);
         if (!pubkey) {
@@ -899,7 +908,7 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
         error = "Cannot have combo in non-top level";
         return nullptr;
     }
-    if (Func("multi", expr)) {
+    if ((sorted_multi = Func("sortedmulti", expr)) || Func("multi", expr)) {
         auto threshold = Expr(expr);
         uint32_t thres;
         std::vector<std::unique_ptr<PubkeyProvider>> providers;
@@ -956,8 +965,8 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
                 return nullptr;
             }
         }
-        return std::make_unique<MultisigDescriptor>(thres,
-                                                    std::move(providers));
+        return std::make_unique<MultisigDescriptor>(thres, std::move(providers),
+                                                    sorted_multi);
     }
     if (ctx == ParseScriptContext::TOP && Func("sh", expr)) {
         auto desc = ParseScript(expr, ParseScriptContext::P2SH, out, error);

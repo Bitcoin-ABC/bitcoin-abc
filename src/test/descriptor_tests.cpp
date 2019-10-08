@@ -431,6 +431,28 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "c5bd4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c5"
             "40c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abe"
             "a23552ae"}});
+    Check("sortedmulti(1,L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1,"
+          "5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss)",
+          "sortedmulti(1,"
+          "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd,"
+          "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b"
+          "8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235)",
+          SIGNABLE,
+          {{"512103a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540"
+            "c5bd4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c5"
+            "40c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abe"
+            "a23552ae"}});
+    Check("sortedmulti(1,5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss,"
+          "L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
+          "sortedmulti(1,"
+          "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b"
+          "8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235,"
+          "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)",
+          SIGNABLE,
+          {{"512103a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540"
+            "c5bd4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c5"
+            "40c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abe"
+            "a23552ae"}});
     Check("sh(multi(2,[00000000/111'/222]"
           "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39"
           "njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
@@ -443,6 +465,29 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           "aohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))",
           DEFAULT, {{"a91445a9a622a8b0a1269944be477640eedc447bbd8487"}},
           {{0x8000006FUL, 222}, {0}});
+    Check("sortedmulti(2,"
+          "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39"
+          "njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc/"
+          "*,"
+          "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7"
+          "AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0/0/*)",
+          "sortedmulti(2,"
+          "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4"
+          "koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL/"
+          "*,"
+          "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHB"
+          "aohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0/0/*)",
+          RANGE,
+          {{"5221025d5fc65ebb8d44a5274b53bac21ff8307fec2334a32df05553459f8b1f7f"
+            "e1b62102fbd47cc8034098f0e6a94c6aeee8528abf0a2153a5d8e46d325b7284c0"
+            "46784652ae"},
+           {"52210264fd4d1f5dea8ded94c61e9641309349b62f27fbffe807291f664e286bfb"
+            "e6472103f4ece6dfccfa37b211eb3d0af4d0c61dba9ef698622dc17eecdf764bee"
+            "b005a652ae"},
+           {"5221022ccabda84c30bad578b13c89eb3b9544ce149787e5b538175b1d1ba259cb"
+            "b83321024d902e1a2fc7a8755ab5b694c575fce742c48d9ff192e63df5193e4c7a"
+            "fe1f9c52ae"}},
+          {{0}, {1}, {2}, {0, 0, 0}, {0, 0, 1}, {0, 0, 2}});
     // P2SH does not fit 16 compressed pubkeys in a redeemscript
     CheckUnparsable(
         "sh(multi(16,"
