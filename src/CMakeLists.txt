@@ -1,6 +1,6 @@
 # Copyright (c) 2017 The Bitcoin developers
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 project(bitcoind)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -186,12 +186,10 @@ function(find_git_head_logs_file RESULT)
 		if(GIT_RESULT EQUAL 0)
 			set(GIT_LOGS_DIR "${GIT_ROOT}/.git/logs")
 			set(GIT_HEAD_LOGS_FILE "${GIT_LOGS_DIR}/HEAD")
-			# If the .git/logs/HEAD, create it
+			# If the .git/logs/HEAD does not exist, create it
 			if(NOT EXISTS "${GIT_HEAD_LOGS_FILE}")
-				# FIXME No longer needed once cmake > 3.10 get enforced.
 				file(MAKE_DIRECTORY "${GIT_LOGS_DIR}")
-				# FIXME Replace with file(TOUCH) when cmake > 3.12 get enforced.
-				file(APPEND "${GIT_HEAD_LOGS_FILE}" "")
+				file(TOUCH "${GIT_HEAD_LOGS_FILE}")
 			endif()
 			set(${RESULT} "${GIT_HEAD_LOGS_FILE}" PARENT_SCOPE)
 		endif()
