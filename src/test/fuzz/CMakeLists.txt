@@ -85,6 +85,8 @@ add_regular_fuzz_targets(
 	strprintf
 	timedata
 	transaction
+	tx_in
+	tx_out
 )
 
 add_deserialize_fuzz_targets(
