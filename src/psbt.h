@@ -100,6 +100,9 @@ struct PSBTInput {
     }
 
     template <typename Stream> inline void Unserialize(Stream &s) {
+        // Used for duplicate key detection
+        std::set<std::vector<uint8_t>> key_lookup;
+
         // Read loop
         bool found_sep = false;
         while (!s.empty()) {
@@ -121,7 +124,7 @@ struct PSBTInput {
             // Do stuff based on type
             switch (type) {
                 case PSBT_IN_UTXO:
-                    if (!utxo.IsNull()) {
+                    if (!key_lookup.emplace(key).second) {
                         throw std::ios_base::failure(
                             "Duplicate Key, input utxo already provided");
                     } else if (key.size() != 1) {
@@ -159,7 +162,7 @@ struct PSBTInput {
                     break;
                 }
                 case PSBT_IN_SIGHASH:
-                    if (sighash_type.getRawSigHashType() != 0) {
+                    if (!key_lookup.emplace(key).second) {
                         throw std::ios_base::failure(
                             "Duplicate Key, input sighash type already "
                             "provided");
@@ -170,7 +173,7 @@ struct PSBTInput {
                     UnserializeFromVector(s, sighash_type);
                     break;
                 case PSBT_IN_REDEEMSCRIPT: {
-                    if (!redeem_script.empty()) {
+                    if (!key_lookup.emplace(key).second) {
                         throw std::ios_base::failure(
                             "Duplicate Key, input redeemScript already "
                             "provided");
@@ -187,7 +190,7 @@ struct PSBTInput {
                     break;
                 }
                 case PSBT_IN_SCRIPTSIG: {
-                    if (!final_script_sig.empty()) {
+                    if (!key_lookup.emplace(key).second) {
                         throw std::ios_base::failure(
                             "Duplicate Key, input final scriptSig already "
                             "provided");
@@ -256,6 +259,9 @@ struct PSBTOutput {
     }
 
     template <typename Stream> inline void Unserialize(Stream &s) {
+        // Used for duplicate key detection
+        std::set<std::vector<uint8_t>> key_lookup;
+
         // Read loop
         bool found_sep = false;
         while (!s.empty()) {
@@ -277,7 +283,7 @@ struct PSBTOutput {
             // Do stuff based on type
             switch (type) {
                 case PSBT_OUT_REDEEMSCRIPT: {
-                    if (!redeem_script.empty()) {
+                    if (!key_lookup.emplace(key).second) {
                         throw std::ios_base::failure(
                             "Duplicate Key, output redeemScript already "
                             "provided");
@@ -392,6 +398,9 @@ struct PartiallySignedTransaction {
             throw std::ios_base::failure("Invalid PSBT magic bytes");
         }
 
+        // Used for duplicate key detection
+        std::set<std::vector<uint8_t>> key_lookup;
+
         // Read global data
         bool found_sep = false;
         while (!s.empty()) {
@@ -413,7 +422,7 @@ struct PartiallySignedTransaction {
             // Do stuff based on type
             switch (type) {
                 case PSBT_GLOBAL_UNSIGNED_TX: {
-                    if (tx) {
+                    if (!key_lookup.emplace(key).second) {
                         throw std::ios_base::failure(
                             "Duplicate Key, unsigned tx already provided");
                     } else if (key.size() != 1) {
