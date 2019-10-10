@@ -39,12 +39,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     } catch (const std::ios_base::failure &e) {
         return;
     }
-#elif TRANSACTION_DESERIALIZE
-    try {
-        CTransaction tx(deserialize, ds);
-    } catch (const std::ios_base::failure &e) {
-        return;
-    }
 #elif BLOCKLOCATOR_DESERIALIZE
     try {
         CBlockLocator bl;

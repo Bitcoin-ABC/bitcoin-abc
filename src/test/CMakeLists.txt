@@ -46,7 +46,7 @@ create_test_suite(bitcoin)
 add_dependencies(check check-bitcoin)
 
 # An utility library for bitcoin related test suites.
-add_library(testutil
+add_library(testutil OBJECT
 	util/blockfilter.cpp
 	util/logging.cpp
 	util/setup_common.cpp

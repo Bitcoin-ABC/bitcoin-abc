@@ -13,6 +13,19 @@ macro(add_fuzz_target TARGET EXE_NAME)
 	add_dependencies(bitcoin-fuzzers ${TARGET})
 endmacro()
 
+function(add_regular_fuzz_targets)
+	foreach(_fuzz_test_name ${ARGN})
+		sanitize_target_name("fuzz-" ${_fuzz_test_name} _fuzz_target_name)
+		add_fuzz_target(
+			${_fuzz_target_name}
+			${_fuzz_test_name}
+
+			# Sources
+			"${_fuzz_test_name}.cpp"
+		)
+	endforeach()
+endfunction()
+
 include(SanitizeHelper)
 function(add_deserialize_fuzz_targets)
 	foreach(_fuzz_test_name ${ARGN})
@@ -30,6 +43,11 @@ function(add_deserialize_fuzz_targets)
 		target_compile_definitions(${_fuzz_target_name} PRIVATE ${_target_definition})
 	endforeach()
 endfunction()
+
+add_regular_fuzz_targets(
+	script_flags
+	transaction
+)
 
 add_deserialize_fuzz_targets(
 	address_deserialize
@@ -49,16 +67,6 @@ add_deserialize_fuzz_targets(
 	messageheader_deserialize
 	netaddr_deserialize
 	service_deserialize
-	transaction_deserialize
 	txoutcompressor_deserialize
 	txundo_deserialize
-)
-
-add_fuzz_target(
-	fuzz-script_flags
-	script_flags
-
-	# Sources
-	fuzz.cpp
-	script_flags.cpp
 )
