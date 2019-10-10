@@ -34,6 +34,8 @@ from .trezor import (
     RECOVERY_TYPE_SCRAMBLED_WORDS,
     TIM_NEW,
     TIM_RECOVER,
+    BackupType,
+    Capability,
     TrezorInitSettings,
     TrezorPlugin,
 )
@@ -302,6 +304,8 @@ class QtPlugin(QtPluginBase):
             raise Exception(_("The device was disconnected."))
         model = client.get_trezor_model()
         fw_version = client.client.version
+        capabilities = client.client.features.capabilities
+        have_shamir = Capability.Shamir in capabilities
 
         # label
         label = QtWidgets.QLabel(_("Enter a label to name your device:"))
@@ -312,21 +316,89 @@ class QtPlugin(QtPluginBase):
         hl.addStretch(1)
         vbox.addLayout(hl)
 
+        # Backup type
+        gb_backuptype = QtWidgets.QGroupBox()
+        hbox_backuptype = QtWidgets.QHBoxLayout()
+        gb_backuptype.setLayout(hbox_backuptype)
+        vbox.addWidget(gb_backuptype)
+        gb_backuptype.setTitle(_("Select backup type:"))
+        bg_backuptype = QtWidgets.QButtonGroup()
+
+        rb_single = QtWidgets.QRadioButton(gb_backuptype)
+        rb_single.setText(_("Single seed (BIP39)"))
+        bg_backuptype.addButton(rb_single)
+        bg_backuptype.setId(rb_single, BackupType.Bip39)
+        hbox_backuptype.addWidget(rb_single)
+        rb_single.setChecked(True)
+
+        rb_shamir = QtWidgets.QRadioButton(gb_backuptype)
+        rb_shamir.setText(_("Shamir"))
+        bg_backuptype.addButton(rb_shamir)
+        bg_backuptype.setId(rb_shamir, BackupType.Slip39_Basic)
+        hbox_backuptype.addWidget(rb_shamir)
+        rb_shamir.setEnabled(have_shamir)
+        # visible with "expert settings"
+        rb_shamir.setVisible(False)
+
+        rb_shamir_groups = QtWidgets.QRadioButton(gb_backuptype)
+        rb_shamir_groups.setText(_("Super Shamir"))
+        bg_backuptype.addButton(rb_shamir_groups)
+        bg_backuptype.setId(rb_shamir_groups, BackupType.Slip39_Advanced)
+        hbox_backuptype.addWidget(rb_shamir_groups)
+        rb_shamir_groups.setEnabled(have_shamir)
+        # visible with "expert settings"
+        rb_shamir_groups.setVisible(False)
+
         # word count
-        gb = QtWidgets.QGroupBox()
+        word_count_buttons = {}
+
+        gb_numwords = QtWidgets.QGroupBox()
         hbox1 = QtWidgets.QHBoxLayout()
-        gb.setLayout(hbox1)
-        vbox.addWidget(gb)
-        gb.setTitle(_("Select your seed length:"))
+        gb_numwords.setLayout(hbox1)
+        vbox.addWidget(gb_numwords)
+        gb_numwords.setTitle(_("Select seed/share length:"))
         bg_numwords = QtWidgets.QButtonGroup()
-        word_counts = [12, 18, 24]
-        for i, count in enumerate(word_counts):
-            rb = QtWidgets.QRadioButton(gb)
+        for count in (12, 18, 20, 24, 33):
+            rb = QtWidgets.QRadioButton(gb_numwords)
+            word_count_buttons[count] = rb
             rb.setText(_("%d words") % count)
             bg_numwords.addButton(rb)
-            bg_numwords.setId(rb, i)
+            bg_numwords.setId(rb, count)
             hbox1.addWidget(rb)
             rb.setChecked(True)
+
+        def configure_word_counts():
+            if model == "1":
+                checked_wordcount = 24
+            else:
+                checked_wordcount = 12
+
+            if method == TIM_RECOVER:
+                if have_shamir:
+                    valid_word_counts = (12, 18, 20, 24, 33)
+                else:
+                    valid_word_counts = (12, 18, 24)
+            elif rb_single.isChecked():
+                valid_word_counts = (12, 18, 24)
+                gb_numwords.setTitle(_("Select seed length:"))
+            else:
+                valid_word_counts = (20, 33)
+                checked_wordcount = 20
+                gb_numwords.setTitle(_("Select share length:"))
+
+            word_count_buttons[checked_wordcount].setChecked(True)
+            for c, btn in word_count_buttons.items():
+                btn.setVisible(c in valid_word_counts)
+
+        bg_backuptype.buttonClicked.connect(configure_word_counts)
+        configure_word_counts()
+
+        # set up conditional visibility:
+        # 1. backup_type is only visible when creating new seed
+        gb_backuptype.setVisible(method == TIM_NEW)
+        # 2. word_count is not visible when recovering on TT
+        if method == TIM_RECOVER and model != "1":
+            gb_numwords.setVisible(False)
 
         # PIN
         cb_pin = QtWidgets.QCheckBox(_("Enable PIN protection"))
@@ -344,6 +416,8 @@ class QtPlugin(QtPluginBase):
         def show_expert_settings():
             expert_button.setVisible(False)
             expert_widget.setVisible(True)
+            rb_shamir.setVisible(True)
+            rb_shamir_groups.setVisible(True)
 
         expert_button.clicked.connect(show_expert_settings)
         vbox.addWidget(expert_button)
@@ -360,7 +434,7 @@ class QtPlugin(QtPluginBase):
 
         # ask for recovery type (random word order OR matrix)*
         bg_rectype = None
-        if method == TIM_RECOVER and not model == "T":
+        if method == TIM_RECOVER and model == 1:
             gb_rectype = QtWidgets.QGroupBox()
             hbox_rectype = QtWidgets.QHBoxLayout()
             gb_rectype.setLayout(hbox_rectype)
@@ -397,11 +471,12 @@ class QtPlugin(QtPluginBase):
         wizard.exec_layout(vbox, next_enabled=next_enabled)
 
         return TrezorInitSettings(
-            word_count=word_counts[bg_numwords.checkedId()],
+            word_count=bg_numwords.checkedId(),
             label=name.text(),
             pin_enabled=cb_pin.isChecked(),
             passphrase_enabled=cb_phrase.isChecked(),
             recovery_type=bg_rectype.checkedId() if bg_rectype else None,
+            backup_type=bg_backuptype.checkedId(),
             no_backup=cb_no_backup.isChecked() if cb_no_backup else None,
         )
 

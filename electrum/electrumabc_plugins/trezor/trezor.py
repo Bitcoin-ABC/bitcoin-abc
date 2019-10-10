@@ -27,6 +27,8 @@ try:
     import trezorlib.transport
     from trezorlib.client import PASSPHRASE_ON_DEVICE
     from trezorlib.messages import (
+        BackupType,
+        Capability,
         HDNodePathType,
         HDNodeType,
         InputScriptType,
@@ -49,6 +51,20 @@ except Exception:
     RECOVERY_TYPE_SCRAMBLED_WORDS, RECOVERY_TYPE_MATRIX = range(2)
 
     PASSPHRASE_ON_DEVICE = object()
+
+    class _EnumMissing:
+        def __init__(self):
+            self.counter = 0
+            self.values = {}
+
+        def __getattr__(self, key):
+            if key not in self.values:
+                self.values[key] = self.counter
+                self.counter += 1
+            return self.values[key]
+
+    Capability = _EnumMissing()
+    BackupType = _EnumMissing()
 
 
 # TREZOR initialization methods
@@ -127,6 +143,7 @@ class TrezorInitSettings(NamedTuple):
     pin_enabled: bool
     passphrase_enabled: bool
     recovery_type: Any = None
+    backup_type: int = BackupType.Bip39
     no_backup: bool = False
 
 
@@ -364,12 +381,13 @@ class TrezorPlugin(HWPluginBase):
             raise Exception(_("The device was disconnected."))
 
         if method == TIM_NEW:
-            strength_from_word_count = {12: 128, 18: 192, 24: 256}
+            strength_from_word_count = {12: 128, 18: 192, 20: 128, 24: 256, 33: 256}
             client.reset_device(
                 strength=strength_from_word_count[settings.word_count],
                 passphrase_protection=settings.passphrase_enabled,
                 pin_protection=settings.pin_enabled,
                 label=settings.label,
+                backup_type=settings.backup_type,
                 no_backup=settings.no_backup,
             )
         elif method == TIM_RECOVER:
