@@ -59,17 +59,19 @@ def build():
     subprocess.check_call(['make', '-C', '../bitcoin-abc/depends',
                            'download', 'SOURCES_PATH=' + os.getcwd() + '/cache/common'])
 
+    output_dir_src = '../' + base_output_dir + '/src'
     if args.linux:
         print('\nCompiling ' + args.version + ' Linux')
         subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'bitcoin='+args.commit,
                                '--url', 'bitcoin='+args.url, '../bitcoin-abc/contrib/gitian-descriptors/gitian-linux.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version +
                                '-linux', '--destination', '../gitian.sigs/', '../bitcoin-abc/contrib/gitian-descriptors/gitian-linux.yml'])
-        os.makedirs('../' + base_output_dir + '/linux', exist_ok=True)
+        output_dir_linux = '../' + base_output_dir + '/linux'
+        os.makedirs(output_dir_linux, exist_ok=True)
         subprocess.check_call(
-            'mv build/out/bitcoin-*.tar.gz ../' + base_output_dir + '/linux', shell=True)
+            'mv build/out/bitcoin-*.tar.gz ' + output_dir_linux, shell=True)
         subprocess.check_call(
-            'mv build/out/src/bitcoin-*.tar.gz ../' + base_output_dir + '/src', shell=True)
+            'mv build/out/src/bitcoin-*.tar.gz ' + output_dir_src, shell=True)
 
     if args.windows:
         print('\nCompiling ' + args.version + ' Windows')
@@ -77,13 +79,14 @@ def build():
                                '--url', 'bitcoin='+args.url, '../bitcoin-abc/contrib/gitian-descriptors/gitian-win.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version +
                                '-win-unsigned', '--destination', '../gitian.sigs/', '../bitcoin-abc/contrib/gitian-descriptors/gitian-win.yml'])
-        os.makedirs('../' + base_output_dir + '/win', exist_ok=True)
+        output_dir_win = '../' + base_output_dir + '/win'
+        os.makedirs(output_dir_win, exist_ok=True)
         subprocess.check_call(
             'mv build/out/bitcoin-*-win-unsigned.tar.gz inputs/', shell=True)
         subprocess.check_call(
-            'mv build/out/bitcoin-*.zip build/out/bitcoin-*.exe ../' + base_output_dir + '/win', shell=True)
+            'mv build/out/bitcoin-*.zip build/out/bitcoin-*.exe ' + output_dir_win, shell=True)
         subprocess.check_call(
-            'mv build/out/src/bitcoin-*.tar.gz ../' + base_output_dir + '/src', shell=True)
+            'mv build/out/src/bitcoin-*.tar.gz ' + output_dir_src, shell=True)
 
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
@@ -91,13 +94,14 @@ def build():
                                '--url', 'bitcoin='+args.url, '../bitcoin-abc/contrib/gitian-descriptors/gitian-osx.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version +
                                '-osx-unsigned', '--destination', '../gitian.sigs/', '../bitcoin-abc/contrib/gitian-descriptors/gitian-osx.yml'])
-        os.makedirs('../' + base_output_dir + '/osx', exist_ok=True)
+        output_dir_osx = '../' + base_output_dir + '/osx'
+        os.makedirs(output_dir_osx, exist_ok=True)
         subprocess.check_call(
             'mv build/out/bitcoin-*-osx-unsigned.tar.gz inputs/', shell=True)
         subprocess.check_call(
-            'mv build/out/bitcoin-*.tar.gz build/out/bitcoin-*.dmg ../' + base_output_dir + '/osx', shell=True)
+            'mv build/out/bitcoin-*.tar.gz build/out/bitcoin-*.dmg ' + output_dir_osx, shell=True)
         subprocess.check_call(
-            'mv build/out/src/bitcoin-*.tar.gz ../' + base_output_dir + '/src', shell=True)
+            'mv build/out/src/bitcoin-*.tar.gz ' + output_dir_src, shell=True)
 
     os.chdir(workdir)
 
