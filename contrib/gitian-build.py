@@ -72,6 +72,8 @@ def build():
             'mv build/out/bitcoin-*.tar.gz ' + output_dir_linux, shell=True)
         subprocess.check_call(
             'mv build/out/src/bitcoin-*.tar.gz ' + output_dir_src, shell=True)
+        subprocess.check_call(
+            'mv result/bitcoin-*-linux-res.yml ' + output_dir_linux, shell=True)
 
     if args.windows:
         print('\nCompiling ' + args.version + ' Windows')
@@ -87,6 +89,8 @@ def build():
             'mv build/out/bitcoin-*.zip build/out/bitcoin-*.exe ' + output_dir_win, shell=True)
         subprocess.check_call(
             'mv build/out/src/bitcoin-*.tar.gz ' + output_dir_src, shell=True)
+        subprocess.check_call(
+            'mv result/bitcoin-*-win-res.yml ' + output_dir_win, shell=True)
 
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
@@ -102,6 +106,8 @@ def build():
             'mv build/out/bitcoin-*.tar.gz build/out/bitcoin-*.dmg ' + output_dir_osx, shell=True)
         subprocess.check_call(
             'mv build/out/src/bitcoin-*.tar.gz ' + output_dir_src, shell=True)
+        subprocess.check_call(
+            'mv result/bitcoin-*-osx-res.yml ' + output_dir_osx, shell=True)
 
     os.chdir(workdir)
 
