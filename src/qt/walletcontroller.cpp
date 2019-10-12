@@ -111,6 +111,13 @@ WalletModel *WalletController::getOrCreateWallet(
     wallet_model->setParent(this);
     m_wallets.push_back(wallet_model);
 
+    // WalletModel::startPollBalance needs to be called in a thread managed by
+    // Qt because of startTimer. Considering the current thread can be a RPC
+    // thread, better delegate the calling to Qt with Qt::AutoConnection.
+    const bool called =
+        QMetaObject::invokeMethod(wallet_model, "startPollBalance");
+    assert(called);
+
     connect(
         wallet_model, &WalletModel::unload, this,
         [this, wallet_model] {
