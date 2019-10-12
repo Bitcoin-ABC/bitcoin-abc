@@ -22,7 +22,8 @@ bool LegacyScriptPubKeyMan::GetNewDestination(const OutputType type,
     // Generate a new key that is added to wallet
     CPubKey new_key;
     if (!GetKeyFromPool(new_key, type)) {
-        error = "Error: Keypool ran out, please call keypoolrefill first";
+        error = _("Error: Keypool ran out, please call keypoolrefill first")
+                    .translated;
         return false;
     }
     LearnRelatedScripts(new_key, type);
