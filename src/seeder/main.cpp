@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <chainparams.h>
 #include <clientversion.h>
 #include <fs.h>
 #include <logging.h>
@@ -10,6 +11,7 @@
 #include <seeder/db.h>
 #include <seeder/dns.h>
 #include <streams.h>
+#include <util/strencodings.h>
 #include <util/system.h>
 
 #include <algorithm>
@@ -17,15 +19,15 @@
 #include <cinttypes>
 #include <csignal>
 #include <cstdlib>
-#include <getopt.h>
 #include <pthread.h>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
+static const int CONTINUE_EXECUTION = -1;
+
 static const int DEFAULT_NUM_THREADS = 96;
 static const int DEFAULT_PORT = 53;
 static const int DEFAULT_NUM_DNS_THREADS = 4;
-static const bool DEFAULT_TESTNET = false;
 static const bool DEFAULT_WIPE_BAN = false;
 static const bool DEFAULT_WIPE_IGNORE = false;
 static const std::string DEFAULT_EMAIL = "";
@@ -40,9 +42,8 @@ public:
     int nThreads;
     int nPort;
     int nDnsThreads;
-    int fUseTestNet;
-    int fWipeBan;
-    int fWipeIgnore;
+    bool fWipeBan;
+    bool fWipeIgnore;
     std::string mbox;
     std::string ns;
     std::string host;
@@ -53,126 +54,55 @@ public:
 
     CDnsSeedOpts()
         : nThreads(DEFAULT_NUM_THREADS), nPort(DEFAULT_PORT),
-          nDnsThreads(DEFAULT_NUM_DNS_THREADS), fUseTestNet(DEFAULT_TESTNET),
-          fWipeBan(DEFAULT_WIPE_BAN), fWipeIgnore(DEFAULT_WIPE_IGNORE),
-          mbox(DEFAULT_EMAIL), ns(DEFAULT_NAMESERVER), host(DEFAULT_HOST),
-          tor(DEFAULT_TOR_PROXY), ipv4_proxy(DEFAULT_IPV4_PROXY),
-          ipv6_proxy(DEFAULT_IPV6_PROXY) {}
+          nDnsThreads(DEFAULT_NUM_DNS_THREADS), fWipeBan(DEFAULT_WIPE_BAN),
+          fWipeIgnore(DEFAULT_WIPE_IGNORE), mbox(DEFAULT_EMAIL),
+          ns(DEFAULT_NAMESERVER), host(DEFAULT_HOST), tor(DEFAULT_TOR_PROXY),
+          ipv4_proxy(DEFAULT_IPV4_PROXY), ipv6_proxy(DEFAULT_IPV6_PROXY) {}
 
-    void ParseCommandLine(int argc, char **argv) {
-        static const char *help =
-            "Bitcoin-cash-seeder\n"
-            "Usage: %s -h <host> -n <ns> [-m <mbox>] [-t <threads>] [-p "
-            "<port>]\n"
-            "\n"
-            "Options:\n"
-            "-h <host>       Hostname of the DNS seed\n"
-            "-n <ns>         Hostname of the nameserver\n"
-            "-m <mbox>       E-Mail address reported in SOA records\n"
-            "-t <threads>    Number of crawlers to run in parallel (default "
-            "96)\n"
-            "-d <threads>    Number of DNS server threads (default 4)\n"
-            "-p <port>       UDP port to listen on (default 53)\n"
-            "-o <ip:port>    Tor proxy IP/Port\n"
-            "-i <ip:port>    IPV4 SOCKS5 proxy IP/Port\n"
-            "-k <ip:port>    IPV6 SOCKS5 proxy IP/Port\n"
-            "-w f1,f2,...    Allow these flag combinations as filters\n"
-            "--testnet       Use testnet\n"
-            "--wipeban       Wipe list of banned nodes\n"
-            "--wipeignore    Wipe list of ignored nodes\n"
-            "-?, --help      Show this text\n"
-            "\n";
-        bool showHelp = false;
+    int ParseCommandLine(int argc, char **argv) {
+        SetupSeederArgs();
+        std::string error;
+        if (!gArgs.ParseParameters(argc, argv, error)) {
+            fprintf(stderr, "Error parsing command line arguments: %s\n",
+                    error.c_str());
+            return EXIT_FAILURE;
+        }
+        if (HelpRequested(gArgs)) {
+            std::string strUsage = "Bitcoin-cash-seeder\nUsage: bitcoin-seeder "
+                                   "-host=<host> -ns=<ns> [-mbox=<mbox>] "
+                                   "[-threads=<threads>] [-port=<port>]\n\n" +
+                                   gArgs.GetHelpMessage();
 
-        while (1) {
-            static struct option long_options[] = {
-                {"host", required_argument, 0, 'h'},
-                {"ns", required_argument, 0, 'n'},
-                {"mbox", required_argument, 0, 'm'},
-                {"threads", required_argument, 0, 't'},
-                {"dnsthreads", required_argument, 0, 'd'},
-                {"port", required_argument, 0, 'p'},
-                {"onion", required_argument, 0, 'o'},
-                {"proxyipv4", required_argument, 0, 'i'},
-                {"proxyipv6", required_argument, 0, 'k'},
-                {"filter", required_argument, 0, 'w'},
-                {"testnet", no_argument, &fUseTestNet, 1},
-                {"wipeban", no_argument, &fWipeBan, 1},
-                {"wipeignore", no_argument, &fWipeIgnore, 1},
-                {"help", no_argument, 0, 'h'},
-                {0, 0, 0, 0}};
-            int option_index = 0;
-            int c =
-                getopt_long(argc, argv, "h:n:m:t:p:d:o:i:k:w:", long_options,
-                            &option_index);
-            if (c == -1) break;
-            switch (c) {
-                case 'h': {
-                    host = std::string(optarg);
+            fprintf(stdout, "%s", strUsage.c_str());
+            return EXIT_SUCCESS;
+        }
+
+        nThreads = gArgs.GetArg("-threads", DEFAULT_NUM_THREADS);
+        nPort = gArgs.GetArg("-port", DEFAULT_PORT);
+        nDnsThreads = gArgs.GetArg("-dnsthreads", DEFAULT_NUM_DNS_THREADS);
+        fWipeBan = gArgs.GetBoolArg("-wipeban", DEFAULT_WIPE_BAN);
+        fWipeIgnore = gArgs.GetBoolArg("-wipeignore", DEFAULT_WIPE_IGNORE);
+        mbox = gArgs.GetArg("-mbox", DEFAULT_EMAIL);
+        ns = gArgs.GetArg("-ns", DEFAULT_NAMESERVER);
+        host = gArgs.GetArg("-host", DEFAULT_HOST);
+        tor = gArgs.GetArg("-onion", DEFAULT_TOR_PROXY);
+        ipv4_proxy = gArgs.GetArg("-proxyipv4", DEFAULT_IPV4_PROXY);
+        ipv6_proxy = gArgs.GetArg("-proxyipv6", DEFAULT_IPV6_PROXY);
+        SelectParams(gArgs.GetChainName());
+
+        if (gArgs.IsArgSet("-filter")) {
+            // Parse whitelist additions
+            std::string flagString = gArgs.GetArg("-filter", "");
+            size_t flagstartpos = 0;
+            while (flagstartpos < flagString.size()) {
+                size_t flagendpos = flagString.find_first_of(',', flagstartpos);
+                uint64_t flag = atoi64(flagString.substr(
+                    flagstartpos, (flagendpos - flagstartpos)));
+                filter_whitelist.insert(flag);
+                if (flagendpos == std::string::npos) {
                     break;
                 }
-
-                case 'm': {
-                    mbox = std::string(optarg);
-                    break;
-                }
-
-                case 'n': {
-                    ns = std::string(optarg);
-                    break;
-                }
-
-                case 't': {
-                    int n = strtol(optarg, nullptr, 10);
-                    if (n > 0 && n < 1000) nThreads = n;
-                    break;
-                }
-
-                case 'd': {
-                    int n = strtol(optarg, nullptr, 10);
-                    if (n > 0 && n < 1000) nDnsThreads = n;
-                    break;
-                }
-
-                case 'p': {
-                    int p = strtol(optarg, nullptr, 10);
-                    if (p > 0 && p < 65536) nPort = p;
-                    break;
-                }
-
-                case 'o': {
-                    tor = std::string(optarg);
-                    break;
-                }
-
-                case 'i': {
-                    ipv4_proxy = std::string(optarg);
-                    break;
-                }
-
-                case 'k': {
-                    ipv6_proxy = std::string(optarg);
-                    break;
-                }
-
-                case 'w': {
-                    char *ptr = optarg;
-                    while (*ptr != 0) {
-                        unsigned long l = strtoul(ptr, &ptr, 0);
-                        if (*ptr == ',') {
-                            ptr++;
-                        } else if (*ptr != 0) {
-                            break;
-                        }
-                        filter_whitelist.insert(l);
-                    }
-                    break;
-                }
-
-                case '?': {
-                    showHelp = true;
-                    break;
-                }
+                flagstartpos = flagendpos + 1;
             }
         }
         if (filter_whitelist.empty()) {
@@ -181,8 +111,49 @@ public:
             filter_whitelist.insert(NODE_NETWORK | NODE_XTHIN);
             filter_whitelist.insert(NODE_NETWORK | NODE_BLOOM | NODE_XTHIN);
         }
-        if (!host.empty() && ns.empty()) showHelp = true;
-        if (showHelp) fprintf(stderr, help, argv[0]);
+        return CONTINUE_EXECUTION;
+    }
+
+private:
+    void SetupSeederArgs() {
+        gArgs.AddArg("-?", _("Print this help message and exit"), false,
+                     OptionsCategory::OPTIONS);
+        gArgs.AddArg("-host=<host>", _("Hostname of the DNS seed"), false,
+                     OptionsCategory::OPTIONS);
+        gArgs.AddArg("-ns=<ns>", _("Hostname of the nameserver"), false,
+                     OptionsCategory::OPTIONS);
+        gArgs.AddArg("-mbox=<mbox>",
+                     _("E-Mail address reported in SOA records"), false,
+                     OptionsCategory::OPTIONS);
+        gArgs.AddArg("-threads=<threads>",
+                     _("Number of crawlers to run in parallel (default 96)"),
+                     false, OptionsCategory::OPTIONS);
+        gArgs.AddArg("-dnsthreads=<threads>",
+                     _("Number of DNS server threads (default 4)"), false,
+                     OptionsCategory::OPTIONS);
+        gArgs.AddArg("-port=<port>", _("UDP port to listen on (default 53)"),
+                     false, OptionsCategory::CONNECTION);
+        gArgs.AddArg("-onion=<ip:port>", _("Tor proxy IP/Port"), false,
+                     OptionsCategory::CONNECTION);
+        gArgs.AddArg("-proxyipv4=<ip:port>", _("IPV4 SOCKS5 proxy IP/Port"),
+                     false, OptionsCategory::CONNECTION);
+        gArgs.AddArg("-proxyipv6=<ip:port>", _("IPV6 SOCKS5 proxy IP/Port"),
+                     false, OptionsCategory::CONNECTION);
+        gArgs.AddArg("-filter=<f1,f2,...>",
+                     _("Allow these flag combinations as filters"), false,
+                     OptionsCategory::OPTIONS);
+        gArgs.AddArg("-wipeban", _("Wipe list of banned nodes"), false,
+                     OptionsCategory::CONNECTION);
+        gArgs.AddArg("-wipeignore", _("Wipe list of ignored nodes"), false,
+                     OptionsCategory::CONNECTION);
+        gArgs.AddArg(
+            "-help-debug",
+            _("Show all debugging options (usage: --help -help-debug)"), false,
+            OptionsCategory::DEBUG_TEST);
+        SetupChainParamsBaseOptions();
+
+        gArgs.AddArg("-help", "", false, OptionsCategory::HIDDEN);
+        gArgs.AddArg("-h", "", false, OptionsCategory::HIDDEN);
     }
 };
 
@@ -465,23 +436,13 @@ extern "C" void *ThreadStats(void *) {
     return nullptr;
 }
 
-static const std::string mainnet_seeds[] = {
-    "seed.bitcoinabc.org", "seed-abc.bitcoinforks.org",
-    "seed.bitprim.org",    "seed.deadalnix.me",
-    "seed.bchd.cash",      ""};
-static const std::string testnet_seeds[] = {
-    "testnet-seed.bitcoinabc.org", "testnet-seed-abc.bitcoinforks.org",
-    "testnet-seed.bitprim.org",    "testnet-seed.deadalnix.me",
-    "testnet-seed.bchd.cash",      ""};
-static const std::string *seeds = mainnet_seeds;
-
 const static unsigned int MAX_HOSTS_PER_SEED = 128;
 
 extern "C" void *ThreadSeeder(void *) {
     do {
-        for (int i = 0; seeds[i] != ""; i++) {
+        for (const std::string &seed : Params().DNSSeeds()) {
             std::vector<CNetAddr> ips;
-            LookupHost(seeds[i].c_str(), ips, MAX_HOSTS_PER_SEED, true);
+            LookupHost(seed.c_str(), ips, MAX_HOSTS_PER_SEED, true);
             for (auto &ip : ips) {
                 db.Add(CAddress(CService(ip, GetDefaultPort()), ServiceFlags()),
                        true);
@@ -499,7 +460,11 @@ int main(int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
     setbuf(stdout, nullptr);
     CDnsSeedOpts opts;
-    opts.ParseCommandLine(argc, argv);
+    int parseResults = opts.ParseCommandLine(argc, argv);
+    if (parseResults != CONTINUE_EXECUTION) {
+        return parseResults;
+    }
+
     fprintf(stdout, "Supporting whitelisted filters: ");
     for (std::set<uint64_t>::const_iterator it = opts.filter_whitelist.begin();
          it != opts.filter_whitelist.end(); it++) {
@@ -534,26 +499,19 @@ int main(int argc, char **argv) {
         }
     }
     bool fDNS = true;
-    if (opts.fUseTestNet) {
-        fprintf(stdout, "Using testnet.\n");
-        netMagic[0] = 0xf4;
-        netMagic[1] = 0xe5;
-        netMagic[2] = 0xf3;
-        netMagic[3] = 0xf4;
-        seeds = testnet_seeds;
-        fTestNet = true;
-    }
+    fprintf(stdout, "Using %s.\n", gArgs.GetChainName().c_str());
+    netMagic = Params().NetMagic();
     if (opts.ns.empty()) {
         fprintf(stdout, "No nameserver set. Not starting DNS server.\n");
         fDNS = false;
     }
     if (fDNS && opts.host.empty()) {
         fprintf(stderr, "No hostname set. Please use -h.\n");
-        exit(1);
+        return EXIT_FAILURE;
     }
     if (fDNS && opts.mbox.empty()) {
         fprintf(stderr, "No e-mail address set. Please use -m.\n");
-        exit(1);
+        return EXIT_FAILURE;
     }
     FILE *f = fsbridge::fopen("dnsseed.dat", "r");
     if (f) {
@@ -601,5 +559,5 @@ int main(int argc, char **argv) {
     pthread_create(&threadDump, nullptr, ThreadDumper, nullptr);
     void *res;
     pthread_join(threadDump, &res);
-    return 0;
+    return EXIT_SUCCESS;
 }

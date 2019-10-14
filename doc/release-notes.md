@@ -21,3 +21,16 @@ Network
    changed to randomize the fetch order across peers and to prefer sending
    download requests to outbound peers over inbound peers. This fixes an issue
    where inbound peers can prevent a node from getting a transaction.
+
+Seeder
+------
+ - `bitcoin-seeder` no longer takes single letter parameter names.  Please use
+   the full length parameter names.  See `bitcoin-seeder -?` for more
+   information.
+ - If the `-?`, `-h`, or `-help` options are used, `bitcoin-seeder` will now
+   output its help message and then cease operation.
+ - `bitcoin-seeder` can now be run on `regtest` using `-regtest`.  See
+   `bitcoin-seeder -? --help-debug` for more information about the `-regtest`
+   option.
+ - If options are given to `bitcoin-seeder` that are not recognizable it will
+   output an error and then cease operation.

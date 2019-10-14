@@ -5,6 +5,7 @@
 #ifndef BITCOIN_SEEDER_DB_H
 #define BITCOIN_SEEDER_DB_H
 
+#include <chainparams.h>
 #include <netbase.h>
 #include <protocol.h>
 #include <seeder/bitcoin.h>
@@ -23,8 +24,8 @@
 
 #define REQUIRE_VERSION 70001
 
-static inline int GetRequireHeight(const bool testnet = fTestNet) {
-    return testnet ? 500000 : 350000;
+static inline int GetRequireHeight() {
+    return Params().Checkpoints().mapCheckpoints.rbegin()->first;
 }
 
 static inline std::string ToString(const CService &ip) {

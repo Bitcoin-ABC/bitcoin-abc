@@ -33,10 +33,10 @@ dnsseed.example.com.   86400    IN      NS     vps.example.com.
 
 On the system vps.example.com, you can now run dnsseed:
 
-./bitcoin-seeder -h dnsseed.example.com -n vps.example.com
+./bitcoin-seeder -host=dnsseed.example.com -ns=vps.example.com
 
 If you want the DNS server to report SOA records, please provide an
-e-mail address (with the @ part replaced by .) using -m.
+e-mail address (with the @ part replaced by .) using -mbox.
 
 
 RUNNING AS NON-ROOT
@@ -50,7 +50,7 @@ a non-privileged port:
 $ iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-port 5353
 
 If properly configured, this will allow you to run dnsseed in userspace, using
-the -p 5353 option.
+the -port=5353 option.
 
 Generate Seed Lists
 -------------------
