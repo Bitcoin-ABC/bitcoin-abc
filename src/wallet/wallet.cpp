@@ -29,7 +29,6 @@
 #include <util/moneystr.h>
 #include <util/translation.h>
 #include <util/validation.h>
-#include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/fees.h>
 
@@ -3053,10 +3052,9 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
     std::vector<OutputGroup> groups =
         GroupOutputs(vCoins, !coin_control.m_avoid_partial_spends);
 
-    size_t max_ancestors = std::max<size_t>(
-        1, gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT));
-    size_t max_descendants = std::max<size_t>(
-        1, gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT));
+    size_t max_ancestors{0};
+    size_t max_descendants{0};
+    chain().getPackageLimits(max_ancestors, max_descendants);
     bool fRejectLongChains = gArgs.GetBoolArg(
         "-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
 

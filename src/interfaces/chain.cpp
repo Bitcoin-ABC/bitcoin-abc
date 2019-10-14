@@ -312,6 +312,15 @@ namespace {
                                     size_t &descendants) override {
             ::g_mempool.GetTransactionAncestry(txid, ancestors, descendants);
         }
+        void getPackageLimits(size_t &limit_ancestor_count,
+                              size_t &limit_descendant_count) override {
+            limit_ancestor_count = size_t(
+                std::max<int64_t>(1, gArgs.GetArg("-limitancestorcount",
+                                                  DEFAULT_ANCESTOR_LIMIT)));
+            limit_descendant_count = size_t(
+                std::max<int64_t>(1, gArgs.GetArg("-limitdescendantcount",
+                                                  DEFAULT_DESCENDANT_LIMIT)));
+        }
         bool checkChainLimits(const CTransactionRef &tx) override {
             LockPoints lp;
             CTxMemPoolEntry entry(tx, Amount(), 0, 0, false, 0, lp);
