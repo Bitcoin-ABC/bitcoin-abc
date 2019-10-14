@@ -8,7 +8,7 @@ final class FileNameLinter extends ArcanistLinter {
   const INVALID_FILENAME_FOUND = 1;
 
   const EXCEPTIONS = array(
-    // None so far
+    "src/test/fuzz/FuzzedDataProvider.h"
   );
 
   public function getInfoName() {

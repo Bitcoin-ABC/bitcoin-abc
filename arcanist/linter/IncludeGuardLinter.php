@@ -11,7 +11,7 @@ final class IncludeGuardLinter extends ArcanistLinter {
   const INCLUDE_GUARD_INVALID = 1;
 
   const EXCEPTIONS = array(
-    // none yet
+    "src/test/fuzz/FuzzedDataProvider.h"
   );
 
   public function getInfoName() {
