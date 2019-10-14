@@ -79,7 +79,7 @@ public:
                 {"filter", required_argument, 0, 'w'},
                 {"testnet", no_argument, &fUseTestNet, 1},
                 {"wipeban", no_argument, &fWipeBan, 1},
-                {"wipeignore", no_argument, &fWipeBan, 1},
+                {"wipeignore", no_argument, &fWipeIgnore, 1},
                 {"help", no_argument, 0, 'h'},
                 {0, 0, 0, 0}};
             int option_index = 0;
@@ -540,8 +540,14 @@ int main(int argc, char **argv) {
         fprintf(stdout, "Loading dnsseed.dat...");
         CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
         cf >> db;
-        if (opts.fWipeBan) db.banned.clear();
-        if (opts.fWipeIgnore) db.ResetIgnores();
+        if (opts.fWipeBan) {
+            db.banned.clear();
+            fprintf(stdout, "Ban list wiped...");
+        }
+        if (opts.fWipeIgnore) {
+            db.ResetIgnores();
+            fprintf(stdout, "Ignore list wiped...");
+        }
         fprintf(stdout, "done\n");
     }
     pthread_t threadDns, threadSeed, threadDump, threadStats;
