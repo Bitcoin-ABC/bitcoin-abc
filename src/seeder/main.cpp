@@ -24,12 +24,12 @@ static const int DEFAULT_NUM_DNS_THREADS = 4;
 static const bool DEFAULT_TESTNET = false;
 static const bool DEFAULT_WIPE_BAN = false;
 static const bool DEFAULT_WIPE_IGNORE = false;
-static const char *DEFAULT_EMAIL = nullptr;
-static const char *DEFAULT_NAMESERVER = nullptr;
-static const char *DEFAULT_HOST = nullptr;
-static const char *DEFAULT_TOR_PROXY = nullptr;
-static const char *DEFAULT_IPV4_PROXY = nullptr;
-static const char *DEFAULT_IPV6_PROXY = nullptr;
+static const std::string DEFAULT_EMAIL = "";
+static const std::string DEFAULT_NAMESERVER = "";
+static const std::string DEFAULT_HOST = "";
+static const std::string DEFAULT_TOR_PROXY = "";
+static const std::string DEFAULT_IPV4_PROXY = "";
+static const std::string DEFAULT_IPV6_PROXY = "";
 
 class CDnsSeedOpts {
 public:
@@ -39,12 +39,12 @@ public:
     int fUseTestNet;
     int fWipeBan;
     int fWipeIgnore;
-    const char *mbox;
-    const char *ns;
-    const char *host;
-    const char *tor;
-    const char *ipv4_proxy;
-    const char *ipv6_proxy;
+    std::string mbox;
+    std::string ns;
+    std::string host;
+    std::string tor;
+    std::string ipv4_proxy;
+    std::string ipv6_proxy;
     std::set<uint64_t> filter_whitelist;
 
     CDnsSeedOpts()
@@ -104,17 +104,17 @@ public:
             if (c == -1) break;
             switch (c) {
                 case 'h': {
-                    host = optarg;
+                    host = std::string(optarg);
                     break;
                 }
 
                 case 'm': {
-                    mbox = optarg;
+                    mbox = std::string(optarg);
                     break;
                 }
 
                 case 'n': {
-                    ns = optarg;
+                    ns = std::string(optarg);
                     break;
                 }
 
@@ -137,17 +137,17 @@ public:
                 }
 
                 case 'o': {
-                    tor = optarg;
+                    tor = std::string(optarg);
                     break;
                 }
 
                 case 'i': {
-                    ipv4_proxy = optarg;
+                    ipv4_proxy = std::string(optarg);
                     break;
                 }
 
                 case 'k': {
-                    ipv6_proxy = optarg;
+                    ipv6_proxy = std::string(optarg);
                     break;
                 }
 
@@ -177,7 +177,7 @@ public:
             filter_whitelist.insert(NODE_NETWORK | NODE_XTHIN);
             filter_whitelist.insert(NODE_NETWORK | NODE_BLOOM | NODE_XTHIN);
         }
-        if (host != nullptr && ns == nullptr) showHelp = true;
+        if (!host.empty() && ns.empty()) showHelp = true;
         if (showHelp) fprintf(stderr, help, argv[0]);
     }
 };
@@ -286,9 +286,9 @@ public:
     }
 
     CDnsThread(CDnsSeedOpts *opts, int idIn) : id(idIn) {
-        dns_opt.host = opts->host;
-        dns_opt.ns = opts->ns;
-        dns_opt.mbox = opts->mbox;
+        dns_opt.host = opts->host.c_str();
+        dns_opt.ns = opts->ns.c_str();
+        dns_opt.mbox = opts->mbox.c_str();
         dns_opt.datattl = 3600;
         dns_opt.nsttl = 40000;
         dns_opt.cb = GetIPList;
@@ -504,24 +504,24 @@ int main(int argc, char **argv) {
         fprintf(stdout, "0x%lx", (unsigned long)*it);
     }
     fprintf(stdout, "\n");
-    if (opts.tor) {
-        CService service(LookupNumeric(opts.tor, 9050));
+    if (!opts.tor.empty()) {
+        CService service(LookupNumeric(opts.tor.c_str(), 9050));
         if (service.IsValid()) {
             fprintf(stdout, "Using Tor proxy at %s\n",
                     service.ToStringIPPort().c_str());
             SetProxy(NET_ONION, proxyType(service));
         }
     }
-    if (opts.ipv4_proxy) {
-        CService service(LookupNumeric(opts.ipv4_proxy, 9050));
+    if (!opts.ipv4_proxy.empty()) {
+        CService service(LookupNumeric(opts.ipv4_proxy.c_str(), 9050));
         if (service.IsValid()) {
             fprintf(stdout, "Using IPv4 proxy at %s\n",
                     service.ToStringIPPort().c_str());
             SetProxy(NET_IPV4, proxyType(service));
         }
     }
-    if (opts.ipv6_proxy) {
-        CService service(LookupNumeric(opts.ipv6_proxy, 9050));
+    if (!opts.ipv6_proxy.empty()) {
+        CService service(LookupNumeric(opts.ipv6_proxy.c_str(), 9050));
         if (service.IsValid()) {
             fprintf(stdout, "Using IPv6 proxy at %s\n",
                     service.ToStringIPPort().c_str());
@@ -538,15 +538,15 @@ int main(int argc, char **argv) {
         seeds = testnet_seeds;
         fTestNet = true;
     }
-    if (!opts.ns) {
+    if (opts.ns.empty()) {
         fprintf(stdout, "No nameserver set. Not starting DNS server.\n");
         fDNS = false;
     }
-    if (fDNS && !opts.host) {
+    if (fDNS && opts.host.empty()) {
         fprintf(stderr, "No hostname set. Please use -h.\n");
         exit(1);
     }
-    if (fDNS && !opts.mbox) {
+    if (fDNS && opts.mbox.empty()) {
         fprintf(stderr, "No e-mail address set. Please use -m.\n");
         exit(1);
     }
@@ -568,7 +568,8 @@ int main(int argc, char **argv) {
     pthread_t threadDns, threadSeed, threadDump, threadStats;
     if (fDNS) {
         fprintf(stdout, "Starting %i DNS threads for %s on %s (port %i)...",
-                opts.nDnsThreads, opts.host, opts.ns, opts.nPort);
+                opts.nDnsThreads, opts.host.c_str(), opts.ns.c_str(),
+                opts.nPort);
         dnsThread.clear();
         for (int i = 0; i < opts.nDnsThreads; i++) {
             dnsThread.push_back(new CDnsThread(&opts, i));
