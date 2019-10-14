@@ -18,6 +18,19 @@
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
+static const int DEFAULT_NUM_THREADS = 96;
+static const int DEFAULT_PORT = 53;
+static const int DEFAULT_NUM_DNS_THREADS = 4;
+static const bool DEFAULT_TESTNET = false;
+static const bool DEFAULT_WIPE_BAN = false;
+static const bool DEFAULT_WIPE_IGNORE = false;
+static const char *DEFAULT_EMAIL = nullptr;
+static const char *DEFAULT_NAMESERVER = nullptr;
+static const char *DEFAULT_HOST = nullptr;
+static const char *DEFAULT_TOR_PROXY = nullptr;
+static const char *DEFAULT_IPV4_PROXY = nullptr;
+static const char *DEFAULT_IPV6_PROXY = nullptr;
+
 class CDnsSeedOpts {
 public:
     int nThreads;
@@ -35,10 +48,12 @@ public:
     std::set<uint64_t> filter_whitelist;
 
     CDnsSeedOpts()
-        : nThreads(96), nPort(53), nDnsThreads(4), fUseTestNet(false),
-          fWipeBan(false), fWipeIgnore(false), mbox(nullptr), ns(nullptr),
-          host(nullptr), tor(nullptr), ipv4_proxy(nullptr),
-          ipv6_proxy(nullptr) {}
+        : nThreads(DEFAULT_NUM_THREADS), nPort(DEFAULT_PORT),
+          nDnsThreads(DEFAULT_NUM_DNS_THREADS), fUseTestNet(DEFAULT_TESTNET),
+          fWipeBan(DEFAULT_WIPE_BAN), fWipeIgnore(DEFAULT_WIPE_IGNORE),
+          mbox(DEFAULT_EMAIL), ns(DEFAULT_NAMESERVER), host(DEFAULT_HOST),
+          tor(DEFAULT_TOR_PROXY), ipv4_proxy(DEFAULT_IPV4_PROXY),
+          ipv6_proxy(DEFAULT_IPV6_PROXY) {}
 
     void ParseCommandLine(int argc, char **argv) {
         static const char *help =
