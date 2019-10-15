@@ -1246,7 +1246,13 @@ static UniValue decodepsbt(const Config &config,
             UniValue out(UniValue::VOBJ);
 
             out.pushKV("amount", ValueFromAmount(txout.nValue));
-            total_in += txout.nValue;
+            if (MoneyRange(txout.nValue) &&
+                MoneyRange(total_in + txout.nValue)) {
+                total_in += txout.nValue;
+            } else {
+                // Hack to just not show fee later
+                have_all_utxos = false;
+            }
 
             UniValue o(UniValue::VOBJ);
             ScriptToUniv(txout.scriptPubKey, o, true);
@@ -1357,7 +1363,13 @@ static UniValue decodepsbt(const Config &config,
         outputs.push_back(out);
 
         // Fee calculation
-        output_value += psbtx.tx->vout[i].nValue;
+        if (MoneyRange(psbtx.tx->vout[i].nValue) &&
+            MoneyRange(output_value + psbtx.tx->vout[i].nValue)) {
+            output_value += psbtx.tx->vout[i].nValue;
+        } else {
+            // Hack to just not show fee later
+            have_all_utxos = false;
+        }
     }
     result.pushKV("outputs", outputs);
     if (have_all_utxos) {
