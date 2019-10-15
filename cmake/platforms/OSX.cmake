@@ -11,10 +11,17 @@ set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_C_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
 set(CMAKE_CXX_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
 
+set(OSX_MIN_VERSION 10.12)
+# OSX_SDK_VERSION 10.15.1
+# Note: don't use XCODE_VERSION, it's a cmake built-in variable !
+set(SDK_XCODE_VERSION 11.3.1)
+set(SDK_XCODE_BUILD_ID 11C505)
+set(LD64_VERSION 530)
+
 # On OSX we use various stuff from Apple's SDK.
-set(OSX_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/SDKs/MacOSX10.14.sdk")
-set(CMAKE_OSX_SYSROOT ${OSX_SDK_PATH})
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
+set(OSX_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/SDKs/Xcode-${SDK_XCODE_VERSION}-${SDK_XCODE_BUILD_ID}-extracted-SDK-with-libcxx-headers")
+set(CMAKE_OSX_SYSROOT "${OSX_SDK_PATH}")
+set(CMAKE_OSX_DEPLOYMENT_TARGET ${OSX_MIN_VERSION})
 set(CMAKE_OSX_ARCHITECTURES x86_64)
 
 # target environment on the build host system
@@ -31,7 +38,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-string(APPEND CMAKE_CXX_FLAGS_INIT " -stdlib=libc++")
+string(APPEND CMAKE_CXX_FLAGS_INIT " -stdlib=libc++ -mlinker-version=${LD64_VERSION}")
 
 # Ensure we use an OSX specific version the binary manipulation tools.
 find_program(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)

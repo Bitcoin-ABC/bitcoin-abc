@@ -17,8 +17,8 @@ cd "${TOPLEVEL}/contrib/gitian-builder"
 ./bin/make-base-vm --docker --arch amd64 --distro debian --suite buster
 
 if [[ "${OS_NAME}" == "osx" ]]; then
-  OSX_SDK="MacOSX10.14.sdk.tar.gz"
-  OSX_SDK_SHA256="2322086a96349db832abbcadea493b79db843553a2e604163238d99fa058a286"
+  OSX_SDK="Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz"
+  OSX_SDK_SHA256="a1b8af4c4d82d519dd5aff2135fe56184fa758c30e310b5fb4bfc8d9d3b45d8a"
   OSX_SDK_DIR=~/.abc-build-cache/osx-sdk
   mkdir -p "${OSX_SDK_DIR}"
   pushd "${OSX_SDK_DIR}"

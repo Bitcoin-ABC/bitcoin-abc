@@ -17,7 +17,8 @@
             "version": ">=1.3.4",
             "include": "(\\.py$)",
             "exclude": [
-                "(^contrib/gitian-builder/)"
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
                 "--aggressive",
@@ -29,7 +30,8 @@
             "version": ">=3.0",
             "include": "(\\.py$)",
             "exclude": [
-                "(^contrib/gitian-builder/)"
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
                 "--ignore=E501,E704,W503,W504"
@@ -55,7 +57,8 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^test/lint/lint-python-format\\.py$)",
-                "(^contrib/gitian-builder/)"
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "phpcs": {
@@ -150,7 +153,8 @@
             "type": "lint-python-encoding",
             "include": "(\\.py$)",
             "exclude": [
-                "(^contrib/gitian-builder/)"
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "lint-python-shebang": {
@@ -158,7 +162,8 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(__init__\\.py$)",
-                "(^contrib/gitian-builder/)"
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "lint-bash-shebang": {
