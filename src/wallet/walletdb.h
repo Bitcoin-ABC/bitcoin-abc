@@ -9,15 +9,12 @@
 
 #include <amount.h>
 #include <key.h>
-#include <primitives/transaction.h>
 #include <script/sign.h>
 #include <script/standard.h> // for CTxDestination
 #include <wallet/db.h>
 
 #include <cstdint>
-#include <list>
 #include <string>
-#include <utility>
 #include <vector>
 
 /**

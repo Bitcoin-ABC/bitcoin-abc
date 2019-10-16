@@ -11,7 +11,6 @@
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/system.h>
-#include <version.h>
 
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>

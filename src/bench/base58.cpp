@@ -7,7 +7,6 @@
 #include <base58.h>
 
 #include <array>
-#include <string>
 #include <vector>
 
 static void Base58Encode(benchmark::State &state) {

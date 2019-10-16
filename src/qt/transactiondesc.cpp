@@ -19,7 +19,6 @@
 #include <qt/paymentserver.h>
 #include <qt/transactionrecord.h>
 #include <script/script.h>
-#include <timedata.h>
 #include <util/system.h>
 #include <validation.h>
 #include <wallet/ismine.h>

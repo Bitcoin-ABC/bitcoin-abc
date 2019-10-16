@@ -8,7 +8,6 @@
 #include <cashaddrenc.h>
 #include <chainparams.h>
 #include <config.h>
-#include <script/script.h>
 #include <util/strencodings.h>
 
 #include <boost/variant/apply_visitor.hpp>

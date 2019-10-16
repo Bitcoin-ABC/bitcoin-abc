@@ -21,7 +21,6 @@
 #include <policy/settings.h>
 #include <pow.h>
 #include <primitives/transaction.h>
-#include <script/standard.h>
 #include <timedata.h>
 #include <txmempool.h>
 #include <util/moneystr.h>
@@ -30,7 +29,6 @@
 #include <validation.h>
 
 #include <algorithm>
-#include <queue>
 #include <utility>
 
 int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,

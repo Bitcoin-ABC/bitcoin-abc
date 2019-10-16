@@ -6,7 +6,6 @@
 #ifndef BITCOIN_WARNINGS_H
 #define BITCOIN_WARNINGS_H
 
-#include <cstdlib>
 #include <string>
 
 void SetMiscWarning(const std::string &strWarning);

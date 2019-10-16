@@ -12,7 +12,6 @@
 #include <interfaces/chain.h>
 #include <key_io.h>
 #include <node/context.h>
-#include <node/transaction.h>
 #include <outputtype.h>
 #include <policy/fees.h>
 #include <rpc/mining.h>
@@ -38,7 +37,6 @@
 
 #include <event2/http.h>
 
-#include <functional>
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
 

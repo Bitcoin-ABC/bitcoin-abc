@@ -14,7 +14,6 @@
 #include <util/translation.h>
 #include <wallet/rpcdump.h>
 #include <wallet/wallet.h>
-#include <wallet/walletutil.h>
 #include <walletinitinterface.h>
 
 class WalletInit : public WalletInitInterface {

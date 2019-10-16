@@ -10,7 +10,6 @@
 
 #include <tinyformat.h>
 
-#include <cstdio>
 #include <map>
 #include <set>
 #include <system_error>

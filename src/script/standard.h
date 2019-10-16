@@ -13,7 +13,6 @@
 
 #include <boost/variant.hpp>
 
-#include <cstdint>
 
 static const bool DEFAULT_ACCEPT_DATACARRIER = true;
 

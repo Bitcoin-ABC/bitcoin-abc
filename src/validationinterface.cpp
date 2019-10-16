@@ -8,9 +8,7 @@
 #include <primitives/block.h>
 #include <scheduler.h>
 
-#include <atomic>
 #include <future>
-#include <list>
 #include <tuple>
 #include <unordered_map>
 #include <utility>

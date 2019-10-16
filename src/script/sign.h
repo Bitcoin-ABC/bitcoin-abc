@@ -13,8 +13,6 @@
 #include <script/sighashtype.h>
 #include <streams.h>
 
-#include <boost/optional.hpp>
-
 class CKey;
 class CKeyID;
 class CMutableTransaction;

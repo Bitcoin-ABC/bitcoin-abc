@@ -11,7 +11,6 @@
 #include <clientversion.h>
 #include <compat.h>
 #include <config.h>
-#include <fs.h>
 #include <httprpc.h>
 #include <init.h>
 #include <interfaces/chain.h>

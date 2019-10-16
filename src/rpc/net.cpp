@@ -13,7 +13,6 @@
 #include <net_processing.h>
 #include <netbase.h>
 #include <node/context.h>
-#include <policy/policy.h>
 #include <policy/settings.h>
 #include <rpc/blockchain.h>
 #include <rpc/protocol.h>

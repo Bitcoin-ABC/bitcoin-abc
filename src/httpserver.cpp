@@ -36,7 +36,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

@@ -12,8 +12,6 @@
 #include <boost/signals2/connection.hpp>
 #include <boost/signals2/signal.hpp>
 
-#include <cstdint>
-#include <cstdio>
 #include <string>
 
 /** Store connections so we can disconnect them when suppressing output */

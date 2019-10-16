@@ -4,7 +4,6 @@
 
 #include <crypto/aes.h>
 
-#include <cassert>
 #include <cstring>
 
 extern "C" {

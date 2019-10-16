@@ -12,7 +12,6 @@
 #include <random.h>
 #include <uint256.h>
 
-#include <iostream>
 #include <string>
 
 /* Number of bytes to hash per iteration */

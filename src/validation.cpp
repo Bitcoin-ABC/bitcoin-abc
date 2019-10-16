@@ -36,7 +36,6 @@
 #include <script/script.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
-#include <script/standard.h>
 #include <shutdown.h>
 #include <timedata.h>
 #include <tinyformat.h>
@@ -56,8 +55,6 @@
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
 
 #include <atomic>
-#include <future>
-#include <sstream>
 #include <string>
 #include <thread>
 

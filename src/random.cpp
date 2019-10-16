@@ -18,10 +18,8 @@
 #include <sync.h>      // for Mutex
 #include <util/time.h> // for GetTime()
 
-#include <chrono>
 #include <cstdlib>
 #include <memory>
-#include <mutex>
 #include <thread>
 
 #ifndef WIN32

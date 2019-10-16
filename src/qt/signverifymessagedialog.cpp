@@ -15,7 +15,6 @@
 
 #include <QClipboard>
 
-#include <string>
 #include <vector>
 
 SignVerifyMessageDialog::SignVerifyMessageDialog(

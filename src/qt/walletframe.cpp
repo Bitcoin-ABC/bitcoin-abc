@@ -12,7 +12,6 @@
 #include <QLabel>
 
 #include <cassert>
-#include <cstdio>
 
 WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, BitcoinGUI *_gui)
     : QFrame(_gui), gui(_gui), platformStyle(_platformStyle) {

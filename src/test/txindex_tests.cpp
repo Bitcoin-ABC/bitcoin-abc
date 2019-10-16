@@ -6,7 +6,6 @@
 
 #include <chainparams.h>
 #include <script/standard.h>
-#include <util/system.h>
 #include <util/time.h>
 
 #include <test/util/setup_common.h>

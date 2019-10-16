@@ -20,7 +20,6 @@
 
 #include <boost/thread.hpp>
 
-#include <cstdarg>
 #include <memory>
 #include <thread>
 

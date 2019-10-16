@@ -7,7 +7,6 @@
 
 #include <util/strencodings.h>
 
-#include <cstdio>
 #include <cstring>
 
 template <unsigned int BITS>

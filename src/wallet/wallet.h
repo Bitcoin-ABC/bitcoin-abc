@@ -12,7 +12,6 @@
 #include <interfaces/handler.h>
 #include <outputtype.h>
 #include <primitives/blockhash.h>
-#include <script/sign.h>
 #include <streams.h>
 #include <tinyformat.h>
 #include <ui_interface.h>

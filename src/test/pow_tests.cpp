@@ -7,7 +7,6 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
-#include <util/system.h>
 
 #include <test/util/setup_common.h>
 

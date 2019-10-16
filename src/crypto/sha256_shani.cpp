@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <immintrin.h>
 
-#include <crypto/common.h>
 
 namespace {
 

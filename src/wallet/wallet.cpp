@@ -43,7 +43,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <future>
 
 const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
     {WALLET_FLAG_AVOID_REUSE,

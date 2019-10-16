@@ -7,7 +7,6 @@
 
 #include <util/system.h>
 #include <validation.h>
-#include <version.h>
 
 void zmqError(const char *str) {
     LogPrint(BCLog::ZMQ, "zmq: Error: %s, errno=%s\n", str,

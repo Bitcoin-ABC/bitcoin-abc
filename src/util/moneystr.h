@@ -12,7 +12,6 @@
 #include <amount.h>
 #include <attributes.h>
 
-#include <cstdint>
 #include <string>
 
 /**

@@ -8,7 +8,6 @@
 #include <validationinterface.h>
 
 #include <list>
-#include <map>
 
 class CBlockIndex;
 class CZMQAbstractNotifier;

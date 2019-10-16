@@ -8,9 +8,6 @@
 #include <httpserver.h>
 #include <rpc/server.h>
 
-#include <map>
-#include <string>
-
 class Config;
 
 class HTTPRPCRequestProcessor {

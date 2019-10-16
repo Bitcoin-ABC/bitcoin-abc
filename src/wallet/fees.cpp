@@ -7,7 +7,6 @@
 
 #include <config.h>
 #include <txmempool.h>
-#include <util/system.h>
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
 

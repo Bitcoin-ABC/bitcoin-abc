@@ -11,8 +11,6 @@
 
 #include <QObject>
 
-#include <memory>
-
 class SendCoinsRecipient;
 
 namespace interfaces {

@@ -5,7 +5,6 @@
 #include <bench/bench.h>
 #include <chain.h>
 #include <chainparams.h>
-#include <coins.h>
 #include <config.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
@@ -14,8 +13,6 @@
 #include <txmempool.h>
 #include <validation.h>
 
-#include <list>
-#include <vector>
 
 static void DuplicateInputs(benchmark::State &state) {
     const CScript SCRIPT_PUB{CScript(OP_TRUE)};

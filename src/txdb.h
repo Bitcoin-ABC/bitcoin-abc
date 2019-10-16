@@ -12,7 +12,6 @@
 #include <flatfile.h>
 #include <primitives/block.h>
 
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>

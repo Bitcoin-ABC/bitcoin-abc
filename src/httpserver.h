@@ -6,7 +6,6 @@
 #ifndef BITCOIN_HTTPSERVER_H
 #define BITCOIN_HTTPSERVER_H
 
-#include <cstdint>
 #include <functional>
 #include <string>
 

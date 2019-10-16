@@ -6,7 +6,6 @@
 #ifndef BITCOIN_UI_INTERFACE_H
 #define BITCOIN_UI_INTERFACE_H
 
-#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>

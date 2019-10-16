@@ -10,7 +10,6 @@
 
 #include <chainparams.h>
 #include <config.h>
-#include <fs.h>
 #include <httprpc.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>

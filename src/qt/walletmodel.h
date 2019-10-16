@@ -20,7 +20,6 @@
 
 #include <QObject>
 
-#include <map>
 #include <memory>
 #include <vector>
 
