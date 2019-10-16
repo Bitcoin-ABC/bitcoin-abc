@@ -47,6 +47,7 @@ endfunction()
 add_regular_fuzz_targets(
 	eval_script
 	script_flags
+	spanparsing
 	transaction
 )
 
