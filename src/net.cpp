@@ -3246,17 +3246,17 @@ bool CConnman::RemoveAddedNode(const std::string &strNode) {
     return false;
 }
 
-size_t CConnman::GetNodeCount(NumConnections flags) const {
+size_t CConnman::GetNodeCount(ConnectionDirection flags) const {
     LOCK(m_nodes_mutex);
     // Shortcut if we want total
-    if (flags == CConnman::CONNECTIONS_ALL) {
+    if (flags == ConnectionDirection::Both) {
         return m_nodes.size();
     }
 
     int nNum = 0;
     for (const auto &pnode : m_nodes) {
-        if (flags &
-            (pnode->IsInboundConn() ? CONNECTIONS_IN : CONNECTIONS_OUT)) {
+        if (flags & (pnode->IsInboundConn() ? ConnectionDirection::In
+                                            : ConnectionDirection::Out)) {
             nNum++;
         }
     }

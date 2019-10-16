@@ -80,9 +80,8 @@ FUZZ_TARGET_INIT(connman, initialize_connman) {
             [&] {
                 (void)connman.GetNodeCount(
                     fuzzed_data_provider.PickValueInArray(
-                        {CConnman::CONNECTIONS_NONE, CConnman::CONNECTIONS_IN,
-                         CConnman::CONNECTIONS_OUT,
-                         CConnman::CONNECTIONS_ALL}));
+                        {ConnectionDirection::None, ConnectionDirection::In,
+                         ConnectionDirection::Out, ConnectionDirection::Both}));
             },
             [&] {
                 (void)connman.OutboundTargetReached(

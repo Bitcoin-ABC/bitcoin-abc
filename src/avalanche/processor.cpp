@@ -14,6 +14,7 @@
 #include <common/args.h>
 #include <key_io.h> // For DecodeSecret
 #include <net.h>
+#include <netbase.h>
 #include <netmessagemaker.h>
 #include <policy/block/stakingrewards.h>
 #include <scheduler.h>
@@ -866,7 +867,7 @@ bool Processor::canShareLocalProof() {
     // Don't share our proof if we don't have any inbound connection.
     // This is a best effort measure to prevent advertising a proof if we have
     // limited network connectivity.
-    m_canShareLocalProof = connman->GetNodeCount(CConnman::CONNECTIONS_IN) > 0;
+    m_canShareLocalProof = connman->GetNodeCount(ConnectionDirection::In) > 0;
 
     return m_canShareLocalProof;
 }

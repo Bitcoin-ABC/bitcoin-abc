@@ -148,7 +148,7 @@ namespace {
         bool getProxy(Network net, proxyType &proxy_info) override {
             return GetProxy(net, proxy_info);
         }
-        size_t getNodeCount(CConnman::NumConnections flags) override {
+        size_t getNodeCount(ConnectionDirection flags) override {
             return m_context->connman ? m_context->connman->GetNodeCount(flags)
                                       : 0;
         }

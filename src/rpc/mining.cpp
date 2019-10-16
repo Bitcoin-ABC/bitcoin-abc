@@ -924,7 +924,7 @@ static RPCHelpMan getblocktemplate() {
             }
 
             const CConnman &connman = EnsureConnman(node);
-            if (connman.GetNodeCount(CConnman::CONNECTIONS_ALL) == 0) {
+            if (connman.GetNodeCount(ConnectionDirection::Both) == 0) {
                 throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED,
                                    "Bitcoin is not connected!");
             }
