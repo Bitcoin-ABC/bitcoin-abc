@@ -800,12 +800,10 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &ret,
         return false;
     }
     size_t slash = strSubnet.find_last_of('/');
-    std::vector<CNetAddr> vIP;
+    CNetAddr network;
 
     std::string strAddress = strSubnet.substr(0, slash);
-    // TODO: Use LookupHost(const std::string&, CNetAddr&, bool) instead to just
-    if (LookupHost(strAddress, vIP, 1, false, dns_lookup_function)) {
-        CNetAddr network = vIP[0];
+    if (LookupHost(strAddress, network, false, dns_lookup_function)) {
         if (slash != strSubnet.npos) {
             std::string strNetmask = strSubnet.substr(slash + 1);
             uint8_t n;
@@ -815,13 +813,15 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &ret,
                 return ret.IsValid();
             } else {
                 // If not a valid number, try full netmask syntax
+                CNetAddr netmask;
                 // Never allow lookup for netmask
-                if (LookupHost(strNetmask, vIP, 1, false,
+                if (LookupHost(strNetmask, netmask, false,
                                dns_lookup_function)) {
-                    ret = CSubNet(network, vIP[0]);
+                    ret = CSubNet(network, netmask);
                     return ret.IsValid();
                 }
             }
+            // Single IP subnet (<ipv4>/32 or <ipv6>/128)
         } else {
             ret = CSubNet(network);
             return ret.IsValid();
