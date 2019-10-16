@@ -418,6 +418,13 @@ static UniValue getblocktemplate(const Config &config,
             "transaction fees (in satoshis)\n"
             "  \"coinbasetxn\" : { ... },          (json object) information "
             "for coinbase transaction\n"
+                    "  \"coinbasedevreward\": {            (json object) information "
+                    "for coinbase developer reward\n"
+                    "      \"value\": xxx,                   (numeric) developer award "
+                    "value \n"
+                    "      \"scriptpubkey\": xxx,            (string) the developer "
+                    "scriptpubkey\n"
+                    "  },\n"
             "  \"target\" : \"xxxx\",                (string) The hash target\n"
             "  \"mintime\" : xxx,                  (numeric) The minimum "
             "timestamp appropriate for next block time in seconds since epoch "
@@ -647,6 +654,10 @@ static UniValue getblocktemplate(const Config &config,
     aMutable.push_back("transactions");
     aMutable.push_back("prevblock");
 
+    UniValue devreward(UniValue::VOBJ);
+    devreward.pushKV("value", int64_t(pblock->vtx[0]->vout[1].nValue / SATOSHI));
+    devreward.pushKV("scriptpubkey", HexStr(pblock->vtx[0]->vout[1].scriptPubKey));
+
     UniValue result(UniValue::VOBJ);
     result.pushKV("capabilities", aCaps);
 
@@ -657,6 +668,7 @@ static UniValue getblocktemplate(const Config &config,
     result.pushKV("coinbaseaux", aux);
     result.pushKV("coinbasevalue",
                   int64_t(pblock->vtx[0]->vout[0].nValue / SATOSHI));
+    result.pushKV("coinbasedevreward", devreward);
     result.pushKV("longpollid", chainActive.Tip()->GetBlockHash().GetHex() +
                                     i64tostr(nTransactionsUpdatedLast));
     result.pushKV("target", hashTarget.GetHex());
