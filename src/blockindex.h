@@ -24,39 +24,39 @@ class CBlockIndex {
 public:
     //! pointer to the hash of the block, if any. Memory is owned by this
     //! CBlockIndex
-    const BlockHash *phashBlock = nullptr;
+    const BlockHash *phashBlock{nullptr};
 
     //! pointer to the index of the predecessor of this block
-    CBlockIndex *pprev = nullptr;
+    CBlockIndex *pprev{nullptr};
 
     //! pointer to the index of some further predecessor of this block
-    CBlockIndex *pskip = nullptr;
+    CBlockIndex *pskip{nullptr};
 
     //! height of the entry in the chain. The genesis block has height 0
-    int nHeight = 0;
+    int nHeight{0};
 
     //! Which # file this block is stored in (blk?????.dat)
-    int nFile = 0;
+    int nFile{0};
 
     //! Byte offset within blk?????.dat where this block's data is stored
-    unsigned int nDataPos = 0;
+    unsigned int nDataPos{0};
 
     //! Byte offset within rev?????.dat where this block's undo data is stored
-    unsigned int nUndoPos = 0;
+    unsigned int nUndoPos{0};
 
     //! (memory only) Total amount of work (expected number of hashes) in the
     //! chain up to and including this block
-    arith_uint256 nChainWork = arith_uint256();
+    arith_uint256 nChainWork{};
 
     //! Number of transactions in this block.
     //! Note: in a potential headers-first mode, this number cannot be relied
     //! upon
-    unsigned int nTx = 0;
+    unsigned int nTx{0};
 
     //! Size of this block.
     //! Note: in a potential headers-first mode, this number cannot be relied
     //! upon
-    unsigned int nSize = 0;
+    unsigned int nSize{0};
 
 private:
     //! (memory only) Number of transactions in the chain up to and including
@@ -64,44 +64,40 @@ private:
     //! This value will be non-zero only if and only if transactions for this
     //! block and all its parents are available. Change to 64-bit type when
     //! necessary; won't happen before 2030
-    unsigned int nChainTx = 0;
+    unsigned int nChainTx{0};
 
     //! (memory only) Size of all blocks in the chain up to and including this
     //! block. This value will be non-zero only if and only if transactions for
     //! this block and all its parents are available.
-    uint64_t nChainSize = 0;
+    uint64_t nChainSize{0};
 
 public:
     //! Verification status of this block. See enum BlockStatus
-    BlockStatus nStatus = BlockStatus();
+    BlockStatus nStatus{};
 
     //! block header
-    int32_t nVersion = 0;
-    uint256 hashMerkleRoot = uint256();
-    uint32_t nTime = 0;
-    uint32_t nBits = 0;
-    uint32_t nNonce = 0;
+    int32_t nVersion{0};
+    uint256 hashMerkleRoot{};
+    uint32_t nTime{0};
+    uint32_t nBits{0};
+    uint32_t nNonce{0};
 
     //! (memory only) Sequential id assigned to distinguish order in which
     //! blocks are received.
-    int32_t nSequenceId = 0;
+    int32_t nSequenceId{0};
 
     //! (memory only) block header metadata
-    uint64_t nTimeReceived = 0;
+    uint64_t nTimeReceived{0};
 
     //! (memory only) Maximum nTime in the chain up to and including this block.
-    unsigned int nTimeMax = 0;
+    unsigned int nTimeMax{0};
 
     explicit CBlockIndex() = default;
 
-    explicit CBlockIndex(const CBlockHeader &block) : CBlockIndex() {
-        nVersion = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime = block.nTime;
-        nTimeReceived = 0;
-        nBits = block.nBits;
-        nNonce = block.nNonce;
-    }
+    explicit CBlockIndex(const CBlockHeader &block)
+        : nVersion{block.nVersion}, hashMerkleRoot{block.hashMerkleRoot},
+          nTime{block.nTime}, nBits{block.nBits}, nNonce{block.nNonce},
+          nTimeReceived{0} {}
 
     FlatFilePos GetBlockPos() const {
         FlatFilePos ret;
