@@ -43,3 +43,6 @@ add_subdirectory(test)
 
 add_subdirectory(contrib/devtools)
 add_subdirectory(doc)
+
+include(PackageOptions)
+include(CPack)
