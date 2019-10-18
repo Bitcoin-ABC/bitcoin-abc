@@ -582,7 +582,6 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
         int handled = m_deserializer->Read(config, pch, nBytes);
 
         if (handled < 0) {
-            m_deserializer->Reset();
             return false;
         }
 

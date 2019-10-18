@@ -680,8 +680,6 @@ public:
  */
 class TransportDeserializer {
 public:
-    // prepare for next message
-    virtual void Reset() = 0;
     // returns true if the current deserialization is complete
     virtual bool Complete() const = 0;
     // set the serialization context version
@@ -714,15 +712,6 @@ private:
     int readHeader(const Config &config, const char *pch, uint32_t nBytes);
     int readData(const char *pch, uint32_t nBytes);
 
-public:
-    V1TransportDeserializer(
-        const CMessageHeader::MessageMagic &pchMessageStartIn, int nTypeIn,
-        int nVersionIn)
-        : hdrbuf(nTypeIn, nVersionIn), hdr(pchMessageStartIn),
-          vRecv(nTypeIn, nVersionIn) {
-        Reset();
-    }
-
     void Reset() {
         vRecv.clear();
         hdrbuf.clear();
@@ -732,6 +721,15 @@ public:
         nDataPos = 0;
         data_hash.SetNull();
         hasher.Reset();
+    }
+
+public:
+    V1TransportDeserializer(
+        const CMessageHeader::MessageMagic &pchMessageStartIn, int nTypeIn,
+        int nVersionIn)
+        : hdrbuf(nTypeIn, nVersionIn), hdr(pchMessageStartIn),
+          vRecv(nTypeIn, nVersionIn) {
+        Reset();
     }
 
     bool Complete() const {
@@ -747,8 +745,12 @@ public:
         vRecv.SetVersion(nVersionIn);
     }
     int Read(const Config &config, const char *pch, uint32_t nBytes) {
-        return in_data ? readData(pch, nBytes)
-                       : readHeader(config, pch, nBytes);
+        int ret =
+            in_data ? readData(pch, nBytes) : readHeader(config, pch, nBytes);
+        if (ret < 0) {
+            Reset();
+        }
+        return ret;
     }
 
     CNetMessage GetMessage(const Config &config, int64_t time);
