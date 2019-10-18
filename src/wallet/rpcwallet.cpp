@@ -374,9 +374,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
         }
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
-    TxValidationState state;
-    pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                               state);
+    pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */);
     return tx;
 }
 
@@ -1058,9 +1056,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     }
-    TxValidationState state;
-    pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                               state);
+    pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */);
     return tx->GetId().GetHex();
 }
 

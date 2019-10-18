@@ -232,9 +232,8 @@ namespace {
                                WalletOrderForm order_form) override {
             auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
-            TxValidationState state;
             m_wallet->CommitTransaction(std::move(tx), std::move(value_map),
-                                        std::move(order_form), state);
+                                        std::move(order_form));
         }
         bool transactionCanBeAbandoned(const TxId &txid) override {
             return m_wallet->TransactionCanBeAbandoned(txid);

@@ -5,7 +5,6 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
-#include <consensus/validation.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
 #include <policy/policy.h>
@@ -486,8 +485,7 @@ public:
             BOOST_CHECK(wallet->CreateTransaction(
                 *locked_chain, {recipient}, tx, fee, changePos, error, dummy));
         }
-        TxValidationState state;
-        wallet->CommitTransaction(tx, {}, {}, state);
+        wallet->CommitTransaction(tx, {}, {});
         CMutableTransaction blocktx;
         {
             LOCK(wallet->cs_wallet);
