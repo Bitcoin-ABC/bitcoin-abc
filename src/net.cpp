@@ -586,14 +586,6 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
             return false;
         }
 
-        if (m_deserializer->OversizedMessageDetected(config)) {
-            LogPrint(BCLog::NET,
-                     "Oversized message from peer=%i, disconnecting\n",
-                     GetId());
-            m_deserializer->Reset();
-            return false;
-        }
-
         pch += handled;
         nBytes -= handled;
 
