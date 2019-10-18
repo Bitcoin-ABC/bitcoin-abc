@@ -93,3 +93,11 @@ add_custom_target(check-rpcauth
 )
 
 add_dependencies(check check-rpcauth)
+
+include(PackageHelper)
+exclude_from_source_package(
+	# Subdirectories
+	"cache/"
+	"lint/"
+	"sanitizer_suppressions/"
+)

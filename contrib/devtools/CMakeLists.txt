@@ -22,3 +22,17 @@ endforeach()
 
 add_dependencies(check check-devtools)
 add_dependencies(check-all check-devtools)
+
+include(PackageHelper)
+exclude_from_source_package(
+	# Files
+	"bitcoind-exit-on-log.sh"
+	"circular-dependencies.py"
+	"copyright_header.py"
+	"extract_strings_qt.py"
+	"gitian-build.py"
+	"optimize-pngs.py"
+	"README.md"
+	"test-security-check.py"
+	"update-translations.py"
+)

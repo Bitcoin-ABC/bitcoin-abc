@@ -17,3 +17,7 @@ else()
 	set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/share/pixmaps/bitcoin-abc128.png")
 	set(CPACK_GENERATOR "TGZ")
 endif()
+
+# CPack source package options
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
+set(CPACK_SOURCE_GENERATOR "TGZ")
