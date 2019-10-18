@@ -74,6 +74,7 @@ endif()
 
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	jsonutil.cpp
+	lib/transaction_utils.cpp
 	main.cpp
 	scriptflags.cpp
 	sigutil.cpp
