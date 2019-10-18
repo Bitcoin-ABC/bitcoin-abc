@@ -692,7 +692,7 @@ public:
     virtual ~TransportDeserializer() {}
 };
 
-class V1TransportDeserializer : public TransportDeserializer {
+class V1TransportDeserializer final : public TransportDeserializer {
 private:
     mutable CHash256 hasher;
     mutable uint256 data_hash;
@@ -732,7 +732,7 @@ public:
         Reset();
     }
 
-    bool Complete() const {
+    bool Complete() const override {
         if (!in_data) {
             return false;
         }
@@ -740,11 +740,11 @@ public:
         return (hdr.nMessageSize == nDataPos);
     }
 
-    void SetVersion(int nVersionIn) {
+    void SetVersion(int nVersionIn) override {
         hdrbuf.SetVersion(nVersionIn);
         vRecv.SetVersion(nVersionIn);
     }
-    int Read(const Config &config, const char *pch, uint32_t nBytes) {
+    int Read(const Config &config, const char *pch, uint32_t nBytes) override {
         int ret =
             in_data ? readData(pch, nBytes) : readHeader(config, pch, nBytes);
         if (ret < 0) {
@@ -753,7 +753,7 @@ public:
         return ret;
     }
 
-    CNetMessage GetMessage(const Config &config, int64_t time);
+    CNetMessage GetMessage(const Config &config, int64_t time) override;
 };
 
 /** Information about a peer */
