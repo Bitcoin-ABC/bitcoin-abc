@@ -767,9 +767,14 @@ public:
     /**
      * Calculate the ancestor and descendant count for the given transaction.
      * The counts include the transaction itself.
+     * When ancestors is non-zero (ie, the transaction itself is in the
+     * mempool), ancestorsize and ancestorfees will also be set to the
+     * appropriate values.
      */
     void GetTransactionAncestry(const TxId &txid, size_t &ancestors,
-                                size_t &descendants) const;
+                                size_t &descendants,
+                                size_t *ancestorsize = nullptr,
+                                Amount *ancestorfees = nullptr) const;
 
     /** @returns true if the mempool is fully loaded */
     bool IsLoaded() const;

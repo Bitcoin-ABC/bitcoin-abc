@@ -343,13 +343,14 @@ namespace {
             return err == TransactionError::OK;
         }
         void getTransactionAncestry(const TxId &txid, size_t &ancestors,
-                                    size_t &descendants) override {
+                                    size_t &descendants, size_t *ancestorsize,
+                                    Amount *ancestorfees) override {
             ancestors = descendants = 0;
             if (!m_node.mempool) {
                 return;
             }
-            m_node.mempool->GetTransactionAncestry(txid, ancestors,
-                                                   descendants);
+            m_node.mempool->GetTransactionAncestry(txid, ancestors, descendants,
+                                                   ancestorsize, ancestorfees);
         }
         void getPackageLimits(size_t &limit_ancestor_count,
                               size_t &limit_descendant_count) override {

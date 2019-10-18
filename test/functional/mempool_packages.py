@@ -60,15 +60,32 @@ class MempoolPackagesTest(BitcoinTestFramework):
         txid = utxo[0]['txid']
         vout = utxo[0]['vout']
         value = utxo[0]['amount']
+        assert 'ancestorcount' not in utxo[0]
+        assert 'ancestorsize' not in utxo[0]
+        assert 'ancestorfees' not in utxo[0]
 
         fee = Decimal("100")
         # MAX_ANCESTORS transactions off a confirmed tx should be fine
         chain = []
-        for _ in range(MAX_ANCESTORS):
+        ancestor_size = 0
+        ancestor_fees = Decimal(0)
+        for i in range(MAX_ANCESTORS):
             (txid, sent_value) = self.chain_transaction(
                 self.nodes[0], txid, 0, value, fee, 1)
             value = sent_value
             chain.append(txid)
+
+            # Check that listunspent ancestor{count, size, fees} yield the
+            # correct results
+            wallet_unspent = self.nodes[0].listunspent(minconf=0)
+            this_unspent = next(
+                utxo_info for utxo_info in wallet_unspent if utxo_info['txid'] == txid)
+            assert_equal(this_unspent['ancestorcount'], i + 1)
+            ancestor_size += self.nodes[0].getrawtransaction(
+                txid=txid, verbose=True)['size']
+            assert_equal(this_unspent['ancestorsize'], ancestor_size)
+            ancestor_fees -= self.nodes[0].gettransaction(txid=txid)['fee']
+            assert_equal(this_unspent['ancestorfees'], ancestor_fees)
 
         # Wait until mempool transactions have passed initial broadcast
         # (sent inv and received getdata)
@@ -84,9 +101,11 @@ class MempoolPackagesTest(BitcoinTestFramework):
         descendant_fees = 0
         descendant_size = 0
 
-        ancestor_size = sum([mempool[tx]['size'] for tx in mempool])
+        assert_equal(ancestor_size,
+                     sum([mempool[tx]['size'] for tx in mempool]))
         ancestor_count = MAX_ANCESTORS
-        ancestor_fees = sum([mempool[tx]['fee'] for tx in mempool])
+        assert_equal(ancestor_fees,
+                     sum([mempool[tx]['fee'] for tx in mempool]))
 
         descendants = []
         ancestors = list(chain)

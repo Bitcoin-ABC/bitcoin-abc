@@ -211,7 +211,9 @@ public:
     //! Calculate mempool ancestor and descendant counts for the given
     //! transaction.
     virtual void getTransactionAncestry(const TxId &txid, size_t &ancestors,
-                                        size_t &descendants) = 0;
+                                        size_t &descendants,
+                                        size_t *ancestorsize = nullptr,
+                                        Amount *ancestorfees = nullptr) = 0;
 
     //! Get the node's package limits.
     //! Currently only returns the ancestor and descendant count limits, but
