@@ -1468,9 +1468,6 @@ public:
 
     bool DelAddressBook(const CTxDestination &address);
 
-    const std::string &GetLabelName(const CScript &scriptPubKey) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-
     unsigned int GetKeyPoolSize() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) {
         AssertLockHeld(cs_wallet);
         return setInternalKeyPool.size() + setExternalKeyPool.size();
