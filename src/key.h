@@ -174,23 +174,6 @@ struct CExtKey {
     bool Derive(CExtKey &out, unsigned int nChild) const;
     CExtPubKey Neuter() const;
     void SetSeed(const uint8_t *seed, unsigned int nSeedLen);
-    template <typename Stream> void Serialize(Stream &s) const {
-        unsigned int len = BIP32_EXTKEY_SIZE;
-        ::WriteCompactSize(s, len);
-        uint8_t code[BIP32_EXTKEY_SIZE];
-        Encode(code);
-        s.write((const char *)&code[0], len);
-    }
-    template <typename Stream> void Unserialize(Stream &s) {
-        unsigned int len = ::ReadCompactSize(s);
-        if (len != BIP32_EXTKEY_SIZE) {
-            throw std::runtime_error("Invalid extended key size\n");
-        }
-
-        uint8_t code[BIP32_EXTKEY_SIZE];
-        s.read((char *)&code[0], len);
-        Decode(code);
-    }
 
     CExtKey() = default;
 };

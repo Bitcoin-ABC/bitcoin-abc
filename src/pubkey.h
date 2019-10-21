@@ -206,29 +206,6 @@ struct CExtPubKey {
     void Decode(const uint8_t code[BIP32_EXTKEY_SIZE]);
     bool Derive(CExtPubKey &out, unsigned int nChild) const;
 
-    void Serialize(CSizeComputer &s) const {
-        // Optimized implementation for ::GetSerializeSize that avoids copying.
-        // add one byte for the size (compact int)
-        s.seek(BIP32_EXTKEY_SIZE + 1);
-    }
-    template <typename Stream> void Serialize(Stream &s) const {
-        unsigned int len = BIP32_EXTKEY_SIZE;
-        ::WriteCompactSize(s, len);
-        uint8_t code[BIP32_EXTKEY_SIZE];
-        Encode(code);
-        s.write((const char *)&code[0], len);
-    }
-    template <typename Stream> void Unserialize(Stream &s) {
-        unsigned int len = ::ReadCompactSize(s);
-        if (len != BIP32_EXTKEY_SIZE) {
-            throw std::runtime_error("Invalid extended key size\n");
-        }
-
-        uint8_t code[BIP32_EXTKEY_SIZE];
-        s.read((char *)&code[0], len);
-        Decode(code);
-    }
-
     CExtPubKey() = default;
 };
 
