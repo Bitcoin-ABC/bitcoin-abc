@@ -467,25 +467,26 @@ void MinerTestingSetup::TestBasicMining(
     // Sequence locks fail.
     BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}));
 
-    for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
-        // Trick the MedianTimePast.
+    // Sequence locks pass 512 seconds later
+    const int SEQUENCE_LOCK_TIME = 512;
+    for (int i = 0; i < CBlockIndex::nMedianTimeSpan; ++i) {
+        // Trick the MedianTimePast
         m_node.chainman->ActiveTip()
             ->GetAncestor(m_node.chainman->ActiveHeight() - i)
-            ->nTime += 512;
+            ->nTime += SEQUENCE_LOCK_TIME;
     }
 
-    // Sequence locks pass 512 seconds later.
     BOOST_CHECK(
         SequenceLocks(CTransaction(tx), flags, prevheights,
                       CreateBlockIndex(m_node.chainman->ActiveHeight() + 1,
                                        m_node.chainman->ActiveTip())));
 
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
+        CBlockIndex *ancestor{
+            Assert(m_node.chainman->ActiveChain().Tip()->GetAncestor(
+                m_node.chainman->ActiveHeight() - i))};
         // Undo tricked MTP.
-        m_node.chainman->ActiveChain()
-            .Tip()
-            ->GetAncestor(m_node.chainman->ActiveHeight() - i)
-            ->nTime -= 512;
+        ancestor->nTime -= SEQUENCE_LOCK_TIME;
     }
 
     // Absolute height locked.
@@ -579,14 +580,14 @@ void MinerTestingSetup::TestBasicMining(
     // relative locked txs will if inconsistently added to g_mempool. For now
     // these will still generate a valid template until BIP68 soft fork.
     BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 3UL);
-    // However if we advance height by 1 and time by 512, all of them should be
-    // mined.
+    // However if we advance height by 1 and time by SEQUENCE_LOCK_TIME, all of
+    // them should be mined.
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
+        CBlockIndex *ancestor{
+            Assert(m_node.chainman->ActiveChain().Tip()->GetAncestor(
+                m_node.chainman->ActiveHeight() - i))};
         // Trick the MedianTimePast.
-        m_node.chainman->ActiveChain()
-            .Tip()
-            ->GetAncestor(m_node.chainman->ActiveHeight() - i)
-            ->nTime += 512;
+        ancestor->nTime += SEQUENCE_LOCK_TIME;
     }
     m_node.chainman->ActiveTip()->nHeight++;
     SetMockTime(m_node.chainman->ActiveTip()->GetMedianTimePast() + 1);

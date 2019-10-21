@@ -2416,12 +2416,12 @@ static RPCHelpMan getchaintxstats() {
                 }
             }
 
-            const CBlockIndex *pindexPast =
-                pindex->GetAncestor(pindex->nHeight - blockcount);
-            int nTimeDiff =
-                pindex->GetMedianTimePast() - pindexPast->GetMedianTimePast();
-            int nTxDiff =
-                pindex->GetChainTxCount() - pindexPast->GetChainTxCount();
+            const CBlockIndex &past_block{*CHECK_NONFATAL(
+                pindex->GetAncestor(pindex->nHeight - blockcount))};
+            const int64_t nTimeDiff{pindex->GetMedianTimePast() -
+                                    past_block.GetMedianTimePast()};
+            const int nTxDiff =
+                pindex->GetChainTxCount() - past_block.GetChainTxCount();
 
             UniValue ret(UniValue::VOBJ);
             ret.pushKV("time", pindex->GetBlockTime());
@@ -2560,9 +2560,8 @@ static RPCHelpMan getblockstats() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
-            const CBlockIndex *pindex{
-                ParseHashOrHeight(request.params[0], chainman)};
-            CHECK_NONFATAL(pindex != nullptr);
+            const CBlockIndex &pindex{*CHECK_NONFATAL(
+                ParseHashOrHeight(request.params[0], chainman))};
 
             std::set<std::string> stats;
             if (!request.params[1].isNull()) {
@@ -2573,10 +2572,10 @@ static RPCHelpMan getblockstats() {
                 }
             }
 
-            const CBlock block =
-                GetBlockChecked(config, chainman.m_blockman, pindex);
-            const CBlockUndo blockUndo =
-                GetUndoChecked(chainman.m_blockman, pindex);
+            const CBlock &block =
+                GetBlockChecked(config, chainman.m_blockman, &pindex);
+            const CBlockUndo &blockUndo =
+                GetUndoChecked(chainman.m_blockman, &pindex);
 
             // Calculate everything if nothing selected (default)
             const bool do_all = stats.size() == 0;
@@ -2689,8 +2688,8 @@ static RPCHelpMan getblockstats() {
                            (block.vtx.size() > 1)
                                ? total_size / (block.vtx.size() - 1)
                                : 0);
-            ret_all.pushKV("blockhash", pindex->GetBlockHash().GetHex());
-            ret_all.pushKV("height", (int64_t)pindex->nHeight);
+            ret_all.pushKV("blockhash", pindex.GetBlockHash().GetHex());
+            ret_all.pushKV("height", (int64_t)pindex.nHeight);
             ret_all.pushKV("ins", inputs);
             ret_all.pushKV("maxfee", maxfee);
             ret_all.pushKV("maxfeerate", maxfeerate);
@@ -2698,7 +2697,7 @@ static RPCHelpMan getblockstats() {
             ret_all.pushKV("medianfee", CalculateTruncatedMedian(fee_array));
             ret_all.pushKV("medianfeerate",
                            CalculateTruncatedMedian(feerate_array));
-            ret_all.pushKV("mediantime", pindex->GetMedianTimePast());
+            ret_all.pushKV("mediantime", pindex.GetMedianTimePast());
             ret_all.pushKV("mediantxsize",
                            CalculateTruncatedMedian(txsize_array));
             ret_all.pushKV("minfee",
@@ -2709,9 +2708,9 @@ static RPCHelpMan getblockstats() {
             ret_all.pushKV("mintxsize",
                            mintxsize == blockMaxSize ? 0 : mintxsize);
             ret_all.pushKV("outs", outputs);
-            ret_all.pushKV("subsidy", GetBlockSubsidy(pindex->nHeight,
+            ret_all.pushKV("subsidy", GetBlockSubsidy(pindex.nHeight,
                                                       Params().GetConsensus()));
-            ret_all.pushKV("time", pindex->GetBlockTime());
+            ret_all.pushKV("time", pindex.GetBlockTime());
             ret_all.pushKV("total_out", total_out);
             ret_all.pushKV("total_size", total_size);
             ret_all.pushKV("totalfee", totalfee);

@@ -13,6 +13,7 @@
 #include <consensus/validation.h>
 #include <primitives/transaction.h>
 #include <script/script_flags.h>
+#include <util/check.h>
 #include <util/moneystr.h> // For FormatMoney
 #include <version.h>       // For PROTOCOL_VERSION
 
@@ -115,8 +116,9 @@ std::pair<int, int64_t> CalculateSequenceLocks(const CTransaction &tx,
         int nCoinHeight = prevHeights[txinIndex];
 
         if (txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG) {
-            int64_t nCoinTime = block.GetAncestor(std::max(nCoinHeight - 1, 0))
-                                    ->GetMedianTimePast();
+            const int64_t nCoinTime{
+                Assert(block.GetAncestor(std::max(nCoinHeight - 1, 0)))
+                    ->GetMedianTimePast()};
             // NOTE: Subtract 1 to maintain nLockTime semantics.
             // BIP 68 relative lock times have the semantics of calculating the
             // first block or time at which the transaction would be valid. When
