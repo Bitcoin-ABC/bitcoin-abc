@@ -1,6 +1,7 @@
 #ifndef BITCOIN_SEEDER_DNS_H
 #define BITCOIN_SEEDER_DNS_H 1
 
+#include <cstddef>
 #include <cstdint>
 
 struct addr_t {
@@ -23,6 +24,13 @@ struct dns_opt_t {
     // stats
     uint64_t nRequests;
 };
+
+//  0: ok
+// -1: premature end of input, forward reference, component > 63 char, invalid
+// character
+// -2: insufficient space in output
+int parse_name(const uint8_t **inpos, const uint8_t *inend,
+               const uint8_t *inbuf, char *buf, size_t bufsize);
 
 int dnsserver(dns_opt_t *opt);
 

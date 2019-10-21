@@ -46,12 +46,8 @@ typedef enum {
     QTYPE_ANY = 255
 } dns_type;
 
-//  0: ok
-// -1: premature end of input, forward reference, component > 63 char, invalid
-// character
-// -2: insufficient space in output
-static int parse_name(const uint8_t **inpos, const uint8_t *inend,
-                      const uint8_t *inbuf, char *buf, size_t bufsize) {
+int parse_name(const uint8_t **inpos, const uint8_t *inend,
+               const uint8_t *inbuf, char *buf, size_t bufsize) {
     size_t bufused = 0;
     int init = 1;
     do {
