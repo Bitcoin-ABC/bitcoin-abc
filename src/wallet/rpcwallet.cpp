@@ -21,6 +21,7 @@
 #include <util/bip32.h>
 #include <util/error.h>
 #include <util/moneystr.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <util/url.h>
 #include <util/validation.h>
@@ -3033,7 +3034,8 @@ static UniValue loadwallet(const Config &config,
         }
     }
 
-    std::string error, warning;
+    std::string error;
+    std::vector<std::string> warning;
     std::shared_ptr<CWallet> const wallet =
         LoadWallet(chainParams, *g_rpc_chain, location, error, warning);
     if (!wallet) {
@@ -3042,7 +3044,7 @@ static UniValue loadwallet(const Config &config,
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
-    obj.pushKV("warning", warning);
+    obj.pushKV("warning", Join(warning, "\n"));
 
     return obj;
 }
@@ -3168,13 +3170,13 @@ static UniValue createwallet(const Config &config,
 
     SecureString passphrase;
     passphrase.reserve(100);
-    std::string warning;
+    std::vector<std::string> warnings;
     if (!request.params[3].isNull()) {
         passphrase = request.params[3].get_str().c_str();
         if (passphrase.empty()) {
             // Empty string means unencrypted
-            warning = "Empty string given as passphrase, wallet will not be "
-                      "encrypted.";
+            warnings.emplace_back("Empty string given as passphrase, wallet "
+                                  "will not be encrypted.");
         }
     }
 
@@ -3183,11 +3185,10 @@ static UniValue createwallet(const Config &config,
     }
 
     std::string error;
-    std::string create_warning;
     std::shared_ptr<CWallet> wallet;
-    WalletCreationStatus status = CreateWallet(
-        config.GetChainParams(), *g_rpc_chain, passphrase, flags,
-        request.params[0].get_str(), error, create_warning, wallet);
+    WalletCreationStatus status =
+        CreateWallet(config.GetChainParams(), *g_rpc_chain, passphrase, flags,
+                     request.params[0].get_str(), error, warnings, wallet);
     switch (status) {
         case WalletCreationStatus::CREATION_FAILED:
             throw JSONRPCError(RPC_WALLET_ERROR, error);
@@ -3198,15 +3199,9 @@ static UniValue createwallet(const Config &config,
             // no default case, so the compiler can warn about missing cases
     }
 
-    if (warning.empty()) {
-        warning = create_warning;
-    } else if (!warning.empty() && !create_warning.empty()) {
-        warning += "; " + create_warning;
-    }
-
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
-    obj.pushKV("warning", warning);
+    obj.pushKV("warning", Join(warnings, "\n"));
 
     return obj;
 }

@@ -249,7 +249,7 @@ public:
                                   std::string &errorStr);
     /* verifies the database file */
     static bool VerifyDatabaseFile(const fs::path &wallet_path,
-                                   std::string &warningStr,
+                                   std::vector<std::string> &warnings,
                                    std::string &errorStr);
 
     //! write the hdchain model (external chain child index counter)

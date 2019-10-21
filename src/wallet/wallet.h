@@ -52,15 +52,18 @@ std::shared_ptr<CWallet> GetWallet(const std::string &name);
 std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
                                     const WalletLocation &location,
-                                    std::string &error, std::string &warning);
+                                    std::string &error,
+                                    std::vector<std::string> &warnings);
 
 enum class WalletCreationStatus { SUCCESS, CREATION_FAILED, ENCRYPTION_FAILED };
 
-WalletCreationStatus
-CreateWallet(const CChainParams &params, interfaces::Chain &chain,
-             const SecureString &passphrase, uint64_t wallet_creation_flags,
-             const std::string &name, std::string &error, std::string &warning,
-             std::shared_ptr<CWallet> &result);
+WalletCreationStatus CreateWallet(const CChainParams &params,
+                                  interfaces::Chain &chain,
+                                  const SecureString &passphrase,
+                                  uint64_t wallet_creation_flags,
+                                  const std::string &name, std::string &error,
+                                  std::vector<std::string> &warnings,
+                                  std::shared_ptr<CWallet> &result);
 
 //! Default for -keypool
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
@@ -1558,7 +1561,7 @@ public:
     static bool Verify(const CChainParams &chainParams,
                        interfaces::Chain &chain, const WalletLocation &location,
                        bool salvage_wallet, std::string &error_string,
-                       std::string &warning_string);
+                       std::vector<std::string> &warnings);
 
     /**
      * Initializes the wallet, returns a new CWallet instance or a null pointer
@@ -1566,7 +1569,8 @@ public:
      */
     static std::shared_ptr<CWallet> CreateWalletFromFile(
         const CChainParams &chainParams, interfaces::Chain &chain,
-        const WalletLocation &location, uint64_t wallet_creation_flags = 0);
+        const WalletLocation &location, std::string &error,
+        std::vector<std::string> &warnings, uint64_t wallet_creation_flags = 0);
 
     /**
      * Wallet post-init setup

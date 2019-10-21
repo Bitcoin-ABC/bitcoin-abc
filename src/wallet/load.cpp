@@ -7,6 +7,7 @@
 
 #include <interfaces/chain.h>
 #include <scheduler.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <wallet/wallet.h>
@@ -65,15 +66,15 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
         }
 
         std::string error_string;
-        std::string warning_string;
+        std::vector<std::string> warnings;
         bool verify_success =
             CWallet::Verify(chainParams, chain, location, salvage_wallet,
-                            error_string, warning_string);
+                            error_string, warnings);
         if (!error_string.empty()) {
             chain.initError(error_string);
         }
-        if (!warning_string.empty()) {
-            chain.initWarning(warning_string);
+        if (!warnings.empty()) {
+            chain.initWarning(Join(warnings, "\n"));
         }
         if (!verify_success) {
             return false;
@@ -86,9 +87,15 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
 bool LoadWallets(const CChainParams &chainParams, interfaces::Chain &chain,
                  const std::vector<std::string> &wallet_files) {
     for (const std::string &walletFile : wallet_files) {
+        std::string error;
+        std::vector<std::string> warnings;
         std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
-            chainParams, chain, WalletLocation(walletFile));
+            chainParams, chain, WalletLocation(walletFile), error, warnings);
+        if (!warnings.empty()) {
+            chain.initWarning(Join(warnings, "\n"));
+        }
         if (!pwallet) {
+            chain.initError(error);
             return false;
         }
         AddWallet(pwallet);

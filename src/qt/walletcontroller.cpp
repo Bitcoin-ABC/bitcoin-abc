@@ -12,6 +12,7 @@
 
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <util/string.h>
 
 #include <QApplication>
 #include <QMutexLocker>
@@ -234,8 +235,9 @@ void CreateWalletActivity::finish() {
         QMessageBox::critical(m_parent_widget, tr("Create wallet failed"),
                               QString::fromStdString(m_error_message));
     } else if (!m_warning_message.empty()) {
-        QMessageBox::warning(m_parent_widget, tr("Create wallet warning"),
-                             QString::fromStdString(m_warning_message));
+        QMessageBox::warning(
+            m_parent_widget, tr("Create wallet warning"),
+            QString::fromStdString(Join(m_warning_message, "\n")));
     }
 
     if (m_wallet_model) {
@@ -275,8 +277,9 @@ void OpenWalletActivity::finish() {
         QMessageBox::critical(m_parent_widget, tr("Open wallet failed"),
                               QString::fromStdString(m_error_message));
     } else if (!m_warning_message.empty()) {
-        QMessageBox::warning(m_parent_widget, tr("Open wallet warning"),
-                             QString::fromStdString(m_warning_message));
+        QMessageBox::warning(
+            m_parent_widget, tr("Open wallet warning"),
+            QString::fromStdString(Join(m_warning_message, "\n")));
     }
 
     if (m_wallet_model) {

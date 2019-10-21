@@ -255,7 +255,8 @@ public:
                                   std::string &errorStr);
     /* verifies the database file */
     static bool
-    VerifyDatabaseFile(const fs::path &file_path, std::string &warningStr,
+    VerifyDatabaseFile(const fs::path &file_path,
+                       std::vector<std::string> &warnings,
                        std::string &errorStr,
                        BerkeleyEnvironment::recoverFunc_type recoverFunc);
 

@@ -45,12 +45,14 @@ std::vector<std::shared_ptr<CWallet>> GetWallets();
 std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
                                     const std::string &name, std::string &error,
-                                    std::string &warning);
-WalletCreationStatus
-CreateWallet(const CChainParams &params, interfaces::Chain &chain,
-             const SecureString &passphrase, uint64_t wallet_creation_flags,
-             const std::string &name, std::string &error, std::string &warning,
-             std::shared_ptr<CWallet> &result);
+                                    std::vector<std::string> &warnings);
+WalletCreationStatus CreateWallet(const CChainParams &params,
+                                  interfaces::Chain &chain,
+                                  const SecureString &passphrase,
+                                  uint64_t wallet_creation_flags,
+                                  const std::string &name, std::string &error,
+                                  std::vector<std::string> &warnings,
+                                  std::shared_ptr<CWallet> &result);
 
 namespace interfaces {
 
@@ -280,19 +282,20 @@ namespace {
         }
         std::unique_ptr<Wallet>
         loadWallet(const CChainParams &params, const std::string &name,
-                   std::string &error, std::string &warning) const override {
+                   std::string &error,
+                   std::vector<std::string> &warnings) const override {
             return MakeWallet(
-                LoadWallet(params, *m_context.chain, name, error, warning));
+                LoadWallet(params, *m_context.chain, name, error, warnings));
         }
         WalletCreationStatus
         createWallet(const CChainParams &params, const SecureString &passphrase,
                      uint64_t wallet_creation_flags, const std::string &name,
-                     std::string &error, std::string &warning,
+                     std::string &error, std::vector<std::string> &warnings,
                      std::unique_ptr<Wallet> &result) override {
             std::shared_ptr<CWallet> wallet;
             WalletCreationStatus status = CreateWallet(
                 params, *m_context.chain, passphrase, wallet_creation_flags,
-                name, error, warning, wallet);
+                name, error, warnings, wallet);
             result = MakeWallet(wallet);
             return status;
         }

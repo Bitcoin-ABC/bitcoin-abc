@@ -54,15 +54,17 @@ std::vector<std::shared_ptr<CWallet>> GetWallets() {
 std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     interfaces::Chain &chain,
                                     const std::string &name, std::string &error,
-                                    std::string &warning) {
+                                    std::vector<std::string> &warnings) {
     throw std::logic_error("Wallet function called in non-wallet build.");
 }
 
-WalletCreationStatus
-CreateWallet(const CChainParams &chainParams, interfaces::Chain &chain,
-             const SecureString &passphrase, uint64_t wallet_creation_flags,
-             const std::string &name, std::string &error, std::string &warning,
-             std::shared_ptr<CWallet> &result) {
+WalletCreationStatus CreateWallet(const CChainParams &chainParams,
+                                  interfaces::Chain &chain,
+                                  const SecureString &passphrase,
+                                  uint64_t wallet_creation_flags,
+                                  const std::string &name, std::string &error,
+                                  std::vector<std::string> &warnings,
+                                  std::shared_ptr<CWallet> &result) {
     throw std::logic_error("Wallet function called in non-wallet build.");
 }
 

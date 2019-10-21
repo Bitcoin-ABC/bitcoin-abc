@@ -779,9 +779,9 @@ bool WalletBatch::VerifyEnvironment(const fs::path &wallet_path,
 }
 
 bool WalletBatch::VerifyDatabaseFile(const fs::path &wallet_path,
-                                     std::string &warningStr,
+                                     std::vector<std::string> &warnings,
                                      std::string &errorStr) {
-    return BerkeleyBatch::VerifyDatabaseFile(wallet_path, warningStr, errorStr,
+    return BerkeleyBatch::VerifyDatabaseFile(wallet_path, warnings, errorStr,
                                              WalletBatch::Recover);
 }
 
