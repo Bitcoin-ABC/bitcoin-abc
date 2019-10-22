@@ -668,7 +668,7 @@ public:
     uint32_t m_raw_message_size = 0;
     std::string m_command;
 
-    CNetMessage(const CDataStream &recv_in) : m_recv(std::move(recv_in)) {}
+    CNetMessage(CDataStream &&recv_in) : m_recv(std::move(recv_in)) {}
 
     void SetVersion(int nVersionIn) { m_recv.SetVersion(nVersionIn); }
 };
