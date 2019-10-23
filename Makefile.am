@@ -49,7 +49,10 @@ DIST_DOCS = $(wildcard doc/*.md) $(wildcard doc/release-notes/*.md)
 DIST_CONTRIB = $(top_srcdir)/contrib/bitcoin-cli.bash-completion \
 	       $(top_srcdir)/contrib/bitcoin-tx.bash-completion \
 	       $(top_srcdir)/contrib/bitcoind.bash-completion \
-	       $(top_srcdir)/contrib/init
+	       $(top_srcdir)/contrib/init \
+	       $(top_srcdir)/contrib/linearize/linearize-data.py \
+	       $(top_srcdir)/contrib/linearize/linearize-hashes.py
+
 DIST_SHARE = \
   $(top_srcdir)/share/genbuild.sh \
   $(top_srcdir)/share/rpcauth
