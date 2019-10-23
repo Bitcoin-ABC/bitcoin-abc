@@ -7,6 +7,15 @@ project(bitcoin-abc
 	HOMEPAGE_URL "https://www.bitcoinabc.org"
 )
 
+# Package information
+set(PACKAGE_NAME "Bitcoin ABC")
+
+# Copyright
+set(COPYRIGHT_YEAR 2019)
+set(COPYRIGHT_HOLDERS "The %s developers")
+set(COPYRIGHT_HOLDERS_SUBSTITUTION Bitcoin)
+string(REPLACE "%s" ${COPYRIGHT_HOLDERS_SUBSTITUTION} COPYRIGHT_HOLDERS_FINAL ${COPYRIGHT_HOLDERS})
+
 # Add path for custom modules
 set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}

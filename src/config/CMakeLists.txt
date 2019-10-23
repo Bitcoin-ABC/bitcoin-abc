@@ -7,21 +7,12 @@ include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(CheckCXXSourceCompiles)
 
-# Package information
-set(PACKAGE_NAME "Bitcoin ABC" CACHE STRING "Package name")
-
 # Version
 set(CLIENT_VERSION_MAJOR ${bitcoin-abc_VERSION_MAJOR})
 set(CLIENT_VERSION_MINOR ${bitcoin-abc_VERSION_MINOR})
 set(CLIENT_VERSION_REVISION ${bitcoin-abc_VERSION_PATCH})
 
 option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
-
-# Copyright
-set(COPYRIGHT_YEAR 2019)
-set(COPYRIGHT_HOLDERS "The %s developers")
-set(COPYRIGHT_HOLDERS_SUBSTITUTION Bitcoin)
-string(REPLACE "%s" ${COPYRIGHT_HOLDERS_SUBSTITUTION} COPYRIGHT_HOLDERS_FINAL ${COPYRIGHT_HOLDERS})
 
 # Generate the version.h file
 configure_file(version.h.cmake.in version.h ESCAPE_QUOTES)
