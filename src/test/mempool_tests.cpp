@@ -20,7 +20,7 @@ BOOST_FIXTURE_TEST_SUITE(mempool_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
     CTxMemPool testPool;
-    LOCK(testPool.cs);
+    LOCK2(cs_main, testPool.cs);
     TestMemPoolEntryHelper entry;
     CMutableTransaction parentOfAll;
 
@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_CASE(MempoolClearTest) {
     }
 
     CTxMemPool testPool;
-    LOCK(testPool.cs);
+    LOCK2(cs_main, testPool.cs);
 
     // Nothing in pool, clear should do nothing:
     testPool.clear();
@@ -844,14 +844,18 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
             // If the mempool is empty, importMempool doesn't change
             // disconnectPool
             CTxMemPool testPool;
+
             disconnectPool.importMempool(testPool);
             CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
                                      disconnectedTxns.size());
 
-            // Add all unconfirmed transactions in testPool
-            for (auto tx : unconfTxns) {
-                TestMemPoolEntryHelper entry;
-                testPool.addUnchecked(tx->GetId(), entry.FromTx(*tx));
+            {
+                LOCK2(cs_main, testPool.cs);
+                // Add all unconfirmed transactions in testPool
+                for (auto tx : unconfTxns) {
+                    TestMemPoolEntryHelper entry;
+                    testPool.addUnchecked(tx->GetId(), entry.FromTx(*tx));
+                }
             }
 
             // Now we test importMempool with a non empty mempool
