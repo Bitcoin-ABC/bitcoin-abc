@@ -777,7 +777,7 @@ static void CheckAddCoinBase(Amount base_value, Amount cache_value,
 // while still verifying that the CoinsViewCache::AddCoin implementation ignores
 // base values.
 template <typename... Args> static void CheckAddCoin(Args &&... args) {
-    for (const Amount base_value : {ABSENT, PRUNED, VALUE1}) {
+    for (const Amount &base_value : {ABSENT, PRUNED, VALUE1}) {
         CheckAddCoinBase(base_value, std::forward<Args>(args)...);
     }
 }
@@ -897,8 +897,8 @@ BOOST_AUTO_TEST_CASE(coin_write) {
     // they would be too repetitive (the parent cache is never updated in these
     // cases). The loop below covers these cases and makes sure the parent cache
     // is always left unchanged.
-    for (const Amount parent_value : {ABSENT, PRUNED, VALUE1}) {
-        for (const Amount child_value : {ABSENT, PRUNED, VALUE2}) {
+    for (const Amount &parent_value : {ABSENT, PRUNED, VALUE1}) {
+        for (const Amount &child_value : {ABSENT, PRUNED, VALUE2}) {
             for (const char parent_flags :
                  parent_value == ABSENT ? ABSENT_FLAGS : FLAGS) {
                 for (const char child_flags :
