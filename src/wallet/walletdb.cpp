@@ -7,8 +7,6 @@
 #include <wallet/walletdb.h>
 
 #include <chainparams.h>
-#include <consensus/tx_check.h>
-#include <consensus/validation.h>
 #include <fs.h>
 #include <key_io.h>
 #include <protocol.h>
@@ -237,11 +235,7 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             ssKey >> txid;
             CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
             ssValue >> wtx;
-            TxValidationState state;
-            bool isValid = wtx.IsCoinBase()
-                               ? CheckCoinbase(*wtx.tx, state)
-                               : CheckRegularTransaction(*wtx.tx, state);
-            if (!isValid || wtx.GetId() != txid) {
+            if (wtx.GetId() != txid) {
                 return false;
             }
 
