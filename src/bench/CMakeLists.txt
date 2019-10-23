@@ -51,6 +51,7 @@ add_executable(bitcoin-bench
 	merkle_root.cpp
 	prevector.cpp
 	rollingbloom.cpp
+	rpc_mempool.cpp
 
 	# Add the generated headers to trigger the conversion command
 	${BENCH_DATA_GENERATED_HEADERS}

@@ -10,6 +10,7 @@
 class CBlock;
 class CBlockIndex;
 class Config;
+class CTxMemPool;
 class JSONRPCRequest;
 
 UniValue getblockchaininfo(const Config &config, const JSONRPCRequest &request);
@@ -30,10 +31,10 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
                      const CBlockIndex *blockindex, bool txDetails = false);
 
 /** Mempool information to JSON */
-UniValue mempoolInfoToJSON();
+UniValue MempoolInfoToJSON(const CTxMemPool &pool);
 
 /** Mempool to JSON */
-UniValue mempoolToJSON(bool fVerbose = false);
+UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose = false);
 
 /** Block header to JSON */
 UniValue blockheaderToJSON(const CBlockIndex *tip,

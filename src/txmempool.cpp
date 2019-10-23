@@ -871,7 +871,7 @@ CTxMemPool::GetSortedDepthAndScore() const {
     return iters;
 }
 
-void CTxMemPool::queryHashes(std::vector<uint256> &vtxid) {
+void CTxMemPool::queryHashes(std::vector<uint256> &vtxid) const {
     LOCK(cs);
     auto iters = GetSortedDepthAndScore();
 

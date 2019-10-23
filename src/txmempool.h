@@ -225,7 +225,7 @@ private:
     const LockPoints &lp;
 };
 
-// extracts a transaction hash from CTxMempoolEntry or CTransactionRef
+// extracts a transaction hash from CTxMemPoolEntry or CTransactionRef
 struct mempoolentry_txid {
     typedef uint256 result_type;
     result_type operator()(const CTxMemPoolEntry &entry) const {
@@ -645,7 +645,7 @@ public:
     // lock free
     void _clear() EXCLUSIVE_LOCKS_REQUIRED(cs);
     bool CompareDepthAndScore(const uint256 &hasha, const uint256 &hashb);
-    void queryHashes(std::vector<uint256> &vtxid);
+    void queryHashes(std::vector<uint256> &vtxid) const;
     bool isSpent(const COutPoint &outpoint) const;
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);

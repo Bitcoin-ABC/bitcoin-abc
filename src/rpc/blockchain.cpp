@@ -457,9 +457,10 @@ static std::string EntryDescriptionString() {
            "       ... ]\n";
 }
 
-static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
-    EXCLUSIVE_LOCKS_REQUIRED(g_mempool.cs) {
-    AssertLockHeld(g_mempool.cs);
+static void entryToJSON(const CTxMemPool &pool, UniValue &info,
+                        const CTxMemPoolEntry &e)
+    EXCLUSIVE_LOCKS_REQUIRED(pool.cs) {
+    AssertLockHeld(pool.cs);
 
     UniValue fees(UniValue::VOBJ);
     fees.pushKV("base", ValueFromAmount(e.GetFee()));
@@ -484,7 +485,7 @@ static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
     const CTransaction &tx = e.GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {
-        if (g_mempool.exists(txin.prevout.GetTxId())) {
+        if (pool.exists(txin.prevout.GetTxId())) {
             setDepends.insert(txin.prevout.GetTxId().ToString());
         }
     }
@@ -497,9 +498,8 @@ static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
     info.pushKV("depends", depends);
 
     UniValue spent(UniValue::VARR);
-    const CTxMemPool::txiter &it = g_mempool.mapTx.find(tx.GetId());
-    const CTxMemPool::setEntries &setChildren =
-        g_mempool.GetMemPoolChildren(it);
+    const CTxMemPool::txiter &it = pool.mapTx.find(tx.GetId());
+    const CTxMemPool::setEntries &setChildren = pool.GetMemPoolChildren(it);
     for (CTxMemPool::txiter childiter : setChildren) {
         spent.push_back(childiter->GetTx().GetId().ToString());
     }
@@ -507,20 +507,20 @@ static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
     info.pushKV("spentby", spent);
 }
 
-UniValue mempoolToJSON(bool fVerbose) {
-    if (fVerbose) {
-        LOCK(g_mempool.cs);
+UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose) {
+    if (verbose) {
+        LOCK(pool.cs);
         UniValue o(UniValue::VOBJ);
-        for (const CTxMemPoolEntry &e : g_mempool.mapTx) {
+        for (const CTxMemPoolEntry &e : pool.mapTx) {
             const uint256 &txid = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
-            entryToJSON(info, e);
+            entryToJSON(pool, info, e);
             o.pushKV(txid.ToString(), info);
         }
         return o;
     } else {
         std::vector<uint256> vtxids;
-        g_mempool.queryHashes(vtxids);
+        pool.queryHashes(vtxids);
 
         UniValue a(UniValue::VARR);
         for (const uint256 &txid : vtxids) {
@@ -564,7 +564,7 @@ static UniValue getrawmempool(const Config &config,
         fVerbose = request.params[0].get_bool();
     }
 
-    return mempoolToJSON(fVerbose);
+    return MempoolToJSON(::g_mempool, fVerbose);
 }
 
 static UniValue getmempoolancestors(const Config &config,
@@ -630,7 +630,7 @@ static UniValue getmempoolancestors(const Config &config,
             const CTxMemPoolEntry &e = *ancestorIt;
             const uint256 &_hash = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
-            entryToJSON(info, e);
+            entryToJSON(::g_mempool, info, e);
             o.pushKV(_hash.ToString(), info);
         }
         return o;
@@ -699,7 +699,7 @@ static UniValue getmempooldescendants(const Config &config,
             const CTxMemPoolEntry &e = *descendantIt;
             const uint256 &_hash = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
-            entryToJSON(info, e);
+            entryToJSON(::g_mempool, info, e);
             o.pushKV(_hash.ToString(), info);
         }
         return o;
@@ -736,7 +736,7 @@ static UniValue getmempoolentry(const Config &config,
 
     const CTxMemPoolEntry &e = *it;
     UniValue info(UniValue::VOBJ);
-    entryToJSON(info, e);
+    entryToJSON(::g_mempool, info, e);
     return info;
 }
 
@@ -1485,18 +1485,18 @@ static UniValue getchaintips(const Config &config,
     return res;
 }
 
-UniValue mempoolInfoToJSON() {
+UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
     UniValue ret(UniValue::VOBJ);
-    ret.pushKV("size", (int64_t)g_mempool.size());
-    ret.pushKV("bytes", (int64_t)g_mempool.GetTotalTxSize());
-    ret.pushKV("usage", (int64_t)g_mempool.DynamicMemoryUsage());
+    ret.pushKV("size", (int64_t)pool.size());
+    ret.pushKV("bytes", (int64_t)pool.GetTotalTxSize());
+    ret.pushKV("usage", (int64_t)pool.DynamicMemoryUsage());
     size_t maxmempool =
         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     ret.pushKV("maxmempool", (int64_t)maxmempool);
-    ret.pushKV("mempoolminfee",
-               ValueFromAmount(
-                   std::max(g_mempool.GetMinFee(maxmempool), ::minRelayTxFee)
-                       .GetFeePerK()));
+    ret.pushKV(
+        "mempoolminfee",
+        ValueFromAmount(std::max(pool.GetMinFee(maxmempool), ::minRelayTxFee)
+                            .GetFeePerK()));
     ret.pushKV("minrelaytxfee", ValueFromAmount(::minRelayTxFee.GetFeePerK()));
 
     return ret;
@@ -1528,7 +1528,7 @@ static UniValue getmempoolinfo(const Config &config,
             HelpExampleRpc("getmempoolinfo", ""));
     }
 
-    return mempoolInfoToJSON();
+    return MempoolInfoToJSON(::g_mempool);
 }
 
 static UniValue preciousblock(const Config &config,
