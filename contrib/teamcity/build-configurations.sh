@@ -109,6 +109,11 @@ case "$ABC_BUILD_NAME" in
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     ;;
 
+  build-werror)
+    # Build with variable-length-array and thread-safety-analysis treated as errors
+    CONFIGURE_FLAGS="--enable-debug --enable-werror CC=clang CXX=clang++" "${CI_SCRIPTS_DIR}"/build.sh
+    ;;
+
   *)
     echo "Error: Invalid build name '${ABC_BUILD_NAME}'"
     exit 2
