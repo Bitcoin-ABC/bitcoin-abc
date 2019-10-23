@@ -289,5 +289,31 @@ add_to_security_check(bitcoin-qt)
 include(InstallationHelper)
 install_target(bitcoin-qt)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(BITCOINQT_BUNDLE_ICON "res/icons/bitcoin.icns")
+	get_filename_component(BITCOINQT_BUNDLE_ICON_NAME
+		"${BITCOINQT_BUNDLE_ICON}"
+		NAME
+	)
+
+	add_executable(BitcoinABC-Qt MACOSX_BUNDLE
+		bitcoin.cpp
+		"${BITCOINQT_BUNDLE_ICON}"
+	)
+	target_link_libraries(BitcoinABC-Qt bitcoin-qt-base)
+
+	set_target_properties(BitcoinABC-Qt PROPERTIES
+		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/share/qt/Info.plist.cmake.in"
+		MACOSX_BUNDLE_BUNDLE_NAME "BitcoinABC-Qt"
+		MACOSX_BUNDLE_BUNDLE_VERSION "${bitcoin-abc_VERSION}"
+		MACOSX_BUNDLE_GUI_IDENTIFIER "org.bitcoinabc.BitcoinABC-Qt"
+		MACOSX_BUNDLE_ICON_FILE "${BITCOINQT_BUNDLE_ICON_NAME}"
+		MACOSX_BUNDLE_INFO_STRING "${bitcoin-abc_VERSION}, Copyright © 2009-${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDERS_FINAL}"
+		MACOSX_BUNDLE_LONG_VERSION_STRING "${bitcoin-abc_VERSION}"
+		MACOSX_BUNDLE_SHORT_VERSION_STRING "${bitcoin-abc_VERSION}"
+		RESOURCE "${BITCOINQT_BUNDLE_ICON}"
+	)
+endif()
+
 # Test tests
 add_subdirectory(test)
