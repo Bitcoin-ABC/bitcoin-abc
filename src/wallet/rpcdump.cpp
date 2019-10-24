@@ -440,8 +440,9 @@ UniValue importprunedfunds(const Config &config,
                            "Something wrong with merkleblock");
     }
 
-    wtx.SetConf(CWalletTx::Status::CONFIRMED, merkleBlock.header.GetHash(),
-                txnIndex);
+    CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED,
+                                    merkleBlock.header.GetHash(), txnIndex);
+    wtx.m_confirm = confirm;
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);

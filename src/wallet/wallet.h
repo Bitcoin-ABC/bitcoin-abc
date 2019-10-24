@@ -360,9 +360,12 @@ public:
      * conflicting tx.
      */
     struct Confirmation {
-        Status status = UNCONFIRMED;
-        BlockHash hashBlock = BlockHash();
-        int nIndex = 0;
+        Status status;
+        BlockHash hashBlock;
+        int nIndex;
+        Confirmation(Status s = UNCONFIRMED, BlockHash h = BlockHash(),
+                     int i = 0)
+            : status(s), hashBlock(h), nIndex(i) {}
     };
 
     Confirmation m_confirm;
@@ -505,8 +508,6 @@ public:
     // that we still have the runtime check "AssertLockHeld(pwallet->cs_wallet)"
     // in place.
     std::set<TxId> GetConflicts() const NO_THREAD_SAFETY_ANALYSIS;
-
-    void SetConf(Status status, const BlockHash &block_hash, int posInBlock);
 
     /**
      * Return depth of transaction in blockchain:
@@ -691,9 +692,7 @@ private:
      * when necessary.
      */
     bool AddToWalletIfInvolvingMe(const CTransactionRef &tx,
-                                  CWalletTx::Status status,
-                                  const BlockHash &block_hash, int posInBlock,
-                                  bool fUpdate)
+                                  CWalletTx::Confirmation confirm, bool fUpdate)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**
@@ -718,9 +717,8 @@ private:
      * Should be called with non-zero block_hash and posInBlock if this is for a
      * transaction that is included in a block.
      */
-    void SyncTransaction(const CTransactionRef &tx, CWalletTx::Status status,
-                         const BlockHash &block_hash, int posInBlock = 0,
-                         bool update_tx = true)
+    void SyncTransaction(const CTransactionRef &tx,
+                         CWalletTx::Confirmation confirm, bool update_tx = true)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     std::atomic<uint64_t> m_wallet_flags{0};

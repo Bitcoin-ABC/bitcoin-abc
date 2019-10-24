@@ -307,8 +307,9 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     wallet.SetLastBlockProcessed(::ChainActive().Height(),
                                  ::ChainActive().Tip()->GetBlockHash());
 
-    wtx.SetConf(CWalletTx::Status::CONFIRMED,
-                ::ChainActive().Tip()->GetBlockHash(), 0);
+    CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED,
+                                    ::ChainActive().Tip()->GetBlockHash(), 0);
+    wtx.m_confirm = confirm;
 
     // Call GetImmatureCredit() once before adding the key to the wallet to
     // cache the current immature credit amount, which is 0.
@@ -350,7 +351,9 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
         wallet.AddToWallet(wtx);
     }
     if (block) {
-        wtx.SetConf(CWalletTx::Status::CONFIRMED, block->GetBlockHash(), 0);
+        CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED,
+                                        block->GetBlockHash(), 0);
+        wtx.m_confirm = confirm;
     }
     wallet.AddToWallet(wtx);
     return wallet.mapWallet.at(wtx.GetId()).nTimeSmart;
@@ -538,8 +541,10 @@ public:
                                       ::ChainActive().Tip()->GetBlockHash());
         auto it = wallet->mapWallet.find(tx->GetId());
         BOOST_CHECK(it != wallet->mapWallet.end());
-        it->second.SetConf(CWalletTx::Status::CONFIRMED,
-                           ::ChainActive().Tip()->GetBlockHash(), 1);
+        CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED,
+                                        ::ChainActive().Tip()->GetBlockHash(),
+                                        1);
+        it->second.m_confirm = confirm;
         return it->second;
     }
 
