@@ -12,6 +12,7 @@
 #include <net.h>
 #include <primitives/block.h>
 #include <protocol.h>
+#include <pubkey.h>
 #include <streams.h>
 #include <undo.h>
 #include <version.h>
@@ -21,6 +22,11 @@
 #include <cstdint>
 #include <unistd.h>
 #include <vector>
+
+void initialize() {
+    // Fuzzers using pubkey must hold an ECCVerifyHandle.
+    static const auto verify_handle = std::make_unique<ECCVerifyHandle>();
+}
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
     CDataStream ds(buffer, SER_NETWORK, INIT_PROTO_VERSION);

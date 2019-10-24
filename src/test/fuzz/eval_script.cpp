@@ -2,11 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <pubkey.h>
 #include <script/interpreter.h>
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 
 #include <limits>
+#include <memory>
+
+void initialize() {
+    static const auto verify_handle = std::make_unique<ECCVerifyHandle>();
+}
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());

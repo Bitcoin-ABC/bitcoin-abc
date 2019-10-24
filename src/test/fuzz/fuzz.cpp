@@ -4,10 +4,9 @@
 
 #include <test/fuzz/fuzz.h>
 
-#include <pubkey.h>
-
-#include <memory>
+#include <cstdint>
 #include <unistd.h>
+#include <vector>
 
 static bool read_stdin(std::vector<uint8_t> &data) {
     uint8_t buffer[1024];
@@ -23,9 +22,7 @@ static bool read_stdin(std::vector<uint8_t> &data) {
 }
 
 // Default initialization: Override using a non-weak initialize().
-__attribute__((weak)) void initialize() {
-    const static auto verify_handle = std::make_unique<ECCVerifyHandle>();
-}
+__attribute__((weak)) void initialize() {}
 
 // This function is used by libFuzzer
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
@@ -40,13 +37,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
     return 0;
 }
 
-// Disabled under WIN32 due to clash with Cygwin's WinMain.
-#ifndef WIN32
 // Declare main(...) "weak" to allow for libFuzzer linking. libFuzzer provides
 // the main(...) function.
-__attribute__((weak))
-#endif
-int main(int argc, char **argv) {
+__attribute__((weak)) int main(int argc, char **argv) {
     initialize();
 #ifdef __AFL_INIT
     // Enable AFL deferred forkserver mode. Requires compilation using
