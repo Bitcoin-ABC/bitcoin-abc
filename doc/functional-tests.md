@@ -334,6 +334,16 @@ P2PInterface object and override the callback methods.
 - Can be used to write tests where specific P2P protocol behavior is tested.
 Examples tests are `p2p-acceptblock.py`, `p2p-compactblocks.py`.
 
+#### Prototyping tests
+
+The [`TestShell`](test-shell.md) class exposes the BitcoinTestFramework
+functionality to interactive Python3 environments and can be used to prototype
+tests. This may be especially useful in a REPL environment with session logging
+utilities, such as
+[IPython](https://ipython.readthedocs.io/en/stable/interactive/reference.html#session-logging-and-restoring).
+The logs of such interactive sessions can later be adapted into permanent test
+cases.
+
 ### test-framework modules
 
 #### [test_framework/authproxy.py](/test/functional/test_framework/authproxy.py)
