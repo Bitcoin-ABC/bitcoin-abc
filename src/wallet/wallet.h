@@ -137,8 +137,9 @@ extern const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS;
 class ReserveDestination {
 protected:
     //! The wallet to reserve from
-    CWallet *pwallet;
+    CWallet *const pwallet;
     LegacyScriptPubKeyMan *m_spk_man{nullptr};
+    OutputType const type;
     //! The index of the address's key in the keypool
     int64_t nIndex{-1};
     //! The public key for the address
@@ -151,7 +152,8 @@ protected:
 public:
     //! Construct a ReserveDestination object. This does NOT reserve an address
     //! yet
-    explicit ReserveDestination(CWallet *pwalletIn) { pwallet = pwalletIn; }
+    explicit ReserveDestination(CWallet *_pwallet, OutputType _type)
+        : pwallet(_pwallet), type(_type) {}
 
     ReserveDestination(const ReserveDestination &) = delete;
     ReserveDestination &operator=(const ReserveDestination &) = delete;
@@ -161,8 +163,7 @@ public:
     ~ReserveDestination() { ReturnDestination(); }
 
     //! Reserve an address
-    bool GetReservedDestination(const OutputType type, CTxDestination &pubkey,
-                                bool internal);
+    bool GetReservedDestination(CTxDestination &pubkey, bool internal);
     //! Return reserved address
     void ReturnDestination();
     //! Keep the address. Do not return it's key to the keypool when this object

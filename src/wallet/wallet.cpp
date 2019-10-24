@@ -2845,7 +2845,11 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                                 std::string &strFailReason,
                                 const CCoinControl &coinControl, bool sign) {
     Amount nValue = Amount::zero();
-    ReserveDestination reservedest(this);
+    const OutputType change_type = TransactionChangeType(
+        coinControl.m_change_type ? *coinControl.m_change_type
+                                  : m_default_change_type,
+        vecSend);
+    ReserveDestination reservedest(this, change_type);
     int nChangePosRequest = nChangePosInOut;
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto &recipient : vecSend) {
@@ -2911,12 +2915,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                 return false;
             }
             CTxDestination dest;
-            const OutputType change_type = TransactionChangeType(
-                coinControl.m_change_type ? *coinControl.m_change_type
-                                          : m_default_change_type,
-                vecSend);
-            bool ret =
-                reservedest.GetReservedDestination(change_type, dest, true);
+            bool ret = reservedest.GetReservedDestination(dest, true);
             if (!ret) {
                 strFailReason =
                     _("Keypool ran out, please call keypoolrefill first")
@@ -3467,8 +3466,8 @@ bool CWallet::GetNewChangeDestination(const OutputType type,
 
     m_spk_man->TopUp();
 
-    ReserveDestination reservedest(this);
-    if (!reservedest.GetReservedDestination(type, dest, true)) {
+    ReserveDestination reservedest(this, type);
+    if (!reservedest.GetReservedDestination(dest, true)) {
         error = "Error: Keypool ran out, please call keypoolrefill first";
         return false;
     }
@@ -3650,8 +3649,7 @@ CWallet::GetLabelAddresses(const std::string &label) const {
     return result;
 }
 
-bool ReserveDestination::GetReservedDestination(const OutputType type,
-                                                CTxDestination &dest,
+bool ReserveDestination::GetReservedDestination(CTxDestination &dest,
                                                 bool internal) {
     m_spk_man = pwallet->GetLegacyScriptPubKeyMan();
     if (!m_spk_man) {
