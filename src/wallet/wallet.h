@@ -613,6 +613,8 @@ struct CoinSelectionParams {
     size_t change_spend_size = 0;
     CFeeRate effective_fee = CFeeRate(Amount::zero());
     size_t tx_noinputs_size = 0;
+    //! Indicate that we are subtracting the fee from outputs
+    bool m_subtract_fee_outputs = false;
 
     CoinSelectionParams(bool use_bnb_, size_t change_output_size_,
                         size_t change_spend_size_, CFeeRate effective_fee_,
