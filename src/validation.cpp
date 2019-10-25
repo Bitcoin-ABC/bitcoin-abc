@@ -287,7 +287,7 @@ static bool IsReplayProtectionEnabled(const Consensus::Params &params,
 static bool CheckInputsFromMempoolAndCache(
     const CTransaction &tx, TxValidationState &state,
     const CCoinsViewCache &view, const CTxMemPool &pool, const uint32_t flags,
-    bool cacheSigStore, PrecomputedTransactionData &txdata, int &nSigChecksOut)
+    PrecomputedTransactionData &txdata, int &nSigChecksOut)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
@@ -321,7 +321,10 @@ static bool CheckInputsFromMempoolAndCache(
         }
     }
 
-    return CheckInputs(tx, state, view, flags, cacheSigStore, true, txdata,
+    // Call CheckInputs() to cache signature and script validity against current
+    // tip consensus rules.
+    return CheckInputs(tx, state, view, flags, /* cacheSigStore = */ true,
+                       /* cacheFullScriptStore = */ true, txdata,
                        nSigChecksOut);
 }
 
@@ -647,7 +650,7 @@ bool MemPoolAccept::ConsensusScriptChecks(ATMPArgs &args, Workspace &ws,
     int nSigChecksConsensus;
     if (!CheckInputsFromMempoolAndCache(tx, state, m_view, m_pool,
                                         ws.m_next_block_script_verify_flags,
-                                        true, txdata, nSigChecksConsensus)) {
+                                        txdata, nSigChecksConsensus)) {
         // This can occur under some circumstances, if the node receives an
         // unrequested tx which is invalid due to new consensus rules not
         // being activated yet (during IBD).
