@@ -92,6 +92,12 @@ bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state) {
                                  REJECT_INVALID, "bad-txns-prevout-null");
         }
 
+        // Check for duplicate inputs (see CVE-2018-17144)
+        // While Consensus::CheckTxInputs does check if all inputs of a tx are
+        // available, and UpdateCoins marks all inputs of a tx as spent, it does
+        // not check if the tx has duplicate inputs. Failure to run this check
+        // will result in either a crash or an inflation bug, depending on the
+        // implementation of the underlying coins database.
         if (!vInOutPoints.insert(txin.prevout).second) {
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false,
                                  REJECT_INVALID, "bad-txns-inputs-duplicate");
