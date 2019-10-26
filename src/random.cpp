@@ -628,15 +628,6 @@ static void ProcRand(uint8_t *out, int num, RNGLevel level) {
         SeedStartup(startup_hasher, rng);
         rng.MixExtract(out, num, std::move(startup_hasher), true);
     }
-
-    // For anything but the 'fast' level, feed the resulting RNG output (after
-    // an additional hashing step) back into OpenSSL.
-    if (level != RNGLevel::FAST) {
-        uint8_t buf[64];
-        CSHA512().Write(out, num).Finalize(buf);
-        RAND_add(buf, sizeof(buf), num);
-        memory_cleanse(buf, 64);
-    }
 }
 
 void GetRandBytes(uint8_t *buf, int num) noexcept {
