@@ -58,7 +58,6 @@
  * entropy sources used in the 'slow' seeder are included, but also:
  * - 256 bits from the hardware RNG (rdseed or rdrand) when available.
  * - (On Windows) Performance monitoring data from the OS.
- * - (On Windows) Through OpenSSL, the screen contents.
  * - Strengthen the entropy for 100 ms using repeated SHA512.
  *
  * When mixing in new entropy, H = SHA512(entropy || old_rng_state) is computed,

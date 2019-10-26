@@ -10,10 +10,10 @@
 #include <wincrypt.h>
 #endif
 #include <crypto/sha512.h>
-#include <logging.h> // for LogPrint()
+#include <logging.h> // for LogPrintf()
 #include <support/allocators/secure.h>
 #include <support/cleanse.h>
-#include <sync.h>      // for WAIT_LOCK
+#include <sync.h>      // for Mutex
 #include <util/time.h> // for GetTime()
 
 #include <openssl/conf.h>
@@ -776,7 +776,7 @@ bool Random_SanityCheck() {
 
     /**
      * This does not measure the quality of randomness, but it does test that
-     * OSRandom() overwrites all 32 bytes of the output given a maximum number
+     * GetOSRand() overwrites all 32 bytes of the output given a maximum number
      * of tries.
      */
     static const ssize_t MAX_TRIES = 1024;
