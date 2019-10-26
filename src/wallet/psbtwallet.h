@@ -24,11 +24,9 @@
  * available
  * @return error
  */
-
-NODISCARD TransactionError FillPSBT(const CWallet *pwallet,
-                                    PartiallySignedTransaction &psbtx,
-                                    bool &complete,
-                                    SigHashType sighash_type = SigHashType(),
-                                    bool sign = true, bool bip32derivs = false);
+NODISCARD TransactionError
+FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
+         bool &complete, SigHashType sighash_type = SigHashType().withForkId(),
+         bool sign = true, bool bip32derivs = true);
 
 #endif // BITCOIN_WALLET_PSBTWALLET_H

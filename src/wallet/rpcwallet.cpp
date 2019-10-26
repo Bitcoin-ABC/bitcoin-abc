@@ -4535,9 +4535,9 @@ static UniValue walletprocesspsbt(const Config &config,
              "       \"ALL|FORKID|ANYONECANPAY\"\n"
              "       \"NONE|FORKID|ANYONECANPAY\"\n"
              "       \"SINGLE|FORKID|ANYONECANPAY\""},
-            {"bip32derivs", RPCArg::Type::BOOL, /* default */ "false",
-             "If true, includes the BIP 32 derivation paths for public keys if "
-             "we know them"},
+            {"bip32derivs", RPCArg::Type::BOOL, /* default */ "true",
+             "Includes the BIP 32 derivation paths for public keys if we know "
+             "them"},
         },
         RPCResult{"{\n"
                   "  \"psbt\" : \"value\",          (string) The "
@@ -4572,7 +4572,7 @@ static UniValue walletprocesspsbt(const Config &config,
     bool sign =
         request.params[1].isNull() ? true : request.params[1].get_bool();
     bool bip32derivs =
-        request.params[3].isNull() ? false : request.params[3].get_bool();
+        request.params[3].isNull() ? true : request.params[3].get_bool();
     bool complete = true;
     const TransactionError err =
         FillPSBT(pwallet, psbtx, complete, nHashType, sign, bip32derivs);
@@ -4710,9 +4710,9 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                  },
              },
              "options"},
-            {"bip32derivs", RPCArg::Type::BOOL, /* default */ "false",
-             "If true, includes the BIP 32 derivation paths for public keys if "
-             "we know them"},
+            {"bip32derivs", RPCArg::Type::BOOL, /* default */ "true",
+             "Includes the BIP 32 derivation paths for public keys if we know "
+             "them"},
         },
         RPCResult{"{\n"
                   "  \"psbt\": \"value\",        (string)  The resulting raw "
@@ -4749,7 +4749,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
 
     // Fill transaction with out data but don't sign
     bool bip32derivs =
-        request.params[4].isNull() ? false : request.params[4].get_bool();
+        request.params[4].isNull() ? true : request.params[4].get_bool();
     bool complete = true;
     const TransactionError err =
         FillPSBT(pwallet, psbtx, complete, SigHashType().withForkId(), false,
