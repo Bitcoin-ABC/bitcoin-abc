@@ -319,6 +319,7 @@ add_library(util
 	interfaces/handler.cpp
 	logging.cpp
 	random.cpp
+	randomenv.cpp
 	rcu.cpp
 	rpc/protocol.cpp
 	support/cleanse.cpp

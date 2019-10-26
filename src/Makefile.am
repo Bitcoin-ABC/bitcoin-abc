@@ -197,6 +197,7 @@ BITCOIN_CORE_H = \
   psbt.h \
   radix.h \
   random.h \
+  randomenv.h \
   rcu.h \
   reverse_iterator.h \
   reverselock.h \
@@ -534,6 +535,7 @@ libbitcoin_util_a_SOURCES = \
   interfaces/handler.cpp \
   logging.cpp \
   random.cpp \
+  randomenv.cpp \
   rcu.cpp \
   rpc/protocol.cpp \
   support/cleanse.cpp \
