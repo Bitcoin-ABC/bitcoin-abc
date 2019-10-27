@@ -58,6 +58,9 @@
 #include <sys/vmmeter.h>
 #endif
 #endif
+#ifdef __linux__
+#include <sys/auxv.h>
+#endif
 
 //! Necessary on some platforms
 extern char **environ;
@@ -360,6 +363,34 @@ void RandAddStaticEnv(CSHA512 &hasher) {
 
     // Bitcoin client version
     hasher << CLIENT_VERSION;
+
+#ifdef __linux__
+    // Information available through getauxval()
+#ifdef AT_HWCAP
+    hasher << getauxval(AT_HWCAP);
+#endif
+#ifdef AT_HWCAP2
+    hasher << getauxval(AT_HWCAP2);
+#endif
+#ifdef AT_RANDOM
+    const uint8_t *random_aux = (const uint8_t *)getauxval(AT_RANDOM);
+    if (random_aux) {
+        hasher.Write(random_aux, 16);
+    }
+#endif
+#ifdef AT_PLATFORM
+    const char *platform_str = (const char *)getauxval(AT_PLATFORM);
+    if (platform_str) {
+        hasher.Write((const uint8_t *)platform_str, strlen(platform_str) + 1);
+    }
+#endif
+#ifdef AT_EXECFN
+    const char *exec_str = (const char *)getauxval(AT_EXECFN);
+    if (exec_str) {
+        hasher.Write((const uint8_t *)exec_str, strlen(exec_str) + 1);
+    }
+#endif
+#endif // __linux__
 
 #ifdef HAVE_GETCPUID
     AddAllCPUID(hasher);
