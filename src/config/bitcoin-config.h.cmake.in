@@ -52,6 +52,12 @@
 #cmakedefine HAVE_GETENTROPY 1
 #cmakedefine HAVE_GETENTROPY_RAND 1
 #cmakedefine HAVE_SYS_GETRANDOM 1
+
+#cmakedefine HAVE_VM_VM_PARAM_H 1
+#cmakedefine HAVE_SYS_VMMETER_H 1
+#cmakedefine HAVE_SYS_RESOURCES_H 1
+#cmakedefine HAVE_SYSCTL 1
+
 #cmakedefine HAVE_SYSCTL_ARND 1
 
 #cmakedefine CHAR_EQUALS_INT8 0

@@ -119,6 +119,16 @@ check_symbol_exists(getentropy "unistd.h" HAVE_GETENTROPY)
 # macOS needs unistd.h and sys/random.h to define getentropy
 check_symbol_exists(getentropy "unistd.h;sys/random.h" HAVE_GETENTROPY_RAND)
 
+# OSX and BSDs measurement related headers
+check_include_files("sys/types.h;vm/vm_params.h" HAVE_VM_VM_PARAM_H)
+check_include_files("sys/types.h;sys/vmmeter.h" HAVE_SYS_VMMETER_H)
+check_include_files("sys/types.h;sys/resources.h" HAVE_SYS_RESOURCES_H)
+
+# Don't use sysctl on Linux, it's deprecated even when it works
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	check_symbol_exists(sysctl "sys/types.h;sys/sysctl.h" HAVE_SYSCTL)
+endif()
+
 # getifaddrs and freeifaddrs may be unavailable with some Android versions
 check_symbol_exists(getifaddrs "sys/types.h;ifaddrs.h" HAVE_DECL_GETIFADDRS)
 check_symbol_exists(freeifaddrs "sys/types.h;ifaddrs.h" HAVE_DECL_FREEIFADDRS)
