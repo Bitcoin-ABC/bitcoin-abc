@@ -154,7 +154,7 @@ static int AppInitRPC(int argc, char *argv[]) {
     std::string error;
     if (!gArgs.ParseParameters(argc, argv, error)) {
         tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
-                    error.c_str());
+                    error);
         return EXIT_FAILURE;
     }
     if (argc < 2 || HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
@@ -175,7 +175,7 @@ static int AppInitRPC(int argc, char *argv[]) {
             strUsage += "\n" + gArgs.GetHelpMessage();
         }
 
-        tfm::format(std::cout, "%s", strUsage.c_str());
+        tfm::format(std::cout, "%s", strUsage);
         if (argc < 2) {
             tfm::format(std::cerr, "Error: too few parameters\n");
             return EXIT_FAILURE;
@@ -185,12 +185,11 @@ static int AppInitRPC(int argc, char *argv[]) {
     if (!CheckDataDirOption()) {
         tfm::format(std::cerr,
                     "Error: Specified data directory \"%s\" does not exist.\n",
-                    gArgs.GetArg("-datadir", "").c_str());
+                    gArgs.GetArg("-datadir", ""));
         return EXIT_FAILURE;
     }
     if (!gArgs.ReadConfigFiles(error, true)) {
-        tfm::format(std::cerr, "Error reading configuration file: %s\n",
-                    error.c_str());
+        tfm::format(std::cerr, "Error reading configuration file: %s\n", error);
         return EXIT_FAILURE;
     }
     // Check for -chain, -testnet or -regtest parameter (BaseParams() calls are
@@ -478,8 +477,7 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
                 "could be found, and RPC password is not set.  See "
                 "-rpcpassword and -stdinrpcpass.  Configuration file: (%s)",
                 GetConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME))
-                    .string()
-                    .c_str()));
+                    .string()));
         } else {
             throw std::runtime_error(
                 "Authorization failed: Incorrect rpcuser or rpcpassword");
@@ -615,8 +613,7 @@ static int CommandLineRPC(int argc, char *argv[]) {
     }
 
     if (strPrint != "") {
-        tfm::format(nRet == 0 ? std::cout : std::cerr, "%s\n",
-                    strPrint.c_str());
+        tfm::format(nRet == 0 ? std::cout : std::cerr, "%s\n", strPrint);
     }
     return nRet;
 }

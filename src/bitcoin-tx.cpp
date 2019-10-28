@@ -110,7 +110,7 @@ static int AppInitRawTx(int argc, char *argv[]) {
     std::string error;
     if (!gArgs.ParseParameters(argc, argv, error)) {
         tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
-                    error.c_str());
+                    error);
         return EXIT_FAILURE;
     }
 
@@ -136,7 +136,8 @@ static int AppInitRawTx(int argc, char *argv[]) {
             "hex-encoded bitcoin transaction\n" +
             "\n";
         strUsage += gArgs.GetHelpMessage();
-        tfm::format(std::cout, "%s", strUsage.c_str());
+
+        tfm::format(std::cout, "%s", strUsage);
 
         if (argc < 2) {
             tfm::format(std::cerr, "Error: too few parameters\n");
@@ -763,20 +764,20 @@ static void OutputTxJSON(const CTransaction &tx) {
     TxToUniv(tx, uint256(), entry);
 
     std::string jsonOutput = entry.write(4);
-    tfm::format(std::cout, "%s\n", jsonOutput.c_str());
+    tfm::format(std::cout, "%s\n", jsonOutput);
 }
 
 static void OutputTxHash(const CTransaction &tx) {
     // the hex-encoded transaction id.
     std::string strHexHash = tx.GetId().GetHex();
 
-    tfm::format(std::cout, "%s\n", strHexHash.c_str());
+    tfm::format(std::cout, "%s\n", strHexHash);
 }
 
 static void OutputTxHex(const CTransaction &tx) {
     std::string strHex = EncodeHexTx(tx);
 
-    tfm::format(std::cout, "%s\n", strHex.c_str());
+    tfm::format(std::cout, "%s\n", strHex);
 }
 
 static void OutputTx(const CTransaction &tx) {
@@ -871,8 +872,7 @@ static int CommandLineRawTx(int argc, char *argv[],
     }
 
     if (strPrint != "") {
-        tfm::format(nRet == 0 ? std::cout : std::cerr, "%s\n",
-                    strPrint.c_str());
+        tfm::format(nRet == 0 ? std::cout : std::cerr, "%s\n", strPrint);
     }
 
     return nRet;

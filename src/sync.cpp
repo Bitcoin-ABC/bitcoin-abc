@@ -170,7 +170,7 @@ void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
     }
     tfm::format(std::cerr,
                 "Assertion failed: lock %s not held in %s:%i; locks held:\n%s",
-                pszName, pszFile, nLine, LocksHeld().c_str());
+                pszName, pszFile, nLine, LocksHeld());
     abort();
 }
 
@@ -181,7 +181,7 @@ void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
             tfm::format(
                 std::cerr,
                 "Assertion failed: lock %s held in %s:%i; locks held:\n%s",
-                pszName, pszFile, nLine, LocksHeld().c_str());
+                pszName, pszFile, nLine, LocksHeld());
             abort();
         }
     }

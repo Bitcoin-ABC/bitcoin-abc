@@ -30,7 +30,7 @@ void CAddrInfo::Update(bool good) {
     }
     //  tfm::format(std::cout, "%s: got %s result: success=%i/%i;
     //  2H:%.2f%%-%.2f%%(%.2f) 8H:%.2f%%-%.2f%%(%.2f) 1D:%.2f%%-%.2f%%(%.2f)
-    //  1W:%.2f%%-%.2f%%(%.2f) \n", ToString(ip).c_str(), good ? "good" : "bad",
+    //  1W:%.2f%%-%.2f%%(%.2f) \n", ToString(ip), good ? "good" : "bad",
     //  success, total, 100.0 * stat2H.reliability, 100.0 * (stat2H.reliability
     //  + 1.0 - stat2H.weight), stat2H.count, 100.0 * stat8H.reliability, 100.0
     //  * (stat8H.reliability + 1.0 - stat8H.weight), stat8H.count, 100.0 *
@@ -100,7 +100,7 @@ void CAddrDb::Good_(const CService &addr, int clientV, std::string clientSV,
     if (info.IsReliable() && goodId.count(id) == 0) {
         goodId.insert(id);
         //    tfm::format(std::cout, "%s: good; %i good nodes now\n",
-        //    ToString(addr).c_str(), (int)goodId.size());
+        //    ToString(addr), (int)goodId.size());
     }
     nDirty++;
     ourId.push_back(id);
@@ -117,14 +117,14 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
     uint32_t now = time(nullptr);
     int ter = info.GetBanTime();
     if (ter) {
-        //    tfm::format(std::cout, "%s: terrible\n", ToString(addr).c_str());
+        //    tfm::format(std::cout, "%s: terrible\n", ToString(addr));
         if (ban < ter) {
             ban = ter;
         }
     }
     if (ban > 0) {
         //    tfm::format(std::cout, "%s: ban for %i seconds\n",
-        //    ToString(addr).c_str(), ban);
+        //    ToString(addr), ban);
         banned[info.ip] = ban + now;
         ipToId.erase(info.ip);
         goodId.erase(id);
@@ -133,7 +133,7 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
         if (/*!info.IsReliable() && */ goodId.count(id) == 1) {
             goodId.erase(id);
             //      tfm::format(std::cout, "%s: not good; %i good nodes left\n",
-            //      ToString(addr).c_str(), (int)goodId.size());
+            //      ToString(addr), (int)goodId.size());
         }
         ourId.push_back(id);
     }
@@ -159,7 +159,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
             ai.lastTry = addr.nTime;
             ai.services |= addr.nServices;
             //      tfm::format(std::cout, "%s: updated\n",
-            //      ToString(addr).c_str());
+            //      ToString(addr));
         }
         if (force) {
             ai.ignoreTill = 0;
@@ -177,7 +177,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     int id = nId++;
     idToInfo[id] = ai;
     ipToId[ipp] = id;
-    //  tfm::format(std::cout, "%s: added\n", ToString(ipp).c_str(),
+    //  tfm::format(std::cout, "%s: added\n", ToString(ipp),
     //  ipToId[ipp]);
     unkId.insert(id);
     nDirty++;

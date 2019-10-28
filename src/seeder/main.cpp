@@ -64,7 +64,7 @@ public:
         std::string error;
         if (!gArgs.ParseParameters(argc, argv, error)) {
             tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
-                        error.c_str());
+                        error);
             return EXIT_FAILURE;
         }
         if (HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
@@ -77,7 +77,7 @@ public:
                     gArgs.GetHelpMessage();
             }
 
-            tfm::format(std::cout, "%s", strUsage.c_str());
+            tfm::format(std::cout, "%s", strUsage);
             return EXIT_SUCCESS;
         }
 
@@ -201,7 +201,7 @@ extern "C" void *ThreadCrawler(void *data) {
                 res.nClientV = node.GetClientVersion();
                 res.strClientV = node.GetClientSubVersion();
                 res.nHeight = node.GetStartingHeight();
-                // tfm::format(std::cout, "%s: %s!!!\n", cip.ToString().c_str(),
+                // tfm::format(std::cout, "%s: %s!!!\n", cip.ToString(),
                 // ret ? "GOOD" : "BAD");
                 res.fGood = ret;
             } catch (std::ios_base::failure &e) {
@@ -402,11 +402,11 @@ extern "C" void *ThreadDumper(void *) {
                     "%-47s  %4d  %11" PRId64
                     "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64
                     "  %5i \"%s\"\n",
-                    rep.ip.ToString().c_str(), (int)rep.fGood, rep.lastSuccess,
+                    rep.ip.ToString(), (int)rep.fGood, rep.lastSuccess,
                     100.0 * rep.uptime[0], 100.0 * rep.uptime[1],
                     100.0 * rep.uptime[2], 100.0 * rep.uptime[3],
                     100.0 * rep.uptime[4], rep.blocks, rep.services,
-                    rep.clientVersion, rep.clientSubVersion.c_str());
+                    rep.clientVersion, rep.clientSubVersion);
                 stat[0] += rep.uptime[0];
                 stat[1] += rep.uptime[1];
                 stat[2] += rep.uptime[2];
@@ -499,7 +499,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.tor.c_str(), 9050));
         if (service.IsValid()) {
             tfm::format(std::cout, "Using Tor proxy at %s\n",
-                        service.ToStringIPPort().c_str());
+                        service.ToStringIPPort());
             SetProxy(NET_ONION, proxyType(service));
         }
     }
@@ -507,7 +507,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.ipv4_proxy.c_str(), 9050));
         if (service.IsValid()) {
             tfm::format(std::cout, "Using IPv4 proxy at %s\n",
-                        service.ToStringIPPort().c_str());
+                        service.ToStringIPPort());
             SetProxy(NET_IPV4, proxyType(service));
         }
     }
@@ -515,12 +515,12 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.ipv6_proxy.c_str(), 9050));
         if (service.IsValid()) {
             tfm::format(std::cout, "Using IPv6 proxy at %s\n",
-                        service.ToStringIPPort().c_str());
+                        service.ToStringIPPort());
             SetProxy(NET_IPV6, proxyType(service));
         }
     }
     bool fDNS = true;
-    tfm::format(std::cout, "Using %s.\n", gArgs.GetChainName().c_str());
+    tfm::format(std::cout, "Using %s.\n", gArgs.GetChainName());
     netMagic = Params().NetMagic();
     if (opts.ns.empty()) {
         tfm::format(std::cout, "No nameserver set. Not starting DNS server.\n");
@@ -551,9 +551,9 @@ int main(int argc, char **argv) {
     }
     pthread_t threadDns, threadSeed, threadDump, threadStats;
     if (fDNS) {
-        tfm::format(
-            std::cout, "Starting %i DNS threads for %s on %s (port %i)...",
-            opts.nDnsThreads, opts.host.c_str(), opts.ns.c_str(), opts.nPort);
+        tfm::format(std::cout,
+                    "Starting %i DNS threads for %s on %s (port %i)...",
+                    opts.nDnsThreads, opts.host, opts.ns, opts.nPort);
         dnsThread.clear();
         for (int i = 0; i < opts.nDnsThreads; i++) {
             dnsThread.push_back(new CDnsThread(&opts, i));

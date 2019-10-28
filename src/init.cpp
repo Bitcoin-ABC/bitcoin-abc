@@ -1613,7 +1613,7 @@ bool AppInitParameterInteraction(Config &config) {
     if (!fs::is_directory(GetBlocksDir())) {
         return InitError(
             strprintf(_("Specified blocks directory \"%s\" does not exist."),
-                      gArgs.GetArg("-blocksdir", "").c_str()));
+                      gArgs.GetArg("-blocksdir", "")));
     }
 
     // if using block pruning, then disallow txindex

@@ -641,8 +641,7 @@ static std::string FormatException(const std::exception *pex,
 void PrintExceptionContinue(const std::exception *pex, const char *pszThread) {
     std::string message = FormatException(pex, pszThread);
     LogPrintf("\n\n************************\n%s\n", message);
-    tfm::format(std::cerr, "\n\n************************\n%s\n",
-                message.c_str());
+    tfm::format(std::cerr, "\n\n************************\n%s\n", message);
 }
 
 fs::path GetDefaultDataDir() {

@@ -1432,7 +1432,7 @@ static void ThreadMapPort() {
                     CNetAddr resolved;
                     if (LookupHost(externalIPAddress, resolved, false)) {
                         LogPrintf("UPnP: ExternalIPAddress = %s\n",
-                                  resolved.ToString().c_str());
+                                  resolved.ToString());
                         AddLocal(resolved, LOCAL_UPNP);
                     }
                 } else {
@@ -2712,7 +2712,7 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     size_t nMessageSize = msg.data.size();
     size_t nTotalSize = nMessageSize + CMessageHeader::HEADER_SIZE;
     LogPrint(BCLog::NET, "sending %s (%d bytes) peer=%d\n",
-             SanitizeString(msg.command.c_str()), nMessageSize, pnode->GetId());
+             SanitizeString(msg.command), nMessageSize, pnode->GetId());
 
     std::vector<uint8_t> serializedHeader;
     serializedHeader.reserve(CMessageHeader::HEADER_SIZE);

@@ -1158,12 +1158,12 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string &reason)
         LogPrintf(
             "%s: %s peer=%d (%d -> %d) reason: %s BAN THRESHOLD EXCEEDED\n",
             __func__, state->name, pnode, state->nMisbehavior - howmuch,
-            state->nMisbehavior, reason.c_str());
+            state->nMisbehavior, reason);
         state->fShouldBan = true;
     } else {
         LogPrintf("%s: %s peer=%d (%d -> %d) reason: %s\n", __func__,
                   state->name, pnode, state->nMisbehavior - howmuch,
-                  state->nMisbehavior, reason.c_str());
+                  state->nMisbehavior, reason);
     }
 }
 
@@ -2284,7 +2284,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         LogPrint(BCLog::NET,
                  "receive version message: [%s] %s: version %d, blocks=%d, "
                  "us=%s, peer=%d%s\n",
-                 pfrom->addr.ToString().c_str(), cleanSubVer, pfrom->nVersion,
+                 pfrom->addr.ToString(), cleanSubVer, pfrom->nVersion,
                  pfrom->nStartingHeight, addrMe.ToString(), pfrom->GetId(),
                  remoteAddr);
 

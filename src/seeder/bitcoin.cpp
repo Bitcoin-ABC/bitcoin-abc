@@ -26,7 +26,7 @@ void CSeederNode::BeginMessage(const char *pszCommand) {
     nHeaderStart = vSend.size();
     vSend << CMessageHeader(netMagic, pszCommand, 0);
     nMessageStart = vSend.size();
-    // tfm::format(std::cout, "%s: SEND %s\n", ToString(you).c_str(),
+    // tfm::format(std::cout, "%s: SEND %s\n", ToString(you),
     // pszCommand);
 }
 
@@ -93,8 +93,8 @@ void CSeederNode::PushVersion() {
 
 PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
                                                CDataStream &recv) {
-    // tfm::format(std::cout, "%s: RECV %s\n", ToString(you).c_str(),
-    // strCommand.c_str());
+    // tfm::format(std::cout, "%s: RECV %s\n", ToString(you),
+    // strCommand);
     if (strCommand == "version") {
         int64_t nTime;
         CAddress addrMe;
@@ -115,7 +115,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
 
     if (strCommand == "verack") {
         vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
-        // tfm::format(std::cout, "\n%s: version %i\n", ToString(you).c_str(),
+        // tfm::format(std::cout, "\n%s: version %i\n", ToString(you),
         // nVersion);
         if (vAddr) {
             BeginMessage("getaddr");
@@ -131,7 +131,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         std::vector<CAddress> vAddrNew;
         recv >> vAddrNew;
         // tfm::format(std::cout, "%s: got %i addresses\n",
-        // ToString(you).c_str(),
+        // ToString(you),
         //        (int)vAddrNew.size());
         int64_t now = time(nullptr);
         std::vector<CAddress>::iterator it = vAddrNew.begin();
@@ -143,8 +143,8 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         while (it != vAddrNew.end()) {
             CAddress &addr = *it;
             // tfm::format(std::cout, "%s: got address %s\n",
-            // ToString(you).c_str(),
-            //        addr.ToString().c_str(), (int)(vAddr->size()));
+            // ToString(you),
+            //        addr.ToString(), (int)(vAddr->size()));
             it++;
             if (addr.nTime <= 100000000 || addr.nTime > now + 600) {
                 addr.nTime = now - 5 * 86400;
@@ -153,8 +153,8 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
                 vAddr->push_back(addr);
             }
             // tfm::format(std::cout, "%s: added address %s (#%i)\n",
-            // ToString(you).c_str(),
-            //        addr.ToString().c_str(), (int)(vAddr->size()));
+            // ToString(you),
+            //        addr.ToString(), (int)(vAddr->size()));
             if (vAddr->size() > ADDR_SOFT_CAP) {
                 doneAfter = 1;
                 return PeerMessagingState::Finished;
@@ -189,7 +189,7 @@ bool CSeederNode::ProcessMessages() {
         vRecv >> hdr;
         if (!hdr.IsValidWithoutConfig(netMagic)) {
             // tfm::format(std::cout, "%s: BAD (invalid header)\n",
-            // ToString(you).c_str());
+            // ToString(you));
             ban = 100000;
             return true;
         }
@@ -197,7 +197,7 @@ bool CSeederNode::ProcessMessages() {
         unsigned int nMessageSize = hdr.nMessageSize;
         if (nMessageSize > MAX_SIZE) {
             // tfm::format(std::cout, "%s: BAD (message too large)\n",
-            // ToString(you).c_str());
+            // ToString(you));
             ban = 100000;
             return true;
         }
@@ -219,8 +219,8 @@ bool CSeederNode::ProcessMessages() {
             return true;
         }
         // tfm::format(std::cout, "%s: done processing %s\n",
-        // ToString(you).c_str(),
-        //        strCommand.c_str());
+        // ToString(you),
+        //        strCommand);
     } while (1);
     return false;
 }
@@ -265,7 +265,7 @@ bool CSeederNode::Run() {
 
     if (!connected) {
         // tfm::format(std::cout, "Cannot connect to %s\n",
-        // ToString(you).c_str());
+        // ToString(you));
         CloseSocket(sock);
         return false;
     }
@@ -308,12 +308,12 @@ bool CSeederNode::Run() {
         } else if (nBytes == 0) {
             // tfm::format(std::cout, "%s: BAD (connection closed
             // prematurely)\n",
-            //        ToString(you).c_str());
+            //        ToString(you));
             res = false;
             break;
         } else {
             // tfm::format(std::cout, "%s: BAD (connection error)\n",
-            // ToString(you).c_str());
+            // ToString(you));
             res = false;
             break;
         }

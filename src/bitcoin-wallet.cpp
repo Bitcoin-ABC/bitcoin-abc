@@ -51,7 +51,7 @@ static bool WalletAppInit(int argc, char *argv[]) {
     std::string error_message;
     if (!gArgs.ParseParameters(argc, argv, error_message)) {
         tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
-                    error_message.c_str());
+                    error_message);
         return false;
     }
     if (argc < 2 || HelpRequested(gArgs)) {
@@ -67,7 +67,7 @@ static bool WalletAppInit(int argc, char *argv[]) {
             "Usage:\n" + "  bitcoin-wallet [options] <command>\n\n" +
             gArgs.GetHelpMessage();
 
-        tfm::format(std::cout, "%s", usage.c_str());
+        tfm::format(std::cout, "%s", usage);
         return false;
     }
 
@@ -78,7 +78,7 @@ static bool WalletAppInit(int argc, char *argv[]) {
     if (!CheckDataDirOption()) {
         tfm::format(std::cerr,
                     "Error: Specified data directory \"%s\" does not exist.\n",
-                    gArgs.GetArg("-datadir", "").c_str());
+                    gArgs.GetArg("-datadir", ""));
         return false;
     }
     // Check for -testnet or -regtest parameter (Params() calls are only valid
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
                 tfm::format(std::cerr,
                             "Error: two methods provided (%s and %s). Only one "
                             "method should be provided.\n",
-                            method.c_str(), argv[i]);
+                            method, argv[i]);
                 return EXIT_FAILURE;
             }
             method = argv[i];
