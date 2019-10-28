@@ -17,6 +17,7 @@
 #include <rpc/server.h>
 #include <rpc/util.h>
 #include <timedata.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <validation.h>
@@ -548,6 +549,8 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
                 "echo|echojson ...",
                 "\nSimply echo back the input arguments. This command is for "
                 "testing.\n"
+                "\nIt will return an internal bug report when exactly 100 "
+                "arguments are passed.\n"
                 "\nThe difference between echo and echojson is that echojson "
                 "has argument conversion enabled in the client-side table in "
                 "bitcoin-cli and the GUI. There is no server-side difference.",
@@ -555,6 +558,8 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
                 .ToString() +
             "");
     }
+
+    CHECK_NONFATAL(request.params.size() != 100);
 
     return request.params;
 }

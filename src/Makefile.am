@@ -229,6 +229,7 @@ BITCOIN_CORE_H = \
   undo.h \
   util/bitmanip.h \
   util/bytevectorhash.h \
+  util/check.h \
   util/moneystr.h \
   util/system.h \
   util/threadnames.h \

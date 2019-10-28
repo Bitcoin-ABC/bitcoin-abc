@@ -24,3 +24,5 @@ Configuration
   the selected network. This change takes only effect if the selected network
   is not mainnet.
 
+ - The `echo` RPC will now return an internal bug report if exactly 100
+   arguments are provided.

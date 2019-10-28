@@ -7,6 +7,7 @@
 
 #include <node/transaction.h>
 #include <script/standard.h> // For CTxDestination
+#include <util/check.h>
 
 #include <string>
 #include <vector>
@@ -78,7 +79,7 @@ struct RPCArg {
         : m_name{name}, m_type{type}, m_optional{opt},
           m_default_value{default_val}, m_description{description},
           m_oneline_description{oneline_description}, m_type_str{type_str} {
-        assert(type != Type::ARR && type != Type::OBJ);
+        CHECK_NONFATAL(type != Type::ARR && type != Type::OBJ);
     }
 
     RPCArg(const std::string &name, const Type &type, const bool opt,
@@ -89,7 +90,7 @@ struct RPCArg {
         : m_name{name}, m_type{type}, m_inner{inner}, m_optional{opt},
           m_default_value{default_val}, m_description{description},
           m_oneline_description{oneline_description}, m_type_str{type_str} {
-        assert(type == Type::ARR || type == Type::OBJ);
+        CHECK_NONFATAL(type == Type::ARR || type == Type::OBJ);
     }
 
     /**

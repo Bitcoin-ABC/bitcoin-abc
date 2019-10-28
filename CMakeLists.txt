@@ -14,6 +14,7 @@ project(bitcoin-abc
 
 # Package information
 set(PACKAGE_NAME "Bitcoin ABC")
+set(PACKAGE_BUGREPORT "https://github.com/Bitcoin-ABC/bitcoin-abc/issues")
 
 # Copyright
 set(COPYRIGHT_YEAR 2020)

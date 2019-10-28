@@ -34,7 +34,6 @@
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
-#include <cassert>
 #include <condition_variable>
 #include <cstdint>
 #include <memory>
