@@ -12,7 +12,10 @@ seeder_test_test_bitcoin_seeder_SOURCES = \
   seeder/test/seeder_tests.cpp
 
 seeder_test_test_bitcoin_seeder_LDADD = $(LIBBITCOIN_SEEDER)
-seeder_test_test_bitcoin_seeder_LDADD += $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
+
+seeder_test_test_bitcoin_seeder_LDADD += $(LIBBITCOIN_COMMON) $(LIBBITCOIN_CONSENSUS) $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UTIL) \
+  $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(CRYPTO_LIBS)
+
 seeder_test_test_bitcoin_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 seeder_test_test_bitcoin_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 

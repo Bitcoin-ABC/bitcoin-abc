@@ -48,9 +48,10 @@ private:
 
     void GotVersion();
 
-    bool ProcessMessage(std::string strCommand, CDataStream &recv);
-
     bool ProcessMessages();
+
+protected:
+    bool ProcessMessage(std::string strCommand, CDataStream &recv);
 
 public:
     CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn);

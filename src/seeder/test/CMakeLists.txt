@@ -14,5 +14,7 @@ add_boost_unit_tests_to_suite(bitcoin-seeder test_bitcoin-seeder
 )
 
 target_link_libraries(test_bitcoin-seeder
+  common
+  bitcoinconsensus
   seeder-netprocessing
 )
