@@ -557,43 +557,29 @@ static void SeedSlow(CSHA512 &hasher) noexcept {
 }
 
 /** Extract entropy from rng, strengthen it, and feed it into hasher. */
-static void SeedStrengthen(CSHA512 &hasher, RNGState &rng) noexcept {
-    static std::atomic<int64_t> last_strengthen{0};
-    int64_t last_time = last_strengthen.load();
-    int64_t current_time = GetTimeMicros();
-    // Only run once a minute
-    if (current_time > last_time + 60000000) {
-        // Generate 32 bytes of entropy from the RNG, and a copy of the entropy
-        // already in hasher.
-        uint8_t strengthen_seed[32];
-        rng.MixExtract(strengthen_seed, sizeof(strengthen_seed),
-                       CSHA512(hasher), false);
-        // Strengthen it for 10ms (100ms on first run), and feed it into hasher.
-        Strengthen(strengthen_seed, last_time == 0 ? 100000 : 10000, hasher);
-        last_strengthen = current_time;
-    }
+static void SeedStrengthen(CSHA512 &hasher, RNGState &rng,
+                           int microseconds) noexcept {
+    // Generate 32 bytes of entropy from the RNG, and a copy of the entropy
+    // already in hasher.
+    uint8_t strengthen_seed[32];
+    rng.MixExtract(strengthen_seed, sizeof(strengthen_seed), CSHA512(hasher),
+                   false);
+    // Strengthen the seed, and feed it into hasher.
+    Strengthen(strengthen_seed, microseconds, hasher);
 }
 
-static void SeedSleep(CSHA512 &hasher, RNGState &rng) {
+static void SeedPeriodic(CSHA512 &hasher, RNGState &rng) {
     // Everything that the 'fast' seeder includes
     SeedFast(hasher);
 
     // High-precision timestamp
     SeedTimestamp(hasher);
 
-    // Sleep for 1ms
-    MilliSleep(1);
-
-    // High-precision timestamp after sleeping (as we commit to both the time
-    // before and after, this measures the delay)
-    SeedTimestamp(hasher);
-
-    // Dynamic environment data (performance monitoring, ...; once every 10
-    // minutes)
+    // Dynamic environment data (performance monitoring, ...)
     RandAddDynamicEnv(hasher);
 
-    // Strengthen
-    SeedStrengthen(hasher, rng);
+    // Strengthen for 10ms
+    SeedStrengthen(hasher, rng, 10000);
 }
 
 static void SeedStartup(CSHA512 &hasher, RNGState &rng) noexcept {
@@ -603,20 +589,20 @@ static void SeedStartup(CSHA512 &hasher, RNGState &rng) noexcept {
     // Everything that the 'slow' seeder includes.
     SeedSlow(hasher);
 
-    // Dynamic environment data
+    // Dynamic environment data (performance monitoring, ...)
     RandAddDynamicEnv(hasher);
 
     // Static environment data
     RandAddStaticEnv(hasher);
 
-    // Strengthen
-    SeedStrengthen(hasher, rng);
+    // Strengthen for 100ms
+    SeedStrengthen(hasher, rng, 100000);
 }
 
 enum class RNGLevel {
-    FAST,  //!< Automatically called by GetRandBytes
-    SLOW,  //!< Automatically called by GetStrongRandBytes
-    SLEEP, //!< Called by RandAddSeedSleep()
+    FAST,     //!< Automatically called by GetRandBytes
+    SLOW,     //!< Automatically called by GetStrongRandBytes
+    PERIODIC, //!< Called by RandAddPeriodic()
 };
 
 static void ProcRand(uint8_t *out, int num, RNGLevel level) {
@@ -634,8 +620,8 @@ static void ProcRand(uint8_t *out, int num, RNGLevel level) {
         case RNGLevel::SLOW:
             SeedSlow(hasher);
             break;
-        case RNGLevel::SLEEP:
-            SeedSleep(hasher, rng);
+        case RNGLevel::PERIODIC:
+            SeedPeriodic(hasher, rng);
             break;
     }
 
@@ -663,8 +649,8 @@ void GetRandBytes(uint8_t *buf, int num) noexcept {
 void GetStrongRandBytes(uint8_t *buf, int num) noexcept {
     ProcRand(buf, num, RNGLevel::SLOW);
 }
-void RandAddSeedSleep() {
-    ProcRand(nullptr, 0, RNGLevel::SLEEP);
+void RandAddPeriodic() {
+    ProcRand(nullptr, 0, RNGLevel::PERIODIC);
 }
 
 bool g_mock_deterministic_tests{false};

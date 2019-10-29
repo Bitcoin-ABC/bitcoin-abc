@@ -2076,6 +2076,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     threadGroup.create_thread(std::bind(&TraceThread<CScheduler::Function>,
                                         "scheduler", serviceLoop));
 
+    // Gather some entropy once per minute.
+    scheduler.scheduleEvery(
+        [] {
+            RandAddPeriodic();
+            return true;
+        },
+        60000);
+
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
     GetMainSignals().RegisterWithMempoolSignals(g_mempool);
 
