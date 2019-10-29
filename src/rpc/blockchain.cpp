@@ -1487,6 +1487,7 @@ static UniValue getchaintips(const Config &config,
 
 UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
     UniValue ret(UniValue::VOBJ);
+    ret.pushKV("loaded", pool.IsLoaded());
     ret.pushKV("size", (int64_t)pool.size());
     ret.pushKV("bytes", (int64_t)pool.GetTotalTxSize());
     ret.pushKV("usage", (int64_t)pool.DynamicMemoryUsage());
@@ -1510,6 +1511,8 @@ static UniValue getmempoolinfo(const Config &config,
             "\nReturns details on the active state of the TX memory pool.\n"
             "\nResult:\n"
             "{\n"
+            "  \"loaded\": true|false         (boolean) True if the mempool is "
+            "fully loaded\n"
             "  \"size\": xxxxx,               (numeric) Current tx count\n"
             "  \"bytes\": xxxxx,              (numeric) Transaction size.\n"
             "  \"usage\": xxxxx,              (numeric) Total memory usage for "
@@ -2197,11 +2200,11 @@ static UniValue savemempool(const Config &config,
                                  HelpExampleRpc("savemempool", ""));
     }
 
-    if (!g_is_mempool_loaded) {
+    if (!::g_mempool.IsLoaded()) {
         throw JSONRPCError(RPC_MISC_ERROR, "The mempool was not loaded yet");
     }
 
-    if (!DumpMempool()) {
+    if (!DumpMempool(::g_mempool)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Unable to dump mempool to disk");
     }
 

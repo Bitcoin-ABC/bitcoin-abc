@@ -237,9 +237,9 @@ void Shutdown() {
     g_banman.reset();
     g_txindex.reset();
 
-    if (g_is_mempool_loaded &&
+    if (::g_mempool.IsLoaded() &&
         gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
-        DumpMempool();
+        DumpMempool(::g_mempool);
     }
 
     // FlushStateToDisk generates a ChainStateFlushed callback, which we should
@@ -1207,9 +1207,9 @@ static void ThreadImport(const Config &config,
         }
     } // End scope of CImportingNow
     if (gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
-        LoadMempool(config);
+        LoadMempool(config, ::g_mempool);
     }
-    g_is_mempool_loaded = !fRequestShutdown;
+    ::g_mempool.SetIsLoaded(!fRequestShutdown);
 }
 
 /** Sanity checks
