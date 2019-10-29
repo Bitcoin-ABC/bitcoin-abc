@@ -467,7 +467,8 @@ static const std::string mainnet_seeds[] = {
     "seed.bchd.cash",      ""};
 static const std::string testnet_seeds[] = {
     "testnet-seed.bitcoinabc.org", "testnet-seed-abc.bitcoinforks.org",
-    "testnet-seed.bitprim.org", "testnet-seed.deadalnix.me", ""};
+    "testnet-seed.bitprim.org",    "testnet-seed.deadalnix.me",
+    "testnet-seed.bchd.cash",      ""};
 static const std::string *seeds = mainnet_seeds;
 
 const static unsigned int MAX_HOSTS_PER_SEED = 128;

@@ -328,6 +328,8 @@ public:
         vSeeds.emplace_back("testnet-seed.bitprim.org");
         // Amaury SÉCHET
         vSeeds.emplace_back("testnet-seed.deadalnix.me");
+        // BCHD
+        vSeeds.emplace_back("testnet-seed.bchd.cash");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
