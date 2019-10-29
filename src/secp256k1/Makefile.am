@@ -1,10 +1,6 @@
 ACLOCAL_AMFLAGS = -I build-aux/m4
 
-SECP256K1_LIB = libsecp256k1.la
-lib_LTLIBRARIES = $(SECP256K1_LIB)
-if USE_JNI
-lib_LTLIBRARIES += libsecp256k1_jni.la
-endif
+lib_LTLIBRARIES = libsecp256k1.la
 include_HEADERS = include/secp256k1.h
 include_HEADERS += include/secp256k1_preallocated.h
 noinst_HEADERS =
@@ -50,8 +46,6 @@ noinst_HEADERS += src/hash_impl.h
 noinst_HEADERS += src/field.h
 noinst_HEADERS += src/field_impl.h
 noinst_HEADERS += src/bench.h
-noinst_HEADERS += src/java/org_bitcoin_NativeSecp256k1.h
-noinst_HEADERS += src/java/org_bitcoin_Secp256k1Context.h
 noinst_HEADERS += contrib/lax_der_parsing.h
 noinst_HEADERS += contrib/lax_der_parsing.c
 noinst_HEADERS += contrib/lax_der_privatekey_parsing.h
@@ -80,10 +74,6 @@ libsecp256k1_la_LIBADD = $(SECP_LIBS) $(COMMON_LIB)
 if VALGRIND_ENABLED
 libsecp256k1_la_CPPFLAGS += -DVALGRIND
 endif
-
-libsecp256k1_jni_la_SOURCES  = src/java/org_bitcoin_NativeSecp256k1.c src/java/org_bitcoin_Secp256k1Context.c
-libsecp256k1_jni_la_CPPFLAGS = -DSECP256K1_BUILD $(JNI_INCLUDES)
-libsecp256k1_jni_la_LIBADD = $(SECP256K1_LIB)
 
 noinst_PROGRAMS =
 if USE_BENCHMARK
@@ -132,32 +122,6 @@ exhaustive_tests_LDFLAGS = -static
 TESTS += exhaustive_tests
 endif
 
-JAVA_ROOT=src/java
-JAVA_ORG=org/bitcoin
-JAVA_SRC=$(top_srcdir)/$(JAVA_ROOT)/$(JAVA_ORG)
-JAVA_BUILD=$(top_builddir)/$(JAVA_ROOT)
-
-JAVA_FILES= \
-  $(JAVA_SRC)/NativeSecp256k1.java \
-  $(JAVA_SRC)/NativeSecp256k1Test.java \
-  $(JAVA_SRC)/NativeSecp256k1Util.java \
-  $(JAVA_SRC)/Secp256k1Context.java
-
-if USE_JNI
-
-.stamp-java: $(JAVA_FILES)
-	@echo   Compiling $^
-	$(AM_V_at)javac -d "$(JAVA_BUILD)" $^
-	@touch $@
-
-if USE_TESTS
-
-check-java: libsecp256k1_jni.la .stamp-java
-	$(AM_V_at)java -Djava.library.path="./:./src:./src/.libs:.libs/" -enableassertions -cp "$(JAVA_BUILD)" $(JAVA_ORG)/NativeSecp256k1Test
-
-endif
-endif
-
 if USE_ECMULT_STATIC_PRECOMPUTATION
 CPPFLAGS_FOR_BUILD +=-I$(top_srcdir) -I$(builddir)/src
 
@@ -177,10 +141,10 @@ $(bench_ecmult_OBJECTS): src/ecmult_static_context.h
 src/ecmult_static_context.h: $(gen_context_BIN)
 	./$(gen_context_BIN)
 
-CLEANFILES = $(gen_context_BIN) src/ecmult_static_context.h $(JAVA_BUILD)/$(JAVA_ORG)/*.class .stamp-java
+CLEANFILES = $(gen_context_BIN) src/ecmult_static_context.h
 endif
 
-EXTRA_DIST = autogen.sh src/gen_context.c src/basic-config.h $(JAVA_FILES)
+EXTRA_DIST = autogen.sh src/gen_context.c src/basic-config.h
 
 if ENABLE_MODULE_ECDH
 include src/modules/ecdh/Makefile.am.include

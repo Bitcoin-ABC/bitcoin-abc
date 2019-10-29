@@ -22,7 +22,6 @@ PACKAGES=(
   clang-tools-16
   cmake
   curl
-  default-jdk
   devscripts
   doxygen
   dput

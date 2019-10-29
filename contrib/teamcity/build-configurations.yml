@@ -493,17 +493,6 @@ builds:
             - secp256k1
         timeout: 600
 
-    build-secp256k1-java:
-        runOnDiffRegex:
-            - src/secp256k1/
-        cmake_flags:
-            - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
-            - '-DSECP256K1_ENABLE_JNI=ON'
-            - '-DUSE_JEMALLOC=OFF'
-        templates:
-            - secp256k1
-        timeout: 600
-
     build-secp256k1-bench:
         runOnDiffRegex:
             - src/secp256k1/

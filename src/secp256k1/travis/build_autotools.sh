@@ -4,16 +4,6 @@ export LC_ALL=C
 
 set -ex
 
-# FIXME The java tests will fail on macOS with autotools due to the
-# libsepc256k1_jni library referencing the libsecp256k1 library with an absolute
-# path. This needs to be rewritten with install_name_tool to use relative paths
-# via the @variables supported by the macOS loader.
-if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$JNI" = "yes" ]
-then
-  echo "Skipping the java tests built with autotools on OSX"
-  exit 0
-fi
-
 if [ -n "$HOST" ]; then
   USE_HOST="--host=$HOST"
 fi
@@ -46,7 +36,6 @@ pushd buildautotools
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \
   --enable-module-schnorrsig=$SCHNORRSIG \
-  --enable-jni=$JNI \
   --enable-openssl-tests=$OPENSSL_TESTS \
   --with-valgrind=$WITH_VALGRIND \
   $AUTOTOOLS_EXTRA_FLAGS \

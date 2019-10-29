@@ -18,10 +18,6 @@ Copyright: 2010-2011, Jonas Smedegaard <dr@jones.dk>
            2017, freetrader <freetrader@tuta.io>
 License: GPL-2+
 
-Files: src/secp256k1/build-aux/m4/ax_jni_include_dir.m4
-Copyright: 2008 Don Anderson <dda@sleepycat.com>
-License: GNU-All-permissive-License
-
 Files: src/secp256k1/build-aux/m4/ax_prog_cc_for_build.m4
 Copyright: 2008 Paolo Bonzini <bonzini@gnu.org>
 License: GNU-All-permissive-License

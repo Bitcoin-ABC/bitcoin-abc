@@ -221,7 +221,6 @@ setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" ${
     --enable-module-recovery \
     --enable-experimental \
     --enable-module-ecdh \
-    --disable-jni \
     --with-bignum=no \
     --enable-module-schnorr \
     --disable-tests \

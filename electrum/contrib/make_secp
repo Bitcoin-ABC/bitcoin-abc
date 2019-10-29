@@ -19,7 +19,6 @@ if ! [ -r config.status ] ; then
         --enable-module-recovery \
         --enable-experimental \
         --enable-module-ecdh \
-        --disable-jni \
         --enable-module-schnorr \
         --disable-tests \
         --disable-static \
