@@ -94,6 +94,15 @@ static void RescanWallet(CWallet &wallet, const WalletRescanReserver &reserver,
     }
 }
 
+static LegacyScriptPubKeyMan &GetLegacyScriptPubKeyMan(CWallet &wallet) {
+    LegacyScriptPubKeyMan *spk_man = wallet.GetLegacyScriptPubKeyMan();
+    if (!spk_man) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           "This type of wallet does not support this command");
+    }
+    return *spk_man;
+}
+
 UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet *const pwallet = wallet.get();
@@ -141,11 +150,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
                            "private keys disabled");
     }
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    GetLegacyScriptPubKeyMan(*wallet);
 
     WalletRescanReserver reserver(pwallet);
     bool fRescan = true;
@@ -289,11 +294,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    GetLegacyScriptPubKeyMan(*pwallet);
 
     std::string strLabel;
     if (!request.params[1].isNull()) {
@@ -545,11 +546,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    GetLegacyScriptPubKeyMan(*wallet);
 
     std::string strLabel;
     if (!request.params[1].isNull()) {
@@ -644,11 +641,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    GetLegacyScriptPubKeyMan(*wallet);
 
     if (pwallet->chain().havePruned()) {
         // Exit early and print an error.
@@ -848,11 +841,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    LegacyScriptPubKeyMan &spk_man = GetLegacyScriptPubKeyMan(*wallet);
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
@@ -866,12 +855,12 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");
     }
-    auto keyid = GetKeyForDestination(*spk_man, dest);
+    auto keyid = GetKeyForDestination(spk_man, dest);
     if (keyid.IsNull()) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
     }
     CKey vchSecret;
-    if (!spk_man->GetKey(keyid, vchSecret)) {
+    if (!spk_man.GetKey(keyid, vchSecret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " +
                                                  strAddress + " is not known");
     }
@@ -909,15 +898,11 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    LegacyScriptPubKeyMan &spk_man = GetLegacyScriptPubKeyMan(*wallet);
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
-    AssertLockHeld(spk_man->cs_wallet);
+    AssertLockHeld(spk_man.cs_wallet);
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -945,10 +930,10 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     }
 
     std::map<CKeyID, int64_t> mapKeyBirth;
-    const std::map<CKeyID, int64_t> &mapKeyPool = spk_man->GetAllReserveKeys();
+    const std::map<CKeyID, int64_t> &mapKeyPool = spk_man.GetAllReserveKeys();
     pwallet->GetKeyBirthTimes(*locked_chain, mapKeyBirth);
 
-    std::set<CScriptID> scripts = spk_man->GetCScripts();
+    std::set<CScriptID> scripts = spk_man.GetCScripts();
 
     // sort time/key pairs
     std::vector<std::pair<int64_t, CKeyID>> vKeyBirth;
@@ -974,10 +959,10 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     file << "\n";
 
     // add the base58check encoded extended master if the wallet uses HD
-    CKeyID seed_id = spk_man->GetHDChain().seed_id;
+    CKeyID seed_id = spk_man.GetHDChain().seed_id;
     if (!seed_id.IsNull()) {
         CKey seed;
-        if (spk_man->GetKey(seed_id, seed)) {
+        if (spk_man.GetKey(seed_id, seed)) {
             CExtKey masterKey;
             masterKey.SetSeed(seed.begin(), seed.size());
 
@@ -993,26 +978,26 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         std::string strAddr;
         std::string strLabel;
         CKey key;
-        if (spk_man->GetKey(keyid, key)) {
+        if (spk_man.GetKey(keyid, key)) {
             file << strprintf("%s %s ", EncodeSecret(key), strTime);
-            if (GetWalletAddressesForKey(config, spk_man, pwallet, keyid,
+            if (GetWalletAddressesForKey(config, &spk_man, pwallet, keyid,
                                          strAddr, strLabel)) {
                 file << strprintf("label=%s", strLabel);
             } else if (keyid == seed_id) {
                 file << "hdseed=1";
             } else if (mapKeyPool.count(keyid)) {
                 file << "reserve=1";
-            } else if (spk_man->mapKeyMetadata[keyid].hdKeypath == "s") {
+            } else if (spk_man.mapKeyMetadata[keyid].hdKeypath == "s") {
                 file << "inactivehdseed=1";
             } else {
                 file << "change=1";
             }
             file << strprintf(
                 " # addr=%s%s\n", strAddr,
-                (spk_man->mapKeyMetadata[keyid].has_key_origin
+                (spk_man.mapKeyMetadata[keyid].has_key_origin
                      ? " hdkeypath=" +
                            WriteHDKeypath(
-                               spk_man->mapKeyMetadata[keyid].key_origin.path)
+                               spk_man.mapKeyMetadata[keyid].key_origin.path)
                      : ""));
         }
     }
@@ -1022,11 +1007,11 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         std::string create_time = "0";
         std::string address = EncodeDestination(ScriptHash(scriptid), config);
         // get birth times for scripts with metadata
-        auto it = spk_man->m_script_metadata.find(scriptid);
-        if (it != spk_man->m_script_metadata.end()) {
+        auto it = spk_man.m_script_metadata.find(scriptid);
+        if (it != spk_man.m_script_metadata.end()) {
             create_time = FormatISO8601DateTime(it->second.nCreateTime);
         }
-        if (spk_man->GetCScript(scriptid, script)) {
+        if (spk_man.GetCScript(scriptid, script)) {
             file << strprintf("%s %s script=1",
                               HexStr(script.begin(), script.end()),
                               create_time);
@@ -1686,11 +1671,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 
     RPCTypeCheck(mainRequest.params, {UniValue::VARR, UniValue::VOBJ});
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    GetLegacyScriptPubKeyMan(*wallet);
 
     const UniValue &requests = mainRequest.params[0];
 

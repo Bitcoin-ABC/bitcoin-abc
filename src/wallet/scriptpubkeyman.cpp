@@ -344,6 +344,8 @@ bool LegacyScriptPubKeyMan::AddKeyPubKey(const CKey &secret,
 bool LegacyScriptPubKeyMan::AddKeyPubKeyWithDB(WalletBatch &batch,
                                                const CKey &secret,
                                                const CPubKey &pubkey) {
+    AssertLockHeld(cs_wallet);
+
     // Make sure we aren't adding private keys to private key disabled wallets
     assert(!m_storage.IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
 

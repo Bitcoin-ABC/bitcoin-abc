@@ -271,8 +271,8 @@ const CWalletTx *CWallet::GetWalletTx(const TxId &txid) const {
 }
 
 void CWallet::UpgradeKeyMetadata() {
-    AssertLockHeld(m_spk_man->cs_wallet);
     if (m_spk_man) {
+        AssertLockHeld(m_spk_man->cs_wallet);
         m_spk_man->UpgradeKeyMetadata();
     }
 }
@@ -3142,11 +3142,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                 SignatureData sigdata;
 
                 const SigningProvider *provider = GetSigningProvider();
-                if (!provider) {
-                    return false;
-                }
-
-                if (!ProduceSignature(
+                if (!provider ||
+                    !ProduceSignature(
                         *provider,
                         MutableTransactionSignatureCreator(
                             &txNew, nIn, coin.txout.nValue, sigHashType),

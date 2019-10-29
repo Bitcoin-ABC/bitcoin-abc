@@ -22,7 +22,7 @@ enum class OutputType;
 // wallet version, encryption keys, encryption status, and the database itself.
 // This allows a ScriptPubKeyMan to have callbacks into CWallet without causing
 // a circular dependency. WalletStorage should be the same for all
-// ScriptPubKeyMans.
+// ScriptPubKeyMans of a wallet.
 class WalletStorage {
 public:
     virtual ~WalletStorage() = default;
