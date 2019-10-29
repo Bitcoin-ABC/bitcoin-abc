@@ -85,8 +85,8 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
                         tr("Choose the address to receive coins with"));
                     break;
             }
-            connect(ui->tableView, SIGNAL(doubleClicked(QModelIndex)), this,
-                    SLOT(accept()));
+            connect(ui->tableView, &QTableView::doubleClicked, this,
+                    &QDialog::accept);
             ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
             ui->tableView->setFocus();
             ui->closeButton->setText(tr("C&hoose"));
@@ -139,18 +139,19 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     contextMenu->addSeparator();
 
     // Connect signals for context menu actions
-    connect(copyAddressAction, SIGNAL(triggered()), this,
-            SLOT(on_copyAddress_clicked()));
-    connect(copyLabelAction, SIGNAL(triggered()), this,
-            SLOT(onCopyLabelAction()));
-    connect(editAction, SIGNAL(triggered()), this, SLOT(onEditAction()));
-    connect(deleteAction, SIGNAL(triggered()), this,
-            SLOT(on_deleteAddress_clicked()));
+    connect(copyAddressAction, &QAction::triggered, this,
+            &AddressBookPage::on_copyAddress_clicked);
+    connect(copyLabelAction, &QAction::triggered, this,
+            &AddressBookPage::onCopyLabelAction);
+    connect(editAction, &QAction::triggered, this,
+            &AddressBookPage::onEditAction);
+    connect(deleteAction, &QAction::triggered, this,
+            &AddressBookPage::on_deleteAddress_clicked);
 
-    connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this,
-            SLOT(contextualMenu(QPoint)));
+    connect(ui->tableView, &QWidget::customContextMenuRequested, this,
+            &AddressBookPage::contextualMenu);
 
-    connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::accept);
 }
 
 AddressBookPage::~AddressBookPage() {
@@ -168,8 +169,8 @@ void AddressBookPage::setModel(AddressTableModel *_model) {
     proxyModel = new AddressBookSortFilterProxyModel(type, this);
     proxyModel->setSourceModel(_model);
 
-    connect(ui->searchLineEdit, SIGNAL(textChanged(QString)), proxyModel,
-            SLOT(setFilterWildcard(QString)));
+    connect(ui->searchLineEdit, &QLineEdit::textChanged, proxyModel,
+            &QSortFilterProxyModel::setFilterWildcard);
 
     ui->tableView->setModel(proxyModel);
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
@@ -181,12 +182,12 @@ void AddressBookPage::setModel(AddressTableModel *_model) {
         AddressTableModel::Address, QHeaderView::ResizeToContents);
 
     connect(ui->tableView->selectionModel(),
-            SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this,
-            SLOT(selectionChanged()));
+            &QItemSelectionModel::selectionChanged, this,
+            &AddressBookPage::selectionChanged);
 
     // Select row for newly created address
-    connect(_model, SIGNAL(rowsInserted(QModelIndex, int, int)), this,
-            SLOT(selectNewAddress(QModelIndex, int, int)));
+    connect(_model, &AddressTableModel::rowsInserted, this,
+            &AddressBookPage::selectNewAddress);
 
     selectionChanged();
 }
