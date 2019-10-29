@@ -83,7 +83,7 @@ CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits,
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
-        strNetworkID = "main";
+        strNetworkID = CBaseChainParams::MAIN;
         consensus.nSubsidyHalvingInterval = 210000;
         // 00000000000000ce80a7e057163a4db1d5ad7b20fb6f598c9597b9665c8fb0d4 -
         // April 1, 2012
@@ -255,7 +255,7 @@ public:
 class CTestNetParams : public CChainParams {
 public:
     CTestNetParams() {
-        strNetworkID = "test";
+        strNetworkID = CBaseChainParams::TESTNET;
         consensus.nSubsidyHalvingInterval = 210000;
         // 00000000040b4e986385315e14bee30ad876d8b47f748025b26683116d21aa65
         consensus.BIP16Height = 514;
@@ -383,7 +383,7 @@ public:
 class CRegTestParams : public CChainParams {
 public:
     CRegTestParams() {
-        strNetworkID = "regtest";
+        strNetworkID = CBaseChainParams::REGTEST;
         consensus.nSubsidyHalvingInterval = 150;
         // always enforce P2SH BIP16 on regtest
         consensus.BIP16Height = 0;
