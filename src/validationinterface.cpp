@@ -259,7 +259,7 @@ void CMainSignals::ChainStateFlushed(const CBlockLocator &locator) {
 }
 
 void CMainSignals::BlockChecked(const CBlock &block,
-                                const CValidationState &state) {
+                                const BlockValidationState &state) {
     LOG_EVENT("%s: block hash=%s state=%s", __func__,
               block.GetHash().ToString(), FormatStateMessage(state));
     m_internals->Iterate([&](CValidationInterface &callbacks) {

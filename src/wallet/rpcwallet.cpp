@@ -373,7 +373,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
         }
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
-    CValidationState state;
+    TxValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
                                     state)) {
         strError =
@@ -695,7 +695,7 @@ static UniValue getreceivedbyaddress(const Config &config,
     for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
 
-        CValidationState state;
+        TxValidationState state;
         if (wtx.IsCoinBase() ||
             !locked_chain->contextualCheckTransactionForCurrentBlock(
                 config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
@@ -769,7 +769,7 @@ static UniValue getreceivedbylabel(const Config &config,
     Amount nAmount = Amount::zero();
     for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
-        CValidationState state;
+        TxValidationState state;
         if (wtx.IsCoinBase() ||
             !locked_chain->contextualCheckTransactionForCurrentBlock(
                 config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
@@ -1062,7 +1062,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     }
-    CValidationState state;
+    TxValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
                                     state)) {
         strFailReason = strprintf("Transaction commit failed:: %s",
@@ -1210,7 +1210,7 @@ ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
     for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
 
-        CValidationState state;
+        TxValidationState state;
         if (wtx.IsCoinBase() ||
             !locked_chain.contextualCheckTransactionForCurrentBlock(
                 config.GetChainParams().GetConsensus(), *wtx.tx, state)) {

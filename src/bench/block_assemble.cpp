@@ -42,7 +42,7 @@ static void AssembleBlock(benchmark::State &state) {
         LOCK(::cs_main);
 
         for (const auto &txr : txs) {
-            CValidationState vstate;
+            TxValidationState vstate;
             bool ret{::AcceptToMemoryPool(config, ::g_mempool, vstate, txr,
                                           false /* bypass_limits */,
                                           /* nAbsurdFee */ Amount::zero())};

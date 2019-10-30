@@ -215,7 +215,7 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             ssKey >> txid;
             CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
             ssValue >> wtx;
-            CValidationState state;
+            TxValidationState state;
             bool isValid = wtx.IsCoinBase()
                                ? CheckCoinbase(*wtx.tx, state)
                                : CheckRegularTransaction(*wtx.tx, state);

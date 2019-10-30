@@ -240,14 +240,14 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
         return READ_STATUS_INVALID;
     }
 
-    CValidationState state;
+    BlockValidationState state;
     if (!CheckBlock(block, state, config->GetChainParams().GetConsensus(),
                     BlockValidationOptions(*config))) {
         // TODO: We really want to just check merkle tree manually here, but
         // that is expensive, and CheckBlock caches a block's "checked-status"
         // (in the CBlock?). CBlock should be able to check its own merkle root
         // and cache that check.
-        if (state.GetReason() == ValidationInvalidReason::BLOCK_MUTATED) {
+        if (state.GetResult() == BlockValidationResult::BLOCK_MUTATED) {
             // Possible Short ID collision.
             return READ_STATUS_FAILED;
         }

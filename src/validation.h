@@ -34,6 +34,7 @@
 #include <utility>
 #include <vector>
 
+class BlockValidationState;
 class CBlockIndex;
 class CBlockTreeDB;
 class CBlockUndo;
@@ -46,8 +47,8 @@ class Config;
 class CScriptCheck;
 class CTxMemPool;
 class CTxUndo;
-class CValidationState;
 class DisconnectedBlockTransactions;
+class TxValidationState;
 
 struct ChainTxData;
 struct FlatFilePos;
@@ -315,7 +316,7 @@ bool ProcessNewBlock(const Config &config,
  */
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &block,
-                            CValidationState &state,
+                            BlockValidationState &state,
                             const CBlockIndex **ppindex = nullptr)
     LOCKS_EXCLUDED(cs_main);
 
@@ -377,7 +378,7 @@ bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
  * validationinterface callback.
  */
 bool ActivateBestChain(
-    const Config &config, CValidationState &state,
+    const Config &config, BlockValidationState &state,
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
@@ -410,7 +411,7 @@ void PruneBlockFilesManual(int nManualPruneHeight);
  * (try to) add transaction to memory pool
  */
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
-                        CValidationState &state, const CTransactionRef &tx,
+                        TxValidationState &state, const CTransactionRef &tx,
                         bool bypass_limits, const Amount nAbsurdFee,
                         bool test_accept = false)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -484,7 +485,7 @@ class ConnectTrace;
  * returned pvChecks must be executed exactly once in order to probe the limit
  * accurately.
  */
-bool CheckInputs(const CTransaction &tx, CValidationState &state,
+bool CheckInputs(const CTransaction &tx, TxValidationState &state,
                  const CCoinsViewCache &view, bool fScriptChecks,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
@@ -498,7 +499,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
  * Handy shortcut to full fledged CheckInputs call.
  */
 static inline bool
-CheckInputs(const CTransaction &tx, CValidationState &state,
+CheckInputs(const CTransaction &tx, TxValidationState &state,
             const CCoinsViewCache &view, bool fScriptChecks,
             const uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
             const PrecomputedTransactionData &txdata, int &nSigChecksOut)
@@ -647,7 +648,7 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex);
  * Returns true if the provided block is valid (has valid header,
  * transactions are valid, block is a valid size, etc.)
  */
-bool CheckBlock(const CBlock &block, CValidationState &state,
+bool CheckBlock(const CBlock &block, BlockValidationState &state,
                 const Consensus::Params &params,
                 BlockValidationOptions validationOptions);
 
@@ -659,14 +660,14 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
  */
 bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
                                                const CTransaction &tx,
-                                               CValidationState &state,
+                                               TxValidationState &state,
                                                int flags = -1);
 
 /**
  * Check a block is completely valid from start to finish (only works on top of
  * our current best block)
  */
-bool TestBlockValidity(CValidationState &state, const CChainParams &params,
+bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
                        const CBlock &block, CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -787,7 +788,7 @@ public:
      * anything besides checking if we need to prune.
      */
     bool FlushStateToDisk(const CChainParams &chainparams,
-                          CValidationState &state, FlushStateMode mode,
+                          BlockValidationState &state, FlushStateMode mode,
                           int nManualPruneHeight = 0);
 
     //! Unconditionally flush all changes to disk.
@@ -798,7 +799,7 @@ public:
     void PruneAndFlush();
 
     bool ActivateBestChain(
-        const Config &config, CValidationState &state,
+        const Config &config, BlockValidationState &state,
         std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 
     /**
@@ -807,11 +808,11 @@ public:
      * mapBlockIndex.
      */
     bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
-                           CValidationState &state, CBlockIndex **ppindex)
+                           BlockValidationState &state, CBlockIndex **ppindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool AcceptBlock(const Config &config,
                      const std::shared_ptr<const CBlock> &pblock,
-                     CValidationState &state, bool fRequested,
+                     BlockValidationState &state, bool fRequested,
                      const FlatFilePos *dbp, bool *fNewBlock)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -819,27 +820,27 @@ public:
     DisconnectResult DisconnectBlock(const CBlock &block,
                                      const CBlockIndex *pindex,
                                      CCoinsViewCache &view);
-    bool ConnectBlock(const CBlock &block, CValidationState &state,
+    bool ConnectBlock(const CBlock &block, BlockValidationState &state,
                       CBlockIndex *pindex, CCoinsViewCache &view,
                       const CChainParams &params,
                       BlockValidationOptions options, bool fJustCheck = false)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     // Block disconnection on our pcoinsTip:
-    bool DisconnectTip(const CChainParams &params, CValidationState &state,
+    bool DisconnectTip(const CChainParams &params, BlockValidationState &state,
                        DisconnectedBlockTransactions *disconnectpool)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     // Manual block validity manipulation:
-    bool PreciousBlock(const Config &config, CValidationState &state,
+    bool PreciousBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
     /**
      * Finalize a block.
      * A finalized block can not be reorged in any way.
      */
-    bool FinalizeBlock(const Config &config, CValidationState &state,
+    bool FinalizeBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool UnwindBlock(const Config &config, CValidationState &state,
+    bool UnwindBlock(const Config &config, BlockValidationState &state,
                      CBlockIndex *pindex, bool invalidate);
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -868,12 +869,13 @@ public:
     bool IsInitialBlockDownload() const;
 
 private:
-    bool ActivateBestChainStep(const Config &config, CValidationState &state,
+    bool ActivateBestChainStep(const Config &config,
+                               BlockValidationState &state,
                                CBlockIndex *pindexMostWork,
                                const std::shared_ptr<const CBlock> &pblock,
                                bool &fInvalidFound, ConnectTrace &connectTrace)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool ConnectTip(const Config &config, CValidationState &state,
+    bool ConnectTip(const Config &config, BlockValidationState &state,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
                     ConnectTrace &connectTrace,
@@ -882,7 +884,7 @@ private:
 
     CBlockIndex *AddToBlockIndex(const CBlockHeader &block)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool MarkBlockAsFinal(const Config &config, CValidationState &state,
+    bool MarkBlockAsFinal(const Config &config, BlockValidationState &state,
                           const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -897,7 +899,8 @@ private:
      */
     void CheckBlockIndex(const Consensus::Params &consensusParams);
 
-    void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state)
+    void InvalidBlockFound(CBlockIndex *pindex,
+                           const BlockValidationState &state)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     CBlockIndex *FindMostWorkChain() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     void ReceivedBlockTransactions(const CBlock &block, CBlockIndex *pindexNew,
@@ -914,15 +917,15 @@ private:
  *
  * May not be called in a validationinterface callback.
  */
-bool PreciousBlock(const Config &config, CValidationState &state,
+bool PreciousBlock(const Config &config, BlockValidationState &state,
                    CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
 
 /** Mark a block as invalid. */
-bool InvalidateBlock(const Config &config, CValidationState &state,
+bool InvalidateBlock(const Config &config, BlockValidationState &state,
                      CBlockIndex *pindex);
 
 /** Park a block. */
-bool ParkBlock(const Config &config, CValidationState &state,
+bool ParkBlock(const Config &config, BlockValidationState &state,
                CBlockIndex *pindex);
 
 /** Remove invalidity status from a block and its descendants. */

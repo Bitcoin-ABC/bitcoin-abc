@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     }
 
     bool ignored;
-    CValidationState state;
+    BlockValidationState state;
     std::vector<CBlockHeader> headers;
     std::transform(
         blocks.begin(), blocks.end(), std::back_inserter(headers),

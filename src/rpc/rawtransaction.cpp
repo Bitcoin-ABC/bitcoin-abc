@@ -1036,7 +1036,7 @@ static UniValue testmempoolaccept(const Config &config,
     UniValue result_0(UniValue::VOBJ);
     result_0.pushKV("txid", txid.GetHex());
 
-    CValidationState state;
+    TxValidationState state;
     bool test_accept_res;
     {
         LOCK(cs_main);
@@ -1047,8 +1047,7 @@ static UniValue testmempoolaccept(const Config &config,
     result_0.pushKV("allowed", test_accept_res);
     if (!test_accept_res) {
         if (state.IsInvalid()) {
-            if (state.GetReason() ==
-                ValidationInvalidReason::TX_MISSING_INPUTS) {
+            if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
                 result_0.pushKV("reject-reason", "missing-inputs");
             } else {
                 result_0.pushKV("reject-reason",

@@ -17,7 +17,7 @@
 class CBlock;
 class CBlockIndex;
 class CCoinsViewCache;
-class CValidationState;
+class BlockValidationState;
 
 /**
  * Undo information for a CTxIn

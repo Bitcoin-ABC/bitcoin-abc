@@ -15,16 +15,18 @@
 #include <string>
 #include <vector>
 
-struct BlockHash;
 class CBlock;
-struct CBlockLocator;
 class CChainParams;
 class Coin;
 class Config;
 class CRPCCommand;
 class CScheduler;
-class CValidationState;
+class TxValidationState;
+
+struct BlockHash;
+struct CBlockLocator;
 struct NodeContext;
+
 namespace Consensus {
 struct Params;
 }
@@ -131,7 +133,7 @@ public:
         //! Check if transaction will be final given chain height current time.
         virtual bool contextualCheckTransactionForCurrentBlock(
             const Consensus::Params &params, const CTransaction &tx,
-            CValidationState &state) = 0;
+            TxValidationState &state) = 0;
     };
 
     //! Return Lock interface. Chain is locked when this is called, and

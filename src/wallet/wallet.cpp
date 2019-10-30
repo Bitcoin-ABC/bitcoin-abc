@@ -2510,7 +2510,7 @@ bool CWalletTx::InMempool() const {
 
 bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain) const {
     // Quick answer in most cases
-    CValidationState state;
+    TxValidationState state;
     if (!locked_chain.contextualCheckTransactionForCurrentBlock(
             Params().GetConsensus(), *tx, state)) {
         return false;
@@ -2714,7 +2714,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
         const TxId &wtxid = entry.first;
         const CWalletTx &wtx = entry.second;
 
-        CValidationState state;
+        TxValidationState state;
         if (!locked_chain.contextualCheckTransactionForCurrentBlock(
                 params, *wtx.tx, state)) {
             continue;
@@ -3659,7 +3659,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 bool CWallet::CommitTransaction(
     CTransactionRef tx, mapValue_t mapValue,
     std::vector<std::pair<std::string, std::string>> orderForm,
-    CValidationState &state) {
+    TxValidationState &state) {
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 

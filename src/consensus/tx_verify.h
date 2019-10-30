@@ -12,7 +12,7 @@ struct Amount;
 class CBlockIndex;
 class CCoinsViewCache;
 class CTransaction;
-class CValidationState;
+class TxValidationState;
 
 namespace Consensus {
 struct Params;
@@ -24,7 +24,7 @@ struct Params;
  * @param[out] txfee Set to the transaction fee if successful.
  * Preconditions: tx.IsCoinBase() is false.
  */
-bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
+bool CheckTxInputs(const CTransaction &tx, TxValidationState &state,
                    const CCoinsViewCache &inputs, int nSpendHeight,
                    Amount &txfee);
 
@@ -37,8 +37,9 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
  * activation/deactivation and CLTV.
  */
 bool ContextualCheckTransaction(const Consensus::Params &params,
-                                const CTransaction &tx, CValidationState &state,
-                                int nHeight, int64_t nLockTimeCutoff,
+                                const CTransaction &tx,
+                                TxValidationState &state, int nHeight,
+                                int64_t nLockTimeCutoff,
                                 int64_t nMedianTimePast);
 
 /**

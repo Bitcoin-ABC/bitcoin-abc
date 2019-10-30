@@ -1201,13 +1201,12 @@ static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
  * banning/disconnecting us. We use this to determine which unaccepted
  * transactions from a whitelisted peer that we can safely relay.
  */
-static bool TxRelayMayResultInDisconnect(const CValidationState &state) {
-    assert(IsTransactionReason(state.GetReason()));
-    return state.GetReason() == ValidationInvalidReason::CONSENSUS;
+static bool TxRelayMayResultInDisconnect(const TxValidationState &state) {
+    return state.GetResult() == TxValidationResult::TX_CONSENSUS;
 }
 
 /**
- * Potentially ban a node based on the contents of a CValidationState object
+ * Potentially ban a node based on the contents of a BlockValidationState object
  *
  * @param[in] via_compact_block: this bool is passed in because net_processing
  * should punish peers differently depending on whether the data was provided in
@@ -1215,25 +1214,24 @@ static bool TxRelayMayResultInDisconnect(const CValidationState &state) {
  * contained invalid txs, the peer should not be punished. See BIP 152.
  *
  * @return Returns true if the peer was punished (probably disconnected)
- *
- * Changes here may need to be reflected in TxRelayMayResultInDisconnect().
  */
-static bool MaybePunishNode(NodeId nodeid, const CValidationState &state,
-                            bool via_compact_block,
-                            const std::string &message = "") {
-    switch (state.GetReason()) {
-        case ValidationInvalidReason::NONE:
+static bool MaybePunishNodeForBlock(NodeId nodeid,
+                                    const BlockValidationState &state,
+                                    bool via_compact_block,
+                                    const std::string &message = "") {
+    switch (state.GetResult()) {
+        case BlockValidationResult::BLOCK_RESULT_UNSET:
             break;
         // The node is providing invalid data:
-        case ValidationInvalidReason::CONSENSUS:
-        case ValidationInvalidReason::BLOCK_MUTATED:
+        case BlockValidationResult::BLOCK_CONSENSUS:
+        case BlockValidationResult::BLOCK_MUTATED:
             if (!via_compact_block) {
                 LOCK(cs_main);
                 Misbehaving(nodeid, 100, message);
                 return true;
             }
             break;
-        case ValidationInvalidReason::CACHED_INVALID: {
+        case BlockValidationResult::BLOCK_CACHED_INVALID: {
             LOCK(cs_main);
             CNodeState *node_state = State(nodeid);
             if (node_state == nullptr) {
@@ -1249,14 +1247,14 @@ static bool MaybePunishNode(NodeId nodeid, const CValidationState &state,
             }
             break;
         }
-        case ValidationInvalidReason::BLOCK_INVALID_HEADER:
-        case ValidationInvalidReason::BLOCK_CHECKPOINT:
-        case ValidationInvalidReason::BLOCK_INVALID_PREV: {
+        case BlockValidationResult::BLOCK_INVALID_HEADER:
+        case BlockValidationResult::BLOCK_CHECKPOINT:
+        case BlockValidationResult::BLOCK_INVALID_PREV: {
             LOCK(cs_main);
             Misbehaving(nodeid, 100, message);
         }
             return true;
-        case ValidationInvalidReason::BLOCK_FINALIZATION: {
+        case BlockValidationResult::BLOCK_FINALIZATION: {
             // TODO: Use the state object to report this is probably not the
             // best idea. This is effectively unreachable, unless there is a bug
             // somewhere.
@@ -1265,20 +1263,48 @@ static bool MaybePunishNode(NodeId nodeid, const CValidationState &state,
         }
             return true;
         // Conflicting (but not necessarily invalid) data or different policy:
-        case ValidationInvalidReason::BLOCK_MISSING_PREV: {
+        case BlockValidationResult::BLOCK_MISSING_PREV: {
             // TODO: Handle this much more gracefully (10 DoS points is super
             // arbitrary)
             LOCK(cs_main);
             Misbehaving(nodeid, 10, message);
         }
             return true;
-        case ValidationInvalidReason::RECENT_CONSENSUS_CHANGE:
-        case ValidationInvalidReason::BLOCK_TIME_FUTURE:
-        case ValidationInvalidReason::TX_NOT_STANDARD:
-        case ValidationInvalidReason::TX_MISSING_INPUTS:
-        case ValidationInvalidReason::TX_PREMATURE_SPEND:
-        case ValidationInvalidReason::TX_CONFLICT:
-        case ValidationInvalidReason::TX_MEMPOOL_POLICY:
+        case BlockValidationResult::BLOCK_RECENT_CONSENSUS_CHANGE:
+        case BlockValidationResult::BLOCK_TIME_FUTURE:
+            break;
+    }
+    if (message != "") {
+        LogPrint(BCLog::NET, "peer=%d: %s\n", nodeid, message);
+    }
+    return false;
+}
+
+/**
+ * Potentially ban a node based on the contents of a TxValidationState object
+ *
+ * @return Returns true if the peer was punished (probably disconnected)
+ *
+ * Changes here may need to be reflected in TxRelayMayResultInDisconnect().
+ */
+static bool MaybePunishNodeForTx(NodeId nodeid, const TxValidationState &state,
+                                 const std::string &message = "") {
+    switch (state.GetResult()) {
+        case TxValidationResult::TX_RESULT_UNSET:
+            break;
+        // The node is providing invalid data:
+        case TxValidationResult::TX_CONSENSUS: {
+            LOCK(cs_main);
+            Misbehaving(nodeid, 100, message);
+            return true;
+        }
+        // Conflicting (but not necessarily invalid) data or different policy:
+        case TxValidationResult::TX_RECENT_CONSENSUS_CHANGE:
+        case TxValidationResult::TX_NOT_STANDARD:
+        case TxValidationResult::TX_MISSING_INPUTS:
+        case TxValidationResult::TX_PREMATURE_SPEND:
+        case TxValidationResult::TX_CONFLICT:
+        case TxValidationResult::TX_MEMPOOL_POLICY:
             break;
     }
     if (message != "") {
@@ -1485,7 +1511,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
  * peers announce compact blocks.
  */
 void PeerLogicValidation::BlockChecked(const CBlock &block,
-                                       const CValidationState &state) {
+                                       const BlockValidationState &state) {
     LOCK(cs_main);
 
     const BlockHash hash = block.GetHash();
@@ -1502,8 +1528,8 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
                 state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH),
                 hash};
             State(it->second.first)->rejects.push_back(reject);
-            MaybePunishNode(/*nodeid=*/it->second.first, state,
-                            /*via_compact_block=*/!it->second.second);
+            MaybePunishNodeForBlock(/*nodeid=*/it->second.first, state,
+                                    /*via_compact_block=*/!it->second.second);
         }
     }
     // Check that:
@@ -1653,7 +1679,7 @@ static void ProcessGetBlockData(const Config &config, CNode *pfrom,
         }
     } // release cs_main before calling ActivateBestChain
     if (need_activate_chain) {
-        CValidationState state;
+        BlockValidationState state;
         if (!ActivateBestChain(config, state, a_recent_block)) {
             LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
                      FormatStateMessage(state));
@@ -1987,11 +2013,11 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
         }
     }
 
-    CValidationState state;
+    BlockValidationState state;
     if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast)) {
         if (state.IsInvalid()) {
-            MaybePunishNode(pfrom->GetId(), state, via_compact_block,
-                            "invalid header received");
+            MaybePunishNodeForBlock(pfrom->GetId(), state, via_compact_block,
+                                    "invalid header received");
             return false;
         }
     }
@@ -2165,10 +2191,11 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
         const CTransactionRef porphanTx = orphan_it->second.tx;
         const CTransaction &orphanTx = *porphanTx;
         NodeId fromPeer = orphan_it->second.fromPeer;
-        // Use a new CValidationState because orphans come from different peers
-        // (and we call MaybePunishNode based on the source peer from the orphan
-        // map, not based on the peer that relayed the previous transaction).
-        CValidationState orphan_state;
+        // Use a new TxValidationState because orphans come from different peers
+        // (and we call MaybePunishNodeForTx based on the source peer from the
+        // orphan map, not based on the peer that relayed the previous
+        // transaction).
+        TxValidationState orphan_state;
 
         auto it = rejectCountPerNode.find(fromPeer);
         if (it != rejectCountPerNode.end() &&
@@ -2193,12 +2220,11 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             }
             EraseOrphanTx(orphanTxId);
             done = true;
-        } else if (orphan_state.GetReason() !=
-                   ValidationInvalidReason::TX_MISSING_INPUTS) {
+        } else if (orphan_state.GetResult() !=
+                   TxValidationResult::TX_MISSING_INPUTS) {
             if (orphan_state.IsInvalid()) {
                 // Punish peer that gave us an invalid orphan tx
-                MaybePunishNode(fromPeer, orphan_state,
-                                /*via_compact_block*/ false);
+                MaybePunishNodeForTx(fromPeer, orphan_state);
                 LogPrint(BCLog::MEMPOOL, "   invalid orphan tx %s\n",
                          orphanTxId.ToString());
             }
@@ -2206,7 +2232,6 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             // Probably non-standard or insufficient fee
             LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
                      orphanTxId.ToString());
-            assert(IsTransactionReason(orphan_state.GetReason()));
 
             assert(recentRejects);
             recentRejects->insert(orphanTxId);
@@ -2748,7 +2773,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 LOCK(cs_most_recent_block);
                 a_recent_block = most_recent_block;
             }
-            CValidationState state;
+            BlockValidationState state;
             if (!ActivateBestChain(config, state, a_recent_block)) {
                 LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
                          FormatStateMessage(state));
@@ -2965,7 +2990,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         LOCK2(cs_main, g_cs_orphans);
 
-        CValidationState state;
+        TxValidationState state;
 
         CNodeState *nodestate = State(pfrom->GetId());
         nodestate->m_tx_download.m_tx_announced.erase(txid);
@@ -2999,8 +3024,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             // Recursively process any orphan transactions that depended on this
             // one
             ProcessOrphanTx(config, connman, pfrom->orphan_work_set);
-        } else if (state.GetReason() ==
-                   ValidationInvalidReason::TX_MISSING_INPUTS) {
+        } else if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
             // It may be the case that the orphans parents have all been
             // rejected.
             bool fRejectedParents = false;
@@ -3043,8 +3067,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 recentRejects->insert(tx.GetId());
             }
         } else {
-            assert(IsTransactionReason(state.GetReason()));
-
             assert(recentRejects);
             recentRejects->insert(tx.GetId());
 
@@ -3105,7 +3127,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                                              0, MAX_REJECT_MESSAGE_LENGTH),
                                          inv.hash));
             }
-            MaybePunishNode(pfrom->GetId(), state, /*via_compact_block*/ false);
+            MaybePunishNodeForTx(pfrom->GetId(), state);
         }
         return true;
     }
@@ -3146,13 +3168,13 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         const CBlockIndex *pindex = nullptr;
-        CValidationState state;
+        BlockValidationState state;
         if (!ProcessNewBlockHeaders(config, {cmpctblock.header}, state,
                                     &pindex)) {
             if (state.IsInvalid()) {
-                MaybePunishNode(pfrom->GetId(), state,
-                                /*via_compact_block*/ true,
-                                "invalid header via cmpctblock");
+                MaybePunishNodeForBlock(pfrom->GetId(), state,
+                                        /*via_compact_block*/ true,
+                                        "invalid header via cmpctblock");
                 return true;
             }
         }
@@ -3655,7 +3677,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 switch (u.getStatus()) {
                     case avalanche::BlockUpdate::Status::Invalid:
                     case avalanche::BlockUpdate::Status::Rejected: {
-                        CValidationState state;
+                        BlockValidationState state;
                         ParkBlock(config, state, pindex);
                         if (!state.IsValid()) {
                             return error("Database error: %s",
@@ -3670,7 +3692,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 }
             }
 
-            CValidationState state;
+            BlockValidationState state;
             if (!ActivateBestChain(config, state)) {
                 LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
                          FormatStateMessage(state));

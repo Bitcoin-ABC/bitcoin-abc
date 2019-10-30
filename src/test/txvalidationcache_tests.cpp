@@ -32,7 +32,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     const auto ToMemPool = [this](const CMutableTransaction &tx) {
         LOCK(cs_main);
 
-        CValidationState state;
+        TxValidationState state;
         return AcceptToMemoryPool(
             GetConfig(), *m_node.mempool, state, MakeTransactionRef(tx),
             true /* bypass_limits */, Amount::zero() /* nAbsurdFee */);
@@ -101,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
 }
 
 static inline bool
-CheckInputs(const CTransaction &tx, CValidationState &state,
+CheckInputs(const CTransaction &tx, TxValidationState &state,
             const CCoinsViewCache &view, bool fScriptChecks,
             const uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
             const PrecomputedTransactionData &txdata, int &nSigChecksOut,
@@ -138,7 +138,7 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
     MMIXLinearCongruentialGenerator lcg;
     for (int i = 0; i < 4096; i++) {
         uint32_t test_flags = lcg.next() | required_flags;
-        CValidationState state;
+        TxValidationState state;
 
         // Filter out incompatible flag choices
         if ((test_flags & SCRIPT_VERIFY_CLEANSTACK)) {
@@ -272,7 +272,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
         LOCK(cs_main);
 
-        CValidationState state;
+        TxValidationState state;
         PrecomputedTransactionData ptd_spend_tx(tx);
         int nSigChecksDummy;
 
@@ -352,7 +352,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
         // Make it valid, and check again
         invalid_with_cltv_tx.vin[0].scriptSig = CScript() << vchSig << 100;
-        CValidationState state;
+        TxValidationState state;
 
         CTransaction transaction(invalid_with_cltv_tx);
         PrecomputedTransactionData txdata(transaction);
@@ -391,7 +391,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
         // Make it valid, and check again
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 100;
-        CValidationState state;
+        TxValidationState state;
 
         CTransaction transaction(invalid_with_csv_tx);
         PrecomputedTransactionData txdata(transaction);
@@ -447,7 +447,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             // Try checking this valid transaction with sigchecks limiter
             // supplied. Each input consumes 1 sigcheck.
 
-            CValidationState state;
+            TxValidationState state;
             CTransaction transaction(tx);
             PrecomputedTransactionData txdata(transaction);
             const uint32_t flags =
@@ -474,7 +474,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
             // Serial validation fails with the limiter.
             CheckInputsLimiter sigchecklimiter2(1);
-            CValidationState state2;
+            TxValidationState state2;
             BOOST_CHECK(!CheckInputs(transaction, state2, pcoinsTip.get(), true,
                                      flags, true, true, txdata, nSigChecksDummy,
                                      nullptr, &sigchecklimiter2));
@@ -516,24 +516,24 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
              * caching.
              */
             CheckInputsLimiter sigchecklimiter6(1);
-            CValidationState state6;
+            TxValidationState state6;
             BOOST_CHECK(!CheckInputs(transaction, state6, pcoinsTip.get(), true,
                                      flags, true, true, txdata, nSigChecksDummy,
                                      nullptr, &sigchecklimiter6));
             BOOST_CHECK_EQUAL(state6.GetRejectReason(), "too-many-sigchecks");
-            BOOST_CHECK_EQUAL(state6.GetReason(),
-                              ValidationInvalidReason::CONSENSUS);
+            BOOST_CHECK_EQUAL(state6.GetResult(),
+                              TxValidationResult::TX_CONSENSUS);
             BOOST_CHECK(!sigchecklimiter6.check());
             // even in parallel validation, immediate fail from the cache.
             std::vector<CScriptCheck> scriptchecks7;
             CheckInputsLimiter sigchecklimiter7(1);
-            CValidationState state7;
+            TxValidationState state7;
             BOOST_CHECK(!CheckInputs(transaction, state7, pcoinsTip.get(), true,
                                      flags, true, true, txdata, nSigChecksDummy,
                                      &scriptchecks7, &sigchecklimiter7));
             BOOST_CHECK_EQUAL(state7.GetRejectReason(), "too-many-sigchecks");
-            BOOST_CHECK_EQUAL(state6.GetReason(),
-                              ValidationInvalidReason::CONSENSUS);
+            BOOST_CHECK_EQUAL(state6.GetResult(),
+                              TxValidationResult::TX_CONSENSUS);
             BOOST_CHECK(!sigchecklimiter7.check());
             BOOST_CHECK(scriptchecks7.empty());
         }
@@ -543,7 +543,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // Invalidate vin[1]
         tx.vin[1].scriptSig = CScript();
 
-        CValidationState state;
+        TxValidationState state;
         CTransaction transaction(tx);
         PrecomputedTransactionData txdata(transaction);
 

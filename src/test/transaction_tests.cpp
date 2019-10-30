@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                                PROTOCOL_VERSION);
             CTransaction tx(deserialize, stream);
 
-            CValidationState state;
+            TxValidationState state;
             BOOST_CHECK_MESSAGE(tx.IsCoinBase()
                                     ? CheckCoinbase(tx, state)
                                     : CheckRegularTransaction(tx, state),
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                                PROTOCOL_VERSION);
             CTransaction tx(deserialize, stream);
 
-            CValidationState state;
+            TxValidationState state;
             fValid = CheckRegularTransaction(tx, state) && state.IsValid();
 
             PrecomputedTransactionData txdata(tx);
@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(basic_transaction_tests) {
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
     CMutableTransaction tx;
     stream >> tx;
-    CValidationState state;
+    TxValidationState state;
     BOOST_CHECK_MESSAGE(CheckRegularTransaction(CTransaction(tx), state) &&
                             state.IsValid(),
                         "Simple deserialized transaction should be valid.");
@@ -796,7 +796,7 @@ BOOST_AUTO_TEST_CASE(txsize_activation_test) {
 
     // A minimaly sized transction.
     CTransaction minTx;
-    CValidationState state;
+    TxValidationState state;
 
     BOOST_CHECK(ContextualCheckTransaction(
         params, minTx, state, magneticAnomalyActivationHeight - 1, 5678, 1234));

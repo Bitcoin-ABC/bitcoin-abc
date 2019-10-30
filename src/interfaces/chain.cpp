@@ -141,7 +141,7 @@ namespace {
         }
         bool contextualCheckTransactionForCurrentBlock(
             const Consensus::Params &params, const CTransaction &tx,
-            CValidationState &state) override {
+            TxValidationState &state) override {
             LockAssertion lock(::cs_main);
             return ContextualCheckTransactionForCurrentBlock(params, tx, state);
         }

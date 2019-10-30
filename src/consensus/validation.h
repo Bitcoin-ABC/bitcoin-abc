@@ -19,25 +19,60 @@ static const uint8_t REJECT_INSUFFICIENTFEE = 0x42;
 static const uint8_t REJECT_CHECKPOINT = 0x43;
 
 /**
- * A "reason" why something was invalid, suitable for determining whether the
- * provider of the object should be banned/ignored/disconnected/etc. These are
- * much more granular than the rejection codes, which may be more useful for
- * some other use-cases.
+ * A "reason" why a transaction was invalid, suitable for determining whether
+ * the provider of the transaction should be banned/ignored/disconnected/etc.
+ * These are much more granular than the rejection codes, which may be more
+ * useful for some other use-cases.
  */
-enum class ValidationInvalidReason {
-    // txn and blocks:
-    //! not actually invalid
-    NONE,
-    //! invalid by consensus rules (excluding any below reasons)
-    CONSENSUS,
+enum class TxValidationResult {
+    //! initial value. Tx has not yet been rejected
+    TX_RESULT_UNSET,
+    //! invalid by consensus rules
+    TX_CONSENSUS,
     /**
      * Invalid by a recent change to consensus rules.
      * Currently unused as there are no such consensus rule changes.
      */
-    RECENT_CONSENSUS_CHANGE,
-    // Only blocks (or headers):
-    //! this object was cached as being invalid, but we don't know why
-    CACHED_INVALID,
+    TX_RECENT_CONSENSUS_CHANGE,
+    //! didn't meet our local policy rules
+    TX_NOT_STANDARD,
+    //! transaction was missing some of its inputs
+    TX_MISSING_INPUTS,
+    //! transaction spends a coinbase too early, or violates locktime/sequence
+    //! locks
+    TX_PREMATURE_SPEND,
+    /**
+     * Tx already in mempool or conflicts with a tx in the chain
+     * Currently this is only used if the transaction already exists in the
+     * mempool or on chain.
+     */
+    TX_CONFLICT,
+    //! violated mempool's fee/size/descendant/etc limits
+    TX_MEMPOOL_POLICY,
+};
+
+/**
+ * A "reason" why a block was invalid, suitable for determining whether the
+ * provider of the block should be banned/ignored/disconnected/etc.
+ * These are much more granular than the rejection codes, which may be more
+ * useful for some other use-cases.
+ */
+enum class BlockValidationResult {
+    //! initial value. Block has not yet been rejected
+    BLOCK_RESULT_UNSET,
+    //! invalid by consensus rules (excluding any below reasons)
+    BLOCK_CONSENSUS,
+    /**
+     * Invalid by a change to consensus rules more recent than SegWit.
+     * Currently unused as there are no such consensus rule changes, and any
+     * download sources realistically need to support SegWit in order to provide
+     * useful data, so differentiating between always-invalid and
+     * invalid-by-pre-SegWit-soft-fork is uninteresting.
+     */
+    BLOCK_RECENT_CONSENSUS_CHANGE,
+    //! this block was cached as being invalid and we didn't store the reason
+    //! why
+    BLOCK_CACHED_INVALID,
     //! invalid proof of work or time too old
     BLOCK_INVALID_HEADER,
     //! the block's data didn't match the data committed to by the PoW
@@ -50,97 +85,88 @@ enum class ValidationInvalidReason {
     BLOCK_TIME_FUTURE,
     //! the block failed to meet one of our checkpoints
     BLOCK_CHECKPOINT,
-    //! block finalization problems.
+    //! block finalization problems
     BLOCK_FINALIZATION,
-    // Only loose txn:
-    //! didn't meet our local policy rules
-    TX_NOT_STANDARD,
-    //! transaction was missing some of its inputs
-    TX_MISSING_INPUTS,
-    //! transaction spends a coinbase too early, or violates locktime/sequence
-    //! locks
-    TX_PREMATURE_SPEND,
-    /**
-     * Tx already in mempool or conflicts with a tx in the chain
-     * TODO: Currently this is only used if the transaction already exists in
-     * the mempool or on chain,
-     */
-    TX_CONFLICT,
-    //! violated mempool's fee/size/descendant/etc limits
-    TX_MEMPOOL_POLICY,
 };
 
-inline bool IsTransactionReason(ValidationInvalidReason r) {
-    return r == ValidationInvalidReason::NONE ||
-           r == ValidationInvalidReason::CONSENSUS ||
-           r == ValidationInvalidReason::RECENT_CONSENSUS_CHANGE ||
-           r == ValidationInvalidReason::TX_NOT_STANDARD ||
-           r == ValidationInvalidReason::TX_PREMATURE_SPEND ||
-           r == ValidationInvalidReason::TX_MISSING_INPUTS ||
-           r == ValidationInvalidReason::TX_CONFLICT ||
-           r == ValidationInvalidReason::TX_MEMPOOL_POLICY;
-}
-
-inline bool IsBlockReason(ValidationInvalidReason r) {
-    return r == ValidationInvalidReason::NONE ||
-           r == ValidationInvalidReason::CONSENSUS ||
-           r == ValidationInvalidReason::RECENT_CONSENSUS_CHANGE ||
-           r == ValidationInvalidReason::CACHED_INVALID ||
-           r == ValidationInvalidReason::BLOCK_INVALID_HEADER ||
-           r == ValidationInvalidReason::BLOCK_MUTATED ||
-           r == ValidationInvalidReason::BLOCK_MISSING_PREV ||
-           r == ValidationInvalidReason::BLOCK_INVALID_PREV ||
-           r == ValidationInvalidReason::BLOCK_TIME_FUTURE ||
-           r == ValidationInvalidReason::BLOCK_CHECKPOINT ||
-           r == ValidationInvalidReason::BLOCK_FINALIZATION;
-}
-
-/** Capture information about block/transaction validation */
-class CValidationState {
+/**
+ * Base class for capturing information about block/transaction validation.
+ * This is subclassed by TxValidationState and BlockValidationState for
+ * validation information on transactions and blocks respectively.
+ */
+class ValidationState {
 private:
     enum mode_state {
         MODE_VALID,   //!< everything ok
         MODE_INVALID, //!< network rule violation (DoS value may be set)
         MODE_ERROR,   //!< run-time error
-    } mode;
-    ValidationInvalidReason m_reason;
-    std::string strRejectReason;
+    } m_mode;
+    std::string m_reject_reason;
     unsigned int chRejectCode;
-    std::string strDebugMessage;
+    std::string m_debug_message;
+
+protected:
+    void Invalid(unsigned int chRejectCodeIn = 0,
+                 const std::string &reject_reason = "",
+                 const std::string &debug_message = "") {
+        chRejectCode = chRejectCodeIn;
+        m_reject_reason = reject_reason;
+        m_debug_message = debug_message;
+        if (m_mode != MODE_ERROR) {
+            m_mode = MODE_INVALID;
+        }
+    }
 
 public:
-    CValidationState()
-        : mode(MODE_VALID), m_reason(ValidationInvalidReason::NONE),
-          chRejectCode(0) {}
-    bool Invalid(ValidationInvalidReason reasonIn,
-                 unsigned int chRejectCodeIn = 0,
-                 const std::string &strRejectReasonIn = "",
-                 const std::string &strDebugMessageIn = "") {
-        m_reason = reasonIn;
-        chRejectCode = chRejectCodeIn;
-        strRejectReason = strRejectReasonIn;
-        strDebugMessage = strDebugMessageIn;
-        if (mode == MODE_ERROR) {
-            return false;
-        }
-        mode = MODE_INVALID;
-        return false;
-    }
-    bool Error(const std::string &strRejectReasonIn) {
-        if (mode == MODE_VALID) {
-            strRejectReason = strRejectReasonIn;
-        }
+    // ValidationState is abstract. Have a pure virtual destructor.
+    virtual ~ValidationState() = 0;
 
-        mode = MODE_ERROR;
+    ValidationState() : m_mode(MODE_VALID), chRejectCode(0) {}
+    bool Error(const std::string &reject_reason) {
+        if (m_mode == MODE_VALID) {
+            m_reject_reason = reject_reason;
+        }
+        m_mode = MODE_ERROR;
         return false;
     }
-    bool IsValid() const { return mode == MODE_VALID; }
-    bool IsInvalid() const { return mode == MODE_INVALID; }
-    bool IsError() const { return mode == MODE_ERROR; }
-    ValidationInvalidReason GetReason() const { return m_reason; }
+    bool IsValid() const { return m_mode == MODE_VALID; }
+    bool IsInvalid() const { return m_mode == MODE_INVALID; }
+    bool IsError() const { return m_mode == MODE_ERROR; }
     unsigned int GetRejectCode() const { return chRejectCode; }
-    std::string GetRejectReason() const { return strRejectReason; }
-    std::string GetDebugMessage() const { return strDebugMessage; }
+    std::string GetRejectReason() const { return m_reject_reason; }
+    std::string GetDebugMessage() const { return m_debug_message; }
+};
+
+inline ValidationState::~ValidationState(){};
+
+class TxValidationState : public ValidationState {
+private:
+    TxValidationResult m_result = TxValidationResult::TX_RESULT_UNSET;
+
+public:
+    bool Invalid(TxValidationResult result, unsigned int chRejectCodeIn = 0,
+                 const std::string &reject_reason = "",
+                 const std::string &debug_message = "") {
+        m_result = result;
+        ValidationState::Invalid(chRejectCodeIn, reject_reason, debug_message);
+        return false;
+    }
+    TxValidationResult GetResult() const { return m_result; }
+};
+
+class BlockValidationState : public ValidationState {
+private:
+    BlockValidationResult m_result = BlockValidationResult::BLOCK_RESULT_UNSET;
+
+public:
+    bool Invalid(BlockValidationResult result, unsigned int chRejectCodeIn = 0,
+                 const std::string &reject_reason = "",
+                 const std::string &debug_message = "") {
+        m_result = result;
+        ValidationState::Invalid(chRejectCodeIn, reject_reason, debug_message);
+        return false;
+    }
+    BlockValidationResult GetResult() const { return m_result; }
 };
 
 #endif // BITCOIN_CONSENSUS_VALIDATION_H

@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
                          "1b60a8ce26f"));
 
     {
-        CValidationState state;
+        BlockValidationState state;
         BOOST_CHECK(ProcessNewBlockHeaders(config, {headerG}, state, &pindex));
         pindex = nullptr;
     }
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
 
     // Headers A and AA should be accepted
     {
-        CValidationState state;
+        BlockValidationState state;
         BOOST_CHECK(ProcessNewBlockHeaders(config, {headerA}, state, &pindex));
         BOOST_CHECK(state.IsValid());
         BOOST_CHECK(pindex != nullptr);
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     }
 
     {
-        CValidationState state;
+        BlockValidationState state;
         BOOST_CHECK(ProcessNewBlockHeaders(config, {headerAA}, state, &pindex));
         BOOST_CHECK(state.IsValid());
         BOOST_CHECK(pindex != nullptr);
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
 
     // Header B should be rejected
     {
-        CValidationState state;
+        BlockValidationState state;
         BOOST_CHECK(!ProcessNewBlockHeaders(config, {headerB}, state, &pindex));
         BOOST_CHECK(state.IsInvalid());
         BOOST_CHECK(state.GetRejectCode() == REJECT_CHECKPOINT);
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
 
     // Header AB should be rejected
     {
-        CValidationState state;
+        BlockValidationState state;
         BOOST_CHECK(
             !ProcessNewBlockHeaders(config, {headerAB}, state, &pindex));
         BOOST_CHECK(state.IsInvalid());

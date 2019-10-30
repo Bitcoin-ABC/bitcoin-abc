@@ -1657,7 +1657,7 @@ static UniValue preciousblock(const Config &config,
         }
     }
 
-    CValidationState state;
+    BlockValidationState state;
     PreciousBlock(config, state, pblockindex);
 
     if (!state.IsValid()) {
@@ -1686,7 +1686,7 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
 
     std::string strHash = request.params[0].get_str();
     BlockHash hash(uint256S(strHash));
-    CValidationState state;
+    BlockValidationState state;
 
     {
         LOCK(cs_main);
@@ -1727,7 +1727,7 @@ static UniValue invalidateblock(const Config &config,
         .Check(request);
 
     const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
-    CValidationState state;
+    BlockValidationState state;
 
     CBlockIndex *pblockindex;
     {
@@ -1766,7 +1766,6 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
 
     const std::string strHash = request.params[0].get_str();
     const BlockHash hash(uint256S(strHash));
-    CValidationState state;
 
     CBlockIndex *pblockindex;
     {
@@ -1777,6 +1776,7 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
 
         pblockindex = mapBlockIndex[hash];
     }
+    BlockValidationState state;
     ParkBlock(config, state, pblockindex);
 
     if (state.IsValid()) {
@@ -1819,7 +1819,7 @@ static UniValue reconsiderblock(const Config &config,
         ResetBlockFailureFlags(pblockindex);
     }
 
-    CValidationState state;
+    BlockValidationState state;
     ActivateBestChain(config, state);
 
     if (!state.IsValid()) {
@@ -1858,7 +1858,7 @@ UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
         UnparkBlockAndChildren(pblockindex);
     }
 
-    CValidationState state;
+    BlockValidationState state;
     ActivateBestChain(config, state);
 
     if (!state.IsValid()) {

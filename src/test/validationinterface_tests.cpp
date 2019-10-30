@@ -23,14 +23,14 @@ public:
         }
     }
     void BlockChecked(const CBlock &block,
-                      const CValidationState &state) override {
+                      const BlockValidationState &state) override {
         if (m_on_call) {
             m_on_call();
         }
     }
     static void Call() {
         CBlock block;
-        CValidationState state;
+        BlockValidationState state;
         GetMainSignals().BlockChecked(block, state);
     }
     std::function<void()> m_on_call;

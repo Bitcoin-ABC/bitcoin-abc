@@ -1339,7 +1339,7 @@ static void ThreadImport(const Config &config,
 
         // scan for better chains in the block chain database, that are not yet
         // connected in the active best chain
-        CValidationState state;
+        BlockValidationState state;
         if (!ActivateBestChain(config, state)) {
             LogPrintf("Failed to connect best block (%s)\n",
                       FormatStateMessage(state));

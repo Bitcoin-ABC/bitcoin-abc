@@ -15,7 +15,7 @@
 BOOST_FIXTURE_TEST_SUITE(blockcheck_tests, BasicTestingSetup)
 
 static void RunCheckOnBlockImpl(const GlobalConfig &config, const CBlock &block,
-                                CValidationState &state, bool expected) {
+                                BlockValidationState &state, bool expected) {
     block.fChecked = false;
     bool fValid = CheckBlock(
         block, state, config.GetChainParams().GetConsensus(),
@@ -27,13 +27,13 @@ static void RunCheckOnBlockImpl(const GlobalConfig &config, const CBlock &block,
 }
 
 static void RunCheckOnBlock(const GlobalConfig &config, const CBlock &block) {
-    CValidationState state;
+    BlockValidationState state;
     RunCheckOnBlockImpl(config, block, state, true);
 }
 
 static void RunCheckOnBlock(const GlobalConfig &config, const CBlock &block,
                             const std::string &reason) {
-    CValidationState state;
+    BlockValidationState state;
     RunCheckOnBlockImpl(config, block, state, false);
 
     BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);

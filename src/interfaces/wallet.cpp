@@ -68,7 +68,7 @@ namespace {
         result.depth_in_main_chain = wtx.GetDepthInMainChain(locked_chain);
         result.time_received = wtx.nTimeReceived;
         result.lock_time = wtx.tx->nLockTime;
-        CValidationState state;
+        TxValidationState state;
         result.is_final =
             locked_chain.contextualCheckTransactionForCurrentBlock(
                 Params().GetConsensus(), *wtx.tx, state);
@@ -233,7 +233,7 @@ namespace {
                                std::string &reject_reason) override {
             auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
-            CValidationState state;
+            TxValidationState state;
             if (!m_wallet->CommitTransaction(std::move(tx),
                                              std::move(value_map),
                                              std::move(order_form), state)) {

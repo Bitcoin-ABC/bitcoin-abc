@@ -38,20 +38,21 @@ static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
 }
 
 bool ContextualCheckTransaction(const Consensus::Params &params,
-                                const CTransaction &tx, CValidationState &state,
-                                int nHeight, int64_t nLockTimeCutoff,
+                                const CTransaction &tx,
+                                TxValidationState &state, int nHeight,
+                                int64_t nLockTimeCutoff,
                                 int64_t nMedianTimePast) {
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-txns-nonfinal", "non-final transaction");
     }
 
     if (IsMagneticAnomalyEnabled(params, nHeight)) {
         // Size limit
         if (::GetSerializeSize(tx, PROTOCOL_VERSION) < MIN_TX_SIZE) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS,
+            return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  REJECT_INVALID, "bad-txns-undersize");
         }
     }
@@ -154,12 +155,12 @@ bool SequenceLocks(const CTransaction &tx, int flags,
 }
 
 namespace Consensus {
-bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
+bool CheckTxInputs(const CTransaction &tx, TxValidationState &state,
                    const CCoinsViewCache &inputs, int nSpendHeight,
                    Amount &txfee) {
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
-        return state.Invalid(ValidationInvalidReason::TX_MISSING_INPUTS,
+        return state.Invalid(TxValidationResult::TX_MISSING_INPUTS,
                              REJECT_INVALID, "bad-txns-inputs-missingorspent",
                              strprintf("%s: inputs missing/spent", __func__));
     }
@@ -174,7 +175,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         if (coin.IsCoinBase() &&
             nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
             return state.Invalid(
-                ValidationInvalidReason::TX_PREMATURE_SPEND, REJECT_INVALID,
+                TxValidationResult::TX_PREMATURE_SPEND, REJECT_INVALID,
                 "bad-txns-premature-spend-of-coinbase",
                 strprintf("tried to spend coinbase at depth %d",
                           nSpendHeight - coin.GetHeight()));
@@ -183,7 +184,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         // Check for negative or overflow input values
         nValueIn += coin.GetTxOut().nValue;
         if (!MoneyRange(coin.GetTxOut().nValue) || !MoneyRange(nValueIn)) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS,
+            return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  REJECT_INVALID,
                                  "bad-txns-inputvalues-outofrange");
         }
@@ -191,7 +192,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
     const Amount value_out = tx.GetValueOut();
     if (nValueIn < value_out) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-txns-in-belowout",
                              strprintf("value in (%s) < value out (%s)",
                                        FormatMoney(nValueIn),
@@ -201,7 +202,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
     // Tally transaction fees
     const Amount txfee_aux = nValueIn - value_out;
     if (!MoneyRange(txfee_aux)) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-txns-fee-outofrange");
     }
 

@@ -223,7 +223,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock->nNonce = 0;
     pblocktemplate->entries[0].sigOpCount = 0;
 
-    CValidationState state;
+    BlockValidationState state;
     if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev,
                            BlockValidationOptions(nMaxGeneratedBlockSize)
                                .withCheckPoW(false)
@@ -279,7 +279,7 @@ bool BlockAssembler::TestPackageTransactions(
     const CTxMemPool::setEntries &package) {
     uint64_t nPotentialBlockSize = nBlockSize;
     for (CTxMemPool::txiter it : package) {
-        CValidationState state;
+        TxValidationState state;
         if (!ContextualCheckTransaction(chainparams.GetConsensus(), it->GetTx(),
                                         state, nHeight, nLockTimeCutoff,
                                         nMedianTimePast)) {

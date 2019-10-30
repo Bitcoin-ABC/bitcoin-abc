@@ -57,7 +57,7 @@ static void DuplicateInputs(benchmark::State &state) {
     block.hashMerkleRoot = BlockMerkleRoot(block);
 
     while (state.KeepRunning()) {
-        CValidationState cvstate{};
+        BlockValidationState cvstate{};
         assert(!CheckBlock(block, cvstate, chainparams.GetConsensus(),
                            BlockValidationOptions(GetConfig())
                                .withCheckPoW(false)

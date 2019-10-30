@@ -571,7 +571,7 @@ void CTxMemPool::removeForReorg(const Config &config,
         LockPoints lp = it->GetLockPoints();
         bool validLP = TestLockPointValidity(&lp);
 
-        CValidationState state;
+        TxValidationState state;
         if (!ContextualCheckTransactionForCurrentBlock(
                 config.GetChainParams().GetConsensus(), tx, state, flags) ||
             !CheckSequenceLocks(*this, tx, flags, &lp, validLP)) {
@@ -688,11 +688,13 @@ void CTxMemPool::clear() {
 static void CheckInputsAndUpdateCoins(const CTransaction &tx,
                                       CCoinsViewCache &mempoolDuplicate,
                                       const int64_t spendheight) {
-    CValidationState state;
+    // Not used. CheckTxInputs() should always pass
+    TxValidationState dummy_state;
     Amount txfee = Amount::zero();
     bool fCheckResult =
-        tx.IsCoinBase() || Consensus::CheckTxInputs(tx, state, mempoolDuplicate,
-                                                    spendheight, txfee);
+        tx.IsCoinBase() ||
+        Consensus::CheckTxInputs(tx, dummy_state, mempoolDuplicate, spendheight,
+                                 txfee);
     assert(fCheckResult);
     UpdateCoins(mempoolDuplicate, tx, std::numeric_limits<int>::max());
 }
@@ -1391,7 +1393,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     for (const CTransactionRef &tx :
          reverse_iterate(queuedTx.get<insertion_order>())) {
         // ignore validation errors in resurrected transactions
-        CValidationState stateDummy;
+        TxValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
             !AcceptToMemoryPool(config, g_mempool, stateDummy, tx,
                                 true /* bypass_limits */,

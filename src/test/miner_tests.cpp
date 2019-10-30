@@ -520,7 +520,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes.
-        CValidationState state;
+        TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
             params, CTransaction(tx), state, flags));
     }
@@ -546,7 +546,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes.
-        CValidationState state;
+        TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
             params, CTransaction(tx), state, flags));
     }
@@ -583,7 +583,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime fails.
-        CValidationState state;
+        TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
             params, CTransaction(tx), state, flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
@@ -594,7 +594,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes on 2nd block.
-        CValidationState state;
+        TxValidationState state;
         int64_t nMedianTimePast = ::ChainActive().Tip()->GetMedianTimePast();
         BOOST_CHECK(ContextualCheckTransaction(
             params, CTransaction(tx), state, ::ChainActive().Tip()->nHeight + 2,
@@ -611,7 +611,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime fails.
-        CValidationState state;
+        TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
             params, CTransaction(tx), state, flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
@@ -622,7 +622,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes 1 second later.
-        CValidationState state;
+        TxValidationState state;
         int64_t nMedianTimePast =
             ::ChainActive().Tip()->GetMedianTimePast() + 1;
         BOOST_CHECK(ContextualCheckTransaction(
@@ -638,7 +638,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes.
-        CValidationState state;
+        TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
             params, CTransaction(tx), state, flags));
     }

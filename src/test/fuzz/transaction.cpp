@@ -41,7 +41,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         return;
     }
 
-    CValidationState state;
+    TxValidationState state;
     (void)CheckRegularTransaction(tx, state);
 
     const CFeeRate dust_relay_fee{DUST_RELAY_TX_FEE};

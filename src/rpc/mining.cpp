@@ -313,7 +313,7 @@ static UniValue prioritisetransaction(const Config &config,
 // NOTE: Assumes a conclusive result; if result is inconclusive, it must be
 // handled by caller
 static UniValue BIP22ValidationResult(const Config &config,
-                                      const CValidationState &state) {
+                                      const BlockValidationState &state) {
     if (state.IsValid()) {
         return NullUniValue;
     }
@@ -502,7 +502,7 @@ static UniValue getblocktemplate(const Config &config,
             if (block.hashPrevBlock != pindexPrev->GetBlockHash()) {
                 return "inconclusive-not-best-prevblk";
             }
-            CValidationState state;
+            BlockValidationState state;
             TestBlockValidity(state, config.GetChainParams(), block, pindexPrev,
                               BlockValidationOptions(config)
                                   .withCheckPoW(false)
@@ -687,14 +687,14 @@ class submitblock_StateCatcher : public CValidationInterface {
 public:
     uint256 hash;
     bool found;
-    CValidationState state;
+    BlockValidationState state;
 
     explicit submitblock_StateCatcher(const uint256 &hashIn)
         : hash(hashIn), found(false), state() {}
 
 protected:
     void BlockChecked(const CBlock &block,
-                      const CValidationState &stateIn) override {
+                      const BlockValidationState &stateIn) override {
         if (block.GetHash() != hash) {
             return;
         }
@@ -803,7 +803,7 @@ static UniValue submitheader(const Config &config,
         }
     }
 
-    CValidationState state;
+    BlockValidationState state;
     ProcessNewBlockHeaders(config, {h}, state);
     if (state.IsValid()) {
         return NullUniValue;

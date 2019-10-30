@@ -95,7 +95,7 @@ static bool BuildChain(const CBlockIndex *pindex,
             CreateBlock(pindex, no_txns, coinbase_script_pub_key, mempool));
         CBlockHeader header = block->GetBlockHeader();
 
-        CValidationState state;
+        BlockValidationState state;
         if (!ProcessNewBlockHeaders(GetConfig(), {header}, state, &pindex)) {
             return false;
         }

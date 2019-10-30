@@ -11,21 +11,21 @@
 #include <unordered_set>
 
 static bool CheckTransactionCommon(const CTransaction &tx,
-                                   CValidationState &state) {
+                                   TxValidationState &state) {
     // Basic checks that don't depend on any context
     if (tx.vin.empty()) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-txns-vin-empty");
     }
 
     if (tx.vout.empty()) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-txns-vout-empty");
     }
 
     // Size limit
     if (::GetSerializeSize(tx, PROTOCOL_VERSION) > MAX_TX_SIZE) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-txns-oversize");
     }
 
@@ -33,18 +33,18 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     Amount nValueOut = Amount::zero();
     for (const auto &txout : tx.vout) {
         if (txout.nValue < Amount::zero()) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS,
+            return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  REJECT_INVALID, "bad-txns-vout-negative");
         }
 
         if (txout.nValue > MAX_MONEY) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS,
+            return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  REJECT_INVALID, "bad-txns-vout-toolarge");
         }
 
         nValueOut += txout.nValue;
         if (!MoneyRange(nValueOut)) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS,
+            return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  REJECT_INVALID,
                                  "bad-txns-txouttotal-toolarge");
         }
@@ -53,9 +53,9 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     return true;
 }
 
-bool CheckCoinbase(const CTransaction &tx, CValidationState &state) {
+bool CheckCoinbase(const CTransaction &tx, TxValidationState &state) {
     if (!tx.IsCoinBase()) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-cb-missing", "first tx is not coinbase");
     }
 
@@ -66,16 +66,16 @@ bool CheckCoinbase(const CTransaction &tx, CValidationState &state) {
 
     if (tx.vin[0].scriptSig.size() < 2 ||
         tx.vin[0].scriptSig.size() > MAX_COINBASE_SCRIPTSIG_SIZE) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-cb-length");
     }
 
     return true;
 }
 
-bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state) {
+bool CheckRegularTransaction(const CTransaction &tx, TxValidationState &state) {
     if (tx.IsCoinBase()) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
                              "bad-tx-coinbase");
     }
 
@@ -87,7 +87,7 @@ bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state) {
     std::unordered_set<COutPoint, SaltedOutpointHasher> vInOutPoints;
     for (const auto &txin : tx.vin) {
         if (txin.prevout.IsNull()) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS,
+            return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  REJECT_INVALID, "bad-txns-prevout-null");
         }
 
@@ -98,7 +98,7 @@ bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state) {
         // will result in either a crash or an inflation bug, depending on the
         // implementation of the underlying coins database.
         if (!vInOutPoints.insert(txin.prevout).second) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS,
+            return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  REJECT_INVALID, "bad-txns-inputs-duplicate");
         }
     }

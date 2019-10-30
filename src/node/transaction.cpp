@@ -45,13 +45,13 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
 
         if (!g_mempool.exists(txid)) {
             // Transaction is not already in the mempool. Submit it.
-            CValidationState state;
+            TxValidationState state;
             if (!AcceptToMemoryPool(config, g_mempool, state, std::move(tx),
                                     false /* bypass_limits */, max_tx_fee)) {
                 err_string = FormatStateMessage(state);
                 if (state.IsInvalid()) {
-                    if (state.GetReason() ==
-                        ValidationInvalidReason::TX_MISSING_INPUTS) {
+                    if (state.GetResult() ==
+                        TxValidationResult::TX_MISSING_INPUTS) {
                         return TransactionError::MISSING_INPUTS;
                     }
                     return TransactionError::MEMPOOL_REJECTED;
