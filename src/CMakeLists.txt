@@ -15,6 +15,7 @@ option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
+option(BUILD_LIBBITCOINCONSENSUS "Build the bitcoinconsenus shared library" ON)
 option(ENABLE_HARDENING "Harden the executables" ON)
 option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
@@ -374,7 +375,6 @@ target_link_libraries(common util secp256k1)
 
 # script library
 add_library(script
-	script/bitcoinconsensus.cpp
 	script/bitfield.cpp
 	script/interpreter.cpp
 	script/ismine.cpp
@@ -398,6 +398,20 @@ add_library(bitcoinconsensus
 )
 
 target_link_libraries(bitcoinconsensus script)
+
+if(BUILD_LIBBITCOINCONSENSUS)
+	target_compile_definitions(bitcoinconsensus
+		PUBLIC
+			BUILD_BITCOIN_INTERNAL
+			HAVE_CONSENSUS_LIB
+	)
+
+	include(InstallationHelper)
+	install_shared_library(bitcoinconsensus
+		script/bitcoinconsensus.cpp
+		PUBLIC_HEADER script/bitcoinconsensus.h
+	)
+endif()
 
 # Bitcoin server facilities
 add_library(server
@@ -510,7 +524,6 @@ if(BUILD_BITCOIN_SEEDER)
 endif()
 
 include(BinaryTest)
-include(InstallationHelper)
 
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)
