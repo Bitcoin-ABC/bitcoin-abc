@@ -123,9 +123,9 @@ static bool multiUserAuthorized(std::string strUserPass) {
         static const unsigned int KEY_SIZE = 32;
         uint8_t out[KEY_SIZE];
 
-        CHMAC_SHA256(reinterpret_cast<const uint8_t *>(strSalt.c_str()),
+        CHMAC_SHA256(reinterpret_cast<const uint8_t *>(strSalt.data()),
                      strSalt.size())
-            .Write(reinterpret_cast<const uint8_t *>(strPass.c_str()),
+            .Write(reinterpret_cast<const uint8_t *>(strPass.data()),
                    strPass.size())
             .Finalize(out);
         std::vector<uint8_t> hexvec(out, out + KEY_SIZE);

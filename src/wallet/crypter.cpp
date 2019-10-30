@@ -24,7 +24,7 @@ int CCrypter::BytesToKeySHA512AES(const std::vector<uint8_t> &chSalt,
     uint8_t buf[CSHA512::OUTPUT_SIZE];
     CSHA512 di;
 
-    di.Write((const uint8_t *)strKeyData.c_str(), strKeyData.size());
+    di.Write((const uint8_t *)strKeyData.data(), strKeyData.size());
     di.Write(chSalt.data(), chSalt.size());
     di.Finalize(buf);
 

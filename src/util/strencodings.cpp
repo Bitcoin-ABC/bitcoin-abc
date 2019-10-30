@@ -149,7 +149,7 @@ std::string EncodeBase64(const uint8_t *pch, size_t len) {
 }
 
 std::string EncodeBase64(const std::string &str) {
-    return EncodeBase64((const uint8_t *)str.c_str(), str.size());
+    return EncodeBase64((const uint8_t *)str.data(), str.size());
 }
 
 std::vector<uint8_t> DecodeBase64(const char *p, bool *pf_invalid) {
@@ -221,7 +221,7 @@ std::string EncodeBase32(const uint8_t *pch, size_t len) {
 }
 
 std::string EncodeBase32(const std::string &str) {
-    return EncodeBase32((const uint8_t *)str.c_str(), str.size());
+    return EncodeBase32((const uint8_t *)str.data(), str.size());
 }
 
 std::vector<uint8_t> DecodeBase32(const char *p, bool *pf_invalid) {

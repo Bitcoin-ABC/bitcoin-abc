@@ -9,7 +9,7 @@
 
 CHKDF_HMAC_SHA256_L32::CHKDF_HMAC_SHA256_L32(const uint8_t *ikm, size_t ikmlen,
                                              const std::string &salt) {
-    CHMAC_SHA256((const uint8_t *)salt.c_str(), salt.size())
+    CHMAC_SHA256((const uint8_t *)salt.data(), salt.size())
         .Write(ikm, ikmlen)
         .Finalize(m_prk);
 }
