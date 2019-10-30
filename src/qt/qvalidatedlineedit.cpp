@@ -9,7 +9,8 @@
 
 QValidatedLineEdit::QValidatedLineEdit(QWidget *parent)
     : QLineEdit(parent), valid(true), checkValidator(0) {
-    connect(this, SIGNAL(textChanged(QString)), this, SLOT(markValid()));
+    connect(this, &QValidatedLineEdit::textChanged, this,
+            &QValidatedLineEdit::markValid);
 }
 
 void QValidatedLineEdit::setValid(bool _valid) {
