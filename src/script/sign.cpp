@@ -220,7 +220,7 @@ bool ProduceSignature(const SigningProvider &provider,
 bool SignPSBTInput(const SigningProvider &provider,
                    const CMutableTransaction &tx, PSBTInput &input,
                    SignatureData &sigdata, int index, SigHashType sighash) {
-    // if this input has a final scriptsig, don't do anything with it
+    // If this input has a final scriptsig, don't do anything with it.
     if (!input.final_script_sig.empty()) {
         return true;
     }

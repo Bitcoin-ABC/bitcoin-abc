@@ -210,8 +210,10 @@ struct PSBTInput {
 
     template <typename Stream> inline void Serialize(Stream &s) const {
         // Write the utxo
-        SerializeToVector(s, PSBT_IN_UTXO);
-        SerializeToVector(s, utxo);
+        if (!utxo.IsNull()) {
+            SerializeToVector(s, PSBT_IN_UTXO);
+            SerializeToVector(s, utxo);
+        }
 
         if (final_script_sig.empty()) {
             // Write any partial signatures
@@ -493,6 +495,7 @@ struct PartiallySignedTransaction {
         for (const PSBTInput &input : inputs) {
             s << input;
         }
+
         // Write outputs
         for (const PSBTOutput &output : outputs) {
             s << output;
