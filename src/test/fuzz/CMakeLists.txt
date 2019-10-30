@@ -47,6 +47,7 @@ endfunction()
 add_regular_fuzz_targets(
 	descriptor_parse
 	eval_script
+	parse_iso8601
 	script
 	script_flags
 	spanparsing

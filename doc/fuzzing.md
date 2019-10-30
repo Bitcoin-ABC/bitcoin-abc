@@ -79,7 +79,7 @@ will print an error and suggestion if so.
 
 ## libFuzzer
 
-A recent version of `clang`, the address sanitizer and libFuzzer is needed (all
+A recent version of `clang`, the address/undefined sanitizers (ASan/UBSan) and libFuzzer is needed (all
 found in the `compiler-rt` runtime libraries package).
 
 To build all fuzz targets with libFuzzer, run
@@ -91,7 +91,7 @@ cmake -GNinja .. \
   -DCCACHE=OFF \
   -DCMAKE_C_COMPILER=clang \
   -DCMAKE_CXX_COMPILER=clang++ \
-  -DENABLE_SANITIZERS="fuzzer;address"
+  -DENABLE_SANITIZERS="fuzzer;address;undefined"
 ninja bitcoin-fuzzers
 ```
 
