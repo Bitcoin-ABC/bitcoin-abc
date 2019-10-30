@@ -219,8 +219,8 @@ TransactionTableModel::TransactionTableModel(
                    walletModel->getOptionsModel()->getDisplayUnit());
     priv->refreshWallet(walletModel->wallet());
 
-    connect(walletModel->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
-            this, SLOT(updateDisplayUnit()));
+    connect(walletModel->getOptionsModel(), &OptionsModel::displayUnitChanged,
+            this, &TransactionTableModel::updateDisplayUnit);
 
     subscribeToCoreSignals();
 }
