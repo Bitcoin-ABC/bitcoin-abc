@@ -311,7 +311,7 @@ struct PSBTOutput {
  * A version of CTransaction with the PSBT format.
  */
 struct PartiallySignedTransaction {
-    boost::optional<CMutableTransaction> tx;
+    Optional<CMutableTransaction> tx;
     std::vector<PSBTInput> inputs;
     std::vector<PSBTOutput> outputs;
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> unknown;
