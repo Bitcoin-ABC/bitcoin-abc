@@ -355,10 +355,10 @@ PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
             QMessageBox::critical(0, tr("Payment request error"),
                                   tr("Cannot start click-to-pay handler"));
         } else {
-            connect(uriServer, SIGNAL(newConnection()), this,
-                    SLOT(handleURIConnection()));
-            connect(this, SIGNAL(receivedPaymentACK(QString)), this,
-                    SLOT(handlePaymentACK(QString)));
+            connect(uriServer, &QLocalServer::newConnection, this,
+                    &PaymentServer::handleURIConnection);
+            connect(this, &PaymentServer::receivedPaymentACK, this,
+                    &PaymentServer::handlePaymentACK);
         }
     }
 }
@@ -411,11 +411,10 @@ void PaymentServer::initNetManager() {
             << "PaymentServer::initNetManager: No active proxy server found.";
     }
 
-    connect(netManager, SIGNAL(finished(QNetworkReply *)), this,
-            SLOT(netRequestFinished(QNetworkReply *)));
-    connect(netManager,
-            SIGNAL(sslErrors(QNetworkReply *, const QList<QSslError> &)), this,
-            SLOT(reportSslErrors(QNetworkReply *, const QList<QSslError> &)));
+    connect(netManager, &QNetworkAccessManager::finished, this,
+            &PaymentServer::netRequestFinished);
+    connect(netManager, &QNetworkAccessManager::sslErrors, this,
+            &PaymentServer::reportSslErrors);
 }
 
 void PaymentServer::uiReady() {
@@ -516,8 +515,8 @@ void PaymentServer::handleURIConnection() {
         clientConnection->waitForReadyRead();
     }
 
-    connect(clientConnection, SIGNAL(disconnected()), clientConnection,
-            SLOT(deleteLater()));
+    connect(clientConnection, &QLocalSocket::disconnected, clientConnection,
+            &QLocalSocket::deleteLater);
 
     QDataStream in(clientConnection);
     in.setVersion(QDataStream::Qt_4_0);
