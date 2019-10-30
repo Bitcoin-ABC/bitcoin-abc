@@ -365,8 +365,5 @@ Utilities for manipulating transaction scripts (originally from python-bitcoinli
 #### [test_framework/key.py](/test/functional/test_framework/key.py)
 Test-only secp256k1 elliptic curve implementation
 
-#### [test_framework/bignum.py](/test/functional/test_framework/bignum.py)
-Helpers for script.py
-
 #### [test_framework/blocktools.py](/test/functional/test_framework/blocktools.py)
 Helper functions for creating blocks and transactions.

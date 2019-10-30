@@ -7,7 +7,6 @@
 This file is modified from python-bitcoinlib.
 """
 
-from .bignum import bn2vch
 import hashlib
 import struct
 
@@ -23,12 +22,23 @@ from .messages import (
 
 
 MAX_SCRIPT_ELEMENT_SIZE = 520
-
 OPCODE_NAMES = {}
 
 
 def hash160(s):
     return hashlib.new('ripemd160', sha256(s)).digest()
+
+
+def bn2vch(v):
+    """Convert number to bitcoin-specific little endian format."""
+    # We need v.bit_length() bits, plus a sign bit for every nonzero number.
+    n_bits = v.bit_length() + (v != 0)
+    # The number of bytes for that is:
+    n_bytes = (n_bits + 7) // 8
+    # Convert number to absolute value + sign in top bit.
+    encoded_v = 0 if v == 0 else abs(v) | ((v < 0) << (n_bytes * 8 - 1))
+    # Serialize to bytes
+    return encoded_v.to_bytes(n_bytes, 'little')
 
 
 _opcode_instances = []
@@ -48,9 +58,11 @@ class CScriptOp(int):
             # OP_PUSHDATA1
             return b'\x4c' + bytes([len(d)]) + d
         elif len(d) <= 0xffff:
-            return b'\x4d' + struct.pack(b'<H', len(d)) + d  # OP_PUSHDATA2
+            # OP_PUSHDATA2
+            return b'\x4d' + struct.pack(b'<H', len(d)) + d
         elif len(d) <= 0xffffffff:
-            return b'\x4e' + struct.pack(b'<I', len(d)) + d  # OP_PUSHDATA4
+            # OP_PUSHDATA4
+            return b'\x4e' + struct.pack(b'<I', len(d)) + d
         else:
             raise ValueError("Data too long to encode in a PUSHDATA op")
 
