@@ -17,6 +17,7 @@ packages:
 - "bsdmainutils"
 - "build-essential"
 - "ca-certificates"
+- "cmake"
 - "curl"
 - "faketime"
 - "g++-aarch64-linux-gnu"
@@ -28,8 +29,15 @@ packages:
 - "lib32stdc++-8-dev"
 - "libc6-dev:i386"
 - "libtool"
+- "ninja-build"
 - "pkg-config"
 - "python3"
+# FIXME: these dependencies are only required to make CMake happy when building
+# native tools. They can be removed when the `NativeExecutable.cmake` gets
+# improved to avoid requiring all the bitcoin-abc dependencies.
+- "libboost-all-dev"
+- "libevent-dev"
+- "libssl-dev"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
@@ -38,7 +46,18 @@ script: |
 
   WRAP_DIR=$HOME/wrapped
   HOSTS="i686-pc-linux-gnu x86_64-linux-gnu arm-linux-gnueabihf aarch64-linux-gnu"
-  CONFIGFLAGS="--enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests"
+
+  # CMake toolchain file name differ from host name
+  declare -A CMAKE_TOOLCHAIN_FILE
+  CMAKE_TOOLCHAIN_FILE[i686-pc-linux-gnu]=Linux32.cmake
+  CMAKE_TOOLCHAIN_FILE[x86_64-linux-gnu]=Linux64.cmake
+  CMAKE_TOOLCHAIN_FILE[arm-linux-gnueabihf]=LinuxARM.cmake
+  CMAKE_TOOLCHAIN_FILE[aarch64-linux-gnu]=LinuxAArch64.cmake
+
+  # Allow extra cmake option to be specified for each host
+  declare -A CMAKE_EXTRA_OPTIONS
+  CMAKE_EXTRA_OPTIONS[aarch64-linux-gnu]="-DBUILD_BITCOIN_QT=OFF"
+
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="date ar ranlib nm"
   HOST_CFLAGS="-O2 -g"
@@ -89,6 +108,7 @@ script: |
   export PATH=${WRAP_DIR}:${PATH}
 
   cd bitcoin
+  SOURCEDIR=`pwd`
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -101,11 +121,23 @@ script: |
   create_per-host_faketime_wrappers "${REFERENCE_DATETIME}"
   export PATH=${WRAP_DIR}:${PATH}
 
-  # Create the release tarball using (arbitrarily) the first host
-  ./autogen.sh
-  CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
-  make dist
+  mkdir -p source_package
+  pushd source_package
+  cmake -GNinja .. \
+    -DBUILD_BITCOIN_WALLET=OFF \
+    -DBUILD_BITCOIN_ZMQ=OFF \
+    -DBUILD_BITCOIN_SEEDER=OFF \
+    -DBUILD_BITCOIN_CLI=OFF \
+    -DBUILD_BITCOIN_TX=OFF \
+    -DBUILD_BITCOIN_QT=OFF \
+    -DBUILD_LIBBITCOINCONSENSUS=OFF \
+    -DENABLE_QRCODE=OFF \
+    -DENABLE_UPNP=OFF
+
+  ninja package_source
   SOURCEDIST=`echo bitcoin-abc-*.tar.gz`
+  mv ${SOURCEDIST} ..
+  popd
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
   # Correct tar file order
   mkdir -p temp
@@ -124,15 +156,22 @@ script: |
     mkdir -p ${INSTALLPATH}
     tar --strip-components=1 -xf ../$SOURCEDIST
 
-    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}" LDFLAGS="${HOST_LDFLAGS}"
-    make ${MAKEOPTS}
-    make ${MAKEOPTS} -C src check-security
-    make ${MAKEOPTS} -C src check-symbols
-    make install DESTDIR=${INSTALLPATH}
+    cmake -GNinja .. \
+      -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
+      -DCLIENT_VERSION_IS_RELEASE=ON \
+      -DENABLE_REDUCE_EXPORTS=ON \
+      -DENABLE_STATIC_LIBSTDCXX=ON \
+      -DENABLE_GLIBC_BACK_COMPAT=ON \
+      -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
+      -DCCACHE=OFF \
+      ${CMAKE_EXTRA_OPTIONS[${i}]}
+
+    ninja
+    ninja check-security
+    ninja check-symbols
+    ninja install
+
     cd installed
-    find . -name "lib*.la" -delete
-    find . -name "lib*.a" -delete
-    rm -rf ${DISTNAME}/lib/pkgconfig
     find ${DISTNAME}/bin -type f -executable -exec ../contrib/devtools/split-debug.sh {} {} {}.dbg \;
     find ${DISTNAME}/lib -type f -exec ../contrib/devtools/split-debug.sh {} {} {}.dbg \;
     find ${DISTNAME} -not -name "*.dbg" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
