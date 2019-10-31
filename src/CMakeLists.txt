@@ -399,6 +399,7 @@ add_library(bitcoinconsensus
 
 target_link_libraries(bitcoinconsensus script)
 
+include(InstallationHelper)
 if(BUILD_LIBBITCOINCONSENSUS)
 	target_compile_definitions(bitcoinconsensus
 		PUBLIC
@@ -406,7 +407,6 @@ if(BUILD_LIBBITCOINCONSENSUS)
 			HAVE_CONSENSUS_LIB
 	)
 
-	include(InstallationHelper)
 	install_shared_library(bitcoinconsensus
 		script/bitcoinconsensus.cpp
 		PUBLIC_HEADER script/bitcoinconsensus.h
