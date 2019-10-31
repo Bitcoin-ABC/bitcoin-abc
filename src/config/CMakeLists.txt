@@ -170,6 +170,29 @@ check_cxx_source_compiles("
     }
 " HAVE_FUNC_ATTRIBUTE_DLLEXPORT)
 
+#__fdelt_chk's params and return type have changed from long unsigned int to
+# long int. See which one is present here.
+include(CheckPrototypeDefinition)
+
+set(CMAKE_REQUIRED_DEFINITIONS -D_FORTIFY_SOURCE=2)
+# Without some optimization the compiler won't detect the prototype conflict
+# and always succeed to build.
+set(CMAKE_REQUIRED_FLAGS -O2)
+
+check_prototype_definition(
+	__fdelt_warn
+	"extern long unsigned int __fdelt_warn(long unsigned int a)"
+	"0"
+	"sys/select.h"
+	FDELT_PROTOTYPE_LONG_UNSIGNED_INT
+)
+
+if(FDELT_PROTOTYPE_LONG_UNSIGNED_INT)
+	set(FDELT_TYPE "long unsigned int")
+else()
+	set(FDELT_TYPE "long int")
+endif()
+
 # OpenSSL functionality
 set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_CRYPTO_INCLUDES})
 set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})

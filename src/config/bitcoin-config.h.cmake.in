@@ -60,6 +60,8 @@
 
 #cmakedefine HAVE_DECL_EVP_MD_CTX_NEW 1
 
+#define FDELT_TYPE ${FDELT_TYPE}
+
 #cmakedefine ENABLE_WALLET 1
 #cmakedefine ENABLE_ZMQ 1
 

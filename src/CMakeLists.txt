@@ -268,31 +268,6 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 	find_library(RT_LIBRARY rt)
 	target_link_libraries(util ${RT_LIBRARY})
 
-	#__fdelt_chk's params and return type have changed from long unsigned int to
-	# long int. See which one is present here.
-	include(CheckPrototypeDefinition)
-
-	set(CMAKE_REQUIRED_DEFINITIONS -D_FORTIFY_SOURCE=2)
-	# Without some optimization the compiler won't detect the prototype conflict
-	# and always succeed to build.
-	set(CMAKE_REQUIRED_FLAGS -O2)
-
-	check_prototype_definition(
-		__fdelt_warn
-		"extern long unsigned int __fdelt_warn(long unsigned int a)"
-		"0"
-		"sys/select.h"
-		FDELT_PROTOTYPE_LONG_UNSIGNED_INT
-	)
-
-	if(FDELT_PROTOTYPE_LONG_UNSIGNED_INT)
-		set(FDELT_TYPE "long unsigned int")
-	else()
-		set(FDELT_TYPE "long int")
-	endif()
-
-	target_compile_definitions(util PRIVATE "-DFDELT_TYPE=${FDELT_TYPE}")
-
 	# Wrap some glibc functions with ours
 	add_linker_flags(-Wl,--wrap=__divmoddi4)
 	add_linker_flags(-Wl,--wrap=log2f)
