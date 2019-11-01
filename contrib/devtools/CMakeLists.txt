@@ -1,5 +1,28 @@
 # Copyright (c) 2019 The Bitcoin developers
 
+set(SPLIT_DEBUG_SCRIPT_TMP "tmp/split-debug.sh")
+configure_file(
+	"split-debug.sh.cmake.in"
+	"${SPLIT_DEBUG_SCRIPT_TMP}"
+)
+
+# Make the script executable by copying to the current build directory
+file(COPY
+	"${CMAKE_CURRENT_BINARY_DIR}/${SPLIT_DEBUG_SCRIPT_TMP}"
+	DESTINATION
+		"${CMAKE_CURRENT_BINARY_DIR}"
+	FILE_PERMISSIONS
+		OWNER_READ
+		OWNER_WRITE
+		OWNER_EXECUTE
+		GROUP_READ
+		GROUP_WRITE
+		GROUP_EXECUTE
+		WORLD_READ
+		WORLD_WRITE
+		WORLD_EXECUTE
+)
+
 add_custom_target(check-devtools)
 
 set(DEVTOOLS_TESTS_PYTHON
