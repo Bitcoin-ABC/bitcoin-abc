@@ -50,6 +50,7 @@ add_executable(bitcoin-bench
 	gcs_filter.cpp
 	lockedpool.cpp
 	mempool_eviction.cpp
+	mempool_stress.cpp
 	merkle_root.cpp
 	prevector.cpp
 	rollingbloom.cpp
