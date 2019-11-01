@@ -1,0 +1,25 @@
+# Copyright (c) 2019 The Bitcoin developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+bin_PROGRAMS += seeder/test/test_bitcoin-seeder
+TESTS += seeder/test/test_bitcoin-seeder
+
+seeder_test_test_bitcoin_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES) \
+  $(SEEDER_INCLUDES) $(SEEDER_TEST_INCLUDES) $(TESTDEFS)
+
+seeder_test_test_bitcoin_seeder_SOURCES = \
+  seeder/test/seeder_tests.cpp
+
+seeder_test_test_bitcoin_seeder_LDADD = $(LIBBITCOIN_SEEDER)
+seeder_test_test_bitcoin_seeder_LDADD += $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
+seeder_test_test_bitcoin_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+seeder_test_test_bitcoin_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+
+test_bitcoin_seeder : seeder/test/test_bitcoin-seeder$(EXEEXT)
+
+test_bitcoin_seeder_check : seeder/test/test_bitcoin-seeder$(EXEEXT) FORCE
+	$(MAKE) check-TESTS TESTS=$^
+
+test_bitcoin_seeder_clean: FORCE
+	rm -f $(seeder_test_test_bitcoin_seeder_OBJECTS)

@@ -691,3 +691,7 @@ endif
 if ENABLE_QT_TESTS
 include Makefile.qttest.include
 endif
+
+if BUILD_BITCOIN_SEEDER
+include Makefile.seedertest.include
+endif
