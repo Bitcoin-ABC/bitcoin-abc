@@ -35,6 +35,12 @@ pushd buildautotools
   $AUTOTOOLS_EXTRA_FLAGS \
   $USE_HOST
 
+print_logs() {
+  cat tests.log || :
+  cat exhaustive_tests.log || :
+}
+trap 'print_logs' ERR
+
 make -j2 $AUTOTOOLS_TARGET
 
 popd
