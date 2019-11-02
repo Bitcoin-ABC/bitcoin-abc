@@ -4,7 +4,6 @@
 
 #include <util/system.h>
 #include <util/time.h>
-#include <validation.h>
 
 #include <atomic>
 #include <checkqueue.h>
@@ -19,11 +18,10 @@
 #include <memory>
 #include <unordered_set>
 
-// BasicTestingSetup not sufficient because nScriptCheckThreads is not set
-// otherwise.
 BOOST_FIXTURE_TEST_SUITE(checkqueue_tests, TestingSetup)
 
 static const unsigned int QUEUE_BATCH_SIZE = 128;
+static const int SCRIPT_CHECK_THREADS = 3;
 
 struct FakeCheck {
     bool operator()() { return true; }
@@ -128,7 +126,7 @@ typedef CCheckQueue<FrozenCleanupCheck> FrozenCleanup_Queue;
 static void Correct_Queue_range(std::vector<size_t> range) {
     auto small_queue = std::make_unique<Correct_Queue>(QUEUE_BATCH_SIZE);
     boost::thread_group tg;
-    for (auto x = 0; x < nScriptCheckThreads; ++x) {
+    for (auto x = 0; x < SCRIPT_CHECK_THREADS; ++x) {
         tg.create_thread([&] { small_queue->Thread(); });
     }
     // Make vChecks here to save on malloc (this test can be slow...)
@@ -190,7 +188,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Catches_Failure) {
     auto fail_queue = std::make_unique<Failing_Queue>(QUEUE_BATCH_SIZE);
 
     boost::thread_group tg;
-    for (auto x = 0; x < nScriptCheckThreads; ++x) {
+    for (auto x = 0; x < SCRIPT_CHECK_THREADS; ++x) {
         tg.create_thread([&] { fail_queue->Thread(); });
     }
 
@@ -222,7 +220,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Catches_Failure) {
 BOOST_AUTO_TEST_CASE(test_CheckQueue_Recovers_From_Failure) {
     auto fail_queue = std::make_unique<Failing_Queue>(QUEUE_BATCH_SIZE);
     boost::thread_group tg;
-    for (auto x = 0; x < nScriptCheckThreads; ++x) {
+    for (auto x = 0; x < SCRIPT_CHECK_THREADS; ++x) {
         tg.create_thread([&] { fail_queue->Thread(); });
     }
 
@@ -249,7 +247,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Recovers_From_Failure) {
 BOOST_AUTO_TEST_CASE(test_CheckQueue_UniqueCheck) {
     auto queue = std::make_unique<Unique_Queue>(QUEUE_BATCH_SIZE);
     boost::thread_group tg;
-    for (auto x = 0; x < nScriptCheckThreads; ++x) {
+    for (auto x = 0; x < SCRIPT_CHECK_THREADS; ++x) {
         tg.create_thread([&] { queue->Thread(); });
     }
 
@@ -285,7 +283,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_UniqueCheck) {
 BOOST_AUTO_TEST_CASE(test_CheckQueue_Memory) {
     auto queue = std::make_unique<Memory_Queue>(QUEUE_BATCH_SIZE);
     boost::thread_group tg;
-    for (auto x = 0; x < nScriptCheckThreads; ++x) {
+    for (auto x = 0; x < SCRIPT_CHECK_THREADS; ++x) {
         tg.create_thread([&] { queue->Thread(); });
     }
     for (size_t i = 0; i < 1000; ++i) {
@@ -317,7 +315,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_FrozenCleanup) {
     auto queue = std::make_unique<FrozenCleanup_Queue>(QUEUE_BATCH_SIZE);
     boost::thread_group tg;
     bool fails = false;
-    for (auto x = 0; x < nScriptCheckThreads; ++x) {
+    for (auto x = 0; x < SCRIPT_CHECK_THREADS; ++x) {
         tg.create_thread([&] { queue->Thread(); });
     }
     std::thread t0([&]() {
