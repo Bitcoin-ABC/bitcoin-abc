@@ -906,7 +906,9 @@ public:
     // Whether this or any UTXO with the same CTxDestination has been spent.
     bool IsUsedDestination(const CTxDestination &dst) const;
     bool IsUsedDestination(const TxId &txid, unsigned int n) const;
-    void SetUsedDestinationState(const TxId &hash, unsigned int n, bool used);
+    void SetUsedDestinationState(WalletBatch &batch, const TxId &txid,
+                                 unsigned int n, bool used)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     std::vector<OutputGroup> GroupOutputs(const std::vector<COutput> &outputs,
                                           bool single_coin) const;
@@ -945,11 +947,12 @@ public:
     }
 
     //! Adds a destination data tuple to the store, and saves it to disk
-    bool AddDestData(const CTxDestination &dest, const std::string &key,
-                     const std::string &value)
+    bool AddDestData(WalletBatch &batch, const CTxDestination &dest,
+                     const std::string &key, const std::string &value)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     //! Erases a destination data tuple in the store and on disk
-    bool EraseDestData(const CTxDestination &dest, const std::string &key)
+    bool EraseDestData(WalletBatch &batch, const CTxDestination &dest,
+                       const std::string &key)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     //! Adds a destination data tuple to the store, without saving it to disk
     void LoadDestData(const CTxDestination &dest, const std::string &key,
