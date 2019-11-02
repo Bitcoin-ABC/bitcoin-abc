@@ -30,6 +30,12 @@ packages:
 - "python3"
 - "python3-dev"
 - "python3-setuptools"
+# FIXME: these dependencies are only required to make CMake happy when building
+# native tools. They can be removed when the `NativeExecutable.cmake` gets
+# improved to avoid requiring all the bitcoin-abc dependencies.
+- "libboost-all-dev"
+- "libevent-dev"
+- "libssl-dev"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
@@ -38,7 +44,11 @@ files:
 script: |
   WRAP_DIR=$HOME/wrapped
   HOSTS="x86_64-apple-darwin14"
-  CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests GENISOIMAGE=$WRAP_DIR/genisoimage"
+
+  # CMake toolchain file name differ from host name
+  declare -A CMAKE_TOOLCHAIN_FILE
+  CMAKE_TOOLCHAIN_FILE[x86_64-apple-darwin14]=OSX.cmake
+
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="ar ranlib date dmg genisoimage"
 
@@ -88,6 +98,7 @@ script: |
   export PATH=${WRAP_DIR}:${PATH}
 
   cd bitcoin
+  SOURCEDIR=`pwd`
   BASEPREFIX=`pwd`/depends
 
   mkdir -p ${BASEPREFIX}/SDKs
@@ -104,11 +115,23 @@ script: |
   create_per-host_faketime_wrappers "${REFERENCE_DATETIME}"
   export PATH=${WRAP_DIR}:${PATH}
 
-  # Create the release tarball using (arbitrarily) the first host
-  ./autogen.sh
-  CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
-  make dist
+  mkdir -p source_package
+  pushd source_package
+  cmake -GNinja .. \
+    -DBUILD_BITCOIN_WALLET=OFF \
+    -DBUILD_BITCOIN_ZMQ=OFF \
+    -DBUILD_BITCOIN_ZMQ=OFF \
+    -DBUILD_BITCOIN_SEEDER=OFF \
+    -DBUILD_BITCOIN_CLI=OFF \
+    -DBUILD_BITCOIN_TX=OFF \
+    -DBUILD_BITCOIN_QT=OFF \
+    -DBUILD_LIBBITCOINCONSENSUS=OFF \
+    -DENABLE_QRCODE=OFF \
+    -DENABLE_UPNP=OFF
+  ninja package_source
   SOURCEDIST=`echo bitcoin-abc-*.tar.gz`
+  mv ${SOURCEDIST} ..
+  popd
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
 
   # Correct tar file order
@@ -128,12 +151,20 @@ script: |
     mkdir -p ${INSTALLPATH}
     tar --strip-components=1 -xf ../$SOURCEDIST
 
-    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS}
-    make ${MAKEOPTS}
-    make install-strip DESTDIR=${INSTALLPATH}
+    cmake -GNinja .. \
+      -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
+      -DCLIENT_VERSION_IS_RELEASE=ON \
+      -DENABLE_REDUCE_EXPORTS=ON \
+      -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
+      -DCCACHE=OFF \
+      -DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage"
 
-    make osx_volname
-    make deploydir
+    ninja
+    ninja install
+
+    export PYTHONPATH="${BASEPREFIX}/${i}/native/lib/python3/dist-packages:${PYTHONPATH}"
+    ninja osx-deploydir
+
     OSX_VOLNAME="$(cat osx_volname)"
     mkdir -p unsigned-app-${i}
     cp osx_volname unsigned-app-${i}/
@@ -147,14 +178,19 @@ script: |
     find . | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-osx-unsigned.tar.gz
     popd
 
-    make deploy
+    ninja osx-dmg
     ${WRAP_DIR}/dmg dmg "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
 
     cd installed
-    find . -name "lib*.la" -delete
-    find . -name "lib*.a" -delete
-    rm -rf ${DISTNAME}/lib/pkgconfig
-    find ${DISTNAME} | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
+    # The install/strip target should do exactly that. However there is a bug in
+    # in the Buster CMake version that causes strip to be called with the wrong
+    # parameters when an Apple strip tool is used. This is fixed starting with
+    # CMake versions >= 3.14, see:
+    # https://gitlab.kitware.com/cmake/cmake/merge_requests/2892
+    find -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;
+    find ${DISTNAME}/bin -type f -executable -exec ${i}-strip -u -r {} \;
+    find ${DISTNAME}/lib -type f -executable -exec ${i}-strip -x {} \;
+    find ${DISTNAME} -not -path "*.app*" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
     cd ../../
   done
   mkdir -p $OUTDIR/src
