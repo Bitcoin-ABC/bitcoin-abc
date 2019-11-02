@@ -124,8 +124,8 @@ TestingSetup::TestingSetup(const std::string &chainName)
                                                FormatStateMessage(state)));
         }
     }
-    nScriptCheckThreads = 3;
-    for (int i = 0; i < nScriptCheckThreads - 1; i++) {
+    constexpr int script_check_threads = 2;
+    for (int i = 0; i < script_check_threads; ++i) {
         threadGroup.create_thread([i]() { return ThreadScriptCheck(i); });
     }
 
