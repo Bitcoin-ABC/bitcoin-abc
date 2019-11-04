@@ -621,7 +621,7 @@ static UniValue getblocktemplate(const Config &config,
         pindexPrev = pindexPrevNew;
     }
 
-    assert(pindexPrev);
+    CHECK_NONFATAL(pindexPrev);
     // pointer for convenience
     CBlock *pblock = &pblocktemplate->block;
 

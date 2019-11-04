@@ -234,6 +234,14 @@
         "yamllint": {
             "type": "yamllint",
             "include": "(\\.(yml|yaml)$)"
+        },
+        "lint-check-nonfatal": {
+            "type": "lint-check-nonfatal",
+            "include": [
+                "(^src/rpc/.*\\.(h|c|cpp)$)",
+                "(^src/wallet/rpc*.*\\.(h|c|cpp)$)"
+            ],
+            "exclude": "(^src/rpc/server.cpp)"
         }
     }
 }

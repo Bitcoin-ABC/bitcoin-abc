@@ -193,7 +193,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
         }
 
         CPubKey pubkey = key.GetPubKey();
-        assert(key.VerifyPubKey(pubkey));
+        CHECK_NONFATAL(key.VerifyPubKey(pubkey));
         CKeyID vchAddress = pubkey.GetID();
         {
             pwallet->MarkDirty();
@@ -768,7 +768,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             std::string label = std::get<3>(key_tuple);
 
             CPubKey pubkey = key.GetPubKey();
-            assert(key.VerifyPubKey(pubkey));
+            CHECK_NONFATAL(key.VerifyPubKey(pubkey));
             CKeyID keyid = pubkey.GetID();
 
             pwallet->WalletLogPrintf("Importing %s...\n",
@@ -1081,7 +1081,7 @@ static std::string RecurseImportData(const CScript &script,
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    "Trying to nest P2SH inside another P2SH");
             }
-            assert(script_ctx == ScriptContext::TOP);
+            CHECK_NONFATAL(script_ctx == ScriptContext::TOP);
             CScriptID id = CScriptID(uint160(solverdata[0]));
             // Remove redeemscript from import_data to check for superfluous
             // script later.

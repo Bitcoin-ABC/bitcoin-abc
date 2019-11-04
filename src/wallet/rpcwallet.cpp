@@ -157,7 +157,7 @@ static void WalletTxToJSON(interfaces::Chain &chain,
         int64_t block_time;
         bool found_block = chain.findBlock(wtx.m_confirm.hashBlock,
                                            nullptr /* block */, &block_time);
-        assert(found_block);
+        CHECK_NONFATAL(found_block);
         entry.pushKV("blocktime", block_time);
     } else {
         entry.pushKV("trusted", wtx.IsTrusted(locked_chain));
@@ -4304,7 +4304,7 @@ UniValue getaddressesbylabel(const Config &config,
             // address strings, but build a separate set as a precaution just in
             // case it does.
             bool unique = addresses.emplace(address).second;
-            assert(unique);
+            CHECK_NONFATAL(unique);
             // UniValue::pushKV checks if the key exists in O(N)
             // and since duplicate addresses are unexpected (checked with
             // std::set in O(log(N))), UniValue::__pushKV is used instead,
