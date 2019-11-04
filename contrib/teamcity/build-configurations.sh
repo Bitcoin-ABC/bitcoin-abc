@@ -4,7 +4,7 @@ export LC_ALL=C.UTF-8
 
 set -euxo pipefail
 
-: ${ABC_BUILD_NAME:=""}
+: "${ABC_BUILD_NAME:=""}"
 if [ -z "$ABC_BUILD_NAME" ]; then
   echo "Error: Environment variable ABC_BUILD_NAME must be set"
   exit 1
