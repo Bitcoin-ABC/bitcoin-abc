@@ -151,7 +151,7 @@ def main():
                                      description=__doc__,
                                      epilog='''
     Help text and arguments for individual test script:''',
-                                     formatter_class=argparse.RawTextHelpFormatter)
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--combinedlogslen', '-c', type=int, default=0,
                         help='print a combined log (of length n lines) from all test nodes and test framework to the console on failure.')
     parser.add_argument('--coverage', action='store_true',
@@ -167,7 +167,7 @@ def main():
     parser.add_argument('--help', '-h', '-?',
                         action='store_true', help='print help text and exit')
     parser.add_argument('--jobs', '-j', type=int, default=DEFAULT_JOBS,
-                        help='how many test scripts to run in parallel. Default=4.')
+                        help='how many test scripts to run in parallel.')
     parser.add_argument('--keepcache', '-k', action='store_true',
                         help='the default behavior is to flush the cache directory on startup. --keepcache retains the cache from the previous testrun.')
     parser.add_argument('--quiet', '-q', action='store_true',
