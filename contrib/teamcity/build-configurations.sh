@@ -76,13 +76,13 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-default)
-    # Build, run unit tests and functional tests (with extended cutoff if this is the master branch).
+    # Build, run unit tests and functional tests (all extended tests if this is the master branch).
     "${CI_SCRIPTS_DIR}"/build.sh
     make -j "${THREADS}" check
 
     BRANCH=$(git rev-parse --abbrev-ref HEAD)
     if [[ "${BRANCH}" == "master" ]]; then
-      TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --cutoff=600"
+      TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --extended"
     fi
     ./test/functional/test_runner.py -J=junit_results_default.xml ${TEST_RUNNER_FLAGS}
     ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-gravitonactivation ${TEST_RUNNER_FLAGS}
