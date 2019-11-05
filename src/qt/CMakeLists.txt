@@ -490,6 +490,46 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"${DMG_DSSTORE}"
 			"${BACKGROUND_DIST_TIFF}"
 	)
+
+	if(CMAKE_CROSSCOMPILING)
+		find_program_or_fail(GENISOIMAGE_EXECUTABLE genisoimage)
+
+		add_custom_target(osx-dmg
+			COMMAND
+				"${GENISOIMAGE_EXECUTABLE}"
+				-no-cache-inodes
+				-D
+				-l
+				-probe
+				-V "${OSX_VOLNAME}"
+				-no-pad
+				-r
+				-dir-mode 0755
+				-apple
+				-o "${OSX_VOLNAME}.dmg"
+				"${DMG_DIST}"
+			WORKING_DIRECTORY
+				"${CMAKE_BINARY_DIR}"
+		)
+		add_dependencies(osx-dmg osx-deploydir)
+	else()
+		add_custom_target(osx-dmg
+			COMMAND
+				"${PYTHON_EXECUTABLE}"
+				"${MACDEPLOYQTPLUS}"
+				"$<TARGET_BUNDLE_DIR:BitcoinABC-Qt>"
+				-translations-dir "${QT_TRANSLATION_DIR}"
+				-add-qt-tr "${QT_LOCALES}"
+				-dmg
+				-fancy "${MACDEPLOY_DIR}/fancy.plist"
+				-volname "${OSX_VOLNAME}"
+			WORKING_DIRECTORY
+				"${CMAKE_BINARY_DIR}"
+			DEPENDS
+				"${BACKGROUND_TIFF_MULTIRES}"
+		)
+		add_dependencies(osx-dmg BitcoinABC-Qt)
+	endif()
 endif()
 
 # Test tests
