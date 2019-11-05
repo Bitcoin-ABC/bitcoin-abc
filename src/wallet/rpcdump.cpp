@@ -94,15 +94,6 @@ static void RescanWallet(CWallet &wallet, const WalletRescanReserver &reserver,
     }
 }
 
-static LegacyScriptPubKeyMan &GetLegacyScriptPubKeyMan(CWallet &wallet) {
-    LegacyScriptPubKeyMan *spk_man = wallet.GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
-    return *spk_man;
-}
-
 UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet *const pwallet = wallet.get();
@@ -151,7 +142,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
                            "private keys disabled");
     }
 
-    GetLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet);
 
     WalletRescanReserver reserver(pwallet);
     bool fRescan = true;
@@ -298,7 +289,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    GetLegacyScriptPubKeyMan(*pwallet);
+    EnsureLegacyScriptPubKeyMan(*pwallet);
 
     std::string strLabel;
     if (!request.params[1].isNull()) {
@@ -552,7 +543,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    GetLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet);
 
     std::string strLabel;
     if (!request.params[1].isNull()) {
@@ -648,7 +639,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    GetLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet);
 
     if (pwallet->chain().havePruned()) {
         // Exit early and print an error.
@@ -848,7 +839,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan &spk_man = GetLegacyScriptPubKeyMan(*wallet);
+    LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*wallet);
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
@@ -905,7 +896,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan &spk_man = GetLegacyScriptPubKeyMan(*wallet);
+    LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*wallet);
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
@@ -1691,7 +1682,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 
     RPCTypeCheck(mainRequest.params, {UniValue::VARR, UniValue::VOBJ});
 
-    GetLegacyScriptPubKeyMan(*wallet);
+    EnsureLegacyScriptPubKeyMan(*wallet);
 
     const UniValue &requests = mainRequest.params[0];
 

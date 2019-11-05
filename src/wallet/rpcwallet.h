@@ -16,6 +16,7 @@ class CRPCTable;
 class CTransaction;
 class CWallet;
 class JSONRPCRequest;
+class LegacyScriptPubKeyMan;
 struct PartiallySignedTransaction;
 class UniValue;
 
@@ -46,6 +47,7 @@ GetWalletForJSONRPCRequest(const JSONRPCRequest &request);
 std::string HelpRequiringPassphrase(const CWallet *);
 void EnsureWalletIsUnlocked(const CWallet *);
 bool EnsureWalletIsAvailable(const CWallet *, bool avoidException);
+LegacyScriptPubKeyMan &EnsureLegacyScriptPubKeyMan(CWallet &wallet);
 
 UniValue signrawtransactionwithwallet(const Config &config,
                                       const JSONRPCRequest &request);

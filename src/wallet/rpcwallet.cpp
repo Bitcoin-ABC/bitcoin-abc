@@ -143,6 +143,15 @@ void EnsureWalletIsUnlocked(const CWallet *pwallet) {
     }
 }
 
+LegacyScriptPubKeyMan &EnsureLegacyScriptPubKeyMan(CWallet &wallet) {
+    LegacyScriptPubKeyMan *spk_man = wallet.GetLegacyScriptPubKeyMan();
+    if (!spk_man) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           "This type of wallet does not support this command");
+    }
+    return *spk_man;
+}
+
 static void WalletTxToJSON(interfaces::Chain &chain,
                            interfaces::Chain::Lock &locked_chain,
                            const CWalletTx &wtx, UniValue &entry) {
@@ -1115,11 +1124,7 @@ static UniValue addmultisigaddress(const Config &config,
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*pwallet);
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
@@ -1140,7 +1145,7 @@ static UniValue addmultisigaddress(const Config &config,
              keys_or_addrs[i].get_str().length() == 130)) {
             pubkeys.push_back(HexToPubKey(keys_or_addrs[i].get_str()));
         } else {
-            pubkeys.push_back(AddrToPubKey(config.GetChainParams(), spk_man,
+            pubkeys.push_back(AddrToPubKey(config.GetChainParams(), &spk_man,
                                            keys_or_addrs[i].get_str()));
         }
     }
@@ -1150,7 +1155,7 @@ static UniValue addmultisigaddress(const Config &config,
     // Construct using pay-to-script-hash:
     CScript inner;
     CTxDestination dest = AddAndGetMultisigDestination(
-        required, pubkeys, output_type, *spk_man, inner);
+        required, pubkeys, output_type, spk_man, inner);
     pwallet->SetAddressBook(dest, label, "send");
 
     UniValue result(UniValue::VOBJ);
@@ -4418,11 +4423,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan *spk_man = pwallet->GetLegacyScriptPubKeyMan();
-    if (!spk_man) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "This type of wallet does not support this command");
-    }
+    LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*pwallet);
 
     if (pwallet->chain().isInitialBlockDownload()) {
         throw JSONRPCError(
@@ -4456,7 +4457,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
 
     CPubKey master_pub_key;
     if (request.params[1].isNull()) {
-        master_pub_key = spk_man->GenerateNewSeed();
+        master_pub_key = spk_man.GenerateNewSeed();
     } else {
         CKey key = DecodeSecret(request.params[1].get_str());
         if (!key.IsValid()) {
@@ -4464,18 +4465,18 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
                                "Invalid private key");
         }
 
-        if (HaveKey(*spk_man, key)) {
+        if (HaveKey(spk_man, key)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Already have this key (either as an HD seed or "
                                "as a loose private key)");
         }
 
-        master_pub_key = spk_man->DeriveNewSeed(key);
+        master_pub_key = spk_man.DeriveNewSeed(key);
     }
 
-    spk_man->SetHDSeed(master_pub_key);
+    spk_man.SetHDSeed(master_pub_key);
     if (flush_key_pool) {
-        spk_man->NewKeyPool();
+        spk_man.NewKeyPool();
     }
 
     return NullUniValue;
