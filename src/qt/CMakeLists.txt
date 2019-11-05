@@ -340,6 +340,85 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		PROPERTIES
 			MACOSX_PACKAGE_LOCATION "Resources/${INFO_PLIST_STRINGS_FILE}"
 	)
+
+	include(DoOrFail)
+	find_program_or_fail(CMAKE_INSTALL_NAME_TOOL "install_name_tool")
+	find_program_or_fail(CMAKE_OTOOL "otool")
+
+	set(QT_INSTALLER_SUPPORTED_LANGUAGES
+		"da"
+		"de"
+		"es"
+		"hu"
+		"ru"
+		"uk"
+		"zh_CN"
+		"zh_TW"
+	)
+	string(JOIN "," QT_LOCALES ${QT_INSTALLER_SUPPORTED_LANGUAGES})
+
+	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+	execute_process(
+		COMMAND 
+			"${QMAKE_EXECUTABLE}"
+			-query QT_INSTALL_TRANSLATIONS
+		OUTPUT_VARIABLE
+			QT_TRANSLATION_DIR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	function(get_qt_translation_dir QT_TRANSLATION_DIR)
+		foreach(_locale ${ARGN})
+			find_path(_qt_translation_dir
+				"qt_${_locale}.qm"
+				HINTS
+					"${QT_TRANSLATION_DIR}"
+				PATH_SUFFIXES
+					"translations"
+			)
+
+			# Ensure that all the translation files are found, and are located
+			# in the same directory.
+			if(NOT _qt_translation_dir OR (_qt_translation_dir_previous AND (NOT _qt_translation_dir_previous STREQUAL _qt_translation_dir)))
+				return()
+			endif()
+
+			set(_qt_translation_dir_previous _qt_translation_dir)
+		endforeach()
+
+		set(QT_TRANSLATION_DIR ${_qt_translation_dir} PARENT_SCOPE)
+	endfunction()
+
+	get_qt_translation_dir(QT_TRANSLATION_DIR ${QT_INSTALLER_SUPPORTED_LANGUAGES})
+	if(NOT QT_TRANSLATION_DIR)
+		message(FATAL_ERROR "Qt translation files are not found")
+	endif()
+
+	set(MACDEPLOY_DIR "${CMAKE_SOURCE_DIR}/contrib/macdeploy")
+	set(MACDEPLOYQTPLUS "${MACDEPLOY_DIR}/macdeployqtplus")
+	set(DMG_DIST "${CMAKE_BINARY_DIR}/dist")
+	add_custom_command(
+		OUTPUT
+			"${DMG_DIST}"
+		COMMAND
+			"INSTALLNAMETOOL=${CMAKE_INSTALL_NAME_TOOL}"
+			"OTOOL=${CMAKE_OTOOL}"
+			"STRIP=${CMAKE_STRIP}"
+			"${PYTHON_EXECUTABLE}"
+			"${MACDEPLOYQTPLUS}"
+			"$<TARGET_BUNDLE_DIR:BitcoinABC-Qt>"
+			-translations-dir "${QT_TRANSLATION_DIR}"
+			-add-qt-tr "${QT_LOCALES}"
+		WORKING_DIRECTORY
+			"${CMAKE_BINARY_DIR}"
+		DEPENDS
+			BitcoinABC-Qt
+	)
+
+	add_custom_target(osx-deploydir
+		DEPENDS
+			"${DMG_DIST}"
+	)
 endif()
 
 # Test tests

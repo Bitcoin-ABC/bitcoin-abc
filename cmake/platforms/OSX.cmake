@@ -35,8 +35,10 @@ set(OSX_EXTRA_FLAGS
 string(APPEND CMAKE_C_FLAGS_INIT ${OSX_EXTRA_FLAGS})
 string(APPEND CMAKE_CXX_FLAGS_INIT ${OSX_EXTRA_FLAGS} " -stdlib=libc++")
 
-# Ensure we use an OSX specific version of ar, ranlib, nm and strip.
+# Ensure we use an OSX specific version the binary manipulation tools.
 find_program(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)
-find_program(CMAKE_RANLIB ${TOOLCHAIN_PREFIX}-ranlib)
+find_program(CMAKE_INSTALL_NAME_TOOL ${TOOLCHAIN_PREFIX}-install_name_tool)
 find_program(CMAKE_NM ${TOOLCHAIN_PREFIX}-nm)
+find_program(CMAKE_OTOOL ${TOOLCHAIN_PREFIX}-otool)
+find_program(CMAKE_RANLIB ${TOOLCHAIN_PREFIX}-ranlib)
 find_program(CMAKE_STRIP ${TOOLCHAIN_PREFIX}-strip)
