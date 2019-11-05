@@ -306,24 +306,25 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(EMPTY_LPROJ_FILE "${CMAKE_CURRENT_BINARY_DIR}/empty.lproj")
 	file(TOUCH "${EMPTY_LPROJ_FILE}")
 
-	add_executable(BitcoinABC-Qt MACOSX_BUNDLE
-		bitcoin.cpp
+	target_sources(bitcoin-qt PRIVATE
 		"${BITCOINQT_BUNDLE_ICON}"
 		"${INFO_PLIST_STRINGS_PATH}"
 		"${EMPTY_LPROJ_FILE}"
 	)
-	target_link_libraries(BitcoinABC-Qt bitcoin-qt-base)
 
 	string(JOIN ";" BITCOINQT_BUNDLE_RESOURCES
 		"${BITCOINQT_BUNDLE_ICON}"
 		"${EMPTY_LPROJ_FILE}"
 	)
 
-	set_target_properties(BitcoinABC-Qt PROPERTIES
+	set(BITCOIN_QT_OSX_BUNDLE_NAME "BitcoinABC-Qt")
+	set_target_properties(bitcoin-qt PROPERTIES
+		MACOSX_BUNDLE ON
+		OUTPUT_NAME "${BITCOIN_QT_OSX_BUNDLE_NAME}"
 		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/share/qt/Info.plist.cmake.in"
-		MACOSX_BUNDLE_BUNDLE_NAME "BitcoinABC-Qt"
+		MACOSX_BUNDLE_BUNDLE_NAME "${BITCOIN_QT_OSX_BUNDLE_NAME}"
 		MACOSX_BUNDLE_BUNDLE_VERSION "${bitcoin-abc_VERSION}"
-		MACOSX_BUNDLE_GUI_IDENTIFIER "org.bitcoinabc.BitcoinABC-Qt"
+		MACOSX_BUNDLE_GUI_IDENTIFIER "org.bitcoinabc.${BITCOIN_QT_OSX_BUNDLE_NAME}"
 		MACOSX_BUNDLE_ICON_FILE "${BITCOINQT_BUNDLE_ICON_NAME}"
 		MACOSX_BUNDLE_INFO_STRING "${bitcoin-abc_VERSION}, Copyright © 2009-${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDERS_FINAL}"
 		MACOSX_BUNDLE_LONG_VERSION_STRING "${bitcoin-abc_VERSION}"
@@ -406,13 +407,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"STRIP=${CMAKE_STRIP}"
 			"${PYTHON_EXECUTABLE}"
 			"${MACDEPLOYQTPLUS}"
-			"$<TARGET_BUNDLE_DIR:BitcoinABC-Qt>"
+			"$<TARGET_BUNDLE_DIR:bitcoin-qt>"
 			-translations-dir "${QT_TRANSLATION_DIR}"
 			-add-qt-tr "${QT_LOCALES}"
 		WORKING_DIRECTORY
 			"${CMAKE_BINARY_DIR}"
 		DEPENDS
-			BitcoinABC-Qt
+			bitcoin-qt
 	)
 
 	# Building the DMG background image requires several steps:
@@ -517,7 +518,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			COMMAND
 				"${PYTHON_EXECUTABLE}"
 				"${MACDEPLOYQTPLUS}"
-				"$<TARGET_BUNDLE_DIR:BitcoinABC-Qt>"
+				"$<TARGET_BUNDLE_DIR:bitcoin-qt>"
 				-translations-dir "${QT_TRANSLATION_DIR}"
 				-add-qt-tr "${QT_LOCALES}"
 				-dmg
@@ -528,7 +529,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			DEPENDS
 				"${BACKGROUND_TIFF_MULTIRES}"
 		)
-		add_dependencies(osx-dmg BitcoinABC-Qt)
+		add_dependencies(osx-dmg bitcoin-qt)
 	endif()
 endif()
 
