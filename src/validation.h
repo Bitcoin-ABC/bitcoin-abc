@@ -80,49 +80,10 @@ static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 static const int MAX_SCRIPTCHECK_THREADS = 15;
 /** -par default (number of script-checking threads, 0 = auto) */
 static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
-/**
- * Number of blocks that can be requested at any given time from a single peer.
- */
-static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
-/**
- * Timeout in seconds during which a peer must stall block download progress
- * before being disconnected.
- */
-static const unsigned int BLOCK_STALLING_TIMEOUT = 2;
-/**
- * Number of headers sent in one getheaders result. We rely on the assumption
- * that if a peer sends less than this number, we reached its tip. Changing this
- * value is a protocol upgrade.
- */
-static const unsigned int MAX_HEADERS_RESULTS = 2000;
-/**
- * Maximum depth of blocks we're willing to serve as compact blocks to peers
- * when requested. For older blocks, a regular BLOCK response will be sent.
- */
-static const int MAX_CMPCTBLOCK_DEPTH = 5;
-/**
- * Maximum depth of blocks we're willing to respond to GETBLOCKTXN requests for.
- */
-static const int MAX_BLOCKTXN_DEPTH = 10;
-/**
- * Size of the "block download window": how far ahead of our current height do
- * we fetch ? Larger windows tolerate larger download speed differences between
- * peer, but increase the potential degree of disordering of blocks on disk
- * (which make reindexing and in the future perhaps pruning harder). We'll
- * probably want to make this a per-peer adaptive value at some point.
- */
-static const unsigned int BLOCK_DOWNLOAD_WINDOW = 1024;
 /** Time to wait (in seconds) between writing blocks/block index to disk. */
 static const unsigned int DATABASE_WRITE_INTERVAL = 60 * 60;
 /** Time to wait (in seconds) between flushing chainstate to disk. */
 static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
-/** Block download timeout base, expressed in millionths of the block interval
- * (i.e. 10 min) */
-static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 1000000;
-/**
- * Additional block download timeout per parallel downloading peer (i.e. 5 min)
- */
-static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 500000;
 
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 /**
@@ -139,15 +100,6 @@ static const char *const DEFAULT_BLOCKFILTERINDEX = "0";
 static const bool DEFAULT_PERSIST_MEMPOOL = true;
 /** Default for using fee filter */
 static const bool DEFAULT_FEEFILTER = true;
-
-/**
- * Maximum number of headers to announce when relaying blocks with headers
- * message.
- */
-static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8;
-
-/** Maximum number of unconnecting headers announcements before DoS score */
-static const int MAX_UNCONNECTING_HEADERS = 10;
 
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
@@ -218,8 +170,6 @@ extern uint64_t nPruneTarget;
  * ::ChainActive().Tip() will not be pruned.
  */
 static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
-/** Minimum blocks required to signal NODE_NETWORK_LIMITED */
-static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
 
 static const signed int DEFAULT_CHECKBLOCKS = 6;
 static const unsigned int DEFAULT_CHECKLEVEL = 3;

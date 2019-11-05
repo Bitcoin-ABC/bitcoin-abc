@@ -50,24 +50,12 @@ static const bool DEFAULT_WHITELISTRELAY = true;
 static const bool DEFAULT_WHITELISTFORCERELAY = false;
 
 /**
- * Time between pings automatically sent out for latency probing and keepalive
- * (in seconds).
- */
-static const int PING_INTERVAL = 2 * 60;
-/**
  * Time after which to disconnect, after waiting for a ping response (or
  * inactivity).
  */
 static const int TIMEOUT_INTERVAL = 20 * 60;
 /** Run the feeler connection loop once every 2 minutes or 120 seconds. **/
 static const int FEELER_INTERVAL = 120;
-/** The maximum number of entries in an 'inv' protocol message */
-static const unsigned int MAX_INV_SZ = 50000;
-static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
-              "Max protocol message length must be greater than largest "
-              "possible INV message");
-/** The maximum number of entries in a locator */
-static const unsigned int MAX_LOCATOR_SZ = 101;
 /** The maximum number of new addresses to accumulate before announcing. */
 static const unsigned int MAX_ADDR_TO_SEND = 1000;
 /** Maximum length of the user agent string in `version` message */
