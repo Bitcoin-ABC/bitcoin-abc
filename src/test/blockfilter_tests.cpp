@@ -10,7 +10,7 @@
 #include <util/strencodings.h>
 
 #include <test/data/blockfilters.json.h>
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 
 #include <univalue.h>
 

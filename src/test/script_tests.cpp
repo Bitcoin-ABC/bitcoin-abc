@@ -22,10 +22,10 @@
 
 #include <test/data/script_tests.json.h>
 #include <test/jsonutil.h>
-#include <test/lib/transaction_utils.h>
 #include <test/scriptflags.h>
-#include <test/setup_common.h>
 #include <test/sigutil.h>
+#include <test/util/setup_common.h>
+#include <test/util/transaction_utils.h>
 
 #include <boost/test/unit_test.hpp>
 

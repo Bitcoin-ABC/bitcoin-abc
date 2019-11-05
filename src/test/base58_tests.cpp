@@ -6,7 +6,7 @@
 
 #include <base58.h>
 #include <test/jsonutil.h>
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 #include <util/strencodings.h>
 
 #include <univalue.h>

@@ -7,7 +7,7 @@
 #include <config.h>
 #include <net_processing.h> // For PeerLogicValidation
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 

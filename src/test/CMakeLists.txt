@@ -74,13 +74,13 @@ endif()
 
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	jsonutil.cpp
-	lib/blockfilter.cpp
-	lib/logging.cpp
-	lib/transaction_utils.cpp
+	util/blockfilter.cpp
+	util/logging.cpp
+	util/setup_common.cpp
+	util/transaction_utils.cpp
 	main.cpp
 	scriptflags.cpp
 	sigutil.cpp
-	setup_common.cpp
 
 	# Tests generated from JSON
 	${JSON_HEADERS}

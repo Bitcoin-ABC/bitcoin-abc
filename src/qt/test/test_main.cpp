@@ -25,7 +25,7 @@
 #include <qt/test/wallettests.h>
 #endif // ENABLE_WALLET
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 
 #include <QApplication>
 #include <QObject>

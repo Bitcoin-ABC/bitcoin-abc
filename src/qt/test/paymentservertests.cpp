@@ -13,7 +13,7 @@
 #include <script/standard.h>
 #include <util/strencodings.h>
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>

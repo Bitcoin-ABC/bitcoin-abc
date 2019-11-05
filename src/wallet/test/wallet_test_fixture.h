@@ -9,7 +9,7 @@
 #include <interfaces/wallet.h>
 #include <wallet/wallet.h>
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 
 #include <memory>
 

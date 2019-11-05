@@ -10,8 +10,8 @@
 #include <miner.h>
 #include <pow.h>
 #include <script/standard.h>
-#include <test/lib/blockfilter.h>
-#include <test/setup_common.h>
+#include <test/util/blockfilter.h>
+#include <test/util/setup_common.h>
 #include <validation.h>
 
 #include <boost/test/unit_test.hpp>

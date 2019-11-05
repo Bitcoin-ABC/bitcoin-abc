@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_TEST_LIB_TRANSACTION_UTILS_H
-#define BITCOIN_TEST_LIB_TRANSACTION_UTILS_H
+#ifndef BITCOIN_TEST_UTIL_TRANSACTION_UTILS_H
+#define BITCOIN_TEST_UTIL_TRANSACTION_UTILS_H
 
 #include <primitives/transaction.h>
 
@@ -18,4 +18,4 @@ CMutableTransaction BuildCreditingTransaction(const CScript &scriptPubKey,
 CMutableTransaction BuildSpendingTransaction(const CScript &scriptSig,
                                              const CTransaction &txCredit);
 
-#endif // BITCOIN_TEST_LIB_TRANSACTION_UTILS_H
+#endif // BITCOIN_TEST_UTIL_TRANSACTION_UTILS_H

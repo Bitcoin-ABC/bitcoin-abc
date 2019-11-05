@@ -6,7 +6,7 @@ macro(add_fuzz_target TARGET EXE_NAME)
 		fuzz.cpp
 
 		# TODO: make a test library
-		../setup_common.cpp
+		../util/setup_common.cpp
 
 		${ARGN}
 	)

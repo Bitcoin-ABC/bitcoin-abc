@@ -58,7 +58,7 @@ add_executable(bitcoin-bench
 	util_time.cpp
 
 	# TODO: make a test library
-	../test/setup_common.cpp
+	../test/util/setup_common.cpp
 	../test/util.cpp
 
 

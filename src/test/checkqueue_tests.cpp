@@ -10,7 +10,7 @@
 #include <checkqueue.h>
 #include <condition_variable>
 #include <mutex>
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 #include <thread>
 #include <vector>
 

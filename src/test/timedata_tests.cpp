@@ -6,10 +6,10 @@
 
 #include <netaddress.h>
 #include <noui.h>
-#include <test/lib/logging.h>
+#include <test/util/logging.h>
 #include <warnings.h>
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 
