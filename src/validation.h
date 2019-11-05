@@ -80,17 +80,8 @@ static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 static const int MAX_SCRIPTCHECK_THREADS = 15;
 /** -par default (number of script-checking threads, 0 = auto) */
 static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
-/** Time to wait (in seconds) between writing blocks/block index to disk. */
-static const unsigned int DATABASE_WRITE_INTERVAL = 60 * 60;
-/** Time to wait (in seconds) between flushing chainstate to disk. */
-static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
 
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
-/**
- * Maximum age of our tip in seconds for us to be considered current for fee
- * estimation.
- */
-static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
 static const bool DEFAULT_TXINDEX = false;
