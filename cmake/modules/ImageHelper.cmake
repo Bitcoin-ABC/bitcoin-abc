@@ -19,6 +19,22 @@ macro(convert_svg_to_png SVG PNG DPI)
 	)
 endmacro()
 
+macro(_convert_png_to_tiff_darwin PNG TIFF)
+	find_program_or_fail(SIPS_EXECUTABLE sips)
+
+	add_custom_command(
+		OUTPUT
+			"${TIFF}"
+		COMMAND
+			"${SIPS_EXECUTABLE}"
+			-s format tiff
+			"${PNG}"
+			--out "${TIFF}"
+		MAIN_DEPENDENCY
+			"${PNG}"
+	)
+endmacro()
+
 macro(_convert_png_to_tiff_linux PNG TIFF)
 	# find_package(ImageMagick) does not search in the default bin
 	# directories and fails. This is a known bug from FindImageMagick:
@@ -43,7 +59,7 @@ endmacro()
 
 macro(convert_png_to_tiff PNG TIFF)
 	if(NOT CMAKE_CROSSCOMPILING AND ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		message(FATAL_ERROR "The PNG to TIFF conversion is only supported on Linux.")
+		_convert_png_to_tiff_darwin("${PNG}" "${TIFF}")
 	else()
 		_convert_png_to_tiff_linux("${PNG}" "${TIFF}")
 	endif()
@@ -65,9 +81,24 @@ macro(_cat_multi_resolution_tiff_linux OUTPUT)
 	)
 endmacro()
 
+macro(_cat_multi_resolution_tiff_darwin OUTPUT)
+	find_program_or_fail(TIFFUTIL_EXECUTABLE tiffutil)
+
+	add_custom_command(
+		OUTPUT
+			"${OUTPUT}"
+		COMMAND
+			"${TIFFUTIL_EXECUTABLE}"
+			-cathidpicheck ${ARGN}
+			-out "${OUTPUT}"
+		DEPENDS
+			${ARGN}
+	)
+endmacro()
+
 macro(cat_multi_resolution_tiff OUTPUT)
 	if(NOT CMAKE_CROSSCOMPILING AND ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		message(FATAL_ERROR "The PNG to TIFF concatenation is only supported on Linux.")
+		_cat_multi_resolution_tiff_darwin("${OUTPUT}" ${ARGN})
 	else()
 		_cat_multi_resolution_tiff_linux("${OUTPUT}" ${ARGN})
 	endif()
