@@ -22,6 +22,7 @@ pushd buildautotools
   --enable-endomorphism=$ENDOMORPHISM \
   --with-field=$FIELD \
   --with-bignum=$BIGNUM \
+  --with-asm=$ASM \
   --with-scalar=$SCALAR \
   --enable-ecmult-static-precomputation=$STATICPRECOMPUTATION \
   --enable-module-ecdh=$ECDH \

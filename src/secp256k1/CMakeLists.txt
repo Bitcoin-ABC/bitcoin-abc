@@ -67,14 +67,19 @@ else()
 endif()
 
 # We check if amd64 asm is supported.
-check_c_source_compiles("
-	#include <stdint.h>
-	int main() {
-		uint64_t a = 11, tmp;
-		__asm__ __volatile__(\"movq \$0x100000000,%1; mulq %%rsi\" : \"+a\"(a) : \"S\"(tmp) : \"cc\", \"%rdx\");
-		return 0;
-	}
-" USE_ASM_X86_64)
+option(SECP256K1_USE_ASM "Use assembly if available" ON)
+if($SECP256K1_USE_ASM)
+	check_c_source_compiles("
+		#include <stdint.h>
+		int main() {
+			uint64_t a = 11, tmp;
+			__asm__ __volatile__(\"movq \$0x100000000,%1; mulq %%rsi\" : \"+a\"(a) : \"S\"(tmp) : \"cc\", \"%rdx\");
+			return 0;
+		}
+	" USE_ASM_X86_64)
+else()
+	set(USE_ASM_X86_64 0)
+endif()
 
 # We make sure __int128 is defined
 include(CheckTypeSize)
