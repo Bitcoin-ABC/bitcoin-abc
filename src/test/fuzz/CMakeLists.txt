@@ -45,6 +45,7 @@ function(add_deserialize_fuzz_targets)
 endfunction()
 
 add_regular_fuzz_targets(
+	cashaddr
 	descriptor_parse
 	eval_script
 	parse_iso8601
