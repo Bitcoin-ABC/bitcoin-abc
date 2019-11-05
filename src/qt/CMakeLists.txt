@@ -455,8 +455,39 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"${DMG_DIST}"
 	)
 
+	string(REPLACE " " "-" OSX_VOLNAME "${PACKAGE_NAME}")
+	file(WRITE "${CMAKE_BINARY_DIR}/osx_volname" "${OSX_VOLNAME}")
+
+	set(DMG_DSSTORE "${DMG_DIST}/.DS_Store")
+	set(GEN_DSSTORE "${MACDEPLOY_DIR}/custom_dsstore.py")
+	add_custom_command(
+		OUTPUT
+			"${DMG_DSSTORE}"
+		COMMAND
+			"${PYTHON_EXECUTABLE}"
+			"${GEN_DSSTORE}"
+			"${DMG_DSSTORE}"
+			"${OSX_VOLNAME}"
+		DEPENDS
+			"${GEN_DSSTORE}"
+			"${DMG_DIST}"
+	)
+
+	set(OSX_APPLICATION_DIR "Applications")
+	set(OSX_APPLICATION_SYMLINK "${DMG_DIST}/${OSX_APPLICATION_DIR}")
+	add_custom_command(
+		OUTPUT
+			"${OSX_APPLICATION_SYMLINK}"
+		COMMAND
+			${CMAKE_COMMAND} -E create_symlink "/${OSX_APPLICATION_DIR}" "${OSX_APPLICATION_SYMLINK}"
+		DEPENDS
+			"${DMG_DIST}"
+	)
+
 	add_custom_target(osx-deploydir
 		DEPENDS
+			"${OSX_APPLICATION_SYMLINK}"
+			"${DMG_DSSTORE}"
 			"${BACKGROUND_DIST_TIFF}"
 	)
 endif()
