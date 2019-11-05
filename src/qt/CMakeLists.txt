@@ -296,11 +296,28 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		NAME
 	)
 
+	set(INFO_PLIST_STRINGS_FILE "Base.lproj/InfoPlist.strings")
+	set(INFO_PLIST_STRINGS_PATH "${CMAKE_CURRENT_BINARY_DIR}/${INFO_PLIST_STRINGS_FILE}")
+	file(WRITE
+		"${INFO_PLIST_STRINGS_PATH}"
+		"{	CFBundleDisplayName = \"${PACKAGE_NAME}\"; CFBundleName = \"${PACKAGE_NAME}\"; }"
+	)
+
+	set(EMPTY_LPROJ_FILE "${CMAKE_CURRENT_BINARY_DIR}/empty.lproj")
+	file(TOUCH "${EMPTY_LPROJ_FILE}")
+
 	add_executable(BitcoinABC-Qt MACOSX_BUNDLE
 		bitcoin.cpp
 		"${BITCOINQT_BUNDLE_ICON}"
+		"${INFO_PLIST_STRINGS_PATH}"
+		"${EMPTY_LPROJ_FILE}"
 	)
 	target_link_libraries(BitcoinABC-Qt bitcoin-qt-base)
+
+	string(JOIN ";" BITCOINQT_BUNDLE_RESOURCES
+		"${BITCOINQT_BUNDLE_ICON}"
+		"${EMPTY_LPROJ_FILE}"
+	)
 
 	set_target_properties(BitcoinABC-Qt PROPERTIES
 		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/share/qt/Info.plist.cmake.in"
@@ -311,7 +328,17 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		MACOSX_BUNDLE_INFO_STRING "${bitcoin-abc_VERSION}, Copyright © 2009-${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDERS_FINAL}"
 		MACOSX_BUNDLE_LONG_VERSION_STRING "${bitcoin-abc_VERSION}"
 		MACOSX_BUNDLE_SHORT_VERSION_STRING "${bitcoin-abc_VERSION}"
-		RESOURCE "${BITCOINQT_BUNDLE_ICON}"
+		RESOURCE "${BITCOINQT_BUNDLE_RESOURCES}"
+	)
+	# The InfoPlist.strings files should be located in a resource subdirectory.
+	# This is not supported by the RESOURCE property and require the use of the
+	# MACOSX_PACKAGE_LOCATION property instead. The RESOURCE documentation has
+	# an example demonstrating this behavior (see the appres.txt file):
+	# https://cmake.org/cmake/help/latest/prop_tgt/RESOURCE.html
+	set_source_files_properties(
+		"${INFO_PLIST_STRINGS_PATH}"
+		PROPERTIES
+			MACOSX_PACKAGE_LOCATION "Resources/${INFO_PLIST_STRINGS_FILE}"
 	)
 endif()
 
