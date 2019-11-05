@@ -22,6 +22,7 @@ public:
     CSHA512 &Write(const uint8_t *data, size_t len);
     void Finalize(uint8_t hash[OUTPUT_SIZE]);
     CSHA512 &Reset();
+    uint64_t Size() const { return bytes; }
 };
 
 #endif // BITCOIN_CRYPTO_SHA512_H
