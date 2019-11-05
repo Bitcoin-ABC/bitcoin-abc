@@ -78,8 +78,12 @@ BITCOIN_TEST_SUITE = \
   avalanche/test/util.cpp \
   test/fixture.cpp \
   test/jsonutil.cpp \
+  test/util/setup_common.h \
+  test/util/setup_common.cpp \
   test/scriptflags.cpp \
   test/sigutil.cpp \
+  test/util/str.h \
+  test/util/str.cpp \
   $(TEST_UTIL_H)
 
 FUZZ_SUITE = \
