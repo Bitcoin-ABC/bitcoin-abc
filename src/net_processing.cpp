@@ -182,23 +182,6 @@ static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8;
 static const int MAX_UNCONNECTING_HEADERS = 10;
 /** Minimum blocks required to signal NODE_NETWORK_LIMITED */
 static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
-
-/// How many non standard orphan do we consider from a node before ignoring it.
-static constexpr uint32_t MAX_NON_STANDARD_ORPHAN_PER_NODE = 5;
-
-struct COrphanTx {
-    // When modifying, adapt the copy of this definition in tests/DoS_tests.
-    CTransactionRef tx;
-    NodeId fromPeer;
-    int64_t nTimeExpire;
-    size_t list_pos;
-};
-
-RecursiveMutex g_cs_orphans;
-std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
-
-void EraseOrphansFor(NodeId peer);
-
 /**
  * Average delay between local address broadcasts.
  */
@@ -237,6 +220,22 @@ static constexpr uint32_t MAX_GETCFILTERS_SIZE = 1000;
  * BIP 157.
  */
 static constexpr uint32_t MAX_GETCFHEADERS_SIZE = 2000;
+
+/// How many non standard orphan do we consider from a node before ignoring it.
+static constexpr uint32_t MAX_NON_STANDARD_ORPHAN_PER_NODE = 5;
+
+struct COrphanTx {
+    // When modifying, adapt the copy of this definition in tests/DoS_tests.
+    CTransactionRef tx;
+    NodeId fromPeer;
+    int64_t nTimeExpire;
+    size_t list_pos;
+};
+
+RecursiveMutex g_cs_orphans;
+std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
+
+void EraseOrphansFor(NodeId peer);
 
 // Internal stuff
 namespace {
