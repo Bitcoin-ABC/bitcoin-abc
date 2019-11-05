@@ -415,9 +415,49 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			BitcoinABC-Qt
 	)
 
+	# Building the DMG background image requires several steps:
+	#   1/ The SVG file must be edited to display the package name
+	#   2/ The SVG file should be transformed into a couple PNG files, on for
+	#      low resolution screens and one for high resolution screens.
+	#   3/ The PNG files must be transformed into a multi-resolution TIFF file.
+	#      The names are not set arbitrarily, they follow Apple's guidelines for
+	#      resolution independent bitmap images (see `man tiffutil`).
+	set(BACKGROUND_SVG "background.svg")
+	configure_file(
+		"${CMAKE_SOURCE_DIR}/contrib/macdeploy/background.svg.cmake.in"
+		"${BACKGROUND_SVG}"
+	)
+
+	include(ImageHelper)
+	set(BACKGROUND_PNG_LOWRES "${CMAKE_CURRENT_BINARY_DIR}/background_temp.png")
+	set(BACKGROUND_PNG_HIRES "${CMAKE_CURRENT_BINARY_DIR}/background_temp@2x.png")
+	set(BACKGROUND_TIFF_LOWRES "${CMAKE_CURRENT_BINARY_DIR}/background_temp.tiff")
+	set(BACKGROUND_TIFF_HIRES "${CMAKE_CURRENT_BINARY_DIR}/background_temp@2x.tiff")
+	set(BACKGROUND_TIFF_NAME "background.tiff")
+	set(BACKGROUND_TIFF_MULTIRES "${CMAKE_BINARY_DIR}/${BACKGROUND_TIFF_NAME}")
+	convert_svg_to_png("${BACKGROUND_SVG}" "${BACKGROUND_PNG_LOWRES}" 36)
+	convert_svg_to_png("${BACKGROUND_SVG}" "${BACKGROUND_PNG_HIRES}" 72)
+	convert_png_to_tiff("${BACKGROUND_PNG_LOWRES}" "${BACKGROUND_TIFF_LOWRES}")
+	convert_png_to_tiff("${BACKGROUND_PNG_HIRES}" "${BACKGROUND_TIFF_HIRES}")
+	cat_multi_resolution_tiff("${BACKGROUND_TIFF_MULTIRES}" "${BACKGROUND_TIFF_LOWRES}" "${BACKGROUND_TIFF_HIRES}")
+
+	set(BACKGROUND_DIST_DIR "${DMG_DIST}/.background")
+	set(BACKGROUND_DIST_TIFF "${BACKGROUND_DIST_DIR}/${BACKGROUND_TIFF_NAME}")
+	add_custom_command(
+		OUTPUT
+			"${BACKGROUND_DIST_TIFF}"
+		COMMAND
+			${CMAKE_COMMAND} -E make_directory "${BACKGROUND_DIST_DIR}"
+		COMMAND
+			${CMAKE_COMMAND} -E copy "${BACKGROUND_TIFF_MULTIRES}" "${BACKGROUND_DIST_TIFF}"
+		DEPENDS
+			"${BACKGROUND_TIFF_MULTIRES}"
+			"${DMG_DIST}"
+	)
+
 	add_custom_target(osx-deploydir
 		DEPENDS
-			"${DMG_DIST}"
+			"${BACKGROUND_DIST_TIFF}"
 	)
 endif()
 
