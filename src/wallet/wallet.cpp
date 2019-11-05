@@ -2053,6 +2053,12 @@ bool CWalletTx::InMempool() const {
 }
 
 bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain) const {
+    std::set<TxId> s;
+    return IsTrusted(locked_chain, s);
+}
+
+bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain,
+                          std::set<TxId> &trusted_parents) const {
     // Quick answer in most cases
     TxValidationState state;
     if (!locked_chain.contextualCheckTransactionForCurrentBlock(
@@ -2089,9 +2095,19 @@ bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain) const {
         }
 
         const CTxOut &parentOut = parent->tx->vout[txin.prevout.GetN()];
+        // Check that this specific input being spent is trusted
         if (pwallet->IsMine(parentOut) != ISMINE_SPENDABLE) {
             return false;
         }
+        // If we've already trusted this parent, continue
+        if (trusted_parents.count(parent->GetId())) {
+            continue;
+        }
+        // Recurse to check that the parent is also trusted
+        if (!parent->IsTrusted(locked_chain, trusted_parents)) {
+            return false;
+        }
+        trusted_parents.insert(parent->GetId());
     }
 
     return true;
@@ -2193,9 +2209,10 @@ CWallet::Balance CWallet::GetBalance(const int min_depth,
     isminefilter reuse_filter = avoid_reuse ? ISMINE_NO : ISMINE_USED;
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
+    std::set<TxId> trusted_parents;
     for (const auto &entry : mapWallet) {
         const CWalletTx &wtx = entry.second;
-        const bool is_trusted{wtx.IsTrusted(*locked_chain)};
+        const bool is_trusted{wtx.IsTrusted(*locked_chain, trusted_parents)};
         const int tx_depth{wtx.GetDepthInMainChain()};
         const Amount tx_credit_mine{wtx.GetAvailableCredit(
             /* fUseCache */ true, ISMINE_SPENDABLE | reuse_filter)};
@@ -2255,6 +2272,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
 
     const Consensus::Params params = Params().GetConsensus();
 
+    std::set<TxId> trusted_parents;
     for (const auto &entry : mapWallet) {
         const TxId &wtxid = entry.first;
         const CWalletTx &wtx = entry.second;
@@ -2281,7 +2299,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
             continue;
         }
 
-        bool safeTx = wtx.IsTrusted(locked_chain);
+        bool safeTx = wtx.IsTrusted(locked_chain, trusted_parents);
 
         // Bitcoin-ABC: Removed check that prevents consideration of coins from
         // transactions that are replacing other transactions. This check based
@@ -3489,10 +3507,11 @@ CWallet::GetAddressBalances(interfaces::Chain::Lock &locked_chain) {
     std::map<CTxDestination, Amount> balances;
 
     LOCK(cs_wallet);
+    std::set<TxId> trusted_parents;
     for (const auto &walletEntry : mapWallet) {
         const CWalletTx &wtx = walletEntry.second;
 
-        if (!wtx.IsTrusted(locked_chain)) {
+        if (!wtx.IsTrusted(locked_chain, trusted_parents)) {
             continue;
         }
 
