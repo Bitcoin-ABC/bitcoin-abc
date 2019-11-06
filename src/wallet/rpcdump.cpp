@@ -417,35 +417,32 @@ UniValue importprunedfunds(const Config &config,
     // valid block
     std::vector<uint256> vMatch;
     std::vector<size_t> vIndex;
-    size_t txnIndex = 0;
-    Optional<int> height;
-    if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) ==
+    if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) !=
         merkleBlock.header.hashMerkleRoot) {
-        auto locked_chain = pwallet->chain().lock();
-        height = locked_chain->getBlockHeight(merkleBlock.header.GetHash());
-        if (height == nullopt) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "Block not found in chain");
-        }
-
-        std::vector<uint256>::const_iterator it;
-        if ((it = std::find(vMatch.begin(), vMatch.end(), txid)) ==
-            vMatch.end()) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "Transaction given doesn't exist in proof");
-        }
-
-        txnIndex = vIndex[it - vMatch.begin()];
-    } else {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Something wrong with merkleblock");
     }
+
+    auto locked_chain = pwallet->chain().lock();
+    Optional<int> height =
+        locked_chain->getBlockHeight(merkleBlock.header.GetHash());
+    if (height == nullopt) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           "Block not found in chain");
+    }
+
+    std::vector<uint256>::const_iterator it;
+    if ((it = std::find(vMatch.begin(), vMatch.end(), txid)) == vMatch.end()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           "Transaction given doesn't exist in proof");
+    }
+
+    size_t txnIndex = vIndex[it - vMatch.begin()];
 
     CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED, *height,
                                     merkleBlock.header.GetHash(), txnIndex);
     wtx.m_confirm = confirm;
 
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
     if (pwallet->IsMine(*wtx.tx)) {
