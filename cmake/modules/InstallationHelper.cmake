@@ -3,19 +3,9 @@
 include(GNUInstallDirs)
 
 function(install_target _target)
-	set(RUNTIME_DESTINATION "${CMAKE_INSTALL_BINDIR}")
-	# CMake installs Windows shared libraries to the RUNTIME destination folder,
-	# but autotools install them into the LIBRARY destination folder.
-	# This special case only purpose is to provide identical installation trees
-	# between CMake and autotools.
-	get_target_property(_target_type ${_target} TYPE)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND _target_type STREQUAL "SHARED_LIBRARY")
-		set(RUNTIME_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-	endif()
-
 	install(
 		TARGETS ${_target}
-		RUNTIME DESTINATION "${RUNTIME_DESTINATION}"
+		RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 		LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 		PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 	)
