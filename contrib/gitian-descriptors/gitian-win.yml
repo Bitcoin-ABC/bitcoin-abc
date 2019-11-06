@@ -11,18 +11,25 @@ packages:
 - "automake"
 - "bsdmainutils"
 - "ca-certificates"
+- "cmake"
 - "curl"
 - "faketime"
 - "g++"
 - "g++-mingw-w64"
 - "git"
 - "libtool"
+- "ninja-build"
 - "mingw-w64"
 - "nsis"
 - "pkg-config"
 - "python3"
-- "rename"
 - "zip"
+# FIXME: these dependencies are only required to make CMake happy when building
+# native tools. They can be removed when the `NativeExecutable.cmake` gets
+# improved to avoid requiring all the bitcoin-abc dependencies.
+- "libboost-all-dev"
+- "libevent-dev"
+- "libssl-dev"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
@@ -30,7 +37,12 @@ files: []
 script: |
   WRAP_DIR=$HOME/wrapped
   HOSTS="i686-w64-mingw32 x86_64-w64-mingw32"
-  CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests --without-seeder"
+
+  # CMake toolchain file name differ from host name
+  declare -A CMAKE_TOOLCHAIN_FILE
+  CMAKE_TOOLCHAIN_FILE[i686-w64-mingw32]=Win32.cmake
+  CMAKE_TOOLCHAIN_FILE[x86_64-w64-mingw32]=Win64.cmake
+
   FAKETIME_HOST_PROGS="ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
   HOST_CFLAGS="-O2 -g"
@@ -105,6 +117,7 @@ script: |
   export PATH=${WRAP_DIR}:${PATH}
 
   cd bitcoin
+  SOURCEDIR=`pwd`
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -118,11 +131,23 @@ script: |
   create_per-host_linker_wrapper "${REFERENCE_DATETIME}"
   export PATH=${WRAP_DIR}:${PATH}
 
-  # Create the release tarball using (arbitrarily) the first host
-  ./autogen.sh
-  CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
-  make dist
+  mkdir -p source_package
+  pushd source_package
+  cmake -GNinja .. \
+    -DBUILD_BITCOIN_WALLET=OFF \
+    -DBUILD_BITCOIN_ZMQ=OFF \
+    -DBUILD_BITCOIN_SEEDER=OFF \
+    -DBUILD_BITCOIN_CLI=OFF \
+    -DBUILD_BITCOIN_TX=OFF \
+    -DBUILD_BITCOIN_QT=OFF \
+    -DBUILD_LIBBITCOINCONSENSUS=OFF \
+    -DENABLE_QRCODE=OFF \
+    -DENABLE_UPNP=OFF
+
+  ninja package_source
   SOURCEDIST=`echo bitcoin-abc-*.tar.gz`
+  mv ${SOURCEDIST} ..
+  popd
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
 
   # Correct tar file order
@@ -134,27 +159,40 @@ script: |
   cp ../$SOURCEDIST $OUTDIR/src
   popd
 
+  # Allow extra cmake option to be specified for each host
+  declare -A CMAKE_EXTRA_OPTIONS
+  CMAKE_EXTRA_OPTIONS[i686-w64-mingw32]="-DCPACK_PACKAGE_FILE_NAME=${DISTNAME}-win32-setup-unsigned"
+  CMAKE_EXTRA_OPTIONS[x86_64-w64-mingw32]="-DCPACK_PACKAGE_FILE_NAME=${DISTNAME}-win64-setup-unsigned"
+
   ORIGPATH="$PATH"
   # Extract the release tarball into a dir for each host and build
   for i in ${HOSTS}; do
-    export PATH=${BASEPREFIX}/${i}/native/bin:${ORIGPATH}
+    export PATH=${BASEPREFIX}/${i}/native/bin:${WRAP_DIR}:${ORIGPATH}
     mkdir -p distsrc-${i}
     cd distsrc-${i}
     INSTALLPATH=`pwd`/installed/${DISTNAME}
     mkdir -p ${INSTALLPATH}
     tar --strip-components=1 -xf ../$SOURCEDIST
 
-    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}"
-    make ${MAKEOPTS}
-    make ${MAKEOPTS} -C src check-security
-    make deploy
-    make install DESTDIR=${INSTALLPATH}
-    cp -f bitcoin-abc-*setup*.exe $OUTDIR/
+    cmake -GNinja .. \
+      -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
+      -DCLIENT_VERSION_IS_RELEASE=ON \
+      -DENABLE_REDUCE_EXPORTS=ON \
+      -DBUILD_BITCOIN_SEEDER=OFF \
+      -DCPACK_STRIP_FILES=ON \
+      -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
+      -DCCACHE=OFF \
+      ${CMAKE_EXTRA_OPTIONS[${i}]}
+
+    ninja
+    ninja check-security
+    ninja install
+    ninja package
+
+    cp -f bitcoin-abc-*-setup-unsigned.exe ${OUTDIR}/
     cd installed
+    mkdir -p ${DISTNAME}/lib
     mv ${DISTNAME}/bin/*.dll ${DISTNAME}/lib/
-    find . -name "lib*.la" -delete
-    find . -name "lib*.a" -delete
-    rm -rf ${DISTNAME}/lib/pkgconfig
     find ${DISTNAME}/bin -type f -executable -exec ${i}-objcopy --only-keep-debug {} {}.dbg \; -exec ${i}-strip -s {} \; -exec ${i}-objcopy --add-gnu-debuglink={}.dbg {} \;
     find ${DISTNAME}/lib -type f -exec ${i}-objcopy --only-keep-debug {} {}.dbg \; -exec ${i}-strip -s {} \; -exec ${i}-objcopy --add-gnu-debuglink={}.dbg {} \;
     find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i}.zip
@@ -162,8 +200,8 @@ script: |
     cd ../../
     rm -rf distsrc-${i}
   done
+
   cd $OUTDIR
-  rename 's/-setup\.exe$/-setup-unsigned.exe/' *-setup.exe
   find . -name "*-setup-unsigned.exe" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-win-unsigned.tar.gz
   mv ${OUTDIR}/${DISTNAME}-x86_64-*-debug.zip ${OUTDIR}/${DISTNAME}-win64-debug.zip
   mv ${OUTDIR}/${DISTNAME}-i686-*-debug.zip ${OUTDIR}/${DISTNAME}-win32-debug.zip
