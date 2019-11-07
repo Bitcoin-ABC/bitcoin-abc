@@ -350,7 +350,7 @@ void OutputGroup::Insert(const CInputCoin &output, int depth, bool from_me,
                          size_t ancestors, size_t descendants) {
     m_outputs.push_back(output);
     m_from_me &= from_me;
-    m_value += output.effective_value;
+    m_value += output.txout.nValue;
     m_depth = std::min(m_depth, depth);
     // ancestors here express the number of ancestors the new coin will end up
     // having, which is the sum, rather than the max; this will overestimate in
@@ -372,7 +372,7 @@ OutputGroup::Discard(const CInputCoin &output) {
     if (it == m_outputs.end()) {
         return it;
     }
-    m_value -= output.effective_value;
+    m_value -= output.txout.nValue;
     effective_value -= output.effective_value;
     return m_outputs.erase(it);
 }
