@@ -2125,6 +2125,21 @@ DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
 
 std::unique_ptr<CKeyMetadata>
 DescriptorScriptPubKeyMan::GetMetadata(const CTxDestination &dest) const {
+    std::unique_ptr<SigningProvider> provider =
+        GetSigningProvider(GetScriptForDestination(dest));
+    if (provider) {
+        KeyOriginInfo orig;
+        CKeyID key_id = GetKeyForDestination(*provider, dest);
+        if (provider->GetKeyOrigin(key_id, orig)) {
+            LOCK(cs_desc_man);
+            std::unique_ptr<CKeyMetadata> meta =
+                std::make_unique<CKeyMetadata>();
+            meta->key_origin = orig;
+            meta->has_key_origin = true;
+            meta->nCreateTime = m_wallet_descriptor.creation_time;
+            return meta;
+        }
+    }
     return nullptr;
 }
 
