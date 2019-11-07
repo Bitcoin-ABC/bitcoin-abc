@@ -10,6 +10,7 @@ This release includes the following features and fixes:
  - The `inactivehdmaster` property in the `dumpwallet` output has been
    deprecated in favor of `inactivehdseed`. `inactivehdmaster` will be removed
    in V0.21.
+ - Building from source now requires python 3.5 or greater
 
 'label' and 'account' APIs for wallet
 -------------------------------------
