@@ -243,7 +243,8 @@ public:
 
     virtual int64_t GetTimeFirstKey() const { return 0; }
 
-    virtual const CKeyMetadata *GetMetadata(const CTxDestination &dest) const {
+    virtual std::unique_ptr<CKeyMetadata>
+    GetMetadata(const CTxDestination &dest) const {
         return nullptr;
     }
 
@@ -448,7 +449,8 @@ public:
 
     int64_t GetTimeFirstKey() const override;
 
-    const CKeyMetadata *GetMetadata(const CTxDestination &dest) const override;
+    std::unique_ptr<CKeyMetadata>
+    GetMetadata(const CTxDestination &dest) const override;
 
     bool CanGetAddresses(bool internal = false) const override;
 
@@ -714,7 +716,8 @@ public:
 
     int64_t GetTimeFirstKey() const override;
 
-    const CKeyMetadata *GetMetadata(const CTxDestination &dest) const override;
+    std::unique_ptr<CKeyMetadata>
+    GetMetadata(const CTxDestination &dest) const override;
 
     bool CanGetAddresses(bool internal = false) const override;
 

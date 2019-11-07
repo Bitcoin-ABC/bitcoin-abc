@@ -524,7 +524,7 @@ LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
     return TransactionError::OK;
 }
 
-const CKeyMetadata *
+std::unique_ptr<CKeyMetadata>
 LegacyScriptPubKeyMan::GetMetadata(const CTxDestination &dest) const {
     LOCK(cs_KeyStore);
 
@@ -532,14 +532,14 @@ LegacyScriptPubKeyMan::GetMetadata(const CTxDestination &dest) const {
     if (!key_id.IsNull()) {
         auto it = mapKeyMetadata.find(key_id);
         if (it != mapKeyMetadata.end()) {
-            return &it->second;
+            return std::make_unique<CKeyMetadata>(it->second);
         }
     }
 
     CScript scriptPubKey = GetScriptForDestination(dest);
     auto it = m_script_metadata.find(CScriptID(scriptPubKey));
     if (it != m_script_metadata.end()) {
-        return &it->second;
+        return std::make_unique<CKeyMetadata>(it->second);
     }
 
     return nullptr;
@@ -2123,7 +2123,7 @@ DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
     return TransactionError::OK;
 }
 
-const CKeyMetadata *
+std::unique_ptr<CKeyMetadata>
 DescriptorScriptPubKeyMan::GetMetadata(const CTxDestination &dest) const {
     return nullptr;
 }
