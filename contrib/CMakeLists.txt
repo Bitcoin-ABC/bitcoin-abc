@@ -1,3 +1,4 @@
+add_subdirectory(arcanist)
 add_subdirectory(devtools)
 
 include(PackageHelper)
