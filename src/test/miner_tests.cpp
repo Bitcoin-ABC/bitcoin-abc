@@ -28,7 +28,20 @@
 
 #include <memory>
 
-BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
+namespace miner_tests {
+struct MinerTestingSetup : public TestingSetup {
+    void TestPackageSelection(const CChainParams &chainparams,
+                              const CScript &scriptPubKey,
+                              const std::vector<CTransactionRef> &txFirst)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs);
+    bool TestSequenceLocks(const CTransaction &tx, int flags)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs) {
+        return CheckSequenceLocks(*m_node.mempool, tx, flags);
+    }
+};
+} // namespace miner_tests
+
+BOOST_FIXTURE_TEST_SUITE(miner_tests, MinerTestingSetup)
 
 // BOOST_CHECK_EXCEPTION predicates to check the specific validation error
 class HasReason {
@@ -93,19 +106,12 @@ static CBlockIndex CreateBlockIndex(int nHeight)
     return index;
 }
 
-static bool TestSequenceLocks(const CTransaction &tx, int flags)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    LOCK(::g_mempool.cs);
-    return CheckSequenceLocks(::g_mempool, tx, flags);
-}
-
 // Test suite for ancestor feerate transaction selection.
-// Implemented as an additional function, rather than a separate test case, to
-// allow reusing the blockchain created in CreateNewBlock_validity.
-static void TestPackageSelection(const CChainParams &chainparams,
-                                 const CScript &scriptPubKey,
-                                 const std::vector<CTransactionRef> &txFirst)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs) {
+// Implemented as an additional function, rather than a separate test case,
+// to allow reusing the blockchain created in CreateNewBlock_validity.
+void MinerTestingSetup::TestPackageSelection(
+    const CChainParams &chainparams, const CScript &scriptPubKey,
+    const std::vector<CTransactionRef> &txFirst) {
     // Test the ancestor feerate transaction selection.
     TestMemPoolEntryHelper entry;
 
