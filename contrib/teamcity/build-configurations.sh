@@ -75,6 +75,15 @@ case "$ABC_BUILD_NAME" in
     ./test/functional/test_runner.py -J=junit_results_ubsan.xml ${TEST_RUNNER_FLAGS}
     ;;
 
+  build-tsan)
+    # Build with the thread sanitizer, then run unit tests and functional tests.
+    CONFIGURE_FLAGS="--enable-debug --with-sanitizers=thread --disable-ccache CC=clang CXX=clang++" "${CI_SCRIPTS_DIR}"/build.sh
+    make -j "${THREADS}" check
+    # FIXME Remove when wallet_multiwallet works with tsan after backporting at least the following PRs from Core and their dependencies: 13161, 12493, 14320, 14552, 14760, 11911.
+    TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=wallet_multiwallet"
+    ./test/functional/test_runner.py -J=junit_results_tsan.xml ${TEST_RUNNER_FLAGS}
+    ;;
+
   build-default)
     # Build, run unit tests and functional tests (all extended tests if this is the master branch).
     "${CI_SCRIPTS_DIR}"/build.sh
