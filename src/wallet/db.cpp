@@ -193,8 +193,6 @@ bool BerkeleyEnvironment::Open(bool retry) {
         return true;
     }
 
-    boost::this_thread::interruption_point();
-
     fs::path pathIn = strPath;
     TryCreateDirectories(pathIn);
     if (!LockDirectory(pathIn, ".walletlock")) {
@@ -271,12 +269,9 @@ bool BerkeleyEnvironment::Open(bool retry) {
     return true;
 }
 
-//! Construct an in-memory mock Berkeley environment for testing and as a
-//! place-holder for g_dbenvs emplace
+//! Construct an in-memory mock Berkeley environment for testing
 BerkeleyEnvironment::BerkeleyEnvironment() {
     Reset();
-
-    boost::this_thread::interruption_point();
 
     LogPrint(BCLog::DB, "BerkeleyEnvironment::MakeMock\n");
 
