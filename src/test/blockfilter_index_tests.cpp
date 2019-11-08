@@ -167,9 +167,9 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync, TestChain100Setup) {
         GetScriptForDestination(PKHash(coinbaseKey.GetPubKey()));
     std::vector<std::shared_ptr<CBlock>> chainA, chainB;
     BOOST_REQUIRE(
-        BuildChain(tip, coinbase_script_pub_key, 10, chainA, ::g_mempool));
+        BuildChain(tip, coinbase_script_pub_key, 10, chainA, *m_node.mempool));
     BOOST_REQUIRE(
-        BuildChain(tip, coinbase_script_pub_key, 10, chainB, ::g_mempool));
+        BuildChain(tip, coinbase_script_pub_key, 10, chainB, *m_node.mempool));
 
     // Check that new blocks on chain A get indexed.
     uint256 chainA_last_header = last_header;

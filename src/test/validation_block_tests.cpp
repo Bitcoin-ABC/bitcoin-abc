@@ -143,8 +143,9 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     std::vector<std::shared_ptr<const CBlock>> blocks;
     while (blocks.size() < 50) {
         blocks.clear();
-        BuildChain(config, ::g_mempool, chainParams.GenesisBlock().GetHash(),
-                   100, 15, 10, 500, blocks);
+        BuildChain(config, *m_node.mempool,
+                   chainParams.GenesisBlock().GetHash(), 100, 15, 10, 500,
+                   blocks);
     }
 
     bool ignored;
