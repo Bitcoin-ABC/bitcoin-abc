@@ -10,27 +10,14 @@
 namespace avalanche {
 
 enum class ProofValidationResult {
-    NONE,
+    NONE = 0,
     NO_STAKE,
     DUST_THRESOLD,
     DUPLICATE_STAKE,
     INVALID_SIGNATURE,
 };
 
-class ProofValidationState : public ValidationState {
-private:
-    ProofValidationResult m_result = ProofValidationResult::NONE;
-
-public:
-    bool Invalid(ProofValidationResult result,
-                 const std::string &reject_reason = "",
-                 const std::string &debug_message = "") {
-        m_result = result;
-        ValidationState::Invalid(reject_reason, debug_message);
-        return false;
-    }
-    ProofValidationResult GetResult() const { return m_result; }
-};
+class ProofValidationState : public ValidationState<ProofValidationResult> {};
 
 } // namespace avalanche
 
