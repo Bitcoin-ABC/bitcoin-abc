@@ -46,7 +46,6 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/translation.h>
-#include <util/validation.h>
 #include <validationinterface.h>
 #include <warnings.h>
 
@@ -455,7 +454,7 @@ static bool AcceptToMemoryPoolWorker(
         if (!Consensus::CheckTxInputs(tx, state, view, GetSpendHeight(view),
                                       nFees)) {
             return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
-                         tx.GetId().ToString(), FormatStateMessage(state));
+                         tx.GetId().ToString(), state.ToString());
         }
 
         const uint32_t nextBlockScriptVerifyFlags =
@@ -570,7 +569,7 @@ static bool AcceptToMemoryPoolWorker(
             // being activated yet (during IBD).
             return error("%s: BUG! PLEASE REPORT THIS! CheckInputs failed "
                          "against next-block but not STANDARD flags %s, %s",
-                         __func__, txid.ToString(), FormatStateMessage(state));
+                         __func__, txid.ToString(), state.ToString());
         }
 
         if (nSigChecksStandard != nSigChecksConsensus) {
@@ -1493,7 +1492,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                                     "hardware failure; shutting down");
         }
         return error("%s: Consensus::CheckBlock: %s", __func__,
-                     FormatStateMessage(state));
+                     state.ToString());
     }
 
     // Verify that the view's current state corresponds to the previous block
@@ -1742,7 +1741,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                               tx_state.GetDebugMessage());
 
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
-                             tx.GetId().ToString(), FormatStateMessage(state));
+                             tx.GetId().ToString(), state.ToString());
             }
             nFees += txfee;
         }
@@ -1802,7 +1801,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                           tx_state.GetRejectReason(),
                           tx_state.GetDebugMessage());
             return error("ConnectBlock(): CheckInputs on %s failed with %s",
-                         tx.GetId().ToString(), FormatStateMessage(state));
+                         tx.GetId().ToString(), state.ToString());
         }
 
         control.Add(vChecks);
@@ -2069,7 +2068,7 @@ void CChainState::ForceFlushStateToDisk() {
     const CChainParams &chainparams = Params();
     if (!this->FlushStateToDisk(chainparams, state, FlushStateMode::ALWAYS)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
-                  FormatStateMessage(state));
+                  state.ToString());
     }
 }
 
@@ -2079,7 +2078,7 @@ void CChainState::PruneAndFlush() {
     const CChainParams &chainparams = Params();
     if (!this->FlushStateToDisk(chainparams, state, FlushStateMode::NONE)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
-                  FormatStateMessage(state));
+                  state.ToString());
     }
 }
 
@@ -2399,7 +2398,7 @@ bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
 
             return error("%s: ConnectBlock %s failed, %s", __func__,
                          pindexNew->GetBlockHash().ToString(),
-                         FormatStateMessage(state));
+                         state.ToString());
         }
 
         // Update the finalized block.
@@ -2409,7 +2408,7 @@ bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
             !MarkBlockAsFinal(config, state, pindexToFinalize)) {
             return error("ConnectTip(): MarkBlockAsFinal %s failed (%s)",
                          pindexNew->GetBlockHash().ToString(),
-                         FormatStateMessage(state));
+                         state.ToString());
         }
 
         nTime3 = GetTimeMicros();
@@ -3889,7 +3888,7 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         if (!CheckBlockHeader(block, state, chainparams.GetConsensus(),
                               BlockValidationOptions(config))) {
             return error("%s: Consensus::CheckBlockHeader: %s, %s", __func__,
-                         hash.ToString(), FormatStateMessage(state));
+                         hash.ToString(), state.ToString());
         }
 
         // Get prev block index
@@ -3911,7 +3910,7 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         if (!ContextualCheckBlockHeader(chainparams, block, state, pindexPrev,
                                         GetAdjustedTime())) {
             return error("%s: Consensus::ContextualCheckBlockHeader: %s, %s",
-                         __func__, hash.ToString(), FormatStateMessage(state));
+                         __func__, hash.ToString(), state.ToString());
         }
 
         /* Determine if this block descends from any block which has been found
@@ -4152,7 +4151,7 @@ bool CChainState::AcceptBlock(const Config &config,
             setDirtyBlockIndex.insert(pindex);
         }
 
-        return error("%s: %s (block %s)", __func__, FormatStateMessage(state),
+        return error("%s: %s (block %s)", __func__, state.ToString(),
                      block.GetHash().ToString());
     }
 
@@ -4236,7 +4235,7 @@ bool ProcessNewBlock(const Config &config,
         if (!ret) {
             GetMainSignals().BlockChecked(*pblock, state);
             return error("%s: AcceptBlock FAILED (%s)", __func__,
-                         FormatStateMessage(state));
+                         state.ToString());
         }
     }
 
@@ -4246,7 +4245,7 @@ bool ProcessNewBlock(const Config &config,
     BlockValidationState state;
     if (!::ChainstateActive().ActivateBestChain(config, state, pblock)) {
         return error("%s: ActivateBestChain failed (%s)", __func__,
-                     FormatStateMessage(state));
+                     state.ToString());
     }
 
     return true;
@@ -4268,18 +4267,18 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
     if (!ContextualCheckBlockHeader(params, block, state, pindexPrev,
                                     GetAdjustedTime())) {
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
-                     FormatStateMessage(state));
+                     state.ToString());
     }
 
     if (!CheckBlock(block, state, params.GetConsensus(), validationOptions)) {
         return error("%s: Consensus::CheckBlock: %s", __func__,
-                     FormatStateMessage(state));
+                     state.ToString());
     }
 
     if (!ContextualCheckBlock(block, state, params.GetConsensus(),
                               pindexPrev)) {
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
-                     FormatStateMessage(state));
+                     state.ToString());
     }
 
     if (!::ChainstateActive().ConnectBlock(block, state, &indexDummy, viewNew,
@@ -4393,7 +4392,7 @@ void PruneBlockFilesManual(int nManualPruneHeight) {
     if (!::ChainstateActive().FlushStateToDisk(
             chainparams, state, FlushStateMode::NONE, nManualPruneHeight)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
-                  FormatStateMessage(state));
+                  state.ToString());
     }
 }
 
@@ -4759,8 +4758,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                                             BlockValidationOptions(config))) {
             return error("%s: *** found bad block at %d, hash=%s (%s)\n",
                          __func__, pindex->nHeight,
-                         pindex->GetBlockHash().ToString(),
-                         FormatStateMessage(state));
+                         pindex->GetBlockHash().ToString(), state.ToString());
         }
 
         // check level 2: verify undo validity
@@ -4842,7 +4840,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                 return error("VerifyDB(): *** found unconnectable block at %d, "
                              "hash=%s (%s)",
                              pindex->nHeight, pindex->GetBlockHash().ToString(),
-                             FormatStateMessage(state));
+                             state.ToString());
             }
         }
     }

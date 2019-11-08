@@ -58,7 +58,6 @@
 #include <util/moneystr.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
-#include <util/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <walletinitinterface.h>
@@ -1366,8 +1365,7 @@ static void ThreadImport(const Config &config,
         // connected in the active best chain
         BlockValidationState state;
         if (!ActivateBestChain(config, state)) {
-            LogPrintf("Failed to connect best block (%s)\n",
-                      FormatStateMessage(state));
+            LogPrintf("Failed to connect best block (%s)\n", state.ToString());
             StartShutdown();
             return;
         }

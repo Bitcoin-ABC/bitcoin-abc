@@ -30,7 +30,6 @@
 #include <txmempool.h>
 #include <util/strencodings.h>
 #include <util/system.h>
-#include <util/validation.h>
 #include <validation.h>
 
 #include <memory>
@@ -1670,7 +1669,7 @@ static void ProcessGetBlockData(const Config &config, CNode *pfrom,
         BlockValidationState state;
         if (!ActivateBestChain(config, state, a_recent_block)) {
             LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
-                     FormatStateMessage(state));
+                     state.ToString());
         }
     }
 
@@ -2713,7 +2712,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
             BlockValidationState state;
             if (!ActivateBestChain(config, state, a_recent_block)) {
                 LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
-                         FormatStateMessage(state));
+                         state.ToString());
             }
         }
 
@@ -3023,7 +3022,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
                     LogPrintf("Not relaying invalid transaction %s from "
                               "whitelisted peer=%d (%s)\n",
                               tx.GetId().ToString(), pfrom->GetId(),
-                              FormatStateMessage(state));
+                              state.ToString());
                 } else {
                     LogPrintf("Force relaying tx %s from whitelisted peer=%d\n",
                               tx.GetId().ToString(), pfrom->GetId());
@@ -3052,8 +3051,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         if (state.IsInvalid()) {
             LogPrint(BCLog::MEMPOOLREJ,
                      "%s from peer=%d was not accepted: %s\n",
-                     tx.GetHash().ToString(), pfrom->GetId(),
-                     FormatStateMessage(state));
+                     tx.GetHash().ToString(), pfrom->GetId(), state.ToString());
             MaybePunishNodeForTx(pfrom->GetId(), state);
         }
         return true;
@@ -3622,7 +3620,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
             BlockValidationState state;
             if (!ActivateBestChain(config, state)) {
                 LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
-                         FormatStateMessage(state));
+                         state.ToString());
             }
         }
 

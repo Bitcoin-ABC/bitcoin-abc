@@ -24,7 +24,6 @@
 #include <timedata.h>
 #include <util/moneystr.h>
 #include <util/system.h>
-#include <util/validation.h>
 #include <validation.h>
 
 #include <algorithm>
@@ -229,8 +228,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false))) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s",
-                                           __func__,
-                                           FormatStateMessage(state)));
+                                           __func__, state.ToString()));
     }
     int64_t nTime2 = GetTimeMicros();
 

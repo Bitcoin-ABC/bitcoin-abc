@@ -31,7 +31,6 @@
 #include <univalue.h>
 #include <util/strencodings.h>
 #include <util/system.h>
-#include <util/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <warnings.h>
@@ -394,7 +393,7 @@ static UniValue BIP22ValidationResult(const Config &config,
     }
 
     if (state.IsError()) {
-        throw JSONRPCError(RPC_VERIFY_ERROR, FormatStateMessage(state));
+        throw JSONRPCError(RPC_VERIFY_ERROR, state.ToString());
     }
 
     if (state.IsInvalid()) {
@@ -949,7 +948,7 @@ static UniValue submitheader(const Config &config,
         return NullUniValue;
     }
     if (state.IsError()) {
-        throw JSONRPCError(RPC_VERIFY_ERROR, FormatStateMessage(state));
+        throw JSONRPCError(RPC_VERIFY_ERROR, state.ToString());
     }
     throw JSONRPCError(RPC_VERIFY_ERROR, state.GetRejectReason());
 }

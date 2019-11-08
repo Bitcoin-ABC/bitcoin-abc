@@ -360,7 +360,6 @@ add_library(util
 	util/threadnames.cpp
 	util/time.cpp
 	util/url.cpp
-	util/validation.cpp
 
 	# obj/build.h
 	"${BUILD_HEADER}"

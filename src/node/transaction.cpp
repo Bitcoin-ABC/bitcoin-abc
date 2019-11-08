@@ -12,7 +12,6 @@
 #include <node/context.h>
 #include <primitives/txid.h>
 #include <txmempool.h>
-#include <util/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
 
@@ -53,7 +52,7 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
             TxValidationState state;
             if (!AcceptToMemoryPool(config, *node.mempool, state, std::move(tx),
                                     false /* bypass_limits */, max_tx_fee)) {
-                err_string = FormatStateMessage(state);
+                err_string = state.ToString();
                 if (state.IsInvalid()) {
                     if (state.GetResult() ==
                         TxValidationResult::TX_MISSING_INPUTS) {

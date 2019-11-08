@@ -30,7 +30,6 @@
 #include <util/strencodings.h>
 #include <util/time.h>
 #include <util/translation.h>
-#include <util/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <walletinitinterface.h>
@@ -161,8 +160,8 @@ TestingSetup::TestingSetup(const std::string &chainName)
     {
         BlockValidationState state;
         if (!ActivateBestChain(config, state)) {
-            throw std::runtime_error(strprintf("ActivateBestChain failed. (%s)",
-                                               FormatStateMessage(state)));
+            throw std::runtime_error(
+                strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }
     }
     constexpr int script_check_threads = 2;
