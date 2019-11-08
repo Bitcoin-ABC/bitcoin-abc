@@ -18,6 +18,7 @@
 #include <index/blockfilterindex.h>
 #include <key_io.h>
 #include <node/coinstats.h>
+#include <node/context.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>
@@ -51,6 +52,15 @@ struct CUpdatedBlock {
 static Mutex cs_blockchange;
 static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock;
+
+CTxMemPool &EnsureMemPool() {
+    CHECK_NONFATAL(g_rpc_node);
+    if (!g_rpc_node->mempool) {
+        throw JSONRPCError(RPC_CLIENT_MEMPOOL_DISABLED,
+                           "Mempool disabled or instance not found");
+    }
+    return *g_rpc_node->mempool;
+}
 
 /**
  * Calculate the difficulty for a given block index.

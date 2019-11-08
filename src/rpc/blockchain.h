@@ -52,4 +52,6 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
 //! direct way to pass in state to RPC methods without globals.
 extern NodeContext *g_rpc_node;
 
+CTxMemPool &EnsureMemPool();
+
 #endif // BITCOIN_RPC_BLOCKCHAIN_H

@@ -322,6 +322,9 @@ void Shutdown(NodeContext &node) {
     GetMainSignals().UnregisterWithMempoolSignals(g_mempool);
     globalVerifyHandle.reset();
     ECC_Stop();
+    if (node.mempool) {
+        node.mempool = nullptr;
+    }
     LogPrintf("%s: done\n", __func__);
 }
 
@@ -2580,6 +2583,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Encoded addresses using cashaddr instead of base58.
     // We do this by default to avoid confusion with BTC addresses.
     config.SetCashAddrEncoding(gArgs.GetBoolArg("-usecashaddr", true));
+
+    // Now that the chain state is loaded, make mempool generally available in
+    // the node context. For example the connection manager, wallet, or RPC
+    // threads, which are all started after this, may use it from the node
+    // context.
+    assert(!node.mempool);
+    node.mempool = &::g_mempool;
 
     // Step 8: load indexers
     if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {

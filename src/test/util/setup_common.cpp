@@ -113,7 +113,6 @@ TestingSetup::TestingSetup(const std::string &chainName)
     threadGroup.create_thread(std::bind(&CScheduler::serviceQueue, &scheduler));
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
 
-    g_mempool.setSanityCheck(1.0);
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
     pcoinsdbview.reset(new CCoinsViewDB(1 << 23, true));
     pcoinsTip.reset(new CCoinsViewCache(pcoinsdbview.get()));
@@ -132,6 +131,8 @@ TestingSetup::TestingSetup(const std::string &chainName)
         threadGroup.create_thread([i]() { return ThreadScriptCheck(i); });
     }
 
+    m_node.mempool = &::g_mempool;
+    m_node.mempool->setSanityCheck(1.0);
     m_node.banman =
         std::make_unique<BanMan>(GetDataDir() / "banlist.dat", chainparams,
                                  nullptr, DEFAULT_MISBEHAVING_BANTIME);
@@ -147,6 +148,7 @@ TestingSetup::~TestingSetup() {
     g_rpc_node = nullptr;
     m_node.connman.reset();
     m_node.banman.reset();
+    m_node.mempool = nullptr;
     UnloadBlockIndex();
     pcoinsTip.reset();
     pcoinsdbview.reset();

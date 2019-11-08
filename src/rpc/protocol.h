@@ -89,6 +89,9 @@ enum RPCErrorCode {
     //! No valid connection manager instance found
     RPC_CLIENT_P2P_DISABLED = -31,
 
+    //! Chain errors
+    RPC_CLIENT_MEMPOOL_DISABLED = -33, //!< No mempool instance found
+
     //! Wallet errors
     //! Unspecified problem with wallet (key not found etc.)
     RPC_WALLET_ERROR = -4,
