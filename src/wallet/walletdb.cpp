@@ -671,7 +671,7 @@ DBErrors WalletBatch::ZapSelectTx(std::vector<TxId> &txIdsIn,
 
         if ((*it) == txid) {
             if (!EraseTx(txid)) {
-                LogPrint(BCLog::DB,
+                LogPrint(BCLog::WALLETDB,
                          "Transaction was found for deletion but returned "
                          "database error: %s\n",
                          txid.GetHex());
