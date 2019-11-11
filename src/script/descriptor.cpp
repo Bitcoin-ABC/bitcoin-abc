@@ -943,10 +943,10 @@ std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
             }
         }
         if (ctx == ParseScriptContext::P2SH) {
-            if (script_size + 3 > 520) {
+            if (script_size + 3 > MAX_SCRIPT_ELEMENT_SIZE) {
                 error = strprintf("P2SH script is too large, %d bytes is "
-                                  "larger than 520 bytes",
-                                  script_size + 3);
+                                  "larger than %d bytes",
+                                  script_size + 3, MAX_SCRIPT_ELEMENT_SIZE);
                 return nullptr;
             }
         }
