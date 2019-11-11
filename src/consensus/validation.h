@@ -89,7 +89,7 @@ private:
         MODE_VALID,   //!< everything ok
         MODE_INVALID, //!< network rule violation (DoS value may be set)
         MODE_ERROR,   //!< run-time error
-    } m_mode;
+    } m_mode{MODE_VALID};
     std::string m_reject_reason;
     std::string m_debug_message;
 
@@ -107,7 +107,6 @@ public:
     // ValidationState is abstract. Have a pure virtual destructor.
     virtual ~ValidationState() = 0;
 
-    ValidationState() : m_mode(MODE_VALID) {}
     bool Error(const std::string &reject_reason) {
         if (m_mode == MODE_VALID) {
             m_reject_reason = reject_reason;
