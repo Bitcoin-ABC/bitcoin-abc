@@ -3046,8 +3046,7 @@ bool CChainState::ActivateBestChain(const Config &config,
                 for (const PerBlockConnectTrace &trace :
                      connectTrace.GetBlocksConnected()) {
                     assert(trace.pblock && trace.pindex);
-                    GetMainSignals().BlockConnected(trace.pblock, trace.pindex,
-                                                    trace.conflictedTxs);
+                    GetMainSignals().BlockConnected(trace.pblock, trace.pindex);
                 }
             } while (!m_chain.Tip() ||
                      (starting_tip && CBlockIndexWorkComparator()(

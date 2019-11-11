@@ -273,10 +273,7 @@ public:
         virtual void transactionAddedToMempool(const CTransactionRef &tx) {}
         virtual void transactionRemovedFromMempool(const CTransactionRef &ptx) {
         }
-        virtual void
-        blockConnected(const CBlock &block,
-                       const std::vector<CTransactionRef> &tx_conflicted,
-                       int height) {}
+        virtual void blockConnected(const CBlock &block, int height) {}
         virtual void blockDisconnected(const CBlock &block, int height) {}
         virtual void updatedBlockTip() {}
         virtual void chainStateFlushed(const CBlockLocator &locator) {}

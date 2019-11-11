@@ -1441,8 +1441,7 @@ PeerLogicValidation::PeerLogicValidation(CConnman &connman, BanMan *banman,
  * block. Also save the time of the last tip update.
  */
 void PeerLogicValidation::BlockConnected(
-    const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex,
-    const std::vector<CTransactionRef> &vtxConflicted) {
+    const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
     {
         LOCK(g_cs_orphans);
 

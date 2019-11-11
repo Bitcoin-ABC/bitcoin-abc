@@ -189,9 +189,8 @@ bool BaseIndex::Rewind(const CBlockIndex *current_tip,
     return true;
 }
 
-void BaseIndex::BlockConnected(
-    const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex,
-    const std::vector<CTransactionRef> &txn_conflicted) {
+void BaseIndex::BlockConnected(const std::shared_ptr<const CBlock> &block,
+                               const CBlockIndex *pindex) {
     if (!m_synced) {
         return;
     }

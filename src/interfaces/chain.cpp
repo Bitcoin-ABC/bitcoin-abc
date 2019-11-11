@@ -78,12 +78,9 @@ namespace {
         void TransactionRemovedFromMempool(const CTransactionRef &tx) override {
             m_notifications->transactionRemovedFromMempool(tx);
         }
-        void BlockConnected(
-            const std::shared_ptr<const CBlock> &block,
-            const CBlockIndex *index,
-            const std::vector<CTransactionRef> &tx_conflicted) override {
-            m_notifications->blockConnected(*block, tx_conflicted,
-                                            index->nHeight);
+        void BlockConnected(const std::shared_ptr<const CBlock> &block,
+                            const CBlockIndex *index) override {
+            m_notifications->blockConnected(*block, index->nHeight);
         }
         void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                                const CBlockIndex *index) override {
