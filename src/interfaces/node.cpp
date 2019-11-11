@@ -39,6 +39,8 @@
 
 #include <univalue.h>
 
+#include <boost/signals2/signal.hpp>
+
 class HTTPRPCRequestProcessor;
 class CWallet;
 fs::path GetWalletDir();

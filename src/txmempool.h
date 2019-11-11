@@ -18,7 +18,6 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index_container.hpp>
-#include <boost/signals2/signal.hpp>
 
 #include <atomic>
 #include <map>
@@ -777,10 +776,6 @@ public:
     CFeeRate estimateFee() const;
 
     size_t DynamicMemoryUsage() const;
-
-    boost::signals2::signal<void(CTransactionRef)> NotifyEntryAdded;
-    boost::signals2::signal<void(CTransactionRef, MemPoolRemovalReason)>
-        NotifyEntryRemoved;
 
 private:
     /**

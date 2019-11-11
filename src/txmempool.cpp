@@ -417,7 +417,6 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
 
 void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry,
                               setEntries &setAncestors) {
-    NotifyEntryAdded(entry.GetSharedTx());
     // Add to memory pool without checking anything.
     // Used by AcceptToMemoryPool(), which DOES do all the appropriate checks.
     indexed_transaction_set::iterator newit = mapTx.insert(entry).first;
@@ -465,17 +464,14 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry,
 }
 
 void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
-    CTransactionRef ptx = it->GetSharedTx();
-    NotifyEntryRemoved(ptx, reason);
     if (reason != MemPoolRemovalReason::BLOCK) {
         // Notify clients that a transaction has been removed from the mempool
         // for any reason except being included in a block. Clients interested
         // in transactions included in blocks can subscribe to the
         // BlockConnected notification.
-        GetMainSignals().TransactionRemovedFromMempool(ptx);
+        GetMainSignals().TransactionRemovedFromMempool(it->GetSharedTx());
     }
 
-    NotifyEntryRemoved(it->GetSharedTx(), reason);
     for (const CTxIn &txin : it->GetTx().vin) {
         mapNextTx.erase(txin.prevout);
     }
