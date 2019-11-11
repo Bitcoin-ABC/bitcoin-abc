@@ -1227,9 +1227,6 @@ void CWallet::blockConnected(const CBlock &block,
         SyncTransaction(block.vtx[index], confirm);
         transactionRemovedFromMempool(block.vtx[index]);
     }
-    for (const CTransactionRef &ptx : vtxConflicted) {
-        transactionRemovedFromMempool(ptx);
-    }
 }
 
 void CWallet::blockDisconnected(const CBlock &block, int height) {
