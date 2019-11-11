@@ -48,7 +48,7 @@ SetupArgs(ArgsManager &am,
 
 BOOST_AUTO_TEST_CASE(boolarg) {
     ArgsManager am;
-    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_BOOL);
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_ANY);
     SetupArgs(am, {foo});
     ResetArgs(am, "-foo");
     BOOST_CHECK(am.GetBoolArg("-foo", false));
@@ -104,8 +104,8 @@ BOOST_AUTO_TEST_CASE(boolarg) {
 
 BOOST_AUTO_TEST_CASE(stringarg) {
     ArgsManager am;
-    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_STRING);
-    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_STRING);
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_ANY);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_ANY);
     SetupArgs(am, {foo, bar});
     ResetArgs(am, "");
     BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "");
@@ -130,8 +130,8 @@ BOOST_AUTO_TEST_CASE(stringarg) {
 
 BOOST_AUTO_TEST_CASE(intarg) {
     ArgsManager am;
-    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_INT);
-    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_INT);
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_ANY);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_ANY);
     SetupArgs(am, {foo, bar});
     ResetArgs(am, "");
     BOOST_CHECK_EQUAL(am.GetArg("-foo", 11), 11);
@@ -165,8 +165,8 @@ BOOST_AUTO_TEST_CASE(doubledash) {
 
 BOOST_AUTO_TEST_CASE(boolargno) {
     ArgsManager am;
-    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_BOOL);
-    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_BOOL);
+    const auto foo = std::make_pair("-foo", ArgsManager::ALLOW_ANY);
+    const auto bar = std::make_pair("-bar", ArgsManager::ALLOW_ANY);
     SetupArgs(am, {foo, bar});
     ResetArgs(am, "-nofoo");
     BOOST_CHECK(!am.GetBoolArg("-foo", true));

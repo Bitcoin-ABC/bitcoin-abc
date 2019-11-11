@@ -57,6 +57,8 @@ SettingsValue GetSetting(const Settings &settings, const std::string &section,
                          bool ignore_default_section_config,
                          bool get_chain_name) {
     SettingsValue result;
+    // Done merging any more settings sources.
+    bool done = false;
     MergeSettings(
         settings, section, name, [&](SettingsSpan span, Source source) {
             // Weird behavior preserved for backwards compatibility: Apply
@@ -84,6 +86,10 @@ SettingsValue GetSetting(const Settings &settings, const std::string &section,
             // ignored.
             const bool skip_negated_command_line = get_chain_name;
 
+            if (done) {
+                return;
+            }
+
             // Ignore settings in default config section if requested.
             if (ignore_default_section_config &&
                 source == Source::CONFIG_FILE_DEFAULT_SECTION &&
@@ -96,15 +102,12 @@ SettingsValue GetSetting(const Settings &settings, const std::string &section,
                 return;
             }
 
-            // Stick with highest priority value, keeping result if already set.
-            if (!result.isNull()) {
-                return;
-            }
-
             if (!span.empty()) {
                 result = reverse_precedence ? span.begin()[0] : span.end()[-1];
+                done = true;
             } else if (span.last_negated()) {
                 result = false;
+                done = true;
             }
         });
     return result;
@@ -115,7 +118,8 @@ std::vector<SettingsValue> GetSettingsList(const Settings &settings,
                                            const std::string &name,
                                            bool ignore_default_section_config) {
     std::vector<SettingsValue> result;
-    bool result_complete = false;
+    // Done merging any more settings sources.
+    bool done = false;
     bool prev_negated_empty = false;
     MergeSettings(
         settings, section, name, [&](SettingsSpan span, Source source) {
@@ -139,7 +143,7 @@ std::vector<SettingsValue> GetSettingsList(const Settings &settings,
 
             // Add new settings to the result if isn't already complete, or if
             // the values are zombies.
-            if (!result_complete || add_zombie_config_values) {
+            if (!done || add_zombie_config_values) {
                 for (const auto &value : span) {
                     if (value.isArray()) {
                         result.insert(result.end(), value.getValues().begin(),
@@ -150,10 +154,9 @@ std::vector<SettingsValue> GetSettingsList(const Settings &settings,
                 }
             }
 
-            // If a setting was negated, or if a setting was forced, set
-            // result_complete to true to ignore any later lower priority
-            // settings.
-            result_complete |= span.negated() > 0 || source == Source::FORCED;
+            // If a setting was negated, or if a setting was forced, set done to
+            // true to ignore any later lower priority settings.
+            done |= span.negated() > 0 || source == Source::FORCED;
 
             // Update the negated and empty state used for the zombie values
             // check.
