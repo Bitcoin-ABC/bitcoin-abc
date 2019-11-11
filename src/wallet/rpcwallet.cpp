@@ -290,7 +290,7 @@ static UniValue getlabeladdress(const Config &config,
     }
 
     bool label_found = false;
-    for (const std::pair<CTxDestination, CAddressBookData> &item :
+    for (const std::pair<const CTxDestination, CAddressBookData> &item :
          pwallet->mapAddressBook) {
         if (item.second.name == label) {
             label_found = true;
@@ -4896,7 +4896,7 @@ UniValue getaddressesbylabel(const Config &config,
 
     // Find all addresses that have the given label
     UniValue ret(UniValue::VOBJ);
-    for (const std::pair<CTxDestination, CAddressBookData> &item :
+    for (const std::pair<const CTxDestination, CAddressBookData> &item :
          pwallet->mapAddressBook) {
         if (item.second.name == label) {
             ret.pushKV(EncodeDestination(item.first, config),
@@ -4951,7 +4951,7 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
 
     // Add to a set to sort by label name, then insert into Univalue array
     std::set<std::string> label_set;
-    for (const std::pair<CTxDestination, CAddressBookData> &entry :
+    for (const std::pair<const CTxDestination, CAddressBookData> &entry :
          pwallet->mapAddressBook) {
         if (purpose.empty() || entry.second.purpose == purpose) {
             label_set.insert(entry.second.name);
