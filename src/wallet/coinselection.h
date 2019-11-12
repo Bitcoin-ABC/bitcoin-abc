@@ -9,6 +9,8 @@
 #include <primitives/transaction.h>
 #include <random.h>
 
+class CFeeRate;
+
 //! target minimum change amount
 static constexpr Amount MIN_CHANGE{COIN / 100};
 //! final minimum change amount after paying for fees
@@ -37,6 +39,8 @@ public:
     COutPoint outpoint;
     CTxOut txout;
     Amount effective_value;
+    Amount m_fee{Amount::zero()};
+    Amount m_long_term_fee{Amount::zero()};
 
     /**
      * Pre-computed estimated size of this output as a fully-signed input in a
@@ -99,6 +103,12 @@ struct OutputGroup {
     std::vector<CInputCoin>::iterator Discard(const CInputCoin &output);
     bool
     EligibleForSpending(const CoinEligibilityFilter &eligibility_filter) const;
+
+    //! Update the OutputGroup's fee, long_term_fee, and effective_value based
+    //! on the given feerates
+    void SetFees(const CFeeRate effective_feerate,
+                 const CFeeRate long_term_feerate);
+    OutputGroup GetPositiveOnlyGroup();
 };
 
 bool SelectCoinsBnB(std::vector<OutputGroup> &utxo_pool,

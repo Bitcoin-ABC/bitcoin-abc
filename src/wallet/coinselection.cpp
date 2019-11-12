@@ -4,6 +4,7 @@
 
 #include <wallet/coinselection.h>
 
+#include <feerate.h>
 #include <util/moneystr.h>
 #include <util/system.h>
 
@@ -360,7 +361,9 @@ void OutputGroup::Insert(const CInputCoin &output, int depth, bool from_me,
     // descendants as seen from the coin itself; thus, this value is counted as
     // the max, not the sum
     m_descendants = std::max(m_descendants, descendants);
-    effective_value = m_value;
+    effective_value += output.effective_value;
+    fee += output.m_fee;
+    long_term_fee += output.m_long_term_fee;
 }
 
 std::vector<CInputCoin>::iterator
@@ -374,6 +377,8 @@ OutputGroup::Discard(const CInputCoin &output) {
     }
     m_value -= output.txout.nValue;
     effective_value -= output.effective_value;
+    fee -= output.m_fee;
+    long_term_fee -= output.m_long_term_fee;
     return m_outputs.erase(it);
 }
 
@@ -383,4 +388,41 @@ bool OutputGroup::EligibleForSpending(
                                  : eligibility_filter.conf_theirs) &&
            m_ancestors <= eligibility_filter.max_ancestors &&
            m_descendants <= eligibility_filter.max_descendants;
+}
+
+void OutputGroup::SetFees(const CFeeRate effective_feerate,
+                          const CFeeRate long_term_feerate) {
+    fee = Amount::zero();
+    long_term_fee = Amount::zero();
+    effective_value = Amount::zero();
+    for (CInputCoin &coin : m_outputs) {
+        coin.m_fee = coin.m_input_bytes < 0
+                         ? Amount::zero()
+                         : effective_feerate.GetFee(coin.m_input_bytes);
+        fee += coin.m_fee;
+
+        coin.m_long_term_fee =
+            coin.m_input_bytes < 0
+                ? Amount::zero()
+                : long_term_feerate.GetFee(coin.m_input_bytes);
+        long_term_fee += coin.m_long_term_fee;
+
+        coin.effective_value = coin.txout.nValue - coin.m_fee;
+        effective_value += coin.effective_value;
+    }
+}
+
+OutputGroup OutputGroup::GetPositiveOnlyGroup() {
+    OutputGroup group(*this);
+    for (auto it = group.m_outputs.begin(); it != group.m_outputs.end();) {
+        const CInputCoin &coin = *it;
+        // Only include outputs that are positive effective value (i.e. not
+        // dust)
+        if (coin.effective_value <= Amount::zero()) {
+            it = group.Discard(coin);
+        } else {
+            ++it;
+        }
+    }
+    return group;
 }
