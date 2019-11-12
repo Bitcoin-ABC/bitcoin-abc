@@ -125,6 +125,11 @@ case "$ABC_BUILD_NAME" in
     CONFIGURE_FLAGS="--enable-debug --enable-werror CC=clang CXX=clang++" "${CI_SCRIPTS_DIR}"/build_autotools.sh
     ;;
 
+  build-check-all)
+    CMAKE_FLAGS="-DSECP256K1_ENABLE_MODULE_ECDH=ON -DSECP256K1_ENABLE_JNI=ON" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check-all
+    ;;
+
   *)
     echo "Error: Invalid build name '${ABC_BUILD_NAME}'"
     exit 2
