@@ -69,6 +69,31 @@ Q_DECLARE_METATYPE(uint256)
 // Config is non-copyable so we can only register pointers to it
 Q_DECLARE_METATYPE(Config *)
 
+static void RegisterMetaTypes() {
+    // Register meta types used for QMetaObject::invokeMethod and
+    // Qt::QueuedConnection
+    qRegisterMetaType<bool *>();
+    qRegisterMetaType<SynchronizationState>();
+#ifdef ENABLE_WALLET
+    qRegisterMetaType<WalletModel *>();
+#endif
+    qRegisterMetaType<Amount>();
+    // Register typedefs (see
+    // http://qt-project.org/doc/qt-5/qmetatype.html#qRegisterMetaType)
+    qRegisterMetaType<size_t>("size_t");
+
+    qRegisterMetaType<std::function<void()>>("std::function<void()>");
+    qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
+
+    // Need to register any types Qt doesn't know about if you intend
+    // to use them with the signal/slot mechanism Qt provides. Even pointers.
+    // Note that class Config is noncopyable and so we can't register a
+    // non-pointer version of it with Qt, because Qt expects to be able to
+    // copy-construct non-pointers to objects for invoking slots
+    // behind-the-scenes in the 'Queued' connection case.
+    qRegisterMetaType<Config *>();
+}
+
 static QString GetLangTerritory() {
     QSettings settings;
     // Get desired locale (e.g. "de_DE")
@@ -190,6 +215,7 @@ BitcoinApplication::BitcoinApplication()
     : QApplication(qt_argc, const_cast<char **>(&qt_argv)), coreThread(nullptr),
       optionsModel(nullptr), clientModel(nullptr), window(nullptr),
       pollShutdownTimer(nullptr), returnValue(0), platformStyle(nullptr) {
+    RegisterMetaTypes();
     setQuitOnLastWindowClosed(false);
 }
 
@@ -556,31 +582,6 @@ int GuiMain(int argc, char *argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     BitcoinApplication app;
-
-    // Register meta types used for QMetaObject::invokeMethod and
-    // Qt::QueuedConnection
-    qRegisterMetaType<bool *>();
-    qRegisterMetaType<SynchronizationState>();
-#ifdef ENABLE_WALLET
-    qRegisterMetaType<WalletModel *>();
-#endif
-    // Register typedefs (see
-    // http://qt-project.org/doc/qt-5/qmetatype.html#qRegisterMetaType)
-    // IMPORTANT: if Amount is no longer a typedef use the normal variant above
-    // (see https://doc.qt.io/qt-5/qmetatype.html#qRegisterMetaType-1)
-    qRegisterMetaType<Amount>("Amount");
-    qRegisterMetaType<size_t>("size_t");
-
-    qRegisterMetaType<std::function<void()>>("std::function<void()>");
-    qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
-
-    // Need to register any types Qt doesn't know about if you intend
-    // to use them with the signal/slot mechanism Qt provides. Even pointers.
-    // Note that class Config is noncopyable and so we can't register a
-    // non-pointer version of it with Qt, because Qt expects to be able to
-    // copy-construct non-pointers to objects for invoking slots
-    // behind-the-scenes in the 'Queued' connection case.
-    qRegisterMetaType<Config *>();
 
     /// 2. Parse command-line options. We do this after qt in order to show an
     /// error if there are problems parsing these
