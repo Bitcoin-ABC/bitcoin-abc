@@ -163,6 +163,7 @@ static void WalletTxToJSON(interfaces::Chain &chain,
     }
     if (confirms > 0) {
         entry.pushKV("blockhash", wtx.m_confirm.hashBlock.GetHex());
+        entry.pushKV("blockheight", wtx.m_confirm.block_height);
         entry.pushKV("blockindex", wtx.m_confirm.nIndex);
         int64_t block_time;
         bool found_block = chain.findBlock(wtx.m_confirm.hashBlock,
@@ -1563,6 +1564,8 @@ static const std::string TransactionDescriptionString() {
            "spend from.\n"
            "    \"blockhash\": \"hashvalue\",                  (string) The "
            "block hash containing the transaction.\n"
+           "    \"blockheight\": n,                          (numeric) The "
+           "block height containing the transaction.\n"
            "    \"blockindex\": n,                           (numeric) The "
            "index of the transaction in the block that includes it.\n"
            "    \"blocktime\": xxx,                          (numeric) The "
