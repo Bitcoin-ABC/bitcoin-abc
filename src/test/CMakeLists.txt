@@ -43,7 +43,7 @@ include(TestSuite)
 create_test_suite(bitcoin)
 add_dependencies(check check-bitcoin)
 
-add_test_to_suite(bitcoin test_bitcoin
+add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	activation_tests.cpp
 	addrman_tests.cpp
 	allocator_tests.cpp
@@ -152,26 +152,12 @@ add_test_to_suite(bitcoin test_bitcoin
 	${JSON_HEADERS}
 )
 
-find_package(Boost 1.58 REQUIRED unit_test_framework)
-
-target_link_libraries(test_bitcoin Boost::unit_test_framework rpcclient server)
+target_link_libraries(test_bitcoin rpcclient server)
 if(TARGET bitcoinconsensus-shared)
 	target_link_libraries(test_bitcoin bitcoinconsensus-shared)
 else()
 	target_link_libraries(test_bitcoin bitcoinconsensus)
 endif()
-
-# We need to detect if the BOOST_TEST_DYN_LINK flag is required.
-set(CMAKE_REQUIRED_LIBRARIES Boost::unit_test_framework)
-check_cxx_source_compiles("
-	#define BOOST_TEST_DYN_LINK
-	#define BOOST_TEST_MAIN
-	#include <boost/test/unit_test.hpp>
-" BOOST_TEST_DYN_LINK)
-
-if(BOOST_TEST_DYN_LINK)
-	target_compile_definitions(test_bitcoin PRIVATE BOOST_TEST_DYN_LINK)
-endif(BOOST_TEST_DYN_LINK)
 
 if(BUILD_BITCOIN_WALLET)
 	target_sources(test_bitcoin
