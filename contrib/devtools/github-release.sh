@@ -8,7 +8,7 @@ SCRIPT_PATH="$(dirname "$0")"
 ORIGINAL_PWD=$(pwd)
 TOPLEVEL="$(cd "${SCRIPT_PATH}"; git rev-parse --show-toplevel)"
 OAUTH_TOKEN_PATH="${PWD}/.github-oauth-token"
-TAG=""
+RELEASE_NOTES_DIR="${TOPLEVEL}/doc/release-notes"
 
 help_message() {
   echo "Create a draft Github release and upload binaries."
@@ -18,11 +18,14 @@ help_message() {
   echo "-d, --dry-run         Run through the script, but do not touch existing tags, push to Github, or upload release files."
   echo "-h, --help            Display this help message."
   echo "-o, --oauth-token     Path to a file containing your OAuth token (defaults to: '${OAUTH_TOKEN_PATH}')."
+  echo "-r, --release-notes   Path to the release notes file (defaults to: '${RELEASE_NOTES_DIR}/release-notes-<version>.md')."
   echo "-t, --tag             (required) The git tag create a release for. This tag must already exist."
 }
 
 ASSET_DIR=""
 DRY_RUN="false"
+RELEASE_NOTES_PATH=""
+TAG=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -42,6 +45,11 @@ case $1 in
     ;;
   -o|--oauth-token)
     OAUTH_TOKEN_PATH="$2"
+    shift # shift past argument
+    shift # shift past value
+    ;;
+  -r|--release-notes)
+    RELEASE_NOTES_PATH="$2"
     shift # shift past argument
     shift # shift past value
     ;;
@@ -126,7 +134,10 @@ else
 fi
 
 # Fetch release notes
-RELEASE_NOTES=$(jq -Rs '.' "${TOPLEVEL}/doc/release-notes/release-notes-${VERSION}.md")
+if [ -z "${RELEASE_NOTES_PATH}" ]; then
+  RELEASE_NOTES_PATH="${RELEASE_NOTES_DIR}/release-notes-${VERSION}.md"
+fi
+RELEASE_NOTES=$(jq -Rs '.' "${RELEASE_NOTES_PATH}")
 if [ "${RELEASE_NOTES}" == '""' ]; then
   echo "Error: Could not fetch release notes for version '${VERSION}'"
   exit 40
