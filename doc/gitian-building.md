@@ -66,8 +66,11 @@ In order to sign builds for MacOS, you need to download the free SDK and extract
 It is possible to download the resulting archive directly for users that desire to do so:
 
 ```bash
+cd ~/gitian-builder
 curl -LO https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/MacOSX10.11.sdk.tar.gz
 echo "4732b52b5ebe300c8c91cbeed6d19d59c1ff9c56c7a1dd6cfa518b9c2c72abde MacOSX10.11.sdk.tar.gz" | sha256sum -c
+mkdir -p inputs
+mv MacOSX10.11.sdk.tar.gz inputs
 ```
 
 Alternatively, you can skip the macOS build by adding `--os=lw` below.
