@@ -59,8 +59,9 @@ public:
         // pad out the size if needed
         size = (size + 7) / 8;
         mem.reset(new std::atomic<uint8_t>[size]);
-        for (uint32_t i = 0; i < size; ++i)
+        for (uint32_t i = 0; i < size; ++i) {
             mem[i].store(0xFF);
+        }
     };
 
     /**
@@ -277,7 +278,7 @@ private:
 
     /* end
      * @returns a constexpr index that can never be inserted to */
-    constexpr uint32_t invalid() const { return ~(uint32_t)0; }
+    constexpr uint32_t invalid() const { return ~uint32_t(0); }
 
     /**
      * allow_erase marks the element at index n as discardable.
@@ -311,19 +312,22 @@ private:
         // count the number of elements from the latest epoch which have not
         // been erased.
         uint32_t epoch_unused_count = 0;
-        for (uint32_t i = 0; i < size; ++i)
+        for (uint32_t i = 0; i < size; ++i) {
             epoch_unused_count +=
                 epoch_flags[i] && !collection_flags.bit_is_set(i);
+        }
         // If there are more non-deleted entries in the current epoch than the
         // epoch size, then allow_erase on all elements in the old epoch (marked
         // false) and move all elements in the current epoch to the old epoch
         // but do not call allow_erase on their indices.
         if (epoch_unused_count >= epoch_size) {
-            for (uint32_t i = 0; i < size; ++i)
-                if (epoch_flags[i])
+            for (uint32_t i = 0; i < size; ++i) {
+                if (epoch_flags[i]) {
                     epoch_flags[i] = false;
-                else
+                } else {
                     allow_erase(i);
+                }
+            }
             epoch_heuristic_counter = epoch_size;
         } else {
             // reset the epoch_heuristic_counter to next do a scan when worst
@@ -415,16 +419,19 @@ public:
         std::array<uint32_t, 8> locs = compute_hashes(e);
         // Make sure we have not already inserted this element.
         // If we have, make sure that it does not get deleted.
-        for (const uint32_t loc : locs)
+        for (const uint32_t loc : locs) {
             if (table[loc] == e) {
                 please_keep(loc);
                 epoch_flags[loc] = last_epoch;
                 return;
             }
+        }
         for (uint8_t depth = 0; depth < depth_limit; ++depth) {
             // First try to insert to an empty slot, if one exists
             for (const uint32_t loc : locs) {
-                if (!collection_flags.bit_is_set(loc)) continue;
+                if (!collection_flags.bit_is_set(loc)) {
+                    continue;
+                }
                 table[loc] = std::move(e);
                 please_keep(loc);
                 epoch_flags[loc] = last_epoch;
