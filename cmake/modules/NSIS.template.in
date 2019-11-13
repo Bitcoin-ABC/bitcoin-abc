@@ -1,0 +1,180 @@
+Name "@CPACK_NSIS_DISPLAY_NAME@"
+
+RequestExecutionLevel highest
+SetCompressor @CPACK_NSIS_COMPRESSOR@
+
+# General Symbol Definitions
+!define REGKEY "SOFTWARE\$(^Name)"
+!define VERSION @CPACK_PACKAGE_VERSION@
+!define COMPANY "@CPACK_PACKAGE_VENDOR@"
+!define URL "@CPACK_NSIS_URL_INFO_ABOUT@"
+!define BITCOIN_GUI_NAME "bitcoin-qt.exe"
+
+# MUI Symbol Definitions
+!define MUI_ICON "@CPACK_NSIS_MUI_ICON@"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "@CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP@"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_RIGHT
+!define MUI_HEADERIMAGE_BITMAP "@CPACK_PACKAGE_ICON@"
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
+!define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "@CPACK_NSIS_DISPLAY_NAME@"
+!define MUI_FINISHPAGE_RUN $INSTDIR\${BITCOIN_GUI_NAME}
+!define MUI_UNICON "@CPACK_NSIS_MUI_UNIICON@"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "@CPACK_NSIS_MUI_UNWELCOMEFINISHPAGE_BITMAP@"
+!define MUI_UNFINISHPAGE_NOAUTOCLOSE
+
+# Included files
+!include Sections.nsh
+!include MUI2.nsh
+!if "@CPACK_SYSTEM_NAME@" == "x86_64-w64-mingw32"
+!include x64.nsh
+!endif
+
+# Variables
+Var StartMenuGroup
+
+# Installer pages
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+# Installer languages
+!insertmacro MUI_LANGUAGE English
+
+# Installer attributes
+OutFile "@CPACK_TOPLEVEL_DIRECTORY@/@CPACK_OUTPUT_FILE_NAME@"
+!if "@CPACK_SYSTEM_NAME@" == "x86_64-w64-mingw32"
+InstallDir $PROGRAMFILES64\Bitcoin-abc
+!else
+InstallDir $PROGRAMFILES\Bitcoin-abc
+!endif
+CRCCheck on
+XPStyle on
+BrandingText " "
+ShowInstDetails show
+VIProductVersion ${VERSION}.0
+VIAddVersionKey ProductName "@CPACK_NSIS_DISPLAY_NAME@"
+VIAddVersionKey ProductVersion "${VERSION}"
+VIAddVersionKey CompanyName "${COMPANY}"
+VIAddVersionKey CompanyWebsite "${URL}"
+VIAddVersionKey FileVersion "${VERSION}"
+VIAddVersionKey FileDescription ""
+VIAddVersionKey LegalCopyright ""
+InstallDirRegKey HKCU "${REGKEY}" Path
+ShowUninstDetails show
+
+# Installer sections
+Section -Main SEC0000
+    SetOutPath $INSTDIR
+    SetOverwrite on
+    File "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/@CPACK_NSIS_EXECUTABLES_DIRECTORY@/${BITCOIN_GUI_NAME}"
+    File /oname=COPYING.txt "@CPACK_RESOURCE_FILE_LICENSE@"
+    File /oname=readme.txt "@CPACK_PACKAGE_DESCRIPTION_FILE@"
+    SetOutPath $INSTDIR\daemon
+    File "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/@CPACK_NSIS_EXECUTABLES_DIRECTORY@/bitcoind.exe"
+    File "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/@CPACK_NSIS_EXECUTABLES_DIRECTORY@/bitcoin-cli.exe"
+    SetOutPath $INSTDIR\doc
+    File /r "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/doc\*.md"
+    File /r /x bitcoin_logo_doxygen.png "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/doc\*.png"
+    File /r "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/doc\*.1"
+    SetOutPath $INSTDIR
+    WriteRegStr HKCU "${REGKEY}\Components" Main 1
+SectionEnd
+
+Section -post SEC0001
+    WriteRegStr HKCU "${REGKEY}" Path $INSTDIR
+    SetOutPath $INSTDIR
+    WriteUninstaller $INSTDIR\uninstall.exe
+    !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+    CreateDirectory $SMPROGRAMS\$StartMenuGroup
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk" $INSTDIR\${BITCOIN_GUI_NAME}
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\@CPACK_NSIS_DISPLAY_NAME@ (testnet).lnk" "$INSTDIR\${BITCOIN_GUI_NAME}" "-testnet" "$INSTDIR\${BITCOIN_GUI_NAME}" 1
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk" $INSTDIR\uninstall.exe
+    !insertmacro MUI_STARTMENU_WRITE_END
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\uninstall.exe
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
+    WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
+    WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+    WriteRegStr HKCR "@CPACK_PACKAGE_NAME@" "URL Protocol" ""
+    WriteRegStr HKCR "@CPACK_PACKAGE_NAME@" "" "URL:Bitcoin-abc"
+    WriteRegStr HKCR "@CPACK_PACKAGE_NAME@\DefaultIcon" "" "$INSTDIR\${BITCOIN_GUI_NAME}"
+    WriteRegStr HKCR "@CPACK_PACKAGE_NAME@\shell\open\command" "" '"$INSTDIR\${BITCOIN_GUI_NAME}" "%1"'
+SectionEnd
+
+# Macro for selecting uninstaller sections
+!macro SELECT_UNSECTION SECTION_NAME UNSECTION_ID
+    Push $R0
+    ReadRegStr $R0 HKCU "${REGKEY}\Components" "${SECTION_NAME}"
+    StrCmp $R0 1 0 next${UNSECTION_ID}
+    !insertmacro SelectSection "${UNSECTION_ID}"
+    GoTo done${UNSECTION_ID}
+next${UNSECTION_ID}:
+    !insertmacro UnselectSection "${UNSECTION_ID}"
+done${UNSECTION_ID}:
+    Pop $R0
+!macroend
+
+# Uninstaller sections
+Section /o -un.Main UNSEC0000
+    Delete /REBOOTOK "$INSTDIR\${BITCOIN_GUI_NAME}"
+    Delete /REBOOTOK "$INSTDIR\COPYING.txt"
+    Delete /REBOOTOK "$INSTDIR\readme.txt"
+    RMDir /r /REBOOTOK "$INSTDIR\daemon"
+    RMDir /r /REBOOTOK "$INSTDIR\doc"
+    DeleteRegValue HKCU "${REGKEY}\Components" Main
+SectionEnd
+
+Section -un.post UNSEC0001
+    DeleteRegKey HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\@CPACK_NSIS_DISPLAY_NAME@ (testnet).lnk"
+    Delete /REBOOTOK "$SMSTARTUP\Bitcoin-abc.lnk"
+    Delete /REBOOTOK "$INSTDIR\uninstall.exe"
+    Delete /REBOOTOK "$INSTDIR\debug.log"
+    Delete /REBOOTOK "$INSTDIR\db.log"
+    DeleteRegValue HKCU "${REGKEY}" StartMenuGroup
+    DeleteRegValue HKCU "${REGKEY}" Path
+    DeleteRegKey /IfEmpty HKCU "${REGKEY}\Components"
+    DeleteRegKey /IfEmpty HKCU "${REGKEY}"
+    DeleteRegKey HKCR "@CPACK_PACKAGE_NAME@"
+    RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup"
+    RmDir /REBOOTOK "$INSTDIR"
+    Push $R0
+    StrCpy $R0 $StartMenuGroup 1
+    StrCmp $R0 ">" no_smgroup
+no_smgroup:
+    Pop $R0
+SectionEnd
+
+# Installer functions
+Function .onInit
+    InitPluginsDir
+!if "@CPACK_SYSTEM_NAME@" == "x86_64-w64-mingw32"
+    ${If} ${RunningX64}
+      ; disable registry redirection (enable access to 64-bit portion of registry)
+      SetRegView 64
+    ${Else}
+      MessageBox MB_OK|MB_ICONSTOP "Cannot install 64-bit version on a 32-bit system."
+      Abort
+    ${EndIf}
+!endif
+FunctionEnd
+
+# Uninstaller functions
+Function un.onInit
+    ReadRegStr $INSTDIR HKCU "${REGKEY}" Path
+    !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
+    !insertmacro SELECT_UNSECTION Main ${UNSEC0000}
+FunctionEnd
