@@ -342,6 +342,28 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			MACOSX_PACKAGE_LOCATION "Resources/${INFO_PLIST_STRINGS_FILE}"
 	)
 
+	# Create a stripped version of the application bundle to be used in the DMG.
+	# Since the LOCATION property and the BundleUtilities package are deprecated
+	# by cmake, only generator expressions can be used to determine the path to
+	# the bundle and its executable. However the generator expressions are
+	# solved at build time, making them unusable to do path computation at
+	# configuration time.
+	# The paths here are then hard-coded, which is safe since the structure of
+	# an application bundle is well-known and specified by Apple. Note that this
+	# will only work for building MacOS application bundle as the IOS structure
+	# is slightly different.
+	set(STRIPPED_BUNDLE "${CMAKE_CURRENT_BINARY_DIR}/stripped/${BITCOIN_QT_OSX_BUNDLE_NAME}.app")
+	add_custom_command(
+		OUTPUT
+			"${STRIPPED_BUNDLE}"
+		COMMAND
+			${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:bitcoin-qt>" "${STRIPPED_BUNDLE}"
+		COMMAND
+			${CMAKE_STRIP} -u -r "${STRIPPED_BUNDLE}/Contents/MacOS/${BITCOIN_QT_OSX_BUNDLE_NAME}"
+		DEPENDS
+			bitcoin-qt
+	)
+
 	include(DoOrFail)
 	find_program_or_fail(CMAKE_INSTALL_NAME_TOOL "install_name_tool")
 	find_program_or_fail(CMAKE_OTOOL "otool")
@@ -407,13 +429,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"STRIP=${CMAKE_STRIP}"
 			"${PYTHON_EXECUTABLE}"
 			"${MACDEPLOYQTPLUS}"
-			"$<TARGET_BUNDLE_DIR:bitcoin-qt>"
+			"${STRIPPED_BUNDLE}"
 			-translations-dir "${QT_TRANSLATION_DIR}"
 			-add-qt-tr "${QT_LOCALES}"
 		WORKING_DIRECTORY
 			"${CMAKE_BINARY_DIR}"
 		DEPENDS
-			bitcoin-qt
+			"${STRIPPED_BUNDLE}"
 	)
 
 	# Building the DMG background image requires several steps:
@@ -518,7 +540,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			COMMAND
 				"${PYTHON_EXECUTABLE}"
 				"${MACDEPLOYQTPLUS}"
-				"$<TARGET_BUNDLE_DIR:bitcoin-qt>"
+				"${STRIPPED_BUNDLE}"
 				-translations-dir "${QT_TRANSLATION_DIR}"
 				-add-qt-tr "${QT_LOCALES}"
 				-dmg
@@ -527,9 +549,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			WORKING_DIRECTORY
 				"${CMAKE_BINARY_DIR}"
 			DEPENDS
+				"${STRIPPED_BUNDLE}"
 				"${BACKGROUND_TIFF_MULTIRES}"
 		)
-		add_dependencies(osx-dmg bitcoin-qt)
 	endif()
 endif()
 
