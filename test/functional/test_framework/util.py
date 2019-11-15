@@ -435,16 +435,30 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
     datadir = get_datadir_path(dirname, n)
     if not os.path.isdir(datadir):
         os.makedirs(datadir)
-    # Translate chain name to config name
+    write_config(
+        os.path.join(datadir, "bitcoin.conf"),
+        n=n,
+        chain=chain,
+        disable_autoconnect=disable_autoconnect,
+    )
+    os.makedirs(os.path.join(datadir, "stderr"), exist_ok=True)
+    os.makedirs(os.path.join(datadir, "stdout"), exist_ok=True)
+    return datadir
+
+
+def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=True):
+    # Translate chain subdirectory name to config name
     if chain == "testnet3":
         chain_name_conf_arg = "testnet"
         chain_name_conf_section = "test"
     else:
         chain_name_conf_arg = chain
         chain_name_conf_section = chain
-    with open(os.path.join(datadir, "bitcoin.conf"), "w", encoding="utf8") as f:
-        f.write(f"{chain_name_conf_arg}=1\n")
-        f.write(f"[{chain_name_conf_section}]\n")
+    with open(config_path, "w", encoding="utf8") as f:
+        if chain_name_conf_arg:
+            f.write(f"{chain_name_conf_arg}=1\n")
+        if chain_name_conf_section:
+            f.write(f"[{chain_name_conf_section}]\n")
         f.write(f"port={str(p2p_port(n))}\n")
         f.write(f"rpcport={str(rpc_port(n))}\n")
         f.write(f"chronikbind=127.0.0.1:{str(chronik_port(n))}\n")
@@ -467,9 +481,7 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
         f.write("shrinkdebugfile=0\n")
         if disable_autoconnect:
             f.write("connect=0\n")
-        os.makedirs(os.path.join(datadir, "stderr"), exist_ok=True)
-        os.makedirs(os.path.join(datadir, "stdout"), exist_ok=True)
-    return datadir
+        f.write(extra_config)
 
 
 def get_datadir_path(dirname, n):
