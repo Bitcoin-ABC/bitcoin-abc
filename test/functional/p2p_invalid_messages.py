@@ -68,25 +68,23 @@ class InvalidMessagesTest(BitcoinTestFramework):
         msg_at_size = msg_unrecognized("b" * valid_data_limit)
         assert len(msg_at_size.serialize()) == msg_limit
 
-        with node.assert_memory_usage_stable(perc_increase_allowed=0.03):
-            self.log.info(
-                "Sending a bunch of large, junk messages to test "
-                "memory exhaustion. May take a bit...")
+        self.log.info(
+            "Sending a bunch of large, junk messages to test memory exhaustion. May take a bit...")
 
-            # Run a bunch of times to test for memory exhaustion.
-            for _ in range(80):
-                node.p2p.send_message(msg_at_size)
+        # Run a bunch of times to test for memory exhaustion.
+        for _ in range(80):
+            node.p2p.send_message(msg_at_size)
 
-            # Check that, even though the node is being hammered by nonsense from one
-            # connection, it can still service other peers in a timely way.
-            for _ in range(20):
-                conn2.sync_with_ping(timeout=2)
+        # Check that, even though the node is being hammered by nonsense from one
+        # connection, it can still service other peers in a timely way.
+        for _ in range(20):
+            conn2.sync_with_ping(timeout=2)
 
-            # Peer 1, despite serving up a bunch of nonsense, should still be
-            # connected.
-            self.log.info("Waiting for node to drop junk messages.")
-            node.p2p.sync_with_ping(timeout=30)
-            assert node.p2p.is_connected
+        # Peer 1, despite serving up a bunch of nonsense, should still be
+        # connected.
+        self.log.info("Waiting for node to drop junk messages.")
+        node.p2p.sync_with_ping(timeout=320)
+        assert node.p2p.is_connected
 
         #
         # 1.
