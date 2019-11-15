@@ -229,6 +229,9 @@ public:
                 // Great wall activation.
                 {582680, uint256S("000000000000000001b4b8e36aec7d4f9671a47872cb"
                                   "9a74dc16ca398c7dcc18")},
+                // Graviton activation.
+                {609136, uint256S("000000000000000000b48bb207faac5ac655c313e41a"
+                                  "c909322eaa694f5bc5b1")},
             }};
 
         // Data as of block
@@ -357,6 +360,9 @@ public:
                 // Great wall activation.
                 {1303885, uint256S("00000000000000479138892ef0e4fa478ccc938fb94"
                                    "df862ef5bde7e8dee23d3")},
+                // Graviton activation.
+                {1341712, uint256S("00000000fffc44ea2e202bd905a9fbbb9491ef9e9d5"
+                                   "a9eed4039079229afa35b")},
             }};
 
         // Data as of block
