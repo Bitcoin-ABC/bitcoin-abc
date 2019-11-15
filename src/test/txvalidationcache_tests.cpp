@@ -171,9 +171,10 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
     CMutableTransaction funding_tx;
     // Needed when spending the output of this transaction
-    CScript nulldummyPubKeyScript;
-    // Create a funding transaction that can fail NULLDUMMY checks. This is for
-    // testing consensus vs non-standard rules in `checkinputs_test`.
+    CScript noppyScriptPubKey;
+    // Create a transaction output that can fail DISCOURAGE_UPGRADABLE_NOPS
+    // checks when spent. This is for testing consensus vs non-standard rules in
+    // `checkinputs_test`.
     {
         funding_tx.nVersion = 1;
         funding_tx.vin.resize(1);
@@ -181,19 +182,15 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         funding_tx.vout.resize(1);
         funding_tx.vout[0].nValue = 50 * COIN;
 
-        CKey dummyKey;
-        dummyKey.MakeNewKey(true);
-        nulldummyPubKeyScript << OP_1 << ToByteVector(coinbaseKey.GetPubKey())
-                              << ToByteVector(dummyKey.GetPubKey()) << OP_2
-                              << OP_CHECKMULTISIG;
-        funding_tx.vout[0].scriptPubKey = nulldummyPubKeyScript;
-        std::vector<uint8_t> nullDummyVchSig;
-        uint256 nulldummySigHash = SignatureHash(
+        noppyScriptPubKey << OP_IF << OP_NOP10 << OP_ENDIF << OP_1;
+        funding_tx.vout[0].scriptPubKey = noppyScriptPubKey;
+        std::vector<uint8_t> fundingVchSig;
+        uint256 fundingSigHash = SignatureHash(
             p2pk_scriptPubKey, CTransaction(funding_tx), 0,
             SigHashType().withForkId(), m_coinbase_txns[0]->vout[0].nValue);
-        BOOST_CHECK(coinbaseKey.SignECDSA(nulldummySigHash, nullDummyVchSig));
-        nullDummyVchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
-        funding_tx.vin[0].scriptSig << nullDummyVchSig;
+        BOOST_CHECK(coinbaseKey.SignECDSA(fundingSigHash, fundingVchSig));
+        fundingVchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
+        funding_tx.vin[0].scriptSig << fundingVchSig;
     }
 
     // Spend the funding transaction by mining it into a block
@@ -204,8 +201,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     }
 
     // flags to test: SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
-    // SCRIPT_VERIFY_CHECKSEQUENCE_VERIFY, SCRIPT_VERIFY_NULLDUMMY, uncompressed
-    // pubkey thing
+    // SCRIPT_VERIFY_CHECKSEQUENCE_VERIFY,
+    // SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS, uncompressed pubkey thing
 
     // Create 2 outputs that match the three scripts above, spending the first
     // coinbase tx.
@@ -227,23 +224,15 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     spend_tx.vout[3].nValue = 11 * CENT;
     spend_tx.vout[3].scriptPubKey = p2sh_scriptPubKey;
 
-    // Sign the main transaction that we spend from.
+    // "Sign" the main transaction that we spend from.
     {
-        std::vector<uint8_t> vchSig;
-        uint256 hash = SignatureHash(
-            nulldummyPubKeyScript, CTransaction(spend_tx), 0,
-            SigHashType().withForkId(), funding_tx.vout[0].nValue);
-        coinbaseKey.SignECDSA(hash, vchSig);
-        vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
-
-        // The last item on the stack will be dropped by CHECKMULTISIG This is
-        // to check nulldummy enforcement.  It is OP_1 instead of OP_0.
-        spend_tx.vin[0].scriptSig << OP_1 << vchSig;
+        // This will cause OP_NOP10 to execute.
+        spend_tx.vin[0].scriptSig << OP_1;
     }
 
     // Test that invalidity under a set of flags doesn't preclude validity under
     // other (eg consensus) flags.
-    // spend_tx is invalid according to NULLDUMMY
+    // spend_tx is invalid according to DISCOURAGE_UPGRADABLE_NOPS
     {
         const CTransaction tx(spend_tx);
 
@@ -254,29 +243,29 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
         BOOST_CHECK(!CheckInputs(tx, state, pcoinsTip.get(), true,
                                  MANDATORY_SCRIPT_VERIFY_FLAGS |
-                                     SCRIPT_VERIFY_NULLDUMMY,
+                                     SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS,
                                  true, true, ptd_spend_tx, nullptr));
 
         // If we call again asking for scriptchecks (as happens in
         // ConnectBlock), we should add a script check object for this -- we're
         // not caching invalidity (if that changes, delete this test case).
         std::vector<CScriptCheck> scriptchecks;
-        BOOST_CHECK(
-            CheckInputs(tx, state, pcoinsTip.get(), true,
-                        MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_NULLDUMMY,
-                        true, true, ptd_spend_tx, &scriptchecks));
+        BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), true,
+                                MANDATORY_SCRIPT_VERIFY_FLAGS |
+                                    SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS,
+                                true, true, ptd_spend_tx, &scriptchecks));
         BOOST_CHECK_EQUAL(scriptchecks.size(), 1U);
 
         // Test that CheckInputs returns true iff cleanstack-enforcing flags are
         // not present. Don't add these checks to the cache, so that we can test
         // later that block validation works fine in the absence of cached
         // successes.
-        ValidateCheckInputsForAllFlags(tx, SCRIPT_VERIFY_NULLDUMMY, false,
-                                       false);
+        ValidateCheckInputsForAllFlags(
+            tx, SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS, false, false);
     }
 
-    // And if we produce a block with this tx, it should be valid (LOW_S not
-    // enabled yet), even though there's no cache entry.
+    // And if we produce a block with this tx, it should be valid, even though
+    // there's no cache entry.
     CBlock block;
 
     block = CreateAndProcessBlock({spend_tx}, p2pk_scriptPubKey);
