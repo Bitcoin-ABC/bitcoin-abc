@@ -5,6 +5,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <consensus/activation.h>
+#include <util/system.h>
 
 #include <test/test_bitcoin.h>
 
@@ -26,14 +27,15 @@ BOOST_AUTO_TEST_CASE(isgravitonenabled) {
     CBlockIndex prev;
 
     const Consensus::Params &params = Params().GetConsensus();
-    const auto activation = params.gravitonActivationTime;
-
-    BOOST_CHECK(!IsGravitonEnabled(params, nullptr));
+    const auto activation =
+        gArgs.GetArg("-gravitonactivationtime", params.gravitonActivationTime);
+    SetMockTime(activation - 1000000);
 
     std::array<CBlockIndex, 12> blocks;
     for (size_t i = 1; i < blocks.size(); ++i) {
         blocks[i].pprev = &blocks[i - 1];
     }
+    BOOST_CHECK(!IsGravitonEnabled(params, &blocks.back()));
 
     SetMTP(blocks, activation - 1);
     BOOST_CHECK(!IsGravitonEnabled(params, &blocks.back()));

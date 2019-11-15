@@ -2,6 +2,8 @@
 
 project(bitcoin-test)
 
+option(TEST_WITH_UPGRADE_ACTIVATED "Run unit tests with the next upgrade activated in addition to regular tests" OFF)
+
 # Process json files.
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data")
 
@@ -151,6 +153,16 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	# Tests generated from JSON
 	${JSON_HEADERS}
 )
+
+if (TEST_WITH_UPGRADE_ACTIVATED)
+	add_test(
+		NAME
+			"bitcoin-upgrade-activated"
+		COMMAND
+			"test_bitcoin"
+			"-gravitonactivationtime=1573819200"
+	)
+endif()
 
 target_link_libraries(test_bitcoin rpcclient server)
 if(TARGET bitcoinconsensus-shared)

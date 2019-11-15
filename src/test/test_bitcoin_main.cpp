@@ -3,9 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #define BOOST_TEST_MODULE Bitcoin Test Suite
+#define BOOST_TEST_NO_MAIN
 
 #include <banman.h>
 #include <net.h>
+#include <util/system.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -22,4 +24,22 @@ std::unique_ptr<BanMan> g_banman;
 
 bool ShutdownRequested() {
     return false;
+}
+
+std::set<std::string> testArgs = {"-gravitonactivationtime"};
+
+int main(int argc, char *argv[]) {
+    // Additional CLI params supported by test_bitcoin:
+    // Note: gArgs.ParseParameters() cannot be called here or it will fail to
+    // parse BOOST runtime params.
+    for (int i = 1; i < argc; i++) {
+        std::string key(argv[i]);
+        std::string value;
+        if (ParseKeyValue(key, value)) {
+            if (testArgs.count(key) > 0) {
+                gArgs.ForceSetArg(key, value);
+            }
+        }
+    }
+    return boost::unit_test::unit_test_main(&init_unit_test, argc, argv);
 }
