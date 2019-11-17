@@ -36,7 +36,7 @@
 #include <vector>
 
 // Uncomment if you want to output updated JSON tests.
-#define UPDATE_JSON_TESTS
+// #define UPDATE_JSON_TESTS
 
 static const uint32_t gFlags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
 
@@ -2042,6 +2042,22 @@ BOOST_AUTO_TEST_CASE(script_build) {
             .PushSigSchnorr(keys.key0)
             .PushSigSchnorr(keys.key2)
             .SetScriptError(ScriptError::INVALID_BITFIELD_SIZE));
+    tests.push_back(
+        TestBuilder(CScript() << OP_1 << -1 << -1 << -1 << -1 << -1
+                              << ToByteVector(keys.pubkey0C) << -1 << 7
+                              << OP_CHECKMULTISIG,
+                    "CHECKMULTISIG 1-of-7 Schnorr, second-to-last key",
+                    newmultisigflags)
+            .Push("20")
+            .PushSigSchnorr(keys.key0));
+    tests.push_back(
+        TestBuilder(CScript() << OP_1 << -1 << -1 << -1 << -1 << -1 << -1 << -1
+                              << -1 << -1 << -1 << ToByteVector(keys.pubkey0C)
+                              << -1 << -1 << 13 << OP_CHECKMULTISIG,
+                    "CHECKMULTISIG 1-of-13 Schnorr, third-to-last key",
+                    newmultisigflags)
+            .Push("0004")
+            .PushSigSchnorr(keys.key0));
     tests.push_back(
         TestBuilder(CScript()
                         << OP_OVER << OP_DUP << OP_DUP << OP_2DUP << OP_3DUP
