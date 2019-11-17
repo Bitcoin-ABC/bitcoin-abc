@@ -859,7 +859,9 @@ int main(int argc, char *argv[]) {
 
     try {
         int ret = AppInitRawTx(argc, argv);
-        if (ret != CONTINUE_EXECUTION) return ret;
+        if (ret != CONTINUE_EXECUTION) {
+            return ret;
+        }
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInitRawTx()");
         return EXIT_FAILURE;
