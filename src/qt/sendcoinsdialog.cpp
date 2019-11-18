@@ -356,8 +356,8 @@ bool SendCoinsDialog::PrepareSendText(QString &question_string,
     if (model->wallet().privateKeysDisabled()) {
         question_string.append(
             tr("Please, review your transaction proposal. This will produce a "
-               "Partially Signed Bitcoin Transaction (PSBT) which you can copy "
-               "and then sign with e.g. an offline %1 wallet, or a "
+               "Partially Signed Bitcoin Transaction (PSBT) which you can save "
+               "or copy and then sign with e.g. an offline %1 wallet, or a "
                "PSBT-compatible hardware wallet.")
                 .arg(PACKAGE_NAME));
     } else {
@@ -434,7 +434,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
                                      ? tr("Confirm transaction proposal")
                                      : tr("Confirm send coins");
     const QString confirmButtonText = model->wallet().privateKeysDisabled()
-                                          ? tr("Copy PSBT to clipboard")
+                                          ? tr("Create Unsigned")
                                           : tr("Send");
     SendConfirmationDialog confirmationDialog(
         confirmation, question_string, informative_text, detailed_text,
@@ -463,8 +463,49 @@ void SendCoinsDialog::on_sendButton_clicked() {
         CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
         ssTx << psbtx;
         GUIUtil::setClipboard(EncodeBase64(ssTx.str()).c_str());
-        Q_EMIT message(tr("PSBT copied"), "Copied to clipboard",
-                       CClientUIInterface::MSG_INFORMATION);
+        QMessageBox msgBox;
+        msgBox.setText("Unsigned Transaction");
+        msgBox.setInformativeText(
+            "The PSBT has been copied to the clipboard. You can also save it.");
+        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard);
+        msgBox.setDefaultButton(QMessageBox::Discard);
+        switch (msgBox.exec()) {
+            case QMessageBox::Save: {
+                QString selectedFilter;
+                QString fileNameSuggestion = "";
+                bool first = true;
+                for (const SendCoinsRecipient &rcp :
+                     m_current_transaction->getRecipients()) {
+                    if (!first) {
+                        fileNameSuggestion.append(" - ");
+                    }
+                    QString labelOrAddress =
+                        rcp.label.isEmpty() ? rcp.address : rcp.label;
+                    QString amount = BitcoinUnits::formatWithUnit(
+                        model->getOptionsModel()->getDisplayUnit(), rcp.amount);
+                    fileNameSuggestion.append(labelOrAddress + "-" + amount);
+                    first = false;
+                }
+                fileNameSuggestion.append(".psbt");
+                QString filename = GUIUtil::getSaveFileName(
+                    this, tr("Save Transaction Data"), fileNameSuggestion,
+                    tr("Partially Signed Transaction (Binary) (*.psbt)"),
+                    &selectedFilter);
+                if (filename.isEmpty()) {
+                    return;
+                }
+                std::ofstream out(filename.toLocal8Bit().data());
+                out << ssTx.str();
+                out.close();
+                Q_EMIT message(tr("PSBT saved"), "PSBT saved to disk",
+                               CClientUIInterface::MSG_INFORMATION);
+                break;
+            }
+            case QMessageBox::Discard:
+                break;
+            default:
+                assert(false);
+        }
     } else {
         // now send the prepared transaction
         WalletModel::SendCoinsReturn sendStatus =
@@ -484,9 +525,12 @@ void SendCoinsDialog::on_sendButton_clicked() {
         coinControlUpdateLabels();
     }
     fNewRecipientAllowed = true;
+    m_current_transaction.reset();
 }
 
 void SendCoinsDialog::clear() {
+    m_current_transaction.reset();
+
     // Clear coin control settings
     CoinControlDialog::coinControl()->UnSelectAll();
     ui->checkBoxCoinControlChange->setChecked(false);
