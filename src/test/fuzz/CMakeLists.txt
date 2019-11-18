@@ -48,6 +48,7 @@ add_regular_fuzz_targets(
 	descriptor_parse
 	eval_script
 	parse_iso8601
+	psbt
 	script
 	script_flags
 	spanparsing
