@@ -5941,7 +5941,7 @@ double GuessVerificationProgress(const ChainTxData &data,
                    (nNow - pindex->GetBlockTime()) * data.dTxRate;
     }
 
-    return pindex->GetChainTxCount() / fTxTotal;
+    return std::min<double>(pindex->GetChainTxCount() / fTxTotal, 1.0);
 }
 
 class CMainCleanup {
