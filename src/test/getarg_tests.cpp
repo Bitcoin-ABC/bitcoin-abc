@@ -14,7 +14,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(getarg_tests, BasicTestingSetup)
 
-static void ResetArgs(const std::string &strArg) {
+static void ResetArgs(ArgsManager &am, const std::string &strArg) {
     std::vector<std::string> vecArg;
     if (strArg.size())
         boost::split(vecArg, strArg, boost::is_space(),
@@ -30,145 +30,149 @@ static void ResetArgs(const std::string &strArg) {
     }
 
     std::string error;
-    gArgs.ParseParameters(vecChar.size(), vecChar.data(), error);
+    am.ParseParameters(vecChar.size(), vecChar.data(), error);
 }
 
-static void SetupArgs(const std::vector<std::string> &args) {
-    gArgs.ClearArgs();
+static void SetupArgs(ArgsManager &am, const std::vector<std::string> &args) {
     for (const std::string &arg : args) {
-        gArgs.AddArg(arg, "", false, OptionsCategory::OPTIONS);
+        am.AddArg(arg, "", false, OptionsCategory::OPTIONS);
     }
 }
 
 BOOST_AUTO_TEST_CASE(boolarg) {
-    SetupArgs({"-foo"});
-    ResetArgs("-foo");
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", true));
+    ArgsManager am;
+    SetupArgs(am, {"-foo"});
+    ResetArgs(am, "-foo");
+    BOOST_CHECK(am.GetBoolArg("-foo", false));
+    BOOST_CHECK(am.GetBoolArg("-foo", true));
 
-    BOOST_CHECK(!gArgs.GetBoolArg("-fo", false));
-    BOOST_CHECK(gArgs.GetBoolArg("-fo", true));
+    BOOST_CHECK(!am.GetBoolArg("-fo", false));
+    BOOST_CHECK(am.GetBoolArg("-fo", true));
 
-    BOOST_CHECK(!gArgs.GetBoolArg("-fooo", false));
-    BOOST_CHECK(gArgs.GetBoolArg("-fooo", true));
+    BOOST_CHECK(!am.GetBoolArg("-fooo", false));
+    BOOST_CHECK(am.GetBoolArg("-fooo", true));
 
-    ResetArgs("-foo=0");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "-foo=0");
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
 
-    ResetArgs("-foo=1");
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "-foo=1");
+    BOOST_CHECK(am.GetBoolArg("-foo", false));
+    BOOST_CHECK(am.GetBoolArg("-foo", true));
 
     // New 0.6 feature: auto-map -nosomething to !-something:
-    ResetArgs("-nofoo");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "-nofoo");
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
 
-    ResetArgs("-nofoo=1");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
-
-    // -nofoo should win
-    ResetArgs("-foo -nofoo");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "-nofoo=1");
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
 
     // -nofoo should win
-    ResetArgs("-foo=1 -nofoo=1");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "-foo -nofoo");
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
+
+    // -nofoo should win
+    ResetArgs(am, "-foo=1 -nofoo=1");
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
 
     // -nofoo=0 should win
-    ResetArgs("-foo=0 -nofoo=0");
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "-foo=0 -nofoo=0");
+    BOOST_CHECK(am.GetBoolArg("-foo", false));
+    BOOST_CHECK(am.GetBoolArg("-foo", true));
 
     // New 0.6 feature: treat -- same as -:
-    ResetArgs("--foo=1");
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "--foo=1");
+    BOOST_CHECK(am.GetBoolArg("-foo", false));
+    BOOST_CHECK(am.GetBoolArg("-foo", true));
 
-    ResetArgs("--nofoo=1");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
+    ResetArgs(am, "--nofoo=1");
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
 }
 
 BOOST_AUTO_TEST_CASE(stringarg) {
-    SetupArgs({"-foo", "-bar"});
-    ResetArgs("");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", ""), "");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", "eleven"), "eleven");
+    ArgsManager am;
+    SetupArgs(am, {"-foo", "-bar"});
+    ResetArgs(am, "");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", "eleven"), "eleven");
 
-    ResetArgs("-foo -bar");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", ""), "");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", "eleven"), "");
+    ResetArgs(am, "-foo -bar");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", "eleven"), "");
 
-    ResetArgs("-foo=");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", ""), "");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", "eleven"), "");
+    ResetArgs(am, "-foo=");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", "eleven"), "");
 
-    ResetArgs("-foo=11");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", ""), "11");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", "eleven"), "11");
+    ResetArgs(am, "-foo=11");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "11");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", "eleven"), "11");
 
-    ResetArgs("-foo=eleven");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", ""), "eleven");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", "eleven"), "eleven");
+    ResetArgs(am, "-foo=eleven");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "eleven");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", "eleven"), "eleven");
 }
 
 BOOST_AUTO_TEST_CASE(intarg) {
-    SetupArgs({"-foo", "-bar"});
-    ResetArgs("");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", 11), 11);
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", 0), 0);
+    ArgsManager am;
+    SetupArgs(am, {"-foo", "-bar"});
+    ResetArgs(am, "");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", 11), 11);
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", 0), 0);
 
-    ResetArgs("-foo -bar");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", 11), 0);
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-bar", 11), 0);
+    ResetArgs(am, "-foo -bar");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", 11), 0);
+    BOOST_CHECK_EQUAL(am.GetArg("-bar", 11), 0);
 
-    ResetArgs("-foo=11 -bar=12");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", 0), 11);
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-bar", 11), 12);
+    ResetArgs(am, "-foo=11 -bar=12");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", 0), 11);
+    BOOST_CHECK_EQUAL(am.GetArg("-bar", 11), 12);
 
-    ResetArgs("-foo=NaN -bar=NotANumber");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", 1), 0);
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-bar", 11), 0);
+    ResetArgs(am, "-foo=NaN -bar=NotANumber");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", 1), 0);
+    BOOST_CHECK_EQUAL(am.GetArg("-bar", 11), 0);
 }
 
 BOOST_AUTO_TEST_CASE(doubledash) {
-    SetupArgs({"-foo", "-bar"});
-    ResetArgs("--foo");
-    BOOST_CHECK_EQUAL(gArgs.GetBoolArg("-foo", false), true);
+    ArgsManager am;
+    SetupArgs(am, {"-foo", "-bar"});
+    ResetArgs(am, "--foo");
+    BOOST_CHECK_EQUAL(am.GetBoolArg("-foo", false), true);
 
-    ResetArgs("--foo=verbose --bar=1");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-foo", ""), "verbose");
-    BOOST_CHECK_EQUAL(gArgs.GetArg("-bar", 0), 1);
+    ResetArgs(am, "--foo=verbose --bar=1");
+    BOOST_CHECK_EQUAL(am.GetArg("-foo", ""), "verbose");
+    BOOST_CHECK_EQUAL(am.GetArg("-bar", 0), 1);
 }
 
 BOOST_AUTO_TEST_CASE(boolargno) {
-    SetupArgs({"-foo", "-bar"});
-    ResetArgs("-nofoo");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
+    ArgsManager am;
+    SetupArgs(am, {"-foo", "-bar"});
+    ResetArgs(am, "-nofoo");
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
 
-    ResetArgs("-nofoo=1");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
+    ResetArgs(am, "-nofoo=1");
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
 
-    ResetArgs("-nofoo=0");
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", true));
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", false));
+    ResetArgs(am, "-nofoo=0");
+    BOOST_CHECK(am.GetBoolArg("-foo", true));
+    BOOST_CHECK(am.GetBoolArg("-foo", false));
 
     // --nofoo should win
-    ResetArgs("-foo --nofoo");
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", true));
-    BOOST_CHECK(!gArgs.GetBoolArg("-foo", false));
+    ResetArgs(am, "-foo --nofoo");
+    BOOST_CHECK(!am.GetBoolArg("-foo", true));
+    BOOST_CHECK(!am.GetBoolArg("-foo", false));
 
     // foo always wins:
-    ResetArgs("-nofoo -foo");
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", true));
-    BOOST_CHECK(gArgs.GetBoolArg("-foo", false));
+    ResetArgs(am, "-nofoo -foo");
+    BOOST_CHECK(am.GetBoolArg("-foo", true));
+    BOOST_CHECK(am.GetBoolArg("-foo", false));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
