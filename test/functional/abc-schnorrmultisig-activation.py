@@ -73,7 +73,7 @@ BADINPUTS_ERROR = 'blk-bad-inputs'
 # This 64-byte signature is used to test exclusion & banning according to
 # the above error messages.
 # Tests of real 64 byte ECDSA signatures can be found in script_tests.
-sig64 = b'\0'*64
+sig64 = b'\0' * 64
 
 
 class SchnorrTest(BitcoinTestFramework):
@@ -193,7 +193,7 @@ class SchnorrTest(BitcoinTestFramework):
             # Spend transaction
             txspend = CTransaction()
             txspend.vout.append(
-                CTxOut(value-1000, CScript([OP_TRUE])))
+                CTxOut(value - 1000, CScript([OP_TRUE])))
             txspend.vin.append(
                 CTxIn(COutPoint(txfund.sha256, 0), b''))
 

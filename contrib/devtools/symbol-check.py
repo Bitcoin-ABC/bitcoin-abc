@@ -36,10 +36,10 @@ import os
 #   (glibc)    GLIBC_2_19
 #
 MAX_VERSIONS = {
-    'GCC':       (4, 8, 0),
-    'CXXABI':    (1, 3, 7),
-    'GLIBCXX':   (3, 4, 18),
-    'GLIBC':     (2, 19),
+    'GCC': (4, 8, 0),
+    'CXXABI': (1, 3, 7),
+    'GLIBCXX': (3, 4, 18),
+    'GLIBC': (2, 19),
     'LIBATOMIC': (1, 0)
 }
 # See here for a description of _IO_stdin_used:
@@ -77,9 +77,9 @@ ALLOWED_LIBRARIES = {
     'libdl.so.2'  # programming interface to dynamic linker
 }
 ARCH_MIN_GLIBC_VER = {
-    '80386':  (2, 1),
+    '80386': (2, 1),
     'X86-64': (2, 2, 5),
-    'ARM':    (2, 4),
+    'ARM': (2, 4),
     'AArch64': (2, 17)
 }
 

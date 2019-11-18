@@ -84,7 +84,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         # we add the minimum fee back.
         tx_fee = self.nodes[0].gettransaction(high_fee_tx)['fee']
         self.nodes[0].prioritisetransaction(
-            high_fee_tx, -1e15, int(tx_fee*COIN) + self.nodes[0].calculate_fee_from_txid(high_fee_tx))
+            high_fee_tx, -1e15, int(tx_fee * COIN) + self.nodes[0].calculate_fee_from_txid(high_fee_tx))
 
         # Add everything back to mempool
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())

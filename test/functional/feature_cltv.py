@@ -180,7 +180,7 @@ class BIP65Test(BitcoinTestFramework):
         tip = block.hash
         block_time += 1
         block = create_block(
-            block.sha256, create_coinbase(CLTV_HEIGHT+1), block_time)
+            block.sha256, create_coinbase(CLTV_HEIGHT + 1), block_time)
         block.nVersion = 4
         block.vtx.append(spendtx)
         block.hashMerkleRoot = block.calc_merkle_root()

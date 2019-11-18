@@ -602,7 +602,7 @@ def get_tests_to_run(test_list, test_params, cutoff, src_timings):
                 [test_name + " " + " ".join(p) for p in params])
 
     result = [t for t in tests_with_params if get_test_time(t) <= cutoff]
-    result.sort(key=lambda x:  (-get_test_time(x), x))
+    result.sort(key=lambda x: (-get_test_time(x), x))
     return result
 
 
@@ -750,7 +750,7 @@ class Timings():
         # we only save test that have passed - timings for failed test might be
         # wrong (timeouts or early fails)
         passed_results = [t for t in test_results if t.status == 'Passed']
-        new_timings = list(map(lambda t: {'name':  t.name, 'time': t.time},
+        new_timings = list(map(lambda t: {'name': t.name, 'time': t.time},
                                passed_results))
         merged_timings = self.get_merged_timings(new_timings)
 

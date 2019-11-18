@@ -165,7 +165,7 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         # 4b. Now send another block that builds on the forking chain.
         block_h3 = create_block(
-            block_h2f.sha256, create_coinbase(3), block_h2f.nTime+1)
+            block_h2f.sha256, create_coinbase(3), block_h2f.nTime + 1)
         block_h3.solve()
         test_node.send_message(msg_block(block_h3))
 
@@ -190,7 +190,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         all_blocks = []
         for i in range(288):
             next_block = create_block(
-                tip.sha256, create_coinbase(i + 4), tip.nTime+1)
+                tip.sha256, create_coinbase(i + 4), tip.nTime + 1)
             next_block.solve()
             all_blocks.append(next_block)
             tip = next_block
@@ -271,20 +271,20 @@ class AcceptBlockTest(BitcoinTestFramework):
         # 8. Create a chain which is invalid at a height longer than the
         # current chain, but which has more blocks on top of that
         block_289f = create_block(
-            all_blocks[284].sha256, create_coinbase(289), all_blocks[284].nTime+1)
+            all_blocks[284].sha256, create_coinbase(289), all_blocks[284].nTime + 1)
         block_289f.solve()
         block_290f = create_block(
-            block_289f.sha256, create_coinbase(290), block_289f.nTime+1)
+            block_289f.sha256, create_coinbase(290), block_289f.nTime + 1)
         block_290f.solve()
         block_291 = create_block(
-            block_290f.sha256, create_coinbase(291), block_290f.nTime+1)
+            block_290f.sha256, create_coinbase(291), block_290f.nTime + 1)
         # block_291 spends a coinbase below maturity!
         block_291.vtx.append(create_transaction(
             block_290f.vtx[0], 0, b"42", 1))
         block_291.hashMerkleRoot = block_291.calc_merkle_root()
         block_291.solve()
         block_292 = create_block(
-            block_291.sha256, create_coinbase(292), block_291.nTime+1)
+            block_291.sha256, create_coinbase(292), block_291.nTime + 1)
         block_292.solve()
 
         # Now send all the headers on the chain and enough blocks to trigger reorg
@@ -334,7 +334,7 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         # Now send a new header on the invalid chain, indicating we're forked off, and expect to get disconnected
         block_293 = create_block(
-            block_292.sha256, create_coinbase(293), block_292.nTime+1)
+            block_292.sha256, create_coinbase(293), block_292.nTime + 1)
         block_293.solve()
         headers_message = msg_headers()
         headers_message.headers.append(CBlockHeader(block_293))

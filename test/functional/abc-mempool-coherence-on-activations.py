@@ -359,7 +359,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         node.p2p.send_blocks_and_test(reorg_blocks, node)
         # reorg finishes after the fork
         assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     ACTIVATION_TIME+2)
+                     ACTIVATION_TIME + 2)
         # In old mempool: tx_chain2, tx_post1
         # Recovered from blocks: tx_chain0, tx_chain1, tx_post0
         # Lost from blocks: tx_pre0

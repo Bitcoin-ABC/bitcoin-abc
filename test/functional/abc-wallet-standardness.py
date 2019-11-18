@@ -101,7 +101,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
             balance_change = std_node.getbalance() - balance_initial
 
             # try spending the funds using the wallet.
-            outamount = (amount-spendfee) * SATOSHI
+            outamount = (amount - spendfee) * SATOSHI
             if outamount < 546 * SATOSHI:
                 # If the final amount would be too small, then just donate
                 # to miner fees.

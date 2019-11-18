@@ -85,7 +85,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
             [{"txid": txid, "vout": vout}], [{self.final: outval}])
 
         rawtx2 = node2.signrawtransactionwithkey(
-            rawtx, self.priv[0:self.nsigs-1], prevtxs)
+            rawtx, self.priv[0:self.nsigs - 1], prevtxs)
         rawtx3 = node2.signrawtransactionwithkey(
             rawtx2["hex"], [self.priv[-1]], prevtxs)
 

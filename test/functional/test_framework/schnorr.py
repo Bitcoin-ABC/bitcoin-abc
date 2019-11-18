@@ -111,7 +111,7 @@ def jacobi(a, n):
         return 1
     a1, e = a, 0
     while a1 & 1 == 0:
-        a1, e = a1 >> 1, e+1
+        a1, e = a1 >> 1, e + 1
     if e & 1 == 0 or n & 7 == 1 or n & 7 == 7:
         s = 1
     else:
@@ -131,13 +131,13 @@ def nonce_function_rfc6979(privkeybytes, msg32, algo16=b'', ndata=b''):
     assert len(algo16) in (0, 16)
     assert len(ndata) in (0, 32)
 
-    V = b'\x01'*32
-    K = b'\x00'*32
+    V = b'\x01' * 32
+    K = b'\x00' * 32
     blob = bytes(privkeybytes) + msg32 + ndata + algo16
     # initialize
-    K = hmac.HMAC(K, V+b'\x00'+blob, 'sha256').digest()
+    K = hmac.HMAC(K, V + b'\x00' + blob, 'sha256').digest()
     V = hmac.HMAC(K, V, 'sha256').digest()
-    K = hmac.HMAC(K, V+b'\x01'+blob, 'sha256').digest()
+    K = hmac.HMAC(K, V + b'\x01' + blob, 'sha256').digest()
     V = hmac.HMAC(K, V, 'sha256').digest()
     # loop forever until an in-range k is found
     k = 0
@@ -151,7 +151,7 @@ def nonce_function_rfc6979(privkeybytes, msg32, algo16=b'', ndata=b''):
         k = int.from_bytes(T, 'big')
         if k > 0 and k < SECP256K1_ORDER:
             break
-        K = hmac.HMAC(K, V+b'\x00', 'sha256').digest()
+        K = hmac.HMAC(K, V + b'\x00', 'sha256').digest()
         V = hmac.HMAC(K, V, 'sha256').digest()
     return k
 
@@ -202,7 +202,7 @@ def sign(privkeybytes, msg32):
         rbytes + pubkeybuf + msg32).digest(), 'big')
 
     privkey = int.from_bytes(privkeybytes, 'big')
-    s = (k + e*privkey) % SECP256K1_ORDER
+    s = (k + e * privkey) % SECP256K1_ORDER
 
     return rbytes + s.to_bytes(32, 'big')
 

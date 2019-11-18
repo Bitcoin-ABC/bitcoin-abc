@@ -117,7 +117,7 @@ class PSBTTest(BitcoinTestFramework):
         vout2 = find_output(self.nodes[2], txid2, 13)
 
         # Create a psbt spending outputs from nodes 1 and 2
-        psbt_orig = self.nodes[0].createpsbt([{"txid": txid1,  "vout": vout1}, {
+        psbt_orig = self.nodes[0].createpsbt([{"txid": txid1, "vout": vout1}, {
                                              "txid": txid2, "vout": vout2}], {self.nodes[0].getnewaddress(): 25.999})
 
         # Update psbts, should only have data for one input and not the other

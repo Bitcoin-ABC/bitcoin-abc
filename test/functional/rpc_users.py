@@ -46,7 +46,7 @@ class HTTPBasicsTest(BitcoinTestFramework):
         with open(os.path.join(get_datadir_path(self.options.tmpdir, 0), "bitcoin.conf"), 'a', encoding='utf8') as f:
             f.write(rpcauth + "\n")
             f.write(rpcauth2 + "\n")
-            f.write(rpcauth3+"\n")
+            f.write(rpcauth3 + "\n")
         with open(os.path.join(get_datadir_path(self.options.tmpdir, 1), "bitcoin.conf"), 'a', encoding='utf8') as f:
             f.write(rpcuser + "\n")
             f.write(rpcpassword + "\n")

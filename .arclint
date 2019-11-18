@@ -15,7 +15,10 @@
         "autopep8": {
             "type": "autopep8",
             "version": ">=1.3.4",
-            "include": "(\\.py$)"
+            "include": "(\\.py$)",
+            "flags": [
+                "--global-config=.autopep8"
+            ]
         },
         "flake8": {
             "type": "flake8",

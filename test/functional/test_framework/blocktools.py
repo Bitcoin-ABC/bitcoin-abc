@@ -177,7 +177,7 @@ def mine_big_block(node, utxos=None):
 def send_big_transactions(node, utxos, num, fee_multiplier):
     from .cashaddr import decode
     txids = []
-    padding = "1"*512
+    padding = "1" * 512
     addrHash = decode(node.getnewaddress())[2]
 
     for _ in range(num):
@@ -186,7 +186,7 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
         txid = int(utxo['txid'], 16)
         ctx.vin.append(CTxIn(COutPoint(txid, int(utxo["vout"])), b""))
         ctx.vout.append(
-            CTxOut(int(satoshi_round(utxo['amount']*COIN)),
+            CTxOut(int(satoshi_round(utxo['amount'] * COIN)),
                    CScript([OP_DUP, OP_HASH160, addrHash, OP_EQUALVERIFY, OP_CHECKSIG])))
         for i in range(0, 127):
             ctx.vout.append(CTxOut(0, CScript(

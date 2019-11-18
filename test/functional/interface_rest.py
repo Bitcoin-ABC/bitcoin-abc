@@ -280,7 +280,7 @@ class RESTTest (BitcoinTestFramework):
         hex_response = self.test_rest_request(
             "/tx/{}".format(tx_hash), req_type=ReqType.HEX, ret_type=RetType.OBJ)
         assert_greater_than_or_equal(
-            int(hex_response.getheader('content-length')), json_obj['size']*2)
+            int(hex_response.getheader('content-length')), json_obj['size'] * 2)
 
         self.log.info("Test tx inclusion in the /mempool and /block URIs")
 

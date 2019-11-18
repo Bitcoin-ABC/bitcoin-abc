@@ -116,7 +116,7 @@ class MerkleBlockTest(BitcoinTestFramework):
         # single-transaction block
         tweaked_proof.txn.nTransactions = 1
         tweaked_proof.txn.vHash = [tweaked_proof.header.hashMerkleRoot]
-        tweaked_proof.txn.vBits = [True] + [False]*7
+        tweaked_proof.txn.vBits = [True] + [False] * 7
 
         for n in self.nodes:
             assert not n.verifytxoutproof(ToHex(tweaked_proof))

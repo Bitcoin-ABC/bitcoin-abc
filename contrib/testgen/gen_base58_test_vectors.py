@@ -30,14 +30,14 @@ metadata_keys = ['isPrivkey', 'isTestnet', 'addrType', 'isCompressed']
 templates = [
     # prefix, payload_size, suffix, metadata
     #                                  None = N/A
-    ((PUBKEY_ADDRESS,),      20, (),   (False, False, 'pubkey', None)),
-    ((SCRIPT_ADDRESS,),      20, (),   (False, False, 'script',  None)),
-    ((PUBKEY_ADDRESS_TEST,), 20, (),   (False, True,  'pubkey', None)),
-    ((SCRIPT_ADDRESS_TEST,), 20, (),   (False, True,  'script',  None)),
-    ((PRIVKEY,),             32, (),   (True,  False, None,  False)),
-    ((PRIVKEY,),             32, (1,), (True,  False, None,  True)),
-    ((PRIVKEY_TEST,),        32, (),   (True,  True,  None,  False)),
-    ((PRIVKEY_TEST,),        32, (1,), (True,  True,  None,  True))
+    ((PUBKEY_ADDRESS,), 20, (), (False, False, 'pubkey', None)),
+    ((SCRIPT_ADDRESS,), 20, (), (False, False, 'script', None)),
+    ((PUBKEY_ADDRESS_TEST,), 20, (), (False, True, 'pubkey', None)),
+    ((SCRIPT_ADDRESS_TEST,), 20, (), (False, True, 'script', None)),
+    ((PRIVKEY,), 32, (), (True, False, None, False)),
+    ((PRIVKEY,), 32, (1,), (True, False, None, True)),
+    ((PRIVKEY_TEST,), 32, (), (True, True, None, False)),
+    ((PRIVKEY_TEST,), 32, (1,), (True, True, None, True))
 ]
 
 

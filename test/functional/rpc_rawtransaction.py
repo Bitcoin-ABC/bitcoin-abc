@@ -388,7 +388,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
         self.sync_all()
         assert_equal(self.nodes[0].getbalance(
-        ), bal+Decimal('50.00000000')+Decimal('2.19000000'))  # block reward + tx
+        ), bal + Decimal('50.00000000') + Decimal('2.19000000'))  # block reward + tx
 
         # getrawtransaction tests
         # 1. valid parameters - only supply txid
@@ -513,8 +513,9 @@ class RawTransactionsTest(BitcoinTestFramework):
         tx.vout.append(CTxOut(0, b'\x4c\x10TRUNC'))
         self.nodes[0].decoderawtransaction(ToHex(tx))
         # giant pushes and long scripts
-        tx.vin.append(CTxIn(COutPoint(42, 0), CScript([b'giant push'*10000])))
-        tx.vout.append(CTxOut(0, CScript([b'giant push'*10000])))
+        tx.vin.append(
+            CTxIn(COutPoint(42, 0), CScript([b'giant push' * 10000])))
+        tx.vout.append(CTxOut(0, CScript([b'giant push' * 10000])))
         self.nodes[0].decoderawtransaction(ToHex(tx))
 
         self.log.info('Refuse garbage after transaction')

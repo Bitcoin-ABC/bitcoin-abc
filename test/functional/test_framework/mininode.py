@@ -193,16 +193,17 @@ class P2PConnection(asyncio.Protocol):
                         "got garbage {}".format(repr(self.recvbuf)))
                 if len(self.recvbuf) < 4 + 12 + 4 + 4:
                     return None
-                command = self.recvbuf[4:4+12].split(b"\x00", 1)[0]
-                msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
-                checksum = self.recvbuf[4+12+4:4+12+4+4]
+                command = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
+                msglen = struct.unpack(
+                    "<i", self.recvbuf[4 + 12:4 + 12 + 4])[0]
+                checksum = self.recvbuf[4 + 12 + 4:4 + 12 + 4 + 4]
                 if len(self.recvbuf) < 4 + 12 + 4 + 4 + msglen:
                     return None
-                msg = self.recvbuf[4+12+4+4:4+12+4+4+msglen]
+                msg = self.recvbuf[4 + 12 + 4 + 4:4 + 12 + 4 + 4 + msglen]
                 h = sha256(sha256(msg))
                 if checksum != h[:4]:
                     raise ValueError("got bad checksum " + repr(self.recvbuf))
-                self.recvbuf = self.recvbuf[4+12+4+4+msglen:]
+                self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
                 if command not in MESSAGEMAP:
                     raise ValueError("Received unknown command from {}:{}: '{}' {}".format(
                         self.dstaddr, self.dstport, command, repr(msg)))

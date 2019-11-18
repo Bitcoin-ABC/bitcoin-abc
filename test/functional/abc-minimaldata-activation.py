@@ -165,7 +165,7 @@ class SchnorrTest(BitcoinTestFramework):
             # Spend transaction
             txspend = CTransaction()
             txspend.vout.append(
-                CTxOut(value-1000, CScript([OP_TRUE])))
+                CTxOut(value - 1000, CScript([OP_TRUE])))
             txspend.vin.append(
                 CTxIn(COutPoint(txfund.sha256, 0), b''))
 
