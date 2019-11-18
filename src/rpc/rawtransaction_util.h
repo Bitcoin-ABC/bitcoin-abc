@@ -24,12 +24,11 @@ class UniValue;
  * @param  coins         Map of unspent outputs - coins in mempool and current
  * chain UTXO set, may be extended by previous txns outputs after call
  * @param  hashType      The signature hash type
- * @returns JSON object with details of signed transaction
+ * @param result         JSON object where signed transaction results accumulate
  */
-UniValue SignTransaction(CMutableTransaction &mtx,
-                         const SigningProvider *keystore,
-                         std::map<COutPoint, Coin> &coins,
-                         const UniValue &hashType);
+void SignTransaction(CMutableTransaction &mtx, const SigningProvider *keystore,
+                     std::map<COutPoint, Coin> &coins, const UniValue &hashType,
+                     UniValue &result);
 
 /**
  * Parse a prevtxs UniValue array and get the map of coins from it

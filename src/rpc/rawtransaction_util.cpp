@@ -254,10 +254,9 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
     }
 }
 
-UniValue SignTransaction(CMutableTransaction &mtx,
-                         const SigningProvider *keystore,
-                         std::map<COutPoint, Coin> &coins,
-                         const UniValue &hashType) {
+void SignTransaction(CMutableTransaction &mtx, const SigningProvider *keystore,
+                     std::map<COutPoint, Coin> &coins, const UniValue &hashType,
+                     UniValue &result) {
     SigHashType sigHashType = ParseSighashString(hashType);
     if (!sigHashType.hasForkId()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -313,12 +312,12 @@ UniValue SignTransaction(CMutableTransaction &mtx,
 
     bool fComplete = vErrors.empty();
 
-    UniValue result(UniValue::VOBJ);
     result.pushKV("hex", EncodeHexTx(CTransaction(mtx)));
     result.pushKV("complete", fComplete);
     if (!vErrors.empty()) {
+        if (result.exists("errors")) {
+            vErrors.push_backV(result["errors"].getValues());
+        }
         result.pushKV("errors", vErrors);
     }
-
-    return result;
 }
