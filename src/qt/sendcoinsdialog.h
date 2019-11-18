@@ -63,6 +63,7 @@ private:
     Ui::SendCoinsDialog *ui;
     ClientModel *clientModel;
     WalletModel *model;
+    std::unique_ptr<WalletModelTransaction> m_current_transaction;
     bool fNewRecipientAllowed;
     bool fFeeMinimized;
     const PlatformStyle *platformStyle;
@@ -74,6 +75,9 @@ private:
     processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn,
                            const QString &msgArg = QString());
     void minimizeFeeSection(bool fMinimize);
+    // Format confirmation message
+    bool PrepareSendText(QString &question_string, QString &informative_text,
+                         QString &detailed_text);
     void updateFeeMinimizedLabel();
     // Update the passed in CCoinControl with state from the GUI
     void updateCoinControlState(CCoinControl &ctrl);
