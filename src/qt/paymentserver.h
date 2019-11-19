@@ -35,6 +35,7 @@
 #ifdef ENABLE_BIP70
 #include <qt/paymentrequestplus.h>
 #endif
+#include <qt/sendcoinsrecipient.h>
 #include <qt/walletmodel.h>
 
 #include <QObject>
