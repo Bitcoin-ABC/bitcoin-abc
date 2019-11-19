@@ -12,6 +12,7 @@
 #include <chain.h>
 #include <consensus/consensus.h>
 #include <interfaces/node.h>
+#include <interfaces/wallet.h>
 #include <key_io.h>
 #include <policy/policy.h>
 #include <qt/bitcoinunits.h>

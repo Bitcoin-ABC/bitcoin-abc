@@ -15,7 +15,6 @@
 #include <qt/bitcoinunits.h>
 #include <qt/qvalidatedlineedit.h>
 #include <qt/sendcoinsrecipient.h>
-#include <qt/walletmodel.h>
 #include <script/script.h>
 #include <script/standard.h>
 #include <util/strencodings.h>

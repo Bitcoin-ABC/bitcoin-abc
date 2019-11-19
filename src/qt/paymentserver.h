@@ -35,13 +35,17 @@
 #ifdef ENABLE_BIP70
 #include <qt/paymentrequestplus.h>
 #endif
+#include <interfaces/wallet.h>
 #include <qt/sendcoinsrecipient.h>
-#include <qt/walletmodel.h>
 
 #include <QObject>
 #include <QString>
 
 class OptionsModel;
+
+namespace interfaces {
+class Node;
+} // namespace interfaces
 
 QT_BEGIN_NAMESPACE
 class QApplication;
@@ -123,7 +127,7 @@ public Q_SLOTS:
 
 #ifdef ENABLE_BIP70
     // Submit Payment message to a merchant, get back PaymentACK:
-    void fetchPaymentACK(WalletModel *walletModel,
+    void fetchPaymentACK(interfaces::Wallet &wallet,
                          const SendCoinsRecipient &recipient,
                          QByteArray transaction);
 #endif

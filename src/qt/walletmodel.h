@@ -209,7 +209,7 @@ Q_SIGNALS:
                  unsigned int style);
 
     // Coins sent: from wallet, to recipient, in (serialized) transaction:
-    void coinsSent(WalletModel *wallet, SendCoinsRecipient recipient,
+    void coinsSent(interfaces::Wallet &wallet, SendCoinsRecipient recipient,
                    QByteArray transaction);
 
     // Show progress dialog e.g. for rescan

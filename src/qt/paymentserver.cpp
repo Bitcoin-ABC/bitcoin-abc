@@ -710,7 +710,7 @@ void PaymentServer::fetchRequest(const QUrl &url) {
     netManager->get(netRequest);
 }
 
-void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
+void PaymentServer::fetchPaymentACK(interfaces::Wallet &wallet,
                                     const SendCoinsRecipient &recipient,
                                     QByteArray transaction) {
     const payments::PaymentDetails &details =
@@ -734,10 +734,10 @@ void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
     // Create a new refund address, or re-use:
     CTxDestination dest;
     const OutputType change_type =
-        walletModel->wallet().getDefaultChangeType() != OutputType::CHANGE_AUTO
-            ? walletModel->wallet().getDefaultChangeType()
-            : walletModel->wallet().getDefaultAddressType();
-    if (walletModel->wallet().getNewDestination(change_type, "", dest)) {
+        wallet.getDefaultChangeType() != OutputType::CHANGE_AUTO
+            ? wallet.getDefaultChangeType()
+            : wallet.getDefaultAddressType();
+    if (wallet.getNewDestination(change_type, "", dest)) {
         // BIP70 requests encode the scriptPubKey directly, so we are not
         // restricted to address types supported by the receiver. As a result,
         // we choose the address format we also use for change. Despite an
@@ -747,7 +747,7 @@ void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
         std::string label = tr("Refund from %1")
                                 .arg(recipient.authenticatedMerchant)
                                 .toStdString();
-        walletModel->wallet().setAddressBook(dest, label, "refund");
+        wallet.setAddressBook(dest, label, "refund");
 
         CScript s = GetScriptForDestination(dest);
         payments::Output *refund_to = payment.add_refund_to();

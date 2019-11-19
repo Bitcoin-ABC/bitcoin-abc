@@ -5,6 +5,7 @@
 #ifndef BITCOIN_QT_WALLETCONTROLLER_H
 #define BITCOIN_QT_WALLETCONTROLLER_H
 
+#include <interfaces/wallet.h>
 #include <qt/sendcoinsrecipient.h>
 #include <qt/walletmodel.h>
 #include <support/allocators/secure.h>
@@ -66,7 +67,7 @@ Q_SIGNALS:
     void walletAdded(WalletModel *wallet_model);
     void walletRemoved(WalletModel *wallet_model);
 
-    void coinsSent(WalletModel *wallet_model, SendCoinsRecipient recipient,
+    void coinsSent(interfaces::Wallet &wallet, SendCoinsRecipient recipient,
                    QByteArray transaction);
 
 private:
