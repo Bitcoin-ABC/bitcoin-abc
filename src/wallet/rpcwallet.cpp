@@ -20,12 +20,12 @@
 #include <script/descriptor.h>
 #include <util/bip32.h>
 #include <util/error.h>
+#include <util/message.h> // For MessageSign()
 #include <util/moneystr.h>
 #include <util/string.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <util/url.h>
-#include <util/validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/psbtwallet.h>
 #include <wallet/rpcwallet.h>
@@ -634,16 +634,13 @@ static UniValue signmessage(const Config &config,
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
     }
 
-    CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
-    ss << strMessage;
+    std::string signature;
 
-    std::vector<uint8_t> vchSig;
-    if (!key.SignCompact(ss.GetHash(), vchSig)) {
+    if (!MessageSign(key, strMessage, signature)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
     }
 
-    return EncodeBase64(vchSig.data(), vchSig.size());
+    return signature;
 }
 
 static Amount GetReceived(const CWallet &wallet, const UniValue &params,
