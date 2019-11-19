@@ -7,6 +7,7 @@
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
+#include <qt/walletmodel.h>
 
 #include <algorithm>
 #include <clientversion.h>

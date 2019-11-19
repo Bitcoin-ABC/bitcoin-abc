@@ -6,11 +6,12 @@
 #define BITCOIN_QT_RECENTREQUESTSTABLEMODEL_H
 
 #include <qt/sendcoinsrecipient.h>
-#include <qt/walletmodel.h>
 
 #include <QAbstractTableModel>
 #include <QDateTime>
 #include <QStringList>
+
+class WalletModel;
 
 class RecentRequestEntry {
 public:

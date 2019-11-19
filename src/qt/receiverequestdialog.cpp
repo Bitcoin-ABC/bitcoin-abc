@@ -10,6 +10,7 @@
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
+#include <qt/walletmodel.h>
 
 #include <QClipboard>
 #include <QDrag>

@@ -26,10 +26,12 @@
 
 class OptionsModel;
 class PlatformStyle;
+class WalletModel;
 
 namespace interfaces {
 class Handler;
 class Node;
+class Wallet;
 } // namespace interfaces
 
 class AskPassphraseDialog;
