@@ -16,6 +16,7 @@ RPCAUTH=${CMAKE_SOURCE_DIR}/share/rpcauth/rpcauth.py
 # Which components are enabled. Note that bitcoind cannot be disabled by cmake
 # and so is always ON.
 ENABLE_WALLET=${BUILD_BITCOIN_WALLET}
+ENABLE_WALLET_TOOL=${BUILD_BITCOIN_WALLET}
 ENABLE_CLI=${BUILD_BITCOIN_CLI}
 ENABLE_BITCOIND=ON
 ENABLE_FUZZ=${ENABLE_FUZZ}

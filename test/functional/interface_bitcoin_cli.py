@@ -19,6 +19,7 @@ class TestBitcoinCli(BitcoinTestFramework):
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
+        self.skip_if_no_cli()
 
     def run_test(self):
         """Main test logic"""
