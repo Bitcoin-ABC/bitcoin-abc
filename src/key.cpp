@@ -297,8 +297,9 @@ bool CKey::SignCompact(const uint256 &hash,
 bool CKey::Load(const CPrivKey &privkey, const CPubKey &vchPubKey,
                 bool fSkipCheck = false) {
     if (!ec_privkey_import_der(secp256k1_context_sign, (uint8_t *)begin(),
-                               privkey.data(), privkey.size()))
+                               privkey.data(), privkey.size())) {
         return false;
+    }
     fCompressed = vchPubKey.IsCompressed();
     fValid = true;
 
