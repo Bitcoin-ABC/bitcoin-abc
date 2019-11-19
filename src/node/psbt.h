@@ -40,6 +40,17 @@ struct PSBTAnalysis {
     std::vector<PSBTInputAnalysis> inputs;
     //! Which of the BIP 174 roles needs to handle the transaction next
     PSBTRole next;
+    //! Error message
+    std::string error;
+
+    void SetInvalid(std::string err_msg) {
+        estimated_vsize = nullopt;
+        estimated_feerate = nullopt;
+        fee = nullopt;
+        inputs.clear();
+        next = PSBTRole::CREATOR;
+        error = err_msg;
+    }
 };
 
 /**

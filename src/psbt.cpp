@@ -297,6 +297,8 @@ CombinePSBTs(PartiallySignedTransaction &out,
 
 std::string PSBTRoleName(const PSBTRole role) {
     switch (role) {
+        case PSBTRole::CREATOR:
+            return "creator";
         case PSBTRole::UPDATER:
             return "updater";
         case PSBTRole::SIGNER:
@@ -305,6 +307,7 @@ std::string PSBTRoleName(const PSBTRole role) {
             return "finalizer";
         case PSBTRole::EXTRACTOR:
             return "extractor";
+            // no default case, so the compiler can warn about missing cases
     }
     assert(false);
 }

@@ -1924,6 +1924,8 @@ UniValue analyzepsbt(const Config &config, const JSONRPCRequest &request) {
             "have been filled.\n"
             "  \"next\" : \"role\"                 (string) Role of the next "
             "person that this psbt needs to go to\n"
+            "  \"error\" : \"error\"               (string) Error message if "
+            "there is one"
             "}\n"},
         RPCExamples{HelpExampleCli("analyzepsbt", "\"psbt\"")}}
         .Check(request);
@@ -1972,8 +1974,9 @@ UniValue analyzepsbt(const Config &config, const JSONRPCRequest &request) {
         }
         inputs_result.push_back(input_univ);
     }
-    result.pushKV("inputs", inputs_result);
-
+    if (!inputs_result.empty()) {
+        result.pushKV("inputs", inputs_result);
+    }
     if (psbta.estimated_vsize != nullopt) {
         result.pushKV("estimated_vsize", (int)*psbta.estimated_vsize);
     }
@@ -1985,6 +1988,9 @@ UniValue analyzepsbt(const Config &config, const JSONRPCRequest &request) {
         result.pushKV("fee", ValueFromAmount(*psbta.fee));
     }
     result.pushKV("next", PSBTRoleName(psbta.next));
+    if (!psbta.error.empty()) {
+        result.pushKV("error", psbta.error);
+    }
 
     return result;
 }
