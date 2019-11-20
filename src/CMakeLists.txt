@@ -22,6 +22,7 @@ option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
 option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
 option(ENABLE_UPNP "Enable UPnP support" ON)
+option(ENABLE_NOTIFICATIONS "Enable desktop notifications" ON)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 
 # Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS

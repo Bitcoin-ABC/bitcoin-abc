@@ -9,6 +9,10 @@ include(BrewHelper)
 find_brew_prefix(QT5_PREFIX qt5)
 
 set(QT_REQUIRED_COMPONENTS Core Widgets Network Test)
+if(ENABLE_NOTIFICATIONS)
+	list(APPEND QT_REQUIRED_COMPONENTS DBus)
+endif()
+
 find_package(Qt5 COMPONENTS ${QT_REQUIRED_COMPONENTS} REQUIRED HINTS "${QT5_PREFIX}")
 
 # Localisation
@@ -230,6 +234,9 @@ target_link_libraries(bitcoin-qt-base
 	OpenSSL::SSL
 	${Protobuf_LIBRARIES}
 )
+if(ENABLE_NOTIFICATIONS)
+	target_link_libraries(bitcoin-qt-base Qt5::DBus)
+endif()
 
 # Wallet
 if(BUILD_BITCOIN_WALLET)

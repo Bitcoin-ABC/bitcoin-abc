@@ -222,5 +222,9 @@ if(ENABLE_UPNP)
 	set(USE_UPNP ${START_WITH_UPNP} CACHE INTERNAL "UPnP is enabled")
 endif()
 
+if(ENABLE_NOTIFICATIONS)
+	set(USE_DBUS 1)
+endif()
+
 # Generate the config
 configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)

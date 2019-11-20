@@ -75,4 +75,7 @@
 #cmakedefine01 USE_UPNP
 #endif
 
+/* Define if QtDBus support should be enabled */
+#cmakedefine USE_DBUS 1
+
 #endif // BITCOIN_BITCOIN_CONFIG_H
