@@ -213,4 +213,4 @@ author must contain its license header with the original author(s) and source.
 Disclosure Policy
 -----------------
 
-See [DISCLOSURE_POLICY](DISCLOSURE_POLICY).
+See [DISCLOSURE_POLICY](DISCLOSURE_POLICY.md).
