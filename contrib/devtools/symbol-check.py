@@ -4,8 +4,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 '''
 A script to check that the (Linux) executables produced by gitian only contain
-allowed gcc, glibc and libstdc++ version symbols.  This makes sure they are
-still compatible with the minimum supported Linux distribution versions.
+allowed gcc and glibc version symbols. This makes sure they are still compatible
+with the minimum supported Linux distribution versions.
 
 Example usage:
 
@@ -20,25 +20,20 @@ import os
 #
 # - g++ version 4.9.2 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=g%2B%2B)
 # - libc version 2.19.18 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=libc6)
-# - libstdc++ version 4.8.4 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=libstdc%2B%2B6)
 #
 # Ubuntu 14.04 (Trusty Tahr) has:
 #
 # - g++ version 4.8.2 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=g%2B%2B&searchon=names)
 # - libc version 2.19.0 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=libc6&searchon=names)
-# - libstdc++ version 4.8.2 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=libstdc%2B%2B&searchon=names)
 #
 # Taking the minimum of these as our target.
 #
 # According to GNU ABI document (http://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html) this corresponds to:
 #   GCC 4.8.0: GCC_4.8.0
-#   GCC 4.8.0: GLIBCXX_3.4.18, CXXABI_1.3.7
 #   (glibc)    GLIBC_2_19
 #
 MAX_VERSIONS = {
     'GCC': (4, 8, 0),
-    'CXXABI': (1, 3, 7),
-    'GLIBCXX': (3, 4, 18),
     'GLIBC': (2, 19),
     'LIBATOMIC': (1, 0)
 }
