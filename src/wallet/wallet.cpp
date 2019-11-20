@@ -4093,7 +4093,6 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
 
         if (auto spk_man = walletInstance->m_spk_man.get()) {
             if (!spk_man->Upgrade(prev_version, error)) {
-                chain.initError(error);
                 return nullptr;
             }
         }
