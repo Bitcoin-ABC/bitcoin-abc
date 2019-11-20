@@ -395,33 +395,40 @@ void ArgsManager::SelectConfigNetwork(const std::string &network) {
     m_network = network;
 }
 
+bool ParseKeyValue(std::string &key, std::string &val) {
+    size_t is_index = key.find('=');
+    if (is_index != std::string::npos) {
+        val = key.substr(is_index + 1);
+        key.erase(is_index);
+    }
+#ifdef WIN32
+    std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+    if (key[0] == '/') {
+        key[0] = '-';
+    }
+#endif
+
+    if (key[0] != '-') {
+        return false;
+    }
+
+    // Transform --foo to -foo
+    if (key.length() > 1 && key[1] == '-') {
+        key.erase(0, 1);
+    }
+    return true;
+}
+
 bool ArgsManager::ParseParameters(int argc, const char *const argv[],
                                   std::string &error) {
     LOCK(cs_args);
     m_override_args.clear();
 
-    for (int i = 1; i < argc; i++) {
+    for (size_t i = 1; i < argc; i++) {
         std::string key(argv[i]);
         std::string val;
-        size_t is_index = key.find('=');
-        if (is_index != std::string::npos) {
-            val = key.substr(is_index + 1);
-            key.erase(is_index);
-        }
-#ifdef WIN32
-        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-        if (key[0] == '/') {
-            key[0] = '-';
-        }
-#endif
-
-        if (key[0] != '-') {
+        if (!ParseKeyValue(key, val)) {
             break;
-        }
-
-        // Transform --foo to -foo
-        if (key.length() > 1 && key[1] == '-') {
-            key.erase(0, 1);
         }
 
         // Check for -nofoo

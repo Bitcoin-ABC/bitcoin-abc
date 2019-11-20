@@ -225,6 +225,47 @@ BOOST_AUTO_TEST_CASE(util_ParseParameters) {
     BOOST_CHECK(testArgs.GetArgs("-ccc").size() == 2);
 }
 
+BOOST_AUTO_TEST_CASE(util_ParseKeyValue) {
+    {
+        std::string key = "badarg";
+        std::string value;
+        BOOST_CHECK(!ParseKeyValue(key, value));
+    }
+    {
+        std::string key = "badarg=v";
+        std::string value;
+        BOOST_CHECK(!ParseKeyValue(key, value));
+    }
+    {
+        std::string key = "-a";
+        std::string value;
+        BOOST_CHECK(ParseKeyValue(key, value));
+        BOOST_CHECK_EQUAL(key, "-a");
+        BOOST_CHECK_EQUAL(value, "");
+    }
+    {
+        std::string key = "-a=1";
+        std::string value;
+        BOOST_CHECK(ParseKeyValue(key, value));
+        BOOST_CHECK_EQUAL(key, "-a");
+        BOOST_CHECK_EQUAL(value, "1");
+    }
+    {
+        std::string key = "--b";
+        std::string value;
+        BOOST_CHECK(ParseKeyValue(key, value));
+        BOOST_CHECK_EQUAL(key, "-b");
+        BOOST_CHECK_EQUAL(value, "");
+    }
+    {
+        std::string key = "--b=abc";
+        std::string value;
+        BOOST_CHECK(ParseKeyValue(key, value));
+        BOOST_CHECK_EQUAL(key, "-b");
+        BOOST_CHECK_EQUAL(value, "abc");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(util_GetBoolArg) {
     TestArgsManager testArgs;
     const char *avail_args[] = {"-a", "-b", "-c", "-d", "-e", "-f"};

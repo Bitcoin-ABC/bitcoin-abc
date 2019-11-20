@@ -93,6 +93,8 @@ fs::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
 void runCommand(const std::string &strCommand);
 
+NODISCARD bool ParseKeyValue(std::string &key, std::string &val);
+
 /**
  * Most paths passed as configuration arguments are treated as relative to
  * the datadir if they are not absolute.
