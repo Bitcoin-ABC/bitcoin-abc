@@ -2,7 +2,7 @@
 
 set(CMAKE_SYSTEM_NAME Darwin)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
-set(TOOLCHAIN_PREFIX ${CMAKE_SYSTEM_PROCESSOR}-apple-darwin14)
+set(TOOLCHAIN_PREFIX ${CMAKE_SYSTEM_PROCESSOR}-apple-darwin16)
 
 # On OSX, we use clang by default.
 set(CMAKE_C_COMPILER clang)
@@ -14,7 +14,7 @@ set(CMAKE_CXX_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
 # On OSX we use various stuff from Apple's SDK.
 set(OSX_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/SDKs/MacOSX10.11.sdk")
 set(CMAKE_OSX_SYSROOT ${OSX_SDK_PATH})
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
 set(CMAKE_OSX_ARCHITECTURES x86_64)
 
 # target environment on the build host system

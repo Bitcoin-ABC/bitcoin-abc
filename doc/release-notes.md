@@ -5,6 +5,9 @@ Bitcoin ABC version 0.21.3 is now available from:
 This release includes the following features and fixes:
  - Fixed a bug where the `listtransactions` RPC was unable to list transactions
    by a giving label.  This functionality has been restored.
+ - MacOS versions earlier than 10.12 are no longer supported.
+   Additionally, Bitcoin ABC does not yet change appearance when macOS
+   "dark mode" is activated.
 
 Low-level RPC changes
 ----------------------

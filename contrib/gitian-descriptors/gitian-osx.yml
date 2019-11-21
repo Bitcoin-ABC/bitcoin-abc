@@ -43,7 +43,7 @@ files:
 - "MacOSX10.11.sdk.tar.gz"
 script: |
   WRAP_DIR=$HOME/wrapped
-  HOSTS="x86_64-apple-darwin14"
+  HOSTS="x86_64-apple-darwin16"
 
   # CMake toolchain file name differ from host name
   declare -A CMAKE_TOOLCHAIN_FILE
