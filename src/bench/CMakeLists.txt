@@ -57,16 +57,14 @@ add_executable(bitcoin-bench
 	rpc_mempool.cpp
 	util_time.cpp
 
-	# TODO: make a test library
-	../test/util/setup_common.cpp
-	../test/util.cpp
-
-
 	# Add the generated headers to trigger the conversion command
 	${BENCH_DATA_GENERATED_HEADERS}
+
+	# Testing related utilities
+	../test/util.cpp
 )
 
-target_link_libraries(bitcoin-bench common bitcoinconsensus server)
+target_link_libraries(bitcoin-bench testutil)
 
 if(BUILD_BITCOIN_WALLET)
 	target_sources(bitcoin-bench

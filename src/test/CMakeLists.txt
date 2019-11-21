@@ -45,6 +45,16 @@ include(TestSuite)
 create_test_suite(bitcoin)
 add_dependencies(check check-bitcoin)
 
+# An utility library for bitcoin related test suites.
+add_library(testutil
+	util/blockfilter.cpp
+	util/logging.cpp
+	util/setup_common.cpp
+	util/transaction_utils.cpp
+)
+
+target_link_libraries(testutil server)
+
 if(BUILD_BITCOIN_WALLET)
 	set(BITCOIN_WALLET_TEST_FIXTURE
 		../wallet/test/init_test_fixture.cpp
@@ -75,10 +85,6 @@ endif()
 
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	jsonutil.cpp
-	util/blockfilter.cpp
-	util/logging.cpp
-	util/setup_common.cpp
-	util/transaction_utils.cpp
 	main.cpp
 	scriptflags.cpp
 	sigutil.cpp
@@ -239,7 +245,7 @@ endfunction()
 
 add_boost_test_runners_with_upgrade_activated(bitcoin test_bitcoin)
 
-target_link_libraries(test_bitcoin rpcclient server)
+target_link_libraries(test_bitcoin rpcclient testutil)
 if(TARGET bitcoinconsensus-shared)
 	target_link_libraries(test_bitcoin bitcoinconsensus-shared)
 else()

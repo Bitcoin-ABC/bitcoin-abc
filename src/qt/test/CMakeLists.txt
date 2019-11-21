@@ -15,12 +15,9 @@ add_test_to_suite(bitcoin-qt test_bitcoin-qt
 	test_main.cpp
 	uritests.cpp
 	util.cpp
-
-	# Test framework
-	../../test/util/setup_common.cpp
 )
 
-target_link_libraries(test_bitcoin-qt bitcoin-qt-base Qt5::Test)
+target_link_libraries(test_bitcoin-qt testutil bitcoin-qt-base Qt5::Test)
 
 # Wallet
 if(BUILD_BITCOIN_WALLET)
