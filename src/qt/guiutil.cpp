@@ -210,7 +210,12 @@ bool parseBitcoinURI(const QString &scheme, QString uri,
 }
 
 QString formatBitcoinURI(const SendCoinsRecipient &info) {
-    QString ret = convertToCashAddr(Params(), info.address);
+    return formatBitcoinURI(Params(), info);
+}
+
+QString formatBitcoinURI(const CChainParams &params,
+                         const SendCoinsRecipient &info) {
+    QString ret = convertToCashAddr(params, info.address);
     int paramCount = 0;
 
     if (info.amount != Amount::zero()) {

@@ -99,11 +99,13 @@ void URITests::uriTestsCashAddr() {
 }
 
 void URITests::uriTestFormatURI() {
+    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+
     {
         SendCoinsRecipient r;
         r.address = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
         r.message = "test";
-        QString uri = GUIUtil::formatBitcoinURI(r);
+        QString uri = GUIUtil::formatBitcoinURI(*params, r);
         QVERIFY(uri == "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
                        "message=test");
     }
@@ -113,7 +115,7 @@ void URITests::uriTestFormatURI() {
         SendCoinsRecipient r;
         r.address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
         r.message = "test";
-        QString uri = GUIUtil::formatBitcoinURI(r);
+        QString uri = GUIUtil::formatBitcoinURI(*params, r);
         QVERIFY(uri == "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message=test");
     }
 
@@ -122,7 +124,7 @@ void URITests::uriTestFormatURI() {
         SendCoinsRecipient r;
         r.address = "12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX";
         r.message = "test";
-        QString uri = GUIUtil::formatBitcoinURI(r);
+        QString uri = GUIUtil::formatBitcoinURI(*params, r);
         QVERIFY(uri == "bitcoincash:qqgekzvw96vq5g57zwdfa5q6g609rrn0ycp33uc325?"
                        "message=test");
     }

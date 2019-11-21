@@ -63,6 +63,8 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
 bool parseBitcoinURI(const QString &scheme, QString uri,
                      SendCoinsRecipient *out);
 QString formatBitcoinURI(const SendCoinsRecipient &info);
+QString formatBitcoinURI(const CChainParams &params,
+                         const SendCoinsRecipient &info);
 
 // Returns true if given address+amount meets "dust" definition
 bool isDust(interfaces::Node &node, const QString &address, const Amount amount,
