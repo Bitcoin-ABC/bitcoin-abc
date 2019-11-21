@@ -5084,19 +5084,6 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-static void AddKeypathToMap(const CWallet *pwallet, const CKeyID &keyID,
-                            std::map<CPubKey, KeyOriginInfo> &hd_keypaths) {
-    CPubKey vchPubKey;
-    if (!pwallet->GetPubKey(keyID, vchPubKey)) {
-        return;
-    }
-    KeyOriginInfo info;
-    if (!pwallet->GetKeyOrigin(keyID, info)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Internal keypath is broken");
-    }
-    hd_keypaths.emplace(vchPubKey, std::move(info));
-}
-
 bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
               const CTransaction *txConst, SigHashType sighash_type, bool sign,
               bool bip32derivs) {
