@@ -54,6 +54,7 @@ NODE_NETWORK_LIMITED = (1 << 10)
 
 MSG_TX = 1
 MSG_BLOCK = 2
+MSG_CMPCTBLOCK = 4
 MSG_TYPE_MASK = 0xffffffff >> 2
 
 # Serialization/deserialization tools
