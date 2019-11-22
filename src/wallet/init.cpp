@@ -115,7 +115,8 @@ void WalletInit::AddWalletOptions() const {
     gArgs.AddArg("-walletdir=<dir>",
                  "Specify directory to hold wallets (default: "
                  "<datadir>/wallets if it exists, otherwise <datadir>)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
+                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                 OptionsCategory::WALLET);
 #if defined(HAVE_SYSTEM)
     gArgs.AddArg("-walletnotify=<cmd>",
                  "Execute command when a wallet transaction changes (%s in cmd "
