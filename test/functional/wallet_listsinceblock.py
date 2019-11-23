@@ -11,9 +11,7 @@ class ListSinceBlockTest (BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 4
         self.setup_clean_chain = True
-        self.extra_args = [["-noparkdeepreorg", '-deprecatedrpc=accounts'],
-                           ["-noparkdeepreorg", '-deprecatedrpc=accounts'],
-                           ['-deprecatedrpc=accounts'], ['-deprecatedrpc=accounts']]
+        self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"], [], []]
 
     def run_test(self):
         self.nodes[2].generate(101)
