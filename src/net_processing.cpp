@@ -148,7 +148,7 @@ std::map<uint256, std::pair<NodeId, std::list<QueuedBlock>::iterator>>
     mapBlocksInFlight GUARDED_BY(cs_main);
 
 /** Stack of nodes which we have set to announce using compact blocks */
-std::list<NodeId> lNodesAnnouncingHeaderAndIDs;
+std::list<NodeId> lNodesAnnouncingHeaderAndIDs GUARDED_BY(cs_main);
 
 /** Number of preferable block download peers. */
 int nPreferredDownload GUARDED_BY(cs_main) = 0;
@@ -157,7 +157,7 @@ int nPreferredDownload GUARDED_BY(cs_main) = 0;
 int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
 
 /** Number of outbound peers with m_chain_sync.m_protect. */
-int g_outbound_peers_with_protect_from_disconnect = 0;
+int g_outbound_peers_with_protect_from_disconnect GUARDED_BY(cs_main) = 0;
 
 /** When our tip was last updated. */
 std::atomic<int64_t> g_last_tip_update(0);
