@@ -25,8 +25,7 @@ class KeypoolRestoreTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [['-deprecatedrpc=accounts'],
-                           ['-deprecatedrpc=accounts', '-keypool=100']]
+        self.extra_args = [[], ['-keypool=100']]
 
     def run_test(self):
         wallet_path = os.path.join(
