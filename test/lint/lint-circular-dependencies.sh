@@ -25,7 +25,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "qt/transactiontablemodel -> qt/walletmodel -> qt/transactiontablemodel"
     "qt/walletmodel -> qt/walletmodeltransaction -> qt/walletmodel"
     "txmempool -> validation -> txmempool"
-    "wallet/coincontrol -> wallet/wallet -> wallet/coincontrol"
     "wallet/fees -> wallet/wallet -> wallet/fees"
     "wallet/rpcwallet -> wallet/wallet -> wallet/rpcwallet"
     "wallet/wallet -> wallet/walletdb -> wallet/wallet"
