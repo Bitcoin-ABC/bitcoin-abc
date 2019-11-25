@@ -5,26 +5,14 @@
 #ifndef BITCOIN_TEST_UTIL_H
 #define BITCOIN_TEST_UTIL_H
 
-#include <memory>
 #include <string>
 
-class CBlock;
 class Config;
-class CScript;
-class CTxIn;
 class CWallet;
 
 // Constants //
 
 extern const std::string ADDRESS_BCHREG_UNSPENDABLE;
-
-// Lower-level utils //
-
-/** Returns the generated coin */
-CTxIn MineBlock(const Config &config, const CScript &coinbase_scriptPubKey);
-/** Prepare a block to be mined */
-std::shared_ptr<CBlock> PrepareBlock(const Config &config,
-                                     const CScript &coinbase_scriptPubKey);
 
 // RPC-like //
 
@@ -32,7 +20,5 @@ std::shared_ptr<CBlock> PrepareBlock(const Config &config,
 void importaddress(CWallet &wallet, const std::string &address);
 /** Returns a new address from the wallet */
 std::string getnewaddress(const Config &config, CWallet &w);
-/** Returns the generated coin */
-CTxIn generatetoaddress(const Config &config, const std::string &address);
 
 #endif // BITCOIN_TEST_UTIL_H

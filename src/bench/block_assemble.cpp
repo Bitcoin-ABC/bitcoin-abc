@@ -7,6 +7,7 @@
 #include <consensus/validation.h>
 #include <script/standard.h>
 #include <test/util.h>
+#include <test/util/mining.h>
 #include <txmempool.h>
 #include <validation.h>
 
