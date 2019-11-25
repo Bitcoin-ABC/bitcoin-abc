@@ -4438,11 +4438,11 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     UniValue detail = DescribeWalletAddress(pwallet, dest);
     ret.pushKVs(detail);
 
-    // Return label field if existing. Currently only one label can be
-    // associated with an address, so the label should be equivalent to the
+    // DEPRECATED: Return label field if existing. Currently only one label can
+    // be associated with an address, so the label should be equivalent to the
     // value of the name key/value pair in the labels array below.
     const auto *address_book_entry = pwallet->FindAddressBookEntry(dest);
-    if (address_book_entry) {
+    if (pwallet->chain().rpcEnableDeprecated("label") && address_book_entry) {
         ret.pushKV("label", address_book_entry->GetLabel());
     }
 
