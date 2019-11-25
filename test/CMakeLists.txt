@@ -26,12 +26,12 @@ configure_file(config.ini.in config.ini @ONLY)
 # Setup symlinks for testing
 ###
 macro(make_link src dest)
-  add_custom_command(
-    OUTPUT "${dest}"
-    COMMAND ${CMAKE_COMMAND} -E create_symlink "${src}" "${dest}"
-    COMMENT "make_link ${src} -> ${dest}"
-    MAIN_DEPENDENCY "${src}"
-  )
+	add_custom_command(
+		OUTPUT "${dest}"
+		COMMAND ${CMAKE_COMMAND} -E create_symlink "${src}" "${dest}"
+		COMMENT "make_link ${src} -> ${dest}"
+		MAIN_DEPENDENCY "${src}"
+	)
 endmacro()
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/functional/)
@@ -51,6 +51,7 @@ make_link(
 )
 
 add_custom_target(check-functional
+	COMMENT "Run functional tests..."
 	COMMAND
 		"${PYTHON_EXECUTABLE}"
 		./functional/test_runner.py
@@ -65,8 +66,7 @@ add_dependencies(check-all check-functional)
 
 if(BUILD_BITCOIN_TX)
 	add_custom_target(check-bitcoin-util
-		COMMAND
-			${CMAKE_COMMAND} -E echo "Running test/util/bitcoin-util-test.py..."
+		COMMENT "Test Bitcoin utilities..."
 		COMMAND
 			"${PYTHON_EXECUTABLE}"
 			./util/bitcoin-util-test.py
@@ -79,8 +79,7 @@ if(BUILD_BITCOIN_TX)
 endif()
 
 add_custom_target(check-rpcauth
-	COMMAND
-		${CMAKE_COMMAND} -E echo "Running test/util/rpcauth-test.py..."
+	COMMENT "Test Bitcoin RPC authentication..."
 	COMMAND
 		"${PYTHON_EXECUTABLE}"
 		./util/rpcauth-test.py
