@@ -4,8 +4,8 @@
 
 #include <util/settings.h>
 
-#include <test/util.h>
 #include <test/util/setup_common.h>
+#include <test/util/str.h>
 #include <util/strencodings.h>
 
 #include <univalue.h>

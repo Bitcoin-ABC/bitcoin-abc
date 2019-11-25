@@ -7,7 +7,7 @@
 #include <clientversion.h>
 #include <optional.h>
 #include <sync.h>
-#include <test/util.h>
+#include <test/util/str.h>
 #include <util/moneystr.h>
 #include <util/spanparsing.h>
 #include <util/strencodings.h>
