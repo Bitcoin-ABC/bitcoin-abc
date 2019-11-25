@@ -63,6 +63,7 @@ add_custom_target(check-functional
 		../src/bitcoin-cli
 		${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
 		${CMAKE_CURRENT_BINARY_DIR}/functional/create_cache.py
+	USES_TERMINAL
 )
 
 add_dependencies(check-all check-functional)
