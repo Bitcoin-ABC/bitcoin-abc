@@ -660,8 +660,13 @@ bool SendCoinsDialog::handlePaymentRequest(const SendCoinsRecipient &rv) {
 
 void SendCoinsDialog::setBalance(const interfaces::WalletBalances &balances) {
     if (model && model->getOptionsModel()) {
+        Amount balance = balances.balance;
+        if (model->wallet().privateKeysDisabled()) {
+            balance = balances.watch_only_balance;
+            ui->labelBalanceName->setText(tr("Watch-only balance:"));
+        }
         ui->labelBalance->setText(BitcoinUnits::formatWithUnit(
-            model->getOptionsModel()->getDisplayUnit(), balances.balance));
+            model->getOptionsModel()->getDisplayUnit(), balance));
     }
 }
 
