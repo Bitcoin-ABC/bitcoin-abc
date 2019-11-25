@@ -409,9 +409,9 @@ static void EnableOrDisableLogCategories(UniValue cats, bool enable) {
 
         bool success;
         if (enable) {
-            success = GetLogger().EnableCategory(cat);
+            success = LogInstance().EnableCategory(cat);
         } else {
-            success = GetLogger().DisableCategory(cat);
+            success = LogInstance().DisableCategory(cat);
         }
 
         if (!success) {
@@ -466,7 +466,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("logging", "[\"all\"], \"[libevent]\""));
     }
 
-    uint32_t original_log_categories = GetLogger().GetCategoryMask();
+    uint32_t original_log_categories = LogInstance().GetCategoryMask();
     if (request.params[0].isArray()) {
         EnableOrDisableLogCategories(request.params[0], true);
     }
@@ -475,7 +475,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
         EnableOrDisableLogCategories(request.params[1], false);
     }
 
-    uint32_t updated_log_categories = GetLogger().GetCategoryMask();
+    uint32_t updated_log_categories = LogInstance().GetCategoryMask();
     uint32_t changed_log_categories =
         original_log_categories ^ updated_log_categories;
 
@@ -488,8 +488,8 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
      */
     if (changed_log_categories & BCLog::LIBEVENT) {
         if (!UpdateHTTPServerLogging(
-                GetLogger().WillLogCategory(BCLog::LIBEVENT))) {
-            GetLogger().DisableCategory(BCLog::LIBEVENT);
+                LogInstance().WillLogCategory(BCLog::LIBEVENT))) {
+            LogInstance().DisableCategory(BCLog::LIBEVENT);
             if (changed_log_categories == BCLog::LIBEVENT) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "libevent logging cannot be updated when "

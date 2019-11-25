@@ -494,7 +494,7 @@ extern "C" void *ThreadSeeder(void *) {
 
 int main(int argc, char **argv) {
     // The logger dump everything on the console by default.
-    GetLogger().m_print_to_console = true;
+    LogInstance().m_print_to_console = true;
 
     signal(SIGPIPE, SIG_IGN);
     setbuf(stdout, nullptr);

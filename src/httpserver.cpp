@@ -384,8 +384,8 @@ bool InitHTTPServer(Config &config) {
     // libevent doesn't support debug logging, in which case we should
     // clear the BCLog::LIBEVENT flag.
     if (!UpdateHTTPServerLogging(
-            GetLogger().WillLogCategory(BCLog::LIBEVENT))) {
-        GetLogger().DisableCategory(BCLog::LIBEVENT);
+            LogInstance().WillLogCategory(BCLog::LIBEVENT))) {
+        LogInstance().DisableCategory(BCLog::LIBEVENT);
     }
 
 #ifdef WIN32

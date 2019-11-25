@@ -294,7 +294,7 @@ static void HandleSIGTERM(int) {
 }
 
 static void HandleSIGHUP(int) {
-    GetLogger().m_reopen_file = true;
+    LogInstance().m_reopen_file = true;
 }
 #else
 static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType) {
@@ -1359,9 +1359,8 @@ static std::string ResolveErrMsg(const char *const optname,
  * careful about what global state you rely on here.
  */
 void InitLogging() {
-    BCLog::Logger &logger = GetLogger();
-    logger.m_print_to_file = !gArgs.IsArgNegated("-debuglogfile");
-    logger.m_file_path = AbsPathForConfigVal(
+    LogInstance().m_print_to_file = !gArgs.IsArgNegated("-debuglogfile");
+    LogInstance().m_file_path = AbsPathForConfigVal(
         gArgs.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
 
     // Add newlines to the logfile to distinguish this execution from the last
@@ -1369,11 +1368,11 @@ void InitLogging() {
     // debug.log.
     LogPrintf("\n\n\n\n\n");
 
-    logger.m_print_to_console = gArgs.GetBoolArg(
+    LogInstance().m_print_to_console = gArgs.GetBoolArg(
         "-printtoconsole", !gArgs.GetBoolArg("-daemon", false));
-    logger.m_log_timestamps =
+    LogInstance().m_log_timestamps =
         gArgs.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
-    logger.m_log_time_micros =
+    LogInstance().m_log_time_micros =
         gArgs.GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
 
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
@@ -1528,7 +1527,7 @@ bool AppInitParameterInteraction(Config &config) {
                 categories.begin(), categories.end(),
                 [](std::string cat) { return cat == "0" || cat == "none"; })) {
             for (const auto &cat : categories) {
-                if (!GetLogger().EnableCategory(cat)) {
+                if (!LogInstance().EnableCategory(cat)) {
                     InitWarning(
                         strprintf(_("Unsupported logging category %s=%s."),
                                   "-debug", cat));
@@ -1539,7 +1538,7 @@ bool AppInitParameterInteraction(Config &config) {
 
     // Now remove the logging categories which were explicitly excluded
     for (const std::string &cat : gArgs.GetArgs("-debugexclude")) {
-        if (!GetLogger().DisableCategory(cat)) {
+        if (!LogInstance().DisableCategory(cat)) {
             InitWarning(strprintf(_("Unsupported logging category %s=%s."),
                                   "-debugexclude", cat));
         }
@@ -1839,7 +1838,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     CreatePidFile(GetPidFile(), getpid());
 #endif
 
-    BCLog::Logger &logger = GetLogger();
+    BCLog::Logger &logger = LogInstance();
     if (logger.m_print_to_file) {
         if (gArgs.GetBoolArg("-shrinkdebugfile",
                              logger.DefaultShrinkDebugFile())) {

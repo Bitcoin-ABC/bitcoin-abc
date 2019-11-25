@@ -109,11 +109,11 @@ public:
 
 } // namespace BCLog
 
-BCLog::Logger &GetLogger();
+BCLog::Logger &LogInstance();
 
 /** Return true if log accepts specified category */
 static inline bool LogAcceptCategory(BCLog::LogFlags category) {
-    return GetLogger().WillLogCategory(category);
+    return LogInstance().WillLogCategory(category);
 }
 
 /** Returns a string with the log categories. */
@@ -149,13 +149,13 @@ static inline void MarkUsed(const T &t, const Args &... args) {
 #define LogPrint(category, ...)                                                \
     do {                                                                       \
         if (LogAcceptCategory((category))) {                                   \
-            GetLogger().LogPrintStr(tfm::format(__VA_ARGS__));                 \
+            LogInstance().LogPrintStr(tfm::format(__VA_ARGS__));               \
         }                                                                      \
     } while (0)
 
 #define LogPrintf(...)                                                         \
     do {                                                                       \
-        GetLogger().LogPrintStr(tfm::format(__VA_ARGS__));                     \
+        LogInstance().LogPrintStr(tfm::format(__VA_ARGS__));                   \
     } while (0)
 #endif
 
