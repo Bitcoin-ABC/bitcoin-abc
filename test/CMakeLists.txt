@@ -42,10 +42,6 @@ make_link(
 	${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
 )
 make_link(
-	${CMAKE_CURRENT_SOURCE_DIR}/functional/create_cache.py
-	${CMAKE_CURRENT_BINARY_DIR}/functional/create_cache.py
-)
-make_link(
 	${CMAKE_CURRENT_SOURCE_DIR}/util/bitcoin-util-test.py
 	${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
 )
@@ -62,7 +58,6 @@ add_custom_target(check-functional
 		../src/bitcoind
 		../src/bitcoin-cli
 		${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
-		${CMAKE_CURRENT_BINARY_DIR}/functional/create_cache.py
 	USES_TERMINAL
 )
 
