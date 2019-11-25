@@ -59,9 +59,6 @@ add_executable(bitcoin-bench
 
 	# Add the generated headers to trigger the conversion command
 	${BENCH_DATA_GENERATED_HEADERS}
-
-	# Testing related utilities
-	../test/util.cpp
 )
 
 target_link_libraries(bitcoin-bench testutil)

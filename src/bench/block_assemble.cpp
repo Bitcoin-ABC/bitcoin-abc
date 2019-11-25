@@ -6,8 +6,8 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <script/standard.h>
-#include <test/util.h>
 #include <test/util/mining.h>
+#include <test/util/wallet.h>
 #include <txmempool.h>
 #include <validation.h>
 

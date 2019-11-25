@@ -51,6 +51,7 @@ add_library(testutil OBJECT
 	util/setup_common.cpp
 	util/str.cpp
 	util/transaction_utils.cpp
+	util/wallet.cpp
 )
 
 target_link_libraries(testutil server)
