@@ -42,7 +42,7 @@ void StopHTTPServer();
 
 /**
  * Change logging level for libevent. Removes BCLog::LIBEVENT from
- * logCategories if libevent doesn't support debug logging.
+ * log categories if libevent doesn't support debug logging.
  */
 bool UpdateHTTPServerLogging(bool enable);
 

@@ -6,7 +6,6 @@
 
 #include <logging.h>
 
-#include <util/system.h>
 #include <util/time.h>
 
 bool fLogIPs = DEFAULT_LOGIPS;
@@ -34,18 +33,13 @@ static int FileWriteStr(const std::string &str, FILE *fp) {
     return fwrite(str.data(), 1, str.size(), fp);
 }
 
-fs::path BCLog::Logger::GetDebugLogPath() {
-    fs::path logfile(gArgs.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
-    return AbsPathForConfigVal(logfile);
-}
-
 bool BCLog::Logger::OpenDebugLog() {
     std::lock_guard<std::mutex> scoped_lock(m_file_mutex);
 
     assert(m_fileout == nullptr);
-    fs::path pathDebug = GetDebugLogPath();
+    assert(!m_file_path.empty());
 
-    m_fileout = fsbridge::fopen(pathDebug, "a");
+    m_fileout = fsbridge::fopen(m_file_path, "a");
     if (!m_fileout) {
         return false;
     }
@@ -197,8 +191,7 @@ void BCLog::Logger::LogPrintStr(const std::string &str) {
             // Reopen the log file, if requested.
             if (m_reopen_file) {
                 m_reopen_file = false;
-                fs::path pathDebug = GetDebugLogPath();
-                FILE *new_fileout = fsbridge::fopen(pathDebug, "a");
+                FILE *new_fileout = fsbridge::fopen(m_file_path, "a");
                 if (new_fileout) {
                     // unbuffered.
                     setbuf(m_fileout, nullptr);
@@ -214,14 +207,16 @@ void BCLog::Logger::LogPrintStr(const std::string &str) {
 void BCLog::Logger::ShrinkDebugFile() {
     // Amount of debug.log to save at end when shrinking (must fit in memory)
     constexpr size_t RECENT_DEBUG_HISTORY_SIZE = 10 * 1000000;
+
+    assert(!m_file_path.empty());
+
     // Scroll debug.log if it's getting too big.
-    fs::path pathLog = GetDebugLogPath();
-    FILE *file = fsbridge::fopen(pathLog, "r");
+    FILE *file = fsbridge::fopen(m_file_path, "r");
 
     // Special files (e.g. device nodes) may not have a size.
     size_t log_size = 0;
     try {
-        log_size = fs::file_size(pathLog);
+        log_size = fs::file_size(m_file_path);
     } catch (boost::filesystem::filesystem_error &) {
     }
 
@@ -238,7 +233,7 @@ void BCLog::Logger::ShrinkDebugFile() {
         int nBytes = fread(vch.data(), 1, vch.size(), file);
         fclose(file);
 
-        file = fsbridge::fopen(pathLog, "w");
+        file = fsbridge::fopen(m_file_path, "w");
         if (file) {
             fwrite(vch.data(), 1, nBytes, file);
             fclose(file);

@@ -87,9 +87,6 @@ int main(int argc, char **argv) {
     ECC_Start();
     SetupEnvironment();
 
-    // don't want to write to debug.log file
-    GetLogger().m_print_to_file = false;
-
     int64_t evaluations = gArgs.GetArg("-evals", DEFAULT_BENCH_EVALUATIONS);
     std::string regex_filter = gArgs.GetArg("-filter", DEFAULT_BENCH_FILTER);
     std::string scaling_str = gArgs.GetArg("-scaling", DEFAULT_BENCH_SCALING);

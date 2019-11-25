@@ -51,9 +51,6 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
     InitSignatureCache();
     InitScriptExecutionCache();
 
-    // Don't want to write to debug.log file.
-    GetLogger().m_print_to_file = false;
-
     fCheckBlockIndex = true;
     SelectParams(chainName);
     noui_connect();

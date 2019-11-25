@@ -77,11 +77,12 @@ private:
 
 public:
     bool m_print_to_console = false;
-    bool m_print_to_file = true;
+    bool m_print_to_file = false;
 
     bool m_log_timestamps = DEFAULT_LOGTIMESTAMPS;
     bool m_log_time_micros = DEFAULT_LOGTIMEMICROS;
 
+    fs::path m_file_path;
     std::atomic<bool> m_reopen_file{false};
 
     ~Logger();
@@ -89,7 +90,6 @@ public:
     /** Send a string to the log output */
     void LogPrintStr(const std::string &str);
 
-    fs::path GetDebugLogPath();
     bool OpenDebugLog();
     void ShrinkDebugFile();
 
