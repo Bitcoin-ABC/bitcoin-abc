@@ -3273,14 +3273,15 @@ void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
         pindexBestParked = nullptr;
     }
 
-    UpdateFlags(pindex,
-                [](const BlockStatus status) {
-                    return status.withClearedParkedFlags();
-                },
-                [fClearChildren](const BlockStatus status) {
-                    return fClearChildren ? status.withClearedParkedFlags()
-                                          : status.withParkedParent(false);
-                });
+    UpdateFlags(
+        pindex,
+        [](const BlockStatus status) {
+            return status.withClearedParkedFlags();
+        },
+        [fClearChildren](const BlockStatus status) {
+            return fClearChildren ? status.withClearedParkedFlags()
+                                  : status.withParkedParent(false);
+        });
 }
 
 void UnparkBlockAndChildren(CBlockIndex *pindex) {

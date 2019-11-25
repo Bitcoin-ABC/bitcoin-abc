@@ -46,12 +46,12 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
     }
 
     /*
-     * FIXME: This is a hack to only allow for clang-format version 7.x.
+     * FIXME: This is a hack to only allow for clang-format version 8.x.
      * The .arclint `version` field only allow to filter versions using `=`,
      * `>`, `<`, `>=` or `<=`. There is no facility to define that the required
-     * version should be >= 7.0 and < 8.0.
+     * version should be >= 8.0 and < 9.0.
      */
-    if ($version[0] != '7') {
+    if ($version[0] != '8') {
       throw new Exception(pht('Linter %s requires clang-format version 7.x. '.
                               'You have version %s.',
                               ClangFormatLinter::class,
