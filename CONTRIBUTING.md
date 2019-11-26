@@ -127,11 +127,11 @@ Follow instructions provided by `arc install-certificate` to provide your API to
 During submission of patches, arcanist will automatically run `arc lint` to
 enforce Bitcoin ABC code formatting standards, and often suggests changes.
 If code formatting tools do not install automatically on your system, you
-will have to install clang-format-7, autopep8, flake8, phpcs and shellcheck.
+will have to install clang-format-8, autopep8, flake8, phpcs and shellcheck.
 
-To install clang-format-7 on Ubuntu (>= 18.04+updates) or Debian (>= 10):
+To install clang-format-8 on Ubuntu (>= 18.04+updates) or Debian (>= 10):
 ```
-sudo apt-get install clang-format-7
+sudo apt-get install clang-format-8
 ```
 If not available in the distribution, clang-format-7 can be installed from
 https://releases.llvm.org/download.html or https://apt.llvm.org

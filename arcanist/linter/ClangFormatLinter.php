@@ -52,7 +52,7 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
      * version should be >= 8.0 and < 9.0.
      */
     if ($version[0] != '8') {
-      throw new Exception(pht('Linter %s requires clang-format version 7.x. '.
+      throw new Exception(pht('Linter %s requires clang-format version 8.x. '.
                               'You have version %s.',
                               ClangFormatLinter::class,
                               $version));
