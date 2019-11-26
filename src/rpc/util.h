@@ -75,7 +75,7 @@ extern std::string HelpExampleRpc(const std::string &methodname,
 
 CPubKey HexToPubKey(const std::string &hex_in);
 CPubKey AddrToPubKey(const CChainParams &chainparams,
-                     FillableSigningProvider *const keystore,
+                     const FillableSigningProvider &keystore,
                      const std::string &addr_in);
 CTxDestination AddAndGetMultisigDestination(const int required,
                                             const std::vector<CPubKey> &pubkeys,

@@ -1152,7 +1152,7 @@ static UniValue addmultisigaddress(const Config &config,
              keys_or_addrs[i].get_str().length() == 130)) {
             pubkeys.push_back(HexToPubKey(keys_or_addrs[i].get_str()));
         } else {
-            pubkeys.push_back(AddrToPubKey(config.GetChainParams(), &spk_man,
+            pubkeys.push_back(AddrToPubKey(config.GetChainParams(), spk_man,
                                            keys_or_addrs[i].get_str()));
         }
     }
