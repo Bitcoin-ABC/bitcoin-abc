@@ -22,7 +22,10 @@ from test_framework.script import (
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import hex_str_to_bytes
-from test_framework.wallet_util import test_address
+from test_framework.wallet_util import (
+    labels_value,
+    test_address,
+)
 
 
 class ImportWithLabel(BitcoinTestFramework):
@@ -47,7 +50,8 @@ class ImportWithLabel(BitcoinTestFramework):
                      address,
                      iswatchonly=True,
                      ismine=False,
-                     label=label)
+                     label=label,
+                     labels=labels_value(name=label))
 
         self.log.info(
             "Import the watch-only address's private key without a "
@@ -58,7 +62,8 @@ class ImportWithLabel(BitcoinTestFramework):
 
         test_address(self.nodes[1],
                      address,
-                     label=label)
+                     label=label,
+                     labels=labels_value(name=label))
 
         self.log.info(
             "Test importaddress without label and importprivkey with label."
@@ -70,7 +75,8 @@ class ImportWithLabel(BitcoinTestFramework):
                      address2,
                      iswatchonly=True,
                      ismine=False,
-                     label="")
+                     label="",
+                     labels=labels_value())
 
         self.log.info(
             "Import the watch-only address's private key with a "
@@ -82,7 +88,8 @@ class ImportWithLabel(BitcoinTestFramework):
 
         test_address(self.nodes[1],
                      address2,
-                     label=label2)
+                     label=label2,
+                     labels=labels_value(name=label2))
 
         self.log.info(
             "Test importaddress with label and importprivkey with label.")
@@ -94,7 +101,8 @@ class ImportWithLabel(BitcoinTestFramework):
                      address3,
                      iswatchonly=True,
                      ismine=False,
-                     label=label3_addr)
+                     label=label3_addr,
+                     labels=labels_value(name=label3_addr))
 
         self.log.info(
             "Import the watch-only address's private key with a "
@@ -106,7 +114,8 @@ class ImportWithLabel(BitcoinTestFramework):
 
         test_address(self.nodes[1],
                      address3,
-                     label=label3_priv)
+                     label=label3_priv,
+                     labels=labels_value(name=label3_priv))
 
         self.log.info(
             "Test importprivkey won't label new dests with the same "
@@ -121,6 +130,7 @@ class ImportWithLabel(BitcoinTestFramework):
                      iswatchonly=True,
                      ismine=False,
                      label=label4_addr,
+                     labels=labels_value(name=label4_addr),
                      embedded=None)
 
         self.log.info(
@@ -147,13 +157,15 @@ class ImportWithLabel(BitcoinTestFramework):
 
         test_address(self.nodes[1],
                      p2shaddr4,
-                     label="")
+                     label="",
+                     labels=labels_value())
 
         embedded_addr = self.nodes[1].getaddressinfo(
             p2shaddr4)['embedded']['address']
         test_address(self.nodes[1],
                      embedded_addr,
-                     label=label4_addr)
+                     label=label4_addr,
+                     labels=labels_value(name=label4_addr))
 
         self.stop_nodes()
 
