@@ -43,7 +43,7 @@ examine `uint256_tests.cpp`.
 
 For further reading, I found the following website to be helpful in
 explaining how the boost unit test framework works:
-[http://www.alittlemadness.com/2009/03/31/c-unit-testing-with-boosttest/](http://www.alittlemadness.com/2009/03/31/c-unit-testing-with-boosttest/).
+[https://legalizeadulthood.wordpress.com/2009/07/04/c-unit-tests-with-boost-test-part-1/](https://legalizeadulthood.wordpress.com/2009/07/04/c-unit-tests-with-boost-test-part-1/)
 
 ### Debugging unit tests
 
