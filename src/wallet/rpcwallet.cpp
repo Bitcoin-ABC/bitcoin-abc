@@ -412,7 +412,7 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
     // deleted, and if we wouldn't do this, the record would stick around
     // forever.
     bool found_address = false;
-    for (const std::pair<CTxDestination, CAddressBookData> &item :
+    for (const std::pair<const CTxDestination, CAddressBookData> &item :
          pwallet->mapAddressBook) {
         if (item.second.name == label) {
             found_address = true;
