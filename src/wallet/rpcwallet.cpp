@@ -3499,7 +3499,8 @@ static UniValue listunspent(const Config &config,
         CTxDestination address;
         const CScript &scriptPubKey = out.tx->tx->vout[out.i].scriptPubKey;
         bool fValidAddress = ExtractDestination(scriptPubKey, address);
-        bool reused = avoid_reuse && pwallet->IsUsedDestination(address);
+        bool reused =
+            avoid_reuse && pwallet->IsUsedDestination(out.tx->GetId(), out.i);
 
         if (destinations.size() &&
             (!fValidAddress || !destinations.count(address))) {

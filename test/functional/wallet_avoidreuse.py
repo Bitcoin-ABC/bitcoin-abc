@@ -240,7 +240,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         '''
         self.log.info("Test fund send fund send")
 
-        fundaddr = self.nodes[1].getnewaddress()
+        fundaddr = self.nodes[1].getnewaddress(label="", address_type="legacy")
         retaddr = self.nodes[0].getnewaddress()
 
         self.nodes[0].sendtoaddress(fundaddr, 10)
@@ -271,7 +271,13 @@ class AvoidReuseTest(BitcoinTestFramework):
         # getbalances should show no used, 5 BCH trusted
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5})
 
-        self.nodes[0].sendtoaddress(fundaddr, 10)
+        # For the second send, we transmute it to a related single-key address
+        # to make sure it's also detected as re-use
+        # NB: this is not very useful for ABC, but we keep the new variable
+        # name for consistency.
+        new_fundaddr = fundaddr
+
+        self.nodes[0].sendtoaddress(new_fundaddr, 10)
         self.nodes[0].generate(1)
         self.sync_all()
 

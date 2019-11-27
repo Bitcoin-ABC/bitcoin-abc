@@ -904,8 +904,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     // Whether this or any UTXO with the same CTxDestination has been spent.
-    bool IsUsedDestination(const CTxDestination &dst) const;
-    bool IsUsedDestination(const TxId &txid, unsigned int n) const;
+    bool IsUsedDestination(const TxId &txid, unsigned int n) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void SetUsedDestinationState(WalletBatch &batch, const TxId &txid,
                                  unsigned int n, bool used)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

@@ -780,16 +780,25 @@ void CWallet::SetUsedDestinationState(WalletBatch &batch, const TxId &txid,
     }
 }
 
-bool CWallet::IsUsedDestination(const CTxDestination &dst) const {
-    LOCK(cs_wallet);
-    return IsMine(dst) && GetDestData(dst, "used", nullptr);
-}
-
 bool CWallet::IsUsedDestination(const TxId &txid, unsigned int n) const {
+    AssertLockHeld(cs_wallet);
     CTxDestination dst;
     const CWalletTx *srctx = GetWalletTx(txid);
-    return srctx && ExtractDestination(srctx->tx->vout[n].scriptPubKey, dst) &&
-           IsUsedDestination(dst);
+    if (srctx) {
+        assert(srctx->tx->vout.size() > n);
+        LegacyScriptPubKeyMan *spk_man = GetLegacyScriptPubKeyMan();
+        // When descriptor wallets arrive, these additional checks are
+        // likely superfluous and can be optimized out
+        assert(spk_man != nullptr);
+        for (const auto &keyid :
+             GetAffectedKeys(srctx->tx->vout[n].scriptPubKey, *spk_man)) {
+            PKHash pkh_dest(keyid);
+            if (GetDestData(pkh_dest, "used", nullptr)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
