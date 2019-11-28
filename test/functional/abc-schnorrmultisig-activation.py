@@ -57,14 +57,14 @@ REPLAY_PROTECTION_START_TIME = GRAVITON_START_TIME * 2
 
 # Before the upgrade, Schnorr checkmultisig is rejected but forgiven if it
 # would have been valid after the upgrade.
-PREUPGRADE_SCHNORR_MULTISIG_ERROR = 'upgrade-conditional-script-failure (Signature cannot be 65 bytes in CHECKMULTISIG)'
+PREUPGRADE_SCHNORR_MULTISIG_ERROR = 'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)'
 
 # Before the upgrade, ECDSA checkmultisig with non-null dummy are rejected with
 # a non-mandatory error.
 PREUPGRADE_ECDSA_NULLDUMMY_ERROR = 'non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)'
 # After the upgrade, ECDSA checkmultisig with non-null dummy are invalid since
 # the new mode refuses ECDSA, but still do not result in ban.
-POSTUPGRADE_ECDSA_NULLDUMMY_ERROR = 'upgrade-conditional-script-failure (Only Schnorr signatures allowed in this operation)'
+POSTUPGRADE_ECDSA_NULLDUMMY_ERROR = 'mandatory-script-verify-flag-failed (Only Schnorr signatures allowed in this operation)'
 
 # A mandatory (bannable) error occurs when people pass Schnorr signatures into
 # legacy OP_CHECKMULTISIG; this is the case on both sides of the upgrade.
@@ -248,7 +248,7 @@ class SchnorrTest(BitcoinTestFramework):
             ecdsa1tx, PREUPGRADE_ECDSA_NULLDUMMY_ERROR)
         self.check_for_ban_on_rejected_tx(
             schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
-        self.check_for_no_ban_on_rejected_tx(
+        self.check_for_ban_on_rejected_tx(
             schnorr1tx, PREUPGRADE_SCHNORR_MULTISIG_ERROR)
 
         self.log.info(
@@ -310,10 +310,10 @@ class SchnorrTest(BitcoinTestFramework):
         self.check_for_ban_on_rejected_block(
             self.build_block(tip, [ecdsa1tx_2]), BADINPUTS_ERROR)
         self.log.info(
-            "If we try to submit it by mempool or RPC, the error code has changed but we still aren't banned")
+            "If we try to submit it by mempool or RPC, the error code has changed and we are banned")
         assert_raises_rpc_error(-26, POSTUPGRADE_ECDSA_NULLDUMMY_ERROR,
                                 node.sendrawtransaction, ToHex(ecdsa1tx_2))
-        self.check_for_no_ban_on_rejected_tx(
+        self.check_for_ban_on_rejected_tx(
             ecdsa1tx_2, POSTUPGRADE_ECDSA_NULLDUMMY_ERROR)
 
         self.log.info(
