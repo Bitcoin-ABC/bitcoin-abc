@@ -1362,8 +1362,7 @@ static void ProcessGetBlockData(const Config &config, CNode *pfrom,
          inv.type == MSG_FILTERED_BLOCK) &&
         !pfrom->fWhitelisted) {
         LogPrint(BCLog::NET,
-                 "historical block serving limit reached, "
-                 "disconnect peer=%d\n",
+                 "historical block serving limit reached, disconnect peer=%d\n",
                  pfrom->GetId());
 
         // disconnect node
@@ -2081,13 +2080,13 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // final alert.
         if (pfrom->nVersion <= 70012) {
             CDataStream finalAlert(
-                ParseHex("60010000000000000000000000ffffff7f00000000ffffff7ffef"
-                         "fff7f01ffffff7f00000000ffffff7f00ffffff7f002f55524745"
-                         "4e543a20416c657274206b657920636f6d70726f6d697365642c2"
-                         "075706772616465207265717569726564004630440220653febd6"
-                         "410f470f6bae11cad19c48413becb1ac2c17f908fd0fd53bdc3ab"
-                         "d5202206d0e9c96fe88d4a0f01ed9dedae2b6f9e00da94cad0fec"
-                         "aae66ecf689bf71b50"),
+                ParseHex(
+                    "60010000000000000000000000ffffff7f00000000ffffff7ffeffff7f"
+                    "01ffffff7f00000000ffffff7f00ffffff7f002f555247454e543a2041"
+                    "6c657274206b657920636f6d70726f6d697365642c2075706772616465"
+                    "207265717569726564004630440220653febd6410f470f6bae11cad19c"
+                    "48413becb1ac2c17f908fd0fd53bdc3abd5202206d0e9c96fe88d4a0f0"
+                    "1ed9dedae2b6f9e00da94cad0fecaae66ecf689bf71b50"),
                 SER_NETWORK, PROTOCOL_VERSION);
             connman->PushMessage(
                 pfrom, CNetMsgMaker(nSendVersion).Make("alert", finalAlert));
@@ -4395,7 +4394,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     }
 
     //
-    // Message: getdata (non-blocks)
+    // Message: getdata (transactions)
     //
     while (!pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow) {
         const CInv &inv = (*pto->mapAskFor.begin()).second;
