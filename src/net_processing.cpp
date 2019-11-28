@@ -2736,8 +2736,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         CTransactionRef ptx;
         vRecv >> ptx;
         const CTransaction &tx = *ptx;
+        const TxId &txid = tx.GetId();
 
-        CInv inv(MSG_TX, tx.GetId());
+        CInv inv(MSG_TX, txid);
         pfrom->AddInventoryKnown(inv);
 
         LOCK2(cs_main, g_cs_orphans);
@@ -2745,7 +2746,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         bool fMissingInputs = false;
         CValidationState state;
 
-        const TxId txid(inv.hash);
         CNodeState *nodestate = State(pfrom->GetId());
         nodestate->m_tx_download.m_tx_announced.erase(txid);
         nodestate->m_tx_download.m_tx_in_flight.erase(txid);
