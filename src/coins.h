@@ -118,7 +118,7 @@ typedef std::unordered_map<COutPoint, CCoinsCacheEntry, SaltedOutpointHasher>
 /** Cursor for iterating over CoinsView state */
 class CCoinsViewCursor {
 public:
-    CCoinsViewCursor(const uint256 &hashBlockIn) : hashBlock(hashBlockIn) {}
+    CCoinsViewCursor(const BlockHash &hashBlockIn) : hashBlock(hashBlockIn) {}
     virtual ~CCoinsViewCursor() {}
 
     virtual bool GetKey(COutPoint &key) const = 0;
@@ -129,10 +129,10 @@ public:
     virtual void Next() = 0;
 
     //! Get best block at the time this cursor was created
-    const uint256 &GetBestBlock() const { return hashBlock; }
+    const BlockHash &GetBestBlock() const { return hashBlock; }
 
 private:
-    uint256 hashBlock;
+    BlockHash hashBlock;
 };
 
 /** Abstract view on the open txout dataset. */
@@ -149,18 +149,18 @@ public:
     virtual bool HaveCoin(const COutPoint &outpoint) const;
 
     //! Retrieve the block hash whose state this CCoinsView currently represents
-    virtual uint256 GetBestBlock() const;
+    virtual BlockHash GetBestBlock() const;
 
     //! Retrieve the range of blocks that may have been only partially written.
     //! If the database is in a consistent state, the result is the empty
     //! vector.
     //! Otherwise, a two-element vector is returned consisting of the new and
     //! the old block hash, in that order.
-    virtual std::vector<uint256> GetHeadBlocks() const;
+    virtual std::vector<BlockHash> GetHeadBlocks() const;
 
     //! Do a bulk modification (multiple Coin changes + BestBlock change).
     //! The passed mapCoins can be modified.
-    virtual bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
+    virtual bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock);
 
     //! Get a cursor to iterate over the whole state
     virtual CCoinsViewCursor *Cursor() const;
@@ -181,10 +181,10 @@ public:
     CCoinsViewBacked(CCoinsView *viewIn);
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
-    uint256 GetBestBlock() const override;
-    std::vector<uint256> GetHeadBlocks() const override;
+    BlockHash GetBestBlock() const override;
+    std::vector<BlockHash> GetHeadBlocks() const override;
     void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override;
+    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override;
     size_t EstimateSize() const override;
 };
@@ -198,7 +198,7 @@ protected:
      * Make mutable so that we can "fill the cache" even from Get-methods
      * declared as "const".
      */
-    mutable uint256 hashBlock;
+    mutable BlockHash hashBlock;
     mutable CCoinsMap cacheCoins;
 
     /* Cached dynamic memory usage for the inner Coin objects. */
@@ -216,9 +216,9 @@ public:
     // Standard CCoinsView methods
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
-    uint256 GetBestBlock() const override;
-    void SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override;
+    BlockHash GetBestBlock() const override;
+    void SetBestBlock(const BlockHash &hashBlock);
+    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override {
         throw std::logic_error(
             "CCoinsViewCache cursor iteration not supported.");

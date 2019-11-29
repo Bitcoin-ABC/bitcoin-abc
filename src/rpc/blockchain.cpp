@@ -823,7 +823,7 @@ static UniValue getblockheader(const Config &config,
     LOCK(cs_main);
 
     std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    BlockHash hash(uint256S(strHash));
 
     bool fVerbose = true;
     if (!request.params[1].isNull()) {
@@ -934,7 +934,7 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
     LOCK(cs_main);
 
     std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    BlockHash hash(uint256S(strHash));
 
     int verbosity = 1;
     if (!request.params[1].isNull()) {
@@ -965,7 +965,7 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
 
 struct CCoinsStats {
     int nHeight;
-    uint256 hashBlock;
+    BlockHash hashBlock;
     uint64_t nTransactions;
     uint64_t nTransactionOutputs;
     uint64_t nBogoSize;
@@ -1425,7 +1425,8 @@ static UniValue getchaintips(const Config &config,
     std::set<const CBlockIndex *> setOrphans;
     std::set<const CBlockIndex *> setPrevs;
 
-    for (const std::pair<const uint256, CBlockIndex *> &item : mapBlockIndex) {
+    for (const std::pair<const BlockHash, CBlockIndex *> &item :
+         mapBlockIndex) {
         if (!chainActive.Contains(item.second)) {
             setOrphans.insert(item.second);
             setPrevs.insert(item.second->pprev);
@@ -1557,7 +1558,7 @@ static UniValue preciousblock(const Config &config,
     }
 
     std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    BlockHash hash(uint256S(strHash));
     CBlockIndex *pblockindex;
 
     {
@@ -1594,7 +1595,7 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
     }
 
     std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    BlockHash hash(uint256S(strHash));
     CValidationState state;
 
     {
@@ -1635,7 +1636,7 @@ static UniValue invalidateblock(const Config &config,
     }
 
     const std::string strHash = request.params[0].get_str();
-    const uint256 hash(uint256S(strHash));
+    const BlockHash hash(uint256S(strHash));
     CValidationState state;
 
     {
@@ -1673,7 +1674,7 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
     }
 
     const std::string strHash = request.params[0].get_str();
-    const uint256 hash(uint256S(strHash));
+    const BlockHash hash(uint256S(strHash));
     CValidationState state;
 
     {
@@ -1715,7 +1716,7 @@ static UniValue reconsiderblock(const Config &config,
     }
 
     const std::string strHash = request.params[0].get_str();
-    const uint256 hash(uint256S(strHash));
+    const BlockHash hash(uint256S(strHash));
 
     {
         LOCK(cs_main);
@@ -1754,7 +1755,7 @@ UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
     }
 
     const std::string strHash = request.params[0].get_str();
-    const uint256 hash(uint256S(strHash));
+    const BlockHash hash(uint256S(strHash));
 
     {
         LOCK(cs_main);
@@ -1823,7 +1824,7 @@ static UniValue getchaintxstats(const Config &config,
         LOCK(cs_main);
         pindex = chainActive.Tip();
     } else {
-        uint256 hash = uint256S(request.params[1].get_str());
+        BlockHash hash(uint256S(request.params[1].get_str()));
         LOCK(cs_main);
         pindex = LookupBlockIndex(hash);
         if (!pindex) {
@@ -1999,7 +2000,7 @@ static UniValue getblockstats(const Config &config,
         pindex = chainActive[height];
     } else {
         const std::string strHash = request.params[0].get_str();
-        const uint256 hash(uint256S(strHash));
+        const BlockHash hash(uint256S(strHash));
         pindex = LookupBlockIndex(hash);
         if (!pindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");

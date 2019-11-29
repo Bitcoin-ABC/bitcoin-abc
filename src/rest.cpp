@@ -153,10 +153,12 @@ static bool rest_headers(Config &config, HTTPRequest *req,
     }
 
     std::string hashStr = path[1];
-    uint256 hash;
-    if (!ParseHashStr(hashStr, hash)) {
+    uint256 rawHash;
+    if (!ParseHashStr(hashStr, rawHash)) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
     }
+
+    const BlockHash hash(rawHash);
 
     const CBlockIndex *tip = nullptr;
     std::vector<const CBlockIndex *> headers;
@@ -220,10 +222,12 @@ static bool rest_block(const Config &config, HTTPRequest *req,
     std::string hashStr;
     const RetFormat rf = ParseDataFormat(hashStr, strURIPart);
 
-    uint256 hash;
-    if (!ParseHashStr(hashStr, hash)) {
+    uint256 rawHash;
+    if (!ParseHashStr(hashStr, rawHash)) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
     }
+
+    const BlockHash hash(rawHash);
 
     CBlock block;
     CBlockIndex *pblockindex = nullptr;

@@ -32,7 +32,7 @@ public:
 class BlockTransactionsRequest {
 public:
     // A BlockTransactionsRequest message
-    uint256 blockhash;
+    BlockHash blockhash;
     std::vector<uint32_t> indices;
 
     ADD_SERIALIZE_METHODS;

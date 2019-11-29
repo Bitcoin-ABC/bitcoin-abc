@@ -49,7 +49,8 @@ struct TestSubscriber : public CValidationInterface {
     }
 };
 
-std::shared_ptr<CBlock> Block(const Config &config, const uint256 &prev_hash) {
+std::shared_ptr<CBlock> Block(const Config &config,
+                              const BlockHash &prev_hash) {
     static int i = 0;
     static uint64_t time = config.GetChainParams().GenesisBlock().nTime;
 
@@ -81,14 +82,14 @@ std::shared_ptr<CBlock> FinalizeBlock(const Consensus::Params &params,
 
 // construct a valid block
 const std::shared_ptr<const CBlock> GoodBlock(const Config &config,
-                                              const uint256 &prev_hash) {
+                                              const BlockHash &prev_hash) {
     return FinalizeBlock(config.GetChainParams().GetConsensus(),
                          Block(config, prev_hash));
 }
 
 // construct an invalid block (but with a valid header)
 const std::shared_ptr<const CBlock> BadBlock(const Config &config,
-                                             const uint256 &prev_hash) {
+                                             const BlockHash &prev_hash) {
     auto pblock = Block(config, prev_hash);
 
     CMutableTransaction coinbase_spend;
@@ -103,7 +104,7 @@ const std::shared_ptr<const CBlock> BadBlock(const Config &config,
     return ret;
 }
 
-void BuildChain(const Config &config, const uint256 &root, int height,
+void BuildChain(const Config &config, const BlockHash &root, int height,
                 const unsigned int invalid_rate, const unsigned int branch_rate,
                 const unsigned int max_size,
                 std::vector<std::shared_ptr<const CBlock>> &blocks) {

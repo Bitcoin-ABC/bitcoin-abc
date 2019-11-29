@@ -6,10 +6,8 @@
 #ifndef BITCOIN_CONSENSUS_PARAMS_H
 #define BITCOIN_CONSENSUS_PARAMS_H
 
+#include <primitives/blockhash.h>
 #include <uint256.h>
-
-#include <map>
-#include <string>
 
 namespace Consensus {
 
@@ -17,13 +15,13 @@ namespace Consensus {
  * Parameters that influence chain consensus.
  */
 struct Params {
-    uint256 hashGenesisBlock;
+    BlockHash hashGenesisBlock;
     int nSubsidyHalvingInterval;
     /** Block height at which BIP16 becomes active */
     int BIP16Height;
     /** Block height and hash at which BIP34 becomes active */
     int BIP34Height;
-    uint256 BIP34Hash;
+    BlockHash BIP34Hash;
     /** Block height at which BIP65 becomes active */
     int BIP65Height;
     /** Block height at which BIP66 becomes active */
@@ -50,7 +48,7 @@ struct Params {
         return nPowTargetTimespan / nPowTargetSpacing;
     }
     uint256 nMinimumChainWork;
-    uint256 defaultAssumeValid;
+    BlockHash defaultAssumeValid;
 };
 } // namespace Consensus
 

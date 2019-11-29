@@ -227,7 +227,7 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
         LOCK(cs_main);
         auto inserted = mapBlockIndex.emplace(GetRandHash(), new CBlockIndex);
         assert(inserted.second);
-        const uint256 &hash = inserted.first->first;
+        const BlockHash &hash = inserted.first->first;
         block = inserted.first->second;
         block->nTime = blockTime;
         block->phashBlock = &hash;

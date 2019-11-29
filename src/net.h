@@ -680,7 +680,7 @@ protected:
     mapMsgCmdSize mapRecvBytesPerMsgCmd GUARDED_BY(cs_vRecv);
 
 public:
-    uint256 hashContinue;
+    BlockHash hashContinue;
     std::atomic<int> nStartingHeight{-1};
 
     // flood relay
@@ -703,7 +703,7 @@ public:
     CCriticalSection cs_inventory;
     int64_t nNextInvSend{0};
     // Used for headers announcements - unfiltered blocks to relay.
-    std::vector<uint256> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
+    std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
     // Used for BIP35 mempool sending.
     bool fSendMempool GUARDED_BY(cs_inventory){false};
 
@@ -821,7 +821,7 @@ public:
         }
     }
 
-    void PushBlockHash(const uint256 &hash) {
+    void PushBlockHash(const BlockHash &hash) {
         LOCK(cs_inventory);
         vBlockHashesToAnnounce.push_back(hash);
     }

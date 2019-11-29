@@ -27,9 +27,9 @@ BOOST_FIXTURE_TEST_SUITE(checkpoints_tests, TestingSetup)
 BOOST_AUTO_TEST_CASE(sanity) {
     const auto params = CreateChainParams(CBaseChainParams::MAIN);
     const CCheckpointData &checkpoints = params->Checkpoints();
-    uint256 p11111 = uint256S(
+    BlockHash p11111 = BlockHash::fromHex(
         "0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d");
-    uint256 p134444 = uint256S(
+    BlockHash p134444 = BlockHash::fromHex(
         "00000000000005b12ffd4cd315cd34ffd4a594f430ac814c91184a0d42d2b0fe");
     BOOST_CHECK(Checkpoints::CheckBlock(checkpoints, 11111, p11111));
     BOOST_CHECK(Checkpoints::CheckBlock(checkpoints, 134444, p134444));
@@ -89,8 +89,8 @@ public:
     static std::unique_ptr<CChainParams> createChainParams() {
         CCheckpointData checkpoints = {
             .mapCheckpoints = {
-                {2, uint256S("000000006a625f06636b8bb6ac7b960a8d0"
-                             "3705d1ace08b1a19da3fdcc99ddbd")},
+                {2, BlockHash::fromHex("000000006a625f06636b8bb6ac7b960a8d03705"
+                                       "d1ace08b1a19da3fdcc99ddbd")},
             }};
         const auto mainParams = CreateChainParams(CBaseChainParams::MAIN);
         return std::make_unique<ChainParamsWithCheckpoints>(*mainParams,

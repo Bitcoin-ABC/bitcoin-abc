@@ -8,7 +8,6 @@
 #include <consensus/validation.h>
 #include <script/standard.h>
 #include <streams.h>
-#include <uint256.h>
 #include <undo.h>
 #include <util/strencodings.h>
 #include <validation.h>
@@ -34,7 +33,7 @@ bool operator==(const Coin &a, const Coin &b) {
 }
 
 class CCoinsViewTest : public CCoinsView {
-    uint256 hashBestBlock_;
+    BlockHash hashBestBlock_;
     std::map<COutPoint, Coin> map_;
 
 public:
@@ -51,9 +50,9 @@ public:
         return true;
     }
 
-    uint256 GetBestBlock() const override { return hashBestBlock_; }
+    BlockHash GetBestBlock() const override { return hashBestBlock_; }
 
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override {
+    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) override {
         for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();) {
             if (it->second.flags & CCoinsCacheEntry::DIRTY) {
                 // Same optimization used in CCoinsViewDB is to only write dirty
@@ -626,7 +625,7 @@ void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags) {
 void WriteCoinViewEntry(CCoinsView &view, const Amount value, char flags) {
     CCoinsMap map;
     InsertCoinMapEntry(map, value, flags);
-    view.BatchWrite(map, {});
+    view.BatchWrite(map, BlockHash());
 }
 
 class SingleEntryCacheTest {

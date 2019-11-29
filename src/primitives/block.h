@@ -6,6 +6,7 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
+#include <primitives/blockhash.h>
 #include <primitives/transaction.h>
 #include <serialize.h>
 #include <uint256.h>
@@ -22,7 +23,7 @@ class CBlockHeader {
 public:
     // header
     int32_t nVersion;
-    uint256 hashPrevBlock;
+    BlockHash hashPrevBlock;
     uint256 hashMerkleRoot;
     uint32_t nTime;
     uint32_t nBits;
@@ -44,7 +45,7 @@ public:
 
     void SetNull() {
         nVersion = 0;
-        hashPrevBlock.SetNull();
+        hashPrevBlock = BlockHash();
         hashMerkleRoot.SetNull();
         nTime = 0;
         nBits = 0;
@@ -53,7 +54,7 @@ public:
 
     bool IsNull() const { return (nBits == 0); }
 
-    uint256 GetHash() const;
+    BlockHash GetHash() const;
 
     int64_t GetBlockTime() const { return (int64_t)nTime; }
 };
@@ -107,11 +108,11 @@ public:
  * further back it is, the further before the fork it may be.
  */
 struct CBlockLocator {
-    std::vector<uint256> vHave;
+    std::vector<BlockHash> vHave;
 
     CBlockLocator() {}
 
-    explicit CBlockLocator(const std::vector<uint256> &vHaveIn)
+    explicit CBlockLocator(const std::vector<BlockHash> &vHaveIn)
         : vHave(vHaveIn) {}
 
     ADD_SERIALIZE_METHODS;

@@ -473,7 +473,7 @@ static UniValue getblocktemplate(const Config &config,
                                    "Block decode failed");
             }
 
-            uint256 hash = block.GetHash();
+            const BlockHash hash = block.GetHash();
             const CBlockIndex *pindex = LookupBlockIndex(hash);
             if (pindex) {
                 if (pindex->IsValid(BlockValidity::SCRIPTS)) {
@@ -721,7 +721,7 @@ static UniValue submitblock(const Config &config,
                            "Block does not start with a coinbase");
     }
 
-    uint256 hash = block.GetHash();
+    const BlockHash hash = block.GetHash();
     {
         LOCK(cs_main);
         const CBlockIndex *pindex = LookupBlockIndex(hash);

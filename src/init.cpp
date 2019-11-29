@@ -1594,7 +1594,7 @@ bool AppInitParameterInteraction(Config &config) {
         LogPrintf("Skipping checkpoint verification.\n");
     }
 
-    hashAssumeValid = uint256S(
+    hashAssumeValid = BlockHash::fromHex(
         gArgs.GetArg("-assumevalid",
                      chainparams.GetConsensus().defaultAssumeValid.GetHex()));
     if (!hashAssumeValid.IsNull()) {

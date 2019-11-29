@@ -246,7 +246,7 @@ extern int64_t nMaxTipAge;
  * Block hash whose ancestors we will assume to have valid scripts without
  * checking them.
  */
-extern uint256 hashAssumeValid;
+extern BlockHash hashAssumeValid;
 
 /**
  * Minimum work we will assume exists on some valid chain.

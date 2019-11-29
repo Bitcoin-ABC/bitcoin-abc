@@ -17,9 +17,9 @@
 #include <utility>
 #include <vector>
 
+struct BlockHash;
 class CBlockIndex;
 class CCoinsViewDBCursor;
-class uint256;
 
 namespace Consensus {
 struct Params;
@@ -56,9 +56,9 @@ public:
 
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
-    uint256 GetBestBlock() const override;
-    std::vector<uint256> GetHeadBlocks() const override;
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override;
+    BlockHash GetBestBlock() const override;
+    std::vector<BlockHash> GetHeadBlocks() const override;
+    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override;
 
     //! Attempt to update from an older database format.
@@ -80,7 +80,7 @@ public:
     void Next() override;
 
 private:
-    CCoinsViewDBCursor(CDBIterator *pcursorIn, const uint256 &hashBlockIn)
+    CCoinsViewDBCursor(CDBIterator *pcursorIn, const BlockHash &hashBlockIn)
         : CCoinsViewCursor(hashBlockIn), pcursor(pcursorIn) {}
     std::unique_ptr<CDBIterator> pcursor;
     std::pair<char, COutPoint> keyTmp;
@@ -105,7 +105,7 @@ public:
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts(
         const Consensus::Params &params,
-        std::function<CBlockIndex *(const uint256 &)> insertBlockIndex);
+        std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex);
 };
 
 #endif // BITCOIN_TXDB_H

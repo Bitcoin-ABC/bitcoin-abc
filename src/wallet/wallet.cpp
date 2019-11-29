@@ -100,7 +100,7 @@ static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
-const uint256 CMerkleTx::ABANDON_HASH(uint256S(
+const BlockHash CMerkleTx::ABANDON_HASH(uint256S(
     "0000000000000000000000000000000000000000000000000000000000000001"));
 
 /** @defgroup mapWallet
@@ -1234,7 +1234,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
     return true;
 }
 
-void CWallet::MarkConflicted(const uint256 &hashBlock, const TxId &txid) {
+void CWallet::MarkConflicted(const BlockHash &hashBlock, const TxId &txid) {
     LOCK2(cs_main, cs_wallet);
 
     int conflictconfirms = 0;

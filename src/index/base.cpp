@@ -196,7 +196,7 @@ void BaseIndex::ChainStateFlushed(const CBlockLocator &locator) {
         return;
     }
 
-    const uint256 &locator_tip_hash = locator.vHave.front();
+    const BlockHash &locator_tip_hash = locator.vHave.front();
     const CBlockIndex *locator_tip_index;
     {
         LOCK(cs_main);
