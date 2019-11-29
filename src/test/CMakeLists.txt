@@ -183,3 +183,8 @@ if(BUILD_BITCOIN_WALLET)
 			../wallet/test/wallet_crypto_tests.cpp
 	)
 endif()
+
+add_executable(test_bitcoin_fuzzy EXCLUDE_FROM_ALL
+	test_bitcoin_fuzzy.cpp
+)
+target_link_libraries(test_bitcoin_fuzzy server)
