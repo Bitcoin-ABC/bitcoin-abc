@@ -695,7 +695,7 @@ public:
     CRollingBloomFilter filterInventoryKnown GUARDED_BY(cs_inventory);
     // Set of transaction ids we still have to announce. They are sorted by the
     // mempool before relay, so the order is not important.
-    std::set<uint256> setInventoryTxToSend;
+    std::set<TxId> setInventoryTxToSend;
     // List of block ids we still have announce. There is no final sorting
     // before sending, as they are always sent immediately and in the order
     // requested.
@@ -813,8 +813,9 @@ public:
     void PushInventory(const CInv &inv) {
         LOCK(cs_inventory);
         if (inv.type == MSG_TX) {
-            if (!filterInventoryKnown.contains(inv.hash)) {
-                setInventoryTxToSend.insert(inv.hash);
+            const TxId txid(inv.hash);
+            if (!filterInventoryKnown.contains(txid)) {
+                setInventoryTxToSend.insert(txid);
             }
         } else if (inv.type == MSG_BLOCK) {
             vInventoryBlockToSend.push_back(inv.hash);

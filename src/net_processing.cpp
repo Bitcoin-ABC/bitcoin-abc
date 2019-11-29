@@ -1409,7 +1409,7 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
             // diminishing returns with 2 onward.
             const TxId txid(inv.hash);
             return recentRejects->contains(inv.hash) ||
-                   g_mempool.exists(inv.hash) ||
+                   g_mempool.exists(txid) ||
                    pcoinsTip->HaveCoinInCache(COutPoint(txid, 0)) ||
                    pcoinsTip->HaveCoinInCache(COutPoint(txid, 1));
         }
@@ -1674,7 +1674,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                     msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                 push = true;
             } else if (pfrom->timeLastMempoolReq) {
-                auto txinfo = g_mempool.info(inv.hash);
+                auto txinfo = g_mempool.info(TxId(inv.hash));
                 // To protect privacy, do not answer getdata using the mempool
                 // when that TX couldn't have been INVed in reply to a MEMPOOL
                 // request.
@@ -4016,10 +4016,11 @@ class CompareInvMempoolOrder {
 public:
     explicit CompareInvMempoolOrder(CTxMemPool *_mempool) { mp = _mempool; }
 
-    bool operator()(std::set<uint256>::iterator a,
-                    std::set<uint256>::iterator b) {
-        /* As std::make_heap produces a max-heap, we want the entries with the
-         * fewest ancestors/highest fee to sort later. */
+    bool operator()(std::set<TxId>::iterator a, std::set<TxId>::iterator b) {
+        /**
+         * As std::make_heap produces a max-heap, we want the entries with the
+         * fewest ancestors/highest fee to sort later.
+         */
         return mp->CompareDepthAndScore(*b, *a);
     }
 };
@@ -4379,7 +4380,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             LOCK(pto->cs_filter);
 
             for (const auto &txinfo : vtxinfo) {
-                const uint256 &txid = txinfo.tx->GetId();
+                const TxId &txid = txinfo.tx->GetId();
                 CInv inv(MSG_TX, txid);
                 pto->setInventoryTxToSend.erase(txid);
                 if (filterrate != Amount::zero() &&
@@ -4404,9 +4405,9 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         // Determine transactions to relay
         if (fSendTrickle) {
             // Produce a vector with all candidates for sending
-            std::vector<std::set<uint256>::iterator> vInvTx;
+            std::vector<std::set<TxId>::iterator> vInvTx;
             vInvTx.reserve(pto->setInventoryTxToSend.size());
-            for (std::set<uint256>::iterator it =
+            for (std::set<TxId>::iterator it =
                      pto->setInventoryTxToSend.begin();
                  it != pto->setInventoryTxToSend.end(); it++) {
                 vInvTx.push_back(it);
@@ -4434,17 +4435,17 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                 // Fetch the top element from the heap
                 std::pop_heap(vInvTx.begin(), vInvTx.end(),
                               compareInvMempoolOrder);
-                std::set<uint256>::iterator it = vInvTx.back();
+                std::set<TxId>::iterator it = vInvTx.back();
                 vInvTx.pop_back();
-                uint256 hash = *it;
+                TxId txid = *it;
                 // Remove it from the to-be-sent set
                 pto->setInventoryTxToSend.erase(it);
                 // Check if not in the filter already
-                if (pto->filterInventoryKnown.contains(hash)) {
+                if (pto->filterInventoryKnown.contains(txid)) {
                     continue;
                 }
                 // Not in the mempool anymore? don't bother sending it.
-                auto txinfo = g_mempool.info(hash);
+                auto txinfo = g_mempool.info(txid);
                 if (!txinfo.tx) {
                     continue;
                 }
@@ -4457,7 +4458,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                     continue;
                 }
                 // Send
-                vInv.push_back(CInv(MSG_TX, hash));
+                vInv.push_back(CInv(MSG_TX, txid));
                 nRelayedTransactions++;
                 {
                     // Expire old relay messages
@@ -4468,7 +4469,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                     }
 
                     auto ret = mapRelay.insert(
-                        std::make_pair(hash, std::move(txinfo.tx)));
+                        std::make_pair(txid, std::move(txinfo.tx)));
                     if (ret.second) {
                         vRelayExpiration.push_back(std::make_pair(
                             nNow + 15 * 60 * 1000000, ret.first));
@@ -4479,7 +4480,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                                          msgMaker.Make(NetMsgType::INV, vInv));
                     vInv.clear();
                 }
-                pto->filterInventoryKnown.insert(hash);
+                pto->filterInventoryKnown.insert(txid);
             }
         }
     }
