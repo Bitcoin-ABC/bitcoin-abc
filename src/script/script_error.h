@@ -19,6 +19,7 @@ enum class ScriptError {
     STACK_SIZE,
     SIG_COUNT,
     PUBKEY_COUNT,
+    INPUT_SIGCHECKS,
 
     /* Operands checks */
     INVALID_OPERAND_SIZE,

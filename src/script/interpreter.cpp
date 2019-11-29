@@ -1780,6 +1780,30 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         }
     }
 
+    if (flags & SCRIPT_VERIFY_INPUT_SIGCHECKS) {
+        // This limit is intended for standard use, and is based on an
+        // examination of typical and historical standard uses.
+        // - allowing P2SH ECDSA multisig with compressed keys, which at an
+        // extreme (1-of-15) may have 15 SigChecks in ~590 bytes of scriptSig.
+        // - allowing Bare ECDSA multisig, which at an extreme (1-of-3) may have
+        // 3 sigchecks in ~72 bytes of scriptSig.
+        // - Since the size of an input is 41 bytes + length of scriptSig, then
+        // the most dense possible inputs satisfying this rule would be:
+        //   2 sigchecks and 26 bytes: 1/33.50 sigchecks/byte.
+        //   3 sigchecks and 69 bytes: 1/36.66 sigchecks/byte.
+        // The latter can be readily done with 1-of-3 bare multisignatures,
+        // however the former is not practically doable with standard scripts,
+        // so the practical density limit is 1/36.66.
+        static_assert(INT_MAX > MAX_SCRIPT_SIZE,
+                      "overflow sanity check on max script size");
+        static_assert(INT_MAX / 43 / 3 > MAX_OPS_PER_SCRIPT,
+                      "overflow sanity check on maximum possible sigchecks "
+                      "from sig+redeem+pub scripts");
+        if (int(scriptSig.size()) < metrics.nSigChecks * 43 - 60) {
+            return set_error(serror, ScriptError::INPUT_SIGCHECKS);
+        }
+    }
+
     metricsOut = metrics;
     return set_success(serror);
 }

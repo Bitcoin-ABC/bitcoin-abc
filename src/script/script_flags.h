@@ -105,6 +105,12 @@ enum {
     // Whether to allow new OP_CHECKMULTISIG logic to trigger. (new multisig
     // logic verifies faster, and only allows Schnorr signatures)
     SCRIPT_ENABLE_SCHNORR_MULTISIG = (1U << 21),
+
+    // Require the number of sigchecks in an input to satisfy a specific
+    // bound, defined by scriptSig length.
+    // Note: The Segwit Recovery feature is a (currently moot) exception to
+    // VERIFY_INPUT_SIGCHECKS
+    SCRIPT_VERIFY_INPUT_SIGCHECKS = (1U << 22),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPT_FLAGS_H

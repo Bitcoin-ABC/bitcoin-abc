@@ -36,6 +36,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Signature count negative or greater than pubkey count";
         case ScriptError::PUBKEY_COUNT:
             return "Pubkey count negative or limit exceeded";
+        case ScriptError::INPUT_SIGCHECKS:
+            return "Input SigChecks limit exceeded";
         case ScriptError::INVALID_OPERAND_SIZE:
             return "Invalid operand size";
         case ScriptError::INVALID_NUMBER_RANGE:
