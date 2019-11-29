@@ -68,7 +68,9 @@ bool CCoinsViewDB::HaveCoin(const COutPoint &outpoint) const {
 
 uint256 CCoinsViewDB::GetBestBlock() const {
     uint256 hashBestChain;
-    if (!db.Read(DB_BEST_BLOCK, hashBestChain)) return uint256();
+    if (!db.Read(DB_BEST_BLOCK, hashBestChain)) {
+        return uint256();
+    }
     return hashBestChain;
 }
 
@@ -163,10 +165,11 @@ bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
 }
 
 bool CBlockTreeDB::WriteReindexing(bool fReindexing) {
-    if (fReindexing)
+    if (fReindexing) {
         return Write(DB_REINDEX_FLAG, '1');
-    else
+    } else {
         return Erase(DB_REINDEX_FLAG);
+    }
 }
 
 void CBlockTreeDB::ReadReindexing(bool &fReindexing) {
@@ -256,7 +259,9 @@ bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
 
 bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
     char ch;
-    if (!Read(std::make_pair(DB_FLAG, name), ch)) return false;
+    if (!Read(std::make_pair(DB_FLAG, name), ch)) {
+        return false;
+    }
     fValue = ch == '1';
     return true;
 }
