@@ -20,7 +20,7 @@ static void SetMTP(std::array<CBlockIndex, 12> &blocks, int64_t mtp) {
         blocks[i].nTime = mtp + (i - (len / 2));
     }
 
-    assert(blocks.back().GetMedianTimePast() == mtp);
+    BOOST_CHECK_EQUAL(blocks.back().GetMedianTimePast(), mtp);
 }
 
 BOOST_AUTO_TEST_CASE(isgravitonenabled) {
@@ -30,6 +30,8 @@ BOOST_AUTO_TEST_CASE(isgravitonenabled) {
     const auto activation =
         gArgs.GetArg("-gravitonactivationtime", params.gravitonActivationTime);
     SetMockTime(activation - 1000000);
+
+    BOOST_CHECK(!IsGravitonEnabled(params, nullptr));
 
     std::array<CBlockIndex, 12> blocks;
     for (size_t i = 1; i < blocks.size(); ++i) {
