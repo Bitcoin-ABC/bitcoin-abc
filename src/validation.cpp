@@ -174,7 +174,8 @@ public:
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F>
-    void UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f);
+    void UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F, typename C>
     void UpdateFlags(CBlockIndex *pindex, F f, C fchild)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -870,6 +871,7 @@ static bool AcceptToMemoryPoolWithTime(
     const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
     int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee,
     bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
@@ -1168,8 +1170,9 @@ static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip)
     CheckForkWarningConditions();
 }
 
-void static InvalidChainFound(CBlockIndex *pindexNew)
+static void InvalidChainFound(CBlockIndex *pindexNew)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    AssertLockHeld(cs_main);
     if (!pindexBestInvalid ||
         pindexNew->nChainWork > pindexBestInvalid->nChainWork) {
         pindexBestInvalid = pindexNew;
@@ -1257,8 +1260,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata,
-                 std::vector<CScriptCheck> *pvChecks)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                 std::vector<CScriptCheck> *pvChecks) {
+    AssertLockHeld(cs_main);
     assert(!tx.IsCoinBase());
 
     if (pvChecks) {
@@ -1689,8 +1692,8 @@ static int64_t nBlocksTotal = 0;
 bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
                                CBlockIndex *pindex, CCoinsViewCache &view,
                                const CChainParams &params,
-                               BlockValidationOptions options, bool fJustCheck)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                               BlockValidationOptions options,
+                               bool fJustCheck) {
     AssertLockHeld(cs_main);
     assert(pindex);
     assert(*pindex->phashBlock == block.GetHash());
@@ -2229,8 +2232,8 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
  * in any case).
  */
 bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
-                                DisconnectedBlockTransactions *disconnectpool)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                                DisconnectedBlockTransactions *disconnectpool) {
+    AssertLockHeld(cs_main);
     CBlockIndex *pindexDelete = chainActive.Tip();
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -3136,8 +3139,7 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
 }
 
 bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
-                                CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                                CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
     if (!FinalizeBlockInternal(config, state, pindex)) {
         // state is set by FinalizeBlockInternal.
@@ -3190,8 +3192,7 @@ void CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
 }
 
 template <typename F, typename C>
-void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild) {
     AssertLockHeld(cs_main);
 
     // Update the current block.
@@ -3218,9 +3219,7 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild)
     }
 }
 
-template <typename F>
-void CChainState::UpdateFlags(CBlockIndex *pindex, F f)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+template <typename F> void CChainState::UpdateFlags(CBlockIndex *pindex, F f) {
     // Handy shorthand.
     UpdateFlags(pindex, f, f);
 }
@@ -3291,8 +3290,7 @@ bool IsBlockFinalized(const CBlockIndex *pindex) {
            pindexFinalized->GetAncestor(pindex->nHeight) == pindex;
 }
 
-CBlockIndex *CChainState::AddToBlockIndex(const CBlockHeader &block)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+CBlockIndex *CChainState::AddToBlockIndex(const CBlockHeader &block) {
     AssertLockHeld(cs_main);
 
     // Check for duplicate
@@ -4467,6 +4465,7 @@ CBlockIndex *CChainState::InsertBlockIndex(const BlockHash &hash) {
 
 bool CChainState::LoadBlockIndex(const Config &config,
                                  CBlockTreeDB &blocktree) {
+    AssertLockHeld(cs_main);
     if (!blocktree.LoadBlockIndexGuts(
             config.GetChainParams().GetConsensus(),
             [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
@@ -4546,7 +4545,7 @@ bool CChainState::LoadBlockIndex(const Config &config,
     return true;
 }
 
-bool static LoadBlockIndexDB(const Config &config)
+static bool LoadBlockIndexDB(const Config &config)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     if (!g_chainstate.LoadBlockIndex(config, *pblocktree)) {
         return false;

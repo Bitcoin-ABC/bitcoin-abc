@@ -495,7 +495,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata,
-                 std::vector<CScriptCheck> *pvChecks = nullptr);
+                 std::vector<CScriptCheck> *pvChecks = nullptr)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Mark all the coins corresponding to a given transaction inputs as spent.
@@ -654,7 +655,8 @@ bool PreciousBlock(const Config &config, CValidationState &state,
  * A finalized block can not be reorged in any way.
  */
 bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
-                                CBlockIndex *pindex);
+                                CBlockIndex *pindex)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,
