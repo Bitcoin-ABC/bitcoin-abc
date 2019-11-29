@@ -5663,7 +5663,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
                     // wallet(s) having loaded it while we were processing
                     // mempool transactions; consider these as valid, instead of
                     // failed, but mark them as 'already there'
-                    if (pool.exists(tx->GetHash())) {
+                    if (pool.exists(tx->GetId())) {
                         ++already_there;
                     } else {
                         ++failed;
@@ -5677,7 +5677,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
                 return false;
             }
         }
-        std::map<uint256, Amount> mapDeltas;
+        std::map<TxId, Amount> mapDeltas;
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {

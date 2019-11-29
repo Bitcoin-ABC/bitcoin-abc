@@ -227,7 +227,7 @@ private:
 
 // extracts a transaction hash from CTxMemPoolEntry or CTransactionRef
 struct mempoolentry_txid {
-    typedef uint256 result_type;
+    typedef TxId result_type;
     result_type operator()(const CTxMemPoolEntry &entry) const {
         return entry.GetTx().GetId();
     }
@@ -396,7 +396,7 @@ private:
 public:
     SaltedTxidHasher();
 
-    size_t operator()(const uint256 &txid) const {
+    size_t operator()(const TxId &txid) const {
         return SipHashUint256(k0, k1, txid);
     }
 };
@@ -646,7 +646,7 @@ public:
     void clear();
     // lock free
     void _clear() EXCLUSIVE_LOCKS_REQUIRED(cs);
-    bool CompareDepthAndScore(const uint256 &hasha, const uint256 &hashb);
+    bool CompareDepthAndScore(const TxId &txida, const TxId &txidb);
     void queryHashes(std::vector<uint256> &vtxid) const;
     bool isSpent(const COutPoint &outpoint) const;
     unsigned int GetTransactionsUpdated() const;
@@ -659,7 +659,7 @@ public:
     bool HasNoInputsOf(const CTransaction &tx) const;
 
     /** Affect CreateNewBlock prioritisation of transactions */
-    void PrioritiseTransaction(const uint256 &hash, double dPriorityDelta,
+    void PrioritiseTransaction(const TxId &txid, double dPriorityDelta,
                                const Amount nFeeDelta);
     void ApplyDeltas(const uint256 hash, double &dPriorityDelta,
                      Amount &nFeeDelta) const;
@@ -752,7 +752,7 @@ public:
      * Calculate the ancestor and descendant count for the given transaction.
      * The counts include the transaction itself.
      */
-    void GetTransactionAncestry(const uint256 &txid, size_t &ancestors,
+    void GetTransactionAncestry(const TxId &txid, size_t &ancestors,
                                 size_t &descendants) const;
 
     /** @returns true if the mempool is fully loaded */
@@ -771,13 +771,13 @@ public:
         return totalTxSize;
     }
 
-    bool exists(uint256 hash) const {
+    bool exists(const TxId &txid) const {
         LOCK(cs);
-        return mapTx.count(hash) != 0;
+        return mapTx.count(txid) != 0;
     }
 
-    CTransactionRef get(const uint256 &hash) const;
-    TxMempoolInfo info(const uint256 &hash) const;
+    CTransactionRef get(const TxId &txid) const;
+    TxMempoolInfo info(const TxId &txid) const;
     std::vector<TxMempoolInfo> infoAll() const;
 
     CFeeRate estimateFee() const;
