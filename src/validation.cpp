@@ -127,6 +127,7 @@ public:
     std::multimap<CBlockIndex *, CBlockIndex *> mapBlocksUnlinked;
     CBlockIndex *pindexBestInvalid = nullptr;
     CBlockIndex *pindexBestParked = nullptr;
+    CBlockIndex const *pindexFinalized = nullptr;
 
     bool LoadBlockIndex(const Config &config, CBlockTreeDB &blocktree)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -286,7 +287,7 @@ CBlockIndex *&pindexBestParked = g_chainstate.pindexBestParked;
  * The best finalized block.
  * This block cannot be reorged in any way, shape or form.
  */
-CBlockIndex const *pindexFinalized;
+CBlockIndex const *&pindexFinalized = g_chainstate.pindexFinalized;
 
 /**
  * All pairs A->B, where A (or one of its ancestors) misses transactions, but B
