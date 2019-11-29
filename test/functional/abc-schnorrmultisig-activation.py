@@ -55,15 +55,11 @@ GRAVITON_START_TIME = 2000000000
 REPLAY_PROTECTION_START_TIME = GRAVITON_START_TIME * 2
 
 
-# Before the upgrade, Schnorr checkmultisig is rejected but forgiven if it
-# would have been valid after the upgrade.
+# Before the upgrade, Schnorr checkmultisig is rejected.
 PREUPGRADE_SCHNORR_MULTISIG_ERROR = 'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)'
 
-# Before the upgrade, ECDSA checkmultisig with non-null dummy are rejected with
-# a non-mandatory error.
-PREUPGRADE_ECDSA_NULLDUMMY_ERROR = 'non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)'
 # After the upgrade, ECDSA checkmultisig with non-null dummy are invalid since
-# the new mode refuses ECDSA, but still do not result in ban.
+# the new mode refuses ECDSA.
 POSTUPGRADE_ECDSA_NULLDUMMY_ERROR = 'mandatory-script-verify-flag-failed (Only Schnorr signatures allowed in this operation)'
 
 # A mandatory (bannable) error occurs when people pass Schnorr signatures into
@@ -219,7 +215,7 @@ class SchnorrTest(BitcoinTestFramework):
         ecdsa0tx = create_fund_and_spend_tx(OP_0, 'ecdsa')
         ecdsa0tx_2 = create_fund_and_spend_tx(OP_0, 'ecdsa')
 
-        # two of these, which are nonstandard before upgrade and invalid after.
+        # two of these, which are valid before upgrade and invalid after.
         ecdsa1tx = create_fund_and_spend_tx(OP_1, 'ecdsa')
         ecdsa1tx_2 = create_fund_and_spend_tx(OP_1, 'ecdsa')
 
@@ -235,17 +231,13 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info("Start preupgrade tests")
 
         self.log.info("Sending rejected transactions via RPC")
-        assert_raises_rpc_error(-26, PREUPGRADE_ECDSA_NULLDUMMY_ERROR,
-                                node.sendrawtransaction, ToHex(ecdsa1tx))
         assert_raises_rpc_error(-26, SCHNORR_LEGACY_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(schnorr0tx))
         assert_raises_rpc_error(-26, PREUPGRADE_SCHNORR_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(schnorr1tx))
 
         self.log.info(
-            "Sending rejected transactions via net (banning depending on situation)")
-        self.check_for_no_ban_on_rejected_tx(
-            ecdsa1tx, PREUPGRADE_ECDSA_NULLDUMMY_ERROR)
+            "Sending rejected transactions via net (bannable)")
         self.check_for_ban_on_rejected_tx(
             schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
         self.check_for_ban_on_rejected_tx(
@@ -293,7 +285,8 @@ class SchnorrTest(BitcoinTestFramework):
         preupgrade_block = tip
 
         self.log.info(
-            "Mine the activation block itself, including a legacy nulldummy violation at the last possible moment")
+            "Mine the activation block itself, including a non-null-dummy ECDSA at the last possible moment")
+        node.p2p.send_txs_and_test([ecdsa1tx], node)
         tip = self.build_block(tip, [ecdsa1tx])
         node.p2p.send_blocks_and_test([tip], node)
 
@@ -306,11 +299,11 @@ class SchnorrTest(BitcoinTestFramework):
         upgrade_block = tip
 
         self.log.info(
-            "Trying to mine a legacy nulldummy violation, but we are just barely too late")
+            "Trying to mine a non-null-dummy ECDSA, but we are just barely too late")
         self.check_for_ban_on_rejected_block(
             self.build_block(tip, [ecdsa1tx_2]), BADINPUTS_ERROR)
         self.log.info(
-            "If we try to submit it by mempool or RPC, the error code has changed and we are banned")
+            "If we try to submit it by mempool or RPC, it is rejected and we are banned")
         assert_raises_rpc_error(-26, POSTUPGRADE_ECDSA_NULLDUMMY_ERROR,
                                 node.sendrawtransaction, ToHex(ecdsa1tx_2))
         self.check_for_ban_on_rejected_tx(
@@ -351,7 +344,8 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info(
             "Invalidating the upgrade block evicts the transactions valid only after upgrade")
         node.invalidateblock(upgrade_block.hash)
-        assert_equal(set(node.getrawmempool()), {ecdsa0tx_2.hash})
+        assert_equal(set(node.getrawmempool()), {
+                     ecdsa0tx_2.hash, ecdsa1tx.hash})
 
         self.log.info("Return to our tip")
         node.reconsiderblock(upgrade_block.hash)

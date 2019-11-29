@@ -79,7 +79,6 @@ static ScriptErrorDesc script_errors[] = {
     {ScriptError::MINIMALDATA, "MINIMALDATA"},
     {ScriptError::SIG_PUSHONLY, "SIG_PUSHONLY"},
     {ScriptError::SIG_HIGH_S, "SIG_HIGH_S"},
-    {ScriptError::SIG_NULLDUMMY, "SIG_NULLDUMMY"},
     {ScriptError::PUBKEYTYPE, "PUBKEYTYPE"},
     {ScriptError::CLEANSTACK, "CLEANSTACK"},
     {ScriptError::MINIMALIF, "MINIMALIF"},
@@ -1067,7 +1066,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                           << ToByteVector(keys.pubkey1C)
                                           << ToByteVector(keys.pubkey2C) << OP_3
                                           << OP_CHECKMULTISIG,
-                                "3-of-3 with nonzero dummy but no NULLDUMMY", 0)
+                                "3-of-3 with nonzero dummy", 0)
                         .Num(1)
                         .PushSigECDSA(keys.key0)
                         .PushSigECDSA(keys.key1)
@@ -1075,39 +1074,14 @@ BOOST_AUTO_TEST_CASE(script_build) {
     tests.push_back(TestBuilder(CScript() << OP_3 << ToByteVector(keys.pubkey0C)
                                           << ToByteVector(keys.pubkey1C)
                                           << ToByteVector(keys.pubkey2C) << OP_3
-                                          << OP_CHECKMULTISIG,
-                                "3-of-3 with nonzero dummy",
-                                SCRIPT_VERIFY_NULLDUMMY)
+                                          << OP_CHECKMULTISIG << OP_NOT,
+                                "3-of-3 NOT with invalid sig and nonzero dummy",
+                                0)
                         .Num(1)
                         .PushSigECDSA(keys.key0)
                         .PushSigECDSA(keys.key1)
                         .PushSigECDSA(keys.key2)
-                        .SetScriptError(ScriptError::SIG_NULLDUMMY));
-    tests.push_back(
-        TestBuilder(
-            CScript() << OP_3 << ToByteVector(keys.pubkey0C)
-                      << ToByteVector(keys.pubkey1C)
-                      << ToByteVector(keys.pubkey2C) << OP_3 << OP_CHECKMULTISIG
-                      << OP_NOT,
-            "3-of-3 NOT with invalid sig and nonzero dummy but no NULLDUMMY", 0)
-            .Num(1)
-            .PushSigECDSA(keys.key0)
-            .PushSigECDSA(keys.key1)
-            .PushSigECDSA(keys.key2)
-            .DamagePush(10));
-    tests.push_back(
-        TestBuilder(CScript() << OP_3 << ToByteVector(keys.pubkey0C)
-                              << ToByteVector(keys.pubkey1C)
-                              << ToByteVector(keys.pubkey2C) << OP_3
-                              << OP_CHECKMULTISIG << OP_NOT,
-                    "3-of-3 NOT with invalid sig with nonzero dummy",
-                    SCRIPT_VERIFY_NULLDUMMY)
-            .Num(1)
-            .PushSigECDSA(keys.key0)
-            .PushSigECDSA(keys.key1)
-            .PushSigECDSA(keys.key2)
-            .DamagePush(10)
-            .SetScriptError(ScriptError::SIG_NULLDUMMY));
+                        .DamagePush(10));
 
     tests.push_back(TestBuilder(CScript() << OP_2 << ToByteVector(keys.pubkey1C)
                                           << ToByteVector(keys.pubkey1C) << OP_2
@@ -2214,14 +2188,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 "dummy need not be null",
                                 newmultisigflags)
                         .Push("00"));
-    tests.push_back(
-        TestBuilder(
-            CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
-                      << OP_CHECKMULTISIG,
-            "SCHNORR_MULTISIG implies that NULLDUMMY flag has no effect",
-            newmultisigflags | SCRIPT_VERIFY_NULLDUMMY)
-            .Num(0b1)
-            .PushSigSchnorr(keys.key0));
     tests.push_back(
         TestBuilder(CScript() << OP_1 << ToByteVector(keys.pubkey0) << OP_1
                               << OP_CHECKMULTISIGVERIFY << OP_1,

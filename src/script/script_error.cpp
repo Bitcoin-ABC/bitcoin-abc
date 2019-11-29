@@ -81,8 +81,6 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Only push operators allowed in signature scripts";
         case ScriptError::SIG_HIGH_S:
             return "Non-canonical signature: S value is unnecessarily high";
-        case ScriptError::SIG_NULLDUMMY:
-            return "Dummy CHECKMULTISIG argument must be zero";
         case ScriptError::MINIMALIF:
             return "OP_IF/NOTIF argument must be minimal";
         case ScriptError::SIG_NULLFAIL:

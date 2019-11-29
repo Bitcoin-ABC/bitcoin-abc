@@ -1107,18 +1107,6 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             }
                         } else {
                             // LEGACY MULTISIG (ECDSA / NULL)
-                            // A bug causes CHECKMULTISIG to consume one extra
-                            // argument whose contents were not checked in any
-                            // way.
-                            //
-                            // Unfortunately this is a potential source of
-                            // mutability, so optionally verify it is exactly
-                            // equal to zero.
-                            if ((flags & SCRIPT_VERIFY_NULLDUMMY) &&
-                                stacktop(-idxDummy).size()) {
-                                return set_error(serror,
-                                                 ScriptError::SIG_NULLDUMMY);
-                            }
 
                             // Remove signature for pre-fork scripts
                             for (int k = 0; k < nSigsCount; k++) {

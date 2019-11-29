@@ -30,10 +30,6 @@ enum {
     // (softfork safe, BIP62 rule 5).
     SCRIPT_VERIFY_LOW_S = (1U << 3),
 
-    // verify dummy stack item consumed by CHECKMULTISIG is of zero-length
-    // (softfork safe, BIP62 rule 7).
-    SCRIPT_VERIFY_NULLDUMMY = (1U << 4),
-
     // Using a non-push operator in the scriptSig causes script failure
     // (softfork safe, BIP62 rule 2).
     SCRIPT_VERIFY_SIGPUSHONLY = (1U << 5),

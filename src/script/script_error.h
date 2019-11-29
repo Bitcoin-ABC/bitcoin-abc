@@ -60,7 +60,6 @@ enum class ScriptError {
     MINIMALDATA,
     SIG_PUSHONLY,
     SIG_HIGH_S,
-    SIG_NULLDUMMY,
     PUBKEYTYPE,
     CLEANSTACK,
     MINIMALIF,
