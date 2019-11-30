@@ -217,7 +217,7 @@ std::map<COutPoint,
     mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
 
 static size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
-static std::vector<std::pair<uint256, CTransactionRef>>
+static std::vector<std::pair<TxHash, CTransactionRef>>
     vExtraTxnForCompact GUARDED_BY(g_cs_orphans);
 } // namespace
 
@@ -976,7 +976,7 @@ static void AddToCompactExtraTransactions(const CTransactionRef &tx)
     }
 
     vExtraTxnForCompact[vExtraTxnForCompactIt] =
-        std::make_pair(tx->GetId(), tx);
+        std::make_pair(tx->GetHash(), tx);
     vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % max_extra_txn;
 }
 

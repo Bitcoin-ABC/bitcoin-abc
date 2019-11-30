@@ -42,7 +42,7 @@ void CBlockHeaderAndShortTxIDs::FillShortTxIDSelector() const {
     shorttxidk1 = shorttxidhash.GetUint64(1);
 }
 
-uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const uint256 &txhash) const {
+uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const TxHash &txhash) const {
     static_assert(SHORTTXIDS_LENGTH == 6,
                   "shorttxids calculation assumes 6-byte shorttxids");
     return SipHashUint256(shorttxidk0, shorttxidk1, txhash) & 0xffffffffffffL;
@@ -50,7 +50,7 @@ uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const uint256 &txhash) const {
 
 ReadStatus PartiallyDownloadedBlock::InitData(
     const CBlockHeaderAndShortTxIDs &cmpctblock,
-    const std::vector<std::pair<uint256, CTransactionRef>> &extra_txns) {
+    const std::vector<std::pair<TxHash, CTransactionRef>> &extra_txns) {
     if (cmpctblock.header.IsNull() ||
         (cmpctblock.shorttxids.empty() && cmpctblock.prefilledtxn.empty())) {
         return READ_STATUS_INVALID;
@@ -131,7 +131,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
     std::vector<bool> have_txn(txns_available.size());
     {
         LOCK(pool->cs);
-        const std::vector<std::pair<uint256, CTxMemPool::txiter>> &vTxHashes =
+        const std::vector<std::pair<TxHash, CTxMemPool::txiter>> &vTxHashes =
             pool->vTxHashes;
         for (auto txHash : vTxHashes) {
             uint64_t shortid = cmpctblock.GetShortID(txHash.first);

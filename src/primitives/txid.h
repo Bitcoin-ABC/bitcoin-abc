@@ -20,6 +20,7 @@ struct TxId : public uint256 {
  * A TxHash is the double sha256 hash of the full transaction data.
  */
 struct TxHash : public uint256 {
+    explicit TxHash() : uint256() {}
     explicit TxHash(const uint256 &b) : uint256(b) {}
 };
 
