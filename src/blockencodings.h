@@ -80,7 +80,7 @@ public:
 class BlockTransactions {
 public:
     // A BlockTransactions message
-    uint256 blockhash;
+    BlockHash blockhash;
     std::vector<CTransactionRef> txn;
 
     BlockTransactions() {}
