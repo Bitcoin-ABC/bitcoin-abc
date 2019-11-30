@@ -119,7 +119,9 @@ struct CBlockLocator {
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
         int nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH)) READWRITE(nVersion);
+        if (!(s.GetType() & SER_GETHASH)) {
+            READWRITE(nVersion);
+        }
         READWRITE(vHave);
     }
 
