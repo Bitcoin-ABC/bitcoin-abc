@@ -266,7 +266,7 @@ BaseIndex::DB &TxIndex::GetDB() const {
     return *m_db;
 }
 
-bool TxIndex::FindTx(const TxId &txid, uint256 &block_hash,
+bool TxIndex::FindTx(const TxId &txid, BlockHash &block_hash,
                      CTransactionRef &tx) const {
     CDiskTxPos postx;
     if (!m_db->ReadTxPos(txid, postx)) {

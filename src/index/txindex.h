@@ -46,7 +46,7 @@ public:
     /// in.
     /// @param[out]  tx  The transaction itself.
     /// @return  true if transaction is found, false otherwise
-    bool FindTx(const TxId &txid, uint256 &block_hash,
+    bool FindTx(const TxId &txid, BlockHash &block_hash,
                 CTransactionRef &tx) const;
 };
 
