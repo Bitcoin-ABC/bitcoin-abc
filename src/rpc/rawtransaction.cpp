@@ -204,7 +204,7 @@ static UniValue getrawtransaction(const Config &config,
 
     CTransactionRef tx;
     BlockHash hash_block;
-    if (!GetTransaction(params.GetConsensus(), txid, tx, hash_block, true,
+    if (!GetTransaction(txid, tx, params.GetConsensus(), hash_block, true,
                         blockindex)) {
         std::string errmsg;
         if (blockindex) {
@@ -324,7 +324,7 @@ static UniValue gettxoutproof(const Config &config,
 
     if (pblockindex == nullptr) {
         CTransactionRef tx;
-        if (!GetTransaction(params, oneTxId, tx, hashBlock, false) ||
+        if (!GetTransaction(oneTxId, tx, params, hashBlock, false) ||
             hashBlock.IsNull()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Transaction not yet in block");

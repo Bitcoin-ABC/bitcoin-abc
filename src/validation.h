@@ -420,9 +420,10 @@ bool IsInitialBlockDownload();
 /**
  * Retrieve a transaction (from memory pool, or from disk, if possible).
  */
-bool GetTransaction(const Consensus::Params &params, const TxId &txid,
-                    CTransactionRef &tx, uint256 &hashBlock,
-                    bool fAllowSlow = false, CBlockIndex *blockIndex = nullptr);
+bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
+                    const Consensus::Params &params, BlockHash &hashBlock,
+                    bool fAllowSlow = false,
+                    const CBlockIndex *const blockIndex = nullptr);
 
 /**
  * Find the best known block, and make it the tip of the block chain

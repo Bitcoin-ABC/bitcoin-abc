@@ -2099,8 +2099,8 @@ static UniValue getblockstats(const Config &config,
             Amount tx_total_in = Amount::zero();
             for (const CTxIn &in : tx->vin) {
                 CTransactionRef tx_in;
-                uint256 hashBlock;
-                if (!GetTransaction(params, in.prevout.GetTxId(), tx_in,
+                BlockHash hashBlock;
+                if (!GetTransaction(in.prevout.GetTxId(), tx_in, params,
                                     hashBlock, false)) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
                                        std::string("Unexpected internal error "

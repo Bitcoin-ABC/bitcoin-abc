@@ -905,10 +905,10 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
  * placed in hashBlock. If blockIndex is provided, the transaction is fetched
  * from the corresponding block.
  */
-bool GetTransaction(const Consensus::Params &params, const TxId &txid,
-                    CTransactionRef &txOut, uint256 &hashBlock, bool fAllowSlow,
-                    CBlockIndex *blockIndex) {
-    CBlockIndex *pindexSlow = blockIndex;
+bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
+                    const Consensus::Params &params, BlockHash &hashBlock,
+                    bool fAllowSlow, const CBlockIndex *const blockIndex) {
+    CBlockIndex const *pindexSlow = blockIndex;
 
     LOCK(cs_main);
 
