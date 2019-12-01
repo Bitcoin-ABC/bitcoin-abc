@@ -30,3 +30,10 @@ macro(sanitize_c_cxx_definition PREFIX RAW_VAR SANITIZED_VAR)
 	# `ISO C99 requires whitespace after the macro name [-Wc99-extensions]`
 	_sanitize("([^a-zA-Z0-9_])" "_" "${PREFIX}${RAW_VAR}" ${SANITIZED_VAR})
 endmacro()
+
+# Sanitize a variable intended to be used as a cmake target name.
+macro(sanitize_target_name PREFIX RAW_VAR SANITIZED_VAR)
+	# Target names may contain upper and lower case letters, numbers,
+	# underscore, dot, plus and minus.
+	_sanitize("([^a-zA-Z0-9_.+-])" "-" "${PREFIX}${RAW_VAR}" ${SANITIZED_VAR})
+endmacro()

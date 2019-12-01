@@ -25,30 +25,27 @@ configure_file(config.ini.in config.ini @ONLY)
 ###
 # Setup symlinks for testing
 ###
-macro(make_link src dest)
+include(SanitizeHelper)
+function(make_link file)
+	set(src "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
+	set(dest "${CMAKE_CURRENT_BINARY_DIR}/${file}")
 	add_custom_command(
 		OUTPUT "${dest}"
 		COMMAND ${CMAKE_COMMAND} -E create_symlink "${src}" "${dest}"
-		COMMENT "make_link ${src} -> ${dest}"
+		COMMENT "link ${file}"
 		MAIN_DEPENDENCY "${src}"
 	)
-endmacro()
+	# Add a phony target to make sure the files are linked by default.
+	sanitize_target_name("link-" "${file}" NAME)
+	add_custom_target(${NAME} ALL DEPENDS "${dest}")
+endfunction()
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/functional/)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/util/)
 
-make_link(
-	${CMAKE_CURRENT_SOURCE_DIR}/functional/test_runner.py
-	${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
-)
-make_link(
-	${CMAKE_CURRENT_SOURCE_DIR}/util/bitcoin-util-test.py
-	${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
-)
-make_link(
-	${CMAKE_CURRENT_SOURCE_DIR}/util/rpcauth-test.py
-	${CMAKE_CURRENT_BINARY_DIR}/util/rpcauth-test.py
-)
+make_link(functional/test_runner.py)
+make_link(util/bitcoin-util-test.py)
+make_link(util/rpcauth-test.py)
 
 add_custom_target(check-functional
 	COMMENT "Run functional tests..."
