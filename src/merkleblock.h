@@ -162,7 +162,12 @@ public:
     CBlockHeader header;
     CPartialMerkleTree txn;
 
-    /** Public only for unit testing and relay testing (not relayed) */
+    /**
+     * Public only for unit testing and relay testing (not relayed).
+     *
+     * Used only when a bloom filter is specified to allow
+     * testing the transactions which matched the bloom filter.
+     */
     std::vector<std::pair<size_t, uint256>> vMatchedTxn;
 
     /**
@@ -170,12 +175,14 @@ public:
      * that this will call IsRelevantAndUpdate on the filter for each
      * transaction, thus the filter will likely be modified.
      */
-    CMerkleBlock(const CBlock &block, CBloomFilter &filter);
+    CMerkleBlock(const CBlock &block, CBloomFilter &filter)
+        : CMerkleBlock(block, &filter, nullptr) {}
 
     /**
      * Create a Merkle proof for a set of transactions.
      */
-    CMerkleBlock(const CBlock &block, const std::set<TxId> &txids);
+    CMerkleBlock(const CBlock &block, const std::set<TxId> &txids)
+        : CMerkleBlock(block, nullptr, &txids) {}
 
     CMerkleBlock() {}
 
@@ -186,6 +193,14 @@ public:
         READWRITE(header);
         READWRITE(txn);
     }
+
+private:
+    /**
+     * Combined constructor to consolidate code. At most one of filter
+     * or txids may be provided.
+     */
+    CMerkleBlock(const CBlock &block, CBloomFilter *filter,
+                 const std::set<TxId> *txids);
 };
 
 #endif // BITCOIN_MERKLEBLOCK_H

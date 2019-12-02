@@ -9,7 +9,8 @@
 #include <hash.h>
 #include <util/strencodings.h>
 
-CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
+CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter *filter,
+                           const std::set<TxId> *txids) {
     header = block.GetBlockHeader();
 
     std::vector<bool> vMatch;
@@ -18,38 +19,26 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
     vMatch.reserve(block.vtx.size());
     vHashes.reserve(block.vtx.size());
 
-    for (const auto &tx : block.vtx) {
-        vMatch.push_back(filter.MatchAndInsertOutputs(*tx));
+    if (filter) {
+        for (const auto &tx : block.vtx) {
+            vMatch.push_back(filter->MatchAndInsertOutputs(*tx));
+        }
     }
 
     for (size_t i = 0; i < block.vtx.size(); i++) {
         const CTransaction *tx = block.vtx[i].get();
         const TxId &txid = tx->GetId();
-        if (!vMatch[i]) {
-            vMatch[i] = filter.MatchInputs(*tx);
+        if (filter) {
+            if (!vMatch[i]) {
+                vMatch[i] = filter->MatchInputs(*tx);
+            }
+            if (vMatch[i]) {
+                vMatchedTxn.push_back(std::make_pair(i, txid));
+            }
+        } else {
+            vMatch.push_back(txids && txids->count(txid));
         }
-        if (vMatch[i]) {
-            vMatchedTxn.push_back(std::make_pair(i, txid));
-        }
 
-        vHashes.push_back(txid);
-    }
-
-    txn = CPartialMerkleTree(vHashes, vMatch);
-}
-
-CMerkleBlock::CMerkleBlock(const CBlock &block, const std::set<TxId> &txids) {
-    header = block.GetBlockHeader();
-
-    std::vector<bool> vMatch;
-    std::vector<uint256> vHashes;
-
-    vMatch.reserve(block.vtx.size());
-    vHashes.reserve(block.vtx.size());
-
-    for (const auto &tx : block.vtx) {
-        const TxId &txid = tx->GetId();
-        vMatch.push_back(txids.count(txid));
         vHashes.push_back(txid);
     }
 
