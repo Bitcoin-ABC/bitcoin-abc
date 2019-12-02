@@ -280,9 +280,12 @@ bool CSeederNode::Run() {
                                     (doneAfter == 0 || doneAfter > now) &&
                                     sock != INVALID_SOCKET) {
         char pchBuf[0x10000];
-        fd_set set;
-        FD_ZERO(&set);
-        FD_SET(sock, &set);
+        fd_set fdsetRecv;
+        fd_set fdsetError;
+        FD_ZERO(&fdsetRecv);
+        FD_ZERO(&fdsetError);
+        FD_SET(sock, &fdsetRecv);
+        FD_SET(sock, &fdsetError);
         struct timeval wa;
         if (doneAfter) {
             wa.tv_sec = doneAfter - now;
@@ -291,7 +294,7 @@ bool CSeederNode::Run() {
             wa.tv_sec = GetTimeout();
             wa.tv_usec = 0;
         }
-        int ret = select(sock + 1, &set, nullptr, &set, &wa);
+        int ret = select(sock + 1, &fdsetRecv, nullptr, &fdsetError, &wa);
         if (ret != 1) {
             if (!doneAfter) res = false;
             break;
