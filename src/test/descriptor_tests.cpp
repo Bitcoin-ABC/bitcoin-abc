@@ -30,7 +30,7 @@ constexpr int RANGE = 1;
 // Derivation needs access to private keys
 constexpr int HARDENED = 2;
 // This descriptor is not expected to be solvable
-constexpr int UNSOLVABLE = 4;
+// constexpr int UNSOLVABLE = 4;
 // We can sign with this descriptor (this is not true when actual BIP32
 // derivation is used, as that's not integrated in our signing code)
 constexpr int SIGNABLE = 8;
