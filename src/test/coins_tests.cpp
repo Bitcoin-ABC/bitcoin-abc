@@ -159,13 +159,19 @@ void SimulationTest(CCoinsView *base, bool fake_best_block) {
                 test_havecoin_before
                     ? stack.back()->HaveCoin(COutPoint(txid, 0))
                     : false;
+
+            // Infrequently, test usage of AccessByTxid instead of AccessCoin -
+            // the former just delegates to the latter and returns the first
+            // unspent in a txn.
             const Coin &entry =
                 (InsecureRandRange(500) == 0)
                     ? AccessByTxid(*stack.back(), txid)
                     : stack.back()->AccessCoin(COutPoint(txid, 0));
             BOOST_CHECK(coin == entry);
-            BOOST_CHECK(!test_havecoin_before ||
-                        result_havecoin == !entry.IsSpent());
+
+            if (test_havecoin_before) {
+                BOOST_CHECK(result_havecoin == !entry.IsSpent());
+            }
 
             if (test_havecoin_after) {
                 bool ret = stack.back()->HaveCoin(COutPoint(txid, 0));
@@ -175,6 +181,8 @@ void SimulationTest(CCoinsView *base, bool fake_best_block) {
             if (InsecureRandRange(5) == 0 || coin.IsSpent()) {
                 CTxOut txout;
                 txout.nValue = InsecureRandMoneyAmount();
+
+                // Infrequently test adding unspendable coins.
                 if (InsecureRandRange(16) == 0 && coin.IsSpent()) {
                     txout.scriptPubKey.assign(1 + InsecureRandBits(6),
                                               OP_RETURN);
@@ -188,16 +196,18 @@ void SimulationTest(CCoinsView *base, bool fake_best_block) {
                 }
 
                 Coin newcoin(txout, 1, false);
+                bool is_overwrite = !coin.IsSpent() || InsecureRand32() & 1;
                 stack.back()->AddCoin(COutPoint(txid, 0), newcoin,
-                                      !coin.IsSpent() || InsecureRand32() & 1);
+                                      is_overwrite);
             } else {
+                // Spend the coin.
                 removed_an_entry = true;
                 coin.Clear();
                 BOOST_CHECK(stack.back()->SpendCoin(COutPoint(txid, 0)));
             }
         }
 
-        // One every 10 iterations, remove a random entry from the cache
+        // Once every 10 iterations, remove a random entry from the cache
         if (InsecureRandRange(10) == 0) {
             COutPoint out(txids[InsecureRand32() % txids.size()], 0);
             int cacheid = InsecureRand32() % stack.size();
