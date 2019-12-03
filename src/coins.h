@@ -168,7 +168,8 @@ public:
 
     //! Do a bulk modification (multiple Coin changes + BestBlock change).
     //! The passed mapCoins can be modified.
-    virtual bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock);
+    virtual bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
+                            bool erase = true);
 
     //! Get a cursor to iterate over the whole state
     virtual CCoinsViewCursor *Cursor() const;
@@ -192,7 +193,8 @@ public:
     BlockHash GetBestBlock() const override;
     std::vector<BlockHash> GetHeadBlocks() const override;
     void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) override;
+    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
+                    bool erase = true) override;
     CCoinsViewCursor *Cursor() const override;
     size_t EstimateSize() const override;
 };
@@ -226,7 +228,8 @@ public:
     bool HaveCoin(const COutPoint &outpoint) const override;
     BlockHash GetBestBlock() const override;
     void SetBestBlock(const BlockHash &hashBlock);
-    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) override;
+    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
+                    bool erase = true) override;
     CCoinsViewCursor *Cursor() const override {
         throw std::logic_error(
             "CCoinsViewCache cursor iteration not supported.");
@@ -274,12 +277,21 @@ public:
     bool SpendCoin(const COutPoint &outpoint, Coin *moveto = nullptr);
 
     /**
-     * Push the modifications applied to this cache to its base.
-     * Failure to call this method before destruction will cause the changes to
-     * be forgotten. If false is returned, the state of this cache (and its
-     * backing view) will be undefined.
+     * Push the modifications applied to this cache to its base and wipe local
+     * state. Failure to call this method or Sync() before destruction will
+     * cause the changes to be forgotten. If false is returned, the state of
+     * this cache (and its backing view) will be undefined.
      */
     bool Flush();
+
+    /**
+     * Push the modifications applied to this cache to its base while retaining
+     * the contents of this cache (except for spent coins, which we erase).
+     * Failure to call this method or Flush() before destruction will cause the
+     * changes to be forgotten. If false is returned, the state of this cache
+     * (and its backing view) will be undefined.
+     */
+    bool Sync();
 
     /**
      * Removes the UTXO with the given outpoint from the cache, if it is not

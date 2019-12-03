@@ -75,7 +75,8 @@ public:
     bool HaveCoin(const COutPoint &outpoint) const override;
     BlockHash GetBestBlock() const override;
     std::vector<BlockHash> GetHeadBlocks() const override;
-    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) override;
+    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
+                    bool erase = true) override;
     CCoinsViewCursor *Cursor() const override;
 
     //! Attempt to update from an older database format.

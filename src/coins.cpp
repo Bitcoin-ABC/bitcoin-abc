@@ -19,7 +19,8 @@ BlockHash CCoinsView::GetBestBlock() const {
 std::vector<BlockHash> CCoinsView::GetHeadBlocks() const {
     return std::vector<BlockHash>();
 }
-bool CCoinsView::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) {
+bool CCoinsView::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
+                            bool erase) {
     return false;
 }
 CCoinsViewCursor *CCoinsView::Cursor() const {
@@ -47,8 +48,8 @@ void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) {
     base = &viewIn;
 }
 bool CCoinsViewBacked::BatchWrite(CCoinsMap &mapCoins,
-                                  const BlockHash &hashBlock) {
-    return base->BatchWrite(mapCoins, hashBlock);
+                                  const BlockHash &hashBlock, bool erase) {
+    return base->BatchWrite(mapCoins, hashBlock, erase);
 }
 CCoinsViewCursor *CCoinsViewBacked::Cursor() const {
     return base->Cursor();
@@ -219,9 +220,9 @@ void CCoinsViewCache::SetBestBlock(const BlockHash &hashBlockIn) {
 }
 
 bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins,
-                                 const BlockHash &hashBlockIn) {
+                                 const BlockHash &hashBlockIn, bool erase) {
     for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();
-         it = mapCoins.erase(it)) {
+         it = erase ? mapCoins.erase(it) : std::next(it)) {
         // Ignore non-dirty entries (optimization).
         if (!(it->second.flags & CCoinsCacheEntry::DIRTY)) {
             continue;
@@ -235,7 +236,14 @@ bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins,
                 // Create the coin in the parent cache, move the data up
                 // and mark it as dirty.
                 CCoinsCacheEntry &entry = cacheCoins[it->first];
-                entry.coin = std::move(it->second.coin);
+                if (erase) {
+                    // The `move` call here is purely an optimization; we rely
+                    // on the `mapCoins.erase` call in the `for` expression to
+                    // actually remove the entry from the child map.
+                    entry.coin = std::move(it->second.coin);
+                } else {
+                    entry.coin = it->second.coin;
+                }
                 cachedCoinsUsage += entry.coin.DynamicMemoryUsage();
                 entry.flags = CCoinsCacheEntry::DIRTY;
                 // We can mark it FRESH in the parent if it was FRESH in the
@@ -266,7 +274,14 @@ bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins,
             } else {
                 // A normal modification.
                 cachedCoinsUsage -= itUs->second.coin.DynamicMemoryUsage();
-                itUs->second.coin = std::move(it->second.coin);
+                if (erase) {
+                    // The `move` call here is purely an optimization; we rely
+                    // on the `mapCoins.erase` call in the `for` expression to
+                    // actually remove the entry from the child map.
+                    itUs->second.coin = std::move(it->second.coin);
+                } else {
+                    itUs->second.coin = it->second.coin;
+                }
                 cachedCoinsUsage += itUs->second.coin.DynamicMemoryUsage();
                 itUs->second.flags |= CCoinsCacheEntry::DIRTY;
                 // NOTE: It isn't safe to mark the coin as FRESH in the parent
@@ -281,9 +296,28 @@ bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins,
 }
 
 bool CCoinsViewCache::Flush() {
-    bool fOk = base->BatchWrite(cacheCoins, hashBlock);
-    cacheCoins.clear();
+    bool fOk = base->BatchWrite(cacheCoins, hashBlock, /*erase=*/true);
+    if (fOk && !cacheCoins.empty()) {
+        /* BatchWrite must erase all cacheCoins elements when erase=true. */
+        throw std::logic_error("Not all cached coins were erased");
+    }
     cachedCoinsUsage = 0;
+    return fOk;
+}
+
+bool CCoinsViewCache::Sync() {
+    bool fOk = base->BatchWrite(cacheCoins, hashBlock, /*erase=*/false);
+    // Instead of clearing `cacheCoins` as we would in Flush(), just clear the
+    // FRESH/DIRTY flags of any coin that isn't spent.
+    for (auto it = cacheCoins.begin(); it != cacheCoins.end();) {
+        if (it->second.coin.IsSpent()) {
+            cachedCoinsUsage -= it->second.coin.DynamicMemoryUsage();
+            it = cacheCoins.erase(it);
+        } else {
+            it->second.flags = 0;
+            ++it;
+        }
+    }
     return fOk;
 }
 
