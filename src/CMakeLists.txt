@@ -99,6 +99,7 @@ endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	add_compile_definitions(MAC_OSX OBJC_OLD_DISPATCH_PROTOTYPES=0)
+	add_linker_flags(-Wl,-dead_strip_dylibs)
 endif()
 
 if(ENABLE_REDUCE_EXPORTS)
