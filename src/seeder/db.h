@@ -117,19 +117,41 @@ public:
     }
 
     bool IsGood() const {
-        if (ip.GetPort() != GetDefaultPort()) return false;
-        if (!(services & NODE_NETWORK)) return false;
-        if (!ip.IsRoutable()) return false;
-        if (clientVersion && clientVersion < REQUIRE_VERSION) return false;
-        if (blocks && blocks < GetRequireHeight()) return false;
+        if (ip.GetPort() != GetDefaultPort()) {
+            return false;
+        }
+        if (!(services & NODE_NETWORK)) {
+            return false;
+        }
+        if (!ip.IsRoutable()) {
+            return false;
+        }
+        if (clientVersion && clientVersion < REQUIRE_VERSION) {
+            return false;
+        }
+        if (blocks && blocks < GetRequireHeight()) {
+            return false;
+        }
 
-        if (total <= 3 && success * 2 >= total) return true;
+        if (total <= 3 && success * 2 >= total) {
+            return true;
+        }
 
-        if (stat2H.reliability > 0.85 && stat2H.count > 2) return true;
-        if (stat8H.reliability > 0.70 && stat8H.count > 4) return true;
-        if (stat1D.reliability > 0.55 && stat1D.count > 8) return true;
-        if (stat1W.reliability > 0.45 && stat1W.count > 16) return true;
-        if (stat1M.reliability > 0.35 && stat1M.count > 32) return true;
+        if (stat2H.reliability > 0.85 && stat2H.count > 2) {
+            return true;
+        }
+        if (stat8H.reliability > 0.70 && stat8H.count > 4) {
+            return true;
+        }
+        if (stat1D.reliability > 0.55 && stat1D.count > 8) {
+            return true;
+        }
+        if (stat1W.reliability > 0.45 && stat1W.count > 16) {
+            return true;
+        }
+        if (stat1M.reliability > 0.35 && stat1M.count > 32) {
+            return true;
+        }
 
         return false;
     }
@@ -212,9 +234,15 @@ public:
         READWRITE(total);
         READWRITE(success);
         READWRITE(clientVersion);
-        if (version >= 2) READWRITE(clientSubVersion);
-        if (version >= 3) READWRITE(blocks);
-        if (version >= 4) READWRITE(ourLastSuccess);
+        if (version >= 2) {
+            READWRITE(clientSubVersion);
+        }
+        if (version >= 3) {
+            READWRITE(blocks);
+        }
+        if (version >= 4) {
+            READWRITE(ourLastSuccess);
+        }
     }
 };
 
@@ -374,7 +402,9 @@ public:
                 db->ipToId[info.ip] = id;
                 if (info.ourLastTry) {
                     db->ourId.push_back(id);
-                    if (info.IsGood()) db->goodId.insert(id);
+                    if (info.IsGood()) {
+                        db->goodId.insert(id);
+                    }
                 } else {
                     db->unkId.insert(id);
                 }

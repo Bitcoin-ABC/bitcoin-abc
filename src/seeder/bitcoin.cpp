@@ -140,7 +140,9 @@ bool CSeederNode::ProcessMessage(std::string strCommand, CDataStream &recv) {
         int64_t now = time(nullptr);
         std::vector<CAddress>::iterator it = vAddrNew.begin();
         if (vAddrNew.size() > 1) {
-            if (doneAfter == 0 || doneAfter > now + 1) doneAfter = now + 1;
+            if (doneAfter == 0 || doneAfter > now + 1) {
+                doneAfter = now + 1;
+            }
         }
         while (it != vAddrNew.end()) {
             CAddress &addr = *it;
@@ -296,7 +298,9 @@ bool CSeederNode::Run() {
         }
         int ret = select(sock + 1, &fdsetRecv, nullptr, &fdsetError, &wa);
         if (ret != 1) {
-            if (!doneAfter) res = false;
+            if (!doneAfter) {
+                res = false;
+            }
             break;
         }
         int nBytes = recv(sock, pchBuf, sizeof(pchBuf), 0);
@@ -318,7 +322,9 @@ bool CSeederNode::Run() {
         ProcessMessages();
         Send();
     }
-    if (sock == INVALID_SOCKET) res = false;
+    if (sock == INVALID_SOCKET) {
+        res = false;
+    }
     close(sock);
     sock = INVALID_SOCKET;
     return (ban == 0) && res;
