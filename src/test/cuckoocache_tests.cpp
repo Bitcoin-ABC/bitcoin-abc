@@ -34,7 +34,8 @@ BOOST_AUTO_TEST_SUITE(cuckoocache_tests);
  */
 BOOST_AUTO_TEST_CASE(test_cuckoocache_no_fakes) {
     SeedInsecureRand(true);
-    CuckooCache::cache<uint256, SignatureCacheHasher> cc{};
+    CuckooCache::cache<CuckooCache::KeyOnly<uint256>, SignatureCacheHasher>
+        cc{};
     size_t megabytes = 4;
     cc.setup_bytes(megabytes << 20);
     for (int x = 0; x < 100000; ++x) {
@@ -115,8 +116,9 @@ BOOST_AUTO_TEST_CASE(cuckoocache_hit_rate_ok) {
     size_t megabytes = 4;
     for (double load = 0.1; load < 2; load *= 2) {
         double hits =
-            test_cache<CuckooCache::cache<uint256, SignatureCacheHasher>>(
-                megabytes, load);
+            test_cache<CuckooCache::cache<CuckooCache::KeyOnly<uint256>,
+                                          SignatureCacheHasher>>(megabytes,
+                                                                 load);
         BOOST_CHECK(normalize_hit_rate(hits, load) > HitRateThresh);
     }
 }
@@ -191,8 +193,8 @@ template <typename Cache> static void test_cache_erase(size_t megabytes) {
 
 BOOST_AUTO_TEST_CASE(cuckoocache_erase_ok) {
     size_t megabytes = 4;
-    test_cache_erase<CuckooCache::cache<uint256, SignatureCacheHasher>>(
-        megabytes);
+    test_cache_erase<CuckooCache::cache<CuckooCache::KeyOnly<uint256>,
+                                        SignatureCacheHasher>>(megabytes);
 }
 
 template <typename Cache>
@@ -287,8 +289,9 @@ static void test_cache_erase_parallel(size_t megabytes) {
 
 BOOST_AUTO_TEST_CASE(cuckoocache_erase_parallel_ok) {
     size_t megabytes = 4;
-    test_cache_erase_parallel<
-        CuckooCache::cache<uint256, SignatureCacheHasher>>(megabytes);
+    test_cache_erase_parallel<CuckooCache::cache<CuckooCache::KeyOnly<uint256>,
+                                                 SignatureCacheHasher>>(
+        megabytes);
 }
 
 template <typename Cache> static void test_cache_generations() {
@@ -389,7 +392,8 @@ template <typename Cache> static void test_cache_generations() {
                 max_rate_less_than_tight_hit_rate);
 }
 BOOST_AUTO_TEST_CASE(cuckoocache_generations) {
-    test_cache_generations<CuckooCache::cache<uint256, SignatureCacheHasher>>();
+    test_cache_generations<CuckooCache::cache<CuckooCache::KeyOnly<uint256>,
+                                              SignatureCacheHasher>>();
 }
 
 BOOST_AUTO_TEST_SUITE_END();

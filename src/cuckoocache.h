@@ -428,7 +428,7 @@ public:
         // Make sure we have not already inserted this element.
         // If we have, make sure that it does not get deleted.
         for (const uint32_t loc : locs) {
-            if (table[loc] == e) {
+            if (table[loc].matchKey(e)) {
                 please_keep(loc);
                 epoch_flags[loc] = last_epoch;
                 return;
@@ -506,7 +506,7 @@ public:
     inline bool contains(const Element &e, const bool erase) const {
         std::array<uint32_t, 8> locs = compute_hashes(e);
         for (const uint32_t loc : locs) {
-            if (table[loc] == e) {
+            if (table[loc].matchKey(e)) {
                 if (erase) {
                     allow_erase(loc);
                 }
@@ -516,6 +516,19 @@ public:
         return false;
     }
 };
+
+/**
+ * Helper class used when we only want the cache to be a set rather than a map.
+ */
+template <typename T> struct KeyOnly : public T {
+    // Ensure implicit conversion from T.
+    KeyOnly() = default;
+    KeyOnly(const T &x) : T(x) {}
+
+    // Implement required features.
+    bool matchKey(const T &key) const { return *this == key; }
+};
+
 } // namespace CuckooCache
 
 #endif // BITCOIN_CUCKOOCACHE_H

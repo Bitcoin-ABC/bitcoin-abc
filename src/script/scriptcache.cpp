@@ -13,7 +13,8 @@
 #include <util/system.h>
 #include <validation.h>
 
-static CuckooCache::cache<uint256, SignatureCacheHasher> scriptExecutionCache;
+static CuckooCache::cache<CuckooCache::KeyOnly<uint256>, SignatureCacheHasher>
+    scriptExecutionCache;
 static uint256 scriptExecutionCacheNonce(GetRandHash());
 
 void InitScriptExecutionCache() {
