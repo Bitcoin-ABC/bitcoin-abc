@@ -210,6 +210,11 @@ private:
     const Hash hash_function;
 
     /**
+     * Key is the key type for this map or set.
+     */
+    using Key = typename Element::KeyType;
+
+    /**
      * compute_hashes is convenience for not having to write out this expression
      * everywhere we use the hash values of an Element.
      *
@@ -253,29 +258,29 @@ private:
      * @returns Deterministic hashes derived from `e` uniformly mapped onto the
      * range [0, size)
      */
-    inline std::array<uint32_t, 8> compute_hashes(const Element &e) const {
-        return {{uint32_t(uint64_t(hash_function.template operator()<0>(e)) *
+    inline std::array<uint32_t, 8> compute_hashes(const Key &k) const {
+        return {{uint32_t(uint64_t(hash_function.template operator()<0>(k)) *
                               uint64_t(size) >>
                           32),
-                 uint32_t(uint64_t(hash_function.template operator()<1>(e)) *
+                 uint32_t(uint64_t(hash_function.template operator()<1>(k)) *
                               uint64_t(size) >>
                           32),
-                 uint32_t(uint64_t(hash_function.template operator()<2>(e)) *
+                 uint32_t(uint64_t(hash_function.template operator()<2>(k)) *
                               uint64_t(size) >>
                           32),
-                 uint32_t(uint64_t(hash_function.template operator()<3>(e)) *
+                 uint32_t(uint64_t(hash_function.template operator()<3>(k)) *
                               uint64_t(size) >>
                           32),
-                 uint32_t(uint64_t(hash_function.template operator()<4>(e)) *
+                 uint32_t(uint64_t(hash_function.template operator()<4>(k)) *
                               uint64_t(size) >>
                           32),
-                 uint32_t(uint64_t(hash_function.template operator()<5>(e)) *
+                 uint32_t(uint64_t(hash_function.template operator()<5>(k)) *
                               uint64_t(size) >>
                           32),
-                 uint32_t(uint64_t(hash_function.template operator()<6>(e)) *
+                 uint32_t(uint64_t(hash_function.template operator()<6>(k)) *
                               uint64_t(size) >>
                           32),
-                 uint32_t(uint64_t(hash_function.template operator()<7>(e)) *
+                 uint32_t(uint64_t(hash_function.template operator()<7>(k)) *
                               uint64_t(size) >>
                           32)}};
     }
@@ -424,11 +429,11 @@ public:
         epoch_check();
         uint32_t last_loc = invalid();
         bool last_epoch = true;
-        std::array<uint32_t, 8> locs = compute_hashes(e);
+        std::array<uint32_t, 8> locs = compute_hashes(e.getKey());
         // Make sure we have not already inserted this element.
         // If we have, make sure that it does not get deleted.
         for (const uint32_t loc : locs) {
-            if (table[loc].matchKey(e)) {
+            if (table[loc].getKey() == e.getKey()) {
                 please_keep(loc);
                 epoch_flags[loc] = last_epoch;
                 return;
@@ -471,7 +476,7 @@ public:
             epoch_flags[last_loc] = epoch;
 
             // Recompute the locs -- unfortunately happens one too many times!
-            locs = compute_hashes(e);
+            locs = compute_hashes(e.getKey());
         }
     }
 
@@ -503,10 +508,10 @@ public:
      * flag is set
      * @returns true if the element is found, false otherwise
      */
-    inline bool contains(const Element &e, const bool erase) const {
-        std::array<uint32_t, 8> locs = compute_hashes(e);
+    inline bool contains(const Key &k, const bool erase) const {
+        std::array<uint32_t, 8> locs = compute_hashes(k);
         for (const uint32_t loc : locs) {
-            if (table[loc].matchKey(e)) {
+            if (table[loc].getKey() == k) {
                 if (erase) {
                     allow_erase(loc);
                 }
@@ -521,12 +526,15 @@ public:
  * Helper class used when we only want the cache to be a set rather than a map.
  */
 template <typename T> struct KeyOnly : public T {
+    // For contains.
+    using KeyType = T;
+
     // Ensure implicit conversion from T.
     KeyOnly() = default;
     KeyOnly(const T &x) : T(x) {}
 
     // Implement required features.
-    bool matchKey(const T &key) const { return *this == key; }
+    const T &getKey() const { return *this; }
 };
 
 } // namespace CuckooCache
