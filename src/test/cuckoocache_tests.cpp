@@ -12,17 +12,18 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/shared_mutex.hpp>
 
-/** Test Suite for CuckooCache
+/**
+ * Test Suite for CuckooCache
  *
- *  1. All tests should have a deterministic result (using insecure rand
- *  with deterministic seeds)
- *  2. Some test methods are templated to allow for easier testing
- *  against new versions / comparing
- *  3. Results should be treated as a regression test, i.e., did the behavior
- *  change significantly from what was expected. This can be OK, depending on
- *  the nature of the change, but requires updating the tests to reflect the new
- *  expected behavior. For example improving the hit rate may cause some tests
- *  using BOOST_CHECK_CLOSE to fail.
+ * 1. All tests should have a deterministic result (using insecure rand
+ * with deterministic seeds)
+ * 2. Some test methods are templated to allow for easier testing
+ * against new versions / comparing
+ * 3. Results should be treated as a regression test, i.e., did the behavior
+ * change significantly from what was expected. This can be OK, depending on
+ * the nature of the change, but requires updating the tests to reflect the new
+ * expected behavior. For example improving the hit rate may cause some tests
+ * using BOOST_CHECK_CLOSE to fail.
  */
 BOOST_AUTO_TEST_SUITE(cuckoocache_tests);
 
@@ -82,7 +83,8 @@ static double test_cache(size_t megabytes, double load) {
     return hit_rate;
 }
 
-/** The normalized hit rate for a given load.
+/**
+ * The normalized hit rate for a given load.
  *
  * The semantics are a little confusing, so please see the below
  * explanation.
@@ -119,8 +121,10 @@ BOOST_AUTO_TEST_CASE(cuckoocache_hit_rate_ok) {
     }
 }
 
-/** This helper checks that erased elements are preferentially inserted onto and
- * that the hit rate of "fresher" keys is reasonable*/
+/**
+ * This helper checks that erased elements are preferentially inserted onto and
+ * that the hit rate of "fresher" keys is reasonable.
+ */
 template <typename Cache> static void test_cache_erase(size_t megabytes) {
     double load = 1;
     SeedInsecureRand(true);
@@ -136,7 +140,8 @@ template <typename Cache> static void test_cache_erase(size_t megabytes) {
             *(ptr++) = InsecureRand32();
         }
     }
-    /** We make a copy of the hashes because future optimizations of the
+    /**
+     * We make a copy of the hashes because future optimizations of the
      * cuckoocache may overwrite the inserted element, so the test is
      * "future proofed".
      */
@@ -206,7 +211,8 @@ static void test_cache_erase_parallel(size_t megabytes) {
             *(ptr++) = InsecureRand32();
         }
     }
-    /** We make a copy of the hashes because future optimizations of the
+    /**
+     * We make a copy of the hashes because future optimizations of the
      * cuckoocache may overwrite the inserted element, so the test is
      * "future proofed".
      */
@@ -222,7 +228,8 @@ static void test_cache_erase_parallel(size_t megabytes) {
         }
     }
 
-    /** Spin up 3 threads to run contains with erase.
+    /**
+     * Spin up 3 threads to run contains with erase.
      */
     std::vector<std::thread> threads;
     /** Erase the first quarter */
@@ -355,7 +362,9 @@ template <typename Cache> static void test_cache_generations() {
     // step, each of the last WINDOW_SIZE block_activities checks the cache for
     // POP_AMOUNT of the hashes that they inserted, and marks these erased.
     for (uint32_t i = 0; i < total; ++i) {
-        if (last_few.size() == WINDOW_SIZE) last_few.pop_front();
+        if (last_few.size() == WINDOW_SIZE) {
+            last_few.pop_front();
+        }
         last_few.emplace_back(BLOCK_SIZE, set);
         uint32_t count = 0;
         for (auto &act : last_few) {
