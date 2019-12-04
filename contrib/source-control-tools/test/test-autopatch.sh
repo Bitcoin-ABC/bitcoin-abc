@@ -13,7 +13,7 @@ TEST_PATCH="${CURRENT_DIR}/test-commit.patch"
 : "${REMOTE:=origin}"
 : "${MASTER_BRANCH:=master}"
 REMOTE_AND_BRANCH="${REMOTE}/${MASTER_BRANCH}"
-LATEST_MASTER=$(git rev-parse "${REMOTE_AND_BRANCH}")
+LATEST_MASTER=$(git rev-parse "${MASTER_BRANCH}")
 
 test_autopatch() {
   PATCH_FILE="$1"
