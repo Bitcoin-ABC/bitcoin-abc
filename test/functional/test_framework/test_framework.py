@@ -12,6 +12,7 @@ import pdb
 import platform
 import random
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -143,6 +144,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             self.success = TestStatus.FAILED
         except KeyError:
             self.log.exception("Key error")
+            self.success = TestStatus.FAILED
+        except subprocess.CalledProcessError as e:
+            self.log.exception(f"Called Process failed with '{e.output}'")
             self.success = TestStatus.FAILED
         except Exception:
             self.log.exception("Unexpected exception caught during testing")
