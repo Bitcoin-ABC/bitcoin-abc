@@ -121,9 +121,11 @@ public:
  *
  *  Read Operations:
  *      - contains() for `erase=false`
+ *      - get() for `erase=false`
  *
  *  Read+Erase Operations:
  *      - contains() for `erase=true`
+ *      - get() for `erase=true`
  *
  *  Erase Operations:
  *      - allow_erase()
@@ -421,11 +423,14 @@ public:
      * is not guaranteed to return true.
      *
      * @param e the element to insert
+     * @param weither to replace if an existing element with the same key is
+     * found.
      * @post one of the following: All previously inserted elements and e are
      * now in the table, one previously inserted element is evicted from the
-     * table, the entry attempted to be inserted is evicted.
+     * table, the entry attempted to be inserted is evicted. If replace is true
+     * and a matching element already exists, it is updated accordingly.
      */
-    inline void insert(Element e) {
+    inline void insert(Element e, bool replace = false) {
         epoch_check();
         uint32_t last_loc = invalid();
         bool last_epoch = true;
@@ -434,6 +439,9 @@ public:
         // If we have, make sure that it does not get deleted.
         for (const uint32_t loc : locs) {
             if (table[loc].getKey() == e.getKey()) {
+                if (replace) {
+                    table[loc] = std::move(e);
+                }
                 please_keep(loc);
                 epoch_flags[loc] = last_epoch;
                 return;
@@ -501,24 +509,50 @@ public:
      *
      * contains returns a bool set true if the element was found.
      *
-     * @param e the element to check
+     * @param k the key to check
      * @param erase whether to attempt setting the garbage collect flag
      *
      * @post if erase is true and the element is found, then the garbage collect
      * flag is set
      * @returns true if the element is found, false otherwise
      */
-    inline bool contains(const Key &k, const bool erase) const {
+    bool contains(const Key &k, const bool erase) const {
+        return find(k, erase) != nullptr;
+    }
+
+    /**
+     * get is almost identical to contains(), with the difference that it
+     * obtains the found element (for Elements that contain key and value,
+     * this has the effect of obtaining the found value).
+     *
+     * @param e the element to check
+     * @param erase
+     *
+     * @post If the element is found, it is copied into e. If erase is true
+     * and the element is found, then the garbage collect flag is set.
+     * @returns true if the element is found, false otherwise
+     */
+    bool get(Element &e, const bool erase) const {
+        if (const Element *eptr = find(e.getKey(), erase)) {
+            e = *eptr;
+            return true;
+        }
+
+        return false;
+    }
+
+private:
+    const Element *find(const Key &k, const bool erase) const {
         std::array<uint32_t, 8> locs = compute_hashes(k);
         for (const uint32_t loc : locs) {
             if (table[loc].getKey() == k) {
                 if (erase) {
                     allow_erase(loc);
                 }
-                return true;
+                return &table[loc];
             }
         }
-        return false;
+        return nullptr;
     }
 };
 
