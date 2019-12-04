@@ -1,4 +1,4 @@
-add_subdirectory(arcanist)
+add_subdirectory(source-control-tools)
 add_subdirectory(devtools)
 
 include(PackageHelper)
