@@ -72,6 +72,11 @@ TEMP_DIR=$(mktemp -d)
 trap 'final_cleanup ${TEMP_DIR}' RETURN EXIT
 cd "${TEMP_DIR}"
 git init
+
+# Set a temporary git config in case a global config isn't set
+git config user.name "test-autopatch"
+git config user.email "test@test.test"
+
 git remote add testorigin "${TOPLEVEL}"
 git pull testorigin "${REMOTE_AND_BRANCH}"
 
