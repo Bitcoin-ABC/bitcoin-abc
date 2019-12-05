@@ -2,10 +2,11 @@
 
 add_custom_target(check-source-control-tools)
 
-find_program(BASH_EXECUTABLE bash)
+include(DoOrFail)
+find_program_or_fail(BASH_EXECUTABLE bash)
 
 set(SOURCE_CONTROL_TOOLS_TESTS
-  ./test/test-autopatch.sh
+  test/test-autopatch.sh
 )
 
 foreach(TEST ${SOURCE_CONTROL_TOOLS_TESTS})

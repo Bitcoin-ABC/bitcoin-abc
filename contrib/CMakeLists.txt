@@ -1,4 +1,8 @@
-add_subdirectory(source-control-tools)
+option(BUILD_SOURCE_CONTROL_TOOLS "Build the source control tools" OFF)
+if(BUILD_SOURCE_CONTROL_TOOLS)
+	add_subdirectory(source-control-tools)
+endif()
+
 add_subdirectory(devtools)
 
 include(PackageHelper)
