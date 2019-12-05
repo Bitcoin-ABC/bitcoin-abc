@@ -138,17 +138,6 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
     nDirty++;
 }
 
-void CAddrDb::Skipped_(const CService &addr) {
-    int id = Lookup_(addr);
-    if (id == -1) {
-        return;
-    }
-    unkId.erase(id);
-    ourId.push_back(id);
-    //  fprintf(stdout, "%s: skipped\n", ToString(addr).c_str());
-    nDirty++;
-}
-
 void CAddrDb::Add_(const CAddress &addr, bool force) {
     if (!force && !addr.IsRoutable()) {
         return;

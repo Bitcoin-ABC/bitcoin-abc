@@ -297,18 +297,14 @@ protected:
     // internal routines that assume proper locks are acquired
     // add an address
     void Add_(const CAddress &addr, bool force);
-    // get an IP to test (must call Good_, Bad_, or Skipped_ on result
-    // afterwards)
+    // get an IP to test (must call Good_ or Bad_ on result afterwards)
     bool Get_(CServiceResult &ip, int &wait);
-    bool GetMany_(std::vector<CServiceResult> &ips, int max, int &wait);
     // mark an IP as good (must have been returned by Get_)
     void Good_(const CService &ip, int clientV, std::string clientSV,
                int blocks);
     // mark an IP as bad (and optionally ban it) (must have been returned by
     // Get_)
     void Bad_(const CService &ip, int ban);
-    // mark an IP as skipped (must have been returned by Get_)
-    void Skipped_(const CService &ip);
     // look up id of an IP
     int Lookup_(const CService &ip);
     // get a random set of IPs (shared lock only)
@@ -426,27 +422,6 @@ public:
         for (size_t i = 0; i < vAddr.size(); i++) {
             Add_(vAddr[i], fForce);
         }
-    }
-
-    void Good(const CService &addr, int clientVersion,
-              std::string clientSubVersion, int blocks) {
-        LOCK(cs);
-        Good_(addr, clientVersion, clientSubVersion, blocks);
-    }
-
-    void Skipped(const CService &addr) {
-        LOCK(cs);
-        Skipped_(addr);
-    }
-
-    void Bad(const CService &addr, int ban = 0) {
-        LOCK(cs);
-        Bad_(addr, ban);
-    }
-
-    bool Get(CServiceResult &ip, int &wait) {
-        LOCK(cs);
-        return Get_(ip, wait);
     }
 
     void GetMany(std::vector<CServiceResult> &ips, int max, int &wait) {
