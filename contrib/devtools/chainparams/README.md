@@ -17,7 +17,7 @@ make_chainparams > chainparams_main.txt
 ## Testnet
 ```
 bitcoind --testnet
-make_chainparams --testnet -a 127.0.0.1:18332 > chainparams_test.txt
+make_chainparams -a 127.0.0.1:18332 > chainparams_test.txt
 ```
 
 ## Build C++ Header File
