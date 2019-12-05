@@ -19,5 +19,3 @@ foreach(TEST ${SOURCE_CONTROL_TOOLS_TESTS})
   add_dependencies(check-source-control-tools ${TESTNAME})
 endforeach()
 
-add_dependencies(check check-source-control-tools)
-add_dependencies(check-all check-source-control-tools)
