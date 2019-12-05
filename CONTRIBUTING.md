@@ -133,7 +133,7 @@ To install clang-format-8 on Ubuntu (>= 18.04+updates) or Debian (>= 10):
 ```
 sudo apt-get install clang-format-8
 ```
-If not available in the distribution, clang-format-7 can be installed from
+If not available in the distribution, clang-format-8 can be installed from
 https://releases.llvm.org/download.html or https://apt.llvm.org
 
 To install autopep8, flake8 and phpcs on Ubuntu:
