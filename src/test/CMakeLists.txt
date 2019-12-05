@@ -161,6 +161,7 @@ if (TEST_WITH_UPGRADE_ACTIVATED)
 			"bitcoin-upgrade-activated"
 		COMMAND
 			"test_bitcoin"
+			"--"
 			"-gravitonactivationtime=1573819200"
 	)
 endif()
