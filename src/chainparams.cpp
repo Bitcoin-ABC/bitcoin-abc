@@ -123,8 +123,8 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 556766;
 
-        // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
+        // November 15, 2019 protocol upgrade
+        consensus.gravitonHeight = 609135;
 
         // May 15, 2020 12:00:00 UTC protocol upgrade
         consensus.phononActivationTime = 1589544000;
@@ -294,8 +294,8 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 1267996;
 
-        // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
+        // November 15, 2019 protocol upgrade
+        consensus.gravitonHeight = 1341711;
 
         // May 15, 2020 12:00:00 UTC protocol upgrade
         consensus.phononActivationTime = 1589544000;
@@ -421,8 +421,8 @@ public:
         // November 15, 2018 hard fork is always on on regtest.
         consensus.magneticAnomalyHeight = 0;
 
-        // Nov 15, 2019 12:00:00 UTC protocol upgrade
-        consensus.gravitonActivationTime = 1573819200;
+        // November 15, 2019 protocol upgrade
+        consensus.gravitonHeight = 0;
 
         // May 15, 2020 12:00:00 UTC protocol upgrade
         consensus.phononActivationTime = 1589544000;

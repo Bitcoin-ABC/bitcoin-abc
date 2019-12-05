@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-This tests the activation of MINIMALDATA rule to consensus (from standard).
+This tests the MINIMALDATA consensus rule.
 - test rejection in mempool, with error changing before/after activation.
 - test acceptance in blocks before activation, and rejection after.
 - check non-banning for peers who send invalid txns that would have been valid
@@ -37,33 +37,20 @@ from test_framework.script import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import assert_raises_rpc_error
 
-# the upgrade activation time, which we artificially set far into the future
-GRAVITON_START_TIME = 2000000000
-
-# If we don't do this, autoreplay protection will activate before graviton and
-# all our sigs will mysteriously fail.
-REPLAY_PROTECTION_START_TIME = GRAVITON_START_TIME * 2
-
-
-# Both before and after the upgrade, minimal push violations in mempool are
-# rejected with a bannable error.
+# Minimal push violations in mempool are rejected with a bannable error.
 MINIMALPUSH_ERROR = 'mandatory-script-verify-flag-failed (Data push larger than necessary)'
 
 # Blocks with invalid scripts give this error:
 BADINPUTS_ERROR = 'blk-bad-inputs'
 
 
-class SchnorrTest(BitcoinTestFramework):
+class MinimaldataTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
         self.block_heights = {}
-        self.extra_args = [["-gravitonactivationtime={}".format(
-            GRAVITON_START_TIME),
-            "-replayprotectionactivationtime={}".format(
-            REPLAY_PROTECTION_START_TIME)]]
 
     def bootstrap_p2p(self, *, num_connections=1):
         """Add a P2P connection to the node.
@@ -113,11 +100,6 @@ class SchnorrTest(BitcoinTestFramework):
         self.nodes[0].p2p.send_txs_and_test(
             [tx], self.nodes[0], success=False, expect_disconnect=True, reject_reason=reject_reason)
         self.reconnect_p2p()
-
-    def check_for_no_ban_on_rejected_tx(self, tx, reject_reason):
-        """Check we are not disconnected when sending a txn that the node rejects."""
-        self.nodes[0].p2p.send_txs_and_test(
-            [tx], self.nodes[0], success=False, reject_reason=reject_reason)
 
     def check_for_ban_on_rejected_block(self, block, reject_reason=None):
         """Check we are disconnected when sending a block that the node rejects.
@@ -177,72 +159,21 @@ class SchnorrTest(BitcoinTestFramework):
 
             return txspend
 
-        # make a few of these, which are nonstandard before upgrade and invalid after.
+        # Non minimal tx are invalid.
         nonminimaltx = create_fund_and_spend_tx()
-        nonminimaltx_2 = create_fund_and_spend_tx()
-        nonminimaltx_3 = create_fund_and_spend_tx()
 
         tip = self.build_block(tip, fundings)
         node.p2p.send_blocks_and_test([tip], node)
 
-        self.log.info("Start preupgrade tests")
-
-        self.log.info("Sending rejected transactions via RPC")
+        self.log.info("Trying to mine a minimaldata violation.")
+        self.check_for_ban_on_rejected_block(
+            self.build_block(tip, [nonminimaltx]), BADINPUTS_ERROR)
+        self.log.info(
+            "If we try to submit it by mempool or RPC we are banned")
         assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
                                 node.sendrawtransaction, ToHex(nonminimaltx))
-        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
-                                node.sendrawtransaction, ToHex(nonminimaltx_2))
-        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
-                                node.sendrawtransaction, ToHex(nonminimaltx_3))
-
-        self.log.info(
-            "Sending rejected transactions via net (banning)")
         self.check_for_ban_on_rejected_tx(
             nonminimaltx, MINIMALPUSH_ERROR)
-        self.check_for_ban_on_rejected_tx(
-            nonminimaltx_2, MINIMALPUSH_ERROR)
-        self.check_for_ban_on_rejected_tx(
-            nonminimaltx_3, MINIMALPUSH_ERROR)
-
-        assert_equal(node.getrawmempool(), [])
-
-        self.log.info("Successfully mine nonstandard transaction")
-        tip = self.build_block(tip, [nonminimaltx])
-        node.p2p.send_blocks_and_test([tip], node)
-
-        # Activation tests
-
-        self.log.info("Approach to just before upgrade activation")
-        # Move our clock to the uprade time so we will accept such future-timestamped blocks.
-        node.setmocktime(GRAVITON_START_TIME)
-        # Mine six blocks with timestamp starting at GRAVITON_START_TIME-1
-        blocks = []
-        for i in range(-1, 5):
-            tip = self.build_block(tip, nTime=GRAVITON_START_TIME + i)
-            blocks.append(tip)
-        node.p2p.send_blocks_and_test(blocks, node)
-        assert_equal(node.getblockchaininfo()[
-                     'mediantime'], GRAVITON_START_TIME - 1)
-
-        self.log.info(
-            "Mine the activation block itself, including a minimaldata violation at the last possible moment")
-        tip = self.build_block(tip, [nonminimaltx_2])
-        node.p2p.send_blocks_and_test([tip], node)
-
-        self.log.info("We have activated!")
-        assert_equal(node.getblockchaininfo()[
-                     'mediantime'], GRAVITON_START_TIME)
-
-        self.log.info(
-            "Trying to mine a minimaldata violation, but we are just barely too late")
-        self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [nonminimaltx_3]), BADINPUTS_ERROR)
-        self.log.info(
-            "If we try to submit it by mempool or RPC we still aren't banned")
-        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
-                                node.sendrawtransaction, ToHex(nonminimaltx_3))
-        self.check_for_ban_on_rejected_tx(
-            nonminimaltx_3, MINIMALPUSH_ERROR)
 
         self.log.info("Mine a normal block")
         tip = self.build_block(tip)
@@ -250,4 +181,4 @@ class SchnorrTest(BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    SchnorrTest().main()
+    MinimaldataTest().main()

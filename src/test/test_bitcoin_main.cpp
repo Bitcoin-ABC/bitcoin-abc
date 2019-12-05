@@ -28,13 +28,12 @@ bool ShutdownRequested() {
     return false;
 }
 
-std::set<std::string> testArgs = {
-    "-gravitonactivationtime",
-    "-phononactivationtime",
-};
-
 int main(int argc, char *argv[]) {
     // Additional CLI params supported by test_bitcoin:
+    std::set<std::string> testArgs = {
+        "-phononactivationtime",
+    };
+
     // Note: gArgs.ParseParameters() cannot be called here or it will fail to
     // parse BOOST runtime params.
     for (int i = 1; i < argc; i++) {

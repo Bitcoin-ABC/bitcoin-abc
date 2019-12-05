@@ -24,29 +24,21 @@ static void SetMTP(std::array<CBlockIndex, 12> &blocks, int64_t mtp) {
 }
 
 BOOST_AUTO_TEST_CASE(isgravitonenabled) {
-    CBlockIndex prev;
-
-    const Consensus::Params &params = Params().GetConsensus();
-    const auto activation =
-        gArgs.GetArg("-gravitonactivationtime", params.gravitonActivationTime);
-    SetMockTime(activation - 1000000);
+    const auto &params =
+        CreateChainParams(CBaseChainParams::MAIN)->GetConsensus();
 
     BOOST_CHECK(!IsGravitonEnabled(params, nullptr));
 
-    std::array<CBlockIndex, 12> blocks;
+    std::array<CBlockIndex, 4> blocks;
+    blocks[0].nHeight = params.gravitonHeight - 2;
     for (size_t i = 1; i < blocks.size(); ++i) {
         blocks[i].pprev = &blocks[i - 1];
+        blocks[i].nHeight = blocks[i - 1].nHeight + 1;
     }
-    BOOST_CHECK(!IsGravitonEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation - 1);
-    BOOST_CHECK(!IsGravitonEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation);
-    BOOST_CHECK(IsGravitonEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation + 1);
-    BOOST_CHECK(IsGravitonEnabled(params, &blocks.back()));
+    BOOST_CHECK(!IsGravitonEnabled(params, &blocks[0]));
+    BOOST_CHECK(!IsGravitonEnabled(params, &blocks[1]));
+    BOOST_CHECK(IsGravitonEnabled(params, &blocks[2]));
+    BOOST_CHECK(IsGravitonEnabled(params, &blocks[3]));
 }
 
 BOOST_AUTO_TEST_CASE(isphononenabled) {

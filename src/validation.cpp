@@ -461,12 +461,6 @@ IsMagneticAnomalyEnabledForCurrentBlock(const Consensus::Params &params)
     return IsMagneticAnomalyEnabled(params, chainActive.Tip());
 }
 
-static bool IsGravitonEnabledForCurrentBlock(const Consensus::Params &params)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    AssertLockHeld(cs_main);
-    return IsGravitonEnabled(params, chainActive.Tip());
-}
-
 // Command-line argument "-replayprotectionactivationtime=<timestamp>" will
 // cause the node to switch to replay protected SigHash ForkID value when the
 // median timestamp of the previous 11 blocks is greater than or equal to
@@ -795,6 +789,9 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             nextBlockScriptVerifyFlags, true,
                                             txdata)) {
+            // This can occur under some circumstances, if the node receives an
+            // unrequested tx which is invalid due to new consensus rules not
+            // being activated yet (during IBD).
             return error("%s: BUG! PLEASE REPORT THIS! CheckInputs failed "
                          "against next-block but not STANDARD flags %s, %s",
                          __func__, txid.ToString(), FormatStateMessage(state));
