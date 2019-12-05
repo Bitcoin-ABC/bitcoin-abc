@@ -11,6 +11,7 @@ PACKAGES=(
   automake
   autotools-dev
   binutils
+  bison
   bsdmainutils
   build-essential
   ccache

@@ -54,7 +54,7 @@ No other options are needed, the paths are automatically configured.
 
 Common linux dependencies:
 
-    sudo apt-get install gperf
+    sudo apt-get install bison gperf
 
 For linux 32 bits cross compilation:
 
