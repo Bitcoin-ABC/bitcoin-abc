@@ -50,7 +50,7 @@ Before you begin backporting commits, you will need to add an additional remote 
 For Bitcoin Core, this repository would be added as:
 
 ```
-git remote add core git@github.com:bitcoin/bitcoin.git.
+git remote add core git@github.com:bitcoin/bitcoin.git
 git fetch core
 ```
 
