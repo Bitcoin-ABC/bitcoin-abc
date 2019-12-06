@@ -82,6 +82,7 @@ class AvalancheTest(BitcoinTestFramework):
         self.extra_args = [
             ['-enableavalanche=1', '-avacooldown=0', '-automaticunparking=0'],
             ['-enableavalanche=1', '-avacooldown=0', '-noparkdeepreorg', '-maxreorgdepth=-1']]
+        self.supports_cli = False
 
     def run_test(self):
         node = self.nodes[0]

@@ -27,6 +27,7 @@ class CTORMiningTest(BitcoinTestFramework):
 
         extra_arg = ['-spendzeroconfchange=0', '-whitelist=127.0.0.1']
         self.extra_args = [extra_arg, extra_arg]
+        self.supports_cli = False
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

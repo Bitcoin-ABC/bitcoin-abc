@@ -61,6 +61,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-whitelist=127.0.0.1',
                             "-excessiveblocksize={}".format(self.excessive_block_size)]]
+        self.supports_cli = False
 
     def add_options(self, parser):
         super().add_options(parser)

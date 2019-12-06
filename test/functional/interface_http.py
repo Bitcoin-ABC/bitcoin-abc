@@ -14,6 +14,7 @@ from test_framework.util import assert_equal, str_to_b64str
 class HTTPBasicsTest (BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 3
+        self.supports_cli = False
 
     def setup_network(self):
         self.extra_args = [["-rpccorsdomain=null"], [], []]

@@ -53,6 +53,7 @@ class BlockchainTest(BitcoinTestFramework):
         self.num_nodes = 1
         # TODO: remove -txindex. Currently required for getrawtransaction call.
         self.extra_args = [["-txindex"]]
+        self.supports_cli = False
 
     def run_test(self):
         self.mine_chain()

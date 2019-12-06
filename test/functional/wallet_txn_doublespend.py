@@ -18,6 +18,7 @@ class TxnMallTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 4
         self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"], [], []]
+        self.supports_cli = False
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

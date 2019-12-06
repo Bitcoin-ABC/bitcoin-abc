@@ -42,6 +42,7 @@ class PreciousTest(BitcoinTestFramework):
         self.num_nodes = 3
         self.extra_args = [["-noparkdeepreorg"],
                            ["-noparkdeepreorg"], ["-noparkdeepreorg"]]
+        self.supports_cli = False
 
     def setup_network(self):
         self.setup_nodes()

@@ -19,6 +19,7 @@ class WalletGroupTest(BitcoinTestFramework):
         self.extra_args = [
             [], [], ['-avoidpartialspends'], ["-maxapsfee=0.0001"]]
         self.rpc_timeout = 120
+        self.supports_cli = False
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

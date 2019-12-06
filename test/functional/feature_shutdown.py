@@ -19,6 +19,7 @@ class ShutdownTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
+        self.supports_cli = False
 
     def run_test(self):
         node = get_rpc_proxy(
