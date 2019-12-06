@@ -103,7 +103,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.network_thread = None
         # Wait for up to 60 seconds for the RPC server to respond
         self.rpc_timeout = 60
-        self.supports_cli = False
+        self.supports_cli = True
         self.bind_to_localhost_only = True
         # We run parse_args before set_test_params for tests who need to
         # know the parser options during setup.
