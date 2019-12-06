@@ -53,6 +53,15 @@ typedef enum {
     QTYPE_ANY = 255
 } dns_type;
 
+enum class DNSResponseCode : uint8_t {
+    OK = 0,
+    FORMAT_ERROR = 1,
+    SERVER_FAILURE = 2,
+    NAME_ERROR = 3,
+    NOT_IMPLEMENTED = 4,
+    REFUSED = 5,
+};
+
 int parse_name(const uint8_t **inpos, const uint8_t *inend,
                const uint8_t *inbuf, char *buf, size_t bufsize) {
     size_t bufused = 0;
@@ -349,7 +358,7 @@ error:
 
 static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
                          uint8_t *outbuf) {
-    int error = 0;
+    DNSResponseCode responseCode = DNSResponseCode::OK;
     if (insize < 12) {
         // DNS header
         return -1;
@@ -366,19 +375,19 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
     // copy flags;
     outbuf[2] = inbuf[2];
     outbuf[3] = inbuf[3];
-    // clear error
+    // clear response code
     outbuf[3] &= ~15;
     // check qr
     if (inbuf[2] & 128) {
         /* fprintf(stdout, "Got response?\n"); */
-        error = 1;
+        responseCode = DNSResponseCode::FORMAT_ERROR;
         goto error;
     }
 
     // check opcode
     if (((inbuf[2] & 120) >> 3) != 0) {
         /* fprintf(stdout, "Opcode nonzero?\n"); */
-        error = 4;
+        responseCode = DNSResponseCode::NOT_IMPLEMENTED;
         goto error;
     }
 
@@ -390,13 +399,13 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
     nquestion = (inbuf[4] << 8) + inbuf[5];
     if (nquestion == 0) {
         /* fprintf(stdout, "No questions?\n"); */
-        error = 0;
+        responseCode = DNSResponseCode::OK;
         goto error;
     }
 
     if (nquestion > 1) {
         /* fprintf(stdout, "Multiple questions %i?\n", nquestion); */
-        error = 4;
+        responseCode = DNSResponseCode::NOT_IMPLEMENTED;
         goto error;
     }
 
@@ -407,12 +416,12 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
         int offset = inpos - inbuf;
         int ret = parse_name(&inpos, inend, inbuf, name, 256);
         if (ret == -1) {
-            error = 1;
+            responseCode = DNSResponseCode::FORMAT_ERROR;
             goto error;
         }
 
         if (ret == -2) {
-            error = 5;
+            responseCode = DNSResponseCode::REFUSED;
             goto error;
         }
 
@@ -420,12 +429,12 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
         if (strcasecmp(name, opt->host) &&
             (namel < hostl + 2 || name[namel - hostl - 1] != '.' ||
              strcasecmp(name + namel - hostl, opt->host))) {
-            error = 5;
+            responseCode = DNSResponseCode::REFUSED;
             goto error;
         }
 
         if (inend - inpos < 4) {
-            error = 1;
+            responseCode = DNSResponseCode::FORMAT_ERROR;
             goto error;
         }
 
@@ -559,8 +568,8 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
     }
 
 error:
-    // set error
-    outbuf[3] |= error & 0xF;
+    // set response code
+    outbuf[3] |= uint8_t(responseCode) & 0xF;
     // set counts
     outbuf[4] = 0;
     outbuf[5] = 0;
