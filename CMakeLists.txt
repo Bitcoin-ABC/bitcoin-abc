@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.12)
 project(bitcoin-abc
-	VERSION 0.20.8
+	VERSION 0.20.9
 	DESCRIPTION "Bitcoin ABC is a full node implementation of the Bitcoin Cash protocol."
 	HOMEPAGE_URL "https://www.bitcoinabc.org"
 )
