@@ -165,12 +165,13 @@ public:
     virtual isminetype IsMine(const CScript &script) const { return ISMINE_NO; }
 
     virtual bool GetReservedDestination(const OutputType type, bool internal,
-                                        int64_t &index, CKeyPool &keypool) {
+                                        CTxDestination &address, int64_t &index,
+                                        CKeyPool &keypool) {
         return false;
     }
-    virtual void KeepDestination(int64_t index) {}
+    virtual void KeepDestination(int64_t index, const OutputType &type) {}
     virtual void ReturnDestination(int64_t index, bool internal,
-                                   const CPubKey &pubkey) {}
+                                   const CTxDestination &addr) {}
 
     virtual bool TopUp(unsigned int size = 0) { return false; }
 
@@ -282,9 +283,13 @@ private:
     std::set<int64_t> set_pre_split_keypool GUARDED_BY(cs_wallet);
     int64_t m_max_keypool_index GUARDED_BY(cs_wallet) = 0;
     std::map<CKeyID, int64_t> m_pool_key_to_index;
+    // Tracks keypool indexes to CKeyIDs of keys that have been taken out of the
+    // keypool but may be returned to it
+    std::map<int64_t, CKeyID> m_index_to_reserved_key;
 
     //! Fetches a key from the keypool
-    bool GetKeyFromPool(CPubKey &key, bool internal = false);
+    bool GetKeyFromPool(CPubKey &key, const OutputType type,
+                        bool internal = false);
 
     /**
      * Reserves a key from the keypool and sets nIndex to its index
@@ -303,9 +308,6 @@ private:
     bool ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
                                bool fRequestedInternal);
 
-    void KeepKey(int64_t nIndex);
-    void ReturnKey(int64_t nIndex, bool fInternal, const CPubKey &pubkey);
-
 public:
     bool GetNewDestination(const OutputType type, CTxDestination &dest,
                            std::string &error) override;
@@ -315,10 +317,11 @@ public:
     bool EncryptKeys(CKeyingMaterial &vMasterKeyIn);
 
     bool GetReservedDestination(const OutputType type, bool internal,
-                                int64_t &index, CKeyPool &keypool) override;
-    void KeepDestination(int64_t index) override;
+                                CTxDestination &address, int64_t &index,
+                                CKeyPool &keypool) override;
+    void KeepDestination(int64_t index, const OutputType &type) override;
     void ReturnDestination(int64_t index, bool internal,
-                           const CPubKey &pubkey) override;
+                           const CTxDestination &) override;
 
     bool TopUp(unsigned int size = 0) override;
 

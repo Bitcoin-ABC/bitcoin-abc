@@ -20,7 +20,7 @@ bool LegacyScriptPubKeyMan::GetNewDestination(const OutputType type,
 
     // Generate a new key that is added to wallet
     CPubKey new_key;
-    if (!GetKeyFromPool(new_key)) {
+    if (!GetKeyFromPool(new_key, type)) {
         error = "Error: Keypool ran out, please call keypoolrefill first";
         return false;
     }
@@ -215,21 +215,18 @@ bool LegacyScriptPubKeyMan::EncryptKeys(CKeyingMaterial &vMasterKeyIn) {
 
 bool LegacyScriptPubKeyMan::GetReservedDestination(const OutputType type,
                                                    bool internal,
+                                                   CTxDestination &address,
                                                    int64_t &index,
                                                    CKeyPool &keypool) {
+    if (!CanGetAddresses(internal)) {
+        return false;
+    }
+
     if (!ReserveKeyFromKeyPool(index, keypool, internal)) {
         return false;
     }
+    address = GetDestinationForKey(keypool.vchPubKey, type);
     return true;
-}
-
-void LegacyScriptPubKeyMan::KeepDestination(int64_t index) {
-    KeepKey(index);
-}
-
-void LegacyScriptPubKeyMan::ReturnDestination(int64_t index, bool internal,
-                                              const CPubKey &pubkey) {
-    ReturnKey(index, internal, pubkey);
 }
 
 void LegacyScriptPubKeyMan::MarkUnusedAddresses(const CScript &script) {
@@ -416,7 +413,8 @@ size_t LegacyScriptPubKeyMan::KeypoolCountExternalKeys() {
 
 unsigned int LegacyScriptPubKeyMan::GetKeyPoolSize() const {
     AssertLockHeld(cs_wallet);
-    return setInternalKeyPool.size() + setExternalKeyPool.size();
+    return setInternalKeyPool.size() + setExternalKeyPool.size() +
+           set_pre_split_keypool.size();
 }
 
 int64_t LegacyScriptPubKeyMan::GetTimeFirstKey() const {
@@ -1081,15 +1079,21 @@ void LegacyScriptPubKeyMan::AddKeypoolPubkeyWithDB(const CPubKey &pubkey,
     m_pool_key_to_index[pubkey.GetID()] = index;
 }
 
-void LegacyScriptPubKeyMan::KeepKey(int64_t nIndex) {
+void LegacyScriptPubKeyMan::KeepDestination(int64_t nIndex,
+                                            const OutputType &type) {
     // Remove from key pool.
     WalletBatch batch(m_storage.GetDatabase());
     batch.ErasePool(nIndex);
+    CPubKey pubkey;
+    bool have_pk = GetPubKey(m_index_to_reserved_key.at(nIndex), pubkey);
+    assert(have_pk);
+    LearnRelatedScripts(pubkey, type);
+    m_index_to_reserved_key.erase(nIndex);
     WalletLogPrintf("keypool keep %d\n", nIndex);
 }
 
-void LegacyScriptPubKeyMan::ReturnKey(int64_t nIndex, bool fInternal,
-                                      const CPubKey &pubkey) {
+void LegacyScriptPubKeyMan::ReturnDestination(int64_t nIndex, bool fInternal,
+                                              const CTxDestination &) {
     // Return to key pool
     {
         LOCK(cs_wallet);
@@ -1100,14 +1104,18 @@ void LegacyScriptPubKeyMan::ReturnKey(int64_t nIndex, bool fInternal,
         } else {
             setExternalKeyPool.insert(nIndex);
         }
-        m_pool_key_to_index[pubkey.GetID()] = nIndex;
+        CKeyID &pubkey_id = m_index_to_reserved_key.at(nIndex);
+        m_pool_key_to_index[pubkey_id] = nIndex;
+        m_index_to_reserved_key.erase(nIndex);
         NotifyCanGetAddressesChanged();
     }
 
     WalletLogPrintf("keypool return %d\n", nIndex);
 }
 
-bool LegacyScriptPubKeyMan::GetKeyFromPool(CPubKey &result, bool internal) {
+bool LegacyScriptPubKeyMan::GetKeyFromPool(CPubKey &result,
+                                           const OutputType type,
+                                           bool internal) {
     if (!CanGetAddresses(internal)) {
         return false;
     }
@@ -1125,7 +1133,7 @@ bool LegacyScriptPubKeyMan::GetKeyFromPool(CPubKey &result, bool internal) {
         return true;
     }
 
-    KeepKey(nIndex);
+    KeepDestination(nIndex, type);
     result = keypool.vchPubKey;
 
     return true;
@@ -1179,6 +1187,8 @@ bool LegacyScriptPubKeyMan::ReserveKeyFromKeyPool(int64_t &nIndex,
                                      ": keypool entry invalid");
         }
 
+        assert(m_index_to_reserved_key.count(nIndex) == 0);
+        m_index_to_reserved_key[nIndex] = keypool.vchPubKey.GetID();
         m_pool_key_to_index.erase(keypool.vchPubKey.GetID());
         WalletLogPrintf("keypool reserve %d\n", nIndex);
     }
