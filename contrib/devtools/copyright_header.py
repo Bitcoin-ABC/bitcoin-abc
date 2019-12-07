@@ -20,6 +20,8 @@ EXCLUDE = [
     'src/qt/bitcoinstrings.cpp',
     'src/chainparamsseeds.h',
     # other external copyrights:
+    'src/reverse_iterator.h',
+    'src/test/fuzz/FuzzedDataProvider.h',
     'src/tinyformat.h',
     'src/bench/nanobench.h',
     'test/functional/test_framework/bignum.py',
@@ -516,15 +518,15 @@ def get_cpp_header_lines_to_insert(start_year, end_year):
     return reversed(get_header_lines(CPP_HEADER, start_year, end_year))
 
 
-PYTHON_HEADER = '''
+SCRIPT_HEADER = '''
 # Copyright (c) {} The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 '''
 
 
-def get_python_header_lines_to_insert(start_year, end_year):
-    return reversed(get_header_lines(PYTHON_HEADER, start_year, end_year))
+def get_script_header_lines_to_insert(start_year, end_year):
+    return reversed(get_header_lines(SCRIPT_HEADER, start_year, end_year))
 
 ##########################################################################
 # query git for year of last change
@@ -557,8 +559,8 @@ def file_has_hashbang(file_lines):
     return file_lines[0][:2] == '#!'
 
 
-def insert_python_header(filename, file_lines, start_year, end_year):
-    header_lines = get_python_header_lines_to_insert(start_year, end_year)
+def insert_script_header(filename, file_lines, start_year, end_year):
+    header_lines = get_script_header_lines_to_insert(start_year, end_year)
     insert_idx = find_distribution_line_index(file_lines)
     if insert_idx is not None:
         file_lines.insert(insert_idx, list(header_lines)[-1])
@@ -573,6 +575,7 @@ def insert_python_header(filename, file_lines, start_year, end_year):
 
 
 def insert_cpp_header(filename, file_lines, start_year, end_year):
+    file_lines.insert(0, '\n')
     header_lines = get_cpp_header_lines_to_insert(start_year, end_year)
     insert_idx = find_distribution_line_index(file_lines)
     if insert_idx is not None:
@@ -589,8 +592,8 @@ def exec_insert_header(filename, style):
         sys.exit('*** {} already has a copyright by The Bitcoin developers'.format(
             filename))
     start_year, end_year = get_git_change_year_range(filename)
-    if style == 'python':
-        insert_python_header(filename, file_lines, start_year, end_year)
+    if style in ['python', 'shell']:
+        insert_script_header(filename, file_lines, start_year, end_year)
     else:
         insert_cpp_header(filename, file_lines, start_year, end_year)
 
@@ -633,11 +636,13 @@ def insert_cmd(argv):
     if not os.path.isfile(filename):
         sys.exit("*** bad filename: {}".format(filename))
     _, extension = os.path.splitext(filename)
-    if extension not in ['.h', '.cpp', '.cc', '.c', '.py']:
+    if extension not in ['.h', '.cpp', '.cc', '.c', '.py', '.sh']:
         sys.exit("*** cannot insert for file extension {}".format(extension))
 
     if extension == '.py':
         style = 'python'
+    elif extension == '.sh':
+        style = 'shell'
     else:
         style = 'cpp'
     exec_insert_header(filename, style)
