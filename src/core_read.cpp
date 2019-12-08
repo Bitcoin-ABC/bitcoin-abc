@@ -180,29 +180,6 @@ CScript ParseScript(const std::string &s) {
     return result;
 }
 
-// Check that all of the input and output scripts of a transaction contains
-// valid opcodes
-bool CheckTxScriptsSanity(const CMutableTransaction &tx) {
-    // Check input scripts for non-coinbase txs
-    if (!CTransaction(tx).IsCoinBase()) {
-        for (const auto &i : tx.vin) {
-            if (!i.scriptSig.HasValidOps() ||
-                i.scriptSig.size() > MAX_SCRIPT_SIZE) {
-                return false;
-            }
-        }
-    }
-    // Check output scripts
-    for (const auto &o : tx.vout) {
-        if (!o.scriptPubKey.HasValidOps() ||
-            o.scriptPubKey.size() > MAX_SCRIPT_SIZE) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx) {
     if (!IsHex(strHexTx)) {
         return false;
@@ -213,7 +190,7 @@ bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx) {
     CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
     try {
         ssData >> tx;
-        if (ssData.eof() && CheckTxScriptsSanity(tx)) {
+        if (ssData.eof()) {
             return true;
         }
     } catch (const std::exception &e) {

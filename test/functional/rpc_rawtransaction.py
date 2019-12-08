@@ -16,7 +16,14 @@ from decimal import Decimal
 
 from collections import OrderedDict
 from io import BytesIO
-from test_framework.messages import CTransaction, ToHex
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    ToHex,
+)
+from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_raw_tx
 from test_framework.util import (
@@ -490,6 +497,29 @@ class RawTransactionsTest(BitcoinTestFramework):
         rawtx = ToHex(tx)
         decrawtx = self.nodes[0].decoderawtransaction(rawtx)
         assert_equal(decrawtx['version'], 0x7fffffff)
+
+        ##########################################
+        # Decoding weird scripts in transactions #
+        ##########################################
+
+        self.log.info('Decode correctly-formatted but weird transactions')
+        tx = CTransaction()
+        # empty
+        self.nodes[0].decoderawtransaction(ToHex(tx))
+        # truncated push
+        tx.vin.append(CTxIn(COutPoint(42, 0), b'\x4e\x00\x00'))
+        tx.vin.append(CTxIn(COutPoint(42, 0), b'\x4c\x10TRUNC'))
+        tx.vout.append(CTxOut(0, b'\x4e\x00\x00'))
+        tx.vout.append(CTxOut(0, b'\x4c\x10TRUNC'))
+        self.nodes[0].decoderawtransaction(ToHex(tx))
+        # giant pushes and long scripts
+        tx.vin.append(CTxIn(COutPoint(42, 0), CScript([b'giant push'*10000])))
+        tx.vout.append(CTxOut(0, CScript([b'giant push'*10000])))
+        self.nodes[0].decoderawtransaction(ToHex(tx))
+
+        self.log.info('Refuse garbage after transaction')
+        assert_raises_rpc_error(-22, 'TX decode failed',
+                                self.nodes[0].decoderawtransaction, ToHex(tx) + '00')
 
 
 if __name__ == '__main__':
