@@ -50,7 +50,7 @@ ClientModel::~ClientModel() {
     unsubscribeFromCoreSignals();
 }
 
-int ClientModel::getNumConnections(unsigned int flags) const {
+int ClientModel::getNumConnections(NumConnections flags) const {
     CConnman::NumConnections connections = CConnman::CONNECTIONS_NONE;
 
     if (flags == CONNECTIONS_IN) {
