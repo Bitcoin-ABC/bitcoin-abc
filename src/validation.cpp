@@ -801,10 +801,6 @@ static bool AcceptToMemoryPoolWorker(
             extraFlags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
         }
 
-        if (IsGravitonEnabledForCurrentBlock(consensusParams)) {
-            extraFlags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
-        }
-
         // Make sure whatever we need to activate is actually activated.
         const uint32_t scriptVerifyFlags =
             STANDARD_SCRIPT_VERIFY_FLAGS | extraFlags;

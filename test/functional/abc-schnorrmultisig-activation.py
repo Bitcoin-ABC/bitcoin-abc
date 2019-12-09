@@ -215,7 +215,7 @@ class SchnorrTest(BitcoinTestFramework):
         ecdsa0tx = create_fund_and_spend_tx(OP_0, 'ecdsa')
         ecdsa0tx_2 = create_fund_and_spend_tx(OP_0, 'ecdsa')
 
-        # two of these, which are valid before upgrade and invalid after.
+        # two of these, which are nonstandard before upgrade and invalid after.
         ecdsa1tx = create_fund_and_spend_tx(OP_1, 'ecdsa')
         ecdsa1tx_2 = create_fund_and_spend_tx(OP_1, 'ecdsa')
 
@@ -233,6 +233,26 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info("Sending rejected transactions via RPC")
         assert_raises_rpc_error(-26, SCHNORR_LEGACY_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(schnorr0tx))
+        # Since MULTISIG_SCHNORR is in mandatory flags, we are not accepting
+        # non-null-dummy ECDSA transactions before the upgrade. We get a
+        # post-upgrade error since the mempool is using post-upgrade flags.
+        assert_raises_rpc_error(-26, POSTUPGRADE_ECDSA_NULLDUMMY_ERROR,
+                                node.sendrawtransaction, ToHex(ecdsa1tx))
+
+        # The Schnorr multisig almost gets accepted here but it finally gets
+        # caught in the block flags check. Note that "BUG! PLEASE REPORT
+        # THIS!" will appear in the log, since AcceptToMemoryPoolWorker expects
+        # that scriptVerifyFlags is more strict than nextBlockScriptVerifyFlags.
+        # For strictly subtractive ('soft forking') flags, it is fine if they
+        # are always part of scriptVerifyFlags and only sometimes appear in
+        # nextBlockScriptVerifyFlags, but for additive flags this kind of
+        # strange situation can be created.
+        # In practice, only new nodes will ever be in a pre-upgrade state,
+        # and they will also be in initial block download mode and hence
+        # not request transactions from peers. So, this weird log message
+        # could only be triggered by unsolicited submission of a tx, and
+        # it would be benign since the node is behaving correctly by rejecting
+        # the transaction (as tested here).
         assert_raises_rpc_error(-26, PREUPGRADE_SCHNORR_MULTISIG_ERROR,
                                 node.sendrawtransaction, ToHex(schnorr1tx))
 
@@ -240,6 +260,10 @@ class SchnorrTest(BitcoinTestFramework):
             "Sending rejected transactions via net (bannable)")
         self.check_for_ban_on_rejected_tx(
             schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
+        self.check_for_ban_on_rejected_tx(
+            ecdsa1tx, POSTUPGRADE_ECDSA_NULLDUMMY_ERROR)
+        # If we are sent unsolicited post-upgrade transactions while before
+        # the upgrade block, the tx is to be rejected.
         self.check_for_ban_on_rejected_tx(
             schnorr1tx, PREUPGRADE_SCHNORR_MULTISIG_ERROR)
 
@@ -286,7 +310,6 @@ class SchnorrTest(BitcoinTestFramework):
 
         self.log.info(
             "Mine the activation block itself, including a non-null-dummy ECDSA at the last possible moment")
-        node.p2p.send_txs_and_test([ecdsa1tx], node)
         tip = self.build_block(tip, [ecdsa1tx])
         node.p2p.send_blocks_and_test([tip], node)
 
@@ -345,7 +368,7 @@ class SchnorrTest(BitcoinTestFramework):
             "Invalidating the upgrade block evicts the transactions valid only after upgrade")
         node.invalidateblock(upgrade_block.hash)
         assert_equal(set(node.getrawmempool()), {
-                     ecdsa0tx_2.hash, ecdsa1tx.hash})
+                     ecdsa0tx_2.hash})
 
         self.log.info("Return to our tip")
         node.reconsiderblock(upgrade_block.hash)
