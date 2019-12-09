@@ -31,6 +31,7 @@ from .util import (
     p2p_port,
     rpc_url,
     wait_until,
+    EncodeDecimal,
 )
 
 BITCOIND_PROC_WAIT_TIMEOUT = 60
@@ -679,7 +680,7 @@ def arg_to_cli(arg):
     if isinstance(arg, bool):
         return str(arg).lower()
     elif isinstance(arg, dict) or isinstance(arg, list):
-        return json.dumps(arg)
+        return json.dumps(arg, default=EncodeDecimal)
     else:
         return str(arg)
 

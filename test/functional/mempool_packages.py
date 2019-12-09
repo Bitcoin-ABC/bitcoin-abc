@@ -29,7 +29,6 @@ class MempoolPackagesTest(BitcoinTestFramework):
         self.extra_args = [
             common_params, common_params +
             ["-limitancestorcount={}".format(MAX_ANCESTORS_CUSTOM)]]
-        self.supports_cli = False
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

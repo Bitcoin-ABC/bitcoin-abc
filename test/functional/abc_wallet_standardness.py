@@ -38,7 +38,6 @@ class WalletStandardnessTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [['-acceptnonstdtxn=0'], ['-acceptnonstdtxn=1']]
-        self.supports_cli = False
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
