@@ -28,7 +28,10 @@ bool ShutdownRequested() {
     return false;
 }
 
-std::set<std::string> testArgs = {"-gravitonactivationtime"};
+std::set<std::string> testArgs = {
+    "-gravitonactivationtime",
+    "-phononactivationtime",
+};
 
 int main(int argc, char *argv[]) {
     // Additional CLI params supported by test_bitcoin:

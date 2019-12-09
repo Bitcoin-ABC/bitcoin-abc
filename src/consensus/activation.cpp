@@ -58,3 +58,13 @@ bool IsGravitonEnabled(const Consensus::Params &params,
            gArgs.GetArg("-gravitonactivationtime",
                         params.gravitonActivationTime);
 }
+
+bool IsPhononEnabled(const Consensus::Params &params,
+                     const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return pindexPrev->GetMedianTimePast() >=
+           gArgs.GetArg("-phononactivationtime", params.phononActivationTime);
+}

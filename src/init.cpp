@@ -993,6 +993,9 @@ void SetupServerArgs() {
 
     // TODO remove after the Nov 2019 upgrade
     gArgs.AddArg("-gravitonactivationtime", "", false, OptionsCategory::HIDDEN);
+
+    // TODO remove after the May 2020 upgrade
+    gArgs.AddArg("-phononactivationtime", "", false, OptionsCategory::HIDDEN);
 }
 
 std::string LicenseInfo() {

@@ -32,4 +32,8 @@ bool IsMagneticAnomalyEnabled(const Consensus::Params &params,
 bool IsGravitonEnabled(const Consensus::Params &params,
                        const CBlockIndex *pindexPrev);
 
+/** Check if May 15th, 2020 protocol upgrade has activated. */
+bool IsPhononEnabled(const Consensus::Params &params,
+                     const CBlockIndex *pindexPrev);
+
 #endif // BITCOIN_CONSENSUS_ACTIVATION_H
