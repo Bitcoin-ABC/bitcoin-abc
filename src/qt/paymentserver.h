@@ -68,6 +68,9 @@ public:
     explicit PaymentServer(QObject *parent, bool startLocalServer = true);
     ~PaymentServer();
 
+    // OptionsModel is used for getting proxy settings and display unit
+    void setOptionsModel(OptionsModel *optionsModel);
+
     // Load root certificate authorities. Pass nullptr (default) to read from
     // the file specified in the -rootcertificates setting, or, if that's not
     // set, to use the system default root certificates. If you pass in a store,
@@ -77,9 +80,6 @@ public:
 
     // Return certificate store
     static X509_STORE *getCertStore();
-
-    // OptionsModel is used for getting proxy settings and display unit
-    void setOptionsModel(OptionsModel *optionsModel);
 
     // Verify that the payment request network matches the client network
     static bool verifyNetwork(interfaces::Node &node,
@@ -95,25 +95,25 @@ Q_SIGNALS:
     // Fired when a valid payment request is received
     void receivedPaymentRequest(SendCoinsRecipient);
 
-    // Fired when a valid PaymentACK is received
-    void receivedPaymentACK(const QString &paymentACKMsg);
-
     // Fired when a message should be reported to the user
     void message(const QString &title, const QString &message,
                  unsigned int style);
+
+    // Fired when a valid PaymentACK is received
+    void receivedPaymentACK(const QString &paymentACKMsg);
 
 public Q_SLOTS:
     // Signal this when the main window's UI is ready to display payment
     // requests to the user
     void uiReady();
 
+    // Handle an incoming URI, URI with local file scheme or file
+    void handleURIOrFile(const QString &s);
+
     // Submit Payment message to a merchant, get back PaymentACK:
     void fetchPaymentACK(WalletModel *walletModel,
                          const SendCoinsRecipient &recipient,
                          QByteArray transaction);
-
-    // Handle an incoming URI, URI with local file scheme or file
-    void handleURIOrFile(const QString &s);
 
 private Q_SLOTS:
     void handleURIConnection();
@@ -127,9 +127,15 @@ protected:
     bool eventFilter(QObject *object, QEvent *event) override;
 
 private:
+    // true during startup
+    bool saveURIs;
+    QLocalServer *uriServer;
+    OptionsModel *optionsModel;
+
+    bool handleURI(const CChainParams &params, const QString &s);
+
     static bool readPaymentRequestFromFile(const QString &filename,
                                            PaymentRequestPlus &request);
-    bool handleURI(const CChainParams &params, const QString &s);
     bool processPaymentRequest(const PaymentRequestPlus &request,
                                SendCoinsRecipient &recipient);
     void fetchRequest(const QUrl &url);
@@ -137,14 +143,8 @@ private:
     // Setup networking
     void initNetManager();
 
-    // true during startup
-    bool saveURIs;
-    QLocalServer *uriServer;
-
     // Used to fetch payment requests
     QNetworkAccessManager *netManager;
-
-    OptionsModel *optionsModel;
 };
 
 #endif // BITCOIN_QT_PAYMENTSERVER_H
