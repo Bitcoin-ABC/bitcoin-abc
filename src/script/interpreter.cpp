@@ -102,7 +102,7 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
 
 bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 uint32_t flags, const BaseSignatureChecker &checker,
-                ScriptError *serror) {
+                ScriptExecutionMetrics &metrics, ScriptError *serror) {
     static const CScriptNum bnZero(0);
     static const CScriptNum bnOne(1);
     static const valtype vchFalse(0);
@@ -885,6 +885,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                             fSuccess = checker.CheckSig(vchSig, vchPubKey,
                                                         scriptCode, flags);
+                            metrics.nSigChecks += 1;
 
                             if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
                                 return set_error(serror,
@@ -932,6 +933,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                 .Finalize(vchHash.data());
                             fSuccess = checker.VerifySignature(
                                 vchSig, CPubKey(vchPubKey), uint256(vchHash));
+                            metrics.nSigChecks += 1;
 
                             if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
                                 return set_error(serror,
@@ -1086,6 +1088,10 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                     return set_error(serror,
                                                      ScriptError::SIG_NULLFAIL);
                                 }
+
+                                // this is guaranteed to execute exactly
+                                // nSigsCount times (if not script error)
+                                metrics.nSigChecks += 1;
                             }
 
                             if ((checkBits >> iKey) != 0) {
@@ -1156,6 +1162,14 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                 !areAllSignaturesNull) {
                                 return set_error(serror,
                                                  ScriptError::SIG_NULLFAIL);
+                            }
+
+                            if (!areAllSignaturesNull) {
+                                // This is not identical to the number of actual
+                                // ECDSA verifies, but, it is an upper bound
+                                // that can be easily determined without doing
+                                // CPU-intensive checks.
+                                metrics.nSigChecks += nKeysCount;
                             }
                         }
 
