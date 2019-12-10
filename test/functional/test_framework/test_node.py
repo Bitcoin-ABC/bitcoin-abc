@@ -60,7 +60,7 @@ class TestNode():
     be dispatched to the RPC connection."""
 
     def __init__(self, i, datadir, *, chain, host, rpc_port, p2p_port, timewait, bitcoind, bitcoin_cli,
-                 coverage_dir, cwd, extra_conf=None, extra_args=None, use_cli=False, emulator=None, start_perf=False):
+                 coverage_dir, cwd, extra_conf=None, extra_args=None, use_cli=False, emulator=None, start_perf=False, use_valgrind=False):
         """
         Kwargs:
             start_perf (bool): If True, begin profiling the node with `perf` as soon as
@@ -106,6 +106,18 @@ class TestNode():
             "-uacomment=" + self.name,
             "-noprinttoconsole",
         ]
+
+        if use_valgrind:
+            default_suppressions_file = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "..", "..", "..", "contrib", "valgrind.supp")
+            suppressions_file = os.getenv("VALGRIND_SUPPRESSIONS_FILE",
+                                          default_suppressions_file)
+            self.binary = "valgrind"
+            self.bitcoind_args = [bitcoind] + self.default_args
+            self.default_args = ["--suppressions={}".format(suppressions_file),
+                                 "--gen-suppressions=all", "--exit-on-first-error=yes",
+                                 "--error-exitcode=1", "--quiet"] + self.bitcoind_args
 
         if emulator is not None:
             if not os.path.isfile(emulator):
