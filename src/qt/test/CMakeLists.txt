@@ -28,10 +28,16 @@ if(BUILD_BITCOIN_WALLET)
 	target_sources(test_bitcoin-qt
 		PRIVATE
 			addressbooktests.cpp
-			paymentservertests.cpp
 			wallettests.cpp
 			../../wallet/test/wallet_test_fixture.cpp
 	)
+
+	if(ENABLE_BIP70)
+		target_sources(test_bitcoin-qt
+			PRIVATE
+				paymentservertests.cpp
+		)
+	endif()
 
 	target_link_libraries(test_bitcoin-qt wallet)
 endif()

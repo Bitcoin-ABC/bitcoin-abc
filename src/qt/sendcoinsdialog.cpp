@@ -2,6 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/forms/ui_sendcoinsdialog.h>
 #include <qt/sendcoinsdialog.h>
 
@@ -309,8 +313,11 @@ void SendCoinsDialog::on_sendButton_clicked() {
         QString recipientElement;
         recipientElement = "<br />";
 
+#ifdef ENABLE_BIP70
         // normal payment
-        if (!rcp.paymentRequest.IsInitialized()) {
+        if (!rcp.paymentRequest.IsInitialized())
+#endif
+        {
             if (rcp.label.length() > 0) {
                 // label with address
                 recipientElement.append(
@@ -320,8 +327,10 @@ void SendCoinsDialog::on_sendButton_clicked() {
                 // just address
                 recipientElement.append(tr("%1 to %2").arg(amount, address));
             }
-        } else if (!rcp.authenticatedMerchant.isEmpty()) {
-            // authenticated payment request
+        }
+#ifdef ENABLE_BIP70
+        // authenticated payment request
+        else if (!rcp.authenticatedMerchant.isEmpty()) {
             recipientElement.append(
                 tr("%1 to %2")
                     .arg(amount,
@@ -330,6 +339,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
             // unauthenticated payment request
             recipientElement.append(tr("%1 to %2").arg(amount, address));
         }
+#endif
 
         formatted.append(recipientElement);
     }

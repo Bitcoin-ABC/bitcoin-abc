@@ -2,6 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/walletmodel.h>
 
 #include <cashaddrenc.h>
@@ -132,6 +136,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
     for (const SendCoinsRecipient &rcp : recipients) {
         if (rcp.fSubtractFeeFromAmount) fSubtractFeeFromAmount = true;
 
+#ifdef ENABLE_BIP70
         // PaymentRequest...
         if (rcp.paymentRequest.IsInitialized()) {
             Amount subtotal = Amount::zero();
@@ -157,8 +162,12 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                 return InvalidAmount;
             }
             total += subtotal;
-        } else {
-            // User-entered bitcoin address / amount:
+        }
+
+        // User-entered bitcoin address / amount:
+        else
+#endif
+        {
             if (!validateAddress(rcp.address)) {
                 return InvalidAddress;
             }
@@ -226,6 +235,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
 
     std::vector<std::pair<std::string, std::string>> vOrderForm;
     for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
+#ifdef ENABLE_BIP70
         if (rcp.paymentRequest.IsInitialized()) {
             // Make sure any payment requests involved are still valid.
             if (PaymentServer::verifyExpired(rcp.paymentRequest.getDetails())) {
@@ -236,7 +246,9 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
             std::string value;
             rcp.paymentRequest.SerializeToString(&value);
             vOrderForm.emplace_back("PaymentRequest", std::move(value));
-        } else if (!rcp.message.isEmpty()) {
+        } else
+#endif
+            if (!rcp.message.isEmpty()) {
             // Message from normal bitcoincash:URI
             // (bitcoincash:123...?message=example)
             vOrderForm.emplace_back("Message", rcp.message.toStdString());
@@ -259,7 +271,10 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
     // emit coinsSent signal for each recipient
     for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
         // Don't touch the address book when we have a payment request
-        if (!rcp.paymentRequest.IsInitialized()) {
+#ifdef ENABLE_BIP70
+        if (!rcp.paymentRequest.IsInitialized())
+#endif
+        {
             std::string strAddress = rcp.address.toStdString();
             CTxDestination dest =
                 DecodeDestination(strAddress, getChainParams());

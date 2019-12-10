@@ -365,8 +365,10 @@ void BitcoinApplication::addWallet(WalletModel *walletModel) {
         window->setCurrentWallet(walletModel);
     }
 
+#ifdef ENABLE_BIP70
     connect(walletModel, &WalletModel::coinsSent, paymentServer,
             &PaymentServer::fetchPaymentACK);
+#endif
     connect(walletModel, &WalletModel::unload, this,
             &BitcoinApplication::removeWallet);
 
@@ -398,7 +400,9 @@ void BitcoinApplication::initializeResult(bool success) {
     // guaranteed complete.
     qWarning() << "Platform customization:" << platformStyle->getName();
 #ifdef ENABLE_WALLET
+#ifdef ENABLE_BIP70
     PaymentServer::LoadRootCAs();
+#endif
     if (paymentServer) {
         paymentServer->setOptionsModel(optionsModel);
     }
@@ -477,7 +481,7 @@ WId BitcoinApplication::getMainWinId() const {
 }
 
 static void SetupUIArgs() {
-#ifdef ENABLE_WALLET
+#if defined(ENABLE_WALLET) && defined(ENABLE_BIP70)
     gArgs.AddArg("-allowselfsignedrootcertificates",
                  strprintf("Allow self signed root certificates (default: %d)",
                            DEFAULT_SELFSIGNED_ROOTCERTS),

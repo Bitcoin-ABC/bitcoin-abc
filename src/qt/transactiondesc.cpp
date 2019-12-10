@@ -2,6 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifdef HAVE_CONFIG_H
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/transactiondesc.h>
 
 #include <cashaddrenc.h>
@@ -311,6 +315,7 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
         }
     }
 
+#ifdef ENABLE_BIP70
     //
     // PaymentRequest info:
     //
@@ -326,6 +331,7 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
             }
         }
     }
+#endif
 
     if (wtx.is_coinbase) {
         quint32 numBlocksToMaturity = COINBASE_MATURITY + 1;

@@ -1,6 +1,7 @@
 #include <qt/test/util.h>
 #include <qt/test/wallettests.h>
 
+#include <base58.h>
 #include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>

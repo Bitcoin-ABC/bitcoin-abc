@@ -2,6 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifdef HAVE_CONFIG_H
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/walletmodeltransaction.h>
 
 #include <interfaces/node.h>
@@ -35,6 +39,7 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
     const CTransaction *walletTransaction = &wtx->get();
     int i = 0;
     for (SendCoinsRecipient &rcp : recipients) {
+#ifdef ENABLE_BIP70
         if (rcp.paymentRequest.IsInitialized()) {
             Amount subtotal = Amount::zero();
             const payments::PaymentDetails &details =
@@ -53,8 +58,12 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
                 i++;
             }
             rcp.amount = subtotal;
-        } else {
-            // normal recipient (no payment request)
+        }
+
+        // normal recipient (no payment request)
+        else
+#endif
+        {
             if (i == nChangePosRet) {
                 i++;
             }

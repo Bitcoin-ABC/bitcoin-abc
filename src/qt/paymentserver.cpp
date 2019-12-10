@@ -2,6 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/paymentserver.h>
 
 #include <cashaddrenc.h>
@@ -44,6 +48,7 @@
 #include <memory>
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
+#ifdef ENABLE_BIP70
 // BIP70 payment protocol messages
 const char *BIP70_MESSAGE_PAYMENTACK = "PaymentACK";
 const char *BIP70_MESSAGE_PAYMENTREQUEST = "PaymentRequest";
@@ -52,6 +57,7 @@ const char *BIP71_MIMETYPE_PAYMENT = "application/bitcoincash-payment";
 const char *BIP71_MIMETYPE_PAYMENTACK = "application/bitcoincash-paymentack";
 const char *BIP71_MIMETYPE_PAYMENTREQUEST =
     "application/bitcoincash-paymentrequest";
+#endif
 
 //
 // Create a name that is unique for:
@@ -142,6 +148,7 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node &node, int argc,
             }
         }
 
+#ifdef ENABLE_BIP70
         if (!itemNetwork && QFile::exists(arg)) {
             // Filename
             PaymentRequestPlus request;
@@ -153,6 +160,7 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node &node, int argc,
                 }
             }
         }
+#endif
 
         if (itemNetwork == nullptr) {
             // Printing to debug.log is about the best we can do here, the GUI
@@ -163,6 +171,7 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node &node, int argc,
             continue;
         }
 
+#ifdef ENABLE_BIP70
         if (chosenNetwork && chosenNetwork != itemNetwork) {
             qWarning() << "PaymentServer::ipcSendCommandLine: Payment request "
                           "from network "
@@ -173,6 +182,7 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node &node, int argc,
         }
 
         savedPaymentRequests.append(arg);
+#endif
         chosenNetwork = itemNetwork;
     }
 
@@ -217,11 +227,18 @@ bool PaymentServer::ipcSendCommandLine() {
 }
 
 PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
-    : QObject(parent), saveURIs(true), uriServer(0), optionsModel(0),
-      netManager(0) {
+    : QObject(parent), saveURIs(true), uriServer(0), optionsModel(0)
+// clang-format off
+#ifdef ENABLE_BIP70
+      ,netManager(0)
+#endif
+// clang-format on
+{
+#ifdef ENABLE_BIP70
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
+#endif
 
     // Install global event filter to catch QFileOpenEvents
     // on Mac: sent when you click bitcoincash: links
@@ -246,14 +263,18 @@ PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
         } else {
             connect(uriServer, &QLocalServer::newConnection, this,
                     &PaymentServer::handleURIConnection);
+#ifdef ENABLE_BIP70
             connect(this, &PaymentServer::receivedPaymentACK, this,
                     &PaymentServer::handlePaymentACK);
+#endif
         }
     }
 }
 
 PaymentServer::~PaymentServer() {
+#ifdef ENABLE_BIP70
     google::protobuf::ShutdownProtobufLibrary();
+#endif
 }
 
 //
@@ -277,7 +298,9 @@ bool PaymentServer::eventFilter(QObject *object, QEvent *event) {
 }
 
 void PaymentServer::uiReady() {
+#ifdef ENABLE_BIP70
     initNetManager();
+#endif
 
     saveURIs = false;
     for (const QString &s : savedPaymentRequests) {
@@ -293,8 +316,9 @@ bool PaymentServer::handleURI(const CChainParams &params, const QString &s) {
     }
 
     QUrlQuery uri((QUrl(s)));
+    // payment request URI
     if (uri.hasQueryItem("r")) {
-        // payment request URI
+#ifdef ENABLE_BIP70
         QByteArray temp;
         temp.append(uri.queryItemValue("r"));
         QString decoded = QUrl::fromPercentEncoding(temp);
@@ -313,6 +337,12 @@ bool PaymentServer::handleURI(const CChainParams &params, const QString &s) {
                            CClientUIInterface::ICON_WARNING);
         }
 
+#else
+        Q_EMIT message(tr("URI handling"),
+                       tr("Cannot process payment request because BIP70 "
+                          "support was not compiled in."),
+                       CClientUIInterface::ICON_WARNING);
+#endif
         return true;
     }
 
@@ -350,6 +380,7 @@ void PaymentServer::handleURIOrFile(const QString &s) {
         return;
     }
 
+#ifdef ENABLE_BIP70
     // payment request file
     if (QFile::exists(s)) {
         PaymentRequestPlus request;
@@ -365,6 +396,7 @@ void PaymentServer::handleURIOrFile(const QString &s) {
 
         return;
     }
+#endif
 }
 
 void PaymentServer::handleURIConnection() {
@@ -392,6 +424,7 @@ void PaymentServer::setOptionsModel(OptionsModel *_optionsModel) {
     this->optionsModel = _optionsModel;
 }
 
+#ifdef ENABLE_BIP70
 struct X509StoreDeleter {
     void operator()(X509_STORE *b) { X509_STORE_free(b); }
 };
@@ -879,3 +912,4 @@ bool PaymentServer::verifyAmount(const Amount requestAmount) {
 X509_STORE *PaymentServer::getCertStore() {
     return certStore.get();
 }
+#endif

@@ -74,10 +74,6 @@ set(CMAKE_AUTOMOC ON)
 # Handle qrc resources
 qt5_add_resources(QRC_BITCOIN_CPP bitcoin.qrc)
 
-# Do protobuf codegen
-find_package(Protobuf REQUIRED)
-protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
-
 add_library(bitcoin-qt-base
 	bantablemodel.cpp
 	bitcoin.cpp
@@ -106,10 +102,6 @@ add_library(bitcoin-qt-base
 	# Handle ui files
 	${UI_GENERATED_HEADERS}
 
-	# Protobuf codegen
-	${PROTOBUF_HEADERS}
-	${PROTOBUF_SOURCES}
-
 	# Translations
 	${BITCOIN_QM_FILES}
 
@@ -118,7 +110,20 @@ add_library(bitcoin-qt-base
 	qrc_bitcoin_locale.cpp
 )
 
-target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+if(ENABLE_BIP70)
+	# Do protobuf codegen
+	find_package(Protobuf REQUIRED)
+	protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
+
+	target_sources(bitcoin-qt-base
+		PRIVATE
+			# Protobuf codegen
+			${PROTOBUF_HEADERS}
+			${PROTOBUF_SOURCES}
+	)
+
+	target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+endif()
 
 # Add the minimal integration plugin, and other plugins according to the target
 # platform.
@@ -232,8 +237,6 @@ target_link_libraries(bitcoin-qt-base
 	rpcclient
 	Qt5::Widgets
 	Qt5::Network
-	OpenSSL::SSL
-	${Protobuf_LIBRARIES}
 )
 if(ENABLE_NOTIFICATIONS)
 	target_link_libraries(bitcoin-qt-base Qt5::DBus)
@@ -255,7 +258,6 @@ if(BUILD_BITCOIN_WALLET)
 			editaddressdialog.cpp
 			openuridialog.cpp
 			overviewpage.cpp
-			paymentrequestplus.cpp
 			paymentserver.cpp
 			receivecoinsdialog.cpp
 			receiverequestdialog.cpp
@@ -274,6 +276,18 @@ if(BUILD_BITCOIN_WALLET)
 			walletmodeltransaction.cpp
 			walletview.cpp
 	)
+
+	# Add BIP70 functionality to bitcoin-qt
+	if(ENABLE_BIP70)
+		target_link_libraries(bitcoin-qt-base
+			OpenSSL::SSL
+			${Protobuf_LIBRARIES}
+		)
+		target_sources(bitcoin-qt-base
+			PRIVATE
+				paymentrequestplus.cpp
+		)
+	endif()
 
 	target_link_libraries(bitcoin-qt-base wallet)
 

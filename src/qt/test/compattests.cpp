@@ -2,10 +2,18 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/test/compattests.h>
 
+#if defined(ENABLE_WALLET) && defined(ENABLE_BIP70)
+// this includes protobuf's port.h which defines its own bswap macos
+#include <qt/paymentrequestplus.h>
+#endif
+
 #include <compat/byteswap.h>
-#include <qt/paymentrequestplus.h> // this includes protobuf's port.h which defines its own bswap macos
 
 void CompatTests::bswapTests() {
     // Sibling in bitcoin/src/test/bswap_tests.cpp

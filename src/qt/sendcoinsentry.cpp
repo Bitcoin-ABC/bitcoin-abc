@@ -2,6 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/forms/ui_sendcoinsentry.h>
 #include <qt/sendcoinsentry.h>
 
@@ -151,10 +155,12 @@ bool SendCoinsEntry::validate(interfaces::Node &node) {
     // Check input validity
     bool retval = true;
 
+#ifdef ENABLE_BIP70
     // Skip checks for payment request
     if (recipient.paymentRequest.IsInitialized()) {
         return retval;
     }
+#endif
 
     if (!model->validateAddress(ui->payTo->text())) {
         ui->payTo->setValid(false);
@@ -183,10 +189,12 @@ bool SendCoinsEntry::validate(interfaces::Node &node) {
 }
 
 SendCoinsRecipient SendCoinsEntry::getValue() {
+#ifdef ENABLE_BIP70
     // Payment request
     if (recipient.paymentRequest.IsInitialized()) {
         return recipient;
     }
+#endif
 
     // Normal payment
     recipient.address = ui->payTo->text();
@@ -214,6 +222,7 @@ QWidget *SendCoinsEntry::setupTabChain(QWidget *prev) {
 void SendCoinsEntry::setValue(const SendCoinsRecipient &value) {
     recipient = value;
 
+#ifdef ENABLE_BIP70
     // payment request
     if (recipient.paymentRequest.IsInitialized()) {
         // unauthenticated
@@ -236,7 +245,9 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value) {
     }
 
     // normal payment
-    else {
+    else
+#endif
+    {
         // message
         ui->messageTextLabel->setText(recipient.message);
         ui->messageTextLabel->setVisible(!recipient.message.isEmpty());
