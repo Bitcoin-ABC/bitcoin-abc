@@ -116,43 +116,46 @@ endfunction()
 # However since CMake 3.2 introduced the CMP0056 policy, the
 # CMAKE_EXE_LINKER_FLAGS variable is used by the try_compile function, so there
 # is a workaround that allow for testing the linker flags.
+function(check_linker_flag RESULT FLAG)
+	# Some linkers (e.g.: Clang) will issue a -Wunused-command-line-argument
+	# warning when an unknown linker flag is set.
+	# Using -Werror will promote these warnings to errors so
+	# CHECK_CXX_COMPILER_FLAG() will return false, preventing the flag from
+	# being set.
+	add_compiler_flags_to_var(
+		CMAKE_REQUIRED_FLAGS
+		CXX
+		"-Werror=unused-command-line-argument"
+	)
+
+	# Save the current linker flags
+	set(SAVE_CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
+
+	# If the flag is already set, avoid duplicating it
+	string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${FLAG}" FLAG_POSITION)
+	if(${FLAG_POSITION} LESS 0)
+		string(APPEND CMAKE_EXE_LINKER_FLAGS " ${FLAG}")
+	endif()
+
+	# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
+	# calls try_compile, so it will check our flag
+	CHECK_CXX_COMPILER_FLAG("" ${RESULT})
+
+	# Restore CMAKE_EXE_LINKER_FLAGS
+	set(CMAKE_EXE_LINKER_FLAGS ${SAVE_CMAKE_EXE_LINKER_FLAGS})
+
+	set(${RESULT} ${${RESULT}} PARENT_SCOPE)
+endfunction()
+
 function(add_linker_flags)
 	foreach(f ${ARGN})
 		sanitize_c_cxx_definition("have_linker_" ${f} FLAG_IS_SUPPORTED)
 
-		# Some linkers (e.g.: Clang) will issue a -Wunused-command-line-argument
-		# warning when an unknown linker flag is set.
-		# Using -Werror will promote these warnings to errors so
-		# CHECK_CXX_COMPILER_FLAG() will return false, preventing the flag from
-		# being set.
-		add_compiler_flags_to_var(
-			CMAKE_REQUIRED_FLAGS
-			CXX
-			"-Werror=unused-command-line-argument"
-		)
+		check_linker_flag(${FLAG_IS_SUPPORTED} ${f})
 
-		# Save the current linker flags
-		set(SAVE_CMAKE_EXE_LINKERFLAGS ${CMAKE_EXE_LINKER_FLAGS})
-
-		# If the flag is already set, avoid duplicating it
-		string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${f}" FLAG_POSITION)
-		if(${FLAG_POSITION} LESS 0)
+		# If the flag is supported, add it to CMAKE_EXE_LINKER_FLAGS
+		if(${FLAG_IS_SUPPORTED})
 			string(APPEND CMAKE_EXE_LINKER_FLAGS " ${f}")
-		endif()
-
-		# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
-		# calls try_compile, so it will check our flag
-		CHECK_CXX_COMPILER_FLAG("" ${FLAG_IS_SUPPORTED})
-
-		# Unset the -Werror=unused-command-line-argument flag if it is set.
-		remove_compiler_flags_from_var(
-			CMAKE_REQUIRED_FLAGS
-			"-Werror=unused-command-line-argument"
-		)
-
-		# If the flag is not supported restore CMAKE_EXE_LINKER_FLAGS
-		if(NOT ${FLAG_IS_SUPPORTED})
-			set(CMAKE_EXE_LINKER_FLAGS ${SAVE_CMAKE_EXE_LINKERFLAGS})
 		endif()
 	endforeach()
 	set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} PARENT_SCOPE)
