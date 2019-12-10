@@ -7,6 +7,10 @@ find_brew_prefix(QT5_PREFIX qt5)
 
 find_package(Qt5LinguistTools HINTS "${QT5_PREFIX}")
 
+if(Qt5LinguistTools_VERSION VERSION_GREATER_EQUAL 5.11)
+	set(QT5_ADD_TRANSLATION_OPTIONS OPTIONS -silent)
+endif()
+
 qt5_add_translation(BITCOIN_QM_FILES
 	bitcoin_af.ts
 	bitcoin_af_ZA.ts
@@ -94,6 +98,7 @@ qt5_add_translation(BITCOIN_QM_FILES
 	bitcoin_zh_HK.ts
 	bitcoin_zh.ts
 	bitcoin_zh_TW.ts
+	${QT5_ADD_TRANSLATION_OPTIONS}
 )
 
 add_custom_target(locales DEPENDS ${BITCOIN_QM_FILES})
