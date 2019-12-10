@@ -803,7 +803,6 @@ static bool AcceptToMemoryPoolWorker(
 
         if (IsGravitonEnabledForCurrentBlock(consensusParams)) {
             extraFlags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
-            extraFlags |= SCRIPT_VERIFY_MINIMALDATA;
         }
 
         // Make sure whatever we need to activate is actually activated.

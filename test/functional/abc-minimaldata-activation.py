@@ -47,10 +47,9 @@ GRAVITON_START_TIME = 2000000000
 REPLAY_PROTECTION_START_TIME = GRAVITON_START_TIME * 2
 
 
-# Both before and after the upgrade, minimal push violations are rejected as
-# nonstandard. After the upgrade they are actually invalid, but we get the
-# same error since MINIMALDATA is internally marked as a "standardness" flag.
-MINIMALPUSH_ERROR = 'non-mandatory-script-verify-flag (Data push larger than necessary)'
+# Both before and after the upgrade, minimal push violations in mempool are
+# rejected with a bannable error.
+MINIMALPUSH_ERROR = 'mandatory-script-verify-flag-failed (Data push larger than necessary)'
 
 # Blocks with invalid scripts give this error:
 BADINPUTS_ERROR = 'blk-bad-inputs'
@@ -197,12 +196,12 @@ class SchnorrTest(BitcoinTestFramework):
                                 node.sendrawtransaction, ToHex(nonminimaltx_3))
 
         self.log.info(
-            "Sending rejected transactions via net (no banning)")
-        self.check_for_no_ban_on_rejected_tx(
+            "Sending rejected transactions via net (banning)")
+        self.check_for_ban_on_rejected_tx(
             nonminimaltx, MINIMALPUSH_ERROR)
-        self.check_for_no_ban_on_rejected_tx(
+        self.check_for_ban_on_rejected_tx(
             nonminimaltx_2, MINIMALPUSH_ERROR)
-        self.check_for_no_ban_on_rejected_tx(
+        self.check_for_ban_on_rejected_tx(
             nonminimaltx_3, MINIMALPUSH_ERROR)
 
         assert_equal(node.getrawmempool(), [])
@@ -242,7 +241,7 @@ class SchnorrTest(BitcoinTestFramework):
             "If we try to submit it by mempool or RPC we still aren't banned")
         assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
                                 node.sendrawtransaction, ToHex(nonminimaltx_3))
-        self.check_for_no_ban_on_rejected_tx(
+        self.check_for_ban_on_rejected_tx(
             nonminimaltx_3, MINIMALPUSH_ERROR)
 
         self.log.info("Mine a normal block")
