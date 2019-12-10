@@ -1,6 +1,11 @@
 # Copyright (c) 2017 The Bitcoin developers
 
 cmake_minimum_required(VERSION 3.12)
+
+set(CMAKE_USER_MAKE_RULES_OVERRIDE
+	"${CMAKE_SOURCE_DIR}/cmake/modules/OverrideInitFlags.cmake"
+)
+
 project(bitcoin-abc
 	VERSION 0.20.9
 	DESCRIPTION "Bitcoin ABC is a full node implementation of the Bitcoin Cash protocol."

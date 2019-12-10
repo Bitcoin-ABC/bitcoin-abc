@@ -40,22 +40,7 @@ if(ENABLE_SANITIZERS)
 	endif()
 endif()
 
-# Cmake uses the CMAKE_BUILD_TYPE variable to select the build configuration.
-# By default it supports more configurations that needed for Bitcoin ABC, and
-# all the releases types set NDEBUG which is unwanted as it disables the assert
-# completely.
-# Remove the -DNDEBUG flag from the CFLAGS/CXXFLAGS in all the configurations
 include(AddCompilerFlags)
-remove_compiler_flags(-DNDEBUG)
-
-# Overrides the flags for the Debug build type
-# This mimics the autotools behavior by setting the CFLAGS to '-g -O2`, which
-# are not well suited for debugging.
-# FIXME: update CFLAGS with better debug oriented optimization flags
-set(CMAKE_C_FLAGS_DEBUG "-g -O2")
-
-# Disable all optimizations
-set(CMAKE_CXX_FLAGS_DEBUG -O0)
 # Prefer -g3, defaults to -g if unavailable
 add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -g3 -g)
 
