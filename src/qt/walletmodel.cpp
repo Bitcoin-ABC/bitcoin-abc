@@ -356,7 +356,7 @@ bool WalletModel::changePassphrase(const SecureString &oldPass,
 // Handlers for core signals
 static void NotifyUnload(WalletModel *walletModel) {
     qDebug() << "NotifyUnload";
-    QMetaObject::invokeMethod(walletModel, "unload", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(walletModel, "unload");
 }
 
 static void NotifyKeyStoreStatusChanged(WalletModel *walletmodel) {

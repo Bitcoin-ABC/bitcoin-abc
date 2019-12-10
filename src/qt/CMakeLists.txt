@@ -271,6 +271,7 @@ if(BUILD_BITCOIN_WALLET)
 			transactionrecord.cpp
 			transactiontablemodel.cpp
 			transactionview.cpp
+			walletcontroller.cpp
 			walletframe.cpp
 			walletmodel.cpp
 			walletmodeltransaction.cpp

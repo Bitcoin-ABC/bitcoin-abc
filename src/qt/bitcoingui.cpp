@@ -30,6 +30,7 @@
 #include <qt/rpcconsole.h>
 #include <qt/utilitydialog.h>
 #ifdef ENABLE_WALLET
+#include <qt/walletcontroller.h>
 #include <qt/walletframe.h>
 #include <qt/walletmodel.h>
 #include <qt/walletview.h>
@@ -604,19 +605,35 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
 }
 
 #ifdef ENABLE_WALLET
+void BitcoinGUI::setWalletController(WalletController *wallet_controller) {
+    assert(!m_wallet_controller);
+    assert(wallet_controller);
+
+    m_wallet_controller = wallet_controller;
+
+    connect(wallet_controller, &WalletController::walletAdded, this,
+            &BitcoinGUI::addWallet);
+    connect(wallet_controller, &WalletController::walletRemoved, this,
+            &BitcoinGUI::removeWallet);
+
+    for (WalletModel *wallet_model : m_wallet_controller->getWallets()) {
+        addWallet(wallet_model);
+    }
+}
+
 void BitcoinGUI::addWallet(WalletModel *walletModel) {
     if (!walletFrame) {
         return;
     }
     const QString display_name = walletModel->getDisplayName();
     setWalletActionsEnabled(true);
+    rpcConsole->addWallet(walletModel);
+    walletFrame->addWallet(walletModel);
     m_wallet_selector->addItem(display_name, QVariant::fromValue(walletModel));
     if (m_wallet_selector->count() == 2) {
         m_wallet_selector_label_action->setVisible(true);
         m_wallet_selector_action->setVisible(true);
     }
-    rpcConsole->addWallet(walletModel);
-    walletFrame->addWallet(walletModel);
 }
 
 void BitcoinGUI::removeWallet(WalletModel *walletModel) {
@@ -641,13 +658,22 @@ void BitcoinGUI::setCurrentWallet(WalletModel *wallet_model) {
         return;
     }
     walletFrame->setCurrentWallet(wallet_model);
+    for (int index = 0; index < m_wallet_selector->count(); ++index) {
+        if (m_wallet_selector->itemData(index).value<WalletModel *>() ==
+            wallet_model) {
+            m_wallet_selector->setCurrentIndex(index);
+            break;
+        }
+    }
     updateWindowTitle();
 }
 
 void BitcoinGUI::setCurrentWalletBySelectorIndex(int index) {
     WalletModel *wallet_model =
         m_wallet_selector->itemData(index).value<WalletModel *>();
-    setCurrentWallet(wallet_model);
+    if (wallet_model) {
+        setCurrentWallet(wallet_model);
+    }
 }
 
 void BitcoinGUI::removeAllWallets() {
