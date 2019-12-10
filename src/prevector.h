@@ -14,7 +14,6 @@
 #include <iterator>
 #include <type_traits>
 
-#pragma pack(push, 1)
 /**
  * Implements a drop-in replacement for std::vector<T> which stores up to N
  * elements directly (without heap allocation). The types Size and Diff are used
@@ -232,14 +231,25 @@ public:
     };
 
 private:
-    size_type _size = 0;
+#pragma pack(push, 1)
     union direct_or_indirect {
         char direct[sizeof(T) * N];
         struct {
-            size_type capacity;
             char *indirect;
+            size_type capacity;
         };
-    } _union = {};
+    };
+#pragma pack(pop)
+    alignas(char *) direct_or_indirect _union = {};
+    size_type _size = 0;
+
+    static_assert(alignof(char *) % alignof(size_type) == 0 &&
+                      sizeof(char *) % alignof(size_type) == 0,
+                  "size_type cannot have more restrictive alignment "
+                  "requirement than pointer");
+    static_assert(alignof(char *) % alignof(T) == 0,
+                  "value_type T cannot have more restrictive alignment "
+                  "requirement than pointer");
 
     T *direct_ptr(difference_type pos) {
         return reinterpret_cast<T *>(_union.direct) + pos;
@@ -581,6 +591,5 @@ public:
 
     const value_type *data() const { return item_ptr(0); }
 };
-#pragma pack(pop)
 
 #endif // BITCOIN_PREVECTOR_H
