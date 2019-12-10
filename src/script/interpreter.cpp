@@ -1138,16 +1138,21 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                     fSuccess = false;
                                 }
                             }
-                        }
 
-                        // If the operation failed, we require that all
-                        // signatures must be empty vector
-                        if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
+                            bool areAllSignaturesNull = true;
                             for (int i = 0; i < nSigsCount; i++) {
                                 if (stacktop(-idxTopSig - i).size()) {
-                                    return set_error(serror,
-                                                     ScriptError::SIG_NULLFAIL);
+                                    areAllSignaturesNull = false;
+                                    break;
                                 }
+                            }
+
+                            // If the operation failed, we may require that all
+                            // signatures must be empty vector
+                            if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) &&
+                                !areAllSignaturesNull) {
+                                return set_error(serror,
+                                                 ScriptError::SIG_NULLFAIL);
                             }
                         }
 
