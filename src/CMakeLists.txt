@@ -23,6 +23,7 @@ option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
 option(ENABLE_UPNP "Enable UPnP support" ON)
 option(ENABLE_NOTIFICATIONS "Enable desktop notifications" ON)
+option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 
 # Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
@@ -156,6 +157,13 @@ if(EXTRA_WARNINGS)
 else()
 	add_compiler_flags(-Wno-unused-parameter)
 	add_compiler_flags(-Wno-implicit-fallthrough)
+endif()
+
+if(ENABLE_WERROR)
+	add_compiler_flags(
+		-Werror=vla
+		-Werror=thread-safety-analysis
+	)
 endif()
 
 # Create a target for OpenSSL
