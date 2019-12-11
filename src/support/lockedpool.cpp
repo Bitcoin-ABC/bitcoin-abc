@@ -57,7 +57,9 @@ void *Arena::alloc(size_t size) {
     size = align_up(size, alignment);
 
     // Don't handle zero-sized chunks
-    if (size == 0) return nullptr;
+    if (size == 0) {
+        return nullptr;
+    }
 
     // Pick a large enough free-chunk
     auto it =
@@ -65,12 +67,16 @@ void *Arena::alloc(size_t size) {
                      [=](const std::map<char *, size_t>::value_type &chunk) {
                          return chunk.second >= size;
                      });
-    if (it == chunks_free.end()) return nullptr;
+    if (it == chunks_free.end()) {
+        return nullptr;
+    }
 
     // Create the used-chunk, taking its space from the end of the free-chunk
     auto alloced =
         chunks_used.emplace(it->first + it->second - size, size).first;
-    if (!(it->second -= size)) chunks_free.erase(it);
+    if (!(it->second -= size)) {
+        chunks_free.erase(it);
+    }
     return reinterpret_cast<void *>(alloced->first);
 }
 
@@ -102,18 +108,22 @@ void Arena::free(void *ptr) {
     auto next = chunks_free.upper_bound(freed.first);
     auto prev =
         (next == chunks_free.begin()) ? chunks_free.end() : std::prev(next);
-    if (prev == chunks_free.end() || !extend(prev, freed))
+    if (prev == chunks_free.end() || !extend(prev, freed)) {
         prev = chunks_free.emplace_hint(next, freed);
-    if (next != chunks_free.end() && extend(prev, *next))
+    }
+    if (next != chunks_free.end() && extend(prev, *next)) {
         chunks_free.erase(next);
+    }
 }
 
 Arena::Stats Arena::stats() const {
     Arena::Stats r{0, 0, 0, chunks_used.size(), chunks_free.size()};
-    for (const auto &chunk : chunks_used)
+    for (const auto &chunk : chunks_used) {
         r.used += chunk.second;
-    for (const auto &chunk : chunks_free)
+    }
+    for (const auto &chunk : chunks_free) {
         r.free += chunk.second;
+    }
     r.total = r.used + r.free;
     return r;
 }
@@ -125,11 +135,13 @@ static void printchunk(char *base, size_t sz, bool used) {
               << " 0x" << used << std::endl;
 }
 void Arena::walk() const {
-    for (const auto &chunk : chunks_used)
+    for (const auto &chunk : chunks_used) {
         printchunk(chunk.first, chunk.second, true);
+    }
     std::cout << std::endl;
-    for (const auto &chunk : chunks_free)
+    for (const auto &chunk : chunks_free) {
         printchunk(chunk.first, chunk.second, false);
+    }
     std::cout << std::endl;
 }
 #endif
@@ -261,7 +273,9 @@ void *LockedPool::alloc(size_t size) {
     std::lock_guard<std::mutex> lock(mutex);
 
     // Don't handle impossible sizes
-    if (size == 0 || size > ARENA_SIZE) return nullptr;
+    if (size == 0 || size > ARENA_SIZE) {
+        return nullptr;
+    }
 
     // Try allocating from each current arena
     for (auto &arena : arenas) {
