@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <util/strencodings.h>
+#include <util/string.h>
 
 #include <tinyformat.h>
 
@@ -288,7 +289,7 @@ NODISCARD static bool ParsePrechecks(const std::string &str) {
         return false;
     }
     // No embedded NUL characters allowed
-    if (str.size() != strlen(str.c_str())) {
+    if (!ValidAsCString(str)) {
         return false;
     }
     return true;
