@@ -3179,7 +3179,8 @@ void CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
                                       CBlockIndex *pindex, F f) {
     BlockStatus newStatus = f(pindex->nStatus);
     if (pindex->nStatus != newStatus &&
-        pindex->GetAncestor(pindexBase->nHeight) == pindexBase) {
+        (!pindexBase ||
+         pindex->GetAncestor(pindexBase->nHeight) == pindexBase)) {
         pindex->nStatus = newStatus;
         setDirtyBlockIndex.insert(pindex);
         if (newStatus.isValid()) {
@@ -3210,14 +3211,7 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild) {
 
     // Update the flags from all ancestors too.
     while (pindex != nullptr) {
-        BlockStatus newStatus = f(pindex->nStatus);
-        if (pindex->nStatus != newStatus) {
-            pindex->nStatus = newStatus;
-            setDirtyBlockIndex.insert(pindex);
-            if (newStatus.isValid()) {
-                m_failed_blocks.erase(pindex);
-            }
-        }
+        UpdateFlagsForBlock(nullptr, pindex, f);
         pindex = pindex->pprev;
     }
 }
