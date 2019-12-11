@@ -198,7 +198,7 @@ bool CSeederNode::Run() {
             }
             connected = ConnectThroughProxy(
                 proxy, you.ToStringIP(), you.GetPort(), sock, nConnectTimeout,
-                &proxyConnectionFailed);
+                proxyConnectionFailed);
         } else {
             // no proxy needed (none set for target network)
             sock = CreateSocket(you);

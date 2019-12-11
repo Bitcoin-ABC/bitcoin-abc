@@ -429,7 +429,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
             }
             connected = ConnectThroughProxy(
                 proxy, addrConnect.ToStringIP(), addrConnect.GetPort(), hSocket,
-                nConnectTimeout, &proxyConnectionFailed);
+                nConnectTimeout, proxyConnectionFailed);
         } else {
             // no proxy needed (none set for target network)
             hSocket = CreateSocket(addrConnect);
@@ -453,8 +453,9 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         std::string host;
         int port = default_port;
         SplitHostPort(std::string(pszDest), port, host);
+        bool proxyConnectionFailed;
         connected = ConnectThroughProxy(proxy, host, port, hSocket,
-                                        nConnectTimeout, nullptr);
+                                        nConnectTimeout, proxyConnectionFailed);
     }
     if (!connected) {
         CloseSocket(hSocket);
@@ -1838,7 +1839,7 @@ void CConnman::ThreadDNSAddressSeed() {
 
             // Limits number of IPs learned from a DNS seed
             unsigned int nMaxIPs = 256;
-            if (LookupHost(host.c_str(), vIPs, nMaxIPs, true)) {
+            if (LookupHost(host, vIPs, nMaxIPs, true)) {
                 for (const CNetAddr &ip : vIPs) {
                     int nOneDay = 24 * 3600;
                     CAddress addr = CAddress(
@@ -2162,8 +2163,7 @@ std::vector<AddedNodeInfo> CConnman::GetAddedNodeInfo() {
     }
 
     for (const std::string &strAddNode : lAddresses) {
-        CService service(
-            LookupNumeric(strAddNode.c_str(), Params().GetDefaultPort()));
+        CService service(LookupNumeric(strAddNode, Params().GetDefaultPort()));
         AddedNodeInfo addedNode{strAddNode, CService(), false, false};
         if (service.IsValid()) {
             // strAddNode is an IP:port

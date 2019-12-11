@@ -177,7 +177,7 @@ static bool InitHTTPAllowList() {
     rpc_allow_subnets.push_back(CSubNet(localv6));
     for (const std::string &strAllow : gArgs.GetArgs("-rpcallowip")) {
         CSubNet subnet;
-        LookupSubNet(strAllow.c_str(), subnet);
+        LookupSubNet(strAllow, subnet);
         if (!subnet.IsValid()) {
             uiInterface.ThreadSafeMessageBox(
                 strprintf(
@@ -351,8 +351,7 @@ static bool HTTPBindAddresses(struct evhttp *http) {
         if (bind_handle) {
             CNetAddr addr;
             if (i->first.empty() ||
-                (LookupHost(i->first.c_str(), addr, false) &&
-                 addr.IsBindAny())) {
+                (LookupHost(i->first, addr, false) && addr.IsBindAny())) {
                 LogPrintf("WARNING: the RPC server is not safe to expose to "
                           "untrusted networks such as the public internet\n");
             }

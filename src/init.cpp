@@ -2314,7 +2314,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     SetReachable(NET_ONION, false);
     if (proxyArg != "" && proxyArg != "0") {
         CService proxyAddr;
-        if (!Lookup(proxyArg.c_str(), proxyAddr, 9050, fNameLookup)) {
+        if (!Lookup(proxyArg, proxyAddr, 9050, fNameLookup)) {
             return InitError(strprintf(
                 _("Invalid -proxy address or hostname: '%s'"), proxyArg));
         }
@@ -2345,7 +2345,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             SetReachable(NET_ONION, false);
         } else {
             CService onionProxy;
-            if (!Lookup(onionArg.c_str(), onionProxy, 9050, fNameLookup)) {
+            if (!Lookup(onionArg, onionProxy, 9050, fNameLookup)) {
                 return InitError(strprintf(
                     _("Invalid -onion address or hostname: '%s'"), onionArg));
             }
@@ -2366,7 +2366,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     for (const std::string &strAddr : args.GetArgs("-externalip")) {
         CService addrLocal;
-        if (Lookup(strAddr.c_str(), addrLocal, GetListenPort(), fNameLookup) &&
+        if (Lookup(strAddr, addrLocal, GetListenPort(), fNameLookup) &&
             addrLocal.IsValid()) {
             AddLocal(addrLocal, LOCAL_MANUAL);
         } else {
@@ -2892,7 +2892,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     for (const std::string &strBind : args.GetArgs("-bind")) {
         CService addrBind;
-        if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false)) {
+        if (!Lookup(strBind, addrBind, GetListenPort(), false)) {
             return InitError(ResolveErrMsg("bind", strBind));
         }
         connOptions.vBinds.push_back(addrBind);
