@@ -103,10 +103,9 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
 // should fail.
 // Capture this interaction with the upgraded_nop argument: set it when
 // evaluating any script flag that is implemented as an upgraded NOP code.
-static void ValidateCheckInputsForAllFlags(const CTransaction &tx,
-                                           uint32_t failing_flags,
-                                           uint32_t required_flags,
-                                           bool add_to_cache, bool upgraded_nop)
+static void
+ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
+                               uint32_t required_flags, bool add_to_cache)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     PrecomputedTransactionData txdata(tx);
 
@@ -128,14 +127,6 @@ static void ValidateCheckInputsForAllFlags(const CTransaction &tx,
         // CheckInputs should succeed iff test_flags doesn't intersect with
         // failing_flags
         bool expected_return_value = !(test_flags & failing_flags);
-        if (expected_return_value && upgraded_nop) {
-            // If the script flag being tested corresponds to an upgraded NOP,
-            // then script execution should fail if DISCOURAGE_UPGRADABLE_NOPS
-            // is set.
-            expected_return_value =
-                !(test_flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS);
-        }
-
         BOOST_CHECK_EQUAL(ret, expected_return_value);
 
         // Test the caching
@@ -267,7 +258,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // later that block validation works fine in the absence of cached
         // successes.
         ValidateCheckInputsForAllFlags(
-            tx, SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS, 0, false, false);
+            tx, SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS, 0, false);
     }
 
     // And if we produce a block with this tx, it should be valid, even though
@@ -294,7 +285,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         invalid_under_p2sh_tx.vin[0].scriptSig << vchSig2;
 
         ValidateCheckInputsForAllFlags(CTransaction(invalid_under_p2sh_tx),
-                                       SCRIPT_VERIFY_P2SH, 0, true, false);
+                                       SCRIPT_VERIFY_P2SH, 0, true);
     }
 
     // Test CHECKLOCKTIMEVERIFY
@@ -318,10 +309,10 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_cltv_tx.vin[0].scriptSig = CScript() << vchSig << 101;
 
-        ValidateCheckInputsForAllFlags(
-            CTransaction(invalid_with_cltv_tx),
-            SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_ENABLE_REPLAY_PROTECTION,
-            SCRIPT_ENABLE_SIGHASH_FORKID, true, true);
+        ValidateCheckInputsForAllFlags(CTransaction(invalid_with_cltv_tx),
+                                       SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
+                                           SCRIPT_ENABLE_REPLAY_PROTECTION,
+                                       SCRIPT_ENABLE_SIGHASH_FORKID, true);
 
         // Make it valid, and check again
         invalid_with_cltv_tx.vin[0].scriptSig = CScript() << vchSig << 100;
@@ -355,10 +346,10 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 101;
 
-        ValidateCheckInputsForAllFlags(
-            CTransaction(invalid_with_csv_tx),
-            SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_ENABLE_REPLAY_PROTECTION,
-            SCRIPT_ENABLE_SIGHASH_FORKID, true, true);
+        ValidateCheckInputsForAllFlags(CTransaction(invalid_with_csv_tx),
+                                       SCRIPT_VERIFY_CHECKSEQUENCEVERIFY |
+                                           SCRIPT_ENABLE_REPLAY_PROTECTION,
+                                       SCRIPT_ENABLE_SIGHASH_FORKID, true);
 
         // Make it valid, and check again
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 100;
@@ -410,7 +401,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // convention.
         ValidateCheckInputsForAllFlags(
             CTransaction(tx), SCRIPT_ENABLE_REPLAY_PROTECTION,
-            SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_P2SH, true, false);
+            SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_P2SH, true);
 
         // Check that if the second input is invalid, but the first input is
         // valid, the transaction is not cached.

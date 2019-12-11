@@ -175,6 +175,33 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
                         std::string(FormatScriptError(err)) + " where " +
                             std::string(FormatScriptError(scriptError)) +
                             " expected: " + message);
+
+    // Verify that removing flags from a passing test or adding flags to a
+    // failing test does not change the result, except for some special flags.
+    for (int i = 0; i < 16; ++i) {
+        uint32_t extra_flags = InsecureRandBits(32);
+        // Some flags are not purely-restrictive and thus we can't assume
+        // anything about what happens when they are flipped. Keep them as-is.
+        extra_flags &=
+            ~(SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_ENABLE_REPLAY_PROTECTION |
+              SCRIPT_ENABLE_SCHNORR_MULTISIG);
+        uint32_t combined_flags =
+            expect ? (flags & ~extra_flags) : (flags | extra_flags);
+        // Weed out invalid flag combinations.
+        if (combined_flags & SCRIPT_VERIFY_CLEANSTACK) {
+            combined_flags |= SCRIPT_VERIFY_P2SH;
+        }
+
+        BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey,
+                                         combined_flags,
+                                         MutableTransactionSignatureChecker(
+                                             &tx, 0, txCredit.vout[0].nValue),
+                                         &err) == expect,
+                            message + strprintf(" (with %s flags %08x)",
+                                                expect ? "removed" : "added",
+                                                combined_flags ^ flags));
+    }
+
 #if defined(HAVE_CONSENSUS_LIB)
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << tx2;

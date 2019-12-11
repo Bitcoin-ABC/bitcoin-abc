@@ -22,16 +22,16 @@ enum {
     SCRIPT_VERIFY_STRICTENC = (1U << 1),
 
     // Passing a non-strict-DER signature to a checksig operation causes script
-    // failure (softfork safe, BIP62 rule 1)
+    // failure (BIP62 rule 1)
     SCRIPT_VERIFY_DERSIG = (1U << 2),
 
     // Passing a non-strict-DER signature or one with S > order/2 to a checksig
     // operation causes script failure
-    // (softfork safe, BIP62 rule 5).
+    // (BIP62 rule 5).
     SCRIPT_VERIFY_LOW_S = (1U << 3),
 
     // Using a non-push operator in the scriptSig causes script failure
-    // (softfork safe, BIP62 rule 2).
+    // (BIP62 rule 2).
     SCRIPT_VERIFY_SIGPUSHONLY = (1U << 5),
 
     // Require minimal encodings for all push operations (OP_0... OP_16,
@@ -40,7 +40,6 @@ enum {
     // push causes the script to fail (BIP62 rule 3). In addition, whenever a
     // stack element is interpreted as a number, it must be of minimal length
     // (BIP62 rule 4).
-    // (softfork safe)
     SCRIPT_VERIFY_MINIMALDATA = (1U << 6),
 
     // Discourage use of NOPs reserved for upgrades (NOP1-10)
@@ -58,8 +57,8 @@ enum {
     // remain, and when interpreted as a boolean, it must be true" to "Exactly
     // one stack element must remain, and when interpreted as a boolean, it must
     // be true".
-    // (softfork safe, BIP62 rule 6)
-    // Note: CLEANSTACK should never be used without P2SH or WITNESS.
+    // (BIP62 rule 6)
+    // Note: CLEANSTACK should never be used without P2SH.
     // Note: The Segwit Recovery feature is an exception to CLEANSTACK
     SCRIPT_VERIFY_CLEANSTACK = (1U << 8),
 
