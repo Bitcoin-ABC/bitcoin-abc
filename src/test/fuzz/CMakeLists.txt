@@ -70,12 +70,14 @@ endfunction()
 
 add_regular_fuzz_targets(
 	addrdb
+	base_encode_decode
 	block
 	bloom_filter
 	rolling_bloom_filter
 	cashaddr
 	descriptor_parse
 	eval_script
+	hex
 	integer
 	net_permissions
 	parse_hd_keypath
