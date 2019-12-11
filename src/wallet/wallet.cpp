@@ -1285,8 +1285,6 @@ void CWallet::MarkConflicted(const BlockHash &hashBlock, const TxId &txid) {
 void CWallet::SyncTransaction(const CTransactionRef &ptx,
                               const CBlockIndex *pindex, int posInBlock,
                               bool update_tx) {
-    const CTransaction &tx = *ptx;
-
     if (!AddToWalletIfInvolvingMe(ptx, pindex, posInBlock, update_tx)) {
         // Not one of ours
         return;
