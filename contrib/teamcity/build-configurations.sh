@@ -60,8 +60,13 @@ setup
 case "$ABC_BUILD_NAME" in
   build-asan)
     # Build with the address sanitizer, then run unit tests and functional tests.
-    CONFIGURE_FLAGS="--enable-debug --with-sanitizers=address --disable-ccache" "${CI_SCRIPTS_DIR}"/build_autotools.sh
-    make -j "${THREADS}" check
+    CMAKE_FLAGS=(
+      "-DCMAKE_BUILD_TYPE=Debug"
+      "-DENABLE_SANITIZERS=address"
+      "-DCCACHE=OFF"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check
     # FIXME Remove when wallet_multiwallet works with asan after backporting at least the following PRs from Core and their dependencies: 13161, 12493, 14320, 14552, 14760, 11911.
     TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=wallet_multiwallet"
     ./test/functional/test_runner.py -J=junit_results_asan.xml ${TEST_RUNNER_FLAGS}
@@ -69,8 +74,15 @@ case "$ABC_BUILD_NAME" in
 
   build-ubsan)
     # Build with the undefined sanitizer, then run unit tests and functional tests.
-    CONFIGURE_FLAGS="--enable-debug --with-sanitizers=undefined --disable-ccache CC=clang CXX=clang++" "${CI_SCRIPTS_DIR}"/build_autotools.sh
-    make -j "${THREADS}" check
+    CMAKE_FLAGS=(
+      "-DCMAKE_BUILD_TYPE=Debug"
+      "-DENABLE_SANITIZERS=undefined"
+      "-DCCACHE=OFF"
+      "-DCMAKE_C_COMPILER=clang"
+      "-DCMAKE_CXX_COMPILER=clang++"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check
     # FIXME Remove when abc-p2p-compactblocks works with ubsan.
     TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=abc-p2p-compactblocks"
     ./test/functional/test_runner.py -J=junit_results_ubsan.xml ${TEST_RUNNER_FLAGS}
@@ -78,8 +90,15 @@ case "$ABC_BUILD_NAME" in
 
   build-tsan)
     # Build with the thread sanitizer, then run unit tests and functional tests.
-    CONFIGURE_FLAGS="--enable-debug --with-sanitizers=thread --disable-ccache CC=clang CXX=clang++" "${CI_SCRIPTS_DIR}"/build_autotools.sh
-    make -j "${THREADS}" check
+    CMAKE_FLAGS=(
+      "-DCMAKE_BUILD_TYPE=Debug"
+      "-DENABLE_SANITIZERS=thread"
+      "-DCCACHE=OFF"
+      "-DCMAKE_C_COMPILER=clang"
+      "-DCMAKE_CXX_COMPILER=clang++"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check
     # FIXME Remove when wallet_multiwallet works with tsan after backporting at least the following PRs from Core and their dependencies: 13161, 12493, 14320, 14552, 14760, 11911.
     TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=wallet_multiwallet"
     ./test/functional/test_runner.py -J=junit_results_tsan.xml ${TEST_RUNNER_FLAGS}
@@ -87,8 +106,8 @@ case "$ABC_BUILD_NAME" in
 
   build-default)
     # Build, run unit tests and functional tests (all extended tests if this is the master branch).
-    "${CI_SCRIPTS_DIR}"/build_autotools.sh
-    make -j "${THREADS}" check
+    "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check
 
     BRANCH=$(git rev-parse --abbrev-ref HEAD)
     if [[ "${BRANCH}" == "master" ]]; then
@@ -101,34 +120,56 @@ case "$ABC_BUILD_NAME" in
     export TOPLEVEL="${TOPLEVEL}"/src/secp256k1
     export BUILD_DIR="${TOPLEVEL}"/build
     setup
-    CONFIGURE_FLAGS="--enable-jni --enable-experimental --enable-module-ecdh" "${CI_SCRIPTS_DIR}"/build_autotools.sh
-    make -j "${THREADS}" check-java
+    CMAKE_FLAGS=(
+      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
+      "-DSECP256K1_ENABLE_JNI=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check-secp256k1-java
     ;;
 
   build-without-wallet)
     # Build without wallet and run the unit tests.
-    CONFIGURE_FLAGS="--disable-wallet" "${CI_SCRIPTS_DIR}"/build_autotools.sh
-    make -j "${THREADS}" check
+    CMAKE_FLAGS=(
+      "-DBUILD_BITCOIN_WALLET=OFF"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check
     ;;
 
   build-ibd)
-    "${CI_SCRIPTS_DIR}"/build_autotools.sh
+    "${CI_SCRIPTS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -debug=net
     ;;
 
   build-ibd-no-assumevalid-checkpoint)
-    "${CI_SCRIPTS_DIR}"/build_autotools.sh
+    "${CI_SCRIPTS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     ;;
 
   build-werror)
     # Build with variable-length-array and thread-safety-analysis treated as errors
-    CONFIGURE_FLAGS="--enable-debug --enable-werror CC=clang CXX=clang++" "${CI_SCRIPTS_DIR}"/build_autotools.sh
+    CMAKE_FLAGS=(
+      "-DENABLE_WERROR=ON"
+      "-DCMAKE_C_COMPILER=clang"
+      "-DCMAKE_CXX_COMPILER=clang++"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
     ;;
 
   build-check-all)
-    CMAKE_FLAGS="-DSECP256K1_ENABLE_MODULE_ECDH=ON -DSECP256K1_ENABLE_JNI=ON" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS=(
+      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
+      "-DSECP256K1_ENABLE_JNI=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
     ninja check-all
+    ;;
+
+  build-autotools)
+    # Ensure that the build using autotools is not broken
+    "${CI_SCRIPTS_DIR}"/build_autotools.sh
+    make -j "${THREADS}" check
     ;;
 
   *)
