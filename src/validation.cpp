@@ -741,10 +741,15 @@ void CoinsViews::InitCache() {
 
 // NOTE: for now m_blockman is set to a global, but this will be changed
 // in a future commit.
-CChainState::CChainState() : m_blockman(g_blockman) {}
+CChainState::CChainState(BlockHash from_snapshot_blockhash)
+    : m_blockman(g_blockman),
+      m_from_snapshot_blockhash(from_snapshot_blockhash) {}
 
 void CChainState::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
                               bool should_wipe, std::string leveldb_name) {
+    if (!m_from_snapshot_blockhash.IsNull()) {
+        leveldb_name += "_" + m_from_snapshot_blockhash.ToString();
+    }
     m_coins_views = std::make_unique<CoinsViews>(leveldb_name, cache_size_bytes,
                                                  in_memory, should_wipe);
 }

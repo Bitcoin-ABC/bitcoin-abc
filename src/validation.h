@@ -838,8 +838,8 @@ private:
     const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
 
 public:
-    CChainState(BlockManager &blockman) : m_blockman(blockman) {}
-    CChainState();
+    explicit CChainState(BlockManager &blockman) : m_blockman(blockman) {}
+    explicit CChainState(BlockHash from_snapshot_blockhash = BlockHash());
 
     /**
      * Initialize the CoinsViews UTXO set database management data structures.
@@ -864,6 +864,15 @@ public:
     //! The current chain of blockheaders we consult and build on.
     //! @see CChain, CBlockIndex.
     CChain m_chain;
+
+    /**
+     * The blockhash which is the base of the snapshot this chainstate was
+     * created from.
+     *
+     * IsNull() if this chainstate was not created from a snapshot.
+     */
+    const BlockHash m_from_snapshot_blockhash{};
+
     /**
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for
      * itself and all ancestors) and as good as our current tip or better.
