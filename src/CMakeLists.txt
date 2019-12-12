@@ -324,11 +324,6 @@ target_include_directories(util
 )
 
 if(ENABLE_GLIBC_BACK_COMPAT)
-	# glibc absorbed clock_gettime in 2.17. librt (its previous location) is
-	# safe to link in anyway for back-compat.
-	find_library(RT_LIBRARY rt)
-	target_link_libraries(util ${RT_LIBRARY})
-
 	# Wrap some glibc functions with ours
 	add_linker_flags(-Wl,--wrap=__divmoddi4)
 	add_linker_flags(-Wl,--wrap=log2f)
