@@ -21,11 +21,11 @@ Dependencies
 
 Install dependencies:
 
-    brew install automake berkeley-db libtool boost miniupnpc openssl pkg-config protobuf python qt libevent qrencode
+    brew install berkeley-db boost cmake libevent miniupnpc ninja openssl protobuf python qrencode qt zeromq
 
 See [dependencies.md](dependencies.md) for a complete overview.
 
-If you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG:
+If you want to build the disk image with `ninja osx-dmg` (.dmg / optional), you need RSVG:
 
     brew install librsvg
 
@@ -41,32 +41,31 @@ Before you start building, please make sure that your compiler supports C++14.
 
 2.  Build Bitcoin ABC:
 
-    Configure and build the headless Bitcoin ABC binaries as well as the GUI (if Qt is found).
+    Configure and build the headless Bitcoin ABC binaries as well as the GUI.
 
-    You can disable the GUI build by passing `--without-gui` to configure.
+    You can disable the GUI build by passing `-DBUILD_BITCOIN_QT=OFF` to cmake.
 
     It is recommended to create a build directory to build out-of-tree. 
 
-        ./autogen.sh
         mkdir build
         cd build
-        ../configure
-        make
+        cmake -GNinja ..
+        ninja
 
 3.  It is recommended to build and run the unit tests:
 
-        make check
+        ninja check
 
 4.  You can also create a .dmg that contains the .app bundle (optional):
 
-        make deploy
+        ninja osx-dmg
 
 Disable-wallet mode
 --------------------
 When the intention is to run only a P2P node without a wallet, Bitcoin ABC may be compiled in
 disable-wallet mode with:
 
-    ./configure --disable-wallet
+    cmake -GNinja .. -DBUILD_BITCOIN_WALLET=OFF
 
 Mining is also possible in disable-wallet mode using the `getblocktemplate` RPC call.
 

@@ -11,13 +11,32 @@ This guide does not contain instructions for building the GUI.
 You will need the following dependencies, which can be installed as root via pkg:
 
 ```shell
-pkg install autoconf automake boost-libs gmake libevent libtool openssl pkgconf
+pkg install cmake libevent ninja openssl
 ```
+
+### Optional libraries
+
+To enable UPnP:
+```shell
+pkg install miniupnpc
+```
+If not installed, UPnP support should be disabled by passing `-DENABLE_UPNP=OFF` to `cmake`.
+
+To enable ZeroMQ:
+```shell
+pkg install libzmq4
+```
+If not installed, ZeroMQ support should be disabled by passing `-BUILD_BITCOIN_ZMQ=OFF` to `cmake`.
 
 In order to run the test suite (recommended), you will need to have Python 3 installed:
 
 ```shell
 pkg install python3
+```
+
+To run the ZeroMQ tests:
+```shell
+pkg install py36-pyzmq
 ```
 
 For the wallet (optional):
@@ -31,28 +50,20 @@ refer to [CONTRIBUTING](../CONTRIBUTING.md) for instructions on how to clone the
 
 ## Building Bitcoin ABC
 
-**Important**: Use `gmake` (the non-GNU `make` will exit with an error):
-
 With wallet:
 
 ```shell
-./autogen.sh
-./configure --with-gui=no \
-    CXXFLAGS="-I/usr/local/include" \
-    BDB_CFLAGS="-I/usr/local/include/db5" \
-    BDB_LIBS="-L/usr/local/lib -ldb_cxx-5"
+mkdir build
+cd build
+cmake -GNinja -DBUILD_BITCOIN_QT=OFF ..
+ninja
 ```
 
 Without wallet:
 
 ```shell
-./autogen.sh
-./configure --with-gui=no --disable-wallet
-```
-
-followed by:
-
-```shell
-gmake # use -jX here for parallelism
-gmake check # Run tests if Python 3 is available
+mkdir build
+cd build
+cmake -GNinja -DBUILD_BITCOIN_QT=OFF -DBUILD_BITCOIN_WALLET=OFF ..
+ninja
 ```

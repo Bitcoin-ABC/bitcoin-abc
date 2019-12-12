@@ -5,7 +5,7 @@ Below are some notes on how to build Bitcoin ABC for Windows.
 
 The options known to work for building Bitcoin ABC on Windows are:
 
-* On Linux, using the [Mingw-w64](https://mingw-w64.org/doku.php) cross compiler tool chain. Ubuntu Trusty 14.04 is recommended
+* On Linux, using the [Mingw-w64](https://mingw-w64.org/doku.php) cross compiler tool chain. Debian Buster is recommended
 and is the platform used to build the Bitcoin ABC Windows release binaries.
 * On Windows, using [Windows
 Subsystem for Linux (WSL)](https://msdn.microsoft.com/commandline/wsl/about) and the Mingw-w64 cross compiler tool chain.
@@ -26,7 +26,7 @@ feature allows you to run a bash shell directly on Windows in an Ubuntu-based
 environment. Within this environment you can cross compile for Windows without
 the need for a separate Linux VM or server. Note that while WSL can be installed with
 other Linux variants, such as OpenSUSE, the following instructions have only been
-tested with Ubuntu.
+tested with Ubuntu Bionic.
 
 This feature is not supported in versions of Windows prior to Windows 10 or on
 Windows Server SKUs. In addition, it is available [only for 64-bit versions of
@@ -53,11 +53,7 @@ recommended, but it is possible to compile the 32-bit version.
 Cross-compilation for Ubuntu and Windows Subsystem for Linux
 ------------------------------------------------------------
 
-At the time of writing the Windows Subsystem for Linux installs Ubuntu Xenial 16.04. The Mingw-w64 package
-for Ubuntu Xenial does not produce working executables for some of the Bitcoin ABC applications.
-It is possible to build on Ubuntu Xenial by installing the cross compiler packages from Ubuntu Artful, see the steps below.
-Building on Ubuntu Artful 17.10 has been verified to work.
-
+At the time of writing the Windows Subsystem for Linux installs Ubuntu Bionic 18.04. 
 The steps below can be performed on Ubuntu (including in a VM) or WSL. The depends system
 will also work on other Linux distributions, however the commands for
 installing the toolchain will be different.
@@ -66,7 +62,16 @@ First, install the general dependencies:
 
     sudo apt update
     sudo apt upgrade
-    sudo apt install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git
+    sudo apt install autoconf automake build-essential bsdmainutils curl git libboost-all-dev libevent-dec libssl-dev libtool ninja-build pkg-config python3
+
+The cmake version packaged with Ubuntu Bionic is too old for building Building Bitcoin ABC.
+To install the latest version:
+
+    sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+    sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+    sudo apt update
+    sudo apt install cmake
 
 A host toolchain (`build-essential`) is necessary because some dependency
 packages (such as `protobuf`) need to build host utilities that are used in the
@@ -83,10 +88,6 @@ Common steps to install mingw32 cross compiler tool chain:
 
     sudo apt install g++-mingw-w64-x86-64
 
-Ubuntu Trusty 14.04:
-
-    No further steps required
-
 Ubuntu Xenial 16.04 and Windows Subsystem for Linux <sup>[1](#footnote1),[2](#footnote2)</sup>:
 
     sudo apt install software-properties-common
@@ -94,15 +95,17 @@ Ubuntu Xenial 16.04 and Windows Subsystem for Linux <sup>[1](#footnote1),[2](#fo
     sudo apt update
     sudo apt upgrade
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
+    sudo update-alternatives --config x86_64-w64-mingw32-gcc # Set the default mingw32 gcc compiler option to posix.
 
-Ubuntu Artful 17.10 <sup>[2](#footnote2)</sup>:
+Ubuntu Artful 17.10 <sup>[2](#footnote2)</sup> and later, including Ubuntu Bionic on WSL:
 
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
+    sudo update-alternatives --config x86_64-w64-mingw32-gcc # Set the default mingw32 gcc compiler option to posix.
 
 Once the toolchain is installed the build steps are common:
 
 Note that for WSL the Bitcoin ABC source path MUST be somewhere in the default mount file system, for
-example /usr/src/bitcoin-abc, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
+example /usr/src/bitcoin-abc, AND not under /mnt/d/.
 This means you cannot use a directory that is located directly on the host Windows file system to perform the build.
 
 Acquire the source in the usual way:
@@ -113,11 +116,12 @@ Once the source code is ready the build steps are below:
 
     PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
     cd depends
-    make HOST=x86_64-w64-mingw32
+    make build-win64
     cd ..
-    ./autogen.sh # not required when building from tarball
-    CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --with-seeder=false # seeder not supported in Windows yet
-    make
+    mkdir build
+    cd build
+    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win64.cmake -DBUILD_BITCOIN_SEEDER=OFF # seeder not supported in Windows yet
+    ninja
 
 ## Building for 32-bit Windows
 
@@ -125,12 +129,13 @@ To build executables for Windows 32-bit, install the following dependencies:
 
     sudo apt install g++-mingw-w64-i686 mingw-w64-i686-dev
 
-For Ubuntu Xenial 16.04, Ubuntu Artful 17.10 and Windows Subsystem for Linux <sup>[2](#footnote2)</sup>:
+For Ubuntu Xenial 16.04 and later, including Ubuntu Bionic on the Windows Subsystem for Linux <sup>[2](#footnote2)</sup>:
 
     sudo update-alternatives --config i686-w64-mingw32-g++  # Set the default mingw32 g++ compiler option to posix.
+    sudo update-alternatives --config i686-w64-mingw32-gcc  # Set the default mingw32 gcc compiler option to posix.
 
 Note that for WSL the Bitcoin ABC source path MUST be somewhere in the default mount file system, for
-example /usr/src/bitcoin-abc, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
+example /usr/src/bitcoin-abc, AND not under /mnt/d/.
 This means you cannot use a directory that located directly on the host Windows file system to perform the build.
 
 Acquire the source in the usual way:
@@ -141,11 +146,12 @@ Then build using:
 
     PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
     cd depends
-    make HOST=i686-w64-mingw32
+    make build-win32
     cd ..
-    ./autogen.sh # not required when building from tarball
-    CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --with-seeder=false # seeder not supported in Windows yet
-    make
+    mkdir build
+    cd build
+    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win32.cmake -DBUILD_BITCOIN_SEEDER=OFF # seeder not supported in Windows yet
+    ninja
 
 ## Depends system
 
@@ -159,7 +165,8 @@ executables to a directory on the windows drive in the same directory structure
 as they appear in the release `.zip` archive. This can be done in the following
 way. This will install to `c:\workspace\bitcoin-abc`, for example:
 
-    make install DESTDIR=/mnt/c/workspace/bitcoin-abc
+    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win32.cmake -DBUILD_BITCOIN_SEEDER=OFF -DCMAKE_INSTALL_PREFIX=/mnt/c/workspace/bitcoin-abc
+    ninja install
 
 Footnotes
 ---------
