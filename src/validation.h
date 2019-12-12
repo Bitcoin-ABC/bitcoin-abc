@@ -842,8 +842,8 @@ private:
     const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
 
 public:
-    explicit CChainState(BlockManager &blockman) : m_blockman(blockman) {}
-    explicit CChainState(BlockHash from_snapshot_blockhash = BlockHash());
+    explicit CChainState(BlockManager &blockman,
+                         BlockHash from_snapshot_blockhash = BlockHash());
 
     /**
      * Initialize the CoinsViews UTXO set database management data structures.
@@ -1149,9 +1149,14 @@ private:
     bool m_snapshot_validated{false};
 
     // For access to m_active_chainstate.
+    friend CChainState &ChainstateActive();
     friend CChain &ChainActive();
 
 public:
+    //! A single BlockManager instance is shared across each constructed
+    //! chainstate to avoid duplicating block metadata.
+    BlockManager m_blockman GUARDED_BY(::cs_main);
+
     //! Instantiate a new chainstate and assign it based upon whether it is
     //! from a snapshot.
     //!
@@ -1168,6 +1173,10 @@ public:
     CChain &ActiveChain() const;
     int ActiveHeight() const { return ActiveChain().Height(); }
     CBlockIndex *ActiveTip() const { return ActiveChain().Tip(); }
+
+    BlockMap &BlockIndex() EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        return m_blockman.m_block_index;
+    }
 
     bool IsSnapshotActive() const;
 
@@ -1196,6 +1205,8 @@ public:
     void Reset();
 };
 
+extern ChainstateManager g_chainman;
+
 /** @returns the most-work valid chainstate. */
 CChainState &ChainstateActive();
 
@@ -1204,11 +1215,6 @@ CChain &ChainActive();
 
 /** @returns the global block index map. */
 BlockMap &BlockIndex();
-
-// Most often ::ChainstateActive() should be used instead of this, but some code
-// may not be able to assume that this has been initialized yet and so must use
-// it directly, e.g. init.cpp.
-extern std::unique_ptr<CChainState> g_chainstate;
 
 /**
  * Global variable that points to the active block tree (protected by cs_main)
