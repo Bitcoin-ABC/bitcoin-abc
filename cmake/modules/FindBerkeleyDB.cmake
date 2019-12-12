@@ -11,19 +11,23 @@ find_brew_prefix(BREW_HINT berkeley-db)
 find_path(BDB_INCLUDE_DIR
 	NAMES db.h
 	HINTS ${BREW_HINT}
+	PATH_SUFFIXES db5
 )
 find_library(BDB_LIBRARY
 	NAMES db libdb
 	HINTS ${BREW_HINT}
+	PATH_SUFFIXES db5
 )
 
 find_path(BDBXX_INCLUDE_DIR
 	NAMES db_cxx.h
 	HINTS ${BREW_HINT}
+	PATH_SUFFIXES db5
 )
 find_library(BDBXX_LIBRARY
 	NAMES db_cxx libdb_cxx db5_cxx
 	HINTS ${BREW_HINT}
+	PATH_SUFFIXES db5
 )
 
 MESSAGE(STATUS "BerkeleyDB libs: " ${BDB_LIBRARY} " " ${BDBXX_LIBRARY})
