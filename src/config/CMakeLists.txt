@@ -124,6 +124,7 @@ check_symbol_exists(freeifaddrs "sys/types.h;ifaddrs.h" HAVE_DECL_FREEIFADDRS)
 check_cxx_source_compiles("
 	#include <unistd.h>  /* for syscall */
 	#include <sys/syscall.h>  /* for SYS_getrandom */
+	#include <linux/random.h>
 	int main() {
 		syscall(SYS_getrandom, nullptr, 0, 0);
 		return 0;
