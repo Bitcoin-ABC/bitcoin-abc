@@ -8,12 +8,12 @@
 #include <key.h>
 #include <keystore.h>
 #include <miner.h>
+#include <policy/policy.h>
 #include <pubkey.h>
 #include <random.h>
 #include <script/scriptcache.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
-#include <script/standard.h>
 #include <txmempool.h>
 #include <util/time.h>
 #include <validation.h>
@@ -250,18 +250,16 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData ptd_spend_tx(tx);
 
         BOOST_CHECK(!CheckInputs(tx, state, pcoinsTip.get(), true,
-                                 MANDATORY_SCRIPT_VERIFY_FLAGS |
-                                     SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS,
-                                 true, true, ptd_spend_tx, nullptr));
+                                 STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
+                                 ptd_spend_tx, nullptr));
 
         // If we call again asking for scriptchecks (as happens in
         // ConnectBlock), we should add a script check object for this -- we're
         // not caching invalidity (if that changes, delete this test case).
         std::vector<CScriptCheck> scriptchecks;
         BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), true,
-                                MANDATORY_SCRIPT_VERIFY_FLAGS |
-                                    SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS,
-                                true, true, ptd_spend_tx, &scriptchecks));
+                                STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
+                                ptd_spend_tx, &scriptchecks));
         BOOST_CHECK_EQUAL(scriptchecks.size(), 1U);
 
         // Test that CheckInputs returns true iff cleanstack-enforcing flags are
@@ -333,9 +331,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData txdata(transaction);
 
         BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                MANDATORY_SCRIPT_VERIFY_FLAGS |
-                                    SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
-                                true, true, txdata, nullptr));
+                                STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
+                                txdata, nullptr));
     }
 
     // TEST CHECKSEQUENCEVERIFY
@@ -371,9 +368,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData txdata(transaction);
 
         BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                MANDATORY_SCRIPT_VERIFY_FLAGS |
-                                    SCRIPT_VERIFY_CHECKSEQUENCEVERIFY,
-                                true, true, txdata, nullptr));
+                                STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
+                                txdata, nullptr));
     }
 
     // TODO: add tests for remaining script flags
@@ -428,14 +424,14 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // This transaction is now invalid because the second signature is
         // missing.
         BOOST_CHECK(!CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                 MANDATORY_SCRIPT_VERIFY_FLAGS, true, true,
+                                 STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
                                  txdata, nullptr));
 
         // Make sure this transaction was not cached (ie becausethe first input
         // was valid)
         std::vector<CScriptCheck> scriptchecks;
         BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                MANDATORY_SCRIPT_VERIFY_FLAGS, true, true,
+                                STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
                                 txdata, &scriptchecks));
         // Should get 2 script checks back -- caching is on a whole-transaction
         // basis.
