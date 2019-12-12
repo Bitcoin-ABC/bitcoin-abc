@@ -283,8 +283,10 @@ struct Stacks {
     Stacks() = delete;
     Stacks(const Stacks &) = delete;
     explicit Stacks(const SignatureData &data) {
-        EvalScript(script, data.scriptSig, MANDATORY_SCRIPT_VERIFY_FLAGS,
-                   BaseSignatureChecker());
+        if (data.scriptSig.IsPushOnly()) {
+            EvalScript(script, data.scriptSig, SCRIPT_VERIFY_NONE,
+                       BaseSignatureChecker());
+        }
     }
 };
 } // namespace
