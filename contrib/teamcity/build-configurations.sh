@@ -52,6 +52,7 @@ print_sanitizers_log() {
     cat "${log}"
   done
 }
+trap "print_sanitizers_log" ERR
 
 CI_SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 setup
