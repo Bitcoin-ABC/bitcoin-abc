@@ -33,3 +33,5 @@ unsigned-integer-overflow:txmempool.cpp
 unsigned-integer-overflow:util/strencodings.cpp
 unsigned-integer-overflow:validation.cpp
 vptr:fs.cpp
+# Only occurs with the cmake build and clang-7
+vptr:avalanche_tests.cpp
