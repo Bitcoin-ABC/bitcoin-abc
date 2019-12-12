@@ -147,6 +147,7 @@ TestingSetup::TestingSetup(const std::string &chainName)
     GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
 
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
+
     g_chainman.InitializeChainstate();
     ::ChainstateActive().InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
