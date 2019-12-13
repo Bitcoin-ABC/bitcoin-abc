@@ -172,6 +172,16 @@ case "$ABC_BUILD_NAME" in
     make -j "${THREADS}" check
     ;;
 
+  check-seeds-mainnet)
+    "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    "${CI_SCRIPTS_DIR}"/check-seeds.sh main 80
+    ;;
+
+  check-seeds-testnet)
+    "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    "${CI_SCRIPTS_DIR}"/check-seeds.sh test 70
+    ;;
+
   *)
     echo "Error: Invalid build name '${ABC_BUILD_NAME}'"
     exit 2
