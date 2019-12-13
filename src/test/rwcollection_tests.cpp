@@ -13,7 +13,7 @@
 #include <set>
 #include <vector>
 
-BOOST_AUTO_TEST_SUITE(rwcollection_tests);
+BOOST_AUTO_TEST_SUITE(rwcollection_tests)
 
 BOOST_AUTO_TEST_CASE(vector) {
     RWCollection<std::vector<int>> rwvector;

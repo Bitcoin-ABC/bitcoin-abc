@@ -37,7 +37,7 @@
         },
         "lint-tests": {
             "type": "lint-tests",
-            "include": "(^src/(rpc/|wallet/)?test/.*\\.(cpp)$)"
+            "include": "(^src/(seeder/|rpc/|wallet/)?test/.*\\.(cpp)$)"
         },
         "lint-python-format": {
             "type": "lint-python-format",

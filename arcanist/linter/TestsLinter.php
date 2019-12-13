@@ -80,7 +80,7 @@ final class TestsLinter extends ArcanistExternalLinter {
     $messages = [];
 
     /* Search for mismatch, using the line pattern */
-    $pattern = '/'.$fileName.':BOOST_FIXTURE_TEST_SUITE\(([\w]+)/';
+    $pattern = '/'.$fileName.':BOOST_(?:AUTO|FIXTURE)_TEST_SUITE\(([\w]+)/';
     $mismatch = preg_match($pattern, $stdout, $matches);
 
     if ($mismatch) {

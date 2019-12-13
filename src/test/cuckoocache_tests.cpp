@@ -25,7 +25,7 @@
  * expected behavior. For example improving the hit rate may cause some tests
  * using BOOST_CHECK_CLOSE to fail.
  */
-BOOST_AUTO_TEST_SUITE(cuckoocache_tests);
+BOOST_AUTO_TEST_SUITE(cuckoocache_tests)
 
 /**
  * Example key/value element. The key is 28 bytes long and the value 4, for a

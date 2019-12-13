@@ -11,8 +11,8 @@ export LC_ALL=C
 
 TOPDIR=${TOPDIR:-$(git rev-parse --show-toplevel)}
 
-NAMING_INCONSISTENCIES=$(git grep -E '^BOOST_FIXTURE_TEST_SUITE\(' -- \
-    "${1}" | grep -vE '/(.*?)\.cpp:BOOST_FIXTURE_TEST_SUITE\(\1, .*\)$')
+NAMING_INCONSISTENCIES=$(git grep -E '^BOOST_(AUTO|FIXTURE)_TEST_SUITE\(' -- \
+    "${1}" | grep -vE '/(.*?)\.cpp:BOOST_(AUTO|FIXTURE)_TEST_SUITE\(\1.*\)$')
 if [[ ${NAMING_INCONSISTENCIES} != "" ]]; then
     echo "The test suite in file src/test/foo_tests.cpp should be named"
     echo "\"foo_tests\". Please make sure the following test suites follow"
@@ -21,11 +21,12 @@ if [[ ${NAMING_INCONSISTENCIES} != "" ]]; then
     echo "${NAMING_INCONSISTENCIES}"
 fi
 
-TEST_SUITE_NAME_COLLISIONS=$(git grep -E '^BOOST_FIXTURE_TEST_SUITE\(' -- \
+TEST_SUITE_NAME_COLLISIONS=$(git grep -E '^BOOST_(AUTO|FIXTURE)_TEST_SUITE\(' -- \
     "${TOPDIR}/src/test/**.cpp" \
+    "${TOPDIR}/src/seeder/test/**.cpp" \
     "${TOPDIR}/src/rpc/test/**.cpp" \
     "${TOPDIR}/src/wallet/test/**.cpp" | cut -f2 -d'(' | cut -f1 -d, | \
-    sort | uniq -d)
+    cut -f1 -d\) | sort | uniq -d)
 if [[ ${TEST_SUITE_NAME_COLLISIONS} != "" ]]; then
     echo "Test suite names must be unique. The following test suite names"
     echo "appear to be used more than once:"
