@@ -59,16 +59,15 @@ if [ ! -x "${BITCOIN_CLI}" ]; then
   exit 11
 fi
 
-BITCOIND="${BITCOIND} -connect=0 ${OPTION_TESTNET}"
+BITCOIND="${BITCOIND} -connect=0 ${OPTION_TESTNET} -daemon"
 BITCOIN_CLI="${BITCOIN_CLI} ${OPTION_TESTNET}"
 
 >&2 echo "Spinning up bitcoind..."
-${BITCOIND} &
-BITCOIND_PID=$!
+${BITCOIND}
 cleanup() {
   # Cleanup background processes spawned by this script.
-  >&2 echo "Cleaning up bitcoin daemon (PID: ${BITCOIND_PID})."
-  kill ${BITCOIND_PID}
+  >&2 echo "Cleaning up bitcoin daemon..."
+  ${BITCOIN_CLI} stop
 }
 trap "cleanup" EXIT
 
