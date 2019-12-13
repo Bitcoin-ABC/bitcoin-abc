@@ -799,8 +799,8 @@ static UniValue getblockheader(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockheader",
-        "If verbose is false, returns a string that is serialized, "
-        "hex-encoded data for blockheader 'hash'.\n"
+        "If verbose is false, returns a string that is serialized, hex-encoded "
+        "data for blockheader 'hash'.\n"
         "If verbose is true, returns an Object with information about "
         "blockheader <hash>.\n",
         {
@@ -823,22 +823,27 @@ static UniValue getblockheader(const Config &config,
                 "  \"versionHex\" : \"00000000\", (string) The block version "
                 "formatted in hexadecimal\n"
                 "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
-                "  \"time\" : ttt,          (numeric) The block time in "
-                "seconds since epoch (Jan 1 1970 GMT)\n"
-                "  \"mediantime\" : ttt,    (numeric) The median block time in "
-                "seconds since epoch (Jan 1 1970 GMT)\n"
-                "  \"nonce\" : n,           (numeric) The nonce\n"
-                "  \"bits\" : \"1d00ffff\", (string) The bits\n"
-                "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
-                "  \"chainwork\" : \"0000...1f3\"     (string) Expected number "
-                "of hashes required to produce the current chain (in hex)\n"
-                "  \"nTx\" : n,             (numeric) The number of "
-                "transactions in the block.\n"
-                "  \"previousblockhash\" : \"hash\",  (string) The hash of the "
-                "previous block\n"
-                "  \"nextblockhash\" : \"hash\",      (string) The hash of the "
-                "next block\n"
-                "}\n"},
+                "  \"time\" : ttt,          (numeric) The block time expressed "
+                "in " +
+                    UNIX_EPOCH_TIME +
+                    "\n"
+                    "  \"mediantime\" : ttt,    (numeric) The median block "
+                    "time expressed in " +
+                    UNIX_EPOCH_TIME +
+                    "\n"
+                    "  \"nonce\" : n,           (numeric) The nonce\n"
+                    "  \"bits\" : \"1d00ffff\", (string) The bits\n"
+                    "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
+                    "  \"chainwork\" : \"0000...1f3\"     (string) Expected "
+                    "number of hashes required to produce the current chain "
+                    "(in hex)\n"
+                    "  \"nTx\" : n,             (numeric) The number of "
+                    "transactions in the block.\n"
+                    "  \"previousblockhash\" : \"hash\",  (string) The hash of "
+                    "the previous block\n"
+                    "  \"nextblockhash\" : \"hash\",      (string) The hash of "
+                    "the next block\n"
+                    "}\n"},
             RPCResult{"for verbose=false",
                       "\"data\"             (string) A string that is "
                       "serialized, hex-encoded data for block 'hash'.\n"},
@@ -953,34 +958,37 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
                 "     \"transactionid\"     (string) The transaction id\n"
                 "     ,...\n"
                 "  ],\n"
-                "  \"time\" : ttt,          (numeric) The block time in "
-                "seconds since epoch (Jan 1 1970 GMT)\n"
-                "  \"mediantime\" : ttt,    (numeric) The median block time in "
-                "seconds since epoch (Jan 1 1970 GMT)\n"
-                "  \"nonce\" : n,           (numeric) The nonce\n"
-                "  \"bits\" : \"1d00ffff\",   (string) The bits\n"
-                "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
-                "  \"chainwork\" : \"xxxx\",  (string) Expected number of "
-                "hashes required to produce the chain up to this block (in "
-                "hex)\n"
-                "  \"nTx\" : n,             (numeric) The number of "
-                "transactions in the block.\n"
-                "  \"previousblockhash\" : \"hash\",  (string) The hash of the "
-                "previous block\n"
-                "  \"nextblockhash\" : \"hash\"       (string) The hash of the "
-                "next block\n"
-                "}\n"},
-            RPCResult{
-                "for verbosity = 2",
-                "{\n"
-                "  ...,                   Same output as verbosity = 1\n"
-                "  \"tx\" : [               (array of Objects) The "
-                "transactions in the format of the getrawtransaction RPC; "
-                "different from verbosity = 1 \"tx\" result\n"
-                "    ...\n"
-                "  ],\n"
-                "  ...                    Same output as verbosity = 1\n"
-                "}\n"},
+                "  \"time\" : ttt,          (numeric) The block time expressed "
+                "in " +
+                    UNIX_EPOCH_TIME +
+                    "\n"
+                    "  \"mediantime\" : ttt,    (numeric) The median block "
+                    "time expressed in " +
+                    UNIX_EPOCH_TIME +
+                    "\n"
+                    "  \"nonce\" : n,           (numeric) The nonce\n"
+                    "  \"bits\" : \"1d00ffff\",   (string) The bits\n"
+                    "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
+                    "  \"chainwork\" : \"xxxx\",  (string) Expected number of "
+                    "hashes required to produce the chain up to this block (in "
+                    "hex)\n"
+                    "  \"nTx\" : n,             (numeric) The number of "
+                    "transactions in the block.\n"
+                    "  \"previousblockhash\" : \"hash\",  (string) The hash of "
+                    "the previous block\n"
+                    "  \"nextblockhash\" : \"hash\"       (string) The hash of "
+                    "the next block\n"
+                    "}\n"},
+            RPCResult{"for verbosity = 2",
+                      "{\n"
+                      "  ...,                   Same output as verbosity = 1\n"
+                      "  \"tx\" : [               (array of Objects) The "
+                      "transactions in the format of the getrawtransaction "
+                      "RPC; different from verbosity = 1 \"tx\" result\n"
+                      "    ...\n"
+                      "  ],\n"
+                      "  ...                    Same output as verbosity = 1\n"
+                      "}\n"},
         },
         RPCExamples{
             HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d"
@@ -1035,9 +1043,11 @@ static UniValue pruneblockchain(const Config &config,
         {
             {"height", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The block height to prune up to. May be set to a discrete "
-             "height, or a unix timestamp\n"
-             "                  to prune blocks whose block time is at least 2 "
-             "hours older than the provided timestamp."},
+             "height, or to a " +
+                 UNIX_EPOCH_TIME +
+                 "\n"
+                 "                  to prune blocks whose block time is at "
+                 "least 2 hours older than the provided timestamp."},
         },
         RPCResult{"n    (numeric) Height of the last block pruned.\n"},
         RPCExamples{HelpExampleCli("pruneblockchain", "1000") +
@@ -1895,7 +1905,9 @@ static UniValue getchaintxstats(const Config &config,
         RPCResult{
             "{\n"
             "  \"time\": xxxxx,                         (numeric) The "
-            "timestamp for the final block in the window in UNIX format.\n"
+            "timestamp for the final block in the window, expressed in " +
+            UNIX_EPOCH_TIME +
+            ".\n"
             "  \"txcount\": xxxxx,                      (numeric) The total "
             "number of transactions in the chain up to that point.\n"
             "  \"window_final_block_hash\": \"...\",    (string) The hash of "

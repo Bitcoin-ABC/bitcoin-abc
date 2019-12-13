@@ -97,15 +97,18 @@ static UniValue getpeerinfo(const Config &config,
             "offered\n"
             "    \"relaytxes\":true|false,    (boolean) Whether peer has asked "
             "us to relay transactions to it\n"
-            "    \"lastsend\": ttt,           (numeric) The time in seconds "
-            "since epoch (Jan 1 1970 GMT) of the last send\n"
-            "    \"lastrecv\": ttt,           (numeric) The time in seconds "
-            "since epoch (Jan 1 1970 GMT) of the last receive\n"
+            "    \"lastsend\": ttt,           (numeric) The " +
+            UNIX_EPOCH_TIME +
+            " of the last send\n"
+            "    \"lastrecv\": ttt,           (numeric) The " +
+            UNIX_EPOCH_TIME +
+            " of the last receive\n"
             "    \"bytessent\": n,            (numeric) The total bytes sent\n"
             "    \"bytesrecv\": n,            (numeric) The total bytes "
             "received\n"
-            "    \"conntime\": ttt,           (numeric) The connection time in "
-            "seconds since epoch (Jan 1 1970 GMT)\n"
+            "    \"conntime\": ttt,           (numeric) The " +
+            UNIX_EPOCH_TIME +
+            " of the connection\n"
             "    \"timeoffset\": ttt,         (numeric) The time offset in "
             "seconds\n"
             "    \"pingtime\": n,             (numeric) ping time (if "
@@ -655,8 +658,8 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
              "the IP is banned (0 or empty means using the default time of 24h "
              "which can also be overwritten by the -bantime startup argument)"},
             {"absolute", RPCArg::Type::BOOL, /* default */ "false",
-             "If set, the bantime must be an absolute timestamp in seconds "
-             "since epoch (Jan 1 1970 GMT)"},
+             "If set, the bantime must be an absolute timestamp expressed in " +
+                 UNIX_EPOCH_TIME},
         },
         RPCResults{},
         RPCExamples{
@@ -839,9 +842,9 @@ static UniValue getnodeaddresses(const Config &config,
         RPCResult{
             "[\n"
             "  {\n"
-            "    \"time\": ttt,                (numeric) Timestamp in seconds "
-            "since epoch (Jan 1 1970 GMT) keeping track of when the node was "
-            "last seen\n"
+            "    \"time\": ttt,                (numeric) The " +
+            UNIX_EPOCH_TIME +
+            " of when the node was last seen\n"
             "    \"services\": n,              (numeric) The services offered\n"
             "    \"address\": \"host\",        (string) The address of the "
             "node\n"

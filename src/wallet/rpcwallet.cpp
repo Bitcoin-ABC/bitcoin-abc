@@ -1569,7 +1569,9 @@ static const std::string TransactionDescriptionString() {
            "    \"blockindex\": n,                           (numeric) The "
            "index of the transaction in the block that includes it.\n"
            "    \"blocktime\": xxx,                          (numeric) The "
-           "block time in seconds since epoch (1 Jan 1970 GMT).\n"
+           "block time expressed in " +
+           UNIX_EPOCH_TIME +
+           ".\n"
            "    \"txid\": \"transactionid\",                   (string) The "
            "transaction id.\n"
            "    \"walletconflicts\": [                       (array) "
@@ -1579,10 +1581,13 @@ static const std::string TransactionDescriptionString() {
            "      ...\n"
            "    ],\n"
            "    \"time\": xxx,                               (numeric) The "
-           "transaction time in seconds since epoch (midnight Jan 1 1970 "
-           "GMT).\n"
+           "transaction time expressed in " +
+           UNIX_EPOCH_TIME +
+           ".\n"
            "    \"timereceived\": xxx,                       (numeric) The "
-           "time received in seconds since epoch (midnight Jan 1 1970 GMT).\n"
+           "time received expressed in " +
+           UNIX_EPOCH_TIME +
+           ".\n"
            "    \"comment\": \"...\",                          (string) If a "
            "comment is associated with the transaction, only present if not "
            "empty.\n";
@@ -2900,18 +2905,19 @@ static UniValue getwalletinfo(const Config &config,
             "Identical to getbalances().mine.immature\n"
             "  \"txcount\": xxxxxxx,              (numeric) the total number "
             "of transactions in the wallet\n"
-            "  \"keypoololdest\": xxxxxx,         (numeric) the timestamp "
-            "(seconds since Unix epoch) of the oldest pre-generated key in the "
-            "key pool\n"
+            "  \"keypoololdest\": xxxxxx,           (numeric) the " +
+            UNIX_EPOCH_TIME +
+            " of the oldest pre-generated key in the key pool\n"
             "  \"keypoolsize\": xxxx,             (numeric) how many new keys "
             "are pre-generated (only counts external keys)\n"
             "  \"keypoolsize_hd_internal\": xxxx, (numeric) how many new keys "
             "are pre-generated for internal use (used for change outputs, only "
             "appears if the wallet is using this feature, otherwise external "
             "keys are used)\n"
-            "  \"unlocked_until\": ttt,           (numeric) the timestamp in "
-            "seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is "
-            "unlocked for transfers, or 0 if the wallet is locked\n"
+            "  \"unlocked_until\": ttt,             (numeric) the " +
+            UNIX_EPOCH_TIME +
+            " until which the wallet is unlocked for transfers, or 0 if the "
+            "wallet is locked\n"
             "  \"paytxfee\": x.xxxx,              (numeric) the transaction "
             "fee configuration, set in " +
             CURRENCY_UNIT +
@@ -4198,9 +4204,9 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
             "script is multisig).\n"
             "  \"pubkey\" : \"publickeyhex\",          (string, optional) The "
             "hex value of the raw public key for single-key addresses "
-            "(possibly embedded in P2SH or P2WSH).\n"
+            "(possibly embedded in P2SH).\n"
             "  \"embedded\" : {...},                 (object, optional) "
-            "Information about the address embedded in P2SH or P2WSH, if "
+            "Information about the address embedded in P2SH, if "
             "relevant and known. Includes all\n"
             "                                                         "
             "getaddressinfo output fields for the embedded address, excluding "
@@ -4213,8 +4219,9 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
             "associated with the address. Defaults to \"\". Equivalent to the "
             "label name in the labels array below.\n"
             "  \"timestamp\" : timestamp,            (number, optional) The "
-            "creation time of the key if available, expressed in seconds since "
-            "Epoch Time (Jan 1 1970 GMT).\n"
+            "creation time of the key, if available, expressed in " +
+            UNIX_EPOCH_TIME +
+            ".\n"
             "  \"hdkeypath\" : \"keypath\"             (string, optional) The "
             "HD keypath, if the key is HD and available.\n"
             "  \"hdseedid\" : \"<hash160>\"            (string, optional) The "

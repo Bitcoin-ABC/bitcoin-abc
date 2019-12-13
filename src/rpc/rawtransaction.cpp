@@ -160,10 +160,12 @@ static UniValue getrawtransaction(const Config &config,
                     "  \"blockhash\" : \"hash\",   (string) the block hash\n"
                     "  \"confirmations\" : n,      (numeric) The "
                     "confirmations\n"
-                    "  \"time\" : ttt,             (numeric) The transaction "
-                    "time in seconds since epoch (Jan 1 1970 GMT)\n"
-                    "  \"blocktime\" : ttt         (numeric) The block time in "
-                    "seconds since epoch (Jan 1 1970 GMT)\n"
+                    "  \"blocktime\" : ttt         (numeric) The block time "
+                    "expressed in " +
+                    UNIX_EPOCH_TIME +
+                    "\n"
+                    "  \"time\" : ttt,             (numeric) Same as "
+                    "\"blocktime\"\n"
                     "}\n"},
         },
         RPCExamples{HelpExampleCli("getrawtransaction", "\"mytxid\"") +

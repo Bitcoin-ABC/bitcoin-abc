@@ -439,8 +439,9 @@ static UniValue getblocktemplate(const Config &config,
             "  },\n"
             "  \"target\" : \"xxxx\",              (string) The hash target\n"
             "  \"mintime\" : xxx,                  (numeric) The minimum "
-            "timestamp appropriate for next block time in seconds since epoch "
-            "(Jan 1 1970 GMT)\n"
+            "timestamp appropriate for the next block time, expressed in " +
+            UNIX_EPOCH_TIME +
+            "\n"
             "  \"mutable\" : [                     (array of string) list of "
             "ways the block template may be changed \n"
             "     \"value\"                          (string) A way the block "
@@ -455,7 +456,9 @@ static UniValue getblocktemplate(const Config &config,
             "  \"sizelimit\" : n,                  (numeric) limit of block "
             "size\n"
             "  \"curtime\" : ttt,                  (numeric) current timestamp "
-            "in seconds since epoch (Jan 1 1970 GMT)\n"
+            "in seconds since " +
+            UNIX_EPOCH_TIME +
+            "\n"
             "  \"bits\" : \"xxxxxxxx\",              (string) compressed "
             "target of next block\n"
             "  \"height\" : n                      (numeric) The height of the "

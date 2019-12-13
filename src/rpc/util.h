@@ -27,6 +27,12 @@ class CScript;
 class UniValue;
 
 /**
+ * String used to describe UNIX epoch time in documentation, factored out to a
+ * constant for consistency.
+ */
+extern const std::string UNIX_EPOCH_TIME;
+
+/**
  * Wrapper for UniValue::VType, which includes typeAny: used to denote don't
  * care type.
  */

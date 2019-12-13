@@ -910,11 +910,11 @@ void SetupServerArgs() {
                   DEFAULT_LOGTIMEMICROS),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
-        "-mocktime=<n>",
-        "Replace actual time with <n> seconds since epoch (default: 0)",
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg("-mocktime=<n>",
+                 "Replace actual time with " + UNIX_EPOCH_TIME +
+                     " (default: 0)",
+                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                 OptionsCategory::DEBUG_TEST);
     gArgs.AddArg(
         "-maxsigcachesize=<n>",
         strprintf("Limit size of signature cache to <n> MiB (default: %u)",

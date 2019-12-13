@@ -999,7 +999,7 @@ A few guidelines for introducing and reviewing new RPC interfaces:
   introduce new methods such as `signrawtransaction` that differ in behavior
   based on presence of a wallet.
 
-  - *Rationale*: as well as complicating the implementation and interfering
+  - *Rationale*: As well as complicating the implementation and interfering
     with the introduction of multi-wallet, wallet and non-wallet code should be
     separated to avoid introducing circular dependencies between code units.
 
@@ -1026,8 +1026,13 @@ A few guidelines for introducing and reviewing new RPC interfaces:
 
   - *Rationale*: RPC methods registered with the same function pointer will be
     considered aliases and only the first method name will show up in the
-    `help` rpc command list.
+    `help` RPC command list.
 
   - *Exception*: Using RPC method aliases may be appropriate in cases where a
     new RPC is replacing a deprecated RPC, to avoid both RPCs confusingly
     showing up in the command list.
+
+- Use the `UNIX_EPOCH_TIME` constant when describing UNIX epoch time or
+  timestamps in the documentation.
+
+  - *Rationale*: User-facing consistency.
