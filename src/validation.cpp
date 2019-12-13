@@ -2850,6 +2850,8 @@ bool CChainState::ActivateBestChain(const Config &config,
     // sanely for performance or correctness!
     AssertLockNotHeld(cs_main);
 
+    const CChainParams &params = config.GetChainParams();
+
     // ABC maintains a fair degree of expensive-to-calculate internal state
     // because this function periodically releases cs_main so that it does not
     // lock up other threads for too long during large connects - and to allow
@@ -2925,6 +2927,12 @@ bool CChainState::ActivateBestChain(const Config &config,
                      (starting_tip && CBlockIndexWorkComparator()(
                                           chainActive.Tip(), starting_tip)));
 
+            // Check the index once we're done with the above loop, since
+            // we're going to release cs_main soon. If the index is in a bad
+            // state now, then it's better to know immediately rather than
+            // randomly have it cause a problem in a race.
+            CheckBlockIndex(params.GetConsensus());
+
             if (!blocks_connected) {
                 return true;
             }
@@ -2961,9 +2969,6 @@ bool CChainState::ActivateBestChain(const Config &config,
             break;
         }
     } while (pindexNewTip != pindexMostWork);
-
-    const CChainParams &params = config.GetChainParams();
-    CheckBlockIndex(params.GetConsensus());
 
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(params, state, FlushStateMode::PERIODIC)) {
