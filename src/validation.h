@@ -597,12 +597,6 @@ bool TestBlockValidity(CValidationState &state, const CChainParams &params,
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
- * When there are blocks in the active chain with missing data, rewind the
- * chainstate and remove them from the block index.
- */
-bool RewindBlockIndex(const Config &config);
-
-/**
  * RAII wrapper for VerifyDB: Verify consistency of the block and coin
  * databases.
  */

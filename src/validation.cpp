@@ -187,7 +187,6 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
-    bool RewindBlockIndex(const Config &config);
     bool LoadGenesisBlock(const CChainParams &chainparams);
 
     void PruneBlockIndexCandidates();
@@ -231,9 +230,6 @@ private:
     bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
                           const Consensus::Params &params)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    //! Mark a block as not having block data
-    void EraseBlockData(CBlockIndex *index) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 } g_chainstate;
 
 /**
@@ -1673,8 +1669,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
     // may have let in a block that violates the rule prior to updating the
     // software, and we would NOT be enforcing the rule here. Fully solving
     // upgrade from one software version to the next after a consensus rule
-    // change is potentially tricky and issue-specific (see RewindBlockIndex()
-    // for one general approach that was used for BIP 141 deployment).
+    // change is potentially tricky and issue-specific.
     // Also, currently the rule against blocks more than 2 hours in the future
     // is enforced in ContextualCheckBlockHeader(); we wouldn't want to
     // re-enforce that rule here (at least until we make it impossible for
@@ -4900,124 +4895,6 @@ bool CChainState::ReplayBlocks(const Consensus::Params &params,
 
 bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view) {
     return g_chainstate.ReplayBlocks(params, view);
-}
-
-//! Helper for CChainState::RewindBlockIndex
-void CChainState::EraseBlockData(CBlockIndex *index) {
-    AssertLockHeld(cs_main);
-    // Make sure this block isn't active
-    assert(!chainActive.Contains(index));
-
-    // Reduce validity
-    index->nStatus = index->nStatus.withValidity(
-        std::min(index->nStatus.getValidity(), BlockValidity::TREE));
-    // Remove have-data flags.
-    index->nStatus = index->nStatus.withData(false).withUndo(false);
-    // Remove storage location.
-    index->nFile = 0;
-    index->nDataPos = 0;
-    index->nUndoPos = 0;
-    // Remove various other things
-    index->nTx = 0;
-    index->nChainTx = 0;
-    index->nSequenceId = 0;
-    // Make sure it gets written.
-    setDirtyBlockIndex.insert(index);
-    // Update indexes
-    setBlockIndexCandidates.erase(index);
-    std::pair<std::multimap<CBlockIndex *, CBlockIndex *>::iterator,
-              std::multimap<CBlockIndex *, CBlockIndex *>::iterator>
-        ret = mapBlocksUnlinked.equal_range(index->pprev);
-    while (ret.first != ret.second) {
-        if (ret.first->second == index) {
-            mapBlocksUnlinked.erase(ret.first++);
-        } else {
-            ++ret.first;
-        }
-    }
-
-    // Mark parent as eligible for main chain again
-    if (index->pprev && index->pprev->IsValid(BlockValidity::TRANSACTIONS) &&
-        index->pprev->HaveTxsDownloaded()) {
-        setBlockIndexCandidates.insert(index->pprev);
-    }
-}
-
-bool CChainState::RewindBlockIndex(const Config &config) {
-    LOCK(cs_main);
-
-    const CChainParams &params = config.GetChainParams();
-    int nHeight = chainActive.Height() + 1;
-
-    // nHeight is now the height of the first insufficiently-validated block, or
-    // tipheight + 1
-    CValidationState state;
-    CBlockIndex *pindex = chainActive.Tip();
-    while (chainActive.Height() >= nHeight) {
-        if (fPruneMode && !chainActive.Tip()->nStatus.hasData()) {
-            // If pruning, don't try rewinding past the HAVE_DATA point; since
-            // older blocks can't be served anyway, there's no need to walk
-            // further, and trying to DisconnectTip() will fail (and require a
-            // needless reindex/redownload of the blockchain).
-            break;
-        }
-
-        if (!DisconnectTip(config, state, nullptr)) {
-            return error("RewindBlockIndex: unable to disconnect block at "
-                         "height %i (%s)",
-                         pindex->nHeight, FormatStateMessage(state));
-        }
-
-        // Occasionally flush state to disk.
-        if (!FlushStateToDisk(params, state, FlushStateMode::PERIODIC)) {
-            LogPrintf("RewindBlockIndex: unable to flush state to disk (%s)\n",
-                      FormatStateMessage(state));
-            return false;
-        }
-    }
-
-    // Reduce validity flag and have-data flags.
-    // We do this after actual disconnecting, otherwise we'll end up writing the
-    // lack of data to disk before writing the chainstate, resulting in a
-    // failure to continue if interrupted.
-    for (const auto &entry : mapBlockIndex) {
-        CBlockIndex *pindexIter = entry.second;
-        if (pindexIter->IsValid(BlockValidity::TRANSACTIONS) &&
-            pindexIter->HaveTxsDownloaded()) {
-            setBlockIndexCandidates.insert(pindexIter);
-        }
-    }
-
-    if (chainActive.Tip() != nullptr) {
-        // We can't prune block index candidates based on our tip if we have
-        // no tip due to chainActive being empty!
-        PruneBlockIndexCandidates();
-
-        CheckBlockIndex(params.GetConsensus());
-    }
-
-    return true;
-}
-
-bool RewindBlockIndex(const Config &config) {
-    if (!g_chainstate.RewindBlockIndex(config)) {
-        return false;
-    }
-
-    if (chainActive.Tip() != nullptr) {
-        // FlushStateToDisk can possibly read chainActive. Be conservative
-        // and skip it here, we're about to -reindex-chainstate anyway, so
-        // it'll get called a bunch real soon.
-        CValidationState state;
-        if (!FlushStateToDisk(config.GetChainParams(), state,
-                              FlushStateMode::ALWAYS)) {
-            LogPrintf("RewindBlockIndex: unable to flush state to disk (%s)\n",
-                      FormatStateMessage(state));
-            return false;
-        }
-    }
-
-    return true;
 }
 
 // May NOT be used after any connections are up as much of the peer-processing
