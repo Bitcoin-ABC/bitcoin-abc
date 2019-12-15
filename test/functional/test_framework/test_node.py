@@ -365,14 +365,17 @@ class TestNode():
         return self.relay_fee_cache
 
     def calculate_fee(self, tx):
-        # Relay fee is in satoshis per KB.  Thus the 1000, and the COIN added
-        # to get back to an amount of satoshis.
+        """ Estimate the necessary fees (in sats) for an unsigned CTransaction assuming:
+        - the current relayfee on node
+        - all inputs are compressed-key p2pkh, and will be signed ecdsa or schnorr
+        - all inputs currently unsigned (empty scriptSig)
+        """
         billable_size_estimate = tx.billable_size()
-        # Add some padding for signatures
-        # NOTE: Fees must be calculated before signatures are added,
-        # so they will never be included in the billable_size above.
-        billable_size_estimate += len(tx.vin) * 81
+        # Add some padding for signatures / public keys
+        # 107 = length of PUSH(longest_sig = 72 bytes), PUSH(pubkey = 33 bytes)
+        billable_size_estimate += len(tx.vin) * 107
 
+        # relay_fee gives a value in BCH per kB.
         return int(self.relay_fee() / 1000 * billable_size_estimate * COIN)
 
     def calculate_fee_from_txid(self, txid):
