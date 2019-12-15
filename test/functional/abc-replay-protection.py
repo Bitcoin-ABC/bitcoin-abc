@@ -153,18 +153,18 @@ class ReplayProtectionTest(BitcoinTestFramework):
             # Fund transaction
             script = CScript([public_key, OP_CHECKSIG])
             txfund = create_transaction(
-                spend.tx, spend.n, b'', 50 * COIN, script)
+                spend.tx, spend.n, b'', 50 * COIN - 1000, script)
             txfund.rehash()
 
             # Spend transaction
             txspend = CTransaction()
-            txspend.vout.append(CTxOut(50 * COIN - 1000, CScript([OP_TRUE])))
+            txspend.vout.append(CTxOut(50 * COIN - 2000, CScript([OP_TRUE])))
             txspend.vin.append(CTxIn(COutPoint(txfund.sha256, 0), b''))
 
             # Sign the transaction
             sighashtype = (forkvalue << 8) | SIGHASH_ALL | SIGHASH_FORKID
             sighash = SignatureHashForkId(
-                script, txspend, 0, sighashtype, 50 * COIN)
+                script, txspend, 0, sighashtype, 50 * COIN - 1000)
             sig = private_key.sign(sighash) + \
                 bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             txspend.vin[0].scriptSig = CScript([sig])

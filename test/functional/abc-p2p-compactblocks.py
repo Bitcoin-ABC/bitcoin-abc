@@ -91,6 +91,8 @@ class FullBlockTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.excessive_block_size = 16 * ONE_MEGABYTE
+        # -norelaypriority is needed so that the invalidateblock at the end
+        # will insert free transactions back into the mempool.
         self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-limitancestorcount=999999',
@@ -330,7 +332,8 @@ class FullBlockTest(BitcoinTestFramework):
         assert cmpctblk_header.sha256 == b2.sha256
 
         # In order to avoid having to resend a ton of transactions, we invalidate
-        # b2, which will send all its transactions in the mempool.
+        # b2, which will send all its transactions in the mempool. Note that this
+        # assumes reorgs will insert low-fee transactions back into the mempool.
         node.invalidateblock(node.getbestblockhash())
 
         # Let's send a compact block and see if the node accepts it.

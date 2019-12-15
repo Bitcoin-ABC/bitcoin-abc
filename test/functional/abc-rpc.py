@@ -22,8 +22,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
         self.num_nodes = 1
         self.tip = None
         self.setup_clean_chain = True
-        self.extra_args = [['-norelaypriority',
-                            '-whitelist=127.0.0.1']]
+        self.extra_args = [['-whitelist=127.0.0.1']]
 
     def check_subversion(self, pattern_str):
         # Check that the subversion is set as expected

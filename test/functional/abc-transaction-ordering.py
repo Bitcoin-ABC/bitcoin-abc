@@ -47,8 +47,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
-        self.extra_args = [['-whitelist=127.0.0.1',
-                            '-relaypriority=0']]
+        self.extra_args = [['-whitelist=127.0.0.1']]
 
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]

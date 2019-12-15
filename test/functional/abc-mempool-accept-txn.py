@@ -67,11 +67,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
 
-    def setup_network(self):
-        self.extra_args = [['-norelaypriority']]
-        self.add_nodes(self.num_nodes, self.extra_args)
-        self.start_nodes()
-
     def add_options(self, parser):
         super().add_options(parser)
         parser.add_argument(
@@ -210,7 +205,7 @@ class FullBlockTest(BitcoinTestFramework):
             spent_p2sh_tx = CTransaction()
             spent_p2sh_tx.vin.append(
                 CTxIn(COutPoint(p2sh_tx_to_spend.sha256, 0), b''))
-            spent_p2sh_tx.vout.append(CTxOut(1, output_script))
+            spent_p2sh_tx.vout.append(CTxOut(1000, output_script))
             # Sign the transaction using the redeem script
             sighash = SignatureHashForkId(
                 redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx_to_spend.vout[0].nValue)
@@ -223,7 +218,7 @@ class FullBlockTest(BitcoinTestFramework):
         # P2SH tests
         # Create a p2sh transaction
         p2sh_tx = self.create_and_sign_transaction(
-            out[0].tx, out[0].n, 1, p2sh_script)
+            out[0].tx, out[0].n, 10000, p2sh_script)
 
         # Add the transaction to the block
         block(1)
