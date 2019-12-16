@@ -92,7 +92,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	key_tests.cpp
 	lcg_tests.cpp
 	limitedmap_tests.cpp
-	main_tests.cpp
 	mempool_tests.cpp
 	merkle_tests.cpp
 	merkleblock_tests.cpp
