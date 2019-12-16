@@ -79,9 +79,11 @@ class WalletStandardnessTest(BitcoinTestFramework):
             # try broadcasting it on the standard node
             if shouldBeStandard:
                 std_node.sendrawtransaction(rawtx)
+                assert txid in std_node.getrawmempool()
             else:
                 assert_raises_rpc_error(-26, nonstd_error,
                                         std_node.sendrawtransaction, rawtx)
+                assert txid not in std_node.getrawmempool()
 
             # make sure it's in nonstandard node's mempool, then mine it
             nonstd_node.sendrawtransaction(rawtx)
