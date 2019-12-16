@@ -7,6 +7,7 @@
 
 #include <tinyformat.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 
 std::string FormatMoney(const Amount amt) {
     // Note: not using straight sprintf here because we do NOT want localized
@@ -31,6 +32,9 @@ std::string FormatMoney(const Amount amt) {
 }
 
 bool ParseMoney(const std::string &str, Amount &nRet) {
+    if (!ValidAsCString(str)) {
+        return false;
+    }
     return ParseMoney(str.c_str(), nRet);
 }
 
