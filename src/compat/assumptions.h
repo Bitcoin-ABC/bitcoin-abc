@@ -8,7 +8,10 @@
 #ifndef BITCOIN_COMPAT_ASSUMPTIONS_H
 #define BITCOIN_COMPAT_ASSUMPTIONS_H
 
+#include <climits>
+#include <cstdint>
 #include <limits>
+#include <type_traits>
 
 // Assumption: We assume that the macro NDEBUG is not defined.
 // Example(s): We use assert(...) extensively with the assumption of it never
@@ -37,6 +40,21 @@ static_assert(sizeof(double) == 8, "64-bit double assumed");
 //             code.
 static_assert(sizeof(short) == 2, "16-bit short assumed");
 static_assert(sizeof(int) == 4, "32-bit int assumed");
+
+// Assumption: We assume 8-bit bytes, because 32-bit int and 16-bit short are
+// assumed.
+static_assert(CHAR_BIT == 8, "8-bit bytes assumed");
+
+// Assumption: We assume uint8_t is an alias of unsigned char.
+// char, unsigned char, and std::byte (C++17) are the only "byte types"
+// according to the C++ Standard. "byte type" means a type that can be used to
+// observe an object's value representation. We use uint8_t everywhere to see
+// bytes, so we have to ensure that uint8_t is an alias to a "byte type".
+// http://eel.is/c++draft/basic.types
+// http://eel.is/c++draft/basic.memobj#def:byte
+// http://eel.is/c++draft/expr.sizeof#1
+// http://eel.is/c++draft/cstdint#syn
+static_assert(std::is_same<uint8_t, unsigned char>::value);
 
 // Some important things we are NOT assuming (non-exhaustive list):
 // * We are NOT assuming a specific value for sizeof(std::size_t).

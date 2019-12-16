@@ -114,7 +114,8 @@
             "type": "lint-stdint",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)"
+                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/compat/assumptions.h$)"
             ]
         },
         "lint-source-filename": {
