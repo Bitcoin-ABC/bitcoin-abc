@@ -31,7 +31,7 @@ static bool ToMemPool(const CMutableTransaction &tx) {
 
     CValidationState state;
     return AcceptToMemoryPool(GetConfig(), g_mempool, state,
-                              MakeTransactionRef(tx), false, nullptr, true,
+                              MakeTransactionRef(tx), nullptr, true,
                               Amount::zero());
 }
 

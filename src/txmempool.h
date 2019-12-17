@@ -31,15 +31,6 @@ class Config;
 
 extern CCriticalSection cs_main;
 
-inline double AllowFreeThreshold() {
-    return (144 * COIN) / (250 * SATOSHI);
-}
-
-inline bool AllowFree(double dPriority) {
-    // Large (in bytes) low-priority (new, small-coin) transactions need a fee.
-    return dPriority > AllowFreeThreshold();
-}
-
 /**
  * Fake height value used in Coins to signify they are only in the memory
  * pool(since 0.8)

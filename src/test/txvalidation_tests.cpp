@@ -38,12 +38,12 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_reject_coinbase, TestChain100Setup) {
 
     unsigned int initialPoolSize = g_mempool.size();
 
-    BOOST_CHECK_EQUAL(
-        false,
-        AcceptToMemoryPool(
-            GetConfig(), g_mempool, state, MakeTransactionRef(coinbaseTx),
-            false /* pfMissingInputs */, nullptr /* plTxnReplaced */,
-            true /* bypass_limits */, Amount::zero() /* nAbsurdFee */));
+    BOOST_CHECK_EQUAL(false,
+                      AcceptToMemoryPool(GetConfig(), g_mempool, state,
+                                         MakeTransactionRef(coinbaseTx),
+                                         nullptr /* pfMissingInputs */,
+                                         true /* fOverrideMempoolLimit */,
+                                         Amount::zero() /* nAbsurdFee */));
 
     // Check that the transaction hasn't been added to mempool.
     BOOST_CHECK_EQUAL(g_mempool.size(), initialPoolSize);

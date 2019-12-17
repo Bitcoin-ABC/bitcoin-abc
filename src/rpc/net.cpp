@@ -549,7 +549,7 @@ static UniValue getnetworkinfo(const Config &config,
             "  ,...\n"
             "  ],\n"
             "  \"relayfee\": x.xxxxxxxx,                (numeric) minimum "
-            "relay fee for non-free transactions in " +
+            "relay fee for transactions in " +
             CURRENCY_UNIT +
             "/kB\n"
             "  \"excessutxocharge\": x.xxxxxxxx,        (numeric) minimum "

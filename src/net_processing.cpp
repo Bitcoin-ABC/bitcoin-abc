@@ -2787,9 +2787,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         nodestate->m_tx_download.m_tx_in_flight.erase(txid);
         EraseTxRequest(txid);
 
-        if (!AlreadyHave(inv) &&
-            AcceptToMemoryPool(config, g_mempool, state, ptx, true,
-                               &fMissingInputs)) {
+        if (!AlreadyHave(inv) && AcceptToMemoryPool(config, g_mempool, state,
+                                                    ptx, &fMissingInputs)) {
             g_mempool.check(pcoinsTip.get());
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
@@ -2834,7 +2833,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     }
 
                     if (AcceptToMemoryPool(config, g_mempool, stateDummy,
-                                           porphanTx, true, &fMissingInputs2)) {
+                                           porphanTx, &fMissingInputs2)) {
                         LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                                  orphanId.ToString());
                         RelayTransaction(orphanTx, connman);
@@ -4726,12 +4725,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                 CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB);
             static FeeFilterRounder filterRounder(default_feerate);
             Amount filterToSend = filterRounder.round(currentFilter);
-            // If we don't allow free transactions, then we always have a fee
-            // filter of at least minRelayTxFee
-            if (gArgs.GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) <= 0) {
-                filterToSend =
-                    std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
-            }
+            filterToSend = std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
 
             if (filterToSend != pto->lastSentFeeFilter) {
                 connman->PushMessage(

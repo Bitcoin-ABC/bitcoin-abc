@@ -1179,10 +1179,8 @@ static UniValue sendrawtransaction(const Config &config,
             // Push to local node and sync with wallets.
             CValidationState state;
             bool fMissingInputs;
-            bool fLimitFree = false;
             if (!AcceptToMemoryPool(config, g_mempool, state, std::move(tx),
-                                    fLimitFree, &fMissingInputs, false,
-                                    nMaxRawTxFee)) {
+                                    &fMissingInputs, false, nMaxRawTxFee)) {
                 if (state.IsInvalid()) {
                     throw JSONRPCError(RPC_TRANSACTION_REJECTED,
                                        FormatStateMessage(state));
@@ -1278,7 +1276,6 @@ static UniValue testmempoolaccept(const Config &config,
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
     const uint256 &txid = tx->GetId();
 
-    bool fLimitFree = false;
     Amount max_raw_tx_fee = maxTxFee;
     if (!request.params[1].isNull() && request.params[1].get_bool()) {
         max_raw_tx_fee = Amount::zero();
@@ -1294,8 +1291,8 @@ static UniValue testmempoolaccept(const Config &config,
     {
         LOCK(cs_main);
         test_accept_res = AcceptToMemoryPool(
-            config, g_mempool, state, std::move(tx), fLimitFree,
-            &missing_inputs, /* bypass_limits */ false, max_raw_tx_fee,
+            config, g_mempool, state, std::move(tx), &missing_inputs,
+            /* bypass_limits */ false, max_raw_tx_fee,
             /* test_accept */ true);
     }
     result_0.pushKV("allowed", test_accept_res);

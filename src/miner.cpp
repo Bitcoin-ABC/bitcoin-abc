@@ -584,8 +584,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
 }
 
 void BlockAssembler::addPriorityTxs() {
-    // How much of the block should be dedicated to high-priority transactions,
-    // included regardless of the fees they pay.
+    // How much of the block should be dedicated to high-priority transactions.
     if (nBlockPriorityPercentage == 0) {
         return;
     }
@@ -653,12 +652,6 @@ void BlockAssembler::addPriorityTxs() {
         // If now that this txs is added we've surpassed our desired priority
         // size, then we're done adding priority transactions.
         if (nBlockSize >= nBlockPrioritySize) {
-            break;
-        }
-
-        // if we have dropped below the AllowFreeThreshold, then we're done
-        // adding priority transactions.
-        if (!AllowFree(actualPriority)) {
             break;
         }
 

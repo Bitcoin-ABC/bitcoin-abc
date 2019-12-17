@@ -847,16 +847,6 @@ void SetupServerArgs() {
                   "fees at this fee rate to spend it. (default: %s)",
                   CURRENCY_UNIT, FormatMoney(DUST_RELAY_TX_FEE)),
         true, OptionsCategory::NODE_RELAY);
-    gArgs.AddArg("-limitfreerelay=<n>",
-                 strprintf("Continuously rate-limit free transactions to "
-                           "<n>*1000 bytes per minute (default: %u)",
-                           DEFAULT_LIMITFREERELAY),
-                 true, OptionsCategory::NODE_RELAY);
-    gArgs.AddArg("-relaypriority",
-                 strprintf("Require high priority for relaying free or low-fee "
-                           "transactions (default: %d)",
-                           DEFAULT_RELAYPRIORITY),
-                 true, OptionsCategory::NODE_RELAY);
 
     gArgs.AddArg("-bytespersigop",
                  strprintf("Equivalent bytes per sigop in transactions for "
@@ -875,8 +865,8 @@ void SetupServerArgs() {
                  false, OptionsCategory::NODE_RELAY);
     gArgs.AddArg(
         "-minrelaytxfee=<amt>",
-        strprintf("Fees (in %s/kB) smaller than this are considered zero fee "
-                  "for relaying, mining and transaction creation (default: %s)",
+        strprintf("Fees (in %s/kB) smaller than this are rejected for "
+                  "relaying, mining and transaction creation (default: %s)",
                   CURRENCY_UNIT, FormatMoney(DEFAULT_MIN_RELAY_TX_FEE_PER_KB)),
         false, OptionsCategory::NODE_RELAY);
     gArgs.AddArg(

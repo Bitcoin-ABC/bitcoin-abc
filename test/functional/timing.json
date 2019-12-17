@@ -12,10 +12,6 @@
   "time": 2
  },
  {
-  "name": "abc-high_priority_transaction.py",
-  "time": 5
- },
- {
   "name": "abc-invalid-chains.py",
   "time": 1
  },

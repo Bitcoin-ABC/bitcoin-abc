@@ -146,8 +146,6 @@ static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 1000000;
  */
 static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 500000;
 
-static const unsigned int DEFAULT_LIMITFREERELAY = 0;
-static const bool DEFAULT_RELAYPRIORITY = true;
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 /**
  * Maximum age of our tip in seconds for us to be considered current for fee
@@ -451,7 +449,7 @@ void PruneBlockFilesManual(int nManualPruneHeight);
  */
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
-                        bool fLimitFree, bool *pfMissingInputs,
+                        bool *pfMissingInputs,
                         bool fOverrideMempoolLimit = false,
                         const Amount nAbsurdFee = Amount::zero(),
                         bool test_accept = false)

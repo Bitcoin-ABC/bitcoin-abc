@@ -4813,9 +4813,8 @@ bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,
     // because we think that this newly generated transaction's change is
     // unavailable as we're not yet aware that it is in the mempool.
     bool ret = ::AcceptToMemoryPool(
-        GetConfig(), g_mempool, state, tx, true /* fLimitFree */,
-        nullptr /* pfMissingInputs */, false /* fOverrideMempoolLimit */,
-        nAbsurdFee);
+        GetConfig(), g_mempool, state, tx, nullptr /* pfMissingInputs */,
+        false /* fOverrideMempoolLimit */, nAbsurdFee);
     fInMempool |= ret;
     return ret;
 }
