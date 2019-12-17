@@ -60,13 +60,20 @@ After creating the VM, we need to configure it.
 
 - Click `Ok` twice to save.
 
-Get the [Debian 10.x net installer](https://cdimage.debian.org/debian-cd/10.2.0/amd64/iso-cd/debian-10.2.0-amd64-netinst.iso) (a more recent minor version should also work, see also [Debian Network installation](https://www.debian.org/CD/netinst/)).
-This DVD image can be [validated](https://www.debian.org/CD/verify) using a SHA256 hashing tool, for example on
-Unixy OSes by entering the following in a terminal:
+Get the Debian 10.x net installer and verify its integrity:
 
 ```bash
-echo "e43fef979352df15056ac512ad96a07b515cb8789bf0bfd86f99ed0404f885f5  debian-10.2.0-amd64-netinst.iso" | sha256sum -c
-    # (must return OK)
+DEBIAN_VERSION="10.2.0"
+gpg --keyserver keyring.debian.org --recv-keys "DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B"
+mkdir -p ~/Downloads/debian-iso-"${DEBIAN_VERSION}"
+cd ~/Downloads/debian-iso-"${DEBIAN_VERSION}"
+wget "https://cdimage.debian.org/debian-cd/${DEBIAN_VERSION}/amd64/iso-cd/debian-${DEBIAN_VERSION}-amd64-netinst.iso"
+wget "https://cdimage.debian.org/debian-cd/${DEBIAN_VERSION}/amd64/iso-cd/SHA256SUMS"
+wget "https://cdimage.debian.org/debian-cd/${DEBIAN_VERSION}/amd64/iso-cd/SHA256SUMS.sign"
+gpg --verify SHA256SUMS.sign SHA256SUMS || echo "Error: SHA256SUMS did not verify against the given signature!"
+    # must not error
+grep "debian-${DEBIAN_VERSION}-amd64-netinst.iso" SHA256SUMS | sha256sum -c
+    # must return OK
 ```
 
 Replace `sha256sum` with `shasum` on macOS.
