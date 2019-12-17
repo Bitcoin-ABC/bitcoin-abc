@@ -13,8 +13,6 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(__NO_USER_CMAKE_BUILD_TYPE ON CACHE BOOL "True if the user didn't set a build type on the command line")
 endif()
 
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -O3")
-
 option(SECP256K1_ENABLE_COVERAGE "Enable coverage" OFF)
 option(SECP256K1_ENABLE_BRANCH_COVERAGE "Enable branch coverage" OFF)
 
