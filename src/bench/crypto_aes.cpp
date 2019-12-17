@@ -38,7 +38,7 @@ static void AES256_Encrypt(benchmark::State &state) {
     std::vector<uint8_t> cyphertext(16, 0);
 
     while (state.KeepRunning()) {
-        AES128Encrypt(key.data()).Encrypt(cyphertext.data(), plaintext.data());
+        AES256Encrypt(key.data()).Encrypt(cyphertext.data(), plaintext.data());
     }
 }
 
@@ -48,7 +48,7 @@ static void AES256_Decrypt(benchmark::State &state) {
     std::vector<uint8_t> plaintext(16, 0);
 
     while (state.KeepRunning()) {
-        AES128Decrypt(key.data()).Decrypt(plaintext.data(), cyphertext.data());
+        AES256Decrypt(key.data()).Decrypt(plaintext.data(), cyphertext.data());
     }
 }
 
