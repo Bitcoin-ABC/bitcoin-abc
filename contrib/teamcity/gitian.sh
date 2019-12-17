@@ -28,10 +28,18 @@ fi
 ## Determine the number of build threads
 THREADS=$(nproc || sysctl -n hw.ncpu)
 
+RESULT_DIR="${PROJECT_ROOT}/gitian-results"
+OS_DIR="${RESULT_DIR}/${OS_NAME}"
+mkdir -p "${OS_DIR}"
+
+move_log() {
+  mv var/install.log "${RESULT_DIR}/"
+  mv var/build.log "${RESULT_DIR}/"
+}
+trap "move_log" ERR
+
 ./bin/gbuild -j${THREADS} -m3500 --commit bitcoin=${COMMIT} --url bitcoin="${PROJECT_ROOT}" "${PROJECT_ROOT}/contrib/gitian-descriptors/gitian-${OS_NAME}.yml"
 
-RESULT_DIR="${PROJECT_ROOT}/gitian-results/${OS_NAME}"
-mkdir -p "${RESULT_DIR}"
-mv var/build.log "${PROJECT_ROOT}/gitian-results/"
-mv result/*.yml "${RESULT_DIR}/"    
-mv build/out/* "${RESULT_DIR}/"
+move_log
+mv result/*.yml "${OS_DIR}/"
+mv build/out/* "${OS_DIR}/"
