@@ -60,12 +60,12 @@ After creating the VM, we need to configure it.
 
 - Click `Ok` twice to save.
 
-Get the [Debian 10.x net installer](https://cdimage.debian.org/debian-cd/10.1.0/amd64/iso-cd/debian-10.1.0-amd64-netinst.iso) (a more recent minor version should also work, see also [Debian Network installation](https://www.debian.org/CD/netinst/)).
+Get the [Debian 10.x net installer](https://cdimage.debian.org/debian-cd/10.2.0/amd64/iso-cd/debian-10.2.0-amd64-netinst.iso) (a more recent minor version should also work, see also [Debian Network installation](https://www.debian.org/CD/netinst/)).
 This DVD image can be [validated](https://www.debian.org/CD/verify) using a SHA256 hashing tool, for example on
 Unixy OSes by entering the following in a terminal:
 
 ```bash
-echo "7915fdb77a0c2623b4481fc5f0a8052330defe1cde1e0834ff233818dc6f301e debian-10.1.0-amd64-netinst.iso" | sha256sum -c
+echo "e43fef979352df15056ac512ad96a07b515cb8789bf0bfd86f99ed0404f885f5  debian-10.2.0-amd64-netinst.iso" | sha256sum -c
     # (must return OK)
 ```
 
