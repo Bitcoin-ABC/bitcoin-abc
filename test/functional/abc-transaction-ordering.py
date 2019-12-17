@@ -31,9 +31,6 @@ from test_framework.script import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
-# far into the future
-REPLAY_PROTECTION_START_TIME = 2000000000
-
 
 class PreviousSpendableOutput():
 
@@ -51,8 +48,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [['-whitelist=127.0.0.1',
-                            '-relaypriority=0',
-                            "-replayprotectionactivationtime={}".format(REPLAY_PROTECTION_START_TIME)]]
+                            '-relaypriority=0']]
 
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]

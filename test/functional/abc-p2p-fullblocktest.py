@@ -53,8 +53,6 @@ from test_framework.script import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
-REPLAY_PROTECTION_START_TIME = 2000000000
-
 
 class PreviousSpendableOutput():
 
@@ -74,8 +72,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.blocks = {}
         self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-whitelist=127.0.0.1',
-                            "-replayprotectionactivationtime={}".format(
-                                REPLAY_PROTECTION_START_TIME),
                             "-excessiveblocksize={}".format(self.excessive_block_size)]]
 
     def add_options(self, parser):
