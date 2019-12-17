@@ -16,7 +16,6 @@ bool LegacyScriptPubKeyMan::GetNewDestination(const OutputType type,
                                               CTxDestination &dest,
                                               std::string &error) {
     error.clear();
-    TopUp();
 
     // Generate a new key that is added to wallet
     CPubKey new_key;
@@ -1150,8 +1149,6 @@ bool LegacyScriptPubKeyMan::ReserveKeyFromKeyPool(int64_t &nIndex,
     keypool.vchPubKey = CPubKey();
     {
         LOCK(cs_wallet);
-
-        TopUp();
 
         bool fReturningInternal = fRequestedInternal;
         fReturningInternal &=
