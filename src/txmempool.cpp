@@ -183,7 +183,6 @@ bool CTxMemPool::CalculateMemPoolAncestors(
     uint64_t limitAncestorCount, uint64_t limitAncestorSize,
     uint64_t limitDescendantCount, uint64_t limitDescendantSize,
     std::string &errString, bool fSearchForParents /* = true */) const {
-
     setEntries parentHashes;
     const CTransaction &tx = entry.GetTx();
 

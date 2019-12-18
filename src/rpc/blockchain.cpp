@@ -2079,7 +2079,6 @@ static UniValue getblockstats(const Config &config,
 
         int64_t tx_size = 0;
         if (do_calculate_size) {
-
             tx_size = tx->GetTotalSize();
             if (do_mediantxsize) {
                 txsize_array.push_back(tx_size);

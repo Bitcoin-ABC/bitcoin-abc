@@ -2345,7 +2345,6 @@ Amount CWallet::GetLegacyBalance(const isminefilter &filter, int minDepth,
         const CWalletTx &wtx = entry.second;
         const int depth = wtx.GetDepthInMainChain();
         if (depth < 0 || !CheckFinalTx(*wtx.tx) || wtx.IsImmatureCoinBase()) {
-
             continue;
         }
 

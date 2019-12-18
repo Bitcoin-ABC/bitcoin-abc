@@ -343,7 +343,6 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
 
             // 17/20 times reconnect previous or add a regular tx
             else {
-
                 COutPoint prevout;
                 // 1/20 times reconnect a previously disconnected tx
                 if (randiter % 20 == 2 && disconnected_coins.size()) {

@@ -739,7 +739,6 @@ static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
 
 static UniValue combinerawtransaction(const Config &config,
                                       const JSONRPCRequest &request) {
-
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "combinerawtransaction [\"hexstring\",...]\n"

@@ -778,7 +778,6 @@ static fs::path pathCachedNetSpecific;
 static CCriticalSection csPathCached;
 
 const fs::path &GetBlocksDir() {
-
     LOCK(csPathCached);
 
     fs::path &path = g_blocks_path_cache_net_specific;

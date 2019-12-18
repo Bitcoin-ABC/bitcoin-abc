@@ -1309,7 +1309,6 @@ void PeerLogicValidation::NewPoWValidBlock(
         // but we don't think they have this one, go ahead and announce it.
         if (state.fPreferHeaderAndIDs && !PeerHasHeader(&state, pindex) &&
             PeerHasHeader(&state, pindex->pprev)) {
-
             LogPrint(BCLog::NET, "%s sending header-and-ids %s to peer=%d\n",
                      "PeerLogicValidation::NewPoWValidBlock",
                      hashBlock.ToString(), pnode->GetId());

@@ -20,7 +20,6 @@ public:
         uint32_t rounds,
         const std::vector<uint8_t> &correctKey = std::vector<uint8_t>(),
         const std::vector<uint8_t> &correctIV = std::vector<uint8_t>()) {
-
         CCrypter crypt;
         crypt.SetKeyFromPassphrase(passphrase, vchSalt, rounds, 0);
 

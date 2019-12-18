@@ -438,7 +438,6 @@ void BlockAssembler::SortForBlock(
  */
 void BlockAssembler::addPackageTxs(int &nPackagesSelected,
                                    int &nDescendantsUpdated) {
-
     // selection algorithm orders the mempool based on feerate of a
     // transaction including all unconfirmed ancestors. Since we don't remove
     // transactions from the mempool as we select them for block inclusion, we

@@ -428,7 +428,6 @@ UniValue importprunedfunds(const Config &config,
     size_t txnIndex = 0;
     if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) ==
         merkleBlock.header.hashMerkleRoot) {
-
         LOCK(cs_main);
         const CBlockIndex *pindex =
             LookupBlockIndex(merkleBlock.header.GetHash());

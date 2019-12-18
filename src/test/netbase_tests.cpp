@@ -44,7 +44,6 @@ BOOST_AUTO_TEST_CASE(netbase_networks) {
 }
 
 BOOST_AUTO_TEST_CASE(netbase_properties) {
-
     BOOST_CHECK(ResolveIP("127.0.0.1").IsIPv4());
     BOOST_CHECK(ResolveIP("::FFFF:192.168.1.1").IsIPv4());
     BOOST_CHECK(ResolveIP("::1").IsIPv6());
@@ -118,7 +117,6 @@ BOOST_AUTO_TEST_CASE(netbase_lookupnumeric) {
 }
 
 BOOST_AUTO_TEST_CASE(onioncat_test) {
-
     // values from
     // https://web.archive.org/web/20121122003543/http://www.cypherpunk.at/onioncat/wiki/OnionCat
     CNetAddr addr1(ResolveIP("5wyqrzbvrdsumnok.onion"));
@@ -130,7 +128,6 @@ BOOST_AUTO_TEST_CASE(onioncat_test) {
 }
 
 BOOST_AUTO_TEST_CASE(subnet_test) {
-
     BOOST_CHECK(ResolveSubNet("1.2.3.0/24") ==
                 ResolveSubNet("1.2.3.0/255.255.255.0"));
     BOOST_CHECK(ResolveSubNet("1.2.3.0/24") !=

@@ -538,7 +538,6 @@ BOOST_AUTO_TEST_CASE(aes_testvectors) {
 }
 
 BOOST_AUTO_TEST_CASE(aes_cbc_testvectors) {
-
     // NIST AES CBC 128-bit encryption test-vectors
     TestAES128CBC("2b7e151628aed2a6abf7158809cf4f3c",
                   "000102030405060708090A0B0C0D0E0F", false,

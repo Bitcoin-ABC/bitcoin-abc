@@ -14,6 +14,7 @@ AllowShortFunctionsOnASingleLine: Inline
 FixNamespaceComments: true
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, BOOST_REVERSE_FOREACH ]
 CommentPragmas:  '@DISABLE FORMATING FOR THIS COMMENT@'
+KeepEmptyLinesAtTheStartOfBlocks: false
 ---
 Language:             Cpp
 Standard:             Cpp11
