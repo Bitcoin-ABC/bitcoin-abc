@@ -2116,12 +2116,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         std::string strLoadError;
 
         uiInterface.InitMessage(_("Loading block index..."));
-
-        LOCK(cs_main);
-
         nStart = GetTimeMillis();
         do {
             try {
+                LOCK(cs_main);
                 UnloadBlockIndex();
                 pcoinsTip.reset();
                 pcoinsdbview.reset();
@@ -2223,9 +2221,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                         break;
                     }
                     assert(chainActive.Tip() != nullptr);
-                }
 
-                if (!is_coinsview_empty) {
                     uiInterface.InitMessage(_("Verifying blocks..."));
                     if (fHavePruned &&
                         gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) >
