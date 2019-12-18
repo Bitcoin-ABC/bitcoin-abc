@@ -211,22 +211,18 @@ namespace {
             return m_wallet->GetDestValues(prefix);
         }
         void lockCoin(const COutPoint &output) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->LockCoin(output);
         }
         void unlockCoin(const COutPoint &output) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->UnlockCoin(output);
         }
         bool isLockedCoin(const COutPoint &output) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->IsLockedCoin(output);
         }
         void listLockedCoins(std::vector<COutPoint> &outputs) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->ListLockedCoins(outputs);
         }
@@ -235,7 +231,6 @@ namespace {
                           const CCoinControl &coin_control, bool sign,
                           int &change_pos, Amount &fee,
                           bilingual_str &fail_reason) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             CTransactionRef tx;
             if (!m_wallet->CreateTransaction(recipients, tx, fee, change_pos,
@@ -246,7 +241,6 @@ namespace {
         }
         void commitTransaction(CTransactionRef tx, WalletValueMap value_map,
                                WalletOrderForm order_form) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             m_wallet->CommitTransaction(std::move(tx), std::move(value_map),
                                         std::move(order_form));
@@ -255,12 +249,10 @@ namespace {
             return m_wallet->TransactionCanBeAbandoned(txid);
         }
         bool abandonTransaction(const TxId &txid) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->AbandonTransaction(txid);
         }
         CTransactionRef getTx(const TxId &txid) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             auto mi = m_wallet->mapWallet.find(txid);
             if (mi != m_wallet->mapWallet.end()) {
@@ -269,7 +261,6 @@ namespace {
             return {};
         }
         WalletTx getWalletTx(const TxId &txid) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             auto mi = m_wallet->mapWallet.find(txid);
             if (mi != m_wallet->mapWallet.end()) {
@@ -278,7 +269,6 @@ namespace {
             return {};
         }
         std::vector<WalletTx> getWalletTxs() override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             std::vector<WalletTx> result;
             result.reserve(m_wallet->mapWallet.size());
@@ -290,10 +280,6 @@ namespace {
         bool tryGetTxStatus(const TxId &txid,
                             interfaces::WalletTxStatus &tx_status,
                             int &num_blocks, int64_t &block_time) override {
-            auto locked_chain = m_wallet->chain().lock(true /* try_lock */);
-            if (!locked_chain) {
-                return false;
-            }
             TRY_LOCK(m_wallet->cs_wallet, locked_wallet);
             if (!locked_wallet) {
                 return false;
@@ -313,7 +299,6 @@ namespace {
                                     WalletOrderForm &order_form,
                                     bool &in_mempool,
                                     int &num_blocks) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             auto mi = m_wallet->mapWallet.find(txid);
             if (mi != m_wallet->mapWallet.end()) {
@@ -350,10 +335,6 @@ namespace {
         }
         bool tryGetBalances(WalletBalances &balances,
                             int &num_blocks) override {
-            auto locked_chain = m_wallet->chain().lock(true /* try_lock */);
-            if (!locked_chain) {
-                return false;
-            }
             TRY_LOCK(m_wallet->cs_wallet, locked_wallet);
             if (!locked_wallet) {
                 return false;
@@ -369,27 +350,22 @@ namespace {
             return m_wallet->GetAvailableBalance(&coin_control);
         }
         isminetype txinIsMine(const CTxIn &txin) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->IsMine(txin);
         }
         isminetype txoutIsMine(const CTxOut &txout) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->IsMine(txout);
         }
         Amount getDebit(const CTxIn &txin, isminefilter filter) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->GetDebit(txin, filter);
         }
         Amount getCredit(const CTxOut &txout, isminefilter filter) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             return m_wallet->GetCredit(txout, filter);
         }
         CoinsList listCoins() override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             CoinsList result;
             for (const auto &entry : m_wallet->ListCoins()) {
@@ -404,7 +380,6 @@ namespace {
         }
         std::vector<WalletTxOut>
         getCoins(const std::vector<COutPoint> &outputs) override {
-            auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             std::vector<WalletTxOut> result;
             result.reserve(outputs.size());
@@ -480,6 +455,7 @@ namespace {
                              const CCoinControl &coin_control) override {
             return GetMinimumFee(*m_wallet, tx_bytes, coin_control);
         }
+        CWallet *wallet() override { return m_wallet.get(); }
 
         std::shared_ptr<CWallet> m_wallet;
     };

@@ -150,7 +150,6 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     WalletRescanReserver reserver(*pwallet);
     bool fRescan = true;
     {
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
 
         EnsureWalletIsUnlocked(pwallet);
@@ -327,7 +326,6 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     }
 
     {
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
 
         CTxDestination dest =
@@ -368,7 +366,6 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     if (fRescan) {
         RescanWallet(*pwallet, reserver);
         {
-            auto locked_chain = pwallet->chain().lock();
             LOCK(pwallet->cs_wallet);
             pwallet->ReacceptWalletTransactions();
         }
@@ -426,7 +423,6 @@ UniValue importprunedfunds(const Config &config,
                            "Something wrong with merkleblock");
     }
 
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
     int height;
     if (!pwallet->chain().findAncestorByHash(pwallet->GetLastBlockHash(),
@@ -486,7 +482,6 @@ UniValue removeprunedfunds(const Config &config,
     }
         .Check(request);
 
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
     TxId txid(ParseHashV(request.params[0], "txid"));
@@ -585,7 +580,6 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     }
 
     {
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
 
         std::set<CScript> script_pub_keys;
@@ -606,7 +600,6 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     if (fRescan) {
         RescanWallet(*pwallet, reserver);
         {
-            auto locked_chain = pwallet->chain().lock();
             LOCK(pwallet->cs_wallet);
             pwallet->ReacceptWalletTransactions();
         }
@@ -662,7 +655,6 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     int64_t nTimeBegin = 0;
     bool fGood = true;
     {
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
 
         EnsureWalletIsUnlocked(pwallet);
@@ -843,7 +835,6 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
 
     LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*wallet);
 
-    auto locked_chain = pwallet->chain().lock();
     LOCK2(pwallet->cs_wallet, spk_man.cs_KeyStore);
 
     EnsureWalletIsUnlocked(pwallet);
@@ -904,7 +895,6 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     // the user could have gotten from another RPC command prior to now
     wallet.BlockUntilSyncedToCurrentChain();
 
-    auto locked_chain = pwallet->chain().lock();
     LOCK2(wallet.cs_wallet, spk_man.cs_KeyStore);
 
     EnsureWalletIsUnlocked(&wallet);
@@ -934,7 +924,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
 
     std::map<CKeyID, int64_t> mapKeyBirth;
     const std::map<CKeyID, int64_t> &mapKeyPool = spk_man.GetAllReserveKeys();
-    wallet.GetKeyBirthTimes(*locked_chain, mapKeyBirth);
+    wallet.GetKeyBirthTimes(mapKeyBirth);
 
     std::set<CScriptID> scripts = spk_man.GetCScripts();
 
@@ -1720,7 +1710,6 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     int64_t nLowestTimestamp = 0;
     UniValue response(UniValue::VARR);
     {
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         EnsureWalletIsUnlocked(pwallet);
 
@@ -1759,7 +1748,6 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
         int64_t scannedTime = pwallet->RescanFromTime(
             nLowestTimestamp, reserver, true /* update */);
         {
-            auto locked_chain = pwallet->chain().lock();
             LOCK(pwallet->cs_wallet);
             pwallet->ReacceptWalletTransactions();
         }

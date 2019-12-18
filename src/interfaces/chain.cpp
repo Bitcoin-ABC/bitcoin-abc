@@ -65,10 +65,6 @@ namespace {
         return true;
     }
 
-    class LockImpl : public Chain::Lock, public UniqueLock<RecursiveMutex> {
-        using UniqueLock::UniqueLock;
-    }; // namespace interfaces
-
     class NotificationsProxy : public CValidationInterface {
     public:
         explicit NotificationsProxy(
@@ -169,16 +165,6 @@ namespace {
     public:
         explicit ChainImpl(NodeContext &node, const CChainParams &params)
             : m_node(node), m_params(params) {}
-        std::unique_ptr<Chain::Lock> lock(bool try_lock) override {
-            auto lock = std::make_unique<LockImpl>(
-                ::cs_main, "cs_main", __FILE__, __LINE__, try_lock);
-            if (try_lock && lock && !*lock) {
-                return {};
-            }
-            // Temporary to avoid CWG 1579
-            std::unique_ptr<Chain::Lock> result = std::move(lock);
-            return result;
-        }
         Optional<int> getHeight() override {
             LOCK(::cs_main);
             int height = ::ChainActive().Height();

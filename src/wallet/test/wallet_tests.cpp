@@ -43,8 +43,6 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    auto locked_chain = chain->lock();
-    LockAssertion lock(::cs_main);
 
     // Verify ScanForWalletTransactions fails to read an unknown start block.
     {
@@ -92,7 +90,10 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     }
 
     // Prune the older block file.
-    PruneOneBlockFile(oldTip->GetBlockPos().nFile);
+    {
+        LOCK(cs_main);
+        PruneOneBlockFile(oldTip->GetBlockPos().nFile);
+    }
     UnlinkPrunedFiles({oldTip->GetBlockPos().nFile});
 
     // Verify ScanForWalletTransactions only picks transactions in the new block
@@ -119,7 +120,10 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     }
 
     // Prune the remaining block file.
-    PruneOneBlockFile(newTip->GetBlockPos().nFile);
+    {
+        LOCK(cs_main);
+        PruneOneBlockFile(newTip->GetBlockPos().nFile);
+    }
     UnlinkPrunedFiles({newTip->GetBlockPos().nFile});
 
     // Verify ScanForWalletTransactions scans no blocks.
@@ -154,11 +158,12 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    auto locked_chain = chain->lock();
-    LockAssertion lock(::cs_main);
 
     // Prune the older block file.
-    PruneOneBlockFile(oldTip->GetBlockPos().nFile);
+    {
+        LOCK(cs_main);
+        PruneOneBlockFile(oldTip->GetBlockPos().nFile);
+    }
     UnlinkPrunedFiles({oldTip->GetBlockPos().nFile});
 
     // Verify importmulti RPC returns failure for a key whose creation time is
@@ -244,8 +249,6 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    auto locked_chain = chain->lock();
-    LockAssertion lock(::cs_main);
 
     std::string backup_file = (GetDataDir() / "wallet.backup").string();
 
@@ -315,8 +318,6 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     auto spk_man = wallet.GetOrCreateLegacyScriptPubKeyMan();
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
 
-    auto locked_chain = chain->lock();
-    LockAssertion lock(::cs_main);
     LOCK2(wallet.cs_wallet, spk_man->cs_KeyStore);
     wallet.SetLastBlockProcessed(::ChainActive().Height(),
                                  ::ChainActive().Tip()->GetBlockHash());
@@ -344,8 +345,6 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
     SetMockTime(mockTime);
     CBlockIndex *block = nullptr;
     if (blockTime > 0) {
-        auto locked_chain = wallet.chain().lock();
-        LockAssertion lock(::cs_main);
         auto inserted =
             ::BlockIndex().emplace(BlockHash(GetRandHash()), new CBlockIndex);
         assert(inserted.second);
@@ -356,7 +355,6 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
     }
 
     CWalletTx wtx(&wallet, MakeTransactionRef(tx));
-    LOCK(cs_main);
     LOCK(wallet.cs_wallet);
     // If transaction is already in map, to avoid inconsistencies,
     // unconfirmation is needed before confirm again with different block.
@@ -508,7 +506,7 @@ public:
             std::make_unique<CWallet>(Params(), m_chain.get(), WalletLocation(),
                                       WalletDatabase::CreateMock());
         {
-            LOCK(wallet->cs_wallet);
+            LOCK2(wallet->cs_wallet, ::cs_main);
             wallet->SetLastBlockProcessed(
                 ::ChainActive().Height(),
                 ::ChainActive().Tip()->GetBlockHash());
@@ -538,7 +536,6 @@ public:
         bilingual_str error;
         CCoinControl dummy;
         {
-            auto locked_chain = m_chain->lock();
             BOOST_CHECK(wallet->CreateTransaction({recipient}, tx, fee,
                                                   changePos, error, dummy));
         }
@@ -552,7 +549,6 @@ public:
         CreateAndProcessBlock({CMutableTransaction(blocktx)},
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
 
-        LOCK(cs_main);
         LOCK(wallet->cs_wallet);
         wallet->SetLastBlockProcessed(wallet->GetLastBlockHeight() + 1,
                                       ::ChainActive().Tip()->GetBlockHash());
@@ -577,7 +573,6 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
     // address.
     std::map<CTxDestination, std::vector<COutput>> list;
     {
-        auto locked_chain = m_chain->lock();
         LOCK(wallet->cs_wallet);
         list = wallet->ListCoins();
     }
@@ -596,7 +591,6 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
     AddTx(CRecipient{GetScriptForRawPubKey({}), 1 * COIN,
                      false /* subtract fee */});
     {
-        auto locked_chain = m_chain->lock();
         LOCK(wallet->cs_wallet);
         list = wallet->ListCoins();
     }
@@ -607,7 +601,6 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
 
     // Lock both coins. Confirm number of available coins drops to 0.
     {
-        auto locked_chain = m_chain->lock();
         LOCK(wallet->cs_wallet);
         std::vector<COutput> available;
         wallet->AvailableCoins(available);
@@ -620,7 +613,6 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
         }
     }
     {
-        auto locked_chain = m_chain->lock();
         LOCK(wallet->cs_wallet);
         std::vector<COutput> available;
         wallet->AvailableCoins(available);
@@ -629,7 +621,6 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
     // Confirm ListCoins still returns same result as before, despite coins
     // being locked.
     {
-        auto locked_chain = m_chain->lock();
         LOCK(wallet->cs_wallet);
         list = wallet->ListCoins();
     }
