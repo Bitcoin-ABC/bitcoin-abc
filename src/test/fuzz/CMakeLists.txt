@@ -87,6 +87,7 @@ add_regular_fuzz_targets(
 	hex
 	integer
 	net_permissions
+	p2p_transport_deserializer
 	parse_hd_keypath
 	parse_iso8601
 	parse_numbers
