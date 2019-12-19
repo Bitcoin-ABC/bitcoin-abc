@@ -30,12 +30,21 @@ function(add_compiler_flags_to_var TARGET LANGUAGE)
 	set(${TARGET} ${${TARGET}} PARENT_SCOPE)
 endfunction()
 
+function(add_compiler_flags_for_language LANGUAGE)
+	foreach(f ${ARGN})
+		check_compiler_flag(FLAG_IS_SUPPORTED ${LANGUAGE} ${f})
+		if(${FLAG_IS_SUPPORTED})
+			add_compile_options($<$<COMPILE_LANGUAGE:${LANGUAGE}>:${f}>)
+		endif()
+	endforeach()
+endfunction()
+
 macro(add_c_compiler_flags)
-	add_compiler_flags_to_var(CMAKE_C_FLAGS C ${ARGN})
+	add_compiler_flags_for_language(C ${ARGN})
 endmacro()
 
 macro(add_cxx_compiler_flags)
-	add_compiler_flags_to_var(CMAKE_CXX_FLAGS CXX ${ARGN})
+	add_compiler_flags_for_language(CXX ${ARGN})
 endmacro()
 
 macro(add_compiler_flags)
