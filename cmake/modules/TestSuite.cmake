@@ -59,6 +59,14 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 			${_test_name}
 			${NAME} -t "${_test_name}"
 		)
+		if(TEST_WITH_UPGRADE_ACTIVATED)
+			_add_test_runner(
+				${SUITE}
+				"${_test_name}-upgrade-activated"
+				${NAME} -t "${_test_name}"
+				-- -gravitonactivationtime=1573819200
+			)
+		endif()
 	endforeach()
 
 	find_package(Boost 1.58 REQUIRED unit_test_framework)

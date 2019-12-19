@@ -156,17 +156,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		../rpc/test/server_tests.cpp
 )
 
-if (TEST_WITH_UPGRADE_ACTIVATED)
-	add_test(
-		NAME
-			"bitcoin-upgrade-activated"
-		COMMAND
-			"test_bitcoin"
-			"--"
-			"-gravitonactivationtime=1573819200"
-	)
-endif()
-
 target_link_libraries(test_bitcoin rpcclient server)
 if(TARGET bitcoinconsensus-shared)
 	target_link_libraries(test_bitcoin bitcoinconsensus-shared)
