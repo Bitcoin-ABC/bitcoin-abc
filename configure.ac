@@ -1177,6 +1177,15 @@ else
   BUILD_TEST=""
 fi
 
+AC_MSG_CHECKING([whether to build test_bitcoin-seeder])
+if test x$build_bitcoin_seeder$use_tests = xyesyes; then
+  AC_MSG_RESULT([yes])
+  BUILD_SEEDER_TEST="yes"
+else
+  AC_MSG_RESULT([no])
+  BUILD_SEEDER_TEST=""
+fi
+
 AC_MSG_CHECKING([whether to reduce exports])
 if test x$use_reduce_exports = xyes; then
   AC_MSG_RESULT([yes])
@@ -1193,6 +1202,7 @@ AM_CONDITIONAL([BUILD_DARWIN], [test x$BUILD_OS = xdarwin])
 AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
 AM_CONDITIONAL([ENABLE_WALLET],[test x$enable_wallet = xyes])
 AM_CONDITIONAL([ENABLE_TESTS],[test x$BUILD_TEST = xyes])
+AM_CONDITIONAL([ENABLE_SEEDER_TESTS],[test x$BUILD_SEEDER_TEST = xyes])
 AM_CONDITIONAL([ENABLE_QT],[test x$bitcoin_enable_qt = xyes])
 AM_CONDITIONAL([ENABLE_QT_TESTS],[test x$BUILD_TEST_QT = xyes])
 AM_CONDITIONAL([ENABLE_BENCH],[test x$use_bench = xyes])
