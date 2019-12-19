@@ -47,19 +47,31 @@ make_link(functional/test_runner.py)
 make_link(util/bitcoin-util-test.py)
 make_link(util/rpcauth-test.py)
 
-add_custom_target(check-functional
-	COMMENT "Run functional tests..."
-	COMMAND
-		"${PYTHON_EXECUTABLE}"
-		./functional/test_runner.py
-	DEPENDS
-		../src/bitcoind
-		../src/bitcoin-cli
-		${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
-	USES_TERMINAL
-)
+macro(add_functional_test_check TARGET COMMENT)
+	add_custom_target(${TARGET}
+		COMMENT "${COMMENT}"
+		COMMAND
+			"${PYTHON_EXECUTABLE}"
+			./functional/test_runner.py
+			${ARGN}
+		DEPENDS
+			../src/bitcoind
+			../src/bitcoin-cli
+			${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
+		USES_TERMINAL
+	)
+endmacro()
 
+add_functional_test_check(check-functional
+	"Run the functional tests"
+)
 add_dependencies(check-all check-functional)
+
+add_functional_test_check(check-functional-upgrade-activated
+	"Run the functional tests with the upgrade activated"
+	--with-phononactivation
+)
+add_dependencies(check-upgrade-activated check-functional-upgrade-activated)
 
 if(BUILD_BITCOIN_TX)
 	add_custom_target(check-bitcoin-util
