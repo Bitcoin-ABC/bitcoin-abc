@@ -69,7 +69,7 @@ case "$ABC_BUILD_NAME" in
     ninja check
     # FIXME Remove when wallet_multiwallet works with asan after backporting at least the following PRs from Core and their dependencies: 13161, 12493, 14320, 14552, 14760, 11911.
     TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=wallet_multiwallet"
-    ./test/functional/test_runner.py -J=junit_results_asan.xml ${TEST_RUNNER_FLAGS}
+    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ;;
 
   build-ubsan)
@@ -85,7 +85,7 @@ case "$ABC_BUILD_NAME" in
     ninja check
     # FIXME Remove when abc-p2p-compactblocks works with ubsan.
     TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=abc-p2p-compactblocks"
-    ./test/functional/test_runner.py -J=junit_results_ubsan.xml ${TEST_RUNNER_FLAGS}
+    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ;;
 
   build-tsan)
@@ -101,7 +101,7 @@ case "$ABC_BUILD_NAME" in
     ninja check
     # FIXME Remove when wallet_multiwallet works with tsan after backporting at least the following PRs from Core and their dependencies: 13161, 12493, 14320, 14552, 14760, 11911.
     TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=wallet_multiwallet"
-    ./test/functional/test_runner.py -J=junit_results_tsan.xml ${TEST_RUNNER_FLAGS}
+    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ;;
 
   build-default)
@@ -113,7 +113,7 @@ case "$ABC_BUILD_NAME" in
     if [[ "${BRANCH}" == "master" ]]; then
       TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --extended"
     fi
-    ./test/functional/test_runner.py -J=junit_results_default.xml ${TEST_RUNNER_FLAGS}
+    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-gravitonactivation ${TEST_RUNNER_FLAGS}
 
     # Build secp256k1 and run the java tests.
