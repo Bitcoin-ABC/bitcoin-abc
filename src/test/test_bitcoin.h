@@ -121,15 +121,13 @@ struct TestMemPoolEntryHelper {
     // Default values
     Amount nFee;
     int64_t nTime;
-    double dPriority;
     unsigned int nHeight;
     bool spendsCoinbase;
     unsigned int sigOpCost;
     LockPoints lp;
 
     TestMemPoolEntryHelper()
-        : nFee(), nTime(0), dPriority(0.0), nHeight(1), spendsCoinbase(false),
-          sigOpCost(4) {}
+        : nFee(), nTime(0), nHeight(1), spendsCoinbase(false), sigOpCost(4) {}
 
     CTxMemPoolEntry FromTx(const CMutableTransaction &tx,
                            CTxMemPool *pool = nullptr);
@@ -143,10 +141,6 @@ struct TestMemPoolEntryHelper {
     }
     TestMemPoolEntryHelper &Time(int64_t _time) {
         nTime = _time;
-        return *this;
-    }
-    TestMemPoolEntryHelper &Priority(double _priority) {
-        dPriority = _priority;
         return *this;
     }
     TestMemPoolEntryHelper &Height(unsigned int _height) {

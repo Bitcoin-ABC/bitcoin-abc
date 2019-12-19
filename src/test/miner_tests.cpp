@@ -278,7 +278,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     CScript script;
     TestMemPoolEntryHelper entry;
     entry.nFee = 11 * SATOSHI;
-    entry.dPriority = 111.0;
     entry.nHeight = 11;
 
     fCheckpointsEnabled = false;

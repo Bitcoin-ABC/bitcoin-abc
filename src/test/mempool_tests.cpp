@@ -279,32 +279,28 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx1.vout.resize(1);
     tx1.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx1.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(tx1.GetId(),
-                      entry.Fee(10000 * SATOSHI).Priority(10.0).FromTx(tx1));
+    pool.addUnchecked(tx1.GetId(), entry.Fee(10000 * SATOSHI).FromTx(tx1));
 
     /* highest fee */
     CMutableTransaction tx2 = CMutableTransaction();
     tx2.vout.resize(1);
     tx2.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx2.vout[0].nValue = 2 * COIN;
-    pool.addUnchecked(tx2.GetId(),
-                      entry.Fee(20000 * SATOSHI).Priority(9.0).FromTx(tx2));
+    pool.addUnchecked(tx2.GetId(), entry.Fee(20000 * SATOSHI).FromTx(tx2));
 
     /* lowest fee */
     CMutableTransaction tx3 = CMutableTransaction();
     tx3.vout.resize(1);
     tx3.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx3.vout[0].nValue = 5 * COIN;
-    pool.addUnchecked(tx3.GetId(),
-                      entry.Fee(Amount::zero()).Priority(100.0).FromTx(tx3));
+    pool.addUnchecked(tx3.GetId(), entry.Fee(Amount::zero()).FromTx(tx3));
 
     /* 2nd highest fee */
     CMutableTransaction tx4 = CMutableTransaction();
     tx4.vout.resize(1);
     tx4.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx4.vout[0].nValue = 6 * COIN;
-    pool.addUnchecked(tx4.GetId(),
-                      entry.Fee(15000 * SATOSHI).Priority(1.0).FromTx(tx4));
+    pool.addUnchecked(tx4.GetId(), entry.Fee(15000 * SATOSHI).FromTx(tx4));
 
     /* equal fee rate to tx1, but newer */
     CMutableTransaction tx5 = CMutableTransaction();
@@ -312,7 +308,6 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx5.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx5.vout[0].nValue = 11 * COIN;
     entry.nTime = 1;
-    entry.dPriority = 10.0;
     pool.addUnchecked(tx5.GetId(), entry.Fee(10000 * SATOSHI).FromTx(tx5));
     BOOST_CHECK_EQUAL(pool.size(), 5UL);
 
@@ -470,16 +465,14 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     tx1.vout.resize(1);
     tx1.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx1.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(tx1.GetId(),
-                      entry.Fee(10000 * SATOSHI).Priority(10.0).FromTx(tx1));
+    pool.addUnchecked(tx1.GetId(), entry.Fee(10000 * SATOSHI).FromTx(tx1));
 
     /* highest fee */
     CMutableTransaction tx2 = CMutableTransaction();
     tx2.vout.resize(1);
     tx2.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx2.vout[0].nValue = 2 * COIN;
-    pool.addUnchecked(tx2.GetId(),
-                      entry.Fee(20000 * SATOSHI).Priority(9.0).FromTx(tx2));
+    pool.addUnchecked(tx2.GetId(), entry.Fee(20000 * SATOSHI).FromTx(tx2));
     uint64_t tx2Size = CTransaction(tx2).GetTotalSize();
 
     /* lowest fee */
@@ -487,16 +480,14 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     tx3.vout.resize(1);
     tx3.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx3.vout[0].nValue = 5 * COIN;
-    pool.addUnchecked(tx3.GetId(),
-                      entry.Fee(Amount::zero()).Priority(100.0).FromTx(tx3));
+    pool.addUnchecked(tx3.GetId(), entry.Fee(Amount::zero()).FromTx(tx3));
 
     /* 2nd highest fee */
     CMutableTransaction tx4 = CMutableTransaction();
     tx4.vout.resize(1);
     tx4.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx4.vout[0].nValue = 6 * COIN;
-    pool.addUnchecked(tx4.GetId(),
-                      entry.Fee(15000 * SATOSHI).Priority(1.0).FromTx(tx4));
+    pool.addUnchecked(tx4.GetId(), entry.Fee(15000 * SATOSHI).FromTx(tx4));
 
     /* equal fee rate to tx1, but newer */
     CMutableTransaction tx5 = CMutableTransaction();
@@ -604,7 +595,6 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     CTxMemPool pool;
     LOCK2(cs_main, pool.cs);
     TestMemPoolEntryHelper entry;
-    entry.dPriority = 10.0;
     Amount feeIncrement = MEMPOOL_FULL_FEE_INCREMENT.GetFeePerK();
 
     CMutableTransaction tx1 = CMutableTransaction();

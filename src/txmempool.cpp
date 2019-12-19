@@ -26,13 +26,10 @@
 #include <algorithm>
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
-                                 int64_t _nTime, double _entryPriority,
-                                 unsigned int _entryHeight,
-                                 Amount _inChainInputValue,
+                                 int64_t _nTime, unsigned int _entryHeight,
                                  bool _spendsCoinbase, int64_t _sigOpsCount,
                                  LockPoints lp)
-    : tx(_tx), nFee(_nFee), nTime(_nTime), entryPriority(_entryPriority),
-      entryHeight(_entryHeight), inChainInputValue(_inChainInputValue),
+    : tx(_tx), nFee(_nFee), nTime(_nTime), entryHeight(_entryHeight),
       spendsCoinbase(_spendsCoinbase), sigOpCount(_sigOpsCount),
       lockPoints(lp) {
     nTxSize = tx->GetTotalSize();
@@ -42,8 +39,6 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
     nModFeesWithDescendants = nFee;
-    Amount nValueIn = tx->GetValueOut() + nFee;
-    assert(inChainInputValue <= nValueIn);
 
     feeDelta = Amount::zero();
 
