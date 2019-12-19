@@ -48,7 +48,6 @@ static BlockAssembler AssemblerForTest(const CChainParams &params,
                                        const CTxMemPool &mempool) {
     BlockAssembler::Options options;
     options.blockMinFeeRate = blockMinFeeRate;
-    options.nBlockPriorityPercentage = 0;
     return BlockAssembler(params, mempool, options);
 }
 
@@ -102,7 +101,6 @@ static bool TestSequenceLocks(const CTransaction &tx, int flags)
 // Test suite for ancestor feerate transaction selection.
 // Implemented as an additional function, rather than a separate test case, to
 // allow reusing the blockchain created in CreateNewBlock_validity.
-// Note that this test assumes blockprioritypercentage is 0.
 static void TestPackageSelection(const CChainParams &chainparams,
                                  const CScript &scriptPubKey,
                                  const std::vector<CTransactionRef> &txFirst)

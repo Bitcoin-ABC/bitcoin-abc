@@ -46,8 +46,8 @@ NOT_FINAL_ERROR = "non-BIP68-final (code 64)"
 class BIP68Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-blockprioritypercentage=0", "-noparkdeepreorg", "-maxreorgdepth=-1"],
-                           ["-blockprioritypercentage=0", "-acceptnonstdtxn=0", "-maxreorgdepth=-1"]]
+        self.extra_args = [["-noparkdeepreorg", "-maxreorgdepth=-1"],
+                           ["-acceptnonstdtxn=0", "-maxreorgdepth=-1"]]
 
     def run_test(self):
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]

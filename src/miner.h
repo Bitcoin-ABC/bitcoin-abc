@@ -156,7 +156,6 @@ private:
     int64_t nLockTimeCutoff;
     int64_t nMedianTimePast;
     const CChainParams &chainparams;
-    uint8_t nBlockPriorityPercentage;
 
     const CTxMemPool *mempool;
 
@@ -169,7 +168,6 @@ public:
         uint64_t nExcessiveBlockSize;
         uint64_t nMaxGeneratedBlockSize;
         CFeeRate blockMinFeeRate;
-        uint8_t nBlockPriorityPercentage;
     };
 
     BlockAssembler(const Config &config, const CTxMemPool &_mempool);
@@ -190,8 +188,6 @@ private:
     void AddToBlock(CTxMemPool::txiter iter);
 
     // Methods for how to add transactions to a block.
-    /** Add transactions based on tx "priority" */
-    void addPriorityTxs() EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
     /**
      * Add transactions based on feerate including unconfirmed ancestors.
      * Increments nPackagesSelected / nDescendantsUpdated with corresponding

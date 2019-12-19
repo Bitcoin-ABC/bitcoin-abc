@@ -894,11 +894,6 @@ void SetupServerArgs() {
                  strprintf("Set maximum block size in bytes (default: %d)",
                            DEFAULT_MAX_GENERATED_BLOCK_SIZE),
                  false, OptionsCategory::BLOCK_CREATION);
-    gArgs.AddArg("-blockprioritypercentage=<n>",
-                 strprintf("Set maximum percentage of a block reserved to "
-                           "high-priority/low-fee transactions (default: %d)",
-                           DEFAULT_BLOCK_PRIORITY_PERCENTAGE),
-                 false, OptionsCategory::BLOCK_CREATION);
     gArgs.AddArg("-blockmintxfee=<amt>",
                  strprintf("Set lowest fee rate (in %s/kB) for transactions to "
                            "be included in block creation. (default: %s)",
@@ -1481,15 +1476,6 @@ bool AppInitParameterInteraction(Config &config) {
         if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
             return InitError(_("Prune mode is incompatible with -txindex."));
         }
-    }
-
-    // if space reserved for high priority transactions is misconfigured
-    // stop program execution and warn the user with a proper error message
-    const int64_t blkprio = gArgs.GetArg("-blockprioritypercentage",
-                                         DEFAULT_BLOCK_PRIORITY_PERCENTAGE);
-    if (!config.SetBlockPriorityPercentage(blkprio)) {
-        return InitError(_("Block priority percentage has to belong to the "
-                           "[0..100] interval."));
     }
 
     // -bind and -whitebind can't be set when not listening

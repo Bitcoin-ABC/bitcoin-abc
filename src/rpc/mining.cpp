@@ -254,9 +254,6 @@ static UniValue getmininginfo(const Config &config,
     obj.pushKV("currentblocksize", uint64_t(nLastBlockSize));
     obj.pushKV("currentblocktx", uint64_t(nLastBlockTx));
     obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
-    obj.pushKV("blockprioritypercentage",
-               uint8_t(gArgs.GetArg("-blockprioritypercentage",
-                                    DEFAULT_BLOCK_PRIORITY_PERCENTAGE)));
     obj.pushKV("networkhashps", getnetworkhashps(config, request));
     obj.pushKV("pooledtx", uint64_t(g_mempool.size()));
     obj.pushKV("chain", config.GetChainParams().NetworkIDString());
