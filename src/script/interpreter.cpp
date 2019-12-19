@@ -874,19 +874,22 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             return false;
                         }
 
-                        // Subset of script starting at the most recent
-                        // codeseparator
-                        CScript scriptCode(pbegincodehash, pend);
+                        bool fSuccess = false;
+                        if (vchSig.size()) {
+                            // Subset of script starting at the most recent
+                            // codeseparator
+                            CScript scriptCode(pbegincodehash, pend);
 
-                        // Remove signature for pre-fork scripts
-                        CleanupScriptCode(scriptCode, vchSig, flags);
+                            // Remove signature for pre-fork scripts
+                            CleanupScriptCode(scriptCode, vchSig, flags);
 
-                        bool fSuccess = checker.CheckSig(vchSig, vchPubKey,
-                                                         scriptCode, flags);
+                            fSuccess = checker.CheckSig(vchSig, vchPubKey,
+                                                        scriptCode, flags);
 
-                        if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) &&
-                            vchSig.size()) {
-                            return set_error(serror, ScriptError::SIG_NULLFAIL);
+                            if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
+                                return set_error(serror,
+                                                 ScriptError::SIG_NULLFAIL);
+                            }
                         }
 
                         popstack(stack);
@@ -929,11 +932,11 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                 .Finalize(vchHash.data());
                             fSuccess = checker.VerifySignature(
                                 vchSig, CPubKey(vchPubKey), uint256(vchHash));
-                        }
 
-                        if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) &&
-                            vchSig.size()) {
-                            return set_error(serror, ScriptError::SIG_NULLFAIL);
+                            if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
+                                return set_error(serror,
+                                                 ScriptError::SIG_NULLFAIL);
+                            }
                         }
 
                         popstack(stack);
