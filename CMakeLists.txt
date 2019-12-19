@@ -28,6 +28,7 @@ set(CONTRIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/contrib)
 # If ccache is available, then use it.
 find_program(CCACHE ccache)
 if(CCACHE)
+	message(STATUS "Using ccache: ${CCACHE}")
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE})
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE})
 endif(CCACHE)
