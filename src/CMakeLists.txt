@@ -47,10 +47,10 @@ add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -g3 -g)
 
 # Define the debugging symbols DEBUG and DEBUG_LOCKORDER when the Debug build
 # type is selected.
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -DDEBUG_LOCKORDER")
+add_compile_definitions_to_configuration(Debug DEBUG DEBUG_LOCKORDER)
 
 # Add -ftrapv when building in Debug
-add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG CXX -ftrapv)
+add_compile_options_to_configuration(Debug -ftrapv)
 
 # Ensure that WINDRES_PREPROC is enabled when using windres.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -62,7 +62,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	add_definitions(-DMAC_OSX -DOBJC_OLD_DISPATCH_PROTOTYPES=0)
+	add_compile_definitions(MAC_OSX OBJC_OLD_DISPATCH_PROTOTYPES=0)
 endif()
 
 if(ENABLE_REDUCE_EXPORTS)

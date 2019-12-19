@@ -98,6 +98,21 @@ function(add_cxx_compiler_flag_with_fallback TARGET_VAR FLAG FALLBACK)
 	set(${TARGET_VAR} ${${TARGET_VAR}} PARENT_SCOPE)
 endfunction()
 
+function(add_compile_options_to_configuration CONFIGURATION)
+	foreach(f ${ARGN})
+		check_compiler_flag(FLAG_IS_SUPPORTED CXX ${f})
+		if(${FLAG_IS_SUPPORTED})
+			add_compile_options($<$<CONFIG:${CONFIGURATION}>:${f}>)
+		endif()
+	endforeach()
+endfunction()
+
+function(add_compile_definitions_to_configuration CONFIGURATION)
+	foreach(f ${ARGN})
+		add_compile_definitions($<$<CONFIG:${CONFIGURATION}>:${f}>)
+	endforeach()
+endfunction()
+
 # Note that CMake does not provide any facility to check that a linker flag is
 # supported by the compiler.
 # However since CMake 3.2 introduced the CMP0056 policy, the
