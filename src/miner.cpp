@@ -356,11 +356,8 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
     bool fPrintPriority =
         gArgs.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY);
     if (fPrintPriority) {
-        double dPriority = iter->GetPriority(nHeight);
-        Amount dummy;
-        mempool->ApplyDeltas(iter->GetTx().GetId(), dPriority, dummy);
         LogPrintf(
-            "priority %.1f fee %s txid %s\n", dPriority,
+            "fee %s txid %s\n",
             CFeeRate(iter->GetModifiedFee(), iter->GetTxSize()).ToString(),
             iter->GetTx().GetId().ToString());
     }
