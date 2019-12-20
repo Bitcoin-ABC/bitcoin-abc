@@ -118,11 +118,6 @@ public:
 
     const CTransaction &GetTx() const { return *this->tx; }
     CTransactionRef GetSharedTx() const { return this->tx; }
-    /**
-     * Fast calculation of lower bound of current priority as update from entry
-     * priority. Only inputs that were originally in-chain will age.
-     */
-    double GetPriority(unsigned int currentHeight) const;
     const Amount GetFee() const { return nFee; }
     size_t GetTxSize() const { return nTxSize; }
 
