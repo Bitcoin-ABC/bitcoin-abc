@@ -15,7 +15,7 @@ endmacro(create_test_suite)
 
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
 function(_add_test_runner SUITE NAME COMMAND)
-	set(TARGET "test-${NAME}")
+	set(TARGET "check-${SUITE}-${NAME}")
 	set(LOG "${NAME}.log")
 	set(RUNNER "${CMAKE_CURRENT_BINARY_DIR}/run-${NAME}.sh")
 	list(JOIN ARGN " " ARGS)
