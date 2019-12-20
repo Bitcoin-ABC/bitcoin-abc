@@ -46,8 +46,8 @@ TEST_EXIT_PASSED = 0
 TEST_EXIT_FAILED = 1
 TEST_EXIT_SKIPPED = 77
 
-# Timestamp is 01.01.2019
-TIMESTAMP_IN_THE_PAST = 1546300800
+# Timestamp is Dec. 1st, 2019 at 00:00:00
+TIMESTAMP_IN_THE_PAST = 1575158400
 
 
 class BitcoinTestFramework():
@@ -103,8 +103,8 @@ class BitcoinTestFramework():
                             help="Attach a python debugger if test fails")
         parser.add_argument("--usecli", dest="usecli", default=False, action="store_true",
                             help="use bitcoin-cli instead of RPC for all commands")
-        parser.add_argument("--with-gravitonactivation", dest="gravitonactivation", default=False, action="store_true",
-                            help="Activate graviton update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
+        parser.add_argument("--with-phononactivation", dest="phononactivation", default=False, action="store_true",
+                            help="Activate phonon update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
         self.add_options(parser)
         self.options = parser.parse_args()
 
@@ -294,9 +294,9 @@ class BitcoinTestFramework():
                 extra_args=extra_args[i],
                 use_cli=self.options.usecli,
             ))
-            if self.options.gravitonactivation:
+            if self.options.phononactivation:
                 self.nodes[i].extend_default_args(
-                    ["-gravitonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+                    ["-phononactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
 
     def start_node(self, i, *args, **kwargs):
         """Start a bitcoind"""
@@ -455,9 +455,9 @@ class BitcoinTestFramework():
                 if i > 0:
                     self.nodes[i].extend_default_args(
                         ["-connect=127.0.0.1:" + str(p2p_port(0))])
-                if self.options.gravitonactivation:
+                if self.options.phononactivation:
                     self.nodes[i].extend_default_args(
-                        ["-gravitonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+                        ["-phononactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
                 self.start_node(i)
 
             # Wait for RPC connections to be ready

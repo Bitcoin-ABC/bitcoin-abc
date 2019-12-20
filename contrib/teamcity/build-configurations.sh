@@ -114,7 +114,7 @@ case "$ABC_BUILD_NAME" in
       TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --extended"
     fi
     ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
-    ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-gravitonactivation ${TEST_RUNNER_FLAGS}
+    ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-phononactivation ${TEST_RUNNER_FLAGS}
 
     # Build secp256k1 and run the java tests.
     export TOPLEVEL="${TOPLEVEL}"/src/secp256k1

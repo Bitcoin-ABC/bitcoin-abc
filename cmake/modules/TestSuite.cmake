@@ -64,7 +64,8 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 				${SUITE}
 				"${_test_name}-upgrade-activated"
 				${NAME} -t "${_test_name}"
-				-- -gravitonactivationtime=1573819200
+				# Dec. 1st, 2019 at 00:00:00
+				-- -phononactivationtime=1575158400
 			)
 		endif()
 	endforeach()
