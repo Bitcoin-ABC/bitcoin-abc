@@ -419,10 +419,6 @@ static std::string EntryDescriptionString() {
            "entered pool in seconds since 1 Jan 1970 GMT\n"
            "    \"height\" : n,           (numeric) block height when "
            "transaction entered pool\n"
-           "    \"startingpriority\" : n, (numeric) DEPRECATED. Priority when "
-           "transaction entered pool\n"
-           "    \"currentpriority\" : n,  (numeric) DEPRECATED. Transaction "
-           "priority now\n"
            "    \"descendantcount\" : n,  (numeric) number of in-mempool "
            "descendant transactions (including this one)\n"
            "    \"descendantsize\" : n,   (numeric) virtual transaction size "
@@ -479,8 +475,6 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
     info.pushKV("modifiedfee", ValueFromAmount(e.GetModifiedFee()));
     info.pushKV("time", e.GetTime());
     info.pushKV("height", (int)e.GetHeight());
-    info.pushKV("startingpriority", e.GetPriority(e.GetHeight()));
-    info.pushKV("currentpriority", e.GetPriority(chainActive.Height()));
     info.pushKV("descendantcount", e.GetCountWithDescendants());
     info.pushKV("descendantsize", e.GetSizeWithDescendants());
     info.pushKV("descendantfees", e.GetModFeesWithDescendants() / SATOSHI);
