@@ -63,7 +63,10 @@ BITCOIND="${BITCOIND} -connect=0 ${OPTION_TESTNET} -daemon"
 BITCOIN_CLI="${BITCOIN_CLI} ${OPTION_TESTNET}"
 
 >&2 echo "Spinning up bitcoind..."
-${BITCOIND}
+${BITCOIND} || {
+  echo "Error starting bitcoind. Stopping script."
+  exit 12
+}
 cleanup() {
   # Cleanup background processes spawned by this script.
   >&2 echo "Cleaning up bitcoin daemon..."
