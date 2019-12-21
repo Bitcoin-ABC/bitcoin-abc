@@ -24,21 +24,21 @@ static void SetMTP(std::array<CBlockIndex, 12> &blocks, int64_t mtp) {
 }
 
 BOOST_AUTO_TEST_CASE(isgravitonenabled) {
-    const auto &params =
-        CreateChainParams(CBaseChainParams::MAIN)->GetConsensus();
+    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto &consensus = params->GetConsensus();
 
-    BOOST_CHECK(!IsGravitonEnabled(params, nullptr));
+    BOOST_CHECK(!IsGravitonEnabled(consensus, nullptr));
 
     std::array<CBlockIndex, 4> blocks;
-    blocks[0].nHeight = params.gravitonHeight - 2;
+    blocks[0].nHeight = consensus.gravitonHeight - 2;
     for (size_t i = 1; i < blocks.size(); ++i) {
         blocks[i].pprev = &blocks[i - 1];
         blocks[i].nHeight = blocks[i - 1].nHeight + 1;
     }
-    BOOST_CHECK(!IsGravitonEnabled(params, &blocks[0]));
-    BOOST_CHECK(!IsGravitonEnabled(params, &blocks[1]));
-    BOOST_CHECK(IsGravitonEnabled(params, &blocks[2]));
-    BOOST_CHECK(IsGravitonEnabled(params, &blocks[3]));
+    BOOST_CHECK(!IsGravitonEnabled(consensus, &blocks[0]));
+    BOOST_CHECK(!IsGravitonEnabled(consensus, &blocks[1]));
+    BOOST_CHECK(IsGravitonEnabled(consensus, &blocks[2]));
+    BOOST_CHECK(IsGravitonEnabled(consensus, &blocks[3]));
 }
 
 BOOST_AUTO_TEST_CASE(isphononenabled) {
