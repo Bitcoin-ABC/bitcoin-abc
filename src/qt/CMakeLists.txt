@@ -123,6 +123,10 @@ if(ENABLE_BIP70)
 	)
 
 	target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+	target_link_libraries(bitcoin-qt-base
+		OpenSSL::SSL
+		${Protobuf_LIBRARIES}
+	)
 endif()
 
 # Add the minimal integration plugin, and other plugins according to the target
@@ -280,10 +284,6 @@ if(BUILD_BITCOIN_WALLET)
 
 	# Add BIP70 functionality to bitcoin-qt
 	if(ENABLE_BIP70)
-		target_link_libraries(bitcoin-qt-base
-			OpenSSL::SSL
-			${Protobuf_LIBRARIES}
-		)
 		target_sources(bitcoin-qt-base
 			PRIVATE
 				paymentrequestplus.cpp
