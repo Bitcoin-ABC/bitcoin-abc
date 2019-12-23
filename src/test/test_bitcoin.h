@@ -157,9 +157,12 @@ struct TestMemPoolEntryHelper {
     }
 };
 
-// define an implicit conversion here so that uint256 may be used directly in
-// BOOST_CHECK_*
+enum class ScriptError;
+
+// define implicit conversions here so that these types may be used in
+// BOOST_*_EQUAL
 std::ostream &operator<<(std::ostream &os, const uint256 &num);
+std::ostream &operator<<(std::ostream &os, const ScriptError &err);
 
 CBlock getBlock13b8a();
 

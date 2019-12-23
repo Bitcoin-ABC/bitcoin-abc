@@ -22,6 +22,7 @@
 #include <random.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
+#include <script/script_error.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
 #include <streams.h>
@@ -38,6 +39,11 @@ FastRandomContext g_insecure_rand_ctx;
 
 std::ostream &operator<<(std::ostream &os, const uint256 &num) {
     os << num.ToString();
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const ScriptError &err) {
+    os << ScriptErrorString(err);
     return os;
 }
 
