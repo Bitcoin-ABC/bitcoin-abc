@@ -59,15 +59,20 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 			${_test_name}
 			${NAME} -t "${_test_name}"
 		)
-		if(TEST_WITH_UPGRADE_ACTIVATED)
-			_add_test_runner(
-				${SUITE}
-				"${_test_name}-upgrade-activated"
-				${NAME} -t "${_test_name}"
-				# Dec. 1st, 2019 at 00:00:00
-				-- -phononactivationtime=1575158400
-			)
+
+		set(SUITE_UPGRADE_ACTIVATED "${SUITE}-upgrade-activated")
+		set(TARGET_UPGRADE_ACTIVATED "check-${SUITE_UPGRADE_ACTIVATED}")
+		if(NOT TARGET ${TARGET_UPGRADE_ACTIVATED})
+			create_test_suite(${SUITE_UPGRADE_ACTIVATED})
+			add_dependencies(${TARGET_UPGRADE_ACTIVATED} ${NAME})
 		endif()
+		_add_test_runner(
+			${SUITE_UPGRADE_ACTIVATED}
+			"${_test_name}"
+			${NAME} -t "${_test_name}"
+			# Dec. 1st, 2019 at 00:00:00
+			-- -phononactivationtime=1575158400
+		)
 	endforeach()
 
 	find_package(Boost 1.58 REQUIRED unit_test_framework)

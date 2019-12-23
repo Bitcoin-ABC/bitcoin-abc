@@ -2,8 +2,6 @@
 
 project(bitcoin-test)
 
-option(TEST_WITH_UPGRADE_ACTIVATED "Run unit tests with the next upgrade activated in addition to regular tests" OFF)
-
 # Process json files.
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data")
 
