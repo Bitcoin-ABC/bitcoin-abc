@@ -50,6 +50,7 @@ find_package(PythonInterp 3.5 REQUIRED)
 # Add the magic targets `check-*`
 add_custom_target(check-all)
 add_custom_target(check)
+add_custom_target(check-upgrade-activated)
 add_custom_target(check-symbols)
 add_custom_target(check-security)
 

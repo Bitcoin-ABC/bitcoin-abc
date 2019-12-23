@@ -1,17 +1,21 @@
 # Allow to easily build test suites
 
-macro(create_test_suite NAME)
+function(create_test_suite_with_parent_target NAME PARENT_TARGET)
 	set(TARGET "check-${NAME}")
+
 	add_custom_target(${TARGET}
 		COMMENT "Running ${NAME} test suite"
 		COMMAND cmake -E echo "PASSED: ${NAME} test suite"
 	)
 
-	# If the magic target check-all exists, attach to it.
-	if(TARGET check-all)
-		add_dependencies(check-all ${TARGET})
+	if(TARGET ${PARENT_TARGET})
+		add_dependencies(${PARENT_TARGET} ${TARGET})
 	endif()
-endmacro(create_test_suite)
+endfunction(create_test_suite_with_parent_target)
+
+macro(create_test_suite NAME)
+	create_test_suite_with_parent_target(${NAME} check-all)
+endmacro()
 
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
 function(_add_test_runner SUITE NAME COMMAND)
@@ -63,7 +67,10 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		set(SUITE_UPGRADE_ACTIVATED "${SUITE}-upgrade-activated")
 		set(TARGET_UPGRADE_ACTIVATED "check-${SUITE_UPGRADE_ACTIVATED}")
 		if(NOT TARGET ${TARGET_UPGRADE_ACTIVATED})
-			create_test_suite(${SUITE_UPGRADE_ACTIVATED})
+			create_test_suite_with_parent_target(
+				${SUITE_UPGRADE_ACTIVATED}
+				check-upgrade-activated
+			)
 			add_dependencies(${TARGET_UPGRADE_ACTIVATED} ${NAME})
 		endif()
 		_add_test_runner(
