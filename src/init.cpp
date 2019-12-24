@@ -23,6 +23,7 @@
 #include <consensus/validation.h>
 #include <flatfile.h>
 #include <fs.h>
+#include <hash.h>
 #include <httprpc.h>
 #include <httpserver.h>
 #include <index/blockfilterindex.h>
@@ -52,6 +53,7 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <ui_interface.h>
+#include <util/asmap.h>
 #include <util/moneystr.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
@@ -91,6 +93,8 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 #else
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
+
+static const char *DEFAULT_ASMAP_FILENAME = "ip_asn.map";
 
 /**
  * The PID file facilities.
@@ -710,6 +714,10 @@ void SetupServerArgs() {
                  "Tor control port password (default: empty)",
                  ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
                  OptionsCategory::CONNECTION);
+    gArgs.AddArg("-asmap=<file>",
+                 "Specify asn mapping used for bucketing of the peers. Path "
+                 "should be relative to the -datadir path.",
+                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 #ifdef USE_UPNP
 #if USE_UPNP
     gArgs.AddArg("-upnp",
@@ -2763,6 +2771,28 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
     if (!node.connman->Start(*node.scheduler, connOptions)) {
         return false;
+    }
+
+    // Read asmap file if configured
+    if (gArgs.IsArgSet("-asmap")) {
+        std::string asmap_file = gArgs.GetArg("-asmap", "");
+        if (asmap_file.empty()) {
+            asmap_file = DEFAULT_ASMAP_FILENAME;
+        }
+        const fs::path asmap_path = GetDataDir() / asmap_file;
+        std::vector<bool> asmap = CAddrMan::DecodeAsmap(asmap_path);
+        if (asmap.size() == 0) {
+            InitError(
+                strprintf(_("Could not find or parse specified asmap: '%s'"),
+                          asmap_path));
+            return false;
+        }
+        node.connman->SetAsmap(asmap);
+        const uint256 asmap_version = SerializeHash(asmap);
+        LogPrintf("Using asmap version %s for IP bucketing.\n",
+                  asmap_version.ToString());
+    } else {
+        LogPrintf("Using /16 prefix for IP bucketing.\n");
     }
 
     // Step 13: finished

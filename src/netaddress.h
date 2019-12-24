@@ -98,7 +98,7 @@ public:
     unsigned int GetByte(int n) const;
     uint64_t GetHash() const;
     bool GetInAddr(struct in_addr *pipv4Addr) const;
-    std::vector<uint8_t> GetGroup() const;
+    std::vector<uint8_t> GetGroup(const std::vector<bool> &asmap) const;
     std::vector<uint8_t> GetAddrBytes() const {
         return {std::begin(ip), std::end(ip)};
     }

@@ -292,47 +292,51 @@ BOOST_AUTO_TEST_CASE(subnet_test) {
 }
 
 BOOST_AUTO_TEST_CASE(netbase_getgroup) {
+    // use /16
+    std::vector<bool> asmap;
     typedef std::vector<uint8_t> Vec8;
     // Local -> !Routable()
-    BOOST_CHECK(ResolveIP("127.0.0.1").GetGroup() == Vec8{0});
+    BOOST_CHECK(ResolveIP("127.0.0.1").GetGroup(asmap) == Vec8{0});
     // !Valid -> !Routable()
-    BOOST_CHECK(ResolveIP("257.0.0.1").GetGroup() == Vec8{0});
+    BOOST_CHECK(ResolveIP("257.0.0.1").GetGroup(asmap) == Vec8{0});
     // RFC1918 -> !Routable()
-    BOOST_CHECK(ResolveIP("10.0.0.1").GetGroup() == Vec8{0});
+    BOOST_CHECK(ResolveIP("10.0.0.1").GetGroup(asmap) == Vec8{0});
     // RFC3927 -> !Routable()
-    BOOST_CHECK(ResolveIP("169.254.1.1").GetGroup() == Vec8{0});
+    BOOST_CHECK(ResolveIP("169.254.1.1").GetGroup(asmap) == Vec8{0});
     // IPv4
-    BOOST_CHECK(ResolveIP("1.2.3.4").GetGroup() == Vec8({NET_IPV4, 1, 2}));
+    BOOST_CHECK(ResolveIP("1.2.3.4").GetGroup(asmap) == Vec8({NET_IPV4, 1, 2}));
     // RFC6145
-    BOOST_CHECK(ResolveIP("::FFFF:0:102:304").GetGroup() ==
+    BOOST_CHECK(ResolveIP("::FFFF:0:102:304").GetGroup(asmap) ==
                 Vec8({NET_IPV4, 1, 2}));
     // RFC6052
-    BOOST_CHECK(ResolveIP("64:FF9B::102:304").GetGroup() ==
+    BOOST_CHECK(ResolveIP("64:FF9B::102:304").GetGroup(asmap) ==
                 Vec8({NET_IPV4, 1, 2}));
     // RFC3964
-    BOOST_CHECK(ResolveIP("2002:102:304:9999:9999:9999:9999:9999").GetGroup() ==
-                Vec8({NET_IPV4, 1, 2}));
+    BOOST_CHECK(
+        ResolveIP("2002:102:304:9999:9999:9999:9999:9999").GetGroup(asmap) ==
+        Vec8({NET_IPV4, 1, 2}));
     // RFC4380
-    BOOST_CHECK(ResolveIP("2001:0:9999:9999:9999:9999:FEFD:FCFB").GetGroup() ==
-                Vec8({NET_IPV4, 1, 2}));
+    BOOST_CHECK(
+        ResolveIP("2001:0:9999:9999:9999:9999:FEFD:FCFB").GetGroup(asmap) ==
+        Vec8({NET_IPV4, 1, 2}));
     // Tor
     BOOST_CHECK(
-        ResolveIP("FD87:D87E:EB43:edb1:8e4:3588:e546:35ca").GetGroup() ==
+        ResolveIP("FD87:D87E:EB43:edb1:8e4:3588:e546:35ca").GetGroup(asmap) ==
         Vec8({NET_ONION, 239}));
     // he.net
     BOOST_CHECK(
-        ResolveIP("2001:470:abcd:9999:9999:9999:9999:9999").GetGroup() ==
+        ResolveIP("2001:470:abcd:9999:9999:9999:9999:9999").GetGroup(asmap) ==
         Vec8({NET_IPV6, 32, 1, 4, 112, 175}));
     // IPv6
     BOOST_CHECK(
-        ResolveIP("2001:2001:9999:9999:9999:9999:9999:9999").GetGroup() ==
+        ResolveIP("2001:2001:9999:9999:9999:9999:9999:9999").GetGroup(asmap) ==
         Vec8({NET_IPV6, 32, 1, 32, 1}));
 
     // baz.net sha256 hash:
     // 12929400eb4607c4ac075f087167e75286b179c693eb059a01774b864e8fe505
     Vec8 internal_group = {NET_INTERNAL, 0x12, 0x92, 0x94, 0x00, 0xeb,
                            0x46,         0x07, 0xc4, 0xac, 0x07};
-    BOOST_CHECK(CreateInternal("baz.net").GetGroup() == internal_group);
+    BOOST_CHECK(CreateInternal("baz.net").GetGroup(asmap) == internal_group);
 }
 
 BOOST_AUTO_TEST_CASE(netbase_parsenetwork) {
