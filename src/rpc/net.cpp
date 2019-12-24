@@ -100,6 +100,9 @@ static UniValue getpeerinfo(const Config &config,
                      "(ip:port) Bind address of the connection to the peer"},
                     {RPCResult::Type::STR, "addrlocal",
                      "(ip:port) Local address as reported by the peer"},
+                    {RPCResult::Type::NUM, "mapped_as",
+                     "The AS in the BGP route to the peer used for "
+                     "diversifying peer selection\n"},
                     {RPCResult::Type::STR_HEX, "services",
                      "The services offered"},
                     {RPCResult::Type::ARR,
@@ -204,6 +207,9 @@ static UniValue getpeerinfo(const Config &config,
         }
         if (stats.addrBind.IsValid()) {
             obj.pushKV("addrbind", stats.addrBind.ToString());
+        }
+        if (stats.m_mapped_as != 0) {
+            obj.pushKV("mapped_as", uint64_t(stats.m_mapped_as));
         }
         obj.pushKV("services", strprintf("%016x", stats.nServices));
         obj.pushKV("servicesnames", GetServicesNames(stats.nServices));
