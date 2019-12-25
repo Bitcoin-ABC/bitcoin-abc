@@ -316,22 +316,10 @@ struct Sections {
     }
 
     /**
-     * Serializing RPCArgs depends on the outer type. Only arrays and
-     * dictionaries can be nested in json. The top-level outer type is "named
-     * arguments", a mix between a dictionary and arrays.
-     */
-    enum class OuterType {
-        ARR,
-        OBJ,
-        // Only set on first recursion
-        NAMED_ARG,
-    };
-
-    /**
      * Recursive helper to translate an RPCArg into sections
      */
     void Push(const RPCArg &arg, const size_t current_indent = 5,
-              const OuterType outer_type = OuterType::NAMED_ARG) {
+              const OuterType outer_type = OuterType::NONE) {
         const auto indent = std::string(current_indent, ' ');
         const auto indent_next = std::string(current_indent + 2, ' ');
         // Dictionary keys must have a name
@@ -345,7 +333,7 @@ struct Sections {
             case RPCArg::Type::RANGE:
             case RPCArg::Type::BOOL: {
                 // Nothing more to do for non-recursive types on first recursion
-                if (outer_type == OuterType::NAMED_ARG) {
+                if (outer_type == OuterType::NONE) {
                     return;
                 }
                 auto left = indent;
@@ -361,7 +349,7 @@ struct Sections {
             }
             case RPCArg::Type::OBJ:
             case RPCArg::Type::OBJ_USER_KEYS: {
-                const auto right = outer_type == OuterType::NAMED_ARG
+                const auto right = outer_type == OuterType::NONE
                                        ? ""
                                        : arg.ToDescriptionString();
                 PushSection({indent +
@@ -375,8 +363,7 @@ struct Sections {
                     PushSection({indent_next + "...", ""});
                 }
                 PushSection(
-                    {indent + "}" +
-                         (outer_type != OuterType::NAMED_ARG ? "," : ""),
+                    {indent + "}" + (outer_type != OuterType::NONE ? "," : ""),
                      ""});
                 break;
             }
@@ -384,7 +371,7 @@ struct Sections {
                 auto left = indent;
                 left += push_name ? "\"" + arg.m_name + "\": " : "";
                 left += "[";
-                const auto right = outer_type == OuterType::NAMED_ARG
+                const auto right = outer_type == OuterType::NONE
                                        ? ""
                                        : arg.ToDescriptionString();
                 PushSection({left, right});
@@ -393,8 +380,7 @@ struct Sections {
                 }
                 PushSection({indent_next + "...", ""});
                 PushSection(
-                    {indent + "]" +
-                         (outer_type != OuterType::NAMED_ARG ? "," : ""),
+                    {indent + "]" + (outer_type != OuterType::NONE ? "," : ""),
                      ""});
                 break;
             }

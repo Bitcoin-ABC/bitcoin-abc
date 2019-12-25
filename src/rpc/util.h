@@ -118,6 +118,16 @@ EvalDescriptorStringOrObject(const UniValue &scanobject,
  */
 UniValue GetServicesNames(ServiceFlags services);
 
+/**
+ * Serializing JSON objects depends on the outer type. Only arrays and
+ * dictionaries can be nested in json. The top-level outer type is "NONE".
+ */
+enum class OuterType {
+    ARR,
+    OBJ,
+    NONE, // Only set on first recursion
+};
+
 struct RPCArg {
     enum class Type {
         OBJ,
@@ -176,23 +186,28 @@ struct RPCArg {
     //! override the type in the argument description.
     const std::vector<std::string> m_type_str;
 
-    RPCArg(const std::string &name, const Type &type, const Fallback &fallback,
-           const std::string &description,
-           const std::string &oneline_description = "",
-           const std::vector<std::string> &type_str = {})
-        : m_name{name}, m_type{type}, m_fallback{fallback},
-          m_description{description},
-          m_oneline_description{oneline_description}, m_type_str{type_str} {
+    RPCArg(const std::string name, const Type type, const Fallback fallback,
+           const std::string description,
+           const std::string oneline_description = "",
+           const std::vector<std::string> type_str = {})
+        : m_name{std::move(name)}, m_type{std::move(type)},
+          m_fallback{std::move(fallback)}, m_description{std::move(
+                                               description)},
+          m_oneline_description{std::move(oneline_description)},
+          m_type_str{std::move(type_str)} {
         CHECK_NONFATAL(type != Type::ARR && type != Type::OBJ);
     }
 
-    RPCArg(const std::string &name, const Type &type, const Fallback &fallback,
-           const std::string &description, const std::vector<RPCArg> &inner,
-           const std::string &oneline_description = "",
-           const std::vector<std::string> &type_str = {})
-        : m_name{name}, m_type{type}, m_inner{inner}, m_fallback{fallback},
-          m_description{description},
-          m_oneline_description{oneline_description}, m_type_str{type_str} {
+    RPCArg(const std::string name, const Type type, const Fallback fallback,
+           const std::string description, const std::vector<RPCArg> inner,
+           const std::string oneline_description = "",
+           const std::vector<std::string> type_str = {})
+        : m_name{std::move(name)}, m_type{std::move(type)}, m_inner{std::move(
+                                                                inner)},
+          m_fallback{std::move(fallback)}, m_description{std::move(
+                                               description)},
+          m_oneline_description{std::move(oneline_description)},
+          m_type_str{std::move(type_str)} {
         CHECK_NONFATAL(type == Type::ARR || type == Type::OBJ);
     }
 
