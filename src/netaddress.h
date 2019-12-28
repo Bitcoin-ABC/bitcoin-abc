@@ -39,14 +39,12 @@ public:
     explicit CNetAddr(const struct in_addr &ipv4Addr);
     void SetIP(const CNetAddr &ip);
 
-private:
     /**
      * Set raw IPv4 or IPv6 address (in network byte order)
      * @note Only NET_IPV4 and NET_IPV6 are allowed for network.
      */
     void SetRaw(Network network, const uint8_t *data);
 
-public:
     bool SetInternal(const std::string &name);
 
     // for Tor addresses
@@ -87,6 +85,8 @@ public:
     // IPv6 IPv4-translated address (::FFFF:0:0:0/96) (actually defined in
     // RFC2765)
     bool IsRFC6145() const;
+    // IPv6 Hurricane Electric - https://he.net (2001:0470::/36)
+    bool IsHeNet() const;
     bool IsTor() const;
     bool IsLocal() const;
     bool IsRoutable() const;

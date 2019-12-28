@@ -21,7 +21,7 @@ int CAddrInfo::GetTriedBucket(const uint256 &nKey,
                          .GetCheapHash();
     int tried_bucket = hash2 % ADDRMAN_TRIED_BUCKET_COUNT;
     uint32_t mapped_as = GetMappedAS(asmap);
-    LogPrint(BCLog::NET, "IP %s mapped to AS%i belongs to tried bucket %i.\n",
+    LogPrint(BCLog::NET, "IP %s mapped to AS%i belongs to tried bucket %i\n",
              ToStringIP(), mapped_as, tried_bucket);
     return tried_bucket;
 }
@@ -38,7 +38,7 @@ int CAddrInfo::GetNewBucket(const uint256 &nKey, const CNetAddr &src,
                          .GetCheapHash();
     int new_bucket = hash2 % ADDRMAN_NEW_BUCKET_COUNT;
     uint32_t mapped_as = GetMappedAS(asmap);
-    LogPrint(BCLog::NET, "IP %s mapped to AS%i belongs to new bucket %i.\n",
+    LogPrint(BCLog::NET, "IP %s mapped to AS%i belongs to new bucket %i\n",
              ToStringIP(), mapped_as, new_bucket);
     return new_bucket;
 }
@@ -744,12 +744,12 @@ std::vector<bool> CAddrMan::DecodeAsmap(fs::path path) {
     FILE *filestr = fsbridge::fopen(path, "rb");
     CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
     if (file.IsNull()) {
-        LogPrintf("Failed to open asmap file from disk.\n");
+        LogPrintf("Failed to open asmap file from disk\n");
         return bits;
     }
     fseek(filestr, 0, SEEK_END);
     int length = ftell(filestr);
-    LogPrintf("Opened asmap file %s (%d bytes) from disk.\n", path, length);
+    LogPrintf("Opened asmap file %s (%d bytes) from disk\n", path, length);
     fseek(filestr, 0, SEEK_SET);
     char cur_byte;
     for (int i = 0; i < length; ++i) {

@@ -102,7 +102,9 @@ static UniValue getpeerinfo(const Config &config,
                      "(ip:port) Local address as reported by the peer"},
                     {RPCResult::Type::NUM, "mapped_as",
                      "The AS in the BGP route to the peer used for "
-                     "diversifying peer selection\n"},
+                     "diversifying\n"
+                     "peer selection (only available if the asmap config flag "
+                     "is set)\n"},
                     {RPCResult::Type::STR_HEX, "services",
                      "The services offered"},
                     {RPCResult::Type::ARR,
