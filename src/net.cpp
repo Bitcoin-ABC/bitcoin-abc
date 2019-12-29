@@ -46,6 +46,7 @@ static_assert(MINIUPNPC_API_VERSION >= 10,
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <limits>
 #include <optional>
 #include <unordered_map>
@@ -123,8 +124,8 @@ void CConnman::AddAddrFetch(const std::string &strDest) {
     m_addr_fetches.push_back(strDest);
 }
 
-unsigned short GetListenPort() {
-    return (unsigned short)(gArgs.GetArg("-port", Params().GetDefaultPort()));
+uint16_t GetListenPort() {
+    return uint16_t(gArgs.GetArg("-port", Params().GetDefaultPort()));
 }
 
 // find 'best' local address for a particular peer

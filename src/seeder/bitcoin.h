@@ -9,10 +9,11 @@
 #include <protocol.h>
 #include <streams.h>
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
-static inline unsigned short GetDefaultPort() {
+static inline uint16_t GetDefaultPort() {
     return Params().GetDefaultPort();
 }
 

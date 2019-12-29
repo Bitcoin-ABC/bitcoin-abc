@@ -12,6 +12,7 @@
 #include <util/system.h>
 
 #include <atomic>
+#include <cstdint>
 
 #ifndef WIN32
 #include <fcntl.h>
@@ -867,10 +868,10 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
         static std::atomic_int counter(0);
         random_auth.username = random_auth.password =
             strprintf("%i", counter++);
-        if (!Socks5(strDest, (unsigned short)port, &random_auth, hSocket)) {
+        if (!Socks5(strDest, uint16_t(port), &random_auth, hSocket)) {
             return false;
         }
-    } else if (!Socks5(strDest, (unsigned short)port, 0, hSocket)) {
+    } else if (!Socks5(strDest, uint16_t(port), 0, hSocket)) {
         return false;
     }
     return true;
