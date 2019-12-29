@@ -948,7 +948,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     std::vector<OutputGroup> GroupOutputs(const std::vector<COutput> &outputs,
-                                          bool single_coin) const;
+                                          bool single_coin,
+                                          const size_t max_ancestors) const;
 
     bool IsLockedCoin(const COutPoint &outpoint) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

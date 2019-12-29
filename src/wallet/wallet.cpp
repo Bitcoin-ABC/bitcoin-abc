@@ -2640,6 +2640,12 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
         }
     }
 
+    size_t max_ancestors{0};
+    size_t max_descendants{0};
+    chain().getPackageLimits(max_ancestors, max_descendants);
+    bool fRejectLongChains = gArgs.GetBoolArg(
+        "-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
+
     // form groups from remaining coins; note that preset coins will not
     // automatically have their associated (same address) coins included
     if (coin_control.m_avoid_partial_spends &&
@@ -2650,14 +2656,9 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
         // outputs before processing
         Shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
     }
-    std::vector<OutputGroup> groups =
-        GroupOutputs(vCoins, !coin_control.m_avoid_partial_spends);
 
-    size_t max_ancestors{0};
-    size_t max_descendants{0};
-    chain().getPackageLimits(max_ancestors, max_descendants);
-    bool fRejectLongChains = gArgs.GetBoolArg(
-        "-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
+    std::vector<OutputGroup> groups = GroupOutputs(
+        vCoins, !coin_control.m_avoid_partial_spends, max_ancestors);
 
     bool res =
         nTargetValue <= nValueFromPresetInputs ||
@@ -4534,13 +4535,15 @@ bool CWalletTx::IsImmatureCoinBase() const {
 }
 
 std::vector<OutputGroup>
-CWallet::GroupOutputs(const std::vector<COutput> &outputs,
-                      bool single_coin) const {
+CWallet::GroupOutputs(const std::vector<COutput> &outputs, bool single_coin,
+                      const size_t max_ancestors) const {
     std::vector<OutputGroup> groups;
     std::map<CTxDestination, OutputGroup> gmap;
-    CTxDestination dst;
+    std::set<CTxDestination> full_groups;
+
     for (const auto &output : outputs) {
         if (output.fSpendable) {
+            CTxDestination dst;
             CInputCoin input_coin = output.GetInputCoin();
 
             size_t ancestors, descendants;
@@ -4549,16 +4552,28 @@ CWallet::GroupOutputs(const std::vector<COutput> &outputs,
             if (!single_coin &&
                 ExtractDestination(output.tx->tx->vout[output.i].scriptPubKey,
                                    dst)) {
-                // Limit output groups to no more than 10 entries, to protect
-                // against inadvertently creating a too-large transaction
-                // when using -avoidpartialspends
-                if (gmap[dst].m_outputs.size() >= OUTPUT_GROUP_MAX_ENTRIES) {
-                    groups.push_back(gmap[dst]);
-                    gmap.erase(dst);
+                auto it = gmap.find(dst);
+                if (it != gmap.end()) {
+                    // Limit output groups to no more than
+                    // OUTPUT_GROUP_MAX_ENTRIES number of entries, to protect
+                    // against inadvertently creating a too-large transaction
+                    // when using -avoidpartialspends to prevent breaking
+                    // consensus or surprising users with a very high amount of
+                    // fees.
+                    if (it->second.m_outputs.size() >=
+                        OUTPUT_GROUP_MAX_ENTRIES) {
+                        groups.push_back(it->second);
+                        it->second = OutputGroup{};
+                        full_groups.insert(dst);
+                    }
+                    it->second.Insert(input_coin, output.nDepth,
+                                      output.tx->IsFromMe(ISMINE_ALL),
+                                      ancestors, descendants);
+                } else {
+                    gmap[dst].Insert(input_coin, output.nDepth,
+                                     output.tx->IsFromMe(ISMINE_ALL), ancestors,
+                                     descendants);
                 }
-                gmap[dst].Insert(input_coin, output.nDepth,
-                                 output.tx->IsFromMe(ISMINE_ALL), ancestors,
-                                 descendants);
             } else {
                 groups.emplace_back(input_coin, output.nDepth,
                                     output.tx->IsFromMe(ISMINE_ALL), ancestors,
@@ -4567,8 +4582,14 @@ CWallet::GroupOutputs(const std::vector<COutput> &outputs,
         }
     }
     if (!single_coin) {
-        for (const auto &it : gmap) {
-            groups.push_back(it.second);
+        for (auto &it : gmap) {
+            auto &group = it.second;
+            if (full_groups.count(it.first) > 0) {
+                // Make this unattractive as we want coin selection to avoid it
+                // if possible
+                group.m_ancestors = max_ancestors - 1;
+            }
+            groups.push_back(group);
         }
     }
     return groups;
