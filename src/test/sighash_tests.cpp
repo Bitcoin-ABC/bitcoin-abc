@@ -26,10 +26,8 @@
 // Old script.cpp SignatureHash function
 static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
                                 unsigned int nIn, uint32_t nHashType) {
-    static const uint256 one(uint256S(
-        "0000000000000000000000000000000000000000000000000000000000000001"));
     if (nIn >= txTo.vin.size()) {
-        return one;
+        return UINT256_ONE();
     }
     CMutableTransaction txTmp(txTo);
 
@@ -58,7 +56,7 @@ static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
         // Only lock-in the txout payee at same index as txin
         unsigned int nOut = nIn;
         if (nOut >= txTmp.vout.size()) {
-            return one;
+            return UINT256_ONE();
         }
         txTmp.vout.resize(nOut + 1);
         for (size_t i = 0; i < nOut; i++) {

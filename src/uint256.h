@@ -157,4 +157,6 @@ inline uint160 uint160S(const std::string &str) {
     return rv;
 }
 
+uint256 &UINT256_ONE();
+
 #endif // BITCOIN_UINT256_H
