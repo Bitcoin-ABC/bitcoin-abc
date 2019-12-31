@@ -482,7 +482,6 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     unsigned int nBytes = 0;
     unsigned int nBytesInputs = 0;
     unsigned int nQuantity = 0;
-    int nQuantityUncompressed = 0;
 
     std::vector<COutPoint> vCoinControl;
     coinControl()->ListSelected(vCoinControl);
@@ -514,9 +513,6 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
             CKeyID *keyid = boost::get<CKeyID>(&address);
             if (keyid && model->wallet().getPubKey(*keyid, pubkey)) {
                 nBytesInputs += (pubkey.IsCompressed() ? 148 : 180);
-                if (!pubkey.IsCompressed()) {
-                    nQuantityUncompressed++;
-                }
             } else {
                 // in all error cases, simply assume 148 here
                 nBytesInputs += 148;

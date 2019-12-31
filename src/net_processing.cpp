@@ -2858,7 +2858,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                             }
                         }
                         // Has inputs but not accepted to mempool
-                        // Probably non-standard or insufficient fee/priority
+                        // Probably non-standard or insufficient fee
                         LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
                                  orphanId.ToString());
                         vEraseQueue.push_back(orphanId);
