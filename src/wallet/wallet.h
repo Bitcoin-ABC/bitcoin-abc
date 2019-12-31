@@ -901,7 +901,8 @@ public:
     bool IsUsedDestination(const TxId &txid, unsigned int n) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void SetUsedDestinationState(WalletBatch &batch, const TxId &txid,
-                                 unsigned int n, bool used)
+                                 unsigned int n, bool used,
+                                 std::set<CTxDestination> &tx_destinations)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     std::vector<OutputGroup> GroupOutputs(const std::vector<COutput> &outputs,
@@ -1133,6 +1134,13 @@ public:
     GetAddressBalances(interfaces::Chain::Lock &locked_chain);
 
     std::set<CTxDestination> GetLabelAddresses(const std::string &label) const;
+
+    /**
+     * Marks all outputs in each one of the destinations dirty, so their cache
+     * is reset and does not return outdated information.
+     */
+    void MarkDestinationsDirty(const std::set<CTxDestination> &destinations)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool GetNewDestination(const OutputType type, const std::string label,
                            CTxDestination &dest, std::string &error);
