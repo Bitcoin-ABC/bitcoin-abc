@@ -71,8 +71,6 @@ private:
     Amount nFee;
     //!< ... and avoid recomputing tx size
     size_t nTxSize;
-    //!< ... and modified size for priority
-    size_t nModSize;
     //!< ... and total memory usage
     size_t nUsageSize;
     //!< Local time when entering the mempool
