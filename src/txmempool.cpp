@@ -400,9 +400,8 @@ void CTxMemPool::addUnchecked(const TxId &txid, const CTxMemPoolEntry &entry,
     // Update transaction for any feeDelta created by PrioritiseTransaction
     // TODO: refactor so that the fee delta is calculated before inserting into
     // mapTx.
-    double priorityDelta = 0;
     Amount feeDelta = Amount::zero();
-    ApplyDeltas(entry.GetTx().GetId(), priorityDelta, feeDelta);
+    ApplyDelta(entry.GetTx().GetId(), feeDelta);
     if (feeDelta != Amount::zero()) {
         mapTx.modify(newit, update_fee_delta(feeDelta));
     }
@@ -911,16 +910,15 @@ CFeeRate CTxMemPool::estimateFee() const {
     return std::max(::minRelayTxFee, GetMinFee(maxMempoolSize));
 }
 
-void CTxMemPool::PrioritiseTransaction(const TxId &txid, double dPriorityDelta,
+void CTxMemPool::PrioritiseTransaction(const TxId &txid,
                                        const Amount nFeeDelta) {
     {
         LOCK(cs);
-        TXModifier &deltas = mapDeltas[txid];
-        deltas.first += dPriorityDelta;
-        deltas.second += nFeeDelta;
+        Amount &delta = mapDeltas[txid];
+        delta += nFeeDelta;
         txiter it = mapTx.find(txid);
         if (it != mapTx.end()) {
-            mapTx.modify(it, update_fee_delta(deltas.second));
+            mapTx.modify(it, update_fee_delta(delta));
             // Now update all ancestors' modified fees with descendants
             setEntries setAncestors;
             uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
@@ -943,21 +941,18 @@ void CTxMemPool::PrioritiseTransaction(const TxId &txid, double dPriorityDelta,
             ++nTransactionsUpdated;
         }
     }
-    LogPrintf("PrioritiseTransaction: %s priority += %f, fee += %d\n",
-              txid.ToString(), dPriorityDelta, FormatMoney(nFeeDelta));
+    LogPrintf("PrioritiseTransaction: %s fee += %s\n", txid.ToString(),
+              FormatMoney(nFeeDelta));
 }
 
-void CTxMemPool::ApplyDeltas(const TxId &txid, double &dPriorityDelta,
-                             Amount &nFeeDelta) const {
+void CTxMemPool::ApplyDelta(const TxId &txid, Amount &nFeeDelta) const {
     LOCK(cs);
-    std::map<TxId, TXModifier>::const_iterator pos = mapDeltas.find(txid);
+    std::map<TxId, Amount>::const_iterator pos = mapDeltas.find(txid);
     if (pos == mapDeltas.end()) {
         return;
     }
 
-    const TXModifier &deltas = pos->second;
-    dPriorityDelta += deltas.first;
-    nFeeDelta += deltas.second;
+    nFeeDelta += pos->second;
 }
 
 void CTxMemPool::ClearPrioritisation(const TxId &txid) {

@@ -268,17 +268,12 @@ static UniValue prioritisetransaction(const Config &config,
                                       const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 3) {
         throw std::runtime_error(
-            "prioritisetransaction <txid> <priority delta> <fee delta>\n"
+            "prioritisetransaction <txid> <dummy> <fee delta>\n"
             "Accepts the transaction into mined blocks at a higher (or lower) "
             "priority\n"
             "\nArguments:\n"
             "1. \"txid\"       (string, required) The transaction id.\n"
-            "2. priority_delta (numeric, required) The priority to add or "
-            "subtract.\n"
-            "                  The transaction selection algorithm considers "
-            "the tx as it would have a higher priority.\n"
-            "                  (priority of a transaction is calculated: "
-            "coinage * value_in_satoshis / txsize) \n"
+            "2. dummy (required) unused.\n"
             "3. fee_delta      (numeric, required) The fee value (in satoshis) "
             "to add (or subtract, if negative).\n"
             "                  The fee is not actually paid, only the "
@@ -297,8 +292,7 @@ static UniValue prioritisetransaction(const Config &config,
     TxId txid(ParseHashStr(request.params[0].get_str(), "txid"));
     Amount nAmount = request.params[2].get_int64() * SATOSHI;
 
-    g_mempool.PrioritiseTransaction(txid, request.params[1].get_real(),
-                                    nAmount);
+    g_mempool.PrioritiseTransaction(txid, nAmount);
     return true;
 }
 
@@ -815,7 +809,7 @@ static const ContextFreeRPCCommand commands[] = {
     //  ---------- ------------------------ ---------------------- ----------
     {"mining",     "getnetworkhashps",      getnetworkhashps,      {"nblocks", "height"}},
     {"mining",     "getmininginfo",         getmininginfo,         {}},
-    {"mining",     "prioritisetransaction", prioritisetransaction, {"txid", "priority_delta", "fee_delta"}},
+    {"mining",     "prioritisetransaction", prioritisetransaction, {"txid", "dummy", "fee_delta"}},
     {"mining",     "getblocktemplate",      getblocktemplate,      {"template_request"}},
     {"mining",     "submitblock",           submitblock,           {"hexdata", "dummy"}},
     {"mining",     "submitheader",          submitheader,          {"hexdata"}},

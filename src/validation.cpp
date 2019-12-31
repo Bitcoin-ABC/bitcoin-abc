@@ -668,8 +668,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
 
         // nModifiedFees includes any fee deltas from PrioritiseTransaction
         Amount nModifiedFees = nFees;
-        double nPriorityDummy = 0;
-        pool.ApplyDeltas(txid, nPriorityDummy, nModifiedFees);
+        pool.ApplyDelta(txid, nModifiedFees);
 
         // Keep track of transactions that spend a coinbase, which we re-scan
         // during reorgs to ensure COINBASE_MATURITY is still met.
@@ -5500,7 +5499,6 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
 
         uint64_t num;
         file >> num;
-        double prioritydummy = 0;
         while (num--) {
             CTransactionRef tx;
             int64_t nTime;
@@ -5511,8 +5509,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
 
             Amount amountdelta = nFeeDelta * SATOSHI;
             if (amountdelta != Amount::zero()) {
-                pool.PrioritiseTransaction(tx->GetId(), prioritydummy,
-                                           amountdelta);
+                pool.PrioritiseTransaction(tx->GetId(), amountdelta);
             }
             CValidationState state;
             if (nTime + nExpiryTimeout > nNow) {
@@ -5546,7 +5543,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {
-            pool.PrioritiseTransaction(i.first, prioritydummy, i.second);
+            pool.PrioritiseTransaction(i.first, i.second);
         }
     } catch (const std::exception &e) {
         LogPrintf("Failed to deserialize mempool data on disk: %s. Continuing "
@@ -5573,7 +5570,7 @@ bool DumpMempool(const CTxMemPool &pool) {
     {
         LOCK(pool.cs);
         for (const auto &i : pool.mapDeltas) {
-            mapDeltas[i.first] = i.second.second;
+            mapDeltas[i.first] = i.second;
         }
 
         vinfo = pool.infoAll();
