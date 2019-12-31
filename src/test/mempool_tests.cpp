@@ -603,8 +603,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     tx1.vout.resize(1);
     tx1.vout[0].scriptPubKey = CScript() << OP_1 << OP_EQUAL;
     tx1.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(tx1.GetId(),
-                      entry.Fee(10000 * SATOSHI).FromTx(tx1, &pool));
+    pool.addUnchecked(tx1.GetId(), entry.Fee(10000 * SATOSHI).FromTx(tx1));
 
     CMutableTransaction tx2 = CMutableTransaction();
     tx2.vin.resize(1);
@@ -612,8 +611,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     tx2.vout.resize(1);
     tx2.vout[0].scriptPubKey = CScript() << OP_2 << OP_EQUAL;
     tx2.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(tx2.GetId(),
-                      entry.Fee(5000 * SATOSHI).FromTx(tx2, &pool));
+    pool.addUnchecked(tx2.GetId(), entry.Fee(5000 * SATOSHI).FromTx(tx2));
 
     // should do nothing
     pool.TrimToSize(pool.DynamicMemoryUsage());
@@ -625,7 +623,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(pool.exists(tx1.GetId()));
     BOOST_CHECK(!pool.exists(tx2.GetId()));
 
-    pool.addUnchecked(tx2.GetId(), entry.FromTx(tx2, &pool));
+    pool.addUnchecked(tx2.GetId(), entry.FromTx(tx2));
     CMutableTransaction tx3 = CMutableTransaction();
     tx3.vin.resize(1);
     tx3.vin[0].prevout = COutPoint(tx2.GetId(), 0);
@@ -633,8 +631,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     tx3.vout.resize(1);
     tx3.vout[0].scriptPubKey = CScript() << OP_3 << OP_EQUAL;
     tx3.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(tx3.GetId(),
-                      entry.Fee(20000 * SATOSHI).FromTx(tx3, &pool));
+    pool.addUnchecked(tx3.GetId(), entry.Fee(20000 * SATOSHI).FromTx(tx3));
 
     // tx3 should pay for tx2 (CPFP)
     pool.TrimToSize(pool.DynamicMemoryUsage() * 3 / 4);
@@ -702,14 +699,10 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     tx7.vout[1].scriptPubKey = CScript() << OP_7 << OP_EQUAL;
     tx7.vout[1].nValue = 10 * COIN;
 
-    pool.addUnchecked(tx4.GetId(),
-                      entry.Fee(7000 * SATOSHI).FromTx(tx4, &pool));
-    pool.addUnchecked(tx5.GetId(),
-                      entry.Fee(1000 * SATOSHI).FromTx(tx5, &pool));
-    pool.addUnchecked(tx6.GetId(),
-                      entry.Fee(1100 * SATOSHI).FromTx(tx6, &pool));
-    pool.addUnchecked(tx7.GetId(),
-                      entry.Fee(9000 * SATOSHI).FromTx(tx7, &pool));
+    pool.addUnchecked(tx4.GetId(), entry.Fee(7000 * SATOSHI).FromTx(tx4));
+    pool.addUnchecked(tx5.GetId(), entry.Fee(1000 * SATOSHI).FromTx(tx5));
+    pool.addUnchecked(tx6.GetId(), entry.Fee(1100 * SATOSHI).FromTx(tx6));
+    pool.addUnchecked(tx7.GetId(), entry.Fee(9000 * SATOSHI).FromTx(tx7));
 
     // we only require this to remove, at max, 2 txn, because it's not clear
     // what we're really optimizing for aside from that
@@ -719,10 +712,8 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(!pool.exists(tx7.GetId()));
 
     if (!pool.exists(tx5.GetId()))
-        pool.addUnchecked(tx5.GetId(),
-                          entry.Fee(1000 * SATOSHI).FromTx(tx5, &pool));
-    pool.addUnchecked(tx7.GetId(),
-                      entry.Fee(9000 * SATOSHI).FromTx(tx7, &pool));
+        pool.addUnchecked(tx5.GetId(), entry.Fee(1000 * SATOSHI).FromTx(tx5));
+    pool.addUnchecked(tx7.GetId(), entry.Fee(9000 * SATOSHI).FromTx(tx7));
 
     // should maximize mempool size by only removing 5/7
     pool.TrimToSize(pool.DynamicMemoryUsage() / 2);
@@ -731,10 +722,8 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(pool.exists(tx6.GetId()));
     BOOST_CHECK(!pool.exists(tx7.GetId()));
 
-    pool.addUnchecked(tx5.GetId(),
-                      entry.Fee(1000 * SATOSHI).FromTx(tx5, &pool));
-    pool.addUnchecked(tx7.GetId(),
-                      entry.Fee(9000 * SATOSHI).FromTx(tx7, &pool));
+    pool.addUnchecked(tx5.GetId(), entry.Fee(1000 * SATOSHI).FromTx(tx5));
+    pool.addUnchecked(tx7.GetId(), entry.Fee(9000 * SATOSHI).FromTx(tx7));
 
     std::vector<CTransactionRef> vtx;
     SetMockTime(42);
