@@ -34,8 +34,8 @@
 
 // Unconfirmed transactions in the memory pool often depend on other
 // transactions in the memory pool. When we select transactions from the
-// pool, we select by highest priority or fee rate, so we might consider
-// transactions that depend on transactions that aren't yet in the block.
+// pool, we select by highest fee rate of a transaction combined with all
+// its ancestors.
 
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
@@ -111,8 +111,6 @@ void BlockAssembler::resetBlock() {
     // These counters do not include coinbase tx.
     nBlockTx = 0;
     nFees = Amount::zero();
-
-    lastFewTxs = 0;
 }
 
 std::unique_ptr<CBlockTemplate>
@@ -237,15 +235,6 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     return std::move(pblocktemplate);
 }
 
-bool BlockAssembler::isStillDependent(CTxMemPool::txiter iter) {
-    for (CTxMemPool::txiter parent : mempool->GetMemPoolParents(iter)) {
-        if (!inBlock.count(parent)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries &testSet) {
     for (CTxMemPool::setEntries::iterator iit = testSet.begin();
          iit != testSet.end();) {
@@ -298,49 +287,6 @@ bool BlockAssembler::TestPackageTransactions(
     }
 
     return true;
-}
-
-BlockAssembler::TestForBlockResult
-BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
-    auto blockSizeWithTx =
-        nBlockSize + ::GetSerializeSize(it->GetTx(), PROTOCOL_VERSION);
-    if (blockSizeWithTx >= nMaxGeneratedBlockSize) {
-        if (nBlockSize > nMaxGeneratedBlockSize - 100 || lastFewTxs > 50) {
-            return TestForBlockResult::BlockFinished;
-        }
-
-        if (nBlockSize > nMaxGeneratedBlockSize - 1000) {
-            lastFewTxs++;
-        }
-
-        return TestForBlockResult::TXCantFit;
-    }
-
-    auto maxBlockSigOps = GetMaxBlockSigOpsCount(blockSizeWithTx);
-    if (nBlockSigOps + it->GetSigOpCount() >= maxBlockSigOps) {
-        // If the block has room for no more sig ops then flag that the block is
-        // finished.
-        // TODO: We should consider adding another transaction that isn't very
-        // dense in sigops instead of bailing out so easily.
-        if (nBlockSigOps > maxBlockSigOps - 2) {
-            return TestForBlockResult::BlockFinished;
-        }
-
-        // Otherwise attempt to find another tx with fewer sigops to put in the
-        // block.
-        return TestForBlockResult::TXCantFit;
-    }
-
-    // Must check that lock times are still valid. This can be removed once MTP
-    // is always enforced as long as reorgs keep the mempool consistent.
-    CValidationState state;
-    if (!ContextualCheckTransaction(chainparams.GetConsensus(), it->GetTx(),
-                                    state, nHeight, nLockTimeCutoff,
-                                    nMedianTimePast)) {
-        return TestForBlockResult::TXCantFit;
-    }
-
-    return TestForBlockResult::TXFits;
 }
 
 void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {

@@ -159,9 +159,6 @@ private:
 
     const CTxMemPool *mempool;
 
-    // Variables used for addPriorityTxs
-    int lastFewTxs;
-
 public:
     struct Options {
         Options();
@@ -194,20 +191,6 @@ private:
      * statistics from the package selection (for logging statistics).
      */
     void addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated)
-        EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
-
-    /** Enum for the results from TestForBlock */
-    enum class TestForBlockResult : uint8_t {
-        TXFits = 0,
-        TXCantFit = 1,
-        BlockFinished = 3,
-    };
-
-    // helper function for addPriorityTxs
-    /** Test if tx will still "fit" in the block */
-    TestForBlockResult TestForBlock(CTxMemPool::txiter iter);
-    /** Test if tx still has unconfirmed parents not yet in block */
-    bool isStillDependent(CTxMemPool::txiter iter)
         EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
 
     // helper functions for addPackageTxs()
