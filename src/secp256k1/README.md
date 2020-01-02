@@ -1,14 +1,15 @@
 libsecp256k1
 ============
 
-[![Build Status](https://travis-ci.org/bitcoin-core/secp256k1.svg?branch=master)](https://travis-ci.org/bitcoin-core/secp256k1)
+[![Build Status](https://travis-ci.org/bitcoin-abc/secp256k1.svg?branch=master)](https://travis-ci.org/bitcoin-abc/secp256k1)
 
-Optimized C library for EC operations on curve secp256k1.
+Optimized C library for cryptographic operations on curve secp256k1.
 
-This library is a work in progress and is being used to research best practices. Use at your own risk.
+This library is used for consensus critical cryptographic operations on the Bitcoin Cash network. It is maintained within the Bitcoin ABC repository, and is mirrored as a separate repository for ease of reuse in other Bitcoin Cash projects. Developers who want to contribute may do so at [reviews.bitcoinabc.org](https://reviews.bitcoinabc.org/). Use at your own risk.
 
 Features:
 * secp256k1 ECDSA signing/verification and key generation.
+* secp256k1 Schnorr signing/verification ([Bitcoin Cash Schnorr variant](https://www.bitcoincash.org/spec/2019-05-15-schnorr.html)).
 * Adding/multiplying private/public keys.
 * Serialization/parsing of private keys, public keys, signatures.
 * Constant time, constant memory access signing and pubkey generation.
