@@ -148,6 +148,7 @@ script: |
       -DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage"
 
     ninja
+    ninja security-check
 
     ninja install/strip
 
