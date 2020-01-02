@@ -342,7 +342,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
- * Simple class for regulating resource usage during CheckInputs (and
+ * Simple class for regulating resource usage during CheckInputScripts (and
  * CScriptCheck), atomic so as to be compatible with parallel validation.
  */
 class CheckInputsLimiter {
@@ -385,8 +385,11 @@ public:
 class ConnectTrace;
 
 /**
- * Check whether all inputs of this transaction are valid (no double spends,
- * scripts & sigs, amounts). This does not modify the UTXO set.
+ * Check whether all of this transaction's input scripts succeed.
+ *
+ * This involves ECDSA signature checks so can be computationally intensive.
+ * This function should only be called after the cheap sanity checks in
+ * CheckTxInputs passed.
  *
  * If pvChecks is not nullptr, script checks are pushed onto it instead of being
  * performed inline. Any script checks which are not necessary (eg due to script
@@ -410,28 +413,28 @@ class ConnectTrace;
  * returned pvChecks must be executed exactly once in order to probe the limit
  * accurately.
  */
-bool CheckInputs(const CTransaction &tx, TxValidationState &state,
-                 const CCoinsViewCache &view, const uint32_t flags,
-                 bool sigCacheStore, bool scriptCacheStore,
-                 const PrecomputedTransactionData &txdata, int &nSigChecksOut,
-                 TxSigCheckLimiter &txLimitSigChecks,
-                 CheckInputsLimiter *pBlockLimitSigChecks,
-                 std::vector<CScriptCheck> *pvChecks)
+bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
+                       const CCoinsViewCache &view, const uint32_t flags,
+                       bool sigCacheStore, bool scriptCacheStore,
+                       const PrecomputedTransactionData &txdata,
+                       int &nSigChecksOut, TxSigCheckLimiter &txLimitSigChecks,
+                       CheckInputsLimiter *pBlockLimitSigChecks,
+                       std::vector<CScriptCheck> *pvChecks)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
- * Handy shortcut to full fledged CheckInputs call.
+ * Handy shortcut to full fledged CheckInputScripts call.
  */
 static inline bool
-CheckInputs(const CTransaction &tx, TxValidationState &state,
-            const CCoinsViewCache &view, const uint32_t flags,
-            bool sigCacheStore, bool scriptCacheStore,
-            const PrecomputedTransactionData &txdata, int &nSigChecksOut)
+CheckInputScripts(const CTransaction &tx, TxValidationState &state,
+                  const CCoinsViewCache &view, const uint32_t flags,
+                  bool sigCacheStore, bool scriptCacheStore,
+                  const PrecomputedTransactionData &txdata, int &nSigChecksOut)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     TxSigCheckLimiter nSigChecksTxLimiter;
-    return CheckInputs(tx, state, view, flags, sigCacheStore, scriptCacheStore,
-                       txdata, nSigChecksOut, nSigChecksTxLimiter, nullptr,
-                       nullptr);
+    return CheckInputScripts(tx, state, view, flags, sigCacheStore,
+                             scriptCacheStore, txdata, nSigChecksOut,
+                             nSigChecksTxLimiter, nullptr, nullptr);
 }
 
 /** Get the BIP9 state for a given deployment at the current tip. */

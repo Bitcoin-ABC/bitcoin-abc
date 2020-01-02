@@ -295,21 +295,21 @@ static bool CheckInputsFromMempoolAndCache(
 
     // pool.cs should be locked already, but go ahead and re-take the lock here
     // to enforce that mempool doesn't change between when we check the view and
-    // when we actually call through to CheckInputs
+    // when we actually call through to CheckInputScripts
     LOCK(pool.cs);
 
     assert(!tx.IsCoinBase());
     for (const CTxIn &txin : tx.vin) {
         const Coin &coin = view.AccessCoin(txin.prevout);
 
-        // At this point we haven't actually checked if the coins are all
-        // available (or shouldn't assume we have, since CheckInputs does). So
-        // we just return failure if the inputs are not available here, and then
-        // only have to check equivalence for available inputs.
+        // AcceptToMemoryPoolWorker has already checked that the coins are
+        // available, so this shouldn't fail. If the inputs are not available
+        // here then return false.
         if (coin.IsSpent()) {
             return false;
         }
 
+        // Check equivalence for available inputs.
         const CTransactionRef &txFrom = pool.get(txin.prevout.GetTxId());
         if (txFrom) {
             assert(txFrom->GetId() == txin.prevout.GetTxId());
@@ -323,11 +323,11 @@ static bool CheckInputsFromMempoolAndCache(
         }
     }
 
-    // Call CheckInputs() to cache signature and script validity against current
-    // tip consensus rules.
-    return CheckInputs(tx, state, view, flags, /* cacheSigStore = */ true,
-                       /* cacheFullScriptStore = */ true, txdata,
-                       nSigChecksOut);
+    // Call CheckInputScripts() to cache signature and script validity against
+    // current tip consensus rules.
+    return CheckInputScripts(tx, state, view, flags, /* cacheSigStore = */ true,
+                             /* cacheFullScriptStore = */ true, txdata,
+                             nSigChecksOut);
 }
 
 namespace {
@@ -596,9 +596,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     const uint32_t scriptVerifyFlags =
         ws.m_next_block_script_verify_flags | STANDARD_SCRIPT_VERIFY_FLAGS;
     PrecomputedTransactionData txdata(tx);
-    if (!CheckInputs(tx, state, m_view, scriptVerifyFlags, true, false, txdata,
-                     ws.m_sig_checks_standard)) {
-        // State filled in by CheckInputs.
+    if (!CheckInputScripts(tx, state, m_view, scriptVerifyFlags, true, false,
+                           txdata, ws.m_sig_checks_standard)) {
+        // State filled in by CheckInputScripts
         return false;
     }
 
@@ -656,7 +656,7 @@ bool MemPoolAccept::ConsensusScriptChecks(ATMPArgs &args, Workspace &ws,
         // This can occur under some circumstances, if the node receives an
         // unrequested tx which is invalid due to new consensus rules not
         // being activated yet (during IBD).
-        return error("%s: BUG! PLEASE REPORT THIS! CheckInputs failed "
+        return error("%s: BUG! PLEASE REPORT THIS! CheckInputScripts failed "
                      "against next-block but not STANDARD flags %s, %s",
                      __func__, txid.ToString(), state.ToString());
     }
@@ -1133,13 +1133,13 @@ int GetSpendHeight(const CCoinsViewCache &inputs) {
     return pindexPrev->nHeight + 1;
 }
 
-bool CheckInputs(const CTransaction &tx, TxValidationState &state,
-                 const CCoinsViewCache &inputs, const uint32_t flags,
-                 bool sigCacheStore, bool scriptCacheStore,
-                 const PrecomputedTransactionData &txdata, int &nSigChecksOut,
-                 TxSigCheckLimiter &txLimitSigChecks,
-                 CheckInputsLimiter *pBlockLimitSigChecks,
-                 std::vector<CScriptCheck> *pvChecks) {
+bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
+                       const CCoinsViewCache &inputs, const uint32_t flags,
+                       bool sigCacheStore, bool scriptCacheStore,
+                       const PrecomputedTransactionData &txdata,
+                       int &nSigChecksOut, TxSigCheckLimiter &txLimitSigChecks,
+                       CheckInputsLimiter *pBlockLimitSigChecks,
+                       std::vector<CScriptCheck> *pvChecks) {
     AssertLockHeld(cs_main);
     assert(!tx.IsCoinBase());
 
@@ -1927,17 +1927,18 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
         int nSigChecksRet;
         TxValidationState tx_state;
         if (fScriptChecks &&
-            !CheckInputs(tx, tx_state, view, flags, fCacheResults,
-                         fCacheResults, PrecomputedTransactionData(tx),
-                         nSigChecksRet, nSigChecksTxLimiters[txIndex],
-                         &nSigChecksBlockLimiter, &vChecks)) {
+            !CheckInputScripts(tx, tx_state, view, flags, fCacheResults,
+                               fCacheResults, PrecomputedTransactionData(tx),
+                               nSigChecksRet, nSigChecksTxLimiters[txIndex],
+                               &nSigChecksBlockLimiter, &vChecks)) {
             // Any transaction validation failure in ConnectBlock is a block
             // consensus failure
             state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                           tx_state.GetRejectReason(),
                           tx_state.GetDebugMessage());
-            return error("ConnectBlock(): CheckInputs on %s failed with %s",
-                         tx.GetId().ToString(), state.ToString());
+            return error(
+                "ConnectBlock(): CheckInputScripts on %s failed with %s",
+                tx.GetId().ToString(), state.ToString());
         }
 
         control.Add(vChecks);

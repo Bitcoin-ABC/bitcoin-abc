@@ -69,7 +69,7 @@ static const Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
 /**
  * When transactions fail script evaluations under standard flags, this flagset
  * influences the decision of whether to drop them or to also ban the originator
- * (see CheckInputs).
+ * (see CheckInputScripts).
  */
 static constexpr uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
     SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
