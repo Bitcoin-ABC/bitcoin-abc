@@ -128,6 +128,11 @@ if [ -d "${ASSET_DIR}" ]; then
       exit 31
     fi
   done
+
+  # Add any signature files
+  for FILENAME in "${ASSET_DIR}"/*"-sha256sums.${VERSION}.asc"; do
+    ASSET_LIST+=("${FILENAME}")
+  done
 else
   echo "Error: Asset directory '${ASSET_DIR}' does not exist"
   exit 32
