@@ -9,6 +9,7 @@ macro(add_to_symbols_check BINARY)
 	add_custom_target("${CUSTOM_TARGET_NAME}"
 		COMMENT "Running symbol-check.py on ${BINARY}..."
 		COMMAND
+			"OTOOL=${CMAKE_OTOOL}"
 			"${Python_EXECUTABLE}"
 			"${CMAKE_SOURCE_DIR}/contrib/devtools/symbol-check.py"
 			"$<TARGET_FILE:${BINARY}>"
