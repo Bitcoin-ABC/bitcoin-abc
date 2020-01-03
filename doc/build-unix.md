@@ -79,6 +79,9 @@ Then update the package list and install `cmake`:
     sudo apt update
     sudo apt install cmake
 
+Now, you can either build from self-compiled [depends](/depends/README.md) or
+install the required dependencies with the following instructions.
+
 Options when installing required Boost library files:
 
 1. On at least Ubuntu 16.04+ and Debian 9+ there are generic names for the
