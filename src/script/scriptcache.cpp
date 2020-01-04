@@ -13,7 +13,63 @@
 #include <util/system.h>
 #include <validation.h>
 
-static CuckooCache::cache<CuckooCache::KeyOnly<uint256>, SignatureCacheHasher>
+/**
+ * In future if many more values are added, it should be considered to
+ * expand the element size to 64 bytes (with padding the spare space as
+ * needed) so the key can be long. Shortening the key too much risks
+ * opening ourselves up to consensus-failing collisions, however it should
+ * be noted that our cache nonce is private and unique, so collisions would
+ * affect only one node and attackers have no way of offline-preparing a
+ * collision attack even on short keys.
+ */
+struct ScriptCacheElement {
+    using KeyType = ScriptCacheKey;
+
+    KeyType key;
+    int nSigChecks;
+
+    ScriptCacheElement() = default;
+
+    ScriptCacheElement(const KeyType &keyIn, int nSigChecksIn)
+        : key(keyIn), nSigChecks(nSigChecksIn) {}
+
+    const KeyType &getKey() const { return key; }
+};
+
+static_assert(sizeof(ScriptCacheElement) == 32,
+              "ScriptCacheElement should be 32 bytes");
+
+class ScriptCacheHasher {
+public:
+    template <uint8_t hash_select>
+    uint32_t operator()(const ScriptCacheKey &k) const {
+        static_assert(hash_select < 8, "only has 8 hashes available.");
+
+        const auto &d = k.data;
+
+        static_assert(sizeof(d) == 28,
+                      "modify the following if key size changes");
+
+        uint32_t u;
+        static_assert(sizeof(u) == 4 && sizeof(d[0]) == 1, "basic assumptions");
+        if (hash_select < 7) {
+            std::memcpy(&u, d.data() + 4 * hash_select, 4);
+        } else {
+            // We are required to produce 8 subhashes, and all bytes have
+            // been used once. We re-use the bytes but mix together different
+            // entries (and flip the order) to get a new, distinct value.
+            uint8_t arr[4];
+            arr[0] = d[3] ^ d[7] ^ d[11] ^ d[15];
+            arr[1] = d[6] ^ d[10] ^ d[14] ^ d[18];
+            arr[2] = d[9] ^ d[13] ^ d[17] ^ d[21];
+            arr[3] = d[12] ^ d[16] ^ d[20] ^ d[24];
+            std::memcpy(&u, arr, 4);
+        }
+        return u;
+    }
+};
+
+static CuckooCache::cache<ScriptCacheElement, ScriptCacheHasher>
     scriptExecutionCache;
 static uint256 scriptExecutionCacheNonce(GetRandHash());
 
@@ -32,8 +88,8 @@ void InitScriptExecutionCache() {
               (nElems * sizeof(uint256)) >> 20, nMaxCacheSize >> 20, nElems);
 }
 
-uint256 GetScriptCacheKey(const CTransaction &tx, uint32_t flags) {
-    uint256 key;
+ScriptCacheKey::ScriptCacheKey(const CTransaction &tx, uint32_t flags) {
+    std::array<uint8_t, 32> hash;
     // We only use the first 19 bytes of nonce to avoid a second SHA round -
     // giving us 19 + 32 + 4 = 55 bytes (+ 8 + 1 = 64)
     static_assert(55 - sizeof(flags) - 32 >= 128 / 8,
@@ -42,21 +98,28 @@ uint256 GetScriptCacheKey(const CTransaction &tx, uint32_t flags) {
         .Write(scriptExecutionCacheNonce.begin(), 55 - sizeof(flags) - 32)
         .Write(tx.GetHash().begin(), 32)
         .Write((uint8_t *)&flags, sizeof(flags))
-        .Finalize(key.begin());
+        .Finalize(hash.begin());
 
-    return key;
+    assert(data.size() < hash.size());
+    std::copy(hash.begin(), hash.begin() + data.size(), data.begin());
 }
 
-bool IsKeyInScriptCache(uint256 key, bool erase) {
+bool IsKeyInScriptCache(ScriptCacheKey key, bool erase, int &nSigChecksOut) {
     // TODO: Remove this requirement by making CuckooCache not require external
     // locks
     AssertLockHeld(cs_main);
-    return scriptExecutionCache.contains(key, erase);
+
+    ScriptCacheElement elem(key, 0);
+    bool ret = scriptExecutionCache.get(elem, erase);
+    nSigChecksOut = elem.nSigChecks;
+    return ret;
 }
 
-void AddKeyInScriptCache(uint256 key) {
+void AddKeyInScriptCache(ScriptCacheKey key, int nSigChecks) {
     // TODO: Remove this requirement by making CuckooCache not require external
     // locks
     AssertLockHeld(cs_main);
-    scriptExecutionCache.insert(key);
+
+    ScriptCacheElement elem(key, nSigChecks);
+    scriptExecutionCache.insert(elem);
 }

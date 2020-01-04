@@ -443,4 +443,86 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(scriptcache_values) {
+    // Test insertion and querying of keys&values from the script cache.
+
+    // Define a couple of macros (handier than functions since errors will print
+    // out the correct line number)
+#define CHECK_CACHE_HAS(key, expected_sigchecks)                               \
+    {                                                                          \
+        int nSigChecksRet(0x12345678 ^ (expected_sigchecks));                  \
+        BOOST_CHECK(IsKeyInScriptCache(key, false, nSigChecksRet));            \
+        BOOST_CHECK(nSigChecksRet == (expected_sigchecks));                    \
+    }
+#define CHECK_CACHE_MISSING(key)                                               \
+    {                                                                          \
+        int dummy;                                                             \
+        BOOST_CHECK(!IsKeyInScriptCache(key, false, dummy));                   \
+    }
+
+    InitScriptExecutionCache();
+
+    // construct four distinct keys from very slightly different data
+    CMutableTransaction tx1;
+    tx1.nVersion = 1;
+    CMutableTransaction tx2;
+    tx2.nVersion = 2;
+    uint32_t flagsA = 0x7fffffff;
+    uint32_t flagsB = 0xffffffff;
+    ScriptCacheKey key1A(CTransaction(tx1), flagsA);
+    ScriptCacheKey key1B(CTransaction(tx1), flagsB);
+    ScriptCacheKey key2A(CTransaction(tx2), flagsA);
+    ScriptCacheKey key2B(CTransaction(tx2), flagsB);
+
+    BOOST_CHECK(key1A == key1A);
+    BOOST_CHECK(!(key1A == key1B));
+    BOOST_CHECK(!(key1A == key2A));
+    BOOST_CHECK(!(key1A == key2B));
+    BOOST_CHECK(key1B == key1B);
+    BOOST_CHECK(!(key1B == key2A));
+    BOOST_CHECK(!(key1B == key2B));
+    BOOST_CHECK(key2A == key2A);
+    BOOST_CHECK(!(key2A == key2B));
+    BOOST_CHECK(key2B == key2B);
+
+    // Key is not yet inserted.
+    CHECK_CACHE_MISSING(key1A);
+    // Add the key and check it worked
+    AddKeyInScriptCache(key1A, 42);
+    CHECK_CACHE_HAS(key1A, 42);
+
+    CHECK_CACHE_MISSING(key1B);
+    CHECK_CACHE_MISSING(key2A);
+    CHECK_CACHE_MISSING(key2B);
+
+    // 0 may be stored
+    AddKeyInScriptCache(key1B, 0);
+
+    // Calculate the most possible transaction sigchecks that can occur in a
+    // standard transaction, and make sure the cache can hold it.
+    //
+    // To be pessimistic, use consensus (MAX_TX_SIZE) instead of policy
+    // (MAX_STANDARD_TX_SIZE) since that particular policy limit is bypassed on
+    // testnet.
+    //
+    // Assume that a standardness rule limiting density to ~33 bytes/sigcheck is
+    // in place.
+    const int max_standard_sigchecks = 1 + (MAX_TX_SIZE / 33);
+    AddKeyInScriptCache(key2A, max_standard_sigchecks);
+
+    // Read out values again.
+    CHECK_CACHE_HAS(key1A, 42);
+    CHECK_CACHE_HAS(key1B, 0);
+    CHECK_CACHE_HAS(key2A, max_standard_sigchecks);
+    CHECK_CACHE_MISSING(key2B);
+
+    // Try overwriting an existing entry with different value (should never
+    // happen in practice but see what happens).
+    AddKeyInScriptCache(key1A, 99);
+    // This succeeds without error, but (currently) no replacement is done.
+    // It would also be acceptable to overwrite, but if we ever come to a
+    // situation where this matters then neither alternative is better.
+    CHECK_CACHE_HAS(key1A, 42);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

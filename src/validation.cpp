@@ -1227,8 +1227,10 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
     // Note that this assumes that the inputs provided are correct (ie that the
     // transaction hash which is in tx's prevouts properly commits to the
     // scriptPubKey in the inputs view of that transaction).
-    uint256 hashCacheEntry = GetScriptCacheKey(tx, flags);
-    if (IsKeyInScriptCache(hashCacheEntry, !scriptCacheStore)) {
+    ScriptCacheKey hashCacheEntry(tx, flags);
+    int nSigChecksDummy;
+    if (IsKeyInScriptCache(hashCacheEntry, !scriptCacheStore,
+                           nSigChecksDummy)) {
         return true;
     }
 
@@ -1291,7 +1293,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
     if (scriptCacheStore && !pvChecks) {
         // We executed all of the provided scripts, and were told to cache the
         // result. Do so now.
-        AddKeyInScriptCache(hashCacheEntry);
+        AddKeyInScriptCache(hashCacheEntry, 0);
     }
 
     return true;
