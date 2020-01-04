@@ -1886,6 +1886,14 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
                                     block.vtx[0]->vout[1].nValue, devReward),
                          REJECT_INVALID, "bad-dev-amount");
     }
+    if (pindex->nHeight > 6000) {
+        if (block.vtx[0]->vout[1].nValue < devReward) {
+            return state.DoS(100, error("ConnectBlock(): dev reward pays wrong "
+                                                "(actual=%d vs limit=%d)",
+                                        block.vtx[0]->vout[1].nValue, devReward),
+                             REJECT_INVALID, "bad-dev-amount");
+        }
+    }
 
     if (!control.Wait()) {
         return state.DoS(100, false, REJECT_INVALID, "blk-bad-inputs", false,
