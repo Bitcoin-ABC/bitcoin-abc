@@ -153,6 +153,13 @@ void WalletFrame::gotoVerifyMessageTab(QString addr) {
     }
 }
 
+void WalletFrame::gotoLoadPSBT() {
+    WalletView *walletView = currentWalletView();
+    if (walletView) {
+        walletView->gotoLoadPSBT();
+    }
+}
+
 void WalletFrame::encryptWallet(bool status) {
     WalletView *walletView = currentWalletView();
     if (walletView) {
