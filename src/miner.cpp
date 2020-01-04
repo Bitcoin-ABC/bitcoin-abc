@@ -128,7 +128,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock = &pblocktemplate->block;
 
     // Add dummy coinbase tx as first transaction.  It is updated at the end.
-    pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, 0, -1);
+    pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, -1);
 
     LOCK2(cs_main, mempool->cs);
     CBlockIndex *pindexPrev = chainActive.Tip();
@@ -187,11 +187,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     pblocktemplate->entries[0].tx = MakeTransactionRef(coinbaseTx);
-    // Note: For the Coinbase, the template entry fields aside from the `tx` are
-    // not used anywhere at the time of writing.  The mining rpc throws out the
-    // entire transaction in fact. The tx itself is only used during regtest
-    // mode.
-    pblocktemplate->entries[0].txFee = -1 * nFees;
+    pblocktemplate->entries[0].fees = -1 * nFees;
 
     uint64_t nSerializeSize = GetSerializeSize(*pblock, PROTOCOL_VERSION);
 
@@ -204,7 +200,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock->nBits =
         GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     pblock->nNonce = 0;
-    pblocktemplate->entries[0].txSigOps = GetSigOpCountWithoutP2SH(
+    pblocktemplate->entries[0].sigOpCount = GetSigOpCountWithoutP2SH(
         *pblocktemplate->entries[0].tx, STANDARD_SCRIPT_VERIFY_FLAGS);
 
     // Copy all the transactions into the block
@@ -291,7 +287,6 @@ bool BlockAssembler::TestPackageTransactions(
 
 void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
     pblocktemplate->entries.emplace_back(iter->GetSharedTx(), iter->GetFee(),
-                                         iter->GetTxSize(),
                                          iter->GetSigOpCount());
     nBlockSize += iter->GetTxSize();
     ++nBlockTx;
