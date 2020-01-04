@@ -11,7 +11,6 @@ exclude_from_source_package(
 	"debian/"
 	"gitian/"
 	"gitian-descriptors/"
-	"gitian-signing/"
 	"qos/"
 	"seeds/"
 	"teamcity/"
