@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
 
     MMIXLinearCongruentialGenerator lcg;
     for (int i = 0; i < 4096; i++) {
-        uint32_t flags = lcg.next() | SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
+        uint32_t flags = lcg.next();
 
         if (flags & SCRIPT_VERIFY_STRICTENC) {
             // When strict encoding is enforced, hybrid keys are invalid.
@@ -249,11 +249,9 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(checkdatasig_inclusion_in_standard_and_mandatory_flags) {
+BOOST_AUTO_TEST_CASE(checkdatasig_sigops_inclusion_in_standard_flags) {
     BOOST_CHECK(STANDARD_SCRIPT_VERIFY_FLAGS &
                 SCRIPT_VERIFY_CHECKDATASIG_SIGOPS);
-    BOOST_CHECK(
-        !(MANDATORY_SCRIPT_VERIFY_FLAGS & SCRIPT_VERIFY_CHECKDATASIG_SIGOPS));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
