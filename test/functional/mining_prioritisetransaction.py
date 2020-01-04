@@ -52,11 +52,9 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             assert sizes[i] > LEGACY_MAX_BLOCK_SIZE
 
         # add a fee delta to something in the cheapest bucket and make sure it gets mined
-        # also check that a different entry in the cheapest bucket is NOT mined (lower
-        # the priority to ensure its not mined due to priority)
+        # also check that a different entry in the cheapest bucket is NOT mined
         self.nodes[0].prioritisetransaction(
-            txids[0][0], 0, 100 * self.nodes[0].calculate_fee_from_txid(txids[0][0]))
-        self.nodes[0].prioritisetransaction(txids[0][1], -1e15, 0)
+            txid=txids[0][0], fee_delta=100 * self.nodes[0].calculate_fee_from_txid(txids[0][0]))
 
         self.nodes[0].generate(1)
 
@@ -84,7 +82,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         # we add the minimum fee back.
         tx_fee = self.nodes[0].gettransaction(high_fee_tx)['fee']
         self.nodes[0].prioritisetransaction(
-            high_fee_tx, -1e15, int(tx_fee * COIN) + self.nodes[0].calculate_fee_from_txid(high_fee_tx))
+            txid=high_fee_tx, fee_delta=int(tx_fee * COIN) + self.nodes[0].calculate_fee_from_txid(high_fee_tx))
 
         # Add everything back to mempool
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
@@ -109,7 +107,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             if (x != high_fee_tx):
                 assert x not in mempool
 
-        # Create a free, low priority transaction.  Should be rejected.
+        # Create a free transaction.  Should be rejected.
         utxo_list = self.nodes[0].listunspent()
         assert len(utxo_list) > 0
         utxo = utxo_list[0]
@@ -117,37 +115,26 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         inputs = []
         outputs = {}
         inputs.append({"txid": utxo["txid"], "vout": utxo["vout"]})
-        outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
+        outputs[self.nodes[0].getnewaddress()] = utxo["amount"]
         raw_tx = self.nodes[0].createrawtransaction(inputs, outputs)
         tx_hex = self.nodes[0].signrawtransactionwithwallet(raw_tx)["hex"]
-        txid = self.nodes[0].sendrawtransaction(tx_hex)
-
-        # A tx that spends an in-mempool tx has 0 priority, so we can use it to
-        # test the effect of using prioritise transaction for mempool
-        # acceptance
-        inputs = []
-        inputs.append({"txid": txid, "vout": 0})
-        outputs = {}
-        outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
-        raw_tx2 = self.nodes[0].createrawtransaction(inputs, outputs)
-        tx2_hex = self.nodes[0].signrawtransactionwithwallet(raw_tx2)["hex"]
-        tx2_id = self.nodes[0].decoderawtransaction(tx2_hex)["txid"]
+        tx_id = self.nodes[0].decoderawtransaction(tx_hex)["txid"]
 
         # This will raise an exception due to min relay fee not being met
         assert_raises_rpc_error(-26, "min relay fee not met (code 66)",
-                                self.nodes[0].sendrawtransaction, tx2_hex)
-        assert tx2_id not in self.nodes[0].getrawmempool()
+                                self.nodes[0].sendrawtransaction, tx_hex)
+        assert tx_id not in self.nodes[0].getrawmempool()
 
         # This is a less than 1000-byte transaction, so just set the fee
         # to be the minimum for a 1000-byte transaction and check that it is
         # accepted.
         self.nodes[0].prioritisetransaction(
-            tx2_id, 0, int(self.relayfee * COIN))
+            txid=tx_id, fee_delta=int(self.relayfee * COIN))
 
         self.log.info(
             "Assert that prioritised free transaction is accepted to mempool")
-        assert_equal(self.nodes[0].sendrawtransaction(tx2_hex), tx2_id)
-        assert tx2_id in self.nodes[0].getrawmempool()
+        assert_equal(self.nodes[0].sendrawtransaction(tx_hex), tx_id)
+        assert tx_id in self.nodes[0].getrawmempool()
 
         # Test that calling prioritisetransaction is sufficient to trigger
         # getblocktemplate to (eventually) return a new block.
@@ -155,7 +142,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(mock_time)
         template = self.nodes[0].getblocktemplate()
         self.nodes[0].prioritisetransaction(
-            tx2_id, 0, -int(self.relayfee * COIN))
+            txid=tx_id, fee_delta=-int(self.relayfee * COIN))
         self.nodes[0].setmocktime(mock_time + 10)
         new_template = self.nodes[0].getblocktemplate()
 

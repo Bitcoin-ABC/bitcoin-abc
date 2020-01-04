@@ -268,12 +268,15 @@ static UniValue prioritisetransaction(const Config &config,
                                       const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 3) {
         throw std::runtime_error(
-            "prioritisetransaction <txid> <dummy> <fee delta>\n"
+            "prioritisetransaction <txid> <dummy value> <fee delta>\n"
             "Accepts the transaction into mined blocks at a higher (or lower) "
             "priority\n"
             "\nArguments:\n"
             "1. \"txid\"       (string, required) The transaction id.\n"
-            "2. dummy (required) unused.\n"
+            "2. dummy          (numeric, optional) API-Compatibility for "
+            "previous API. Must be zero or null.\n"
+            "                  DEPRECATED. For forward compatibility use named "
+            "arguments and omit this parameter.\n"
             "3. fee_delta      (numeric, required) The fee value (in satoshis) "
             "to add (or subtract, if negative).\n"
             "                  The fee is not actually paid, only the "
@@ -291,6 +294,12 @@ static UniValue prioritisetransaction(const Config &config,
 
     TxId txid(ParseHashStr(request.params[0].get_str(), "txid"));
     Amount nAmount = request.params[2].get_int64() * SATOSHI;
+
+    if (!(request.params[1].isNull() || request.params[1].get_real() == 0)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "Priority is no longer supported, dummy argument to "
+                           "prioritisetransaction must be 0.");
+    }
 
     g_mempool.PrioritiseTransaction(txid, nAmount);
     return true;

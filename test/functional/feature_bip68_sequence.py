@@ -308,7 +308,7 @@ class BIP68Test(BitcoinTestFramework):
         # Now mine some blocks, but make sure tx2 doesn't get mined.
         # Use prioritisetransaction to lower the effective feerate to 0
         self.nodes[0].prioritisetransaction(
-            tx2.hash, -1e15, -fee_multiplier * self.nodes[0].calculate_fee(tx2))
+            txid=tx2.hash, fee_delta=-fee_multiplier * self.nodes[0].calculate_fee(tx2))
         cur_time = int(time.time())
         for i in range(10):
             self.nodes[0].setmocktime(cur_time + 600)
@@ -324,7 +324,7 @@ class BIP68Test(BitcoinTestFramework):
 
         # Mine tx2, and then try again
         self.nodes[0].prioritisetransaction(
-            tx2.hash, 1e15, fee_multiplier * self.nodes[0].calculate_fee(tx2))
+            txid=tx2.hash, fee_delta=fee_multiplier * self.nodes[0].calculate_fee(tx2))
 
         # Advance the time on the node so that we can test timelocks
         self.nodes[0].setmocktime(cur_time + 600)
