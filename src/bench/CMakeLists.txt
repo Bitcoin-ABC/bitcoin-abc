@@ -64,9 +64,4 @@ if(BUILD_BITCOIN_WALLET)
 	target_sources(bitcoin-bench PRIVATE coin_selection.cpp)
 endif()
 
-add_custom_target(bench-bitcoin
-	COMMAND
-		./bitcoin-bench
-	DEPENDS
-		bitcoin-bench
-)
+add_custom_target(bench-bitcoin COMMAND bitcoin-bench USES_TERMINAL)

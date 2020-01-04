@@ -103,30 +103,34 @@ endfunction(link_secp256k1_internal)
 add_custom_target(bench-secp256k1)
 
 function(add_secp256k1_bench NAME)
-	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
-	link_secp256k1_internal(${NAME})
-	add_dependencies(bench-secp256k1 ${NAME})
+	set(EXECUTABLE_NAME "${NAME}-bench")
+	add_executable(${EXECUTABLE_NAME} EXCLUDE_FROM_ALL ${ARGN})
+	link_secp256k1_internal(${EXECUTABLE_NAME})
+
+	set(BENCH_NAME "bench-secp256k1-${NAME}")
+	add_custom_target(${BENCH_NAME} COMMAND ${EXECUTABLE_NAME} USES_TERMINAL)
+	add_dependencies(bench-secp256k1 ${BENCH_NAME})
 endfunction(add_secp256k1_bench)
 
 # ECDH module
 option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" OFF)
 if(SECP256K1_ENABLE_MODULE_ECDH)
 	set(ENABLE_MODULE_ECDH 1)
-	add_secp256k1_bench(bench_ecdh src/bench_ecdh.c)
+	add_secp256k1_bench(ecdh src/bench_ecdh.c)
 endif()
 
 # MultiSet module
 option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" ON)
 if(SECP256K1_ENABLE_MODULE_MULTISET)
     set(ENABLE_MODULE_MULTISET 1)
-	add_secp256k1_bench(bench_multiset src/bench_multiset.c)
+	add_secp256k1_bench(multiset src/bench_multiset.c)
 endif()
 
 # Recovery module
 option(SECP256K1_ENABLE_MODULE_RECOVERY "Build libsecp256k1's recovery module" ON)
 if(SECP256K1_ENABLE_MODULE_RECOVERY)
 	set(ENABLE_MODULE_RECOVERY 1)
-	add_secp256k1_bench(bench_recover src/bench_recover.c)
+	add_secp256k1_bench(recover src/bench_recover.c)
 endif()
 
 # Schnorr module
@@ -233,6 +237,6 @@ if(SECP256K1_BUILD_TEST)
 endif(SECP256K1_BUILD_TEST)
 
 # Benchmarks
-add_secp256k1_bench(bench_verify src/bench_verify.c)
-add_secp256k1_bench(bench_sign src/bench_sign.c)
-add_secp256k1_bench(bench_internal src/bench_internal.c)
+add_secp256k1_bench(verify src/bench_verify.c)
+add_secp256k1_bench(sign src/bench_sign.c)
+add_secp256k1_bench(internal src/bench_internal.c)

@@ -21,7 +21,6 @@ endif()
 # Create build ini file
 configure_file(config.ini.in config.ini @ONLY)
 
-
 ###
 # Setup symlinks for testing
 ###
