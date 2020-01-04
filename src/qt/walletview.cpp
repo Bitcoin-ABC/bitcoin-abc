@@ -99,6 +99,8 @@ WalletView::WalletView(const PlatformStyle *_platformStyle,
     // Pass through messages from transactionView
     connect(transactionView, &TransactionView::message, this,
             &WalletView::message);
+    connect(this, &WalletView::setPrivacy, overviewPage,
+            &OverviewPage::setPrivacy);
 
     // Set the model properly.
     setWalletModel(walletModel);

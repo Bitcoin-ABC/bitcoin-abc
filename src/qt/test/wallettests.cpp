@@ -188,7 +188,7 @@ void TestGUI(interfaces::Node &node) {
     OverviewPage overviewPage(platformStyle.get());
     overviewPage.setWalletModel(&walletModel);
     QLabel *balanceLabel = overviewPage.findChild<QLabel *>("labelBalance");
-    QString balanceText = balanceLabel->text();
+    QString balanceText = balanceLabel->text().trimmed();
     int unit = walletModel.getOptionsModel()->getDisplayUnit();
     Amount balance = walletModel.wallet().getBalance();
     QString balanceComparison = BitcoinUnits::formatWithUnit(
