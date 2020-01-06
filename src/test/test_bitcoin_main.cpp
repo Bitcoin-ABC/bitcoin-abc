@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #define BOOST_TEST_MODULE Bitcoin Test Suite
-#define BOOST_TEST_NO_MAIN
 
 #include <banman.h>
 #include <net.h>
@@ -28,22 +27,31 @@ bool ShutdownRequested() {
     return false;
 }
 
-int main(int argc, char *argv[]) {
-    // Additional CLI params supported by test_bitcoin:
-    std::set<std::string> testArgs = {
-        "-phononactivationtime",
-    };
+namespace utf = boost::unit_test::framework;
 
-    // Note: gArgs.ParseParameters() cannot be called here or it will fail to
-    // parse BOOST runtime params.
-    for (int i = 1; i < argc; i++) {
-        std::string key(argv[i]);
-        std::string value;
-        if (ParseKeyValue(key, value)) {
-            if (testArgs.count(key) > 0) {
-                gArgs.ForceSetArg(key, value);
-            }
+/*
+ * Global fixture for passing custom arguments, and clearing them all after each
+ * test case.
+ */
+struct CustomArgumentsFixture {
+    std::string error;
+
+    CustomArgumentsFixture() {
+        std::set<std::string> testArgs = {
+            "-phononactivationtime",
+        };
+
+        for (const auto &arg : testArgs) {
+            gArgs.AddArg(arg, "", false, OptionsCategory::HIDDEN);
+        }
+
+        if (!gArgs.ParseParameters(utf::master_test_suite().argc,
+                                   utf::master_test_suite().argv, error)) {
+            throw utf::setup_error(error);
         }
     }
-    return boost::unit_test::unit_test_main(&init_unit_test, argc, argv);
-}
+
+    ~CustomArgumentsFixture(){};
+};
+
+BOOST_GLOBAL_FIXTURE(CustomArgumentsFixture);
