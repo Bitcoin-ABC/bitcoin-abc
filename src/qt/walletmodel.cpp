@@ -134,7 +134,9 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
     // Pre-check input data for validity
     for (const SendCoinsRecipient &rcp : recipients) {
-        if (rcp.fSubtractFeeFromAmount) fSubtractFeeFromAmount = true;
+        if (rcp.fSubtractFeeFromAmount) {
+            fSubtractFeeFromAmount = true;
+        }
 
 #ifdef ENABLE_BIP70
         // PaymentRequest...
@@ -248,10 +250,12 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
             vOrderForm.emplace_back("PaymentRequest", std::move(value));
         } else
 #endif
+        {
             if (!rcp.message.isEmpty()) {
-            // Message from normal bitcoincash:URI
-            // (bitcoincash:123...?message=example)
-            vOrderForm.emplace_back("Message", rcp.message.toStdString());
+                // Message from normal bitcoincash:URI
+                // (bitcoincash:123...?message=example)
+                vOrderForm.emplace_back("Message", rcp.message.toStdString());
+            }
         }
     }
 
