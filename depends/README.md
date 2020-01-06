@@ -10,7 +10,7 @@ To build for another arch/OS:
 
 For example:
 
-    make HOST=x86_64-w64-mingw32 -j4
+    make HOST=x86_64-w64-mingw32
 
 A prefix will be generated that's suitable for plugging into Bitcoin's
 configure. In the above example, a dir named x86_64-w64-mingw32 will be
@@ -41,6 +41,7 @@ The following can be set when running make: make FOO=bar
     DEBUG: disable some optimizations and enable more runtime checking
     HOST_ID_SALT: Optional salt to use when generating host package ids
     BUILD_ID_SALT: Optional salt to use when generating build package ids
+    JOBS: Number of jobs to use for each package build
 
 If some packages are not built, for example `make NO_WALLET=1`, the appropriate
 options will be passed to bitcoin's configure. In this case, `--disable-wallet`.

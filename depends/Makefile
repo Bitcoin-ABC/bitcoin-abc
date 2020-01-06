@@ -17,6 +17,7 @@ DOWNLOAD_CONNECT_TIMEOUT:=30
 DOWNLOAD_RETRIES:=3
 HOST_ID_SALT ?= salt
 BUILD_ID_SALT ?= salt
+JOBS ?= $(shell echo $$(($(shell nproc 2> /dev/null || sysctl -n hw.ncpu 2> /dev/null || echo 0) + 1)))
 
 host:=$(BUILD)
 ifneq ($(HOST),)
