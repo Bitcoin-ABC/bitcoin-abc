@@ -51,6 +51,8 @@ function(install_shared_library NAME)
 	# For autotools compatibility, rename the library to ${OUTPUT_NAME}-0.dll
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		list(APPEND _properties OUTPUT_NAME "${NAME}-${bitcoin-abc_VERSION_MAJOR}")
+		# DLL_EXPORT is defined by libtool, and is expected by some sources.
+		target_compile_definitions(${_shared_name} PRIVATE DLL_EXPORT)
 	else()
 		list(APPEND _properties OUTPUT_NAME "${NAME}")
 	endif()
