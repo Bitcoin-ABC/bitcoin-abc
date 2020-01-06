@@ -142,8 +142,9 @@ void ReceiveCoinsDialog::updateDisplayUnit() {
 
 void ReceiveCoinsDialog::on_receiveButton_clicked() {
     if (!model || !model->getOptionsModel() || !model->getAddressTableModel() ||
-        !model->getRecentRequestsTableModel())
+        !model->getRecentRequestsTableModel()) {
         return;
+    }
 
     QString address;
     QString label = ui->reqLabel->text();
@@ -186,8 +187,9 @@ void ReceiveCoinsDialog::recentRequestsView_selectionChanged(
 
 void ReceiveCoinsDialog::on_showRequestButton_clicked() {
     if (!model || !model->getRecentRequestsTableModel() ||
-        !ui->recentRequestsView->selectionModel())
+        !ui->recentRequestsView->selectionModel()) {
         return;
+    }
     QModelIndexList selection =
         ui->recentRequestsView->selectionModel()->selectedRows();
 
@@ -198,11 +200,14 @@ void ReceiveCoinsDialog::on_showRequestButton_clicked() {
 
 void ReceiveCoinsDialog::on_removeRequestButton_clicked() {
     if (!model || !model->getRecentRequestsTableModel() ||
-        !ui->recentRequestsView->selectionModel())
+        !ui->recentRequestsView->selectionModel()) {
         return;
+    }
     QModelIndexList selection =
         ui->recentRequestsView->selectionModel()->selectedRows();
-    if (selection.empty()) return;
+    if (selection.empty()) {
+        return;
+    }
     // correct for selection mode ContiguousSelection
     QModelIndex firstIndex = selection.at(0);
     model->getRecentRequestsTableModel()->removeRows(
@@ -232,11 +237,14 @@ void ReceiveCoinsDialog::keyPressEvent(QKeyEvent *event) {
 
 QModelIndex ReceiveCoinsDialog::selectedRow() {
     if (!model || !model->getRecentRequestsTableModel() ||
-        !ui->recentRequestsView->selectionModel())
+        !ui->recentRequestsView->selectionModel()) {
         return QModelIndex();
+    }
     QModelIndexList selection =
         ui->recentRequestsView->selectionModel()->selectedRows();
-    if (selection.empty()) return QModelIndex();
+    if (selection.empty()) {
+        return QModelIndex();
+    }
     // correct for selection mode ContiguousSelection
     QModelIndex firstIndex = selection.at(0);
     return firstIndex;
