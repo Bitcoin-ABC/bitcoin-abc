@@ -1,7 +1,9 @@
 [FREECASH](https://www.freecash.org)
-Docment https://github.com/freecashorg/freecash/wiki
+
 ===========
 Freecash is a freely evolved crypto currency, which is forked form Bitcoin ABC.
+
+Docment https://github.com/freecashorg/freecash/wiki
 
 Goals of Freecash.
 ---------------------
