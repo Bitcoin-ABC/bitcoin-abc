@@ -17,10 +17,7 @@ from test_framework.util import (
     count_bytes,
     wait_until,
 )
-from test_framework.wallet_util import (
-    labels_value,
-    test_address,
-)
+from test_framework.wallet_util import test_address
 
 
 class WalletTest(BitcoinTestFramework):
@@ -464,12 +461,7 @@ class WalletTest(BitcoinTestFramework):
             for label in [u'рыба', u'𝅘𝅥𝅯']:
                 addr = self.nodes[0].getnewaddress()
                 self.nodes[0].setlabel(addr, label)
-                test_address(
-                    self.nodes[0],
-                    addr,
-                    label=label,
-                    labels=labels_value(
-                        name=label))
+                test_address(self.nodes[0], addr, label=label, labels=[label])
                 assert label in self.nodes[0].listlabels()
         # restore to default
         self.nodes[0].rpc.ensure_ascii = True
