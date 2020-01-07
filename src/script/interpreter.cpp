@@ -1235,6 +1235,21 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         stacktop(-1) = std::move(n2);
                     } break;
 
+                    case OP_REVERSEBYTES: {
+                        if (!(flags & SCRIPT_ENABLE_OP_REVERSEBYTES)) {
+                            return set_error(serror, ScriptError::BAD_OPCODE);
+                        }
+
+                        // (in -- out)
+                        if (stack.size() < 1) {
+                            return set_error(
+                                serror, ScriptError::INVALID_STACK_OPERATION);
+                        }
+
+                        valtype &data = stacktop(-1);
+                        std::reverse(data.begin(), data.end());
+                    } break;
+
                     //
                     // Conversion operations
                     //

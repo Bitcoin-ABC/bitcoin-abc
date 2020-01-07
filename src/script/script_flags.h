@@ -111,6 +111,9 @@ enum {
     // Note: The Segwit Recovery feature is a (currently moot) exception to
     // VERIFY_INPUT_SIGCHECKS
     SCRIPT_VERIFY_INPUT_SIGCHECKS = (1U << 22),
+    
+    // Whether the new OP_REVERSEBYTES opcode can be used.
+    SCRIPT_ENABLE_OP_REVERSEBYTES = (1U << 23),
 
     // A utility flag to decide whether VerifyScript should output the correct
     // sigchecks value or to report zero.

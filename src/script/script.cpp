@@ -232,6 +232,8 @@ const char *GetOpName(opcodetype opcode) {
             return "OP_CHECKDATASIG";
         case OP_CHECKDATASIGVERIFY:
             return "OP_CHECKDATASIGVERIFY";
+        case OP_REVERSEBYTES:
+            return "OP_REVERSEBYTES";
 
         // expansion
         case OP_NOP1:

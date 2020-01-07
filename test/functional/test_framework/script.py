@@ -242,6 +242,9 @@ OP_NOP10 = CScriptOp(0xb9)
 OP_CHECKDATASIG = CScriptOp(0xba)
 OP_CHECKDATASIGVERIFY = CScriptOp(0xbb)
 
+# additional byte string operations
+OP_REVERSEBYTES = CScriptOp(0xbc)
+
 # multi-byte opcodes
 OP_PREFIX_BEGIN = CScriptOp(0xf0)
 OP_PREFIX_END = CScriptOp(0xf7)
