@@ -18,7 +18,7 @@ import time
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
-    create_transaction,
+    create_tx_with_script,
     make_conform_to_ctor,
 )
 from test_framework.cdefs import ONE_MEGABYTE
@@ -110,7 +110,7 @@ class FullBlockTest(BitcoinTestFramework):
 
     # this is a little handier to use than the version in blocktools.py
     def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
-        tx = create_transaction(spend_tx, n, b"", value, script)
+        tx = create_tx_with_script(spend_tx, n, b"", value, script)
         return tx
 
     def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0):
