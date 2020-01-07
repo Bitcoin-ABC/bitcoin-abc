@@ -62,6 +62,10 @@ case "$ABC_BUILD_NAME" in
     # Build with the address sanitizer, then run unit tests and functional tests.
     CMAKE_FLAGS=(
       "-DCMAKE_BUILD_TYPE=Debug"
+      # ASAN does not support assembly code: https://github.com/google/sanitizers/issues/192
+      # This will trigger a segfault if the SSE4 implementation is selected for SHA256.
+      # Disabling the assembly works around the issue.
+      "-DCRYPTO_USE_ASM=OFF"
       "-DENABLE_SANITIZERS=address"
       "-DCCACHE=OFF"
     )
