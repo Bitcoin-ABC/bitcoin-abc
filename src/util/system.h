@@ -168,7 +168,7 @@ protected:
         unsigned int m_flags;
     };
 
-    mutable CCriticalSection cs_args;
+    mutable RecursiveMutex cs_args;
     std::map<std::string, std::vector<std::string>>
         m_override_args GUARDED_BY(cs_args);
     std::map<std::string, std::vector<std::string>>

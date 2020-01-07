@@ -94,7 +94,7 @@ private:
      * A lock that must be held when modifying this ChainState - held in
      * ActivateBestChain()
      */
-    CCriticalSection m_cs_chainstate;
+    RecursiveMutex m_cs_chainstate;
 
     /**
      * Every received block is assigned a unique and increasing identifier, so
@@ -302,7 +302,7 @@ CBlockIndex const *&pindexFinalized = g_chainstate.pindexFinalized;
 std::multimap<CBlockIndex *, CBlockIndex *> &mapBlocksUnlinked =
     g_chainstate.mapBlocksUnlinked;
 
-CCriticalSection cs_LastBlockFile;
+RecursiveMutex cs_LastBlockFile;
 std::vector<CBlockFileInfo> vinfoBlockFile;
 int nLastBlockFile = 0;
 /**

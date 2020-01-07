@@ -29,7 +29,7 @@
 class CBlockIndex;
 class Config;
 
-extern CCriticalSection cs_main;
+extern RecursiveMutex cs_main;
 
 /**
  * Fake height value used in Coins to signify they are only in the memory

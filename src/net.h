@@ -378,8 +378,8 @@ private:
     const Config *config;
 
     // Network usage totals
-    CCriticalSection cs_totalBytesRecv;
-    CCriticalSection cs_totalBytesSent;
+    RecursiveMutex cs_totalBytesRecv;
+    RecursiveMutex cs_totalBytesSent;
     uint64_t nTotalBytesRecv GUARDED_BY(cs_totalBytesRecv);
     uint64_t nTotalBytesSent GUARDED_BY(cs_totalBytesSent);
 
@@ -404,12 +404,12 @@ private:
     bool fAddressesInitialized{false};
     CAddrMan addrman;
     std::deque<std::string> vOneShots GUARDED_BY(cs_vOneShots);
-    CCriticalSection cs_vOneShots;
+    RecursiveMutex cs_vOneShots;
     std::vector<std::string> vAddedNodes GUARDED_BY(cs_vAddedNodes);
-    CCriticalSection cs_vAddedNodes;
+    RecursiveMutex cs_vAddedNodes;
     std::vector<CNode *> vNodes GUARDED_BY(cs_vNodes);
     std::list<CNode *> vNodesDisconnected;
-    mutable CCriticalSection cs_vNodes;
+    mutable RecursiveMutex cs_vNodes;
     std::atomic<NodeId> nLastNodeId{0};
     unsigned int nPrevNodeCount{0};
 
@@ -535,7 +535,7 @@ struct LocalServiceInfo {
     int nPort;
 };
 
-extern CCriticalSection cs_mapLocalHost;
+extern RecursiveMutex cs_mapLocalHost;
 extern std::map<CNetAddr, LocalServiceInfo>
     mapLocalHost GUARDED_BY(cs_mapLocalHost);
 
@@ -644,15 +644,15 @@ public:
     size_t nSendOffset{0};
     uint64_t nSendBytes GUARDED_BY(cs_vSend){0};
     std::deque<std::vector<uint8_t>> vSendMsg GUARDED_BY(cs_vSend);
-    CCriticalSection cs_vSend;
-    CCriticalSection cs_hSocket;
-    CCriticalSection cs_vRecv;
+    RecursiveMutex cs_vSend;
+    RecursiveMutex cs_hSocket;
+    RecursiveMutex cs_vRecv;
 
-    CCriticalSection cs_vProcessMsg;
+    RecursiveMutex cs_vProcessMsg;
     std::list<CNetMessage> vProcessMsg GUARDED_BY(cs_vProcessMsg);
     size_t nProcessQueueSize{0};
 
-    CCriticalSection cs_sendProcessing;
+    RecursiveMutex cs_sendProcessing;
 
     std::deque<CInv> vRecvGetData;
     uint64_t nRecvBytes GUARDED_BY(cs_vRecv){0};
@@ -675,7 +675,7 @@ public:
     std::string strSubVer GUARDED_BY(cs_SubVer), cleanSubVer
         GUARDED_BY(cs_SubVer);
     // Used for both cleanSubVer and strSubVer.
-    CCriticalSection cs_SubVer;
+    RecursiveMutex cs_SubVer;
     // This peer is preferred for eviction.
     bool m_prefer_evict{false};
     // This peer can bypass DoS banning.
@@ -699,7 +699,7 @@ public:
     bool fRelayTxes GUARDED_BY(cs_filter){false};
     bool fSentAddr{false};
     CSemaphoreGrant grantOutbound;
-    mutable CCriticalSection cs_filter;
+    mutable RecursiveMutex cs_filter;
     std::unique_ptr<CBloomFilter> pfilter PT_GUARDED_BY(cs_filter);
     std::atomic<int> nRefCount{0};
 
@@ -732,7 +732,7 @@ public:
     // before sending, as they are always sent immediately and in the order
     // requested.
     std::vector<uint256> vInventoryBlockToSend GUARDED_BY(cs_inventory);
-    CCriticalSection cs_inventory;
+    RecursiveMutex cs_inventory;
     int64_t nNextInvSend{0};
     // Used for headers announcements - unfiltered blocks to relay.
     std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
@@ -759,7 +759,7 @@ public:
     std::atomic<bool> fPingQueued{false};
     // Minimum fee rate with which to filter inv's to this node
     Amount minFeeFilter GUARDED_BY(cs_feeFilter){Amount::zero()};
-    CCriticalSection cs_feeFilter;
+    RecursiveMutex cs_feeFilter;
     Amount lastSentFeeFilter{Amount::zero()};
     int64_t nextSendTimeFeeFilter{0};
 
@@ -781,12 +781,12 @@ private:
     // Used only by SocketHandler thread.
     std::list<CNetMessage> vRecvMsg;
 
-    mutable CCriticalSection cs_addrName;
+    mutable RecursiveMutex cs_addrName;
     std::string addrName GUARDED_BY(cs_addrName);
 
     // Our address, as reported by the peer
     CService addrLocal GUARDED_BY(cs_addrLocal);
-    mutable CCriticalSection cs_addrLocal;
+    mutable RecursiveMutex cs_addrLocal;
 
 public:
     NodeId GetId() const { return id; }

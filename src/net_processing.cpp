@@ -128,7 +128,7 @@ struct COrphanTx {
     int64_t nTimeExpire;
 };
 
-CCriticalSection g_cs_orphans;
+RecursiveMutex g_cs_orphans;
 std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
 
 void EraseOrphansFor(NodeId peer);
@@ -1268,7 +1268,7 @@ void PeerLogicValidation::BlockConnected(
 
 // All of the following cache a recent block, and are protected by
 // cs_most_recent_block
-static CCriticalSection cs_most_recent_block;
+static RecursiveMutex cs_most_recent_block;
 static std::shared_ptr<const CBlock>
     most_recent_block GUARDED_BY(cs_most_recent_block);
 static std::shared_ptr<const CBlockHeaderAndShortTxIDs>

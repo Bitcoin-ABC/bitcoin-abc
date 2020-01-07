@@ -102,7 +102,7 @@ static constexpr int RCU_ACTIVE_LOOP_COUNT = 10;
  * we rely on as a result.
  */
 static std::atomic<RCUInfos *> threadInfos{nullptr};
-static CCriticalSection csThreadInfosDelete;
+static RecursiveMutex csThreadInfosDelete;
 
 RCUInfos::RCUInfos() : state(0), next(nullptr) {
     RCUInfos *head = threadInfos.load();

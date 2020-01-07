@@ -278,7 +278,7 @@ struct CServiceResult {
  */
 class CAddrDb {
 private:
-    mutable CCriticalSection cs;
+    mutable RecursiveMutex cs;
     // number of address id's
     int nId;
     // map address id to address info (b,c,d,e)

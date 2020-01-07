@@ -9,7 +9,7 @@
 #include <sync.h>
 #include <util/system.h>
 
-CCriticalSection cs_warnings;
+RecursiveMutex cs_warnings;
 std::string strMiscWarning;
 bool fLargeWorkForkFound = false;
 bool fLargeWorkInvalidChainFound = false;

@@ -144,7 +144,7 @@ namespace {
     };
 
     class LockingStateImpl : public LockImpl,
-                             public UniqueLock<CCriticalSection> {
+                             public UniqueLock<RecursiveMutex> {
         using UniqueLock::UniqueLock;
     };
 
