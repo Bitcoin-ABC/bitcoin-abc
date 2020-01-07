@@ -2436,8 +2436,9 @@ CWallet::ListCoins(interfaces::Chain::Lock &locked_chain) const {
 
     std::vector<COutPoint> lockedCoins;
     ListLockedCoins(lockedCoins);
-    // Include watch-only for wallets without private keys
+    // Include watch-only for LegacyScriptPubKeyMan wallets without private keys
     const bool include_watch_only =
+        GetLegacyScriptPubKeyMan() &&
         IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
     const isminetype is_mine_filter =
         include_watch_only ? ISMINE_WATCH_ONLY : ISMINE_SPENDABLE;
