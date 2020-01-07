@@ -45,8 +45,9 @@ struct CustomArgumentsFixture {
             gArgs.AddArg(arg, "", false, OptionsCategory::HIDDEN);
         }
 
-        if (!gArgs.ParseParameters(utf::master_test_suite().argc,
-                                   utf::master_test_suite().argv, error)) {
+        const auto &master_test_suite = utf::master_test_suite();
+        if (!gArgs.ParseParameters(master_test_suite.argc,
+                                   master_test_suite.argv, error)) {
             throw utf::setup_error(error);
         }
     }

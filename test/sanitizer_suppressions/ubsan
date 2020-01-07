@@ -35,3 +35,5 @@ unsigned-integer-overflow:validation.cpp
 vptr:fs.cpp
 # Only occurs with the cmake build and clang-7
 vptr:avalanche_tests.cpp
+# Only with clang < 9
+vptr:boost/test/tree/observer.hpp
