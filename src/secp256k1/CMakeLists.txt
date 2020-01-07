@@ -3,12 +3,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(secp256k1)
 
-# Add path for custom modules
-set(CMAKE_MODULE_PATH
-	${CMAKE_MODULE_PATH}
-	${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/modules
-)
-
 include(AddCompilerFlags)
 
 # libsecp256k1 use a different set of flags.
