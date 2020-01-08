@@ -1,7 +1,7 @@
 # Copyright (c) 2017 The Bitcoin developers
 
 cmake_minimum_required(VERSION 3.5)
-project(secp256k1)
+project(secp256k1 LANGUAGES C)
 
 # Add path for custom modules when building as a standalone project
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(AddCompilerFlags)
 
 # libsecp256k1 use a different set of flags.
-add_compiler_flags(
+add_c_compiler_flags(
 	-pedantic
 	-Wall
 	-Wextra
@@ -17,9 +17,6 @@ add_compiler_flags(
 	-Wshadow
 	-Wno-unused-function
 	-Wno-overlength-strings
-)
-
-add_c_compiler_flags(
 	-std=c89
 	-Wnested-externs
 	-Wstrict-prototypes
