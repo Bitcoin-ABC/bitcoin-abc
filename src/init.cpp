@@ -229,10 +229,6 @@ void Shutdown(NodeContext &node) {
         LOCK2(::cs_main, ::g_cs_orphans);
         node.connman->StopNodes();
     }
-    if (g_txindex) {
-        g_txindex->Stop();
-    }
-    ForEachBlockFilterIndex([](BlockFilterIndex &index) { index.Stop(); });
 
     StopTorControl();
 
@@ -252,8 +248,6 @@ void Shutdown(NodeContext &node) {
     g_avalanche.reset();
     node.connman.reset();
     node.banman.reset();
-    g_txindex.reset();
-    DestroyAllBlockFilterIndexes();
 
     if (::g_mempool.IsLoaded() &&
         node.args->GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
@@ -274,6 +268,14 @@ void Shutdown(NodeContext &node) {
     // After there are no more peers/RPC left to give us new data which may
     // generate CValidationInterface callbacks, flush them...
     GetMainSignals().FlushBackgroundCallbacks();
+
+    // Stop and delete all indexes only after flushing background callbacks.
+    if (g_txindex) {
+        g_txindex->Stop();
+        g_txindex.reset();
+    }
+    ForEachBlockFilterIndex([](BlockFilterIndex &index) { index.Stop(); });
+    DestroyAllBlockFilterIndexes();
 
     // Any future callbacks will be dropped. This should absolutely be safe - if
     // missing a callback results in an unrecoverable situation, unclean
