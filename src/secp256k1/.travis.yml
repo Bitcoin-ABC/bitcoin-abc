@@ -2,7 +2,9 @@ language: c
 sudo: false
 addons:
   apt:
-    packages: libgmp-dev
+    packages:
+      - libgmp-dev
+      - ninja-build
 compiler:
   - clang
   - gcc
@@ -37,18 +39,21 @@ matrix:
           packages:
             - gcc-multilib
             - libgmp-dev:i386
+            - ninja-build:i386
     - compiler: clang
       env: HOST=i686-linux-gnu
       addons:
         apt:
           packages:
             - gcc-multilib
+            - ninja-build:i386
     - compiler: gcc
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes
       addons:
         apt:
           packages:
             - gcc-multilib
+            - ninja-build:i386
     - compiler: gcc
       env: HOST=i686-linux-gnu
       addons:
@@ -56,6 +61,8 @@ matrix:
           packages:
             - gcc-multilib
             - libgmp-dev:i386
+            - ninja-build:i386
 script:
  - ./travis/build_autotools.sh
+ - ./travis/build_cmake.sh
 os: linux
