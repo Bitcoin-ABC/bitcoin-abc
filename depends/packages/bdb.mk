@@ -26,7 +26,7 @@ define $(package)_config_cmds
 endef
 
 define $(package)_build_cmds
-  $(MAKE) libdb_cxx-5.3.a libdb-5.3.a
+  $(MAKE) -j$(JOBS) libdb_cxx-5.3.a libdb-5.3.a
 endef
 
 define $(package)_stage_cmds
