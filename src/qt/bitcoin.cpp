@@ -320,8 +320,10 @@ void BitcoinApplication::parameterSetup() {
     InitParameterInteraction(gArgs);
 }
 
-void BitcoinApplication::SetPrune(bool prune, bool force) {
-    optionsModel->SetPrune(prune, force);
+void BitcoinApplication::InitializePruneSetting(bool prune) {
+    // If prune is set, intentionally override existing prune size with
+    // the default size since this is called when choosing a new datadir.
+    optionsModel->SetPruneTargetGB(prune ? DEFAULT_PRUNE_TARGET_GB : 0, true);
 }
 
 void BitcoinApplication::requestInitialize(
@@ -748,7 +750,7 @@ int GuiMain(int argc, char *argv[]) {
 
     if (did_show_intro) {
         // Store intro dialog settings other than datadir (network specific)
-        app.SetPrune(prune, true);
+        app.InitializePruneSetting(prune);
     }
 
     // Get global config
