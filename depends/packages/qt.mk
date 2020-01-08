@@ -165,11 +165,11 @@ define $(package)_config_cmds
 endef
 
 define $(package)_build_cmds
-  $(MAKE) && \
-  $(MAKE) -C ../qttools/src/linguist/lconvert && \
-  $(MAKE) -C ../qttools/src/linguist/lrelease && \
-  $(MAKE) -C ../qttools/src/linguist/lupdate && \
-  $(MAKE) -C ../qttranslations
+  $(MAKE) -j$(JOBS) && \
+  $(MAKE) -j$(JOBS) -C ../qttools/src/linguist/lconvert && \
+  $(MAKE) -j$(JOBS) -C ../qttools/src/linguist/lrelease && \
+  $(MAKE) -j$(JOBS) -C ../qttools/src/linguist/lupdate && \
+  $(MAKE) -j$(JOBS) -C ../qttranslations
 endef
 
 define $(package)_stage_cmds
