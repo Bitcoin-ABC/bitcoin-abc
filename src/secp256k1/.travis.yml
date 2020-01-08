@@ -8,7 +8,7 @@ compiler:
   - gcc
 env:
   global:
-    - FIELD=auto  BIGNUM=auto  SCALAR=auto  ENDOMORPHISM=no  STATICPRECOMPUTATION=yes  ASM=no  BUILD=check  EXTRAFLAGS=  HOST=  ECDH=no  RECOVERY=no  EXPERIMENTAL=no  JNI=no
+    - FIELD=auto  BIGNUM=auto  SCALAR=auto  ENDOMORPHISM=no  STATICPRECOMPUTATION=yes  ASM=no  BUILD=check  EXTRAFLAGS=  HOST=  ECDH=no  RECOVERY=no  SCHNORR=yes  EXPERIMENTAL=no  JNI=no
   matrix:
     - SCALAR=32bit    RECOVERY=yes
     - SCALAR=32bit    FIELD=32bit       ECDH=yes  EXPERIMENTAL=yes
@@ -26,6 +26,7 @@ env:
     - EXTRAFLAGS=CPPFLAGS=-DDETERMINISTIC
     - EXTRAFLAGS=CFLAGS=-O0
     - BUILD=check-java JNI=yes ECDH=yes EXPERIMENTAL=yes
+    - SCHNORR=no
 matrix:
   fast_finish: true
   include:
@@ -59,5 +60,5 @@ before_script: ./autogen.sh
 script:
  - if [ -n "$HOST" ]; then export USE_HOST="--host=$HOST"; fi
  - if [ "x$HOST" = "xi686-linux-gnu" ]; then export CC="$CC -m32"; fi
- - ./configure --enable-experimental=$EXPERIMENTAL --enable-endomorphism=$ENDOMORPHISM --with-field=$FIELD --with-bignum=$BIGNUM --with-scalar=$SCALAR --enable-ecmult-static-precomputation=$STATICPRECOMPUTATION --enable-module-ecdh=$ECDH --enable-module-recovery=$RECOVERY --enable-jni=$JNI $EXTRAFLAGS $USE_HOST && make -j2 $BUILD
+ - ./configure --enable-experimental=$EXPERIMENTAL --enable-endomorphism=$ENDOMORPHISM --with-field=$FIELD --with-bignum=$BIGNUM --with-scalar=$SCALAR --enable-ecmult-static-precomputation=$STATICPRECOMPUTATION --enable-module-ecdh=$ECDH --enable-module-recovery=$RECOVERY --enable-module-schnorr=$SCHNORR --enable-jni=$JNI $EXTRAFLAGS $USE_HOST && make -j2 $BUILD
 os: linux
