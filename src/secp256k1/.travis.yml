@@ -5,8 +5,10 @@ addons:
   apt:
     packages:
       - gcc-multilib
-      - libgmp-dev:i386
+      - libc6-dbg:i386
       - libgmp-dev
+      - libgmp-dev:i386
+      - libtool-bin
       - ninja-build
       - valgrind
 install:
@@ -38,6 +40,7 @@ env:
     - JNI=no
     - OPENSSL_TESTS=auto
     - MULTISET=no
+    - CTIMETEST=yes
   jobs:
     - SCALAR=32bit    RECOVERY=yes
     - SCALAR=32bit    FIELD=32bit       ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes
@@ -51,7 +54,7 @@ env:
     - BIGNUM=no
     - BIGNUM=no       ENDOMORPHISM=yes  RECOVERY=yes  EXPERIMENTAL=yes  MULTISET=yes
     - BIGNUM=no       STATICPRECOMPUTATION=no
-    - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install
+    - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install    CTIMETEST=
     - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DDETERMINISTIC CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DDETERMINISTIC
     - AUTOTOOLS_EXTRA_FLAGS=CFLAGS=-O0               CMAKE_EXTRA_FLAGS=-DCMAKE_BUILD_TYPE=Debug
     - AUTOTOOLS_TARGET=check-java      CMAKE_TARGET=check-secp256k1-java JNI=yes ECDH=yes EXPERIMENTAL=yes

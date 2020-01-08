@@ -38,9 +38,14 @@ pushd buildautotools
 print_logs() {
   cat tests.log || :
   cat exhaustive_tests.log || :
+  cat valgrind_ctime_test.log || :
 }
 trap 'print_logs' ERR
 
 make -j2 $AUTOTOOLS_TARGET
+
+if [ -n "$CTIMETEST" ]; then
+  libtool --mode=execute valgrind  ./valgrind_ctime_test &> valgrind_ctime_test.log
+fi
 
 popd
