@@ -116,7 +116,10 @@ bool CZMQAbstractPublishNotifier::Initialize(void *pcontext) {
 }
 
 void CZMQAbstractPublishNotifier::Shutdown() {
-    assert(psocket);
+    // Early return if Initialize was not called
+    if (!psocket) {
+        return;
+    }
 
     int count = mapPublishNotifiers.count(address);
 
