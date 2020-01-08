@@ -53,10 +53,24 @@ Implementation details
 Build steps
 -----------
 
-libsecp256k1 is built using autotools:
+libsecp256k1 can be built using autotools:
 
-    $ ./autogen.sh
-    $ ./configure
-    $ make
-    $ ./tests
-    $ sudo make install  # optional
+```bash
+./autogen.sh
+mkdir build
+cd build
+../configure
+make
+make check
+sudo make install  # optional
+```
+
+Or using CMake:
+
+```bash
+mkdir build
+cd build
+cmake -GNinja ..
+ninja
+ninja check-secp256k1
+```
