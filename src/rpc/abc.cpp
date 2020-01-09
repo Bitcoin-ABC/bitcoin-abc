@@ -18,7 +18,7 @@ static UniValue getexcessiveblock(const Config &config,
         "getexcessiveblock",
         "Return the excessive block size.",
         {},
-        RPCResult{"  excessiveBlockSize (integer) block size in bytes\n"},
+        RPCResult{RPCResult::Type::NUM, "", "excessive block size in bytes"},
         RPCExamples{HelpExampleCli("getexcessiveblock", "") +
                     HelpExampleRpc("getexcessiveblock", "")},
     }
@@ -41,7 +41,7 @@ static UniValue setexcessiveblock(Config &config,
              "Excessive block size in bytes.  Must be greater than " +
                  std::to_string(LEGACY_MAX_BLOCK_SIZE) + "."},
         },
-        RPCResult{"  blockSize (integer) excessive block size in bytes\n"},
+        RPCResult{RPCResult::Type::NUM, "", "excessive block size in bytes"},
         RPCExamples{HelpExampleCli("setexcessiveblock", "25000000") +
                     HelpExampleRpc("setexcessiveblock", "25000000")},
     }

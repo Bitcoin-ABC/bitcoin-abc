@@ -105,7 +105,7 @@ static UniValue getnetworkhashps(const Config &config,
             {"height", RPCArg::Type::NUM, /* default */ "-1",
              "To estimate at the time of the given height."},
         },
-        RPCResult{"x             (numeric) Hashes per second estimated\n"},
+        RPCResult{RPCResult::Type::NUM, "", "Hashes per second estimated"},
         RPCExamples{HelpExampleCli("getnetworkhashps", "") +
                     HelpExampleRpc("getnetworkhashps", "")},
     }
@@ -194,7 +194,12 @@ static UniValue generatetodescriptor(const Config &config,
             {"maxtries", RPCArg::Type::NUM, /* default */ "1000000",
              "How many iterations to try."},
         },
-        RPCResult{"[ blockhashes ]     (array) hashes of blocks generated\n"},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "hashes of blocks generated",
+                  {
+                      {RPCResult::Type::STR_HEX, "", "blockhash"},
+                  }},
         RPCExamples{"\nGenerate 11 blocks to mydesc\n" +
                     HelpExampleCli("generatetodescriptor", "11 \"mydesc\"")},
     }
@@ -247,7 +252,12 @@ static UniValue generatetoaddress(const Config &config,
             {"maxtries", RPCArg::Type::NUM, /* default */ "1000000",
              "How many iterations to try."},
         },
-        RPCResult{"[ blockhashes ]     (array) hashes of blocks generated\n"},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "hashes of blocks generated",
+                  {
+                      {RPCResult::Type::STR_HEX, "", "blockhash"},
+                  }},
         RPCExamples{
             "\nGenerate 11 blocks to myaddress\n" +
             HelpExampleCli("generatetoaddress", "11 \"myaddress\"") +
@@ -286,23 +296,26 @@ static UniValue getmininginfo(const Config &config,
         "information.",
         {},
         RPCResult{
-            "{\n"
-            "  \"blocks\": nnn,             (numeric) The current block\n"
-            "  \"currentblocksize\": nnn,   (numeric, optional) The block size "
-            "of the last assembled block (only present if a block was ever "
-            "assembled)\n"
-            "  \"currentblocktx\": nnn,     (numeric, optional) The number of "
-            "block transactions of the last assembled block (only present if a "
-            "block was ever assembled)\n"
-            "  \"difficulty\": xxx.xxxxx    (numeric) The current difficulty\n"
-            "  \"networkhashps\": nnn,      (numeric) The network hashes per "
-            "second\n"
-            "  \"pooledtx\": n              (numeric) The size of the mempool\n"
-            "  \"chain\": \"xxxx\",         (string) current network name as "
-            "defined in BIP70 (main, test, regtest)\n"
-            "  \"warnings\": \"...\"        (string) any network and "
-            "blockchain warnings\n"
-            "}\n"},
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::NUM, "blocks", "The current block"},
+                {RPCResult::Type::NUM, "currentblocksize", /* optional */ true,
+                 "The block size of the last assembled block (only present if "
+                 "a block was ever assembled)"},
+                {RPCResult::Type::NUM, "currentblocktx", /* optional */ true,
+                 "The number of block transactions of the last assembled block "
+                 "(only present if a block was ever assembled)"},
+                {RPCResult::Type::NUM, "difficulty", "The current difficulty"},
+                {RPCResult::Type::NUM, "networkhashps",
+                 "The network hashes per second"},
+                {RPCResult::Type::NUM, "pooledtx", "The size of the mempool"},
+                {RPCResult::Type::STR, "chain",
+                 "current network name (main, test, regtest)"},
+                {RPCResult::Type::STR, "warnings",
+                 "any network and blockchain warnings"},
+            }},
         RPCExamples{HelpExampleCli("getmininginfo", "") +
                     HelpExampleRpc("getmininginfo", "")},
     }
@@ -350,7 +363,7 @@ static UniValue prioritisetransaction(const Config &config,
              "                  considers the transaction as it would "
              "have paid a higher (or lower) fee."},
         },
-        RPCResult{"true              (boolean) Returns true\n"},
+        RPCResult{RPCResult::Type::BOOL, "", "Returns true"},
         RPCExamples{
             HelpExampleCli("prioritisetransaction", "\"txid\" 0.0 10000") +
             HelpExampleRpc("prioritisetransaction", "\"txid\", 0.0, 10000")},
@@ -443,86 +456,110 @@ static UniValue getblocktemplate(const Config &config,
              "\"template_request\""},
         },
         RPCResult{
-            "{\n"
-            "  \"version\" : n,                    (numeric) The preferred "
-            "block version\n"
-            "  \"previousblockhash\" : \"xxxx\",     (string) The hash of "
-            "current highest block\n"
-            "  \"transactions\" : [                (array) contents of "
-            "non-coinbase transactions that should be included in the next "
-            "block\n"
-            "      {\n"
-            "         \"data\" : \"xxxx\",             (string) transaction "
-            "data encoded in hexadecimal (byte-for-byte)\n"
-            "         \"txid\" : \"xxxx\",             (string) transaction id "
-            "encoded in little-endian hexadecimal\n"
-            "         \"hash\" : \"xxxx\",             (string) hash encoded "
-            "in little-endian hexadecimal\n"
-            "         \"depends\" : [                (array) array of numbers "
-            "\n"
-            "             n                          (numeric) transactions "
-            "before this one (by 1-based index in 'transactions' list) that "
-            "must be present in the final block if this one is\n"
-            "             ,...\n"
-            "         ],\n"
-            "         \"fee\": n,                    (numeric) difference in "
-            "value between transaction inputs and outputs (in satoshis); for "
-            "coinbase transactions, this is a negative number of the total "
-            "collected block fees (ie, not including the block subsidy); if "
-            "key is not present, fee is unknown and clients MUST NOT assume "
-            "there isn't one\n"
-            "         \"sigops\" : n,                (numeric) total SigOps "
-            "count, as counted for purposes of block limits; if key is not "
-            "present, sigop count is unknown and clients MUST NOT assume it is "
-            "zero\n"
-            "      }\n"
-            "      ,...\n"
-            "  ],\n"
-            "  \"coinbaseaux\" : {                 (json object) data that "
-            "should be included in the coinbase's scriptSig content\n"
-            "      \"flags\" : \"xx\"                  (string) key name is to "
-            "be ignored, and value included in scriptSig\n"
-            "  },\n"
-            "  \"coinbasevalue\" : n,              (numeric) maximum allowable "
-            "input to coinbase transaction, including the generation award and "
-            "transaction fees (in satoshis)\n"
-            "  \"coinbasetxn\" : {                 (json object) information "
-            "for coinbase transaction\n"
-            "    \"minerfund\" : {                   (json object) information "
-            "related to the coinbase miner fund\n"
-            "      \"addresses\" : [ ... ],            (array) List of valid "
-            "addresses for the miner fund output\n"
-            "      \"minimumvalue\" : n,               (numeric) The minimum "
-            "value the miner fund output must pay\n"
-            "    },\n"
-            "  },\n"
-            "  \"target\" : \"xxxx\",              (string) The hash target\n"
-            "  \"mintime\" : xxx,                  (numeric) The minimum "
-            "timestamp appropriate for the next block time, expressed in " +
-            UNIX_EPOCH_TIME +
-            "\n"
-            "  \"mutable\" : [                     (array of string) list of "
-            "ways the block template may be changed \n"
-            "     \"value\"                          (string) A way the block "
-            "template may be changed, e.g. 'time', 'transactions', "
-            "'prevblock'\n"
-            "     ,...\n"
-            "  ],\n"
-            "  \"noncerange\" : \"00000000ffffffff\",(string) A range of valid "
-            "nonces\n"
-            "  \"sigoplimit\" : n,                 (numeric) limit of sigops "
-            "in blocks\n"
-            "  \"sizelimit\" : n,                  (numeric) limit of block "
-            "size\n"
-            "  \"curtime\" : ttt,                  (numeric) current timestamp "
-            "in seconds since " +
-            UNIX_EPOCH_TIME +
-            "\n"
-            "  \"bits\" : \"xxxxxxxx\",              (string) compressed "
-            "target of next block\n"
-            "  \"height\" : n                      (numeric) The height of the "
-            "next block\n"
-            "}\n"},
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::NUM, "version",
+                 "The preferred block version"},
+                {RPCResult::Type::STR, "previousblockhash",
+                 "The hash of current highest block"},
+                {RPCResult::Type::ARR,
+                 "transactions",
+                 "contents of non-coinbase transactions that should be "
+                 "included in the next block",
+                 {
+                     {RPCResult::Type::OBJ,
+                      "",
+                      "",
+                      {
+                          {RPCResult::Type::STR_HEX, "data",
+                           "transaction data encoded in hexadecimal "
+                           "(byte-for-byte)"},
+                          {RPCResult::Type::STR_HEX, "txid",
+                           "transaction id encoded in little-endian "
+                           "hexadecimal"},
+                          {RPCResult::Type::STR_HEX, "hash",
+                           "hash encoded in little-endian hexadecimal"},
+                          {RPCResult::Type::ARR,
+                           "depends",
+                           "array of numbers",
+                           {
+                               {RPCResult::Type::NUM, "",
+                                "transactions before this one (by 1-based "
+                                "index in 'transactions' list) that must be "
+                                "present in the final block if this one is"},
+                           }},
+                          {RPCResult::Type::NUM, "fee",
+                           "difference in value between transaction inputs and "
+                           "outputs (in satoshis); for coinbase transactions, "
+                           "this is a negative Number of the total collected "
+                           "block fees (ie, not including the block subsidy); "
+                           "if key is not present, fee is unknown and clients "
+                           "MUST NOT assume there isn't one"},
+                          {RPCResult::Type::NUM, "sigops",
+                           "total SigOps cost, as counted for purposes of "
+                           "block limits; if key is not present, sigop cost is "
+                           "unknown and clients MUST NOT assume it is zero"},
+                      }},
+                 }},
+                {RPCResult::Type::OBJ,
+                 "coinbaseaux",
+                 "data that should be included in the coinbase's scriptSig "
+                 "content",
+                 {
+                     {RPCResult::Type::ELISION, "", ""},
+                 }},
+                {RPCResult::Type::NUM, "coinbasevalue",
+                 "maximum allowable input to coinbase transaction, including "
+                 "the generation award and transaction fees (in satoshis)"},
+                {RPCResult::Type::OBJ,
+                 "coinbasetxn",
+                 "information for coinbase transaction",
+                 {
+                     {RPCResult::Type::OBJ,
+                      "minerfund",
+                      "information related to the coinbase miner fund",
+                      {
+
+                          {RPCResult::Type::ARR,
+                           "addresses",
+                           "List of valid addresses for the miner fund output",
+                           {
+                               {RPCResult::Type::ELISION, "", ""},
+                           }},
+
+                          {RPCResult::Type::STR_AMOUNT, "minimumvalue",
+                           "The minimum value the miner fund output must pay"},
+
+                      }},
+                     {RPCResult::Type::ELISION, "", ""},
+                 }},
+                {RPCResult::Type::STR, "target", "The hash target"},
+                {RPCResult::Type::NUM_TIME, "mintime",
+                 "The minimum timestamp appropriate for the next block time, "
+                 "expressed in " +
+                     UNIX_EPOCH_TIME},
+                {RPCResult::Type::ARR,
+                 "mutable",
+                 "list of ways the block template may be changed",
+                 {
+                     {RPCResult::Type::STR, "value",
+                      "A way the block template may be changed, e.g. 'time', "
+                      "'transactions', 'prevblock'"},
+                 }},
+                {RPCResult::Type::STR_HEX, "noncerange",
+                 "A range of valid nonces"},
+                {RPCResult::Type::NUM, "sigoplimit",
+                 "limit of sigops in blocks"},
+                {RPCResult::Type::NUM, "sizelimit", "limit of block size"},
+                {RPCResult::Type::NUM_TIME, "curtime",
+                 "current timestamp in " + UNIX_EPOCH_TIME},
+                {RPCResult::Type::STR, "bits",
+                 "compressed target of next block"},
+                {RPCResult::Type::NUM, "height",
+                 "The height of the next block"},
+            }},
         RPCExamples{HelpExampleCli("getblocktemplate", "") +
                     HelpExampleRpc("getblocktemplate", "")},
     }
@@ -887,7 +924,7 @@ static UniValue submitheader(const Config &config,
             {"hexdata", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hex-encoded block header data"},
         },
-        RPCResult{"None"},
+        RPCResult{RPCResult::Type::NONE, "", "None"},
         RPCExamples{HelpExampleCli("submitheader", "\"aabbcc\"") +
                     HelpExampleRpc("submitheader", "\"aabbcc\"")},
     }
@@ -925,7 +962,7 @@ static UniValue estimatefee(const Config &config,
         "Estimates the approximate fee per kilobyte needed for a "
         "transaction\n",
         {},
-        RPCResult{"n              (numeric) estimated fee-per-kilobyte\n"},
+        RPCResult{RPCResult::Type::NUM, "", "estimated fee-per-kilobyte"},
         RPCExamples{HelpExampleCli("estimatefee", "")},
     }
         .Check(request);

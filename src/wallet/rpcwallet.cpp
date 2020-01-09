@@ -26,6 +26,7 @@
 #include <util/system.h>
 #include <util/translation.h>
 #include <util/url.h>
+#include <util/vector.h>
 #include <wallet/coincontrol.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
@@ -226,7 +227,7 @@ static UniValue getnewaddress(const Config &config,
              /* default */ "set by -addresstype",
              "The address type to use. Options are \"legacy\"."},
         },
-        RPCResult{"\"address\"    (string) The new bitcoin address\n"},
+        RPCResult{RPCResult::Type::STR, "address", "The new bitcoin address"},
         RPCExamples{HelpExampleCli("getnewaddress", "") +
                     HelpExampleRpc("getnewaddress", "")},
     }
@@ -277,7 +278,7 @@ static UniValue getrawchangeaddress(const Config &config,
         "Returns a new Bitcoin address, for receiving change.\n"
         "This is for use with raw transactions, NOT normal use.\n",
         {},
-        RPCResult{"\"address\"    (string) The address\n"},
+        RPCResult{RPCResult::Type::STR, "address", "The address"},
         RPCExamples{HelpExampleCli("getrawchangeaddress", "") +
                     HelpExampleRpc("getrawchangeaddress", "")},
     }
@@ -441,7 +442,7 @@ static UniValue sendtoaddress(const Config &config,
              "                             dirty if they have previously "
              "been used in a transaction."},
         },
-        RPCResult{"\"txid\"                  (string) The transaction id.\n"},
+        RPCResult{RPCResult::Type::STR_HEX, "txid", "The transaction id."},
         RPCExamples{
             HelpExampleCli("sendtoaddress",
                            "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1") +
@@ -517,19 +518,27 @@ static UniValue listaddressgroupings(const Config &config,
         "made public by common use as inputs or as the resulting change\n"
         "in past transactions\n",
         {},
-        RPCResult{"[\n"
-                  "  [\n"
-                  "    [\n"
-                  "      \"address\",            (string) The bitcoin address\n"
-                  "      amount,                 (numeric) The amount in " +
-                  CURRENCY_UNIT +
-                  "\n"
-                  "      \"label\"               (string, optional) The label\n"
-                  "    ]\n"
-                  "    ,...\n"
-                  "  ]\n"
-                  "  ,...\n"
-                  "]\n"},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::ARR,
+                       "",
+                       "",
+                       {
+                           {RPCResult::Type::ARR,
+                            "",
+                            "",
+                            {
+                                {RPCResult::Type::STR, "address",
+                                 "The bitcoin address"},
+                                {RPCResult::Type::STR_AMOUNT, "amount",
+                                 "The amount in " + CURRENCY_UNIT},
+                                {RPCResult::Type::STR, "label",
+                                 /* optional */ true, "The label"},
+                            }},
+                       }},
+                  }},
         RPCExamples{HelpExampleCli("listaddressgroupings", "") +
                     HelpExampleRpc("listaddressgroupings", "")},
     }
@@ -583,8 +592,8 @@ static UniValue signmessage(const Config &config,
             {"message", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The message to create a signature of."},
         },
-        RPCResult{"\"signature\"          (string) The signature of the "
-                  "message encoded in base 64\n"},
+        RPCResult{RPCResult::Type::STR, "signature",
+                  "The signature of the message encoded in base 64"},
         RPCExamples{
             "\nUnlock the wallet for 30 seconds\n" +
             HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
@@ -705,8 +714,9 @@ static UniValue getreceivedbyaddress(const Config &config,
             {"minconf", RPCArg::Type::NUM, /* default */ "1",
              "Only include transactions confirmed at least this many times."},
         },
-        RPCResult{"amount   (numeric) The total amount in " + CURRENCY_UNIT +
-                  " received at this address.\n"},
+        RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
+                  "The total amount in " + CURRENCY_UNIT +
+                      " received at this address."},
         RPCExamples{
             "\nThe amount from transactions with at least 1 confirmation\n" +
             HelpExampleCli("getreceivedbyaddress",
@@ -753,8 +763,9 @@ static UniValue getreceivedbylabel(const Config &config,
             {"minconf", RPCArg::Type::NUM, /* default */ "1",
              "Only include transactions confirmed at least this many times."},
         },
-        RPCResult{"amount              (numeric) The total amount in " +
-                  CURRENCY_UNIT + " received for this label.\n"},
+        RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
+                  "The total amount in " + CURRENCY_UNIT +
+                      " received for this label."},
         RPCExamples{"\nAmount received by the default label with at least 1 "
                     "confirmation\n" +
                     HelpExampleCli("getreceivedbylabel", "\"\"") +
@@ -810,8 +821,9 @@ static UniValue getbalance(const Config &config,
              "include balance in dirty outputs; addresses are considered dirty "
              "if they have previously been used in a transaction."},
         },
-        RPCResult{"amount              (numeric) The total amount in " +
-                  CURRENCY_UNIT + " received for this wallet.\n"},
+        RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
+                  "The total amount in " + CURRENCY_UNIT +
+                      " received for this wallet."},
         RPCExamples{
             "\nThe total amount in the wallet with 1 or more confirmations\n" +
             HelpExampleCli("getbalance", "") +
@@ -926,10 +938,9 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                 },
             },
         },
-        RPCResult{
-            "\"txid\"                   (string) The transaction id for the "
-            "send. Only 1 transaction is created regardless of \n"
-            "                                    the number of addresses.\n"},
+        RPCResult{RPCResult::Type::STR_HEX, "txid",
+                  "The transaction id for the send. Only 1 transaction is "
+                  "created regardless of the number of addresses."},
         RPCExamples{
             "\nSend two amounts to two different addresses:\n" +
             HelpExampleCli(
@@ -1073,14 +1084,17 @@ static UniValue addmultisigaddress(const Config &config,
             {"label", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
              "A label to assign the addresses to."},
         },
-        RPCResult{"{\n"
-                  "  \"address\":\"multisigaddress\",    (string) The value of "
-                  "the new multisig address.\n"
-                  "  \"redeemScript\":\"script\"         (string) The string "
-                  "value of the hex-encoded redemption script.\n"
-                  "  \"descriptor\":\"descriptor\"     (string) The descriptor "
-                  "for this multisig\n"
-                  "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "address",
+                       "The value of the new multisig address"},
+                      {RPCResult::Type::STR_HEX, "redeemScript",
+                       "The string value of the hex-encoded redemption script"},
+                      {RPCResult::Type::STR, "descriptor",
+                       "The descriptor for this multisig"},
+                  }},
         RPCExamples{
             "\nAdd a multisig address from 2 addresses\n" +
             HelpExampleCli("addmultisigaddress",
@@ -1331,28 +1345,36 @@ static UniValue listreceivedbyaddress(const Config &config,
              "If present, only return information on this address."},
         },
         RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"involvesWatchonly\" : true,        (bool) Only returns true "
-            "if imported addresses were involved in transaction\n"
-            "    \"address\" : \"receivingaddress\",  (string) The receiving "
-            "address\n"
-            "    \"amount\" : x.xxx,                  (numeric) The total "
-            "amount in " +
-            CURRENCY_UNIT +
-            " received by the address\n"
-            "    \"confirmations\" : n,               (numeric) The number of "
-            "confirmations of the most recent transaction included\n"
-            "    \"label\" : \"label\",               (string) The label of "
-            "the receiving address. The default label is \"\".\n"
-            "    \"txids\": [\n"
-            "       \"txid\",                         (string) The ids of "
-            "transactions received with the address \n"
-            "       ...\n"
-            "    ]\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"},
+            RPCResult::Type::ARR,
+            "",
+            "",
+            {
+                {RPCResult::Type::OBJ,
+                 "",
+                 "",
+                 {
+                     {RPCResult::Type::BOOL, "involvesWatchonly",
+                      "Only returns true if imported addresses were involved "
+                      "in transaction"},
+                     {RPCResult::Type::STR, "address", "The receiving address"},
+                     {RPCResult::Type::STR_AMOUNT, "amount",
+                      "The total amount in " + CURRENCY_UNIT +
+                          " received by the address"},
+                     {RPCResult::Type::NUM, "confirmations",
+                      "The number of confirmations of the most recent "
+                      "transaction included"},
+                     {RPCResult::Type::STR, "label",
+                      "The label of the receiving address. The default label "
+                      "is \"\""},
+                     {RPCResult::Type::ARR,
+                      "txids",
+                      "",
+                      {
+                          {RPCResult::Type::STR_HEX, "txid",
+                           "The ids of transactions received with the address"},
+                      }},
+                 }},
+            }},
         RPCExamples{
             HelpExampleCli("listreceivedbyaddress", "") +
             HelpExampleCli("listreceivedbyaddress", "6 true") +
@@ -1394,19 +1416,28 @@ static UniValue listreceivedbylabel(const Config &config,
              /* default */ "true for watch-only wallets, otherwise false",
              "Whether to include watch-only addresses (see 'importaddress')."},
         },
-        RPCResult{"[\n"
-                  "  {\n"
-                  "    \"involvesWatchonly\" : true,   (bool) Only returns "
-                  "true if imported addresses were involved in transaction\n"
-                  "    \"amount\" : x.xxx,             (numeric) The total "
-                  "amount received by addresses with this label\n"
-                  "    \"confirmations\" : n,          (numeric) The number of "
-                  "confirmations of the most recent transaction included\n"
-                  "    \"label\" : \"label\"           (string) The label of "
-                  "the receiving address. The default label is \"\".\n"
-                  "  }\n"
-                  "  ,...\n"
-                  "]\n"},
+        RPCResult{
+            RPCResult::Type::ARR,
+            "",
+            "",
+            {
+                {RPCResult::Type::OBJ,
+                 "",
+                 "",
+                 {
+                     {RPCResult::Type::BOOL, "involvesWatchonly",
+                      "Only returns true if imported addresses were involved "
+                      "in transaction"},
+                     {RPCResult::Type::STR_AMOUNT, "amount",
+                      "The total amount received by addresses with this label"},
+                     {RPCResult::Type::NUM, "confirmations",
+                      "The number of confirmations of the most recent "
+                      "transaction included"},
+                     {RPCResult::Type::STR, "label",
+                      "The label of the receiving address. The default label "
+                      "is \"\""},
+                 }},
+            }},
         RPCExamples{HelpExampleCli("listreceivedbylabel", "") +
                     HelpExampleCli("listreceivedbylabel", "6 true") +
                     HelpExampleRpc("listreceivedbylabel", "6, true, true")},
@@ -1521,46 +1552,40 @@ static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
     }
 }
 
-static const std::string TransactionDescriptionString() {
-    return "    \"confirmations\": n,                        (numeric) The "
-           "number of confirmations for the transaction. Negative "
-           "confirmations means the\n"
-           "                                                       transaction "
-           "conflicted that many blocks ago.\n"
-           "    \"generated\": xxx,                          (bool) Only "
-           "present if transaction only input is a coinbase one.\n"
-           "    \"trusted\": xxx,                            (bool) Only "
-           "present if we consider transaction to be trusted and so safe to "
-           "spend from.\n"
-           "    \"blockhash\": \"hashvalue\",                  (string) The "
-           "block hash containing the transaction.\n"
-           "    \"blockheight\": n,                          (numeric) The "
-           "block height containing the transaction.\n"
-           "    \"blockindex\": n,                           (numeric) The "
-           "index of the transaction in the block that includes it.\n"
-           "    \"blocktime\": xxx,                          (numeric) The "
-           "block time expressed in " +
-           UNIX_EPOCH_TIME +
-           ".\n"
-           "    \"txid\": \"transactionid\",                   (string) The "
-           "transaction id.\n"
-           "    \"walletconflicts\": [                       (array) "
-           "Conflicting transaction ids.\n"
-           "      \"txid\",                                  (string) The "
-           "transaction id.\n"
-           "      ...\n"
-           "    ],\n"
-           "    \"time\": xxx,                               (numeric) The "
-           "transaction time expressed in " +
-           UNIX_EPOCH_TIME +
-           ".\n"
-           "    \"timereceived\": xxx,                       (numeric) The "
-           "time received expressed in " +
-           UNIX_EPOCH_TIME +
-           ".\n"
-           "    \"comment\": \"...\",                          (string) If a "
-           "comment is associated with the transaction, only present if not "
-           "empty.\n";
+static const std::vector<RPCResult> TransactionDescriptionString() {
+    return {
+        {RPCResult::Type::NUM, "confirmations",
+         "The number of confirmations for the transaction. Negative "
+         "confirmations means the\n"
+         "transaction conflicted that many blocks ago."},
+        {RPCResult::Type::BOOL, "generated",
+         "Only present if transaction only input is a coinbase one."},
+        {RPCResult::Type::BOOL, "trusted",
+         "Only present if we consider transaction to be trusted and so safe to "
+         "spend from."},
+        {RPCResult::Type::STR_HEX, "blockhash",
+         "The block hash containing the transaction."},
+        {RPCResult::Type::NUM, "blockheight",
+         "The block height containing the transaction."},
+        {RPCResult::Type::NUM, "blockindex",
+         "The index of the transaction in the block that includes it."},
+        {RPCResult::Type::NUM_TIME, "blocktime",
+         "The block time expressed in " + UNIX_EPOCH_TIME + "."},
+        {RPCResult::Type::STR_HEX, "txid", "The transaction id."},
+        {RPCResult::Type::ARR,
+         "walletconflicts",
+         "Conflicting transaction ids.",
+         {
+             {RPCResult::Type::STR_HEX, "txid", "The transaction id."},
+         }},
+        {RPCResult::Type::NUM_TIME, "time",
+         "The transaction time expressed in " + UNIX_EPOCH_TIME + "."},
+        {RPCResult::Type::NUM_TIME, "timereceived",
+         "The time received expressed in " + UNIX_EPOCH_TIME + "."},
+        {RPCResult::Type::STR, "comment",
+         "If a comment is associated with the transaction, only present if not "
+         "empty."},
+    };
 }
 
 UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
@@ -1592,44 +1617,51 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
              "'importaddress')"},
         },
         RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"involvesWatchonly\": xxx, (bool) Only returns true if "
-            "imported addresses were involved in transaction.\n"
-            "    \"address\":\"address\",      (string) The bitcoin address of "
-            "the transaction.\n"
-            "    \"category\":               (string) The transaction "
-            "category.\n"
-            "                \"send\"                  Transactions sent.\n"
-            "                \"receive\"               Non-coinbase "
-            "transactions received.\n"
-            "                \"generate\"              Coinbase transactions "
-            "received with more than 100 confirmations.\n"
-            "                \"immature\"              Coinbase transactions "
-            "received with 100 or fewer confirmations.\n"
-            "                \"orphan\"                Orphaned coinbase "
-            "transactions received.\n"
-            "    \"amount\": x.xxx,          (numeric) The amount in " +
-            CURRENCY_UNIT +
-            ". This is negative for the 'send' category, and is positive\n"
-            "                                        for all other categories\n"
-            "    \"label\": \"label\",         (string) A comment for the "
-            "address/transaction, if any\n"
-            "    \"vout\": n,                (numeric) the vout value\n"
-            "    \"fee\": x.xxx,             (numeric) The amount of the fee "
-            "in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the \n"
-            "                                         'send' category of "
-            "transactions.\n" +
-            TransactionDescriptionString() +
-            "    \"abandoned\": xxx          (bool) 'true' if the transaction "
-            "has been abandoned (inputs are respendable). Only available for "
-            "the \n"
-            "                                         'send' category of "
-            "transactions.\n"
-            "  }\n"
-            "]\n"},
+            RPCResult::Type::ARR,
+            "",
+            "",
+            {
+                {RPCResult::Type::OBJ, "", "",
+                 Cat(Cat<std::vector<RPCResult>>(
+                         {
+                             {RPCResult::Type::BOOL, "involvesWatchonly",
+                              "Only returns true if imported addresses were "
+                              "involved in transaction."},
+                             {RPCResult::Type::STR, "address",
+                              "The bitcoin address of the transaction."},
+                             {RPCResult::Type::STR, "category",
+                              "The transaction category.\n"
+                              "\"send\"                  Transactions sent.\n"
+                              "\"receive\"               Non-coinbase "
+                              "transactions received.\n"
+                              "\"generate\"              Coinbase transactions "
+                              "received with more than 100 confirmations.\n"
+                              "\"immature\"              Coinbase transactions "
+                              "received with 100 or fewer confirmations.\n"
+                              "\"orphan\"                Orphaned coinbase "
+                              "transactions received."},
+                             {RPCResult::Type::STR_AMOUNT, "amount",
+                              "The amount in " + CURRENCY_UNIT +
+                                  ". This is negative for the 'send' category, "
+                                  "and is positive\n"
+                                  "for all other categories"},
+                             {RPCResult::Type::STR, "label",
+                              "A comment for the address/transaction, if any"},
+                             {RPCResult::Type::NUM, "vout", "the vout value"},
+                             {RPCResult::Type::STR_AMOUNT, "fee",
+                              "The amount of the fee in " + CURRENCY_UNIT +
+                                  ". This is negative and only available for "
+                                  "the\n"
+                                  "'send' category of transactions."},
+                         },
+                         TransactionDescriptionString()),
+                     {
+                         {RPCResult::Type::BOOL, "abandoned",
+                          "'true' if the transaction has been abandoned "
+                          "(inputs are respendable). Only available for the \n"
+                          "'send' category of transactions."},
+                     })},
+            }},
         RPCExamples{"\nList the most recent 10 transactions in the systems\n" +
                     HelpExampleCli("listtransactions", "") +
                     "\nList transactions 100 to 120\n" +
@@ -1745,60 +1777,84 @@ static UniValue listsinceblock(const Config &config,
              "guaranteed to work on pruned nodes)"},
         },
         RPCResult{
-            "{\n"
-            "  \"transactions\": [\n"
-            "    \"involvesWatchonly\": xxx, (bool) Only returns true if "
-            "imported addresses were involved in transaction.\n"
-            "    \"address\":\"address\",    (string) The bitcoin address of "
-            "the transaction.\n"
-            "    \"category\":               (string) The transaction "
-            "category.\n"
-            "                \"send\"                  Transactions sent.\n"
-            "                \"receive\"               Non-coinbase "
-            "transactions received.\n"
-            "                \"generate\"              Coinbase transactions "
-            "received with more than 100 confirmations.\n"
-            "                \"immature\"              Coinbase transactions "
-            "received with 100 or fewer confirmations.\n"
-            "                \"orphan\"                Orphaned coinbase "
-            "transactions received.\n"
-            "    \"amount\": x.xxx,          (numeric) The amount in " +
-            CURRENCY_UNIT +
-            ". This is negative for the 'send' category, and is positive\n"
-            "                                         for all other "
-            "categories\n"
-            "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"fee\": x.xxx,             (numeric) The amount of the fee "
-            "in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the 'send' category of "
-            "transactions.\n" +
-            TransactionDescriptionString() +
-            "    \"abandoned\": xxx,         (bool) 'true' if the transaction "
-            "has been abandoned (inputs are respendable). Only available for "
-            "the 'send' category of transactions.\n"
-            "    \"comment\": \"...\",       (string) If a comment is "
-            "associated with the transaction.\n"
-            "    \"label\" : \"label\"       (string) A comment for the "
-            "address/transaction, if any\n"
-            "    \"to\": \"...\",            (string) If a comment to is "
-            "associated with the transaction.\n"
-            "  ],\n"
-            "  \"removed\": [\n"
-            "    <structure is the same as \"transactions\" above, only "
-            "present if include_removed=true>\n"
-            "    Note: transactions that were re-added in the active chain "
-            "will appear as-is in this array, and may thus have a positive "
-            "confirmation count.\n"
-            "  ],\n"
-            "  \"lastblock\": \"lastblockhash\"     (string) The hash of the "
-            "block (target_confirmations-1) from the best block on the main "
-            "chain. This is typically used to feed back into listsinceblock "
-            "the next time you call it. So you would generally use a "
-            "target_confirmations of say 6, so you will be continually "
-            "re-notified of transactions until they've reached 6 confirmations "
-            "plus any new ones\n"
-            "}\n"},
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::ARR,
+                 "transactions",
+                 "",
+                 {
+                     {RPCResult::Type::OBJ, "", "",
+                      Cat(Cat<std::vector<RPCResult>>(
+                              {
+                                  {RPCResult::Type::BOOL, "involvesWatchonly",
+                                   "Only returns true if imported addresses "
+                                   "were involved in transaction."},
+                                  {RPCResult::Type::STR, "address",
+                                   "The bitcoin address of the transaction."},
+                                  {RPCResult::Type::STR, "category",
+                                   "The transaction category.\n"
+                                   "\"send\"                  Transactions "
+                                   "sent.\n"
+                                   "\"receive\"               Non-coinbase "
+                                   "transactions received.\n"
+                                   "\"generate\"              Coinbase "
+                                   "transactions received with more than 100 "
+                                   "confirmations.\n"
+                                   "\"immature\"              Coinbase "
+                                   "transactions received with 100 or fewer "
+                                   "confirmations.\n"
+                                   "\"orphan\"                Orphaned "
+                                   "coinbase transactions received."},
+                                  {RPCResult::Type::STR_AMOUNT, "amount",
+                                   "The amount in " + CURRENCY_UNIT +
+                                       ". This is negative for the 'send' "
+                                       "category, and is positive\n"
+                                       "for all other categories"},
+                                  {RPCResult::Type::NUM, "vout",
+                                   "the vout value"},
+                                  {RPCResult::Type::STR_AMOUNT, "fee",
+                                   "The amount of the fee in " + CURRENCY_UNIT +
+                                       ". This is negative and only available "
+                                       "for the\n"
+                                       "'send' category of transactions."},
+                              },
+                              TransactionDescriptionString()),
+                          {
+                              {RPCResult::Type::BOOL, "abandoned",
+                               "'true' if the transaction has been abandoned "
+                               "(inputs are respendable). Only available for "
+                               "the \n"
+                               "'send' category of transactions."},
+                              {RPCResult::Type::STR, "comment",
+                               "If a comment is associated with the "
+                               "transaction."},
+                              {RPCResult::Type::STR, "label",
+                               "A comment for the address/transaction, if any"},
+                              {RPCResult::Type::STR, "to",
+                               "If a comment to is associated with the "
+                               "transaction."},
+                          })},
+                 }},
+                {RPCResult::Type::ARR,
+                 "removed",
+                 "<structure is the same as \"transactions\" above, only "
+                 "present if include_removed=true>\n"
+                 "Note: transactions that were re-added in the active chain "
+                 "will appear as-is in this array, and may thus have a "
+                 "positive confirmation count.",
+                 {
+                     {RPCResult::Type::ELISION, "", ""},
+                 }},
+                {RPCResult::Type::STR_HEX, "lastblock",
+                 "The hash of the block (target_confirmations-1) from the best "
+                 "block on the main chain. This is typically used to feed back "
+                 "into listsinceblock the next time you call it. So you would "
+                 "generally use a target_confirmations of say 6, so you will "
+                 "be continually re-notified of transactions until they've "
+                 "reached 6 confirmations plus any new ones"},
+            }},
         RPCExamples{HelpExampleCli("listsinceblock", "") +
                     HelpExampleCli("listsinceblock",
                                    "\"000000000000000bacf66f7497b7dc45ef753ee9a"
@@ -1930,65 +1986,75 @@ static UniValue gettransaction(const Config &config,
              "transaction (equivalent to RPC decoderawtransaction)"},
         },
         RPCResult{
-            "{\n"
-            "    \"amount\" : x.xxx,        (numeric) The transaction amount "
-            "in " +
-            CURRENCY_UNIT +
-            "\n"
-            "    \"fee\": x.xxx,            (numeric) The amount of the fee "
-            "in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the \n"
-            "                              'send' category of transactions.\n" +
-            TransactionDescriptionString() +
-            +"    \"details\" : [\n"
-             "      {\n"
-             "        \"involvesWatchonly\": xxx,         (bool) Only returns "
-             "true if imported addresses were involved in transaction.\n"
-             "        \"address\" : \"address\",          (string) The bitcoin "
-             "address involved in the transaction\n"
-             "        \"category\" :                      (string) The "
-             "transaction category.\n"
-             "                     \"send\"                  Transactions "
-             "sent.\n"
-             "                     \"receive\"               Non-coinbase "
-             "transactions received.\n"
-             "                     \"generate\"              Coinbase "
-             "transactions received with more than 100 confirmations.\n"
-             "                     \"immature\"              Coinbase "
-             "transactions received with 100 or fewer confirmations.\n"
-             "                     \"orphan\"                Orphaned coinbase "
-             "transactions received.\n"
-             "        \"amount\" : x.xxx,                 (numeric) The amount "
-             "in " +
-            CURRENCY_UNIT +
-            "\n"
-            "        \"label\" : \"label\",              (string) A comment "
-            "for the address/transaction, if any\n"
-            "        \"vout\" : n,                       (numeric) the vout "
-            "value\n"
-            "        \"fee\": x.xxx,                     (numeric) The amount "
-            "of the fee in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the \n"
-            "                                           'send' category of "
-            "transactions.\n"
-            "        \"abandoned\": xxx                  (bool) 'true' if the "
-            "transaction has been abandoned (inputs are respendable). Only "
-            "available for the \n"
-            "                                           'send' category of "
-            "transactions.\n"
-            "      }\n"
-            "      ,...\n"
-            "    ],\n"
-            "    \"hex\" : \"data\"         (string) Raw data for transaction\n"
-            "    \"decoded\" : transaction         (json object) Optional, the "
-            "decoded transaction (only present when `verbose` is passed), "
-            "equivalent to the\n"
-            "                                                  RPC "
-            "decoderawtransaction method, or the RPC getrawtransaction method "
-            "when `verbose` is passed.\n"
-            "}\n"},
+            RPCResult::Type::OBJ, "", "",
+            Cat(Cat<std::vector<RPCResult>>(
+                    {
+                        {RPCResult::Type::STR_AMOUNT, "amount",
+                         "The amount in " + CURRENCY_UNIT},
+                        {RPCResult::Type::STR_AMOUNT, "fee",
+                         "The amount of the fee in " + CURRENCY_UNIT +
+                             ". This is negative and only available for the\n"
+                             "'send' category of transactions."},
+                    },
+                    TransactionDescriptionString()),
+                {
+                    {RPCResult::Type::ARR,
+                     "details",
+                     "",
+                     {
+                         {RPCResult::Type::OBJ,
+                          "",
+                          "",
+                          {
+                              {RPCResult::Type::BOOL, "involvesWatchonly",
+                               "Only returns true if imported addresses were "
+                               "involved in transaction."},
+                              {RPCResult::Type::STR, "address",
+                               "The bitcoin address involved in the "
+                               "transaction."},
+                              {RPCResult::Type::STR, "category",
+                               "The transaction category.\n"
+                               "\"send\"                  Transactions sent.\n"
+                               "\"receive\"               Non-coinbase "
+                               "transactions received.\n"
+                               "\"generate\"              Coinbase "
+                               "transactions received with more than 100 "
+                               "confirmations.\n"
+                               "\"immature\"              Coinbase "
+                               "transactions received with 100 or fewer "
+                               "confirmations.\n"
+                               "\"orphan\"                Orphaned coinbase "
+                               "transactions received."},
+                              {RPCResult::Type::STR_AMOUNT, "amount",
+                               "The amount in " + CURRENCY_UNIT},
+                              {RPCResult::Type::STR, "label",
+                               "A comment for the address/transaction, if any"},
+                              {RPCResult::Type::NUM, "vout", "the vout value"},
+                              {RPCResult::Type::STR_AMOUNT, "fee",
+                               "The amount of the fee in " + CURRENCY_UNIT +
+                                   ". This is negative and only available for "
+                                   "the \n"
+                                   "'send' category of transactions."},
+                              {RPCResult::Type::BOOL, "abandoned",
+                               "'true' if the transaction has been abandoned "
+                               "(inputs are respendable). Only available for "
+                               "the \n"
+                               "'send' category of transactions."},
+                          }},
+                     }},
+                    {RPCResult::Type::STR_HEX, "hex",
+                     "Raw data for transaction"},
+                    {RPCResult::Type::OBJ,
+                     "decoded",
+                     "Optional, the decoded transaction (only present when "
+                     "`verbose` is passed)",
+                     {
+                         {RPCResult::Type::ELISION, "",
+                          "Equivalent to the RPC decoderawtransaction method, "
+                          "or the RPC getrawtransaction method when `verbose` "
+                          "is passed."},
+                     }},
+                })},
         RPCExamples{HelpExampleCli("gettransaction",
                                    "\"1075db55d416d3ca199f55b6084e2115b9345e16c"
                                    "5cf302fc80e9d5fbf5d48d\"") +
@@ -2539,8 +2605,8 @@ static UniValue lockunspent(const Config &config,
                 },
             },
         },
-        RPCResult{"true|false    (boolean) Whether the command was successful "
-                  "or not\n"},
+        RPCResult{RPCResult::Type::BOOL, "",
+                  "Whether the command was successful or not"},
         RPCExamples{
             "\nList the unspent transactions\n" +
             HelpExampleCli("listunspent", "") +
@@ -2667,15 +2733,19 @@ static UniValue listlockunspent(const Config &config,
         "See the lockunspent call to lock and unlock transactions for "
         "spending.\n",
         {},
-        RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"txid\" : \"transactionid\",     (string) The transaction id "
-            "locked\n"
-            "    \"vout\" : n                      (numeric) The vout value\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::OBJ,
+                       "",
+                       "",
+                       {
+                           {RPCResult::Type::STR_HEX, "txid",
+                            "The transaction id locked"},
+                           {RPCResult::Type::NUM, "vout", "The vout value"},
+                       }},
+                  }},
         RPCExamples{
             "\nList the unspent transactions\n" +
             HelpExampleCli("listunspent", "") +
@@ -2731,7 +2801,7 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
              "The transaction fee in " + CURRENCY_UNIT + "/kB"},
         },
-        RPCResult{"true|false        (boolean) Returns true if successful\n"},
+        RPCResult{RPCResult::Type::BOOL, "", "Returns true if successful"},
         RPCExamples{HelpExampleCli("settxfee", "0.00001") +
                     HelpExampleRpc("settxfee", "0.00001")},
     }
@@ -2772,32 +2842,42 @@ static UniValue getbalances(const Config &config,
         "getbalances",
         "Returns an object with all balances in " + CURRENCY_UNIT + ".\n",
         {},
-        RPCResult{
-            "{\n"
-            "    \"mine\": {                        (object) balances from "
-            "outputs that the wallet can sign\n"
-            "      \"trusted\": xxx                 (numeric) trusted balance "
-            "(outputs created by the wallet or confirmed outputs)\n"
-            "      \"untrusted_pending\": xxx       (numeric) untrusted "
-            "pending balance (outputs created by others that are in the "
-            "mempool)\n"
-            "      \"immature\": xxx                (numeric) balance from "
-            "immature coinbase outputs\n"
-            "      \"used\": xxx                    (numeric) (only present if "
-            "avoid_reuse is set) balance from coins sent to addresses that "
-            "were previously spent from (potentially privacy violating)\n"
-            "    },\n"
-            "    \"watchonly\": {                   (object) watchonly "
-            "balances (not present if wallet does not watch anything)\n"
-            "      \"trusted\": xxx                 (numeric) trusted balance "
-            "(outputs created by the wallet or confirmed outputs)\n"
-            "      \"untrusted_pending\": xxx       (numeric) untrusted "
-            "pending balance (outputs created by others that are in the "
-            "mempool)\n"
-            "      \"immature\": xxx                (numeric) balance from "
-            "immature coinbase outputs\n"
-            "    },\n"
-            "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::OBJ,
+                       "mine",
+                       "balances from outputs that the wallet can sign",
+                       {
+                           {RPCResult::Type::STR_AMOUNT, "trusted",
+                            "trusted balance (outputs created by the wallet or "
+                            "confirmed outputs)"},
+                           {RPCResult::Type::STR_AMOUNT, "untrusted_pending",
+                            "untrusted pending balance (outputs created by "
+                            "others that are in the mempool)"},
+                           {RPCResult::Type::STR_AMOUNT, "immature",
+                            "balance from immature coinbase outputs"},
+                           {RPCResult::Type::STR_AMOUNT, "used",
+                            "(only present if avoid_reuse is set) balance from "
+                            "coins sent to addresses that were previously "
+                            "spent from (potentially privacy violating)"},
+                       }},
+                      {RPCResult::Type::OBJ,
+                       "watchonly",
+                       "watchonly balances (not present if wallet does not "
+                       "watch anything)",
+                       {
+                           {RPCResult::Type::STR_AMOUNT, "trusted",
+                            "trusted balance (outputs created by the wallet or "
+                            "confirmed outputs)"},
+                           {RPCResult::Type::STR_AMOUNT, "untrusted_pending",
+                            "untrusted pending balance (outputs created by "
+                            "others that are in the mempool)"},
+                           {RPCResult::Type::STR_AMOUNT, "immature",
+                            "balance from immature coinbase outputs"},
+                       }},
+                  }},
         RPCExamples{HelpExampleCli("getbalances", "") +
                     HelpExampleRpc("getbalances", "")},
     }
@@ -2861,51 +2941,58 @@ static UniValue getwalletinfo(const Config &config,
         "Returns an object containing various wallet state info.\n",
         {},
         RPCResult{
-            "{\n"
-            "  \"walletname\": xxxxx,             (string) the wallet name\n"
-            "  \"walletversion\": xxxxx,          (numeric) the wallet "
-            "version\n"
-            "  \"balance\": xxxxxxx,              (numeric) DEPRECATED. "
-            "Identical to getbalances().mine.trusted\n"
-            "  \"unconfirmed_balance\": xxx,      (numeric) DEPRECATED. "
-            "Identical to getbalances().mine.untrusted_pending\n"
-            "  \"immature_balance\": xxxxxx,      (numeric) DEPRECATED. "
-            "Identical to getbalances().mine.immature\n"
-            "  \"txcount\": xxxxxxx,              (numeric) the total number "
-            "of transactions in the wallet\n"
-            "  \"keypoololdest\": xxxxxx,           (numeric) the " +
-            UNIX_EPOCH_TIME +
-            " of the oldest pre-generated key in the key pool\n"
-            "  \"keypoolsize\": xxxx,             (numeric) how many new keys "
-            "are pre-generated (only counts external keys)\n"
-            "  \"keypoolsize_hd_internal\": xxxx, (numeric) how many new keys "
-            "are pre-generated for internal use (used for change outputs, only "
-            "appears if the wallet is using this feature, otherwise external "
-            "keys are used)\n"
-            "  \"unlocked_until\": ttt,             (numeric) the " +
-            UNIX_EPOCH_TIME +
-            " until which the wallet is unlocked for transfers, or 0 if the "
-            "wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,              (numeric) the transaction "
-            "fee configuration, set in " +
-            CURRENCY_UNIT +
-            "/kB\n"
-            "  \"hdseedid\": \"<hash160>\"          (string, optional) the "
-            "Hash160 of the HD seed (only present when HD is enabled)\n"
-            "  \"private_keys_enabled\": true|false (boolean) false if "
-            "privatekeys are disabled for this wallet (enforced watch-only "
-            "wallet)\n"
-            "  \"scanning\":                        (json object) current "
-            "scanning details, or false if no scan is in progress\n"
-            "    {\n"
-            "      \"duration\" : xxxx              (numeric) elapsed seconds "
-            "since scan start\n"
-            "      \"progress\" : x.xxxx,           (numeric) scanning "
-            "progress percentage [0.0, 1.0]\n"
-            "    }\n"
-            "  \"avoid_reuse\": true|false          (boolean) whether this "
-            "wallet tracks clean/dirty coins in terms of reuse\n"
-            "}\n"},
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {{
+                {RPCResult::Type::STR, "walletname", "the wallet name"},
+                {RPCResult::Type::NUM, "walletversion", "the wallet version"},
+                {RPCResult::Type::STR_AMOUNT, "balance",
+                 "DEPRECATED. Identical to getbalances().mine.trusted"},
+                {RPCResult::Type::STR_AMOUNT, "unconfirmed_balance",
+                 "DEPRECATED. Identical to "
+                 "getbalances().mine.untrusted_pending"},
+                {RPCResult::Type::STR_AMOUNT, "immature_balance",
+                 "DEPRECATED. Identical to getbalances().mine.immature"},
+                {RPCResult::Type::NUM, "txcount",
+                 "the total number of transactions in the wallet"},
+                {RPCResult::Type::NUM_TIME, "keypoololdest",
+                 "the " + UNIX_EPOCH_TIME +
+                     " of the oldest pre-generated key in the key pool"},
+                {RPCResult::Type::NUM, "keypoolsize",
+                 "how many new keys are pre-generated (only counts external "
+                 "keys)"},
+                {RPCResult::Type::NUM, "keypoolsize_hd_internal",
+                 "how many new keys are pre-generated for internal use (used "
+                 "for change outputs, only appears if the wallet is using this "
+                 "feature, otherwise external keys are used)"},
+                {RPCResult::Type::NUM_TIME, "unlocked_until",
+                 "the " + UNIX_EPOCH_TIME +
+                     " until which the wallet is unlocked for transfers, or 0 "
+                     "if the wallet is locked"},
+                {RPCResult::Type::STR_AMOUNT, "paytxfee",
+                 "the transaction fee configuration, set in " + CURRENCY_UNIT +
+                     "/kB"},
+                {RPCResult::Type::STR_HEX, "hdseedid", /* optional */ true,
+                 "the Hash160 of the HD seed (only present when HD is "
+                 "enabled)"},
+                {RPCResult::Type::BOOL, "private_keys_enabled",
+                 "false if privatekeys are disabled for this wallet (enforced "
+                 "watch-only wallet)"},
+                {RPCResult::Type::OBJ,
+                 "scanning",
+                 "current scanning details, or false if no scan is in progress",
+                 {
+                     {RPCResult::Type::NUM, "duration",
+                      "elapsed seconds since scan start"},
+                     {RPCResult::Type::NUM, "progress",
+                      "scanning progress percentage [0.0, 1.0]"},
+                 }},
+                {RPCResult::Type::BOOL, "avoid_reuse",
+                 "whether this wallet tracks clean/dirty coins in terms of "
+                 "reuse"},
+            }},
+        },
         RPCExamples{HelpExampleCli("getwalletinfo", "") +
                     HelpExampleRpc("getwalletinfo", "")},
     }
@@ -2969,14 +3056,22 @@ static UniValue listwalletdir(const Config &config,
         "Returns a list of wallets in the wallet directory.\n",
         {},
         RPCResult{
-            "{\n"
-            "  \"wallets\" : [                (json array of objects)\n"
-            "    {\n"
-            "      \"name\" : \"name\"          (string) The wallet name\n"
-            "    }\n"
-            "    ,...\n"
-            "  ]\n"
-            "}\n"},
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::ARR,
+                 "wallets",
+                 "",
+                 {
+                     {RPCResult::Type::OBJ,
+                      "",
+                      "",
+                      {
+                          {RPCResult::Type::STR, "name", "The wallet name"},
+                      }},
+                 }},
+            }},
         RPCExamples{HelpExampleCli("listwalletdir", "") +
                     HelpExampleRpc("listwalletdir", "")},
     }
@@ -3001,10 +3096,12 @@ static UniValue listwallets(const Config &config,
         "Returns a list of currently loaded wallets.\n"
         "For full information on the wallet, use \"getwalletinfo\"\n",
         {},
-        RPCResult{"[                         (json array of strings)\n"
-                  "  \"walletname\"            (string) the wallet name\n"
-                  "   ...\n"
-                  "]\n"},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "walletname", "the wallet name"},
+                  }},
         RPCExamples{HelpExampleCli("listwallets", "") +
                     HelpExampleRpc("listwallets", "")},
     }
@@ -3037,12 +3134,15 @@ static UniValue loadwallet(const Config &config,
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The wallet directory or .dat file."},
         },
-        RPCResult{"{\n"
-                  "  \"name\" :    <wallet_name>,        (string) The wallet "
-                  "name if loaded successfully.\n"
-                  "  \"warning\" : <warning>,            (string) Warning "
-                  "message if wallet was not loaded cleanly.\n"
-                  "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "name",
+                       "The wallet name if loaded successfully."},
+                      {RPCResult::Type::STR, "warning",
+                       "Warning message if wallet was not loaded cleanly."},
+                  }},
         RPCExamples{HelpExampleCli("loadwallet", "\"test.dat\"") +
                     HelpExampleRpc("loadwallet", "\"test.dat\"")},
     }
@@ -3106,14 +3206,17 @@ static UniValue setwalletflag(const Config &config,
             {"value", RPCArg::Type::BOOL, /* default */ "true",
              "The new state."},
         },
-        RPCResult{
-            "{\n"
-            "    \"flag_name\": string   (string) The name of the flag that "
-            "was modified\n"
-            "    \"flag_state\": bool    (bool) The new state of the flag\n"
-            "    \"warnings\": string    (string) Any warnings associated with "
-            "the change\n"
-            "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "flag_name",
+                       "The name of the flag that was modified"},
+                      {RPCResult::Type::BOOL, "flag_state",
+                       "The new state of the flag"},
+                      {RPCResult::Type::STR, "warnings",
+                       "Any warnings associated with the change"},
+                  }},
         RPCExamples{HelpExampleCli("setwalletflag", "avoid_reuse") +
                     HelpExampleRpc("setwalletflag", "\"avoid_reuse\"")},
     }
@@ -3179,13 +3282,17 @@ static UniValue createwallet(const Config &config,
              "Keep track of coin reuse, and treat dirty and clean coins "
              "differently with privacy considerations in mind."},
         },
-        RPCResult{"{\n"
-                  "  \"name\" :    <wallet_name>,        (string) The wallet "
-                  "name if created successfully. If the wallet was created "
-                  "using a full path, the wallet_name will be the full path.\n"
-                  "  \"warning\" : <warning>,            (string) Warning "
-                  "message if wallet was not loaded cleanly.\n"
-                  "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "name",
+                       "The wallet name if created successfully. If the wallet "
+                       "was created using a full path, the wallet_name will be "
+                       "the full path."},
+                      {RPCResult::Type::STR, "warning",
+                       "Warning message if wallet was not loaded cleanly."},
+                  }},
         RPCExamples{HelpExampleCli("createwallet", "\"testwallet\"") +
                     HelpExampleRpc("createwallet", "\"testwallet\"")},
     }
@@ -3337,40 +3444,48 @@ static UniValue listunspent(const Config &config,
              "query_options"},
         },
         RPCResult{
-            "[                   (array of json object)\n"
-            "  {\n"
-            "    \"txid\" : \"txid\",        (string) the transaction id\n"
-            "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"address\" : \"address\",  (string) the bitcoin address\n"
-            "    \"label\" : \"label\",      (string) The associated label, or "
-            "\"\" for the default label\n"
-            "    \"scriptPubKey\" : \"key\", (string) the script key\n"
-            "    \"amount\" : x.xxx,         (numeric) the transaction output "
-            "amount in " +
-            CURRENCY_UNIT +
-            "\n"
-            "    \"confirmations\" : n,      (numeric) The number of "
-            "confirmations\n"
-            "    \"redeemScript\" : n        (string) The redeemScript if "
-            "scriptPubKey is P2SH\n"
-            "    \"spendable\" : xxx,        (bool) Whether we have the "
-            "private keys to spend this output\n"
-            "    \"solvable\" : xxx,         (bool) Whether we know how to "
-            "spend this output, ignoring the lack of keys\n"
-            "    \"reused\" : xxx,           (bool) (only present if "
-            "avoid_reuse is set) Whether this output is reused/dirty (sent to "
-            "an address that was previously spent from)\n"
-            "    \"desc\" : xxx,             (string, only when solvable) A "
-            "descriptor for spending this output\n"
-            "    \"safe\" : xxx              (bool) Whether this output is "
-            "considered safe to spend. Unconfirmed transactions\n"
-            "                              from outside keys are considered "
-            "unsafe and are not eligible for spending by\n"
-            "                              fundrawtransaction and "
-            "sendtoaddress.\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"},
+            RPCResult::Type::ARR,
+            "",
+            "",
+            {
+                {RPCResult::Type::OBJ,
+                 "",
+                 "",
+                 {
+                     {RPCResult::Type::STR_HEX, "txid", "the transaction id"},
+                     {RPCResult::Type::NUM, "vout", "the vout value"},
+                     {RPCResult::Type::STR, "address", "the bitcoin address"},
+                     {RPCResult::Type::STR, "label",
+                      "The associated label, or \"\" for the default label"},
+                     {RPCResult::Type::STR, "scriptPubKey", "the script key"},
+                     {RPCResult::Type::STR_AMOUNT, "amount",
+                      "the transaction output amount in " + CURRENCY_UNIT},
+                     {RPCResult::Type::NUM, "confirmations",
+                      "The number of confirmations"},
+                     {RPCResult::Type::STR_HEX, "redeemScript",
+                      "The redeemScript if scriptPubKey is P2SH"},
+                     {RPCResult::Type::BOOL, "spendable",
+                      "Whether we have the private keys to spend this output"},
+                     {RPCResult::Type::BOOL, "solvable",
+                      "Whether we know how to spend this output, ignoring the "
+                      "lack of keys"},
+                     {RPCResult::Type::BOOL, "reused",
+                      "(only present if avoid_reuse is set) Whether this "
+                      "output is reused/dirty (sent to an address that was "
+                      "previously spent from)"},
+                     {RPCResult::Type::STR, "desc",
+                      "(only when solvable) A descriptor for spending this "
+                      "output"},
+                     {RPCResult::Type::BOOL, "safe",
+                      "Whether this output is considered safe to spend. "
+                      "Unconfirmed transactions\n"
+                      "                              from outside keys and "
+                      "unconfirmed replacement transactions are considered "
+                      "unsafe\n"
+                      "and are not eligible for spending by fundrawtransaction "
+                      "and sendtoaddress."},
+                 }},
+            }},
         RPCExamples{
             HelpExampleCli("listunspent", "") +
             HelpExampleCli("listunspent",
@@ -3734,15 +3849,18 @@ static UniValue fundrawtransaction(const Config &config,
              },
              "options"},
         },
-        RPCResult{"{\n"
-                  "  \"hex\":       \"value\", (string)  The resulting raw "
-                  "transaction (hex-encoded string)\n"
-                  "  \"fee\":       n,         (numeric) Fee in " +
-                  CURRENCY_UNIT +
-                  " the resulting transaction pays\n"
-                  "  \"changepos\": n          (numeric) The position of the "
-                  "added change output, or -1\n"
-                  "}\n"},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::STR_HEX, "hex",
+                 "The resulting raw transaction (hex-encoded string)"},
+                {RPCResult::Type::STR_AMOUNT, "fee",
+                 "Fee in " + CURRENCY_UNIT + " the resulting transaction pays"},
+                {RPCResult::Type::NUM, "changepos",
+                 "The position of the added change output, or -1"},
+            }},
         RPCExamples{
             "\nCreate a transaction with no inputs\n" +
             HelpExampleCli("createrawtransaction",
@@ -3831,28 +3949,38 @@ UniValue signrawtransactionwithwallet(const Config &config,
              "       \"NONE|FORKID|ANYONECANPAY\"\n"
              "       \"SINGLE|FORKID|ANYONECANPAY\""},
         },
-        RPCResult{"{\n"
-                  "  \"hex\" : \"value\",          (string) The hex-encoded "
-                  "raw transaction with signature(s)\n"
-                  "  \"complete\" : true|false,    (boolean) If the "
-                  "transaction has a complete set of signatures\n"
-                  "  \"errors\" : [                (json array of objects) "
-                  "Script verification errors (if there are any)\n"
-                  "    {\n"
-                  "      \"txid\" : \"hash\",        (string) The hash of the "
-                  "referenced, previous transaction\n"
-                  "      \"vout\" : n,               (numeric) The index of "
-                  "the output to spent and used as input\n"
-                  "      \"scriptSig\" : \"hex\",    (string) The hex-encoded "
-                  "signature script\n"
-                  "      \"sequence\" : n,           (numeric) Script sequence "
-                  "number\n"
-                  "      \"error\" : \"text\"        (string) Verification or "
-                  "signing error related to the input\n"
-                  "    }\n"
-                  "    ,...\n"
-                  "  ]\n"
-                  "}\n"},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::STR_HEX, "hex",
+                 "The hex-encoded raw transaction with signature(s)"},
+                {RPCResult::Type::BOOL, "complete",
+                 "If the transaction has a complete set of signatures"},
+                {RPCResult::Type::ARR,
+                 "errors",
+                 "Script verification errors (if there are any)",
+                 {
+                     {RPCResult::Type::OBJ,
+                      "",
+                      "",
+                      {
+                          {RPCResult::Type::STR_HEX, "txid",
+                           "The hash of the referenced, previous transaction"},
+                          {RPCResult::Type::NUM, "vout",
+                           "The index of the output to spent and used as "
+                           "input"},
+                          {RPCResult::Type::STR_HEX, "scriptSig",
+                           "The hex-encoded signature script"},
+                          {RPCResult::Type::NUM, "sequence",
+                           "Script sequence number"},
+                          {RPCResult::Type::STR, "error",
+                           "Verification or signing error related to the "
+                           "input"},
+                      }},
+                 }},
+            }},
         RPCExamples{
             HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
             HelpExampleRpc("signrawtransactionwithwallet", "\"myhex\"")},
@@ -3917,14 +4045,19 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "the last block height that should be scanned"},
         },
-        RPCResult{"{\n"
-                  "  \"start_height\"     (numeric) The block height where the "
-                  "rescan started (the requested height or 0\n"
-                  "  \"stop_height\"      (numeric) The height of the last "
-                  "rescanned block. May be null in rare cases if there was a "
-                  "reorg and the call didn't scan any blocks because they were "
-                  "already scanned in the background.\n"
-                  "}\n"},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::NUM, "start_height",
+                 "The block height where the rescan started (the requested "
+                 "height or 0)"},
+                {RPCResult::Type::NUM, "stop_height",
+                 "The height of the last rescanned block. May be null in rare "
+                 "cases if there was a reorg and the call didn't scan any "
+                 "blocks because they were already scanned in the background."},
+            }},
         RPCExamples{HelpExampleCli("rescanblockchain", "100000 120000") +
                     HelpExampleRpc("rescanblockchain", "100000, 120000")},
     }
@@ -4115,87 +4248,99 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
              "The bitcoin address for which to get information."},
         },
         RPCResult{
-            "{\n"
-            "  \"address\" : \"address\",              (string) The bitcoin "
-            "address validated.\n"
-            "  \"scriptPubKey\" : \"hex\",             (string) The "
-            "hex-encoded scriptPubKey generated by the address.\n"
-            "  \"ismine\" : true|false,              (boolean) If the address "
-            "is yours.\n"
-            "  \"iswatchonly\" : true|false,         (boolean) If the address "
-            "is watchonly.\n"
-            "  \"solvable\" : true|false,            (boolean) If we know how "
-            "to spend coins sent to this address, ignoring the possible lack "
-            "of private keys.\n"
-            "  \"desc\" : \"desc\",                    (string, optional) A "
-            "descriptor for spending coins sent to this address (only when "
-            "solvable).\n"
-            "  \"isscript\" : true|false,            (boolean) If the key is a "
-            "script.\n"
-            "  \"ischange\" : true|false,            (boolean) If the address "
-            "was used for change output.\n"
-            "  \"script\" : \"type\"                   (string, optional) The "
-            "output script type. Only if isscript is true and the redeemscript "
-            "is known. Possible\n"
-            "                                                         types: "
-            "nonstandard, pubkey, pubkeyhash, scripthash, multisig, nulldata\n"
-            "  \"hex\" : \"hex\",                      (string, optional) The "
-            "redeemscript for the p2sh address.\n"
-            "  \"pubkeys\"                           (array, optional) Array "
-            "of pubkeys associated with the known redeemscript (only if script "
-            "is multisig).\n"
-            "    [\n"
-            "      \"pubkey\" (string)\n"
-            "      ,...\n"
-            "    ]\n"
-            "  \"sigsrequired\" : xxxxx              (numeric, optional) The "
-            "number of signatures required to spend multisig output (only if "
-            "script is multisig).\n"
-            "  \"pubkey\" : \"publickeyhex\",          (string, optional) The "
-            "hex value of the raw public key for single-key addresses "
-            "(possibly embedded in P2SH).\n"
-            "  \"embedded\" : {...},                 (object, optional) "
-            "Information about the address embedded in P2SH, if "
-            "relevant and known. Includes all\n"
-            "                                                         "
-            "getaddressinfo output fields for the embedded address, excluding "
-            "metadata (timestamp, hdkeypath,\n"
-            "                                                         "
-            "hdseedid) and relation to the wallet (ismine, iswatchonly).\n"
-            "  \"iscompressed\" : true|false,        (boolean, optional) If "
-            "the pubkey is compressed.\n"
-            "  \"label\" :  \"label\"                  (string) The label "
-            "associated with the address. Defaults to \"\". Equivalent to the "
-            "label name in the labels array below.\n"
-            "  \"timestamp\" : timestamp,            (number, optional) The "
-            "creation time of the key, if available, expressed in " +
-            UNIX_EPOCH_TIME +
-            ".\n"
-            "  \"hdkeypath\" : \"keypath\"             (string, optional) The "
-            "HD keypath, if the key is HD and available.\n"
-            "  \"hdseedid\" : \"<hash160>\"            (string, optional) The "
-            "Hash160 of the HD seed.\n"
-            "  \"hdmasterfingerprint\" : \"<hash160>\" (string, optional) The "
-            "fingerprint of the master key.\n"
-            "  \"labels\"                            (json object) An array of "
-            "labels associated with the address. Currently limited to one "
-            "label but returned\n"
-            "                                               as an array to "
-            "keep the API stable if multiple labels are enabled in the "
-            "future.\n"
-            "    [\n"
-            "      \"label name\" (string) The label name. Defaults to \"\". "
-            "Equivalent to the label field above.\n\n"
-            "      DEPRECATED, will be removed in a future version. To "
-            "re-enable, launch bitcoind with `-deprecatedrpc=labelspurpose`:\n"
-            "      { (json object of label data)\n"
-            "        \"name\" : \"label name\" (string) The label name. "
-            "Defaults to \"\". Equivalent to the label field above.\n"
-            "        \"purpose\" : \"purpose\" (string) The purpose of the "
-            "associated address (send or receive).\n"
-            "      },...\n"
-            "    ]\n"
-            "}\n"},
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::STR, "address",
+                 "The bitcoin address validated."},
+                {RPCResult::Type::STR_HEX, "scriptPubKey",
+                 "The hex-encoded scriptPubKey generated by the address."},
+                {RPCResult::Type::BOOL, "ismine", "If the address is yours."},
+                {RPCResult::Type::BOOL, "iswatchonly",
+                 "If the address is watchonly."},
+                {RPCResult::Type::BOOL, "solvable",
+                 "If we know how to spend coins sent to this address, ignoring "
+                 "the possible lack of private keys."},
+                {RPCResult::Type::STR, "desc", /* optional */ true,
+                 "A descriptor for spending coins sent to this address (only "
+                 "when solvable)."},
+                {RPCResult::Type::BOOL, "isscript", "If the key is a script."},
+                {RPCResult::Type::BOOL, "ischange",
+                 "If the address was used for change output."},
+                {RPCResult::Type::STR, "script", /* optional */ true,
+                 "The output script type. Only if isscript is true and the "
+                 "redeemscript is known. Possible\n"
+                 "                                                         "
+                 "types: nonstandard, pubkey, pubkeyhash, scripthash, "
+                 "multisig, nulldata."},
+                {RPCResult::Type::STR_HEX, "hex", /* optional */ true,
+                 "The redeemscript for the p2sh address."},
+                {RPCResult::Type::ARR,
+                 "pubkeys",
+                 /* optional */ true,
+                 "Array of pubkeys associated with the known redeemscript "
+                 "(only if script is multisig).",
+                 {
+                     {RPCResult::Type::STR, "pubkey", ""},
+                 }},
+                {RPCResult::Type::NUM, "sigsrequired", /* optional */ true,
+                 "The number of signatures required to spend multisig output "
+                 "(only if script is multisig)."},
+                {RPCResult::Type::STR_HEX, "pubkey", /* optional */ true,
+                 "The hex value of the raw public key for single-key addresses "
+                 "(possibly embedded in P2SH)."},
+                {RPCResult::Type::OBJ,
+                 "embedded",
+                 /* optional */ true,
+                 "Information about the address embedded in P2SH, if "
+                 "relevant and known.",
+                 {
+                     {RPCResult::Type::ELISION, "",
+                      "Includes all\n"
+                      "                                                        "
+                      " getaddressinfo output fields for the embedded address, "
+                      "excluding metadata (timestamp, hdkeypath,\n"
+                      "hdseedid) and relation to the wallet (ismine, "
+                      "iswatchonly)."},
+                 }},
+                {RPCResult::Type::BOOL, "iscompressed", /* optional */ true,
+                 "If the pubkey is compressed."},
+                {RPCResult::Type::STR, "label",
+                 "DEPRECATED. The label associated with the address. Defaults "
+                 "to \"\". Replaced by the labels array below."},
+                {RPCResult::Type::NUM_TIME, "timestamp", /* optional */ true,
+                 "The creation time of the key, if available, expressed in " +
+                     UNIX_EPOCH_TIME + "."},
+                {RPCResult::Type::STR, "hdkeypath", /* optional */ true,
+                 "The HD keypath, if the key is HD and available."},
+                {RPCResult::Type::STR_HEX, "hdseedid", /* optional */ true,
+                 "The Hash160 of the HD seed."},
+                {RPCResult::Type::STR_HEX, "hdmasterfingerprint",
+                 /* optional */ true, "The fingerprint of the master key."},
+                {RPCResult::Type::ARR,
+                 "labels",
+                 "Array of labels associated with the address. Currently "
+                 "limited to one label but returned\n"
+                 "as an array to keep the API stable if multiple labels are "
+                 "enabled in the future.",
+                 {
+                     {RPCResult::Type::STR, "label name",
+                      "The label name. Defaults to \"\"."},
+                     {RPCResult::Type::OBJ,
+                      "",
+                      "DEPRECATED, will be removed in a future version. To "
+                      "re-enable, launch bitcoind with "
+                      "`-deprecatedrpc=labelspurpose`",
+                      {
+                          {RPCResult::Type::STR, "name",
+                           "The label name. Defaults to \"\"."},
+                          {RPCResult::Type::STR, "purpose",
+                           "The purpose of the associated address (send or "
+                           "receive)."},
+                      }},
+                 }},
+            }},
         RPCExamples{HelpExampleCli("getaddressinfo", EXAMPLE_ADDRESS) +
                     HelpExampleRpc("getaddressinfo", EXAMPLE_ADDRESS)},
     }
@@ -4297,14 +4442,19 @@ UniValue getaddressesbylabel(const Config &config,
         {
             {"label", RPCArg::Type::STR, RPCArg::Optional::NO, "The label."},
         },
-        RPCResult{
-            "{ (json object with addresses as keys)\n"
-            "  \"address\": { (json object with information about address)\n"
-            "    \"purpose\": \"string\" (string)  Purpose of address "
-            "(\"send\" for sending address, \"receive\" for receiving "
-            "address)\n"
-            "  },...\n"
-            "}\n"},
+        RPCResult{RPCResult::Type::OBJ_DYN,
+                  "",
+                  "json object with addresses as keys",
+                  {
+                      {RPCResult::Type::OBJ,
+                       "address",
+                       "json object with information about address",
+                       {
+                           {RPCResult::Type::STR, "purpose",
+                            "Purpose of address (\"send\" for sending address, "
+                            "\"receive\" for receiving address)"},
+                       }},
+                  }},
         RPCExamples{HelpExampleCli("getaddressesbylabel", "\"tabby\"") +
                     HelpExampleRpc("getaddressesbylabel", "\"tabby\"")},
     }
@@ -4362,10 +4512,12 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
              "Address purpose to list labels for ('send','receive'). An empty "
              "string is the same as not providing this argument."},
         },
-        RPCResult{"[               (json array of string)\n"
-                  "  \"label\",      (string) Label name\n"
-                  "  ...\n"
-                  "]\n"},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "label", "Label name"},
+                  }},
         RPCExamples{"\nList all labels\n" + HelpExampleCli("listlabels", "") +
                     "\nList labels that have receiving addresses\n" +
                     HelpExampleCli("listlabels", "receive") +
@@ -4537,13 +4689,15 @@ static UniValue walletprocesspsbt(const Config &config,
              "Includes the BIP 32 derivation paths for public keys if we know "
              "them"},
         },
-        RPCResult{"{\n"
-                  "  \"psbt\" : \"value\",          (string) The "
-                  "base64-encoded partially signed transaction\n"
-                  "  \"complete\" : true|false,   (boolean) If the transaction "
-                  "has a complete set of signatures\n"
-                  "  ]\n"
-                  "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "psbt",
+                       "The base64-encoded partially signed transaction"},
+                      {RPCResult::Type::BOOL, "complete",
+                       "If the transaction has a complete set of signatures"},
+                  }},
         RPCExamples{HelpExampleCli("walletprocesspsbt", "\"psbt\"")},
     }
         .Check(request);
@@ -4712,15 +4866,18 @@ static UniValue walletcreatefundedpsbt(const Config &config,
              "Includes the BIP 32 derivation paths for public keys if we know "
              "them"},
         },
-        RPCResult{"{\n"
-                  "  \"psbt\": \"value\",        (string)  The resulting raw "
-                  "transaction (base64-encoded string)\n"
-                  "  \"fee\":       n,         (numeric) Fee in " +
-                  CURRENCY_UNIT +
-                  " the resulting transaction pays\n"
-                  "  \"changepos\": n          (numeric) The position of the "
-                  "added change output, or -1\n"
-                  "}\n"},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::STR, "psbt",
+                 "The resulting raw transaction (base64-encoded string)"},
+                {RPCResult::Type::STR_AMOUNT, "fee",
+                 "Fee in " + CURRENCY_UNIT + " the resulting transaction pays"},
+                {RPCResult::Type::NUM, "changepos",
+                 "The position of the added change output, or -1"},
+            }},
         RPCExamples{
             "\nCreate a transaction with no inputs\n" +
             HelpExampleCli("walletcreatefundedpsbt",

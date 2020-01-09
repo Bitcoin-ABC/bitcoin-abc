@@ -56,8 +56,8 @@ static UniValue addavalanchenode(const Config &config,
             {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "Proof that the node is not a sybil."},
         },
-        RPCResult{"\"success\"    (boolean) Whether the addition succeeded or "
-                  "not.\n"},
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether the addition succeeded or not."},
         RPCExamples{
             HelpExampleRpc("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"")},
     }
@@ -124,8 +124,8 @@ static UniValue buildavalancheproof(const Config &config,
                 },
             },
         },
-        RPCResult{"\"proof\"    (string) A string that is a serialized, "
-                  "hex-encoded proof data.\n"},
+        RPCResult{RPCResult::Type::STR_HEX, "proof",
+                  "A string that is a serialized, hex-encoded proof data."},
         RPCExamples{HelpExampleRpc("buildavalancheproof",
                                    "0 1234567800 \"<master>\" []")},
     }

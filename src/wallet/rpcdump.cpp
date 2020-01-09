@@ -826,7 +826,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address for the private key"},
         },
-        RPCResult{"\"key\"                (string) The private key\n"},
+        RPCResult{RPCResult::Type::STR, "key", "The private key"},
         RPCExamples{HelpExampleCli("dumpprivkey", "\"myaddress\"") +
                     HelpExampleCli("importprivkey", "\"mykey\"") +
                     HelpExampleRpc("dumpprivkey", "\"myaddress\"")},
@@ -879,10 +879,13 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
              "The filename with path (either absolute or relative to "
              "bitcoind)"},
         },
-        RPCResult{"{                           (json object)\n"
-                  "  \"filename\" : {        (string) The filename with full "
-                  "absolute path\n"
-                  "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "filename",
+                       "The filename with full absolute path"},
+                  }},
         RPCExamples{HelpExampleCli("dumpwallet", "\"test\"") +
                     HelpExampleRpc("dumpwallet", "\"test\"")},
     }
@@ -1658,12 +1661,32 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
              },
              "\"options\""},
         },
-        RPCResult{"\nResponse is an array with the same size as the input "
-                  "that has the execution result :\n"
-                  "  [{\"success\": true}, {\"success\": true, "
-                  "\"warnings\": [\"Ignoring irrelevant private key\"]}, "
-                  "{\"success\": false, \"error\": {\"code\": -1, "
-                  "\"message\": \"Internal Server Error\"}}, ...]\n"},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "Response is an array with the same size as the input that "
+                  "has the execution result",
+                  {
+                      {RPCResult::Type::OBJ,
+                       "",
+                       "",
+                       {
+                           {RPCResult::Type::BOOL, "success", ""},
+                           {RPCResult::Type::ARR,
+                            "warnings",
+                            /* optional */ true,
+                            "",
+                            {
+                                {RPCResult::Type::STR, "", ""},
+                            }},
+                           {RPCResult::Type::OBJ,
+                            "error",
+                            /* optional */ true,
+                            "",
+                            {
+                                {RPCResult::Type::ELISION, "", "JSONRPC error"},
+                            }},
+                       }},
+                  }},
         RPCExamples{
             HelpExampleCli(
                 "importmulti",

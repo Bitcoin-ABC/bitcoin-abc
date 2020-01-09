@@ -179,7 +179,7 @@ static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
                 {"command", RPCArg::Type::STR, /* default */ "all commands",
                  "The command to get help on"},
             },
-            RPCResult{"\"text\"     (string) The help text\n"},
+            RPCResult{RPCResult::Type::STR, "", "The help text"},
             RPCExamples{""},
         }
                                      .ToString());
@@ -224,8 +224,8 @@ static UniValue uptime(const Config &config, const JSONRPCRequest &request) {
         "uptime",
         "Returns the total uptime of the server.\n",
         {},
-        RPCResult{"ttt        (numeric) The number of seconds that the server "
-                  "has been running\n"},
+        RPCResult{RPCResult::Type::NUM, "",
+                  "The number of seconds that the server has been running"},
         RPCExamples{HelpExampleCli("uptime", "") +
                     HelpExampleRpc("uptime", "")},
     }
@@ -240,18 +240,27 @@ static UniValue getrpcinfo(const Config &config,
         "getrpcinfo",
         "Returns details of the RPC server.\n",
         {},
-        RPCResult{
-            "{\n"
-            " \"active_commands\" (array) All active commands\n"
-            "  [\n"
-            "   {               (object) Information about an active command\n"
-            "    \"method\"       (string) The name of the RPC command \n"
-            "    \"duration\"     (numeric) The running time in microseconds\n"
-            "   },...\n"
-            "  ],\n"
-            " \"logpath\": \"xxx\"  (string) The complete file path to the "
-            "debug log\n"
-            "}\n"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::ARR,
+                       "active_commands",
+                       "All active commands",
+                       {
+                           {RPCResult::Type::OBJ,
+                            "",
+                            "Information about an active command",
+                            {
+                                {RPCResult::Type::STR, "method",
+                                 "The name of the RPC command"},
+                                {RPCResult::Type::NUM, "duration",
+                                 "The running time in microseconds"},
+                            }},
+                       }},
+                      {RPCResult::Type::STR, "logpath",
+                       "The complete file path to the debug log"},
+                  }},
         RPCExamples{HelpExampleCli("getrpcinfo", "") +
                     HelpExampleRpc("getrpcinfo", "")},
     }
