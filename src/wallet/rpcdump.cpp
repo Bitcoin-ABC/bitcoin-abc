@@ -657,7 +657,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         }
         nTimeBegin = chainActive.Tip()->GetBlockTime();
 
-        int64_t nFilesize = std::max((int64_t)1, (int64_t)file.tellg());
+        int64_t nFilesize = std::max<int64_t>(1, file.tellg());
         file.seekg(0, file.beg);
 
         // Use uiInterface.ShowProgress instead of pwallet.ShowProgress because
@@ -733,7 +733,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         for (const auto &key_tuple : keys) {
             uiInterface.ShowProgress(
                 "",
-                std::max(50, std::min<int>(75, (progress / total) * 100) + 50),
+                std::max(50, std::min<int>(75, 100 * progress / total) + 50),
                 false);
             const CKey &key = std::get<0>(key_tuple);
             int64_t time = std::get<1>(key_tuple);
@@ -765,7 +765,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         for (const auto &script_pair : scripts) {
             uiInterface.ShowProgress(
                 "",
-                std::max(50, std::min<int>(75, (progress / total) * 100) + 50),
+                std::max(50, std::min<int>(75, 100 * progress / total) + 50),
                 false);
             const CScript &script = script_pair.first;
             int64_t time = script_pair.second;
