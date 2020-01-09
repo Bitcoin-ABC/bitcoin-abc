@@ -36,7 +36,7 @@ if(ENABLE_SANITIZERS)
 		include(ECMEnableSanitizers)
 	else()
 		message(FATAL_ERROR
-			"ECM is required to enable the sanitizers (https://api.kde.org/ecm/index.html)"
+			"ECM is required to enable the sanitizers (https://api.kde.org/ecm/manual/ecm.7.html). Try installing 'extra-cmake-modules' package."
 		)
 	endif()
 endif()
