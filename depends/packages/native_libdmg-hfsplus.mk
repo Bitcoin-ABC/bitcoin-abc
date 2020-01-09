@@ -14,7 +14,7 @@ define $(package)_config_cmds
 endef
 
 define $(package)_build_cmds
-  ninja dmg
+  ninja -j$(JOBS) dmg
 endef
 
 # Older versions of cmake do not generate install target properly, but we
