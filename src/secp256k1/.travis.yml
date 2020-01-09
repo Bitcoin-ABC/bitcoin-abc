@@ -1,5 +1,4 @@
 language: c
-sudo: false
 addons:
   apt:
     packages:
@@ -11,7 +10,7 @@ compiler:
 env:
   global:
     - FIELD=auto  BIGNUM=auto  SCALAR=auto  ENDOMORPHISM=no  STATICPRECOMPUTATION=yes  ASM=no  BUILD=check  EXTRAFLAGS=  HOST=  ECDH=no  RECOVERY=no  SCHNORR=yes  EXPERIMENTAL=no  JNI=no
-  matrix:
+  jobs:
     - SCALAR=32bit    RECOVERY=yes
     - SCALAR=32bit    FIELD=32bit       ECDH=yes  EXPERIMENTAL=yes
     - SCALAR=64bit
@@ -29,7 +28,7 @@ env:
     - EXTRAFLAGS=CFLAGS=-O0
     - BUILD=check-java JNI=yes ECDH=yes EXPERIMENTAL=yes
     - SCHNORR=no
-matrix:
+jobs:
   fast_finish: true
   include:
     - compiler: clang
