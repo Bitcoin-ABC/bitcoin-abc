@@ -78,16 +78,22 @@ static const Amount HIGH_TX_FEE_PER_KB(COIN / 100);
 static const Amount HIGH_MAX_TX_FEE(100 * HIGH_TX_FEE_PER_KB);
 /** Default for -limitancestorcount, max number of in-mempool ancestors */
 static const unsigned int DEFAULT_ANCESTOR_LIMIT = 25;
-/** Default for -limitancestorsize, maximum kilobytes of tx + all in-mempool
- * ancestors */
+/**
+ * Default for -limitancestorsize, maximum kilobytes of tx + all in-mempool
+ * ancestors.
+ */
 static const unsigned int DEFAULT_ANCESTOR_SIZE_LIMIT = 101;
 /** Default for -limitdescendantcount, max number of in-mempool descendants */
 static const unsigned int DEFAULT_DESCENDANT_LIMIT = 25;
-/** Default for -limitdescendantsize, maximum kilobytes of in-mempool
- * descendants */
+/**
+ * Default for -limitdescendantsize, maximum kilobytes of in-mempool
+ * descendants.
+ */
 static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
-/** Default for -mempoolexpiry, expiration time for mempool transactions in
- * hours */
+/**
+ * Default for -mempoolexpiry, expiration time for mempool transactions in
+ * hours.
+ */
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 336;
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
@@ -244,8 +250,10 @@ extern bool fHavePruned;
 extern bool fPruneMode;
 /** Number of MiB of block files that we're trying to stay below. */
 extern uint64_t nPruneTarget;
-/** Block files containing a block-height within MIN_BLOCKS_TO_KEEP of
- * chainActive.Tip() will not be pruned. */
+/**
+ * Block files containing a block-height within MIN_BLOCKS_TO_KEEP of
+ * chainActive.Tip() will not be pruned.
+ */
 static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
 /** Minimum blocks required to signal NODE_NETWORK_LIMITED */
 static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
