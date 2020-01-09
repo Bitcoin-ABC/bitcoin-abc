@@ -133,6 +133,12 @@ To install clang-format-8 on Ubuntu (>= 18.04+updates) or Debian (>= 10):
 ```
 sudo apt-get install clang-format-8
 ```
+
+To install clang-format-8 on OSX (requires npm):
+```
+npm install -g clang-format@1.2.4
+```
+
 If not available in the distribution, clang-format-8 can be installed from
 https://releases.llvm.org/download.html or https://apt.llvm.org
 
