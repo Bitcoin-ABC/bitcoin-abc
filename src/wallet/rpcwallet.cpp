@@ -4468,11 +4468,10 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     // associated with an address, but we return an array so the API remains
     // stable if we allow multiple labels to be associated with an address in
     // the future.
-    //
-    // DEPRECATED: The previous behavior of returning an array containing a JSON
-    // object of `name` and `purpose` key/value pairs has been deprecated.
     UniValue labels(UniValue::VARR);
     if (address_book_entry) {
+        // DEPRECATED: The previous behavior of returning an array containing a
+        // JSON object of `name` and `purpose` key/value pairs is deprecated.
         if (pwallet->chain().rpcEnableDeprecated("labelspurpose")) {
             labels.push_back(AddressBookDataToJSON(*address_book_entry, true));
         } else {
