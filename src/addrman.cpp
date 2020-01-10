@@ -6,6 +6,7 @@
 #include <addrman.h>
 
 #include <hash.h>
+#include <logging.h>
 #include <serialize.h>
 
 #include <cmath>
@@ -18,7 +19,11 @@ int CAddrInfo::GetTriedBucket(const uint256 &nKey,
                       << nKey << GetGroup(asmap)
                       << (hash1 % ADDRMAN_TRIED_BUCKETS_PER_GROUP))
                          .GetCheapHash();
-    return hash2 % ADDRMAN_TRIED_BUCKET_COUNT;
+    int tried_bucket = hash2 % ADDRMAN_TRIED_BUCKET_COUNT;
+    uint32_t mapped_as = GetMappedAS(asmap);
+    LogPrint(BCLog::NET, "IP %s mapped to AS%i belongs to tried bucket %i.\n",
+             ToStringIP(), mapped_as, tried_bucket);
+    return tried_bucket;
 }
 
 int CAddrInfo::GetNewBucket(const uint256 &nKey, const CNetAddr &src,
@@ -31,7 +36,11 @@ int CAddrInfo::GetNewBucket(const uint256 &nKey, const CNetAddr &src,
                       << nKey << vchSourceGroupKey
                       << (hash1 % ADDRMAN_NEW_BUCKETS_PER_SOURCE_GROUP))
                          .GetCheapHash();
-    return hash2 % ADDRMAN_NEW_BUCKET_COUNT;
+    int new_bucket = hash2 % ADDRMAN_NEW_BUCKET_COUNT;
+    uint32_t mapped_as = GetMappedAS(asmap);
+    LogPrint(BCLog::NET, "IP %s mapped to AS%i belongs to new bucket %i.\n",
+             ToStringIP(), mapped_as, new_bucket);
+    return new_bucket;
 }
 
 int CAddrInfo::GetBucketPosition(const uint256 &nKey, bool fNew,
