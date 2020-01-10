@@ -70,6 +70,7 @@ add_functional_test_check(check-functional-extended
 	"Run the extended functional tests"
 	--extended
 )
+add_dependencies(check-extended check-functional-extended)
 
 add_functional_test_check(check-functional-upgrade-activated
 	"Run the functional tests with the upgrade activated"
