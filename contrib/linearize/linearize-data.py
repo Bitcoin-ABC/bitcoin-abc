@@ -271,7 +271,7 @@ class BlockDataCopier:
                 else:  # If no space in cache, seek forward
                     self.inF.seek(inLen, os.SEEK_CUR)
 
-        print("Done ({} blocks written)".format((self.blkCountOut)))
+        print("Done ({} blocks written)".format(self.blkCountOut))
 
 
 if __name__ == '__main__':
