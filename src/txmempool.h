@@ -114,6 +114,7 @@ public:
     CTransactionRef GetSharedTx() const { return this->tx; }
     const Amount GetFee() const { return nFee; }
     size_t GetTxSize() const { return nTxSize; }
+    size_t GetTxVirtualSize() const;
 
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
@@ -136,6 +137,7 @@ public:
 
     uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
     uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
+    uint64_t GetVirtualSizeWithDescendants() const;
     Amount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
     int64_t GetSigOpCountWithDescendants() const {
         return nSigOpCountWithDescendants;
@@ -145,6 +147,7 @@ public:
 
     uint64_t GetCountWithAncestors() const { return nCountWithAncestors; }
     uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
+    uint64_t GetVirtualSizeWithAncestors() const;
     Amount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
     int64_t GetSigOpCountWithAncestors() const {
         return nSigOpCountWithAncestors;

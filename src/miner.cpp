@@ -58,6 +58,11 @@ int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,
     return nNewTime - nOldTime;
 }
 
+uint64_t CTxMemPoolModifiedEntry::GetVirtualSizeWithAncestors() const {
+    return GetVirtualTransactionSize(nSizeWithAncestors,
+                                     nSigOpCountWithAncestors);
+}
+
 BlockAssembler::Options::Options()
     : nExcessiveBlockSize(DEFAULT_MAX_BLOCK_SIZE),
       nMaxGeneratedBlockSize(DEFAULT_MAX_GENERATED_BLOCK_SIZE),
@@ -455,6 +460,9 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
             return;
         }
 
+        // The following must not use virtual size since TestPackage relies on
+        // having an accurate call to
+        // GetMaxBlockSigOpsCount(blockSizeWithPackage).
         if (!TestPackage(packageSize, packageSigOps)) {
             if (fUsingModified) {
                 // Since we always look at the best entry in mapModifiedTx, we

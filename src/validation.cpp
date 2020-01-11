@@ -696,7 +696,9 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         }
 
         // No transactions are allowed below minRelayTxFee except from
-        // disconnected blocks
+        // disconnected blocks.
+        // Do not change this to use virtualsize without coordinating a network
+        // policy upgrade.
         if (!bypass_limits && nModifiedFees < minRelayTxFee.GetFee(nSize)) {
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                              "min relay fee not met");

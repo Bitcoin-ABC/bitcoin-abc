@@ -44,6 +44,7 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
 
     Amount totalFee = Amount::zero();
     size_t totalSize = CTransaction(parentOfAll).GetTotalSize();
+    size_t totalVirtualSize = totalSize;
     int64_t totalSigOpCount = 0;
 
     // Generate 100 transactions
@@ -57,6 +58,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         Amount maxFees = Amount::zero();
         uint64_t minSize = std::numeric_limits<size_t>::max();
         uint64_t maxSize = 0;
+        uint64_t minVirtualSize = std::numeric_limits<size_t>::max();
+        uint64_t maxVirtualSize = 0;
         int64_t minSigOpCount = std::numeric_limits<int64_t>::max();
         int64_t maxSigOpCount = 0;
         // Consume random inputs, but make sure we don't consume more than
@@ -83,6 +86,9 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
             maxFees += parent.GetModFeesWithAncestors();
             minSize = std::min(minSize, parent.GetSizeWithAncestors());
             maxSize += parent.GetSizeWithAncestors();
+            minVirtualSize =
+                std::min(minSize, parent.GetVirtualSizeWithAncestors());
+            maxVirtualSize += parent.GetVirtualSizeWithAncestors();
             minSigOpCount =
                 std::min(minSigOpCount, parent.GetSigOpCountWithAncestors());
             maxSigOpCount += parent.GetSigOpCountWithAncestors();
@@ -114,15 +120,38 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         maxFees += randFee;
         minSize += CTransaction(tx).GetTotalSize();
         maxSize += CTransaction(tx).GetTotalSize();
+        // virtualsize is a nonlinear function of its arguments, so we can't
+        // make as strong guarantees about its range; but assuming virtualsize
+        // is monotonically increasing in each argument, we can say the
+        // following:
+        minVirtualSize += 0;
+        maxVirtualSize += GetVirtualTransactionSize(
+            CTransaction(tx).GetTotalSize(), randSigOpCount);
         minSigOpCount += randSigOpCount;
         maxSigOpCount += randSigOpCount;
 
         // Calculate overall values
         totalFee += randFee;
         totalSize += CTransaction(tx).GetTotalSize();
+        totalVirtualSize += GetVirtualTransactionSize(
+            CTransaction(tx).GetTotalSize(), randSigOpCount);
         totalSigOpCount += randSigOpCount;
         CTxMemPoolEntry parentEntry = *testPool.mapTx.find(parentOfAllId);
         CTxMemPoolEntry latestEntry = *testPool.mapTx.find(curId);
+
+        // Based on size/sigops ranges we can compute more strict bounds for the
+        // virtual size ranges/totals, assuming virtualsize is monotonic in each
+        // argument.
+        uint64_t minVirtualSize_strict =
+            GetVirtualTransactionSize(minSize, minSigOpCount);
+        uint64_t maxVirtualSize_strict =
+            GetVirtualTransactionSize(maxSize, maxSigOpCount);
+        uint64_t totalVirtualSize_strict =
+            GetVirtualTransactionSize(totalSize, totalSigOpCount);
+        // these are as-good or better than the earlier estimations.
+        BOOST_CHECK(minVirtualSize_strict >= minVirtualSize);
+        BOOST_CHECK(maxVirtualSize_strict <= maxVirtualSize);
+        BOOST_CHECK(totalVirtualSize_strict <= totalVirtualSize);
 
         // Ensure values are within the expected ranges
         BOOST_CHECK(latestEntry.GetCountWithAncestors() >= minAncestors);
@@ -130,6 +159,11 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
 
         BOOST_CHECK(latestEntry.GetSizeWithAncestors() >= minSize);
         BOOST_CHECK(latestEntry.GetSizeWithAncestors() <= maxSize);
+
+        BOOST_CHECK(latestEntry.GetVirtualSizeWithAncestors() >=
+                    minVirtualSize_strict);
+        BOOST_CHECK(latestEntry.GetVirtualSizeWithAncestors() <=
+                    maxVirtualSize_strict);
 
         BOOST_CHECK(latestEntry.GetSigOpCountWithAncestors() >= minSigOpCount);
         BOOST_CHECK(latestEntry.GetSigOpCountWithAncestors() <= maxSigOpCount);
@@ -140,6 +174,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         BOOST_CHECK_EQUAL(parentEntry.GetCountWithDescendants(),
                           testPool.mapTx.size());
         BOOST_CHECK_EQUAL(parentEntry.GetSizeWithDescendants(), totalSize);
+        BOOST_CHECK_EQUAL(parentEntry.GetVirtualSizeWithDescendants(),
+                          totalVirtualSize_strict);
         BOOST_CHECK_EQUAL(parentEntry.GetModFeesWithDescendants(), totalFee);
         BOOST_CHECK_EQUAL(parentEntry.GetSigOpCountWithDescendants(),
                           totalSigOpCount);

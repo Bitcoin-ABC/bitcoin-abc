@@ -53,8 +53,10 @@ struct CTxMemPoolModifiedEntry {
 
     Amount GetModifiedFee() const { return iter->GetModifiedFee(); }
     uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
+    uint64_t GetVirtualSizeWithAncestors() const;
     Amount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
     size_t GetTxSize() const { return iter->GetTxSize(); }
+    size_t GetTxVirtualSize() const { return iter->GetTxVirtualSize(); }
     const CTransaction &GetTx() const { return iter->GetTx(); }
 
     CTxMemPool::txiter iter;
