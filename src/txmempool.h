@@ -252,15 +252,17 @@ public:
                           double &size) const {
         // Compare feerate with descendants to feerate of the transaction, and
         // return the fee/size for the max.
-        double f1 = a.GetSizeWithDescendants() * (a.GetModifiedFee() / SATOSHI);
-        double f2 = a.GetTxSize() * (a.GetModFeesWithDescendants() / SATOSHI);
+        double f1 =
+            a.GetVirtualSizeWithDescendants() * (a.GetModifiedFee() / SATOSHI);
+        double f2 =
+            a.GetTxVirtualSize() * (a.GetModFeesWithDescendants() / SATOSHI);
 
         if (f2 > f1) {
             mod_fee = a.GetModFeesWithDescendants() / SATOSHI;
-            size = a.GetSizeWithDescendants();
+            size = a.GetVirtualSizeWithDescendants();
         } else {
             mod_fee = a.GetModifiedFee() / SATOSHI;
-            size = a.GetTxSize();
+            size = a.GetTxVirtualSize();
         }
     }
 };
@@ -319,15 +321,17 @@ public:
     void GetModFeeAndSize(const T &a, double &mod_fee, double &size) const {
         // Compare feerate with ancestors to feerate of the transaction, and
         // return the fee/size for the min.
-        double f1 = a.GetSizeWithAncestors() * (a.GetModifiedFee() / SATOSHI);
-        double f2 = a.GetTxSize() * (a.GetModFeesWithAncestors() / SATOSHI);
+        double f1 =
+            a.GetVirtualSizeWithAncestors() * (a.GetModifiedFee() / SATOSHI);
+        double f2 =
+            a.GetTxVirtualSize() * (a.GetModFeesWithAncestors() / SATOSHI);
 
         if (f1 > f2) {
             mod_fee = a.GetModFeesWithAncestors() / SATOSHI;
-            size = a.GetSizeWithAncestors();
+            size = a.GetVirtualSizeWithAncestors();
         } else {
             mod_fee = a.GetModifiedFee() / SATOSHI;
-            size = a.GetTxSize();
+            size = a.GetTxVirtualSize();
         }
     }
 };

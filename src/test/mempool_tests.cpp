@@ -324,6 +324,13 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     LOCK2(cs_main, pool.cs);
     TestMemPoolEntryHelper entry;
 
+    /**
+     * Remove the default nonzero sigops, since the below tests are focussing on
+     * fee-based ordering and involve some artificially very tiny 21-byte
+     * transactions without any inputs.
+     */
+    entry.SigOpCount(0);
+
     /* 3rd highest fee */
     CMutableTransaction tx1 = CMutableTransaction();
     tx1.vout.resize(1);
@@ -507,6 +514,13 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     CTxMemPool pool;
     LOCK2(cs_main, pool.cs);
     TestMemPoolEntryHelper entry;
+
+    /**
+     * Remove the default nonzero sigops, since the below tests are focussing on
+     * fee-based ordering and involve some artificially very tiny 21-byte
+     * transactions without any inputs.
+     */
+    entry.SigOpCount(0);
 
     /* 3rd highest fee */
     CMutableTransaction tx1 = CMutableTransaction();

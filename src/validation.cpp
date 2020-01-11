@@ -701,6 +701,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
                               fSpendsCoinbase, nSigOpsCount, lp);
         unsigned int nSize = entry.GetTxSize();
+        unsigned int nVirtualSize = entry.GetTxVirtualSize();
 
         // No transactions are allowed below minRelayTxFee except from
         // disconnected blocks.
@@ -715,7 +716,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             pool.GetMinFee(
                     gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                     1000000)
-                .GetFee(nSize);
+                .GetFee(nVirtualSize);
         if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
             nModifiedFees < mempoolRejectFee) {
             return state.DoS(

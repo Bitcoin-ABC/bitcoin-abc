@@ -455,8 +455,17 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
         }
 
         if (packageFees < blockMinFeeRate.GetFee(packageSize)) {
-            // Everything else we might consider has a lower fee rate
-            return;
+            // Don't include this package, but don't stop yet because something
+            // else we might consider may have a sufficient fee rate (since txes
+            // are ordered by virtualsize feerate, not actual feerate).
+            if (fUsingModified) {
+                // Since we always look at the best entry in mapModifiedTx, we
+                // must erase failed entries so that we can consider the next
+                // best entry on the next loop iteration
+                mapModifiedTx.get<ancestor_score>().erase(modit);
+                failedTx.insert(iter);
+            }
+            continue;
         }
 
         // The following must not use virtual size since TestPackage relies on

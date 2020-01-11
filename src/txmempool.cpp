@@ -1190,7 +1190,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         // mempool with feerate equal to txn which were removed with no block in
         // between.
         CFeeRate removed(it->GetModFeesWithDescendants(),
-                         it->GetSizeWithDescendants());
+                         it->GetVirtualSizeWithDescendants());
         removed += MEMPOOL_FULL_FEE_INCREMENT;
 
         trackPackageRemoved(removed);
