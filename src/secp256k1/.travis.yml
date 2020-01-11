@@ -6,6 +6,7 @@ addons:
     packages:
       - libgmp-dev
       - ninja-build
+      - valgrind
 install:
   - ./travis/install_cmake.sh
 cache:
@@ -65,7 +66,6 @@ jobs:
           packages:
             - gcc-multilib
             - libgmp-dev:i386
-            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: clang
       env: HOST=i686-linux-gnu BIGNUM=no OPENSSL_TESTS=no
@@ -73,7 +73,6 @@ jobs:
         apt:
           packages:
             - gcc-multilib
-            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no OPENSSL_TESTS=no
@@ -81,7 +80,6 @@ jobs:
         apt:
           packages:
             - gcc-multilib
-            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu OPENSSL_TESTS=no
@@ -90,7 +88,6 @@ jobs:
           packages:
             - gcc-multilib
             - libgmp-dev:i386
-            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
       env:
@@ -98,11 +95,6 @@ jobs:
         - BIGNUM=no  ENDOMORPHISM=yes  ASM=x86_64  EXPERIMENTAL=yes  ECDH=yes  RECOVERY=yes  OPENSSL_TESTS=no  MULTISET=yes
         - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND  AUTOTOOLS_TARGET=
         - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="tests exhaustive_tests"
-      addons:
-        apt:
-          packages:
-            - ninja-build
-            - valgrind
       install: ./travis/install_cmake.sh
     - compiler: gcc
       env: # The same as above but without endomorphism.
@@ -110,11 +102,6 @@ jobs:
         - BIGNUM=no  ENDOMORPHISM=no  ASM=x86_64  EXPERIMENTAL=yes  ECDH=yes  RECOVERY=yes  OPENSSL_TESTS=no  MULTISET=yes
         - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND  AUTOTOOLS_TARGET=
         - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="tests exhaustive_tests"
-      addons:
-        apt:
-          packages:
-            - ninja-build
-            - valgrind
       install: ./travis/install_cmake.sh
 
 script:
