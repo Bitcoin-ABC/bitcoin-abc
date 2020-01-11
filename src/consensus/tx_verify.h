@@ -91,11 +91,11 @@ uint64_t GetP2SHSigOpCount(const CTransaction &tx,
 
 /**
  * Compute total signature operation of a transaction.
- * @param[in] tx     Transaction for which we are computing the cost
+ * @param[in] tx     Transaction for which we are computing the count
  * @param[in] inputs Map of previous transactions that have outputs we're
  * spending
  * @param[in] flags  Script verification flags
- * @return Total signature operation cost of tx
+ * @return Total signature operation count of tx
  */
 uint64_t GetTransactionSigOpCount(const CTransaction &tx,
                                   const CCoinsViewCache &inputs,

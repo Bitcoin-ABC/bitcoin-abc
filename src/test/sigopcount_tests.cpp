@@ -153,10 +153,10 @@ static void BuildTxs(CMutableTransaction &spendingTx, CCoinsViewCache &coins,
     AddCoins(coins, CTransaction(creationTx), 0);
 }
 
-BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
+BOOST_AUTO_TEST_CASE(GetTxSigOpCount) {
     // Transaction creates outputs
     CMutableTransaction creationTx;
-    // Transaction that spends outputs and whose sig op cost is going to be
+    // Transaction that spends outputs and whose sig op count is going to be
     // tested
     CMutableTransaction spendingTx;
 

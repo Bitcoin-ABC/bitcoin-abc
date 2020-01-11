@@ -371,7 +371,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         g_mempool.addUnchecked(txid, entry.Fee(LOWFEE)
                                          .Time(GetTime())
                                          .SpendsCoinbase(spendsCoinbase)
-                                         .SigOpsCost(80)
+                                         .SigOpCount(20)
                                          .FromTx(tx));
         tx.vin[0].prevout = COutPoint(txid, 0);
     }

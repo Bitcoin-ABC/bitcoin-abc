@@ -123,11 +123,11 @@ struct TestMemPoolEntryHelper {
     int64_t nTime;
     unsigned int nHeight;
     bool spendsCoinbase;
-    unsigned int sigOpCost;
+    unsigned int nSigOpCount;
     LockPoints lp;
 
     TestMemPoolEntryHelper()
-        : nFee(), nTime(0), nHeight(1), spendsCoinbase(false), sigOpCost(4) {}
+        : nFee(), nTime(0), nHeight(1), spendsCoinbase(false), nSigOpCount(1) {}
 
     CTxMemPoolEntry FromTx(const CMutableTransaction &tx);
     CTxMemPoolEntry FromTx(const CTransactionRef &tx);
@@ -149,8 +149,8 @@ struct TestMemPoolEntryHelper {
         spendsCoinbase = _flag;
         return *this;
     }
-    TestMemPoolEntryHelper &SigOpsCost(unsigned int _sigopsCost) {
-        sigOpCost = _sigopsCost;
+    TestMemPoolEntryHelper &SigOpCount(unsigned int _nSigOpCount) {
+        nSigOpCount = _nSigOpCount;
         return *this;
     }
 };

@@ -18,7 +18,7 @@ static void AddTx(const CTransactionRef &tx, const Amount &fee,
     pool.addUnchecked(tx->GetId(), CTxMemPoolEntry(tx, fee, /* time */ 0,
                                                    /* height */ 1,
                                                    /* spendsCoinbase */ false,
-                                                   /* sigOpCost */ 4, lp));
+                                                   /* sigOpCount */ 1, lp));
 }
 
 static void RpcMempool(benchmark::State &state) {

@@ -107,7 +107,7 @@ private:
 public:
     CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
                     int64_t _nTime, unsigned int _entryHeight,
-                    bool spendsCoinbase, int64_t nSigOpsCost, LockPoints lp);
+                    bool spendsCoinbase, int64_t _nSigOpCount, LockPoints lp);
 
     const CTransaction &GetTx() const { return *this->tx; }
     CTransactionRef GetSharedTx() const { return this->tx; }
@@ -169,20 +169,20 @@ private:
 
 struct update_ancestor_state {
     update_ancestor_state(int64_t _modifySize, Amount _modifyFee,
-                          int64_t _modifyCount, int64_t _modifySigOpsCost)
+                          int64_t _modifyCount, int64_t _modifySigOpCount)
         : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount), modifySigOpsCost(_modifySigOpsCost) {}
+          modifyCount(_modifyCount), modifySigOpCount(_modifySigOpCount) {}
 
     void operator()(CTxMemPoolEntry &e) {
         e.UpdateAncestorState(modifySize, modifyFee, modifyCount,
-                              modifySigOpsCost);
+                              modifySigOpCount);
     }
 
 private:
     int64_t modifySize;
     Amount modifyFee;
     int64_t modifyCount;
-    int64_t modifySigOpsCost;
+    int64_t modifySigOpCount;
 };
 
 struct update_fee_delta {
