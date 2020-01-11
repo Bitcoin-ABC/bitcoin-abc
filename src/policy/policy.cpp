@@ -182,7 +182,7 @@ uint32_t nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
 
 int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigOpCount,
                                   unsigned int bytes_per_sigop) {
-    return nSize;
+    return std::max(nSize, nSigOpCount * bytes_per_sigop);
 }
 
 int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCount,

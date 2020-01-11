@@ -62,7 +62,8 @@ static const CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
 /**
  * Default for -bytespersigop .
  */
-static const unsigned int DEFAULT_BYTES_PER_SIGOP = 20;
+static const unsigned int DEFAULT_BYTES_PER_SIGOP =
+    1000000 / MAX_BLOCK_SIGOPS_PER_MB;
 /**
  * Min feerate for defining dust. Historically this has been the same as the
  * minRelayTxFee, however changing the dust limit changes which transactions are
@@ -122,12 +123,20 @@ bool AreInputsStandard(const CTransaction &tx,
 extern CFeeRate dustRelayFee;
 extern uint32_t nBytesPerSigOp;
 
-/** Compute the virtual transaction size (weight reinterpreted as bytes). */
+/**
+ * Compute the virtual transaction size (size, or more if sigops are too
+ * dense).
+ */
 int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigOpCount,
                                   unsigned int bytes_per_sigop);
 int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCount,
                                   unsigned int bytes_per_sigop);
 int64_t GetVirtualTransactionInputSize(const CTxIn &txin, int64_t nSigOpCount,
                                        unsigned int bytes_per_sigop);
+
+static inline int64_t GetVirtualTransactionSize(int64_t nSize,
+                                                int64_t nSigOpCount) {
+    return GetVirtualTransactionSize(nSize, nSigOpCount, ::nBytesPerSigOp);
+}
 
 #endif // BITCOIN_POLICY_POLICY_H
