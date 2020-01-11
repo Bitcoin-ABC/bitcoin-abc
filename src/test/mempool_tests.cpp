@@ -35,7 +35,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         parentOfAll.vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
     }
     TxId parentOfAllId = parentOfAll.GetId();
-    testPool.addUnchecked(parentOfAllId, entry.FromTx(parentOfAll));
+    testPool.addUnchecked(parentOfAllId,
+                          entry.SigOpCount(0).FromTx(parentOfAll));
 
     // Add some outpoints to the tracking vector
     for (size_t i = 0; i < maxOutputs; i++) {
@@ -56,6 +57,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         Amount maxFees = Amount::zero();
         uint64_t minSize = std::numeric_limits<size_t>::max();
         uint64_t maxSize = 0;
+        int64_t minSigOpCount = std::numeric_limits<int64_t>::max();
+        int64_t maxSigOpCount = 0;
         // Consume random inputs, but make sure we don't consume more than
         // available
         for (size_t input = std::min(InsecureRandRange(maxOutputs) + 1,
@@ -80,6 +83,9 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
             maxFees += parent.GetModFeesWithAncestors();
             minSize = std::min(minSize, parent.GetSizeWithAncestors());
             maxSize += parent.GetSizeWithAncestors();
+            minSigOpCount =
+                std::min(minSigOpCount, parent.GetSigOpCountWithAncestors());
+            maxSigOpCount += parent.GetSigOpCountWithAncestors();
         }
 
         // Produce random number of outputs
@@ -96,8 +102,10 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         }
 
         Amount randFee = int64_t(InsecureRandRange(300)) * SATOSHI;
+        int randSigOpCount = InsecureRandRange(5);
 
-        testPool.addUnchecked(curId, entry.Fee(randFee).FromTx(tx));
+        testPool.addUnchecked(
+            curId, entry.Fee(randFee).SigOpCount(randSigOpCount).FromTx(tx));
 
         // Add this transaction to the totals.
         minAncestors += 1;
@@ -106,6 +114,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         maxFees += randFee;
         minSize += CTransaction(tx).GetTotalSize();
         maxSize += CTransaction(tx).GetTotalSize();
+        minSigOpCount += randSigOpCount;
+        maxSigOpCount += randSigOpCount;
 
         // Calculate overall values
         totalFee += randFee;
@@ -119,6 +129,9 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
 
         BOOST_CHECK(latestEntry.GetSizeWithAncestors() >= minSize);
         BOOST_CHECK(latestEntry.GetSizeWithAncestors() <= maxSize);
+
+        BOOST_CHECK(latestEntry.GetSigOpCountWithAncestors() >= minSigOpCount);
+        BOOST_CHECK(latestEntry.GetSigOpCountWithAncestors() <= maxSigOpCount);
 
         BOOST_CHECK(latestEntry.GetModFeesWithAncestors() >= minFees);
         BOOST_CHECK(latestEntry.GetModFeesWithAncestors() <= maxFees);
