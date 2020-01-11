@@ -1699,7 +1699,7 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
         // implies that we can sign for every input.
         return -1;
     }
-    return GetVirtualTransactionSize(CTransaction(txNew));
+    return GetSerializeSize(txNew, PROTOCOL_VERSION);
 }
 
 int CalculateMaximumSignedInputSize(const CTxOut &txout, const CWallet *wallet,
@@ -1711,7 +1711,7 @@ int CalculateMaximumSignedInputSize(const CTxOut &txout, const CWallet *wallet,
         // implies that we can sign for every input.
         return -1;
     }
-    return GetVirtualTransactionInputSize(txn.vin[0]);
+    return GetSerializeSize(txn.vin[0], PROTOCOL_VERSION);
 }
 
 void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
