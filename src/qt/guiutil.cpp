@@ -43,6 +43,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QList>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QProcess>
 #include <QProgressDialog>
@@ -927,6 +928,14 @@ void LogQtInfo() {
                   s->name().toStdString(), s->size().width(),
                   s->size().height(), s->devicePixelRatio());
     }
+}
+
+void PopupMenu(QMenu *menu, const QPoint &point, QAction *at_action) {
+    // The qminimal plugin does not provide window system integration.
+    if (QApplication::platformName() == "minimal") {
+        return;
+    }
+    menu->popup(point, at_action);
 }
 
 } // namespace GUIUtil

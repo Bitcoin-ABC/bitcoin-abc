@@ -31,6 +31,7 @@
 
 #include <univalue.h>
 
+#include <QFont>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
@@ -571,8 +572,7 @@ RPCConsole::RPCConsole(interfaces::Node &node,
     ui->peerHeading->setText(tr("Select a peer to view detailed information."));
 
     consoleFontSize =
-        settings.value(fontSizeSettingsKey, QFontInfo(QFont()).pointSize())
-            .toInt();
+        settings.value(fontSizeSettingsKey, QFont().pointSize()).toInt();
     clear();
 
     GUIUtil::handleCloseWindowShortcut(this);

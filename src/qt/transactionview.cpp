@@ -9,6 +9,7 @@
 #include <qt/bitcoinunits.h>
 #include <qt/csvmodelwriter.h>
 #include <qt/editaddressdialog.h>
+#include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
 #include <qt/transactiondescdialog.h>
@@ -458,7 +459,8 @@ void TransactionView::contextualMenu(const QPoint &point) {
         transactionView, 0, TransactionTableModel::LabelRole));
 
     if (index.isValid()) {
-        contextMenu->popup(transactionView->viewport()->mapToGlobal(point));
+        GUIUtil::PopupMenu(contextMenu,
+                           transactionView->viewport()->mapToGlobal(point));
     }
 }
 
