@@ -98,6 +98,8 @@ class FullBlockTest(BitcoinTestFramework):
                             '-limitdescendantsize=999999',
                             '-maxmempool=99999',
                             "-excessiveblocksize={}".format(self.excessive_block_size)]]
+        # UBSAN will cause this test to timeout without this.
+        self.rpc_timeout = 180
 
     def add_options(self, parser):
         super().add_options(parser)

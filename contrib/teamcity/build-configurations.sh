@@ -88,8 +88,6 @@ case "$ABC_BUILD_NAME" in
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
     ninja check
-    # FIXME Remove when abc-p2p-compactblocks works with ubsan.
-    TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=abc-p2p-compactblocks"
     ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ;;
 
