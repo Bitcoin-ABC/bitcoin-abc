@@ -35,6 +35,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
       sigOpCount(_sigOpsCount), lockPoints(lp) {
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
+    nSigOpCountWithDescendants = sigOpCount;
     nModFeesWithDescendants = nFee;
 
     feeDelta = Amount::zero();
@@ -88,11 +89,13 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
     int64_t modifySize = 0;
     int64_t modifyCount = 0;
     Amount modifyFee = Amount::zero();
+    int64_t modifySigOpCount = 0;
     for (txiter cit : setAllDescendants) {
         if (!setExclude.count(cit->GetTx().GetId())) {
             modifySize += cit->GetTxSize();
             modifyFee += cit->GetModifiedFee();
             modifyCount++;
+            modifySigOpCount += cit->GetSigOpCount();
             cachedDescendants[updateIt].insert(cit);
             // Update ancestor state for each descendant
             mapTx.modify(cit,
@@ -102,7 +105,8 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
         }
     }
     mapTx.modify(updateIt,
-                 update_descendant_state(modifySize, modifyFee, modifyCount));
+                 update_descendant_state(modifySize, modifyFee, modifyCount,
+                                         modifySigOpCount));
 }
 
 // txidsToUpdate is the set of transaction hashes from a disconnected block
@@ -248,10 +252,12 @@ void CTxMemPool::UpdateAncestorsOf(bool add, txiter it,
     }
     const int64_t updateCount = (add ? 1 : -1);
     const int64_t updateSize = updateCount * it->GetTxSize();
+    const int64_t updateSigOpCount = updateCount * it->GetSigOpCount();
     const Amount updateFee = updateCount * it->GetModifiedFee();
     for (txiter ancestorIt : setAncestors) {
-        mapTx.modify(ancestorIt, update_descendant_state(updateSize, updateFee,
-                                                         updateCount));
+        mapTx.modify(ancestorIt,
+                     update_descendant_state(updateSize, updateFee, updateCount,
+                                             updateSigOpCount));
     }
 }
 
@@ -340,12 +346,15 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
 
 void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
                                             Amount modifyFee,
-                                            int64_t modifyCount) {
+                                            int64_t modifyCount,
+                                            int64_t modifySigOpCount) {
     nSizeWithDescendants += modifySize;
     assert(int64_t(nSizeWithDescendants) > 0);
     nModFeesWithDescendants += modifyFee;
     nCountWithDescendants += modifyCount;
     assert(int64_t(nCountWithDescendants) > 0);
+    nSigOpCountWithDescendants += modifySigOpCount;
+    assert(int64_t(nSigOpCountWithDescendants) >= 0);
 }
 
 void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
@@ -745,6 +754,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
         CTxMemPool::setEntries setChildrenCheck;
         auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetId(), 0));
         uint64_t child_sizes = 0;
+        int64_t child_sigop_counts = 0;
         for (; iter != mapNextTx.end() &&
                iter->first->GetTxId() == it->GetTx().GetId();
              ++iter) {
@@ -753,6 +763,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
             assert(childit != mapTx.end());
             if (setChildrenCheck.insert(childit).second) {
                 child_sizes += childit->GetTxSize();
+                child_sigop_counts += childit->GetSigOpCount();
             }
         }
         assert(setChildrenCheck == GetMemPoolChildren(it));
@@ -760,6 +771,8 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
         // children. Just a sanity check, not definitive that this calc is
         // correct...
         assert(it->GetSizeWithDescendants() >= child_sizes + it->GetTxSize());
+        assert(it->GetSigOpCountWithDescendants() >=
+               child_sigop_counts + it->GetSigOpCount());
 
         if (fDependsWait) {
             waitingOnDependants.push_back(&(*it));
@@ -925,7 +938,7 @@ void CTxMemPool::PrioritiseTransaction(const TxId &txid,
                                       nNoLimit, nNoLimit, dummy, false);
             for (txiter ancestorIt : setAncestors) {
                 mapTx.modify(ancestorIt,
-                             update_descendant_state(0, nFeeDelta, 0));
+                             update_descendant_state(0, nFeeDelta, 0, 0));
             }
 
             // Now update all descendants' modified fees with ancestors

@@ -94,9 +94,10 @@ private:
     uint64_t nCountWithDescendants;
     //!< ... and size
     uint64_t nSizeWithDescendants;
-
     //!< ... and total fees (all including us)
     Amount nModFeesWithDescendants;
+    //!< ... and sigop count
+    int64_t nSigOpCountWithDescendants;
 
     // Analogous statistics for ancestor transactions
     uint64_t nCountWithAncestors;
@@ -123,7 +124,7 @@ public:
 
     // Adjusts the descendant state.
     void UpdateDescendantState(int64_t modifySize, Amount modifyFee,
-                               int64_t modifyCount);
+                               int64_t modifyCount, int64_t modifySigOpCount);
     // Adjusts the ancestor state
     void UpdateAncestorState(int64_t modifySize, Amount modifyFee,
                              int64_t modifyCount, int modifySigOps);
@@ -136,6 +137,9 @@ public:
     uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
     uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
     Amount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
+    int64_t GetSigOpCountWithDescendants() const {
+        return nSigOpCountWithDescendants;
+    }
 
     bool GetSpendsCoinbase() const { return spendsCoinbase; }
 
@@ -153,18 +157,20 @@ public:
 // Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
 struct update_descendant_state {
     update_descendant_state(int64_t _modifySize, Amount _modifyFee,
-                            int64_t _modifyCount)
+                            int64_t _modifyCount, int64_t _modifySigOpCount)
         : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount) {}
+          modifyCount(_modifyCount), modifySigOpCount(_modifySigOpCount) {}
 
     void operator()(CTxMemPoolEntry &e) {
-        e.UpdateDescendantState(modifySize, modifyFee, modifyCount);
+        e.UpdateDescendantState(modifySize, modifyFee, modifyCount,
+                                modifySigOpCount);
     }
 
 private:
     int64_t modifySize;
     Amount modifyFee;
     int64_t modifyCount;
+    int64_t modifySigOpCount;
 };
 
 struct update_ancestor_state {
