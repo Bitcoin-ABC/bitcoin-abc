@@ -3045,7 +3045,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 nValueToSelect += nFeeRet;
             }
 
-            // Static vsize overhead + outputs vsize. 4 nVersion, 4 nLocktime, 1
+            // Static size overhead + outputs vsize. 4 nVersion, 4 nLocktime, 1
             // input count, 1 output count
             coin_selection_params.tx_noinputs_size = 10;
             // vouts to the payees

@@ -459,7 +459,7 @@ private:
     //!< Used by getblocktemplate to trigger CreateNewBlock() invocation
     unsigned int nTransactionsUpdated;
 
-    //!< sum of all mempool tx's virtual sizes.
+    //!< sum of all mempool tx's sizes.
     uint64_t totalTxSize;
     //!< sum of dynamic memory usage of all the map elements (NOT the maps
     //! themselves)
