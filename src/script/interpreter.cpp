@@ -1692,7 +1692,7 @@ template class GenericTransactionSignatureChecker<CMutableTransaction>;
 
 bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
                   uint32_t flags, const BaseSignatureChecker &checker,
-                  ScriptError *serror) {
+                  ScriptExecutionMetrics &metricsOut, ScriptError *serror) {
     set_error(serror, ScriptError::UNKNOWN);
 
     // If FORKID is enabled, we also ensure strict encoding.
@@ -1704,15 +1704,17 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         return set_error(serror, ScriptError::SIG_PUSHONLY);
     }
 
+    ScriptExecutionMetrics metrics = {};
+
     std::vector<valtype> stack, stackCopy;
-    if (!EvalScript(stack, scriptSig, flags, checker, serror)) {
+    if (!EvalScript(stack, scriptSig, flags, checker, metrics, serror)) {
         // serror is set
         return false;
     }
     if (flags & SCRIPT_VERIFY_P2SH) {
         stackCopy = stack;
     }
-    if (!EvalScript(stack, scriptPubKey, flags, checker, serror)) {
+    if (!EvalScript(stack, scriptPubKey, flags, checker, metrics, serror)) {
         // serror is set
         return false;
     }
@@ -1747,10 +1749,12 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         // pushed onto the stack.
         if ((flags & SCRIPT_DISALLOW_SEGWIT_RECOVERY) == 0 && stack.empty() &&
             pubKey2.IsWitnessProgram()) {
+            // must set metricsOut for all successful returns
+            metricsOut = metrics;
             return set_success(serror);
         }
 
-        if (!EvalScript(stack, pubKey2, flags, checker, serror)) {
+        if (!EvalScript(stack, pubKey2, flags, checker, metrics, serror)) {
             // serror is set
             return false;
         }
@@ -1776,5 +1780,6 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         }
     }
 
+    metricsOut = metrics;
     return set_success(serror);
 }
