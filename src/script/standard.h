@@ -41,11 +41,9 @@ static const unsigned int MAX_OP_RETURN_RELAY = 223;
 extern bool fAcceptDatacarrier;
 
 /**
- * Mandatory script verification flags that all new blocks must comply with for
- * them to be valid (but old blocks may not comply with).
- *
- * Failing one of these tests may trigger a DoS ban - see CheckInputs() for
- * details.
+ * When transactions fail script evaluations under standard flags, this flagset
+ * influences the decision of whether to drop them or to also ban the originator
+ * (see CheckInputs).
  */
 static const uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
     SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
