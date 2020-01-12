@@ -30,7 +30,7 @@ constexpr int RANGE = 1;
 // Derivation needs access to private keys
 constexpr int HARDENED = 2;
 // This descriptor is not expected to be solvable
-// constexpr int UNSOLVABLE = 4;
+constexpr int UNSOLVABLE = 4;
 // We can sign with this descriptor (this is not true when actual BIP32
 // derivation is used, as that's not integrated in our signing code)
 constexpr int SIGNABLE = 8;
@@ -103,6 +103,9 @@ void Check(const std::string &prv, const std::string &pub, int flags,
             for (size_t n = 0; n < spks.size(); ++n) {
                 BOOST_CHECK_EQUAL(ref[n],
                                   HexStr(spks[n].begin(), spks[n].end()));
+                BOOST_CHECK_EQUAL(
+                    IsSolvable(Merge(key_provider, script_provider), spks[n]),
+                    (flags & UNSOLVABLE) == 0);
 
                 if (flags & SIGNABLE) {
                     CMutableTransaction spend;
