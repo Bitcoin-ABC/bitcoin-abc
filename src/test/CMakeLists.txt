@@ -216,6 +216,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		util_threadnames_tests.cpp
 		validation_block_tests.cpp
 		validation_chainstatemanager_tests.cpp
+		validation_flush_tests.cpp
 		validation_tests.cpp
 		validationinterface_tests.cpp
 		versionbits_tests.cpp

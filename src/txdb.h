@@ -25,8 +25,6 @@ namespace Consensus {
 struct Params;
 }
 
-//! No need to periodic flush if at least this much space still available.
-static constexpr int MAX_BLOCK_COINSDB_USAGE = 10;
 //! min. -dbcache (MiB)
 static constexpr int64_t MIN_DB_CACHE_MB = 4;
 //! max. -dbcache (MiB)
