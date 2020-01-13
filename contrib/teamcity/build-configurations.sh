@@ -103,8 +103,8 @@ case "$ABC_BUILD_NAME" in
     ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ;;
 
-  build-default)
-    # Build, run unit tests and functional tests (all extended tests if this is the master branch).
+  build-diff)
+    # Build, run unit tests and functional tests.
     CMAKE_FLAGS=(
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_JNI=ON"
@@ -112,12 +112,21 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
     ninja check check-secp256k1
 
-    BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "${BRANCH}" == "master" ]]; then
-      TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --extended"
-    fi
     ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-phononactivation ${TEST_RUNNER_FLAGS}
+    ;;
+
+  build-master)
+    # Build, run unit tests and extended functional tests.
+    CMAKE_FLAGS=(
+      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
+      "-DSECP256K1_ENABLE_JNI=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja check check-secp256k1
+
+    ./test/functional/test_runner.py --extended ${TEST_RUNNER_FLAGS}
+    ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-phononactivation --extended ${TEST_RUNNER_FLAGS}
     ;;
 
   build-without-wallet)
