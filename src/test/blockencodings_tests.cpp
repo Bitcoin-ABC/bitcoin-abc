@@ -10,6 +10,7 @@
 #include <pow.h>
 #include <random.h>
 #include <streams.h>
+#include <txmempool.h>
 
 #include <test/test_bitcoin.h>
 

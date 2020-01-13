@@ -5,13 +5,14 @@
 #ifndef BITCOIN_TEST_TEST_BITCOIN_H
 #define BITCOIN_TEST_TEST_BITCOIN_H
 
+#include <amount.h>
 #include <chainparamsbase.h>
 #include <fs.h>
 #include <key.h>
+#include <primitives/transaction.h>
 #include <pubkey.h>
 #include <random.h>
 #include <scheduler.h>
-#include <txmempool.h>
 
 /**
  * Version of Boost::test prior to 1.64 have issues when dealing with nullptr_t.
@@ -115,7 +116,6 @@ struct TestChain100Setup : public TestingSetup {
 };
 
 class CTxMemPoolEntry;
-class CTxMemPool;
 
 struct TestMemPoolEntryHelper {
     // Default values
@@ -124,7 +124,6 @@ struct TestMemPoolEntryHelper {
     unsigned int nHeight;
     bool spendsCoinbase;
     unsigned int nSigOpCount;
-    LockPoints lp;
 
     TestMemPoolEntryHelper()
         : nFee(), nTime(0), nHeight(1), spendsCoinbase(false), nSigOpCount(1) {}
