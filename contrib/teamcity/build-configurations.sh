@@ -17,11 +17,9 @@ export TOPLEVEL
 
 setup() {
   : "${BUILD_DIR:=${TOPLEVEL}/build}"
-  mkdir -p "${BUILD_DIR}/output"
+  mkdir -p "${BUILD_DIR}"
   BUILD_DIR=$(cd "${BUILD_DIR}"; pwd)
   export BUILD_DIR
-
-  TEST_RUNNER_FLAGS="--tmpdirprefix=output"
 
   cd "${BUILD_DIR}"
 
@@ -71,8 +69,7 @@ case "$ABC_BUILD_NAME" in
       "-DCCACHE=OFF"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check
-    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
+    ninja check check-functional
     ;;
 
   build-ubsan)
@@ -85,8 +82,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_CXX_COMPILER=clang++"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check
-    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
+    ninja check check-functional
     ;;
 
   build-tsan)
@@ -99,8 +95,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_CXX_COMPILER=clang++"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check
-    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
+    ninja check check-functional
     ;;
 
   build-diff)
@@ -110,10 +105,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check check-secp256k1
-
-    ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
-    ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-phononactivation ${TEST_RUNNER_FLAGS}
+    ninja check check-secp256k1 check-functional check-functional-upgrade-activated
     ;;
 
   build-master)
@@ -123,10 +115,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check check-secp256k1
-
-    ./test/functional/test_runner.py --extended ${TEST_RUNNER_FLAGS}
-    ./test/functional/test_runner.py -J=junit_results_next_upgrade.xml --with-phononactivation --extended ${TEST_RUNNER_FLAGS}
+    ninja check check-secp256k1 check-functional-extended check-functional-upgrade-activated-extended
     ;;
 
   build-without-wallet)
