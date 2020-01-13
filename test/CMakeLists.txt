@@ -78,11 +78,12 @@ add_functional_test_check(check-functional-upgrade-activated
 )
 add_dependencies(check-upgrade-activated check-functional-upgrade-activated)
 
-add_functional_test_check(check-functional-extended-upgrade-activated
+add_functional_test_check(check-functional-upgrade-activated-extended
 	"Run the extended functional tests with the upgrade activated"
 	--extended
 	--with-phononactivation
 )
+add_dependencies(check-upgrade-activated-extended check-functional-upgrade-activated-extended)
 
 if(BUILD_BITCOIN_TX)
 	add_custom_target(check-bitcoin-util

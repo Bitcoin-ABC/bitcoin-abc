@@ -49,6 +49,7 @@ add_custom_target(check-all)
 add_custom_target(check)
 add_custom_target(check-extended)
 add_custom_target(check-upgrade-activated)
+add_custom_target(check-upgrade-activated-extended)
 add_custom_target(check-symbols)
 add_custom_target(check-security)
 

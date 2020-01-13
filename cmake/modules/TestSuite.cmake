@@ -72,6 +72,7 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 			create_test_suite_with_parent_targets(
 				${SUITE_UPGRADE_ACTIVATED}
 				check-upgrade-activated
+				check-upgrade-activated-extended
 			)
 			add_dependencies(${TARGET_UPGRADE_ACTIVATED} ${NAME})
 		endif()
