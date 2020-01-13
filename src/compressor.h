@@ -16,7 +16,13 @@ unsigned int GetSpecialScriptSize(unsigned int nSize);
 bool DecompressScript(CScript &script, unsigned int nSize,
                       const std::vector<uint8_t> &out);
 
+/**
+ * Compress amount.
+ *
+ * @pre Function defined only for 0 <= nAmount <= MAX_MONEY.
+ */
 uint64_t CompressAmount(Amount nAmount);
+
 Amount DecompressAmount(uint64_t nAmount);
 
 /**
