@@ -173,6 +173,19 @@ case "$ABC_BUILD_NAME" in
     make -j "${THREADS}" check
     ;;
 
+  build-bench)
+    # Build and run the benchmarks.
+    CMAKE_FLAGS=(
+      "-DBUILD_BITCOIN_WALLET=ON"
+      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
+      "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
+      "-DSECP256K1_ENABLE_MODULE_RECOVERY=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    ninja bench-bitcoin
+    ninja bench-secp256k1
+    ;;
+
   check-seeds-mainnet)
     "${CI_SCRIPTS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/check-seeds.sh main 80
