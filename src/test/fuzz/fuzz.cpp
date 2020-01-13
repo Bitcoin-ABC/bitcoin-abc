@@ -8,6 +8,16 @@
 #include <unistd.h>
 #include <vector>
 
+// Decide if main(...) should be provided:
+// * AFL needs main(...) regardless of platform.
+// * macOS handles __attribute__((weak)) main(...) poorly when linking
+//   against libFuzzer. See https://github.com/bitcoin/bitcoin/pull/18008
+//   for details.
+#if defined(__AFL_COMPILER) || !defined(MAC_OSX)
+#define PROVIDE_MAIN_FUNCTION
+#endif
+
+#if defined(PROVIDE_MAIN_FUNCTION)
 static bool read_stdin(std::vector<uint8_t> &data) {
     uint8_t buffer[1024];
     ssize_t length = 0;
@@ -20,6 +30,7 @@ static bool read_stdin(std::vector<uint8_t> &data) {
     }
     return length == 0;
 }
+#endif
 
 // Default initialization: Override using a non-weak initialize().
 __attribute__((weak)) void initialize() {}
@@ -37,8 +48,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
     return 0;
 }
 
-// Declare main(...) "weak" to allow for libFuzzer linking. libFuzzer provides
-// the main(...) function.
+#if defined(PROVIDE_MAIN_FUNCTION)
 __attribute__((weak)) int main(int argc, char **argv) {
     initialize();
 #ifdef __AFL_INIT
@@ -66,3 +76,4 @@ __attribute__((weak)) int main(int argc, char **argv) {
 #endif
     return 0;
 }
+#endif
