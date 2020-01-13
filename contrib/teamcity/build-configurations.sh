@@ -105,7 +105,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check check-secp256k1 check-functional check-functional-upgrade-activated
+    ninja check-all check-upgrade-activated
     ;;
 
   build-master)
@@ -115,7 +115,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check check-secp256k1 check-functional-extended check-functional-upgrade-activated-extended
+    ninja check-extended check-upgrade-activated-extended
     ;;
 
   build-without-wallet)
@@ -145,15 +145,6 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_CXX_COMPILER=clang++"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ;;
-
-  build-check-all)
-    CMAKE_FLAGS=(
-      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
-      "-DSECP256K1_ENABLE_JNI=ON"
-    )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check-all
     ;;
 
   build-autotools)
