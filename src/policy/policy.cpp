@@ -48,8 +48,12 @@ bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
         uint8_t m = vSolutions.front()[0];
         uint8_t n = vSolutions.back()[0];
         // Support up to x-of-3 multisig txns as standard
-        if (n < 1 || n > 3) return false;
-        if (m < 1 || m > n) return false;
+        if (n < 1 || n > 3) {
+            return false;
+        }
+        if (m < 1 || m > n) {
+            return false;
+        }
     } else if (whichType == TX_NULL_DATA) {
         if (!fAcceptDatacarrier) {
             return false;
