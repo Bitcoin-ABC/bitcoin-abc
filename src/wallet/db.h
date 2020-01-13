@@ -124,10 +124,10 @@ public:
           nLastWalletUpdate(0), env(nullptr) {}
 
     /** Create DB handle to real database */
-    BerkeleyDatabase(std::shared_ptr<BerkeleyEnvironment> env,
+    BerkeleyDatabase(std::shared_ptr<BerkeleyEnvironment> envIn,
                      std::string filename)
         : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0),
-          nLastWalletUpdate(0), env(std::move(env)),
+          nLastWalletUpdate(0), env(std::move(envIn)),
           strFile(std::move(filename)) {
         auto inserted =
             this->env->m_databases.emplace(strFile, std::ref(*this));
