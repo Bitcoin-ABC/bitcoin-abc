@@ -412,6 +412,7 @@ libbitcoin_consensus_a_SOURCES = \
   script/script_error.cpp \
   script/script_error.h \
   script/script_flags.h \
+  script/script_metrics.h \
   script/sigencoding.cpp \
   script/sigencoding.h \
   serialize.h \

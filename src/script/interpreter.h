@@ -10,6 +10,7 @@
 #include <primitives/transaction.h>
 #include <script/script_error.h>
 #include <script/script_flags.h>
+#include <script/script_metrics.h>
 #include <script/sighashtype.h>
 
 #include <cstdint>
@@ -81,14 +82,6 @@ using TransactionSignatureChecker =
     GenericTransactionSignatureChecker<CTransaction>;
 using MutableTransactionSignatureChecker =
     GenericTransactionSignatureChecker<CMutableTransaction>;
-
-/**
- * Struct for holding cumulative results from executing a script or a sequence
- * of scripts.
- */
-struct ScriptExecutionMetrics {
-    int nSigChecks = 0;
-};
 
 bool EvalScript(std::vector<std::vector<uint8_t>> &stack, const CScript &script,
                 uint32_t flags, const BaseSignatureChecker &checker,
