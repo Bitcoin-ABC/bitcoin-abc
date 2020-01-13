@@ -74,6 +74,17 @@ static const unsigned int DEFAULT_BYTES_PER_SIGOP =
 static const Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
 
 /**
+ * When transactions fail script evaluations under standard flags, this flagset
+ * influences the decision of whether to drop them or to also ban the originator
+ * (see CheckInputs).
+ */
+static const uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
+    SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
+    SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_LOW_S |
+    SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_MINIMALDATA |
+    SCRIPT_ENABLE_SCHNORR_MULTISIG;
+
+/**
  * Standard script verification flags that standard transactions will comply
  * with. However scripts violating these flags may still be present in valid
  * blocks and we must accept those blocks.
