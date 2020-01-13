@@ -1197,7 +1197,7 @@ bool CScriptCheck::operator()() {
     return VerifyScript(scriptSig, scriptPubKey, nFlags,
                         CachingTransactionSignatureChecker(ptxTo, nIn, amount,
                                                            cacheStore, txdata),
-                        &error);
+                        metrics, &error);
 }
 
 int GetSpendHeight(const CCoinsViewCache &inputs) {

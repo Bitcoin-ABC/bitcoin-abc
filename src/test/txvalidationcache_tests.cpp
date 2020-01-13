@@ -428,6 +428,16 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // Should get 2 script checks back -- caching is on a whole-transaction
         // basis.
         BOOST_CHECK_EQUAL(scriptchecks.size(), 2U);
+
+        // Execute the first check, and check its result
+        BOOST_CHECK(scriptchecks[0]());
+        BOOST_CHECK_EQUAL(scriptchecks[0].GetScriptError(), ScriptError::OK);
+        BOOST_CHECK_EQUAL(
+            scriptchecks[0].GetScriptExecutionMetrics().nSigChecks, 1);
+        // The second check does fail
+        BOOST_CHECK(!scriptchecks[1]());
+        BOOST_CHECK_EQUAL(scriptchecks[1].GetScriptError(),
+                          ScriptError::INVALID_STACK_OPERATION);
     }
 }
 

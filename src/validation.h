@@ -19,6 +19,7 @@
 #include <fs.h>
 #include <protocol.h> // For CMessageHeader::MessageMagic
 #include <script/script_error.h>
+#include <script/script_metrics.h>
 #include <sync.h>
 #include <versionbits.h>
 
@@ -533,6 +534,7 @@ private:
     uint32_t nFlags;
     bool cacheStore;
     ScriptError error;
+    ScriptExecutionMetrics metrics;
     PrecomputedTransactionData txdata;
 
 public:
@@ -562,6 +564,8 @@ public:
     }
 
     ScriptError GetScriptError() const { return error; }
+
+    ScriptExecutionMetrics GetScriptExecutionMetrics() const { return metrics; }
 };
 
 /** Functions for disk access for blocks */
