@@ -2614,9 +2614,9 @@ CBlockIndex *CChainState::FindMostWorkChain() {
 
                 if (pindexNew->nChainWork > requiredWork) {
                     // We have enough, clear the parked state.
-                    LogPrintf("Unpark block %s as its chain has accumulated "
-                              "enough PoW.\n",
-                              pindexTest->GetBlockHash().ToString());
+                    LogPrintf("Unpark chain up to block %s as it has "
+                              "accumulated enough PoW.\n",
+                              pindexNew->GetBlockHash().ToString());
                     fParkedChain = false;
                     UnparkBlock(pindexTest);
                 }
