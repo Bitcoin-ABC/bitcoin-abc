@@ -17,7 +17,13 @@
 #include <validation.h>
 #include <version.h>
 
+#include <univalue.h>
+
 #include <cassert>
+
+void initialize() {
+    SelectParams(CBaseChainParams::REGTEST);
+}
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
     CDataStream ds(buffer, SER_NETWORK, INIT_PROTO_VERSION);
@@ -83,4 +89,21 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                                      1024, 0);
     (void)IsStandardTx(tx, reason);
     (void)RecursiveDynamicUsage(tx);
+
+    CCoinsView coins_view;
+    const CCoinsViewCache coins_view_cache(&coins_view);
+    (void)AreInputsStandard(tx, coins_view_cache, STANDARD_SCRIPT_VERIFY_FLAGS);
+
+    UniValue u(UniValue::VOBJ);
+    // ValueFromAmount(i) not defined when i ==
+    // std::numeric_limits<int64_t>::min()
+    bool skip_tx_to_univ = false;
+    for (const CTxOut &txout : tx.vout) {
+        if (txout.nValue == std::numeric_limits<int64_t>::min() * SATOSHI) {
+            skip_tx_to_univ = true;
+        }
+    }
+    if (!skip_tx_to_univ) {
+        TxToUniv(tx, /* hashBlock */ {}, u);
+    }
 }

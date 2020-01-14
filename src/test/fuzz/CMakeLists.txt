@@ -88,6 +88,7 @@ add_regular_fuzz_targets(
 	hex
 	integer
 	key
+	key_io
 	locale
 	net_permissions
 	p2p_transport_deserializer
