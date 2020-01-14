@@ -174,7 +174,7 @@ def main():
     parser.add_argument('--quiet', '-q', action='store_true',
                         help='only print results summary and failure logs')
     parser.add_argument('--tmpdirprefix', '-t',
-                        default=tempfile.gettempdir(), help="Root directory for datadirs")
+                        default=os.path.join(build_dir, 'test', 'tmp'), help="Root directory for datadirs")
     parser.add_argument('--junitoutput', '-J', default='junit_results.xml',
                         help="File that will store JUnit formatted test results. If no absolute path is given it is treated as relative to the temporary directory.")
 
