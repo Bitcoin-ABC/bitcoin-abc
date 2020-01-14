@@ -175,8 +175,8 @@ def main():
                         help='only print results summary and failure logs')
     parser.add_argument('--tmpdirprefix', '-t',
                         default=tempfile.gettempdir(), help="Root directory for datadirs")
-    parser.add_argument('--junitoutput', '-J',
-                        default=os.path.join(build_dir, 'junit_results.xml'), help="file that will store JUnit formatted test results.")
+    parser.add_argument('--junitoutput', '-J', default='junit_results.xml',
+                        help="File that will store JUnit formatted test results. If no absolute path is given it is treated as relative to the temporary directory.")
 
     args, unknown_args = parser.parse_known_args()
 
@@ -196,6 +196,9 @@ def main():
     os.makedirs(tmpdir)
 
     logging.debug("Temporary test directory at {}".format(tmpdir))
+
+    if not os.path.isabs(args.junitoutput):
+        args.junitoutput = os.path.join(tmpdir, args.junitoutput)
 
     enable_wallet = config["components"].getboolean("ENABLE_WALLET")
     enable_utils = config["components"].getboolean("ENABLE_UTILS")
