@@ -77,8 +77,8 @@ private:
     /**
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for
      * itself and all ancestors) and as good as our current tip or better.
-     * Entries may be failed, though, and pruning nodes may be missing the data
-     * for the block.
+     * Entries may be failed or parked though, and pruning nodes may be missing
+     * the data for the block; these will get cleaned during FindMostWorkChain.
      */
     std::set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexCandidates;
 
@@ -2635,7 +2635,8 @@ CBlockIndex *CChainState::FindMostWorkChain() {
                 continue;
             }
 
-            // Candidate chain is not usable (either invalid or missing data)
+            // Candidate chain is not usable (either invalid or parked or
+            // missing data)
             hasValidAncestor = false;
             setBlockIndexCandidates.erase(pindexTest);
 
@@ -5334,8 +5335,9 @@ void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
             assert(!pindex->nStatus.isInvalid());
         }
         if (pindexFirstParked == nullptr) {
-            // Checks for not-invalid blocks.
-            // The failed mask cannot be set for blocks without invalid parents.
+            // Checks for not-parked blocks.
+            // The parked mask cannot be set for blocks without parked parents.
+            // (i.e., hasParkedParent only if an ancestor is properly parked).
             assert(!pindex->nStatus.isOnParkedChain());
         }
         if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) &&
