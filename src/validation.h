@@ -639,8 +639,7 @@ bool PreciousBlock(const Config &config, CValidationState &state,
  * A finalized block can not be reorged in any way.
  */
 bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
-                                CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+                                CBlockIndex *pindex);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,

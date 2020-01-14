@@ -3126,26 +3126,29 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
 
 bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
                                 CBlockIndex *pindex) {
-    AssertLockHeld(cs_main);
-    if (!FinalizeBlockInternal(config, state, pindex)) {
-        // state is set by FinalizeBlockInternal.
-        return false;
-    }
+    {
+        LOCK(cs_main);
+        if (!FinalizeBlockInternal(config, state, pindex)) {
+            // state is set by FinalizeBlockInternal.
+            return false;
+        }
 
-    // We have a valid candidate, make sure it is not parked.
-    if (pindex->nStatus.isOnParkedChain()) {
-        UnparkBlock(pindex);
+        // We have a valid candidate, make sure it is not parked.
+        if (pindex->nStatus.isOnParkedChain()) {
+            UnparkBlock(pindex);
+        }
     }
 
     // If the finalized block is not on the active chain, we need to rewind.
-    if (!AreOnTheSameFork(pindex, chainActive.Tip())) {
-        const CBlockIndex *pindexFork = chainActive.FindFork(pindex);
-        CBlockIndex *pindexToInvalidate =
-            chainActive.Tip()->GetAncestor(pindexFork->nHeight + 1);
-        return InvalidateBlock(config, state, pindexToInvalidate);
+    if (AreOnTheSameFork(pindex, chainActive.Tip())) {
+        return true;
     }
 
-    return true;
+    const CBlockIndex *pindexFork = chainActive.FindFork(pindex);
+    CBlockIndex *pindexToInvalidate =
+        chainActive.Tip()->GetAncestor(pindexFork->nHeight + 1);
+
+    return InvalidateBlock(config, state, pindexToInvalidate);
 }
 
 bool InvalidateBlock(const Config &config, CValidationState &state,
