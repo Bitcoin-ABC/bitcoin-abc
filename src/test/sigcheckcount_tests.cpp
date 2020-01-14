@@ -312,37 +312,47 @@ BOOST_AUTO_TEST_CASE(test_verifyscript) {
     // make sure that verifyscript is correctly resetting and accumulating
     // sigchecks for the input.
 
-    ScriptExecutionMetrics metrics;
+#define CHECK_VERIFYSCRIPT(scriptSig, scriptPubKey, flags, expected_sigchecks) \
+    {                                                                          \
+        ScriptExecutionMetrics metricsRet;                                     \
+        metricsRet.nSigChecks = 12345 ^ 0;                                     \
+        BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,                      \
+                                 flags & ~SCRIPT_REPORT_SIGCHECKS,             \
+                                 dummysigchecker, metricsRet));                \
+        BOOST_CHECK_EQUAL(metricsRet.nSigChecks, 0);                           \
+        metricsRet.nSigChecks = 12345 ^ expected_sigchecks;                    \
+        BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,                      \
+                                 flags | SCRIPT_REPORT_SIGCHECKS,              \
+                                 dummysigchecker, metricsRet));                \
+        BOOST_CHECK_EQUAL(metricsRet.nSigChecks, expected_sigchecks);          \
+    }
 
-    // regardless of the initial value, it gets zeroed out
-    metrics.nSigChecks = 12345;
-    BOOST_CHECK(VerifyScript(CScript() << OP_1, CScript(), 0, dummysigchecker,
-                             metrics));
-    BOOST_CHECK_EQUAL(metrics.nSigChecks, 0);
+    // Simplest example
+    CHECK_VERIFYSCRIPT(CScript() << OP_1, CScript(), SCRIPT_VERIFY_NONE, 0);
 
-    // it even gets zeroed out for segwit recovery special case (which returns
-    // true from an alternative location)
-    metrics.nSigChecks = 12345;
+    // Common example
+    CHECK_VERIFYSCRIPT(CScript() << sigschnorr, CScript() << pub << OP_CHECKSIG,
+                       SCRIPT_VERIFY_NONE, 1);
+
+    // Correct behaviour occurs for segwit recovery special case (which returns
+    // success from an alternative location)
     CScript swscript;
     swscript << OP_0 << std::vector<uint8_t>(20);
-    BOOST_CHECK(VerifyScript(CScript() << ToByteVector(swscript),
-                             CScript() << OP_HASH160
-                                       << ToByteVector(CScriptID(swscript))
-                                       << OP_EQUAL,
-                             SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_CLEANSTACK,
-                             dummysigchecker, metrics));
-    BOOST_CHECK_EQUAL(metrics.nSigChecks, 0);
+    CHECK_VERIFYSCRIPT(CScript() << ToByteVector(swscript),
+                       CScript()
+                           << OP_HASH160 << ToByteVector(CScriptID(swscript))
+                           << OP_EQUAL,
+                       SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_CLEANSTACK, 0);
 
     // If signature checks somehow occur in scriptsig, they do get counted.
     // This can happen in historical blocks pre SIGPUSHONLY, even with CHECKSIG.
     // (an analogous check for P2SH is not possible since it enforces
     // sigpushonly).
-    BOOST_CHECK(VerifyScript(CScript() << sigschnorr << msg << pub
-                                       << OP_CHECKDATASIG /* scriptSig */,
-                             CScript() << sigecdsa << msg << pub
-                                       << OP_CHECKDATASIG /* scriptPubKey */,
-                             0, dummysigchecker, metrics));
-    BOOST_CHECK_EQUAL(metrics.nSigChecks, 2);
+    CHECK_VERIFYSCRIPT(CScript() << sigschnorr << msg << pub
+                                 << OP_CHECKDATASIG /* scriptSig */,
+                       CScript() << sigecdsa << msg << pub
+                                 << OP_CHECKDATASIG /* scriptPubKey */,
+                       SCRIPT_VERIFY_NONE, 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

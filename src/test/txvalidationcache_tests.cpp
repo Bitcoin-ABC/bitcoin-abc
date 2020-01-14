@@ -415,16 +415,18 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
         // This transaction is now invalid because the second signature is
         // missing.
-        BOOST_CHECK(!CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                 STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
-                                 txdata, nullptr));
+        BOOST_CHECK(
+            !CheckInputs(transaction, state, pcoinsTip.get(), true,
+                         STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS,
+                         true, true, txdata, nullptr));
 
         // Make sure this transaction was not cached (ie becausethe first input
         // was valid)
         std::vector<CScriptCheck> scriptchecks;
-        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
-                                STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
-                                txdata, &scriptchecks));
+        BOOST_CHECK(
+            CheckInputs(transaction, state, pcoinsTip.get(), true,
+                        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS,
+                        true, true, txdata, &scriptchecks));
         // Should get 2 script checks back -- caching is on a whole-transaction
         // basis.
         BOOST_CHECK_EQUAL(scriptchecks.size(), 2U);

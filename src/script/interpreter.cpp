@@ -1750,6 +1750,13 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         if ((flags & SCRIPT_DISALLOW_SEGWIT_RECOVERY) == 0 && stack.empty() &&
             pubKey2.IsWitnessProgram()) {
             // must set metricsOut for all successful returns
+
+            // Prior to activation of this flag, all transactions will count as
+            // having a sigchecks count of 0 for accounting purposes outside of
+            // VerifyScript.
+            if (!(flags & SCRIPT_REPORT_SIGCHECKS)) {
+                metrics.nSigChecks = 0;
+            }
             metricsOut = metrics;
             return set_success(serror);
         }
@@ -1802,6 +1809,12 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         if (int(scriptSig.size()) < metrics.nSigChecks * 43 - 60) {
             return set_error(serror, ScriptError::INPUT_SIGCHECKS);
         }
+    }
+
+    // Prior to activation of this flag, all transactions will count as having a
+    // sigchecks count of 0 for accounting purposes outside of VerifyScript.
+    if (!(flags & SCRIPT_REPORT_SIGCHECKS)) {
+        metrics.nSigChecks = 0;
     }
 
     metricsOut = metrics;
