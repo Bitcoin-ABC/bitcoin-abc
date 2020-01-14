@@ -177,6 +177,8 @@ def main():
                         default=os.path.join(build_dir, 'test', 'tmp'), help="Root directory for datadirs")
     parser.add_argument('--junitoutput', '-J', default='junit_results.xml',
                         help="File that will store JUnit formatted test results. If no absolute path is given it is treated as relative to the temporary directory.")
+    parser.add_argument('--testsuitename', '-n', default='Bitcoin ABC functional tests',
+                        help="Name of the test suite, as it will appear in the logs and in the JUnit report.")
 
     args, unknown_args = parser.parse_known_args()
 
@@ -189,6 +191,7 @@ def main():
     # Set up logging
     logging_level = logging.INFO if args.quiet else logging.DEBUG
     logging.basicConfig(format='%(message)s', level=logging_level)
+    logging.info("Starting {}".format(args.testsuitename))
 
     # Create base test directory
     tmpdir = os.path.join("{}", "bitcoin_test_runner_{:%Y%m%d_%H%M%S}").format(
@@ -302,10 +305,10 @@ def main():
                                    "cache"), ignore_errors=True)
 
     run_tests(test_list, build_dir, tests_dir, args.junitoutput,
-              tmpdir, args.jobs, args.coverage, passon_args, args.combinedlogslen, build_timings)
+              tmpdir, args.jobs, args.testsuitename, args.coverage, passon_args, args.combinedlogslen, build_timings)
 
 
-def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
+def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, test_suite_name, enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
@@ -349,7 +352,7 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, en
     max_len_name = len(max(test_list, key=len))
     print_results(test_results, tests_dir, max_len_name,
                   runtime, combined_logs_len)
-    save_results_as_junit(test_results, junitoutput, runtime)
+    save_results_as_junit(test_results, junitoutput, runtime, test_suite_name)
 
     if (build_timings is not None):
         build_timings.save_timings(test_results)
@@ -678,14 +681,14 @@ class RPCCoverage():
         return all_cmds - covered_cmds
 
 
-def save_results_as_junit(test_results, file_name, time):
+def save_results_as_junit(test_results, file_name, time, test_suite_name):
     """
     Save tests results to file in JUnit format
 
     See http://llg.cubic.org/docs/junit/ for specification of format
     """
     e_test_suite = ET.Element("testsuite",
-                              {"name": "bitcoin_abc_tests",
+                              {"name": "{}".format(test_suite_name),
                                "tests": str(len(test_results)),
                                # "errors":
                                "failures": str(len([t for t in test_results if t.status == "Failed"])),

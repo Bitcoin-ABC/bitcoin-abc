@@ -58,6 +58,7 @@ macro(add_functional_test_check TARGET COMMENT)
 			../src/bitcoin-cli
 			${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
 		USES_TERMINAL
+		VERBATIM
 	)
 endmacro()
 
@@ -72,9 +73,12 @@ add_functional_test_check(check-functional-extended
 )
 add_dependencies(check-extended check-functional-extended)
 
+set(TEST_SUITE_NAME_UPGRADE_ACTIVATED "Bitcoin ABC functional tests with the next upgrade activated")
+
 add_functional_test_check(check-functional-upgrade-activated
 	"Run the functional tests with the upgrade activated"
 	--with-phononactivation
+	-n "${TEST_SUITE_NAME_UPGRADE_ACTIVATED}"
 )
 add_dependencies(check-upgrade-activated check-functional-upgrade-activated)
 
@@ -82,6 +86,7 @@ add_functional_test_check(check-functional-upgrade-activated-extended
 	"Run the extended functional tests with the upgrade activated"
 	--extended
 	--with-phononactivation
+	-n "${TEST_SUITE_NAME_UPGRADE_ACTIVATED}"
 )
 add_dependencies(check-upgrade-activated-extended check-functional-upgrade-activated-extended)
 
