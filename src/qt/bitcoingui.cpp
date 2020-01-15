@@ -700,6 +700,10 @@ void BitcoinGUI::removeWallet(WalletModel *walletModel) {
     if (!walletFrame) {
         return;
     }
+
+    labelWalletHDStatusIcon->hide();
+    labelWalletEncryptionIcon->hide();
+
     int index = m_wallet_selector->findData(QVariant::fromValue(walletModel));
     m_wallet_selector->removeItem(index);
     if (m_wallet_selector->count() == 0) {
@@ -1298,7 +1302,7 @@ void BitcoinGUI::setHDStatus(bool privkeyDisabled, int hdEnabled) {
             ? tr("Private key <b>disabled</b>")
             : hdEnabled ? tr("HD key generation is <b>enabled</b>")
                         : tr("HD key generation is <b>disabled</b>"));
-
+    labelWalletHDStatusIcon->show();
     // eventually disable the QLabel to set its opacity to 50%
     labelWalletHDStatusIcon->setEnabled(hdEnabled);
 }
