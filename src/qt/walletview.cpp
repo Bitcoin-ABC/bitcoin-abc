@@ -72,6 +72,8 @@ WalletView::WalletView(const PlatformStyle *_platformStyle,
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
 
+    connect(overviewPage, &OverviewPage::transactionClicked, this,
+            &WalletView::transactionClicked);
     // Clicking on a transaction on the overview pre-selects the transaction on
     // the transaction history page
     connect(overviewPage, &OverviewPage::transactionClicked, transactionView,
@@ -81,6 +83,8 @@ WalletView::WalletView(const PlatformStyle *_platformStyle,
     connect(overviewPage, &OverviewPage::outOfSyncWarningClicked, this,
             &WalletView::requestedSyncWarningInfo);
 
+    connect(sendCoinsPage, &SendCoinsDialog::coinsSent, this,
+            &WalletView::coinsSent);
     // Highlight transaction after send
     connect(sendCoinsPage, &SendCoinsDialog::coinsSent, transactionView,
             static_cast<void (TransactionView::*)(const uint256 &)>(
@@ -107,11 +111,11 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui) {
     if (gui) {
         // Clicking on a transaction on the overview page simply sends you to
         // transaction history page
-        connect(overviewPage, &OverviewPage::transactionClicked, gui,
+        connect(this, &WalletView::transactionClicked, gui,
                 &BitcoinGUI::gotoHistoryPage);
 
         // Navigate to transaction history page after send
-        connect(sendCoinsPage, &SendCoinsDialog::coinsSent, gui,
+        connect(this, &WalletView::coinsSent, gui,
                 &BitcoinGUI::gotoHistoryPage);
 
         // Receive and report messages
