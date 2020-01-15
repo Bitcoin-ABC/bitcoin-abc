@@ -164,7 +164,7 @@ CKeyID GetKeyForDestination(const SigningProvider &store,
                             const CTxDestination &dest) {
     // Only supports destinations which map to single public keys, i.e. P2PKH.
     if (auto id = boost::get<PKHash>(&dest)) {
-        return CKeyID(*id);
+        return ToKeyID(*id);
     }
     return CKeyID();
 }

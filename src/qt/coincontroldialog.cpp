@@ -497,7 +497,7 @@ void CoinControlDialog::updateLabels(CCoinControl &m_coin_control,
             CPubKey pubkey;
             PKHash *pkhash = boost::get<PKHash>(&address);
             if (pkhash && model->wallet().getPubKey(out.txout.scriptPubKey,
-                                                    CKeyID(*pkhash), pubkey)) {
+                                                    ToKeyID(*pkhash), pubkey)) {
                 nBytesInputs += (pubkey.IsCompressed() ? 148 : 180);
             } else {
                 // in all error cases, simply assume 148 here

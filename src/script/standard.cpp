@@ -15,12 +15,21 @@ typedef std::vector<uint8_t> valtype;
 bool fAcceptDatacarrier = DEFAULT_ACCEPT_DATACARRIER;
 
 CScriptID::CScriptID(const CScript &in)
-    : uint160(Hash160(in.begin(), in.end())) {}
+    : BaseHash(Hash160(in.begin(), in.end())) {}
+CScriptID::CScriptID(const ScriptHash &in)
+    : BaseHash(static_cast<uint160>(in)) {}
 
 ScriptHash::ScriptHash(const CScript &in)
-    : uint160(Hash160(in.begin(), in.end())) {}
+    : BaseHash(Hash160(in.begin(), in.end())) {}
+ScriptHash::ScriptHash(const CScriptID &in)
+    : BaseHash(static_cast<uint160>(in)) {}
 
-PKHash::PKHash(const CPubKey &pubkey) : uint160(pubkey.GetID()) {}
+PKHash::PKHash(const CPubKey &pubkey) : BaseHash(pubkey.GetID()) {}
+PKHash::PKHash(const CKeyID &pubkey_id) : BaseHash(pubkey_id) {}
+
+CKeyID ToKeyID(const PKHash &key_hash) {
+    return CKeyID{static_cast<uint160>(key_hash)};
+}
 
 std::string GetTxnOutputType(TxoutType t) {
     switch (t) {

@@ -143,7 +143,7 @@ static bool SignStep(const SigningProvider &provider,
         }
         case TxoutType::SCRIPTHASH:
             h160 = uint160(vSolutions[0]);
-            if (GetCScript(provider, sigdata, h160, scriptRet)) {
+            if (GetCScript(provider, sigdata, CScriptID{h160}, scriptRet)) {
                 ret.push_back(
                     std::vector<uint8_t>(scriptRet.begin(), scriptRet.end()));
                 return true;
