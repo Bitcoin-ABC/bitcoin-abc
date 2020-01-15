@@ -11,7 +11,6 @@ set(CMAKE_CXX_STANDARD 11)
 # Remove some warnings for leveldb as they can get noisy.
 add_compiler_flags(-Wno-sign-compare -Wno-implicit-fallthrough)
 add_c_compiler_flags(-Wno-strict-prototypes)
-remove_compiler_flags(-Wstrict-prototypes)
 
 include(CheckIncludeFileCXX)
 check_include_file_cxx("atomic" LEVELDB_ATOMIC_PRESENT)
