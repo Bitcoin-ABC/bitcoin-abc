@@ -108,7 +108,6 @@ if(ENABLE_HARDENING)
 		include(CheckPIESupported)
 		check_pie_supported()
 	elseif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		add_compiler_flags(-fPIE)
 		add_linker_flags(-pie)
 	endif()
 
