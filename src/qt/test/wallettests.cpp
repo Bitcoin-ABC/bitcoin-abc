@@ -132,13 +132,10 @@ void TestGUI(interfaces::Node &node) {
                                       ::ChainActive().Tip()->GetBlockHash());
     }
     {
-        auto locked_chain = wallet->chain().lock();
-        LockAssertion lock(::cs_main);
-
         WalletRescanReserver reserver(*wallet);
         reserver.reserve();
         CWallet::ScanResult result = wallet->ScanForWalletTransactions(
-            locked_chain->getBlockHash(0), BlockHash(), reserver,
+            Params().GetConsensus().hashGenesisBlock, BlockHash(), reserver,
             true /* fUpdate */);
         QCOMPARE(result.status, CWallet::ScanResult::SUCCESS);
         QCOMPARE(result.last_scanned_block,
