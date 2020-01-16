@@ -145,7 +145,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
     def test_magic_bytes(self):
         conn = self.nodes[0].add_p2p_connection(P2PDataStore())
 
-        def swap_magic_bytes():
+        async def swap_magic_bytes():
             # Need to ignore all incoming messages from now, since they come
             # with "invalid" magic bytes
             conn._on_data = lambda: None
@@ -154,7 +154,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         # Call .result() to block until the atomic swap is complete, otherwise
         # we might run into races later on
         asyncio.run_coroutine_threadsafe(
-            asyncio.coroutine(swap_magic_bytes)(),
+            swap_magic_bytes(),
             NetworkThread.network_event_loop).result()
 
         with self.nodes[0].assert_debug_log(['PROCESSMESSAGE: INVALID MESSAGESTART ping']):
