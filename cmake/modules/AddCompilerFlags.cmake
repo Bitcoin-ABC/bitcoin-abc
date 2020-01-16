@@ -117,11 +117,8 @@ function(check_linker_flag RESULT FLAG)
 	# Save the current linker flags
 	set(SAVE_CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 
-	# If the flag is already set, avoid duplicating it
-	string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${FLAG}" FLAG_POSITION)
-	if(${FLAG_POSITION} LESS 0)
-		string(APPEND CMAKE_EXE_LINKER_FLAGS " ${FLAG}")
-	endif()
+	# Append the flag under test to the linker flags
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " ${FLAG}")
 
 	# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
 	# calls try_compile, so it will check our flag
@@ -139,10 +136,8 @@ function(add_linker_flags)
 
 		check_linker_flag(${FLAG_IS_SUPPORTED} ${f})
 
-		# If the flag is supported, add it to CMAKE_EXE_LINKER_FLAGS
 		if(${FLAG_IS_SUPPORTED})
-			string(APPEND CMAKE_EXE_LINKER_FLAGS " ${f}")
+			add_link_options(${f})
 		endif()
 	endforeach()
-	set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} PARENT_SCOPE)
 endfunction()
