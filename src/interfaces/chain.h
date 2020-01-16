@@ -179,6 +179,12 @@ public:
     virtual bool findBlock(const BlockHash &hash,
                            const FoundBlock &block = {}) = 0;
 
+    //! Return whether block descends from a specified ancestor, and
+    //! optionally return ancestor information.
+    virtual bool findAncestorByHash(const BlockHash &block_hash,
+                                    const BlockHash &ancestor_hash,
+                                    const FoundBlock &ancestor_out = {}) = 0;
+
     //! Look up unspent output information. Returns coins in the mempool and in
     //! the current chain UTXO set. Iterates through all the keys in the map and
     //! populates the values.

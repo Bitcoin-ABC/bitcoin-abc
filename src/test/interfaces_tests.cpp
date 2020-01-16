@@ -50,4 +50,16 @@ BOOST_AUTO_TEST_CASE(findBlock) {
     BOOST_CHECK(!chain->findBlock(BlockHash(), FoundBlock()));
 }
 
+BOOST_AUTO_TEST_CASE(findAncestorByHash) {
+    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &active = ChainActive();
+    int height = -1;
+    BOOST_CHECK(chain->findAncestorByHash(active[20]->GetBlockHash(),
+                                          active[10]->GetBlockHash(),
+                                          FoundBlock().height(height)));
+    BOOST_CHECK_EQUAL(height, 10);
+    BOOST_CHECK(!chain->findAncestorByHash(active[10]->GetBlockHash(),
+                                           active[20]->GetBlockHash()));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
