@@ -165,6 +165,9 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
             std::make_shared<CWallet>(Params(), chain.get(), WalletLocation(),
                                       WalletDatabase::CreateDummy());
         wallet->SetupLegacyScriptPubKeyMan();
+        WITH_LOCK(wallet->cs_wallet,
+                  wallet->SetLastBlockProcessed(newTip->nHeight,
+                                                newTip->GetBlockHash()));
         AddWallet(wallet);
         UniValue keys;
         keys.setArray();
