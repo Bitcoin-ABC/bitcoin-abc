@@ -83,29 +83,27 @@ macro(remove_compiler_flags)
 	remove_cxx_compiler_flags(${ARGN})
 endmacro()
 
-function(add_cxx_compiler_flag_with_fallback TARGET_VAR FLAG FALLBACK)
-	# Remove the fallback flag if it exists, so that the main flag will override
-	# it if it was previously added.
-	remove_cxx_compiler_flags(${FALLBACK})
-
-	set(FLAG_CANDIDATE ${FLAG})
-	check_compiler_flag(FLAG_IS_SUPPORTED CXX ${FLAG_CANDIDATE})
-	if(NOT ${FLAG_IS_SUPPORTED})
-		set(FLAG_CANDIDATE ${FALLBACK})
-	endif()
-
-	add_compiler_flags_to_var(${TARGET_VAR} CXX ${FLAG_CANDIDATE})
-	set(${TARGET_VAR} ${${TARGET_VAR}} PARENT_SCOPE)
-endfunction()
-
-function(add_compile_options_to_configuration CONFIGURATION)
+function(add_compile_options_to_configuration_for_language CONFIGURATION LANGUAGE)
 	foreach(f ${ARGN})
-		check_compiler_flag(FLAG_IS_SUPPORTED CXX ${f})
+		check_compiler_flag(FLAG_IS_SUPPORTED ${LANGUAGE} ${f})
 		if(${FLAG_IS_SUPPORTED})
-			add_compile_options($<$<CONFIG:${CONFIGURATION}>:${f}>)
+			add_compile_options($<$<AND:$<CONFIG:${CONFIGURATION}>,$<COMPILE_LANGUAGE:${LANGUAGE}>>:${f}>)
 		endif()
 	endforeach()
 endfunction()
+
+macro(add_c_compile_options_to_configuration CONFIGURATION)
+	add_compile_options_to_configuration_for_language(${CONFIGURATION} C ${ARGN})
+endmacro()
+
+macro(add_cxx_compile_options_to_configuration CONFIGURATION)
+	add_compile_options_to_configuration_for_language(${CONFIGURATION} CXX ${ARGN})
+endmacro()
+
+macro(add_compile_options_to_configuration CONFIGURATION)
+	add_c_compile_options_to_configuration(${CONFIGURATION} ${ARGN})
+	add_cxx_compile_options_to_configuration(${CONFIGURATION} ${ARGN})
+endmacro()
 
 function(add_compile_definitions_to_configuration CONFIGURATION)
 	foreach(f ${ARGN})

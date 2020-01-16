@@ -42,8 +42,16 @@ if(ENABLE_SANITIZERS)
 endif()
 
 include(AddCompilerFlags)
+
 # Prefer -g3, defaults to -g if unavailable
-add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -g3 -g)
+foreach(LANGUAGE C CXX)
+	set(COMPILER_DEBUG_LEVEL -g)
+	check_compiler_flag(G3_IS_SUPPORTED ${LANGUAGE} -g3)
+	if(${G3_IS_SUPPORTED})
+		set(COMPILER_DEBUG_LEVEL -g3)
+	endif()
+	add_compile_options_to_configuration_for_language(Debug ${LANGUAGE} ${COMPILER_DEBUG_LEVEL})
+endforeach()
 
 # Define the debugging symbols DEBUG and DEBUG_LOCKORDER when the Debug build
 # type is selected.
