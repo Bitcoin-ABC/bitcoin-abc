@@ -16,20 +16,6 @@ function(check_compiler_flag RESULT LANGUAGE FLAG)
 	set(${RESULT} ${${TEST_NAME}} PARENT_SCOPE)
 endfunction()
 
-function(add_compiler_flags_to_var TARGET LANGUAGE)
-	foreach(f ${ARGN})
-		# If the flag is already set, avoid duplicating it
-		string(FIND "${${TARGET}}" "${f}" FLAG_POSITION)
-		if(${FLAG_POSITION} LESS 0)
-			check_compiler_flag(FLAG_IS_SUPPORTED ${LANGUAGE} ${f})
-			if(${FLAG_IS_SUPPORTED})
-				string(APPEND ${TARGET} " ${f}")
-			endif()
-		endif()
-	endforeach()
-	set(${TARGET} ${${TARGET}} PARENT_SCOPE)
-endfunction()
-
 function(add_compiler_flags_for_language LANGUAGE)
 	foreach(f ${ARGN})
 		check_compiler_flag(FLAG_IS_SUPPORTED ${LANGUAGE} ${f})
@@ -122,11 +108,11 @@ function(check_linker_flag RESULT FLAG)
 	# Using -Werror will promote these warnings to errors so
 	# CHECK_CXX_COMPILER_FLAG() will return false, preventing the flag from
 	# being set.
-	add_compiler_flags_to_var(
-		CMAKE_REQUIRED_FLAGS
-		CXX
-		"-Werror=unused-command-line-argument"
-	)
+	set(WERROR_UNUSED_ARG -Werror=unused-command-line-argument)
+	check_compiler_flag(IS_WERROR_SUPPORTED CXX ${WERROR_UNUSED_ARG})
+	if(${IS_WERROR_SUPPORTED})
+		set(CMAKE_REQUIRED_FLAGS ${WERROR_UNUSED_ARG})
+	endif()
 
 	# Save the current linker flags
 	set(SAVE_CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
