@@ -257,6 +257,8 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         request.params.setArray();
         request.params.push_back(backup_file);
         AddWallet(wallet);
+        wallet->SetLastBlockProcessed(::ChainActive().Height(),
+                                      ::ChainActive().Tip()->GetBlockHash());
         ::dumpwallet(GetConfig(), request);
         RemoveWallet(wallet);
     }
@@ -267,16 +269,18 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         std::shared_ptr<CWallet> wallet =
             std::make_shared<CWallet>(Params(), chain.get(), WalletLocation(),
                                       WalletDatabase::CreateDummy());
+        LOCK(wallet->cs_wallet);
         wallet->SetupLegacyScriptPubKeyMan();
 
         JSONRPCRequest request;
         request.params.setArray();
         request.params.push_back(backup_file);
         AddWallet(wallet);
+        wallet->SetLastBlockProcessed(::ChainActive().Height(),
+                                      ::ChainActive().Tip()->GetBlockHash());
         ::importwallet(GetConfig(), request);
         RemoveWallet(wallet);
 
-        LOCK(wallet->cs_wallet);
         BOOST_CHECK_EQUAL(wallet->mapWallet.size(), 3U);
         BOOST_CHECK_EQUAL(m_coinbase_txns.size(), 103U);
         for (size_t i = 0; i < m_coinbase_txns.size(); ++i) {
