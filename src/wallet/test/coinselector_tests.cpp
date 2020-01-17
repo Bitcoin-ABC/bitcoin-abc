@@ -78,6 +78,7 @@ static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
         std::make_unique<CWalletTx>(&wallet, MakeTransactionRef(std::move(tx)));
     if (fIsFromMe) {
         wtx->m_amounts[CWalletTx::DEBIT].Set(ISMINE_SPENDABLE, SATOSHI);
+        wtx->m_is_cache_empty = false;
     }
     COutput output(wtx.get(), nInput, nAge, true /* spendable */,
                    true /* solvable */, true /* safe */);

@@ -1963,6 +1963,7 @@ Amount CWalletTx::GetCachableAmount(AmountType type, const isminefilter &filter,
     if (recalculate || !amount.m_cached[filter]) {
         amount.Set(filter, type == DEBIT ? pwallet->GetDebit(*tx, filter)
                                          : pwallet->GetCredit(*tx, filter));
+        m_is_cache_empty = false;
     }
     return amount.m_value[filter];
 }
@@ -2052,6 +2053,7 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache,
 
     if (allow_cache) {
         m_amounts[AVAILABLE_CREDIT].Set(filter, nCredit);
+        m_is_cache_empty = false;
     }
 
     return nCredit;
@@ -3504,7 +3506,9 @@ void CWallet::MarkDestinationsDirty(
     const std::set<CTxDestination> &destinations) {
     for (auto &entry : mapWallet) {
         CWalletTx &wtx = entry.second;
-
+        if (wtx.m_is_cache_empty) {
+            continue;
+        }
         for (unsigned int i = 0; i < wtx.tx->vout.size(); i++) {
             CTxDestination dst;
 
