@@ -111,7 +111,8 @@ check_symbol_exists(malloc_info "malloc.h" HAVE_MALLOC_INFO)
 
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
-check_symbol_exists(daemon "unistd.h" HAVE_DECL_DAEMON)
+# daemon() is located in unistd.h on linux and in stdlib.h on BSDs and macOS.
+check_symbol_exists(daemon "unistd.h;stdlib.h" HAVE_DECL_DAEMON)
 
 # Check for ways to obtain entropy
 check_symbol_exists(getentropy "unistd.h" HAVE_GETENTROPY)
