@@ -105,7 +105,11 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check-all check-upgrade-activated
+    # FIXME: Path collisions in src/test/util_tests.cpp cause issues when
+    # upgraded tests are run in parallel with their non-upgraded counterpart.
+    # Change this back to a one-liner when the root cause is fixed.
+    ninja check-all
+    ninja check-upgrade-activated
     ;;
 
   build-master)
@@ -115,7 +119,11 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check-extended check-upgrade-activated-extended
+    # FIXME: Path collisions in src/test/util_tests.cpp cause issues when
+    # upgraded tests are run in parallel with their non-upgraded counterpart.
+    # Change this back to a one-liner when the root cause is fixed.
+    ninja check-extended
+    ninja check-upgrade-activated-extended
     ;;
 
   build-without-wallet)
