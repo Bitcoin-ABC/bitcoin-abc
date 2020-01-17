@@ -116,7 +116,8 @@ check_symbol_exists(daemon "unistd.h;stdlib.h" HAVE_DECL_DAEMON)
 
 # Check for ways to obtain entropy
 check_symbol_exists(getentropy "unistd.h" HAVE_GETENTROPY)
-check_symbol_exists(getentropy "sys/random.h" HAVE_GETENTROPY_RAND)
+# macOS needs unistd.h and sys/random.h to define getentropy
+check_symbol_exists(getentropy "unistd.h;sys/random.h" HAVE_GETENTROPY_RAND)
 
 # getifaddrs and freeifaddrs may be unavailable with some Android versions
 check_symbol_exists(getifaddrs "sys/types.h;ifaddrs.h" HAVE_DECL_GETIFADDRS)
