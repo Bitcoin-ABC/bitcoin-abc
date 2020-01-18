@@ -452,13 +452,6 @@ std::string FormatStateMessage(const CValidationState &state) {
         state.GetRejectCode());
 }
 
-static bool
-IsMagneticAnomalyEnabledForCurrentBlock(const Consensus::Params &params)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    AssertLockHeld(cs_main);
-    return IsMagneticAnomalyEnabled(params, chainActive.Tip());
-}
-
 // Command-line argument "-replayprotectionactivationtime=<timestamp>" will
 // cause the node to switch to replay protected SigHash ForkID value when the
 // median timestamp of the previous 11 blocks is greater than or equal to
@@ -746,10 +739,6 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         uint32_t extraFlags = SCRIPT_VERIFY_NONE;
         if (IsReplayProtectionEnabledForCurrentBlock(consensusParams)) {
             extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
-        }
-
-        if (IsMagneticAnomalyEnabledForCurrentBlock(consensusParams)) {
-            extraFlags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
         }
 
         // Make sure whatever we need to activate is actually activated.
