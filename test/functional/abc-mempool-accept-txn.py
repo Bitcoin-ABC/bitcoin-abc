@@ -33,6 +33,7 @@ from test_framework.script import (
     OP_2DUP,
     OP_CHECKSIG,
     OP_CHECKSIGVERIFY,
+    OP_DROP,
     OP_EQUAL,
     OP_HASH160,
     OP_TRUE,
@@ -194,8 +195,13 @@ class FullBlockTest(BitcoinTestFramework):
 
         # P2SH
         # Build the redeem script, hash it, use hash to create the p2sh script
-        redeem_script = CScript([self.coinbase_pubkey] + [
+        # Pad with extra bytes to make sure that the scriptsig length will be
+        # >= 198 after signature is added, even if it's a schnorr sig; this
+        # ensures a not-too-high density of sigchecks.
+        redeem_script = CScript([b'X' * 51, OP_DROP, self.coinbase_pubkey] + [
                                 OP_2DUP, OP_CHECKSIGVERIFY] * 5 + [OP_CHECKSIG])
+        # should be this length since coinbase_pubkey is uncompressed.
+        assert_equal(len(redeem_script), 130)
         redeem_script_hash = hash160(redeem_script)
         p2sh_script = CScript([OP_HASH160, redeem_script_hash, OP_EQUAL])
 
@@ -212,6 +218,8 @@ class FullBlockTest(BitcoinTestFramework):
             sig = self.coinbase_key.sign(
                 sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
+            assert len(
+                spent_p2sh_tx.vin[0].scriptSig) >= 198, "needs to pass input sigchecks limit"
             spent_p2sh_tx.rehash()
             return spent_p2sh_tx
 
