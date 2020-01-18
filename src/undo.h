@@ -40,7 +40,7 @@ public:
             // Required to maintain compatibility with older undo format.
             ::Serialize(s, uint8_t(0));
         }
-        ::Serialize(s, CTxOutCompressor(REF(pcoin->GetTxOut())));
+        ::Serialize(s, Using<TxOutCompression>(REF(pcoin->GetTxOut())));
     }
 };
 
@@ -64,7 +64,7 @@ public:
         }
 
         CTxOut txout;
-        ::Unserialize(s, CTxOutCompressor(REF(txout)));
+        ::Unserialize(s, Using<TxOutCompression>(REF(txout)));
 
         *pcoin = Coin(std::move(txout), nHeight, fCoinBase);
     }

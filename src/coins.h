@@ -56,12 +56,12 @@ public:
     template <typename Stream> void Serialize(Stream &s) const {
         assert(!IsSpent());
         ::Serialize(s, VARINT(nHeightAndIsCoinBase));
-        ::Serialize(s, CTxOutCompressor(REF(out)));
+        ::Serialize(s, Using<TxOutCompression>(out));
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
         ::Unserialize(s, VARINT(nHeightAndIsCoinBase));
-        ::Unserialize(s, CTxOutCompressor(out));
+        ::Unserialize(s, Using<TxOutCompression>(out));
     }
 
     size_t DynamicMemoryUsage() const {
