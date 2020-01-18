@@ -159,25 +159,33 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
             return
         # filter out empty lines
         lines = [i for i in self.lines() if i]
+
+        self.outputs = []
+
+        self.payto_address = None
+
+        if not lines:
+            return
+
+        if len(lines) != 1:
+            self._parse_as_multiline(lines)
+            return
+
+        data = lines[0]
+        lc_data = data.lower()
+        if any(lc_data.startswith(scheme + ":") for scheme in web.parseable_schemes()):
+            self.scan_f(data)
+            return
+        try:
+            self.payto_address = self.parse_output(data)
+        except Exception:
+            pass
+        else:
+            self.win.lock_amount(False)
+
+    def _parse_as_multiline(self, lines):
         outputs = []
         total = 0
-        self.payto_address = None
-        if len(lines) == 1:
-            data = lines[0]
-            lc_data = data.lower()
-            if any(
-                lc_data.startswith(scheme + ":") for scheme in web.parseable_schemes()
-            ):
-                self.scan_f(data)
-                return
-            try:
-                self.payto_address = self.parse_output(data)
-            except Exception:
-                pass
-            if self.payto_address:
-                self.win.lock_amount(False)
-                return
-
         is_max = False
         for i, line in enumerate(lines):
             try:
@@ -197,10 +205,10 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         self.payto_address = None
 
         if self.win.max_button.isChecked():
-            self.win.do_update_fee()
+            self.win.spend_max()
         else:
             self.amount_edit.setAmount(total if outputs else None)
-            self.win.lock_amount(total or len(lines) > 1)
+        self.win.lock_amount(self.win.max_button.isChecked() or bool(outputs))
 
     def get_errors(self):
         return self.errors
