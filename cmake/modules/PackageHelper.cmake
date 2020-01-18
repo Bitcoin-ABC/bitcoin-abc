@@ -15,15 +15,13 @@ function(exclude_git_ignored_files_from_source_package)
 		return()
 	endif()
 
-	set(_git_ignored_files_output_file
-		"${CMAKE_CURRENT_BINARY_DIR}/git_ignored_files.txt"
-	)
 	# Make git output a list of the ignored files and directories, and store it
 	# to a file.
+	# The --porcelain option ensures the output will remain stable.
 	execute_process(
 		COMMAND "${GIT_EXECUTABLE}" "status" "--ignored" "--porcelain"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-		OUTPUT_FILE "${_git_ignored_files_output_file}"
+		OUTPUT_VARIABLE _git_ignored_files
 		RESULT_VARIABLE _git_result
 	)
 
@@ -32,11 +30,10 @@ function(exclude_git_ignored_files_from_source_package)
 		return()
 	endif()
 
-	# Parse the file line by line.
-	# The --porcelain option ensures the output will remain stable.
-	# The ignored files/directories lines start with a double exclamation point.
-	file(STRINGS "${_git_ignored_files_output_file}" _git_ignored_files)
+	# Parse the output line by line.
+	string(REPLACE "\n" ";" _git_ignored_files "${_git_ignored_files}")
 
+	# The ignored files/directories lines start with a double exclamation point.
 	foreach(_git_ignored_file ${_git_ignored_files})
 		# Remove leading and trailing spaces.
 		string(STRIP "${_git_ignored_file}" _git_ignored_file)
