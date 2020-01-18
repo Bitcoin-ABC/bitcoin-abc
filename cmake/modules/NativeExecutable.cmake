@@ -1,8 +1,11 @@
 # Allow to easily build native executable.
 # Useful for cross compilation.
 
-# Check if we are in a native build or not.
-set(__IS_NATIVE_BUILD 0 CACHE INTERNAL "Indicate if this is a native build")
+if(NOT DEFINED __IS_NATIVE_BUILD)
+	# Check if we are in a native build or not.
+	set(__IS_NATIVE_BUILD 0 CACHE INTERNAL "Indicate if this is a native build")
+endif()
+
 if(__IS_NATIVE_BUILD AND CMAKE_CROSSCOMPILING)
 	message(FATAL_ERROR "A native build cannot be cross compiled")
 endif()
