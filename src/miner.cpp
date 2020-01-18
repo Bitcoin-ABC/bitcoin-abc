@@ -169,6 +169,13 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
                       -> bool { return a.tx->GetId() < b.tx->GetId(); });
     }
 
+    // Copy all the transactions into the block
+    // FIXME: This should be removed as it is significant overhead.
+    // See T479
+    for (const CBlockTemplateEntry &tx : pblocktemplate->entries) {
+        pblock->vtx.push_back(tx.tx);
+    }
+
     int64_t nTime1 = GetTimeMicros();
 
     nLastBlockTx = nBlockTx;
@@ -193,6 +200,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     pblocktemplate->entries[0].tx = MakeTransactionRef(coinbaseTx);
     pblocktemplate->entries[0].fees = -1 * nFees;
+    pblock->vtx[0] = pblocktemplate->entries[0].tx;
 
     uint64_t nSerializeSize = GetSerializeSize(*pblock, PROTOCOL_VERSION);
 
@@ -207,13 +215,6 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock->nNonce = 0;
     pblocktemplate->entries[0].sigOpCount = GetSigOpCountWithoutP2SH(
         *pblocktemplate->entries[0].tx, STANDARD_SCRIPT_VERIFY_FLAGS);
-
-    // Copy all the transactions into the block
-    // FIXME: This should be removed as it is significant overhead.
-    // See T479
-    for (const CBlockTemplateEntry &tx : pblocktemplate->entries) {
-        pblock->vtx.push_back(tx.tx);
-    }
 
     CValidationState state;
     if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev,
