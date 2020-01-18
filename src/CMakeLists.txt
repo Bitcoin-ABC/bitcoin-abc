@@ -27,6 +27,16 @@ option(ENABLE_NOTIFICATIONS "Enable desktop notifications" ON)
 option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 
+# Disable what we do not need for the native build.
+include(NativeExecutable)
+native_add_cmake_flags(
+	"-DBUILD_BITCOIN_WALLET=OFF"
+	"-DBUILD_BITCOIN_QT=OFF"
+	"-DBUILD_BITCOIN_ZMQ=OFF"
+	"-DENABLE_QRCODE=OFF"
+	"-DENABLE_UPNP=OFF"
+)
+
 # Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
 if(ENABLE_SANITIZERS)
 	set(ECM_ENABLE_SANITIZERS ${ENABLE_SANITIZERS})
