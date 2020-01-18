@@ -166,9 +166,14 @@ class WalletStandardnessTest(BitcoinTestFramework):
         fund_and_test_wallet(
             CScript([b'\x01', pubkey, OP_1, OP_CHECKMULTISIG]), False, False,
             sign_error='Data push larger than necessary')
-        # Note: 1-of-5 is nonstandard to fund but standard to spend.
+        # Note: 1-of-5 is nonstandard to fund yet is standard to spend. However,
+        # trying to spend it with our wallet in particular will generate
+        # too-dense sigchecks since our wallet currently only signs with ECDSA
+        # (Schnorr would not have this issue).
         fund_and_test_wallet(
-            CScript([OP_1, pubkey, pubkey, pubkey, pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False)
+            CScript([OP_1, pubkey, pubkey, pubkey, pubkey, pubkey,
+                     OP_5, OP_CHECKMULTISIG]), False, False,
+            sign_error='Input SigChecks limit exceeded')
         fund_and_test_wallet(
             CScript([OP_1, pubkey, pubkey, pubkey, OP_PUSHDATA1,
                      pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False,
