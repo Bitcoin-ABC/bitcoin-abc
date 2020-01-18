@@ -50,15 +50,12 @@ class WalletStandardnessTest(BitcoinTestFramework):
         sync_blocks(self.nodes)
 
         def fund_and_test_wallet(scriptPubKey, shouldBeStandard, shouldBeInWallet,
-                                 amount=10000, spendfee=500, nonstd_error="scriptpubkey (code 64)", canSign=None):
+                                 amount=10000, spendfee=500, nonstd_error="scriptpubkey (code 64)", sign_error=None):
             """ Get the nonstandard node to fund a transaction, test its
             standardness by trying to broadcast on the standard node, then
             mine it and see if it ended up in the standard node's wallet.
             Finally, it attempts to spend the coin.
             """
-
-            if canSign is None:
-                canSign = shouldBeInWallet
 
             self.log.info("Trying script {}".format(scriptPubKey.hex(),))
 
@@ -122,7 +119,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
                 [{'txid': txid, 'vout': 0}], outputs)
             signresult = std_node.signrawtransactionwithwallet(spendtx)
 
-            if canSign:
+            if sign_error is None:
                 assert_equal(signresult['complete'], True)
                 txid = std_node.sendrawtransaction(signresult['hex'])
                 [blockhash] = std_node.generate(1)
@@ -130,16 +127,8 @@ class WalletStandardnessTest(BitcoinTestFramework):
                 assert txid in std_node.getblock(blockhash)["tx"]
                 sync_blocks(self.nodes)
             else:
-                # signresult['errors'] will vary depending on input script. What
-                # occurs is that in sign.cpp, ProduceSignature gets back
-                # solved=false since SignStep sees a nonstandard input. Then,
-                # an empty SignatureData results. Back in rawtransaction.cpp's
-                # SignTransaction, it will then attempt to execute the
-                # scriptPubKey with an empty scriptSig. A P2PKH script will thus
-                # fail at OP_DUP with stack error, and P2PK/Multisig will fail
-                # once they hit a nonminimal push. The error message is just an
-                # artifact of the script type, basically.
                 assert_equal(signresult['complete'], False)
+                assert_equal(signresult['errors'][0]['error'], sign_error)
 
         # we start with an empty wallet
         assert_equal(std_node.getbalance(), 0)
@@ -151,28 +140,39 @@ class WalletStandardnessTest(BitcoinTestFramework):
         # P2PK
         fund_and_test_wallet(CScript([pubkey, OP_CHECKSIG]), True, True)
         fund_and_test_wallet(
-            CScript([OP_PUSHDATA1, pubkey, OP_CHECKSIG]), False, False)
+            CScript([OP_PUSHDATA1, pubkey, OP_CHECKSIG]), False, False,
+            sign_error='Data push larger than necessary')
 
         # P2PKH
         fund_and_test_wallet(CScript(
             [OP_DUP, OP_HASH160, pubkeyhash, OP_EQUALVERIFY, OP_CHECKSIG]), True, True)
+        # The signing error changes here since the script check (with empty
+        # scriptSig) hits OP_DUP before it hits the nonminimal push; in all
+        # other cases we hit the nonminimal push first.
         fund_and_test_wallet(CScript(
-            [OP_DUP, OP_HASH160, OP_PUSHDATA1, pubkeyhash, OP_EQUALVERIFY, OP_CHECKSIG]), False, False)
+            [OP_DUP, OP_HASH160, OP_PUSHDATA1, pubkeyhash, OP_EQUALVERIFY, OP_CHECKSIG]), False, False,
+            sign_error='Unable to sign input, invalid stack size (possibly missing key)')
 
         # Bare multisig
         fund_and_test_wallet(
-            CScript([OP_1, pubkey, OP_1, OP_CHECKMULTISIG]), True, False, canSign=True)
+            CScript([OP_1, pubkey, OP_1, OP_CHECKMULTISIG]), True, False)
         fund_and_test_wallet(
-            CScript([OP_1, OP_PUSHDATA1, pubkey, OP_1, OP_CHECKMULTISIG]), False, False)
+            CScript([OP_1, OP_PUSHDATA1, pubkey, OP_1,
+                     OP_CHECKMULTISIG]), False, False,
+            sign_error='Data push larger than necessary')
         fund_and_test_wallet(
-            CScript([OP_1, pubkey, b'\x01', OP_CHECKMULTISIG]), False, False)
+            CScript([OP_1, pubkey, b'\x01', OP_CHECKMULTISIG]), False, False,
+            sign_error='Data push larger than necessary')
         fund_and_test_wallet(
-            CScript([b'\x01', pubkey, OP_1, OP_CHECKMULTISIG]), False, False)
+            CScript([b'\x01', pubkey, OP_1, OP_CHECKMULTISIG]), False, False,
+            sign_error='Data push larger than necessary')
         # Note: 1-of-5 is nonstandard to fund but standard to spend.
         fund_and_test_wallet(
-            CScript([OP_1, pubkey, pubkey, pubkey, pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False, canSign=True)
+            CScript([OP_1, pubkey, pubkey, pubkey, pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False)
         fund_and_test_wallet(
-            CScript([OP_1, pubkey, pubkey, pubkey, OP_PUSHDATA1, pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False)
+            CScript([OP_1, pubkey, pubkey, pubkey, OP_PUSHDATA1,
+                     pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False,
+            sign_error='Data push larger than necessary')
 
         # Dust also is nonstandard to fund but standard to spend.
         fund_and_test_wallet(
