@@ -471,11 +471,19 @@ static bool IsReplayProtectionEnabled(const Consensus::Params &params,
     return IsReplayProtectionEnabled(params, pindexPrev->GetMedianTimePast());
 }
 
-static bool
-IsReplayProtectionEnabledForCurrentBlock(const Consensus::Params &params)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    AssertLockHeld(cs_main);
-    return IsReplayProtectionEnabled(params, chainActive.Tip());
+// Returns the script flags which should be checked for mempool admission when
+// the tip is at the given block.
+static uint32_t GetStandardScriptFlags(const Consensus::Params &params,
+                                       const CBlockIndex *pindexTip) {
+    uint32_t flags = STANDARD_SCRIPT_VERIFY_FLAGS;
+
+    // We make sure this node will have replay protection during the next hard
+    // fork.
+    if (IsReplayProtectionEnabled(params, pindexTip)) {
+        flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+    }
+
+    return flags;
 }
 
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
@@ -735,15 +743,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                              "too-long-mempool-chain", false, errString);
         }
 
-        // Set extraFlags as a set of flags that needs to be activated.
-        uint32_t extraFlags = SCRIPT_VERIFY_NONE;
-        if (IsReplayProtectionEnabledForCurrentBlock(consensusParams)) {
-            extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
-        }
-
-        // Make sure whatever we need to activate is actually activated.
         const uint32_t scriptVerifyFlags =
-            STANDARD_SCRIPT_VERIFY_FLAGS | extraFlags;
+            GetStandardScriptFlags(consensusParams, chainActive.Tip());
 
         // Check against previous transactions. This is done last to help
         // prevent CPU exhaustion denial-of-service attacks.
