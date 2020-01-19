@@ -66,7 +66,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
 
 	# Build all static so there is no dll file to distribute.
-	add_compiler_flags(-static)
+	add_linker_flags(-static)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
