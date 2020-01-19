@@ -162,18 +162,16 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     if (IsMagneticAnomalyEnabled(chainparams.GetConsensus(), pindexPrev)) {
         // If magnetic anomaly is enabled, we make sure transaction are
         // canonically ordered.
-        // FIXME: Use a zipped list. See T479
         std::sort(std::begin(pblocktemplate->entries) + 1,
                   std::end(pblocktemplate->entries),
                   [](const CBlockTemplateEntry &a, const CBlockTemplateEntry &b)
                       -> bool { return a.tx->GetId() < b.tx->GetId(); });
     }
 
-    // Copy all the transactions into the block
-    // FIXME: This should be removed as it is significant overhead.
-    // See T479
-    for (const CBlockTemplateEntry &tx : pblocktemplate->entries) {
-        pblock->vtx.push_back(tx.tx);
+    // Copy all the transactions refs into the block
+    pblock->vtx.reserve(pblocktemplate->entries.size());
+    for (const CBlockTemplateEntry &entry : pblocktemplate->entries) {
+        pblock->vtx.push_back(entry.tx);
     }
 
     int64_t nTime1 = GetTimeMicros();
