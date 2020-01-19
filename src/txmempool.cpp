@@ -50,15 +50,15 @@ size_t CTxMemPoolEntry::GetTxVirtualSize() const {
     return GetVirtualTransactionSize(nTxSize, sigOpCount);
 }
 
-size_t CTxMemPoolEntry::GetVirtualSizeWithDescendants() const {
+uint64_t CTxMemPoolEntry::GetVirtualSizeWithDescendants() const {
     // note this is distinct from the sum of descendants' individual virtual
     // sizes, and may be smaller.
     return GetVirtualTransactionSize(nSizeWithDescendants,
                                      nSigOpCountWithDescendants);
 }
 
-size_t CTxMemPoolEntry::GetVirtualSizeWithAncestors() const {
-    // note this is distinct from the sum of descendants' individual virtual
+uint64_t CTxMemPoolEntry::GetVirtualSizeWithAncestors() const {
+    // note this is distinct from the sum of ancestors' individual virtual
     // sizes, and may be smaller.
     return GetVirtualTransactionSize(nSizeWithAncestors,
                                      nSigOpCountWithAncestors);
