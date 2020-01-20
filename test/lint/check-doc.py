@@ -37,6 +37,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-benchmark',
                                        '-debugnet',
                                        '-forcecompactdb',
                                        '-parkdeepreorg',
+                                       '-automaticunparking',
                                        # Remove after May 2020 upgrade
                                        '-phononactivationtime',
                                        '-replayprotectionactivationtime',

@@ -5,13 +5,14 @@
 """Test the parckblock and unparkblock RPC calls."""
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, wait_until
+from test_framework.util import assert_equal, connect_nodes_bi, wait_until
 
 
 class ParkedChainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-noparkdeepreorg"], ["-maxreorgdepth=-1"]]
+        self.extra_args = [["-noparkdeepreorg",
+                            "-noautomaticunparking"], ["-maxreorgdepth=-1"]]
 
     # There should only be one chaintip, which is expected_tip
     def only_valid_tip(self, expected_tip, other_tip_status=None):
@@ -187,6 +188,30 @@ class ParkedChainTest(BitcoinTestFramework):
         check_reorg_protection(5, 5)
         check_reorg_protection(6, 6)
         check_reorg_protection(100, 100)
+
+        self.log.info("Test that unparking works when -parkdeepreorg=0")
+        # Set up parking node height = fork + 4, node height = fork + 5
+        node.invalidateblock(node.getbestblockhash())
+        parking_node.generate(3)
+        node.generate(5)
+        wait_for_parked_block(node.getbestblockhash())
+        # Restart the parking node without parkdeepreorg.
+        self.restart_node(1, ["-parkdeepreorg=0"])
+        parking_node = self.nodes[1]
+        connect_nodes_bi(node, parking_node)
+        # The other chain should still be marked 'parked'.
+        wait_for_parked_block(node.getbestblockhash())
+        # Three more blocks is not enough to unpark. Even though its PoW is
+        # larger, we are still following the delayed-unparking rules.
+        node.generate(3)
+        wait_for_parked_block(node.getbestblockhash())
+        # Final block pushes over the edge, and should unpark.
+        node.generate(1)
+        wait_until(lambda: parking_node.getbestblockhash() ==
+                   node.getbestblockhash(), timeout=5)
+
+        # Do not append tests after this point without restarting node again.
+        # Parking node is no longer parking.
 
 
 if __name__ == '__main__':

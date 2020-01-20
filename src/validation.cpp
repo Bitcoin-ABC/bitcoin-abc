@@ -2571,7 +2571,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             // If this is a parked chain, but it has enough PoW, clear the park
             // state.
             bool fParkedChain = pindexTest->nStatus.isOnParkedChain();
-            if (fParkedChain && gArgs.GetBoolArg("-parkdeepreorg", true)) {
+            if (fParkedChain && gArgs.GetBoolArg("-automaticunparking", true)) {
                 const CBlockIndex *pindexTip = chainActive.Tip();
 
                 // During initialization, pindexTip and/or pindexFork may be
@@ -2644,6 +2644,13 @@ CBlockIndex *CChainState::FindMostWorkChain() {
                  pindexNew->nChainWork > pindexBestParked->nChainWork)) {
                 pindexBestParked = pindexNew;
             }
+
+            LogPrintf("Considered switching to better tip %s but that chain "
+                      "contains a%s%s%s block.\n",
+                      pindexNew->GetBlockHash().ToString(),
+                      fInvalidChain ? "n invalid" : "",
+                      fParkedChain ? " parked" : "",
+                      fMissingData ? " missing-data" : "");
 
             CBlockIndex *pindexFailed = pindexNew;
             // Remove the entire chain from the set.
