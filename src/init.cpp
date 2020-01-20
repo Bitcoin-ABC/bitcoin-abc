@@ -700,7 +700,8 @@ void SetupServerArgs() {
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torpassword=<pass>",
                  "Tor control port password (default: empty)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+                 ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                 OptionsCategory::CONNECTION);
 #ifdef USE_UPNP
 #if USE_UPNP
     gArgs.AddArg("-upnp",
@@ -1034,16 +1035,19 @@ void SetupServerArgs() {
         "Port is optional and overrides -rpcport.  Use [host]:port notation "
         "for IPv6. This option can be specified multiple times (default: "
         "127.0.0.1 and ::1 i.e., localhost)",
-        ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+        ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY |
+            ArgsManager::SENSITIVE,
         OptionsCategory::RPC);
     gArgs.AddArg("-rpccookiefile=<loc>",
                  "Location of the auth cookie. Relative paths will be prefixed "
                  "by a net-specific datadir location. (default: data dir)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+                 ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                 OptionsCategory::RPC);
     gArgs.AddArg("-rpcpassword=<pw>", "Password for JSON-RPC connections",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+                 ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                 OptionsCategory::RPC);
     gArgs.AddArg(
         "-rpcwhitelist=<whitelist>",
         "Set a whitelist to filter incoming RPC calls for a specific user. The "
@@ -1068,7 +1072,7 @@ void SetupServerArgs() {
         "python script is included in share/rpcauth. The client then connects "
         "normally using the rpcuser=<USERNAME>/rpcpassword=<PASSWORD> pair of "
         "arguments. This option can be specified multiple times",
-        ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+        ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE, OptionsCategory::RPC);
     gArgs.AddArg("-rpcport=<port>",
                  strprintf("Listen for JSON-RPC connections on <port> "
                            "(default: %u, testnet: %u, regtest: %u)",
@@ -1995,6 +1999,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LogPrintf("Config file: %s (not found, skipping)\n",
                   config_file_path.string());
     }
+
+    // Log the config arguments to debug.log
+    gArgs.LogArgs();
 
     LogPrintf("Using at most %i automatic connections (%i file descriptors "
               "available)\n",
