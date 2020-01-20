@@ -3065,21 +3065,35 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
         // nStatus" criteria for inclusion in setBlockIndexCandidates).
 
         invalid_walk_tip->nStatus =
-            invalidate ? invalid_walk_tip->nStatus.withFailedParent()
-                       : invalid_walk_tip->nStatus.withParkedParent();
+            invalidate ? invalid_walk_tip->nStatus.withFailed()
+                       : invalid_walk_tip->nStatus.withParked();
 
         setDirtyBlockIndex.insert(invalid_walk_tip);
         setBlockIndexCandidates.insert(invalid_walk_tip->pprev);
 
-        // If we abort invalidation after this iteration, make sure
-        // the last disconnected block gets marked failed (rather than
-        // just child of failed)
+        if (invalid_walk_tip->pprev == to_mark_failed_or_parked &&
+            (invalidate ? to_mark_failed_or_parked->nStatus.hasFailed()
+                        : to_mark_failed_or_parked->nStatus.isParked())) {
+            // We only want to mark the last disconnected block as
+            // Failed (or Parked); its children need to be FailedParent (or
+            // ParkedParent) instead.
+            to_mark_failed_or_parked->nStatus =
+                (invalidate
+                     ? to_mark_failed_or_parked->nStatus.withFailed(false)
+                           .withFailedParent()
+                     : to_mark_failed_or_parked->nStatus.withParked(false)
+                           .withParkedParent());
+
+            setDirtyBlockIndex.insert(to_mark_failed_or_parked);
+        }
+
+        // Track the last disconnected block, so we can correct its
+        // FailedParent (or ParkedParent) status in future iterations, or, if
+        // it's the last one, call InvalidChainFound on it.
         to_mark_failed_or_parked = invalid_walk_tip;
     }
 
     {
-        // Mark pindex (or the last disconnected block) as invalid or parked,
-        // regardless of whether it was in the main chain or not.
         LOCK(cs_main);
         if (chainActive.Contains(to_mark_failed_or_parked)) {
             // If the to-be-marked invalid block is in the active chain,
@@ -3087,6 +3101,8 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
             return false;
         }
 
+        // Mark pindex (or the last disconnected block) as invalid (or parked),
+        // even when it never was in the main chain.
         to_mark_failed_or_parked->nStatus =
             invalidate ? to_mark_failed_or_parked->nStatus.withFailed()
                        : to_mark_failed_or_parked->nStatus.withParked();
