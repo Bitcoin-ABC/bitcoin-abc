@@ -95,7 +95,7 @@ struct CompareTxIterByAncestorCount {
         if (a->GetCountWithAncestors() != b->GetCountWithAncestors()) {
             return a->GetCountWithAncestors() < b->GetCountWithAncestors();
         }
-        return CTxMemPool::CompareIteratorById()(a, b);
+        return CompareIteratorById()(a, b);
     }
 };
 

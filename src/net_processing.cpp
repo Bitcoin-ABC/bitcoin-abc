@@ -2199,14 +2199,14 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
                     LOCK(mempool.cs);
                     auto txiter = mempool.GetIter(tx->GetId());
                     if (txiter) {
-                        const CTxMemPool::setEntries &parents =
-                            mempool.GetMemPoolParents(*txiter);
+                        const CTxMemPoolEntry::Parents &parents =
+                            (*txiter)->GetMemPoolParentsConst();
                         parent_ids_to_add.reserve(parents.size());
-                        for (CTxMemPool::txiter parent_iter : parents) {
-                            if (parent_iter->GetTime() >
+                        for (const CTxMemPoolEntry &parent : parents) {
+                            if (parent.GetTime() >
                                 now - UNCONDITIONAL_RELAY_DELAY) {
                                 parent_ids_to_add.push_back(
-                                    parent_iter->GetTx().GetId());
+                                    parent.GetTx().GetId());
                             }
                         }
                     }
