@@ -283,6 +283,18 @@ namespace {
             WAIT_LOCK(cs_main, lock);
             return FillBlock(LookupBlockIndex(hash), block, lock);
         }
+        bool findAncestorByHeight(const BlockHash &block_hash,
+                                  int ancestor_height,
+                                  const FoundBlock &ancestor_out) override {
+            WAIT_LOCK(cs_main, lock);
+            if (const CBlockIndex *block = LookupBlockIndex(block_hash)) {
+                if (const CBlockIndex *ancestor =
+                        block->GetAncestor(ancestor_height)) {
+                    return FillBlock(ancestor, ancestor_out, lock);
+                }
+            }
+            return FillBlock(nullptr, ancestor_out, lock);
+        }
         bool findAncestorByHash(const BlockHash &block_hash,
                                 const BlockHash &ancestor_hash,
                                 const FoundBlock &ancestor_out) override {
@@ -294,6 +306,20 @@ namespace {
                 ancestor = nullptr;
             }
             return FillBlock(ancestor, ancestor_out, lock);
+        }
+        bool findCommonAncestor(const BlockHash &block_hash1,
+                                const BlockHash &block_hash2,
+                                const FoundBlock &ancestor_out,
+                                const FoundBlock &block1_out,
+                                const FoundBlock &block2_out) override {
+            WAIT_LOCK(cs_main, lock);
+            const CBlockIndex *block1 = LookupBlockIndex(block_hash1);
+            const CBlockIndex *block2 = LookupBlockIndex(block_hash2);
+            const CBlockIndex *ancestor =
+                block1 && block2 ? LastCommonAncestor(block1, block2) : nullptr;
+            return FillBlock(ancestor, ancestor_out, lock) &
+                   FillBlock(block1, block1_out, lock) &
+                   FillBlock(block2, block2_out, lock);
         }
         void findCoins(std::map<COutPoint, Coin> &coins) override {
             return FindCoins(coins);

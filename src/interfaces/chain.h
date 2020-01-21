@@ -175,11 +175,25 @@ public:
     virtual bool findBlock(const BlockHash &hash,
                            const FoundBlock &block = {}) = 0;
 
+    //! Find ancestor of block at specified height and optionally return
+    //! ancestor information.
+    virtual bool findAncestorByHeight(const BlockHash &block_hash,
+                                      int ancestor_height,
+                                      const FoundBlock &ancestor_out = {}) = 0;
+
     //! Return whether block descends from a specified ancestor, and
     //! optionally return ancestor information.
     virtual bool findAncestorByHash(const BlockHash &block_hash,
                                     const BlockHash &ancestor_hash,
                                     const FoundBlock &ancestor_out = {}) = 0;
+
+    //! Find most recent common ancestor between two blocks and optionally
+    //! return block information.
+    virtual bool findCommonAncestor(const BlockHash &block_hash1,
+                                    const BlockHash &block_hash2,
+                                    const FoundBlock &ancestor_out = {},
+                                    const FoundBlock &block1_out = {},
+                                    const FoundBlock &block2_out = {}) = 0;
 
     //! Look up unspent output information. Returns coins in the mempool and in
     //! the current chain UTXO set. Iterates through all the keys in the map and
