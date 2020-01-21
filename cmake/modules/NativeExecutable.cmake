@@ -17,8 +17,11 @@ function(add_native_executable NAME)
 	if(__IS_NATIVE_BUILD)
 		add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
 	else()
+		set(NATIVE_TARGET "${NAME}")
 		file(RELATIVE_PATH RELATIVE_PATH "${CMAKE_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
-		set(NATIVE_TARGET "${RELATIVE_PATH}/${NAME}")
+		if(RELATIVE_PATH)
+			string(PREPEND NATIVE_TARGET "${RELATIVE_PATH}/")
+		endif()
 		set(NATIVE_BINARY "${NATIVE_BUILD_DIR}/${NATIVE_TARGET}")
 
 		# We create a symlink because cmake craps itself if the imported
