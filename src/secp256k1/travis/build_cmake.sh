@@ -15,7 +15,11 @@ fi
 mkdir -p buildcmake
 pushd buildcmake
 
-cmake -GNinja .. \
+# Use the cmake version installed via APT instead of the Travis custom one.
+CMAKE_COMMAND=/usr/bin/cmake
+${CMAKE_COMMAND} --version
+
+${CMAKE_COMMAND} -GNinja .. \
   -DSECP256K1_ECMULT_STATIC_PRECOMPUTATION=$STATICPRECOMPUTATION \
   -DSECP256K1_ENABLE_MODULE_ECDH=$ECDH \
   -DSECP256K1_ENABLE_MODULE_RECOVERY=$RECOVERY \
