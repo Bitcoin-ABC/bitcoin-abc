@@ -1720,8 +1720,8 @@ int64_t CWallet::RescanFromTime(int64_t startTime,
 
     if (start) {
         // TODO: this should take into account failure by ScanResult::USER_ABORT
-        ScanResult result = ScanForWalletTransactions(start_block, BlockHash(),
-                                                      reserver, update);
+        ScanResult result = ScanForWalletTransactions(
+            start_block, {} /* max_height */, reserver, update);
         if (result.status == ScanResult::FAILURE) {
             int64_t time_max;
             CHECK_NONFATAL(chain().findBlock(result.last_failed_block,
@@ -1739,9 +1739,8 @@ int64_t CWallet::RescanFromTime(int64_t startTime,
  *
  * @param[in] start_block Scan starting block. If block is not on the active
  *                        chain, the scan will return SUCCESS immediately.
- * @param[in] stop_block  Scan ending block. If block is not on the active
- *                        chain, the scan will continue until it reaches the
- *                        chain tip.
+ * @param[in] max_height  Optional max scanning height. If unset there is
+ *                        no maximum and scanning can continue to the tip
  *
  * @return ScanResult returning scan information and indicating success or
  *         failure. Return status will be set to SUCCESS if scan was
@@ -1754,7 +1753,7 @@ int64_t CWallet::RescanFromTime(int64_t startTime,
  * transactions for.
  */
 CWallet::ScanResult CWallet::ScanForWalletTransactions(
-    const BlockHash &start_block, const BlockHash &stop_block,
+    const BlockHash &start_block, Optional<int> max_height,
     const WalletRescanReserver &reserver, bool fUpdate) {
     int64_t nNow = GetTime();
     int64_t start_time = GetTimeMillis();
@@ -1785,9 +1784,13 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
             tip_hash = locked_chain->getBlockHash(*tip_height);
         }
         block_height = locked_chain->getBlockHeight(block_hash);
+        BlockHash end_hash = tip_hash;
+        if (max_height) {
+            chain().findAncestorByHeight(tip_hash, *max_height,
+                                         FoundBlock().hash(end_hash));
+        }
         progress_begin = chain().guessVerificationProgress(block_hash);
-        progress_end = chain().guessVerificationProgress(
-            stop_block.IsNull() ? tip_hash : stop_block);
+        progress_end = chain().guessVerificationProgress(end_hash);
     }
     double progress_current = progress_begin;
     while (block_height && !fAbortRescan && !chain().shutdownRequested()) {
@@ -1837,7 +1840,7 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
             result.last_failed_block = block_hash;
             result.status = ScanResult::FAILURE;
         }
-        if (block_hash == stop_block) {
+        if (max_height && *block_height >= *max_height) {
             break;
         }
         {
@@ -1857,7 +1860,7 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
             // handle updated tip hash
             const BlockHash prev_tip_hash = tip_hash;
             tip_hash = locked_chain->getBlockHash(*tip_height);
-            if (stop_block.IsNull() && prev_tip_hash != tip_hash) {
+            if (!max_height && prev_tip_hash != tip_hash) {
                 // in case the tip has changed, update progress max
                 progress_end = chain().guessVerificationProgress(tip_hash);
             }
@@ -4424,8 +4427,8 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                 (ScanResult::SUCCESS !=
                  walletInstance
                      ->ScanForWalletTransactions(
-                         locked_chain->getBlockHash(rescan_height), BlockHash(),
-                         reserver, true /* update */)
+                         locked_chain->getBlockHash(rescan_height),
+                         {} /* max_height */, reserver, true /* update */)
                      .status)) {
                 error = _("Failed to rescan the wallet during initialization");
                 return nullptr;

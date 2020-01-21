@@ -1069,7 +1069,7 @@ public:
         BlockHash last_failed_block;
     };
     ScanResult ScanForWalletTransactions(const BlockHash &first_block,
-                                         const BlockHash &last_block,
+                                         Optional<int> max_height,
                                          const WalletRescanReserver &reserver,
                                          bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;

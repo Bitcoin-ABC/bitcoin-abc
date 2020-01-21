@@ -138,12 +138,6 @@ public:
         findFirstBlockWithTimeAndHeight(int64_t time, int height,
                                         BlockHash *hash) = 0;
 
-        //! Return height of last block in the specified range which is pruned,
-        //! or nullopt if no block in the range is pruned. Range is inclusive.
-        virtual Optional<int>
-        findPruned(int start_height = 0,
-                   Optional<int> stop_height = nullopt) = 0;
-
         //! Return height of the highest block on the chain that is an ancestor
         //! of the specified block, or nullopt if no common ancestor is found.
         //! Also return the height of the specified block as an optional output
@@ -211,6 +205,12 @@ public:
     //! Estimate fraction of total transactions verified if blocks up to
     //! the specified block hash are verified.
     virtual double guessVerificationProgress(const BlockHash &block_hash) = 0;
+
+    //! Return true if data is available for all blocks in the specified range
+    //! of blocks. This checks all blocks that are ancestors of block_hash in
+    //! the height range from min_height to max_height, inclusive.
+    virtual bool hasBlocks(const BlockHash &block_hash, int min_height = 0,
+                           Optional<int> max_height = {}) = 0;
 
     //! Check if transaction has descendants in mempool.
     virtual bool hasDescendantsInMempool(const TxId &txid) = 0;

@@ -117,4 +117,39 @@ BOOST_AUTO_TEST_CASE(findCommonAncestor) {
     BOOST_CHECK_EQUAL(fork_hash, active[fork_height]->GetBlockHash());
 }
 
+BOOST_AUTO_TEST_CASE(hasBlocks) {
+    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &active = ChainActive();
+
+    // Test ranges
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 10, 90));
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 10, {}));
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 0, 90));
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 0, {}));
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), -1000, 1000));
+    active[5]->nStatus = active[5]->nStatus.withData(false);
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 10, 90));
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 10, {}));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 0, 90));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 0, {}));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), -1000, 1000));
+    active[95]->nStatus = active[95]->nStatus.withData(false);
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 10, 90));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 10, {}));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 0, 90));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 0, {}));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), -1000, 1000));
+    active[50]->nStatus = active[50]->nStatus.withData(false);
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 10, 90));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 10, {}));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 0, 90));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 0, {}));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), -1000, 1000));
+
+    // Test edge cases
+    BOOST_CHECK(chain->hasBlocks(active.Tip()->GetBlockHash(), 6, 49));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 5, 49));
+    BOOST_CHECK(!chain->hasBlocks(active.Tip()->GetBlockHash(), 6, 50));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -113,21 +113,6 @@ namespace {
             }
             return nullopt;
         }
-        Optional<int> findPruned(int start_height,
-                                 Optional<int> stop_height) override {
-            LockAssertion lock(::cs_main);
-            if (::fPruneMode) {
-                CBlockIndex *block = stop_height ? ::ChainActive()[*stop_height]
-                                                 : ::ChainActive().Tip();
-                while (block && block->nHeight >= start_height) {
-                    if (block->nStatus.hasData() == 0) {
-                        return block->nHeight;
-                    }
-                    block = block->pprev;
-                }
-            }
-            return nullopt;
-        }
         Optional<int> findFork(const BlockHash &hash,
                                Optional<int> *height) override {
             LockAssertion lock(::cs_main);
@@ -335,6 +320,29 @@ namespace {
             LOCK(cs_main);
             return GuessVerificationProgress(Params().TxData(),
                                              LookupBlockIndex(block_hash));
+        }
+        bool hasBlocks(const BlockHash &block_hash, int min_height,
+                       Optional<int> max_height) override {
+            // hasBlocks returns true if all ancestors of block_hash in
+            // specified range have block data (are not pruned), false if any
+            // ancestors in specified range are missing data.
+            //
+            // For simplicity and robustness, min_height and max_height are only
+            // used to limit the range, and passing min_height that's too low or
+            // max_height that's too high will not crash or change the result.
+            LOCK(::cs_main);
+            if (CBlockIndex *block = LookupBlockIndex(block_hash)) {
+                if (max_height && block->nHeight >= *max_height) {
+                    block = block->GetAncestor(*max_height);
+                }
+                for (; block->nStatus.hasData(); block = block->pprev) {
+                    // Check pprev to not segfault if min_height is too low
+                    if (block->nHeight <= min_height || !block->pprev) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
         bool hasDescendantsInMempool(const TxId &txid) override {
             LOCK(::g_mempool.cs);
