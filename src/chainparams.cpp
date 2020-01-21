@@ -153,6 +153,12 @@ public:
         // service bits wanted by any release ASAP to avoid it where possible.
         // FreeCash seeder TODO add seeds
         vSeeds.emplace_back("seed.freecash.info");
+        vSeeds.emplace_back("seed1.freecash.info");
+        vSeeds.emplace_back("seed2.freecash.info");
+        vSeeds.emplace_back("seed3.freecash.info");
+        vSeeds.emplace_back("seed1.freecash.org");
+        vSeeds.emplace_back("seed2.freecash.org");
+        vSeeds.emplace_back("seed3.freecash.org");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 35);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
