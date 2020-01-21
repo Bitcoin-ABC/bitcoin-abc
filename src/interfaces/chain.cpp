@@ -283,6 +283,13 @@ namespace {
             WAIT_LOCK(cs_main, lock);
             return FillBlock(LookupBlockIndex(hash), block, lock);
         }
+        bool findFirstBlockWithTimeAndHeight(int64_t min_time, int min_height,
+                                             const FoundBlock &block) override {
+            WAIT_LOCK(cs_main, lock);
+            return FillBlock(
+                ChainActive().FindEarliestAtLeast(min_time, min_height), block,
+                lock);
+        }
         bool findAncestorByHeight(const BlockHash &block_hash,
                                   int ancestor_height,
                                   const FoundBlock &ancestor_out) override {

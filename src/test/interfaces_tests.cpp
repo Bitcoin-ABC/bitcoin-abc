@@ -53,6 +53,21 @@ BOOST_AUTO_TEST_CASE(findBlock) {
     BOOST_CHECK(!chain->findBlock(BlockHash(), FoundBlock()));
 }
 
+BOOST_AUTO_TEST_CASE(findFirstBlockWithTimeAndHeight) {
+    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &active = ChainActive();
+    BlockHash hash;
+    int height;
+    BOOST_CHECK(chain->findFirstBlockWithTimeAndHeight(
+        /* min_time= */ 0, /* min_height= */ 5,
+        FoundBlock().hash(hash).height(height)));
+    BOOST_CHECK_EQUAL(hash, active[5]->GetBlockHash());
+    BOOST_CHECK_EQUAL(height, 5);
+    BOOST_CHECK(!chain->findFirstBlockWithTimeAndHeight(
+        /* min_time= */ active.Tip()->GetBlockTimeMax() + 1,
+        /* min_height= */ 0));
+}
+
 BOOST_AUTO_TEST_CASE(findAncestorByHeight) {
     auto chain = interfaces::MakeChain(m_node, Params());
     auto &active = ChainActive();
