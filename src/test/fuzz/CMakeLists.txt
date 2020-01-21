@@ -87,6 +87,7 @@ add_regular_fuzz_targets(
 	float
 	hex
 	integer
+	key
 	net_permissions
 	p2p_transport_deserializer
 	parse_hd_keypath
