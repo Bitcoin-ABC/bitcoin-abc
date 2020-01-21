@@ -100,7 +100,7 @@ class CSeederNode {
         CAddress me(myService, ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH));
         BeginMessage("version");
         int nBestHeight = GetRequireHeight();
-        std::string ver = "/bitcoin-cash-seeder:0.15/";
+        std::string ver = "/freecash-seeder:0.15/";
         vSend << PROTOCOL_VERSION << nLocalServices << nTime << you << me
               << nLocalNonce << ver << nBestHeight;
         EndMessage();
