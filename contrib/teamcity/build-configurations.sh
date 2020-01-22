@@ -40,6 +40,23 @@ setup() {
   export LSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/lsan:log_path=${SAN_LOG_DIR}/lsan.log"
   export TSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/tsan:log_path=${SAN_LOG_DIR}/tsan.log"
   export UBSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/ubsan:print_stacktrace=1:halt_on_error=1:log_path=${SAN_LOG_DIR}/ubsan.log"
+
+  # Unit test logger parameters
+  UNIT_TESTS_JUNIT_LOG_LEVEL=message
+}
+
+run_test_bitcoin() {
+  # Usage: run_test_bitcoin "Context as string" [arguments...]
+  ninja test_bitcoin
+
+  TEST_BITCOIN_JUNIT="junit_results_unit_tests${1:+_${1// /_}}.xml"
+  TEST_BITCOIN_SUITE_NAME="Bitcoin ABC unit tests${1:+ $1}"
+
+  ./src/test/test_bitcoin \
+    --logger=HRF:JUNIT,${UNIT_TESTS_JUNIT_LOG_LEVEL},${TEST_BITCOIN_JUNIT} \
+    -- \
+    -testsuitename="${TEST_BITCOIN_SUITE_NAME}" \
+    "${@:2}"
 }
 
 # Facility to print out sanitizer log outputs to the build log console
@@ -71,7 +88,16 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_CXX_COMPILER=clang++"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check check-functional
+
+    run_test_bitcoin "with address sanitizer"
+
+    # Libs and utils tests
+    ninja \
+      check-bitcoin-qt \
+      check-bitcoin-seeder \
+      check-bitcoin-util \
+
+    ninja check-functional
     ;;
 
   build-ubsan)
@@ -84,7 +110,16 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_CXX_COMPILER=clang++"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check check-functional
+
+    run_test_bitcoin "with undefined sanitizer"
+
+    # Libs and utils tests
+    ninja \
+      check-bitcoin-qt \
+      check-bitcoin-seeder \
+      check-bitcoin-util \
+
+    ninja check-functional
     ;;
 
   build-tsan)
@@ -97,6 +132,15 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_CXX_COMPILER=clang++"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+
+    run_test_bitcoin "with thread sanitizer"
+
+    # Libs and utils tests
+    ninja \
+      check-bitcoin-qt \
+      check-bitcoin-seeder \
+      check-bitcoin-util \
+
     ninja check check-functional
     ;;
 
@@ -107,11 +151,25 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    # FIXME: Path collisions in src/test/util_tests.cpp cause issues when
-    # upgraded tests are run in parallel with their non-upgraded counterpart.
-    # Change this back to a one-liner when the root cause is fixed.
-    ninja check-all
-    ninja check-upgrade-activated
+
+    # Unit tests
+    run_test_bitcoin
+    run_test_bitcoin "with next upgrade activated" -phononactivationtime=1575158400
+
+    # Libs and tools tests
+    ninja \
+      check-bitcoin-qt \
+      check-bitcoin-seeder \
+      check-bitcoin-util \
+      check-devtools \
+      check-leveldb \
+      check-rpcauth \
+      check-secp256k1 \
+      check-univalue \
+
+    # Functional tests
+    ninja check-functional
+    ninja check-functional-upgrade-activated
     ;;
 
   build-master)
@@ -121,11 +179,25 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    # FIXME: Path collisions in src/test/util_tests.cpp cause issues when
-    # upgraded tests are run in parallel with their non-upgraded counterpart.
-    # Change this back to a one-liner when the root cause is fixed.
-    ninja check-extended
-    ninja check-upgrade-activated-extended
+
+    # Unit tests
+    run_test_bitcoin
+    run_test_bitcoin "with next upgrade activated" -phononactivationtime=1575158400
+
+    # Libs and tools tests
+    ninja \
+      check-bitcoin-qt \
+      check-bitcoin-seeder \
+      check-bitcoin-util \
+      check-devtools \
+      check-leveldb \
+      check-rpcauth \
+      check-secp256k1 \
+      check-univalue \
+
+    # Functional tests
+    ninja check-functional-extended
+    ninja check-functional-upgrade-activated-extended
     ;;
 
   build-without-wallet)
@@ -134,7 +206,10 @@ case "$ABC_BUILD_NAME" in
       "-DBUILD_BITCOIN_WALLET=OFF"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
-    ninja check
+
+    ninja check-bitcoin-qt
+
+    run_test_bitcoin "without wallet"
     ;;
 
   build-ibd)

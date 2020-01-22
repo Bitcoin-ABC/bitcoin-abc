@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#define BOOST_TEST_MODULE Bitcoin Test Suite
+#define BOOST_TEST_MODULE Bitcoin ABC unit tests
 
 #include <banman.h>
 #include <net.h>
@@ -37,7 +37,10 @@ struct CustomArgumentsFixture {
     std::string error;
 
     CustomArgumentsFixture() {
-        std::set<std::string> testArgs = {
+        const std::string testsuitename = "-testsuitename";
+
+        const std::set<std::string> testArgs = {
+            testsuitename,
             "-phononactivationtime",
         };
 
@@ -45,11 +48,14 @@ struct CustomArgumentsFixture {
             gArgs.AddArg(arg, "", false, OptionsCategory::HIDDEN);
         }
 
-        const auto &master_test_suite = utf::master_test_suite();
+        auto &master_test_suite = utf::master_test_suite();
         if (!gArgs.ParseParameters(master_test_suite.argc,
                                    master_test_suite.argv, error)) {
             throw utf::setup_error(error);
         }
+
+        master_test_suite.p_name.value =
+            gArgs.GetArg(testsuitename, master_test_suite.p_name.value);
     }
 
     ~CustomArgumentsFixture(){};
