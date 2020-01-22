@@ -44,6 +44,21 @@ function(add_deserialize_fuzz_targets)
 	endforeach()
 endfunction()
 
+function(add_process_message_fuzz_targets)
+	foreach(_fuzz_test_name ${ARGN})
+		sanitize_target_name("fuzz-process_message_" ${_fuzz_test_name} _fuzz_target_name)
+		add_fuzz_target(
+			${_fuzz_target_name}
+			process_message_${_fuzz_test_name}
+
+			# Sources
+			process_message.cpp
+		)
+
+		target_compile_definitions(${_fuzz_target_name} PRIVATE MESSAGE_TYPE=${_fuzz_test_name})
+	endforeach()
+endfunction()
+
 add_regular_fuzz_targets(
 	addrdb
 	bloom_filter
@@ -53,6 +68,7 @@ add_regular_fuzz_targets(
 	eval_script
 	net_permissions
 	parse_iso8601
+	process_message
 	psbt
 	script
 	script_flags
@@ -100,4 +116,31 @@ add_deserialize_fuzz_targets(
 	tx_in_deserialize
 	txoutcompressor_deserialize
 	txundo_deserialize
+)
+
+add_process_message_fuzz_targets(
+	addr
+	block
+	blocktxn
+	cmpctblock
+	feefilter
+	filteradd
+	filterclear
+	filterload
+	getaddr
+	getblocks
+	getblocktxn
+	getdata
+	getheaders
+	headers
+	inv
+	mempool
+	notfound
+	ping
+	pong
+	sendcmpct
+	sendheaders
+	tx
+	verack
+	version
 )

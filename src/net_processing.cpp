@@ -2230,11 +2230,10 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
     }
 }
 
-static bool ProcessMessage(const Config &config, CNode *pfrom,
-                           const std::string &strCommand, CDataStream &vRecv,
-                           int64_t nTimeReceived, CConnman *connman,
-                           BanMan *banman,
-                           const std::atomic<bool> &interruptMsgProc) {
+bool ProcessMessage(const Config &config, CNode *pfrom,
+                    const std::string &strCommand, CDataStream &vRecv,
+                    int64_t nTimeReceived, CConnman *connman, BanMan *banman,
+                    const std::atomic<bool> &interruptMsgProc) {
     const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
              SanitizeString(strCommand), vRecv.size(), pfrom->GetId());

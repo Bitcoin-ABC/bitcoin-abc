@@ -15,6 +15,7 @@
 #include <logging.h>
 #include <miner.h>
 #include <net.h>
+#include <net_processing.h>
 #include <noui.h>
 #include <pow/pow.h>
 #include <rpc/blockchain.h>
@@ -85,7 +86,7 @@ std::ostream &operator<<(std::ostream &os, const ScriptError &err) {
 
 BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
     : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME /
-                  std::to_string(g_insecure_rand_ctx_temp_path.rand32())} {
+                  g_insecure_rand_ctx_temp_path.rand256().ToString()} {
     SetMockTime(0);
     fs::create_directories(m_path_root);
     gArgs.ForceSetArg("-datadir", m_path_root.string());
@@ -176,6 +177,8 @@ TestingSetup::TestingSetup(const std::string &chainName)
                                  nullptr, DEFAULT_MISBEHAVING_BANTIME);
     // Deterministic randomness for tests.
     m_node.connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
+    m_node.peer_logic = std::make_unique<PeerLogicValidation>(
+        m_node.connman.get(), m_node.banman.get(), *m_node.scheduler);
 }
 
 TestingSetup::~TestingSetup() {
