@@ -1111,8 +1111,8 @@ void SetupServerArgs(NodeContext &node) {
         "-whitelistforcerelay",
         strprintf("Add 'forcerelay' permission to whitelisted inbound peers"
                   " with default permissions. This will relay transactions "
-                  "even if the transactions were already in the mempool or "
-                  "violate local relay policy (default: %d)",
+                  "even if the transactions were already in the mempool "
+                  "(default: %d)",
                   DEFAULT_WHITELISTFORCERELAY),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
 

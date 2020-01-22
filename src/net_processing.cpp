@@ -1389,15 +1389,6 @@ void PeerManager::Misbehaving(const NodeId pnode, const int howmuch,
     }
 }
 
-/**
- * Returns true if the given validation state result may result in a peer
- * banning/disconnecting us. We use this to determine which unaccepted
- * transactions from a whitelisted peer that we can safely relay.
- */
-static bool TxRelayMayResultInDisconnect(const TxValidationState &state) {
-    return state.GetResult() == TxValidationResult::TX_CONSENSUS;
-}
-
 bool PeerManager::MaybePunishNodeForBlock(NodeId nodeid,
                                           const BlockValidationState &state,
                                           bool via_compact_block,
@@ -3693,17 +3684,13 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
             if (pfrom.HasPermission(PF_FORCERELAY)) {
                 // Always relay transactions received from whitelisted peers,
-                // even if they were already in the mempool or rejected from it
-                // due to policy, allowing the node to function as a gateway for
+                // even if they were already in the mempool, allowing the node
+                // to function as a gateway for
                 // nodes hidden behind it.
-                //
-                // Never relay transactions that might result in being
-                // disconnected (or banned).
-                if (state.IsInvalid() && TxRelayMayResultInDisconnect(state)) {
-                    LogPrintf("Not relaying invalid transaction %s from "
-                              "whitelisted peer=%d (%s)\n",
-                              tx.GetId().ToString(), pfrom.GetId(),
-                              state.ToString());
+                if (!m_mempool.exists(tx.GetId())) {
+                    LogPrintf("Not relaying non-mempool transaction %s from "
+                              "whitelisted peer=%d\n",
+                              tx.GetId().ToString(), pfrom.GetId());
                 } else {
                     LogPrintf("Force relaying tx %s from whitelisted peer=%d\n",
                               tx.GetId().ToString(), pfrom.GetId());
