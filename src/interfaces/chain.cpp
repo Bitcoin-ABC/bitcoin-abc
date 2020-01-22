@@ -88,12 +88,6 @@ namespace {
             assert(block != nullptr);
             return block->GetBlockHash();
         }
-        int64_t getBlockTime(int height) override {
-            LockAssertion lock(::cs_main);
-            CBlockIndex *block = ::ChainActive()[height];
-            assert(block != nullptr);
-            return block->GetBlockTime();
-        }
         bool haveBlockOnDisk(int height) override {
             LockAssertion lock(::cs_main);
             CBlockIndex *block = ::ChainActive()[height];

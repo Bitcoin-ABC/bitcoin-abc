@@ -3838,15 +3838,18 @@ void CWallet::GetKeyBirthTimes(interfaces::Chain::Lock &locked_chain,
         }
     }
 
-    // Map in which we'll infer heights of other keys
-    const Optional<int> tip_height = locked_chain.getHeight();
+    // map in which we'll infer heights of other keys
+    std::map<CKeyID, const CWalletTx::Confirmation *> mapKeyFirstBlock;
+    CWalletTx::Confirmation max_confirm;
     // the tip can be reorganized; use a 144-block safety margin
-    const int max_height =
-        tip_height && *tip_height > 144 ? *tip_height - 144 : 0;
-    std::map<CKeyID, int> mapKeyFirstBlock;
+    max_confirm.block_height =
+        GetLastBlockHeight() > 144 ? GetLastBlockHeight() - 144 : 0;
+    CHECK_NONFATAL(chain().findAncestorByHeight(
+        GetLastBlockHash(), max_confirm.block_height,
+        FoundBlock().hash(max_confirm.hashBlock)));
     for (const CKeyID &keyid : spk_man->GetKeys()) {
         if (mapKeyBirth.count(keyid) == 0) {
-            mapKeyFirstBlock[keyid] = max_height;
+            mapKeyFirstBlock[keyid] = &max_confirm;
         }
     }
 
@@ -3859,19 +3862,18 @@ void CWallet::GetKeyBirthTimes(interfaces::Chain::Lock &locked_chain,
     for (const auto &entry : mapWallet) {
         // iterate over all wallet transactions...
         const CWalletTx &wtx = entry.second;
-        if (Optional<int> height =
-                locked_chain.getBlockHeight(wtx.m_confirm.hashBlock)) {
+        if (wtx.m_confirm.status == CWalletTx::CONFIRMED) {
             // ... which are already in a block
             for (const CTxOut &txout : wtx.tx->vout) {
                 // Iterate over all their outputs...
                 for (const auto &keyid :
                      GetAffectedKeys(txout.scriptPubKey, *spk_man)) {
                     // ... and all their affected keys.
-                    std::map<CKeyID, int>::iterator rit =
-                        mapKeyFirstBlock.find(keyid);
+                    auto rit = mapKeyFirstBlock.find(keyid);
                     if (rit != mapKeyFirstBlock.end() &&
-                        *height < rit->second) {
-                        rit->second = *height;
+                        wtx.m_confirm.block_height <
+                            rit->second->block_height) {
+                        rit->second = &wtx.m_confirm;
                     }
                 }
             }
@@ -3880,9 +3882,11 @@ void CWallet::GetKeyBirthTimes(interfaces::Chain::Lock &locked_chain,
 
     // Extract block timestamps for those keys.
     for (const auto &entry : mapKeyFirstBlock) {
+        int64_t block_time;
+        CHECK_NONFATAL(chain().findBlock(entry.second->hashBlock,
+                                         FoundBlock().time(block_time)));
         // block times can be 2h off
-        mapKeyBirth[entry.first] =
-            locked_chain.getBlockTime(entry.second) - TIMESTAMP_WINDOW;
+        mapKeyBirth[entry.first] = block_time - TIMESTAMP_WINDOW;
     }
 }
 
