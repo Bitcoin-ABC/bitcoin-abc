@@ -3071,7 +3071,7 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
         setDirtyBlockIndex.insert(invalid_walk_tip);
         setBlockIndexCandidates.insert(invalid_walk_tip->pprev);
 
-        if (invalid_walk_tip->pprev == to_mark_failed_or_parked &&
+        if (invalid_walk_tip == to_mark_failed_or_parked->pprev &&
             (invalidate ? to_mark_failed_or_parked->nStatus.hasFailed()
                         : to_mark_failed_or_parked->nStatus.isParked())) {
             // We only want to mark the last disconnected block as
