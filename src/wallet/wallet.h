@@ -1068,7 +1068,8 @@ public:
         //! USER_ABORT.
         BlockHash last_failed_block;
     };
-    ScanResult ScanForWalletTransactions(const BlockHash &first_block,
+    ScanResult ScanForWalletTransactions(const BlockHash &start_block,
+                                         int start_height,
                                          Optional<int> max_height,
                                          const WalletRescanReserver &reserver,
                                          bool fUpdate);
