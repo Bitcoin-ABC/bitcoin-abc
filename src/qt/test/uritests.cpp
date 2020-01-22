@@ -204,7 +204,7 @@ void URITests::uriTestFormatURI() {
         r.message = "test";
         QString uri = GUIUtil::formatBitcoinURI(cfg, r);
         QVERIFY(uri ==
-                "bitcoincash:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message=test");
+                "freecash:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message=test");
     }
 }
 
@@ -223,10 +223,10 @@ void URITests::uriTestScheme() {
         // legacy - scheme is "bitcoincash" regardless of chain params
         UriTestConfig config(false);
         config.SetChainParams(CBaseChainParams::MAIN);
-        QVERIFY("bitcoincash" == GUIUtil::bitcoinURIScheme(config));
+        QVERIFY("freecash" == GUIUtil::bitcoinURIScheme(config));
         config.SetChainParams(CBaseChainParams::TESTNET);
-        QVERIFY("bitcoincash" == GUIUtil::bitcoinURIScheme(config));
+        QVERIFY("freecash" == GUIUtil::bitcoinURIScheme(config));
         config.SetChainParams(CBaseChainParams::REGTEST);
-        QVERIFY("bitcoincash" == GUIUtil::bitcoinURIScheme(config));
+        QVERIFY("freecash" == GUIUtil::bitcoinURIScheme(config));
     }
 }
