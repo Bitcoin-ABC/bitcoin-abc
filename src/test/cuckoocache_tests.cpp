@@ -7,6 +7,8 @@
 #include <random.h>
 #include <script/sigcache.h>
 
+#include <deque>
+
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
