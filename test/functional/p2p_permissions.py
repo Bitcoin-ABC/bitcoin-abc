@@ -7,12 +7,19 @@
 Test that permissions are correctly calculated and applied
 """
 
+from test_framework.messages import (
+    CTransaction,
+    FromHex,
+)
+from test_framework.p2p import P2PDataStore
 from test_framework.test_node import ErrorMatch
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.txtools import pad_tx
 from test_framework.util import (
     assert_equal,
     connect_nodes,
     p2p_port,
+    wait_until,
 )
 
 
@@ -20,9 +27,9 @@ class P2PPermissionsTests(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
-        self.extra_args = [[], []]
 
     def run_test(self):
+        self.check_tx_relay()
 
         self.checkpermission(
             # default permissions (no specific permissions)
@@ -116,6 +123,46 @@ class P2PPermissionsTests(BitcoinTestFramework):
             ["-whitebind=noban@127.0.0.1/10"],
             "Cannot resolve -whitebind address",
             match=ErrorMatch.PARTIAL_REGEX)
+
+    def check_tx_relay(self):
+        address = self.nodes[0].get_deterministic_priv_key().address
+        key = self.nodes[0].get_deterministic_priv_key().key
+        block = self.nodes[0].getblock(
+            self.nodes[0].generatetoaddress(
+                100, address)[0])
+        self.sync_all()
+
+        self.log.debug(
+            "Create a connection from a whitelisted wallet that rebroadcasts raw txs")
+        # A python mininode is needed to send the raw transaction directly.
+        # If a full node was used, it could only rebroadcast via the inv-getdata
+        # mechanism. However, even for whitelisted connections, a full node would
+        # currently not request a txid that is already in the mempool.
+        self.restart_node(1, extra_args=["-whitelist=forcerelay@127.0.0.1"])
+        p2p_rebroadcast_wallet = self.nodes[1].add_p2p_connection(
+            P2PDataStore())
+
+        self.log.debug("Send a tx from the wallet initially")
+        raw_tx = self.nodes[0].createrawtransaction(
+            inputs=[{'txid': block['tx'][0], 'vout': 0}],
+            outputs=[{address: 50, }])
+        signed_tx = self.nodes[0].signrawtransactionwithkey(raw_tx,
+                                                            [key])['hex']
+        tx = FromHex(CTransaction(), signed_tx)
+        pad_tx(tx)
+        txid = tx.rehash()
+
+        self.log.debug("Wait until tx is in node[1]'s mempool")
+        p2p_rebroadcast_wallet.send_txs_and_test([tx], self.nodes[1])
+
+        self.log.debug(
+            "Check that node[1] will send the tx to node[0] even though it"
+            " is already in the mempool")
+        connect_nodes(self.nodes[1], self.nodes[0])
+        with self.nodes[1].assert_debug_log(
+                ["Force relaying tx {} from whitelisted peer=0".format(txid)]):
+            p2p_rebroadcast_wallet.send_txs_and_test([tx], self.nodes[1])
+            wait_until(lambda: txid in self.nodes[0].getrawmempool())
 
     def checkpermission(self, args, expectedPermissions, whitelisted):
         self.restart_node(1, args)
