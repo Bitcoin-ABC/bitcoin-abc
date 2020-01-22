@@ -25,7 +25,7 @@ Reorgs protection,
 Dynamic difficulty adjustment,  
 Inner goverance funds,  
 Annual decline in issuance,  
-1 billion total issuance.  
+One hundred million total issuance.  
 
 License
 -------
