@@ -6,6 +6,7 @@
 #define BITCOIN_QT_TRANSACTIONRECORD_H
 
 #include <amount.h>
+#include <primitives/blockhash.h>
 #include <primitives/txid.h>
 
 #include <QList>
@@ -26,7 +27,7 @@ class TransactionStatus {
 public:
     TransactionStatus()
         : countsForBalance(false), sortKey(""), matures_in(0),
-          status(Unconfirmed), depth(0), open_for(0), cur_num_blocks(-1) {}
+          status(Unconfirmed), depth(0), open_for(0) {}
 
     enum Status {
         /**
@@ -77,9 +78,10 @@ public:
 
     /**@}*/
 
-    /** Current number of blocks (to know whether cached status is still valid)
+    /**
+     * Current block hash (to know whether cached status is still valid)
      */
-    int cur_num_blocks;
+    BlockHash m_cur_block_hash{};
 };
 
 /**
@@ -148,12 +150,13 @@ public:
 
     /** Update status from core wallet tx.
      */
-    void updateStatus(const interfaces::WalletTxStatus &wtx, int numBlocks,
+    void updateStatus(const interfaces::WalletTxStatus &wtx,
+                      const BlockHash &block_hash, int numBlocks,
                       int64_t block_time);
 
     /** Return whether a status update is needed.
      */
-    bool statusUpdateNeeded(int numBlocks) const;
+    bool statusUpdateNeeded(const BlockHash &block_hash) const;
 };
 
 #endif // BITCOIN_QT_TRANSACTIONRECORD_H

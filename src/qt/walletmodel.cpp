@@ -34,8 +34,7 @@ WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet,
       m_client_model(&client_model), m_node(client_model.node()),
       optionsModel(client_model.getOptionsModel()), addressTableModel(nullptr),
       transactionTableModel(nullptr), recentRequestsTableModel(nullptr),
-      cachedEncryptionStatus(Unencrypted), cachedNumBlocks(0),
-      timer(new QTimer(this)) {
+      cachedEncryptionStatus(Unencrypted), timer(new QTimer(this)) {
     fHaveWatchOnly = m_wallet->haveWatchOnly();
     addressTableModel = new AddressTableModel(this);
     transactionTableModel = new TransactionTableModel(platformStyle, this);
@@ -73,7 +72,7 @@ void WalletModel::pollBalanceChanged() {
     // Avoid recomputing wallet balances unless a TransactionChanged or
     // BlockTip notification was received.
     if (!fForceCheckBalanceChanged &&
-        cachedNumBlocks == m_client_model->getNumBlocks()) {
+        m_cached_last_update_tip == m_client_model->getBestBlockHash()) {
         return;
     }
 
@@ -82,16 +81,16 @@ void WalletModel::pollBalanceChanged() {
     // holding the locks for a longer time - for example, during a wallet
     // rescan.
     interfaces::WalletBalances new_balances;
-    int numBlocks = -1;
-    if (!m_wallet->tryGetBalances(new_balances, numBlocks)) {
+    BlockHash block_hash;
+    if (!m_wallet->tryGetBalances(new_balances, block_hash)) {
         return;
     }
 
-    if (fForceCheckBalanceChanged || numBlocks != cachedNumBlocks) {
+    if (fForceCheckBalanceChanged || block_hash != m_cached_last_update_tip) {
         fForceCheckBalanceChanged = false;
 
         // Balance and number of transactions might have changed
-        cachedNumBlocks = numBlocks;
+        m_cached_last_update_tip = block_hash;
 
         checkBalanceChanged(new_balances);
         if (transactionTableModel) {

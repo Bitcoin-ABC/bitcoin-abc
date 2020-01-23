@@ -193,6 +193,12 @@ namespace {
             LOCK(::cs_main);
             return ::ChainActive().Height();
         }
+        BlockHash getBestBlockHash() override {
+            const CBlockIndex *tip =
+                WITH_LOCK(::cs_main, return ::ChainActive().Tip());
+            return tip ? tip->GetBlockHash()
+                       : Params().GenesisBlock().GetHash();
+        }
         int64_t getLastBlockTime() override {
             LOCK(::cs_main);
             if (::ChainActive().Tip()) {
@@ -323,7 +329,8 @@ namespace {
             return MakeHandler(::uiInterface.NotifyBlockTip_connect(
                 [fn](SynchronizationState sync_state,
                      const CBlockIndex *block) {
-                    fn(sync_state, block->nHeight, block->GetBlockTime(),
+                    fn(sync_state, block->GetBlockHash(), block->nHeight,
+                       block->GetBlockTime(),
                        GuessVerificationProgress(Params().TxData(), block));
                 }));
         }
@@ -333,7 +340,8 @@ namespace {
             return MakeHandler(::uiInterface.NotifyHeaderTip_connect(
                 [fn](SynchronizationState sync_state,
                      const CBlockIndex *block) {
-                    fn(sync_state, block->nHeight, block->GetBlockTime(), 0);
+                    fn(sync_state, block->GetBlockHash(), block->nHeight,
+                       block->GetBlockTime(), 0);
                 }));
         }
         NodeContext *context() override { return m_context; }

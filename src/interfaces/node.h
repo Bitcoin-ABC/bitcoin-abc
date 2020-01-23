@@ -119,6 +119,9 @@ public:
     //! Get num blocks.
     virtual int getNumBlocks() = 0;
 
+    //! Get best block hash.
+    virtual BlockHash getBestBlockHash() = 0;
+
     //! Get last block time.
     virtual int64_t getLastBlockTime() = 0;
 
@@ -236,16 +239,16 @@ public:
     handleBannedListChanged(BannedListChangedFn fn) = 0;
 
     //! Register handler for block tip messages.
-    using NotifyBlockTipFn =
-        std::function<void(SynchronizationState, int height, int64_t block_time,
-                           double verification_progress)>;
+    using NotifyBlockTipFn = std::function<void(
+        SynchronizationState, const BlockHash &block_hash, int height,
+        int64_t block_time, double verification_progress)>;
     virtual std::unique_ptr<Handler>
     handleNotifyBlockTip(NotifyBlockTipFn fn) = 0;
 
     //! Register handler for header tip messages.
-    using NotifyHeaderTipFn =
-        std::function<void(SynchronizationState, int height, int64_t block_time,
-                           double verification_progress)>;
+    using NotifyHeaderTipFn = std::function<void(
+        SynchronizationState, const BlockHash &block_hash, int height,
+        int64_t block_time, double verification_progress)>;
     virtual std::unique_ptr<Handler>
     handleNotifyHeaderTip(NotifyHeaderTipFn fn) = 0;
 

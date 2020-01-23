@@ -162,7 +162,8 @@ TransactionRecord::decomposeTransaction(const interfaces::WalletTx &wtx) {
 }
 
 void TransactionRecord::updateStatus(const interfaces::WalletTxStatus &wtx,
-                                     int numBlocks, int64_t block_time) {
+                                     const BlockHash &block_hash, int numBlocks,
+                                     int64_t block_time) {
     // Determine transaction status
 
     // Sort order, unrecorded transactions sort to the top
@@ -170,7 +171,7 @@ void TransactionRecord::updateStatus(const interfaces::WalletTxStatus &wtx,
                                wtx.is_coinbase ? 1 : 0, wtx.time_received, idx);
     status.countsForBalance = wtx.is_trusted && !(wtx.blocks_to_maturity > 0);
     status.depth = wtx.depth_in_main_chain;
-    status.cur_num_blocks = numBlocks;
+    status.m_cur_block_hash = block_hash;
 
     const bool up_to_date =
         (int64_t(QDateTime::currentMSecsSinceEpoch()) / 1000 - block_time <
@@ -212,8 +213,8 @@ void TransactionRecord::updateStatus(const interfaces::WalletTxStatus &wtx,
     }
 }
 
-bool TransactionRecord::statusUpdateNeeded(int numBlocks) const {
-    return status.cur_num_blocks != numBlocks;
+bool TransactionRecord::statusUpdateNeeded(const BlockHash &block_hash) const {
+    return status.m_cur_block_hash != block_hash;
 }
 
 QString TransactionRecord::getTxID() const {

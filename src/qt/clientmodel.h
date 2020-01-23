@@ -10,6 +10,8 @@
 
 #include <atomic>
 #include <memory>
+#include <primitives/blockhash.h>
+#include <sync.h>
 
 class BanTableModel;
 class CBlockIndex;
@@ -54,6 +56,7 @@ public:
     //! Return number of connections, default is in- and outbound (total)
     int getNumConnections(NumConnections flags = CONNECTIONS_ALL) const;
     int getNumBlocks() const;
+    BlockHash getBestBlockHash();
     int getHeaderTipHeight() const;
     int64_t getHeaderTipTime() const;
 
@@ -75,6 +78,9 @@ public:
     mutable std::atomic<int> cachedBestHeaderHeight;
     mutable std::atomic<int64_t> cachedBestHeaderTime;
     mutable std::atomic<int> m_cached_num_blocks{-1};
+
+    Mutex m_cached_tip_mutex;
+    BlockHash m_cached_tip_blocks GUARDED_BY(m_cached_tip_mutex){};
 
 private:
     interfaces::Node &m_node;

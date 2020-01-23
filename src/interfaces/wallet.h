@@ -5,7 +5,8 @@
 #ifndef BITCOIN_INTERFACES_WALLET_H
 #define BITCOIN_INTERFACES_WALLET_H
 
-#include <amount.h>                 // For Amount
+#include <amount.h> // For Amount
+#include <primitives/blockhash.h>
 #include <primitives/transaction.h> // For CTxOut
 #include <pubkey.h> // For CKeyID and CScriptID (definitions needed in CTxDestination instantiation)
 #include <script/sighashtype.h>
@@ -199,7 +200,8 @@ public:
     virtual WalletBalances getBalances() = 0;
 
     //! Get balances if possible without blocking.
-    virtual bool tryGetBalances(WalletBalances &balances, int &num_blocks) = 0;
+    virtual bool tryGetBalances(WalletBalances &balances,
+                                BlockHash &block_hash) = 0;
 
     //! Get balance.
     virtual Amount getBalance() = 0;

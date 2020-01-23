@@ -110,6 +110,28 @@ int ClientModel::getNumBlocks() const {
     return m_cached_num_blocks;
 }
 
+BlockHash ClientModel::getBestBlockHash() {
+    BlockHash tip{WITH_LOCK(m_cached_tip_mutex, return m_cached_tip_blocks)};
+
+    if (!tip.IsNull()) {
+        return tip;
+    }
+
+    // Lock order must be: first `cs_main`, then `m_cached_tip_mutex`.
+    // The following will lock `cs_main` (and release it), so we must not
+    // own `m_cached_tip_mutex` here.
+    tip = m_node.getBestBlockHash();
+
+    LOCK(m_cached_tip_mutex);
+    // We checked that `m_cached_tip_blocks` is not null above, but then we
+    // released the mutex `m_cached_tip_mutex`, so it could have changed in the
+    // meantime. Thus, check again.
+    if (m_cached_tip_blocks.IsNull()) {
+        m_cached_tip_blocks = tip;
+    }
+    return m_cached_tip_blocks;
+}
+
 void ClientModel::updateNumConnections(int numConnections) {
     Q_EMIT numConnectionsChanged(numConnections);
 }
@@ -221,7 +243,8 @@ static void BannedListChanged(ClientModel *clientmodel) {
 }
 
 static void BlockTipChanged(ClientModel *clientmodel,
-                            SynchronizationState sync_state, int height,
+                            SynchronizationState sync_state,
+                            const BlockHash block_hash, int height,
                             int64_t blockTime, double verificationProgress,
                             bool fHeader) {
     if (fHeader) {
@@ -230,6 +253,8 @@ static void BlockTipChanged(ClientModel *clientmodel,
         clientmodel->cachedBestHeaderTime = blockTime;
     } else {
         clientmodel->m_cached_num_blocks = height;
+        WITH_LOCK(clientmodel->m_cached_tip_mutex,
+                  clientmodel->m_cached_tip_blocks = block_hash;);
     }
 
     // Throttle GUI notifications about (a) blocks during initial sync, and (b)
@@ -268,12 +293,14 @@ void ClientModel::subscribeToCoreSignals() {
         m_node.handleNotifyAlertChanged(std::bind(NotifyAlertChanged, this));
     m_handler_banned_list_changed =
         m_node.handleBannedListChanged(std::bind(BannedListChanged, this));
-    m_handler_notify_block_tip = m_node.handleNotifyBlockTip(std::bind(
-        BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2,
-        std::placeholders::_3, std::placeholders::_4, false));
-    m_handler_notify_header_tip = m_node.handleNotifyHeaderTip(std::bind(
-        BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2,
-        std::placeholders::_3, std::placeholders::_4, true));
+    m_handler_notify_block_tip = m_node.handleNotifyBlockTip(
+        std::bind(BlockTipChanged, this, std::placeholders::_1,
+                  std::placeholders::_2, std::placeholders::_3,
+                  std::placeholders::_4, std::placeholders::_5, false));
+    m_handler_notify_header_tip = m_node.handleNotifyHeaderTip(
+        std::bind(BlockTipChanged, this, std::placeholders::_1,
+                  std::placeholders::_2, std::placeholders::_3,
+                  std::placeholders::_4, std::placeholders::_5, true));
 }
 
 void ClientModel::unsubscribeFromCoreSignals() {
