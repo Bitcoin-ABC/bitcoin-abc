@@ -57,6 +57,7 @@ add_regular_fuzz_targets(
 	script
 	script_flags
 	spanparsing
+	strprintf
 	timedata
 	transaction
 )

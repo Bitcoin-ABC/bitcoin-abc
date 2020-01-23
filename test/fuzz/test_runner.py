@@ -14,7 +14,9 @@ import sys
 
 # Fuzzers known to lack a seed corpus in
 # https://github.com/Bitcoin-ABC/qa-assets/tree/master/fuzz_seed_corpus
-FUZZERS_MISSING_CORPORA = []
+FUZZERS_MISSING_CORPORA = [
+    "strprintf",
+]
 
 
 def main():

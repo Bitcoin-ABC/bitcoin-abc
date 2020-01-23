@@ -13,11 +13,10 @@
 #ifndef LLVM_FUZZER_FUZZED_DATA_PROVIDER_H_
 #define LLVM_FUZZER_FUZZED_DATA_PROVIDER_H_
 
+#include <algorithm>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
-
-#include <algorithm>
 #include <cstring>
 #include <initializer_list>
 #include <string>
@@ -25,6 +24,8 @@
 #include <utility>
 #include <vector>
 
+// In addition to the comments below, the API is also briefly documented at
+// https://github.com/google/fuzzing/blob/master/docs/split-inputs.md#fuzzed-data-provider
 class FuzzedDataProvider {
 public:
     // |data| is an array of length |size| that the FuzzedDataProvider wraps to
@@ -84,7 +85,9 @@ public:
         static_assert(sizeof(T) <= sizeof(uint64_t),
                       "Unsupported integral type.");
 
-        if (min > max) abort();
+        if (min > max) {
+            abort();
+        }
 
         // Use the biggest type possible to hold the range and the result.
         uint64_t range = static_cast<uint64_t>(max) - min;
@@ -105,8 +108,9 @@ public:
         }
 
         // Avoid division by 0, in case |range + 1| results in overflow.
-        if (range != std::numeric_limits<decltype(range)>::max())
+        if (range != std::numeric_limits<decltype(range)>::max()) {
             result = result % (range + 1);
+        }
 
         return static_cast<T>(min + result);
     }
@@ -132,7 +136,9 @@ public:
             if (next == '\\' && remaining_bytes_ != 0) {
                 next = ConvertUnsignedToSigned<char>(data_ptr_[0]);
                 Advance(1);
-                if (next != '\\') break;
+                if (next != '\\') {
+                    break;
+                }
             }
             result += next;
         }
@@ -146,6 +152,7 @@ public:
         return ConsumeBytes<T>(remaining_bytes_);
     }
 
+    // Returns a std::string containing all remaining bytes of the input data.
     // Prefer using |ConsumeRemainingBytes| unless you actually need a
     // std::string object. Returns a std::vector containing all remaining bytes
     // of the input data.
@@ -164,7 +171,7 @@ public:
     // Reads one byte and returns a bool, or false when no data remains.
     bool ConsumeBool() { return 1 & ConsumeIntegral<uint8_t>(); }
 
-    // Returns a copy of a value selected from a fixed-size |array|.
+    // Returns a copy of the value selected from the given fixed-size |array|.
     template <typename T, size_t size>
     T PickValueInArray(const T (&array)[size]) {
         static_assert(size > 0, "The array must be non empty.");
@@ -173,18 +180,77 @@ public:
 
     template <typename T>
     T PickValueInArray(std::initializer_list<const T> list) {
-        // static_assert(list.size() > 0, "The array must be non empty.");
+        // Static assert won't work here:
+        // https://stackoverflow.com/questions/5438671/static-assert-on-initializer-listsize
+        if (!list.size()) {
+            abort();
+        }
+
         return *(list.begin() +
                  ConsumeIntegralInRange<size_t>(0, list.size() - 1));
     }
 
-    // Return an enum value. The enum must start at 0 and be contiguous. It must
-    // also contain |kMaxValue| aliased to its largest (inclusive) value. Such
-    // as: enum class Foo { SomeValue, OtherValue, kMaxValue = OtherValue };
+    // Returns an enum value. The enum must start at 0 and be contiguous. It
+    // must also contain |kMaxValue| aliased to its largest (inclusive) value.
+    // Such as:
+    // enum class Foo { SomeValue, OtherValue, kMaxValue = OtherValue };
     template <typename T> T ConsumeEnum() {
         static_assert(std::is_enum<T>::value, "|T| must be an enum type.");
         return static_cast<T>(ConsumeIntegralInRange<uint32_t>(
             0, static_cast<uint32_t>(T::kMaxValue)));
+    }
+
+    // Returns a floating point number in the range [0.0, 1.0]. If there's no
+    // input data left, always returns 0.
+    template <typename T> T ConsumeProbability() {
+        static_assert(std::is_floating_point<T>::value,
+                      "A floating point type is required.");
+
+        // Use different integral types for different floating point types in
+        // order to provide better density of the resulting values.
+        using IntegralType =
+            typename std::conditional<(sizeof(T) <= sizeof(uint32_t)), uint32_t,
+                                      uint64_t>::type;
+
+        T result = static_cast<T>(ConsumeIntegral<IntegralType>());
+        result /= static_cast<T>(std::numeric_limits<IntegralType>::max());
+        return result;
+    }
+
+    // Returns a floating point value in the range [Type's lowest, Type's max]
+    // by consuming bytes from the input data. If there's no input data left,
+    // always returns approximately 0.
+    template <typename T> T ConsumeFloatingPoint() {
+        return ConsumeFloatingPointInRange<T>(std::numeric_limits<T>::lowest(),
+                                              std::numeric_limits<T>::max());
+    }
+
+    // Returns a floating point value in the given range by consuming bytes from
+    // the input data. If there's no input data left, returns |min|. Note that
+    // |min| must be less than or equal to |max|.
+    template <typename T> T ConsumeFloatingPointInRange(T min, T max) {
+        if (min > max) {
+            abort();
+        }
+
+        T range = .0;
+        T result = min;
+        constexpr T zero(.0);
+        if (max > zero && min < zero &&
+            max > min + std::numeric_limits<T>::max()) {
+            // The diff |max - min| would overflow the given floating point
+            // type. Use the half of the diff as the range and consume a bool to
+            // decide whether the result is in the first of the second part of
+            // the diff.
+            range = (max / 2.0) - (min / 2.0);
+            if (ConsumeBool()) {
+                result += range;
+            }
+        } else {
+            range = max - min;
+        }
+
+        return result + range * ConsumeProbability<T>();
     }
 
     // Reports the remaining bytes available for fuzzed input.
@@ -195,7 +261,9 @@ private:
     FuzzedDataProvider &operator=(const FuzzedDataProvider &) = delete;
 
     void Advance(size_t num_bytes) {
-        if (num_bytes > remaining_bytes_) abort();
+        if (num_bytes > remaining_bytes_) {
+            abort();
+        }
 
         data_ptr_ += num_bytes;
         remaining_bytes_ -= num_bytes;
@@ -213,6 +281,13 @@ private:
         // implementations as well. To increase the odds even more, we also call
         // |shrink_to_fit| below.
         std::vector<T> result(size);
+        if (size == 0) {
+            if (num_bytes_to_consume != 0) {
+                abort();
+            }
+            return result;
+        }
+
         std::memcpy(result.data(), data_ptr_, num_bytes_to_consume);
         Advance(num_bytes_to_consume);
 
@@ -230,13 +305,15 @@ private:
                       "Source type must be unsigned.");
 
         // TODO(Dor1s): change to `if constexpr` once C++17 becomes mainstream.
-        if (std::numeric_limits<TS>::is_modulo) return static_cast<TS>(value);
+        if (std::numeric_limits<TS>::is_modulo) {
+            return static_cast<TS>(value);
+        }
 
         // Avoid using implementation-defined unsigned to signer conversions.
         // To learn more, see https://stackoverflow.com/questions/13150449.
-        if (value <= std::numeric_limits<TS>::max())
+        if (value <= std::numeric_limits<TS>::max()) {
             return static_cast<TS>(value);
-        else {
+        } else {
             constexpr auto TS_min = std::numeric_limits<TS>::min();
             return TS_min + static_cast<char>(value - TS_min);
         }
