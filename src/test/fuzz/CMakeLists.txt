@@ -84,6 +84,7 @@ add_regular_fuzz_targets(
 	cashaddr
 	descriptor_parse
 	eval_script
+	float
 	hex
 	integer
 	net_permissions
