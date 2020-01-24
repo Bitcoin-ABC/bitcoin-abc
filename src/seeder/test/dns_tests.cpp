@@ -62,7 +62,7 @@ static void CheckParseName(const std::string &queryName) {
     }
 
     // Test when the buffer size is too small
-    size_t outputBufferSize = 1;
+    size_t outputBufferSize = 0;
     while (outputBufferSize <= queryName.size()) {
         std::vector<char> parsedQueryName(outputBufferSize, 0);
         const uint8_t *nameFieldBegin = nameField.data();

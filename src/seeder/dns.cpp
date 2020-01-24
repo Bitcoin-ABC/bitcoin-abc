@@ -64,6 +64,9 @@ enum class DNSResponseCode : uint8_t {
 
 int parse_name(const uint8_t **inpos, const uint8_t *inend,
                const uint8_t *inbuf, char *buf, size_t bufsize) {
+    if (bufsize == 0) {
+        return -2;
+    }
     size_t bufused = 0;
     int init = 1;
     do {
