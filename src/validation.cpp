@@ -3557,36 +3557,10 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
                                        state.GetDebugMessage()));
     }
 
-    // Keep track of the sigops count.
-    uint64_t nSigOps = 0;
-    auto nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
-
-    // Check transactions
-    auto txCount = block.vtx.size();
-    auto *tx = block.vtx[0].get();
-
-    size_t i = 0;
-    while (true) {
-        // Count the sigops for the current transaction. If the total sigops
-        // count is too high, the the block is invalid.
-        nSigOps += GetSigOpCountWithoutP2SH(*tx, STANDARD_SCRIPT_VERIFY_FLAGS);
-        if (nSigOps > nMaxSigOpsCount) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
-                             false, "out-of-bounds SigOpCount");
-        }
-
-        // Go to the next transaction.
-        i++;
-
-        // We reached the end of the block, success.
-        if (i >= txCount) {
-            break;
-        }
-
-        // Check that the transaction is valid. Because this check differs for
-        // the coinbase, the loop is arranged such as this only runs after at
-        // least one increment.
-        tx = block.vtx[i].get();
+    // Check transactions for regularity, skipping the first. Note that this
+    // is the first time we check that all after the first are !IsCoinBase.
+    for (size_t i = 1; i < block.vtx.size(); i++) {
+        auto *tx = block.vtx[i].get();
         if (!CheckRegularTransaction(*tx, state)) {
             return state.Invalid(
                 false, state.GetRejectCode(), state.GetRejectReason(),
@@ -3749,7 +3723,20 @@ static bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
     const bool fIsMagneticAnomalyEnabled =
         IsMagneticAnomalyEnabled(params, pindexPrev);
 
-    // Check that all transactions are finalized
+    // Keep track of the sigops count.
+    uint64_t nSigOps = 0;
+    const auto currentBlockSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
+    auto nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
+    // Note that pindexPrev may be null if reindexing genesis block.
+    const auto scriptFlags = pindexPrev
+                                 ? GetNextBlockScriptFlags(params, pindexPrev)
+                                 : SCRIPT_VERIFY_NONE;
+
+    // Check transactions:
+    // - canonical ordering
+    // - ensure they are finalized
+    // - perform a preliminary sigops count (they will be recounted more
+    // strictly during ConnectBlock)
     const CTransaction *prevTx = nullptr;
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
@@ -3772,6 +3759,14 @@ static bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
             if (prevTx || !tx.IsCoinBase()) {
                 prevTx = &tx;
             }
+        }
+
+        // Count the sigops for the current transaction. If the total sigops
+        // count is too high, the the block is invalid.
+        nSigOps += GetSigOpCountWithoutP2SH(tx, scriptFlags);
+        if (nSigOps > nMaxSigOpsCount) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
+                             false, "out-of-bounds SigOpCount");
         }
 
         if (!ContextualCheckTransaction(params, tx, state, nHeight,
