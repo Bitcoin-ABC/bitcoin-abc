@@ -7,7 +7,10 @@
 #define BITCOIN_NODE_COINSTATS_H
 
 #include <amount.h>
+#include <chain.h>
+#include <coins.h>
 #include <primitives/blockhash.h>
+#include <streams.h>
 #include <uint256.h>
 
 #include <cstdint>
@@ -42,5 +45,9 @@ struct CCoinsStats {
 //! Calculate statistics about the unspent transaction output set
 bool GetUTXOStats(CCoinsView *view, BlockManager &blockman, CCoinsStats &stats,
                   const std::function<void()> &interruption_point = {});
+
+uint64_t GetBogoSize(const CScript &script_pub_key);
+
+CDataStream TxOutSer(const COutPoint &outpoint, const Coin &coin);
 
 #endif // BITCOIN_NODE_COINSTATS_H

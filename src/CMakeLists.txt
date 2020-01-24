@@ -570,6 +570,7 @@ add_library(server
 	i2p.cpp
 	index/base.cpp
 	index/blockfilterindex.cpp
+	index/coinstatsindex.cpp
 	index/txindex.cpp
 	init.cpp
 	interfaces/chain.cpp

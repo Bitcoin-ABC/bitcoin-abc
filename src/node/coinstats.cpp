@@ -16,10 +16,18 @@
 
 #include <map>
 
-static uint64_t GetBogoSize(const CScript &scriptPubKey) {
+uint64_t GetBogoSize(const CScript &script_pub_key) {
     return 32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ +
            8 /* amount */ + 2 /* scriptPubKey len */ +
-           scriptPubKey.size() /* scriptPubKey */;
+           script_pub_key.size() /* scriptPubKey */;
+}
+
+CDataStream TxOutSer(const COutPoint &outpoint, const Coin &coin) {
+    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+    ss << outpoint;
+    ss << static_cast<uint32_t>(coin.GetHeight() * 2 + coin.IsCoinBase());
+    ss << coin.GetTxOut();
+    return ss;
 }
 
 //! Warning: be very careful when changing this! assumeutxo and UTXO snapshot
@@ -61,12 +69,7 @@ static void ApplyHash(MuHash3072 &muhash, const TxId &txid,
     for (auto it = outputs.begin(); it != outputs.end(); ++it) {
         COutPoint outpoint = COutPoint(txid, it->first);
         Coin coin = it->second;
-
-        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
-        ss << outpoint;
-        ss << static_cast<uint32_t>(coin.GetHeight() * 2 + coin.IsCoinBase());
-        ss << coin.GetTxOut();
-        muhash.Insert(MakeUCharSpan(ss));
+        muhash.Insert(MakeUCharSpan(TxOutSer(outpoint, coin)));
     }
 }
 
