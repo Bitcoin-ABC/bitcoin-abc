@@ -14,6 +14,7 @@
 extern RecursiveMutex cs_main;
 extern RecursiveMutex g_cs_orphans;
 
+class CTxMemPool;
 class ChainstateManager;
 class Config;
 
@@ -35,12 +36,14 @@ private:
     CConnman *const connman;
     BanMan *const m_banman;
     ChainstateManager &m_chainman;
+    CTxMemPool &m_mempool;
 
     bool CheckIfBanned(CNode &pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 public:
     PeerLogicValidation(CConnman *connman, BanMan *banman,
-                        CScheduler &scheduler, ChainstateManager &chainman);
+                        CScheduler &scheduler, ChainstateManager &chainman,
+                        CTxMemPool &pool);
 
     /**
      * Overridden from CValidationInterface.
@@ -137,8 +140,8 @@ void RelayTransaction(const TxId &txid, const CConnman &connman);
 
 bool ProcessMessage(const Config &config, CNode &pfrom,
                     const std::string &msg_type, CDataStream &vRecv,
-                    int64_t nTimeReceived, ChainstateManager &chainman,
-                    CConnman &connman, BanMan *banman,
-                    const std::atomic<bool> &interruptMsgProc);
+                    int64_t nTimeReceived, CTxMemPool &mempool,
+                    ChainstateManager &chainman, CConnman &connman,
+                    BanMan *banman, const std::atomic<bool> &interruptMsgProc);
 
 #endif // BITCOIN_NET_PROCESSING_H

@@ -2260,12 +2260,20 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
         GetRand(std::numeric_limits<uint64_t>::max()));
+
+    // Make mempool generally available in the node context. For example the
+    // connection manager, wallet, or RPC threads, which are all started after
+    // this, may use it from the node context.
+    assert(!node.mempool);
+    node.mempool = &::g_mempool;
+
     assert(!node.chainman);
     node.chainman = &g_chainman;
     ChainstateManager &chainman = *Assert(node.chainman);
 
-    node.peer_logic.reset(new PeerLogicValidation(
-        node.connman.get(), node.banman.get(), *node.scheduler, chainman));
+    node.peer_logic.reset(
+        new PeerLogicValidation(node.connman.get(), node.banman.get(),
+                                *node.scheduler, chainman, *node.mempool));
     RegisterValidationInterface(node.peer_logic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size
@@ -2732,13 +2740,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Encoded addresses using cashaddr instead of base58.
     // We do this by default to avoid confusion with BTC addresses.
     config.SetCashAddrEncoding(args.GetBoolArg("-usecashaddr", true));
-
-    // Now that the chain state is loaded, make mempool generally available in
-    // the node context. For example the connection manager, wallet, or RPC
-    // threads, which are all started after this, may use it from the node
-    // context.
-    assert(!node.mempool);
-    node.mempool = &::g_mempool;
 
     // Step 8: load indexers
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
