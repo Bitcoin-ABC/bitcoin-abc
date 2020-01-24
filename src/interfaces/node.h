@@ -40,6 +40,7 @@ struct bilingual_str;
 namespace interfaces {
 class Handler;
 class Wallet;
+struct BlockTip;
 
 //! Top-level interface for a bitcoin node (bitcoind process).
 class Node {
@@ -239,16 +240,16 @@ public:
     handleBannedListChanged(BannedListChangedFn fn) = 0;
 
     //! Register handler for block tip messages.
-    using NotifyBlockTipFn = std::function<void(
-        SynchronizationState, const BlockHash &block_hash, int height,
-        int64_t block_time, double verification_progress)>;
+    using NotifyBlockTipFn =
+        std::function<void(SynchronizationState, interfaces::BlockTip tip,
+                           double verification_progress)>;
     virtual std::unique_ptr<Handler>
     handleNotifyBlockTip(NotifyBlockTipFn fn) = 0;
 
     //! Register handler for header tip messages.
-    using NotifyHeaderTipFn = std::function<void(
-        SynchronizationState, const BlockHash &block_hash, int height,
-        int64_t block_time, double verification_progress)>;
+    using NotifyHeaderTipFn =
+        std::function<void(SynchronizationState, interfaces::BlockTip tip,
+                           double verification_progress)>;
     virtual std::unique_ptr<Handler>
     handleNotifyHeaderTip(NotifyHeaderTipFn fn) = 0;
 
@@ -260,6 +261,13 @@ public:
 
 //! Return implementation of Node interface.
 std::unique_ptr<Node> MakeNode(NodeContext *context = nullptr);
+
+//! Block tip (could be a header or not, depends on the subscribed signal).
+struct BlockTip {
+    int block_height;
+    int64_t block_time;
+    BlockHash block_hash;
+};
 
 } // namespace interfaces
 

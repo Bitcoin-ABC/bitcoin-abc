@@ -329,8 +329,9 @@ namespace {
             return MakeHandler(::uiInterface.NotifyBlockTip_connect(
                 [fn](SynchronizationState sync_state,
                      const CBlockIndex *block) {
-                    fn(sync_state, block->GetBlockHash(), block->nHeight,
-                       block->GetBlockTime(),
+                    fn(sync_state,
+                       BlockTip{block->nHeight, block->GetBlockTime(),
+                                block->GetBlockHash()},
                        GuessVerificationProgress(Params().TxData(), block));
                 }));
         }
@@ -340,8 +341,10 @@ namespace {
             return MakeHandler(::uiInterface.NotifyHeaderTip_connect(
                 [fn](SynchronizationState sync_state,
                      const CBlockIndex *block) {
-                    fn(sync_state, block->GetBlockHash(), block->nHeight,
-                       block->GetBlockTime(), 0);
+                    fn(sync_state,
+                       BlockTip{block->nHeight, block->GetBlockTime(),
+                                block->GetBlockHash()},
+                       0);
                 }));
         }
         NodeContext *context() override { return m_context; }
