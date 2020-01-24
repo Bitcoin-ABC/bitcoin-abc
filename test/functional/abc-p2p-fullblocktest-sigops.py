@@ -22,21 +22,32 @@ from test_framework.blocktools import (
     make_conform_to_ctor,
 )
 from test_framework.cdefs import (
+    MAX_BLOCK_SIGOPS_PER_MB,
+    MAX_TX_SIGOPS_COUNT,
     ONE_MEGABYTE,
 )
+from test_framework.key import CECKey
 from test_framework.messages import (
     COutPoint,
     CTransaction,
     CTxIn,
     CTxOut,
     ser_compact_size,
-    ToHex,
 )
 from test_framework.mininode import P2PDataStore
 from test_framework.script import (
     CScript,
+    hash160,
+    OP_2DUP,
+    OP_CHECKSIG,
+    OP_CHECKSIGVERIFY,
+    OP_EQUAL,
+    OP_HASH160,
     OP_RETURN,
     OP_TRUE,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
@@ -76,7 +87,7 @@ class FullBlockTest(BitcoinTestFramework):
         tx = create_tx_with_script(spend.tx, spend.n, b"", value, script)
         return tx
 
-    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0):
+    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_sigops=0):
         if self.tip == None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -152,8 +163,12 @@ class FullBlockTest(BitcoinTestFramework):
                         script_length = script_length // 2
                     else:
                         script_length = 500000
-                script_pad_len = script_length
-                script_output = CScript([b'\x00' * script_pad_len])
+                tx_sigops = min(extra_sigops, script_length,
+                                MAX_TX_SIGOPS_COUNT)
+                extra_sigops -= tx_sigops
+                script_pad_len = script_length - tx_sigops
+                script_output = CScript(
+                    [b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
                 tx.vout.append(CTxOut(0, script_output))
 
                 # Add the tx to the list of transactions to be included
@@ -228,7 +243,7 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Now we need that block to mature so we can spend the coinbase.
         maturity_blocks = []
-        for i in range(99):
+        for i in range(105):
             block(5000 + i)
             maturity_blocks.append(self.tip)
             save_spendable_output()
@@ -239,28 +254,142 @@ class FullBlockTest(BitcoinTestFramework):
         for i in range(100):
             out.append(get_spendable_output())
 
-        # Let's build some blocks and test them.
-        for i in range(16):
-            n = i + 1
-            block(n, spend=out[i], block_size=n * ONE_MEGABYTE)
-            node.p2p.send_blocks_and_test([self.tip], node)
-
-        # block of maximal size
-        block(17, spend=out[16], block_size=self.excessive_block_size)
+        # Accept many sigops
+        lots_of_checksigs = CScript(
+            [OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
+        block(19, spend=out[0], script=lots_of_checksigs,
+              block_size=ONE_MEGABYTE)
         node.p2p.send_blocks_and_test([self.tip], node)
 
-        # Reject oversized blocks with bad-blk-length error
-        block(18, spend=out[17], block_size=self.excessive_block_size + 1)
+        block(20, spend=out[1], script=lots_of_checksigs,
+              block_size=ONE_MEGABYTE, extra_sigops=1)
         node.p2p.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason='bad-blk-length')
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
-        # Rewind bad block.
-        tip(17)
+        # Rewind bad block
+        tip(19)
 
-        # Submit a very large block via RPC
-        large_block = block(
-            33, spend=out[17], block_size=self.excessive_block_size)
-        assert_equal(node.submitblock(ToHex(large_block)), None)
+        # Accept 40k sigops per block > 1MB and <= 2MB
+        block(21, spend=out[1], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=ONE_MEGABYTE + 1)
+        node.p2p.send_blocks_and_test([self.tip], node)
+
+        # Accept 40k sigops per block > 1MB and <= 2MB
+        block(22, spend=out[2], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE)
+        node.p2p.send_blocks_and_test([self.tip], node)
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(23, spend=out[3], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=ONE_MEGABYTE + 1)
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
+
+        # Rewind bad block
+        tip(22)
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(24, spend=out[3], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE)
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
+
+        # Rewind bad block
+        tip(22)
+
+        # Accept 60k sigops per block > 2MB and <= 3MB
+        block(25, spend=out[3], script=lots_of_checksigs, extra_sigops=2 *
+              MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE + 1)
+        node.p2p.send_blocks_and_test([self.tip], node)
+
+        # Accept 60k sigops per block > 2MB and <= 3MB
+        block(26, spend=out[4], script=lots_of_checksigs,
+              extra_sigops=2 * MAX_BLOCK_SIGOPS_PER_MB, block_size=3 * ONE_MEGABYTE)
+        node.p2p.send_blocks_and_test([self.tip], node)
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(27, spend=out[5], script=lots_of_checksigs, extra_sigops=2 *
+              MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE + 1)
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
+
+        # Rewind bad block
+        tip(26)
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(28, spend=out[5], script=lots_of_checksigs, extra_sigops=2 *
+              MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3 * ONE_MEGABYTE)
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-blk-sigops')
+
+        # Rewind bad block
+        tip(26)
+
+        # Too many sigops in one txn
+        too_many_tx_checksigs = CScript(
+            [OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB + 1))
+        block(
+            29, spend=out[6], script=too_many_tx_checksigs, block_size=ONE_MEGABYTE + 1)
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-txn-sigops')
+
+        # Rewind bad block
+        tip(26)
+
+        # Generate a key pair to test P2SH sigops count
+        private_key = CECKey()
+        private_key.set_secretbytes(b"fatstacks")
+        public_key = private_key.get_pubkey()
+
+        # P2SH
+        # Build the redeem script, hash it, use hash to create the p2sh script
+        redeem_script = CScript(
+            [public_key] + [OP_2DUP, OP_CHECKSIGVERIFY] * 5 + [OP_CHECKSIG])
+        redeem_script_hash = hash160(redeem_script)
+        p2sh_script = CScript([OP_HASH160, redeem_script_hash, OP_EQUAL])
+
+        # Create a p2sh transaction
+        p2sh_tx = self.create_tx(out[6], 1, p2sh_script)
+
+        # Add the transaction to the block
+        block(30)
+        update_block(30, [p2sh_tx])
+        node.p2p.send_blocks_and_test([self.tip], node)
+
+        # Creates a new transaction using the p2sh transaction included in the
+        # last block
+        def spend_p2sh_tx(output_script=CScript([OP_TRUE])):
+            # Create the transaction
+            spent_p2sh_tx = CTransaction()
+            spent_p2sh_tx.vin.append(CTxIn(COutPoint(p2sh_tx.sha256, 0), b''))
+            spent_p2sh_tx.vout.append(CTxOut(1, output_script))
+            # Sign the transaction using the redeem script
+            sighash = SignatureHashForkId(
+                redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx.vout[0].nValue)
+            sig = private_key.sign(sighash) + \
+                bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
+            spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
+            spent_p2sh_tx.rehash()
+            return spent_p2sh_tx
+
+        # Sigops p2sh limit
+        p2sh_sigops_limit = MAX_BLOCK_SIGOPS_PER_MB - \
+            redeem_script.GetSigOpCount(True)
+        # Too many sigops in one p2sh txn
+        too_many_p2sh_sigops = CScript([OP_CHECKSIG] * (p2sh_sigops_limit + 1))
+        block(31, spend=out[7], block_size=ONE_MEGABYTE + 1)
+        update_block(31, [spend_p2sh_tx(too_many_p2sh_sigops)])
+        node.p2p.send_blocks_and_test(
+            [self.tip], node, success=False, reject_reason='bad-txn-sigops')
+
+        # Rewind bad block
+        tip(30)
+
+        # Max sigops in one p2sh txn
+        max_p2sh_sigops = CScript([OP_CHECKSIG] * (p2sh_sigops_limit))
+        block(32, spend=out[8], block_size=ONE_MEGABYTE + 1)
+        update_block(32, [spend_p2sh_tx(max_p2sh_sigops)])
+        node.p2p.send_blocks_and_test([self.tip], node)
 
 
 if __name__ == '__main__':
