@@ -29,6 +29,7 @@
 #include <httprpc.h>
 #include <httpserver.h>
 #include <index/blockfilterindex.h>
+#include <index/coinstatsindex.h>
 #include <index/txindex.h>
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
@@ -175,6 +176,9 @@ void Interrupt(NodeContext &node) {
         g_txindex->Interrupt();
     }
     ForEachBlockFilterIndex([](BlockFilterIndex &index) { index.Interrupt(); });
+    if (g_coin_stats_index) {
+        g_coin_stats_index->Interrupt();
+    }
 }
 
 void Shutdown(NodeContext &node) {
@@ -268,6 +272,10 @@ void Shutdown(NodeContext &node) {
     if (g_txindex) {
         g_txindex->Stop();
         g_txindex.reset();
+    }
+    if (g_coin_stats_index) {
+        g_coin_stats_index->Stop();
+        g_coin_stats_index.reset();
     }
     ForEachBlockFilterIndex([](BlockFilterIndex &index) { index.Stop(); });
     DestroyAllBlockFilterIndexes();
@@ -467,6 +475,11 @@ void SetupServerArgs(NodeContext &node) {
                   " not affected. (default: %u)",
                   DEFAULT_BLOCKSONLY),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-coinstatsindex",
+                   strprintf("Maintain coinstats index used by the "
+                             "gettxoutsetinfo RPC (default: %u)",
+                             DEFAULT_COINSTATSINDEX),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-conf=<file>",
         strprintf("Specify path to read-only configuration file. Relative "
@@ -567,11 +580,12 @@ void SetupServerArgs(NodeContext &node) {
                   "of old blocks. This allows the pruneblockchain RPC to be "
                   "called to delete specific blocks, and enables automatic "
                   "pruning of old blocks if a target size in MiB is provided. "
-                  "This mode is incompatible with -txindex and -rescan. "
-                  "Warning: Reverting this setting requires re-downloading the "
-                  "entire blockchain. (default: 0 = disable pruning blocks, 1 "
-                  "= allow manual pruning via RPC, >=%u = automatically prune "
-                  "block files to stay under the specified target size in MiB)",
+                  "This mode is incompatible with -txindex, -coinstatsindex "
+                  "and -rescan. Warning: Reverting this setting requires "
+                  "re-downloading the entire blockchain. (default: 0 = disable "
+                  "pruning blocks, 1 = allow manual pruning via RPC, >=%u = "
+                  "automatically prune block files to stay under the specified "
+                  "target size in MiB)",
                   MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
@@ -1846,10 +1860,14 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_COMPACT_FILTERS);
     }
 
-    // if using block pruning, then disallow txindex
+    // if using block pruning, then disallow txindex and coinstatsindex
     if (args.GetArg("-prune", 0)) {
         if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
             return InitError(_("Prune mode is incompatible with -txindex."));
+        }
+        if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
+            return InitError(
+                _("Prune mode is incompatible with -coinstatsindex."));
         }
     }
 
@@ -2855,6 +2873,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         GetBlockFilterIndex(filter_type)->Start();
     }
 
+    if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
+        g_coin_stats_index = std::make_unique<CoinStatsIndex>(
+            /* cache size */ 0, false, fReindex);
+        g_coin_stats_index->Start();
+    }
     // Step 9: load wallet
     for (const auto &client : node.chain_clients) {
         if (!client->load()) {
