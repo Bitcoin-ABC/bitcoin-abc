@@ -12,7 +12,7 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_config_cmds
-  cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=$(build_prefix) ..
+  cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=$(build_prefix) -DCMAKE_C_FLAGS="-Wl,--build-id=none" ..
 endef
 
 define $(package)_build_cmds
