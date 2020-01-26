@@ -177,8 +177,14 @@ const CBlockIndex *LastCommonAncestor(const CBlockIndex *pa,
     }
 
     while (pa != pb && pa && pb) {
-        pa = pa->pprev;
-        pb = pb->pprev;
+        if (pa->pskip && pb->pskip && pa->pskip != pb->pskip) {
+            pa = pa->pskip;
+            pb = pb->pskip;
+            assert(pa->nHeight == pb->nHeight);
+        } else {
+            pa = pa->pprev;
+            pb = pb->pprev;
+        }
     }
 
     // Eventually all chain branches meet at the genesis block.
