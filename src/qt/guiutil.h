@@ -84,7 +84,7 @@ QString HtmlEscape(const std::string &str, bool fMultiLine = false);
    @see  TransactionView::copyLabel, TransactionView::copyAmount,
    TransactionView::copyAddress
  */
-void copyEntryData(QAbstractItemView *view, int column,
+void copyEntryData(const QAbstractItemView *view, int column,
                    int role = Qt::EditRole);
 
 /** Return a field of the currently selected entry as a QString. Does nothing if
@@ -94,7 +94,16 @@ void copyEntryData(QAbstractItemView *view, int column,
    @see  TransactionView::copyLabel, TransactionView::copyAmount,
    TransactionView::copyAddress
  */
-QList<QModelIndex> getEntryData(QAbstractItemView *view, int column);
+QList<QModelIndex> getEntryData(const QAbstractItemView *view, int column);
+
+/**
+ * Returns true if the specified field of the currently selected view entry is
+ * not empty.
+ * @param[in] column  Data column to extract from the model
+ * @param[in] role    Data role to extract from the model
+ * @see  TransactionView::contextualMenu
+ */
+bool hasEntryData(const QAbstractItemView *view, int column, int role);
 
 void setClipboard(const QString &str);
 
