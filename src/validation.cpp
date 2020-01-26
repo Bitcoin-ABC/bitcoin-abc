@@ -3150,12 +3150,13 @@ bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
         UnparkBlock(pindex);
     }
 
-    // If the finalized block is not on the active chain, we need to rewind.
-    if (!AreOnTheSameFork(pindex, chainActive.Tip())) {
+    // If the finalized block is not on the active chain, we may need to rewind.
+    if (!chainActive.Contains(pindex)) {
         const CBlockIndex *pindexFork = chainActive.FindFork(pindex);
-        CBlockIndex *pindexToInvalidate =
-            chainActive.Tip()->GetAncestor(pindexFork->nHeight + 1);
-        return InvalidateBlock(config, state, pindexToInvalidate);
+        CBlockIndex *pindexToInvalidate = chainActive.Next(pindexFork);
+        if (pindexToInvalidate) {
+            return InvalidateBlock(config, state, pindexToInvalidate);
+        }
     }
 
     return true;
