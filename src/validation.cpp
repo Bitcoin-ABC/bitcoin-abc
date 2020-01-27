@@ -1820,25 +1820,6 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
 
         nInputs += tx.vin.size();
 
-        if (tx.IsCoinBase()) {
-            // Coinbase sigops count towards the block limit.
-            auto txSigOpsCount = GetSigOpCountWithoutP2SH(tx, flags);
-            nSigOpsCount += txSigOpsCount;
-            // We should have already checked the coinbase sigops count limit in
-            // ContextualCheckBlock at some earlier time, however we don't
-            // currently re-invoke ContextualCheckBlock in this function. So,
-            // just in case of any upgrade/downgrade issues, re-check it here.
-            if (txSigOpsCount > MAX_TX_SIGOPS_COUNT) {
-                return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
-            }
-            // Should be redundant since MAX_TX_SIGOPS_COUNT <= nMaxSigOpsCount
-            // and there is only one coinbase, but doesn't hurt to check.
-            if (nSigOpsCount > nMaxSigOpsCount) {
-                return state.DoS(100, error("ConnectBlock(): too many sigops"),
-                                 REJECT_INVALID, "bad-blk-sigops");
-            }
-        }
-
         // We do not need to throw when a transaction is duplicated. If they are
         // in the same block, CheckBlock will catch it, and if they are in a
         // different block, it'll register as a double spend or BIP30 violation.
@@ -1848,13 +1829,11 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
 
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
-        if (tx.IsCoinBase()) {
-            continue;
-        }
+        const bool isCoinBase = tx.IsCoinBase();
 
         Amount txfee = Amount::zero();
-        if (!Consensus::CheckTxInputs(tx, state, view, pindex->nHeight,
-                                      txfee)) {
+        if (!isCoinBase && !Consensus::CheckTxInputs(tx, state, view,
+                                                     pindex->nHeight, txfee)) {
             return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
                          tx.GetId().ToString(), FormatStateMessage(state));
         }
@@ -1865,6 +1844,25 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
                 error("%s: accumulated fee in the block out of range.",
                       __func__),
                 REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
+        }
+
+        // GetTransactionSigOpCount counts 2 types of sigops:
+        // * legacy (always)
+        // * p2sh (when P2SH enabled in flags and excludes coinbase)
+        auto txSigOpsCount = GetTransactionSigOpCount(tx, view, flags);
+        if (txSigOpsCount > MAX_TX_SIGOPS_COUNT) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
+        }
+
+        nSigOpsCount += txSigOpsCount;
+        if (nSigOpsCount > nMaxSigOpsCount) {
+            return state.DoS(100, error("ConnectBlock(): too many sigops"),
+                             REJECT_INVALID, "bad-blk-sigops");
+        }
+
+        // The following checks do not apply to the coinbase.
+        if (isCoinBase) {
+            continue;
         }
 
         // Check that transaction is BIP68 final BIP68 lock checks (as
@@ -1880,20 +1878,6 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
                 100,
                 error("%s: contains a non-BIP68-final transaction", __func__),
                 REJECT_INVALID, "bad-txns-nonfinal");
-        }
-
-        // GetTransactionSigOpCount counts 2 types of sigops:
-        // * legacy (always)
-        // * p2sh (when P2SH enabled in flags and excludes coinbase)
-        auto txSigOpsCount = GetTransactionSigOpCount(tx, view, flags);
-        if (txSigOpsCount > MAX_TX_SIGOPS_COUNT) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
-        }
-
-        nSigOpsCount += txSigOpsCount;
-        if (nSigOpsCount > nMaxSigOpsCount) {
-            return state.DoS(100, error("ConnectBlock(): too many sigops"),
-                             REJECT_INVALID, "bad-blk-sigops");
         }
 
         // Don't cache results if we're actually connecting blocks (still
