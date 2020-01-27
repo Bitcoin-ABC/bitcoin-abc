@@ -667,9 +667,6 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                                  "bad-txns-nonstandard-inputs");
         }
 
-        int64_t nSigOpsCount =
-            GetTransactionSigOpCount(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS);
-
         // nModifiedFees includes any fee deltas from PrioritiseTransaction
         Amount nModifiedFees = nFees;
         pool.ApplyDelta(txid, nModifiedFees);
@@ -685,20 +682,25 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             }
         }
 
-        CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
-                              fSpendsCoinbase, nSigOpsCount, lp);
-        unsigned int nSize = entry.GetTxSize();
+        const uint32_t nextBlockScriptVerifyFlags =
+            GetNextBlockScriptFlags(consensusParams, chainActive.Tip());
+
+        int64_t nSigOpsCount =
+            GetTransactionSigOpCount(tx, view, nextBlockScriptVerifyFlags);
 
         // Check that the transaction doesn't have an excessive number of
-        // sigops, making it impossible to mine. Since the coinbase transaction
-        // itself can contain sigops MAX_STANDARD_TX_SIGOPS is less than
-        // MAX_BLOCK_SIGOPS_PER_MB; we still consider this an invalid rather
-        // than merely non-standard transaction.
+        // sigops. This is more strict than the consensus limit of
+        // MAX_TX_SIGOPS_COUNT per transaction enforced in
+        // CheckRegularTransaction above.
         if (nSigOpsCount > MAX_STANDARD_TX_SIGOPS) {
             return state.DoS(0, false, REJECT_NONSTANDARD,
                              "bad-txns-too-many-sigops", false,
                              strprintf("%d", nSigOpsCount));
         }
+
+        CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
+                              fSpendsCoinbase, nSigOpsCount, lp);
+        unsigned int nSize = entry.GetTxSize();
 
         // No transactions are allowed below minRelayTxFee except from
         // disconnected blocks.
@@ -770,9 +772,6 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks (using TestBlockValidity), however allowing such
         // transactions into the mempool can be exploited as a DoS attack.
-        uint32_t nextBlockScriptVerifyFlags =
-            GetNextBlockScriptFlags(consensusParams, chainActive.Tip());
-
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             nextBlockScriptVerifyFlags, true,
                                             txdata)) {
