@@ -685,13 +685,13 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         const uint32_t nextBlockScriptVerifyFlags =
             GetNextBlockScriptFlags(consensusParams, chainActive.Tip());
 
-        int64_t nSigOpsCount =
+        auto nSigOpsCount =
             GetTransactionSigOpCount(tx, view, nextBlockScriptVerifyFlags);
 
         // Check that the transaction doesn't have an excessive number of
-        // sigops. This is more strict than the consensus limit of
-        // MAX_TX_SIGOPS_COUNT per transaction enforced in
-        // CheckRegularTransaction above.
+        // sigops.
+        static_assert(MAX_STANDARD_TX_SIGOPS <= MAX_TX_SIGOPS_COUNT,
+                      "we don't want transactions we can't even mine");
         if (nSigOpsCount > MAX_STANDARD_TX_SIGOPS) {
             return state.DoS(0, false, REJECT_NONSTANDARD,
                              "bad-txns-too-many-sigops", false,
@@ -1821,8 +1821,22 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         nInputs += tx.vin.size();
 
         if (tx.IsCoinBase()) {
-            // We've already checked for sigops count before P2SH in CheckBlock.
-            nSigOpsCount += GetSigOpCountWithoutP2SH(tx, flags);
+            // Coinbase sigops count towards the block limit.
+            auto txSigOpsCount = GetSigOpCountWithoutP2SH(tx, flags);
+            nSigOpsCount += txSigOpsCount;
+            // We should have already checked the coinbase sigops count limit in
+            // ContextualCheckBlock at some earlier time, however we don't
+            // currently re-invoke ContextualCheckBlock in this function. So,
+            // just in case of any upgrade/downgrade issues, re-check it here.
+            if (txSigOpsCount > MAX_TX_SIGOPS_COUNT) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
+            }
+            // Should be redundant since MAX_TX_SIGOPS_COUNT <= nMaxSigOpsCount
+            // and there is only one coinbase, but doesn't hurt to check.
+            if (nSigOpsCount > nMaxSigOpsCount) {
+                return state.DoS(100, error("ConnectBlock(): too many sigops"),
+                                 REJECT_INVALID, "bad-blk-sigops");
+            }
         }
 
         // We do not need to throw when a transaction is duplicated. If they are
@@ -3734,8 +3748,10 @@ static bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
     // Check transactions:
     // - canonical ordering
     // - ensure they are finalized
-    // - perform a preliminary sigops count (they will be recounted more
-    // strictly during ConnectBlock)
+    // - perform a preliminary block-sigops count (they will be recounted more
+    // strictly during ConnectBlock).
+    // - perform a transaction-sigops check (again, a more strict check will
+    // happen in ConnectBlock).
     const CTransaction *prevTx = nullptr;
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
@@ -3760,9 +3776,14 @@ static bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
             }
         }
 
-        // Count the sigops for the current transaction. If the total sigops
-        // count is too high, the the block is invalid.
-        nSigOps += GetSigOpCountWithoutP2SH(tx, scriptFlags);
+        // Count the sigops for the current transaction. If the tx or total
+        // sigops counts are too high, then the block is invalid.
+        const auto txSigOps = GetSigOpCountWithoutP2SH(tx, scriptFlags);
+        if (txSigOps > MAX_TX_SIGOPS_COUNT) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops",
+                             false, "out-of-bounds SigOpCount");
+        }
+        nSigOps += txSigOps;
         if (nSigOps > nMaxSigOpsCount) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
                              false, "out-of-bounds SigOpCount");
