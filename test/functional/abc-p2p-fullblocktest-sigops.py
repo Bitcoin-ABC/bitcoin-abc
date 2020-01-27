@@ -39,6 +39,8 @@ from test_framework.script import (
     CScript,
     hash160,
     OP_2DUP,
+    OP_CHECKDATASIG,
+    OP_CHECKMULTISIG,
     OP_CHECKSIG,
     OP_CHECKSIGVERIFY,
     OP_EQUAL,
@@ -298,8 +300,8 @@ class FullBlockTest(BitcoinTestFramework):
         tip(22)
 
         # Accept 60k sigops per block > 2MB and <= 3MB
-        block(25, spend=out[3], script=lots_of_checksigs, extra_sigops=2 *
-              MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE + 1)
+        block(25, spend=out[3], script=lots_of_checksigs, extra_sigops=2
+              * MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE + 1)
         node.p2p.send_blocks_and_test([self.tip], node)
 
         # Accept 60k sigops per block > 2MB and <= 3MB
@@ -308,8 +310,8 @@ class FullBlockTest(BitcoinTestFramework):
         node.p2p.send_blocks_and_test([self.tip], node)
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(27, spend=out[5], script=lots_of_checksigs, extra_sigops=2 *
-              MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE + 1)
+        block(27, spend=out[5], script=lots_of_checksigs, extra_sigops=2
+              * MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE + 1)
         node.p2p.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
@@ -317,8 +319,8 @@ class FullBlockTest(BitcoinTestFramework):
         tip(26)
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(28, spend=out[5], script=lots_of_checksigs, extra_sigops=2 *
-              MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3 * ONE_MEGABYTE)
+        block(28, spend=out[5], script=lots_of_checksigs, extra_sigops=2
+              * MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3 * ONE_MEGABYTE)
         node.p2p.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='bad-blk-sigops')
 
@@ -390,6 +392,20 @@ class FullBlockTest(BitcoinTestFramework):
         block(32, spend=out[8], block_size=ONE_MEGABYTE + 1)
         update_block(32, [spend_p2sh_tx(max_p2sh_sigops)])
         node.p2p.send_blocks_and_test([self.tip], node)
+
+        # Ensure that a coinbase with too many sigops is forbidden, even if it
+        # doesn't push the total block count over the limit.
+        b33 = block(33, spend=out[9], block_size=2 * ONE_MEGABYTE)
+        # 20001 sigops
+        b33.vtx[0].vout.append(
+            CTxOut(0, CScript([OP_CHECKMULTISIG] * 1000 + [OP_CHECKDATASIG])))
+        update_block(33, [])
+        node.p2p.send_blocks_and_test(
+            [b33], node, success=False, reject_reason='bad-txn-sigops')
+        # 20000 sigops
+        b33.vtx[0].vout[-1].scriptPubKey = CScript([OP_CHECKMULTISIG] * 1000)
+        update_block(33, [])
+        node.p2p.send_blocks_and_test([b33], node)
 
 
 if __name__ == '__main__':
