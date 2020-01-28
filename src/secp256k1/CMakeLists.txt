@@ -133,6 +133,12 @@ if(SECP256K1_ENABLE_MODULE_SCHNORR)
 	set(ENABLE_MODULE_SCHNORR 1)
 endif()
 
+# Endomorphism
+option(SECP256K1_ENABLE_ENDOMORPHISM "Enable endomorphism" OFF)
+if(SECP256K1_ENABLE_ENDOMORPHISM)
+	set(USE_ENDOMORPHISM 1)
+endif()
+
 # Make the emult window size customizable.
 set(SECP256K1_ECMULT_WINDOW_SIZE 15 CACHE STRING "Window size for ecmult precomputation for verification, specified as integer in range [2..24].")
 
