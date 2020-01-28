@@ -57,6 +57,13 @@ public:
     // this method.
     void scheduleEvery(Predicate p, int64_t deltaMilliSeconds);
 
+    /**
+     * Mock the scheduler to fast forward in time.
+     * Iterates through items on taskQueue and reschedules them
+     * to be delta_seconds sooner.
+     */
+    void MockForward(boost::chrono::seconds delta_seconds);
+
     // To keep things as simple as possible, there is no unschedule.
 
     // Services the queue 'forever'. Should be run in a thread, and interrupted
