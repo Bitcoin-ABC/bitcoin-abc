@@ -1824,21 +1824,29 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
 
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
 
-    for (const auto &ptx : block.vtx) {
-        const CTransaction &tx = *ptx;
-
-        nInputs += tx.vin.size();
-
-        // We do not need to throw when a transaction is duplicated. If they are
-        // in the same block, CheckBlock will catch it, and if they are in a
-        // different block, it'll register as a double spend or BIP30 violation.
-        // In both cases, we get a more meaningful feedback out of it.
-        AddCoins(view, tx, pindex->nHeight, true);
+    // Add all outputs
+    try {
+        for (const auto &ptx : block.vtx) {
+            AddCoins(view, *ptx, pindex->nHeight);
+        }
+    } catch (const std::logic_error &e) {
+        // This error will be thrown from AddCoin if we try to connect a block
+        // containing duplicate transactions. Such a thing should normally be
+        // caught early nowadays (due to ContextualCheckBlock's CTOR
+        // enforcement) however some edge cases can escape that:
+        // - ContextualCheckBlock does not get re-run after saving the block to
+        // disk, and older versions may have saved a weird block.
+        // - its checks are not applied to pre-CTOR chains, which we might visit
+        // with checkpointing off.
+        return state.DoS(
+            100, error("ConnectBlock(): tried to overwrite transaction"),
+            REJECT_INVALID, "tx-duplicate");
     }
 
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
         const bool isCoinBase = tx.IsCoinBase();
+        nInputs += tx.vin.size();
 
         Amount txfee = Amount::zero();
         if (!isCoinBase && !Consensus::CheckTxInputs(tx, state, view,
@@ -1907,6 +1915,11 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         control.Add(vChecks);
 
         blockundo.vtxundo.push_back(CTxUndo());
+        // Note: this must execute in the same iteration as CheckTxInputs (not
+        // in a separate loop) in order to detect double spends. However,
+        // this does not prevent double-spending by duplicated transaction
+        // inputs in the same transaction (cf. CVE-2018-17144) -- that check is
+        // done in CheckBlock (CheckRegularTransaction).
         SpendCoins(view, tx, blockundo.vtxundo.back(), pindex->nHeight);
     }
 
