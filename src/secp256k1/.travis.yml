@@ -48,7 +48,7 @@ jobs:
             - cmake
             - gcc-multilib
             - libgmp-dev:i386
-            - ninja-build:i386
+            - ninja-build
     - compiler: clang
       env: HOST=i686-linux-gnu
       addons:
@@ -59,7 +59,7 @@ jobs:
           packages:
             - cmake
             - gcc-multilib
-            - ninja-build:i386
+            - ninja-build
     - compiler: gcc
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes
       addons:
@@ -70,7 +70,7 @@ jobs:
           packages:
             - cmake
             - gcc-multilib
-            - ninja-build:i386
+            - ninja-build
     - compiler: gcc
       env: HOST=i686-linux-gnu
       addons:
@@ -82,7 +82,7 @@ jobs:
             - cmake
             - gcc-multilib
             - libgmp-dev:i386
-            - ninja-build:i386
+            - ninja-build
 script:
  - ./travis/build_autotools.sh
  - ./travis/build_cmake.sh
