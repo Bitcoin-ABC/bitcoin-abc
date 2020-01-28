@@ -50,7 +50,7 @@ jobs:
             - libgmp-dev:i386
             - ninja-build
     - compiler: clang
-      env: HOST=i686-linux-gnu
+      env: HOST=i686-linux-gnu BIGNUM=no
       addons:
         apt:
           sources:
@@ -61,7 +61,7 @@ jobs:
             - gcc-multilib
             - ninja-build
     - compiler: gcc
-      env: HOST=i686-linux-gnu ENDOMORPHISM=yes
+      env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no
       addons:
         apt:
           sources:

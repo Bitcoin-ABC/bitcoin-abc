@@ -5,11 +5,7 @@ export LC_ALL=C
 set -ex
 
 if [ "x$HOST" = "xi686-linux-gnu" ]; then
-  TOOLCHAIN_FILE="-DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Linux32.cmake"
-fi
-
-if [ "x$BIGNUM" = "xno" ]; then
-  USE_GMP="-DGMP_LIBRARY=OFF"
+  CMAKE_EXTRA_FLAGS="-DCMAKE_C_FLAGS=-m32"
 fi
 
 mkdir -p buildcmake
@@ -26,11 +22,11 @@ ${CMAKE_COMMAND} -GNinja .. \
   -DSECP256K1_ENABLE_MODULE_SCHNORR=$SCHNORR \
   -DSECP256K1_ENABLE_JNI=$JNI \
   -DSECP256K1_ENABLE_ENDOMORPHISM=$ENDOMORPHISM \
+  -DSECP256K1_ENABLE_BIGNUM=$BIGNUM \
   -DUSE_ASM_X86_64=$ASM \
   -DUSE_FIELD=$FIELD \
   -DUSE_SCALAR=$SCALAR \
-  $USE_GMP \
-  $TOOLCHAIN_FILE \
+  $CMAKE_EXTRA_FLAGS
 
 ninja check-secp256k1
 

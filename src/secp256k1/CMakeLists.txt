@@ -37,9 +37,10 @@ include_directories(
 add_library(secp256k1 src/secp256k1.c)
 target_include_directories(secp256k1 PUBLIC include)
 
-# We need to link in GMP
-find_package(GMP)
-if(GMP_FOUND)
+option(SECP256K1_ENABLE_BIGNUM "Use the GMP bignum implementation" OFF)
+if(SECP256K1_ENABLE_BIGNUM)
+	# We need to link in GMP
+	find_package(GMP REQUIRED)
 	target_include_directories(secp256k1 PUBLIC ${GMP_INCLUDE_DIR})
 	target_link_libraries(secp256k1 ${GMP_LIBRARY})
 	set(USE_NUM_GMP 1)
