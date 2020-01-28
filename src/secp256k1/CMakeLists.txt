@@ -71,19 +71,54 @@ else()
 	# on 32bits implementations for field and scalar.
 endif()
 
-# Detect if we are on a 32 or 64 bits platform and chose
-# scalar and field implementation accordingly.
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	# 64 bits implementation require either __int128 or asm support.
-	if (HAVE___INT128 OR USE_ASM_X86_64)
-		set(USE_SCALAR_4X64 1)
-		set(USE_FIELD_5X52 1)
-	else()
-		message(SEND_ERROR "Compiler does not support __int128 or inline assembly")
-	endif()
+# Select the finite field implementation to use.
+# This can be autodetected or forced by setting USE_FIELD to 32bit or 64bit.
+# See the truth table below:
+# +----------------------------------------------------------------------------------------------------------------------+
+# | USE_FIELD=64bit | USE_FIELD=32bit | HAVE___INT128 | USE_ASM_X86_64 | USE_FIELD_5X52 | USE_FIELD_10x26 | Config error |
+# +----------------------------------------------------------------------------------------------------------------------+
+# |        0        |        0        |       0       |       0        |       0        |        1        |      0       |
+# |        0        |        0        |       0       |       1        |       1        |        0        |      0       |
+# |        0        |        0        |       1       |       0        |       1        |        0        |      0       |
+# |        0        |        0        |       1       |       1        |       1        |        0        |      0       |
+# |        0        |        1        |       0       |       0        |       0        |        1        |      0       |
+# |        0        |        1        |       0       |       1        |       0        |        1        |      0       |
+# |        0        |        1        |       1       |       0        |       0        |        1        |      0       |
+# |        0        |        1        |       1       |       1        |       0        |        1        |      0       |
+# |        1        |        0        |       0       |       0        |       0        |        0        |      1       |
+# |        1        |        0        |       0       |       1        |       1        |        0        |      0       |
+# |        1        |        0        |       1       |       0        |       1        |        0        |      0       |
+# |        1        |        0        |       1       |       1        |       1        |        0        |      0       |
+# +----------------------------------------------------------------------------------------------------------------------+
+set(USE_FIELD "" CACHE STRING "Force the finite field implementation to use (can be 32bit or 64bit)")
+if(USE_FIELD STREQUAL "64bit" AND NOT (HAVE___INT128 OR USE_ASM_X86_64))
+	message(SEND_ERROR "64 finite field requested but the compiler does not support __int128 or inline assembly")
+elseif(NOT USE_FIELD STREQUAL "32bit" AND (HAVE___INT128 OR USE_ASM_X86_64))
+	set(USE_FIELD_5X52 1)
+else()
+	set(USE_FIELD_10X26 1)
+endif()
+
+# Select the scalar implementation to use.
+# This can be autodetected or forced by setting USE_SCALAR to 32bit or 64bit.
+# See the truth table below:
+# +--------------------------------------------------------------------------------------------------------+
+# | USE_SCALAR=64bit | USE_SCALAR=32bit | HAVE___INT128 | USE_SCALAR_4X64 | USE_SCALAR_8X32 | Config error |
+# +--------------------------------------------------------------------------------------------------------+
+# |        0         |        0         |       0       |        0        |        1        |      0       |
+# |        0         |        0         |       1       |        1        |        0        |      0       |
+# |        0         |        1         |       0       |        0        |        1        |      0       |
+# |        0         |        1         |       1       |        0        |        1        |      0       |
+# |        1         |        0         |       0       |        0        |        0        |      1       |
+# |        1         |        0         |       1       |        1        |        0        |      0       |
+# +--------------------------------------------------------------------------------------------------------+
+set(USE_SCALAR "" CACHE STRING "Force the scalar implementation to use (can be 32bit or 64bit)")
+if(USE_SCALAR STREQUAL "64bit" AND NOT HAVE___INT128)
+	message(SEND_ERROR "64 scalar requested but the compiler does not support __int128")
+elseif(NOT USE_SCALAR STREQUAL "32bit" AND HAVE___INT128)
+	set(USE_SCALAR_4X64 1)
 else()
 	set(USE_SCALAR_8X32 1)
-	set(USE_FIELD_10X26 1)
 endif()
 
 # Executable internal to secp256k1 need to have the HAVE_CONFIG_H define set.
