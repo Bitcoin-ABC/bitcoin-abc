@@ -28,7 +28,7 @@ pushd buildautotools
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \
   --enable-jni=$JNI \
-  $EXTRAFLAGS \
+  $AUTOTOOLS_EXTRA_FLAGS \
   $USE_HOST
 
 make -j2 $BUILD

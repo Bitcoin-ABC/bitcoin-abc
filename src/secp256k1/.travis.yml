@@ -15,7 +15,21 @@ compiler:
   - gcc
 env:
   global:
-    - FIELD=auto  BIGNUM=auto  SCALAR=auto  ENDOMORPHISM=no  STATICPRECOMPUTATION=yes  ASM=no  BUILD=check  EXTRAFLAGS=  HOST=  ECDH=no  RECOVERY=no  SCHNORR=yes  EXPERIMENTAL=no  JNI=no
+    - FIELD=auto
+    - BIGNUM=auto
+    - SCALAR=auto
+    - ENDOMORPHISM=no
+    - STATICPRECOMPUTATION=yes
+    - ASM=no
+    - BUILD=check
+    - AUTOTOOLS_EXTRA_FLAGS=
+    - CMAKE_EXTRA_FLAGS=
+    - HOST=
+    - ECDH=no
+    - RECOVERY=no
+    - SCHNORR=yes
+    - EXPERIMENTAL=no
+    - JNI=no
   jobs:
     - SCALAR=32bit    RECOVERY=yes
     - SCALAR=32bit    FIELD=32bit       ECDH=yes  EXPERIMENTAL=yes
@@ -30,8 +44,8 @@ env:
     - BIGNUM=no       ENDOMORPHISM=yes RECOVERY=yes EXPERIMENTAL=yes
     - BIGNUM=no       STATICPRECOMPUTATION=no
     - BUILD=distcheck
-    - EXTRAFLAGS=CPPFLAGS=-DDETERMINISTIC
-    - EXTRAFLAGS=CFLAGS=-O0
+    - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DDETERMINISTIC CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DDETERMINISTIC
+    - AUTOTOOLS_EXTRA_FLAGS=CFLAGS=-O0               CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-O0
     - BUILD=check-java JNI=yes ECDH=yes EXPERIMENTAL=yes
     - SCHNORR=no
 jobs:
