@@ -46,6 +46,28 @@ macro(add_compiler_flags)
 	add_cxx_compiler_flags(${ARGN})
 endmacro()
 
+function(add_target_compiler_flags_for_language LANGUAGE TARGET SCOPE)
+	foreach(f ${ARGN})
+		check_compiler_flags(FLAG_IS_SUPPORTED ${LANGUAGE} ${f})
+		if(${FLAG_IS_SUPPORTED})
+			target_compile_options(${TARGET} ${SCOPE} $<$<COMPILE_LANGUAGE:${LANGUAGE}>:${f}>)
+		endif()
+	endforeach()
+endfunction()
+
+macro(add_target_c_compiler_flags TARGET SCOPE)
+	add_target_compiler_flags_for_language(C ${TARGET} ${SCOPE} ${ARGN})
+endmacro()
+
+macro(add_target_cxx_compiler_flags TARGET SCOPE)
+	add_target_compiler_flags_for_language(CXX ${TARGET} ${SCOPE} ${ARGN})
+endmacro()
+
+macro(add_target_compiler_flags TARGET SCOPE)
+	add_target_c_compiler_flags(${TARGET} ${SCOPE} ${ARGN})
+	add_target_cxx_compiler_flags(${TARGET} ${SCOPE} ${ARGN})
+endmacro()
+
 function(add_compiler_flag_group_for_language LANGUAGE)
 	check_compiler_flags(FLAG_GROUP_IS_SUPPORTED ${LANGUAGE} ${ARGN})
 	if(${FLAG_GROUP_IS_SUPPORTED})

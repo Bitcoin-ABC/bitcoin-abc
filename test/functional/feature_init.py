@@ -123,7 +123,7 @@ class InitStressTest(BitcoinTestFramework):
             },
             {
                 "filepath_glob": "indexes/txindex/MANIFEST*",
-                "error_message": "Fatal LevelDB error: IO error:",
+                "error_message": "LevelDB error: Corruption: CURRENT points to a non-existent file",
                 "startup_args": ["-txindex=1"],
             },
             # Removing these files does not result in a startup error:

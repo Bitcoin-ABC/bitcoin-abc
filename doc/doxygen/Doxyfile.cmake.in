@@ -862,7 +862,8 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ${CMAKE_SOURCE_DIR}/src/leveldb \
+EXCLUDE                = ${CMAKE_SOURCE_DIR}/src/crc32c \
+                         ${CMAKE_SOURCE_DIR}/src/leveldb \
                          ${CMAKE_SOURCE_DIR}/src/json \
                          ${CMAKE_SOURCE_DIR}/src/test \
                          ${CMAKE_SOURCE_DIR}/src/qt/test
