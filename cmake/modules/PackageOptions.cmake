@@ -20,6 +20,10 @@ else()
 	set(CPACK_GENERATOR "TGZ")
 endif()
 
+# Prevent the components aware generators (such as ZIP) from generating a
+# different package for each component.
+set(CPACK_MONOLITHIC_INSTALL ON)
+
 # CPack source package options
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
 set(CPACK_SOURCE_GENERATOR "TGZ")
