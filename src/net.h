@@ -357,7 +357,9 @@ public:
      */
     int64_t PoissonNextSendInbound(int64_t now, int average_interval_seconds);
 
-    void SetAsmap(std::vector<bool> asmap) { addrman.m_asmap = asmap; }
+    void SetAsmap(std::vector<bool> asmap) {
+        addrman.m_asmap = std::move(asmap);
+    }
 
 private:
     struct ListenSocket {
@@ -971,7 +973,7 @@ public:
 
     void CloseSocketDisconnect();
 
-    void copyStats(CNodeStats &stats, std::vector<bool> &m_asmap);
+    void copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap);
 
     ServiceFlags GetLocalServices() const { return nLocalServices; }
 

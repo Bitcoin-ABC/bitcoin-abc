@@ -404,6 +404,27 @@ bool CNetAddr::GetIn6Addr(struct in6_addr *pipv6Addr) const {
     return true;
 }
 
+bool CNetAddr::HasLinkedIPv4() const {
+    return IsRoutable() && (IsIPv4() || IsRFC6145() || IsRFC6052() ||
+                            IsRFC3964() || IsRFC4380());
+}
+
+uint32_t CNetAddr::GetLinkedIPv4() const {
+    if (IsIPv4() || IsRFC6145() || IsRFC6052()) {
+        // IPv4, mapped IPv4, SIIT translated IPv4: the IPv4 address is the last
+        // 4 bytes of the address
+        return ReadBE32(ip + 12);
+    } else if (IsRFC3964()) {
+        // 6to4 tunneled IPv4: the IPv4 address is in bytes 2-6
+        return ReadBE32(ip + 2);
+    } else if (IsRFC4380()) {
+        // Teredo tunneled IPv4: the IPv4 address is in the last 4 bytes of the
+        // address, but bitflipped
+        return ~ReadBE32(ip + 12);
+    }
+    assert(false);
+}
+
 uint32_t CNetAddr::GetNetClass() const {
     uint32_t net_class = NET_IPV6;
     if (IsLocal()) {
@@ -413,8 +434,7 @@ uint32_t CNetAddr::GetNetClass() const {
         net_class = NET_INTERNAL;
     } else if (!IsRoutable()) {
         net_class = NET_UNROUTABLE;
-    } else if (IsIPv4() || IsRFC6145() || IsRFC6052() || IsRFC3964() ||
-               IsRFC4380()) {
+    } else if (HasLinkedIPv4()) {
         net_class = NET_IPV4;
     } else if (IsTor()) {
         net_class = NET_ONION;
@@ -429,10 +449,26 @@ uint32_t CNetAddr::GetMappedAS(const std::vector<bool> &asmap) const {
                   // RFC7607.
     }
     std::vector<bool> ip_bits(128);
-    for (int8_t byte_i = 0; byte_i < 16; ++byte_i) {
-        uint8_t cur_byte = GetByte(15 - byte_i);
-        for (uint8_t bit_i = 0; bit_i < 8; ++bit_i) {
-            ip_bits[byte_i * 8 + bit_i] = (cur_byte >> (7 - bit_i)) & 1;
+    if (HasLinkedIPv4()) {
+        // For lookup, treat as if it was just an IPv4 address (pchIPv4 prefix +
+        // IPv4 bits)
+        for (int8_t byte_i = 0; byte_i < 12; ++byte_i) {
+            for (uint8_t bit_i = 0; bit_i < 8; ++bit_i) {
+                ip_bits[byte_i * 8 + bit_i] =
+                    (pchIPv4[byte_i] >> (7 - bit_i)) & 1;
+            }
+        }
+        uint32_t ipv4 = GetLinkedIPv4();
+        for (int i = 0; i < 32; ++i) {
+            ip_bits[96 + i] = (ipv4 >> (31 - i)) & 1;
+        }
+    } else {
+        // Use all 128 bits of the IPv6 address otherwise
+        for (int8_t byte_i = 0; byte_i < 16; ++byte_i) {
+            uint8_t cur_byte = GetByte(15 - byte_i);
+            for (uint8_t bit_i = 0; bit_i < 8; ++bit_i) {
+                ip_bits[byte_i * 8 + bit_i] = (cur_byte >> (7 - bit_i)) & 1;
+            }
         }
     }
     uint32_t mapped_as = Interpret(asmap, ip_bits);
@@ -469,30 +505,21 @@ std::vector<uint8_t> CNetAddr::GetGroup(const std::vector<bool> &asmap) const {
     int nStartByte = 0;
     int nBits = 16;
 
-    // all local addresses belong to the same group
     if (IsLocal()) {
+        // all local addresses belong to the same group
         nBits = 0;
-    }
-
-    if (IsInternal()) {
+    } else if (IsInternal()) {
         // all internal-usage addresses get their own group
         nStartByte = sizeof(g_internal_prefix);
         nBits = (sizeof(ip) - sizeof(g_internal_prefix)) * 8;
     } else if (!IsRoutable()) {
         // all other unroutable addresses belong to the same group
         nBits = 0;
-    } else if (IsIPv4() || IsRFC6145() || IsRFC6052()) {
-        // for IPv4 addresses, '1' + the 16 higher-order bits of the IP includes
-        // mapped IPv4, SIIT translated IPv4, and the well-known prefix
-        nStartByte = 12;
-    } else if (IsRFC3964()) {
-        // for 6to4 tunnelled addresses, use the encapsulated IPv4 address
-        nStartByte = 2;
-    } else if (IsRFC4380()) {
-        // for Teredo-tunnelled IPv6 addresses, use the encapsulated IPv4
-        // address
-        vchRet.push_back(GetByte(3) ^ 0xFF);
-        vchRet.push_back(GetByte(2) ^ 0xFF);
+    } else if (HasLinkedIPv4()) {
+        // IPv4 addresses (and mapped IPv4 addresses) use /16 groups
+        uint32_t ipv4 = GetLinkedIPv4();
+        vchRet.push_back((ipv4 >> 24) & 0xFF);
+        vchRet.push_back((ipv4 >> 16) & 0xFF);
         return vchRet;
     } else if (IsTor()) {
         nStartByte = 6;

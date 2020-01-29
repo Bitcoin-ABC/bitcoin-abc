@@ -2787,8 +2787,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                           asmap_path));
             return false;
         }
-        node.connman->SetAsmap(asmap);
         const uint256 asmap_version = SerializeHash(asmap);
+        node.connman->SetAsmap(std::move(asmap));
         LogPrintf("Using asmap version %s for IP bucketing.\n",
                   asmap_version.ToString());
     } else {
