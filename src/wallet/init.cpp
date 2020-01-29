@@ -57,10 +57,14 @@ void WalletInit::AddWalletOptions() const {
                            "disable the fallbackfee feature. (default: %s)",
                            CURRENCY_UNIT, FormatMoney(DEFAULT_FALLBACK_FEE)),
                  ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
-    gArgs.AddArg("-keypool=<n>",
-                 strprintf("Set key pool size to <n> (default: %u)",
-                           DEFAULT_KEYPOOL_SIZE),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
+    gArgs.AddArg(
+        "-keypool=<n>",
+        strprintf("Set key pool size to <n> (default: %u). Warning: Smaller "
+                  "sizes may increase the risk of losing funds when restoring "
+                  "from an old backup, if none of the addresses in the "
+                  "original keypool have been used.",
+                  DEFAULT_KEYPOOL_SIZE),
+        ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     gArgs.AddArg(
         "-maxapsfee=<n>",
         strprintf(
