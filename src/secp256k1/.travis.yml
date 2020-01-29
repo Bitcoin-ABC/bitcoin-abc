@@ -21,7 +21,8 @@ env:
     - ENDOMORPHISM=no
     - STATICPRECOMPUTATION=yes
     - ASM=no
-    - BUILD=check
+    - AUTOTOOLS_TARGET=check
+    - CMAKE_TARGET=check-secp256k1
     - AUTOTOOLS_EXTRA_FLAGS=
     - CMAKE_EXTRA_FLAGS=
     - HOST=
@@ -43,10 +44,10 @@ env:
     - BIGNUM=no
     - BIGNUM=no       ENDOMORPHISM=yes RECOVERY=yes EXPERIMENTAL=yes
     - BIGNUM=no       STATICPRECOMPUTATION=no
-    - BUILD=distcheck
+    - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install
     - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DDETERMINISTIC CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DDETERMINISTIC
     - AUTOTOOLS_EXTRA_FLAGS=CFLAGS=-O0               CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-O0
-    - BUILD=check-java JNI=yes ECDH=yes EXPERIMENTAL=yes
+    - AUTOTOOLS_TARGET=check-java      CMAKE_TARGET=check-secp256k1-java JNI=yes ECDH=yes EXPERIMENTAL=yes
     - SCHNORR=no
 jobs:
   fast_finish: true

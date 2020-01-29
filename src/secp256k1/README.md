@@ -75,4 +75,5 @@ cd build
 cmake -GNinja ..
 ninja
 ninja check-secp256k1
+sudo ninja install  # optional
 ```

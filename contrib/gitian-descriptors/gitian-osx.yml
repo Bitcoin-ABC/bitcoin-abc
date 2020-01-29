@@ -49,6 +49,8 @@ script: |
   declare -A CMAKE_TOOLCHAIN_FILE
   CMAKE_TOOLCHAIN_FILE[x86_64-apple-darwin14]=OSX.cmake
 
+  INSTALL_COMPONENTS="bitcoind bitcoin-qt bitcoin-seeder"
+
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="ar ranlib date dmg genisoimage"
 
@@ -160,7 +162,10 @@ script: |
       -DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage"
 
     ninja
-    ninja install
+
+    for _component in ${INSTALL_COMPONENTS}; do
+       cmake -DCOMPONENT=${_component} -P cmake_install.cmake
+    done
 
     export PYTHONPATH="${BASEPREFIX}/${i}/native/lib/python3/dist-packages:${PYTHONPATH}"
     ninja osx-deploydir

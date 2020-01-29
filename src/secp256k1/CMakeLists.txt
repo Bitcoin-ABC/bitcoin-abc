@@ -1,7 +1,7 @@
 # Copyright (c) 2017 The Bitcoin developers
 
 cmake_minimum_required(VERSION 3.13)
-project(secp256k1 LANGUAGES C)
+project(secp256k1 LANGUAGES C VERSION 0.1.0)
 
 # Add path for custom modules when building as a standalone project
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
@@ -36,6 +36,11 @@ include_directories(
 # The library
 add_library(secp256k1 src/secp256k1.c)
 target_include_directories(secp256k1 PUBLIC include)
+
+set(SECP256K1_PUBLIC_HEADERS
+	include/secp256k1.h
+	include/secp256k1_preallocated.h
+)
 
 option(SECP256K1_ENABLE_BIGNUM "Use the GMP bignum implementation" OFF)
 if(SECP256K1_ENABLE_BIGNUM)
@@ -147,6 +152,7 @@ option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" OFF)
 if(SECP256K1_ENABLE_MODULE_ECDH)
 	set(ENABLE_MODULE_ECDH 1)
 	add_secp256k1_bench(ecdh src/bench_ecdh.c)
+	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_ecdh.h)
 endif()
 
 # MultiSet module
@@ -154,6 +160,7 @@ option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" O
 if(SECP256K1_ENABLE_MODULE_MULTISET)
     set(ENABLE_MODULE_MULTISET 1)
 	add_secp256k1_bench(multiset src/bench_multiset.c)
+	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_multiset.h)
 endif()
 
 # Recovery module
@@ -161,12 +168,14 @@ option(SECP256K1_ENABLE_MODULE_RECOVERY "Build libsecp256k1's recovery module" O
 if(SECP256K1_ENABLE_MODULE_RECOVERY)
 	set(ENABLE_MODULE_RECOVERY 1)
 	add_secp256k1_bench(recover src/bench_recover.c)
+	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_recovery.h)
 endif()
 
 # Schnorr module
 option(SECP256K1_ENABLE_MODULE_SCHNORR "Build libsecp256k1's Schnorr module" ON)
 if(SECP256K1_ENABLE_MODULE_SCHNORR)
 	set(ENABLE_MODULE_SCHNORR 1)
+	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorr.h)
 endif()
 
 # Endomorphism
@@ -200,6 +209,14 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 	target_sources(secp256k1 PRIVATE src/ecmult_static_context.h)
 endif()
 
+include(InstallationHelper)
+if(BUILD_SHARED_LIBS)
+	install_shared_library(secp256k1 PUBLIC_HEADER ${SECP256K1_PUBLIC_HEADERS})
+else()
+	set_property(TARGET secp256k1 PROPERTY PUBLIC_HEADER ${SECP256K1_PUBLIC_HEADERS})
+	install_target(secp256k1)
+endif()
+
 # Generate the config
 configure_file(src/libsecp256k1-config.h.cmake.in src/libsecp256k1-config.h ESCAPE_QUOTES)
 target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H SECP256K1_BUILD)
@@ -219,6 +236,8 @@ if(SECP256K1_ENABLE_JNI)
 		src/java/org_bitcoin_NativeSecp256k1.c
 		src/java/org_bitcoin_Secp256k1Context.c
 	)
+
+	install_shared_library(secp256k1_jni)
 
 	target_include_directories(secp256k1_jni PUBLIC ${JNI_INCLUDE_DIRS})
 	# As per CMake documentation: the POSITION_INDEPENDENT_CODE property is set

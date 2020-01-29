@@ -43,6 +43,8 @@ script: |
   CMAKE_TOOLCHAIN_FILE[i686-w64-mingw32]=Win32.cmake
   CMAKE_TOOLCHAIN_FILE[x86_64-w64-mingw32]=Win64.cmake
 
+  INSTALL_COMPONENTS="bitcoind bitcoin-qt"
+
   FAKETIME_HOST_PROGS="ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
   HOST_CFLAGS="-O2 -g"
@@ -186,7 +188,11 @@ script: |
 
     ninja
     ninja check-security
-    ninja install
+
+    for _component in ${INSTALL_COMPONENTS}; do
+       cmake -DCOMPONENT=${_component} -P cmake_install.cmake
+    done
+
     ninja package
 
     cp -f bitcoin-abc-*-setup-unsigned.exe ${OUTDIR}/

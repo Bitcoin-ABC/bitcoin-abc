@@ -8,7 +8,7 @@ if [ "x$HOST" = "xi686-linux-gnu" ]; then
   CMAKE_EXTRA_FLAGS="-DCMAKE_C_FLAGS=-m32"
 fi
 
-mkdir -p buildcmake
+mkdir -p buildcmake/install
 pushd buildcmake
 
 # Use the cmake version installed via APT instead of the Travis custom one.
@@ -16,6 +16,7 @@ CMAKE_COMMAND=/usr/bin/cmake
 ${CMAKE_COMMAND} --version
 
 ${CMAKE_COMMAND} -GNinja .. \
+  -DCMAKE_INSTALL_PREFIX=install \
   -DSECP256K1_ECMULT_STATIC_PRECOMPUTATION=$STATICPRECOMPUTATION \
   -DSECP256K1_ENABLE_MODULE_ECDH=$ECDH \
   -DSECP256K1_ENABLE_MODULE_RECOVERY=$RECOVERY \
@@ -28,6 +29,6 @@ ${CMAKE_COMMAND} -GNinja .. \
   -DUSE_SCALAR=$SCALAR \
   $CMAKE_EXTRA_FLAGS
 
-ninja check-secp256k1
+ninja $CMAKE_TARGET
 
 popd

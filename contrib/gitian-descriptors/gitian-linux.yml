@@ -54,6 +54,8 @@ script: |
   CMAKE_TOOLCHAIN_FILE[arm-linux-gnueabihf]=LinuxARM.cmake
   CMAKE_TOOLCHAIN_FILE[aarch64-linux-gnu]=LinuxAArch64.cmake
 
+  INSTALL_COMPONENTS="bitcoind bitcoin-qt bitcoin-seeder"
+
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="date ar ranlib nm"
   HOST_CFLAGS="-O2 -g"
@@ -164,7 +166,10 @@ script: |
     ninja
     ninja check-security
     ninja check-symbols
-    ninja install
+
+    for _component in ${INSTALL_COMPONENTS}; do
+       cmake -DCOMPONENT=${_component} -P cmake_install.cmake
+    done
 
     cd installed
     find ${DISTNAME}/bin -type f -executable -exec ../contrib/devtools/split-debug.sh {} {} {}.dbg \;
