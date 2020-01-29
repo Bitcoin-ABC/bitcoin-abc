@@ -1384,11 +1384,20 @@ static void ThreadImport(const Config &config,
 
         // scan for better chains in the block chain database, that are not yet
         // connected in the active best chain
-        BlockValidationState state;
-        if (!ActivateBestChain(config, state)) {
-            LogPrintf("Failed to connect best block (%s)\n", state.ToString());
-            StartShutdown();
-            return;
+
+        // We can't hold cs_main during ActivateBestChain even though we're
+        // accessing the g_chainman unique_ptrs since ABC requires us not to be
+        // holding cs_main, so retrieve the relevant pointers before the ABC
+        // call.
+        for (CChainState *chainstate :
+             WITH_LOCK(::cs_main, return g_chainman.GetAll())) {
+            BlockValidationState state;
+            if (!chainstate->ActivateBestChain(config, state, nullptr)) {
+                LogPrintf("Failed to connect best block (%s)\n",
+                          state.ToString());
+                StartShutdown();
+                return;
+            }
         }
 
         if (gArgs.GetBoolArg("-stopafterblockimport",

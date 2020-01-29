@@ -62,11 +62,13 @@
 ChainstateManager g_chainman;
 
 CChainState &ChainstateActive() {
+    LOCK(::cs_main);
     assert(g_chainman.m_active_chainstate);
     return *g_chainman.m_active_chainstate;
 }
 
 CChain &ChainActive() {
+    LOCK(::cs_main);
     return ::ChainstateActive().m_chain;
 }
 
@@ -790,6 +792,7 @@ static CBlockIndex const *pindexBestForkTip = nullptr;
 static CBlockIndex const *pindexBestForkBase = nullptr;
 
 BlockMap &BlockIndex() {
+    LOCK(::cs_main);
     return g_chainman.m_blockman.m_block_index;
 }
 
@@ -5187,7 +5190,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                 // continue
                 if (hash == chainparams.GetConsensus().hashGenesisBlock) {
                     BlockValidationState state;
-                    if (!ActivateBestChain(config, state)) {
+                    if (!ActivateBestChain(config, state, nullptr)) {
                         break;
                     }
                 }
