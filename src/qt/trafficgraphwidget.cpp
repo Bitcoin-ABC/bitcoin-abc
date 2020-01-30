@@ -56,7 +56,9 @@ void TrafficGraphWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
     painter.fillRect(rect(), Qt::black);
 
-    if (fMax <= 0.0f) return;
+    if (fMax <= 0.0f) {
+        return;
+    }
 
     QColor axisCol(Qt::gray);
     int h = height() - YMARGIN * 2;
@@ -89,7 +91,9 @@ void TrafficGraphWidget::paintEvent(QPaintEvent *) {
         int count = 1;
         for (float y = val; y < fMax; y += val, count++) {
             // don't overwrite lines drawn above
-            if (count % 10 == 0) continue;
+            if (count % 10 == 0) {
+                continue;
+            }
             int yy = YMARGIN + h - h * y / fMax;
             painter.drawLine(XMARGIN, yy, width() - XMARGIN, yy);
         }
@@ -112,7 +116,9 @@ void TrafficGraphWidget::paintEvent(QPaintEvent *) {
 }
 
 void TrafficGraphWidget::updateRates() {
-    if (!clientModel) return;
+    if (!clientModel) {
+        return;
+    }
 
     quint64 bytesIn = clientModel->node().getTotalBytesRecv(),
             bytesOut = clientModel->node().getTotalBytesSent();
@@ -134,10 +140,14 @@ void TrafficGraphWidget::updateRates() {
 
     float tmax = 0.0f;
     for (const float f : vSamplesIn) {
-        if (f > tmax) tmax = f;
+        if (f > tmax) {
+            tmax = f;
+        }
     }
     for (const float f : vSamplesOut) {
-        if (f > tmax) tmax = f;
+        if (f > tmax) {
+            tmax = f;
+        }
     }
     fMax = tmax;
     update();

@@ -22,7 +22,9 @@ bool BannedNodeLessThan::operator()(const CCombinedBan &left,
     const CCombinedBan *pLeft = &left;
     const CCombinedBan *pRight = &right;
 
-    if (order == Qt::DescendingOrder) std::swap(pLeft, pRight);
+    if (order == Qt::DescendingOrder) {
+        std::swap(pLeft, pRight);
+    }
 
     switch (column) {
         case BanTableModel::Address:
@@ -70,7 +72,9 @@ public:
     int size() const { return cachedBanlist.size(); }
 
     CCombinedBan *index(int idx) {
-        if (idx >= 0 && idx < cachedBanlist.size()) return &cachedBanlist[idx];
+        if (idx >= 0 && idx < cachedBanlist.size()) {
+            return &cachedBanlist[idx];
+        }
 
         return 0;
     }
@@ -100,7 +104,9 @@ int BanTableModel::columnCount(const QModelIndex &parent) const {
 }
 
 QVariant BanTableModel::data(const QModelIndex &index, int role) const {
-    if (!index.isValid()) return QVariant();
+    if (!index.isValid()) {
+        return QVariant();
+    }
 
     CCombinedBan *rec = static_cast<CCombinedBan *>(index.internalPointer());
 
@@ -129,7 +135,9 @@ QVariant BanTableModel::headerData(int section, Qt::Orientation orientation,
 }
 
 Qt::ItemFlags BanTableModel::flags(const QModelIndex &index) const {
-    if (!index.isValid()) return 0;
+    if (!index.isValid()) {
+        return 0;
+    }
 
     Qt::ItemFlags retval = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
     return retval;
@@ -140,7 +148,9 @@ QModelIndex BanTableModel::index(int row, int column,
     Q_UNUSED(parent);
     CCombinedBan *data = priv->index(row);
 
-    if (data) return createIndex(row, column, data);
+    if (data) {
+        return createIndex(row, column, data);
+    }
     return QModelIndex();
 }
 

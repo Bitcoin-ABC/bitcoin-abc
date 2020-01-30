@@ -35,7 +35,9 @@ bool ModalOverlay::eventFilter(QObject *obj, QEvent *ev) {
         if (ev->type() == QEvent::Resize) {
             QResizeEvent *rev = static_cast<QResizeEvent *>(ev);
             resize(rev->size());
-            if (!layerIsVisible) setGeometry(0, height(), width(), height());
+            if (!layerIsVisible) {
+                setGeometry(0, height(), width(), height());
+            }
 
         } else if (ev->type() == QEvent::ChildAdded) {
             raise();
@@ -47,7 +49,9 @@ bool ModalOverlay::eventFilter(QObject *obj, QEvent *ev) {
 //! Tracks parent widget changes
 bool ModalOverlay::event(QEvent *ev) {
     if (ev->type() == QEvent::ParentAboutToChange) {
-        if (parent()) parent()->removeEventFilter(this);
+        if (parent()) {
+            parent()->removeEventFilter(this);
+        }
     } else if (ev->type() == QEvent::ParentChange) {
         if (parent()) {
             parent()->installEventFilter(this);
@@ -123,9 +127,10 @@ void ModalOverlay::tipUpdate(int count, const QDateTime &blockDate,
         QString::number(nVerificationProgress * 100, 'f', 2) + "%");
     ui->progressBar->setValue(nVerificationProgress * 100);
 
-    if (!bestHeaderDate.isValid())
+    if (!bestHeaderDate.isValid()) {
         // not syncing
         return;
+    }
 
     // estimate the number of headers left based on nPowTargetSpacing
     // and check if the gui is not aware of the best header (happens rarely)
@@ -146,15 +151,20 @@ void ModalOverlay::tipUpdate(int count, const QDateTime &blockDate,
 
 void ModalOverlay::toggleVisibility() {
     showHide(layerIsVisible, true);
-    if (!layerIsVisible) userClosed = true;
+    if (!layerIsVisible) {
+        userClosed = true;
+    }
 }
 
 void ModalOverlay::showHide(bool hide, bool userRequested) {
     if ((layerIsVisible && !hide) || (!layerIsVisible && hide) ||
-        (!hide && userClosed && !userRequested))
+        (!hide && userClosed && !userRequested)) {
         return;
+    }
 
-    if (!isVisible() && !hide) setVisible(true);
+    if (!isVisible() && !hide) {
+        setVisible(true);
+    }
 
     setGeometry(0, hide ? 0 : height(), width(), height());
 

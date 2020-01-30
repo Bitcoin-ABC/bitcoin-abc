@@ -105,7 +105,9 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node &node, QWidget *parent,
                 cursor.insertText(line.trimmed() + ' ');
             } else if (line.size() > 0) {
                 // Title of a group
-                if (cursor.currentTable()) cursor.currentTable()->appendRows(1);
+                if (cursor.currentTable()) {
+                    cursor.currentTable()->appendRows(1);
+                }
                 cursor.movePosition(QTextCursor::Down);
                 cursor.insertText(line.trimmed(), bold);
                 cursor.insertTable(1, 2, tf);
@@ -154,7 +156,9 @@ ShutdownWindow::ShutdownWindow(QWidget *parent, Qt::WindowFlags f)
 }
 
 QWidget *ShutdownWindow::showShutdownWindow(BitcoinGUI *window) {
-    if (!window) return nullptr;
+    if (!window) {
+        return nullptr;
+    }
 
     // Show a simple window indicating shutdown status
     QWidget *shutdownWindow = new ShutdownWindow();

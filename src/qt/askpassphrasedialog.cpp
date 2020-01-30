@@ -91,7 +91,9 @@ void AskPassphraseDialog::setModel(WalletModel *_model) {
 
 void AskPassphraseDialog::accept() {
     SecureString oldpass, newpass1, newpass2;
-    if (!model) return;
+    if (!model) {
+        return;
+    }
     oldpass.reserve(MAX_PASSPHRASE_SIZE);
     newpass1.reserve(MAX_PASSPHRASE_SIZE);
     newpass2.reserve(MAX_PASSPHRASE_SIZE);

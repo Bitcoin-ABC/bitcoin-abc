@@ -72,13 +72,15 @@ void QValidatedLineEdit::checkValidity() {
             QString address = text();
             int pos = 0;
             if (checkValidator->validate(address, pos) ==
-                QValidator::Acceptable)
+                QValidator::Acceptable) {
                 setValid(true);
-            else
+            } else {
                 setValid(false);
+            }
         }
-    } else
+    } else {
         setValid(false);
+    }
 
     Q_EMIT validationDidChange(this);
 }
@@ -92,8 +94,9 @@ bool QValidatedLineEdit::isValid() {
     if (checkValidator) {
         QString address = text();
         int pos = 0;
-        if (checkValidator->validate(address, pos) == QValidator::Acceptable)
+        if (checkValidator->validate(address, pos) == QValidator::Acceptable) {
             return true;
+        }
     }
 
     return valid;

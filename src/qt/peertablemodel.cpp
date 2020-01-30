@@ -23,7 +23,9 @@ bool NodeLessThan::operator()(const CNodeCombinedStats &left,
     const CNodeStats *pLeft = &(left.nodeStats);
     const CNodeStats *pRight = &(right.nodeStats);
 
-    if (order == Qt::DescendingOrder) std::swap(pLeft, pRight);
+    if (order == Qt::DescendingOrder) {
+        std::swap(pLeft, pRight);
+    }
 
     switch (column) {
         case PeerTableModel::NetNodeId:
@@ -91,8 +93,9 @@ public:
     int size() const { return cachedNodeStats.size(); }
 
     CNodeCombinedStats *index(int idx) {
-        if (idx >= 0 && idx < cachedNodeStats.size())
+        if (idx >= 0 && idx < cachedNodeStats.size()) {
             return &cachedNodeStats[idx];
+        }
 
         return 0;
     }
@@ -136,7 +139,9 @@ int PeerTableModel::columnCount(const QModelIndex &parent) const {
 }
 
 QVariant PeerTableModel::data(const QModelIndex &index, int role) const {
-    if (!index.isValid()) return QVariant();
+    if (!index.isValid()) {
+        return QVariant();
+    }
 
     CNodeCombinedStats *rec =
         static_cast<CNodeCombinedStats *>(index.internalPointer());
@@ -181,7 +186,9 @@ QVariant PeerTableModel::headerData(int section, Qt::Orientation orientation,
 }
 
 Qt::ItemFlags PeerTableModel::flags(const QModelIndex &index) const {
-    if (!index.isValid()) return 0;
+    if (!index.isValid()) {
+        return 0;
+    }
 
     Qt::ItemFlags retval = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
     return retval;
@@ -192,7 +199,9 @@ QModelIndex PeerTableModel::index(int row, int column,
     Q_UNUSED(parent);
     CNodeCombinedStats *data = priv->index(row);
 
-    if (data) return createIndex(row, column, data);
+    if (data) {
+        return createIndex(row, column, data);
+    }
     return QModelIndex();
 }
 
@@ -208,7 +217,9 @@ void PeerTableModel::refresh() {
 
 int PeerTableModel::getRowByNodeId(NodeId nodeid) {
     std::map<NodeId, int>::iterator it = priv->mapNodeRows.find(nodeid);
-    if (it == priv->mapNodeRows.end()) return -1;
+    if (it == priv->mapNodeRows.end()) {
+        return -1;
+    }
 
     return it->second;
 }

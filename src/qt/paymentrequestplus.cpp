@@ -61,7 +61,9 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
                                      QString &merchant) const {
     merchant.clear();
 
-    if (!IsInitialized()) return false;
+    if (!IsInitialized()) {
+        return false;
+    }
 
     // One day we'll support more PKI types, but just x509 for now:
     const EVP_MD *digestAlgorithm = nullptr;
@@ -108,7 +110,9 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
         }
         const uint8_t *data = (const uint8_t *)certChain.certificate(i).data();
         X509 *cert = d2i_X509(nullptr, &data, certChain.certificate(i).size());
-        if (cert) certs.push_back(cert);
+        if (cert) {
+            certs.push_back(cert);
+        }
     }
     if (certs.empty()) {
         qWarning() << "PaymentRequestPlus::getMerchant: Payment request: empty "
@@ -170,7 +174,9 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
 
 #if HAVE_DECL_EVP_MD_CTX_NEW
         EVP_MD_CTX *ctx = EVP_MD_CTX_new();
-        if (!ctx) throw SSLVerifyError("Error allocating OpenSSL context.");
+        if (!ctx) {
+            throw SSLVerifyError("Error allocating OpenSSL context.");
+        }
 #else
         EVP_MD_CTX _ctx;
         EVP_MD_CTX *ctx;

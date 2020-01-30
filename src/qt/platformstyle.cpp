@@ -80,10 +80,11 @@ PlatformStyle::PlatformStyle(const QString &_name, bool _imagesOnButtons,
         const int colorTextLightness = colorText.lightness();
         QColor colorbase;
         if (abs(colorHighlightBg.lightness() - colorTextLightness) <
-            abs(colorHighlightFg.lightness() - colorTextLightness))
+            abs(colorHighlightFg.lightness() - colorTextLightness)) {
             colorbase = colorHighlightBg;
-        else
+        } else {
             colorbase = colorHighlightFg;
+        }
         singleColor = colorbase;
     }
     // Determine text color
@@ -91,17 +92,23 @@ PlatformStyle::PlatformStyle(const QString &_name, bool _imagesOnButtons,
 }
 
 QImage PlatformStyle::SingleColorImage(const QString &filename) const {
-    if (!colorizeIcons) return QImage(filename);
+    if (!colorizeIcons) {
+        return QImage(filename);
+    }
     return ColorizeImage(filename, SingleColor());
 }
 
 QIcon PlatformStyle::SingleColorIcon(const QString &filename) const {
-    if (!colorizeIcons) return QIcon(filename);
+    if (!colorizeIcons) {
+        return QIcon(filename);
+    }
     return ColorizeIcon(filename, SingleColor());
 }
 
 QIcon PlatformStyle::SingleColorIcon(const QIcon &icon) const {
-    if (!colorizeIcons) return icon;
+    if (!colorizeIcons) {
+        return icon;
+    }
     return ColorizeIcon(icon, SingleColor());
 }
 

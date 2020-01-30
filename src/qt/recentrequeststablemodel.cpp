@@ -46,7 +46,9 @@ int RecentRequestsTableModel::columnCount(const QModelIndex &parent) const {
 
 QVariant RecentRequestsTableModel::data(const QModelIndex &index,
                                         int role) const {
-    if (!index.isValid() || index.row() >= list.length()) return QVariant();
+    if (!index.isValid() || index.row() >= list.length()) {
+        return QVariant();
+    }
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         const RecentRequestEntry *rec = &list[index.row()];
@@ -68,21 +70,23 @@ QVariant RecentRequestsTableModel::data(const QModelIndex &index,
                 }
             case Amount:
                 if (rec->recipient.amount == ::Amount::zero() &&
-                    role == Qt::DisplayRole)
+                    role == Qt::DisplayRole) {
                     return tr("(no amount requested)");
-                else if (role == Qt::EditRole)
+                } else if (role == Qt::EditRole) {
                     return BitcoinUnits::format(
                         walletModel->getOptionsModel()->getDisplayUnit(),
                         rec->recipient.amount, false,
                         BitcoinUnits::separatorNever);
-                else
+                } else {
                     return BitcoinUnits::format(
                         walletModel->getOptionsModel()->getDisplayUnit(),
                         rec->recipient.amount);
+                }
         }
     } else if (role == Qt::TextAlignmentRole) {
-        if (index.column() == Amount)
+        if (index.column() == Amount) {
             return (int)(Qt::AlignRight | Qt::AlignVCenter);
+        }
     }
     return QVariant();
 }
@@ -166,8 +170,9 @@ void RecentRequestsTableModel::addNewRequest(
     ss << newEntry;
 
     if (!walletModel->saveReceiveRequest(recipient.address.toStdString(),
-                                         newEntry.id, ss.str()))
+                                         newEntry.id, ss.str())) {
         return;
+    }
 
     addNewRequest(newEntry);
 }
@@ -181,9 +186,13 @@ void RecentRequestsTableModel::addNewRequest(const std::string &recipient) {
     ss >> entry;
 
     // should not happen
-    if (entry.id == 0) return;
+    if (entry.id == 0) {
+        return;
+    }
 
-    if (entry.id > nReceiveRequestsMaxId) nReceiveRequestsMaxId = entry.id;
+    if (entry.id > nReceiveRequestsMaxId) {
+        nReceiveRequestsMaxId = entry.id;
+    }
 
     addNewRequest(entry);
 }
@@ -211,7 +220,9 @@ bool RecentRequestEntryLessThan::operator()(RecentRequestEntry &left,
                                             RecentRequestEntry &right) const {
     RecentRequestEntry *pLeft = &left;
     RecentRequestEntry *pRight = &right;
-    if (order == Qt::DescendingOrder) std::swap(pLeft, pRight);
+    if (order == Qt::DescendingOrder) {
+        std::swap(pLeft, pRight);
+    }
 
     switch (column) {
         case RecentRequestsTableModel::Date:

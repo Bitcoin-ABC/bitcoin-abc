@@ -678,7 +678,9 @@ void BitcoinGUI::setCurrentWalletBySelectorIndex(int index) {
 }
 
 void BitcoinGUI::removeAllWallets() {
-    if (!walletFrame) return;
+    if (!walletFrame) {
+        return;
+    }
     setWalletActionsEnabled(false);
     walletFrame->removeAllWallets();
 }
@@ -777,7 +779,9 @@ void BitcoinGUI::optionsClicked() {
 }
 
 void BitcoinGUI::aboutClicked() {
-    if (!clientModel) return;
+    if (!clientModel) {
+        return;
+    }
 
     HelpMessageDialog dlg(m_node, this, true);
     dlg.exec();
@@ -807,30 +811,42 @@ void BitcoinGUI::openClicked() {
 
 void BitcoinGUI::gotoOverviewPage() {
     overviewAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoOverviewPage();
+    if (walletFrame) {
+        walletFrame->gotoOverviewPage();
+    }
 }
 
 void BitcoinGUI::gotoHistoryPage() {
     historyAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoHistoryPage();
+    if (walletFrame) {
+        walletFrame->gotoHistoryPage();
+    }
 }
 
 void BitcoinGUI::gotoReceiveCoinsPage() {
     receiveCoinsAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoReceiveCoinsPage();
+    if (walletFrame) {
+        walletFrame->gotoReceiveCoinsPage();
+    }
 }
 
 void BitcoinGUI::gotoSendCoinsPage(QString addr) {
     sendCoinsAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoSendCoinsPage(addr);
+    if (walletFrame) {
+        walletFrame->gotoSendCoinsPage(addr);
+    }
 }
 
 void BitcoinGUI::gotoSignMessageTab(QString addr) {
-    if (walletFrame) walletFrame->gotoSignMessageTab(addr);
+    if (walletFrame) {
+        walletFrame->gotoSignMessageTab(addr);
+    }
 }
 
 void BitcoinGUI::gotoVerifyMessageTab(QString addr) {
-    if (walletFrame) walletFrame->gotoVerifyMessageTab(addr);
+    if (walletFrame) {
+        walletFrame->gotoVerifyMessageTab(addr);
+    }
 }
 #endif // ENABLE_WALLET
 
@@ -1073,8 +1089,9 @@ void BitcoinGUI::message(const QString &title, const QString &message,
         // Check for buttons, use OK as default, if none was supplied
         QMessageBox::StandardButton buttons;
         if (!(buttons = (QMessageBox::StandardButton)(
-                  style & CClientUIInterface::BTN_MASK)))
+                  style & CClientUIInterface::BTN_MASK))) {
             buttons = QMessageBox::Ok;
+        }
 
         showNormalIfMinimized();
         QMessageBox mBox(static_cast<QMessageBox::Icon>(nMBoxIcon), strTitle,
@@ -1084,9 +1101,10 @@ void BitcoinGUI::message(const QString &title, const QString &message,
         if (ret != nullptr) {
             *ret = r == QMessageBox::Ok;
         }
-    } else
+    } else {
         notificator->notify(static_cast<Notificator::Class>(nNotifyIcon),
                             strTitle, message);
+    }
 }
 
 void BitcoinGUI::changeEvent(QEvent *e) {

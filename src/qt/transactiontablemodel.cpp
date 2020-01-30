@@ -408,7 +408,9 @@ TransactionTableModel::addressColor(const TransactionRecord *wtx) const {
             QString label =
                 walletModel->getAddressTableModel()->labelForAddress(
                     QString::fromStdString(wtx->address));
-            if (label.isEmpty()) return COLOR_BAREADDRESS;
+            if (label.isEmpty()) {
+                return COLOR_BAREADDRESS;
+            }
         } break;
         case TransactionRecord::SendToSelf:
             return COLOR_BAREADDRESS;

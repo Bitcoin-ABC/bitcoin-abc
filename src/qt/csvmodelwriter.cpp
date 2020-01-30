@@ -40,7 +40,9 @@ static void writeNewline(QTextStream &f) {
 
 bool CSVModelWriter::write() {
     QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
     QTextStream out(&file);
 
     int numRows = 0;

@@ -162,10 +162,14 @@ void OptionsDialog::setModel(OptionsModel *_model) {
 
     if (_model) {
         /* check if client restart is needed and show persistent message */
-        if (_model->isRestartRequired()) showRestartWarning(true);
+        if (_model->isRestartRequired()) {
+            showRestartWarning(true);
+        }
 
         QString strLabel = _model->getOverriddenByCommandLine();
-        if (strLabel.isEmpty()) strLabel = tr("none");
+        if (strLabel.isEmpty()) {
+            strLabel = tr("none");
+        }
         ui->overriddenByCommandLineLabel->setText(strLabel);
 
         mapper->setModel(_model);
@@ -279,7 +283,9 @@ void OptionsDialog::on_resetButton_clicked() {
                 tr("Client will be shut down. Do you want to proceed?"),
             QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
 
-        if (btnRetVal == QMessageBox::Cancel) return;
+        if (btnRetVal == QMessageBox::Cancel) {
+            return;
+        }
 
         /* reset all options and close GUI */
         model->Reset();
@@ -404,7 +410,9 @@ QValidator::State ProxyAddressValidator::validate(QString &input,
     CService serv(
         LookupNumeric(input.toStdString().c_str(), DEFAULT_GUI_PROXY_PORT));
     proxyType addrProxy = proxyType(serv, true);
-    if (addrProxy.IsValid()) return QValidator::Acceptable;
+    if (addrProxy.IsValid()) {
+        return QValidator::Acceptable;
+    }
 
     return QValidator::Invalid;
 }

@@ -201,7 +201,9 @@ bool RPCConsole::RPCParseCommandLine(interfaces::Node *node,
     };
 
     std::string strCommandTerminated = strCommand;
-    if (strCommandTerminated.back() != '\n') strCommandTerminated += "\n";
+    if (strCommandTerminated.back() != '\n') {
+        strCommandTerminated += "\n";
+    }
     for (chpos = 0; chpos < strCommandTerminated.size(); ++chpos) {
         char ch = strCommandTerminated[chpos];
         switch (state) {
@@ -871,7 +873,9 @@ void RPCConsole::setFontSize(int newSize) {
     QSettings settings;
 
     // don't allow an insane font size
-    if (newSize < FONT_RANGE.width() || newSize > FONT_RANGE.height()) return;
+    if (newSize < FONT_RANGE.width() || newSize > FONT_RANGE.height()) {
+        return;
+    }
 
     // temp. store the console content
     QString str = ui->messagesWidget->toHtml();
@@ -1084,8 +1088,9 @@ void RPCConsole::on_lineEdit_returnPressed() {
         // Append command to history
         history.append(cmd);
         // Enforce maximum history size
-        while (history.size() > CONSOLE_HISTORY)
+        while (history.size() > CONSOLE_HISTORY) {
             history.removeFirst();
+        }
         // Set pointer to end of history
         historyPtr = history.size();
 
@@ -1179,13 +1184,16 @@ void RPCConsole::peerSelected(const QItemSelection &selected,
     Q_UNUSED(deselected);
 
     if (!clientModel || !clientModel->getPeerTableModel() ||
-        selected.indexes().isEmpty())
+        selected.indexes().isEmpty()) {
         return;
+    }
 
     const CNodeCombinedStats *stats =
         clientModel->getPeerTableModel()->getNodeStats(
             selected.indexes().first().row());
-    if (stats) updateNodeDetail(stats);
+    if (stats) {
+        updateNodeDetail(stats);
+    }
 }
 
 void RPCConsole::peerLayoutAboutToChange() {
@@ -1209,8 +1217,10 @@ void RPCConsole::peerLayoutChanged() {
     bool fUnselect = false;
     bool fReselect = false;
 
-    if (cachedNodeids.empty()) // no node selected yet
+    // no node selected yet
+    if (cachedNodeids.empty()) {
         return;
+    }
 
     // find the currently selected row
     int selectedRow = -1;
@@ -1251,7 +1261,9 @@ void RPCConsole::peerLayoutChanged() {
         }
     }
 
-    if (stats) updateNodeDetail(stats);
+    if (stats) {
+        updateNodeDetail(stats);
+    }
 }
 
 void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
@@ -1357,12 +1369,16 @@ void RPCConsole::hideEvent(QHideEvent *event) {
 
 void RPCConsole::showPeersTableContextMenu(const QPoint &point) {
     QModelIndex index = ui->peerWidget->indexAt(point);
-    if (index.isValid()) peersTableContextMenu->exec(QCursor::pos());
+    if (index.isValid()) {
+        peersTableContextMenu->exec(QCursor::pos());
+    }
 }
 
 void RPCConsole::showBanTableContextMenu(const QPoint &point) {
     QModelIndex index = ui->banlistWidget->indexAt(point);
-    if (index.isValid()) banTableContextMenu->exec(QCursor::pos());
+    if (index.isValid()) {
+        banTableContextMenu->exec(QCursor::pos());
+    }
 }
 
 void RPCConsole::disconnectSelectedNode() {

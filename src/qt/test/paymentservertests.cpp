@@ -208,8 +208,9 @@ void PaymentServerTests::paymentServerTests() {
     QList<std::pair<CScript, Amount>> sendingTos = r.paymentRequest.getPayTo();
     for (const std::pair<CScript, Amount> &sendingTo : sendingTos) {
         CTxDestination dest;
-        if (ExtractDestination(sendingTo.first, dest))
+        if (ExtractDestination(sendingTo.first, dest)) {
             QCOMPARE(PaymentServer::verifyAmount(sendingTo.second), false);
+        }
     }
 
     delete server;

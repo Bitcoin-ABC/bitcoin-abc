@@ -78,12 +78,16 @@ void SignVerifyMessageDialog::setAddress_VM(const QString &address) {
 
 void SignVerifyMessageDialog::showTab_SM(bool fShow) {
     ui->tabWidget->setCurrentIndex(0);
-    if (fShow) this->show();
+    if (fShow) {
+        this->show();
+    }
 }
 
 void SignVerifyMessageDialog::showTab_VM(bool fShow) {
     ui->tabWidget->setCurrentIndex(1);
-    if (fShow) this->show();
+    if (fShow) {
+        this->show();
+    }
 }
 
 void SignVerifyMessageDialog::on_addressBookButton_SM_clicked() {
@@ -102,7 +106,9 @@ void SignVerifyMessageDialog::on_pasteButton_SM_clicked() {
 }
 
 void SignVerifyMessageDialog::on_signMessageButton_SM_clicked() {
-    if (!model) return;
+    if (!model) {
+        return;
+    }
 
     /* Clear old signature to ensure users don't get confused on error with an
      * old signature displayed */
