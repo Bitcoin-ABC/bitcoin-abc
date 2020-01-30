@@ -6,6 +6,15 @@ project(secp256k1 LANGUAGES C VERSION 0.1.0)
 # Add path for custom modules when building as a standalone project
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
+# Default to RelWithDebInfo configuration
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+		"Select the configuration for the build" FORCE)
+endif()
+
+# TODO: use -O0 instead of -O3 when coverage is enabled
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -O3")
+
 include(AddCompilerFlags)
 
 # libsecp256k1 use a different set of flags.
