@@ -251,7 +251,9 @@ static void http_request_done(struct evhttp_request *req, void *ctx) {
     if (buf) {
         size_t size = evbuffer_get_length(buf);
         const char *data = (const char *)evbuffer_pullup(buf, size);
-        if (data) reply->body = std::string(data, size);
+        if (data) {
+            reply->body = std::string(data, size);
+        }
         evbuffer_drain(buf, size);
     }
 }
@@ -396,7 +398,9 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
     HTTPReply response;
     raii_evhttp_request req =
         obtain_evhttp_request(http_request_done, (void *)&response);
-    if (req == nullptr) throw std::runtime_error("create http request failed");
+    if (req == nullptr) {
+        throw std::runtime_error("create http request failed");
+    }
 #if LIBEVENT_VERSION_NUMBER >= 0x02010300
     evhttp_request_set_error_cb(req.get(), http_error_cb);
 #endif
@@ -513,9 +517,10 @@ static int CommandLineRPC(int argc, char *argv[]) {
         }
         std::string rpcPass;
         if (gArgs.GetBoolArg("-stdinrpcpass", false)) {
-            if (!std::getline(std::cin, rpcPass))
+            if (!std::getline(std::cin, rpcPass)) {
                 throw std::runtime_error("-stdinrpcpass specified but failed "
                                          "to read from standard input");
+            }
             gArgs.ForceSetArg("-rpcpassword", rpcPass);
         }
         std::vector<std::string> args =
@@ -556,8 +561,9 @@ static int CommandLineRPC(int argc, char *argv[]) {
                 if (!error.isNull()) {
                     // Error
                     int code = error["code"].get_int();
-                    if (fWait && code == RPC_IN_WARMUP)
+                    if (fWait && code == RPC_IN_WARMUP) {
                         throw CConnectionFailed("server in warmup");
+                    }
                     strPrint = "error: " + error.write();
                     nRet = abs(code);
                     if (error.isObject()) {

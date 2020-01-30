@@ -458,8 +458,9 @@ static void MutateTxAddOutScript(CMutableTransaction &tx,
     // separate VALUE:SCRIPT[:FLAGS]
     std::vector<std::string> vStrInputParts;
     boost::split(vStrInputParts, strInput, boost::is_any_of(":"));
-    if (vStrInputParts.size() < 2)
+    if (vStrInputParts.size() < 2) {
         throw std::runtime_error("TX output missing separator");
+    }
 
     // Extract and validate VALUE
     Amount value = ExtractAndValidateValue(vStrInputParts[0]);
