@@ -37,7 +37,9 @@ static int64_t DecodeDumpTime(const std::string &str) {
     iss.imbue(loc);
     boost::posix_time::ptime ptime(boost::date_time::not_a_date_time);
     iss >> ptime;
-    if (ptime.is_not_a_date_time()) return 0;
+    if (ptime.is_not_a_date_time()) {
+        return 0;
+    }
     return (ptime - epoch).total_seconds();
 }
 
@@ -867,7 +869,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() != 1)
+    if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "dumpwallet \"filename\"\n"
             "\nDumps all wallet keys in a human-readable format to a "
@@ -890,6 +892,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             "\nExamples:\n" +
             HelpExampleCli("dumpwallet", "\"test\"") +
             HelpExampleRpc("dumpwallet", "\"test\""));
+    }
 
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);

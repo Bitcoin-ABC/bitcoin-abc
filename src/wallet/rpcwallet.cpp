@@ -4979,7 +4979,7 @@ UniValue getaddressesbylabel(const Config &config,
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() != 1)
+    if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "getaddressesbylabel \"label\"\n"
             "\nReturns the list of addresses assigned the specified label.\n"
@@ -4996,6 +4996,7 @@ UniValue getaddressesbylabel(const Config &config,
             "\nExamples:\n" +
             HelpExampleCli("getaddressesbylabel", "\"tabby\"") +
             HelpExampleRpc("getaddressesbylabel", "\"tabby\""));
+    }
 
     LOCK(pwallet->cs_wallet);
 
@@ -5026,7 +5027,7 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() > 1)
+    if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
             "listlabels ( \"purpose\" )\n"
             "\nReturns the list of all labels, or labels that are assigned to "
@@ -5048,6 +5049,7 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
             "\nList labels that have sending addresses\n" +
             HelpExampleCli("listlabels", "send") + "\nAs json rpc call\n" +
             HelpExampleRpc("listlabels", "receive"));
+    }
 
     LOCK(pwallet->cs_wallet);
 

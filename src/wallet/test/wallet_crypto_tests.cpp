@@ -48,9 +48,10 @@ public:
         TestPassphraseSingle(vchSalt, passphrase, rounds, correctKey,
                              correctIV);
         for (SecureString::const_iterator i(passphrase.begin());
-             i != passphrase.end(); ++i)
+             i != passphrase.end(); ++i) {
             TestPassphraseSingle(vchSalt, SecureString(i, passphrase.end()),
                                  rounds);
+        }
     }
 
     static void TestDecrypt(
@@ -90,8 +91,9 @@ public:
             CKeyingMaterial(vchPlaintextIn.begin(), vchPlaintextIn.end()),
             vchCiphertextCorrect);
         for (std::vector<uint8_t>::const_iterator i(vchPlaintextIn.begin());
-             i != vchPlaintextIn.end(); ++i)
+             i != vchPlaintextIn.end(); ++i) {
             TestEncryptSingle(crypt, CKeyingMaterial(i, vchPlaintextIn.end()));
+        }
     }
 };
 
@@ -108,7 +110,9 @@ BOOST_AUTO_TEST_CASE(passphrase) {
     std::vector<uint8_t> vchSalt(8);
     GetRandBytes(vchSalt.data(), vchSalt.size());
     uint32_t rounds = InsecureRand32();
-    if (rounds > 30000) rounds = 30000;
+    if (rounds > 30000) {
+        rounds = 30000;
+    }
     TestCrypter::TestPassphrase(vchSalt, SecureString(hash.begin(), hash.end()),
                                 rounds);
 }
