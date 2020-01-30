@@ -76,6 +76,7 @@ endfunction()
 
 add_regular_fuzz_targets(
 	addrdb
+	asmap
 	base_encode_decode
 	block
 	bloom_filter
