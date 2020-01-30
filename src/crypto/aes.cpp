@@ -71,16 +71,21 @@ static int CBCEncrypt(const T &enc, const uint8_t iv[AES_BLOCKSIZE],
     int padsize = size % AES_BLOCKSIZE;
     uint8_t mixed[AES_BLOCKSIZE];
 
-    if (!data || !size || !out) return 0;
+    if (!data || !size || !out) {
+        return 0;
+    }
 
-    if (!pad && padsize != 0) return 0;
+    if (!pad && padsize != 0) {
+        return 0;
+    }
 
     memcpy(mixed, iv, AES_BLOCKSIZE);
 
     // Write all but the last block
     while (written + AES_BLOCKSIZE <= size) {
-        for (int i = 0; i != AES_BLOCKSIZE; i++)
+        for (int i = 0; i != AES_BLOCKSIZE; i++) {
             mixed[i] ^= *data++;
+        }
         enc.Encrypt(out + written, mixed);
         memcpy(mixed, out + written, AES_BLOCKSIZE);
         written += AES_BLOCKSIZE;
@@ -88,10 +93,12 @@ static int CBCEncrypt(const T &enc, const uint8_t iv[AES_BLOCKSIZE],
     if (pad) {
         // For all that remains, pad each byte with the value of the remaining
         // space. If there is none, pad by a full block.
-        for (int i = 0; i != padsize; i++)
+        for (int i = 0; i != padsize; i++) {
             mixed[i] ^= *data++;
-        for (int i = padsize; i != AES_BLOCKSIZE; i++)
+        }
+        for (int i = padsize; i != AES_BLOCKSIZE; i++) {
             mixed[i] ^= AES_BLOCKSIZE - padsize;
+        }
         enc.Encrypt(out + written, mixed);
         written += AES_BLOCKSIZE;
     }
@@ -105,15 +112,20 @@ static int CBCDecrypt(const T &dec, const uint8_t iv[AES_BLOCKSIZE],
     bool fail = false;
     const uint8_t *prev = iv;
 
-    if (!data || !size || !out) return 0;
+    if (!data || !size || !out) {
+        return 0;
+    }
 
-    if (size % AES_BLOCKSIZE != 0) return 0;
+    if (size % AES_BLOCKSIZE != 0) {
+        return 0;
+    }
 
     // Decrypt all data. Padding will be checked in the output.
     while (written != size) {
         dec.Decrypt(out, data + written);
-        for (int i = 0; i != AES_BLOCKSIZE; i++)
+        for (int i = 0; i != AES_BLOCKSIZE; i++) {
             *out++ ^= prev[i];
+        }
         prev = data + written;
         written += AES_BLOCKSIZE;
     }
@@ -129,8 +141,9 @@ static int CBCDecrypt(const T &dec, const uint8_t iv[AES_BLOCKSIZE],
         padsize *= !fail;
 
         // All padding must equal the last byte otherwise it's not well-formed
-        for (int i = AES_BLOCKSIZE; i != 0; i--)
+        for (int i = AES_BLOCKSIZE; i != 0; i--) {
             fail |= ((i > AES_BLOCKSIZE - padsize) & (*out-- != padsize));
+        }
 
         written -= padsize;
     }
