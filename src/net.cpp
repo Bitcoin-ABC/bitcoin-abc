@@ -321,8 +321,9 @@ bool CConnman::CheckIncomingNonce(uint64_t nonce) {
     LOCK(cs_vNodes);
     for (const CNode *pnode : vNodes) {
         if (!pnode->fSuccessfullyConnected && !pnode->fInbound &&
-            pnode->GetLocalNonce() == nonce)
+            pnode->GetLocalNonce() == nonce) {
             return false;
+        }
     }
     return true;
 }

@@ -86,7 +86,9 @@ void FreespaceChecker::check() {
 
         /* Check if we make any progress, break if not to prevent an infinite
          * loop here */
-        if (parentDirOld == parentDir) break;
+        if (parentDirOld == parentDir) {
+            break;
+        }
 
         parentDirOld = parentDir;
     }
@@ -186,7 +188,9 @@ bool Intro::pickDataDirectory(interfaces::Node &node) {
     QSettings settings;
     /* If data directory provided on command line, no need to look at settings
        or show a picking dialog */
-    if (!gArgs.GetArg("-datadir", "").empty()) return true;
+    if (!gArgs.GetArg("-datadir", "").empty()) {
+        return true;
+    }
     /* 1) Default data directory for operating system */
     QString dataDir = getDefaultDataDirectory();
     /* 2) Allow QSettings to override default dir */
@@ -282,7 +286,9 @@ void Intro::on_dataDirectory_textChanged(const QString &dataDirStr) {
 void Intro::on_ellipsisButton_clicked() {
     QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
         0, "Choose data directory", ui->dataDirectory->text()));
-    if (!dir.isEmpty()) ui->dataDirectory->setText(dir);
+    if (!dir.isEmpty()) {
+        ui->dataDirectory->setText(dir);
+    }
 }
 
 void Intro::on_dataDirDefault_clicked() {

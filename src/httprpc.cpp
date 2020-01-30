@@ -72,10 +72,11 @@ static void JSONErrorReply(HTTPRequest *req, const UniValue &objError,
     int nStatus = HTTP_INTERNAL_SERVER_ERROR;
     int code = find_value(objError, "code").get_int();
 
-    if (code == RPC_INVALID_REQUEST)
+    if (code == RPC_INVALID_REQUEST) {
         nStatus = HTTP_BAD_REQUEST;
-    else if (code == RPC_METHOD_NOT_FOUND)
+    } else if (code == RPC_METHOD_NOT_FOUND) {
         nStatus = HTTP_NOT_FOUND;
+    }
 
     std::string strReply = JSONRPCReply(NullUniValue, objError, id);
 
@@ -316,8 +317,9 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
     try {
         // Parse request
         UniValue valRequest;
-        if (!valRequest.read(req->ReadBody()))
+        if (!valRequest.read(req->ReadBody())) {
             throw JSONRPCError(RPC_PARSE_ERROR, "Parse error");
+        }
 
         // Set the URI
         jreq.URI = req->GetURI();

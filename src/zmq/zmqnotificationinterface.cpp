@@ -127,7 +127,9 @@ void CZMQNotificationInterface::UpdatedBlockTip(const CBlockIndex *pindexNew,
                                                 const CBlockIndex *pindexFork,
                                                 bool fInitialDownload) {
     // In IBD or blocks were disconnected without any new ones
-    if (fInitialDownload || pindexNew == pindexFork) return;
+    if (fInitialDownload || pindexNew == pindexFork) {
+        return;
+    }
 
     for (std::list<CZMQAbstractNotifier *>::iterator i = notifiers.begin();
          i != notifiers.end();) {

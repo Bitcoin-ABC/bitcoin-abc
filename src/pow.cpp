@@ -83,7 +83,9 @@ static uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
 
     // Make sure we do not go below allowed values.
     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
-    if (nPow > bnPowLimit) nPow = bnPowLimit;
+    if (nPow > bnPowLimit) {
+        nPow = bnPowLimit;
+    }
 
     return nPow.GetCompact();
 }

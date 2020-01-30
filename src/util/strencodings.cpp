@@ -414,7 +414,8 @@ std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
         }
     }
 
-    if (pfInvalid) switch (mode) {
+    if (pfInvalid) {
+        switch (mode) {
             case 0: // 8n base32 characters processed: ok
                 break;
 
@@ -453,6 +454,7 @@ std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
                 }
                 break;
         }
+    }
 
     return vchRet;
 }
@@ -849,7 +851,9 @@ void Downcase(std::string &str) {
 }
 
 std::string Capitalize(std::string str) {
-    if (str.empty()) return str;
+    if (str.empty()) {
+        return str;
+    }
     str[0] = ToUpper(str.front());
     return str;
 }

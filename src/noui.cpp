@@ -42,7 +42,9 @@ bool noui_ThreadSafeMessageBox(const std::string &message,
             strCaption += caption;
     }
 
-    if (!fSecure) LogPrintf("%s: %s\n", strCaption, message);
+    if (!fSecure) {
+        LogPrintf("%s: %s\n", strCaption, message);
+    }
     fprintf(stderr, "%s: %s\n", strCaption.c_str(), message.c_str());
     return false;
 }

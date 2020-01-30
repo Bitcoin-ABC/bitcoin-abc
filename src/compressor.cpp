@@ -124,7 +124,9 @@ bool DecompressScript(CScript &script, unsigned int nSize,
             vch[0] = nSize - 2;
             memcpy(&vch[1], in.data(), 32);
             CPubKey pubkey(&vch[0], &vch[33]);
-            if (!pubkey.Decompress()) return false;
+            if (!pubkey.Decompress()) {
+                return false;
+            }
             assert(pubkey.size() == 65);
             script.resize(67);
             script[0] = 65;

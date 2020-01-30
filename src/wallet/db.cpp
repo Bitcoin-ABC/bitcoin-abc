@@ -742,7 +742,7 @@ bool BerkeleyBatch::Rewrite(BerkeleyDatabase &database, const char *pszSkip) {
                     }
 
                     Dbc *pcursor = db.GetCursor();
-                    if (pcursor)
+                    if (pcursor) {
                         while (fSuccess) {
                             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
                             CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -775,6 +775,7 @@ bool BerkeleyBatch::Rewrite(BerkeleyDatabase &database, const char *pszSkip) {
                                 fSuccess = false;
                             }
                         }
+                    }
                     if (fSuccess) {
                         db.Close();
                         env->CloseDb(strFile);

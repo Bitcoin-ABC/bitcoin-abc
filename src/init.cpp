@@ -1957,9 +1957,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // sanitize comments per BIP-0014, format user agent and check total size
     std::vector<std::string> uacomments;
     for (const std::string &cmt : gArgs.GetArgs("-uacomment")) {
-        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT))
+        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT)) {
             return InitError(strprintf(
                 _("User Agent comment (%s) contains unsafe characters."), cmt));
+        }
         uacomments.push_back(cmt);
     }
     const std::string strSubVersion =

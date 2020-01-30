@@ -22,13 +22,18 @@ bool sanity_test_widen(char testchar) {
 //   they match the original sequence.
 bool sanity_test_list(unsigned int size) {
     std::list<unsigned int> test;
-    for (unsigned int i = 0; i != size; ++i)
+    for (unsigned int i = 0; i != size; ++i) {
         test.push_back(i + 1);
+    }
 
-    if (test.size() != size) return false;
+    if (test.size() != size) {
+        return false;
+    }
 
     while (!test.empty()) {
-        if (test.back() != test.size()) return false;
+        if (test.back() != test.size()) {
+            return false;
+        }
         test.pop_back();
     }
     return true;

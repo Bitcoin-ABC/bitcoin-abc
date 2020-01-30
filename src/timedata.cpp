@@ -45,8 +45,12 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
     LOCK(cs_nTimeOffset);
     // Ignore duplicates
     static std::set<CNetAddr> setKnown;
-    if (setKnown.size() == BITCOIN_TIMEDATA_MAX_SAMPLES) return;
-    if (!setKnown.insert(ip).second) return;
+    if (setKnown.size() == BITCOIN_TIMEDATA_MAX_SAMPLES) {
+        return;
+    }
+    if (!setKnown.insert(ip).second) {
+        return;
+    }
 
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(BITCOIN_TIMEDATA_MAX_SAMPLES, 0);
@@ -89,7 +93,9 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
                 // of ours, give a warning
                 bool fMatch = false;
                 for (const int64_t nOffset : vSorted) {
-                    if (nOffset != 0 && abs64(nOffset) < 5 * 60) fMatch = true;
+                    if (nOffset != 0 && abs64(nOffset) < 5 * 60) {
+                        fMatch = true;
+                    }
                 }
 
                 if (!fMatch) {

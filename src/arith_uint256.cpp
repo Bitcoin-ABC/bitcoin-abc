@@ -23,14 +23,18 @@ base_uint<BITS>::base_uint(const std::string &str) {
 template <unsigned int BITS>
 base_uint<BITS> &base_uint<BITS>::operator<<=(unsigned int shift) {
     base_uint<BITS> a(*this);
-    for (int i = 0; i < WIDTH; i++)
+    for (int i = 0; i < WIDTH; i++) {
         pn[i] = 0;
+    }
     int k = shift / 32;
     shift = shift % 32;
     for (int i = 0; i < WIDTH; i++) {
-        if (i + k + 1 < WIDTH && shift != 0)
+        if (i + k + 1 < WIDTH && shift != 0) {
             pn[i + k + 1] |= (a.pn[i] >> (32 - shift));
-        if (i + k < WIDTH) pn[i + k] |= (a.pn[i] << shift);
+        }
+        if (i + k < WIDTH) {
+            pn[i + k] |= (a.pn[i] << shift);
+        }
     }
     return *this;
 }
@@ -38,14 +42,18 @@ base_uint<BITS> &base_uint<BITS>::operator<<=(unsigned int shift) {
 template <unsigned int BITS>
 base_uint<BITS> &base_uint<BITS>::operator>>=(unsigned int shift) {
     base_uint<BITS> a(*this);
-    for (int i = 0; i < WIDTH; i++)
+    for (int i = 0; i < WIDTH; i++) {
         pn[i] = 0;
+    }
     int k = shift / 32;
     shift = shift % 32;
     for (int i = 0; i < WIDTH; i++) {
-        if (i - k - 1 >= 0 && shift != 0)
+        if (i - k - 1 >= 0 && shift != 0) {
             pn[i - k - 1] |= (a.pn[i] << (32 - shift));
-        if (i - k >= 0) pn[i - k] |= (a.pn[i] >> shift);
+        }
+        if (i - k >= 0) {
+            pn[i - k] |= (a.pn[i] >> shift);
+        }
     }
     return *this;
 }
@@ -86,9 +94,13 @@ base_uint<BITS> &base_uint<BITS>::operator/=(const base_uint &b) {
     *this = 0;
     int num_bits = num.bits();
     int div_bits = div.bits();
-    if (div_bits == 0) throw uint_error("Division by zero");
+    if (div_bits == 0) {
+        throw uint_error("Division by zero");
+    }
     // the result is certainly 0.
-    if (div_bits > num_bits) return *this;
+    if (div_bits > num_bits) {
+        return *this;
+    }
     int shift = num_bits - div_bits;
     // shift so that div and num align.
     div <<= shift;
@@ -109,18 +121,28 @@ base_uint<BITS> &base_uint<BITS>::operator/=(const base_uint &b) {
 template <unsigned int BITS>
 int base_uint<BITS>::CompareTo(const base_uint<BITS> &b) const {
     for (int i = WIDTH - 1; i >= 0; i--) {
-        if (pn[i] < b.pn[i]) return -1;
-        if (pn[i] > b.pn[i]) return 1;
+        if (pn[i] < b.pn[i]) {
+            return -1;
+        }
+        if (pn[i] > b.pn[i]) {
+            return 1;
+        }
     }
     return 0;
 }
 
 template <unsigned int BITS> bool base_uint<BITS>::EqualTo(uint64_t b) const {
     for (int i = WIDTH - 1; i >= 2; i--) {
-        if (pn[i]) return false;
+        if (pn[i]) {
+            return false;
+        }
     }
-    if (pn[1] != (b >> 32)) return false;
-    if (pn[0] != (b & 0xfffffffful)) return false;
+    if (pn[1] != (b >> 32)) {
+        return false;
+    }
+    if (pn[0] != (b & 0xfffffffful)) {
+        return false;
+    }
     return true;
 }
 
@@ -194,11 +216,14 @@ arith_uint256 &arith_uint256::SetCompact(uint32_t nCompact, bool *pfNegative,
         *this = nWord;
         *this <<= 8 * (nSize - 3);
     }
-    if (pfNegative) *pfNegative = nWord != 0 && (nCompact & 0x00800000) != 0;
-    if (pfOverflow)
+    if (pfNegative) {
+        *pfNegative = nWord != 0 && (nCompact & 0x00800000) != 0;
+    }
+    if (pfOverflow) {
         *pfOverflow =
             nWord != 0 && ((nSize > 34) || (nWord > 0xff && nSize > 33) ||
                            (nWord > 0xffff && nSize > 32));
+    }
     return *this;
 }
 
@@ -227,13 +252,15 @@ uint32_t arith_uint256::GetCompact(bool fNegative) const {
 
 uint256 ArithToUint256(const arith_uint256 &a) {
     uint256 b;
-    for (int x = 0; x < a.WIDTH; ++x)
+    for (int x = 0; x < a.WIDTH; ++x) {
         WriteLE32(b.begin() + x * 4, a.pn[x]);
+    }
     return b;
 }
 arith_uint256 UintToArith256(const uint256 &a) {
     arith_uint256 b;
-    for (int x = 0; x < b.WIDTH; ++x)
+    for (int x = 0; x < b.WIDTH; ++x) {
         b.pn[x] = ReadLE32(a.begin() + x * 4);
+    }
     return b;
 }

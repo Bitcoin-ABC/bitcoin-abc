@@ -197,8 +197,9 @@ static CRPCConvertTable rpcCvtTable;
 UniValue ParseNonRFCJSONValue(const std::string &strVal) {
     UniValue jVal;
     if (!jVal.read(std::string("[") + strVal + std::string("]")) ||
-        !jVal.isArray() || jVal.size() != 1)
+        !jVal.isArray() || jVal.size() != 1) {
         throw std::runtime_error(std::string("Error parsing JSON:") + strVal);
+    }
     return jVal[0];
 }
 

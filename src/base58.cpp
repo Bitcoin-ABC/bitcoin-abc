@@ -79,8 +79,9 @@ bool DecodeBase58(const char *psz, std::vector<uint8_t> &vch) {
     }
     // Skip leading zeroes in b256.
     std::vector<uint8_t>::iterator it = b256.begin() + (size - length);
-    while (it != b256.end() && *it == 0)
+    while (it != b256.end() && *it == 0) {
         it++;
+    }
     // Copy result into output vector.
     vch.reserve(zeroes + (b256.end() - it));
     vch.assign(zeroes, 0x00);
