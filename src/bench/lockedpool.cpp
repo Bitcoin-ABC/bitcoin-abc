@@ -19,8 +19,9 @@ static void BenchLockedPool(benchmark::State &state) {
     Arena b(synth_base, synth_size, 16);
 
     std::vector<void *> addr;
-    for (int x = 0; x < ASIZE; ++x)
+    for (int x = 0; x < ASIZE; ++x) {
         addr.push_back(nullptr);
+    }
     uint32_t s = 0x12345678;
     while (state.KeepRunning()) {
         for (int x = 0; x < BITER; ++x) {
@@ -33,11 +34,14 @@ static void BenchLockedPool(benchmark::State &state) {
             }
             bool lsb = s & 1;
             s >>= 1;
-            if (lsb) s ^= 0xf00f00f0; // LFSR period 0xf7ffffe0
+            if (lsb) {
+                s ^= 0xf00f00f0; // LFSR period 0xf7ffffe0
+            }
         }
     }
-    for (void *ptr : addr)
+    for (void *ptr : addr) {
         b.free(ptr);
+    }
     addr.clear();
 }
 
