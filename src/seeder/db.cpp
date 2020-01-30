@@ -118,7 +118,9 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
     int ter = info.GetBanTime();
     if (ter) {
         //    fprintf(stdout, "%s: terrible\n", ToString(addr).c_str());
-        if (ban < ter) ban = ter;
+        if (ban < ter) {
+            ban = ter;
+        }
     }
     if (ban > 0) {
         //    fprintf(stdout, "%s: ban for %i seconds\n",

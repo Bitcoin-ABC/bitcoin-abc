@@ -415,8 +415,9 @@ extern "C" void *ThreadStats(void *) {
         if (first) {
             first = false;
             fprintf(stdout, "\n\n\n\x1b[3A");
-        } else
+        } else {
             fprintf(stdout, "\x1b[2K\x1b[u");
+        }
         fprintf(stdout, "\x1b[s");
         uint64_t requests = 0;
         uint64_t queries = 0;

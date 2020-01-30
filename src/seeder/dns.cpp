@@ -82,8 +82,9 @@ int parse_name(const uint8_t **inpos, const uint8_t *inend,
                 return -2;
             }
             buf[bufused++] = '.';
-        } else
+        } else {
             init = 0;
+        }
         // handle references
         if ((octet & 0xC0) == 0xC0) {
             if (*inpos == inend) {
