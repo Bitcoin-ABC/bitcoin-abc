@@ -14,7 +14,7 @@ cd ${BUILD_DIR}
 git clean -xffd
 
 read -a CMAKE_FLAGS <<< "${CMAKE_FLAGS}"
-cmake -GNinja .. "${CMAKE_FLAGS[@]}"
+cmake -GNinja .. -DENABLE_CLANG_TIDY=OFF "${CMAKE_FLAGS[@]}"
 
 # Run build
 ninja

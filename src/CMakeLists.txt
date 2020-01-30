@@ -25,6 +25,7 @@ option(ENABLE_UPNP "Enable UPnP support" ON)
 option(ENABLE_NOTIFICATIONS "Enable desktop notifications" ON)
 option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
+option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" ON)
 
 # Disable what we do not need for the native build.
 include(NativeExecutable)
@@ -34,7 +35,13 @@ native_add_cmake_flags(
 	"-DBUILD_BITCOIN_ZMQ=OFF"
 	"-DENABLE_QRCODE=OFF"
 	"-DENABLE_UPNP=OFF"
+	# Forward the current setting for clang-tidy
+	"-DENABLE_CLANG_TIDY=${ENABLE_CLANG_TIDY}"
 )
+
+if(ENABLE_CLANG_TIDY)
+	include(ClangTidy)
+endif()
 
 # Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
 if(ENABLE_SANITIZERS)

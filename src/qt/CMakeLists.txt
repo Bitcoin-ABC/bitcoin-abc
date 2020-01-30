@@ -240,7 +240,13 @@ if(ENABLE_BIP70)
 
 	target_include_directories(bitcoin-qt-protobuf PUBLIC ${Protobuf_INCLUDE_DIRS})
 	target_link_libraries(bitcoin-qt-protobuf ${Protobuf_LIBRARIES})
-	
+
+	# Don't run clang-tidy on generated files
+	if(ENABLE_CLANG_TIDY)
+		include(ClangTidy)
+		target_disable_clang_tidy(bitcoin-qt-protobuf)
+	endif()
+
 	target_link_libraries(bitcoin-qt-base
 		OpenSSL::SSL
 		bitcoin-qt-protobuf
