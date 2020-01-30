@@ -1018,10 +1018,10 @@ public:
         }
     }
 
-    void AddInventoryKnown(const CInv &inv) {
+    void AddKnownTx(const TxId &txid) {
         if (m_tx_relay != nullptr) {
             LOCK(m_tx_relay->cs_tx_inventory);
-            m_tx_relay->filterInventoryKnown.insert(inv.hash);
+            m_tx_relay->filterInventoryKnown.insert(txid);
         }
     }
 
