@@ -91,6 +91,7 @@ add_regular_fuzz_targets(
 	key_io
 	locale
 	net_permissions
+	netaddress
 	p2p_transport_deserializer
 	parse_hd_keypath
 	parse_iso8601
