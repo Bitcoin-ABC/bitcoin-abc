@@ -5,6 +5,8 @@
 #ifndef BITCOIN_SCRIPT_DESCRIPTOR_H
 #define BITCOIN_SCRIPT_DESCRIPTOR_H
 
+#include <optional.h>
+#include <outputtype.h>
 #include <script/script.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
@@ -150,6 +152,12 @@ struct Descriptor {
      */
     virtual void ExpandPrivate(int pos, const SigningProvider &provider,
                                FlatSigningProvider &out) const = 0;
+
+    /**
+     * @return The OutputType of the scriptPubKey(s) produced by this
+     * descriptor. Or nullopt if indeterminate (multiple or none)
+     */
+    virtual Optional<OutputType> GetOutputType() const = 0;
 };
 
 /**
