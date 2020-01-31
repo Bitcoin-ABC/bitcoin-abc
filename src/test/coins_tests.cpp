@@ -593,7 +593,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
 }
 
 static const COutPoint OUTPOINT;
-static const Amount PRUNED(-1 * SATOSHI);
+static const Amount SPENT(-1 * SATOSHI);
 static const Amount ABSENT(-2 * SATOSHI);
 static const Amount FAIL(-3 * SATOSHI);
 static const Amount VALUE1(100 * SATOSHI);
@@ -611,7 +611,7 @@ static void SetCoinValue(const Amount value, Coin &coin) {
     assert(value != ABSENT);
     coin.Clear();
     assert(coin.IsSpent());
-    if (value != PRUNED) {
+    if (value != SPENT) {
         CTxOut out;
         out.nValue = value;
         coin = Coin(std::move(out), 1, false);
@@ -641,7 +641,7 @@ void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags) {
         flags = NO_ENTRY;
     } else {
         if (it->second.coin.IsSpent()) {
-            value = PRUNED;
+            value = SPENT;
         } else {
             value = it->second.coin.GetTxOut().nValue;
         }
@@ -694,28 +694,28 @@ BOOST_AUTO_TEST_CASE(coin_access) {
      *               Value   Value   Value   Flags        Flags
      */
     CheckAccessCoin(ABSENT, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
-    CheckAccessCoin(ABSENT, PRUNED, PRUNED, 0, 0);
-    CheckAccessCoin(ABSENT, PRUNED, PRUNED, FRESH, FRESH);
-    CheckAccessCoin(ABSENT, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckAccessCoin(ABSENT, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(ABSENT, SPENT, SPENT, 0, 0);
+    CheckAccessCoin(ABSENT, SPENT, SPENT, FRESH, FRESH);
+    CheckAccessCoin(ABSENT, SPENT, SPENT, DIRTY, DIRTY);
+    CheckAccessCoin(ABSENT, SPENT, SPENT, DIRTY | FRESH, DIRTY | FRESH);
     CheckAccessCoin(ABSENT, VALUE2, VALUE2, 0, 0);
     CheckAccessCoin(ABSENT, VALUE2, VALUE2, FRESH, FRESH);
     CheckAccessCoin(ABSENT, VALUE2, VALUE2, DIRTY, DIRTY);
     CheckAccessCoin(ABSENT, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
-    CheckAccessCoin(PRUNED, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
-    CheckAccessCoin(PRUNED, PRUNED, PRUNED, 0, 0);
-    CheckAccessCoin(PRUNED, PRUNED, PRUNED, FRESH, FRESH);
-    CheckAccessCoin(PRUNED, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckAccessCoin(PRUNED, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
-    CheckAccessCoin(PRUNED, VALUE2, VALUE2, 0, 0);
-    CheckAccessCoin(PRUNED, VALUE2, VALUE2, FRESH, FRESH);
-    CheckAccessCoin(PRUNED, VALUE2, VALUE2, DIRTY, DIRTY);
-    CheckAccessCoin(PRUNED, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(SPENT, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
+    CheckAccessCoin(SPENT, SPENT, SPENT, 0, 0);
+    CheckAccessCoin(SPENT, SPENT, SPENT, FRESH, FRESH);
+    CheckAccessCoin(SPENT, SPENT, SPENT, DIRTY, DIRTY);
+    CheckAccessCoin(SPENT, SPENT, SPENT, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(SPENT, VALUE2, VALUE2, 0, 0);
+    CheckAccessCoin(SPENT, VALUE2, VALUE2, FRESH, FRESH);
+    CheckAccessCoin(SPENT, VALUE2, VALUE2, DIRTY, DIRTY);
+    CheckAccessCoin(SPENT, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
     CheckAccessCoin(VALUE1, ABSENT, VALUE1, NO_ENTRY, 0);
-    CheckAccessCoin(VALUE1, PRUNED, PRUNED, 0, 0);
-    CheckAccessCoin(VALUE1, PRUNED, PRUNED, FRESH, FRESH);
-    CheckAccessCoin(VALUE1, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckAccessCoin(VALUE1, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(VALUE1, SPENT, SPENT, 0, 0);
+    CheckAccessCoin(VALUE1, SPENT, SPENT, FRESH, FRESH);
+    CheckAccessCoin(VALUE1, SPENT, SPENT, DIRTY, DIRTY);
+    CheckAccessCoin(VALUE1, SPENT, SPENT, DIRTY | FRESH, DIRTY | FRESH);
     CheckAccessCoin(VALUE1, VALUE2, VALUE2, 0, 0);
     CheckAccessCoin(VALUE1, VALUE2, VALUE2, FRESH, FRESH);
     CheckAccessCoin(VALUE1, VALUE2, VALUE2, DIRTY, DIRTY);
@@ -746,31 +746,31 @@ BOOST_AUTO_TEST_CASE(coin_spend) {
      *              Value   Value   Value   Flags        Flags
      */
     CheckSpendCoin(ABSENT, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
-    CheckSpendCoin(ABSENT, PRUNED, PRUNED, 0, DIRTY);
-    CheckSpendCoin(ABSENT, PRUNED, ABSENT, FRESH, NO_ENTRY);
-    CheckSpendCoin(ABSENT, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckSpendCoin(ABSENT, PRUNED, ABSENT, DIRTY | FRESH, NO_ENTRY);
-    CheckSpendCoin(ABSENT, VALUE2, PRUNED, 0, DIRTY);
+    CheckSpendCoin(ABSENT, SPENT, SPENT, 0, DIRTY);
+    CheckSpendCoin(ABSENT, SPENT, ABSENT, FRESH, NO_ENTRY);
+    CheckSpendCoin(ABSENT, SPENT, SPENT, DIRTY, DIRTY);
+    CheckSpendCoin(ABSENT, SPENT, ABSENT, DIRTY | FRESH, NO_ENTRY);
+    CheckSpendCoin(ABSENT, VALUE2, SPENT, 0, DIRTY);
     CheckSpendCoin(ABSENT, VALUE2, ABSENT, FRESH, NO_ENTRY);
-    CheckSpendCoin(ABSENT, VALUE2, PRUNED, DIRTY, DIRTY);
+    CheckSpendCoin(ABSENT, VALUE2, SPENT, DIRTY, DIRTY);
     CheckSpendCoin(ABSENT, VALUE2, ABSENT, DIRTY | FRESH, NO_ENTRY);
-    CheckSpendCoin(PRUNED, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
-    CheckSpendCoin(PRUNED, PRUNED, PRUNED, 0, DIRTY);
-    CheckSpendCoin(PRUNED, PRUNED, ABSENT, FRESH, NO_ENTRY);
-    CheckSpendCoin(PRUNED, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckSpendCoin(PRUNED, PRUNED, ABSENT, DIRTY | FRESH, NO_ENTRY);
-    CheckSpendCoin(PRUNED, VALUE2, PRUNED, 0, DIRTY);
-    CheckSpendCoin(PRUNED, VALUE2, ABSENT, FRESH, NO_ENTRY);
-    CheckSpendCoin(PRUNED, VALUE2, PRUNED, DIRTY, DIRTY);
-    CheckSpendCoin(PRUNED, VALUE2, ABSENT, DIRTY | FRESH, NO_ENTRY);
-    CheckSpendCoin(VALUE1, ABSENT, PRUNED, NO_ENTRY, DIRTY);
-    CheckSpendCoin(VALUE1, PRUNED, PRUNED, 0, DIRTY);
-    CheckSpendCoin(VALUE1, PRUNED, ABSENT, FRESH, NO_ENTRY);
-    CheckSpendCoin(VALUE1, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckSpendCoin(VALUE1, PRUNED, ABSENT, DIRTY | FRESH, NO_ENTRY);
-    CheckSpendCoin(VALUE1, VALUE2, PRUNED, 0, DIRTY);
+    CheckSpendCoin(SPENT, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
+    CheckSpendCoin(SPENT, SPENT, SPENT, 0, DIRTY);
+    CheckSpendCoin(SPENT, SPENT, ABSENT, FRESH, NO_ENTRY);
+    CheckSpendCoin(SPENT, SPENT, SPENT, DIRTY, DIRTY);
+    CheckSpendCoin(SPENT, SPENT, ABSENT, DIRTY | FRESH, NO_ENTRY);
+    CheckSpendCoin(SPENT, VALUE2, SPENT, 0, DIRTY);
+    CheckSpendCoin(SPENT, VALUE2, ABSENT, FRESH, NO_ENTRY);
+    CheckSpendCoin(SPENT, VALUE2, SPENT, DIRTY, DIRTY);
+    CheckSpendCoin(SPENT, VALUE2, ABSENT, DIRTY | FRESH, NO_ENTRY);
+    CheckSpendCoin(VALUE1, ABSENT, SPENT, NO_ENTRY, DIRTY);
+    CheckSpendCoin(VALUE1, SPENT, SPENT, 0, DIRTY);
+    CheckSpendCoin(VALUE1, SPENT, ABSENT, FRESH, NO_ENTRY);
+    CheckSpendCoin(VALUE1, SPENT, SPENT, DIRTY, DIRTY);
+    CheckSpendCoin(VALUE1, SPENT, ABSENT, DIRTY | FRESH, NO_ENTRY);
+    CheckSpendCoin(VALUE1, VALUE2, SPENT, 0, DIRTY);
     CheckSpendCoin(VALUE1, VALUE2, ABSENT, FRESH, NO_ENTRY);
-    CheckSpendCoin(VALUE1, VALUE2, PRUNED, DIRTY, DIRTY);
+    CheckSpendCoin(VALUE1, VALUE2, SPENT, DIRTY, DIRTY);
     CheckSpendCoin(VALUE1, VALUE2, ABSENT, DIRTY | FRESH, NO_ENTRY);
 }
 
@@ -804,7 +804,7 @@ static void CheckAddCoinBase(Amount base_value, Amount cache_value,
 // while still verifying that the CoinsViewCache::AddCoin implementation ignores
 // base values.
 template <typename... Args> static void CheckAddCoin(Args &&... args) {
-    for (const Amount &base_value : {ABSENT, PRUNED, VALUE1}) {
+    for (const Amount &base_value : {ABSENT, SPENT, VALUE1}) {
         CheckAddCoinBase(base_value, std::forward<Args>(args)...);
     }
 }
@@ -821,14 +821,14 @@ BOOST_AUTO_TEST_CASE(coin_add) {
      */
     CheckAddCoin(ABSENT, VALUE3, VALUE3, NO_ENTRY, DIRTY | FRESH, false);
     CheckAddCoin(ABSENT, VALUE3, VALUE3, NO_ENTRY, DIRTY, true);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, 0, DIRTY | FRESH, false);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, 0, DIRTY, true);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, FRESH, DIRTY | FRESH, false);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, FRESH, DIRTY | FRESH, true);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, DIRTY, DIRTY, false);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, DIRTY, DIRTY, true);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, DIRTY | FRESH, DIRTY | FRESH, false);
-    CheckAddCoin(PRUNED, VALUE3, VALUE3, DIRTY | FRESH, DIRTY | FRESH, true);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, 0, DIRTY | FRESH, false);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, 0, DIRTY, true);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, FRESH, DIRTY | FRESH, false);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, FRESH, DIRTY | FRESH, true);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, DIRTY, DIRTY, false);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, DIRTY, DIRTY, true);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, DIRTY | FRESH, DIRTY | FRESH, false);
+    CheckAddCoin(SPENT, VALUE3, VALUE3, DIRTY | FRESH, DIRTY | FRESH, true);
     CheckAddCoin(VALUE2, VALUE3, FAIL, 0, NO_ENTRY, false);
     CheckAddCoin(VALUE2, VALUE3, VALUE3, 0, DIRTY, true);
     CheckAddCoin(VALUE2, VALUE3, FAIL, FRESH, NO_ENTRY, false);
@@ -868,48 +868,47 @@ BOOST_AUTO_TEST_CASE(coin_write) {
      *              Value   Value   Value   Flags        Flags        Flags
      */
     CheckWriteCoin(ABSENT, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY, NO_ENTRY);
-    CheckWriteCoin(ABSENT, PRUNED, PRUNED, NO_ENTRY, DIRTY, DIRTY);
-    CheckWriteCoin(ABSENT, PRUNED, ABSENT, NO_ENTRY, DIRTY | FRESH, NO_ENTRY);
+    CheckWriteCoin(ABSENT, SPENT, SPENT, NO_ENTRY, DIRTY, DIRTY);
+    CheckWriteCoin(ABSENT, SPENT, ABSENT, NO_ENTRY, DIRTY | FRESH, NO_ENTRY);
     CheckWriteCoin(ABSENT, VALUE2, VALUE2, NO_ENTRY, DIRTY, DIRTY);
     CheckWriteCoin(ABSENT, VALUE2, VALUE2, NO_ENTRY, DIRTY | FRESH,
                    DIRTY | FRESH);
-    CheckWriteCoin(PRUNED, ABSENT, PRUNED, 0, NO_ENTRY, 0);
-    CheckWriteCoin(PRUNED, ABSENT, PRUNED, FRESH, NO_ENTRY, FRESH);
-    CheckWriteCoin(PRUNED, ABSENT, PRUNED, DIRTY, NO_ENTRY, DIRTY);
-    CheckWriteCoin(PRUNED, ABSENT, PRUNED, DIRTY | FRESH, NO_ENTRY,
+    CheckWriteCoin(SPENT, ABSENT, SPENT, 0, NO_ENTRY, 0);
+    CheckWriteCoin(SPENT, ABSENT, SPENT, FRESH, NO_ENTRY, FRESH);
+    CheckWriteCoin(SPENT, ABSENT, SPENT, DIRTY, NO_ENTRY, DIRTY);
+    CheckWriteCoin(SPENT, ABSENT, SPENT, DIRTY | FRESH, NO_ENTRY,
                    DIRTY | FRESH);
-    CheckWriteCoin(PRUNED, PRUNED, PRUNED, 0, DIRTY, DIRTY);
-    CheckWriteCoin(PRUNED, PRUNED, PRUNED, 0, DIRTY | FRESH, DIRTY);
-    CheckWriteCoin(PRUNED, PRUNED, ABSENT, FRESH, DIRTY, NO_ENTRY);
-    CheckWriteCoin(PRUNED, PRUNED, ABSENT, FRESH, DIRTY | FRESH, NO_ENTRY);
-    CheckWriteCoin(PRUNED, PRUNED, PRUNED, DIRTY, DIRTY, DIRTY);
-    CheckWriteCoin(PRUNED, PRUNED, PRUNED, DIRTY, DIRTY | FRESH, DIRTY);
-    CheckWriteCoin(PRUNED, PRUNED, ABSENT, DIRTY | FRESH, DIRTY, NO_ENTRY);
-    CheckWriteCoin(PRUNED, PRUNED, ABSENT, DIRTY | FRESH, DIRTY | FRESH,
+    CheckWriteCoin(SPENT, SPENT, SPENT, 0, DIRTY, DIRTY);
+    CheckWriteCoin(SPENT, SPENT, SPENT, 0, DIRTY | FRESH, DIRTY);
+    CheckWriteCoin(SPENT, SPENT, ABSENT, FRESH, DIRTY, NO_ENTRY);
+    CheckWriteCoin(SPENT, SPENT, ABSENT, FRESH, DIRTY | FRESH, NO_ENTRY);
+    CheckWriteCoin(SPENT, SPENT, SPENT, DIRTY, DIRTY, DIRTY);
+    CheckWriteCoin(SPENT, SPENT, SPENT, DIRTY, DIRTY | FRESH, DIRTY);
+    CheckWriteCoin(SPENT, SPENT, ABSENT, DIRTY | FRESH, DIRTY, NO_ENTRY);
+    CheckWriteCoin(SPENT, SPENT, ABSENT, DIRTY | FRESH, DIRTY | FRESH,
                    NO_ENTRY);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, 0, DIRTY, DIRTY);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, 0, DIRTY | FRESH, DIRTY);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, FRESH, DIRTY, DIRTY | FRESH);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, FRESH, DIRTY | FRESH, DIRTY | FRESH);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, DIRTY, DIRTY, DIRTY);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, DIRTY, DIRTY | FRESH, DIRTY);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, DIRTY | FRESH, DIRTY, DIRTY | FRESH);
-    CheckWriteCoin(PRUNED, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH,
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, 0, DIRTY, DIRTY);
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, 0, DIRTY | FRESH, DIRTY);
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, FRESH, DIRTY, DIRTY | FRESH);
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, FRESH, DIRTY | FRESH, DIRTY | FRESH);
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, DIRTY, DIRTY, DIRTY);
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, DIRTY, DIRTY | FRESH, DIRTY);
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, DIRTY | FRESH, DIRTY, DIRTY | FRESH);
+    CheckWriteCoin(SPENT, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH,
                    DIRTY | FRESH);
     CheckWriteCoin(VALUE1, ABSENT, VALUE1, 0, NO_ENTRY, 0);
     CheckWriteCoin(VALUE1, ABSENT, VALUE1, FRESH, NO_ENTRY, FRESH);
     CheckWriteCoin(VALUE1, ABSENT, VALUE1, DIRTY, NO_ENTRY, DIRTY);
     CheckWriteCoin(VALUE1, ABSENT, VALUE1, DIRTY | FRESH, NO_ENTRY,
                    DIRTY | FRESH);
-    CheckWriteCoin(VALUE1, PRUNED, PRUNED, 0, DIRTY, DIRTY);
-    CheckWriteCoin(VALUE1, PRUNED, FAIL, 0, DIRTY | FRESH, NO_ENTRY);
-    CheckWriteCoin(VALUE1, PRUNED, ABSENT, FRESH, DIRTY, NO_ENTRY);
-    CheckWriteCoin(VALUE1, PRUNED, FAIL, FRESH, DIRTY | FRESH, NO_ENTRY);
-    CheckWriteCoin(VALUE1, PRUNED, PRUNED, DIRTY, DIRTY, DIRTY);
-    CheckWriteCoin(VALUE1, PRUNED, FAIL, DIRTY, DIRTY | FRESH, NO_ENTRY);
-    CheckWriteCoin(VALUE1, PRUNED, ABSENT, DIRTY | FRESH, DIRTY, NO_ENTRY);
-    CheckWriteCoin(VALUE1, PRUNED, FAIL, DIRTY | FRESH, DIRTY | FRESH,
-                   NO_ENTRY);
+    CheckWriteCoin(VALUE1, SPENT, SPENT, 0, DIRTY, DIRTY);
+    CheckWriteCoin(VALUE1, SPENT, FAIL, 0, DIRTY | FRESH, NO_ENTRY);
+    CheckWriteCoin(VALUE1, SPENT, ABSENT, FRESH, DIRTY, NO_ENTRY);
+    CheckWriteCoin(VALUE1, SPENT, FAIL, FRESH, DIRTY | FRESH, NO_ENTRY);
+    CheckWriteCoin(VALUE1, SPENT, SPENT, DIRTY, DIRTY, DIRTY);
+    CheckWriteCoin(VALUE1, SPENT, FAIL, DIRTY, DIRTY | FRESH, NO_ENTRY);
+    CheckWriteCoin(VALUE1, SPENT, ABSENT, DIRTY | FRESH, DIRTY, NO_ENTRY);
+    CheckWriteCoin(VALUE1, SPENT, FAIL, DIRTY | FRESH, DIRTY | FRESH, NO_ENTRY);
     CheckWriteCoin(VALUE1, VALUE2, VALUE2, 0, DIRTY, DIRTY);
     CheckWriteCoin(VALUE1, VALUE2, FAIL, 0, DIRTY | FRESH, NO_ENTRY);
     CheckWriteCoin(VALUE1, VALUE2, VALUE2, FRESH, DIRTY, DIRTY | FRESH);
@@ -924,8 +923,8 @@ BOOST_AUTO_TEST_CASE(coin_write) {
     // they would be too repetitive (the parent cache is never updated in these
     // cases). The loop below covers these cases and makes sure the parent cache
     // is always left unchanged.
-    for (const Amount &parent_value : {ABSENT, PRUNED, VALUE1}) {
-        for (const Amount &child_value : {ABSENT, PRUNED, VALUE2}) {
+    for (const Amount &parent_value : {ABSENT, SPENT, VALUE1}) {
+        for (const Amount &child_value : {ABSENT, SPENT, VALUE2}) {
             for (const char parent_flags :
                  parent_value == ABSENT ? ABSENT_FLAGS : FLAGS) {
                 for (const char child_flags :
