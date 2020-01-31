@@ -310,7 +310,7 @@ static void test_cache_erase_parallel(size_t megabytes) {
      */
     std::vector<std::thread> threads;
     /** Erase the first quarter */
-    for (uint32_t x = 0; x < 3; ++x)
+    for (uint32_t x = 0; x < 3; ++x) {
         /** Each thread is emplaced with x copy-by-value */
         threads.emplace_back([&, x] {
             boost::shared_lock<boost::shared_mutex> l(mtx);
@@ -321,6 +321,7 @@ static void test_cache_erase_parallel(size_t megabytes) {
                 set.contains(hashes[i], true);
             }
         });
+    }
 
     /** Wait for all threads to finish */
     for (std::thread &t : threads) {

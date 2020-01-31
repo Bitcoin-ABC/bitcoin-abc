@@ -181,8 +181,9 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Random) {
     range.reserve(100000 / 1000);
     for (size_t i = 2; i < 100000;
          i += std::max((size_t)1, (size_t)InsecureRandRange(std::min(
-                                      (size_t)1000, ((size_t)100000) - i))))
+                                      (size_t)1000, ((size_t)100000) - i)))) {
         range.push_back(i);
+    }
     Correct_Queue_range(range);
 }
 
@@ -204,8 +205,9 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Catches_Failure) {
 
             std::vector<FailingCheck> vChecks;
             vChecks.reserve(r);
-            for (size_t k = 0; k < r && remaining; k++, remaining--)
+            for (size_t k = 0; k < r && remaining; k++, remaining--) {
                 vChecks.emplace_back(remaining == 1);
+            }
             control.Add(vChecks);
         }
         bool success = control.Wait();
@@ -263,15 +265,17 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_UniqueCheck) {
         while (total) {
             size_t r = InsecureRandRange(10);
             std::vector<UniqueCheck> vChecks;
-            for (size_t k = 0; k < r && total; k++)
+            for (size_t k = 0; k < r && total; k++) {
                 vChecks.emplace_back(--total);
+            }
             control.Add(vChecks);
         }
     }
     bool r = true;
     BOOST_REQUIRE_EQUAL(UniqueCheck::results.size(), COUNT);
-    for (size_t i = 0; i < COUNT; ++i)
+    for (size_t i = 0; i < COUNT; ++i) {
         r = r && UniqueCheck::results.count(i) == 1;
+    }
     BOOST_REQUIRE(r);
     tg.interrupt_all();
     tg.join_all();

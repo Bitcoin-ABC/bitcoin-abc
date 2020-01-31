@@ -454,8 +454,9 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         SignSignature(keystore, *txPrev, tx, 0, SigHashType());
         // Re-use same signature for other inputs
         // (they don't have to be valid for this test)
-        for (unsigned int j = 1; j < tx.vin.size(); j++)
+        for (unsigned int j = 1; j < tx.vin.size(); j++) {
             tx.vin[j].scriptSig = tx.vin[0].scriptSig;
+        }
 
         BOOST_CHECK(!AddOrphanTx(MakeTransactionRef(tx), i));
     }

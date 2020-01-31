@@ -49,8 +49,9 @@ BOOST_AUTO_TEST_CASE(pmt_test1) {
         // calculate actual merkle root and height
         uint256 merkleRoot1 = BlockMerkleRoot(block);
         std::vector<uint256> vTxid(nTx, uint256());
-        for (unsigned int j = 0; j < nTx; j++)
+        for (unsigned int j = 0; j < nTx; j++) {
             vTxid[j] = block.vtx[j]->GetId();
+        }
         int nHeight = 1, nTx_ = nTx;
         while (nTx_ > 1) {
             nTx_ = (nTx_ + 1) / 2;
@@ -66,7 +67,9 @@ BOOST_AUTO_TEST_CASE(pmt_test1) {
             for (unsigned int j = 0; j < nTx; j++) {
                 bool fInclude = InsecureRandBits(att / 2) == 0;
                 vMatch[j] = fInclude;
-                if (fInclude) vMatchTxid1.push_back(vTxid[j]);
+                if (fInclude) {
+                    vMatchTxid1.push_back(vTxid[j]);
+                }
             }
 
             // build the partial merkle tree

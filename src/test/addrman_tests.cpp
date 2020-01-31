@@ -380,7 +380,9 @@ BOOST_AUTO_TEST_CASE(addrman_getaddr) {
         // Ensure that for all addrs in addrman, isTerrible == false.
         addr.nTime = GetAdjustedTime();
         addrman.Add(addr, ResolveIP(strAddr));
-        if (i % 8 == 0) addrman.Good(addr);
+        if (i % 8 == 0) {
+            addrman.Good(addr);
+        }
     }
     std::vector<CAddress> vAddr = addrman.GetAddr();
 

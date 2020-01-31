@@ -77,38 +77,45 @@ BOOST_AUTO_TEST_CASE(arena_tests) {
     b.walk();
 #endif
     // Sweeping allocate all memory
-    for (int x = 0; x < 1024; ++x)
+    for (int x = 0; x < 1024; ++x) {
         addr.push_back(b.alloc(1024));
+    }
     BOOST_CHECK(b.stats().free == 0);
     // memory is full, this must return nullptr
     BOOST_CHECK(b.alloc(1024) == nullptr);
     BOOST_CHECK(b.alloc(0) == nullptr);
-    for (int x = 0; x < 1024; ++x)
+    for (int x = 0; x < 1024; ++x) {
         b.free(addr[x]);
+    }
     addr.clear();
     BOOST_CHECK(b.stats().total == synth_size);
     BOOST_CHECK(b.stats().free == synth_size);
 
     // Now in the other direction...
-    for (int x = 0; x < 1024; ++x)
+    for (int x = 0; x < 1024; ++x) {
         addr.push_back(b.alloc(1024));
-    for (int x = 0; x < 1024; ++x)
+    }
+    for (int x = 0; x < 1024; ++x) {
         b.free(addr[1023 - x]);
+    }
     addr.clear();
 
     // Now allocate in smaller unequal chunks, then deallocate haphazardly
     // Not all the chunks will succeed allocating, but freeing nullptr is
     // allowed so that is no problem.
-    for (int x = 0; x < 2048; ++x)
+    for (int x = 0; x < 2048; ++x) {
         addr.push_back(b.alloc(x + 1));
-    for (int x = 0; x < 2048; ++x)
+    }
+    for (int x = 0; x < 2048; ++x) {
         b.free(addr[((x * 23) % 2048) ^ 242]);
+    }
     addr.clear();
 
     // Go entirely wild: free and alloc interleaved, generate targets and sizes
     // using pseudo-randomness.
-    for (int x = 0; x < 2048; ++x)
+    for (int x = 0; x < 2048; ++x) {
         addr.push_back(0);
+    }
     uint32_t s = 0x12345678;
     for (int x = 0; x < 5000; ++x) {
         int idx = s & (addr.size() - 1);
@@ -121,10 +128,13 @@ BOOST_AUTO_TEST_CASE(arena_tests) {
         bool lsb = s & 1;
         s >>= 1;
         // LFSR period 0xf7ffffe0
-        if (lsb) s ^= 0xf00f00f0;
+        if (lsb) {
+            s ^= 0xf00f00f0;
+        }
     }
-    for (void *ptr : addr)
+    for (void *ptr : addr) {
         b.free(ptr);
+    }
     addr.clear();
 
     BOOST_CHECK(b.stats().total == synth_size);

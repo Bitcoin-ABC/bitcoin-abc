@@ -25,7 +25,9 @@ static uint16_t tagSequence = 0;
 
 static void *tag_malloc(size_t sz) {
     void *mem = malloc(sz);
-    if (!mem) return mem;
+    if (!mem) {
+        return mem;
+    }
     tags[mem]++;
     orders[mem] = tagSequence++;
     return mem;

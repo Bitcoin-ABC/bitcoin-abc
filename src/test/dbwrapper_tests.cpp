@@ -17,8 +17,9 @@
 static bool is_null_key(const std::vector<uint8_t> &key) {
     bool isnull = true;
 
-    for (unsigned int i = 0; i < key.size(); i++)
+    for (unsigned int i = 0; i < key.size(); i++) {
         isnull &= (key[i] == '\x00');
+    }
 
     return isnull;
 }
@@ -234,7 +235,9 @@ BOOST_AUTO_TEST_CASE(iterator_ordering) {
             BOOST_CHECK(it->Valid());
             // Avoid spurious errors about invalid iterator's  key and value in
             // case of failure
-            if (!it->Valid()) break;
+            if (!it->Valid()) {
+                break;
+            }
             BOOST_CHECK(it->GetKey(key));
             if (x & 1) {
                 BOOST_CHECK_EQUAL(key, x + 1);
@@ -280,8 +283,9 @@ struct StringContentsSerializer {
                 }
             }
         } else {
-            for (size_t i = 0; i < str.size(); i++)
+            for (size_t i = 0; i < str.size(); i++) {
                 READWRITE(str[i]);
+            }
         }
     }
 };
@@ -295,8 +299,9 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering) {
         for (int y = 0; y < 10; y++) {
             snprintf(buf, sizeof(buf), "%d", x);
             StringContentsSerializer key(buf);
-            for (int z = 0; z < y; z++)
+            for (int z = 0; z < y; z++) {
                 key += key;
+            }
             uint32_t value = x * x;
             BOOST_CHECK(dbw.Write(key, value));
         }
@@ -312,14 +317,17 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering) {
             for (int y = 0; y < 10; y++) {
                 snprintf(buf, sizeof(buf), "%d", x);
                 std::string exp_key(buf);
-                for (int z = 0; z < y; z++)
+                for (int z = 0; z < y; z++) {
                     exp_key += exp_key;
+                }
                 StringContentsSerializer key;
                 uint32_t value;
                 BOOST_CHECK(it->Valid());
                 // Avoid spurious errors about invalid iterator's key and value
                 // in case of failure
-                if (!it->Valid()) break;
+                if (!it->Valid()) {
+                    break;
+                }
                 BOOST_CHECK(it->GetKey(key));
                 BOOST_CHECK(it->GetValue(value));
                 BOOST_CHECK_EQUAL(key.str, exp_key);

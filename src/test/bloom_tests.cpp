@@ -1120,7 +1120,9 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
     // when we've inserted one minus an integer multiple of nElement*2.
     unsigned int nHits = 0;
     for (int i = 0; i < 10000; i++) {
-        if (rb1.contains(RandomData())) ++nHits;
+        if (rb1.contains(RandomData())) {
+            ++nHits;
+        }
     }
     // Expect about 100 hits
     BOOST_CHECK_EQUAL(nHits, 75);
@@ -1132,7 +1134,9 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
     // Now roll through data, make sure last 100 entries
     // are always remembered:
     for (int i = 0; i < DATASIZE; i++) {
-        if (i >= 100) BOOST_CHECK(rb1.contains(data[i - 100]));
+        if (i >= 100) {
+            BOOST_CHECK(rb1.contains(data[i - 100]));
+        }
         rb1.insert(data[i]);
         BOOST_CHECK(rb1.contains(data[i]));
     }
@@ -1146,7 +1150,9 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
     // Sanity check to make sure the filter isn't just filling up:
     nHits = 0;
     for (int i = 0; i < DATASIZE; i++) {
-        if (rb1.contains(data[i])) ++nHits;
+        if (rb1.contains(data[i])) {
+            ++nHits;
+        }
     }
     // Expect about 5 false positives
     BOOST_CHECK_EQUAL(nHits, 6);

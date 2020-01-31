@@ -772,8 +772,9 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(pool.exists(tx6.GetId()));
     BOOST_CHECK(!pool.exists(tx7.GetId()));
 
-    if (!pool.exists(tx5.GetId()))
+    if (!pool.exists(tx5.GetId())) {
         pool.addUnchecked(entry.Fee(1000 * SATOSHI).FromTx(tx5));
+    }
     pool.addUnchecked(entry.Fee(9000 * SATOSHI).FromTx(tx7));
 
     // should maximize mempool size by only removing 5/7

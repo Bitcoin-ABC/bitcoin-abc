@@ -128,7 +128,9 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
 
     for (auto net : GetNetworks()) {
         for (auto otherNet : GetNetworks()) {
-            if (net == otherNet) continue;
+            if (net == otherNet) {
+                continue;
+            }
 
             const auto netParams = CreateChainParams(net);
             std::string encoded = EncodeCashAddr(dst, *netParams);

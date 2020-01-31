@@ -91,8 +91,9 @@ static void CheckNegate(const int64_t &num) {
     const CScriptNum scriptnum(num);
 
     // -INT64_MIN is undefined
-    if (num != std::numeric_limits<int64_t>::min())
+    if (num != std::numeric_limits<int64_t>::min()) {
         BOOST_CHECK(verify(-bignum, -scriptnum));
+    }
 }
 
 static void CheckSubtract(const int64_t &num1, const int64_t &num2) {
