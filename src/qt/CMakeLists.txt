@@ -231,18 +231,19 @@ if(ENABLE_BIP70)
 	# Do protobuf codegen
 	find_package(Protobuf REQUIRED)
 	protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
-
-	target_sources(bitcoin-qt-base
-		PRIVATE
-			# Protobuf codegen
+	
+	add_library(bitcoin-qt-protobuf OBJECT
+		# Protobuf codegen
 			${PROTOBUF_HEADERS}
 			${PROTOBUF_SOURCES}
 	)
 
-	target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+	target_include_directories(bitcoin-qt-protobuf PUBLIC ${Protobuf_INCLUDE_DIRS})
+	target_link_libraries(bitcoin-qt-protobuf ${Protobuf_LIBRARIES})
+	
 	target_link_libraries(bitcoin-qt-base
 		OpenSSL::SSL
-		${Protobuf_LIBRARIES}
+		bitcoin-qt-protobuf
 	)
 endif()
 
