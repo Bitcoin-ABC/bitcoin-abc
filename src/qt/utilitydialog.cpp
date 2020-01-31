@@ -11,7 +11,6 @@
 #include <clientversion.h>
 #include <init.h>
 #include <network.h>
-#include <qt/bitcoingui.h>
 #include <qt/forms/ui_helpmessagedialog.h>
 #ifdef ENABLE_BIP70
 #include <qt/paymentrequestplus.h>
@@ -21,6 +20,7 @@
 
 #include <QCloseEvent>
 #include <QLabel>
+#include <QMainWindow>
 #include <QRegExp>
 #include <QTextCursor>
 #include <QTextTable>
@@ -142,10 +142,8 @@ ShutdownWindow::ShutdownWindow(QWidget *parent) : QWidget(parent) {
     setLayout(layout);
 }
 
-QWidget *ShutdownWindow::showShutdownWindow(BitcoinGUI *window) {
-    if (!window) {
-        return nullptr;
-    }
+QWidget *ShutdownWindow::showShutdownWindow(QMainWindow *window) {
+    assert(window != nullptr);
 
     // Show a simple window indicating shutdown status
     QWidget *shutdownWindow = new ShutdownWindow();
