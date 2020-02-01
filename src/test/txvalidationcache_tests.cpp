@@ -444,6 +444,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 }
 
 BOOST_AUTO_TEST_CASE(scriptcache_values) {
+    LOCK(cs_main);
     // Test insertion and querying of keys&values from the script cache.
 
     // Define a couple of macros (handier than functions since errors will print
