@@ -473,6 +473,12 @@ std::string FormatStateMessage(const CValidationState &state);
  * performed inline. Any script checks which are not necessary (eg due to script
  * execution cache hits) are, obviously, not pushed onto pvChecks/run.
  *
+ * Upon success nSigChecksOut will be filled in with either:
+ * - correct total for all inputs, or,
+ * - 0, in the case when checks were pushed onto pvChecks (i.e., a cache miss
+ * with pvChecks non-null), in which case the total can be found by executing
+ * pvChecks and adding the results.
+ *
  * Setting sigCacheStore/scriptCacheStore to false will remove elements from the
  * corresponding cache which are matched. This is useful for checking blocks
  * where we will likely never need the cache entry again.
@@ -481,7 +487,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &view, bool fScriptChecks,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
-                 const PrecomputedTransactionData &txdata,
+                 const PrecomputedTransactionData &txdata, int &nSigChecksOut,
                  std::vector<CScriptCheck> *pvChecks = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 

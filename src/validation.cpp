@@ -495,7 +495,7 @@ static uint32_t GetStandardScriptFlags(const Consensus::Params &params,
 static bool CheckInputsFromMempoolAndCache(
     const CTransaction &tx, CValidationState &state,
     const CCoinsViewCache &view, const CTxMemPool &pool, const uint32_t flags,
-    bool cacheSigStore, PrecomputedTransactionData &txdata)
+    bool cacheSigStore, PrecomputedTransactionData &txdata, int &nSigChecksOut)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
@@ -529,7 +529,7 @@ static bool CheckInputsFromMempoolAndCache(
     }
 
     return CheckInputs(tx, state, view, true, flags, cacheSigStore, true,
-                       txdata);
+                       txdata, nSigChecksOut);
 }
 
 static bool
@@ -756,8 +756,9 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         // Check against previous transactions. This is done last to help
         // prevent CPU exhaustion denial-of-service attacks.
         PrecomputedTransactionData txdata(tx);
+        int nSigChecksStandard;
         if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
-                         txdata)) {
+                         txdata, nSigChecksStandard)) {
             // State filled in by CheckInputs.
             return false;
         }
@@ -773,9 +774,10 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks (using TestBlockValidity), however allowing such
         // transactions into the mempool can be exploited as a DoS attack.
+        int nSigChecksConsensus;
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             nextBlockScriptVerifyFlags, true,
-                                            txdata)) {
+                                            txdata, nSigChecksConsensus)) {
             // This can occur under some circumstances, if the node receives an
             // unrequested tx which is invalid due to new consensus rules not
             // being activated yet (during IBD).
@@ -1205,7 +1207,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &inputs, bool fScriptChecks,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
-                 const PrecomputedTransactionData &txdata,
+                 const PrecomputedTransactionData &txdata, int &nSigChecksOut,
                  std::vector<CScriptCheck> *pvChecks) {
     AssertLockHeld(cs_main);
     assert(!tx.IsCoinBase());
@@ -1228,11 +1230,11 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
     // transaction hash which is in tx's prevouts properly commits to the
     // scriptPubKey in the inputs view of that transaction).
     ScriptCacheKey hashCacheEntry(tx, flags);
-    int nSigChecksDummy;
-    if (IsKeyInScriptCache(hashCacheEntry, !scriptCacheStore,
-                           nSigChecksDummy)) {
+    if (IsKeyInScriptCache(hashCacheEntry, !scriptCacheStore, nSigChecksOut)) {
         return true;
     }
+
+    int nSigChecksTotal = 0;
 
     for (size_t i = 0; i < tx.vin.size(); i++) {
         const COutPoint &prevout = tx.vin[i].prevout;
@@ -1288,12 +1290,16 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 strprintf("mandatory-script-verify-flag-failed (%s)",
                           ScriptErrorString(scriptError)));
         }
+
+        nSigChecksTotal += check.GetScriptExecutionMetrics().nSigChecks;
     }
+
+    nSigChecksOut = nSigChecksTotal;
 
     if (scriptCacheStore && !pvChecks) {
         // We executed all of the provided scripts, and were told to cache the
         // result. Do so now.
-        AddKeyInScriptCache(hashCacheEntry, 0);
+        AddKeyInScriptCache(hashCacheEntry, nSigChecksTotal);
     }
 
     return true;
@@ -1888,9 +1894,12 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         bool fCacheResults = fJustCheck;
 
         std::vector<CScriptCheck> vChecks;
+        // metricsRet may be accurate (found in cache) or 0 (checks were
+        // deferred into vChecks).
+        int nSigChecksRet;
         if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults,
                          fCacheResults, PrecomputedTransactionData(tx),
-                         &vChecks)) {
+                         nSigChecksRet, &vChecks)) {
             return error("ConnectBlock(): CheckInputs on %s failed with %s",
                          tx.GetId().ToString(), FormatStateMessage(state));
         }
