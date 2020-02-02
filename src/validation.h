@@ -466,6 +466,24 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
 std::string FormatStateMessage(const CValidationState &state);
 
 /**
+ * Simple class for regulating resource usage during CheckInputs (and
+ * CScriptCheck), atomic so as to be compatible with parallel validation.
+ */
+class CheckInputsLimiter {
+    std::atomic<int64_t> remaining;
+
+public:
+    CheckInputsLimiter(int64_t limit) : remaining(limit) {}
+
+    bool consume_and_check(int consumed) {
+        auto newvalue = (remaining -= consumed);
+        return newvalue >= 0;
+    }
+
+    bool check() { return remaining >= 0; }
+};
+
+/**
  * Check whether all inputs of this transaction are valid (no double spends,
  * scripts & sigs, amounts). This does not modify the UTXO set.
  *
@@ -482,13 +500,22 @@ std::string FormatStateMessage(const CValidationState &state);
  * Setting sigCacheStore/scriptCacheStore to false will remove elements from the
  * corresponding cache which are matched. This is useful for checking blocks
  * where we will likely never need the cache entry again.
+ *
+ * pLimitSigChecks can be passed to limit the sigchecks count either in parallel
+ * or serial validation. With pvChecks null (serial validation), breaking the
+ * pLimitSigChecks limit will abort evaluation early and return false. With
+ * pvChecks not-null (parallel validation): the cached nSigChecks may itself
+ * break the limit in which case false is returned, OR, each entry in the
+ * returned pvChecks must be executed exactly once in order to probe the limit
+ * accurately.
  */
 bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &view, bool fScriptChecks,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata, int &nSigChecksOut,
-                 std::vector<CScriptCheck> *pvChecks = nullptr)
+                 std::vector<CScriptCheck> *pvChecks = nullptr,
+                 CheckInputsLimiter *pLimitSigChecks = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Get the BIP9 state for a given deployment at the current tip. */
@@ -551,6 +578,9 @@ bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
 /**
  * Closure representing one script verification.
  * Note that this stores references to the spending transaction.
+ *
+ * Note that if pLimitSigChecks is passed, then failure does not imply that
+ * scripts have failed.
  */
 class CScriptCheck {
 private:
@@ -563,19 +593,22 @@ private:
     ScriptError error;
     ScriptExecutionMetrics metrics;
     PrecomputedTransactionData txdata;
+    CheckInputsLimiter *pLimitSigChecks;
 
 public:
     CScriptCheck()
         : amount(), ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false),
-          error(ScriptError::UNKNOWN), txdata() {}
+          error(ScriptError::UNKNOWN), txdata(), pLimitSigChecks(nullptr) {}
 
     CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,
                  const CTransaction &txToIn, unsigned int nInIn,
                  uint32_t nFlagsIn, bool cacheIn,
-                 const PrecomputedTransactionData &txdataIn)
+                 const PrecomputedTransactionData &txdataIn,
+                 CheckInputsLimiter *pLimitSigChecksIn = nullptr)
         : scriptPubKey(scriptPubKeyIn), amount(amountIn), ptxTo(&txToIn),
           nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn),
-          error(ScriptError::UNKNOWN), txdata(txdataIn) {}
+          error(ScriptError::UNKNOWN), txdata(txdataIn),
+          pLimitSigChecks(pLimitSigChecksIn) {}
 
     bool operator()();
 
@@ -588,6 +621,7 @@ public:
         std::swap(cacheStore, check.cacheStore);
         std::swap(error, check.error);
         std::swap(txdata, check.txdata);
+        std::swap(pLimitSigChecks, check.pLimitSigChecks);
     }
 
     ScriptError GetScriptError() const { return error; }

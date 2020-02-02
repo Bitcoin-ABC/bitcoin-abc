@@ -1191,10 +1191,21 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight) {
 
 bool CScriptCheck::operator()() {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
-    return VerifyScript(scriptSig, scriptPubKey, nFlags,
-                        CachingTransactionSignatureChecker(ptxTo, nIn, amount,
-                                                           cacheStore, txdata),
-                        metrics, &error);
+    if (!VerifyScript(scriptSig, scriptPubKey, nFlags,
+                      CachingTransactionSignatureChecker(ptxTo, nIn, amount,
+                                                         cacheStore, txdata),
+                      metrics, &error)) {
+        return false;
+    }
+    if (pLimitSigChecks &&
+        !pLimitSigChecks->consume_and_check(metrics.nSigChecks)) {
+        // we can't assign a meaningful script error (since the script
+        // succeeded), but remove the ScriptError::OK which could be
+        // misinterpreted.
+        error = ScriptError::SIGCHECKS_LIMIT_EXCEEDED;
+        return false;
+    }
+    return true;
 }
 
 int GetSpendHeight(const CCoinsViewCache &inputs) {
@@ -1208,7 +1219,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata, int &nSigChecksOut,
-                 std::vector<CScriptCheck> *pvChecks) {
+                 std::vector<CScriptCheck> *pvChecks /*= nullptr*/,
+                 CheckInputsLimiter *pLimitSigChecks /*= nullptr*/) {
     AssertLockHeld(cs_main);
     assert(!tx.IsCoinBase());
 
@@ -1231,6 +1243,11 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
     // scriptPubKey in the inputs view of that transaction).
     ScriptCacheKey hashCacheEntry(tx, flags);
     if (IsKeyInScriptCache(hashCacheEntry, !scriptCacheStore, nSigChecksOut)) {
+        if (pLimitSigChecks &&
+            !pLimitSigChecks->consume_and_check(nSigChecksOut)) {
+            return state.Invalid(false, REJECT_NONSTANDARD,
+                                 strprintf("too-many-sigchecks"));
+        }
         return true;
     }
 
@@ -1251,10 +1268,17 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
 
         // Verify signature
         CScriptCheck check(scriptPubKey, amount, tx, i, flags, sigCacheStore,
-                           txdata);
+                           txdata, pLimitSigChecks);
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
         } else if (!check()) {
+            if (pLimitSigChecks && !pLimitSigChecks->check()) {
+                // It's not a script error to overrun the limit, and we just
+                // reject it as nonstandard.
+                return state.Invalid(false, REJECT_NONSTANDARD,
+                                     strprintf("too-many-sigchecks"));
+            }
+
             ScriptError scriptError = check.GetScriptError();
             // Compute flags without the optional standardness flags.
             // This differs from MANDATORY_SCRIPT_VERIFY_FLAGS as it contains
@@ -1917,7 +1941,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         bool fCacheResults = fJustCheck;
 
         std::vector<CScriptCheck> vChecks;
-        // metricsRet may be accurate (found in cache) or 0 (checks were
+        // nSigChecksRet may be accurate (found in cache) or 0 (checks were
         // deferred into vChecks).
         int nSigChecksRet;
         if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults,

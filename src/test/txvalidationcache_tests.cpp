@@ -425,6 +425,95 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             CTransaction(tx), SCRIPT_ENABLE_REPLAY_PROTECTION,
             SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_P2SH, true, 2);
 
+        {
+            // Try checking this valid transaction with sigchecks limiter
+            // supplied. Each input consumes 1 sigcheck.
+
+            CValidationState state;
+            CTransaction transaction(tx);
+            PrecomputedTransactionData txdata(transaction);
+            uint32_t flags =
+                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS;
+            int nSigChecksDummy;
+
+            /**
+             * Parallel validation initially works (no cached value), but
+             * evaluation of the script checks produces a failure.
+             */
+            std::vector<CScriptCheck> scriptchecks1;
+            CheckInputsLimiter sigchecklimiter1(1);
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+                                    flags, true, true, txdata, nSigChecksDummy,
+                                    &scriptchecks1, &sigchecklimiter1));
+            // the first check passes but it did consume the limit.
+            BOOST_CHECK(scriptchecks1[1]());
+            BOOST_CHECK(sigchecklimiter1.check());
+            // the second check (the first input) fails due to the limiter.
+            BOOST_CHECK(!scriptchecks1[0]());
+            BOOST_CHECK_EQUAL(scriptchecks1[0].GetScriptError(),
+                              ScriptError::SIGCHECKS_LIMIT_EXCEEDED);
+            BOOST_CHECK(!sigchecklimiter1.check());
+
+            // Serial validation fails with the limiter.
+            CheckInputsLimiter sigchecklimiter2(1);
+            CValidationState state2;
+            BOOST_CHECK(!CheckInputs(transaction, state2, pcoinsTip.get(), true,
+                                     flags, true, true, txdata, nSigChecksDummy,
+                                     nullptr, &sigchecklimiter2));
+            BOOST_CHECK(!sigchecklimiter2.check());
+            BOOST_CHECK_EQUAL(state2.GetRejectReason(), "too-many-sigchecks");
+
+            /**
+             * A slightly more permissive limiter (just enough) passes, and
+             * allows caching the result.
+             */
+            std::vector<CScriptCheck> scriptchecks3;
+            CheckInputsLimiter sigchecklimiter3(2);
+            // first in parallel
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+                                    flags, true, true, txdata, nSigChecksDummy,
+                                    &scriptchecks3, &sigchecklimiter3));
+            BOOST_CHECK(scriptchecks3[1]());
+            BOOST_CHECK(scriptchecks3[0]());
+            BOOST_CHECK(sigchecklimiter3.check());
+            // then in serial, caching the result.
+            CheckInputsLimiter sigchecklimiter4(2);
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+                                    flags, true, true, txdata, nSigChecksDummy,
+                                    nullptr, &sigchecklimiter4));
+            BOOST_CHECK(sigchecklimiter4.check());
+            // now in parallel again, grabbing the cached result.
+            std::vector<CScriptCheck> scriptchecks5;
+            CheckInputsLimiter sigchecklimiter5(2);
+            BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+                                    flags, true, true, txdata, nSigChecksDummy,
+                                    &scriptchecks5, &sigchecklimiter5));
+            BOOST_CHECK(scriptchecks5.empty());
+            BOOST_CHECK(sigchecklimiter5.check());
+
+            /**
+             * Going back to the lower limit, we now fail immediately due to the
+             * caching.
+             */
+            CheckInputsLimiter sigchecklimiter6(1);
+            CValidationState state6;
+            BOOST_CHECK(!CheckInputs(transaction, state6, pcoinsTip.get(), true,
+                                     flags, true, true, txdata, nSigChecksDummy,
+                                     nullptr, &sigchecklimiter6));
+            BOOST_CHECK_EQUAL(state6.GetRejectReason(), "too-many-sigchecks");
+            BOOST_CHECK(!sigchecklimiter6.check());
+            // even in parallel validation, immediate fail from the cache.
+            std::vector<CScriptCheck> scriptchecks7;
+            CheckInputsLimiter sigchecklimiter7(1);
+            CValidationState state7;
+            BOOST_CHECK(!CheckInputs(transaction, state7, pcoinsTip.get(), true,
+                                     flags, true, true, txdata, nSigChecksDummy,
+                                     &scriptchecks7, &sigchecklimiter7));
+            BOOST_CHECK_EQUAL(state7.GetRejectReason(), "too-many-sigchecks");
+            BOOST_CHECK(!sigchecklimiter7.check());
+            BOOST_CHECK(scriptchecks7.empty());
+        }
+
         // Check that if the second input is invalid, but the first input is
         // valid, the transaction is not cached.
         // Invalidate vin[1]

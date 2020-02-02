@@ -80,6 +80,9 @@ enum class ScriptError {
     ILLEGAL_FORKID,
     MUST_USE_FORKID,
 
+    /* Auxiliary errors (unused by interpreter) */
+    SIGCHECKS_LIMIT_EXCEEDED,
+
     ERROR_COUNT,
 };
 

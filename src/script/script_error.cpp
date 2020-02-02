@@ -104,6 +104,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Illegal use of SIGHASH_FORKID";
         case ScriptError::MUST_USE_FORKID:
             return "Signature must use SIGHASH_FORKID";
+        case ScriptError::SIGCHECKS_LIMIT_EXCEEDED:
+            return "Validation resources exceeded (SigChecks)";
         case ScriptError::UNKNOWN:
         case ScriptError::ERROR_COUNT:
         default:
