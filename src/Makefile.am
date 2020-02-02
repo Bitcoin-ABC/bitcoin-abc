@@ -220,6 +220,7 @@ BITCOIN_CORE_H = \
   validation.h \
   validationinterface.h \
   versionbits.h \
+  versionbitsinfo.h \
   walletinitinterface.h \
   wallet/coincontrol.h \
   wallet/coinselection.h \
@@ -302,6 +303,7 @@ libbitcoin_server_a_SOURCES = \
   ui_interface.cpp \
   validation.cpp \
   validationinterface.cpp \
+  versionbits.cpp \
   $(BITCOIN_CORE_H)
 
 if !ENABLE_WALLET
@@ -457,6 +459,7 @@ libbitcoin_common_a_SOURCES = \
   script/ismine.cpp \
   script/sign.cpp \
   script/standard.cpp \
+  versionbitsinfo.cpp \
   warnings.cpp \
   $(BITCOIN_CORE_H)
 

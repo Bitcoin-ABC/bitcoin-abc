@@ -131,6 +131,7 @@ BITCOIN_TESTS =\
   test/util_tests.cpp \
   test/validation_block_tests.cpp \
   test/validation_tests.cpp \
+  test/versionbits_tests.cpp \
   test/work_comparator_tests.cpp \
   rpc/test/server_tests.cpp
 
