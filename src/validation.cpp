@@ -698,10 +698,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                              strprintf("%d", nSigOpsCount));
         }
 
-        CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
-                              fSpendsCoinbase, nSigOpsCount, lp);
-        unsigned int nSize = entry.GetTxSize();
-        unsigned int nVirtualSize = entry.GetTxVirtualSize();
+        unsigned int nSize = tx.GetTotalSize();
 
         // No transactions are allowed below minRelayTxFee except from
         // disconnected blocks.
@@ -711,6 +708,27 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                              "min relay fee not met");
         }
+
+        if (nAbsurdFee != Amount::zero() && nFees > nAbsurdFee) {
+            return state.Invalid(false, REJECT_HIGHFEE, "absurdly-high-fee",
+                                 strprintf("%d > %d", nFees, nAbsurdFee));
+        }
+
+        // Validate input scripts against standard script flags.
+        const uint32_t scriptVerifyFlags =
+            GetStandardScriptFlags(consensusParams, chainActive.Tip());
+        PrecomputedTransactionData txdata(tx);
+        int nSigChecksStandard;
+        if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
+                         txdata, nSigChecksStandard)) {
+            // State filled in by CheckInputs.
+            return false;
+        }
+
+        CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
+                              fSpendsCoinbase, nSigOpsCount, lp);
+
+        unsigned int nVirtualSize = entry.GetTxVirtualSize();
 
         Amount mempoolRejectFee =
             pool.GetMinFee(
@@ -722,11 +740,6 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             return state.DoS(
                 0, false, REJECT_INSUFFICIENTFEE, "mempool min fee not met",
                 false, strprintf("%d < %d", nModifiedFees, mempoolRejectFee));
-        }
-
-        if (nAbsurdFee != Amount::zero() && nFees > nAbsurdFee) {
-            return state.Invalid(false, REJECT_HIGHFEE, "absurdly-high-fee",
-                                 strprintf("%d > %d", nFees, nAbsurdFee));
         }
 
         // Calculate in-mempool ancestors, up to a limit.
@@ -748,19 +761,6 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                 nLimitDescendants, nLimitDescendantSize, errString)) {
             return state.DoS(0, false, REJECT_NONSTANDARD,
                              "too-long-mempool-chain", false, errString);
-        }
-
-        const uint32_t scriptVerifyFlags =
-            GetStandardScriptFlags(consensusParams, chainActive.Tip());
-
-        // Check against previous transactions. This is done last to help
-        // prevent CPU exhaustion denial-of-service attacks.
-        PrecomputedTransactionData txdata(tx);
-        int nSigChecksStandard;
-        if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
-                         txdata, nSigChecksStandard)) {
-            // State filled in by CheckInputs.
-            return false;
         }
 
         // Check again against the next block's script verification flags
