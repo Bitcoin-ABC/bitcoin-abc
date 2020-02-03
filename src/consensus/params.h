@@ -27,12 +27,18 @@ struct BIP9Deployment {
     /** Bit position to select the particular bit in nVersion. */
     int bit;
     /**
+     * Minimum number of blocks within an activation window that must signal to
+     * activate the deployement.
+     * Default to 75% of 2016.
+     */
+    uint32_t nActivationThreshold = 1512;
+    /**
      * Start MedianTime for version bits miner confirmation. Can be a date in
      * the past.
      */
-    int64_t nStartTime;
+    int64_t nStartTime = 0;
     /** Timeout/expiry MedianTime for the deployment attempt. */
-    int64_t nTimeout;
+    int64_t nTimeout = NO_TIMEOUT;
 
     /** Constant for nTimeout very far in the future. */
     static constexpr int64_t NO_TIMEOUT = std::numeric_limits<int64_t>::max();
@@ -80,13 +86,6 @@ struct Params {
      * This prevents us from warning about the CSV and segwit activations.
      */
     int MinBIP9WarningHeight;
-    /**
-     * Minimum blocks including miner confirmation of the total of 2016 blocks
-     * in a retargeting period, (nPowTargetTimespan / nPowTargetSpacing) which
-     * is also used for BIP9 deployments. Examples: 1916 for 95%, 1512 for
-     * testchains.
-     */
-    uint32_t nRuleChangeActivationThreshold;
     uint32_t nMinerConfirmationWindow;
     BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
 

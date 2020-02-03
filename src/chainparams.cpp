@@ -98,17 +98,17 @@ public:
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
 
-        // 95% of 2016
-        consensus.nRuleChangeActivationThreshold = 1916;
         // nPowTargetTimespan / nPowTargetSpacing
         consensus.nMinerConfirmationWindow = 2016;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        // January 1, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime =
-            1199145601;
-        // December 31, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
-            1230767999;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY] = {
+            .bit = 28,
+            // 95% of 2016
+            .nActivationThreshold = 1916,
+            // January 1, 2008
+            .nStartTime = 1199145601,
+            // December 31, 2008
+            .nTimeout = 1230767999,
+        };
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
@@ -250,7 +250,8 @@ public:
             // (the tx=... number in the ChainStateFlushed debug.log lines)
             248589038,
             // Estimated number of transactions per second after that timestamp.
-            3.2};
+            3.2,
+        };
     }
 };
 
@@ -281,17 +282,15 @@ public:
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
 
-        // 75% for testchains
-        consensus.nRuleChangeActivationThreshold = 1512;
         // nPowTargetTimespan / nPowTargetSpacing
         consensus.nMinerConfirmationWindow = 2016;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        // January 1, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime =
-            1199145601;
-        // December 31, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
-            1230767999;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY] = {
+            .bit = 28,
+            // January 1, 2008
+            .nStartTime = 1199145601,
+            // December 31, 2008
+            .nTimeout = 1230767999,
+        };
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
@@ -422,14 +421,13 @@ public:
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
 
-        // 75% for testchains
-        consensus.nRuleChangeActivationThreshold = 108;
         // Faster than normal for regtest (144 instead of 2016)
         consensus.nMinerConfirmationWindow = 144;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
-            Consensus::BIP9Deployment::NO_TIMEOUT;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY] = {
+            .bit = 28,
+            // 75% of 144
+            .nActivationThreshold = 108,
+        };
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");

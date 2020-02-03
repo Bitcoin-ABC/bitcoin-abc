@@ -196,7 +196,7 @@ protected:
         return params.nMinerConfirmationWindow;
     }
     int Threshold(const Consensus::Params &params) const override {
-        return params.nRuleChangeActivationThreshold;
+        return params.vDeployments[id].nActivationThreshold;
     }
 
     bool Condition(const CBlockIndex *pindex,
