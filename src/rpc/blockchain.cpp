@@ -1269,6 +1269,69 @@ static UniValue verifychain(const Config &config,
                                 nCheckDepth);
 }
 
+static void BIP9SoftForkDescPushBack(UniValue &softforks,
+                                     const std::string &name,
+                                     const Consensus::Params &consensusParams,
+                                     Consensus::DeploymentPos id)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    // For BIP9 deployments.
+    // Deployments (e.g. testdummy) with timeout value before Jan 1, 2009 are
+    // hidden. A timeout value of 0 guarantees a softfork will never be
+    // activated. This is used when merging logic to implement a proposed
+    // softfork without a specified deployment schedule.
+    if (consensusParams.vDeployments[id].nTimeout <= 1230768000) {
+        return;
+    }
+
+    UniValue bip9(UniValue::VOBJ);
+    const ThresholdState thresholdState =
+        VersionBitsTipState(consensusParams, id);
+    switch (thresholdState) {
+        case ThresholdState::DEFINED:
+            bip9.pushKV("status", "defined");
+            break;
+        case ThresholdState::STARTED:
+            bip9.pushKV("status", "started");
+            break;
+        case ThresholdState::LOCKED_IN:
+            bip9.pushKV("status", "locked_in");
+            break;
+        case ThresholdState::ACTIVE:
+            bip9.pushKV("status", "active");
+            break;
+        case ThresholdState::FAILED:
+            bip9.pushKV("status", "failed");
+            break;
+    }
+    if (ThresholdState::STARTED == thresholdState) {
+        bip9.pushKV("bit", consensusParams.vDeployments[id].bit);
+    }
+    bip9.pushKV("start_time", consensusParams.vDeployments[id].nStartTime);
+    bip9.pushKV("timeout", consensusParams.vDeployments[id].nTimeout);
+    int64_t since_height = VersionBitsTipStateSinceHeight(consensusParams, id);
+    bip9.pushKV("since", since_height);
+    if (ThresholdState::STARTED == thresholdState) {
+        UniValue statsUV(UniValue::VOBJ);
+        BIP9Stats statsStruct = VersionBitsTipStatistics(consensusParams, id);
+        statsUV.pushKV("period", statsStruct.period);
+        statsUV.pushKV("threshold", statsStruct.threshold);
+        statsUV.pushKV("elapsed", statsStruct.elapsed);
+        statsUV.pushKV("count", statsStruct.count);
+        statsUV.pushKV("possible", statsStruct.possible);
+        bip9.pushKV("statistics", statsUV);
+    }
+
+    UniValue rv(UniValue::VOBJ);
+    rv.pushKV("type", "bip9");
+    rv.pushKV("bip9", bip9);
+    if (ThresholdState::ACTIVE == thresholdState) {
+        rv.pushKV("height", since_height);
+    }
+    rv.pushKV("active", ThresholdState::ACTIVE == thresholdState);
+
+    softforks.pushKV(name, rv);
+}
+
 UniValue getblockchaininfo(const Config &config,
                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
@@ -1347,6 +1410,12 @@ UniValue getblockchaininfo(const Config &config,
             obj.pushKV("prune_target_size", nPruneTarget);
         }
     }
+
+    UniValue softforks(UniValue::VOBJ);
+    BIP9SoftForkDescPushBack(softforks, "testdummy",
+                             config.GetChainParams().GetConsensus(),
+                             Consensus::DEPLOYMENT_TESTDUMMY);
+    obj.pushKV("softforks", softforks);
 
     obj.pushKV("warnings", GetWarnings("statusbar"));
     return obj;

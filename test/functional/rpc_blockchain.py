@@ -79,6 +79,7 @@ class BlockchainTest(BitcoinTestFramework):
             'mediantime',
             'pruned',
             'size_on_disk',
+            'softforks',
             'verificationprogress',
             'warnings',
         ]
@@ -91,6 +92,27 @@ class BlockchainTest(BitcoinTestFramework):
 
         # size_on_disk should be > 0
         assert_greater_than(res['size_on_disk'], 0)
+
+        assert_equal(res['softforks'], {
+            'testdummy': {
+                'type': 'bip9',
+                'bip9': {
+                    'status': 'started',
+                    'bit': 28,
+                    'start_time': 0,
+                    # testdummy does not have a timeout so is set to the max int64 value
+                    'timeout': 0x7fffffffffffffff,
+                    'since': 144,
+                    'statistics': {
+                        'period': 144,
+                        'threshold': 108,
+                        'elapsed': 57,
+                        'count': 57,
+                        'possible': True,
+                    },
+                },
+                'active': False}
+        })
 
         # pruneheight should be greater or equal to 0
         assert_greater_than_or_equal(res['pruneheight'], 0)

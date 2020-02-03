@@ -5566,6 +5566,25 @@ CBlockFileInfo *GetBlockFileInfo(size_t n) {
     return &vinfoBlockFile.at(n);
 }
 
+ThresholdState VersionBitsTipState(const Consensus::Params &params,
+                                   Consensus::DeploymentPos pos) {
+    LOCK(cs_main);
+    return VersionBitsState(chainActive.Tip(), params, pos, versionbitscache);
+}
+
+BIP9Stats VersionBitsTipStatistics(const Consensus::Params &params,
+                                   Consensus::DeploymentPos pos) {
+    LOCK(cs_main);
+    return VersionBitsStatistics(chainActive.Tip(), params, pos);
+}
+
+int VersionBitsTipStateSinceHeight(const Consensus::Params &params,
+                                   Consensus::DeploymentPos pos) {
+    LOCK(cs_main);
+    return VersionBitsStateSinceHeight(chainActive.Tip(), params, pos,
+                                       versionbitscache);
+}
+
 static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 
 bool LoadMempool(const Config &config, CTxMemPool &pool) {
