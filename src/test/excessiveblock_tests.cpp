@@ -8,7 +8,6 @@
 #include <test/test_bitcoin.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <limits>
@@ -23,12 +22,12 @@ BOOST_AUTO_TEST_CASE(excessiveblock_rpc) {
 
     BOOST_CHECK_THROW(CallRPC("setexcessiveblock"), std::runtime_error);
     BOOST_CHECK_THROW(CallRPC("setexcessiveblock not_uint"),
-                      boost::bad_lexical_cast);
+                      std::runtime_error);
     BOOST_CHECK_THROW(CallRPC("setexcessiveblock 1000000 not_uint"),
                       std::runtime_error);
     BOOST_CHECK_THROW(CallRPC("setexcessiveblock 1000000 1"),
                       std::runtime_error);
-    BOOST_CHECK_THROW(CallRPC("setexcessiveblock -1"), boost::bad_lexical_cast);
+    BOOST_CHECK_THROW(CallRPC("setexcessiveblock -1"), std::runtime_error);
 
     BOOST_CHECK_THROW(CallRPC("setexcessiveblock 0"), std::runtime_error);
     BOOST_CHECK_THROW(CallRPC("setexcessiveblock 1"), std::runtime_error);
@@ -53,11 +52,16 @@ BOOST_AUTO_TEST_CASE(excessiveblock_rpc) {
 
     BOOST_CHECK_NO_THROW(
         CallRPC(std::string("setexcessiveblock ") +
-                std::to_string(std::numeric_limits<uint64_t>::max())));
+                std::to_string(std::numeric_limits<int64_t>::max())));
 
     BOOST_CHECK_THROW(
         CallRPC(std::string("setexcessiveblock ") +
-                std::to_string(std::numeric_limits<uint64_t>::max() + 1)),
+                std::to_string(std::numeric_limits<int64_t>::max() + 1)),
+        std::runtime_error);
+
+    BOOST_CHECK_THROW(
+        CallRPC(std::string("setexcessiveblock ") +
+                std::to_string(std::numeric_limits<uint64_t>::max())),
         std::runtime_error);
 }
 

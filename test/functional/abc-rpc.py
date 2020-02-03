@@ -15,6 +15,9 @@ from test_framework.cdefs import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
+BLOCKSIZE_TOO_LOW = "Invalid parameter, excessiveblock must be larger than {}".format(
+    LEGACY_MAX_BLOCK_SIZE)
+
 
 class ABC_RPC_Test (BitcoinTestFramework):
 
@@ -44,10 +47,15 @@ class ABC_RPC_Test (BitcoinTestFramework):
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE + 1)
 
         # Check that going below legacy size is not accepted
-        assert_raises_rpc_error(-8,
-                                "Invalid parameter, excessiveblock must be larger than {}".format(
-                                    LEGACY_MAX_BLOCK_SIZE),
+        assert_raises_rpc_error(-8, BLOCKSIZE_TOO_LOW,
                                 self.nodes[0].setexcessiveblock, LEGACY_MAX_BLOCK_SIZE)
+        getsize = self.nodes[0].getexcessiveblock()
+        ebs = getsize['excessiveBlockSize']
+        assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE + 1)
+
+        # Check that a negative size returns an error
+        assert_raises_rpc_error(-8, BLOCKSIZE_TOO_LOW,
+                                self.nodes[0].setexcessiveblock, -2 * LEGACY_MAX_BLOCK_SIZE)
         getsize = self.nodes[0].getexcessiveblock()
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE + 1)
