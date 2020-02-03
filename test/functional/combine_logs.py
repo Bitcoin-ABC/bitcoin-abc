@@ -89,7 +89,8 @@ def get_log_events(source, logfile):
             # Flush the final event
             yield LogEvent(timestamp=timestamp, source=source, event=event.rstrip())
     except FileNotFoundError:
-        print("File {} could not be opened. Continuing without it.".format(logfile), file=sys.stderr)
+        print("File {} could not be opened. Continuing without it.".format(
+            logfile), file=sys.stderr)
 
 
 def print_logs(log_events, color=False, html=False):

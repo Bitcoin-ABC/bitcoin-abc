@@ -36,7 +36,8 @@ def process_constants(indir, file_name):
 
 def main():
     if len(sys.argv) != 2:
-        print('Usage: {} <dir_with_chainparams_txt>'.format(sys.argv[0]), file=sys.stderr)
+        print('Usage: {} <dir_with_chainparams_txt>'.format(
+            sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
     indir = sys.argv[1]

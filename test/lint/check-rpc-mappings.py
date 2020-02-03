@@ -134,7 +134,8 @@ def main():
             errors += 1
             continue
         if argname not in rargnames:
-            print('ERROR: {} argument {} is named {} in vRPCConvertParams but {} in dispatch table'.format(cmdname, argidx, argname, rargnames), file=sys.stderr)
+            print('ERROR: {} argument {} is named {} in vRPCConvertParams but {} in dispatch table'.format(
+                cmdname, argidx, argname, rargnames), file=sys.stderr)
             errors += 1
 
     # Check for conflicts in vRPCConvertParams conversion

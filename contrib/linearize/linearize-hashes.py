@@ -76,8 +76,8 @@ def get_block_hashes(settings, max_blocks_per_call=10000):
 
     height = settings['min_height']
     while height < settings['max_height'] + 1:
-        num_blocks = min(settings['max_height'] +
-                         1 - height, max_blocks_per_call)
+        num_blocks = min(settings['max_height']
+                         + 1 - height, max_blocks_per_call)
         batch = []
         for x in range(num_blocks):
             batch.append(rpc.build_request(x, 'getblockhash', [height + x]))
@@ -146,7 +146,8 @@ if __name__ == '__main__':
     if 'datadir' in settings and not use_userpass:
         use_datadir = True
     if not use_userpass and not use_datadir:
-        print("Missing datadir or username and/or password in cfg file", file=sys.stderr)
+        print("Missing datadir or username and/or password in cfg file",
+              file=sys.stderr)
         sys.exit(1)
 
     settings['port'] = int(settings['port'])
