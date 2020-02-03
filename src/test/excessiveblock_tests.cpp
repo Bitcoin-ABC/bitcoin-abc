@@ -55,8 +55,9 @@ BOOST_AUTO_TEST_CASE(excessiveblock_rpc) {
                 std::to_string(std::numeric_limits<int64_t>::max())));
 
     BOOST_CHECK_THROW(
-        CallRPC(std::string("setexcessiveblock ") +
-                std::to_string(std::numeric_limits<int64_t>::max() + 1)),
+        CallRPC(
+            std::string("setexcessiveblock ") +
+            std::to_string(uint64_t(std::numeric_limits<int64_t>::max()) + 1)),
         std::runtime_error);
 
     BOOST_CHECK_THROW(
