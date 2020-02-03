@@ -742,7 +742,12 @@ static UniValue submitblock(const Config &config,
     bool accepted =
         ProcessNewBlock(config, blockptr, /* fForceProcessing */ true,
                         /* fNewBlock */ &new_block);
+    // We are only interested in BlockChecked which will have been dispatched
+    // in-thread, so no need to sync before unregistering.
     UnregisterValidationInterface(&sc);
+    // Sync to ensure that the catcher's slots aren't executing when it goes out
+    // of scope and is deleted.
+    SyncWithValidationInterfaceQueue();
     if (!new_block && accepted) {
         return "duplicate";
     }
