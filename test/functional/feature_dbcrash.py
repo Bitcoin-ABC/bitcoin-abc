@@ -160,7 +160,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
                     # (change the exit code perhaps, and check that here?)
                     self.wait_for_node_exit(i, timeout=30)
                     self.log.debug(
-                        "Restarting node %d after block hash {}".format(i, block_hash))
+                        "Restarting node {} after block hash {}".format(i, block_hash))
                     nodei_utxo_hash = self.restart_node(i, block_hash)
                     assert nodei_utxo_hash is not None
                     self.restart_counts[i] += 1
