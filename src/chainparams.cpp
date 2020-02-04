@@ -286,6 +286,8 @@ public:
         consensus.nMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY] = {
             .bit = 28,
+            // 75% of 2016
+            .nActivationThreshold = 1512,
             // January 1, 2008
             .nStartTime = 1199145601,
             // December 31, 2008
