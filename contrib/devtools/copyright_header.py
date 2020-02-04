@@ -375,6 +375,9 @@ HOLDER = 'The Bitcoin developers'
 UPDATEABLE_LINE_COMPILED = re.compile(
     ' '.join([COPYRIGHT, YEAR_RANGE, HOLDER]))
 
+DISTRIBUTION_LINE = re.compile(
+    r"Distributed under the MIT software license, see the accompanying")
+
 
 def get_updatable_copyright_line(file_lines):
     index = 0
@@ -383,6 +386,15 @@ def get_updatable_copyright_line(file_lines):
             return index, line
         index = index + 1
     return None, None
+
+
+def find_distribution_line_index(file_lines):
+    index = 0
+    for line in file_lines:
+        if DISTRIBUTION_LINE.search(line) is not None:
+            return index
+        index = index + 1
+    return None
 
 
 def parse_year_range(year_range):
@@ -532,7 +544,7 @@ def get_git_change_year_range(filename):
     return min(years), max(years)
 
 ################################################################################
-# check for existing core copyright
+# check for existing ABC copyright
 ################################################################################
 
 
@@ -554,20 +566,28 @@ def file_has_hashbang(file_lines):
 
 
 def insert_python_header(filename, file_lines, start_year, end_year):
-    if file_has_hashbang(file_lines):
-        insert_idx = 1
-    else:
-        insert_idx = 0
     header_lines = get_python_header_lines_to_insert(start_year, end_year)
-    for line in header_lines:
-        file_lines.insert(insert_idx, line)
+    insert_idx = find_distribution_line_index(file_lines)
+    if insert_idx is not None:
+        file_lines.insert(insert_idx, list(header_lines)[-1])
+    else:
+        if file_has_hashbang(file_lines):
+            insert_idx = 1
+        else:
+            insert_idx = 0
+        for line in header_lines:
+            file_lines.insert(insert_idx, line)
     write_file_lines(filename, file_lines)
 
 
 def insert_cpp_header(filename, file_lines, start_year, end_year):
     header_lines = get_cpp_header_lines_to_insert(start_year, end_year)
-    for line in header_lines:
-        file_lines.insert(0, line)
+    insert_idx = find_distribution_line_index(file_lines)
+    if insert_idx is not None:
+        file_lines.insert(insert_idx, list(header_lines)[-1])
+    else:
+        for line in header_lines:
+            file_lines.insert(0, line)
     write_file_lines(filename, file_lines)
 
 
@@ -575,7 +595,7 @@ def exec_insert_header(filename, style):
     file_lines = read_file_lines(filename)
     if file_already_has_bitcoin_copyright(file_lines):
         sys.exit('*** {} already has a copyright by The Bitcoin developers'.format(
-                 filename))
+            filename))
     start_year, end_year = get_git_change_year_range(filename)
     if style == 'python':
         insert_python_header(filename, file_lines, start_year, end_year)
