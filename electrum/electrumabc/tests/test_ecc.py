@@ -1,7 +1,6 @@
 import base64
 import unittest
 
-import ecdsa
 from ecdsa.ecdsa import generator_secp256k1
 from ecdsa.util import number_to_string
 
@@ -14,6 +13,7 @@ from ..ecc import (
     regenerate_key,
     verify_message_with_address,
 )
+from ..util import randrange
 
 
 class TestECC(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestECC(unittest.TestCase):
     def _do_test_crypto(self, message):
         G = generator_secp256k1
         _r = G.order()
-        pvk = ecdsa.util.randrange(pow(2, 256)) % _r
+        pvk = randrange(pow(2, 256)) % _r
 
         Pub = pvk * G
         pubkey_c = point_to_ser(Pub, True)

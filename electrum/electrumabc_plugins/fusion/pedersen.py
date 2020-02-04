@@ -48,6 +48,7 @@ import ecdsa
 
 from electrumabc import secp256k1
 from electrumabc.ecc import point_to_ser, ser_to_point
+from electrumabc.util import randrange
 
 order = ecdsa.SECP256k1.generator.order()
 seclib = secp256k1.secp256k1
@@ -177,7 +178,7 @@ class Commitment:
         self.amount_mod = amount % order
 
         if nonce is None:
-            self.nonce = ecdsa.util.randrange(order)
+            self.nonce = randrange(order)
         else:
             nonce = int(nonce)
             self.nonce = nonce

@@ -56,6 +56,7 @@ import hmac
 import ecdsa
 
 from electrumabc.ecc import point_to_ser, ser_to_point
+from electrumabc.util import randrange
 
 G = ecdsa.SECP256k1.generator
 order = ecdsa.SECP256k1.generator.order()
@@ -80,7 +81,7 @@ def encrypt(message, pubkey, pad_to_length=None):
         pubpoint = ser_to_point(pubkey)
     except Exception:
         raise EncryptionFailed
-    nonce_sec = ecdsa.util.randrange(order)
+    nonce_sec = randrange(order)
     nonce_pub = point_to_ser(nonce_sec * G, compressed=True)
     key = hashlib.sha256(point_to_ser(nonce_sec * pubpoint, compressed=True)).digest()
 

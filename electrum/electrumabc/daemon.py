@@ -28,6 +28,7 @@ import ast
 import os
 import sys
 import time
+from base64 import b64encode
 from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 import jsonrpclib
@@ -41,7 +42,7 @@ from .network import Network
 from .printerror import print_error, print_stderr
 from .simple_config import SimpleConfig
 from .storage import WalletStorage
-from .util import DaemonThread, standardize_path, to_string
+from .util import DaemonThread, randrange, standardize_path, to_string
 from .wallet import Wallet
 
 if TYPE_CHECKING:
@@ -146,14 +147,10 @@ def get_rpc_credentials(config):
     rpc_password = config.get("rpcpassword", None)
     if rpc_user is None or rpc_password is None:
         rpc_user = "electrumabcuser"
-        import base64
-
-        import ecdsa
-
         bits = 128
         nbytes = bits // 8 + (bits % 8 > 0)
-        pw_int = ecdsa.util.randrange(pow(2, bits))
-        pw_b64 = base64.b64encode(pw_int.to_bytes(nbytes, "big"), b"-_")
+        pw_int = randrange(pow(2, bits))
+        pw_b64 = b64encode(pw_int.to_bytes(nbytes, "big"), b"-_")
         rpc_password = to_string(pw_b64, "ascii")
         config.set_key("rpcuser", rpc_user)
         config.set_key("rpcpassword", rpc_password, save=True)

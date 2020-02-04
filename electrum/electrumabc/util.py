@@ -29,6 +29,7 @@ import inspect
 import locale
 import os
 import re
+import secrets
 import stat
 import subprocess
 import sys
@@ -877,3 +878,13 @@ def multisig_type(wallet_type):
     if match:
         match = [int(x) for x in match.group(1, 2)]
     return match
+
+
+def randrange(bound: int) -> int:
+    """Return a random integer k such that 1 <= k < bound, uniformly
+    distributed across that range.
+    This is guaranteed to be cryptographically strong.
+    """
+    # secrets.randbelow(bound) returns a random int: 0 <= r < bound,
+    # hence transformations:
+    return secrets.randbelow(bound - 1) + 1

@@ -43,6 +43,7 @@ from electrumabc.transaction import (
     get_address_from_output_script,
 )
 from electrumabc.uint256 import UInt256
+from electrumabc.util import randrange
 
 from . import fusion_pb2 as pb
 from .protocol import Protocol
@@ -95,7 +96,7 @@ def pubkeys_from_privkey(privkey):
 
 def gen_keypair():
     # Returns privkey (32 bytes), pubkey (65 bytes, uncompressed), pubkey (33 bytes, compressed)
-    privkey = ecdsa.util.randrange(ecdsa.SECP256k1.order)
+    privkey = randrange(ecdsa.SECP256k1.order)
     P = privkey * ecdsa.SECP256k1.generator
     return (
         int(privkey).to_bytes(32, "big"),

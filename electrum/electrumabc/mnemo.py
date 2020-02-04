@@ -35,12 +35,12 @@ import weakref
 from enum import IntEnum, auto, unique
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-import ecdsa
 import mnemonic
 
 from . import old_mnemonic, version
 from .bitcoin import hmac_sha_512
 from .printerror import PrintError
+from .util import randrange
 
 # http://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/e_asia.html
 CJK_INTERVALS = [
@@ -446,7 +446,7 @@ class MnemonicElectrum(MnemonicBase):
         my_entropy = 1
         while my_entropy < pow(2, n - bpw):
             # try again if seed would not contain enough words
-            my_entropy = ecdsa.util.randrange(pow(2, n))
+            my_entropy = randrange(pow(2, n))
         nonce = 0
         while True:
             nonce += 1

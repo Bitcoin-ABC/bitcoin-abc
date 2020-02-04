@@ -41,7 +41,7 @@ from . import networks
 from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv
 from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
 from .serialize import serialize_blob
-from .util import InvalidPassword, assert_bytes, to_bytes
+from .util import InvalidPassword, assert_bytes, randrange, to_bytes
 
 if TYPE_CHECKING:
     from .address import Address
@@ -398,7 +398,7 @@ class ECKey(object):
             raise Exception("invalid pubkey")
 
         ephemeral_exponent = number_to_string(
-            ecdsa.util.randrange(pow(2, 256)), generator_secp256k1.order()
+            randrange(pow(2, 256)), generator_secp256k1.order()
         )
         ephemeral = ECKey(ephemeral_exponent)
         ecdh_key = point_to_ser(pk * ephemeral.privkey.secret_multiplier)

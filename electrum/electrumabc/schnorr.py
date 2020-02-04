@@ -19,6 +19,7 @@ import ecdsa
 
 from . import secp256k1
 from .ecc import point_to_ser, ser_to_point
+from .util import randrange
 
 
 def _setup_sign_function():
@@ -309,7 +310,7 @@ class BlindSigner:
     order = ecdsa.SECP256k1.generator.order()
 
     def __init__(self):
-        k = ecdsa.util.randrange(self.order)
+        k = randrange(self.order)
         # we store k in a list since .pop() is atomic.
         self._kcontainer = [k]
         Rpoint = k * ecdsa.SECP256k1.generator
@@ -380,8 +381,8 @@ class BlindSignatureRequest:
         self.R = R
         self.message_hash = message_hash
 
-        self.a = ecdsa.util.randrange(self.order)
-        self.b = ecdsa.util.randrange(self.order)
+        self.a = randrange(self.order)
+        self.b = randrange(self.order)
         if seclib:
             self._calc_initial_fast()
         else:
