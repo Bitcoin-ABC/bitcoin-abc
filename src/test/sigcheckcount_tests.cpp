@@ -11,6 +11,11 @@
 
 #include <boost/test/unit_test.hpp>
 
+// to be removed once Boost 1.59+ is minimum version.
+#ifndef BOOST_TEST_CONTEXT
+#define BOOST_TEST_CONTEXT(x)
+#endif
+
 typedef std::vector<uint8_t> valtype;
 typedef std::vector<valtype> stacktype;
 
@@ -308,24 +313,29 @@ BOOST_AUTO_TEST_CASE(test_evalscript) {
     }
 }
 
+void CheckVerifyScript(CScript scriptSig, CScript scriptPubKey, uint32_t flags,
+                       int expected_sigchecks) {
+    ScriptExecutionMetrics metricsRet;
+    metricsRet.nSigChecks = 12345 ^ 0;
+    BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,
+                             flags & ~SCRIPT_REPORT_SIGCHECKS, dummysigchecker,
+                             metricsRet));
+    BOOST_CHECK_EQUAL(metricsRet.nSigChecks, 0);
+    metricsRet.nSigChecks = 12345 ^ expected_sigchecks;
+    BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,
+                             flags | SCRIPT_REPORT_SIGCHECKS, dummysigchecker,
+                             metricsRet));
+    BOOST_CHECK_EQUAL(metricsRet.nSigChecks, expected_sigchecks);
+}
+
+#define CHECK_VERIFYSCRIPT(...)                                                \
+    BOOST_TEST_CONTEXT(__FILE__ << ":" << __LINE__) {                          \
+        CheckVerifyScript(__VA_ARGS__);                                        \
+    }
+
 BOOST_AUTO_TEST_CASE(test_verifyscript) {
     // make sure that verifyscript is correctly resetting and accumulating
     // sigchecks for the input.
-
-#define CHECK_VERIFYSCRIPT(scriptSig, scriptPubKey, flags, expected_sigchecks) \
-    {                                                                          \
-        ScriptExecutionMetrics metricsRet;                                     \
-        metricsRet.nSigChecks = 12345 ^ 0;                                     \
-        BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,                      \
-                                 flags & ~SCRIPT_REPORT_SIGCHECKS,             \
-                                 dummysigchecker, metricsRet));                \
-        BOOST_CHECK_EQUAL(metricsRet.nSigChecks, 0);                           \
-        metricsRet.nSigChecks = 12345 ^ expected_sigchecks;                    \
-        BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,                      \
-                                 flags | SCRIPT_REPORT_SIGCHECKS,              \
-                                 dummysigchecker, metricsRet));                \
-        BOOST_CHECK_EQUAL(metricsRet.nSigChecks, expected_sigchecks);          \
-    }
 
     // Simplest example
     CHECK_VERIFYSCRIPT(CScript() << OP_1, CScript(), SCRIPT_VERIFY_NONE, 0);
