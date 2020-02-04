@@ -4118,11 +4118,11 @@ bool CChainState::AcceptBlock(const Config &config,
     }
 
     const CChainParams &chainparams = config.GetChainParams();
+    const Consensus::Params &consensusParams = chainparams.GetConsensus();
 
-    if (!CheckBlock(block, state, chainparams.GetConsensus(),
+    if (!CheckBlock(block, state, consensusParams,
                     BlockValidationOptions(config)) ||
-        !ContextualCheckBlock(block, state, chainparams.GetConsensus(),
-                              pindex->pprev)) {
+        !ContextualCheckBlock(block, state, consensusParams, pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
             pindex->nStatus = pindex->nStatus.withFailed();
             setDirtyBlockIndex.insert(pindex);
@@ -4171,9 +4171,9 @@ bool CChainState::AcceptBlock(const Config &config,
         return AbortNode(state, std::string("System error: ") + e.what());
     }
 
-    FlushStateToDisk(config.GetChainParams(), state, FlushStateMode::NONE);
+    FlushStateToDisk(chainparams, state, FlushStateMode::NONE);
 
-    CheckBlockIndex(chainparams.GetConsensus());
+    CheckBlockIndex(consensusParams);
 
     return true;
 }
