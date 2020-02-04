@@ -887,7 +887,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     std::vector<AvalancheBlockUpdate> updates;
     p.registerVotes(nodeid, {queryRound, 100, {AvalancheVote(0, blockHash)}},
                     updates);
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10000; i++) {
         // We make sure that we do not get a request before queryTime.
         boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
         if (AvalancheTest::getRound(p) != responseRound) {
