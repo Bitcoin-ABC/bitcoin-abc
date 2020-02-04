@@ -27,6 +27,14 @@ option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" ON)
 
+# If ccache is available, then use it.
+find_program(CCACHE ccache)
+if(CCACHE)
+	message(STATUS "Using ccache: ${CCACHE}")
+	set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE})
+	set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE})
+endif(CCACHE)
+
 # Disable what we do not need for the native build.
 include(NativeExecutable)
 native_add_cmake_flags(
