@@ -25,7 +25,6 @@
 
 #include <cstdint>
 #include <fstream>
-#include <iostream>
 
 static int64_t DecodeDumpTime(const std::string &str) {
     static const boost::posix_time::ptime epoch =
