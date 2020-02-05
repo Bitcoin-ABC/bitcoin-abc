@@ -29,9 +29,7 @@ namespace {
             if (try_lock && result && !*result) {
                 return {};
             }
-            // std::move necessary on some compilers due to conversion from
-            // LockingStateImpl to Lock pointer
-            return std::move(result);
+            return result;
         }
         std::unique_ptr<Chain::Lock> assumeLocked() override {
             return std::make_unique<LockImpl>();
