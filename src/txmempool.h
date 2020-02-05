@@ -79,7 +79,12 @@ private:
     const unsigned int entryHeight;
     //! keep track of transactions that spend a coinbase
     const bool spendsCoinbase;
-    //! Total sigop plus P2SH sigops count
+    /**
+     * Total sigop plus P2SH sigops count.
+     * After the sigchecks activation we repurpose the 'sigops' tracking in
+     * mempool/mining to actually track sigchecks instead. (Proper SigOps will
+     * not need to be counted any more since it's getting deactivated.)
+     */
     const int64_t sigOpCount;
     //! Used for determining the priority of the transaction for mining in a
     //! block

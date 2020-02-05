@@ -77,6 +77,14 @@ BlockAssembler::BlockAssembler(const CChainParams &params,
     nMaxGeneratedBlockSize = std::max<uint64_t>(
         1000, std::min<uint64_t>(options.nExcessiveBlockSize - 1000,
                                  options.nMaxGeneratedBlockSize));
+    // Calculate the max consensus sigchecks for this block.
+    auto nMaxBlockSigChecks =
+        GetMaxBlockSigChecksCount(options.nExcessiveBlockSize);
+    // Allow the full amount of signature check operations in lieu of a separate
+    // config option. (We are mining relayed transactions with validity cached
+    // by everyone else, and so the block will propagate quickly, regardless of
+    // how many sigchecks it contains.)
+    nMaxGeneratedBlockSigChecks = nMaxBlockSigChecks;
 }
 
 static BlockAssembler::Options DefaultOptions(const Config &config) {
@@ -155,6 +163,11 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
             ? nMedianTimePast
             : pblock->GetBlockTime();
+
+    // After the sigchecks activation we repurpose the 'sigops' tracking in
+    // mempool/mining to actually track sigchecks instead. (Proper SigOps will
+    // not need to be counted any more since it's getting deactivated.)
+    fUseSigChecks = IsPhononEnabled(chainparams.GetConsensus(), pindexPrev);
 
     int nPackagesSelected = 0;
     int nDescendantsUpdated = 0;
@@ -247,6 +260,11 @@ void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries &testSet) {
     }
 }
 
+uint64_t BlockAssembler::MaxBlockSigOpsCountForSize(uint64_t blockSize) const {
+    return fUseSigChecks ? nMaxGeneratedBlockSigChecks
+                         : GetMaxBlockSigOpsCount(blockSize);
+}
+
 bool BlockAssembler::TestPackage(uint64_t packageSize,
                                  int64_t packageSigOps) const {
     auto blockSizeWithPackage = nBlockSize + packageSize;
@@ -255,7 +273,7 @@ bool BlockAssembler::TestPackage(uint64_t packageSize,
     }
 
     if (nBlockSigOps + packageSigOps >=
-        GetMaxBlockSigOpsCount(blockSizeWithPackage)) {
+        MaxBlockSigOpsCountForSize(blockSizeWithPackage)) {
         return false;
     }
 

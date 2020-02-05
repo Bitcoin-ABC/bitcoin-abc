@@ -13,9 +13,6 @@ import time
 
 from test_framework.test_framework import BitcoinTestFramework
 
-# Set test to run with sigops deactivation far in the future.
-SIGOPS_DEACTIVATION_TIME = 2000000000
-
 
 class CTORMiningTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -28,8 +25,7 @@ class CTORMiningTest(BitcoinTestFramework):
         self.blocks = {}
         self.mocktime = int(time.time()) - 600 * 100
 
-        extra_arg = ['-spendzeroconfchange=0', '-whitelist=127.0.0.1',
-                     '-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME)]
+        extra_arg = ['-spendzeroconfchange=0', '-whitelist=127.0.0.1']
         self.extra_args = [extra_arg, extra_arg]
 
     def skip_test_if_missing_module(self):
@@ -73,7 +69,8 @@ class CTORMiningTest(BitcoinTestFramework):
             fee = decimal.Decimal(random.randint(
                 1000, 2000)) / decimal.Decimal(1e8)
             # Spend to the same number of outputs as inputs, so we can leave
-            # the amounts unchanged and avoid rounding errors.
+            # the amounts unchanged and avoid rounding errors. This also ensures
+            # the number of sigops == number of sigchecks.
             #
             # NOTE: There will be 1 sigop per output (which equals the number
             # of inputs now).  We need this randomization to ensure the

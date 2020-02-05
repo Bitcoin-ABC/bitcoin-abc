@@ -727,8 +727,16 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             return false;
         }
 
+        // After the sigchecks activation we repurpose the 'sigops' tracking in
+        // mempool/mining to actually track sigchecks instead. (Proper SigOps
+        // will not need to be counted any more since it's getting deactivated.)
+        auto nSigChecksOrOps =
+            (nextBlockScriptVerifyFlags & SCRIPT_REPORT_SIGCHECKS)
+                ? nSigChecksStandard
+                : nSigOpsCount;
+
         CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
-                              fSpendsCoinbase, nSigOpsCount, lp);
+                              fSpendsCoinbase, nSigChecksOrOps, lp);
 
         unsigned int nVirtualSize = entry.GetTxVirtualSize();
 
@@ -788,6 +796,16 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             return error("%s: BUG! PLEASE REPORT THIS! CheckInputs failed "
                          "against next-block but not STANDARD flags %s, %s",
                          __func__, txid.ToString(), FormatStateMessage(state));
+        }
+
+        if (nSigChecksStandard != nSigChecksConsensus) {
+            // We can't accept this transaction as we've used the standard count
+            // for the mempool/mining, but the consensus count will be enforced
+            // in validation (we don't want to produce bad block templates).
+            return error(
+                "%s: BUG! PLEASE REPORT THIS! SigChecks count differed between "
+                "standard and consensus flags in %s",
+                __func__, txid.ToString());
         }
 
         if (test_accept) {
@@ -1679,6 +1697,7 @@ static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
 
     if (IsPhononEnabled(params, pindex)) {
         flags |= SCRIPT_ENABLE_OP_REVERSEBYTES;
+        flags |= SCRIPT_REPORT_SIGCHECKS;
         flags |= SCRIPT_ZERO_SIGOPS;
     }
 
@@ -1886,6 +1905,14 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         ::GetSerializeSize(block, PROTOCOL_VERSION);
     const uint64_t nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
 
+    // Limit the total executed signature operations in the block, a consensus
+    // rule. Tracking during the CPU-consuming part (validation of uncached
+    // inputs) is per-input atomic and validation in each thread stops very
+    // quickly after the limit is exceeded, so an adversary cannot cause us to
+    // exceed the limit by much at all.
+    CheckInputsLimiter nSigChecksBlockLimiter(
+        GetMaxBlockSigChecksCount(options.getExcessiveBlockSize()));
+
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
 
     // Add all outputs
@@ -1971,7 +1998,14 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         int nSigChecksRet;
         if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults,
                          fCacheResults, PrecomputedTransactionData(tx),
-                         nSigChecksRet, &vChecks)) {
+                         nSigChecksRet, &vChecks, &nSigChecksBlockLimiter)) {
+            // Parallel CheckInputs shouldn't fail except for this reason, which
+            // is banworthy. Use "blk-bad-inputs" to mimic the parallel script
+            // check error.
+            if (!nSigChecksBlockLimiter.check()) {
+                return state.DoS(100, false, REJECT_INVALID, "blk-bad-inputs",
+                                 false, "CheckInputs exceeded SigChecks limit");
+            }
             return error("ConnectBlock(): CheckInputs on %s failed with %s",
                          tx.GetId().ToString(), FormatStateMessage(state));
         }
