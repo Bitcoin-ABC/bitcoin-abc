@@ -129,8 +129,8 @@ bool IsStandardTx(const CTransaction &tx, std::string &reason);
  * spending
  * @return True if all inputs (scriptSigs) use only standard transaction forms
  */
-bool AreInputsStandard(const CTransaction &tx,
-                       const CCoinsViewCache &mapInputs);
+bool AreInputsStandard(const CTransaction &tx, const CCoinsViewCache &mapInputs,
+                       uint32_t flags);
 
 extern CFeeRate dustRelayFee;
 extern uint32_t nBytesPerSigOp;

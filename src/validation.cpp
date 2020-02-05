@@ -661,8 +661,12 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                          tx.GetId().ToString(), FormatStateMessage(state));
         }
 
+        const uint32_t nextBlockScriptVerifyFlags =
+            GetNextBlockScriptFlags(consensusParams, chainActive.Tip());
+
         // Check for non-standard pay-to-script-hash in inputs
-        if (fRequireStandard && !AreInputsStandard(tx, view)) {
+        if (fRequireStandard &&
+            !AreInputsStandard(tx, view, nextBlockScriptVerifyFlags)) {
             return state.Invalid(false, REJECT_NONSTANDARD,
                                  "bad-txns-nonstandard-inputs");
         }
@@ -681,10 +685,6 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                 break;
             }
         }
-
-        const uint32_t nextBlockScriptVerifyFlags =
-            GetNextBlockScriptFlags(consensusParams, chainActive.Tip());
-
         auto nSigOpsCount =
             GetTransactionSigOpCount(tx, view, nextBlockScriptVerifyFlags);
 

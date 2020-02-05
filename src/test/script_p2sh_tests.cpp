@@ -415,7 +415,8 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txTo.vin[4].scriptSig << std::vector<uint8_t>(fifteenSigops.begin(),
                                                   fifteenSigops.end());
 
-    BOOST_CHECK(::AreInputsStandard(CTransaction(txTo), coins));
+    BOOST_CHECK(::AreInputsStandard(CTransaction(txTo), coins,
+                                    STANDARD_SCRIPT_VERIFY_FLAGS));
     // 22 P2SH sigops for all inputs (1 for vin[0], 6 for vin[3], 15 for vin[4]
     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txTo), coins,
                                         STANDARD_SCRIPT_VERIFY_FLAGS),
@@ -434,7 +435,8 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd1.vin[0].scriptSig
         << std::vector<uint8_t>(sixteenSigops.begin(), sixteenSigops.end());
 
-    BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd1), coins));
+    BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd1), coins,
+                                     STANDARD_SCRIPT_VERIFY_FLAGS));
     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd1), coins,
                                         STANDARD_SCRIPT_VERIFY_FLAGS),
                       16U);
@@ -453,7 +455,8 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd2.vin[0].scriptSig
         << std::vector<uint8_t>(twentySigops.begin(), twentySigops.end());
 
-    BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd2), coins));
+    BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd2), coins,
+                                     STANDARD_SCRIPT_VERIFY_FLAGS));
     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd2), coins,
                                         STANDARD_SCRIPT_VERIFY_FLAGS),
                       20U);

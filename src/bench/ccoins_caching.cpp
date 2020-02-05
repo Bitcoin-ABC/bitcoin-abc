@@ -80,7 +80,8 @@ static void CCoinsCaching(benchmark::State &state) {
     // Benchmark.
     while (state.KeepRunning()) {
         CTransaction t(t1);
-        bool success = AreInputsStandard(t, coins);
+        bool success =
+            AreInputsStandard(t, coins, STANDARD_SCRIPT_VERIFY_FLAGS);
         assert(success);
         Amount value = coins.GetValueIn(t);
         assert(value == (50 + 21 + 22) * CENT);

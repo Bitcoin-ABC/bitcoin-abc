@@ -140,8 +140,8 @@ bool IsStandardTx(const CTransaction &tx, std::string &reason) {
  * expensive-to-check-upon-redemption script like:
  *   DUP CHECKSIG DROP ... repeated 100 times... OP_1
  */
-bool AreInputsStandard(const CTransaction &tx,
-                       const CCoinsViewCache &mapInputs) {
+bool AreInputsStandard(const CTransaction &tx, const CCoinsViewCache &mapInputs,
+                       uint32_t flags) {
     if (tx.IsCoinBase()) {
         // Coinbases don't use vin normally.
         return true;
@@ -155,19 +155,7 @@ bool AreInputsStandard(const CTransaction &tx,
         if (whichType == TX_NONSTANDARD) {
             return false;
         } else if (whichType == TX_SCRIPTHASH) {
-            std::vector<std::vector<uint8_t>> stack;
-            // convert the scriptSig into a stack, so we can inspect the
-            // redeemScript
-            if (!EvalScript(stack, in.scriptSig, SCRIPT_VERIFY_NONE,
-                            BaseSignatureChecker())) {
-                return false;
-            }
-            if (stack.empty()) {
-                return false;
-            }
-
-            CScript subscript(stack.back().begin(), stack.back().end());
-            if (subscript.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, true) >
+            if (prev.scriptPubKey.GetSigOpCount(flags, in.scriptSig) >
                 MAX_P2SH_SIGOPS) {
                 return false;
             }
