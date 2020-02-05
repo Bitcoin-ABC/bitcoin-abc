@@ -25,7 +25,7 @@ option(ENABLE_UPNP "Enable UPnP support" ON)
 option(ENABLE_NOTIFICATIONS "Enable desktop notifications" ON)
 option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
-option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" ON)
+option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 
 # If ccache is available, then use it.
 find_program(CCACHE ccache)
