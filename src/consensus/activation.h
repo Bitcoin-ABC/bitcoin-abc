@@ -8,7 +8,6 @@
 #include <cstdint>
 
 class CBlockIndex;
-class Config;
 
 namespace Consensus {
 struct Params;

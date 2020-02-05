@@ -326,7 +326,7 @@ void SetupServerArgs() {
         "-rpcssl", "-benchmark", "-h", "-help", "-socks", "-tor", "-debugnet",
         "-whitelistalwaysrelay", "-blockminsize", "-dbcrashratio",
         "-forcecompactdb", "-usehd", "-parkdeepreorg", "-automaticunparking",
-        "-replayprotectionactivationtime",
+        "-replayprotectionactivationtime", "-enableminerfund",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
         "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>",
         "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",

@@ -508,6 +508,11 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
 ThresholdState VersionBitsTipState(const Consensus::Params &params,
                                    Consensus::DeploymentPos pos);
 
+/** Get the BIP9 state for a given deployment at a given block. */
+ThresholdState VersionBitsBlockState(const Consensus::Params &params,
+                                     Consensus::DeploymentPos pos,
+                                     const CBlockIndex *pindex);
+
 /**
  * Get the numerical statistics for the BIP9 state for a given deployment at the
  * current tip.
