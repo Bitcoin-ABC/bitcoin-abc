@@ -49,6 +49,9 @@ from collections import deque
 
 SATOSHI = Decimal('0.00000001')
 
+# Set test to run with sigops deactivation far in the future.
+SIGOPS_DEACTIVATION_TIME = 2000000000
+
 
 def create_var_transaction(spendfrom, custom_script, size_bytes, fee_sats):
     # Fund and sign a transaction to a given output, padding it to exactly
@@ -108,7 +111,8 @@ class MempoolLimitSigopsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [["-maxmempool=5"]]
+        self.extra_args = [
+            ["-maxmempool=5", '-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME)]]
         self.block_heights = {}
 
     def skip_test_if_missing_module(self):

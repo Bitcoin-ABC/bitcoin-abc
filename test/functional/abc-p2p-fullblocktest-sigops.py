@@ -54,6 +54,9 @@ from test_framework.script import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
+# Set test to run with sigops deactivation far in the future.
+SIGOPS_DEACTIVATION_TIME = 2000000000
+
 
 class PreviousSpendableOutput():
 
@@ -73,7 +76,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.blocks = {}
         self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-whitelist=127.0.0.1',
-                            "-excessiveblocksize={}".format(self.excessive_block_size)]]
+                            "-excessiveblocksize={}".format(self.excessive_block_size), '-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME)]]
 
     def add_options(self, parser):
         super().add_options(parser)

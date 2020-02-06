@@ -371,6 +371,9 @@ bool CScriptNum::MinimallyEncode(std::vector<uint8_t> &data) {
 }
 
 uint32_t CScript::GetSigOpCount(uint32_t flags, bool fAccurate) const {
+    if (flags & SCRIPT_ZERO_SIGOPS) {
+        return 0;
+    }
     uint32_t n = 0;
     const_iterator pc = begin();
     opcodetype lastOpcode = OP_INVALIDOPCODE;

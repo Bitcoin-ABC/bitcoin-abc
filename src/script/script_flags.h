@@ -89,9 +89,8 @@ enum {
     SCRIPT_ENABLE_REPLAY_PROTECTION = (1U << 17),
 
     // Count sigops for OP_CHECKDATASIG and variant. The interpreter treats
-    // OP_CHECKDATASIG(VERIFY) as always valid, this flag only affects sigops
-    // counting.
-    //
+    // OP_CHECKDATASIG(VERIFY) as always valid. This flag only affects sigops
+    // counting, and will be removed during cleanup of the SigChecks upgrade.
     SCRIPT_VERIFY_CHECKDATASIG_SIGOPS = (1U << 18),
 
     // The exception to CLEANSTACK and P2SH for the recovery of coins sent
@@ -110,6 +109,11 @@ enum {
 
     // Whether the new OP_REVERSEBYTES opcode can be used.
     SCRIPT_ENABLE_OP_REVERSEBYTES = (1U << 23),
+
+    // Setting this flag zeroes sigops counting and thus results in the removal
+    // of all sigop limits. This flag only affects sigops counting, and will be
+    // removed during cleanup of the SigChecks upgrade.
+    SCRIPT_ZERO_SIGOPS = (1U << 30),
 
     // A utility flag to decide whether VerifyScript should output the correct
     // sigchecks value or to report zero.

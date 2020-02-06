@@ -47,6 +47,9 @@ from test_framework.util import assert_equal, assert_raises_rpc_error
 # Error for too many sigops in one TX
 RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "bad-txns-too-many-sigops"
 
+# Set test to run with sigops deactivation far in the future.
+SIGOPS_DEACTIVATION_TIME = 2000000000
+
 
 class PreviousSpendableOutput():
 
@@ -67,6 +70,8 @@ class FullBlockTest(BitcoinTestFramework):
         self.coinbase_pubkey = self.coinbase_key.get_pubkey()
         self.tip = None
         self.blocks = {}
+        self.extra_args = [
+            ['-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME)]]
 
     def add_options(self, parser):
         super().add_options(parser)

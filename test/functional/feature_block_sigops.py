@@ -46,12 +46,16 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
 
+# Set test to run with sigops deactivation far in the future.
+SIGOPS_DEACTIVATION_TIME = 2000000000
+
 
 class FullBlockSigOpsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
-        self.extra_args = [['-noparkdeepreorg', '-maxreorgdepth=-1']]
+        self.extra_args = [['-noparkdeepreorg', '-maxreorgdepth=-1',
+                            '-phononactivationtime={}'.format(SIGOPS_DEACTIVATION_TIME)]]
 
     def run_test(self):
         self.bootstrap_p2p()  # Add one p2p connection to the node
