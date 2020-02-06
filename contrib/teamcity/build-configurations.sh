@@ -174,13 +174,9 @@ case "$ABC_BUILD_NAME" in
     ninja bench-secp256k1
     ;;
 
-  check-seeds-mainnet)
+  check-seeds)
     "${CI_SCRIPTS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/check-seeds.sh main 80
-    ;;
-
-  check-seeds-testnet)
-    "${CI_SCRIPTS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/check-seeds.sh test 70
     ;;
 
