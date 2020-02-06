@@ -51,18 +51,9 @@ if(ENABLE_CLANG_TIDY)
 	include(ClangTidy)
 endif()
 
-# Allow usage of sanitizers by setting ECM_ENABLE_SANITIZERS
 if(ENABLE_SANITIZERS)
-	set(ECM_ENABLE_SANITIZERS ${ENABLE_SANITIZERS})
-	find_package(ECM NO_MODULE)
-	if(ECM_MODULE_PATH)
-		list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
-		include(ECMEnableSanitizers)
-	else()
-		message(FATAL_ERROR
-			"ECM is required to enable the sanitizers (https://api.kde.org/ecm/manual/ecm.7.html). Try installing 'extra-cmake-modules' package."
-		)
-	endif()
+	include(Sanitizers)
+	enable_sanitizers(${ENABLE_SANITIZERS})
 endif()
 
 include(AddCompilerFlags)
