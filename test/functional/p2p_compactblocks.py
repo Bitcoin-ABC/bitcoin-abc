@@ -544,7 +544,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         block, ordered_txs = self.build_block_with_transactions(node, utxo, 10)
         self.utxos.append(
             [ordered_txs[-1].sha256, 0, ordered_txs[-1].vout[0].nValue])
-        for tx in block.vtx[1:]:
+        for tx in ordered_txs[1:]:
             test_node.send_message(msg_tx(tx))
         test_node.sync_with_ping()
         # Make sure all transactions were accepted.
