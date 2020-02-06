@@ -9,6 +9,7 @@
 #include <qt/optionsmodel.h>
 
 #include <interfaces/node.h>
+#include <mapport.h>
 #include <net.h>
 #include <netbase.h>
 #include <qt/bitcoinunits.h>

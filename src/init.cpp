@@ -34,6 +34,7 @@
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
 #include <key.h>
+#include <mapport.h>
 #include <miner.h>
 #include <net.h>
 #include <net_permissions.h>

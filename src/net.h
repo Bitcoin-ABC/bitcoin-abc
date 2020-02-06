@@ -83,12 +83,6 @@ static const int DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 300;
 static const int MAX_FEELER_CONNECTIONS = 1;
 /** -listen default */
 static const bool DEFAULT_LISTEN = true;
-/** -upnp default */
-#ifdef USE_UPNP
-static const bool DEFAULT_UPNP = USE_UPNP;
-#else
-static const bool DEFAULT_UPNP = false;
-#endif
 /**
  * The maximum number of peer connections to maintain.
  * This quantity might not be reachable on some systems, especially on platforms
@@ -224,9 +218,6 @@ enum class ConnectionType {
 };
 
 void Discover();
-void StartMapPort();
-void InterruptMapPort();
-void StopMapPort();
 uint16_t GetListenPort();
 
 enum {
