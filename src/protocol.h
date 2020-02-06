@@ -419,9 +419,9 @@ enum GetDataMsg {
     MSG_TX = 1,
     MSG_BLOCK = 2,
     // The following can only occur in getdata. Invs always use TX or BLOCK.
-    //!< Defined in BIP37
+    //! Defined in BIP37
     MSG_FILTERED_BLOCK = 3,
-    //!< Defined in BIP152
+    //! Defined in BIP152
     MSG_CMPCT_BLOCK = 4,
 };
 

@@ -373,7 +373,7 @@ public:
     mapValue_t mapValue;
     std::vector<std::pair<std::string, std::string>> vOrderForm;
     unsigned int fTimeReceivedIsTxTime;
-    //!< time received by this node
+    //! time received by this node
     unsigned int nTimeReceived;
     /**
      * Stable timestamp that never changes, and reflects the order a transaction
@@ -392,7 +392,7 @@ public:
      */
     char fFromMe;
     std::string strFromAccount;
-    //!< position in ordered transaction list
+    //! position in ordered transaction list
     int64_t nOrderPos;
     std::multimap<int64_t,
                   std::pair<CWalletTx *, CAccountingEntry *>>::const_iterator
@@ -466,7 +466,7 @@ public:
         }
 
         s << static_cast<const CMerkleTx &>(*this);
-        //!< Used to be vtxPrev
+        //! Used to be vtxPrev
         std::vector<CMerkleTx> vUnused;
         s << vUnused << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime
           << nTimeReceived << fFromMe << fSpent;
@@ -477,7 +477,7 @@ public:
         char fSpent;
 
         s >> static_cast<CMerkleTx &>(*this);
-        //!< Used to be vtxPrev
+        //! Used to be vtxPrev
         std::vector<CMerkleTx> vUnused;
         s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >>
             nTimeReceived >> fFromMe >> fSpent;
@@ -670,7 +670,7 @@ public:
     std::string strOtherAccount;
     std::string strComment;
     mapValue_t mapValue;
-    //!< position in ordered transaction list
+    //! position in ordered transaction list
     int64_t nOrderPos;
     uint64_t nEntryNo;
 

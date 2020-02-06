@@ -473,9 +473,9 @@ public:
                uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab212"
                         "7b7afdeda33b"));
 
-        //!< Regtest mode doesn't have any fixed seeds.
+        //! Regtest mode doesn't have any fixed seeds.
         vFixedSeeds.clear();
-        //!< Regtest mode doesn't have any DNS seeds.
+        //! Regtest mode doesn't have any DNS seeds.
         vSeeds.clear();
 
         fDefaultConsistencyChecks = true;

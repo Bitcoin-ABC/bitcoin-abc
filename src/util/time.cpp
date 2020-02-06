@@ -17,7 +17,7 @@
 #include <atomic>
 #include <ctime>
 
-//!< For unit testing
+//! For unit testing
 static std::atomic<int64_t> nMockTime(0);
 
 int64_t GetTime() {

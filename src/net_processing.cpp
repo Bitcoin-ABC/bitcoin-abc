@@ -201,11 +201,11 @@ uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
  */
 struct QueuedBlock {
     uint256 hash;
-    //!< Optional.
+    //! Optional.
     const CBlockIndex *pindex;
-    //!< Whether this block has validated headers at the time of request.
+    //! Whether this block has validated headers at the time of request.
     bool fValidatedHeaders;
-    //!< Optional, used for CMPCTBLOCK downloads
+    //! Optional, used for CMPCTBLOCK downloads
     std::unique_ptr<PartiallyDownloadedBlock> partialBlock;
 };
 std::map<uint256, std::pair<NodeId, std::list<QueuedBlock>::iterator>>

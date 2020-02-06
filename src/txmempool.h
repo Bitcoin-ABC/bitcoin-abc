@@ -67,36 +67,36 @@ class CTxMemPool;
 class CTxMemPoolEntry {
 private:
     const CTransactionRef tx;
-    //!< Cached to avoid expensive parent-transaction lookups
+    //! Cached to avoid expensive parent-transaction lookups
     const Amount nFee;
-    //!< ... and avoid recomputing tx size
+    //! ... and avoid recomputing tx size
     const size_t nTxSize;
-    //!< ... and total memory usage
+    //! ... and total memory usage
     const size_t nUsageSize;
-    //!< Local time when entering the mempool
+    //! Local time when entering the mempool
     const int64_t nTime;
-    //!< Chain height when entering the mempool
+    //! Chain height when entering the mempool
     const unsigned int entryHeight;
-    //!< keep track of transactions that spend a coinbase
+    //! keep track of transactions that spend a coinbase
     const bool spendsCoinbase;
-    //!< Total sigop plus P2SH sigops count
+    //! Total sigop plus P2SH sigops count
     const int64_t sigOpCount;
-    //!< Used for determining the priority of the transaction for mining in a
+    //! Used for determining the priority of the transaction for mining in a
     //! block
     Amount feeDelta;
-    //!< Track the height and time at which tx was final
+    //! Track the height and time at which tx was final
     LockPoints lockPoints;
 
     // Information about descendants of this transaction that are in the
     // mempool; if we remove this transaction we must remove all of these
     // descendants as well.
-    //!< number of descendant transactions
+    //! number of descendant transactions
     uint64_t nCountWithDescendants;
-    //!< ... and size
+    //! ... and size
     uint64_t nSizeWithDescendants;
-    //!< ... and total fees (all including us)
+    //! ... and total fees (all including us)
     Amount nModFeesWithDescendants;
-    //!< ... and sigop count
+    //! ... and sigop count
     int64_t nSigOpCountWithDescendants;
 
     // Analogous statistics for ancestor transactions
@@ -153,7 +153,7 @@ public:
         return nSigOpCountWithAncestors;
     }
 
-    //!< Index in mempool's vTxHashes
+    //! Index in mempool's vTxHashes
     mutable size_t vTxHashesIdx;
 };
 
@@ -363,19 +363,19 @@ struct TxMempoolInfo {
  * notification signal.
  */
 enum class MemPoolRemovalReason {
-    //!< Manually removed or unknown reason
+    //! Manually removed or unknown reason
     UNKNOWN = 0,
-    //!< Expired from mempool
+    //! Expired from mempool
     EXPIRY,
-    //!< Removed in size limiting
+    //! Removed in size limiting
     SIZELIMIT,
-    //!< Removed for reorganization
+    //! Removed for reorganization
     REORG,
-    //!< Removed for block
+    //! Removed for block
     BLOCK,
-    //!< Removed for conflict with in-block transaction
+    //! Removed for conflict with in-block transaction
     CONFLICT,
-    //!< Removed for replacement
+    //! Removed for replacement
     REPLACED
 };
 
@@ -467,20 +467,20 @@ public:
  */
 class CTxMemPool {
 private:
-    //!< Value n means that n times in 2^32 we check.
+    //! Value n means that n times in 2^32 we check.
     uint32_t nCheckFrequency GUARDED_BY(cs);
-    //!< Used by getblocktemplate to trigger CreateNewBlock() invocation
+    //! Used by getblocktemplate to trigger CreateNewBlock() invocation
     unsigned int nTransactionsUpdated;
 
-    //!< sum of all mempool tx's sizes.
+    //! sum of all mempool tx's sizes.
     uint64_t totalTxSize;
-    //!< sum of dynamic memory usage of all the map elements (NOT the maps
+    //! sum of dynamic memory usage of all the map elements (NOT the maps
     //! themselves)
     uint64_t cachedInnerUsage;
 
     mutable int64_t lastRollingFeeUpdate;
     mutable bool blockSinceLastRollingFeeBump;
-    //!< minimum fee to get into the pool, decreases exponentially
+    //! minimum fee to get into the pool, decreases exponentially
     mutable double rollingMinimumFeeRate;
 
     void trackPackageRemoved(const CFeeRate &rate) EXCLUSIVE_LOCKS_REQUIRED(cs);
@@ -553,7 +553,7 @@ public:
     indexed_transaction_set mapTx GUARDED_BY(cs);
 
     typedef indexed_transaction_set::nth_index<0>::type::iterator txiter;
-    //!< All tx hashes/entries in mapTx, in random order
+    //! All tx hashes/entries in mapTx, in random order
     std::vector<std::pair<TxHash, txiter>> vTxHashes;
 
     struct CompareIteratorById {

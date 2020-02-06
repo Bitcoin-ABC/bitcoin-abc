@@ -1344,13 +1344,13 @@ namespace {
  */
 template <class T> class CTransactionSignatureSerializer {
 private:
-    //!< reference to the spending transaction (the one being serialized)
+    //! reference to the spending transaction (the one being serialized)
     const T &txTo;
-    //!< output script being consumed
+    //! output script being consumed
     const CScript &scriptCode;
-    //!< input index of txTo being signed
+    //! input index of txTo being signed
     const unsigned int nIn;
-    //!< container for hashtype flags
+    //! container for hashtype flags
     const SigHashType sigHashType;
 
 public:

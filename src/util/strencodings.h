@@ -23,11 +23,11 @@
 
 /** Used by SanitizeString() */
 enum SafeChars {
-    //!< The full set of allowed chars
+    //! The full set of allowed chars
     SAFE_CHARS_DEFAULT,
-    //!< BIP-0014 subset
+    //! BIP-0014 subset
     SAFE_CHARS_UA_COMMENT,
-    //!< Chars allowed in filenames
+    //! Chars allowed in filenames
     SAFE_CHARS_FILENAME,
 };
 

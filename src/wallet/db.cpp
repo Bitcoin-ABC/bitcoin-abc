@@ -59,7 +59,7 @@ void CheckUniqueFileid(const BerkeleyEnvironment &env,
 
 CCriticalSection cs_db;
 
-//!< Map from directory name to db environment.
+//! Map from directory name to db environment.
 std::map<std::string, std::weak_ptr<BerkeleyEnvironment>>
     g_dbenvs GUARDED_BY(cs_db);
 } // namespace

@@ -109,7 +109,7 @@ public:
     void EvictExtraOutboundPeers(int64_t time_in_seconds);
 
 private:
-    //!< Next time to check for stale tip
+    //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;
 
     /** Enable BIP61 (sending reject messages) */
