@@ -54,10 +54,11 @@ def bctester(testDir, input_basename, buildenv):
     for testObj in input_data:
         try:
             bctest(testDir, testObj, buildenv)
-            logging.info("PASSED: " + testObj["description"])
-        except:
+        except Exception:
             logging.info("FAILED: " + testObj["description"])
             failed_testcases.append(testObj["description"])
+        else:
+            logging.info("PASSED: " + testObj["description"])
 
     if failed_testcases:
         error_message = "FAILED_TESTCASES:\n"
@@ -99,7 +100,7 @@ def bctest(testDir, testObj, buildenv):
         try:
             outputData = open(os.path.join(testDir, outputFn),
                               encoding="utf8").read()
-        except:
+        except OSError:
             logging.error("Output file " + outputFn + " can not be opened")
             raise
         if not outputData:

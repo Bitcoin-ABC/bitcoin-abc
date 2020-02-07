@@ -26,7 +26,7 @@
             "include": "(\\.py$)",
             "flags": [
                 "--select=E,W,F",
-                "--ignore=E501,E704,E722,W503,W504"
+                "--ignore=E501,E704,W503,W504"
             ]
         },
         "lint-format-strings": {
