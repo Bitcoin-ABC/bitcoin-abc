@@ -486,7 +486,7 @@ class BIP68Test(BitcoinTestFramework):
             "hex"]
         try:
             self.nodes[1].sendrawtransaction(tx_signed)
-            assert before_activation == False
+            assert not before_activation
         except:
             assert before_activation
 

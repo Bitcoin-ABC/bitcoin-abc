@@ -142,14 +142,14 @@ class WalletDumpTest(BitcoinTestFramework):
 
         # Make sure the address is not IsMine before import
         result = self.nodes[0].getaddressinfo(multisig_addr)
-        assert result['ismine'] == False
+        assert result['ismine'] is False
 
         self.nodes[0].importwallet(os.path.abspath(
             tmpdir + "/node0/wallet.unencrypted.dump"))
 
         # Now check IsMine is true
         result = self.nodes[0].getaddressinfo(multisig_addr)
-        assert result['ismine'] == True
+        assert result['ismine'] is True
 
 
 if __name__ == '__main__':
