@@ -29,27 +29,29 @@ public:
           status(Unconfirmed), depth(0), open_for(0), cur_num_blocks(-1) {}
 
     enum Status {
-        /**< Have 6 or more confirmations (normal tx) or fully mature (mined tx)
-         **/
+        /**
+         * Have 6 or more confirmations (normal tx) or fully mature (mined tx)
+         */
         Confirmed,
         /// Normal (sent/received) transactions
-        /**< Transaction not yet final, waiting for date */
+        /** Transaction not yet final, waiting for date */
         OpenUntilDate,
-        /**< Transaction not yet final, waiting for block */
+        /** Transaction not yet final, waiting for block */
         OpenUntilBlock,
-        /**< Not yet mined into a block **/
+        /** Not yet mined into a block **/
         Unconfirmed,
-        /**< Confirmed, but waiting for the recommended number of confirmations
-         **/
+        /**
+         * Confirmed, but waiting for the recommended number of confirmations
+         */
         Confirming,
-        /**< Conflicts with other transaction or mempool **/
+        /** Conflicts with other transaction or mempool */
         Conflicted,
-        /**< Abandoned from the wallet **/
+        /** Abandoned from the wallet */
         Abandoned,
         /// Generated (mined) transactions
-        /**< Mined but waiting for maturity */
+        /** Mined but waiting for maturity */
         Immature,
-        /**< Mined but not accepted */
+        /** Mined but not accepted */
         NotAccepted
     };
 
@@ -67,8 +69,10 @@ public:
        @{*/
     Status status;
     qint64 depth;
-    /**< Timestamp if status==OpenUntilDate, otherwise number of additional
-     * blocks that need to be mined before finalization */
+    /**
+     * Timestamp if status==OpenUntilDate, otherwise number of additional
+     * blocks that need to be mined before finalization
+     */
     qint64 open_for;
 
     /**@}*/

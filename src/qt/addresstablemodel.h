@@ -29,36 +29,36 @@ public:
     ~AddressTableModel();
 
     enum ColumnIndex {
-        /**< User specified label */
+        /** User specified label */
         Label = 0,
-        /**< Bitcoin address */
+        /** Bitcoin address */
         Address = 1
     };
 
     enum RoleIndex {
-        /**< Type of address (#Send or #Receive) */
+        /** Type of address (#Send or #Receive) */
         TypeRole = Qt::UserRole
     };
 
     /** Return status of edit/insert operation */
     enum EditStatus {
-        /**< Everything ok */
+        /** Everything ok */
         OK,
-        /**< No changes were made during edit operation */
+        /** No changes were made during edit operation */
         NO_CHANGES,
-        /**< Unparseable address */
+        /** Unparseable address */
         INVALID_ADDRESS,
-        /**< Address already in address book */
+        /** Address already in address book */
         DUPLICATE_ADDRESS,
-        /**< Wallet could not be unlocked to create new receiving address */
+        /** Wallet could not be unlocked to create new receiving address */
         WALLET_UNLOCK_FAILURE,
-        /**< Generating a new public key for a receiving address failed */
+        /** Generating a new public key for a receiving address failed */
         KEY_GENERATION_FAILURE
     };
 
-    /**< Specifies send address */
+    /** Specifies send address */
     static const QString Send;
-    /**< Specifies receive address */
+    /** Specifies receive address */
     static const QString Receive;
 
     /** @name Methods overridden from QAbstractTableModel
