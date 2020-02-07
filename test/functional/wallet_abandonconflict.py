@@ -204,7 +204,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Don't think C's should either
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
         newbalance = self.nodes[0].getbalance()
-        #assert_equal(newbalance, balance - Decimal("10"))
+        # assert_equal(newbalance, balance - Decimal("10"))
         self.log.info(
             "If balance has not declined after invalidateblock then out of mempool wallet tx which is no longer")
         self.log.info(

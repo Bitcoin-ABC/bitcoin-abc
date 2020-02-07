@@ -48,7 +48,7 @@ class WalletHDTest(BitcoinTestFramework):
         # This should be enough to keep the master key and the non-HD key
         self.nodes[1].backupwallet(
             os.path.join(self.nodes[1].datadir, "hd.bak"))
-        #self.nodes[1].dumpwallet(os.path.join(self.nodes[1].datadir, "hd.dump"))
+        # self.nodes[1].dumpwallet(os.path.join(self.nodes[1].datadir, "hd.dump"))
 
         # Derive some HD addresses and remember the last
         # Also send funds to each add
