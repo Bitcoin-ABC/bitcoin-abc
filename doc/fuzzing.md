@@ -1,4 +1,4 @@
-Fuzz-testing Bitcoin Core
+Fuzz-testing Bitcoin ABC
 ==========================
 
 A special test harness `test_bitcoin_fuzzy` is provided to provide an easy
@@ -20,14 +20,16 @@ export AFLPATH=$PWD
 Instrumentation
 ----------------
 
-To build Bitcoin Core using AFL instrumentation (this assumes that the
+To build Bitcoin ABC using AFL instrumentation (this assumes that the
 `AFLPATH` was set as above):
 ```
-./configure --disable-ccache --disable-shared --enable-tests CC=${AFLPATH}/afl-gcc CXX=${AFLPATH}/afl-g++
+mkdir -p buildFuzzer
+cd buildFuzzer
+cmake -GNinja .. -CCACHE=OFF -DCMAKE_C_COMPILER=afl-gcc -DCMAKE_CXX_COMPILER=afl-g++
 export AFL_HARDEN=1
-cd src/
-make test/test_bitcoin_fuzzy
+ninja test_bitcoin_fuzzy
 ```
+
 We disable ccache because we don't want to pollute the ccache with instrumented
 objects, and similarly don't want to use non-instrumented cached objects linked
 in.
@@ -56,7 +58,6 @@ AFLOUT=$PWD/outputs
 Example inputs are available from:
 
 - https://download.visucore.com/bitcoin/bitcoin_fuzzy_in.tar.xz
-- http://strateman.ninja/fuzzing.tar.xz
 
 Extract these (or other starting inputs) into the `inputs` directory before starting fuzzing.
 
@@ -65,7 +66,7 @@ Fuzzing
 
 To start the actual fuzzing use:
 ```
-$AFLPATH/afl-fuzz -i ${AFLIN} -o ${AFLOUT} -m52 -- test/test_bitcoin_fuzzy
+$AFLPATH/afl-fuzz -i ${AFLIN} -o ${AFLOUT} -m52 -- src/test/test_bitcoin_fuzzy
 ```
 
 You may have to change a few kernel parameters to test optimally - `afl-fuzz`
