@@ -238,6 +238,7 @@ public:
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;
         m_is_test_chain = false;
+        m_is_mockable_chain = false;
 
         checkpointData = {
             .mapCheckpoints = {
@@ -460,6 +461,7 @@ public:
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
         m_is_test_chain = true;
+        m_is_mockable_chain = false;
 
         checkpointData = {
             .mapCheckpoints = {
@@ -625,6 +627,7 @@ public:
         fDefaultConsistencyChecks = true;
         fRequireStandard = true;
         m_is_test_chain = true;
+        m_is_mockable_chain = true;
 
         checkpointData = {
             .mapCheckpoints = {
