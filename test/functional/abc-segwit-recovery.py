@@ -4,7 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
 This test checks that blocks containing segwit recovery transactions will be accepted,
-that segwit recovery transactions are rejected from mempool acceptance (even with 
+that segwit recovery transactions are rejected from mempool acceptance (even with
 -acceptnonstdtxn=1), and that segwit recovery transactions don't result in bans.
 """
 

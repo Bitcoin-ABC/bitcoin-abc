@@ -451,8 +451,8 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
 
     def handle_test_cases():
         """
-        job_runner represents a single thread that is part of a worker pool.  
-        It waits for a test, then executes that test. 
+        job_runner represents a single thread that is part of a worker pool.
+        It waits for a test, then executes that test.
         It also reports start and result messages to handle_update_messages
         """
         while True:
