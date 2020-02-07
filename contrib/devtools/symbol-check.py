@@ -139,7 +139,7 @@ def check_version(max_versions, version, arch):
         lib = version
         ver = '0'
     ver = tuple([int(x) for x in ver.split('.')])
-    if not lib in max_versions:
+    if lib not in max_versions:
         return False
     return ver <= max_versions[lib] or lib == 'GLIBC' and ver <= ARCH_MIN_GLIBC_VER[arch]
 

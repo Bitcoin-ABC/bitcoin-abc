@@ -226,7 +226,7 @@ def main():
 
     # Check all tests with parameters actually exist
     for test in TEST_PARAMS:
-        if not test in all_scripts:
+        if test not in all_scripts:
             print("ERROR: Test with parameter {} does not exist, check it has "
                   "not been renamed or deleted".format(test))
             sys.exit(1)

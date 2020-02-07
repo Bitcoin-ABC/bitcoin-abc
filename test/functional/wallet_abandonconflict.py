@@ -137,7 +137,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         assert_equal(unconfbalance, newbalance)
         # Unconfirmed transactions which are not in the mempool should also
         # not be in listunspent
-        assert not txABC2 in [utxo["txid"]
+        assert txABC2 not in [utxo["txid"]
                               for utxo in self.nodes[0].listunspent(0)]
         balance = newbalance
 
