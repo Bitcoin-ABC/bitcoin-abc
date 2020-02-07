@@ -141,7 +141,7 @@ case "$ABC_BUILD_NAME" in
       check-bitcoin-seeder \
       check-bitcoin-util \
 
-    ninja check check-functional
+    ninja check-functional
     ;;
 
   build-diff)
