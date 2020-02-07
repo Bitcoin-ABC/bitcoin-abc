@@ -7,5 +7,6 @@
   "arc.feature.start.default" : "master",
   "history.immutable" : false,
   "load" : ["arcanist"],
-  "lint.engine": "ExtendedConfigurationDrivenLintEngine"
+  "lint.engine": "ExtendedConfigurationDrivenLintEngine",
+  "arcanist_configuration": "ArcanistBitcoinABCConfiguration"
 }
