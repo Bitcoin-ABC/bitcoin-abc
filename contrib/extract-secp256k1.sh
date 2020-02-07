@@ -25,6 +25,7 @@ popd
 git clone "file://${REPO_DIR}" "${WORKDIR}" -b master
 
 pushd "${WORKDIR}"
+# shellcheck disable=SC1004
 FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch \
     --index-filter 'git ls-files \
                         | grep -v "^cmake\|^src/secp256k1" \
