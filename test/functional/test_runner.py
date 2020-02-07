@@ -132,7 +132,7 @@ class TestCase():
 
 
 def on_ci():
-    return os.getenv('TRAVIS') == 'true' or os.getenv('TEAMCITY_VERSION') != None
+    return os.getenv('TRAVIS') == 'true' or os.getenv('TEAMCITY_VERSION') is not None
 
 
 def main():

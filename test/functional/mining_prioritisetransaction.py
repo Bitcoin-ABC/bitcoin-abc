@@ -70,7 +70,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         high_fee_tx = confirmed_transactions[1]
 
         # Something high-fee should have been mined!
-        assert high_fee_tx != None
+        assert high_fee_tx is not None
 
         # Add a prioritisation before a tx is in the mempool (de-prioritising a
         # high-fee transaction so that it's now low fee).

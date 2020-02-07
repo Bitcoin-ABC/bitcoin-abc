@@ -116,7 +116,7 @@ class FullBlockTest(BitcoinTestFramework):
         return tx
 
     def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:
@@ -126,7 +126,7 @@ class FullBlockTest(BitcoinTestFramework):
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
         coinbase.rehash()
-        if spend == None:
+        if spend is None:
             # We need to have something to spend to fill the block.
             assert_equal(block_size, 0)
             block = create_block(base_block_hash, coinbase, block_time)
@@ -159,7 +159,7 @@ class FullBlockTest(BitcoinTestFramework):
             tx.rehash()
 
             # If a specific script is required, add it.
-            if script != None:
+            if script is not None:
                 tx.vout.append(CTxOut(1, script))
 
             # Put some random data into the first transaction of the chain to randomize ids.
@@ -278,7 +278,7 @@ class FullBlockTest(BitcoinTestFramework):
         # Check that compact block also work for big blocks
         # Wait for SENDCMPCT
         def received_sendcmpct():
-            return (test_p2p.last_sendcmpct != None)
+            return (test_p2p.last_sendcmpct is not None)
         wait_until(received_sendcmpct, timeout=30)
 
         sendcmpct = msg_sendcmpct()
@@ -288,7 +288,7 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Exchange headers
         def received_getheaders():
-            return (test_p2p.last_getheaders != None)
+            return (test_p2p.last_getheaders is not None)
         wait_until(received_getheaders, timeout=30)
 
         # Return the favor
@@ -296,7 +296,7 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Wait for the header list
         def received_headers():
-            return (test_p2p.last_headers != None)
+            return (test_p2p.last_headers is not None)
         wait_until(received_headers, timeout=30)
 
         # It's like we know about the same headers !
@@ -308,7 +308,7 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Checks the node to forward it via compact block
         def received_block():
-            return (test_p2p.last_cmpctblock != None)
+            return (test_p2p.last_cmpctblock is not None)
         wait_until(received_block, timeout=30)
 
         # Was it our block ?

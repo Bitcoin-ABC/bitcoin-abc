@@ -132,7 +132,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
                             EXTRA_ARG]]
 
     def next_block(self, number):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = FIRST_BLOCK_TIME
         else:

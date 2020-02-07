@@ -24,7 +24,7 @@ class InvalidChainsTest(BitcoinTestFramework):
         self.extra_args = [["-whitelist=127.0.0.1"]]
 
     def next_block(self, number):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:

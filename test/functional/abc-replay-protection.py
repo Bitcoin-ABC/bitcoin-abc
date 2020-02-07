@@ -64,7 +64,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
                             "-replayprotectionactivationtime={}".format(REPLAY_PROTECTION_START_TIME)]]
 
     def next_block(self, number):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:

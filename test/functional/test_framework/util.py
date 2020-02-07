@@ -317,7 +317,7 @@ def rpc_port(n):
 
 def rpc_url(datadir, host, port):
     rpc_u, rpc_p = get_auth_cookie(datadir)
-    if host == None:
+    if host is None:
         host = '127.0.0.1'
     return "http://{}:{}@{}:{}".format(rpc_u, rpc_p, host, int(port))
 
@@ -407,7 +407,7 @@ def disconnect_nodes(from_node, to_node):
 
 def connect_nodes(from_node, to_node):
     host = to_node.host
-    if host == None:
+    if host is None:
         host = '127.0.0.1'
     ip_port = host + ':' + str(to_node.p2p_port)
     from_node.addnode(ip_port, "onetry")

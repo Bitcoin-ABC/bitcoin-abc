@@ -83,7 +83,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
                            ["-acceptnonstdtxn=0"]]
 
     def next_block(self, number):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = TEST_TIME
         else:

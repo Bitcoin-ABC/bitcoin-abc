@@ -90,7 +90,7 @@ class FullBlockTest(BitcoinTestFramework):
         return tx
 
     def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_sigops=0):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:
@@ -100,7 +100,7 @@ class FullBlockTest(BitcoinTestFramework):
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
         coinbase.rehash()
-        if spend == None:
+        if spend is None:
             # We need to have something to spend to fill the block.
             assert_equal(block_size, 0)
             block = create_block(base_block_hash, coinbase, block_time)
@@ -133,7 +133,7 @@ class FullBlockTest(BitcoinTestFramework):
             base_tx_size = len(tx.serialize()) + 18
 
             # If a specific script is required, add it.
-            if script != None:
+            if script is not None:
                 tx.vout.append(CTxOut(1, script))
 
             # Put some random data into the first transaction of the chain to randomize ids.

@@ -70,7 +70,7 @@ class TestNode():
             raise FileNotFoundError(
                 "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOIND=<path/to/bitcoind> {}".format(self.binary, sys.argv[0]))
         self.coverage_dir = coverage_dir
-        if extra_conf != None:
+        if extra_conf is not None:
             append_config(datadir, extra_conf)
         # Most callers will just need to add extra args to the default list
         # below.

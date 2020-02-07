@@ -104,7 +104,7 @@ class FullBlockTest(BitcoinTestFramework):
         return tx
 
     def next_block(self, number, spend=None, additional_coinbase_value=0, script=CScript([OP_TRUE])):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:
@@ -115,7 +115,7 @@ class FullBlockTest(BitcoinTestFramework):
         coinbase = create_coinbase(height, self.coinbase_pubkey)
         coinbase.vout[0].nValue += additional_coinbase_value
         coinbase.rehash()
-        if spend == None:
+        if spend is None:
             block = create_block(base_block_hash, coinbase, block_time)
         else:
             # all but one satoshi to fees

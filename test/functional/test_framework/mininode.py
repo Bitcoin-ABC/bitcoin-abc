@@ -174,7 +174,7 @@ class P2PConnection(asyncio.Protocol):
 
         while True:
             msg = self._on_data()
-            if msg == None:
+            if msg is None:
                 break
             self.on_message(msg)
 

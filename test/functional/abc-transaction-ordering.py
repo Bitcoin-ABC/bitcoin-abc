@@ -54,7 +54,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         block.vtx.extend(tx_list)
 
     def next_block(self, number, spend=None, tx_count=0):
-        if self.tip == None:
+        if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:
@@ -64,7 +64,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
         coinbase.rehash()
-        if spend == None:
+        if spend is None:
             # We need to have something to spend to fill the block.
             block = create_block(base_block_hash, coinbase, block_time)
         else:
