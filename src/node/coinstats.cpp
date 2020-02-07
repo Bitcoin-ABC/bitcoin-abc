@@ -23,8 +23,8 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
     for (const auto &output : outputs) {
         ss << VARINT(output.first + 1);
         ss << output.second.GetTxOut().scriptPubKey;
-        ss << VARINT(output.second.GetTxOut().nValue / SATOSHI,
-                     VarIntMode::NONNEGATIVE_SIGNED);
+        ss << VARINT_MODE(output.second.GetTxOut().nValue / SATOSHI,
+                          VarIntMode::NONNEGATIVE_SIGNED);
         stats.nTransactionOutputs++;
         stats.nTotalAmount += output.second.GetTxOut().nValue;
         stats.nBogoSize +=
