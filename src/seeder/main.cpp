@@ -512,7 +512,7 @@ int main(int argc, char **argv) {
     if (opts.fUseTestNet) {
         printf("Using testnet.\n");
         netMagic[0] = 0xf4;
-        netMagic[1] = 0xe5;
+        netMagic[1] = 0xb5;
         netMagic[2] = 0xf3;
         netMagic[3] = 0xf4;
         seeds = testnet_seeds;
