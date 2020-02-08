@@ -620,6 +620,7 @@ public:
         std::swap(nFlags, check.nFlags);
         std::swap(cacheStore, check.cacheStore);
         std::swap(error, check.error);
+        std::swap(metrics, check.metrics);
         std::swap(txdata, check.txdata);
         std::swap(pLimitSigChecks, check.pLimitSigChecks);
     }
