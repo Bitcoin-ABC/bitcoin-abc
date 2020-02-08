@@ -28,6 +28,7 @@
 #include <util/system.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include <versionbitsinfo.h> // For VersionBitsDeploymentInfo
 #include <warnings.h>
 
 #include <boost/algorithm/string.hpp>
@@ -1275,7 +1276,6 @@ static UniValue verifychain(const Config &config,
 }
 
 static void BIP9SoftForkDescPushBack(UniValue &softforks,
-                                     const std::string &name,
                                      const Consensus::Params &consensusParams,
                                      Consensus::DeploymentPos id)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
@@ -1334,7 +1334,7 @@ static void BIP9SoftForkDescPushBack(UniValue &softforks,
     }
     rv.pushKV("active", ThresholdState::ACTIVE == thresholdState);
 
-    softforks.pushKV(name, rv);
+    softforks.pushKV(VersionBitsDeploymentInfo[id].name, rv);
 }
 
 UniValue getblockchaininfo(const Config &config,
@@ -1384,9 +1384,11 @@ UniValue getblockchaininfo(const Config &config,
 
     LOCK(cs_main);
 
+    const CChainParams &chainparams = config.GetChainParams();
+
     const CBlockIndex *tip = chainActive.Tip();
     UniValue obj(UniValue::VOBJ);
-    obj.pushKV("chain", config.GetChainParams().NetworkIDString());
+    obj.pushKV("chain", chainparams.NetworkIDString());
     obj.pushKV("blocks", int(chainActive.Height()));
     obj.pushKV("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1);
     obj.pushKV("bestblockhash", tip->GetBlockHash().GetHex());
@@ -1417,9 +1419,10 @@ UniValue getblockchaininfo(const Config &config,
     }
 
     UniValue softforks(UniValue::VOBJ);
-    BIP9SoftForkDescPushBack(softforks, "testdummy",
-                             config.GetChainParams().GetConsensus(),
-                             Consensus::DEPLOYMENT_TESTDUMMY);
+    for (int i = 0; i < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; i++) {
+        BIP9SoftForkDescPushBack(softforks, chainparams.GetConsensus(),
+                                 Consensus::DeploymentPos(i));
+    }
     obj.pushKV("softforks", softforks);
 
     obj.pushKV("warnings", GetWarnings("statusbar"));
