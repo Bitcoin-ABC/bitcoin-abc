@@ -17,8 +17,8 @@
             "version": ">=1.3.4",
             "include": "(\\.py$)",
             "flags": [
-                "--select=E,W",
-                "--aggressive"
+                "--aggressive",
+                "--ignore=W503,W504"
             ]
         },
         "flake8": {
@@ -26,7 +26,6 @@
             "version": ">=3.0",
             "include": "(\\.py$)",
             "flags": [
-                "--select=E,W,F",
                 "--ignore=E501,E704,W503,W504"
             ]
         },
