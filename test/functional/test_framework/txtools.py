@@ -44,7 +44,8 @@ def pad_tx(tx, pad_to_size=MIN_TX_SIZE):
         if next_iteration_padding > 0 and next_iteration_padding < extra_bytes:
             padding_len += next_iteration_padding
 
-        # If we're at exactly, or below, extra_bytes we don't want a 1 extra byte padding
+        # If we're at exactly, or below, extra_bytes we don't want a 1 extra
+        # byte padding
         if padding_len <= extra_bytes:
             tx.vout.append(CTxOut(0, CScript([OP_RETURN])))
         else:

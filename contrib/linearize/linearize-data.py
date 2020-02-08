@@ -145,7 +145,8 @@ class BlockDataCopier:
 
     def writeBlock(self, inhdr, blk_hdr, rawblock):
         blockSizeOnDisk = len(inhdr) + len(blk_hdr) + len(rawblock)
-        if not self.fileOutput and ((self.outsz + blockSizeOnDisk) > self.maxOutSz):
+        if not self.fileOutput and (
+                (self.outsz + blockSizeOnDisk) > self.maxOutSz):
             self.outF.close()
             if self.setFileTime:
                 os.utime(self.outFname, (int(time.time()), self.highTS))
@@ -203,7 +204,8 @@ class BlockDataCopier:
         '''Find the next block to be written in the input, and copy it to the output.'''
         extent = self.blockExtents.pop(self.blkCountOut)
         if self.blkCountOut in self.outOfOrderData:
-            # If the data is cached, use it from memory and remove from the cache
+            # If the data is cached, use it from memory and remove from the
+            # cache
             rawblock = self.outOfOrderData.pop(self.blkCountOut)
             self.outOfOrderSize -= len(rawblock)
         else:  # Otherwise look up data on disk
@@ -243,7 +245,8 @@ class BlockDataCopier:
             self.hash_str = calc_hash_str(blk_hdr)
             if self.hash_str not in blkmap:
                 # Because blocks can be written to files out-of-order as of 0.10, the script
-                # may encounter blocks it doesn't know about. Treat as debug output.
+                # may encounter blocks it doesn't know about. Treat as debug
+                # output.
                 if settings['debug_output'] == 'true':
                     print("Skipping unknown block " + self.hash_str)
                 self.inF.seek(inLen, os.SEEK_CUR)

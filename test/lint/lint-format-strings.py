@@ -64,7 +64,8 @@ def parse_function_calls(function_name, source_code):
     lines = [re.sub("// .*", " ", line).strip()
              for line in source_code.split("\n")
              if not line.strip().startswith("#")]
-    return re.findall(r"[^a-zA-Z_](?=({}\(.*).*)".format(function_name), " " + " ".join(lines))
+    return re.findall(
+        r"[^a-zA-Z_](?=({}\(.*).*)".format(function_name), " " + " ".join(lines))
 
 
 def normalize(s):
@@ -230,7 +231,8 @@ def count_format_specifiers(format_string):
     n = 0
     in_specifier = False
     for i, char in enumerate(format_string):
-        if format_string[i - 1:i + 1] == "%%" or format_string[i:i + 2] == "%%":
+        if format_string[i - 1:i +
+                         1] == "%%" or format_string[i:i + 2] == "%%":
             pass
         elif char == "%":
             in_specifier = True
@@ -267,8 +269,10 @@ def main(args_in):
 
     for f in args.file:
         file_content = f.read()
-        for (function_name, skip_arguments) in FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS:
-            for function_call_str in parse_function_calls(function_name, file_content):
+        for (function_name,
+             skip_arguments) in FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS:
+            for function_call_str in parse_function_calls(
+                    function_name, file_content):
                 parts = parse_function_call_and_arguments(
                     function_name, function_call_str)
                 relevant_function_call_str = unescape("".join(parts))[:512]

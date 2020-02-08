@@ -137,7 +137,8 @@ class AssumeValidTest(BitcoinTestFramework):
             self.block_time += 1
             height += 1
 
-        # Create a transaction spending the coinbase output with an invalid (null) signature
+        # Create a transaction spending the coinbase output with an invalid
+        # (null) signature
         tx = CTransaction()
         tx.vin.append(
             CTxIn(COutPoint(self.block1.vtx[0].sha256, 0), scriptSig=b""))
@@ -170,7 +171,8 @@ class AssumeValidTest(BitcoinTestFramework):
 
         self.nodes[0].disconnect_p2ps()
 
-        # Start node1 and node2 with assumevalid so they accept a block with a bad signature.
+        # Start node1 and node2 with assumevalid so they accept a block with a
+        # bad signature.
         self.start_node(1, extra_args=["-assumevalid=" + hex(block102.sha256)])
         self.start_node(2, extra_args=["-assumevalid=" + hex(block102.sha256)])
 
@@ -192,7 +194,8 @@ class AssumeValidTest(BitcoinTestFramework):
         # Send all blocks to node1. All blocks will be accepted.
         for i in range(2202):
             p2p1.send_message(msg_block(self.blocks[i]))
-        # Syncing 2200 blocks can take a while on slow systems. Give it plenty of time to sync.
+        # Syncing 2200 blocks can take a while on slow systems. Give it plenty
+        # of time to sync.
         p2p1.sync_with_ping(960)
         assert_equal(self.nodes[1].getblock(
             self.nodes[1].getbestblockhash())['height'], 2202)

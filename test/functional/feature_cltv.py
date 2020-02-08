@@ -144,7 +144,8 @@ class BIP65Test(BitcoinTestFramework):
         fundtx, spendtx = cltv_lock_to_height(
             self.nodes[0], fundtx, self.nodeaddress, 49.98)
 
-        # The funding tx only has unexecuted bad CLTV, in scriptpubkey; this is valid.
+        # The funding tx only has unexecuted bad CLTV, in scriptpubkey; this is
+        # valid.
         self.nodes[0].p2p.send_and_ping(msg_tx(fundtx))
         assert fundtx.hash in self.nodes[0].getrawmempool()
 

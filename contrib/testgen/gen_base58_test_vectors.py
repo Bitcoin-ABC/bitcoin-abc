@@ -72,7 +72,8 @@ def gen_valid_vectors():
             yield (rv, hexrepr, metadata)
 
 
-def gen_invalid_vector(template, corrupt_prefix, randomize_payload_size, corrupt_suffix):
+def gen_invalid_vector(template, corrupt_prefix,
+                       randomize_payload_size, corrupt_suffix):
     '''Generate possibly invalid vector'''
     if corrupt_prefix:
         prefix = os.urandom(1)

@@ -97,13 +97,15 @@ class FullBlockTest(BitcoinTestFramework):
         tx.vin[0].scriptSig = CScript(
             [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
-    def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
+    def create_and_sign_transaction(
+            self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, n, value, script)
         self.sign_tx(tx, spend_tx, n)
         tx.rehash()
         return tx
 
-    def next_block(self, number, spend=None, additional_coinbase_value=0, script=CScript([OP_TRUE])):
+    def next_block(self, number, spend=None,
+                   additional_coinbase_value=0, script=CScript([OP_TRUE])):
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1

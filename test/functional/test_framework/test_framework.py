@@ -272,9 +272,11 @@ class BitcoinTestFramework():
         """Tests must override this method to define test logic"""
         raise NotImplementedError
 
-    # Public helper methods. These can be accessed by the subclass test scripts.
+    # Public helper methods. These can be accessed by the subclass test
+    # scripts.
 
-    def add_nodes(self, num_nodes, extra_args=None, *, rpchost=None, binary=None):
+    def add_nodes(self, num_nodes, extra_args=None,
+                  *, rpchost=None, binary=None):
         """Instantiate TestNode objects.
 
         Should only be called once after the nodes have been specified in
@@ -388,7 +390,8 @@ class BitcoinTestFramework():
             sync_blocks(group)
             sync_mempools(group)
 
-    # Private helper methods. These should not be accessed by the subclass test scripts.
+    # Private helper methods. These should not be accessed by the subclass
+    # test scripts.
 
     def _start_logging(self):
         # Add logger and logging handlers
@@ -406,7 +409,8 @@ class BitcoinTestFramework():
         ll = int(self.options.loglevel) if self.options.loglevel.isdigit(
         ) else self.options.loglevel.upper()
         ch.setLevel(ll)
-        # Format logs the same as bitcoind's debug.log with microprecision (so log files can be concatenated and sorted)
+        # Format logs the same as bitcoind's debug.log with microprecision (so
+        # log files can be concatenated and sorted)
         formatter = logging.Formatter(
             fmt='%(asctime)s.%(msecs)03d000Z %(name)s (%(levelname)s): %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
         formatter.converter = time.gmtime
@@ -505,7 +509,8 @@ class BitcoinTestFramework():
             self.mocktime = 0
 
             def cache_path(n, *paths):
-                return os.path.join(get_datadir_path(self.options.cachedir, n), "regtest", *paths)
+                return os.path.join(get_datadir_path(
+                    self.options.cachedir, n), "regtest", *paths)
 
             for i in range(MAX_NODES):
                 # Remove empty wallets dir

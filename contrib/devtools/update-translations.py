@@ -35,7 +35,9 @@ MIN_NUM_MESSAGES = 10
 def check_at_repository_root():
     if not os.path.exists('.git'):
         print('No .git directory found')
-        print('Execute this script at the root of the repository', file=sys.stderr)
+        print(
+            'Execute this script at the root of the repository',
+            file=sys.stderr)
         sys.exit(1)
 
 
@@ -76,7 +78,8 @@ def split_format_specifiers(specifiers):
     if numeric:
         other = []
 
-    # numeric (Qt) can be present in any order, others (strprintf) must be in specified order
+    # numeric (Qt) can be present in any order, others (strprintf) must be in
+    # specified order
     return set(numeric), other
 
 
@@ -99,8 +102,10 @@ def check_format_specifiers(source, translation, errors, numerus):
         return False
     else:
         if source_f != translation_f:
-            if numerus and source_f == (set(), ['n']) and translation_f == (set(), []) and translation.find('%') == -1:
-                # Allow numerus translations to omit %n specifier (usually when it only has one possible value)
+            if numerus and source_f == (set(), ['n']) and translation_f == (
+                    set(), []) and translation.find('%') == -1:
+                # Allow numerus translations to omit %n specifier (usually when
+                # it only has one possible value)
                 return True
             errors.append("Mismatch between '{}' and '{}'".format(
                 sanitize_string(source), sanitize_string(translation)))
@@ -111,7 +116,8 @@ def check_format_specifiers(source, translation, errors, numerus):
 def all_ts_files(suffix=''):
     for filename in os.listdir(LOCALE_DIR):
         # process only language files, and do not process source language
-        if not filename.endswith('.ts' + suffix) or filename == SOURCE_LANG + suffix:
+        if not filename.endswith(
+                '.ts' + suffix) or filename == SOURCE_LANG + suffix:
             continue
         if suffix:  # remove provided suffix
             filename = filename[0:-len(suffix)]
@@ -153,11 +159,13 @@ def postprocess_translations(reduce_diff_hacks=False):
     have_errors = False
     for (filename, filepath) in all_ts_files('.orig'):
         # pre-fixups to cope with transifex output
-        # need to override encoding because 'utf8' is not understood only 'utf-8'
+        # need to override encoding because 'utf8' is not understood only
+        # 'utf-8'
         parser = ET.XMLParser(encoding='utf-8')
         with open(filepath + '.orig', 'rb') as f:
             data = f.read()
-        # remove control characters; this must be done over the entire file otherwise the XML parser will fail
+        # remove control characters; this must be done over the entire file
+        # otherwise the XML parser will fail
         data = remove_invalid_characters(data)
         tree = ET.parse(io.BytesIO(data), parser=parser)
 
@@ -209,7 +217,8 @@ def postprocess_translations(reduce_diff_hacks=False):
             continue
 
         # write fixed-up tree
-        # if diff reduction requested, replace some XML to 'sanitize' to qt formatting
+        # if diff reduction requested, replace some XML to 'sanitize' to qt
+        # formatting
         if reduce_diff_hacks:
             out = io.BytesIO()
             tree.write(out, encoding='utf-8')

@@ -105,7 +105,8 @@ def check_ELF_RELRO(executable):
         raise IOError('Error opening file')
     for line in stdout.splitlines():
         tokens = line.split()
-        if len(tokens) > 1 and tokens[1] == '(BIND_NOW)' or (len(tokens) > 2 and tokens[1] == '(FLAGS)' and 'BIND_NOW' in tokens[2]):
+        if len(tokens) > 1 and tokens[1] == '(BIND_NOW)' or (
+                len(tokens) > 2 and tokens[1] == '(FLAGS)' and 'BIND_NOW' in tokens[2]):
             have_bindnow = True
     return have_gnu_relro and have_bindnow
 
@@ -177,7 +178,8 @@ def check_PE_HIGH_ENTROPY_VA(executable):
 def check_PE_NX(executable):
     '''NX: DllCharacteristics bit 0x100 signifies nxcompat (DEP)'''
     (arch, bits) = get_PE_dll_characteristics(executable)
-    return (bits & IMAGE_DLL_CHARACTERISTICS_NX_COMPAT) == IMAGE_DLL_CHARACTERISTICS_NX_COMPAT
+    return (
+        bits & IMAGE_DLL_CHARACTERISTICS_NX_COMPAT) == IMAGE_DLL_CHARACTERISTICS_NX_COMPAT
 
 
 CHECKS = {

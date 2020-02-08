@@ -32,7 +32,8 @@ class PSBTTest(BitcoinTestFramework):
         psbtx1 = self.nodes[0].walletcreatefundedpsbt(
             [], {self.nodes[2].getnewaddress(): 10})['psbt']
 
-        # Node 1 should not be able to add anything to it but still return the psbtx same as before
+        # Node 1 should not be able to add anything to it but still return the
+        # psbtx same as before
         psbtx = self.nodes[1].walletprocesspsbt(psbtx1)['psbt']
         assert_equal(psbtx1, psbtx)
 

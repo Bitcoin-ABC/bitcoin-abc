@@ -474,7 +474,8 @@ class CScript(bytes):
                     yield cls.__coerce_instance(instance)
             # Annoyingly on both python2 and python3 bytes.join() always
             # returns a bytes instance even when subclassed.
-            return super(CScript, cls).__new__(cls, b''.join(coerce_iterable(value)))
+            return super(CScript, cls).__new__(
+                cls, b''.join(coerce_iterable(value)))
 
     def raw_iter(self):
         """Raw iteration
@@ -639,7 +640,8 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
     if inIdx >= len(txTo.vin):
-        return (HASH_ONE, "inIdx {} out of range ({})".format(inIdx, len(txTo.vin)))
+        return (HASH_ONE, "inIdx {} out of range ({})".format(
+            inIdx, len(txTo.vin)))
     txtmp = CTransaction(txTo)
 
     for txin in txtmp.vin:
@@ -657,7 +659,8 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     elif (hashtype & 0x1f) == SIGHASH_SINGLE:
         outIdx = inIdx
         if outIdx >= len(txtmp.vout):
-            return (HASH_ONE, "outIdx {} out of range ({})".format(outIdx, len(txtmp.vout)))
+            return (HASH_ONE, "outIdx {} out of range ({})".format(
+                outIdx, len(txtmp.vout)))
 
         tmp = txtmp.vout[outIdx]
         txtmp.vout = []
@@ -697,13 +700,15 @@ def SignatureHashForkId(script, txTo, inIdx, hashtype, amount):
             serialize_prevouts += i.prevout.serialize()
         hashPrevouts = uint256_from_str(hash256(serialize_prevouts))
 
-    if (not (hashtype & SIGHASH_ANYONECANPAY) and (hashtype & 0x1f) != SIGHASH_SINGLE and (hashtype & 0x1f) != SIGHASH_NONE):
+    if (not (hashtype & SIGHASH_ANYONECANPAY) and (hashtype & 0x1f)
+            != SIGHASH_SINGLE and (hashtype & 0x1f) != SIGHASH_NONE):
         serialize_sequence = bytes()
         for i in txTo.vin:
             serialize_sequence += struct.pack("<I", i.nSequence)
         hashSequence = uint256_from_str(hash256(serialize_sequence))
 
-    if ((hashtype & 0x1f) != SIGHASH_SINGLE and (hashtype & 0x1f) != SIGHASH_NONE):
+    if ((hashtype & 0x1f) != SIGHASH_SINGLE and (
+            hashtype & 0x1f) != SIGHASH_NONE):
         serialize_outputs = bytes()
         for o in txTo.vout:
             serialize_outputs += o.serialize()

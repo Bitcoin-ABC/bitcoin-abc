@@ -95,13 +95,15 @@ class TransactionOrderingTest(BitcoinTestFramework):
             tx = get_base_transaction()
 
             # Make it the same format as transaction added for padding and save the size.
-            # It's missing the padding output, so we add a constant to account for it.
+            # It's missing the padding output, so we add a constant to account
+            # for it.
             tx.rehash()
 
             # Add the transaction to the block
             self.add_transactions_to_block(block, [tx])
 
-            # If we have a transaction count requirement, just fill the block until we get there
+            # If we have a transaction count requirement, just fill the block
+            # until we get there
             while len(block.vtx) < tx_count:
                 # Create the new transaction and add it.
                 tx = get_base_transaction()

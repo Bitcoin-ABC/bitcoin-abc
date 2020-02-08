@@ -28,7 +28,8 @@ class EstimateFeeTest(BitcoinTestFramework):
             # estimatefee is 0.00001 by default, regardless of block contents
             assert_equal(default_node.estimatefee(), Decimal('0.00001'))
 
-            # estimatefee may be different for nodes that set it in their config
+            # estimatefee may be different for nodes that set it in their
+            # config
             assert_equal(diff_relay_fee_node.estimatefee(), Decimal('0.001'))
 
             # Check the reasonableness of settxfee

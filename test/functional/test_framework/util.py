@@ -134,7 +134,8 @@ def try_rpc(code, message, fun, *args, **kwds):
     try:
         fun(*args, **kwds)
     except JSONRPCException as e:
-        # JSONRPCException was thrown as expected. Check the code and message values are correct.
+        # JSONRPCException was thrown as expected. Check the code and message
+        # values are correct.
         if (code is not None) and (code != e.error["code"]):
             raise AssertionError(
                 "Unexpected JSONRPC error code {}".format(e.error["code"]))
@@ -169,7 +170,8 @@ def assert_is_hash_string(string, length=64):
             "String {!r} contains invalid characters for a hash.".format(string))
 
 
-def assert_array_result(object_array, to_match, expected, should_not_find=False):
+def assert_array_result(object_array, to_match, expected,
+                        should_not_find=False):
     """
     Pass in array of JSON objects, a dictionary with key/value pairs
     to match against, and another dictionary with expected key/value
@@ -235,7 +237,8 @@ def satoshi_round(amount):
     return Decimal(amount).quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
 
-def wait_until(predicate, *, attempts=float('inf'), timeout=float('inf'), lock=None):
+def wait_until(predicate, *, attempts=float('inf'),
+               timeout=float('inf'), lock=None):
     if attempts == float('inf') and timeout == float('inf'):
         timeout = 60
     attempt = 0
@@ -308,11 +311,13 @@ def get_rpc_proxy(url, node_number, timeout=None, coveragedir=None):
 
 def p2p_port(n):
     assert n <= MAX_NODES
-    return PORT_MIN + n + (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+    return PORT_MIN + n + \
+        (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
 
 
 def rpc_port(n):
-    return PORT_MIN + PORT_RANGE + n + (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+    return PORT_MIN + PORT_RANGE + n + \
+        (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
 
 
 def rpc_url(datadir, host, port):
@@ -392,7 +397,8 @@ def set_node_times(nodes, t):
 
 
 def disconnect_nodes(from_node, to_node):
-    for peer_id in [peer['id'] for peer in from_node.getpeerinfo() if to_node.name in peer['subver']]:
+    for peer_id in [peer['id'] for peer in from_node.getpeerinfo(
+    ) if to_node.name in peer['subver']]:
         try:
             from_node.disconnectnode(nodeid=peer_id)
         except JSONRPCException as e:
@@ -415,8 +421,8 @@ def connect_nodes(from_node, to_node):
     from_node.addnode(ip_port, "onetry")
     # poll until version handshake complete to avoid race conditions
     # with transaction relaying
-    wait_until(lambda: all(peer['version'] !=
-                           0 for peer in from_node.getpeerinfo()))
+    wait_until(lambda: all(peer['version']
+                           != 0 for peer in from_node.getpeerinfo()))
 
 
 def connect_nodes_bi(a, b):
@@ -442,7 +448,8 @@ def sync_blocks(rpc_connections, *, wait=1, timeout=60):
         "".join("\n  {!r}".format(b) for b in best_hash)))
 
 
-def sync_mempools(rpc_connections, *, wait=1, timeout=60, flush_scheduler=True):
+def sync_mempools(rpc_connections, *, wait=1,
+                  timeout=60, flush_scheduler=True):
     """
     Wait until everybody has the same transactions in their memory
     pools

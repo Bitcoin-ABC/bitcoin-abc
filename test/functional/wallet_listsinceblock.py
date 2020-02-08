@@ -187,7 +187,8 @@ class ListSinceBlockTest (BitcoinTestFramework):
         assert self.nodes[0].gettransaction(
             txid1)['txid'] == txid1, "gettransaction failed to find txid1"
 
-        # listsinceblock(lastblockhash) should now include txid1, as seen from nodes[0]
+        # listsinceblock(lastblockhash) should now include txid1, as seen from
+        # nodes[0]
         lsbres = self.nodes[0].listsinceblock(lastblockhash)
         assert any(tx['txid'] == txid1 for tx in lsbres['removed'])
 

@@ -127,11 +127,13 @@ class CECKey():
 
     def set_privkey(self, key):
         self.mb = ctypes.create_string_buffer(key)
-        return ssl.d2i_ECPrivateKey(ctypes.byref(self.k), ctypes.byref(ctypes.pointer(self.mb)), len(key))
+        return ssl.d2i_ECPrivateKey(ctypes.byref(
+            self.k), ctypes.byref(ctypes.pointer(self.mb)), len(key))
 
     def set_pubkey(self, key):
         self.mb = ctypes.create_string_buffer(key)
-        return ssl.o2i_ECPublicKey(ctypes.byref(self.k), ctypes.byref(ctypes.pointer(self.mb)), len(key))
+        return ssl.o2i_ECPublicKey(ctypes.byref(
+            self.k), ctypes.byref(ctypes.pointer(self.mb)), len(key))
 
     def get_privkey(self):
         size = ssl.i2d_ECPrivateKey(self.k, 0)
@@ -154,7 +156,8 @@ class CECKey():
             raise Exception('CKey.get_ecdh_key(): ECDH_compute_key() failed')
         return ecdh_keybuffer.raw
 
-    def get_ecdh_key(self, other_pubkey, kdf=lambda k: hashlib.sha256(k).digest()):
+    def get_ecdh_key(self, other_pubkey,
+                     kdf=lambda k: hashlib.sha256(k).digest()):
         # FIXME: be warned it's not clear what the kdf should be as a default
         r = self.get_raw_ecdh_key(other_pubkey)
         return kdf(r)
@@ -187,13 +190,15 @@ class CECKey():
         else:
             low_s_value = SECP256K1_ORDER - s_value
             low_s_bytes = (low_s_value).to_bytes(33, byteorder='big')
-            while len(low_s_bytes) > 1 and low_s_bytes[0] == 0 and low_s_bytes[1] < 0x80:
+            while len(
+                    low_s_bytes) > 1 and low_s_bytes[0] == 0 and low_s_bytes[1] < 0x80:
                 low_s_bytes = low_s_bytes[1:]
             new_s_size = len(low_s_bytes)
             new_total_size_byte = (
                 total_size + new_s_size - s_size).to_bytes(1, byteorder='big')
             new_s_size_byte = (new_s_size).to_bytes(1, byteorder='big')
-            return b'\x30' + new_total_size_byte + mb_sig.raw[2:5 + r_size] + new_s_size_byte + low_s_bytes
+            return b'\x30' + new_total_size_byte + \
+                mb_sig.raw[2:5 + r_size] + new_s_size_byte + low_s_bytes
 
     def verify(self, hash, sig):
         """Verify a DER signature"""
@@ -240,4 +245,5 @@ class CPubKey(bytes):
         return repr(self)
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, super(CPubKey, self).__repr__())
+        return '{}({})'.format(self.__class__.__name__,
+                               super(CPubKey, self).__repr__())

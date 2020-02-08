@@ -36,7 +36,8 @@ def msg_bad_checksum(connection, original_message):
 
 
 class BadVersionP2PInterface(P2PInterface):
-    def peer_connect(self, *args, services=NODE_NETWORK, send_version=False, **kwargs):
+    def peer_connect(self, *args, services=NODE_NETWORK,
+                     send_version=False, **kwargs):
         create_conn = super().peer_connect(*args, send_version=send_version, **kwargs)
 
         # Send version message with invalid checksum

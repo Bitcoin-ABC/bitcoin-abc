@@ -56,7 +56,8 @@ class TestNode():
     To make things easier for the test writer, any unrecognised messages will
     be dispatched to the RPC connection."""
 
-    def __init__(self, i, datadir, *, host, rpc_port, p2p_port, timewait, bitcoind, bitcoin_cli, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
+    def __init__(self, i, datadir, *, host, rpc_port, p2p_port, timewait, bitcoind,
+                 bitcoin_cli, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
         self.index = i
         self.datadir = datadir
         self.stdout_dir = os.path.join(self.datadir, "stdout")
@@ -178,7 +179,8 @@ class TestNode():
             self.default_args = [def_arg for def_arg in self.default_args
                                  if rm_arg != def_arg and not def_arg.startswith(rm_arg + '=')]
 
-    def start(self, extra_args=None, stdout=None, stderr=None, *args, **kwargs):
+    def start(self, extra_args=None, stdout=None,
+              stderr=None, *args, **kwargs):
         """Start the node."""
         if extra_args is None:
             extra_args = self.extra_args
@@ -198,7 +200,8 @@ class TestNode():
         # potentially interfere with our attempt to authenticate
         delete_cookie_file(self.datadir)
 
-        # add environment variable LIBC_FATAL_STDERR_=1 so that libc errors are written to stderr and not the terminal
+        # add environment variable LIBC_FATAL_STDERR_=1 so that libc errors are
+        # written to stderr and not the terminal
         subp_env = dict(os.environ, LIBC_FATAL_STDERR_="1")
 
         self.process = subprocess.Popen(
@@ -219,7 +222,8 @@ class TestNode():
                 rpc = get_rpc_proxy(rpc_url(self.datadir, self.host, self.rpc_port),
                                     self.index, timeout=self.rpc_timeout, coveragedir=self.coverage_dir)
                 rpc.getblockcount()
-                # If the call to getblockcount() succeeds then the RPC connection is up
+                # If the call to getblockcount() succeeds then the RPC
+                # connection is up
                 self.log.debug("RPC successfully started")
                 if self.use_cli:
                     return
@@ -309,11 +313,13 @@ class TestNode():
                 log = dl.read()
             print_log = " - " + "\n - ".join(log.splitlines())
             for expected_msg in expected_msgs:
-                if re.search(re.escape(expected_msg), log, flags=re.MULTILINE) is None:
+                if re.search(re.escape(expected_msg), log,
+                             flags=re.MULTILINE) is None:
                     self._raise_assertion_error(
                         'Expected message "{}" does not partially match log:\n\n{}\n\n'.format(expected_msg, print_log))
 
-    def assert_start_raises_init_error(self, extra_args=None, expected_msg=None, match=ErrorMatch.FULL_TEXT, *args, **kwargs):
+    def assert_start_raises_init_error(
+            self, extra_args=None, expected_msg=None, match=ErrorMatch.FULL_TEXT, *args, **kwargs):
         """Attempt to start the node and expect it to raise an error.
 
         extra_args: extra arguments to pass through to bitcoind
@@ -338,7 +344,8 @@ class TestNode():
                     log_stderr.seek(0)
                     stderr = log_stderr.read().decode('utf-8').strip()
                     if match == ErrorMatch.PARTIAL_REGEX:
-                        if re.search(expected_msg, stderr, flags=re.MULTILINE) is None:
+                        if re.search(expected_msg, stderr,
+                                     flags=re.MULTILINE) is None:
                             self._raise_assertion_error(
                                 'Expected message "{}" does not partially match stderr:\n"{}"'.format(expected_msg, stderr))
                     elif match == ErrorMatch.FULL_REGEX:

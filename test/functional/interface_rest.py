@@ -49,7 +49,8 @@ class RESTTest (BitcoinTestFramework):
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
 
-    def test_rest_request(self, uri, http_method='GET', req_type=ReqType.JSON, body='', status=200, ret_type=RetType.JSON):
+    def test_rest_request(self, uri, http_method='GET', req_type=ReqType.JSON,
+                          body='', status=200, ret_type=RetType.JSON):
         rest_uri = '/rest' + uri
         if req_type == ReqType.JSON:
             rest_uri += '.json'
@@ -166,7 +167,8 @@ class RESTTest (BitcoinTestFramework):
         # Do a tx and don't sync
         txid = self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 0.1)
         json_obj = self.test_rest_request("/tx/{}".format(txid))
-        # Get the spent output to later check for utxo (should be spent by then)
+        # Get the spent output to later check for utxo (should be spent by
+        # then)
         spent = (json_obj['vin'][0]['txid'], json_obj['vin'][0]['vout'])
         # Get n of 0.1 outpoint
         n, = filter_output_indices_by_value(json_obj['vout'], Decimal('0.1'))
@@ -263,7 +265,8 @@ class RESTTest (BitcoinTestFramework):
 
         # Compare with normal RPC block response
         rpc_block_json = self.nodes[0].getblock(bb_hash)
-        for key in ['hash', 'confirmations', 'height', 'version', 'merkleroot', 'time', 'nonce', 'bits', 'difficulty', 'chainwork', 'previousblockhash']:
+        for key in ['hash', 'confirmations', 'height', 'version', 'merkleroot',
+                    'time', 'nonce', 'bits', 'difficulty', 'chainwork', 'previousblockhash']:
             assert_equal(json_obj[0][key], rpc_block_json[key])
 
         # See if we can get 5 headers in one response

@@ -58,7 +58,8 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
             hex(self.nodes[0].getblockcount() + 2)[2:] + "000000"
         timelock_tx = self.nodes[0].signrawtransactionwithwallet(timelock_tx)[
             "hex"]
-        # This will raise an exception because the timelock transaction is too immature to spend
+        # This will raise an exception because the timelock transaction is too
+        # immature to spend
         assert_raises_rpc_error(-26, "bad-txns-nonfinal",
                                 self.nodes[0].sendrawtransaction, timelock_tx)
 
@@ -94,7 +95,8 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         for node in self.nodes:
             node.invalidateblock(last_block[0])
         # Time-locked transaction is now too immature and has been removed from the mempool
-        # spend_103_1 has been re-orged out of the chain and is back in the mempool
+        # spend_103_1 has been re-orged out of the chain and is back in the
+        # mempool
         assert_equal(set(self.nodes[0].getrawmempool()), {
                      spend_101_id, spend_102_1_id, spend_103_1_id})
 

@@ -103,7 +103,8 @@ class BlockchainTest(BitcoinTestFramework):
                     'status': 'started',
                     'bit': 28,
                     'start_time': 0,
-                    # testdummy does not have a timeout so is set to the max int64 value
+                    # testdummy does not have a timeout so is set to the max
+                    # int64 value
                     'timeout': 0x7fffffffffffffff,
                     'since': 144,
                     'statistics': {

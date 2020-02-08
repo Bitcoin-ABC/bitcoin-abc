@@ -209,11 +209,13 @@ class RawTransactionsTest(BitcoinTestFramework):
         tx = self.nodes[2].sendtoaddress(self.nodes[1].getnewaddress(), 1)
         block1, block2 = self.nodes[2].generate(2)
         self.sync_all()
-        # We should be able to get the raw transaction by providing the correct block
+        # We should be able to get the raw transaction by providing the correct
+        # block
         gottx = self.nodes[0].getrawtransaction(tx, True, block1)
         assert_equal(gottx['txid'], tx)
         assert_equal(gottx['in_active_chain'], True)
-        # We should not have the 'in_active_chain' flag when we don't provide a block
+        # We should not have the 'in_active_chain' flag when we don't provide a
+        # block
         gottx = self.nodes[0].getrawtransaction(tx, True)
         assert_equal(gottx['txid'], tx)
         assert 'in_active_chain' not in gottx
@@ -253,7 +255,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         # createmultisig can only take public keys
         self.nodes[0].createmultisig(
             2, [addr1Obj['pubkey'], addr2Obj['pubkey']])
-        # addmultisigaddress can take both pubkeys and addresses so long as they are in the wallet, which is tested here.
+        # addmultisigaddress can take both pubkeys and addresses so long as
+        # they are in the wallet, which is tested here.
         assert_raises_rpc_error(-5, "Invalid public key",
                                 self.nodes[0].createmultisig, 2, [addr1Obj['pubkey'], addr1])
 
@@ -487,14 +490,16 @@ class RawTransactionsTest(BitcoinTestFramework):
         # TRANSACTION VERSION NUMBER TESTS #
         ####################################
 
-        # Test the minimum transaction version number that fits in a signed 32-bit integer.
+        # Test the minimum transaction version number that fits in a signed
+        # 32-bit integer.
         tx = CTransaction()
         tx.nVersion = -0x80000000
         rawtx = ToHex(tx)
         decrawtx = self.nodes[0].decoderawtransaction(rawtx)
         assert_equal(decrawtx['version'], -0x80000000)
 
-        # Test the maximum transaction version number that fits in a signed 32-bit integer.
+        # Test the maximum transaction version number that fits in a signed
+        # 32-bit integer.
         tx = CTransaction()
         tx.nVersion = 0x7fffffff
         rawtx = ToHex(tx)

@@ -241,7 +241,8 @@ class MempoolLimitSigopsTest(BitcoinTestFramework):
 
         self.log.info(
             "Broadcasting regular transactions will push out the high-sigops txns.")
-        # We can broadcast a bunch of regular txes. They need to pay a bit more fee (1.5 sat/vbyte) than the floor.
+        # We can broadcast a bunch of regular txes. They need to pay a bit more
+        # fee (1.5 sat/vbyte) than the floor.
         for i in range(15):
             spendfrom = self.spendable_outputs.popleft()
             ctx = create_var_transaction(spendfrom, b'', 100000, 150000)
@@ -264,7 +265,8 @@ class MempoolLimitSigopsTest(BitcoinTestFramework):
 
         self.log.info(
             'Reset the mempool fee floor (currently, restarting the node achieves this).')
-        # could also be done by setting mocktime in future (the floor decays over a period of hours)
+        # could also be done by setting mocktime in future (the floor decays
+        # over a period of hours)
         self.restart_node(0, self.extra_args[0])
         (node,) = self.nodes
         node.add_p2p_connection(P2PDataStore())

@@ -249,7 +249,8 @@ def main():
 
     args.sign_prog = 'true' if args.detach_sign else 'gpg --detach-sign'
 
-    # Set environment variable USE_LXC or USE_DOCKER, let gitian-builder know that we use lxc or docker
+    # Set environment variable USE_LXC or USE_DOCKER, let gitian-builder know
+    # that we use lxc or docker
     if args.docker:
         os.environ['USE_DOCKER'] = '1'
     elif not args.kvm:
@@ -260,7 +261,8 @@ def main():
             os.environ['LXC_GUEST_IP'] = '10.0.3.5'
 
     # Disable for MacOS if no SDK found
-    if args.macos and not os.path.isfile('gitian-builder/inputs/MacOSX10.11.sdk.tar.gz'):
+    if args.macos and not os.path.isfile(
+            'gitian-builder/inputs/MacOSX10.11.sdk.tar.gz'):
         print('Cannot build for MacOS, SDK does not exist. Will build for other OSes')
         args.macos = False
 

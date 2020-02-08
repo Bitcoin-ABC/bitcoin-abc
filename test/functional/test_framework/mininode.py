@@ -103,7 +103,8 @@ class P2PConnection(asyncio.Protocol):
 
     def __init__(self):
         # The underlying transport of the connection.
-        # Should only call methods on this from the NetworkThread, c.f. call_soon_threadsafe
+        # Should only call methods on this from the NetworkThread, c.f.
+        # call_soon_threadsafe
         self._transport = None
 
     @property
@@ -302,7 +303,8 @@ class P2PInterface(P2PConnection):
         # The network services received from the peer
         self.nServices = 0
 
-    def peer_connect(self, *args, services=NODE_NETWORK, send_version=True, **kwargs):
+    def peer_connect(self, *args, services=NODE_NETWORK,
+                     send_version=True, **kwargs):
         create_conn = super().peer_connect(*args, **kwargs)
 
         if send_version:
@@ -489,7 +491,8 @@ class NetworkThread(threading.Thread):
 
     def __init__(self):
         super().__init__(name="NetworkThread")
-        # There is only one event loop and no more than one thread must be created
+        # There is only one event loop and no more than one thread must be
+        # created
         assert not self.network_event_loop
 
         NetworkThread.network_event_loop = asyncio.new_event_loop()
@@ -568,7 +571,8 @@ class P2PDataStore(P2PInterface):
         if response is not None:
             self.send_message(response)
 
-    def send_blocks_and_test(self, blocks, node, *, success=True, request_block=True, reject_reason=None, expect_disconnect=False, timeout=60):
+    def send_blocks_and_test(self, blocks, node, *, success=True, request_block=True,
+                             reject_reason=None, expect_disconnect=False, timeout=60):
         """Send blocks to test node and test whether the tip advances.
 
          - add all blocks to our block_store
@@ -599,12 +603,13 @@ class P2PDataStore(P2PInterface):
                 self.sync_with_ping()
 
             if success:
-                wait_until(lambda: node.getbestblockhash() ==
-                           blocks[-1].hash, timeout=timeout)
+                wait_until(lambda: node.getbestblockhash()
+                           == blocks[-1].hash, timeout=timeout)
             else:
                 assert node.getbestblockhash() != blocks[-1].hash
 
-    def send_txs_and_test(self, txs, node, *, success=True, expect_disconnect=False, reject_reason=None):
+    def send_txs_and_test(self, txs, node, *, success=True,
+                          expect_disconnect=False, reject_reason=None):
         """Send txs to test node and test whether they're accepted to the mempool.
 
          - add all txs to our tx_store

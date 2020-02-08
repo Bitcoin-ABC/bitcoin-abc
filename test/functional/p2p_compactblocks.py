@@ -183,7 +183,8 @@ class CompactBlocksTest(BitcoinTestFramework):
     #   are made with compact blocks.
     # If old_node is passed in, request compact blocks with version=preferred-1
     # and verify that it receives block announcements via compact block.
-    def test_sendcmpct(self, node, test_node, preferred_version, old_node=None):
+    def test_sendcmpct(self, node, test_node,
+                       preferred_version, old_node=None):
         # Make sure we get a SENDCMPCT message from our peer
         def received_sendcmpct():
             return (len(test_node.last_sendcmpct) > 0)
@@ -365,7 +366,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         self.check_compactblock_construction_from_block(
             header_and_shortids, block_hash, block)
 
-    def check_compactblock_construction_from_block(self, header_and_shortids, block_hash, block):
+    def check_compactblock_construction_from_block(
+            self, header_and_shortids, block_hash, block):
         # Check that we got the right block!
         header_and_shortids.header.calc_sha256()
         assert_equal(header_and_shortids.header.sha256, block_hash)
@@ -789,7 +791,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         msg.announce = True
         peer.send_and_ping(msg)
 
-    def test_compactblock_reconstruction_multiple_peers(self, node, stalling_peer, delivery_peer):
+    def test_compactblock_reconstruction_multiple_peers(
+            self, node, stalling_peer, delivery_peer):
         assert len(self.utxos)
 
         def announce_cmpct_block(node, peer):

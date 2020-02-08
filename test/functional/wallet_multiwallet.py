@@ -122,7 +122,8 @@ class MultiWalletTest(BitcoinTestFramework):
         w5 = wallet("w5")
         w5.generate(1)
 
-        # now if wallets/ exists again, but the rootdir is specified as the walletdir, w4 and w5 should still be loaded
+        # now if wallets/ exists again, but the rootdir is specified as the
+        # walletdir, w4 and w5 should still be loaded
         os.rename(wallet_dir2, wallet_dir())
         self.restart_node(0, ['-wallet=w4', '-wallet=w5',
                               '-walletdir=' + data_dir()])
@@ -225,7 +226,8 @@ class MultiWalletTest(BitcoinTestFramework):
         assert_raises_rpc_error(-4, 'Wallet file verification failed: Error loading wallet w1. Duplicate -wallet filename specified.',
                                 self.nodes[0].loadwallet, wallet_names[0])
 
-        # Fail to load duplicate wallets by different ways (directory and filepath)
+        # Fail to load duplicate wallets by different ways (directory and
+        # filepath)
         assert_raises_rpc_error(-4, "Wallet file verification failed: Error loading wallet wallet.dat. Duplicate -wallet filename specified.",
                                 self.nodes[0].loadwallet, 'wallet.dat')
 
@@ -234,7 +236,8 @@ class MultiWalletTest(BitcoinTestFramework):
                                 self.nodes[0].loadwallet, 'w8_copy')
 
         # Fail to load if one wallet is a copy of another.
-        # Test this twice to make sure that we don't re-introduce https://github.com/bitcoin/bitcoin/issues/14304
+        # Test this twice to make sure that we don't re-introduce
+        # https://github.com/bitcoin/bitcoin/issues/14304
         assert_raises_rpc_error(-1, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
                                 self.nodes[0].loadwallet, 'w8_copy')
 
@@ -242,7 +245,8 @@ class MultiWalletTest(BitcoinTestFramework):
         assert_raises_rpc_error(-4, "Wallet file verification failed: Invalid -wallet path 'w8_symlink'",
                                 self.nodes[0].loadwallet, 'w8_symlink')
 
-        # Fail to load if a directory is specified that doesn't contain a wallet
+        # Fail to load if a directory is specified that doesn't contain a
+        # wallet
         os.mkdir(wallet_dir('empty_wallet_dir'))
         assert_raises_rpc_error(-18, "Directory empty_wallet_dir does not contain a wallet.dat file",
                                 self.nodes[0].loadwallet, 'empty_wallet_dir')

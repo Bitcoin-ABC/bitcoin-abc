@@ -50,7 +50,8 @@ def process_commands(fname):
         for line in f:
             line = line.rstrip()
             if not in_rpcs:
-                if re.match(r"static const ContextFreeRPCCommand .*\[\] =", line):
+                if re.match(
+                        r"static const ContextFreeRPCCommand .*\[\] =", line):
                     in_rpcs = True
             else:
                 if line.startswith('};'):

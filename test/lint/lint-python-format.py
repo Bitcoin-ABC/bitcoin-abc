@@ -7,7 +7,8 @@
 # Lint python format : This program checks that the old python fomatting method
 # is not being used (formatting with "string %s" % content).
 # The new "{}".format(content) or f"{} content" method should be used instead.
-# Usage of the % formatter is expected to be deprecated by python in the future.
+# Usage of the % formatter is expected to be deprecated by python in the
+# future.
 
 import re
 import sys

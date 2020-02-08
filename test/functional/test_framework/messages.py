@@ -34,7 +34,8 @@ MIN_VERSION_SUPPORTED = 60001
 # past bip-31 for ping/pong
 MY_VERSION = 70014
 MY_SUBVERSION = b"/python-mininode-tester:0.0.3/"
-# from version 70001 onwards, fRelay should be appended to version messages (BIP37)
+# from version 70001 onwards, fRelay should be appended to version
+# messages (BIP37)
 MY_RELAY = 1
 
 MAX_INV_SZ = 50000
@@ -791,7 +792,8 @@ class CPartialMerkleTree:
         return r
 
     def __repr__(self):
-        return "CPartialMerkleTree(nTransactions={}, vHash={}, vBits={})".format(self.nTransactions, repr(self.vHash), repr(self.vBits))
+        return "CPartialMerkleTree(nTransactions={}, vHash={}, vBits={})".format(
+            self.nTransactions, repr(self.vHash), repr(self.vBits))
 
 
 class CMerkleBlock:
@@ -812,7 +814,8 @@ class CMerkleBlock:
         return r
 
     def __repr__(self):
-        return "CMerkleBlock(header={}, txn={})".format(repr(self.header), repr(self.txn))
+        return "CMerkleBlock(header={}, txn={})".format(
+            repr(self.header), repr(self.txn))
 
 
 # Objects that correspond to messages on the wire
@@ -1199,16 +1202,16 @@ class msg_reject:
         self.message = deser_string(f)
         self.code = struct.unpack("<B", f.read(1))[0]
         self.reason = deser_string(f)
-        if (self.code != self.REJECT_MALFORMED and
-                (self.message == b"block" or self.message == b"tx")):
+        if (self.code != self.REJECT_MALFORMED
+                and (self.message == b"block" or self.message == b"tx")):
             self.data = deser_uint256(f)
 
     def serialize(self):
         r = ser_string(self.message)
         r += struct.pack("<B", self.code)
         r += ser_string(self.reason)
-        if (self.code != self.REJECT_MALFORMED and
-                (self.message == b"block" or self.message == b"tx")):
+        if (self.code != self.REJECT_MALFORMED
+                and (self.message == b"block" or self.message == b"tx")):
             r += ser_uint256(self.data)
         return r
 

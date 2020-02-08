@@ -76,8 +76,8 @@ def get_block_hashes(settings, max_blocks_per_call=10000):
 
     height = settings['min_height']
     while height < settings['max_height'] + 1:
-        num_blocks = min(settings['max_height']
-                         + 1 - height, max_blocks_per_call)
+        num_blocks = min(settings['max_height'] +
+                         1 - height, max_blocks_per_call)
         batch = []
         for x in range(num_blocks):
             batch.append(rpc.build_request(x, 'getblockhash', [height + x]))
@@ -154,7 +154,8 @@ if __name__ == '__main__':
     settings['min_height'] = int(settings['min_height'])
     settings['max_height'] = int(settings['max_height'])
 
-    # Force hash byte format setting to be lowercase to make comparisons easier.
+    # Force hash byte format setting to be lowercase to make comparisons
+    # easier.
     settings['rev_hash_bytes'] = settings['rev_hash_bytes'].lower()
 
     # Get the rpc user and pass from the cookie if the datadir is set

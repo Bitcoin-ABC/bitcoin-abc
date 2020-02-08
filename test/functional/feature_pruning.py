@@ -80,7 +80,8 @@ def mine_large_blocks(node, n):
 
 
 def calc_usage(blockdir):
-    return sum(os.path.getsize(blockdir + f) for f in os.listdir(blockdir) if os.path.isfile(os.path.join(blockdir, f))) / (1024. * 1024.)
+    return sum(os.path.getsize(blockdir + f) for f in os.listdir(blockdir)
+               if os.path.isfile(os.path.join(blockdir, f))) / (1024. * 1024.)
 
 
 class PruneTest(BitcoinTestFramework):
@@ -164,7 +165,8 @@ class PruneTest(BitcoinTestFramework):
 
         for j in range(12):
             # Disconnect node 0 so it can mine a longer reorg chain without knowing about node 1's soon-to-be-stale chain
-            # Node 2 stays connected, so it hears about the stale blocks and then reorg's when node0 reconnects
+            # Node 2 stays connected, so it hears about the stale blocks and
+            # then reorg's when node0 reconnects
             disconnect_nodes(self.nodes[0], self.nodes[1])
             disconnect_nodes(self.nodes[0], self.nodes[2])
             # Mine 24 blocks in node 1
@@ -302,7 +304,8 @@ class PruneTest(BitcoinTestFramework):
 
         def height(index):
             if use_timestamp:
-                return node.getblockheader(node.getblockhash(index))["time"] + TIMESTAMP_WINDOW
+                return node.getblockheader(node.getblockhash(index))[
+                    "time"] + TIMESTAMP_WINDOW
             else:
                 return index
 
@@ -322,7 +325,8 @@ class PruneTest(BitcoinTestFramework):
                 assert_equal(ret, expected_ret)
 
         def has_block(index):
-            return os.path.isfile(os.path.join(self.nodes[node_number].datadir, "regtest", "blocks", "blk{:05}.dat".format(index)))
+            return os.path.isfile(os.path.join(
+                self.nodes[node_number].datadir, "regtest", "blocks", "blk{:05}.dat".format(index)))
 
         # should not prune because chain tip of node 3 (995) < PruneAfterHeight
         # (1000)

@@ -31,7 +31,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
 
     # Build a transaction that spends parent_txid:vout
     # Return amount sent
-    def chain_transaction(self, node, parent_txid, vout, value, fee, num_outputs):
+    def chain_transaction(self, node, parent_txid, vout,
+                          value, fee, num_outputs):
         send_value = satoshi_round((value - fee) / num_outputs)
         inputs = [{'txid': parent_txid, 'vout': vout}]
         outputs = {}
@@ -111,7 +112,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
                 self.nodes[0].getmempooldescendants(x)))
 
             # Check getmempooldescendants verbose output is correct
-            for descendant, dinfo in self.nodes[0].getmempooldescendants(x, True).items():
+            for descendant, dinfo in self.nodes[0].getmempooldescendants(
+                    x, True).items():
                 assert_equal(dinfo['depends'], [
                              chain[chain.index(descendant) - 1]])
                 if dinfo['descendantcount'] > 1:
@@ -127,7 +129,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
                 self.nodes[0].getmempoolancestors(x)))
 
             # Check that getmempoolancestors verbose output is correct
-            for ancestor, ainfo in self.nodes[0].getmempoolancestors(x, True).items():
+            for ancestor, ainfo in self.nodes[0].getmempoolancestors(
+                    x, True).items():
                 assert_equal(ainfo['spentby'], [
                              chain[chain.index(ancestor) + 1]])
                 if ainfo['ancestorcount'] > 1:
@@ -136,7 +139,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
                 else:
                     assert_equal(ainfo['depends'], [])
 
-        # Check that getmempoolancestors/getmempooldescendants correctly handle verbose=true
+        # Check that getmempoolancestors/getmempooldescendants correctly handle
+        # verbose=true
         v_ancestors = self.nodes[0].getmempoolancestors(chain[-1], True)
         assert_equal(len(v_ancestors), len(chain) - 1)
         for x in v_ancestors.keys():
@@ -193,7 +197,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
         # Keep node1's tip synced with node0
         self.nodes[1].invalidateblock(self.nodes[1].getbestblockhash())
 
-        # Now check that the transaction is in the mempool, with the right modified fee
+        # Now check that the transaction is in the mempool, with the right
+        # modified fee
         mempool = self.nodes[0].getrawmempool(True)
 
         descendant_fees = 0
@@ -228,7 +233,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
             transaction_package.append(
                 {'txid': txid, 'vout': i, 'amount': sent_value})
 
-        # Sign and send up to MAX_DESCENDANT transactions chained off the parent tx
+        # Sign and send up to MAX_DESCENDANT transactions chained off the
+        # parent tx
         for i in range(MAX_DESCENDANTS - 1):
             utxo = transaction_package.pop(0)
             (txid, sent_value) = self.chain_transaction(

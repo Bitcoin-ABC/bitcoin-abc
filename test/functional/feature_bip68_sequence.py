@@ -204,7 +204,8 @@ class BIP68Test(BitcoinTestFramework):
                     # can only timelock this input if it's not too old --
                     # otherwise use height
                     can_time_lock = True
-                    if ((cur_time - orig_time) >> SEQUENCE_LOCKTIME_GRANULARITY) >= SEQUENCE_LOCKTIME_MASK:
+                    if ((cur_time - orig_time)
+                            >> SEQUENCE_LOCKTIME_GRANULARITY) >= SEQUENCE_LOCKTIME_MASK:
                         can_time_lock = False
 
                     # if time-lockable, then 50% chance we make this a time
@@ -296,7 +297,8 @@ class BIP68Test(BitcoinTestFramework):
                 assert_raises_rpc_error(-26, NOT_FINAL_ERROR,
                                         node.sendrawtransaction, ToHex(tx))
             else:
-                # sendrawtransaction should succeed if the tx is not in the mempool
+                # sendrawtransaction should succeed if the tx is not in the
+                # mempool
                 node.sendrawtransaction(ToHex(tx))
 
             return tx

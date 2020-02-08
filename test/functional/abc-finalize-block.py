@@ -204,7 +204,8 @@ class FinalizeBlockTest(BitcoinTestFramework):
 
         self.log.info(
             "Try to finalize a block on an already finalized chain...")
-        # Finalizing a block of an already finalized chain should have no effect
+        # Finalizing a block of an already finalized chain should have no
+        # effect
         block_218 = node.getblockheader(alt_node_tip)['previousblockhash']
         node.finalizeblock(block_218)
         assert_equal(node.getfinalizedblockhash(), alt_node_tip)
@@ -282,7 +283,8 @@ class FinalizeBlockTest(BitcoinTestFramework):
         # Restart the new node, so the blocks have no header received time.
         self.restart_node(2)
 
-        # There should be no finalized block (getfinalizedblockhash returns an empty string)
+        # There should be no finalized block (getfinalizedblockhash returns an
+        # empty string)
         assert_equal(delay_node.getfinalizedblockhash(), str())
 
         # Generate 20 blocks with no delay. This should not trigger auto-finalization.

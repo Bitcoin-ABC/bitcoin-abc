@@ -41,7 +41,8 @@ class NotificationsTest(BitcoinTestFramework):
         block_count = 10
         blocks = self.nodes[1].generate(block_count)
 
-        # wait at most 10 seconds for expected file size before reading the content
+        # wait at most 10 seconds for expected file size before reading the
+        # content
         wait_until(lambda: os.path.isfile(self.block_filename) and os.stat(
             self.block_filename).st_size >= (block_count * 65), timeout=10)
 
@@ -51,7 +52,8 @@ class NotificationsTest(BitcoinTestFramework):
                                                 for l in f.read().splitlines()))
 
         self.log.info("test -walletnotify")
-        # wait at most 10 seconds for expected file size before reading the content
+        # wait at most 10 seconds for expected file size before reading the
+        # content
         wait_until(lambda: os.path.isfile(self.tx_filename) and os.stat(
             self.tx_filename).st_size >= (block_count * 65), timeout=10)
 
@@ -89,8 +91,8 @@ class NotificationsTest(BitcoinTestFramework):
         self.nodes[0].invalidateblock(invalid_block)
 
         # Give bitcoind 10 seconds to write the alert notification
-        wait_until(lambda: os.path.isfile(self.alert_filename)
-                   and os.path.getsize(self.alert_filename), timeout=10)
+        wait_until(lambda: os.path.isfile(self.alert_filename) and
+                   os.path.getsize(self.alert_filename), timeout=10)
 
         self.log.info(self.alert_filename)
         with open(self.alert_filename, 'r', encoding='utf8') as f:

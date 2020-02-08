@@ -117,7 +117,8 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         #                                         \-> b32 (9)
         #
 
-        # MULTISIG: each op code counts as 20 sigops.  To create the edge case, pack another 19 sigops at the end.
+        # MULTISIG: each op code counts as 20 sigops.  To create the edge case,
+        # pack another 19 sigops at the end.
         self.log.info(
             "Accept a block with the max number of OP_CHECKMULTISIG sigops")
         lots_of_multisigs = CScript(
@@ -315,7 +316,7 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         #       bytearray[19,999]       : OP_PUSHDATA4
         #       bytearray[20,000-20,003]: 521  (max_script_element_size+1, in little-endian format)
         #       bytearray[20,004-20,525]: unread data (script_element)
-        #       bytearray[20,526]       : OP_CHECKSIG (this puts us over the limit)
+        # bytearray[20,526]       : OP_CHECKSIG (this puts us over the limit)
         self.log.info(
             "Reject a block containing too many sigops after a large script element")
         self.move_tip(72)
@@ -346,7 +347,8 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         #       cause b75 to fail for excessive sigops, if those bytes were counted.
         #
         #       b74 fails because we put MAX_BLOCK_SIGOPS_PER_MB+1 before the element
-        #       b75 succeeds because we put MAX_BLOCK_SIGOPS_PER_MB before the element
+        # b75 succeeds because we put MAX_BLOCK_SIGOPS_PER_MB before the
+        # element
         self.log.info(
             "Check sigops are counted correctly after an invalid script element")
         self.move_tip(72)
@@ -378,7 +380,8 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         self.sync_blocks([b75], True)
         self.save_spendable_output()
 
-        # Check that if we push an element filled with CHECKSIGs, they are not counted
+        # Check that if we push an element filled with CHECKSIGs, they are not
+        # counted
         self.move_tip(75)
         b76 = self.next_block(76)
         size = MAX_BLOCK_SIGOPS_PER_MB - 1 + MAX_SCRIPT_ELEMENT_SIZE + 1 + 5
@@ -399,10 +402,12 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
 
     # this is a little handier to use than the version in blocktools.py
     def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
-        return create_tx_with_script(spend_tx, n, amount=value, script_pub_key=script)
+        return create_tx_with_script(
+            spend_tx, n, amount=value, script_pub_key=script)
 
     # sign a transaction, using the key we know about
-    # this signs input 0 in tx, which is assumed to be spending output n in spend_tx
+    # this signs input 0 in tx, which is assumed to be spending output n in
+    # spend_tx
     def sign_tx(self, tx, spend_tx):
         scriptPubKey = bytearray(spend_tx.vout[0].scriptPubKey)
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
@@ -413,13 +418,15 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         tx.vin[0].scriptSig = CScript(
             [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
-    def create_and_sign_transaction(self, spend_tx, value, script=CScript([OP_TRUE])):
+    def create_and_sign_transaction(
+            self, spend_tx, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, 0, value, script)
         self.sign_tx(tx, spend_tx)
         tx.rehash()
         return tx
 
-    def next_block(self, number, spend=None, additional_coinbase_value=0, script=CScript([OP_TRUE]), solve=True):
+    def next_block(self, number, spend=None, additional_coinbase_value=0,
+                   script=CScript([OP_TRUE]), solve=True):
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -504,7 +511,8 @@ class FullBlockSigOpsTest(BitcoinTestFramework):
         self.nodes[0].disconnect_p2ps()
         self.bootstrap_p2p()
 
-    def sync_blocks(self, blocks, success=True, reject_reason=None, request_block=True, reconnect=False, timeout=60):
+    def sync_blocks(self, blocks, success=True, reject_reason=None,
+                    request_block=True, reconnect=False, timeout=60):
         """Sends blocks to test node. Syncs and verifies that tip has advanced to most recent block.
 
         Call with success = False if the tip shouldn't advance to the most recent block."""

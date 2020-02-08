@@ -50,7 +50,8 @@ class ZapWalletTXesTest (BitcoinTestFramework):
         assert_equal(self.nodes[0].gettransaction(txid1)['txid'], txid1)
         assert_equal(self.nodes[0].gettransaction(txid2)['txid'], txid2)
 
-        # Stop-start node0. Both confirmed and unconfirmed transactions remain in the wallet.
+        # Stop-start node0. Both confirmed and unconfirmed transactions remain
+        # in the wallet.
         self.stop_node(0)
         self.start_node(0)
 
@@ -58,7 +59,8 @@ class ZapWalletTXesTest (BitcoinTestFramework):
         assert_equal(self.nodes[0].gettransaction(txid2)['txid'], txid2)
 
         # Stop node0 and restart with zapwallettxes and persistmempool. The unconfirmed
-        # transaction is zapped from the wallet, but is re-added when the mempool is reloaded.
+        # transaction is zapped from the wallet, but is re-added when the
+        # mempool is reloaded.
         self.stop_node(0)
         self.start_node(0, ["-persistmempool=1", "-zapwallettxes=2"])
 
@@ -78,7 +80,8 @@ class ZapWalletTXesTest (BitcoinTestFramework):
         # tx1 is still be available because it was confirmed
         assert_equal(self.nodes[0].gettransaction(txid1)['txid'], txid1)
 
-        # This will raise an exception because the unconfirmed transaction has been zapped
+        # This will raise an exception because the unconfirmed transaction has
+        # been zapped
         assert_raises_rpc_error(-5, 'Invalid or non-wallet transaction id',
                                 self.nodes[0].gettransaction, txid2)
 

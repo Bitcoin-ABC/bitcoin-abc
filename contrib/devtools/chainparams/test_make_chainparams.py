@@ -9,7 +9,8 @@ from make_chainparams import main as GenerateChainParams
 
 
 class MockRPC:
-    def __init__(self, test, chain, numBlocks, expectedBlock, blockHash, chainWork):
+    def __init__(self, test, chain, numBlocks,
+                 expectedBlock, blockHash, chainWork):
         self.test = test
         self.chain = chain
         self.numBlocks = numBlocks
@@ -69,7 +70,8 @@ class MockRPC:
 class MockFailRPC(MockRPC):
     # Provides a fail counter to fail after the Nth RPC command
 
-    def __init__(self, test, chain, numBlocks, expectedBlock, blockHash, chainWork, failCounter):
+    def __init__(self, test, chain, numBlocks, expectedBlock,
+                 blockHash, chainWork, failCounter):
         super().__init__(test, chain, numBlocks, expectedBlock, blockHash, chainWork)
         self.failCounter = failCounter
 

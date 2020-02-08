@@ -46,7 +46,8 @@ class ReceivedByTest(BitcoinTestFramework):
                             {"address": addr},
                             {},
                             True)
-        # Bury Tx under 10 block so it will be returned by listreceivedbyaddress
+        # Bury Tx under 10 block so it will be returned by
+        # listreceivedbyaddress
         self.nodes[1].generate(10)
         self.sync_all()
         assert_array_result(self.nodes[1].listreceivedbyaddress(),
@@ -123,13 +124,15 @@ class ReceivedByTest(BitcoinTestFramework):
         balance = self.nodes[1].getreceivedbyaddress(addr, 0)
         assert_equal(balance, Decimal("0.1"))
 
-        # Bury Tx under 10 block so it will be returned by the default getreceivedbyaddress
+        # Bury Tx under 10 block so it will be returned by the default
+        # getreceivedbyaddress
         self.nodes[1].generate(10)
         self.sync_all()
         balance = self.nodes[1].getreceivedbyaddress(addr)
         assert_equal(balance, Decimal("0.1"))
 
-        # Trying to getreceivedby for an address the wallet doesn't own should return an error
+        # Trying to getreceivedby for an address the wallet doesn't own should
+        # return an error
         assert_raises_rpc_error(-4, "Address not found in wallet",
                                 self.nodes[0].getreceivedbyaddress, addr)
 
@@ -146,12 +149,14 @@ class ReceivedByTest(BitcoinTestFramework):
         txid = self.nodes[0].sendtoaddress(addr, 0.1)
         self.sync_all()
 
-        # listreceivedbylabel should return received_by_label_json because of 0 confirmations
+        # listreceivedbylabel should return received_by_label_json because of 0
+        # confirmations
         assert_array_result(self.nodes[1].listreceivedbylabel(),
                             {"label": label},
                             received_by_label_json)
 
-        # getreceivedbyaddress should return same balance because of 0 confirmations
+        # getreceivedbyaddress should return same balance because of 0
+        # confirmations
         balance = self.nodes[1].getreceivedbylabel(label)
         assert_equal(balance, balance_by_label)
 

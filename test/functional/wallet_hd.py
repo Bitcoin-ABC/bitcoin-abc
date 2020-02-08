@@ -81,7 +81,8 @@ class WalletHDTest(BitcoinTestFramework):
         self.log.info("Restore backup ...")
         self.stop_node(1)
         # we need to delete the complete regtest directory
-        # otherwise node1 would auto-recover all funds in flag the keypool keys as used
+        # otherwise node1 would auto-recover all funds in flag the keypool keys
+        # as used
         shutil.rmtree(os.path.join(self.nodes[1].datadir, "regtest", "blocks"))
         shutil.rmtree(os.path.join(
             self.nodes[1].datadir, "regtest", "chainstate"))
@@ -132,7 +133,8 @@ class WalletHDTest(BitcoinTestFramework):
         assert_equal(out['stop_height'], self.nodes[1].getblockcount())
         assert_equal(self.nodes[1].getbalance(), NUM_HD_ADDS + 1)
 
-        # send a tx and make sure its using the internal chain for the changeoutput
+        # send a tx and make sure its using the internal chain for the
+        # changeoutput
         txid = self.nodes[1].sendtoaddress(self.nodes[0].getnewaddress(), 1)
         outs = self.nodes[1].decoderawtransaction(
             self.nodes[1].gettransaction(txid)['hex'])['vout']

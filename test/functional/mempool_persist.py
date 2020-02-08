@@ -79,7 +79,8 @@ class MempoolPersistTest(BitcoinTestFramework):
                        "Verify that node2 calculates its balance correctly "
                        "after loading wallet transactions.")
         self.stop_nodes()
-        # Give this one a head-start, so we can be "extra-sure" that it didn't load anything later
+        # Give this one a head-start, so we can be "extra-sure" that it didn't
+        # load anything later
         self.start_node(1)
         self.start_node(0)
         self.start_node(2)
@@ -87,7 +88,8 @@ class MempoolPersistTest(BitcoinTestFramework):
         wait_until(lambda: self.nodes[2].getmempoolinfo()["loaded"], timeout=1)
         assert_equal(len(self.nodes[0].getrawmempool()), 5)
         assert_equal(len(self.nodes[2].getrawmempool()), 5)
-        # The others have loaded their mempool. If node_1 loaded anything, we'd probably notice by now:
+        # The others have loaded their mempool. If node_1 loaded anything, we'd
+        # probably notice by now:
         assert_equal(len(self.nodes[1].getrawmempool()), 0)
 
         # Verify accounting of mempool transactions after restart is correct
@@ -130,7 +132,8 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.log.debug(
             "Prevent bitcoind from writing mempool.dat to disk. Verify that `savemempool` fails")
         # to test the exception we are creating a tmp folder called mempool.dat.new
-        # which is an implementation detail that could change and break this test
+        # which is an implementation detail that could change and break this
+        # test
         mempooldotnew1 = mempooldat1 + '.new'
         os.mkdir(mempooldotnew1)
         assert_raises_rpc_error(-1, "Unable to dump mempool to disk",

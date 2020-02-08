@@ -76,7 +76,8 @@ class FullBlockTest(BitcoinTestFramework):
         tx = create_tx_with_script(spend.tx, spend.n, b"", value, script)
         return tx
 
-    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0):
+    def next_block(self, number, spend=None,
+                   script=CScript([OP_TRUE]), block_size=0):
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -115,7 +116,8 @@ class FullBlockTest(BitcoinTestFramework):
             tx = get_base_transaction()
 
             # Make it the same format as transaction added for padding and save the size.
-            # It's missing the padding output, so we add a constant to account for it.
+            # It's missing the padding output, so we add a constant to account
+            # for it.
             tx.rehash()
             base_tx_size = len(tx.serialize()) + 18
 
@@ -123,7 +125,8 @@ class FullBlockTest(BitcoinTestFramework):
             if script is not None:
                 tx.vout.append(CTxOut(1, script))
 
-            # Put some random data into the first transaction of the chain to randomize ids.
+            # Put some random data into the first transaction of the chain to
+            # randomize ids.
             tx.vout.append(
                 CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
 
@@ -148,7 +151,8 @@ class FullBlockTest(BitcoinTestFramework):
                 if script_length > 510000:
                     if script_length < 1000000:
                         # Make sure we don't find ourselves in a position where we
-                        # need to generate a transaction smaller than what we expected.
+                        # need to generate a transaction smaller than what we
+                        # expected.
                         script_length = script_length // 2
                     else:
                         script_length = 500000

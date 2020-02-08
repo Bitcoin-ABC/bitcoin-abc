@@ -449,7 +449,8 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['ismine'], False)
         assert_equal('timestamp' in address_assert, False)
 
-        # Importing existing watch only address with new timestamp should replace saved timestamp.
+        # Importing existing watch only address with new timestamp should
+        # replace saved timestamp.
         assert_greater_than(timestamp, watchonly_timestamp)
         self.log.info("Should replace previously saved watch only timestamp.")
         result = self.nodes[1].importmulti([{
@@ -465,7 +466,8 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['timestamp'], timestamp)
         watchonly_timestamp = timestamp
 
-        # restart nodes to check for proper serialization/deserialization of watch only address
+        # restart nodes to check for proper serialization/deserialization of
+        # watch only address
         self.stop_nodes()
         self.start_nodes()
         address_assert = self.nodes[1].getaddressinfo(watchonly_address)

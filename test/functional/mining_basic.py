@@ -178,7 +178,8 @@ class MiningTest(BitcoinTestFramework):
         block.solve()
 
         def chain_tip(b_hash, *, status='headers-only', branchlen=1):
-            return {'hash': b_hash, 'height': 202, 'branchlen': branchlen, 'status': status}
+            return {'hash': b_hash, 'height': 202,
+                    'branchlen': branchlen, 'status': status}
 
         assert chain_tip(block.hash) not in node.getchaintips()
         node.submitheader(hexdata=block.serialize().hex())
@@ -200,7 +201,8 @@ class MiningTest(BitcoinTestFramework):
         assert_equal(node.submitblock(
             hexdata=bad_block_root.serialize().hex()), 'bad-txnmrklroot')
         assert chain_tip(bad_block_root.hash) in node.getchaintips()
-        # We know the header for this invalid block, so should just return early without error:
+        # We know the header for this invalid block, so should just return
+        # early without error:
         node.submitheader(hexdata=CBlockHeader(
             bad_block_root).serialize().hex())
         assert chain_tip(bad_block_root.hash) in node.getchaintips()
@@ -228,7 +230,8 @@ class MiningTest(BitcoinTestFramework):
         assert_raises_rpc_error(-25, 'time-too-old', lambda: node.submitheader(
             hexdata=CBlockHeader(bad_block_time).serialize().hex()))
 
-        # Should ask for the block from a p2p node, if they announce the header as well:
+        # Should ask for the block from a p2p node, if they announce the header
+        # as well:
         node.add_p2p_connection(P2PDataStore())
         # Drop the first getheaders
         node.p2p.wait_for_getheaders(timeout=5)

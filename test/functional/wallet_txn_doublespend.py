@@ -134,7 +134,8 @@ class TxnMallTest(BitcoinTestFramework):
             fund_foo_tx["fee"] + fund_bar_tx["fee"] + doublespend_fee
         assert_equal(self.nodes[0].getbalance(), expected)
 
-        # Node1's balance should be its initial balance (1250 for 25 block rewards) plus the doublespend:
+        # Node1's balance should be its initial balance (1250 for 25 block
+        # rewards) plus the doublespend:
         assert_equal(self.nodes[1].getbalance(), 1250 + 1240)
 
 

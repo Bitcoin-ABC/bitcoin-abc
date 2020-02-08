@@ -58,7 +58,8 @@ TEST_EXIT_PASSED = 0
 TEST_EXIT_SKIPPED = 77
 
 NON_SCRIPTS = [
-    # These are python files that live in the functional tests directory, but are not test scripts.
+    # These are python files that live in the functional tests directory, but
+    # are not test scripts.
     "combine_logs.py",
     "create_cache.py",
     "test_runner.py",
@@ -82,7 +83,8 @@ TEST_PARAMS = {
 
 # Used to limit the number of tests, when list of tests is not provided on command line
 # When --extended is specified, we run all tests, otherwise
-# we only run a test if its execution time in seconds does not exceed EXTENDED_CUTOFF
+# we only run a test if its execution time in seconds does not exceed
+# EXTENDED_CUTOFF
 DEFAULT_EXTENDED_CUTOFF = 40
 DEFAULT_JOBS = (multiprocessing.cpu_count() // 3) + 1
 
@@ -128,11 +130,13 @@ class TestCase():
         else:
             status = "Failed"
 
-        return TestResult(self.test_num, name, testdir, status, int(time.time() - time0), stdout, stderr)
+        return TestResult(self.test_num, name, testdir, status,
+                          int(time.time() - time0), stdout, stderr)
 
 
 def on_ci():
-    return os.getenv('TRAVIS') == 'true' or os.getenv('TEAMCITY_VERSION') is not None
+    return os.getenv('TRAVIS') == 'true' or os.getenv(
+        'TEAMCITY_VERSION') is not None
 
 
 def main():
@@ -304,7 +308,8 @@ def main():
               tmpdir, args.jobs, args.testsuitename, args.coverage, passon_args, args.combinedlogslen, build_timings)
 
 
-def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, test_suite_name, enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
+def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, test_suite_name,
+              enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
@@ -495,7 +500,8 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
     return test_results
 
 
-def print_results(test_results, tests_dir, max_len_name, runtime, combined_logs_len):
+def print_results(test_results, tests_dir, max_len_name,
+                  runtime, combined_logs_len):
     results = "\n" + BOLD[1] + "{} | {} | {}\n\n".format(
         "TEST".ljust(max_len_name), "STATUS   ", "DURATION") + BOLD[0]
 
@@ -519,7 +525,11 @@ def print_results(test_results, tests_dir, max_len_name, runtime, combined_logs_
             print('============\n')
             combined_logs, _ = subprocess.Popen([sys.executable, os.path.join(
                 tests_dir, 'combine_logs.py'), '-c', testdir], universal_newlines=True, stdout=subprocess.PIPE).communicate()
-            print("\n".join(deque(combined_logs.splitlines(), combined_logs_len)))
+            print(
+                "\n".join(
+                    deque(
+                        combined_logs.splitlines(),
+                        combined_logs_len)))
 
     status = TICK + "Passed" if all_passed else CROSS + "Failed"
     if not all_passed:
@@ -594,7 +604,8 @@ def get_tests_to_run(test_list, test_params, cutoff, src_timings):
         return next(
             (x['time'] for x in src_timings.existing_timings if x['name'] == test), 0)
 
-    # Some tests must also be run with additional parameters. Add them to the list.
+    # Some tests must also be run with additional parameters. Add them to the
+    # list.
     tests_with_params = []
     for test_name in test_list:
         # always execute a test without parameters

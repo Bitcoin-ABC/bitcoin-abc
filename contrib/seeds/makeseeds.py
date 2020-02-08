@@ -45,7 +45,8 @@ def parseline(line):
     if len(sline) < 11:
         return None
 
-    # The user agent is at the end of the line. It may contain space, so we concatenate.
+    # The user agent is at the end of the line. It may contain space, so we
+    # concatenate.
     for i in range(12, len(sline)):
         sline[11] += ' ' + sline[i]
 
@@ -71,7 +72,8 @@ def parseline(line):
             if m.group(1) in ['::']:
                 return None
             ipstr = m.group(1)
-            # XXX parse IPv6 into number, could use name_to_ipv6 from generate-seeds
+            # XXX parse IPv6 into number, could use name_to_ipv6 from
+            # generate-seeds
             sortkey = ipstr
             port = int(m.group(2))
     else:

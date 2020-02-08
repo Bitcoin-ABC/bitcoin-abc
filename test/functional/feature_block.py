@@ -123,7 +123,8 @@ class FullBlockTest(BitcoinTestFramework):
         #     genesis -> b1 (0) -> b2 (1)
         #                      \-> b3 (1)
         #
-        # Nothing should happen at this point. We saw b2 first so it takes priority.
+        # Nothing should happen at this point. We saw b2 first so it takes
+        # priority.
         self.log.info("Don't reorg to a chain of the same length")
         self.move_tip(1)
         b3 = self.next_block(3, spend=out[1])
@@ -343,7 +344,8 @@ class FullBlockTest(BitcoinTestFramework):
         #                                                                                     \-> b38 (11/37)
         #
 
-        # save 37's spendable output, but then double-spend out11 to invalidate the block
+        # save 37's spendable output, but then double-spend out11 to invalidate
+        # the block
         self.log.info(
             "Reject a block spending transaction from a block which failed to connect")
         self.move_tip(35)
@@ -354,7 +356,8 @@ class FullBlockTest(BitcoinTestFramework):
         self.sync_blocks([b37], success=False,
                          reject_reason='bad-txns-inputs-missingorspent', reconnect=True)
 
-        # attempt to spend b37's first non-coinbase tx, at which point b37 was still considered valid
+        # attempt to spend b37's first non-coinbase tx, at which point b37 was
+        # still considered valid
         self.move_tip(35)
         b38 = self.next_block(38, spend=txout_b37)
         self.sync_blocks([b38], success=False,
@@ -387,7 +390,8 @@ class FullBlockTest(BitcoinTestFramework):
         #                                                                                   \-> ??? (15)
 
         # The next few blocks are going to be created "by hand" since they'll do funky things, such as having
-        # the first transaction be non-coinbase, etc.  The purpose of b44 is to make sure this works.
+        # the first transaction be non-coinbase, etc.  The purpose of b44 is to
+        # make sure this works.
         self.log.info("Build block 44 manually")
         height = self.block_heights[self.tip.sha256] + 1
         coinbase = create_coinbase(height, self.coinbase_pubkey)
@@ -819,7 +823,8 @@ class FullBlockTest(BitcoinTestFramework):
         #                                                                                      \-> b71 (21)
         #
         # b72 is a good block.
-        # b71 is a copy of 72, but re-adds one of its transactions.  However, it has the same hash as b72.
+        # b71 is a copy of 72, but re-adds one of its transactions.  However,
+        # it has the same hash as b72.
         self.log.info(
             "Reject a block containing a duplicate transaction but with the same Merkle root (Merkle tree malleability")
         self.move_tip(69)
@@ -1035,10 +1040,12 @@ class FullBlockTest(BitcoinTestFramework):
 
     # this is a little handier to use than the version in blocktools.py
     def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
-        return create_tx_with_script(spend_tx, n, amount=value, script_pub_key=script)
+        return create_tx_with_script(
+            spend_tx, n, amount=value, script_pub_key=script)
 
     # sign a transaction, using the key we know about
-    # this signs input 0 in tx, which is assumed to be spending output n in spend_tx
+    # this signs input 0 in tx, which is assumed to be spending output n in
+    # spend_tx
     def sign_tx(self, tx, spend_tx):
         scriptPubKey = bytearray(spend_tx.vout[0].scriptPubKey)
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
@@ -1049,13 +1056,15 @@ class FullBlockTest(BitcoinTestFramework):
         tx.vin[0].scriptSig = CScript(
             [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
-    def create_and_sign_transaction(self, spend_tx, value, script=CScript([OP_TRUE])):
+    def create_and_sign_transaction(
+            self, spend_tx, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, 0, value, script)
         self.sign_tx(tx, spend_tx)
         tx.rehash()
         return tx
 
-    def next_block(self, number, spend=None, additional_coinbase_value=0, script=CScript([OP_TRUE]), solve=True):
+    def next_block(self, number, spend=None, additional_coinbase_value=0,
+                   script=CScript([OP_TRUE]), solve=True):
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -1140,7 +1149,8 @@ class FullBlockTest(BitcoinTestFramework):
         self.nodes[0].disconnect_p2ps()
         self.bootstrap_p2p()
 
-    def sync_blocks(self, blocks, success=True, reject_reason=None, request_block=True, reconnect=False, timeout=60):
+    def sync_blocks(self, blocks, success=True, reject_reason=None,
+                    request_block=True, reconnect=False, timeout=60):
         """Sends blocks to test node. Syncs and verifies that tip has advanced to most recent block.
 
         Call with success = False if the tip shouldn't advance to the most recent block."""

@@ -50,7 +50,8 @@ class MerkleBlockTest(BitcoinTestFramework):
             [node0utxos.pop()], {self.nodes[1].getnewaddress(): 49.99})
         txid2 = self.nodes[0].sendrawtransaction(
             self.nodes[0].signrawtransactionwithwallet(tx2)["hex"])
-        # This will raise an exception because the transaction is not yet in a block
+        # This will raise an exception because the transaction is not yet in a
+        # block
         assert_raises_rpc_error(-5, "Transaction not yet in block",
                                 self.nodes[0].gettxoutproof, [txid1])
 
@@ -93,7 +94,8 @@ class MerkleBlockTest(BitcoinTestFramework):
         # We can get the proof if the transaction is unspent
         assert_equal(self.nodes[2].verifytxoutproof(
             self.nodes[2].gettxoutproof([txid_unspent])), [txid_unspent])
-        # We can get the proof if we provide a list of transactions and one of them is unspent. The ordering of the list should not matter.
+        # We can get the proof if we provide a list of transactions and one of
+        # them is unspent. The ordering of the list should not matter.
         assert_equal(sorted(self.nodes[2].verifytxoutproof(
             self.nodes[2].gettxoutproof([txid1, txid2]))), sorted(txlist))
         assert_equal(sorted(self.nodes[2].verifytxoutproof(

@@ -113,7 +113,8 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         node1.wait_for_disconnect()
 
         # connect unsynced node 2 with pruned NODE_NETWORK_LIMITED peer
-        # because node 2 is in IBD and node 0 is a NODE_NETWORK_LIMITED peer, sync must not be possible
+        # because node 2 is in IBD and node 0 is a NODE_NETWORK_LIMITED peer,
+        # sync must not be possible
         connect_nodes_bi(self.nodes[0], self.nodes[2])
         try:
             sync_blocks([self.nodes[0], self.nodes[2]], timeout=5)
@@ -135,10 +136,12 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         # mine 10 blocks on node 0 (pruned node)
         self.nodes[0].generate(10)
 
-        # connect node1 (non pruned) with node0 (pruned) and check if the can sync
+        # connect node1 (non pruned) with node0 (pruned) and check if the can
+        # sync
         connect_nodes_bi(self.nodes[0], self.nodes[1])
 
-        # sync must be possible, node 1 is no longer in IBD and should therefore connect to node 0 (NODE_NETWORK_LIMITED)
+        # sync must be possible, node 1 is no longer in IBD and should
+        # therefore connect to node 0 (NODE_NETWORK_LIMITED)
         sync_blocks([self.nodes[0], self.nodes[1]])
 
 

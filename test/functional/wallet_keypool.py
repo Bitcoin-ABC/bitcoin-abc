@@ -40,7 +40,8 @@ class KeyPoolTest(BitcoinTestFramework):
         assert_raises_rpc_error(
             -12, "Error: Keypool ran out, please call keypoolrefill first", nodes[0].getnewaddress)
 
-        # put six (plus 2) new keys in the keypool (100% external-, +100% internal-keys, 1 in min)
+        # put six (plus 2) new keys in the keypool (100% external-, +100%
+        # internal-keys, 1 in min)
         nodes[0].walletpassphrase('test', 12000)
         nodes[0].keypoolrefill(6)
         nodes[0].walletlock()

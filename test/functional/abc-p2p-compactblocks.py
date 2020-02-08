@@ -115,7 +115,8 @@ class FullBlockTest(BitcoinTestFramework):
         tx = create_tx_with_script(spend_tx, n, b"", value, script)
         return tx
 
-    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0):
+    def next_block(self, number, spend=None, script=CScript(
+            [OP_TRUE]), block_size=0, extra_txns=0):
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -155,14 +156,16 @@ class FullBlockTest(BitcoinTestFramework):
             tx = get_base_transaction()
 
             # Make it the same format as transaction added for padding and save the size.
-            # It's missing the padding output, so we add a constant to account for it.
+            # It's missing the padding output, so we add a constant to account
+            # for it.
             tx.rehash()
 
             # If a specific script is required, add it.
             if script is not None:
                 tx.vout.append(CTxOut(1, script))
 
-            # Put some random data into the first transaction of the chain to randomize ids.
+            # Put some random data into the first transaction of the chain to
+            # randomize ids.
             tx.vout.append(
                 CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
 
@@ -332,7 +335,8 @@ class FullBlockTest(BitcoinTestFramework):
 
         # In order to avoid having to resend a ton of transactions, we invalidate
         # b2, which will send all its transactions in the mempool. Note that this
-        # assumes reorgs will insert low-fee transactions back into the mempool.
+        # assumes reorgs will insert low-fee transactions back into the
+        # mempool.
         node.invalidateblock(node.getbestblockhash())
 
         # Let's send a compact block and see if the node accepts it.

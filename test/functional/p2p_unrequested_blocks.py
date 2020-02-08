@@ -188,7 +188,8 @@ class AcceptBlockTest(BitcoinTestFramework):
         self.log.info("Unrequested more-work block accepted")
 
         # 4c. Now mine 288 more blocks and deliver; all should be processed but
-        # the last (height-too-high) on node (as long as it is not missing any headers)
+        # the last (height-too-high) on node (as long as it is not missing any
+        # headers)
         tip = block_h3
         all_blocks = []
         for i in range(288):
@@ -198,7 +199,8 @@ class AcceptBlockTest(BitcoinTestFramework):
             all_blocks.append(next_block)
             tip = next_block
 
-        # Now send the block at height 5 and check that it wasn't accepted (missing header)
+        # Now send the block at height 5 and check that it wasn't accepted
+        # (missing header)
         test_node.send_message(msg_block(all_blocks[1]))
         test_node.sync_with_ping()
         assert_raises_rpc_error(-5, "Block not found",
@@ -206,7 +208,8 @@ class AcceptBlockTest(BitcoinTestFramework):
         assert_raises_rpc_error(-5, "Block not found",
                                 self.nodes[0].getblockheader, all_blocks[1].hash)
 
-        # The block at height 5 should be accepted if we provide the missing header, though
+        # The block at height 5 should be accepted if we provide the missing
+        # header, though
         headers_message = msg_headers()
         headers_message.headers.append(CBlockHeader(all_blocks[0]))
         test_node.send_message(headers_message)
@@ -219,7 +222,8 @@ class AcceptBlockTest(BitcoinTestFramework):
             test_node.send_message(msg_block(all_blocks[i]))
         test_node.sync_with_ping()
 
-        # Blocks 1-287 should be accepted, block 288 should be ignored because it's too far ahead
+        # Blocks 1-287 should be accepted, block 288 should be ignored because
+        # it's too far ahead
         for x in all_blocks[:-1]:
             self.nodes[0].getblock(x.hash)
         assert_raises_rpc_error(
@@ -290,7 +294,8 @@ class AcceptBlockTest(BitcoinTestFramework):
             block_291.sha256, create_coinbase(292), block_291.nTime + 1)
         block_292.solve()
 
-        # Now send all the headers on the chain and enough blocks to trigger reorg
+        # Now send all the headers on the chain and enough blocks to trigger
+        # reorg
         headers_message = msg_headers()
         headers_message.headers.append(CBlockHeader(block_289f))
         headers_message.headers.append(CBlockHeader(block_290f))
@@ -329,13 +334,15 @@ class AcceptBlockTest(BitcoinTestFramework):
             self.nodes[0].disconnect_p2ps()
             test_node = self.nodes[0].add_p2p_connection(P2PInterface())
 
-        # We should have failed reorg and switched back to 290 (but have block 291)
+        # We should have failed reorg and switched back to 290 (but have block
+        # 291)
         assert_equal(self.nodes[0].getblockcount(), 290)
         assert_equal(self.nodes[0].getbestblockhash(), all_blocks[286].hash)
         assert_equal(self.nodes[0].getblock(
             block_291.hash)["confirmations"], -1)
 
-        # Now send a new header on the invalid chain, indicating we're forked off, and expect to get disconnected
+        # Now send a new header on the invalid chain, indicating we're forked
+        # off, and expect to get disconnected
         block_293 = create_block(
             block_292.sha256, create_coinbase(293), block_292.nTime + 1)
         block_293.solve()

@@ -161,13 +161,15 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         }
         # Transactions that do not end up in the mempool
         # tx_orphan_no_fee, because it has too low fee (p2ps[0] is not disconnected for relaying that tx)
-        # tx_orphan_invaid, because it has negative fee (p2ps[1] is disconnected for relaying that tx)
+        # tx_orphan_invaid, because it has negative fee (p2ps[1] is
+        # disconnected for relaying that tx)
 
         # p2ps[1] is no longer connected
         wait_until(lambda: 1 == len(node.getpeerinfo()), timeout=12)
         assert_equal(expected_mempool, set(node.getrawmempool()))
 
-        # restart node with sending BIP61 messages disabled, check that it disconnects without sending the reject message
+        # restart node with sending BIP61 messages disabled, check that it
+        # disconnects without sending the reject message
         self.log.info(
             'Test a transaction that is rejected, with BIP61 disabled')
         self.restart_node(0, ['-enablebip61=0', '-persistmempool=0'])

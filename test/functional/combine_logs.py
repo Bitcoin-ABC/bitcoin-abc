@@ -37,7 +37,8 @@ def main():
         print("Only one out of --color or --html should be specified")
         sys.exit(1)
 
-    # There should only be one unknown argument - the path of the temporary test directory
+    # There should only be one unknown argument - the path of the temporary
+    # test directory
     if len(unknown_args) != 1:
         print("Unexpected arguments" + str(unknown_args))
         sys.exit(1)
@@ -76,14 +77,16 @@ def get_log_events(source, logfile):
                 # skip blank lines
                 if line == '\n':
                     continue
-                # if this line has a timestamp, it's the start of a new log event.
+                # if this line has a timestamp, it's the start of a new log
+                # event.
                 time_match = TIMESTAMP_PATTERN.match(line)
                 if time_match:
                     if event:
                         yield LogEvent(timestamp=timestamp, source=source, event=event.rstrip())
                     event = line
                     timestamp = time_match.group()
-                # if it doesn't have a timestamp, it's a continuation line of the previous log.
+                # if it doesn't have a timestamp, it's a continuation line of
+                # the previous log.
                 else:
                     event += "\n" + line
             # Flush the final event

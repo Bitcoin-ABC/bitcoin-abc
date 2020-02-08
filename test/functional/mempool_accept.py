@@ -155,13 +155,15 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         self.log.info(
             'A transaction with missing inputs, that existed once in the past')
         tx = FromHex(CTransaction(), raw_tx_0)
-        # Set vout to 1, to spend the other outpoint (49 coins) of the in-chain-tx we want to double spend
+        # Set vout to 1, to spend the other outpoint (49 coins) of the
+        # in-chain-tx we want to double spend
         tx.vin[0].prevout.n = 1
         raw_tx_1 = node.signrawtransactionwithwallet(
             ToHex(tx))['hex']
         txid_1 = node.sendrawtransaction(
             hexstring=raw_tx_1, allowhighfees=True)
-        # Now spend both to "clearly hide" the outputs, ie. remove the coins from the utxo set by spending them
+        # Now spend both to "clearly hide" the outputs, ie. remove the coins
+        # from the utxo set by spending them
         raw_tx_spend_both = node.signrawtransactionwithwallet(node.createrawtransaction(
             inputs=[
                 {'txid': txid_0, 'vout': 0},
@@ -173,7 +175,8 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
             hexstring=raw_tx_spend_both, allowhighfees=True)
         node.generate(1)
         self.mempool_size = 0
-        # Now see if we can add the coins back to the utxo set by sending the exact txs again
+        # Now see if we can add the coins back to the utxo set by sending the
+        # exact txs again
         self.check_mempool_result(
             result_expected=[
                 {'txid': txid_0, 'allowed': False, 'reject-reason': 'missing-inputs'}],
@@ -210,8 +213,8 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
 
         self.log.info('A really large transaction')
         tx = FromHex(CTransaction(), raw_tx_reference)
-        tx.vin = [tx.vin[0]] * (1 + MAX_BLOCK_BASE_SIZE //
-                                len(tx.vin[0].serialize()))
+        tx.vin = [tx.vin[0]] * (1 + MAX_BLOCK_BASE_SIZE
+                                // len(tx.vin[0].serialize()))
         self.check_mempool_result(
             result_expected=[
                 {'txid': tx.rehash(), 'allowed': False, 'reject-reason': '16: bad-txns-oversize'}],
@@ -256,7 +259,8 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         )
 
         self.log.info('A coinbase transaction')
-        # Pick the input of the first tx we signed, so it has to be a coinbase tx
+        # Pick the input of the first tx we signed, so it has to be a coinbase
+        # tx
         raw_tx_coinbase_spent = node.getrawtransaction(
             txid=node.decoderawtransaction(hexstring=raw_tx_in_block)['vin'][0]['txid'])
         tx = FromHex(CTransaction(), raw_tx_coinbase_spent)
@@ -331,7 +335,8 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
 
         self.log.info('A transaction that is locked by BIP68 sequence logic')
         tx = FromHex(CTransaction(), raw_tx_reference)
-        # We could include it in the second block mined from now, but not the very next one
+        # We could include it in the second block mined from now, but not the
+        # very next one
         tx.vin[0].nSequence = 2
         # Can skip re-signing the tx because of early rejection
         self.check_mempool_result(

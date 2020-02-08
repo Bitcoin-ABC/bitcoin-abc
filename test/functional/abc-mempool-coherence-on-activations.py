@@ -103,11 +103,13 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
 
 
 def create_fund_and_pre_fork_only_tx(spend):
-    return create_fund_and_activation_specific_spending_tx(spend, pre_fork_only=True)
+    return create_fund_and_activation_specific_spending_tx(
+        spend, pre_fork_only=True)
 
 
 def create_fund_and_post_fork_only_tx(spend):
-    return create_fund_and_activation_specific_spending_tx(spend, pre_fork_only=False)
+    return create_fund_and_activation_specific_spending_tx(
+        spend, pre_fork_only=False)
 
 
 # ---Mempool coherence on activations test---

@@ -66,8 +66,10 @@ while True:
                         closure[dep] = closure[src] + [src]
             if len(closure) == old_size:
                 break
-        # If module is in its own transitive closure, it's a circular dependency; check if it is the shortest
-        if module in closure and (shortest_cycle is None or len(closure[module]) + 1 < len(shortest_cycle)):
+        # If module is in its own transitive closure, it's a circular
+        # dependency; check if it is the shortest
+        if module in closure and (shortest_cycle is None or len(
+                closure[module]) + 1 < len(shortest_cycle)):
             shortest_cycle = [module] + closure[module]
     if shortest_cycle is None:
         break

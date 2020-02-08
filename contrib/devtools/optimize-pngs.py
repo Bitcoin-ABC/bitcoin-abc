@@ -56,7 +56,8 @@ for folder in folders:
                 sys.exit(0)
 
             # verify
-            if "Not a PNG file" in subprocess.check_output([pngcrush, "-n", "-v", file_path], stderr=subprocess.STDOUT, universal_newlines=True):
+            if "Not a PNG file" in subprocess.check_output(
+                    [pngcrush, "-n", "-v", file_path], stderr=subprocess.STDOUT, universal_newlines=True):
                 print("PNG file " + file +
                       " is corrupted after crushing, check out pngcursh version")
                 sys.exit(1)

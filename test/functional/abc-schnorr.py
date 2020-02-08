@@ -43,10 +43,12 @@ from test_framework.script import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_raises_rpc_error
 
-# A mandatory (bannable) error occurs when people pass Schnorr signatures into OP_CHECKMULTISIG.
+# A mandatory (bannable) error occurs when people pass Schnorr signatures
+# into OP_CHECKMULTISIG.
 SCHNORR_MULTISIG_ERROR = 'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)'
 
-# A mandatory (bannable) error occurs when people send invalid Schnorr sigs into OP_CHECKSIG.
+# A mandatory (bannable) error occurs when people send invalid Schnorr
+# sigs into OP_CHECKSIG.
 NULLFAIL_ERROR = 'mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation)'
 
 # Blocks with invalid scripts give this error:

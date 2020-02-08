@@ -239,19 +239,22 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
 
         # Sync these blocks with the other nodes
         block_hashes_to_sync = []
-        for height in range(initial_height + 1, self.nodes[3].getblockcount() + 1):
+        for height in range(initial_height + 1,
+                            self.nodes[3].getblockcount() + 1):
             block_hashes_to_sync.append(self.nodes[3].getblockhash(height))
 
         self.log.debug("Syncing {} blocks with other nodes".format(
             len(block_hashes_to_sync)))
-        # Syncing the blocks could cause nodes to crash, so the test begins here.
+        # Syncing the blocks could cause nodes to crash, so the test begins
+        # here.
         self.sync_node3blocks(block_hashes_to_sync)
 
         starting_tip_height = self.nodes[3].getblockcount()
 
         # Main test loop:
         # each time through the loop, generate a bunch of transactions,
-        # and then either mine a single new block on the tip, or some-sized reorg.
+        # and then either mine a single new block on the tip, or some-sized
+        # reorg.
         for i in range(40):
             self.log.info(
                 "Iteration {}, generating 2500 transactions {}".format(
