@@ -88,6 +88,12 @@ static const uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
  * Standard script verification flags that standard transactions will comply
  * with. However scripts violating these flags may still be present in valid
  * blocks and we must accept those blocks.
+ *
+ * Note that the actual mempool validation flags may be slightly different (see
+ * GetStandardScriptFlags), however this constant should be set to the most
+ * restrictive flag set that applies in the current / next upgrade, since it is
+ * used in numerous parts of the codebase that are unable to access the
+ * contextual information of which upgrades are currently active.
  */
 static constexpr uint32_t STANDARD_SCRIPT_VERIFY_FLAGS =
     MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_DERSIG |

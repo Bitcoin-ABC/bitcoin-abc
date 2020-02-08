@@ -475,17 +475,14 @@ static bool IsReplayProtectionEnabled(const Consensus::Params &params,
 // the tip is at the given block.
 static uint32_t GetStandardScriptFlags(const Consensus::Params &params,
                                        const CBlockIndex *pindexTip) {
-    uint32_t flags = STANDARD_SCRIPT_VERIFY_FLAGS;
+    // Use the consensus flags for the next block as a basis, and mix in the
+    // declared-standard flags.
+    uint32_t flags = GetNextBlockScriptFlags(params, pindexTip) |
+                     STANDARD_SCRIPT_VERIFY_FLAGS;
 
     // Disable input sigchecks limit for mempool admission, prior to its
     // proper activation.
     flags &= ~SCRIPT_VERIFY_INPUT_SIGCHECKS;
-
-    // We make sure this node will have replay protection during the next hard
-    // fork.
-    if (IsReplayProtectionEnabled(params, pindexTip)) {
-        flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
-    }
 
     return flags;
 }
