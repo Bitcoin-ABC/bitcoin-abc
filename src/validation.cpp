@@ -485,6 +485,10 @@ static uint32_t GetStandardScriptFlags(const Consensus::Params &params,
     // proper activation.
     flags &= ~SCRIPT_VERIFY_INPUT_SIGCHECKS;
 
+    if (IsPhononEnabled(params, pindexTip)) {
+        flags |= SCRIPT_VERIFY_INPUT_SIGCHECKS;
+    }
+
     return flags;
 }
 
