@@ -51,16 +51,16 @@ def script_to_p2sh(script, main=False):
 
 
 def check_key(key):
-    if (type(key) is str):
+    if (isinstance(key, str)):
         key = hex_str_to_bytes(key)  # Assuming this is hex string
-    if (type(key) is bytes and (len(key) == 33 or len(key) == 65)):
+    if (isinstance(key, bytes) and (len(key) == 33 or len(key) == 65)):
         return key
     assert False
 
 
 def check_script(script):
-    if (type(script) is str):
+    if (isinstance(script, str)):
         script = hex_str_to_bytes(script)  # Assuming this is hex string
-    if (type(script) is bytes or type(script) is CScript):
+    if (isinstance(script, bytes) or isinstance(script, CScript)):
         return script
     assert False

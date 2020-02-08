@@ -59,8 +59,8 @@ def parse_function_calls(function_name, source_code):
     >>> len(parse_function_calls("foo", "#define FOO foo();"))
     0
     """
-    assert type(function_name) is str and type(
-        source_code) is str and function_name
+    assert isinstance(function_name, str) and isinstance(
+        source_code, str) and function_name
     lines = [re.sub("// .*", " ", line).strip()
              for line in source_code.split("\n")
              if not line.strip().startswith("#")]
@@ -74,7 +74,7 @@ def normalize(s):
     >>> normalize("  /* nothing */   foo\tfoo  /* bar */  foo     ")
     'foo foo foo'
     """
-    assert type(s) is str
+    assert isinstance(s, str)
     s = s.replace("\n", " ")
     s = s.replace("\t", " ")
     s = re.sub(r"/\*.*?\*/", " ", s)
@@ -98,7 +98,7 @@ def escape(s):
     >>> escape(r'foo \\t foo \\n foo \\\\ foo \\ foo \\"bar\\"')
     'foo [escaped-tab] foo [escaped-newline] foo \\\\\\\\ foo \\\\ foo [escaped-quote]bar[escaped-quote]'
     """
-    assert type(s) is str
+    assert isinstance(s, str)
     for raw_value, escaped_value in ESCAPE_MAP.items():
         s = s.replace(raw_value, escaped_value)
     return s
@@ -113,7 +113,7 @@ def unescape(s):
     >>> unescape("foo [escaped-tab] foo [escaped-newline] foo \\\\\\\\ foo \\\\ foo [escaped-quote]bar[escaped-quote]")
     'foo \\\\t foo \\\\n foo \\\\\\\\ foo \\\\ foo \\\\"bar\\\\"'
     """
-    assert type(s) is str
+    assert isinstance(s, str)
     for raw_value, escaped_value in ESCAPE_MAP.items():
         s = s.replace(escaped_value, raw_value)
     return s
@@ -146,8 +146,8 @@ def parse_function_call_and_arguments(function_name, function_call):
     >>> parse_function_call_and_arguments("foo", 'foo("foo")')
     ['foo(', '"foo"', ')']
     """
-    assert type(function_name) is str and type(
-        function_call) is str and function_name
+    assert isinstance(function_name, str) and isinstance(
+        function_call, str) and function_name
     remaining = normalize(escape(function_call))
     expected_function_call = "{}(".format(function_name)
     assert remaining.startswith(expected_function_call)
@@ -199,7 +199,7 @@ def parse_string_content(argument):
     >>> parse_string_content('1 2 3')
     ''
     """
-    assert type(argument) is str
+    assert isinstance(argument, str)
     string_content = ""
     in_string = False
     for char in normalize(escape(argument)):
@@ -226,7 +226,7 @@ def count_format_specifiers(format_string):
     >>> count_format_specifiers("foo %d bar %i foo %% foo %*d foo")
     4
     """
-    assert type(format_string) is str
+    assert isinstance(format_string, str)
     n = 0
     in_specifier = False
     for i, char in enumerate(format_string):

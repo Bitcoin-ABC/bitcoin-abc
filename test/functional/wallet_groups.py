@@ -56,8 +56,7 @@ class WalletGroupTest(BitcoinTestFramework):
         assert_equal(1, len(tx1["vin"]))
         assert_equal(2, len(tx1["vout"]))
         # one output should be 0.2, the other should be ~0.3
-        v = [vout["value"] for vout in tx1["vout"]]
-        v.sort()
+        v = sorted([vout["value"] for vout in tx1["vout"]])
         assert_approx(v[0], 0.2)
         assert_approx(v[1], 0.3, 0.0001)
 
@@ -67,8 +66,7 @@ class WalletGroupTest(BitcoinTestFramework):
         assert_equal(2, len(tx2["vin"]))
         assert_equal(2, len(tx2["vout"]))
         # one output should be 0.2, the other should be ~1.3
-        v = [vout["value"] for vout in tx2["vout"]]
-        v.sort()
+        v = sorted([vout["value"] for vout in tx2["vout"]])
         assert_approx(v[0], 0.2)
         assert_approx(v[1], 1.3, 0.0001)
 

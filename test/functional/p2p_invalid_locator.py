@@ -46,7 +46,7 @@ class InvalidLocatorTest(BitcoinTestFramework):
             msg.locator.vHave = [int(node.getblockhash(
                 i - 1), 16) for i in range(block_count, block_count - (MAX_LOCATOR_SZ), -1)]
             node.p2p.send_message(msg)
-            if type(msg) == msg_getheaders:
+            if isinstance(msg, msg_getheaders):
                 node.p2p.wait_for_header(int(node.getbestblockhash(), 16))
             else:
                 node.p2p.wait_for_block(int(node.getbestblockhash(), 16))
