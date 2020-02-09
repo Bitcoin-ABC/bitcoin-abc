@@ -495,7 +495,6 @@ BOOST_AUTO_TEST_CASE(versionbits_computeblockversion) {
                           VERSIONBITS_LAST_OLD_BLOCK_VERSION)
                     .Tip();
     // so ComputeBlockVersion should now set the bit,
-    printf("%x\n", ComputeBlockVersion(lastBlock, mainnetParams));
     BOOST_CHECK((ComputeBlockVersion(lastBlock, mainnetParams) & (1 << bit)) !=
                 0);
     // and should also be using the VERSIONBITS_TOP_BITS.
