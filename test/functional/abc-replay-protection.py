@@ -215,8 +215,9 @@ class ReplayProtectionTest(BitcoinTestFramework):
         node.p2p.send_blocks_and_test(activation_blocks, node)
 
         # Check we are just before the activation time
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     REPLAY_PROTECTION_START_TIME - 1)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            REPLAY_PROTECTION_START_TIME - 1)
 
         # We are just before the fork, replay protected txns still are rejected
         assert_raises_rpc_error(-26, RPC_INVALID_SIGNATURE_ERROR,
@@ -241,8 +242,9 @@ class ReplayProtectionTest(BitcoinTestFramework):
         node.p2p.send_blocks_and_test([self.tip], node)
 
         # Check we just activated the replay protection
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     REPLAY_PROTECTION_START_TIME)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            REPLAY_PROTECTION_START_TIME)
 
         # Non replay protected transactions are not valid anymore,
         # so they should be removed from the mempool.

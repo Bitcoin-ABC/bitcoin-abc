@@ -251,8 +251,9 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
             node.p2p.send_blocks_and_test([block(5200 + i)], node)
 
         # Check we are just before the activation time
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     ACTIVATION_TIME - 1)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            ACTIVATION_TIME - 1)
 
         # We are just before the fork. Pre-fork-only and always-valid chained
         # txns (tx_chain0, tx_chain1) are valid, post-fork-only txns are
@@ -360,8 +361,9 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         # Perform the reorg
         node.p2p.send_blocks_and_test(reorg_blocks, node)
         # reorg finishes after the fork
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     ACTIVATION_TIME + 2)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            ACTIVATION_TIME + 2)
         # In old mempool: tx_chain2, tx_post1
         # Recovered from blocks: tx_chain0, tx_chain1, tx_post0
         # Lost from blocks: tx_pre0
