@@ -29,6 +29,7 @@
 #include <net.h>
 #include <net_processing.h>
 #include <netbase.h>
+#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <rpc/blockchain.h>
 #include <rpc/register.h>

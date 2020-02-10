@@ -23,6 +23,7 @@
 #include <hash.h>
 #include <index/txindex.h>
 #include <policy/fees.h>
+#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <pow.h>
 #include <primitives/block.h>

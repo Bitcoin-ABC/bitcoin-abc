@@ -169,6 +169,7 @@ BITCOIN_CORE_H = \
   noui.h \
   outputtype.h \
   policy/fees.h \
+  policy/mempool.h \
   policy/policy.h \
   pow.h \
   protocol.h \

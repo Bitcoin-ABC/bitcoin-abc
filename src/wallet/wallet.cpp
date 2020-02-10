@@ -16,6 +16,7 @@
 #include <key_io.h>
 #include <keystore.h>
 #include <net.h>
+#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
