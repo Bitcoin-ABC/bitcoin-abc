@@ -59,8 +59,9 @@ if [ ! -x "${BITCOIN_CLI}" ]; then
   exit 11
 fi
 
-BITCOIND="${BITCOIND} -connect=0 ${OPTION_TESTNET} -daemon"
-BITCOIN_CLI="${BITCOIN_CLI} ${OPTION_TESTNET}"
+TEMP_DATADIR=$(mktemp -d)
+BITCOIND="${BITCOIND} -datadir=${TEMP_DATADIR} ${OPTION_TESTNET} -rpcport=18832 -connect=0 -daemon"
+BITCOIN_CLI="${BITCOIN_CLI} -datadir=${TEMP_DATADIR} ${OPTION_TESTNET} -rpcport=18832"
 
 >&2 echo "Spinning up bitcoind..."
 ${BITCOIND} || {
@@ -71,6 +72,7 @@ cleanup() {
   # Cleanup background processes spawned by this script.
   >&2 echo "Cleaning up bitcoin daemon..."
   ${BITCOIN_CLI} stop
+  rm -rf "${TEMP_DATADIR}"
 }
 trap "cleanup" EXIT
 
