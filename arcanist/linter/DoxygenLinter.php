@@ -44,28 +44,33 @@ final class DoxygenLinter extends ArcanistLinter {
 
   public function lintPath($path) {
     $abspath = Filesystem::resolvePath($path, $this->getProjectRoot());
-    $fileContent = Filesystem::readFile($abspath);
+    $fileContent = explode("\n", Filesystem::readFile($abspath));
 
     $sanitizedOpenings = array_map('preg_quote', self::$doxygenCommentOpenings);
     $anyDoxygenCommentOpening = implode('|', $sanitizedOpenings);
 
-    if (!preg_match_all("@^\s*($anyDoxygenCommentOpening)<.+@m", $fileContent,
-      $matches, PREG_OFFSET_CAPTURE)) {
-      return;
-    }
+    $previousLine = "";
+    foreach ($fileContent as $lineNumber => $lineContent) {
+      if (preg_match("@^\s*($anyDoxygenCommentOpening)<.+@m", $lineContent,
+        $matches, PREG_OFFSET_CAPTURE)) {
+        list($commentOpening, $offset) = $matches[1];
 
-    foreach ($matches[1] as $match) {
-      list($commentOpening, $offset) = $match;
-      $original = $commentOpening.'<';
-      $replacement = $commentOpening;
+        if (strpos($previousLine, $commentOpening) === false) {
+          $original = $commentOpening.'<';
+          $replacement = $commentOpening;
 
-      $this->raiseLintAtOffset(
-          $offset,
-          self::BAD_INLINE_COMMENT,
-          pht('This comment applies to the previous line and should be '.
-              'located after a statement.'),
-          $original,
-          $replacement);
+          $this->raiseLintAtLine(
+            $lineNumber + 1,
+            $offset + 1,
+            self::BAD_INLINE_COMMENT,
+            pht('This comment applies to the previous line and should be '.
+                'located after a statement.'),
+            $original,
+            $replacement);
+        }
+      }
+
+      $previousLine = $lineContent;
     }
   }
 }
