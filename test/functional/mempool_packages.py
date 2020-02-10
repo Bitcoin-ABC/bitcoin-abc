@@ -16,15 +16,29 @@ from test_framework.util import (
     sync_mempools,
 )
 
-MAX_ANCESTORS = 25
-MAX_DESCENDANTS = 25
+# TODO: The activation code can be reverted after the new policy becomes
+# active.
+
+# Phonon dummy activation time
+ACTIVATION_TIME = 2000000000
+
+# Replay protection time needs to be moved beyond phonon activation
+REPLAY_PROTECTION_TIME = ACTIVATION_TIME * 2
+
+MAX_ANCESTORS = 50
+MAX_DESCENDANTS = 50
 
 
 class MempoolPackagesTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-maxorphantx=1000"],
-                           ["-maxorphantx=1000", "-limitancestorcount=5"]]
+
+        common_params = ["-maxorphantx=1000",
+                         "-phononactivationtime={}".format(ACTIVATION_TIME),
+                         "-replayprotectionactivationtime={}".format(REPLAY_PROTECTION_TIME)]
+
+        self.extra_args = [common_params,
+                           common_params + ["-limitancestorcount=5"]]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -47,6 +61,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
         return (txid, send_value)
 
     def run_test(self):
+        [n.setmocktime(ACTIVATION_TIME) for n in self.nodes]
+
         # Mine some blocks and have them mature.
         self.nodes[0].generate(101)
         utxo = self.nodes[0].listunspent(10)

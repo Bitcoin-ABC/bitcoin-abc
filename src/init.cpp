@@ -743,8 +743,10 @@ void SetupServerArgs() {
                  true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-limitancestorcount=<n>",
                  strprintf("Do not accept transactions if number of in-mempool "
-                           "ancestors is <n> or more (default: %u)",
-                           DEFAULT_ANCESTOR_LIMIT),
+                           "ancestors is <n> or more (pre-phonon-upgrade "
+                           "default: %u, post-phonon-upgrade default: %u)",
+                           DEFAULT_ANCESTOR_LIMIT,
+                           DEFAULT_ANCESTOR_LIMIT_LONGER),
                  true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg(
         "-limitancestorsize=<n>",
@@ -755,8 +757,9 @@ void SetupServerArgs() {
     gArgs.AddArg(
         "-limitdescendantcount=<n>",
         strprintf("Do not accept transactions if any ancestor would have <n> "
-                  "or more in-mempool descendants (default: %u)",
-                  DEFAULT_DESCENDANT_LIMIT),
+                  "or more in-mempool descendants (default pre-phonon-upgrade: "
+                  "%u, default post-phonon-upgrade: %u)",
+                  DEFAULT_DESCENDANT_LIMIT, DEFAULT_DESCENDANT_LIMIT_LONGER),
         true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg(
         "-limitdescendantsize=<n>",

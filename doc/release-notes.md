@@ -13,3 +13,12 @@ output was added to `getaddressinfo` method response.
 New RPC methods
 ------------
 - `getnodeaddresses` returns peer addresses known to this node. It may be used to connect to nodes over TCP without using the DNS seeds.
+
+
+Network upgrade
+---------------
+
+At the MTP time of 1589544000 (May 15, 2020 12:00:00 UTC) the following behaviors will change:
+
+- The default for max number of in-pool ancestors (`-limitancestorcount`) is changed from 25 to 50.
+- The default for max number of in-pool descendants (`-limitdescendantcount`) is changed from 25 to 50.
