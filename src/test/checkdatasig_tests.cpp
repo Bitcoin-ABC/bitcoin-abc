@@ -157,12 +157,6 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
                        ScriptError::PUBKEYTYPE);
             CheckError(flags, {{}, message, pubkeyH}, scriptverify,
                        ScriptError::PUBKEYTYPE);
-        } else if (flags & SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE) {
-            // When compressed-only is enforced, hybrid keys are invalid.
-            CheckError(flags, {{}, message, pubkeyH}, script,
-                       ScriptError::NONCOMPRESSED_PUBKEY);
-            CheckError(flags, {{}, message, pubkeyH}, scriptverify,
-                       ScriptError::NONCOMPRESSED_PUBKEY);
         } else {
             // Otherwise, hybrid keys are valid.
             CheckPass(flags, {{}, message, pubkeyH}, script, {});
@@ -170,18 +164,10 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
                        ScriptError::CHECKDATASIGVERIFY);
         }
 
-        if (flags & SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE) {
-            // When compressed-only is enforced, uncompressed keys are invalid.
-            CheckError(flags, {{}, message, pubkey}, script,
-                       ScriptError::NONCOMPRESSED_PUBKEY);
-            CheckError(flags, {{}, message, pubkey}, scriptverify,
-                       ScriptError::NONCOMPRESSED_PUBKEY);
-        } else {
-            // Otherwise, uncompressed keys are valid.
-            CheckPass(flags, {{}, message, pubkey}, script, {});
-            CheckError(flags, {{}, message, pubkey}, scriptverify,
-                       ScriptError::CHECKDATASIGVERIFY);
-        }
+        // Uncompressed keys are valid.
+        CheckPass(flags, {{}, message, pubkey}, script, {});
+        CheckError(flags, {{}, message, pubkey}, scriptverify,
+                   ScriptError::CHECKDATASIGVERIFY);
 
         if (flags & SCRIPT_VERIFY_NULLFAIL) {
             // Invalid signature causes checkdatasig to fail.

@@ -374,31 +374,19 @@ BOOST_AUTO_TEST_CASE(checkpubkeyencoding_test) {
 
         ScriptError err = ScriptError::OK;
 
-        // Compressed pubkeys are always valid.
+        // Compressed and uncompressed pubkeys are always valid.
         BOOST_CHECK(CheckPubKeyEncoding(compressedKey0, flags, &err));
         BOOST_CHECK(CheckPubKeyEncoding(compressedKey1, flags, &err));
+        BOOST_CHECK(CheckPubKeyEncoding(fullKey, flags, &err));
 
-        // If SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE is specified, full key are
-        // disabled.
-        const bool allowFullKey =
-            (flags & SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE) == 0;
-        BOOST_CHECK_EQUAL(CheckPubKeyEncoding(fullKey, flags, &err),
-                          allowFullKey);
-        if (!allowFullKey) {
-            BOOST_CHECK(err == ScriptError::NONCOMPRESSED_PUBKEY);
-        }
-
-        // If SCRIPT_VERIFY_STRICTENC or SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE is
-        // specified, we rule out invalid keys.
+        // If SCRIPT_VERIFY_STRICTENC is specified, we rule out invalid keys.
         const bool hasStrictEnc = (flags & SCRIPT_VERIFY_STRICTENC) != 0;
-        const bool allowInvalidKeys = allowFullKey && !hasStrictEnc;
+        const bool allowInvalidKeys = !hasStrictEnc;
         for (const valtype &key : invalidKeys) {
             BOOST_CHECK_EQUAL(CheckPubKeyEncoding(key, flags, &err),
                               allowInvalidKeys);
             if (!allowInvalidKeys) {
-                BOOST_CHECK(err == (hasStrictEnc
-                                        ? ScriptError::PUBKEYTYPE
-                                        : ScriptError::NONCOMPRESSED_PUBKEY));
+                BOOST_CHECK(err == ScriptError::PUBKEYTYPE);
             }
         }
     }

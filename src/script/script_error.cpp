@@ -98,8 +98,6 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Public key is neither compressed or uncompressed";
         case ScriptError::CLEANSTACK:
             return "Script did not clean its stack";
-        case ScriptError::NONCOMPRESSED_PUBKEY:
-            return "Using non-compressed public key";
         case ScriptError::ILLEGAL_FORKID:
             return "Illegal use of SIGHASH_FORKID";
         case ScriptError::MUST_USE_FORKID:

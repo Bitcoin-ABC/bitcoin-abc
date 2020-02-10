@@ -87,7 +87,6 @@ static ScriptErrorDesc script_errors[] = {
     {ScriptError::SIG_BADLENGTH, "SIG_BADLENGTH"},
     {ScriptError::SIG_NONSCHNORR, "SIG_NONSCHNORR"},
     {ScriptError::DISCOURAGE_UPGRADABLE_NOPS, "DISCOURAGE_UPGRADABLE_NOPS"},
-    {ScriptError::NONCOMPRESSED_PUBKEY, "NONCOMPRESSED_PUBKEY"},
     {ScriptError::ILLEGAL_FORKID, "ILLEGAL_FORKID"},
     {ScriptError::MUST_USE_FORKID, "MISSING_FORKID"},
     {ScriptError::DIV_BY_ZERO, "DIV_BY_ZERO"},
@@ -1624,14 +1623,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     "Schnorr P2PK with uncompressed pubkey",
                     SCRIPT_VERIFY_STRICTENC)
             .PushSigSchnorr(keys.key0, SigHashType()));
-    tests.push_back(
-        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
-                    "Schnorr P2PK with uncompressed pubkey but "
-                    "COMPRESSED_PUBKEYTYPE set",
-                    SCRIPT_VERIFY_STRICTENC |
-                        SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE)
-            .PushSigSchnorr(keys.key0, SigHashType())
-            .SetScriptError(ScriptError::NONCOMPRESSED_PUBKEY));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0H) << OP_CHECKSIG,
                     "Schnorr P2PK with hybrid pubkey", SCRIPT_VERIFY_STRICTENC)

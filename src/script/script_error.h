@@ -73,9 +73,6 @@ enum class ScriptError {
     /* softfork safeness */
     DISCOURAGE_UPGRADABLE_NOPS,
 
-    /* misc */
-    NONCOMPRESSED_PUBKEY,
-
     /* anti replay */
     ILLEGAL_FORKID,
     MUST_USE_FORKID,
