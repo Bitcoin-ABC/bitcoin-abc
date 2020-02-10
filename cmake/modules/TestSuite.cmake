@@ -23,7 +23,7 @@ set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmak
 function(_add_test_runner SUITE NAME COMMAND)
 	set(TARGET "check-${SUITE}-${NAME}")
 	set(LOG "${NAME}.log")
-	set(RUNNER "${CMAKE_CURRENT_BINARY_DIR}/run-${NAME}.sh")
+	set(RUNNER "${CMAKE_CURRENT_BINARY_DIR}/run-${SUITE}-${NAME}.sh")
 	list(JOIN ARGN " " ARGS)
 
 	configure_file(
