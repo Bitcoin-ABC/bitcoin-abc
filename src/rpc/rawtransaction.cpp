@@ -1054,7 +1054,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
             "       ,...\n"
             "    ]\n"
             "4. \"sighashtype\"                    (string, optional, "
-            "default=ALL) The signature hash type. Must be one of\n"
+            "default=ALL|FORKID) The signature hash type. Must be one of\n"
             "       \"ALL|FORKID\"\n"
             "       \"NONE|FORKID\"\n"
             "       \"SINGLE|FORKID\"\n"
