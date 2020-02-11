@@ -1036,7 +1036,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
             RPCHelpMan{
                 "signrawtransactionwithkey",
                 {
-                    {"hexstring", RPCArg::Type::STR, false},
+                    {"hexstring", RPCArg::Type::STR_HEX, false},
                     {"privkyes",
                      RPCArg::Type::ARR,
                      {
