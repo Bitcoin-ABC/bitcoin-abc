@@ -1496,7 +1496,7 @@ bool CWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout,
     SignatureData sigdata;
 
     std::unique_ptr<SigningProvider> provider =
-        GetSigningProvider(scriptPubKey);
+        GetSolvingProvider(scriptPubKey);
     if (!provider) {
         // We don't know about this scriptpbuKey;
         return false;
@@ -2381,7 +2381,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
             }
 
             std::unique_ptr<SigningProvider> provider =
-                GetSigningProvider(wtx.tx->vout[i].scriptPubKey);
+                GetSolvingProvider(wtx.tx->vout[i].scriptPubKey);
 
             bool solvable =
                 provider ? IsSolvable(*provider, wtx.tx->vout[i].scriptPubKey)
@@ -4836,17 +4836,17 @@ ScriptPubKeyMan *CWallet::GetScriptPubKeyMan(const uint256 &id) const {
 }
 
 std::unique_ptr<SigningProvider>
-CWallet::GetSigningProvider(const CScript &script) const {
+CWallet::GetSolvingProvider(const CScript &script) const {
     SignatureData sigdata;
-    return GetSigningProvider(script, sigdata);
+    return GetSolvingProvider(script, sigdata);
 }
 
 std::unique_ptr<SigningProvider>
-CWallet::GetSigningProvider(const CScript &script,
+CWallet::GetSolvingProvider(const CScript &script,
                             SignatureData &sigdata) const {
     for (const auto &spk_man_pair : m_spk_managers) {
         if (spk_man_pair.second->CanProvide(script, sigdata)) {
-            return spk_man_pair.second->GetSigningProvider(script);
+            return spk_man_pair.second->GetSolvingProvider(script);
         }
     }
     return nullptr;

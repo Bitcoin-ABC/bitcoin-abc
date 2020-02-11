@@ -243,14 +243,14 @@ public:
     }
 
     virtual std::unique_ptr<SigningProvider>
-    GetSigningProvider(const CScript &script) const {
+    GetSolvingProvider(const CScript &script) const {
         return nullptr;
     }
 
     /**
      * Whether this ScriptPubKeyMan can provide a SigningProvider (via
-     * GetSigningProvider) that, combined with sigdata, can produce a valid
-     * signature.
+     * GetSolvingProvider) that, combined with sigdata, can produce solving
+     * data.
      */
     virtual bool CanProvide(const CScript &script, SignatureData &sigdata) {
         return false;
@@ -446,7 +446,7 @@ public:
     bool CanGetAddresses(bool internal = false) override;
 
     std::unique_ptr<SigningProvider>
-    GetSigningProvider(const CScript &script) const override;
+    GetSolvingProvider(const CScript &script) const override;
 
     bool CanProvide(const CScript &script, SignatureData &sigdata) override;
 
@@ -581,7 +581,8 @@ public:
 };
 
 /**
- * Wraps a LegacyScriptPubKeyMan so that it can be returned in a new unique_ptr
+ * Wraps a LegacyScriptPubKeyMan so that it can be returned in a new unique_ptr.
+ * Does not provide privkeys.
  */
 class LegacySigningProvider : public SigningProvider {
 private:
@@ -601,11 +602,9 @@ public:
         return m_spk_man.GetPubKey(address, pubkey);
     }
     bool GetKey(const CKeyID &address, CKey &key) const override {
-        return m_spk_man.GetKey(address, key);
+        return false;
     }
-    bool HaveKey(const CKeyID &address) const override {
-        return m_spk_man.HaveKey(address);
-    }
+    bool HaveKey(const CKeyID &address) const override { return false; }
     bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const override {
         return m_spk_man.GetKeyOrigin(keyid, info);
     }

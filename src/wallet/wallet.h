@@ -1464,9 +1464,9 @@ public:
 
     //! Get the SigningProvider for a script
     std::unique_ptr<SigningProvider>
-    GetSigningProvider(const CScript &script) const;
+    GetSolvingProvider(const CScript &script) const;
     std::unique_ptr<SigningProvider>
-    GetSigningProvider(const CScript &script, SignatureData &sigdata) const;
+    GetSolvingProvider(const CScript &script, SignatureData &sigdata) const;
 
     //! Get the LegacyScriptPubKeyMan which is used for all types, internal, and
     //! external.

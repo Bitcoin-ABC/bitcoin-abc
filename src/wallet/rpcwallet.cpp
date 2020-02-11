@@ -3495,7 +3495,7 @@ static UniValue listunspent(const Config &config,
             }
 
             std::unique_ptr<SigningProvider> provider =
-                pwallet->GetSigningProvider(scriptPubKey);
+                pwallet->GetSolvingProvider(scriptPubKey);
             if (provider) {
                 if (scriptPubKey.IsPayToScriptHash()) {
                     const CScriptID &hash =
@@ -3518,7 +3518,7 @@ static UniValue listunspent(const Config &config,
         entry.pushKV("solvable", out.fSolvable);
         if (out.fSolvable) {
             std::unique_ptr<SigningProvider> provider =
-                pwallet->GetSigningProvider(scriptPubKey);
+                pwallet->GetSolvingProvider(scriptPubKey);
             if (provider) {
                 auto descriptor = InferDescriptor(scriptPubKey, *provider);
                 entry.pushKV("desc", descriptor->ToString());
@@ -4071,7 +4071,7 @@ static UniValue DescribeWalletAddress(CWallet *pwallet,
     CScript script = GetScriptForDestination(dest);
     std::unique_ptr<SigningProvider> provider = nullptr;
     if (pwallet) {
-        provider = pwallet->GetSigningProvider(script);
+        provider = pwallet->GetSolvingProvider(script);
     }
     ret.pushKVs(detail);
     ret.pushKVs(boost::apply_visitor(
@@ -4212,7 +4212,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
                HexStr(scriptPubKey.begin(), scriptPubKey.end()));
 
     std::unique_ptr<SigningProvider> provider =
-        pwallet->GetSigningProvider(scriptPubKey);
+        pwallet->GetSolvingProvider(scriptPubKey);
 
     isminetype mine = pwallet->IsMine(dest);
     ret.pushKV("ismine", bool(mine & ISMINE_SPENDABLE));
