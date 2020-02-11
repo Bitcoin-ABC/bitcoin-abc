@@ -191,7 +191,7 @@ public:
     virtual TransactionError fillPSBT(SigHashType sighash_type, bool sign,
                                       bool bip32derivs,
                                       PartiallySignedTransaction &psbtx,
-                                      bool &complete) = 0;
+                                      bool &complete) const = 0;
 
     //! Get balances.
     virtual WalletBalances getBalances() = 0;

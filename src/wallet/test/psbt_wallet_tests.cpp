@@ -6,7 +6,6 @@
 #include <util/bip32.h>
 #include <util/error.h>
 #include <util/strencodings.h>
-#include <wallet/psbtwallet.h>
 #include <wallet/test/wallet_test_fixture.h>
 #include <wallet/wallet.h>
 
@@ -94,7 +93,7 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
     // Fill transaction with our data
     bool complete = true;
     BOOST_REQUIRE_EQUAL(
-        FillPSBT(&m_wallet, psbtx, complete, SigHashType(), false, true),
+        m_wallet.FillPSBT(psbtx, complete, SigHashType(), false, true),
         TransactionError::OK);
 
     // Get the final tx

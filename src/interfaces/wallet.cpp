@@ -20,7 +20,6 @@
 #include <wallet/fees.h>
 #include <wallet/ismine.h>
 #include <wallet/load.h>
-#include <wallet/psbtwallet.h>
 #include <wallet/rpcdump.h>
 #include <wallet/wallet.h>
 
@@ -313,9 +312,9 @@ namespace {
         TransactionError fillPSBT(SigHashType sighash_type, bool sign,
                                   bool bip32derivs,
                                   PartiallySignedTransaction &psbtx,
-                                  bool &complete) override {
-            return FillPSBT(m_wallet.get(), psbtx, complete, sighash_type, sign,
-                            bip32derivs);
+                                  bool &complete) const override {
+            return m_wallet->FillPSBT(psbtx, complete, sighash_type, sign,
+                                      bip32derivs);
         }
         WalletBalances getBalances() override {
             const auto bal = m_wallet->GetBalance();

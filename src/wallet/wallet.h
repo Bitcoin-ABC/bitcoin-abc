@@ -12,6 +12,7 @@
 #include <interfaces/handler.h>
 #include <outputtype.h>
 #include <primitives/blockhash.h>
+#include <psbt.h>
 #include <tinyformat.h>
 #include <ui_interface.h>
 #include <util/strencodings.h>
@@ -1105,6 +1106,26 @@ public:
                          const std::map<COutPoint, Coin> &coins,
                          SigHashType sighash,
                          std::map<int, std::string> &input_errors) const;
+
+    /**
+     * Fills out a PSBT with information from the wallet. Fills in UTXOs if we
+     * have them. Tries to sign if sign=true. Sets `complete` if the PSBT is now
+     * complete (i.e. has all required signatures or signature-parts, and is
+     * ready to finalize.) Sets `error` and returns false if something goes
+     * wrong.
+     *
+     * @param[in]  psbtx PartiallySignedTransaction to fill in
+     * @param[out] complete indicates whether the PSBT is now complete
+     * @param[in]  sighash_type the sighash type to use when signing (if PSBT
+     * does not specify)
+     * @param[in]  sign whether to sign or not
+     * @param[in]  bip32derivs whether to fill in bip32 derivation information
+     * if available return error
+     */
+    TransactionError
+    FillPSBT(PartiallySignedTransaction &psbtx, bool &complete,
+             SigHashType sighash_type = SigHashType().withForkId(),
+             bool sign = true, bool bip32derivs = true) const;
 
     /**
      * Create a new transaction paying the recipients with a set of coins

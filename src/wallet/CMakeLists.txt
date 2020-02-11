@@ -18,7 +18,6 @@ add_library(wallet
 	db.cpp
 	fees.cpp
 	load.cpp
-	psbtwallet.cpp
 	rpcdump.cpp
 	rpcwallet.cpp
 	scriptpubkeyman.cpp

@@ -27,7 +27,6 @@
 #include <util/translation.h>
 #include <util/url.h>
 #include <wallet/coincontrol.h>
-#include <wallet/psbtwallet.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
@@ -4575,7 +4574,7 @@ static UniValue walletprocesspsbt(const Config &config,
         request.params[3].isNull() ? true : request.params[3].get_bool();
     bool complete = true;
     const TransactionError err =
-        FillPSBT(pwallet, psbtx, complete, nHashType, sign, bip32derivs);
+        pwallet->FillPSBT(psbtx, complete, nHashType, sign, bip32derivs);
     if (err != TransactionError::OK) {
         throw JSONRPCTransactionError(err);
     }
@@ -4751,9 +4750,8 @@ static UniValue walletcreatefundedpsbt(const Config &config,
     bool bip32derivs =
         request.params[4].isNull() ? true : request.params[4].get_bool();
     bool complete = true;
-    const TransactionError err =
-        FillPSBT(pwallet, psbtx, complete, SigHashType().withForkId(), false,
-                 bip32derivs);
+    const TransactionError err = pwallet->FillPSBT(
+        psbtx, complete, SigHashType().withForkId(), false, bip32derivs);
     if (err != TransactionError::OK) {
         throw JSONRPCTransactionError(err);
     }
