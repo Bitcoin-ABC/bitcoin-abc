@@ -6,6 +6,7 @@
 #include <key_io.h>
 #include <outputtype.h>
 #include <script/descriptor.h>
+#include <script/sign.h>
 #include <util/bip32.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
@@ -456,6 +457,12 @@ bool LegacyScriptPubKeyMan::CanProvide(const CScript &script,
         return has_privkeys;
     }
     return false;
+}
+
+bool LegacyScriptPubKeyMan::SignTransaction(
+    CMutableTransaction &tx, const std::map<COutPoint, Coin> &coins,
+    SigHashType sighash, std::map<int, std::string> &input_errors) const {
+    return ::SignTransaction(tx, this, coins, sighash, input_errors);
 }
 
 const CKeyMetadata *

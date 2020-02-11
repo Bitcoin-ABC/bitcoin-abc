@@ -253,10 +253,23 @@ public:
         return false;
     }
 
+    /**
+     * Creates new signatures and adds them to the transaction. Returns whether
+     * all inputs were signed
+     */
+    virtual bool
+    SignTransaction(CMutableTransaction &tx,
+                    const std::map<COutPoint, Coin> &coins, SigHashType sighash,
+                    std::map<int, std::string> &input_errors) const {
+        return false;
+    }
+
     virtual uint256 GetID() const { return uint256(); }
 
-    /** Prepends the wallet name in logging output to ease debugging in
-     * multi-wallet use cases */
+    /**
+     * Prepends the wallet name in logging output to ease debugging in
+     * multi-wallet use cases
+     */
     template <typename... Params>
     void WalletLogPrintf(std::string fmt, Params... parameters) const {
         LogPrintf(("%s " + fmt).c_str(), m_storage.GetDisplayName(),
@@ -417,6 +430,11 @@ public:
     GetSigningProvider(const CScript &script) const override;
 
     bool CanProvide(const CScript &script, SignatureData &sigdata) override;
+
+    bool
+    SignTransaction(CMutableTransaction &tx,
+                    const std::map<COutPoint, Coin> &coins, SigHashType sighash,
+                    std::map<int, std::string> &input_errors) const override;
 
     uint256 GetID() const override;
 
