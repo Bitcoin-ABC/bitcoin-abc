@@ -77,7 +77,6 @@ mkdir -p "${BUILD_DIR}"
 export BUILD_DIR
 
 DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
-CHAINPARAMS_SCRIPTS_DIR="${DEVTOOLS_DIR}"/chainparams
 
 # Make sure tree is clean
 git checkout master
@@ -85,6 +84,8 @@ git reset --hard "${PARENT_COMMIT}"
 
 case "${COMMIT_TYPE}" in
   update-chainparams)
+    CHAINPARAMS_SCRIPTS_DIR="${DEVTOOLS_DIR}"/chainparams
+
     # Assumes bitcoind instances are already running on mainnet and testnet
     pushd "${CHAINPARAMS_SCRIPTS_DIR}"
     CHAINPARAMS_MAINNET_TXT="chainparams_main.txt"
@@ -101,6 +102,36 @@ case "${COMMIT_TYPE}" in
     popd
 
     git commit -m "${BOT_PREFIX} Update chainparams"
+    ;;
+
+  update-manpages)
+    "${DEVTOOLS_DIR}"/build_cmake.sh
+    BUILDDIR="${BUILD_DIR}" "${DEVTOOLS_DIR}"/gen-manpages.sh
+
+    MANPAGES_DIR="${TOPLEVEL}"/doc/man
+
+    # Sanity check that the current bitcoind version is in the manpages.
+    # Note that this check could be more complex, checking that all version
+    # instances match the current bitcoind version. But, it's impossible to
+    # know if some other version number will appear in the help text due to
+    # deprecation notices or otherwise.
+    EXPECTED_VERSION=$("${BUILD_DIR}"/src/bitcoind --version | head -1 | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+")
+    grep "${EXPECTED_VERSION}" "${MANPAGES_DIR}"/*\.1
+
+    # Sanity check that the version string was not dirty or that something
+    # unexpected occurred.
+    grep "${EXPECTED_VERSION}-dirty" "${MANPAGES_DIR}"/*\.1 && {
+      echo "Error: Unexpected dirty version string."
+      exit 11
+    }
+    grep "${EXPECTED_VERSION}-unk" "${MANPAGES_DIR}"/*\.1 && {
+      echo "Error: Unknown error detected in version string."
+      exit 12
+    }
+
+    git add "${MANPAGES_DIR}"/*\.1
+
+    git commit -m "${BOT_PREFIX} Update manpages"
     ;;
 
   update-seeds)
