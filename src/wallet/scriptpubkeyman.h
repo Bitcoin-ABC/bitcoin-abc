@@ -555,7 +555,8 @@ public:
     std::set<CKeyID> GetKeys() const override;
 };
 
-/** Wraps a LegacyScriptPubKeyMan so that it can be returned in a new unique_ptr
+/**
+ * Wraps a LegacyScriptPubKeyMan so that it can be returned in a new unique_ptr
  */
 class LegacySigningProvider : public SigningProvider {
 private:

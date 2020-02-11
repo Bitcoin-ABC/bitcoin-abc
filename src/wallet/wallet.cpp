@@ -2757,6 +2757,7 @@ bool CWallet::SignTransaction(CMutableTransaction &tx,
         // Input needs to be signed, find the right ScriptPubKeyMan
         std::set<ScriptPubKeyMan *> spk_mans =
             GetScriptPubKeyMans(coin->second.GetTxOut().scriptPubKey, sigdata);
+
         if (spk_mans.size() == 0) {
             input_errors[i] = "Unable to sign input, missing keys";
             continue;
@@ -2779,6 +2780,14 @@ bool CWallet::SignTransaction(CMutableTransaction &tx,
             visited_spk_mans.insert(spk_man->GetID());
         }
     }
+
+    // When there are no available providers for the remaining inputs, use the
+    // legacy provider so we can get proper error messages.
+    auto legacy_spk_man = GetLegacyScriptPubKeyMan();
+    if (legacy_spk_man->SignTransaction(tx, coins, sighash, input_errors)) {
+        return true;
+    }
+
     return false;
 }
 
@@ -3243,29 +3252,9 @@ bool CWallet::CreateTransactionInternal(const std::vector<CRecipient> &vecSend,
                       std::numeric_limits<uint32_t>::max() - 1));
         }
 
-        if (sign) {
-            SigHashType sigHashType = SigHashType().withForkId();
-
-            int nIn = 0;
-            for (const auto &coin : selected_coins) {
-                const CScript &scriptPubKey = coin.txout.scriptPubKey;
-                SignatureData sigdata;
-
-                std::unique_ptr<SigningProvider> provider =
-                    GetSigningProvider(scriptPubKey);
-                if (!provider ||
-                    !ProduceSignature(
-                        *provider,
-                        MutableTransactionSignatureCreator(
-                            &txNew, nIn, coin.txout.nValue, sigHashType),
-                        scriptPubKey, sigdata)) {
-                    error = _("Signing transaction failed");
-                    return false;
-                }
-
-                UpdateInput(txNew.vin.at(nIn), sigdata);
-                nIn++;
-            }
+        if (sign && !SignTransaction(txNew)) {
+            error = _("Signing transaction failed");
+            return false;
         }
 
         // Return the constructed transaction data.
