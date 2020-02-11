@@ -232,9 +232,9 @@ static void BlockTipChanged(ClientModel *clientmodel, bool initialSync,
         clientmodel->cachedBestHeaderHeight = height;
         clientmodel->cachedBestHeaderTime = blockTime;
     }
-    // if we are in-sync or if we notify a header update, update the UI
-    // regardless of last update time
-    if (fHeader || !initialSync ||
+    // During initial sync, block notifications, and header notifications from
+    // reindexing are both throttled.
+    if (!initialSync || (fHeader && !clientmodel->node().getReindex()) ||
         now - nLastUpdateNotification > MODEL_UPDATE_DELAY) {
         // pass an async signal to the UI thread
         bool invoked = QMetaObject::invokeMethod(
