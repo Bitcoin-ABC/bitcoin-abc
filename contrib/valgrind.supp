@@ -41,3 +41,13 @@
    ...
    fun:_ZN7leveldbL14InitDefaultEnvEv
 }
+{
+   Suppress glibc bug 24476
+   Memcheck:Addr8
+   ...
+   fun:__dlerror_main_freeres
+   fun:__libc_freeres
+   ...
+   fun:quick_exit*
+   fun:TestOtherProcess
+}

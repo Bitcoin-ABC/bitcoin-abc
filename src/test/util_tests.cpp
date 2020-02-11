@@ -1279,7 +1279,11 @@ static void TestOtherProcess(fs::path dirname, std::string lockname, int fd) {
                 break;
             case ExitCommand:
                 close(fd);
-                exit(0);
+                // As an alternative to exit() which runs the exit handlers
+                // (which seem to be flakey with Boost test suite with JUNIT
+                // logging in a forked process), just vanish this process as
+                // fast as possible.
+                std::quick_exit(0);
             default:
                 assert(0);
         }
