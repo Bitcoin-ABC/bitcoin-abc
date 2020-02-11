@@ -72,7 +72,8 @@ echo "Building automated commit '${COMMIT_TYPE}'..."
 BOT_PREFIX="[Automated]"
 TOPLEVEL=$(git rev-parse --show-toplevel)
 
-CHAINPARAMS_SCRIPTS_DIR="${TOPLEVEL}"/contrib/devtools/chainparams
+DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
+CHAINPARAMS_SCRIPTS_DIR="${DEVTOOLS_DIR}"/chainparams
 TEAMCITY_SCRIPTS_DIR="${TOPLEVEL}"/contrib/teamcity
 
 # Make sure tree is clean
@@ -96,9 +97,6 @@ case "${COMMIT_TYPE}" in
     git add "${CHAINPARAMS_CONSTANTS}"
     popd
 
-    # Sanity check that the new chainparams build
-    ABC_BUILD_NAME=build-werror "${TEAMCITY_SCRIPTS_DIR}"/build-configurations.sh
-
     git commit -m "${BOT_PREFIX} Update chainparams"
     ;;
 
@@ -119,6 +117,13 @@ if [ "${LINT_EXIT_CODE}" -ne 0 ] || [ "${LINT_NUM_LINES}" -gt 1 ]; then
   echo "Error: The linter found issues with the automated commit. Correct the issue in the code generator and try again."
   exit 20
 fi
+
+# Smoke tests to give some confidence that master won't be put into a bad state
+BUILD_DIR="${TOPLEVEL}"/build
+pushd "${BUILD_DIR}"
+BUILD_DIR="${BUILD_DIR}" "${DEVTOOLS_DIR}"/build_cmake.sh
+ninja check-bitcoin check-functional
+popd
 
 echo "Pushing automated commit '${COMMIT_TYPE}'..."
 
