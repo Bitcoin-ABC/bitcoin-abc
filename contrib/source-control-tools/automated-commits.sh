@@ -8,11 +8,64 @@ export LC_ALL=C.UTF-8
 
 set -euxo pipefail
 
+DEFAULT_PARENT_COMMIT="origin/master"
+
+help_message() {
+  set +x
+  echo "Generate a commit from available recipes."
+  echo
+  echo "Options:"
+  echo "-p, --parent              The parent commit to build ontop of. Default: '${DEFAULT_PARENT_COMMIT}'"
+  echo "                            Note: This should only be used for testing since the behavior of setting"
+  echo "                            this to a particular commit varies slightly from the default."
+  echo "-h, --help                Display this help message."
+  echo
+  echo "Environment Variables:"
+  echo "COMMIT_TYPE               (required) The commit recipe to run."
+  echo "DRY_RUN                   If set to 'no', this script will push the generated changes upstream. Default: 'yes'"
+  set -x
+}
+
+PARENT_COMMIT="${DEFAULT_PARENT_COMMIT}"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+case $1 in
+  -p|--parent)
+    PARENT_COMMIT=$(git rev-parse "$2")
+    shift # shift past argument
+    shift # shift past value
+    ;;
+  -h|--help)
+    help_message
+    exit 0
+    ;;
+  *)
+    echo "Unknown argument: $1"
+    help_message
+    exit 1
+    ;;
+esac
+done
+
 : "${COMMIT_TYPE:=}"
 if [ -z "${COMMIT_TYPE}" ]; then
   echo "Error: Environment variable COMMIT_TYPE must be set"
-  exit 1
+  exit 2
 fi
+
+GIT_PUSH_OPTIONS=("--verbose")
+case ${DRY_RUN:=yes} in
+  no|NO|false|FALSE)
+    if [ "${PARENT_COMMIT}" != "${DEFAULT_PARENT_COMMIT}" ]; then
+      echo "Error: Running with DRY_RUN=no on a commit parent other than '${DEFAULT_PARENT_COMMIT}'"
+      exit 3
+    fi
+    ;;
+  *)
+    GIT_PUSH_OPTIONS+=("--dry-run")
+    ;;
+esac
 
 echo "Building automated commit '${COMMIT_TYPE}'..."
 
@@ -24,7 +77,7 @@ TEAMCITY_SCRIPTS_DIR="${TOPLEVEL}"/contrib/teamcity
 
 # Make sure tree is clean
 git checkout master
-git reset --hard origin/master
+git reset --hard "${PARENT_COMMIT}"
 
 case "${COMMIT_TYPE}" in
   update-chainparams)
@@ -51,7 +104,7 @@ case "${COMMIT_TYPE}" in
 
   *)
     echo "Error: Invalid commit name '${COMMIT_TYPE}'"
-    exit 2
+    exit 10
     ;;
 esac
 
@@ -64,25 +117,14 @@ LINT_EXIT_CODE=$?
 LINT_NUM_LINES=$(echo ${LINT_OUTPUT} | wc -l)
 if [ "${LINT_EXIT_CODE}" -ne 0 ] || [ "${LINT_NUM_LINES}" -gt 1 ]; then
   echo "Error: The linter found issues with the automated commit. Correct the issue in the code generator and try again."
-  exit 3
+  exit 20
 fi
 
 echo "Pushing automated commit '${COMMIT_TYPE}'..."
 
-GIT_PUSH_OPTIONS=("--verbose")
-
-case ${DRY_RUN:=yes} in
-  no|NO|false|FALSE)
-    # Do nothing
-    ;;
-  *)
-    GIT_PUSH_OPTIONS+=("--dry-run")
-    ;;
-esac
-
 # Make sure master is up-to-date. If there is a merge conflict, this script
 # will not attempt to resolve it and simply fail.
 git fetch origin master
-git rebase origin/master
+git rebase "${PARENT_COMMIT}"
 
 git push "${GIT_PUSH_OPTIONS[@]}" origin master
