@@ -21,7 +21,6 @@ Bitcoin ABC Release Process
     - Update [bips.md](/doc/bips.md) to account for changes since the last release.
     - (major releases) Update [`BLOCK_CHAIN_SIZE`](/src/qt/intro.cpp) to the current size plus
       some overhead.
-    - Update `src/chainparamsconstants.h` per [contrib/devtools/chainparams/README.md](contrib/devtools/chainparams/README.md)
     - Regenerate manpages (run `contrib/devtools/gen-manpages.sh`, or for out-of-tree builds run
       `BUILDDIR=$PWD/build contrib/devtools/gen-manpages.sh`).
     - Update seeds as per [contrib/seeds/README.md](/contrib/seeds/README.md).
