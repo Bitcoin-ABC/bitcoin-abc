@@ -2015,7 +2015,18 @@ bool DescriptorScriptPubKeyMan::CanProvide(const CScript &script,
 bool DescriptorScriptPubKeyMan::SignTransaction(
     CMutableTransaction &tx, const std::map<COutPoint, Coin> &coins,
     SigHashType sighash, std::map<int, std::string> &input_errors) const {
-    return false;
+    std::unique_ptr<FlatSigningProvider> keys =
+        std::make_unique<FlatSigningProvider>();
+    for (const auto &coin_pair : coins) {
+        std::unique_ptr<FlatSigningProvider> coin_keys =
+            GetSigningProvider(coin_pair.second.GetTxOut().scriptPubKey, true);
+        if (!coin_keys) {
+            continue;
+        }
+        *keys = Merge(*keys, *coin_keys);
+    }
+
+    return ::SignTransaction(tx, keys.get(), coins, sighash, input_errors);
 }
 
 SigningResult
