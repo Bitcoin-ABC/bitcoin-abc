@@ -9,6 +9,7 @@ set -u
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
 DEFAULT_BUILD_DIR="${TOPLEVEL}/build"
+DEFAULT_RPC_PORT=18832
 
 help_message() {
   echo "Test connecting to seed nodes. Outputs the seeds that were successfully connected to."
@@ -23,6 +24,7 @@ help_message() {
   echo ""
   echo "Environment Variables:"
   echo "BUILD_DIR             Default: ${DEFAULT_BUILD_DIR}"
+  echo "RPC_PORT              Default: ${DEFAULT_RPC_PORT}"
   exit 0
 }
 
@@ -60,8 +62,9 @@ if [ ! -x "${BITCOIN_CLI}" ]; then
 fi
 
 TEMP_DATADIR=$(mktemp -d)
-BITCOIND="${BITCOIND} -datadir=${TEMP_DATADIR} ${OPTION_TESTNET} -rpcport=18832 -connect=0 -daemon"
-BITCOIN_CLI="${BITCOIN_CLI} -datadir=${TEMP_DATADIR} ${OPTION_TESTNET} -rpcport=18832"
+: "${RPC_PORT:=${DEFAULT_RPC_PORT}}"
+BITCOIND="${BITCOIND} -datadir=${TEMP_DATADIR} ${OPTION_TESTNET} -rpcport=${RPC_PORT} -connect=0 -daemon"
+BITCOIN_CLI="${BITCOIN_CLI} -datadir=${TEMP_DATADIR} ${OPTION_TESTNET} -rpcport=${RPC_PORT}"
 
 >&2 echo "Spinning up bitcoind..."
 ${BITCOIND} || {
