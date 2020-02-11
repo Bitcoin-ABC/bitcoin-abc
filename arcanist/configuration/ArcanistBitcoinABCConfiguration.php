@@ -32,7 +32,19 @@ class ArcanistBitcoinABCConfiguration extends ArcanistConfiguration {
       $lintWorkflow = $workflow->buildChildWorkflow(
         'lint', array('--severity', 'autofix', '--amend-autofixes'));
 
-      $lintResult = $lintWorkflow->run();
+      try {
+        $lintResult = $lintWorkflow->run();
+      } catch (Exception $ex) {
+        /*
+         * The lint workflow will throw an exception if no path is lintable.
+         * Catch this exception and return no error (this is what is done when
+         * arc lint is run).
+         */
+        if ($ex instanceof ArcanistNoEffectException) {
+          return 0;
+        }
+      }
+
       $lintMessages = $lintWorkflow->getUnresolvedMessages();
 
       /*
