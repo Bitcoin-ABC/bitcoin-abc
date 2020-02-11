@@ -6,6 +6,7 @@
 #ifndef BITCOIN_SCRIPT_SIGN_H
 #define BITCOIN_SCRIPT_SIGN_H
 
+#include <coins.h>
 #include <hash.h>
 #include <pubkey.h>
 #include <script/interpreter.h>
@@ -191,5 +192,11 @@ void UpdateInput(CTxIn &input, const SignatureData &data);
  * Solvability is unrelated to whether we consider this output to be ours.
  */
 bool IsSolvable(const SigningProvider &provider, const CScript &script);
+
+/** Sign the CMutableTransaction */
+bool SignTransaction(CMutableTransaction &mtx, const SigningProvider *provider,
+                     const std::map<COutPoint, Coin> &coins,
+                     SigHashType sigHashType,
+                     std::map<int, std::string> &input_errors);
 
 #endif // BITCOIN_SCRIPT_SIGN_H
