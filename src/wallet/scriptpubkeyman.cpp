@@ -465,6 +465,49 @@ bool LegacyScriptPubKeyMan::SignTransaction(
     return ::SignTransaction(tx, this, coins, sighash, input_errors);
 }
 
+TransactionError
+LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
+                                SigHashType sighash_type, bool sign,
+                                bool bip32derivs) const {
+    for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
+        PSBTInput &input = psbtx.inputs.at(i);
+
+        if (PSBTInputSigned(input)) {
+            continue;
+        }
+
+        // Verify input looks sane. This will check that we have at most one
+        // uxto, witness or non-witness.
+        if (!input.IsSane()) {
+            return TransactionError::INVALID_PSBT;
+        }
+
+        // Get the Sighash type
+        if (sign && input.sighash_type.getRawSigHashType() > 0 &&
+            input.sighash_type != sighash_type) {
+            return TransactionError::SIGHASH_MISMATCH;
+        }
+
+        if (input.utxo.IsNull()) {
+            // There's no UTXO so we can just skip this now
+            continue;
+        }
+        SignatureData sigdata;
+        input.FillSignatureData(sigdata);
+        SignPSBTInput(HidingSigningProvider(this, !sign, !bip32derivs), psbtx,
+                      i, sighash_type);
+    }
+
+    // Fill in the bip32 keypaths and redeemscripts for the outputs so that
+    // hardware wallets can identify change
+    for (size_t i = 0; i < psbtx.tx->vout.size(); ++i) {
+        UpdatePSBTOutput(HidingSigningProvider(this, true, !bip32derivs), psbtx,
+                         i);
+    }
+
+    return TransactionError::OK;
+}
+
 const CKeyMetadata *
 LegacyScriptPubKeyMan::GetMetadata(const CTxDestination &dest) const {
     LOCK(cs_KeyStore);

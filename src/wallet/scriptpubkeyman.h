@@ -5,8 +5,10 @@
 #ifndef BITCOIN_WALLET_SCRIPTPUBKEYMAN_H
 #define BITCOIN_WALLET_SCRIPTPUBKEYMAN_H
 
+#include <psbt.h>
 #include <script/signingprovider.h>
 #include <script/standard.h>
+#include <util/error.h>
 #include <wallet/crypter.h>
 #include <wallet/ismine.h>
 #include <wallet/walletdb.h>
@@ -263,6 +265,16 @@ public:
                     std::map<int, std::string> &input_errors) const {
         return false;
     }
+    /**
+     * Adds script and derivation path information to a PSBT, and optionally
+     * signs it.
+     */
+    virtual TransactionError
+    FillPSBT(PartiallySignedTransaction &psbt,
+             SigHashType sighash_type = SigHashType().withForkId(),
+             bool sign = true, bool bip32derivs = false) const {
+        return TransactionError::INVALID_PSBT;
+    }
 
     virtual uint256 GetID() const { return uint256(); }
 
@@ -435,6 +447,10 @@ public:
     SignTransaction(CMutableTransaction &tx,
                     const std::map<COutPoint, Coin> &coins, SigHashType sighash,
                     std::map<int, std::string> &input_errors) const override;
+    TransactionError
+    FillPSBT(PartiallySignedTransaction &psbt,
+             SigHashType sighash_type = SigHashType().withForkId(),
+             bool sign = true, bool bip32derivs = false) const override;
 
     uint256 GetID() const override;
 
