@@ -1301,22 +1301,6 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 scriptError = check2.GetScriptError();
             }
 
-            // Before banning, we need to check whether the transaction would
-            // be valid on the other side of the upgrade, so as to avoid
-            // splitting the network between upgraded and non-upgraded nodes.
-            // Note that this will create strange error messages like
-            // "upgrade-conditional-script-failure (Opcode missing or not
-            // understood)".
-            CScriptCheck check3(scriptPubKey, amount, tx, i,
-                                mandatoryFlags ^ SCRIPT_ENABLE_OP_REVERSEBYTES,
-                                sigCacheStore, txdata);
-            if (check3()) {
-                return state.Invalid(
-                    false, REJECT_INVALID,
-                    strprintf("upgrade-conditional-script-failure (%s)",
-                              ScriptErrorString(check.GetScriptError())));
-            }
-
             // Failures of other flags indicate a transaction that is invalid in
             // new blocks, e.g. a invalid P2SH. We DoS ban such nodes as they
             // are not following the protocol. That said during an upgrade
@@ -1669,10 +1653,6 @@ static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
     if (IsGravitonEnabled(params, pindex)) {
         flags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
         flags |= SCRIPT_VERIFY_MINIMALDATA;
-    }
-
-    if (IsPhononEnabled(params, pindex)) {
-        flags |= SCRIPT_ENABLE_OP_REVERSEBYTES;
     }
 
     // We make sure this node will have replay protection during the next hard
