@@ -177,7 +177,6 @@ static std::unique_ptr<CCoinsViewErrorCatcher> pcoinscatcher;
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
 static boost::thread_group threadGroup;
-static CScheduler scheduler;
 
 void Interrupt(NodeContext &node) {
     InterruptHTTPServer();
@@ -325,6 +324,7 @@ void Shutdown(NodeContext &node) {
     if (node.mempool) {
         node.mempool = nullptr;
     }
+    node.scheduler.reset();
     LogPrintf("%s: done\n", __func__);
 }
 
@@ -2138,21 +2138,25 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
     }
 
+    assert(!node.scheduler);
+    node.scheduler = std::make_unique<CScheduler>();
+
     // Start the lightweight task scheduler thread
-    CScheduler::Function serviceLoop =
-        std::bind(&CScheduler::serviceQueue, &scheduler);
+    CScheduler::Function serviceLoop = [&node] {
+        node.scheduler->serviceQueue();
+    };
     threadGroup.create_thread(std::bind(&TraceThread<CScheduler::Function>,
                                         "scheduler", serviceLoop));
 
     // Gather some entropy once per minute.
-    scheduler.scheduleEvery(
+    node.scheduler->scheduleEvery(
         [] {
             RandAddPeriodic();
             return true;
         },
         60000);
 
-    GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
+    GetMainSignals().RegisterBackgroundSignalScheduler(*node.scheduler);
 
     // Create client interfaces for wallets that are supposed to be loaded
     // according to -wallet and -disablewallet options. This only constructs
@@ -2211,9 +2215,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         config, GetRand(std::numeric_limits<uint64_t>::max()),
         GetRand(std::numeric_limits<uint64_t>::max()));
 
-    node.peer_logic = std::make_unique<PeerLogicValidation>(
-        node.connman.get(), node.banman.get(), scheduler,
-        gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61));
+    node.peer_logic.reset(new PeerLogicValidation(
+        node.connman.get(), node.banman.get(), *node.scheduler,
+        gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61)));
     RegisterValidationInterface(node.peer_logic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size
@@ -2784,7 +2788,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             connOptions.m_specified_outgoing = connect;
         }
     }
-    if (!node.connman->Start(scheduler, connOptions)) {
+    if (!node.connman->Start(*node.scheduler, connOptions)) {
         return false;
     }
 
@@ -2794,11 +2798,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     uiInterface.InitMessage(_("Done loading").translated);
 
     for (const auto &client : node.chain_clients) {
-        client->start(scheduler);
+        client->start(*node.scheduler);
     }
 
     BanMan *banman = node.banman.get();
-    scheduler.scheduleEvery(
+    node.scheduler->scheduleEvery(
         [banman] {
             banman->DumpBanlist();
             return true;
@@ -2806,7 +2810,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         DUMP_BANS_INTERVAL * 1000);
 
     // Start Avalanche's event loop.
-    g_avalanche->startEventLoop(scheduler);
+    g_avalanche->startEventLoop(*node.scheduler);
 
     return true;
 }

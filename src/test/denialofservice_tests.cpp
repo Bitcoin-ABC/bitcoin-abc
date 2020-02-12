@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler, false);
 
     // Mock an outbound peer
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler, false);
 
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
                                            DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), banman.get(), scheduler, false);
+        connman.get(), banman.get(), *m_node.scheduler, false);
 
     banman->ClearBanned();
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
                                            DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), banman.get(), scheduler, false);
+        connman.get(), banman.get(), *m_node.scheduler, false);
 
     banman->ClearBanned();
     // because 11 is my favorite number.
@@ -357,7 +357,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
                                            DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), banman.get(), scheduler, false);
+        connman.get(), banman.get(), *m_node.scheduler, false);
 
     banman->ClearBanned();
     int64_t nStartTime = GetTime();
