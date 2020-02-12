@@ -208,6 +208,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
 
     ninja check-bitcoin-qt
+    ninja check-functional
 
     run_test_bitcoin "without wallet"
     ;;
