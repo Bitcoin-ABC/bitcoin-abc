@@ -2879,6 +2879,19 @@ TransactionError CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
     return TransactionError::OK;
 }
 
+SigningResult CWallet::SignMessage(const std::string &message,
+                                   const PKHash &pkhash,
+                                   std::string &str_sig) const {
+    SignatureData sigdata;
+    CScript script_pub_key = GetScriptForDestination(pkhash);
+    for (const auto &spk_man_pair : m_spk_managers) {
+        if (spk_man_pair.second->CanProvide(script_pub_key, sigdata)) {
+            return spk_man_pair.second->SignMessage(message, pkhash, str_sig);
+        }
+    }
+    return SigningResult::PRIVATE_KEY_NOT_AVAILABLE;
+}
+
 bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
                               int &nChangePosInOut, bilingual_str &error,
                               bool lockUnspents,

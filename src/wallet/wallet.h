@@ -15,6 +15,7 @@
 #include <psbt.h>
 #include <tinyformat.h>
 #include <ui_interface.h>
+#include <util/message.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/translation.h>
@@ -1106,6 +1107,8 @@ public:
                          const std::map<COutPoint, Coin> &coins,
                          SigHashType sighash,
                          std::map<int, std::string> &input_errors) const;
+    SigningResult SignMessage(const std::string &message, const PKHash &pkhash,
+                              std::string &str_sig) const;
 
     /**
      * Fills out a PSBT with information from the wallet. Fills in UTXOs if we

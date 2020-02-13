@@ -465,6 +465,21 @@ bool LegacyScriptPubKeyMan::SignTransaction(
     return ::SignTransaction(tx, this, coins, sighash, input_errors);
 }
 
+SigningResult LegacyScriptPubKeyMan::SignMessage(const std::string &message,
+                                                 const PKHash &pkhash,
+                                                 std::string &str_sig) const {
+    CKeyID key_id(pkhash);
+    CKey key;
+    if (!GetKey(key_id, key)) {
+        return SigningResult::PRIVATE_KEY_NOT_AVAILABLE;
+    }
+
+    if (MessageSign(key, message, str_sig)) {
+        return SigningResult::OK;
+    }
+    return SigningResult::SIGNING_FAILED;
+}
+
 TransactionError
 LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
                                 SigHashType sighash_type, bool sign,
