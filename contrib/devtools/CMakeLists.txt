@@ -37,7 +37,7 @@ foreach(TEST ${DEVTOOLS_TESTS_PYTHON})
     WORKING_DIRECTORY
       ${WORKDIR}
     COMMAND
-      "${PYTHON_EXECUTABLE}"
+      "${Python_EXECUTABLE}"
       "./${TESTNAME}"
   )
   add_dependencies(check-devtools "check-devtools-${TESTNAME}")

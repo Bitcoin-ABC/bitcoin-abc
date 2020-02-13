@@ -457,7 +457,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"INSTALLNAMETOOL=${CMAKE_INSTALL_NAME_TOOL}"
 			"OTOOL=${CMAKE_OTOOL}"
 			"STRIP=${CMAKE_STRIP}"
-			"${PYTHON_EXECUTABLE}"
+			"${Python_EXECUTABLE}"
 			"${MACDEPLOYQTPLUS}"
 			"${STRIPPED_BUNDLE}"
 			-translations-dir "${QT_TRANSLATION_DIR}"
@@ -517,7 +517,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		OUTPUT
 			"${DMG_DSSTORE}"
 		COMMAND
-			"${PYTHON_EXECUTABLE}"
+			"${Python_EXECUTABLE}"
 			"${GEN_DSSTORE}"
 			"${DMG_DSSTORE}"
 			"${OSX_VOLNAME}"
@@ -568,7 +568,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	else()
 		add_custom_target(osx-dmg
 			COMMAND
-				"${PYTHON_EXECUTABLE}"
+				"${Python_EXECUTABLE}"
 				"${MACDEPLOYQTPLUS}"
 				"${STRIPPED_BUNDLE}"
 				-translations-dir "${QT_TRANSLATION_DIR}"

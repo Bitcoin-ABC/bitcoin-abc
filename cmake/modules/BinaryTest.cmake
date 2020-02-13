@@ -6,7 +6,7 @@ macro(add_to_symbols_check BINARY)
 		COMMAND
 			${CMAKE_COMMAND} -E echo "Running symbol-check.py on ${BINARY}..."
 		COMMAND
-			"${PYTHON_EXECUTABLE}"
+			"${Python_EXECUTABLE}"
 			"${CMAKE_SOURCE_DIR}/contrib/devtools/symbol-check.py"
 			"$<TARGET_FILE:${BINARY}>"
 		DEPENDS
@@ -24,7 +24,7 @@ macro(add_to_security_check BINARY)
 		COMMAND
 			${CMAKE_COMMAND} -E echo "Running security-check.py on ${BINARY}..."
 		COMMAND
-			"${PYTHON_EXECUTABLE}"
+			"${Python_EXECUTABLE}"
 			"${CMAKE_SOURCE_DIR}/contrib/devtools/security-check.py"
 			"$<TARGET_FILE:${BINARY}>"
 		DEPENDS

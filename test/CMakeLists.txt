@@ -50,7 +50,7 @@ macro(add_functional_test_check TARGET COMMENT)
 	add_custom_target(${TARGET}
 		COMMENT "${COMMENT}"
 		COMMAND
-			"${PYTHON_EXECUTABLE}"
+			"${Python_EXECUTABLE}"
 			./functional/test_runner.py
 			${ARGN}
 		DEPENDS
@@ -94,7 +94,7 @@ if(BUILD_BITCOIN_TX)
 	add_custom_target(check-bitcoin-util
 		COMMENT "Test Bitcoin utilities..."
 		COMMAND
-			"${PYTHON_EXECUTABLE}"
+			"${Python_EXECUTABLE}"
 			./util/bitcoin-util-test.py
 		DEPENDS
 			../src/bitcoin-tx
@@ -107,7 +107,7 @@ endif()
 add_custom_target(check-rpcauth
 	COMMENT "Test Bitcoin RPC authentication..."
 	COMMAND
-		"${PYTHON_EXECUTABLE}"
+		"${Python_EXECUTABLE}"
 		./util/rpcauth-test.py
 	DEPENDS
 		${CMAKE_CURRENT_BINARY_DIR}/util/rpcauth-test.py
