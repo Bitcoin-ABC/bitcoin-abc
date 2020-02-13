@@ -25,7 +25,6 @@ help_message() {
   echo "Environment Variables:"
   echo "BUILD_DIR             Default: ${DEFAULT_BUILD_DIR}"
   echo "RPC_PORT              Default: ${DEFAULT_RPC_PORT}"
-  exit 0
 }
 
 : "${BUILD_DIR:=${DEFAULT_BUILD_DIR}}"
@@ -40,12 +39,12 @@ case $1 in
     ;;
   -h|--help)
     help_message
-    shift # shift past argument
+    exit 0
     ;;
   *)
     echo "Unknown argument: $1"
     help_message
-    shift # shift past argument
+    exit 1
     ;;
 esac
 done
