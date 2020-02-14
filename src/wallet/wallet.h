@@ -381,6 +381,15 @@ private:
     // structure
     std::map<uint256, std::unique_ptr<ScriptPubKeyMan>> m_spk_managers;
 
+    /**
+     * Catch wallet up to current chain, scanning new blocks, updating the best
+     * block locator and m_last_block_processed, and registering for
+     * notifications about new blocks and transactions.
+     */
+    static bool AttachChain(const std::shared_ptr<CWallet> &wallet,
+                            interfaces::Chain &chain, bilingual_str &error,
+                            std::vector<bilingual_str> &warnings);
+
 public:
     /*
      * Main wallet lock.
