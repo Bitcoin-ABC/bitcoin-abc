@@ -1,6 +1,6 @@
-Bitcoin ABC version 0.20.13 is now available from:
+Bitcoin ABC version 0.21.0 is now available from:
 
-  <https://download.bitcoinabc.org/0.20.13/>
+  <https://download.bitcoinabc.org/0.21.0/>
 
 This release includes the following features and fixes:
 
