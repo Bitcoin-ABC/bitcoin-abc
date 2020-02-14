@@ -70,6 +70,7 @@ print_sanitizers_log() {
 trap "print_sanitizers_log" ERR
 
 CI_SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 setup
 
 case "$ABC_BUILD_NAME" in
@@ -87,7 +88,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
     run_test_bitcoin "with address sanitizer"
 
@@ -109,7 +110,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
     run_test_bitcoin "with undefined sanitizer"
 
@@ -131,7 +132,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
     run_test_bitcoin "with thread sanitizer"
 
@@ -150,7 +151,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_JNI=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
     # Unit tests
     run_test_bitcoin
@@ -178,7 +179,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_JNI=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
     # Unit tests
     run_test_bitcoin
@@ -205,7 +206,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DBUILD_BITCOIN_WALLET=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
     ninja check-bitcoin-qt
     ninja check-functional
@@ -214,12 +215,12 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-ibd)
-    "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -debug=net
     ;;
 
   build-ibd-no-assumevalid-checkpoint)
-    "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     ;;
 
@@ -230,12 +231,12 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
     ;;
 
   build-autotools)
     # Ensure that the build using autotools is not broken
-    "${CI_SCRIPTS_DIR}"/build_autotools.sh
+    "${DEVTOOLS_DIR}"/build_autotools.sh
     make -j "${THREADS}" check
     ;;
 
@@ -247,13 +248,13 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
       "-DSECP256K1_ENABLE_MODULE_RECOVERY=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
     ninja bench-bitcoin
     ninja bench-secp256k1
     ;;
 
   check-seeds)
-    "${CI_SCRIPTS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh
     # Run on different ports to avoid a race where the rpc port used in the
     # first run may not be closed in time for the second to start.
     RPC_PORT=18832 "${CI_SCRIPTS_DIR}"/check-seeds.sh main 80
