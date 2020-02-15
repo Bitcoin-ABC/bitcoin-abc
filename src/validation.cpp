@@ -1294,13 +1294,6 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
         } else if (!check()) {
-            if (pLimitSigChecks && !pLimitSigChecks->check()) {
-                // It's not a script error to overrun the limit, and we just
-                // reject it as nonstandard.
-                return state.Invalid(false, REJECT_NONSTANDARD,
-                                     strprintf("too-many-sigchecks"));
-            }
-
             ScriptError scriptError = check.GetScriptError();
             // Compute flags without the optional standardness flags.
             // This differs from MANDATORY_SCRIPT_VERIFY_FLAGS as it contains

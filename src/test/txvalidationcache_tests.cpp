@@ -461,7 +461,9 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                                      flags, true, true, txdata, nSigChecksDummy,
                                      nullptr, &sigchecklimiter2));
             BOOST_CHECK(!sigchecklimiter2.check());
-            BOOST_CHECK_EQUAL(state2.GetRejectReason(), "too-many-sigchecks");
+            BOOST_CHECK_EQUAL(state2.GetRejectReason(),
+                              "non-mandatory-script-verify-flag (Validation "
+                              "resources exceeded (SigChecks))");
 
             /**
              * A slightly more permissive limiter (just enough) passes, and
