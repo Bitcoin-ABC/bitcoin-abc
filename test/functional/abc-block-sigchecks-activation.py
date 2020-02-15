@@ -25,6 +25,7 @@ from test_framework.messages import (
 from test_framework.mininode import P2PDataStore
 from test_framework.script import (
     CScript,
+    OP_CHECKDATASIG,
     OP_CHECKDATASIGVERIFY,
     OP_3DUP,
     OP_RETURN,
@@ -53,6 +54,8 @@ BLOCK_SIGCHECKS_CACHED_ERROR = "blk-bad-inputs, CheckInputs exceeded SigChecks l
 # Blocks with too many sigchecks discovered during parallel checks give
 # this error in log file:
 BLOCK_SIGCHECKS_PARALLEL_ERROR = "blk-bad-inputs, parallel script check failed"
+
+MAX_TX_SIGCHECK = 3000
 
 
 def create_transaction(spendfrom, custom_script, amount=None):
@@ -236,6 +239,75 @@ class BlockSigChecksActivationTest(BitcoinTestFramework):
             tx.rehash()
             submittxes_2.append(tx)
 
+        # Check high sigcheck transactions
+        self.log.info("Create transaction that have high sigchecks")
+
+        fundings = []
+
+        def make_spend(sigcheckcount):
+            # Add a funding tx to fundings, and return a tx spending that using
+            # scriptsig.
+            self.log.debug(
+                "Gen tx with {} sigchecks.".format(sigcheckcount))
+
+            def get_script_with_sigcheck(count):
+                return CScript([cds_message,
+                                cds_pubkey] + (count - 1) * [OP_3DUP, OP_CHECKDATASIGVERIFY] + [OP_CHECKDATASIG])
+
+            # get funds locked with OP_1
+            sourcetx = self.spendable_outputs.popleft()
+            # make funding that forwards to scriptpubkey
+            last_sigcheck_count = ((sigcheckcount - 1) % 30) + 1
+            fundtx = create_transaction(
+                sourcetx, get_script_with_sigcheck(last_sigcheck_count))
+
+            fill_sigcheck_script = get_script_with_sigcheck(30)
+
+            remaining_sigcheck = sigcheckcount
+            while remaining_sigcheck > 30:
+                fundtx.vout[0].nValue -= 1000
+                fundtx.vout.append(CTxOut(100, bytes(fill_sigcheck_script)))
+                remaining_sigcheck -= 30
+
+            fundtx.rehash()
+            fundings.append(fundtx)
+
+            # make the spending
+            scriptsig = CScript([cds_signature])
+
+            tx = CTransaction()
+            tx.vin.append(CTxIn(COutPoint(fundtx.sha256, 1), scriptsig))
+
+            input_index = 2
+            remaining_sigcheck = sigcheckcount
+            while remaining_sigcheck > 30:
+                tx.vin.append(
+                    CTxIn(
+                        COutPoint(
+                            fundtx.sha256,
+                            input_index),
+                        scriptsig))
+                remaining_sigcheck -= 30
+                input_index += 1
+
+            tx.vout.append(CTxOut(0, CScript([OP_RETURN])))
+            pad_tx(tx)
+            tx.rehash()
+            return tx
+
+        # Create transactions with many sigchecks.
+        good_tx = make_spend(MAX_TX_SIGCHECK)
+        bad_tx = make_spend(MAX_TX_SIGCHECK + 1)
+
+        tip = self.build_block(tip, fundings)
+        node.p2p.send_blocks_and_test([tip], node)
+
+        # Both tx are accepted before the activation.
+        pre_activation_sigcheck_block = self.build_block(
+            tip, [good_tx, bad_tx])
+        node.p2p.send_blocks_and_test([pre_activation_sigcheck_block], node)
+        node.invalidateblock(pre_activation_sigcheck_block.hash)
+
         # Activation tests
 
         self.log.info("Approach to just before upgrade activation")
@@ -284,6 +356,18 @@ class BlockSigChecksActivationTest(BitcoinTestFramework):
         self.log.info("We have activated!")
         assert_equal(node.getblockchaininfo()[
                      'mediantime'], SIGCHECKS_ACTIVATION_TIME)
+
+        self.log.info(
+            "Try a block with a transaction going over the limit (limit: {})".format(MAX_TX_SIGCHECK))
+        bad_tx_block = self.build_block(tip, [bad_tx])
+        check_for_ban_on_rejected_block(
+            node, bad_tx_block, reject_reason=BLOCK_SIGCHECKS_PARALLEL_ERROR)
+
+        self.log.info(
+            "Try a block with a transaction just under the limit (limit: {})".format(MAX_TX_SIGCHECK))
+        good_tx_block = self.build_block(tip, [good_tx])
+        node.p2p.send_blocks_and_test([good_tx_block], node)
+        node.invalidateblock(good_tx_block.hash)
 
         # save this tip for later
         # ~ upgrade_block = tip

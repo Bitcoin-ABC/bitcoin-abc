@@ -1223,8 +1223,10 @@ bool CScriptCheck::operator()() {
                       metrics, &error)) {
         return false;
     }
-    if (pLimitSigChecks &&
-        !pLimitSigChecks->consume_and_check(metrics.nSigChecks)) {
+    if ((pTxLimitSigChecks &&
+         !pTxLimitSigChecks->consume_and_check(metrics.nSigChecks)) ||
+        (pBlockLimitSigChecks &&
+         !pBlockLimitSigChecks->consume_and_check(metrics.nSigChecks))) {
         // we can't assign a meaningful script error (since the script
         // succeeded), but remove the ScriptError::OK which could be
         // misinterpreted.
@@ -1245,8 +1247,9 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata, int &nSigChecksOut,
-                 std::vector<CScriptCheck> *pvChecks /*= nullptr*/,
-                 CheckInputsLimiter *pLimitSigChecks /*= nullptr*/) {
+                 TxSigCheckLimiter &txLimitSigChecks,
+                 CheckInputsLimiter *pBlockLimitSigChecks,
+                 std::vector<CScriptCheck> *pvChecks) {
     AssertLockHeld(cs_main);
     assert(!tx.IsCoinBase());
 
@@ -1269,8 +1272,9 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
     // scriptPubKey in the inputs view of that transaction).
     ScriptCacheKey hashCacheEntry(tx, flags);
     if (IsKeyInScriptCache(hashCacheEntry, !scriptCacheStore, nSigChecksOut)) {
-        if (pLimitSigChecks &&
-            !pLimitSigChecks->consume_and_check(nSigChecksOut)) {
+        if (!txLimitSigChecks.consume_and_check(nSigChecksOut) ||
+            (pBlockLimitSigChecks &&
+             !pBlockLimitSigChecks->consume_and_check(nSigChecksOut))) {
             return state.Invalid(false, REJECT_NONSTANDARD,
                                  strprintf("too-many-sigchecks"));
         }
@@ -1294,7 +1298,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
 
         // Verify signature
         CScriptCheck check(scriptPubKey, amount, tx, i, flags, sigCacheStore,
-                           txdata, pLimitSigChecks);
+                           txdata, &txLimitSigChecks, pBlockLimitSigChecks);
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
         } else if (!check()) {
@@ -1905,6 +1909,9 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
     CheckInputsLimiter nSigChecksBlockLimiter(
         GetMaxBlockSigChecksCount(options.getExcessiveBlockSize()));
 
+    std::vector<TxSigCheckLimiter> nSigChecksTxLimiters;
+    nSigChecksTxLimiters.resize(block.vtx.size() - 1);
+
     CBlockUndo blockundo;
     blockundo.vtxundo.resize(block.vtx.size() - 1);
 
@@ -1995,7 +2002,8 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         int nSigChecksRet;
         if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults,
                          fCacheResults, PrecomputedTransactionData(tx),
-                         nSigChecksRet, &vChecks, &nSigChecksBlockLimiter)) {
+                         nSigChecksRet, nSigChecksTxLimiters.at(txIndex),
+                         &nSigChecksBlockLimiter, &vChecks)) {
             // Parallel CheckInputs shouldn't fail except for this reason, which
             // is banworthy. Use "blk-bad-inputs" to mimic the parallel script
             // check error.

@@ -93,6 +93,23 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     BOOST_CHECK_EQUAL(g_mempool.size(), 0U);
 }
 
+static inline bool
+CheckInputs(const CTransaction &tx, CValidationState &state,
+            const CCoinsViewCache &view, bool fScriptChecks,
+            const uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
+            const PrecomputedTransactionData &txdata, int &nSigChecksOut,
+            std::vector<CScriptCheck> *pvChecks,
+            CheckInputsLimiter *pBlockLimitSigChecks = nullptr)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    // nSigChecksTxLimiter need to outlive this function call, because test
+    // cases are using pvChecks, so the verification is done asynchronously.
+    static TxSigCheckLimiter nSigChecksTxLimiter;
+    nSigChecksTxLimiter = TxSigCheckLimiter();
+    return CheckInputs(tx, state, view, fScriptChecks, flags, sigCacheStore,
+                       scriptCacheStore, txdata, nSigChecksOut,
+                       nSigChecksTxLimiter, pBlockLimitSigChecks, pvChecks);
+}
+
 // Run CheckInputs (using pcoinsTip) on the given transaction, for all script
 // flags. Test that CheckInputs passes for all flags that don't overlap with the
 // failing_flags argument, but otherwise fails.

@@ -23,8 +23,10 @@ static const uint64_t DEFAULT_MAX_BLOCK_SIZE = 32 * ONE_MEGABYTE;
  * per MB in a block (network rule).
  */
 static const int64_t MAX_BLOCK_SIGOPS_PER_MB = 20000;
-/** allowed number of signature check operations per transaction. */
+/** allowed number of signature check operations (sigops) per transaction. */
 static const uint64_t MAX_TX_SIGOPS_COUNT = 20000;
+/** Allowed number of signature check operations per transaction. */
+static const uint64_t MAX_TX_SIGCHECKS = 3000;
 /**
  * The ratio between the maximum allowable block size and the maximum allowable
  * SigChecks (executed signature check operations) in the block. (network rule).

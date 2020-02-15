@@ -456,6 +456,7 @@ std::string FormatStateMessage(const CValidationState &state);
  * CScriptCheck), atomic so as to be compatible with parallel validation.
  */
 class CheckInputsLimiter {
+protected:
     std::atomic<int64_t> remaining;
 
 public:
@@ -467,6 +468,20 @@ public:
     }
 
     bool check() { return remaining >= 0; }
+};
+
+class TxSigCheckLimiter : public CheckInputsLimiter {
+public:
+    TxSigCheckLimiter() : CheckInputsLimiter(MAX_TX_SIGCHECKS) {}
+
+    // Let's make this bad boy copiable.
+    TxSigCheckLimiter(const TxSigCheckLimiter &rhs)
+        : CheckInputsLimiter(rhs.remaining.load()) {}
+
+    TxSigCheckLimiter &operator=(const TxSigCheckLimiter &rhs) {
+        remaining = rhs.remaining.load();
+        return *this;
+    }
 };
 
 /**
@@ -500,9 +515,25 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata, int &nSigChecksOut,
-                 std::vector<CScriptCheck> *pvChecks = nullptr,
-                 CheckInputsLimiter *pLimitSigChecks = nullptr)
+                 TxSigCheckLimiter &txLimitSigChecks,
+                 CheckInputsLimiter *pBlockLimitSigChecks,
+                 std::vector<CScriptCheck> *pvChecks)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+/**
+ * Handy shortcut to full fledged CheckInputs call.
+ */
+static inline bool
+CheckInputs(const CTransaction &tx, CValidationState &state,
+            const CCoinsViewCache &view, bool fScriptChecks,
+            const uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
+            const PrecomputedTransactionData &txdata, int &nSigChecksOut)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    TxSigCheckLimiter nSigChecksTxLimiter;
+    return CheckInputs(tx, state, view, fScriptChecks, flags, sigCacheStore,
+                       scriptCacheStore, txdata, nSigChecksOut,
+                       nSigChecksTxLimiter, nullptr, nullptr);
+}
 
 /** Get the BIP9 state for a given deployment at the current tip. */
 ThresholdState VersionBitsTipState(const Consensus::Params &params,
@@ -584,22 +615,26 @@ private:
     ScriptError error;
     ScriptExecutionMetrics metrics;
     PrecomputedTransactionData txdata;
-    CheckInputsLimiter *pLimitSigChecks;
+    TxSigCheckLimiter *pTxLimitSigChecks;
+    CheckInputsLimiter *pBlockLimitSigChecks;
 
 public:
     CScriptCheck()
         : amount(), ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false),
-          error(ScriptError::UNKNOWN), txdata(), pLimitSigChecks(nullptr) {}
+          error(ScriptError::UNKNOWN), txdata(), pTxLimitSigChecks(nullptr),
+          pBlockLimitSigChecks(nullptr) {}
 
     CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,
                  const CTransaction &txToIn, unsigned int nInIn,
                  uint32_t nFlagsIn, bool cacheIn,
                  const PrecomputedTransactionData &txdataIn,
-                 CheckInputsLimiter *pLimitSigChecksIn = nullptr)
+                 TxSigCheckLimiter *pTxLimitSigChecksIn = nullptr,
+                 CheckInputsLimiter *pBlockLimitSigChecksIn = nullptr)
         : scriptPubKey(scriptPubKeyIn), amount(amountIn), ptxTo(&txToIn),
           nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn),
           error(ScriptError::UNKNOWN), txdata(txdataIn),
-          pLimitSigChecks(pLimitSigChecksIn) {}
+          pTxLimitSigChecks(pTxLimitSigChecksIn),
+          pBlockLimitSigChecks(pBlockLimitSigChecksIn) {}
 
     bool operator()();
 
@@ -613,7 +648,8 @@ public:
         std::swap(error, check.error);
         std::swap(metrics, check.metrics);
         std::swap(txdata, check.txdata);
-        std::swap(pLimitSigChecks, check.pLimitSigChecks);
+        std::swap(pTxLimitSigChecks, check.pTxLimitSigChecks);
+        std::swap(pBlockLimitSigChecks, check.pBlockLimitSigChecks);
     }
 
     ScriptError GetScriptError() const { return error; }
