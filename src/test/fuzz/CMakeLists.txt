@@ -108,6 +108,7 @@ add_regular_fuzz_targets(
 	script_flags
 	script_ops
 	scriptnum_ops
+	signature_checker
 	spanparsing
 	string
 	strprintf
