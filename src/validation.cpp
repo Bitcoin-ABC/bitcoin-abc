@@ -1890,8 +1890,6 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
              MILLI * (nTime2 - nTime1), nTimeForks * MICRO,
              nTimeForks * MILLI / nBlocksTotal);
 
-    CBlockUndo blockundo;
-
     std::vector<int> prevheights;
     Amount nFees = Amount::zero();
     int nInputs = 0;
@@ -1910,7 +1908,8 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
     CheckInputsLimiter nSigChecksBlockLimiter(
         GetMaxBlockSigChecksCount(options.getExcessiveBlockSize()));
 
-    blockundo.vtxundo.reserve(block.vtx.size() - 1);
+    CBlockUndo blockundo;
+    blockundo.vtxundo.resize(block.vtx.size() - 1);
 
     CCheckQueueControl<CScriptCheck> control(fScriptChecks ? &scriptcheckqueue
                                                            : nullptr);
@@ -1934,6 +1933,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
             REJECT_INVALID, "tx-duplicate");
     }
 
+    size_t txIndex = 0;
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
         const bool isCoinBase = tx.IsCoinBase();
@@ -2012,13 +2012,13 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
 
         control.Add(vChecks);
 
-        blockundo.vtxundo.push_back(CTxUndo());
         // Note: this must execute in the same iteration as CheckTxInputs (not
         // in a separate loop) in order to detect double spends. However,
         // this does not prevent double-spending by duplicated transaction
         // inputs in the same transaction (cf. CVE-2018-17144) -- that check is
         // done in CheckBlock (CheckRegularTransaction).
-        SpendCoins(view, tx, blockundo.vtxundo.back(), pindex->nHeight);
+        SpendCoins(view, tx, blockundo.vtxundo.at(txIndex), pindex->nHeight);
+        txIndex++;
     }
 
     int64_t nTime3 = GetTimeMicros();
