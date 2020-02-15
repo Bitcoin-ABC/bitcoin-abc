@@ -1892,9 +1892,6 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
 
     CBlockUndo blockundo;
 
-    CCheckQueueControl<CScriptCheck> control(fScriptChecks ? &scriptcheckqueue
-                                                           : nullptr);
-
     std::vector<int> prevheights;
     Amount nFees = Amount::zero();
     int nInputs = 0;
@@ -1914,6 +1911,9 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         GetMaxBlockSigChecksCount(options.getExcessiveBlockSize()));
 
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
+
+    CCheckQueueControl<CScriptCheck> control(fScriptChecks ? &scriptcheckqueue
+                                                           : nullptr);
 
     // Add all outputs
     try {
