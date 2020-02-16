@@ -174,6 +174,9 @@ public:
         // May 15, 2020 12:00:00 UTC protocol upgrade
         consensus.phononActivationTime = 1589544000;
 
+        // Nov 15, 2020 12:00:00 UTC protocol upgrade
+        consensus.axionActivationTime = 1605441600;
+
         /**
          * The message start string is designed to be unlikely to occur in
          * normal data. The characters are rarely used upper ASCII, not valid as
@@ -398,6 +401,9 @@ public:
         // May 15, 2020 12:00:00 UTC protocol upgrade
         consensus.phononActivationTime = 1589544000;
 
+        // Nov 15, 2020 12:00:00 UTC protocol upgrade
+        consensus.axionActivationTime = 1605441600;
+
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
         diskMagic[2] = 0x09;
@@ -572,6 +578,9 @@ public:
 
         // May 15, 2020 12:00:00 UTC protocol upgrade
         consensus.phononActivationTime = 1589544000;
+
+        // Nov 15, 2020 12:00:00 UTC protocol upgrade
+        consensus.axionActivationTime = 1605441600;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;

@@ -8,6 +8,7 @@ This release includes the following features and fixes:
   it returns the active commands and the corresponding execution time.
 - `ischange` field of boolean type that shows if an address was used for change
 output was added to `getaddressinfo` method response.
+- Bump automatic replay protection to Nov 2020 upgrade.
 
 
 New RPC methods

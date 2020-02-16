@@ -464,7 +464,7 @@ std::string FormatStateMessage(const CValidationState &state) {
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
                                       int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
-                                           params.phononActivationTime);
+                                           params.axionActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,

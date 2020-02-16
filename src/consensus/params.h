@@ -84,6 +84,8 @@ struct Params {
     int gravitonHeight;
     /** Unix time used for MTP activation of 15 May 2020 12:00:00 UTC upgrade */
     int phononActivationTime;
+    /** Unix time used for MTP activation of 15 Nov 2020 12:00:00 UTC upgrade */
+    int axionActivationTime;
 
     /**
      * Don't warn about unknown BIP 9 activations below this height.
