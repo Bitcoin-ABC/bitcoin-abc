@@ -720,17 +720,19 @@ template <typename I> BigEndian<I> WrapBigEndian(I &n) {
  * as a vector of VarInt-encoded integers.
  *
  * V is not required to be an std::vector type. It works for any class that
- * exposes a value_type, size, reserve, push_back, and const iterators.
+ * exposes a value_type, size, reserve, emplace_back, back, and const iterators.
  */
 template <class Formatter> struct VectorFormatter {
     template <typename Stream, typename V> void Ser(Stream &s, const V &v) {
+        Formatter formatter;
         WriteCompactSize(s, v.size());
         for (const typename V::value_type &elem : v) {
-            s << Using<Formatter>(elem);
+            formatter.Ser(s, elem);
         }
     }
 
     template <typename Stream, typename V> void Unser(Stream &s, V &v) {
+        Formatter formatter;
         v.clear();
         size_t size = ReadCompactSize(s);
         size_t allocated = 0;
@@ -746,9 +748,8 @@ template <class Formatter> struct VectorFormatter {
                                                sizeof(typename V::value_type));
             v.reserve(allocated);
             while (v.size() < allocated) {
-                typename V::value_type val;
-                s >> Using<Formatter>(val);
-                v.push_back(std::move(val));
+                v.emplace_back();
+                formatter.Unser(s, v.back());
             }
         }
     };
