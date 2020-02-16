@@ -410,7 +410,7 @@
         <translation>分页工具栏</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and %1 URIs)</source>
+        <source>Request payments (generates QR codes and %1: URIs)</source>
         <translation>请求支付 (生成二维码和 %1 URI)</translation>
     </message>
     <message>
@@ -1005,6 +1005,11 @@
         <translation>恢复缺省设置(&amp;R)</translation>
     </message>
     <message>
+        <source>Open Configuration File</source>
+        <translation>打开配置文件</translation>
+    </message>
+
+    <message>
         <source>&amp;Network</source>
         <translation>网络(&amp;N)</translation>
     </message>
@@ -1039,6 +1044,10 @@
     <message>
         <source>Map port using &amp;UPnP</source>
         <translation>使用 &amp;UPnP 映射端口</translation>
+    </message>
+    <message>
+        <source>Allow incomin&amp;g connections</source>
+        <translation>允许外部链接接入</translation>
     </message>
     <message>
         <source>Connect to the Bitcoin network through a SOCKS5 proxy.</source>
@@ -1085,7 +1094,7 @@
         <translation>在 Tor 匿名网络下通过不同的 SOCKS5 代理连接自由现金网络</translation>
     </message>
     <message>
-        <source>Use separate SOCKS5 proxy to reach peers via Tor hidden services:</source>
+        <source>Use separate SOCKS&amp;5 proxy to reach peers via Tor hidden services:</source>
         <translation>通过Tor隐藏服务连接节点时 使用不同的SOCKS5代理</translation>
     </message>
     <message>
@@ -1097,7 +1106,7 @@
         <translation>不在通知区显示图标</translation>
     </message>
     <message>
-        <source>Hide tray icon</source>
+        <source>&amp;Hide tray icon</source>
         <translation>不显示通知区图标</translation>
     </message>
     <message>
@@ -1127,6 +1136,10 @@
     <message>
         <source>&amp;Unit to show amounts in:</source>
         <translation>自由现金金额单位(&amp;U)：</translation>
+    </message>
+    <message>
+        <source>&amp;Third party transaction URLs</source>
+        <translation>第三方交易地址</translation>
     </message>
     <message>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
@@ -1250,6 +1263,10 @@
     <message>
         <source>Start Miner</source>
         <translation>开启挖矿</translation>
+    </message>
+    <message>
+        <source>Threads number:</source>
+        <translation>线程数:</translation>
     </message>
     <message>
         <source>Stop Miner</source>
@@ -1718,15 +1735,19 @@
         <translation>欢迎使用 %1 的 RPC 控制台。</translation>
     </message>
     <message>
-        <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>使用上下方向键浏览历史,  &lt;b&gt;Ctrl-L&lt;/b&gt;清除屏幕。</translation>
+        <source>Use up and down arrows to navigate history, and %1 to clear screen.</source>
+        <translation>使用上下方向键浏览历史,  %1 清除屏幕。</translation>
     </message>
     <message>
-        <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>使用 &lt;b&gt;help&lt;/b&gt; 命令显示帮助信息。</translation>
+        <source>Type %1 for an overview of available commands.</source>
+        <translation>使用 %1 命令显示其余命令。</translation>
     </message>
     <message>
-        <source>WARNING: Scammers have been active, telling users to type commands here, stealing their wallet contents. Do not use this console without fully understanding the ramification of a command.</source>
+        <source>For more information on using this console type %1.</source>
+        <translation>使用 %1 命令显示更多帮助信息。</translation>
+    </message>
+    <message>
+        <source>WARNING: Scammers have been active, telling users to type commands here, stealing their wallet contents. Do not use this console without fully understanding the ramifications of a command.</source>
         <translation>警告： 已有骗子通过要求用户在此输入指令以盗取钱包。不要在没有完全理解命令规范时使用控制台。</translation>
     </message>
     <message>
