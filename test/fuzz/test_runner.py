@@ -34,6 +34,11 @@ def main():
         help='If true, export coverage information to files in the seed corpus',
     )
     parser.add_argument(
+        '--valgrind',
+        action='store_true',
+        help='If true, run fuzzing binaries under the valgrind memory error detector. Valgrind 3.14 or later required.',
+    )
+    parser.add_argument(
         'seed_dir',
         help='The seed corpus to run on (must contain subfolders for each fuzz target).',
     )
@@ -111,10 +116,11 @@ def main():
         test_list=test_list_selection,
         test_dir=test_dir,
         export_coverage=args.export_coverage,
+        use_valgrind=args.valgrind,
     )
 
 
-def run_once(*, corpus, test_list, test_dir, export_coverage):
+def run_once(*, corpus, test_list, test_dir, export_coverage, use_valgrind):
     for t in test_list:
         corpus_path = os.path.join(corpus, t)
         if t in FUZZERS_MISSING_CORPORA:
@@ -125,6 +131,12 @@ def run_once(*, corpus, test_list, test_dir, export_coverage):
             '-detect_leaks=0',
             corpus_path,
         ]
+        if use_valgrind:
+            args = [
+                'valgrind',
+                '--quiet',
+                '--error-exitcode=1',
+                '--exit-on-first-error=yes'] + args
         logging.debug('Run {} with args {}'.format(t, args))
         result = subprocess.run(
             args,
