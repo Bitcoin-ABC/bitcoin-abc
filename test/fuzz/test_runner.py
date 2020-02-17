@@ -28,7 +28,12 @@ def main():
     parser.add_argument(
         '--valgrind',
         action='store_true',
-        help='If true, run fuzzing binaries under the valgrind memory error detector. Valgrind 3.14 or later required.',
+        help='If true, run fuzzing binaries under the valgrind memory error detector',
+    )
+    parser.add_argument(
+        '-x',
+        '--exclude',
+        help="A comma-separated list of targets to exclude",
     )
     parser.add_argument(
         'seed_dir',
@@ -74,7 +79,10 @@ def main():
         logging.error("No fuzz targets found")
         sys.exit(1)
 
-    logging.info("Fuzz targets found: {}".format(test_list_all))
+    logging.debug(
+        "{} fuzz target(s) found: {}".format(
+            len(test_list_all), " ".join(
+                sorted(test_list_all))))
 
     # By default run all
     args.target = args.target or test_list_all
@@ -86,7 +94,20 @@ def main():
         set(test_list_all).intersection(set(args.target)))
     if not test_list_selection:
         logging.error("No fuzz targets selected")
-    logging.info("Fuzz targets selected: {}".format(test_list_selection))
+    if args.exclude:
+        for excluded_target in args.exclude.split(","):
+            if excluded_target not in test_list_selection:
+                logging.error(
+                    "Target \"{}\" not found in current target list.".format(excluded_target))
+                continue
+            test_list_selection.remove(excluded_target)
+    test_list_selection.sort()
+
+    logging.info(
+        "{} of {} detected fuzz target(s) selected: {}".format(
+            len(test_list_selection),
+            len(test_list_all),
+            " ".join(test_list_selection)))
 
     test_list_seedless = []
     for t in test_list_selection:
@@ -171,15 +192,13 @@ def run_once(*, corpus, test_list, test_dir, use_valgrind):
         args = [
             os.path.join(test_dir, t),
             '-runs=1',
-            '-detect_leaks=0',
             corpus_path,
         ]
         if use_valgrind:
             args = [
                 'valgrind',
                 '--quiet',
-                '--error-exitcode=1',
-                '--exit-on-first-error=yes'] + args
+                '--error-exitcode=1'] + args
         logging.debug('Run {} with args {}'.format(t, args))
         result = subprocess.run(
             args,
@@ -187,7 +206,17 @@ def run_once(*, corpus, test_list, test_dir, use_valgrind):
             universal_newlines=True)
         output = result.stderr
         logging.debug('Output: {}'.format(output))
-        result.check_returncode()
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError as e:
+            if e.stdout:
+                logging.info(e.stdout)
+            if e.stderr:
+                logging.info(e.stderr)
+            logging.info(
+                "Target \"{}\" failed with exit code {}: {}".format(
+                    t, e.returncode, " ".join(args)))
+            sys.exit(1)
 
 
 if __name__ == '__main__':
