@@ -751,30 +751,6 @@ QString formatDurationStr(int secs) {
     return strList.join(" ");
 }
 
-QString serviceFlagToStr(const quint64 mask, const int bit) {
-    switch (ServiceFlags(mask)) {
-        case NODE_NONE:
-            // impossible
-            abort();
-        case NODE_NETWORK:
-            return "NETWORK";
-        case NODE_GETUTXO:
-            return "GETUTXO";
-        case NODE_BLOOM:
-            return "BLOOM";
-        case NODE_XTHIN:
-            return "XTHIN";
-        case NODE_NETWORK_LIMITED:
-            return "NETWORK_LIMITED";
-        default:
-            if (bit < 8) {
-                return QString("%1[%2]").arg("UNKNOWN").arg(mask);
-            } else {
-                return QString("%1[2^%2]").arg("UNKNOWN").arg(bit);
-            }
-    }
-}
-
 QString formatServicesStr(quint64 mask) {
     QStringList strList;
 
@@ -785,7 +761,7 @@ QString formatServicesStr(quint64 mask) {
             break;
         }
         if (mask & check) {
-            strList.append(serviceFlagToStr(check, i));
+            strList.append(QString::fromStdString(serviceFlagToStr(check, i)));
         }
     }
 

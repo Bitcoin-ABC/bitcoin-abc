@@ -254,3 +254,34 @@ std::string CInv::ToString() const {
 const std::vector<std::string> &getAllNetMessageTypes() {
     return allNetMessageTypesVec;
 }
+
+std::string serviceFlagToStr(const uint64_t mask, const int bit) {
+    switch (ServiceFlags(mask)) {
+        case NODE_NONE:
+            // impossible
+            abort();
+        case NODE_NETWORK:
+            return "NETWORK";
+        case NODE_GETUTXO:
+            return "GETUTXO";
+        case NODE_BLOOM:
+            return "BLOOM";
+        case NODE_XTHIN:
+            return "XTHIN";
+        case NODE_NETWORK_LIMITED:
+            return "NETWORK_LIMITED";
+        case NODE_AVALANCHE:
+            return "AVALANCHE";
+        default:
+            std::ostringstream stream;
+            stream.imbue(std::locale::classic());
+            stream << "UNKNOWN[";
+            if (bit < 8) {
+                stream << mask;
+            } else {
+                stream << "2^" << bit;
+            }
+            stream << "]";
+            return stream.str();
+    }
+}
