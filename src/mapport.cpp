@@ -39,8 +39,10 @@ static std::thread g_upnp_thread;
 
 using namespace std::chrono_literals;
 static constexpr auto PORT_MAPPING_REANNOUNCE_PERIOD{20min};
+static constexpr auto PORT_MAPPING_RETRY_PERIOD{5min};
 
-static void ThreadMapPort() {
+static bool ProcessUpnp() {
+    bool ret = false;
     std::string port = strprintf("%u", GetListenPort());
     const char *multicastif = nullptr;
     const char *minissdpdpath = nullptr;
@@ -88,13 +90,17 @@ static void ThreadMapPort() {
                                     strDesc.c_str(), "TCP", 0, "0");
 
             if (r != UPNPCOMMAND_SUCCESS) {
+                ret = false;
                 LogPrintf(
                     "AddPortMapping(%s, %s, %s) failed with code %d (%s)\n",
                     port, port, lanaddr, r, strupnperror(r));
+                break;
             } else {
+                ret = true;
                 LogPrintf("UPnP Port Mapping successful.\n");
             }
         } while (g_upnp_interrupt.sleep_for(PORT_MAPPING_REANNOUNCE_PERIOD));
+        g_upnp_interrupt.reset();
 
         r = UPNP_DeletePortMapping(urls.controlURL, data.first.servicetype,
                                    port.c_str(), "TCP", 0);
@@ -110,6 +116,16 @@ static void ThreadMapPort() {
             FreeUPNPUrls(&urls);
         }
     }
+
+    return ret;
+}
+
+static void ThreadMapPort() {
+    do {
+        if (ProcessUpnp()) {
+            return;
+        }
+    } while (g_upnp_interrupt.sleep_for(PORT_MAPPING_RETRY_PERIOD));
 }
 
 void StartMapPort() {
