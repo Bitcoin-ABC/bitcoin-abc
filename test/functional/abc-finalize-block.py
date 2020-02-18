@@ -276,12 +276,14 @@ class FinalizeBlockTest(BitcoinTestFramework):
         set_node_times([delay_node], self.mocktime)
         new_tip = alt_node.generatetoaddress(
             1, alt_node.get_deterministic_priv_key().address)[-1]
-        wait_for_tip(delay_node, new_tip)
 
         assert_equal(alt_node.getbestblockhash(), new_tip)
-        assert_equal(node.getfinalizedblockhash(), block_to_autofinalize)
         assert_equal(alt_node.getfinalizedblockhash(), block_to_autofinalize)
 
+        wait_for_tip(node, new_tip)
+        assert_equal(node.getfinalizedblockhash(), block_to_autofinalize)
+
+        wait_for_tip(delay_node, new_tip)
         self.log.info(
             "Check that finalization delay is effective on node boot")
         # Restart the new node, so the blocks have no header received time.
