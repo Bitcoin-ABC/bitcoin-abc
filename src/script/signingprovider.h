@@ -78,7 +78,29 @@ protected:
     using KeyMap = std::map<CKeyID, CKey>;
     using ScriptMap = std::map<CScriptID, CScript>;
 
+    /**
+     * Map of key id to unencrypted private keys known by the signing provider.
+     * Map may be empty if the provider has another source of keys, like an
+     * encrypted store.
+     */
     KeyMap mapKeys GUARDED_BY(cs_KeyStore);
+
+    /**
+     * (This comment has been elided for clarity since most of it detailed Core
+     *  SegWit implementation details, see Core commit 005f8a9)
+     *
+     * The FillableSigningProvider::mapScripts script map should not be confused
+     * with LegacyScriptPubKeyMan::setWatchOnly script set. The two collections
+     * can hold the same scripts, but they serve different purposes. The
+     * setWatchOnly script set is intended to expand the set of outputs the
+     * wallet considers payments. Every output with a script it contains is
+     * considered to belong to the wallet, regardless of whether the script is
+     * solvable or signable. By contrast, the scripts in mapScripts are only
+     * used for solving, and to restrict which outputs are considered payments
+     * by the wallet. An output with a script in mapScripts, unlike
+     * setWatchOnly, is not automatically considered to belong to the wallet if
+     * it can't be solved and signed for.
+     */
     ScriptMap mapScripts GUARDED_BY(cs_KeyStore);
 
 public:
