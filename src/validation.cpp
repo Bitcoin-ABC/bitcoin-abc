@@ -1637,7 +1637,8 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
         }
     }
 
-    return nVersion;
+    // Clear the last 4 bits (miner fund activation).
+    return nVersion & ~uint32_t(0x0f);
 }
 
 // Returns the script flags which should be checked for the block after
