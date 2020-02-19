@@ -148,8 +148,7 @@ public:
         };
 
         // The miner fund is enabled by default on mainnet.
-        // NOPE --fireduck
-        consensus.enableMinerFund = false;
+        consensus.enableMinerFund = gArgs.GetBoolArg("-enableminerfund", true);
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
