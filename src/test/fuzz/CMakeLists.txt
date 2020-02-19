@@ -103,6 +103,8 @@ add_regular_fuzz_targets(
 	psbt
 	script
 	script_flags
+	script_ops
+	scriptnum_ops
 	spanparsing
 	strprintf
 	timedata
