@@ -3829,10 +3829,9 @@ static UniValue fundrawtransaction(const Config &config,
 
     RPCHelpMan{
         "fundrawtransaction",
-        "Add inputs to a transaction until it has enough in value to meet "
-        "its out value.\n"
-        "This will not modify existing inputs, and will add at most one change "
-        "output to the outputs.\n"
+        "If the transaction has no inputs, they will be automatically selected "
+        "to meet its out value.\n"
+        "It will add at most one change output to the outputs.\n"
         "No existing outputs will be modified unless "
         "\"subtractFeeFromOutputs\" is specified.\n"
         "Note that inputs which were signed may need to be resigned after "
@@ -3858,6 +3857,9 @@ static UniValue fundrawtransaction(const Config &config,
              "for backward compatibility: passing in a true instead of an "
              "object will result in {\"includeWatching\":true}",
              {
+                 {"add_inputs", RPCArg::Type::BOOL, /* default */ "true",
+                  "For a transaction with existing inputs, automatically "
+                  "include more if they are not enough."},
                  {"changeAddress", RPCArg::Type::STR,
                   /* default */ "pool address",
                   "The bitcoin address to receive the change"},
@@ -3935,6 +3937,9 @@ static UniValue fundrawtransaction(const Config &config,
     Amount fee;
     int change_position;
     CCoinControl coin_control;
+    // Automatically select (additional) coins. Can be overridden by
+    // options.add_inputs.
+    coin_control.m_add_inputs = true;
     FundTransaction(pwallet, tx, fee, change_position, request.params[1],
                     coin_control);
 
