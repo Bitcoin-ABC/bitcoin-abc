@@ -40,7 +40,8 @@ static void initdata(void) {
     int n,m;
     for(n=0; n < DATACOUNT; n++) {
         for(m=0; m < DATALEN/4; m++) {
-            ((uint32_t*) elements[n])[m] = secp256k1_rand32();
+            uint32_t x = secp256k1_rand32();
+            memcpy(&elements[n][m], &x, sizeof(x));
         }
 
     }
