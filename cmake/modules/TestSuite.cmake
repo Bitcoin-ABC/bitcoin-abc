@@ -1,5 +1,14 @@
 # Allow to easily build test suites
 
+# Define a new target property to hold the list of tests associated with a test
+# suite. This property is named UNIT_TESTS to avoid confusion with the directory
+# level property TESTS.
+define_property(TARGET
+	PROPERTY UNIT_TESTS
+	BRIEF_DOCS "List of tests"
+	FULL_DOCS "A list of the tests associated with a test suite"
+)
+
 macro(get_target_from_suite SUITE TARGET)
 	set(${TARGET} "check-${SUITE}")
 endmacro()
@@ -50,6 +59,12 @@ endfunction()
 function(add_test_to_suite SUITE NAME)
 	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
 	_add_test_runner(${SUITE} ${NAME} ${NAME})
+
+	get_target_from_suite(${SUITE} TARGET)
+	set_property(
+		TARGET ${TARGET}
+		APPEND PROPERTY UNIT_TESTS ${NAME}
+	)
 endfunction(add_test_to_suite)
 
 function(add_boost_unit_tests_to_suite SUITE NAME)
@@ -71,6 +86,10 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 			${SUITE}
 			${_test_name}
 			${NAME} -t "${_test_name}"
+		)
+		set_property(
+			TARGET ${SUITE_TARGET}
+			APPEND PROPERTY UNIT_TESTS ${_test_name}
 		)
 
 		set(SUITE_UPGRADE_ACTIVATED "${SUITE}-upgrade-activated")
