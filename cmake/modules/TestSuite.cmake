@@ -1,7 +1,11 @@
 # Allow to easily build test suites
 
+macro(get_target_from_suite SUITE TARGET)
+	set(${TARGET} "check-${SUITE}")
+endmacro()
+
 function(create_test_suite_with_parent_targets NAME)
-	set(TARGET "check-${NAME}")
+	get_target_from_suite(${NAME} TARGET)
 
 	add_custom_target(${TARGET}
 		COMMENT "Running ${NAME} test suite"
@@ -21,7 +25,9 @@ endmacro()
 
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
 function(_add_test_runner SUITE NAME COMMAND)
-	set(TARGET "check-${SUITE}-${NAME}")
+	get_target_from_suite(${SUITE} SUITE_TARGET)
+	set(TARGET "${SUITE_TARGET}-${NAME}")
+
 	set(LOG "${NAME}.log")
 	set(RUNNER "${CMAKE_CURRENT_BINARY_DIR}/run-${SUITE}-${NAME}.sh")
 	list(JOIN ARGN " " ARGS)
@@ -38,7 +44,7 @@ function(_add_test_runner SUITE NAME COMMAND)
 			${COMMAND}
 			${RUNNER}
 	)
-	add_dependencies("check-${SUITE}" ${TARGET})
+	add_dependencies(${SUITE_TARGET} ${TARGET})
 endfunction()
 
 function(add_test_to_suite SUITE NAME)
@@ -54,8 +60,9 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		${ARGN}
 	)
 
+	get_target_from_suite(${SUITE} SUITE_TARGET)
 	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARG_UNPARSED_ARGUMENTS})
-	add_dependencies("check-${SUITE}" ${NAME})
+	add_dependencies("${SUITE_TARGET}" ${NAME})
 
 	foreach(_test_source ${ARG_TESTS})
 		target_sources(${NAME} PRIVATE "${_test_source}")
@@ -67,7 +74,7 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		)
 
 		set(SUITE_UPGRADE_ACTIVATED "${SUITE}-upgrade-activated")
-		set(TARGET_UPGRADE_ACTIVATED "check-${SUITE_UPGRADE_ACTIVATED}")
+		get_target_from_suite(${SUITE_UPGRADE_ACTIVATED} TARGET_UPGRADE_ACTIVATED)
 		if(NOT TARGET ${TARGET_UPGRADE_ACTIVATED})
 			create_test_suite_with_parent_targets(
 				${SUITE_UPGRADE_ACTIVATED}
