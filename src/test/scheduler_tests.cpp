@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <scheduler.h>
+#include <util/time.h>
 
 #include <random.h>
 #include <sync.h>
@@ -30,10 +31,6 @@ static void microTask(CScheduler &s, boost::mutex &mutex, int &counter,
                       std::ref(counter), -delta + 1, noTime);
         s.schedule(f, rescheduleTime);
     }
-}
-
-static void MicroSleep(uint64_t n) {
-    boost::this_thread::sleep_for(boost::chrono::microseconds(n));
 }
 
 BOOST_AUTO_TEST_CASE(manythreads) {
@@ -97,7 +94,7 @@ BOOST_AUTO_TEST_CASE(manythreads) {
             std::bind(&CScheduler::serviceQueue, &microTasks));
     }
 
-    MicroSleep(600);
+    UninterruptibleSleep(std::chrono::microseconds{600});
     now = boost::chrono::system_clock::now();
 
     // More threads and more tasks:
