@@ -257,8 +257,9 @@ case "$ABC_BUILD_NAME" in
     "${DEVTOOLS_DIR}"/build_cmake.sh
     # Run on different ports to avoid a race where the rpc port used in the
     # first run may not be closed in time for the second to start.
-    RPC_PORT=18832 "${CI_SCRIPTS_DIR}"/check-seeds.sh main 80
-    RPC_PORT=18833 "${CI_SCRIPTS_DIR}"/check-seeds.sh test 70
+    SEEDS_DIR="${TOPLEVEL}"/contrib/seeds
+    RPC_PORT=18832 "${SEEDS_DIR}"/check-seeds.sh main 80
+    RPC_PORT=18833 "${SEEDS_DIR}"/check-seeds.sh test 70
     ;;
 
   *)
