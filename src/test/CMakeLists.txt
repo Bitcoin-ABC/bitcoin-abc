@@ -181,6 +181,35 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		${BITCOIN_WALLET_TESTS}
 )
 
+function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
+	set(SUITE_UPGRADE_ACTIVATED "${SUITE}-upgrade-activated")
+	get_target_from_suite(${SUITE_UPGRADE_ACTIVATED} TARGET_UPGRADE_ACTIVATED)
+
+	if(NOT TARGET ${TARGET_UPGRADE_ACTIVATED})
+		create_test_suite_with_parent_targets(
+			${SUITE_UPGRADE_ACTIVATED}
+			check-upgrade-activated
+			check-upgrade-activated-extended
+		)
+		add_dependencies(${TARGET_UPGRADE_ACTIVATED} ${EXECUTABLE})
+	endif()
+
+	get_target_from_suite(${SUITE} SUITE_TARGET)
+	get_target_property(BOOST_TESTS ${SUITE_TARGET} UNIT_TESTS)
+
+	foreach(_test_name ${BOOST_TESTS})
+		add_test_runner(
+			${SUITE_UPGRADE_ACTIVATED}
+			"${_test_name}"
+			${EXECUTABLE} -t "${_test_name}"
+			# Dec. 1st, 2019 at 00:00:00
+			-- -phononactivationtime=1575158400
+		)
+	endforeach()
+endfunction()
+
+add_boost_test_runners_with_upgrade_activated(bitcoin test_bitcoin)
+
 target_link_libraries(test_bitcoin rpcclient server)
 if(TARGET bitcoinconsensus-shared)
 	target_link_libraries(test_bitcoin bitcoinconsensus-shared)

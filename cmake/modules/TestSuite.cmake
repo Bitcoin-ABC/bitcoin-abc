@@ -33,7 +33,7 @@ macro(create_test_suite NAME)
 endmacro()
 
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
-function(_add_test_runner SUITE NAME COMMAND)
+function(add_test_runner SUITE NAME COMMAND)
 	get_target_from_suite(${SUITE} SUITE_TARGET)
 	set(TARGET "${SUITE_TARGET}-${NAME}")
 
@@ -58,7 +58,7 @@ endfunction()
 
 function(add_test_to_suite SUITE NAME)
 	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
-	_add_test_runner(${SUITE} ${NAME} ${NAME})
+	add_test_runner(${SUITE} ${NAME} ${NAME})
 
 	get_target_from_suite(${SUITE} TARGET)
 	set_property(
@@ -82,7 +82,7 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 	foreach(_test_source ${ARG_TESTS})
 		target_sources(${NAME} PRIVATE "${_test_source}")
 		get_filename_component(_test_name "${_test_source}" NAME_WE)
-		_add_test_runner(
+		add_test_runner(
 			${SUITE}
 			${_test_name}
 			${NAME} -t "${_test_name}"
@@ -90,24 +90,6 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		set_property(
 			TARGET ${SUITE_TARGET}
 			APPEND PROPERTY UNIT_TESTS ${_test_name}
-		)
-
-		set(SUITE_UPGRADE_ACTIVATED "${SUITE}-upgrade-activated")
-		get_target_from_suite(${SUITE_UPGRADE_ACTIVATED} TARGET_UPGRADE_ACTIVATED)
-		if(NOT TARGET ${TARGET_UPGRADE_ACTIVATED})
-			create_test_suite_with_parent_targets(
-				${SUITE_UPGRADE_ACTIVATED}
-				check-upgrade-activated
-				check-upgrade-activated-extended
-			)
-			add_dependencies(${TARGET_UPGRADE_ACTIVATED} ${NAME})
-		endif()
-		_add_test_runner(
-			${SUITE_UPGRADE_ACTIVATED}
-			"${_test_name}"
-			${NAME} -t "${_test_name}"
-			# Dec. 1st, 2019 at 00:00:00
-			-- -phononactivationtime=1575158400
 		)
 	endforeach()
 
