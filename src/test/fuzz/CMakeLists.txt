@@ -93,6 +93,7 @@ add_regular_fuzz_targets(
 	fees
 	flatfile
 	float
+	golomb_rice
 	hex
 	http_request
 	integer
