@@ -91,6 +91,7 @@ The following can be set when running make: `make FOO=bar`
 - `NO_BDB`: Don't download/build/cache BerkeleyDB
 - `NO_SQLITE`: Don't download/build/cache SQLite
 - `NO_UPNP`: Don't download/build/cache packages needed for enabling UPnP
+- `NO_NATPMP`: Don't download/build/cache packages needed for enabling NAT-PMP
 - `NO_JEMALLOC`: Don't download/build/cache jemalloc
 - `DEBUG`: Disable some optimizations and enable more runtime checking
 - `NO_PROTOBUF`: Don't download/build/cache protobuf (used for BIP70 support)

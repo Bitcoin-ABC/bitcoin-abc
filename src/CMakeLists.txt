@@ -24,6 +24,8 @@ option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
 option(ENABLE_UPNP "Enable UPnP support" ON)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
+option(ENABLE_NATPMP "Enable NAT-PMP support" ON)
+option(START_WITH_NATPMP "Make NAT-PMP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
 
@@ -77,6 +79,7 @@ native_add_cmake_flags(
 	"-DBUILD_BITCOIN_QT=OFF"
 	"-DBUILD_BITCOIN_ZMQ=OFF"
 	"-DENABLE_QRCODE=OFF"
+	"-DENABLE_NATPMP=OFF"
 	"-DENABLE_UPNP=OFF"
 	"-DUSE_JEMALLOC=OFF"
 	"-DENABLE_CLANG_TIDY=OFF"
@@ -646,6 +649,18 @@ if(ENABLE_UPNP)
 		target_compile_definitions(server
 			PUBLIC -DSTATICLIB
 			PUBLIC -DMINIUPNP_STATICLIB
+		)
+	endif()
+endif()
+
+if(ENABLE_NATPMP)
+	find_package(NATPMP REQUIRED)
+	target_link_libraries(server NATPMP::natpmp)
+
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		target_compile_definitions(server
+			PUBLIC -DSTATICLIB
+			PUBLIC -DNATPMP_STATICLIB
 		)
 	endif()
 endif()

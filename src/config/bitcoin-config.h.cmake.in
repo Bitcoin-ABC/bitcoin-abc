@@ -88,6 +88,13 @@
 #cmakedefine01 USE_UPNP
 #endif
 
+/* NAT-PMP support not compiled if undefined */
+#cmakedefine ENABLE_NATPMP
+#ifdef ENABLE_NATPMP
+/* Value (0 or 1) determines the NATPMP default state at startup. */
+#cmakedefine01 USE_NATPMP
+#endif
+
 /* Define if QtDBus support should be enabled */
 #cmakedefine USE_DBUS 1
 

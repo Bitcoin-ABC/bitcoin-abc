@@ -248,6 +248,17 @@ if(ENABLE_UPNP)
 	set(USE_UPNP ${START_WITH_UPNP} CACHE INTERNAL "UPnP is enabled")
 endif()
 
+# Try to find natpmp
+if(ENABLE_NATPMP)
+	# The expected behavior is as follow:
+	#  - If NAT-PMP is enabled USE_NATPMP must be defined
+	#  - If NAT-PMP should be a port map method, USE_NATPMP should be
+	#    defined to 1, otherwise it should be defined to 0.
+	#  - If both USE_UPNP and USE_NATPMP are defined to 1, UPnP is used first.
+	#    If it fails, NAT-PMP is then used.
+	set(USE_NATPMP ${START_WITH_NATPMP} CACHE INTERNAL "NAT-PMP is enabled")
+endif()
+
 if(ENABLE_DBUS_NOTIFICATIONS)
 	set(USE_DBUS 1)
 endif()

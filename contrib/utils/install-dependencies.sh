@@ -44,6 +44,7 @@ PACKAGES=(
   libevent-dev
   libjemalloc-dev
   libminiupnpc-dev
+  libnatpmp-dev
   libprotobuf-dev
   libqrencode-dev
   libqt5core5a

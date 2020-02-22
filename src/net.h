@@ -227,7 +227,7 @@ enum {
     LOCAL_IF,
     // address explicit bound to
     LOCAL_BIND,
-    // address reported by UPnP
+    // address reported by UPnP or NAT-PMP
     LOCAL_MAPPED,
     // address explicitly specified (-externalip=)
     LOCAL_MANUAL,

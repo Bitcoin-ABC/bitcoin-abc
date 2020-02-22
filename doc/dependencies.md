@@ -16,6 +16,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | HarfBuzz-NG |  |  |  |  |  |
 | jemalloc | [5.2.1](https://github.com/jemalloc/jemalloc/releases) | 3.6.0 |  |  |  |
 | libevent | [2.1.11-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
+| libnatpmp | commit [07004b9...](https://github.com/miniupnp/libnatpmp/commit/07004b97cf691774efebe70404cf22201e4d330d) |  | No |  |  |
 | libpng |  |  |  |  | Yes |
 | librsvg | |  |  |  |  |
 | MiniUPnPc | [2.0.20180203](https://miniupnp.tuxfamily.org/files) | 1.9 | No |  |  |
@@ -39,6 +40,7 @@ factors that affect the dependency list.
 
 #### Options passed to `cmake`
 * MiniUPnPc is not needed with  `-DENABLE_UPNP=OFF`.
+* MiniUPnPc is not needed with  `-DENABLE_NATPMP=OFF`.
 * Berkeley DB and SQLite are not needed with `-DBUILD_BITCOIN_WALLET=OFF`.
 * protobuf is not needed with `-DENABLE_BIP70=OFF`.
 * Qt is not needed with `-DBUILD_BITCOIN_QT=OFF`.
