@@ -190,18 +190,6 @@ bool WalletBatch::WriteAccountingEntry(const uint64_t nAccEntryNum,
         acentry);
 }
 
-Amount WalletBatch::GetAccountCreditDebit(const std::string &strAccount) {
-    std::list<CAccountingEntry> entries;
-    ListAccountCreditDebit(strAccount, entries);
-
-    Amount nCreditDebit = Amount::zero();
-    for (const CAccountingEntry &entry : entries) {
-        nCreditDebit += entry.nCreditDebit;
-    }
-
-    return nCreditDebit;
-}
-
 void WalletBatch::ListAccountCreditDebit(const std::string &strAccount,
                                          std::list<CAccountingEntry> &entries) {
     bool fAllAccounts = (strAccount == "*");

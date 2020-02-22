@@ -1209,8 +1209,6 @@ public:
         std::string fromAccount, CReserveKey &reservekey, CConnman *connman,
         CValidationState &state);
 
-    void ListAccountCreditDebit(const std::string &strAccount,
-                                std::list<CAccountingEntry> &entries);
     bool AddAccountingEntry(const CAccountingEntry &);
     bool AddAccountingEntry(const CAccountingEntry &, WalletBatch *batch);
     bool DummySignTx(CMutableTransaction &txNew, const std::set<CTxOut> &txouts,
