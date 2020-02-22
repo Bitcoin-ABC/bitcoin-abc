@@ -158,12 +158,15 @@ case "$ABC_BUILD_NAME" in
     run_test_bitcoin "with next upgrade activated" -phononactivationtime=1575158400
 
     # Libs and tools tests
+    # The leveldb tests need to run alone or they will sometimes fail with
+    # garbage output, see:
+    # https://build.bitcoinabc.org/viewLog.html?buildId=29713&guest=1
+    ninja check-leveldb
     ninja \
       check-bitcoin-qt \
       check-bitcoin-seeder \
       check-bitcoin-util \
       check-devtools \
-      check-leveldb \
       check-rpcauth \
       check-secp256k1 \
       check-univalue \
@@ -186,12 +189,15 @@ case "$ABC_BUILD_NAME" in
     run_test_bitcoin "with next upgrade activated" -phononactivationtime=1575158400
 
     # Libs and tools tests
+    # The leveldb tests need to run alone or they will sometimes fail with
+    # garbage output, see:
+    # https://build.bitcoinabc.org/viewLog.html?buildId=29713&guest=1
+    ninja check-leveldb
     ninja \
       check-bitcoin-qt \
       check-bitcoin-seeder \
       check-bitcoin-util \
       check-devtools \
-      check-leveldb \
       check-rpcauth \
       check-secp256k1 \
       check-univalue \
