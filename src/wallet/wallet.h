@@ -1209,8 +1209,6 @@ public:
         std::string fromAccount, CReserveKey &reservekey, CConnman *connman,
         CValidationState &state);
 
-    bool AddAccountingEntry(const CAccountingEntry &);
-    bool AddAccountingEntry(const CAccountingEntry &, WalletBatch *batch);
     bool DummySignTx(CMutableTransaction &txNew, const std::set<CTxOut> &txouts,
                      bool use_max_sig = false) const {
         std::vector<CTxOut> v_txouts(txouts.size());
