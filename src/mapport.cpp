@@ -27,6 +27,7 @@ static_assert(MINIUPNPC_API_VERSION >= 10,
               "miniUPnPc API version >= 10 assumed");
 #endif
 
+#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <functional>
@@ -36,6 +37,7 @@ static_assert(MINIUPNPC_API_VERSION >= 10,
 #ifdef USE_UPNP
 static CThreadInterrupt g_upnp_interrupt;
 static std::thread g_upnp_thread;
+static std::atomic_uint g_mapport_target_proto{MapPortProtoFlag::NONE};
 
 using namespace std::chrono_literals;
 static constexpr auto PORT_MAPPING_REANNOUNCE_PERIOD{20min};
@@ -128,11 +130,33 @@ static void ThreadMapPort() {
     } while (g_upnp_interrupt.sleep_for(PORT_MAPPING_RETRY_PERIOD));
 }
 
-void StartMapPort() {
+void StartThreadMapPort() {
     if (!g_upnp_thread.joinable()) {
         assert(!g_upnp_interrupt);
         g_upnp_thread = std::thread(&util::TraceThread, "upnp", &ThreadMapPort);
     }
+}
+
+static void DispatchMapPort() {
+    if (g_mapport_target_proto == MapPortProtoFlag::UPNP) {
+        StartThreadMapPort();
+    } else {
+        InterruptMapPort();
+        StopMapPort();
+    }
+}
+
+static void MapPortProtoSetEnabled(MapPortProtoFlag proto, bool enabled) {
+    if (enabled) {
+        g_mapport_target_proto |= proto;
+    } else {
+        g_mapport_target_proto &= ~proto;
+    }
+}
+
+void StartMapPort(bool use_upnp) {
+    MapPortProtoSetEnabled(MapPortProtoFlag::UPNP, use_upnp);
+    DispatchMapPort();
 }
 
 void InterruptMapPort() {
@@ -149,7 +173,7 @@ void StopMapPort() {
 }
 
 #else
-void StartMapPort() {
+void StartMapPort(bool use_upnp) {
     // Intentionally left blank.
 }
 void InterruptMapPort() {
