@@ -1136,9 +1136,6 @@ public:
     int64_t IncOrderPosNext(WalletBatch *batch = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     DBErrors ReorderTransactions();
-    bool AccountMove(std::string strFrom, std::string strTo,
-                     const Amount nAmount, std::string strComment = "")
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool GetLabelDestination(CTxDestination &dest, const std::string &label,
                              bool bForceNew = false)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
