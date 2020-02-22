@@ -1176,8 +1176,7 @@ public:
     Amount GetImmatureBalance() const;
     Amount GetUnconfirmedWatchOnlyBalance() const;
     Amount GetImmatureWatchOnlyBalance() const;
-    Amount GetLegacyBalance(const isminefilter &filter, int minDepth,
-                            const std::string *account) const;
+    Amount GetLegacyBalance(const isminefilter &filter, int minDepth) const;
     Amount GetAvailableBalance(const CCoinControl *coinControl = nullptr) const;
 
     OutputType TransactionChangeType(OutputType change_type,
