@@ -23,6 +23,7 @@
 #include <QIntValidator>
 #include <QLocale>
 #include <QMessageBox>
+#include <QSettings>
 #include <QSystemTrayIcon>
 #include <QTimer>
 
@@ -47,6 +48,10 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
 #ifndef USE_UPNP
     ui->mapPortUpnp->setEnabled(false);
 #endif
+    connect(this, &QDialog::accepted, [this]() {
+        QSettings settings;
+        model->node().mapPort(settings.value("fUseUPnP").toBool());
+    });
 
     ui->proxyIp->setEnabled(false);
     ui->proxyPort->setEnabled(false);
