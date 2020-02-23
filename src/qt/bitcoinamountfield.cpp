@@ -208,7 +208,8 @@ BitcoinAmountField::BitcoinAmountField(QWidget *parent)
     layout->addWidget(unit);
     layout->addStretch(1);
     layout->setContentsMargins(0, 0, 0, 0);
-
+    amount->setStyleSheet("AmountSpinBox {border-radius: 8px;border-width: 0;border-style: none;padding: 4px;background-color: #000000;color: white;}"
+                  "QComboBox::drop-down {border-width: 0;border-style: none;background-color: #000000;color: white;}");
     setLayout(layout);
 
     setFocusPolicy(Qt::TabFocus);

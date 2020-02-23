@@ -52,7 +52,6 @@ private:
 
     TxViewDelegate *txdelegate;
     std::unique_ptr<TransactionFilterProxy> filter;
-    bool minerStarted;
 
 private Q_SLOTS:
     void updateDisplayUnit();
@@ -60,9 +59,6 @@ private Q_SLOTS:
     void updateAlerts(const QString &warnings);
     void updateWatchOnlyLabels(bool showWatchOnly);
     void handleOutOfSyncWarningClicks();
-    void setMinerState();
-    void on_stopMinerButton_clicked();
-    void on_startMinerButton_clicked();
 };
 
 #endif // BITCOIN_QT_OVERVIEWPAGE_H

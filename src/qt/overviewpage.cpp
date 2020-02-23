@@ -150,10 +150,6 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent)
     connect(ui->labelTransactionsStatus, SIGNAL(clicked()), this,
             SLOT(handleOutOfSyncWarningClicks()));
 
-    ui->threadNumberEdit->setValidator(new QIntValidator(1, 4, this));
-    ui->threadNumberEdit->setText("1");
-    setMinerState();
-    minerStarted = gArgs.GetBoolArg("-gen", DEFAULT_GENERATE);
 }
 
 void OverviewPage::handleTransactionClicked(const QModelIndex &index) {
@@ -297,23 +293,4 @@ void OverviewPage::updateAlerts(const QString &warnings) {
 void OverviewPage::showOutOfSyncWarning(bool fShow) {
     ui->labelWalletStatus->setVisible(fShow);
     ui->labelTransactionsStatus->setVisible(fShow);
-}
-
-void OverviewPage::setMinerState() {
-    ui->lableMinerState->setText(minerStarted?tr("Miner started"):tr("Miner stopped"));
-}
-
-void OverviewPage::on_stopMinerButton_clicked() {
-    GenerateBitcoins(false, 0, GetConfig());
-    minerStarted = false;
-    setMinerState();
-}
-
-void OverviewPage::on_startMinerButton_clicked() {
-    int threadNum = ui->threadNumberEdit->text().toInt();
-    if (threadNum == 0) threadNum = 1;
-    LogPrintf("startMiner, thread:%d\n",threadNum);
-    GenerateBitcoins(true, threadNum, GetConfig());
-    minerStarted = true;
-    setMinerState();
 }

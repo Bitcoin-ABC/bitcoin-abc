@@ -2239,8 +2239,13 @@
     <name>SendCoinsEntry</name>
     <message>
         <source>A&amp;mount:</source>
-        <translation>金额(&amp;M)</translation>
+        <translation>金额(&amp;M)：</translation>
     </message>
+    <message>
+        <source>Use available balance</source>
+        <translation>使用当前余额</translation>
+    </message>
+
     <message>
         <source>Pay &amp;To:</source>
         <translation>付给(&amp;T)：</translation>
