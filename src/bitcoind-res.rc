@@ -17,13 +17,13 @@ BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
             VALUE "CompanyName",        "Freecash"
-            VALUE "FileDescription",    "Freecashd (Freecash node with a JSON-RPC server)"
+            VALUE "FileDescription",    "freecashd (Freecash node with a JSON-RPC server)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "Freecashd"
+            VALUE "InternalName",       "freecashd"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "Freecashd.exe"
-            VALUE "ProductName",        "Freecashd"
+            VALUE "OriginalFilename",   "freecashd.exe"
+            VALUE "ProductName",        "freecashd"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END
