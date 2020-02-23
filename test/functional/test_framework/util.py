@@ -430,6 +430,7 @@ def initialize_datadir(
         f.write("listenonion=0\n")
         f.write("printtoconsole=0\n")
         f.write("upnp=0\n")
+        f.write("natpmp=0\n")
         f.write("usecashaddr=1\n")
         # Increase peertimeout to avoid disconnects while using mocktime.
         # peertimeout is measured in mock time, so setting it large enough to

@@ -862,6 +862,15 @@ void SetupServerArgs(NodeContext &node) {
 #else
     hidden_args.emplace_back("-upnp");
 #endif
+#ifdef USE_NATPMP
+    argsman.AddArg(
+        "-natpmp",
+        strprintf("Use NAT-PMP to map the listening port (default: %s)",
+                  DEFAULT_NATPMP ? "1 when listening and no -proxy" : "0"),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::CONNECTION);
+#else
+    hidden_args.emplace_back("-natpmp");
+#endif // USE_NATPMP
     argsman.AddArg(
         "-whitebind=<[permissions@]addr>",
         "Bind to the given address and add permission flags to the peers "
@@ -1565,12 +1574,17 @@ void InitParameterInteraction(ArgsManager &args) {
                 "%s: parameter interaction: -proxy set -> setting -listen=0\n",
                 __func__);
         }
-        // to protect privacy, do not use UPNP when a proxy is set. The user may
-        // still specify -listen=1 to listen locally, so don't rely on this
+        // to protect privacy, do not map ports when a proxy is set. The user
+        // may still specify -listen=1 to listen locally, so don't rely on this
         // happening through -listen below.
         if (args.SoftSetBoolArg("-upnp", false)) {
             LogPrintf(
                 "%s: parameter interaction: -proxy set -> setting -upnp=0\n",
+                __func__);
+        }
+        if (args.SoftSetBoolArg("-natpmp", false)) {
+            LogPrintf(
+                "%s: parameter interaction: -proxy set -> setting -natpmp=0\n",
                 __func__);
         }
         // to protect privacy, do not discover addresses by default
@@ -1587,6 +1601,11 @@ void InitParameterInteraction(ArgsManager &args) {
         if (args.SoftSetBoolArg("-upnp", false)) {
             LogPrintf(
                 "%s: parameter interaction: -listen=0 -> setting -upnp=0\n",
+                __func__);
+        }
+        if (args.SoftSetBoolArg("-natpmp", false)) {
+            LogPrintf(
+                "%s: parameter interaction: -listen=0 -> setting -natpmp=0\n",
                 __func__);
         }
         if (args.SoftSetBoolArg("-discover", false)) {
@@ -2997,8 +3016,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     Discover();
 
-    // Map ports with UPnP
-    StartMapPort(args.GetBoolArg("-upnp", DEFAULT_UPNP));
+    // Map ports with UPnP or NAT-PMP.
+    StartMapPort(args.GetBoolArg("-upnp", DEFAULT_UPNP),
+                 gArgs.GetBoolArg("-natpmp", DEFAULT_NATPMP));
 
     CConnman::Options connOptions;
     connOptions.nLocalServices = nLocalServices;
