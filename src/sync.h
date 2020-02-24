@@ -216,8 +216,8 @@ public:
 };
 
 #define REVERSE_LOCK(g)                                                        \
-    decltype(g)::reverse_lock PASTE2(revlock, __COUNTER__)(g, #g, __FILE__,    \
-                                                           __LINE__)
+    typename std::decay<decltype(g)>::type::reverse_lock PASTE2(               \
+        revlock, __COUNTER__)(g, #g, __FILE__, __LINE__)
 
 template <typename MutexArg>
 using DebugLock = UniqueLock<typename std::remove_reference<

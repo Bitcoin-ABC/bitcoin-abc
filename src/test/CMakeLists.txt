@@ -128,6 +128,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		fs_tests.cpp
 		getarg_tests.cpp
 		hash_tests.cpp
+		interfaces_tests.cpp
 		inv_tests.cpp
 		key_io_tests.cpp
 		key_tests.cpp
