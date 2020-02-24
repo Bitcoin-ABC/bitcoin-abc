@@ -124,7 +124,7 @@ class WalletTest(BitcoinTestFramework):
         self.nodes[2].lockunspent(False, [unspent_0])
         assert_raises_rpc_error(-8, "Invalid parameter, output already locked",
                                 self.nodes[2].lockunspent, False, [unspent_0])
-        assert_raises_rpc_error(-4, "Insufficient funds",
+        assert_raises_rpc_error(-6, "Insufficient funds",
                                 self.nodes[2].sendtoaddress, self.nodes[2].getnewaddress(), 20000000)
         assert_equal([unspent_0], self.nodes[2].listlockunspent())
         self.nodes[2].lockunspent(True, [unspent_0])
@@ -346,6 +346,13 @@ class WalletTest(BitcoinTestFramework):
         assert_equal(tx_obj['amount'], Decimal('-1000'))
 
         # General checks for errors from incorrect inputs
+        # This will raise an exception because the amount is negative
+        assert_raises_rpc_error(-3,
+                                "Amount out of range",
+                                self.nodes[0].sendtoaddress,
+                                self.nodes[2].getnewaddress(),
+                                "-1")
+
         # This will raise an exception because the amount type is wrong
         assert_raises_rpc_error(-3, "Invalid amount",
                                 self.nodes[0].sendtoaddress, self.nodes[2].getnewaddress(), "1f-4")
@@ -560,7 +567,7 @@ class WalletTest(BitcoinTestFramework):
         node0_balance = self.nodes[0].getbalance()
         # With walletrejectlongchains we will not create the tx and store it in
         # our wallet.
-        assert_raises_rpc_error(-4, "Transaction has too long of a mempool chain",
+        assert_raises_rpc_error(-6, "Transaction has too long of a mempool chain",
                                 self.nodes[0].sendtoaddress, sending_addr, node0_balance - Decimal('10000'))
 
         # Verify nothing new in wallet

@@ -13,6 +13,13 @@ followed by `generatetoaddress`, can generate blocks for command line testing
 purposes. This is a client-side version of the former `generate` RPC. See
 the help for details.
 
+## Low-level RPC Changes
+
+- To make RPC `sendtoaddress` more consistent with `sendmany` the following error
+    `sendtoaddress` codes were changed from `-4` to `-6`:
+  - Insufficient funds
+  - Transaction has too long of a mempool chain
+
 ## Notification changes
 
 `-walletnotify` notifications are now sent for wallet transactions that are
