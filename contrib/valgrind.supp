@@ -111,13 +111,3 @@
    ...
    fun:_ZN5BCLog6Logger12StartLoggingEv
 }
-{
-   Suppress glibc bug 24476
-   Memcheck:Addr8
-   ...
-   fun:__dlerror_main_freeres
-   fun:__libc_freeres
-   ...
-   fun:quick_exit*
-   fun:TestOtherProcess
-}

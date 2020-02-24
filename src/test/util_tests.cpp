@@ -1282,8 +1282,11 @@ static void TestOtherProcess(fs::path dirname, std::string lockname, int fd) {
                 // As an alternative to exit() which runs the exit handlers
                 // (which seem to be flakey with Boost test suite with JUNIT
                 // logging in a forked process), just vanish this process as
-                // fast as possible.
-                std::quick_exit(0);
+                // fast as possible. `quick_exit()` would also work, but it is
+                // not available on all non glibc platforms.
+                // Using exec also stops valgrind from thinking it needs to
+                // analyze the memory leaks in this forked process.
+                execlp("true", "true", (char *)NULL);
             default:
                 assert(0);
         }
