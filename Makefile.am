@@ -190,7 +190,7 @@ baseline.info:
 	$(LCOV) -c -i -d $(abs_builddir)/src -o $@
 
 baseline_filtered.info: baseline.info
-	$(abs_builddir)/contrib/filter-lcov.py $(LCOV_FILTER_PATTERN) $< $@
+	$(top_srcdir)/cmake/utils/filter-lcov.py $(LCOV_FILTER_PATTERN) $< $@
 	$(LCOV) -a $@ $(LCOV_OPTS) -o $@
 
 test_bitcoin.info: baseline_filtered.info
@@ -199,7 +199,7 @@ test_bitcoin.info: baseline_filtered.info
 	$(LCOV) -z $(LCOV_OPTS) -d $(abs_builddir)/src
 
 test_bitcoin_filtered.info: test_bitcoin.info
-	$(abs_builddir)/contrib/filter-lcov.py $(LCOV_FILTER_PATTERN) $< $@
+	$(top_srcdir)/cmake/utils/filter-lcov.py $(LCOV_FILTER_PATTERN) $< $@
 	$(LCOV) -a $@ $(LCOV_OPTS) -o $@
 
 functional_test.info: test_bitcoin_filtered.info
@@ -208,7 +208,7 @@ functional_test.info: test_bitcoin_filtered.info
 	$(LCOV) -z $(LCOV_OPTS) -d $(abs_builddir)/src
 
 functional_test_filtered.info: functional_test.info
-	$(abs_builddir)/contrib/filter-lcov.py $(LCOV_FILTER_PATTERN) $< $@
+	$(top_srcdir)/cmake/utils/filter-lcov.py $(LCOV_FILTER_PATTERN) $< $@
 	$(LCOV) -a $@ $(LCOV_OPTS) -o $@
 
 test_bitcoin_coverage.info: baseline_filtered.info test_bitcoin_filtered.info
