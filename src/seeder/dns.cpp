@@ -78,6 +78,11 @@ int parse_name(const uint8_t **inpos, const uint8_t *inend,
         }
         // add dot in output
         if (!init) {
+            // The maximum size of a query name is 255. The buffer must have
+            // room for at least the '.' and a valid non-'.' character
+            if (bufused > 253) {
+                return -1;
+            }
             if (bufused == bufsize - 1) {
                 return -2;
             }
@@ -103,7 +108,7 @@ int parse_name(const uint8_t **inpos, const uint8_t *inend,
         }
         // copy label
         while (octet) {
-            if (*inpos == inend) {
+            if (*inpos == inend || bufused > 254) {
                 return -1;
             }
             if (bufused == bufsize - 1) {

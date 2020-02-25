@@ -119,4 +119,19 @@ BOOST_AUTO_TEST_CASE(parse_name_label_tests) {
     CheckParseNameError("www." + maxLengthLabel + "a.com", -1);
 }
 
+BOOST_AUTO_TEST_CASE(parse_name_qname_length_tests) {
+    const std::string maxLengthLabel(MAX_LABEL_LENGTH, 'a');
+
+    // Check behavior for a name that is the maximum length
+    std::string maxLengthQName = maxLengthLabel + '.' + maxLengthLabel + '.' +
+                                 maxLengthLabel + '.' + maxLengthLabel;
+    BOOST_CHECK_EQUAL(maxLengthQName.size(), MAX_QUERY_NAME_LENGTH);
+    CheckParseName(maxLengthQName);
+
+    // Check that a query name that is too long causes an error
+    // Allocates an extra large buffer to guarantee an error is not caused by
+    // the buffer size
+    CheckParseNameError(maxLengthQName + "a", -1, 2 * maxLengthQName.size());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
