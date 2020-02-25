@@ -133,14 +133,14 @@ will have to install the following:
 
 On Ubuntu (>= 18.04+updates):
 ```
-sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python3-autopep8 flake8 php-codesniffer yamllint
+sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck mypy python3-autopep8 flake8 php-codesniffer yamllint
 ```
 
 On Debian (>= 10), the clang-8 family of tools is available from the `buster-backports` repository:
 ```
 echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list
 sudo apt-get update
-sudo apt-get install cppcheck python3-autopep8 flake8 php-codesniffer
+sudo apt-get install cppcheck python3-autopep8 flake8 php-codesniffer mypy
 sudo apt-get -t buster-backports install clang-format-8 clang-tidy-8 clang-tools-8
 ```
 

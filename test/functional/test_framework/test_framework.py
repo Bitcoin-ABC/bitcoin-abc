@@ -15,6 +15,7 @@ import shutil
 import sys
 import tempfile
 import time
+from typing import Optional
 
 from .authproxy import JSONRPCException
 from . import coverage
@@ -94,6 +95,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
     The __init__() and main() methods should not be overridden.
 
     This class also contains various public and private helper methods."""
+
+    chain: Optional[str] = None
+    setup_clean_chain: Optional[bool] = None
 
     def __init__(self):
         """Sets test framework defaults. Do not override this method. Instead, override the set_test_params() method"""
@@ -413,7 +417,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
     # Public helper methods. These can be accessed by the subclass test
     # scripts.
 
-    def add_nodes(self, num_nodes, extra_args=None,
+    def add_nodes(self, num_nodes: int, extra_args=None,
                   *, host=None, binary=None):
         """Instantiate TestNode objects.
 

@@ -75,6 +75,7 @@ build
 #build tests
 test/config.ini
 test/cache/*
+test/.mypy_cache/
 
 !src/leveldb*/Makefile
 

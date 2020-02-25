@@ -278,6 +278,13 @@
             ],
             "exclude": "(^contrib/gitian-builder/)"
         },
+        "lint-python-mypy": {
+            "type": "lint-python-mypy",
+            "include": "(\\.py$)",
+            "flags": [
+                "--ignore-missing-imports"
+            ]
+        },
         "lint-python-mutable-default": {
             "type": "lint-python-mutable-default",
             "include": "(\\.py$)",
