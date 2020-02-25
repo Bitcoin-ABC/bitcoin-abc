@@ -45,6 +45,8 @@ function(add_deserialize_fuzz_targets)
 endfunction()
 
 add_regular_fuzz_targets(
+	bloom_filter
+	rolling_bloom_filter
 	cashaddr
 	descriptor_parse
 	eval_script
