@@ -37,6 +37,8 @@ constexpr int UNSOLVABLE = 4;
 // We can sign with this descriptor (this is not true when actual BIP32
 // derivation is used, as that's not integrated in our signing code)
 constexpr int SIGNABLE = 8;
+// The final derivation is hardened, i.e. ends with *' or *h
+constexpr int DERIVE_HARDENED = 16;
 
 /**
  * Compare two descriptors. If only one of them has a checksum, the checksum is
@@ -178,6 +180,31 @@ void DoCheck(const std::string &prv, const std::string &pub, int flags,
                         script_provider_cached.scripts);
             BOOST_CHECK(script_provider.origins ==
                         script_provider_cached.origins);
+
+            // Make sure we can expand using cached xpubs for unhardened
+            // derivation
+            if (!(flags & DERIVE_HARDENED)) {
+                // Evaluate the descriptor at i + 1
+                FlatSigningProvider script_provider1, script_provider_cached1;
+                std::vector<CScript> spks1, spk1_from_cache;
+                BOOST_CHECK((t ? parse_priv : parse_pub)
+                                ->Expand(i + 1, key_provider, spks1,
+                                         script_provider1, nullptr));
+
+                // Try again but use the cache from expanding i. That cache
+                // won't have the pubkeys for i + 1, but will have the parent
+                // xpub for derivation.
+                BOOST_CHECK(parse_pub->ExpandFromCache(
+                    i + 1, desc_cache, spk1_from_cache,
+                    script_provider_cached1));
+                BOOST_CHECK(spks1 == spk1_from_cache);
+                BOOST_CHECK(script_provider1.pubkeys ==
+                            script_provider_cached1.pubkeys);
+                BOOST_CHECK(script_provider1.scripts ==
+                            script_provider_cached1.scripts);
+                BOOST_CHECK(script_provider1.origins ==
+                            script_provider_cached1.origins);
+            }
 
             // For each of the produced scripts, verify solvability, and when
             // possible, try to sign a transaction spending it.
@@ -396,7 +423,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           "sh(pkh("
           "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjq"
           "JoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8/10/20/30/40/*'))",
-          RANGE | HARDENED,
+          RANGE | HARDENED | DERIVE_HARDENED,
           {{"a9149976cc014a7c012bbc43954a38cdee554865bd1987"},
            {"a914ad29a49cb0420b53d9d6bb8944bcd819c5ff716e87"},
            {"a914b2d9d290b193fd23b720e738184e3eedadc7d87d87"}},
@@ -533,7 +560,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           "*,"
           "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjq"
           "JoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8/10/20/30/40/*'))",
-          HARDENED | RANGE,
+          HARDENED | RANGE | DERIVE_HARDENED,
           {{"a914261bbb58cd9714f92e91668d3eed7c4c860f4cdc87"},
            {"a914ff07ad97dc4458ed5236c52bb94ccb7339dedff887"},
            {"a91451f96613fdd66e75a026811ba4fdb9efec2c83a987"}},

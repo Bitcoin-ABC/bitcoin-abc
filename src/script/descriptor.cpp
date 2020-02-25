@@ -392,17 +392,30 @@ public:
 
         // Derive keys or fetch them from cache
         CExtPubKey final_extkey = m_root_extkey;
+        CExtPubKey parent_extkey = m_root_extkey;
         bool der = true;
         if (read_cache) {
             if (!read_cache->GetCachedDerivedExtPubKey(m_expr_index, pos,
                                                        final_extkey)) {
-                return false;
+                if (m_derive == DeriveType::HARDENED) {
+                    return false;
+                }
+                // Try to get the derivation parent
+                if (!read_cache->GetCachedParentExtPubKey(m_expr_index,
+                                                          parent_extkey)) {
+                    return false;
+                }
+                final_extkey = parent_extkey;
+                if (m_derive == DeriveType::UNHARDENED) {
+                    der = parent_extkey.Derive(final_extkey, pos);
+                }
             }
         } else if (IsHardened()) {
             CExtKey xprv;
             if (!GetDerivedExtKey(arg, xprv)) {
                 return false;
             }
+            parent_extkey = xprv.Neuter();
             if (m_derive == DeriveType::UNHARDENED) {
                 der = xprv.Derive(xprv, pos);
             }
@@ -412,11 +425,12 @@ public:
             final_extkey = xprv.Neuter();
         } else {
             for (auto entry : m_path) {
-                der = final_extkey.Derive(final_extkey, entry);
+                der = parent_extkey.Derive(parent_extkey, entry);
                 assert(der);
             }
+            final_extkey = parent_extkey;
             if (m_derive == DeriveType::UNHARDENED) {
-                der = final_extkey.Derive(final_extkey, pos);
+                der = parent_extkey.Derive(final_extkey, pos);
             }
             assert(m_derive != DeriveType::HARDENED);
         }
@@ -427,6 +441,10 @@ public:
 
         if (write_cache) {
             write_cache->CacheDerivedExtPubKey(m_expr_index, pos, final_extkey);
+            // Only cache parent if there is any unhardened derivation
+            if (m_derive != DeriveType::HARDENED) {
+                write_cache->CacheParentExtPubKey(m_expr_index, parent_extkey);
+            }
         }
 
         return true;
