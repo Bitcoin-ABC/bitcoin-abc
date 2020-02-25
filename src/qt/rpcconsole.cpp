@@ -518,6 +518,18 @@ RPCConsole::RPCConsole(interfaces::Node &node,
       historyPtr(0), platformStyle(_platformStyle), peersTableContextMenu(0),
       banTableContextMenu(0), consoleFontSize(0) {
     ui->setupUi(this);
+    //set style
+    this->setStyleSheet("*{background-color: #333333;color: white;}"
+                              "QTabWidget::pane {border-top: 1px solid #000000;border: 2px solid #000000;border-bottom-left-radius: 8px;border-bottom-right-radius: 8px;border-top-right-radius: 8px;background: #333333;}"
+                              "QTabWidget QTabBar::tab {background-color: #333333;color: white;padding: 8px 10px;border-top: 1px solid #000000;}"
+                              "QTabWidget QTabBar::tab:first {background-color: #333333;color: white;border-left: 1px solid #000000;}"
+                              "QTabWidget QTabBar::tab:last {background-color: #333333;color: white;border-right: 1px solid #000000;}"
+                              "QTabWidget QTabBar::tab:selected, .QTabWidget QTabBar::tab:hover {background-color: #AEC6CF;color:white;}"
+                                "QHeaderView::section {color: #aaaaaa;background-color: #222222;    }"
+                                "QHeaderView::section:hover{background-color: #000000;}"
+                                "QTableView, QTableWidget {background: #000000;color: white;border-style: none;selection-background-color: #aaaaaa;alternate-background-color: #222222;selection-color: #000000;border: 0px solid black;}"
+                                );
+
     QSettings settings;
     if (!restoreGeometry(
             settings.value("RPCConsoleWindowGeometry").toByteArray())) {

@@ -36,6 +36,8 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
       platformStyle(_platformStyle) {
     ui->setupUi(this);
 
+    //ui->scrollAreaWidgetContents->setStyleSheet("background-color:red;");
+
     if (!_platformStyle->getImagesOnButtons()) {
         ui->addButton->setIcon(QIcon());
         ui->clearButton->setIcon(QIcon());
