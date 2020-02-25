@@ -72,6 +72,10 @@ echo "Building automated commit '${COMMIT_TYPE}'..."
 BOT_PREFIX="[Automated]"
 TOPLEVEL=$(git rev-parse --show-toplevel)
 
+BUILD_DIR="${TOPLEVEL}"/build
+mkdir -p "${BUILD_DIR}"
+export BUILD_DIR
+
 DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 CHAINPARAMS_SCRIPTS_DIR="${DEVTOOLS_DIR}"/chainparams
 TEAMCITY_SCRIPTS_DIR="${TOPLEVEL}"/contrib/teamcity
@@ -119,9 +123,8 @@ if [ "${LINT_EXIT_CODE}" -ne 0 ] || [ "${LINT_NUM_LINES}" -gt 1 ]; then
 fi
 
 # Smoke tests to give some confidence that master won't be put into a bad state
-BUILD_DIR="${TOPLEVEL}"/build
 pushd "${BUILD_DIR}"
-BUILD_DIR="${BUILD_DIR}" "${DEVTOOLS_DIR}"/build_cmake.sh
+"${DEVTOOLS_DIR}"/build_cmake.sh
 ninja check-bitcoin check-functional
 popd
 
