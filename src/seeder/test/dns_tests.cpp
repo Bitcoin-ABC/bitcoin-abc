@@ -15,6 +15,7 @@ static const int MAX_QUERY_NAME_LENGTH = 255;
 // Max size of the null-terminated buffer parse_name() writes to.
 static const int MAX_QUERY_NAME_BUFFER_LENGTH = MAX_QUERY_NAME_LENGTH + 1;
 static const uint8_t END_OF_NAME_FIELD = 0;
+static const size_t MAX_LABEL_LENGTH = 63;
 
 // Builds the name field of the question section of a DNS query
 static std::vector<uint8_t>
@@ -85,6 +86,20 @@ static void CheckParseName(const std::string &queryName) {
     }
 }
 
+static void CheckParseNameError(
+    const std::string &queryName, const int expectedError,
+    const size_t &outputBufferSize = MAX_QUERY_NAME_BUFFER_LENGTH) {
+    std::vector<uint8_t> nameField = CreateDNSQuestionNameField(queryName);
+
+    std::vector<char> parsedQueryName(outputBufferSize, 0);
+    const uint8_t *nameFieldBegin = nameField.data();
+    int ret = parse_name(&nameFieldBegin, nameFieldBegin + nameField.size(),
+                         nameField.data(), parsedQueryName.data(),
+                         parsedQueryName.size());
+
+    BOOST_CHECK_EQUAL(ret, expectedError);
+}
+
 BOOST_AUTO_TEST_CASE(parse_name_tests) {
     CheckParseName("www.domain.com");
     CheckParseName("domain.com");
@@ -93,6 +108,15 @@ BOOST_AUTO_TEST_CASE(parse_name_tests) {
     CheckParseName("a.co");
     // Domain name with valid non-alphanumeric character
     CheckParseName("my-domain.com");
+}
+
+BOOST_AUTO_TEST_CASE(parse_name_label_tests) {
+    // Check behavior for name with maximum length label
+    const std::string maxLengthLabel(MAX_LABEL_LENGTH, 'a');
+    CheckParseName("www." + maxLengthLabel + ".com");
+
+    // Check that an oversized label causes an error
+    CheckParseNameError("www." + maxLengthLabel + "a.com", -1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
