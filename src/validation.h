@@ -764,6 +764,9 @@ bool IsBlockFinalized(const CBlockIndex *pindex)
 /** The currently-connected chain of blocks (protected by cs_main). */
 extern CChain &chainActive;
 
+/** @returns the most-work chain. */
+CChain &ChainActive();
+
 /**
  * Global variable that points to the coins database (protected by cs_main)
  */
