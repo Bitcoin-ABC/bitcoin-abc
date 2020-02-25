@@ -117,25 +117,25 @@ struct Descriptor {
      * @param[out] output_scripts: The expanded scriptPubKeys.
      * @param[out] out: Scripts and public keys necessary for solving the
      *                  expanded scriptPubKeys (may be equal to `provider`).
-     * @param[out] cache: Cache data necessary to evaluate the descriptor at
-     *                    this point without access to private keys.
+     * @param[out] write_cache: Cache data necessary to evaluate the descriptor
+     *                          at this point without access to private keys.
      */
     virtual bool Expand(int pos, const SigningProvider &provider,
                         std::vector<CScript> &output_scripts,
                         FlatSigningProvider &out,
-                        std::vector<uint8_t> *cache = nullptr) const = 0;
+                        DescriptorCache *write_cache = nullptr) const = 0;
 
     /**
      * Expand a descriptor at a specified position using cached expansion data.
      *
      * @param[in] pos: The position at which to expand the descriptor. If
      *                 IsRange() is false, this is ignored.
-     * @param[in] cache: Cached expansion data.
+     * @param[in] read_cache: Cached expansion data.
      * @param[out] output_scripts: The expanded scriptPubKeys.
      * @param[out] out: Scripts and public keys necessary for solving the
      *                  expanded scriptPubKeys (may be equal to `provider`).
      */
-    virtual bool ExpandFromCache(int pos, const std::vector<uint8_t> &cache,
+    virtual bool ExpandFromCache(int pos, const DescriptorCache &read_cache,
                                  std::vector<CScript> &output_scripts,
                                  FlatSigningProvider &out) const = 0;
 
