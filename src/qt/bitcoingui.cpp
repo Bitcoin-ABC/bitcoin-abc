@@ -201,6 +201,10 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
     connect(connectionsControl, SIGNAL(clicked(QPoint)), this,
             SLOT(toggleNetworkActive()));
 
+    QFile style(":/styles/res/styles/style.qss");
+    style.open(QFile::ReadOnly);
+    setStyleSheet(QString::fromUtf8(style.readAll()));
+
     modalOverlay = new ModalOverlay(this->centralWidget());
 #ifdef ENABLE_WALLET
     if (enableWallet) {
