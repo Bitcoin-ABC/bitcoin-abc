@@ -1037,12 +1037,12 @@ public:
     void MarkDirty();
     bool AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose = true);
     void LoadToWallet(CWalletTx &wtxIn) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void TransactionAddedToMempool(const CTransactionRef &tx) override;
-    void BlockConnected(const CBlock &block,
+    void transactionAddedToMempool(const CTransactionRef &tx) override;
+    void blockConnected(const CBlock &block,
                         const std::vector<CTransactionRef> &vtxConflicted,
                         int height) override;
-    void BlockDisconnected(const CBlock &block, int height) override;
-    void UpdatedBlockTip() override;
+    void blockDisconnected(const CBlock &block, int height) override;
+    void updatedBlockTip() override;
     int64_t RescanFromTime(int64_t startTime,
                            const WalletRescanReserver &reserver, bool update);
 
@@ -1066,7 +1066,7 @@ public:
                                          Optional<int> max_height,
                                          const WalletRescanReserver &reserver,
                                          bool fUpdate);
-    void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
+    void transactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ResendWalletTransactions();
     struct Balance {
@@ -1218,7 +1218,7 @@ public:
     bool IsAllFromMe(const CTransaction &tx, const isminefilter &filter) const;
     Amount GetCredit(const CTransaction &tx, const isminefilter &filter) const;
     Amount GetChange(const CTransaction &tx) const;
-    void ChainStateFlushed(const CBlockLocator &loc) override;
+    void chainStateFlushed(const CBlockLocator &loc) override;
 
     DBErrors LoadWallet(bool &fFirstRunRet);
     DBErrors ZapWalletTx(std::vector<CWalletTx> &vWtx);

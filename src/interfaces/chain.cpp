@@ -73,29 +73,29 @@ namespace {
             : m_notifications(std::move(notifications)) {}
         virtual ~NotificationsProxy() = default;
         void TransactionAddedToMempool(const CTransactionRef &tx) override {
-            m_notifications->TransactionAddedToMempool(tx);
+            m_notifications->transactionAddedToMempool(tx);
         }
         void TransactionRemovedFromMempool(const CTransactionRef &tx) override {
-            m_notifications->TransactionRemovedFromMempool(tx);
+            m_notifications->transactionRemovedFromMempool(tx);
         }
         void BlockConnected(
             const std::shared_ptr<const CBlock> &block,
             const CBlockIndex *index,
             const std::vector<CTransactionRef> &tx_conflicted) override {
-            m_notifications->BlockConnected(*block, tx_conflicted,
+            m_notifications->blockConnected(*block, tx_conflicted,
                                             index->nHeight);
         }
         void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                                const CBlockIndex *index) override {
-            m_notifications->BlockDisconnected(*block, index->nHeight);
+            m_notifications->blockDisconnected(*block, index->nHeight);
         }
         void UpdatedBlockTip(const CBlockIndex *index,
                              const CBlockIndex *fork_index,
                              bool is_ibd) override {
-            m_notifications->UpdatedBlockTip();
+            m_notifications->updatedBlockTip();
         }
         void ChainStateFlushed(const CBlockLocator &locator) override {
-            m_notifications->ChainStateFlushed(locator);
+            m_notifications->chainStateFlushed(locator);
         }
         std::shared_ptr<Chain::Notifications> m_notifications;
     };
@@ -436,7 +436,7 @@ namespace {
         void requestMempoolTransactions(Notifications &notifications) override {
             LOCK2(::cs_main, ::g_mempool.cs);
             for (const CTxMemPoolEntry &entry : ::g_mempool.mapTx) {
-                notifications.TransactionAddedToMempool(entry.GetSharedTx());
+                notifications.transactionAddedToMempool(entry.GetSharedTx());
             }
         }
         NodeContext &m_node;
