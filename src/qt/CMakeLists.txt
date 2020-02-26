@@ -47,6 +47,11 @@ add_custom_command(OUTPUT qrc_bitcoin_locale.cpp
 # CMakeLists.txt file.
 set(SAVE_CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/forms")
+
+# It seems that some generators (at least the Unix Makefiles one) doesn't create
+# the build directory required  by a custom command, so do it manually.
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/addressbookpage.ui
 	forms/askpassphrasedialog.ui

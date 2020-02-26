@@ -30,9 +30,9 @@ function(add_native_executable NAME)
 		add_custom_command(
 			OUTPUT "native-${NAME}"
 			COMMENT "Building native ${NATIVE_TARGET}"
-			COMMAND ${CMAKE_COMMAND} --build "${NATIVE_BUILD_DIR}" --target "${NATIVE_TARGET}"
+			COMMAND ${CMAKE_COMMAND} --build "${NATIVE_BUILD_DIR}" --target "${NAME}"
 			COMMAND ${CMAKE_COMMAND} -E create_symlink "${NATIVE_BINARY}" "native-${NAME}"
-			DEPENDS "${NATIVE_BUILD_DIR}/CMakeCache.txt" ${ARGN}
+			DEPENDS native-cmake-build ${ARGN}
 			VERBATIM USES_TERMINAL
 		)
 
