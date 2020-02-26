@@ -259,6 +259,15 @@ case "$ABC_BUILD_NAME" in
     ninja bench-secp256k1
     ;;
 
+  build-make-generator)
+    # Ensure that the build using cmake and the "Unix Makefiles" generator is
+    # not broken.
+    cd ${BUILD_DIR}
+    git clean -xffd
+    cmake -G "Unix Makefiles" ..
+    make -j "${THREADS}" all check
+    ;;
+
   check-seeds)
     "${DEVTOOLS_DIR}"/build_cmake.sh
     # Run on different ports to avoid a race where the rpc port used in the
