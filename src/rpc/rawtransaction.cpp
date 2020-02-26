@@ -53,9 +53,9 @@ static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
         entry.pushKV("blockhash", hashBlock.GetHex());
         CBlockIndex *pindex = LookupBlockIndex(hashBlock);
         if (pindex) {
-            if (chainActive.Contains(pindex)) {
+            if (::ChainActive().Contains(pindex)) {
                 entry.pushKV("confirmations",
-                             1 + chainActive.Height() - pindex->nHeight);
+                             1 + ::ChainActive().Height() - pindex->nHeight);
                 entry.pushKV("time", pindex->GetBlockTime());
                 entry.pushKV("blocktime", pindex->GetBlockTime());
             } else {
@@ -196,7 +196,7 @@ static UniValue getrawtransaction(const Config &config,
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Block hash not found");
         }
-        in_active_chain = chainActive.Contains(blockindex);
+        in_active_chain = ::ChainActive().Contains(blockindex);
     }
 
     bool f_txindex_ready = false;
@@ -313,7 +313,7 @@ static UniValue gettxoutproof(const Config &config,
         for (const auto &txid : setTxIds) {
             const Coin &coin = AccessByTxid(*pcoinsTip, txid);
             if (!coin.IsSpent()) {
-                pblockindex = chainActive[coin.GetHeight()];
+                pblockindex = ::ChainActive()[coin.GetHeight()];
                 break;
             }
         }
@@ -401,7 +401,7 @@ static UniValue verifytxoutproof(const Config &config,
     LOCK(cs_main);
 
     const CBlockIndex *pindex = LookupBlockIndex(merkleBlock.header.GetHash());
-    if (!pindex || !chainActive.Contains(pindex) || pindex->nTx == 0) {
+    if (!pindex || !::ChainActive().Contains(pindex) || pindex->nTx == 0) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Block not found in chain");
     }

@@ -2732,11 +2732,11 @@ static UniValue listsinceblock(const Config &config,
         if (!pindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         }
-        if (chainActive[pindex->nHeight] != pindex) {
+        if (::ChainActive()[pindex->nHeight] != pindex) {
             // the block being asked for is a part of a deactivated chain;
             // we don't want to depend on its perceived height in the block
             // chain, we want to instead use the last common ancestor
-            pindex = chainActive.FindFork(pindex);
+            pindex = ::ChainActive().FindFork(pindex);
         }
     }
 
@@ -2755,7 +2755,7 @@ static UniValue listsinceblock(const Config &config,
     bool include_removed =
         (request.params[3].isNull() || request.params[3].get_bool());
 
-    int depth = pindex ? (1 + chainActive.Height() - pindex->nHeight) : -1;
+    int depth = pindex ? (1 + ::ChainActive().Height() - pindex->nHeight) : -1;
 
     UniValue transactions(UniValue::VARR);
 
@@ -2793,7 +2793,7 @@ static UniValue listsinceblock(const Config &config,
     }
 
     CBlockIndex *pblockLast =
-        chainActive[chainActive.Height() + 1 - target_confirms];
+        ::ChainActive()[::ChainActive().Height() + 1 - target_confirms];
     uint256 lastblock = pblockLast ? pblockLast->GetBlockHash() : uint256();
 
     UniValue ret(UniValue::VOBJ);
@@ -4701,11 +4701,11 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
     CBlockIndex *pChainTip = nullptr;
     {
         auto locked_chain = pwallet->chain().lock();
-        pindexStart = chainActive.Genesis();
-        pChainTip = chainActive.Tip();
+        pindexStart = ::ChainActive().Genesis();
+        pChainTip = ::ChainActive().Tip();
 
         if (!request.params[0].isNull()) {
-            pindexStart = chainActive[request.params[0].get_int()];
+            pindexStart = ::ChainActive()[request.params[0].get_int()];
             if (!pindexStart) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "Invalid start_height");
@@ -4713,7 +4713,7 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
         }
 
         if (!request.params[1].isNull()) {
-            pindexStop = chainActive[request.params[1].get_int()];
+            pindexStop = ::ChainActive()[request.params[1].get_int()];
             if (!pindexStop) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "Invalid stop_height");

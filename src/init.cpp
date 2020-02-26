@@ -712,7 +712,7 @@ void SetupServerArgs() {
         true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-checkblockindex",
                  strprintf("Do a full consistency check for mapBlockIndex, "
-                           "setBlockIndexCandidates, chainActive and "
+                           "setBlockIndexCandidates, ::ChainActive() and "
                            "mapBlocksUnlinked occasionally. (default: %u)",
                            defaultChainParams->DefaultConsistencyChecks()),
                  true, OptionsCategory::DEBUG_TEST);
@@ -2232,13 +2232,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 bool is_coinsview_empty = fReset || fReindexChainState ||
                                           pcoinsTip->GetBestBlock().IsNull();
                 if (!is_coinsview_empty) {
-                    // LoadChainTip sets chainActive based on pcoinsTip's best
-                    // block
+                    // LoadChainTip sets ::ChainActive() based on pcoinsTip's
+                    // best block
                     if (!LoadChainTip(config)) {
                         strLoadError = _("Error initializing block database");
                         break;
                     }
-                    assert(chainActive.Tip() != nullptr);
+                    assert(::ChainActive().Tip() != nullptr);
 
                     uiInterface.InitMessage(_("Verifying blocks..."));
                     if (fHavePruned &&
@@ -2250,7 +2250,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                             MIN_BLOCKS_TO_KEEP);
                     }
 
-                    CBlockIndex *tip = chainActive.Tip();
+                    CBlockIndex *tip = ::ChainActive().Tip();
                     RPCNotifyBlockChange(true, tip);
                     if (tip && tip->nTime >
                                    GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
@@ -2362,7 +2362,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Either install a handler to notify us when genesis activates, or set
     // fHaveGenesis directly.
     // No locking, as this happens before any background thread is started.
-    if (chainActive.Tip() == nullptr) {
+    if (::ChainActive().Tip() == nullptr) {
         uiInterface.NotifyBlockTip_connect(BlockNotifyGenesisWait);
     } else {
         fHaveGenesis = true;
@@ -2404,7 +2404,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     {
         LOCK(cs_main);
         LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());
-        chain_active_height = chainActive.Height();
+        chain_active_height = ::ChainActive().Height();
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);
 

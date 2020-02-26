@@ -1413,7 +1413,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
 
     // We also need to remove any now-immature transactions
     g_mempool.removeForReorg(config, pcoinsTip.get(),
-                             chainActive.Tip()->nHeight + 1,
+                             ::ChainActive().Tip()->nHeight + 1,
                              STANDARD_LOCKTIME_VERIFY_FLAGS);
 
     // Re-limit mempool size, in case we added any transactions

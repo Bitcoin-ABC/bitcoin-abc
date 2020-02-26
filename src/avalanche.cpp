@@ -139,7 +139,7 @@ bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
             return false;
         }
 
-        isAccepted = chainActive.Contains(pindex);
+        isAccepted = ::ChainActive().Contains(pindex);
     }
 
     return vote_records.getWriteView()

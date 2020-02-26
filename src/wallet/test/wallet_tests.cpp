@@ -40,10 +40,10 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
 
     // Cap last block file size, and mine new block in a new block file.
     CBlockIndex *const nullBlock = nullptr;
-    CBlockIndex *oldTip = chainActive.Tip();
+    CBlockIndex *oldTip = ::ChainActive().Tip();
     GetBlockFileInfo(oldTip->GetBlockPos().nFile)->nSize = MAX_BLOCKFILE_SIZE;
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
-    CBlockIndex *newTip = chainActive.Tip();
+    CBlockIndex *newTip = ::ChainActive().Tip();
 
     LockAnnotation lock(::cs_main);
     auto locked_chain = chain->lock();
@@ -136,7 +136,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 
     // Create two blocks with same timestamp to verify that importwallet rescan
     // will pick up both blocks, not just the first.
-    const int64_t BLOCK_TIME = chainActive.Tip()->GetBlockTimeMax() + 5;
+    const int64_t BLOCK_TIME = ::ChainActive().Tip()->GetBlockTimeMax() + 5;
     SetMockTime(BLOCK_TIME);
     m_coinbase_txns.emplace_back(
         CreateAndProcessBlock({},
@@ -217,7 +217,7 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
     auto locked_chain = chain->lock();
     LOCK(wallet.cs_wallet);
-    wtx.hashBlock = chainActive.Tip()->GetBlockHash();
+    wtx.hashBlock = ::ChainActive().Tip()->GetBlockHash();
     wtx.nIndex = 0;
 
     // Call GetImmatureCredit() once before adding the key to the wallet to
@@ -313,7 +313,7 @@ public:
         AddKey(*wallet, coinbaseKey);
         WalletRescanReserver reserver(wallet.get());
         reserver.reserve();
-        wallet->ScanForWalletTransactions(chainActive.Genesis(), nullptr,
+        wallet->ScanForWalletTransactions(::ChainActive().Genesis(), nullptr,
                                           reserver);
     }
 
@@ -343,7 +343,7 @@ public:
         LOCK(wallet->cs_wallet);
         auto it = wallet->mapWallet.find(tx->GetId());
         BOOST_CHECK(it != wallet->mapWallet.end());
-        it->second.SetMerkleBranch(chainActive.Tip(), 1);
+        it->second.SetMerkleBranch(::ChainActive().Tip(), 1);
         return it->second;
     }
 

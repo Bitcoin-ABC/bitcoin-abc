@@ -252,7 +252,6 @@ CChain &ChainActive() {
 RecursiveMutex cs_main;
 
 BlockMap &mapBlockIndex = g_chainstate.mapBlockIndex;
-CChain &chainActive = g_chainstate.m_chain;
 CBlockIndex *pindexBestHeader = nullptr;
 Mutex g_best_block_mutex;
 std::condition_variable g_best_block_cv;
@@ -368,10 +367,10 @@ bool TestLockPointValidity(const LockPoints *lp) {
     // If there are no relative lock times, the LockPoints don't depend on the
     // chain
     if (lp->maxInputBlock) {
-        // Check whether chainActive is an extension of the block at which the
-        // LockPoints calculation was valid. If not LockPoints are no longer
+        // Check whether ::ChainActive() is an extension of the block at which
+        // the LockPoints calculation was valid. If not LockPoints are no longer
         // valid.
-        if (!chainActive.Contains(lp->maxInputBlock)) {
+        if (!::ChainActive().Contains(lp->maxInputBlock)) {
             return false;
         }
     }
@@ -385,16 +384,16 @@ bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
     AssertLockHeld(cs_main);
     AssertLockHeld(pool.cs);
 
-    CBlockIndex *tip = chainActive.Tip();
+    CBlockIndex *tip = ::ChainActive().Tip();
     assert(tip != nullptr);
 
     CBlockIndex index;
     index.pprev = tip;
-    // CheckSequenceLocks() uses chainActive.Height()+1 to evaluate height based
-    // locks because when SequenceLocks() is called within ConnectBlock(), the
-    // height of the block *being* evaluated is what is used. Thus if we want to
-    // know if a transaction can be part of the *next* block, we need to use one
-    // more than chainActive.Height()
+    // CheckSequenceLocks() uses ::ChainActive().Height()+1 to evaluate height
+    // based locks because when SequenceLocks() is called within ConnectBlock(),
+    // the height of the block *being* evaluated is what is used. Thus if we
+    // want to know if a transaction can be part of the *next* block, we need to
+    // use one more than ::ChainActive().Height()
     index.nHeight = tip->nHeight + 1;
 
     std::pair<int, int64_t> lockPair;
@@ -403,7 +402,7 @@ bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
         lockPair.first = lp->height;
         lockPair.second = lp->time;
     } else {
-        // pcoinsTip contains the UTXO set for chainActive.Tip()
+        // pcoinsTip contains the UTXO set for ::ChainActive().Tip()
         CCoinsViewMemPool viewMemPool(pcoinsTip.get(), pool);
         std::vector<int> prevheights;
         prevheights.resize(tx.vin.size());
@@ -670,7 +669,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         }
 
         const uint32_t nextBlockScriptVerifyFlags =
-            GetNextBlockScriptFlags(consensusParams, chainActive.Tip());
+            GetNextBlockScriptFlags(consensusParams, ::ChainActive().Tip());
 
         // Check for non-standard pay-to-script-hash in inputs
         if (fRequireStandard &&
@@ -724,7 +723,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
 
         // Validate input scripts against standard script flags.
         const uint32_t scriptVerifyFlags =
-            GetStandardScriptFlags(consensusParams, chainActive.Tip());
+            GetStandardScriptFlags(consensusParams, ::ChainActive().Tip());
         PrecomputedTransactionData txdata(tx);
         int nSigChecksStandard;
         if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
@@ -741,7 +740,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                 ? nSigChecksStandard
                 : nSigOpsCount;
 
-        CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
+        CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, ::ChainActive().Height(),
                               fSpendsCoinbase, nSigChecksOrOps, lp);
 
         unsigned int nVirtualSize = entry.GetTxVirtualSize();
@@ -762,13 +761,13 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         CTxMemPool::setEntries setAncestors;
         size_t nLimitAncestors = gArgs.GetArg(
             "-limitancestorcount",
-            GetDefaultAncestorLimit(consensusParams, chainActive.Tip()));
+            GetDefaultAncestorLimit(consensusParams, ::ChainActive().Tip()));
         size_t nLimitAncestorSize =
             gArgs.GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT) *
             1000;
         size_t nLimitDescendants = gArgs.GetArg(
             "-limitdescendantcount",
-            GetDefaultDescendantLimit(consensusParams, chainActive.Tip()));
+            GetDefaultDescendantLimit(consensusParams, ::ChainActive().Tip()));
         size_t nLimitDescendantSize =
             gArgs.GetArg("-limitdescendantsize",
                          DEFAULT_DESCENDANT_SIZE_LIMIT) *
@@ -904,7 +903,7 @@ bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
         if (fAllowSlow) {
             const Coin &coin = AccessByTxid(*pcoinsTip, txid);
             if (!coin.IsSpent()) {
-                pindexSlow = chainActive[coin.GetHeight()];
+                pindexSlow = ::ChainActive()[coin.GetHeight()];
             }
         }
     }
@@ -1031,13 +1030,13 @@ bool IsInitialBlockDownload() {
     if (fImporting || fReindex) {
         return true;
     }
-    if (chainActive.Tip() == nullptr) {
+    if (::ChainActive().Tip() == nullptr) {
         return true;
     }
-    if (chainActive.Tip()->nChainWork < nMinimumChainWork) {
+    if (::ChainActive().Tip()->nChainWork < nMinimumChainWork) {
         return true;
     }
-    if (chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge)) {
+    if (::ChainActive().Tip()->GetBlockTime() < (GetTime() - nMaxTipAge)) {
         return true;
     }
     LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
@@ -1080,15 +1079,15 @@ static void CheckForkWarningConditions() EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     // If our best fork is no longer within 72 blocks (+/- 12 hours if no one
     // mines it) of our head, drop it
     if (pindexBestForkTip &&
-        chainActive.Height() - pindexBestForkTip->nHeight >= 72) {
+        ::ChainActive().Height() - pindexBestForkTip->nHeight >= 72) {
         pindexBestForkTip = nullptr;
     }
 
     if (pindexBestForkTip ||
         (pindexBestInvalid &&
          pindexBestInvalid->nChainWork >
-             chainActive.Tip()->nChainWork +
-                 (GetBlockProof(*chainActive.Tip()) * 6))) {
+             ::ChainActive().Tip()->nChainWork +
+                 (GetBlockProof(*::ChainActive().Tip()) * 6))) {
         if (!GetfLargeWorkForkFound() && pindexBestForkBase) {
             std::string warning =
                 std::string("'Warning: Large-work fork detected, forking after "
@@ -1123,7 +1122,7 @@ static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     // If we are on a fork that is sufficiently large, set a warning flag.
-    const CBlockIndex *pfork = chainActive.FindFork(pindexNewForkTip);
+    const CBlockIndex *pfork = ::ChainActive().FindFork(pindexNewForkTip);
 
     // We define a condition where we should warn the user about as a fork of at
     // least 7 blocks with a tip within 72 blocks (+/- 12 hours if no one mines
@@ -1138,7 +1137,7 @@ static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip)
          pindexNewForkTip->nHeight > pindexBestForkTip->nHeight) &&
         pindexNewForkTip->nChainWork - pfork->nChainWork >
             (GetBlockProof(*pfork) * 7) &&
-        chainActive.Height() - pindexNewForkTip->nHeight < 72) {
+        ::ChainActive().Height() - pindexNewForkTip->nHeight < 72) {
         pindexBestForkTip = pindexNewForkTip;
         pindexBestForkBase = pfork;
     }
@@ -1165,10 +1164,11 @@ static void InvalidChainFound(CBlockIndex *pindexNew)
               pindexNew->nHeight,
               log(pindexNew->nChainWork.getdouble()) / log(2.0),
               FormatISO8601DateTime(pindexNew->GetBlockTime()));
-    CBlockIndex *tip = chainActive.Tip();
+    CBlockIndex *tip = ::ChainActive().Tip();
     assert(tip);
     LogPrintf("%s:  current best=%s  height=%d  log2_work=%.8g  date=%s\n",
-              __func__, tip->GetBlockHash().ToString(), chainActive.Height(),
+              __func__, tip->GetBlockHash().ToString(),
+              ::ChainActive().Height(),
               log(tip->nChainWork.getdouble()) / log(2.0),
               FormatISO8601DateTime(tip->GetBlockTime()));
 }
@@ -2270,7 +2270,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
 
         if (full_flush_completed) {
             // Update best block in wallet (so we can detect restored wallets).
-            GetMainSignals().ChainStateFlushed(chainActive.GetLocator());
+            GetMainSignals().ChainStateFlushed(::ChainActive().GetLocator());
         }
     } catch (const std::runtime_error &e) {
         return AbortNode(state, std::string("System error while flushing: ") +
@@ -2396,7 +2396,7 @@ bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
 
     m_chain.SetTip(pindexDelete->pprev);
 
-    // Update chainActive and related variables.
+    // Update ::ChainActive() and related variables.
     UpdateTip(config, pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
@@ -3318,9 +3318,9 @@ bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
     }
 
     // If the finalized block is not on the active chain, we may need to rewind.
-    if (!chainActive.Contains(pindex)) {
-        const CBlockIndex *pindexFork = chainActive.FindFork(pindex);
-        CBlockIndex *pindexToInvalidate = chainActive.Next(pindexFork);
+    if (!::ChainActive().Contains(pindex)) {
+        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
+        CBlockIndex *pindexToInvalidate = ::ChainActive().Next(pindexFork);
         if (pindexToInvalidate) {
             return InvalidateBlock(config, state, pindexToInvalidate);
         }
@@ -3354,7 +3354,8 @@ bool CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
 
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
             pindex->HaveTxsDownloaded() &&
-            setBlockIndexCandidates.value_comp()(chainActive.Tip(), pindex)) {
+            setBlockIndexCandidates.value_comp()(::ChainActive().Tip(),
+                                                 pindex)) {
             setBlockIndexCandidates.insert(pindex);
         }
         return true;
@@ -3838,13 +3839,13 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
     // soft-forks are scheduled, so no flags are set.
     flags = std::max(flags, 0);
 
-    // ContextualCheckTransactionForCurrentBlock() uses chainActive.Height()+1
-    // to evaluate nLockTime because when IsFinalTx() is called within
-    // CBlock::AcceptBlock(), the height of the block *being* evaluated is what
-    // is used. Thus if we want to know if a transaction can be part of the
-    // *next* block, we need to call ContextualCheckTransaction() with one more
-    // than chainActive.Height().
-    const int nBlockHeight = chainActive.Height() + 1;
+    // ContextualCheckTransactionForCurrentBlock() uses
+    // ::ChainActive().Height()+1 to evaluate nLockTime because when IsFinalTx()
+    // is called within CBlock::AcceptBlock(), the height of the block *being*
+    // evaluated is what is used. Thus if we want to know if a transaction can
+    // be part of the *next* block, we need to call ContextualCheckTransaction()
+    // with one more than ::ChainActive().Height().
+    const int nBlockHeight = ::ChainActive().Height() + 1;
 
     // BIP113 will require that time-locked transactions have nLockTime set to
     // less than the median time of the previous block they're contained in.
@@ -3852,8 +3853,9 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
     const int64_t nMedianTimePast =
-        chainActive.Tip() == nullptr ? 0
-                                     : chainActive.Tip()->GetMedianTimePast();
+        ::ChainActive().Tip() == nullptr
+            ? 0
+            : ::ChainActive().Tip()->GetMedianTimePast();
     const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
                                         ? nMedianTimePast
                                         : GetAdjustedTime();
@@ -4353,7 +4355,7 @@ bool TestBlockValidity(CValidationState &state, const CChainParams &params,
                        const CBlock &block, CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
-    assert(pindexPrev && pindexPrev == chainActive.Tip());
+    assert(pindexPrev && pindexPrev == ::ChainActive().Tip());
     CCoinsViewCache viewNew(pcoinsTip.get());
     BlockHash block_hash(block.GetHash());
     CBlockIndex indexDummy(block);
@@ -4461,7 +4463,7 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
     assert(fPruneMode && nManualPruneHeight > 0);
 
     LOCK2(cs_main, cs_LastBlockFile);
-    if (chainActive.Tip() == nullptr) {
+    if (::ChainActive().Tip() == nullptr) {
         return;
     }
 
@@ -4469,7 +4471,7 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
     // MIN_BLOCKS_TO_KEEP from the tip)
     unsigned int nLastBlockWeCanPrune =
         std::min((unsigned)nManualPruneHeight,
-                 chainActive.Tip()->nHeight - MIN_BLOCKS_TO_KEEP);
+                 ::ChainActive().Tip()->nHeight - MIN_BLOCKS_TO_KEEP);
     int count = 0;
     for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
         if (vinfoBlockFile[fileNumber].nSize == 0 ||
@@ -4519,15 +4521,15 @@ void PruneBlockFilesManual(int nManualPruneHeight) {
 static void FindFilesToPrune(std::set<int> &setFilesToPrune,
                              uint64_t nPruneAfterHeight) {
     LOCK2(cs_main, cs_LastBlockFile);
-    if (chainActive.Tip() == nullptr || nPruneTarget == 0) {
+    if (::ChainActive().Tip() == nullptr || nPruneTarget == 0) {
         return;
     }
-    if (uint64_t(chainActive.Tip()->nHeight) <= nPruneAfterHeight) {
+    if (uint64_t(::ChainActive().Tip()->nHeight) <= nPruneAfterHeight) {
         return;
     }
 
     unsigned int nLastBlockWeCanPrune =
-        chainActive.Tip()->nHeight - MIN_BLOCKS_TO_KEEP;
+        ::ChainActive().Tip()->nHeight - MIN_BLOCKS_TO_KEEP;
     uint64_t nCurrentUsage = CalculateCurrentUsage();
     // We don't check to prune until after we've allocated new space for files,
     // so we should leave a buffer under our target to account for another
@@ -4769,14 +4771,14 @@ static bool LoadBlockIndexDB(const Config &config)
 bool LoadChainTip(const Config &config) {
     AssertLockHeld(cs_main);
 
-    if (chainActive.Tip() &&
-        chainActive.Tip()->GetBlockHash() == pcoinsTip->GetBestBlock()) {
+    if (::ChainActive().Tip() &&
+        ::ChainActive().Tip()->GetBlockHash() == pcoinsTip->GetBestBlock()) {
         return true;
     }
 
     if (pcoinsTip->GetBestBlock().IsNull() && mapBlockIndex.size() == 1) {
         // In case we just added the genesis block, connect it now, so
-        // that we always have a chainActive.Tip() when we return.
+        // that we always have a ::ChainActive().Tip() when we return.
         LogPrintf("%s: Connecting genesis block...\n", __func__);
         CValidationState state;
         if (!ActivateBestChain(config, state)) {
@@ -4791,16 +4793,17 @@ bool LoadChainTip(const Config &config) {
     if (!pindex) {
         return false;
     }
-    chainActive.SetTip(pindex);
+    ::ChainActive().SetTip(pindex);
 
     g_chainstate.PruneBlockIndexCandidates();
 
     LogPrintf(
         "Loaded best chain: hashBestChain=%s height=%d date=%s progress=%f\n",
-        chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
-        FormatISO8601DateTime(chainActive.Tip()->GetBlockTime()),
+        ::ChainActive().Tip()->GetBlockHash().ToString(),
+        ::ChainActive().Height(),
+        FormatISO8601DateTime(::ChainActive().Tip()->GetBlockTime()),
         GuessVerificationProgress(config.GetChainParams().TxData(),
-                                  chainActive.Tip()));
+                                  ::ChainActive().Tip()));
     return true;
 }
 
@@ -4819,13 +4822,14 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     const CChainParams &params = config.GetChainParams();
     const Consensus::Params &consensusParams = params.GetConsensus();
 
-    if (chainActive.Tip() == nullptr || chainActive.Tip()->pprev == nullptr) {
+    if (::ChainActive().Tip() == nullptr ||
+        ::ChainActive().Tip()->pprev == nullptr) {
         return true;
     }
 
     // Verify blocks in the best chain
-    if (nCheckDepth <= 0 || nCheckDepth > chainActive.Height()) {
-        nCheckDepth = chainActive.Height();
+    if (nCheckDepth <= 0 || nCheckDepth > ::ChainActive().Height()) {
+        nCheckDepth = ::ChainActive().Height();
     }
 
     nCheckLevel = std::max(0, std::min(4, nCheckLevel));
@@ -4839,14 +4843,14 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     CValidationState state;
     int reportDone = 0;
     LogPrintfToBeContinued("[0%%]...");
-    for (pindex = chainActive.Tip(); pindex && pindex->pprev;
+    for (pindex = ::ChainActive().Tip(); pindex && pindex->pprev;
          pindex = pindex->pprev) {
         boost::this_thread::interruption_point();
-        int percentageDone = std::max(
-            1, std::min(
-                   99,
-                   (int)(((double)(chainActive.Height() - pindex->nHeight)) /
-                         (double)nCheckDepth * (nCheckLevel >= 4 ? 50 : 100))));
+        int percentageDone =
+            std::max(1, std::min(99, (int)(((double)(::ChainActive().Height() -
+                                                     pindex->nHeight)) /
+                                           (double)nCheckDepth *
+                                           (nCheckLevel >= 4 ? 50 : 100))));
 
         if (reportDone < percentageDone / 10) {
             // report every 10% step
@@ -4856,7 +4860,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
 
         uiInterface.ShowProgress(_("Verifying blocks..."), percentageDone,
                                  false);
-        if (pindex->nHeight <= chainActive.Height() - nCheckDepth) {
+        if (pindex->nHeight <= ::ChainActive().Height() - nCheckDepth) {
             break;
         }
 
@@ -4929,25 +4933,26 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     if (pindexFailure) {
         return error("VerifyDB(): *** coin database inconsistencies found "
                      "(last %i blocks, %i good transactions before that)\n",
-                     chainActive.Height() - pindexFailure->nHeight + 1,
+                     ::ChainActive().Height() - pindexFailure->nHeight + 1,
                      nGoodTransactions);
     }
 
     // store block count as we move pindex at check level >= 4
-    int block_count = chainActive.Height() - pindex->nHeight;
+    int block_count = ::ChainActive().Height() - pindex->nHeight;
 
     // check level 4: try reconnecting blocks
     if (nCheckLevel >= 4) {
-        while (pindex != chainActive.Tip()) {
+        while (pindex != ::ChainActive().Tip()) {
             boost::this_thread::interruption_point();
             uiInterface.ShowProgress(
                 _("Verifying blocks..."),
                 std::max(
-                    1, std::min(99, 100 - (int)(((double)(chainActive.Height() -
-                                                          pindex->nHeight)) /
-                                                (double)nCheckDepth * 50))),
+                    1, std::min(99,
+                                100 - (int)(((double)(::ChainActive().Height() -
+                                                      pindex->nHeight)) /
+                                            (double)nCheckDepth * 50))),
                 false);
-            pindex = chainActive.Next(pindex);
+            pindex = ::ChainActive().Next(pindex);
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, consensusParams)) {
                 return error(
@@ -5116,7 +5121,7 @@ void CChainState::UnloadBlockIndex() {
 // block index state
 void UnloadBlockIndex() {
     LOCK(cs_main);
-    chainActive.SetTip(nullptr);
+    ::ChainActive().SetTip(nullptr);
     pindexFinalized = nullptr;
     pindexBestInvalid = nullptr;
     pindexBestParked = nullptr;
@@ -5699,7 +5704,7 @@ static ThresholdState VersionBitsStateImpl(const Consensus::Params &params,
 ThresholdState VersionBitsTipState(const Consensus::Params &params,
                                    Consensus::DeploymentPos pos) {
     LOCK(cs_main);
-    return VersionBitsStateImpl(params, pos, chainActive.Tip());
+    return VersionBitsStateImpl(params, pos, ::ChainActive().Tip());
 }
 
 ThresholdState VersionBitsBlockState(const Consensus::Params &params,
@@ -5712,13 +5717,13 @@ ThresholdState VersionBitsBlockState(const Consensus::Params &params,
 BIP9Stats VersionBitsTipStatistics(const Consensus::Params &params,
                                    Consensus::DeploymentPos pos) {
     LOCK(cs_main);
-    return VersionBitsStatistics(chainActive.Tip(), params, pos);
+    return VersionBitsStatistics(::ChainActive().Tip(), params, pos);
 }
 
 int VersionBitsTipStateSinceHeight(const Consensus::Params &params,
                                    Consensus::DeploymentPos pos) {
     LOCK(cs_main);
-    return VersionBitsStateSinceHeight(chainActive.Tip(), params, pos,
+    return VersionBitsStateSinceHeight(::ChainActive().Tip(), params, pos,
                                        versionbitscache);
 }
 

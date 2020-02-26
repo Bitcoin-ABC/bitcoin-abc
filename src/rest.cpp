@@ -156,14 +156,14 @@ static bool rest_headers(Config &config, HTTPRequest *req,
     headers.reserve(count);
     {
         LOCK(cs_main);
-        tip = chainActive.Tip();
+        tip = ::ChainActive().Tip();
         const CBlockIndex *pindex = LookupBlockIndex(hash);
-        while (pindex != nullptr && chainActive.Contains(pindex)) {
+        while (pindex != nullptr && ::ChainActive().Contains(pindex)) {
             headers.push_back(pindex);
             if (headers.size() == size_t(count)) {
                 break;
             }
-            pindex = chainActive.Next(pindex);
+            pindex = ::ChainActive().Next(pindex);
         }
     }
 
@@ -225,7 +225,7 @@ static bool rest_block(const Config &config, HTTPRequest *req,
     CBlockIndex *tip = nullptr;
     {
         LOCK(cs_main);
-        tip = chainActive.Tip();
+        tip = ::ChainActive().Tip();
         pblockindex = LookupBlockIndex(hash);
         if (!pblockindex) {
             return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
@@ -584,8 +584,8 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
             // serialize data
             // use exact same output as mentioned in Bip64
             CDataStream ssGetUTXOResponse(SER_NETWORK, PROTOCOL_VERSION);
-            ssGetUTXOResponse << chainActive.Height()
-                              << chainActive.Tip()->GetBlockHash() << bitmap
+            ssGetUTXOResponse << ::ChainActive().Height()
+                              << ::ChainActive().Tip()->GetBlockHash() << bitmap
                               << outs;
             std::string ssGetUTXOResponseString = ssGetUTXOResponse.str();
 
@@ -596,8 +596,8 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
 
         case RetFormat::HEX: {
             CDataStream ssGetUTXOResponse(SER_NETWORK, PROTOCOL_VERSION);
-            ssGetUTXOResponse << chainActive.Height()
-                              << chainActive.Tip()->GetBlockHash() << bitmap
+            ssGetUTXOResponse << ::ChainActive().Height()
+                              << ::ChainActive().Tip()->GetBlockHash() << bitmap
                               << outs;
             std::string strHex =
                 HexStr(ssGetUTXOResponse.begin(), ssGetUTXOResponse.end()) +
@@ -613,9 +613,9 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
 
             // pack in some essentials
             // use more or less the same output as mentioned in Bip64
-            objGetUTXOResponse.pushKV("chainHeight", chainActive.Height());
+            objGetUTXOResponse.pushKV("chainHeight", ::ChainActive().Height());
             objGetUTXOResponse.pushKV(
-                "chaintipHash", chainActive.Tip()->GetBlockHash().GetHex());
+                "chaintipHash", ::ChainActive().Tip()->GetBlockHash().GetHex());
             objGetUTXOResponse.pushKV("bitmap", bitmapStringRepresentation);
 
             UniValue utxos(UniValue::VARR);
