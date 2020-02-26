@@ -159,6 +159,38 @@ case "${COMMIT_TYPE}" in
     git commit -m "${BOT_PREFIX} Update seeds"
     ;;
 
+  update-timings)
+    "${DEVTOOLS_DIR}"/build_cmake.sh
+    pushd "${BUILD_DIR}"
+    ninja check-functional-extended
+    TIMING_SRC_FILE="${TOPLEVEL}"/test/functional/timing.json
+    mv timing.json "${TIMING_SRC_FILE}"
+    popd
+
+    # Check that all tests are included in timing.json
+    pushd "${TOPLEVEL}"/test/functional
+    NON_TESTS=$(python3 -c 'from test_runner import NON_SCRIPTS; print(" ".join(NON_SCRIPTS))')
+    export NON_TESTS
+    check_missing() {
+      # Exclude non-tests from the check
+      if [[ "${NON_TESTS}" =~ $1 ]]; then
+        exit 0
+      fi
+
+      if ! grep -q $1 timing.json ; then
+        echo "Error: Test file '$1' is missing from timing.json"
+        exit 1
+      fi
+    }
+    export -f check_missing
+    find . -maxdepth 1 -name '*.py' | cut -c 3- | xargs -I'{}' -n1 bash -c 'check_missing {}'
+    popd
+
+    git add "${TIMING_SRC_FILE}"
+
+    git commit -m "${BOT_PREFIX} Update timing.json"
+    ;;
+
   *)
     echo "Error: Invalid commit name '${COMMIT_TYPE}'"
     exit 10
