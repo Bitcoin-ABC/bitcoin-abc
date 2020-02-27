@@ -19,6 +19,7 @@
 #include <wallet/wallet.h>
 
 #include <atomic>
+#include <string>
 
 //
 // WalletBatch
@@ -223,11 +224,11 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
                 if (!ssValue.empty()) {
                     char fTmp;
                     char fUnused;
-                    ssValue >> fTmp >> fUnused >> wtx.strFromAccount;
-                    strErr =
-                        strprintf("LoadWallet() upgrading tx ver=%d %d '%s' %s",
-                                  wtx.fTimeReceivedIsTxTime, fTmp,
-                                  wtx.strFromAccount, txid.ToString());
+                    std::string unused_string;
+                    ssValue >> fTmp >> fUnused >> unused_string;
+                    strErr = strprintf("LoadWallet() upgrading tx ver=%d %d %s",
+                                       wtx.fTimeReceivedIsTxTime, fTmp,
+                                       txid.ToString());
                     wtx.fTimeReceivedIsTxTime = fTmp;
                 } else {
                     strErr =

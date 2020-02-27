@@ -1482,11 +1482,10 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
                              int nMinDepth, bool fLong, UniValue &ret,
                              const isminefilter &filter) {
     Amount nFee;
-    std::string dummy_account;
     std::list<COutputEntry> listReceived;
     std::list<COutputEntry> listSent;
 
-    wtx.GetAmounts(listReceived, listSent, nFee, dummy_account, filter);
+    wtx.GetAmounts(listReceived, listSent, nFee, filter);
 
     bool involvesWatchonly = wtx.IsFromMe(ISMINE_WATCH_ONLY);
 

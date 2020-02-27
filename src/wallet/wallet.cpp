@@ -709,7 +709,6 @@ void CWallet::SyncMetaData(
         // on purpose.
         copyTo->nTimeSmart = copyFrom->nTimeSmart;
         copyTo->fFromMe = copyFrom->fFromMe;
-        copyTo->strFromAccount = copyFrom->strFromAccount;
         // nOrderPos not copied on purpose cached members not copied on purpose.
     }
 }
@@ -1722,12 +1721,10 @@ int CalculateMaximumSignedInputSize(const CTxOut &txout, const CWallet *wallet,
 
 void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
                            std::list<COutputEntry> &listSent, Amount &nFee,
-                           std::string &strSentAccount,
                            const isminefilter &filter) const {
     nFee = Amount::zero();
     listReceived.clear();
     listSent.clear();
-    strSentAccount = strFromAccount;
 
     // Compute fee:
     Amount nDebit = GetDebit(filter);
@@ -4736,7 +4733,6 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                     copyTo->nTimeReceived = copyFrom->nTimeReceived;
                     copyTo->nTimeSmart = copyFrom->nTimeSmart;
                     copyTo->fFromMe = copyFrom->fFromMe;
-                    copyTo->strFromAccount = copyFrom->strFromAccount;
                     copyTo->nOrderPos = copyFrom->nOrderPos;
                     batch.WriteTx(*copyTo);
                 }

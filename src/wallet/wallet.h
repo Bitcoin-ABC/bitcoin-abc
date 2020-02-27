@@ -391,7 +391,6 @@ public:
      * externally and came in through the network or sendrawtransaction RPC.
      */
     char fFromMe;
-    std::string strFromAccount;
     //! position in ordered transaction list
     int64_t nOrderPos;
     std::multimap<int64_t, CWalletTx *>::const_iterator m_it_wtxOrdered;
@@ -430,7 +429,6 @@ public:
         nTimeReceived = 0;
         nTimeSmart = 0;
         fFromMe = false;
-        strFromAccount.clear();
         fDebitCached = false;
         fCreditCached = false;
         fImmatureCreditCached = false;
@@ -457,7 +455,7 @@ public:
         char fSpent = false;
         mapValue_t mapValueCopy = mapValue;
 
-        mapValueCopy["fromaccount"] = strFromAccount;
+        mapValueCopy["fromaccount"] = "";
         WriteOrderPos(nOrderPos, mapValueCopy);
         if (nTimeSmart) {
             mapValueCopy["timesmart"] = strprintf("%u", nTimeSmart);
@@ -480,7 +478,6 @@ public:
         s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >>
             nTimeReceived >> fFromMe >> fSpent;
 
-        strFromAccount = std::move(mapValue["fromaccount"]);
         ReadOrderPos(nOrderPos, mapValue);
         nTimeSmart = mapValue.count("timesmart")
                          ? (unsigned int)atoi64(mapValue["timesmart"])
@@ -538,7 +535,6 @@ public:
 
     void GetAmounts(std::list<COutputEntry> &listReceived,
                     std::list<COutputEntry> &listSent, Amount &nFee,
-                    std::string &strSentAccount,
                     const isminefilter &filter) const;
 
     bool IsFromMe(const isminefilter &filter) const {
