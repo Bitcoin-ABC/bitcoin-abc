@@ -121,7 +121,7 @@ void WalletInit::AddWalletOptions() const {
         "-zapwallettxes=<mode>",
         "Delete all wallet transactions and only recover those parts of the "
         "blockchain through -rescan on startup (1 = keep tx meta data e.g. "
-        "account owner and payment request information, 2 = drop tx meta data)",
+        "payment request information, 2 = drop tx meta data)",
         false, OptionsCategory::WALLET);
 
     gArgs.AddArg("-dblogsize=<n>",

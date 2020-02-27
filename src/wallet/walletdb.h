@@ -34,7 +34,6 @@
 
 static const bool DEFAULT_FLUSHWALLET = true;
 
-class CAccount;
 struct CBlockLocator;
 class CKeyPool;
 class CMasterKey;
