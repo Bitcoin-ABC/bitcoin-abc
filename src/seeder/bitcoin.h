@@ -46,8 +46,6 @@ private:
 
     void PushVersion();
 
-    void GotVersion();
-
     bool ProcessMessages();
 
 protected:

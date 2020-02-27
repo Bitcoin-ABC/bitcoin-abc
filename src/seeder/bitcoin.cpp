@@ -90,18 +90,6 @@ void CSeederNode::PushVersion() {
     EndMessage();
 }
 
-void CSeederNode::GotVersion() {
-    // fprintf(stdout, "\n%s: version %i\n", ToString(you).c_str(),
-    // nVersion);
-    if (vAddr) {
-        BeginMessage("getaddr");
-        EndMessage();
-        doneAfter = time(nullptr) + GetTimeout();
-    } else {
-        doneAfter = time(nullptr) + 1;
-    }
-}
-
 bool CSeederNode::ProcessMessage(std::string strCommand, CDataStream &recv) {
     // fprintf(stdout, "%s: RECV %s\n", ToString(you).c_str(),
     // strCommand.c_str());
@@ -125,7 +113,15 @@ bool CSeederNode::ProcessMessage(std::string strCommand, CDataStream &recv) {
 
     if (strCommand == "verack") {
         vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
-        GotVersion();
+        // fprintf(stdout, "\n%s: version %i\n", ToString(you).c_str(),
+        // nVersion);
+        if (vAddr) {
+            BeginMessage("getaddr");
+            EndMessage();
+            doneAfter = time(nullptr) + GetTimeout();
+        } else {
+            doneAfter = time(nullptr) + 1;
+        }
         return false;
     }
 
