@@ -54,8 +54,8 @@ macro(add_functional_test_check TARGET COMMENT)
 			./functional/test_runner.py
 			${ARGN}
 		DEPENDS
-			../src/bitcoind
-			../src/bitcoin-cli
+			bitcoind
+			bitcoin-cli
 			${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
 		USES_TERMINAL
 		VERBATIM
@@ -97,7 +97,7 @@ if(BUILD_BITCOIN_TX)
 			"${Python_EXECUTABLE}"
 			./util/bitcoin-util-test.py
 		DEPENDS
-			../src/bitcoin-tx
+			bitcoin-tx
 			${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
 	)
 
