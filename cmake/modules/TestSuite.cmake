@@ -33,25 +33,45 @@ macro(create_test_suite NAME)
 endmacro()
 
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
-function(add_test_runner SUITE NAME COMMAND)
+function(add_test_runner SUITE NAME EXECUTABLE)
 	get_target_from_suite(${SUITE} SUITE_TARGET)
 	set(TARGET "${SUITE_TARGET}-${NAME}")
 
+	set(COMMAND "$<TARGET_FILE:${EXECUTABLE}>")
 	set(LOG "${NAME}.log")
-	set(RUNNER "${CMAKE_CURRENT_BINARY_DIR}/run-${SUITE}-${NAME}.sh")
+	set(BASE_RUNNER "${CMAKE_CURRENT_BINARY_DIR}/run-${SUITE}-${NAME}.sh")
+	set(CONFIG_RUNNER "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/run-${SUITE}-${NAME}.sh")
 	list(JOIN ARGN " " ARGS)
 
 	configure_file(
 		"${TEST_RUNNER_TEMPLATE}"
-		"${RUNNER}"
+		"${BASE_RUNNER}"
+	)
+
+	# `configure_file()` is not enough as it cannot interpret the generator
+	# expressions. At the time of writing, the only method to get the target
+	# location is to use a generator expression (the `LOCATION` property cannot
+	# be relied upon and is deprecated for non imported targets (see
+	# https://cmake.org/cmake/help/v3.13/prop_tgt/LOCATION.html), and the only
+	# method to have a generator expressions interpreted at configure time is to
+	# use the `file(GENERATE)` method.
+	#
+	# `file(GENERATE)` will generate a file for each configuration.
+	# These file are not allowed to collapse, i.e. they cannot have a different
+	# content for the same output file.
+	# Since the executable path can vary with the configuration, the file path
+	# should be different for each configuration.
+	file(GENERATE
+		OUTPUT "${CONFIG_RUNNER}"
+		INPUT "${BASE_RUNNER}"
 	)
 
 	add_custom_target(${TARGET}
-		COMMAND ${RUNNER}
+		COMMAND "${CONFIG_RUNNER}"
 		COMMENT "${SUITE}: testing ${NAME}"
 		DEPENDS
-			${COMMAND}
-			${RUNNER}
+			${EXECUTABLE}
+			"${CONFIG_RUNNER}"
 	)
 	add_dependencies(${SUITE_TARGET} ${TARGET})
 endfunction()
