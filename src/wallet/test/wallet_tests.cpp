@@ -330,8 +330,8 @@ public:
                                               reservekey, fee, changePos, error,
                                               dummy));
         CValidationState state;
-        BOOST_CHECK(wallet->CommitTransaction(tx, {}, {}, {}, reservekey,
-                                              nullptr, state));
+        BOOST_CHECK(
+            wallet->CommitTransaction(tx, {}, {}, reservekey, nullptr, state));
         CMutableTransaction blocktx;
         {
             LOCK(wallet->cs_wallet);

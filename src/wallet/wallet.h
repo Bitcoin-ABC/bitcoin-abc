@@ -1119,8 +1119,7 @@ public:
     bool CommitTransaction(
         CTransactionRef tx, mapValue_t mapValue,
         std::vector<std::pair<std::string, std::string>> orderForm,
-        std::string fromAccount, CReserveKey &reservekey, CConnman *connman,
-        CValidationState &state);
+        CReserveKey &reservekey, CConnman *connman, CValidationState &state);
 
     bool DummySignTx(CMutableTransaction &txNew, const std::set<CTxOut> &txouts,
                      bool use_max_sig = false) const {

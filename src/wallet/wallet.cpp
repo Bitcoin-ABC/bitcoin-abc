@@ -3370,15 +3370,13 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 bool CWallet::CommitTransaction(
     CTransactionRef tx, mapValue_t mapValue,
     std::vector<std::pair<std::string, std::string>> orderForm,
-    std::string fromAccount, CReserveKey &reservekey, CConnman *connman,
-    CValidationState &state) {
+    CReserveKey &reservekey, CConnman *connman, CValidationState &state) {
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
     CWalletTx wtxNew(this, std::move(tx));
     wtxNew.mapValue = std::move(mapValue);
     wtxNew.vOrderForm = std::move(orderForm);
-    wtxNew.strFromAccount = std::move(fromAccount);
     wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.fFromMe = true;
 

@@ -262,7 +262,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
     auto &newTx = transaction.getWtx();
     std::string rejectReason;
     if (!newTx->commit({} /* mapValue */, std::move(vOrderForm),
-                       {} /* fromAccount */, rejectReason)) {
+                       rejectReason)) {
         return SendCoinsReturn(TransactionCommitFailed,
                                QString::fromStdString(rejectReason));
     }

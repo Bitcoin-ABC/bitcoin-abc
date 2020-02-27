@@ -389,8 +389,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     }
     CValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                                    "" /* account */, reservekey,
-                                    g_connman.get(), state)) {
+                                    reservekey, g_connman.get(), state)) {
         strError =
             strprintf("Error: The transaction was rejected! Reason given: %s",
                       FormatStateMessage(state));
@@ -1076,8 +1075,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     }
     CValidationState state;
     if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */,
-                                    "" /* account */, keyChange,
-                                    g_connman.get(), state)) {
+                                    keyChange, g_connman.get(), state)) {
         strFailReason = strprintf("Transaction commit failed:: %s",
                                   FormatStateMessage(state));
         throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
