@@ -1052,9 +1052,6 @@ public:
     int64_t IncOrderPosNext(WalletBatch *batch = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     DBErrors ReorderTransactions();
-    bool GetLabelDestination(CTxDestination &dest, const std::string &label,
-                             bool bForceNew = false)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     void MarkDirty();
     bool AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose = true);
@@ -1191,7 +1188,6 @@ public:
     GetAddressBalances(interfaces::Chain::Lock &locked_chain);
 
     std::set<CTxDestination> GetLabelAddresses(const std::string &label) const;
-    void DeleteLabel(const std::string &label);
 
     isminetype IsMine(const CTxIn &txin) const;
     /**

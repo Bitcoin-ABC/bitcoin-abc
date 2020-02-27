@@ -338,22 +338,6 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
         pwallet->SetAddressBook(dest, label, "send");
     }
 
-    // Detect when there are no addresses using this label.
-    // If so, delete the account record for it. Labels, unlike addresses, can be
-    // deleted, and if we wouldn't do this, the record would stick around
-    // forever.
-    bool found_address = false;
-    for (const std::pair<const CTxDestination, CAddressBookData> &item :
-         pwallet->mapAddressBook) {
-        if (item.second.name == label) {
-            found_address = true;
-            break;
-        }
-    }
-    if (!found_address) {
-        pwallet->DeleteLabel(old_label);
-    }
-
     return NullUniValue;
 }
 

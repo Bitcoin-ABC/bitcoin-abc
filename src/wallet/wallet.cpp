@@ -937,50 +937,6 @@ int64_t CWallet::IncOrderPosNext(WalletBatch *batch) {
     return nRet;
 }
 
-bool CWallet::GetLabelDestination(CTxDestination &dest,
-                                  const std::string &label, bool bForceNew) {
-    WalletBatch batch(*database);
-
-    CAccount account;
-    batch.ReadAccount(label, account);
-
-    if (!bForceNew) {
-        if (!account.vchPubKey.IsValid()) {
-            bForceNew = true;
-        } else {
-            // Check if the current key has been used (TODO: check other
-            // addresses with the same key)
-            CScript scriptPubKey = GetScriptForDestination(GetDestinationForKey(
-                account.vchPubKey, m_default_address_type));
-            for (std::map<TxId, CWalletTx>::iterator it = mapWallet.begin();
-                 it != mapWallet.end() && account.vchPubKey.IsValid(); ++it) {
-                for (const CTxOut &txout : (*it).second.tx->vout) {
-                    if (txout.scriptPubKey == scriptPubKey) {
-                        bForceNew = true;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // Generate a new key
-    if (bForceNew) {
-        if (!GetKeyFromPool(account.vchPubKey, false)) {
-            return false;
-        }
-
-        LearnRelatedScripts(account.vchPubKey, m_default_address_type);
-        dest = GetDestinationForKey(account.vchPubKey, m_default_address_type);
-        SetAddressBook(dest, label, "receive");
-        batch.WriteAccount(label, account);
-    } else {
-        dest = GetDestinationForKey(account.vchPubKey, m_default_address_type);
-    }
-
-    return true;
-}
-
 void CWallet::MarkDirty() {
     LOCK(cs_wallet);
     for (std::pair<const TxId, CWalletTx> &item : mapWallet) {
@@ -4048,11 +4004,6 @@ CWallet::GetLabelAddresses(const std::string &label) const {
     }
 
     return result;
-}
-
-void CWallet::DeleteLabel(const std::string &label) {
-    WalletBatch batch(*database);
-    batch.EraseAccount(label);
 }
 
 bool CReserveKey::GetReservedKey(CPubKey &pubkey, bool internal) {
