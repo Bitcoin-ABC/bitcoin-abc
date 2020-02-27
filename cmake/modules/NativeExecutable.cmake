@@ -16,6 +16,16 @@ set(NATIVE_BUILD_DIR "${CMAKE_BINARY_DIR}/native" CACHE PATH "The path of the na
 function(add_native_executable NAME)
 	if(__IS_NATIVE_BUILD)
 		add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
+		# Multi-configuration generators (VS, Xcode) append a per-configuration
+		# subdirectory to the specified directory unless the 
+		# `RUNTIME_OUTPUT_DIRECTORY` property is defined using a generator
+		# expression.
+		# Since we don't care about the build configuration for native
+		# executables, we can simply drop this subdirectory.
+		# Doing so ensure that the path to the binary can always be retrieved.
+		set_target_properties(${NAME} PROPERTIES
+			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<0:>"
+		)
 	else()
 		set(NATIVE_TARGET "${NAME}")
 		file(RELATIVE_PATH RELATIVE_PATH "${CMAKE_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
