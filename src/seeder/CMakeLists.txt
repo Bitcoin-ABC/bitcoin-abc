@@ -4,20 +4,11 @@
 
 project(bitcoin-seeder)
 
-add_library(seeder-netprocessing
-	bitcoin.cpp
-	db.cpp
-	dns.cpp
-)
-
-target_link_libraries(seeder-netprocessing
-	common
-	bitcoinconsensus
-)
+add_library(seeder bitcoin.cpp db.cpp dns.cpp)
+target_link_libraries(seeder common bitcoinconsensus)
 
 add_executable(bitcoin-seeder main.cpp)
-
-target_link_libraries(bitcoin-seeder common bitcoinconsensus seeder-netprocessing)
+target_link_libraries(bitcoin-seeder common bitcoinconsensus seeder)
 
 include(BinaryTest)
 add_to_symbols_check(bitcoin-seeder)

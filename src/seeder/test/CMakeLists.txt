@@ -9,12 +9,12 @@ create_test_suite(bitcoin-seeder)
 add_dependencies(check check-bitcoin-seeder)
 
 add_boost_unit_tests_to_suite(bitcoin-seeder test_bitcoin-seeder
-  TESTS
-    seeder_tests.cpp
+	TESTS
+		seeder_tests.cpp
 )
 
 target_link_libraries(test_bitcoin-seeder
-  common
-  bitcoinconsensus
-  seeder-netprocessing
+	common
+	bitcoinconsensus
+	seeder
 )
