@@ -148,7 +148,7 @@ add_custom_target(bench-secp256k1)
 
 function(add_secp256k1_bench NAME)
 	set(EXECUTABLE_NAME "${NAME}-bench")
-	add_executable(${EXECUTABLE_NAME} EXCLUDE_FROM_ALL ${ARGN})
+	add_executable(${EXECUTABLE_NAME} ${ARGN})
 	link_secp256k1_internal(${EXECUTABLE_NAME})
 
 	set(BENCH_NAME "bench-secp256k1-${NAME}")
