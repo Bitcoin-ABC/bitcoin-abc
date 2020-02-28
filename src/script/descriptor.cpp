@@ -200,7 +200,7 @@ public:
     virtual bool GetPubKey(int pos, const SigningProvider &arg, CPubKey &key,
                            KeyOriginInfo &info,
                            const DescriptorCache *read_cache = nullptr,
-                           DescriptorCache *write_cache = nullptr) const = 0;
+                           DescriptorCache *write_cache = nullptr) = 0;
 
     /** Whether this represent multiple public keys at different positions. */
     virtual bool IsRange() const = 0;
@@ -241,7 +241,7 @@ public:
     bool GetPubKey(int pos, const SigningProvider &arg, CPubKey &key,
                    KeyOriginInfo &info,
                    const DescriptorCache *read_cache = nullptr,
-                   DescriptorCache *write_cache = nullptr) const override {
+                   DescriptorCache *write_cache = nullptr) override {
         if (!m_provider->GetPubKey(pos, arg, key, info, read_cache,
                                    write_cache)) {
             return false;
@@ -282,7 +282,7 @@ public:
     bool GetPubKey(int pos, const SigningProvider &arg, CPubKey &key,
                    KeyOriginInfo &info,
                    const DescriptorCache *read_cache = nullptr,
-                   DescriptorCache *write_cache = nullptr) const override {
+                   DescriptorCache *write_cache = nullptr) override {
         key = m_pubkey;
         info.path.clear();
         CKeyID keyid = m_pubkey.GetID();
@@ -322,6 +322,9 @@ class BIP32PubkeyProvider final : public PubkeyProvider {
     CExtPubKey m_root_extkey;
     KeyPath m_path;
     DeriveType m_derive;
+    // Cache of the parent of the final derived pubkeys.
+    // Primarily useful for situations when no read_cache is provided
+    CExtPubKey m_cached_xpub;
 
     bool GetExtKey(const SigningProvider &arg, CExtKey &ret) const {
         CKey key;
@@ -371,7 +374,7 @@ public:
     bool GetPubKey(int pos, const SigningProvider &arg, CPubKey &key_out,
                    KeyOriginInfo &final_info_out,
                    const DescriptorCache *read_cache = nullptr,
-                   DescriptorCache *write_cache = nullptr) const override {
+                   DescriptorCache *write_cache = nullptr) override {
         // Info of parent of the to be derived pubkey
         KeyOriginInfo parent_info;
         CKeyID keyid = m_root_extkey.pubkey.GetID();
@@ -410,6 +413,12 @@ public:
                     der = parent_extkey.Derive(final_extkey, pos);
                 }
             }
+        } else if (m_cached_xpub.pubkey.IsValid() &&
+                   m_derive != DeriveType::HARDENED) {
+            parent_extkey = final_extkey = m_cached_xpub;
+            if (m_derive == DeriveType::UNHARDENED) {
+                der = parent_extkey.Derive(final_extkey, pos);
+            }
         } else if (IsHardened()) {
             CExtKey xprv;
             if (!GetDerivedExtKey(arg, xprv)) {
@@ -438,6 +447,13 @@ public:
 
         final_info_out = final_info_out_tmp;
         key_out = final_extkey.pubkey;
+
+        // We rely on the consumer to check that m_derive isn't HARDENED as
+        // above But we can't have already cached something in case we read
+        // something from the cache and parent_extkey isn't actually the parent.
+        if (!m_cached_xpub.pubkey.IsValid()) {
+            m_cached_xpub = parent_extkey;
+        }
 
         if (write_cache) {
             // Only cache parent if there is any unhardened derivation
