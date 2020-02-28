@@ -879,7 +879,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     BOOST_CHECK(p.startEventLoop(s));
 
     // There is one task planned in the next hour (our event loop).
-    boost::chrono::system_clock::time_point start, stop;
+    std::chrono::system_clock::time_point start, stop;
     BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 1);
 
     // Starting twice doesn't start it twice.
@@ -951,7 +951,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
 
 BOOST_AUTO_TEST_CASE(destructor) {
     CScheduler s;
-    boost::chrono::system_clock::time_point start, stop;
+    std::chrono::system_clock::time_point start, stop;
 
     // Start the scheduler thread.
     std::thread schedulerThread(std::bind(&CScheduler::serviceQueue, &s));

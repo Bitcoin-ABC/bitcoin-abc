@@ -16,6 +16,8 @@
 #include <scheduler.h>
 #include <util/system.h>
 
+#include <boost/thread.hpp> // For boost::thread_group
+
 #include <type_traits>
 
 /**
