@@ -192,6 +192,26 @@ class ParkedChainTest(BitcoinTestFramework):
         check_reorg_protection(6, 6)
         check_reorg_protection(100, 100)
 
+        # try deep reorg with a log check.
+        with parking_node.assert_debug_log(["Park block"]):
+            check_reorg_protection(3, 1)
+
+        self.log.info(
+            "Accepting many blocks at once (possibly out of order) should not park if there is no reorg.")
+        # rewind one block to make a reorg that is shallow.
+        node.invalidateblock(parking_node.getbestblockhash())
+        # generate a ton of blocks at once.
+        try:
+            with parking_node.assert_debug_log(["Park block"]):
+                node.generate(20)
+                wait_until(lambda: parking_node.getbestblockhash() ==
+                           node.getbestblockhash())
+        except AssertionError as exc:
+            # good, we want an absence of "Park block" messages
+            assert "does not partially match log" in exc.args[0]
+        else:
+            raise AssertionError("Parked block when there was no deep reorg")
+
         self.log.info("Test that unparking works when -parkdeepreorg=0")
         # Set up parking node height = fork + 4, node height = fork + 5
         node.invalidateblock(node.getbestblockhash())

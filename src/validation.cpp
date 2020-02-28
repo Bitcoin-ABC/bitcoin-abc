@@ -4250,13 +4250,15 @@ bool CChainState::AcceptBlock(const Config &config,
                      block.GetHash().ToString());
     }
 
-    // If this is a deep reorg (a regorg of more than one block), preemptively
-    // mark the chain as parked. If it has enough work, it'll unpark
-    // automatically. We mark the block as parked at the very last minute so we
-    // can make sure everything is ready to be reorged if needed.
+    // If connecting the new block would require rewinding more than one block
+    // from the active chain (i.e., a "deep reorg"), then mark the new block as
+    // parked. If it has enough work then it will be automatically unparked
+    // later, during FindMostWorkChain. We mark the block as parked at the very
+    // last minute so we can make sure everything is ready to be reorged if
+    // needed.
     if (gArgs.GetBoolArg("-parkdeepreorg", true)) {
         const CBlockIndex *pindexFork = chainActive.FindFork(pindex);
-        if (pindexFork && pindexFork->nHeight + 1 < pindex->nHeight) {
+        if (pindexFork && pindexFork->nHeight + 1 < chainActive.Height()) {
             LogPrintf("Park block %s as it would cause a deep reorg.\n",
                       pindex->GetBlockHash().ToString());
             pindex->nStatus = pindex->nStatus.withParked();
