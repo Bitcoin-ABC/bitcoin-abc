@@ -157,7 +157,11 @@ function(add_secp256k1_bench NAME)
 	link_secp256k1_internal(${EXECUTABLE_NAME})
 
 	set(BENCH_NAME "bench-secp256k1-${NAME}")
-	add_custom_target(${BENCH_NAME} COMMAND ${EXECUTABLE_NAME} USES_TERMINAL)
+	add_custom_target(${BENCH_NAME}
+		COMMENT "Benchmarking libsecp256k1 ${NAME}"
+		COMMAND ${EXECUTABLE_NAME}
+		USES_TERMINAL
+	)
 	add_dependencies(bench-secp256k1 ${BENCH_NAME})
 endfunction(add_secp256k1_bench)
 
