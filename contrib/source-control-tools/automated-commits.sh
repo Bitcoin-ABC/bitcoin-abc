@@ -105,8 +105,12 @@ case "${COMMIT_TYPE}" in
     ;;
 
   update-manpages)
+    # Unfortunately bitcoin-qt requires a handle on the DISPLAY, even for the
+    # --help option. We can spoof an X window using xvfb.
+    command -v xvfb-run > /dev/null || (echo "Error: Package 'xvfb' is needed to run bitcoin-qt headlessly." && exit 11)
+
     "${DEVTOOLS_DIR}"/build_cmake.sh
-    BUILDDIR="${BUILD_DIR}" "${DEVTOOLS_DIR}"/gen-manpages.sh
+    BUILDDIR="${BUILD_DIR}" xvfb-run "${DEVTOOLS_DIR}"/gen-manpages.sh
 
     MANPAGES_DIR="${TOPLEVEL}"/doc/man
 
@@ -122,11 +126,11 @@ case "${COMMIT_TYPE}" in
     # unexpected occurred.
     grep "${EXPECTED_VERSION}-dirty" "${MANPAGES_DIR}"/*\.1 && {
       echo "Error: Unexpected dirty version string."
-      exit 11
+      exit 12
     }
     grep "${EXPECTED_VERSION}-unk" "${MANPAGES_DIR}"/*\.1 && {
       echo "Error: Unknown error detected in version string."
-      exit 12
+      exit 13
     }
 
     git add "${MANPAGES_DIR}"/*\.1
