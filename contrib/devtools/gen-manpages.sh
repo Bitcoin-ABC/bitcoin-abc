@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 export LC_ALL=C
+
+set -euxo pipefail
+
 TOPDIR=${TOPDIR:-$(git rev-parse --show-toplevel)}
 BUILDDIR=${BUILDDIR:-$TOPDIR}
 
@@ -20,6 +23,10 @@ read -r -a BTCVER <<< "$($BITCOINCLI --version | head -n1 | awk -F'[ -]' '{ prin
 # Create a footer file with copyright content.
 # This gets autodetected fine for bitcoind if --version-string is not set,
 # but has different outcomes for bitcoin-qt and bitcoin-cli.
+cleanup() {
+  rm -f footer.h2m
+}
+trap "cleanup" EXIT
 echo "[COPYRIGHT]" > footer.h2m
 $BITCOIND --version | sed -n '1!p' >> footer.h2m
 
@@ -28,5 +35,3 @@ for cmd in $BITCOIND $BITCOINCLI $BITCOINTX $BITCOINQT; do
   help2man -N --version-string=${BTCVER[0]} --include=footer.h2m -o ${MANDIR}/${cmdname}.1 ${cmd}
   sed -i "s/\\\-${BTCVER[1]}//g" ${MANDIR}/${cmdname}.1
 done
-
-rm -f footer.h2m
