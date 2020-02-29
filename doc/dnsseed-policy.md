@@ -1,20 +1,13 @@
-Bitcoin ABC UAHF-relevant DNS seed information
-==============================================
+Bitcoin ABC BCH-relevant DNS seed information
+=============================================
 
-Bitcoin ABC uses special seeds under the control of the
-UAHF supporting operators, to increase the chance of a smooth
-separation of the UAHF network from the non-UAHF-supporting
-parts of the network.
+Bitcoin ABC uses special seeds under the control of Bitcoin Cash (BCH)
+network supporting operators to increase the chance of a node
+to find suitable peers on the BCH network.
 
 The seeds used by ABC should distribute peers fairly but in a
 manner which increases the likelihood that ABC nodes are able
-to connect to UAHF compatible peers.
-
-This may mean that in the beginning, they might serve only
-peers that are known to be compatible with UAHF.
-Over time, once the UAHF network is stable, criteria in these
-peers may be relaxed to approach regular Bitcoin network
-conditions and expectations.
+to connect to BCH compatible peers.
 
 
 General expectations for DNS Seed operators
@@ -72,4 +65,4 @@ situations but should be discussed in public in advance.
 
 See also
 ----------
-- [bitcoin-seeder](https://github.com/sipa/bitcoin-seeder) is a reference implementation of a DNS seed.
+- [bitcoin-seeder](../src/seeder/README.md) is a reference implementation of a DNS seeder.
