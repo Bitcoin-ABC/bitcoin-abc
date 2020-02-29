@@ -64,6 +64,8 @@ class InvalidChainsTest(BitcoinTestFramework):
         # 0 - 1 - 2  - 22 - 23 - 24 - 25
         #     \
         #      -- 12 - 13 - 14
+        #               \
+        #                -- 15 - 16 - 17 - 18
 
         # Generate some valid blocks
         node.p2p.send_blocks_and_test([block(0), block(1), block(2)], node)
@@ -127,6 +129,29 @@ class InvalidChainsTest(BitcoinTestFramework):
         tip(221)
         node.p2p.send_blocks_and_test(
             [block(222)], node, success=False, reject_reason='bad-prevblk', request_block=False)
+
+        self.log.info(
+            "Make sure that reconsidering a block behaves correctly when cousin chains (neither ancestors nor descendants) become available as a result")
+
+        # Reorg out 14 with four blocks.
+        tip(13)
+        node.p2p.send_blocks_and_test(
+            [block(15), block(16), block(17), block(18)], node)
+
+        # Invalidate 17 (so 18 now has failed parent)
+        node.invalidateblock(self.blocks[17].hash)
+        assert_equal(self.blocks[16].hash, node.getbestblockhash())
+
+        # Invalidate 13 (so 14 and 15 and 16 now also have failed parent)
+        node.invalidateblock(self.blocks[13].hash)
+        assert_equal(self.blocks[12].hash, node.getbestblockhash())
+
+        # Reconsider 14, which should reconsider 13 and remove failed parent
+        # from our cousins 15 and 16 as well. Even though we reconsidered
+        # 14, we end up on a different chain because 15/16 have more work.
+        # (But, this shouldn't undo our invalidation of 17)
+        node.reconsiderblock(self.blocks[14].hash)
+        assert_equal(self.blocks[16].hash, node.getbestblockhash())
 
 
 if __name__ == '__main__':

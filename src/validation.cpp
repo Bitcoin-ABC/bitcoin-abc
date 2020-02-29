@@ -178,13 +178,11 @@ public:
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F>
-    void UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f)
+    bool UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    template <typename F, typename C>
-    void UpdateFlags(CBlockIndex *pindex, F f, C fchild)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    template <typename F>
-    void UpdateFlags(CBlockIndex *pindex, F f)
+    template <typename F, typename C, typename AC>
+    void UpdateFlags(CBlockIndex *pindex, CBlockIndex *&pindexReset, F f,
+                     C fChild, AC fAncestorWasChanged)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     /** Remove parked status from a block and its descendants. */
     void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren)
@@ -3338,7 +3336,7 @@ bool ParkBlock(const Config &config, CValidationState &state,
 }
 
 template <typename F>
-void CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
+bool CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
                                       CBlockIndex *pindex, F f) {
     BlockStatus newStatus = f(pindex->nStatus);
     if (pindex->nStatus != newStatus &&
@@ -3355,45 +3353,45 @@ void CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
             setBlockIndexCandidates.value_comp()(chainActive.Tip(), pindex)) {
             setBlockIndexCandidates.insert(pindex);
         }
+        return true;
     }
+    return false;
 }
 
-template <typename F, typename C>
-void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild) {
+template <typename F, typename C, typename AC>
+void CChainState::UpdateFlags(CBlockIndex *pindex, CBlockIndex *&pindexReset,
+                              F f, C fChild, AC fAncestorWasChanged) {
     AssertLockHeld(cs_main);
 
-    // Update the current block.
-    UpdateFlagsForBlock(pindex, pindex, f);
+    // Update the current block and ancestors; while we're doing this, identify
+    // which was the deepest ancestor we changed.
+    CBlockIndex *pindexDeepestChanged = pindex;
+    for (auto pindexAncestor = pindex; pindexAncestor != nullptr;
+         pindexAncestor = pindexAncestor->pprev) {
+        if (UpdateFlagsForBlock(nullptr, pindexAncestor, f)) {
+            pindexDeepestChanged = pindexAncestor;
+        }
+    }
 
-    // Update the flags from this block and all its descendants.
+    if (pindexReset &&
+        pindexReset->GetAncestor(pindexDeepestChanged->nHeight) ==
+            pindexDeepestChanged) {
+        // reset pindexReset if it had a modified ancestor.
+        pindexReset = nullptr;
+    }
+
+    // Update all blocks under modified blocks.
     BlockMap::iterator it = mapBlockIndex.begin();
     while (it != mapBlockIndex.end()) {
-        UpdateFlagsForBlock(pindex, it->second, fchild);
+        UpdateFlagsForBlock(pindex, it->second, fChild);
+        UpdateFlagsForBlock(pindexDeepestChanged, it->second,
+                            fAncestorWasChanged);
         it++;
     }
-
-    // Update the flags from all ancestors too.
-    while (pindex != nullptr) {
-        UpdateFlagsForBlock(nullptr, pindex, f);
-        pindex = pindex->pprev;
-    }
-}
-
-template <typename F> void CChainState::UpdateFlags(CBlockIndex *pindex, F f) {
-    // Handy shorthand.
-    UpdateFlags(pindex, f, f);
 }
 
 void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
-
-    if (pindexBestInvalid &&
-        (pindexBestInvalid->GetAncestor(pindex->nHeight) == pindex ||
-         pindex->GetAncestor(pindexBestInvalid->nHeight) ==
-             pindexBestInvalid)) {
-        // Reset the invalid block marker if it is about to be cleared.
-        pindexBestInvalid = nullptr;
-    }
 
     // In case we are reconsidering something before the finalization point,
     // move the finalization point to the last common ancestor.
@@ -3401,9 +3399,17 @@ void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
         pindexFinalized = LastCommonAncestor(pindex, pindexFinalized);
     }
 
-    UpdateFlags(pindex, [](const BlockStatus status) {
-        return status.withClearedFailureFlags();
-    });
+    UpdateFlags(
+        pindex, pindexBestInvalid,
+        [](const BlockStatus status) {
+            return status.withClearedFailureFlags();
+        },
+        [](const BlockStatus status) {
+            return status.withClearedFailureFlags();
+        },
+        [](const BlockStatus status) {
+            return status.withFailedParent(false);
+        });
 }
 
 void ResetBlockFailureFlags(CBlockIndex *pindex) {
@@ -3413,21 +3419,17 @@ void ResetBlockFailureFlags(CBlockIndex *pindex) {
 void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
     AssertLockHeld(cs_main);
 
-    if (pindexBestParked &&
-        (pindexBestParked->GetAncestor(pindex->nHeight) == pindex ||
-         pindex->GetAncestor(pindexBestParked->nHeight) == pindexBestParked)) {
-        // Reset the parked block marker if it is about to be cleared.
-        pindexBestParked = nullptr;
-    }
-
     UpdateFlags(
-        pindex,
+        pindex, pindexBestParked,
         [](const BlockStatus status) {
             return status.withClearedParkedFlags();
         },
         [fClearChildren](const BlockStatus status) {
             return fClearChildren ? status.withClearedParkedFlags()
                                   : status.withParkedParent(false);
+        },
+        [](const BlockStatus status) {
+            return status.withParkedParent(false);
         });
 }
 
