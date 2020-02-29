@@ -179,6 +179,23 @@ BOOST_AUTO_TEST_CASE(schedule_every) {
     BOOST_CHECK_EQUAL(counter, 42);
 }
 
+BOOST_AUTO_TEST_CASE(wait_until_past) {
+    std::condition_variable condvar;
+    Mutex mtx;
+    WAIT_LOCK(mtx, lock);
+
+    const auto no_wait = [&](const std::chrono::seconds &d) {
+        return condvar.wait_until(lock, std::chrono::system_clock::now() - d);
+    };
+
+    BOOST_CHECK(std::cv_status::timeout == no_wait(std::chrono::seconds{1}));
+    BOOST_CHECK(std::cv_status::timeout == no_wait(std::chrono::minutes{1}));
+    BOOST_CHECK(std::cv_status::timeout == no_wait(std::chrono::hours{1}));
+    BOOST_CHECK(std::cv_status::timeout == no_wait(std::chrono::hours{10}));
+    BOOST_CHECK(std::cv_status::timeout == no_wait(std::chrono::hours{100}));
+    BOOST_CHECK(std::cv_status::timeout == no_wait(std::chrono::hours{1000}));
+}
+
 BOOST_AUTO_TEST_CASE(singlethreadedscheduler_ordered) {
     CScheduler scheduler;
 
