@@ -6,6 +6,7 @@
 #define BITCOIN_WALLET_WALLETUTIL_H
 
 #include <fs.h>
+#include <script/descriptor.h>
 
 #include <vector>
 
@@ -92,6 +93,50 @@ public:
 
     //! Return whether the wallet exists.
     bool Exists() const;
+};
+
+/** Descriptor with some wallet metadata */
+class WalletDescriptor {
+public:
+    std::shared_ptr<Descriptor> descriptor;
+    uint64_t creation_time;
+    int32_t range_start; // First item in range; start of range, inclusive, i.e.
+                         // [range_start, range_end). This never changes.
+    int32_t range_end;   // Item after the last; end of range, exclusive, i.e.
+                         // [range_start, range_end). This will increment with
+                         // each TopUp()
+    int32_t next_index;  // Position of the next item to generate
+    DescriptorCache cache;
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        if (ser_action.ForRead()) {
+            std::string desc;
+            std::string error;
+            READWRITE(desc);
+            FlatSigningProvider keys;
+            descriptor = Parse(desc, keys, error, true);
+            if (!descriptor) {
+                throw std::ios_base::failure("Invalid descriptor: " + error);
+            }
+        } else {
+            READWRITE(descriptor->ToString());
+        }
+        READWRITE(creation_time);
+        READWRITE(next_index);
+        READWRITE(range_start);
+        READWRITE(range_end);
+    }
+
+    WalletDescriptor() {}
+    WalletDescriptor(std::shared_ptr<Descriptor> descriptor_,
+                     uint64_t creation_time_, int32_t range_start_,
+                     int32_t range_end_, int32_t next_index_)
+        : descriptor(descriptor_), creation_time(creation_time_),
+          range_start(range_start_), range_end(range_end_),
+          next_index(next_index_) {}
 };
 
 #endif // BITCOIN_WALLET_WALLETUTIL_H
