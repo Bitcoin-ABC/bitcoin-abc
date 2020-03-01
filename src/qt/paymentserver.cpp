@@ -766,12 +766,11 @@ void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
                       "key, refund_to not set";
     }
 
-    QVariant length;
-    length.setValue(payment.ByteSizeLong());
+    int length = payment.ByteSize();
 
     netRequest.setHeader(QNetworkRequest::ContentLengthHeader, length);
-    QByteArray serData(length.toInt(), '\0');
-    if (payment.SerializeToArray(serData.data(), length.toInt())) {
+    QByteArray serData(length, '\0');
+    if (payment.SerializeToArray(serData.data(), length)) {
         netManager->post(netRequest, serData);
     } else {
         // This should never happen, either.
