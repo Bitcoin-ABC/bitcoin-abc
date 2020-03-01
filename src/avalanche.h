@@ -351,4 +351,9 @@ private:
     friend struct AvalancheTest;
 };
 
+/**
+ * Global avalanche instance.
+ */
+extern std::unique_ptr<AvalancheProcessor> g_avalanche;
+
 #endif // BITCOIN_AVALANCHE_H

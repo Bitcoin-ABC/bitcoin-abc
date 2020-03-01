@@ -11,6 +11,7 @@
 
 #include <addrman.h>
 #include <amount.h>
+#include <avalanche.h>
 #include <banman.h>
 #include <chain.h>
 #include <chainparams.h>
@@ -153,6 +154,11 @@ void Interrupt() {
     InterruptREST();
     InterruptTorControl();
     InterruptMapPort();
+    if (g_avalanche) {
+        // Avalanche needs to be stopped before we interrupt the thread group as
+        // the scheduler will stop working then.
+        g_avalanche->stopEventLoop();
+    }
     if (g_connman) {
         g_connman->Interrupt();
     }
@@ -185,6 +191,16 @@ void Shutdown(InitInterfaces &interfaces) {
     }
     StopMapPort();
 
+    // Because avalanche and the network depend on each other, it is important
+    // to shut them down in this order:
+    // 1. Stop avalanche event loop.
+    // 2. Shutdown network processing.
+    // 3. Destroy AvalancheProcessor.
+    // 4. Destroy CConnman
+    if (g_avalanche) {
+        g_avalanche->stopEventLoop();
+    }
+
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.
     if (peerLogic) {
@@ -207,6 +223,9 @@ void Shutdown(InitInterfaces &interfaces) {
     // After the threads that potentially access these pointers have been
     // stopped, destruct and reset all to nullptr.
     peerLogic.reset();
+
+    // Destroy various global instances
+    g_avalanche.reset();
     g_connman.reset();
     g_banman.reset();
     g_txindex.reset();
@@ -1953,9 +1972,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         config, GetRand(std::numeric_limits<uint64_t>::max()),
         GetRand(std::numeric_limits<uint64_t>::max()));
 
-    peerLogic.reset(new PeerLogicValidation(
+    peerLogic = std::make_unique<PeerLogicValidation>(
         g_connman.get(), g_banman.get(), scheduler,
-        gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61)));
+        gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61));
     RegisterValidationInterface(peerLogic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size
@@ -2083,6 +2102,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             gArgs.GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET) * 1024 *
             1024;
     }
+
+    // Step 6.5 (I guess ?): Initialize Avalanche.
+    g_avalanche = std::make_unique<AvalancheProcessor>(g_connman.get());
 
     // Step 7: load block chain
 
@@ -2498,6 +2520,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             return true;
         },
         DUMP_BANS_INTERVAL * 1000);
+
+    // Start Avalanche's event loop.
+    g_avalanche->startEventLoop(scheduler);
 
     return true;
 }

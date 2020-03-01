@@ -23,6 +23,10 @@ static const int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
  */
 static const size_t AVALANCHE_MAX_ELEMENT_POLL = 4096;
 
+// Unfortunately, the bitcoind codebase is full of global and we are kinda
+// forced into it here.
+std::unique_ptr<AvalancheProcessor> g_avalanche;
+
 bool VoteRecord::registerVote(NodeId nodeid, uint32_t error) {
     // We just got a new vote, so there is one less inflight request.
     clearInflightRequest();
