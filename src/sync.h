@@ -50,6 +50,8 @@ LEAVE_CRITICAL_SECTION(mutex); // no RAII
 void EnterCritical(const char *pszName, const char *pszFile, int nLine,
                    void *cs, bool fTry = false);
 void LeaveCritical();
+void CheckLastCritical(void *cs, std::string &lockname, const char *guardname,
+                       const char *file, int line);
 std::string LocksHeld();
 void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
                             void *cs) ASSERT_EXCLUSIVE_LOCK(cs);
@@ -67,6 +69,9 @@ extern bool g_debug_lockorder_abort;
 static inline void EnterCritical(const char *pszName, const char *pszFile,
                                  int nLine, void *cs, bool fTry = false) {}
 static inline void LeaveCritical() {}
+static inline void CheckLastCritical(void *cs, std::string &lockname,
+                                     const char *guardname, const char *file,
+                                     int line) {}
 static inline void AssertLockHeldInternal(const char *pszName,
                                           const char *pszFile, int nLine,
                                           void *cs) ASSERT_EXCLUSIVE_LOCK(cs) {}
@@ -168,7 +173,51 @@ public:
     }
 
     operator bool() { return Base::owns_lock(); }
+
+protected:
+    // needed for reverse_lock
+    UniqueLock() {}
+
+public:
+    /**
+     * An RAII-style reverse lock. Unlocks on construction and locks on
+     * destruction.
+     */
+    class reverse_lock {
+    public:
+        explicit reverse_lock(UniqueLock &_lock, const char *_guardname,
+                              const char *_file, int _line)
+            : lock(_lock), file(_file), line(_line) {
+            CheckLastCritical((void *)lock.mutex(), lockname, _guardname, _file,
+                              _line);
+            lock.unlock();
+            LeaveCritical();
+            lock.swap(templock);
+        }
+
+        ~reverse_lock() {
+            templock.swap(lock);
+            EnterCritical(lockname.c_str(), file.c_str(), line,
+                          (void *)lock.mutex());
+            lock.lock();
+        }
+
+    private:
+        reverse_lock(reverse_lock const &);
+        reverse_lock &operator=(reverse_lock const &);
+
+        UniqueLock &lock;
+        UniqueLock templock;
+        std::string lockname;
+        const std::string file;
+        const int line;
+    };
+    friend class reverse_lock;
 };
+
+#define REVERSE_LOCK(g)                                                        \
+    decltype(g)::reverse_lock PASTE2(revlock, __COUNTER__)(g, #g, __FILE__,    \
+                                                           __LINE__)
 
 template <typename MutexArg>
 using DebugLock = UniqueLock<typename std::remove_reference<
