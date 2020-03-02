@@ -156,7 +156,7 @@ extern const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS;
 class ReserveDestination {
 protected:
     //! The wallet to reserve from
-    CWallet *const pwallet;
+    const CWallet *const pwallet;
     //! The ScriptPubKeyMan to reserve from. Based on type when
     //! GetReservedDestination is called
     ScriptPubKeyMan *m_spk_man{nullptr};
@@ -970,8 +970,8 @@ public:
      * Rescan abort properties
      */
     void AbortRescan() { fAbortRescan = true; }
-    bool IsAbortingRescan() { return fAbortRescan; }
-    bool IsScanning() { return fScanningWallet; }
+    bool IsAbortingRescan() const { return fAbortRescan; }
+    bool IsScanning() const { return fScanningWallet; }
     int64_t ScanningDuration() const {
         return fScanningWallet ? GetTimeMillis() - m_scanning_start : 0;
     }
@@ -1206,14 +1206,14 @@ public:
      */
     Amount m_default_max_tx_fee{DEFAULT_TRANSACTION_MAXFEE};
 
-    size_t KeypoolCountExternalKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    size_t KeypoolCountExternalKeys() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool TopUpKeyPool(unsigned int kpSize = 0);
 
-    int64_t GetOldestKeyPoolTime();
+    int64_t GetOldestKeyPoolTime() const;
 
-    std::set<std::set<CTxDestination>> GetAddressGroupings()
+    std::set<std::set<CTxDestination>> GetAddressGroupings() const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    std::map<CTxDestination, Amount> GetAddressBalances();
+    std::map<CTxDestination, Amount> GetAddressBalances() const;
 
     std::set<CTxDestination> GetLabelAddresses(const std::string &label) const;
 
@@ -1276,7 +1276,7 @@ public:
 
     //! get the current wallet format (the oldest client version guaranteed to
     //! understand this wallet)
-    int GetVersion() {
+    int GetVersion() const {
         LOCK(cs_wallet);
         return nWalletVersion;
     }
@@ -1370,7 +1370,7 @@ public:
      */
     void postInitProcess();
 
-    bool BackupWallet(const std::string &strDest);
+    bool BackupWallet(const std::string &strDest) const;
 
     /* Returns true if HD is enabled */
     bool IsHDEnabled() const;
@@ -1379,7 +1379,7 @@ public:
      * Returns true if the wallet can give out new addresses. This means it has
      * keys in the keypool or can generate new keys.
      */
-    bool CanGetAddresses(bool internal = false);
+    bool CanGetAddresses(bool internal = false) const;
 
     /**
      * Blocks until the wallet state is up-to-date to /at least/ the current
@@ -1387,7 +1387,8 @@ public:
      * Obviously holding cs_main/cs_wallet when going into this call may cause
      * deadlock
      */
-    void BlockUntilSyncedToCurrentChain() LOCKS_EXCLUDED(cs_main, cs_wallet);
+    void BlockUntilSyncedToCurrentChain() const
+        LOCKS_EXCLUDED(cs_main, cs_wallet);
 
     /**
      * Set a single wallet flag.

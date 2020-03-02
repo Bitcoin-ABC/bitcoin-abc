@@ -240,7 +240,7 @@ public:
     virtual bool hdEnabled() = 0;
 
     // Return whether the wallet is blank.
-    virtual bool canGetAddresses() = 0;
+    virtual bool canGetAddresses() const = 0;
 
     // Return whether private keys enabled.
     virtual bool privateKeysDisabled() = 0;

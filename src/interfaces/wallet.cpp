@@ -394,7 +394,9 @@ namespace {
         OutputType getDefaultAddressType() override {
             return m_wallet->m_default_address_type;
         }
-        bool canGetAddresses() override { return m_wallet->CanGetAddresses(); }
+        bool canGetAddresses() const override {
+            return m_wallet->CanGetAddresses();
+        }
         bool privateKeysDisabled() override {
             return m_wallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
         }

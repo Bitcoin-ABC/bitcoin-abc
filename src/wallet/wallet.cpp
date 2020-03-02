@@ -1226,7 +1226,7 @@ void CWallet::updatedBlockTip() {
     m_best_block_time = GetTime();
 }
 
-void CWallet::BlockUntilSyncedToCurrentChain() {
+void CWallet::BlockUntilSyncedToCurrentChain() const {
     AssertLockNotHeld(cs_wallet);
     // Skip the queue-draining stuff if we know we're caught up with
     // chainActive.Tip(), otherwise put a callback in the validation interface
@@ -1421,7 +1421,7 @@ bool CWallet::IsHDEnabled() const {
     return result;
 }
 
-bool CWallet::CanGetAddresses(bool internal) {
+bool CWallet::CanGetAddresses(bool internal) const {
     LOCK(cs_wallet);
     if (m_spk_managers.empty()) {
         return false;
@@ -3614,7 +3614,7 @@ bool CWallet::DelAddressBook(const CTxDestination &address) {
     return WalletBatch(*database).EraseName(address);
 }
 
-size_t CWallet::KeypoolCountExternalKeys() {
+size_t CWallet::KeypoolCountExternalKeys() const {
     AssertLockHeld(cs_wallet);
 
     unsigned int count = 0;
@@ -3677,7 +3677,7 @@ bool CWallet::GetNewChangeDestination(const OutputType type,
     return true;
 }
 
-int64_t CWallet::GetOldestKeyPoolTime() {
+int64_t CWallet::GetOldestKeyPoolTime() const {
     LOCK(cs_wallet);
     int64_t oldestKey = std::numeric_limits<int64_t>::max();
     for (const auto &spk_man_pair : m_spk_managers) {
@@ -3707,7 +3707,7 @@ void CWallet::MarkDestinationsDirty(
     }
 }
 
-std::map<CTxDestination, Amount> CWallet::GetAddressBalances() {
+std::map<CTxDestination, Amount> CWallet::GetAddressBalances() const {
     std::map<CTxDestination, Amount> balances;
 
     LOCK(cs_wallet);
@@ -3752,7 +3752,7 @@ std::map<CTxDestination, Amount> CWallet::GetAddressBalances() {
     return balances;
 }
 
-std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
+std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() const {
     AssertLockHeld(cs_wallet);
     std::set<std::set<CTxDestination>> groupings;
     std::set<CTxDestination> grouping;
@@ -4624,7 +4624,7 @@ void CWallet::postInitProcess() {
     chain().requestMempoolTransactions(*this);
 }
 
-bool CWallet::BackupWallet(const std::string &strDest) {
+bool CWallet::BackupWallet(const std::string &strDest) const {
     return database->Backup(strDest);
 }
 

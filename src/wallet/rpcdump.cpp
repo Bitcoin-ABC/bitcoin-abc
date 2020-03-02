@@ -56,7 +56,7 @@ static std::string DecodeDumpString(const std::string &str) {
 
 static bool
 GetWalletAddressesForKey(const Config &config, LegacyScriptPubKeyMan *spk_man,
-                         CWallet *const pwallet, const CKeyID &keyid,
+                         const CWallet *const pwallet, const CKeyID &keyid,
                          std::string &strAddr, std::string &strLabel)
     EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
     bool fLabelFound = false;
@@ -813,7 +813,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
 
 UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
+    const CWallet *const pwallet = wallet.get();
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }

@@ -217,9 +217,11 @@ public:
     /* Returns true if HD is enabled */
     virtual bool IsHDEnabled() const { return false; }
 
-    /* Returns true if the wallet can give out new addresses. This means it has
-     * keys in the keypool or can generate new keys */
-    virtual bool CanGetAddresses(bool internal = false) { return false; }
+    /**
+     * Returns true if the wallet can give out new addresses. This means it has
+     * keys in the keypool or can generate new keys.
+     */
+    virtual bool CanGetAddresses(bool internal = false) const { return false; }
 
     /** Upgrades the wallet to the specified version */
     virtual bool Upgrade(int prev_version, bilingual_str &error) {
@@ -231,9 +233,9 @@ public:
     //! The action to do when the DB needs rewrite
     virtual void RewriteDB() {}
 
-    virtual int64_t GetOldestKeyPoolTime() { return GetTime(); }
+    virtual int64_t GetOldestKeyPoolTime() const { return GetTime(); }
 
-    virtual size_t KeypoolCountExternalKeys() { return 0; }
+    virtual size_t KeypoolCountExternalKeys() const { return 0; }
     virtual unsigned int GetKeyPoolSize() const { return 0; }
 
     virtual int64_t GetTimeFirstKey() const { return 0; }
@@ -435,15 +437,15 @@ public:
 
     void RewriteDB() override;
 
-    int64_t GetOldestKeyPoolTime() override;
-    size_t KeypoolCountExternalKeys() override;
+    int64_t GetOldestKeyPoolTime() const override;
+    size_t KeypoolCountExternalKeys() const override;
     unsigned int GetKeyPoolSize() const override;
 
     int64_t GetTimeFirstKey() const override;
 
     const CKeyMetadata *GetMetadata(const CTxDestination &dest) const override;
 
-    bool CanGetAddresses(bool internal = false) override;
+    bool CanGetAddresses(bool internal = false) const override;
 
     std::unique_ptr<SigningProvider>
     GetSolvingProvider(const CScript &script) const override;
@@ -540,7 +542,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     /* Returns true if the wallet can generate new keys */
-    bool CanGenerateKeys();
+    bool CanGenerateKeys() const;
 
     /* Generates a new HD seed (will not be activated) */
     CPubKey GenerateNewSeed();
