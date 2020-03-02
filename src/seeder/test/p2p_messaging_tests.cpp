@@ -21,37 +21,10 @@ const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 #include <boost/test/unit_test.hpp>
 
-static const unsigned short SERVICE_PORT = 18444;
-static const int SEEDER_INIT_VERSION = 0;
-// After the 1000th addr, the seeder will only add one more address per addr
-// message.
-static const int ADDR_SOFT_CAP = 1000;
-
 enum PeerMessagingState : bool {
     Finished = true,
     AwaitingMessages = false,
 };
-
-static CDataStream
-CreateVersionMessage(int64_t now, CAddress addrTo, CAddress addrFrom,
-                     int32_t start_height, uint32_t nVersion,
-                     uint64_t nonce = 0,
-                     std::string user_agent = "/bitcoin-cash-seeder:0.15/") {
-    CDataStream payload(SER_NETWORK, 0);
-    payload.SetVersion(nVersion);
-    ServiceFlags serviceflags = ServiceFlags(NODE_NETWORK);
-    payload << nVersion << uint64_t(serviceflags) << now << addrTo << addrFrom
-            << nonce << user_agent << start_height;
-    return payload;
-}
-
-static CDataStream CreateAddrMessage(std::vector<CAddress> sendAddrs,
-                                     uint32_t nVersion = INIT_PROTO_VERSION) {
-    CDataStream payload(SER_NETWORK, 0);
-    payload.SetVersion(nVersion);
-    payload << sendAddrs;
-    return payload;
-}
 
 class TestCSeederNode : public CSeederNode {
 public:
@@ -67,6 +40,8 @@ public:
     }
 };
 
+static const unsigned short SERVICE_PORT = 18444;
+
 struct SeederTestingSetup {
     SeederTestingSetup() {
         CNetAddr ip;
@@ -81,6 +56,21 @@ struct SeederTestingSetup {
 };
 
 BOOST_FIXTURE_TEST_SUITE(p2p_messaging_tests, SeederTestingSetup)
+
+static CDataStream
+CreateVersionMessage(int64_t now, CAddress addrTo, CAddress addrFrom,
+                     int32_t start_height, uint32_t nVersion,
+                     uint64_t nonce = 0,
+                     std::string user_agent = "/bitcoin-cash-seeder:0.15/") {
+    CDataStream payload(SER_NETWORK, 0);
+    payload.SetVersion(nVersion);
+    ServiceFlags serviceflags = ServiceFlags(NODE_NETWORK);
+    payload << nVersion << uint64_t(serviceflags) << now << addrTo << addrFrom
+            << nonce << user_agent << start_height;
+    return payload;
+}
+
+static const int SEEDER_INIT_VERSION = 0;
 
 BOOST_AUTO_TEST_CASE(seeder_node_version_test) {
     CService serviceFrom;
@@ -100,6 +90,18 @@ BOOST_AUTO_TEST_CASE(seeder_node_version_test) {
     BOOST_CHECK_EQUAL(testNode->CSeederNode::GetClientVersion(),
                       versionMessage.GetVersion());
 }
+
+static CDataStream CreateAddrMessage(std::vector<CAddress> sendAddrs,
+                                     uint32_t nVersion = INIT_PROTO_VERSION) {
+    CDataStream payload(SER_NETWORK, 0);
+    payload.SetVersion(nVersion);
+    payload << sendAddrs;
+    return payload;
+}
+
+// After the 1000th addr, the seeder will only add one more address per addr
+// message.
+static const int ADDR_SOFT_CAP = 1000;
 
 BOOST_AUTO_TEST_CASE(seeder_node_addr_test) {
     // vAddrs starts with 1 entry.
