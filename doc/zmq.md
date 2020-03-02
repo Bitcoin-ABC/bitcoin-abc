@@ -5,7 +5,7 @@ connections, inter-process communication, and shared-memory,
 providing various message-oriented semantics such as publish/subscribe,
 request/reply, and push/pull.
 
-The Bitcoin Core daemon can be configured to act as a trusted "border
+The Bitcoin ABC daemon can be configured to act as a trusted "border
 router", implementing the bitcoin wire protocol and relay, making
 consensus decisions, maintaining the local blockchain database,
 broadcasting locally generated transactions into the network, and
@@ -33,7 +33,7 @@ buffering or reassembly.
 
 ## Prerequisites
 
-The ZeroMQ feature in Bitcoin Core requires ZeroMQ API version 4.x or
+The ZeroMQ feature in Bitcoin ABC requires ZeroMQ API version 4.x or
 newer. Typically, it is packaged by distributions as something like
 *libzmq3-dev*. The C++ wrapper for ZeroMQ is *not* needed.
 
@@ -43,11 +43,10 @@ operation.
 
 ## Enabling
 
-By default, the ZeroMQ feature is automatically compiled in if the
-necessary prerequisites are found.  To disable, use --disable-zmq
-during the *configure* step of building bitcoind:
+By default, the ZeroMQ feature is automatically compiled.
+To disable, use -DBUILD_BITCOIN_ZMQ=OFF to `cmake` when building bitcoind:
 
-    $ ./configure --disable-zmq (other options)
+    $ cmake -GNinja .. -DBUILD_BITCOIN_ZMQ=OFF [...]
 
 To actually enable operation, one must set the appropriate options on
 the command line or in the configuration file.

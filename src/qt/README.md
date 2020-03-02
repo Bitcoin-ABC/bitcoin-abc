@@ -28,7 +28,7 @@ Resources such as the icon.
 
 ### test
 
-Tests.
+Tests (see [the unit tests documentation](/doc/unit-tests.md)).
 
 ### bitcoingui.(h/cpp)
 
@@ -84,7 +84,7 @@ Uncheck everything except Qt Creator during the installation process.
 Instructions for macOS:
 
 1. Make sure you installed everything through Homebrew mentioned in the [macOS build instructions](/doc/build-osx.md)
-2. Use `./configure` with the `--enable-debug` flag
+2. Use `cmake` with the `-DCMAKE_BUILD_TYPE=Debug` flag
 3. In Qt Creator do "New Project" -> Import Project -> Import Existing Project
 4. Enter "bitcoin-qt" as project name, enter src/qt as location
 5. Leave the file selection as it is
