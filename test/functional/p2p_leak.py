@@ -139,7 +139,11 @@ class P2PLeakTest(BitcoinTestFramework):
         no_version_idlenode = self.nodes[0].add_p2p_connection(
             CNodeNoVersionIdle(), send_version=False, wait_for_verack=False)
         no_verack_idlenode = self.nodes[0].add_p2p_connection(
-            CNodeNoVerackIdle())
+            CNodeNoVerackIdle(), wait_for_verack=False)
+
+        # Wait until we got the verack in response to the version. Though, don't wait for the other node to receive the
+        # verack, since we never sent one
+        no_verack_idlenode.wait_for_verack()
 
         wait_until(lambda: no_version_bannode.ever_connected,
                    timeout=10, lock=mininode_lock)
