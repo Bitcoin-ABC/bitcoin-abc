@@ -33,7 +33,7 @@ Developer Notes
     - [Source code organization](#source-code-organization)
     - [GUI](#gui)
     - [Unit tests](#unit-tests)
-    - [Subtrees](#subtrees)
+    - [Third party libraries](#third-party-libraries)
     - [Git and GitHub tips](#git-and-github-tips)
     - [RPC interface guidelines](#rpc-interface-guidelines)
 
@@ -700,38 +700,35 @@ Unit Tests
    `src/test/foo_tests.cpp` should be named `foo_tests`. Test suite names must
    be unique.
 
-Subtrees
-----------
+Third party libraries
+---------------------
 
-Several parts of the repository are subtrees of software maintained elsewhere.
+Several parts of the repository are software maintained elsewhere.
 
-Some of these are maintained by active developers of Bitcoin Core, in which case changes should probably go
-directly upstream without being PRed directly against the project.  They will be merged back in the next
-subtree merge.
+Changes to these should preferably be sent upstream but bugfixes may also be
+submitted to Bitcoin ABC so that they can be integrated quickly.
+Cosmetic changes should be purely taken upstream.
 
-Others are external projects without a tight relationship with our project.  Changes to these should also
-be sent upstream but bugfixes may also be prudent to PR against Bitcoin Core so that they can be integrated
-quickly.  Cosmetic changes should be purely taken upstream.
-
-There is a tool in `test/lint/git-subtree-check.sh` to check a subtree directory for consistency with
-its upstream repository.
-
-Current subtrees include:
+Current third party libraries include:
 
 - src/leveldb
-  - Upstream at https://github.com/google/leveldb ; Maintained by Google, but
-    open important PRs to Core to avoid delay.
-  - **Note**: Follow the instructions in [Upgrading LevelDB](#upgrading-leveldb) when
-    merging upstream changes to the leveldb subtree.
+  - Upstream at https://github.com/google/leveldb ; Maintained by Google.
+  - **Note**: Follow the instructions in [Upgrading LevelDB](#upgrading-leveldb)
+    when merging upstream changes to Bitcoin ABC.
 
 - src/libsecp256k1
-  - Upstream at https://github.com/bitcoin-core/secp256k1/ ; actively maintaned by Core contributors.
+  - Upstream at https://github.com/bitcoin-core/secp256k1/ ; actively maintained
+    by Bitcoin Core contributors.
+    Bitcoin ABC is using a modified version of libsecp256k1, some changes might
+    be directly submitted to Bitcoin ABC.
+    See the [secp256k1 README](/src/secp256k1/README.md) for details.
 
 - src/crypto/ctaes
-  - Upstream at https://github.com/bitcoin-core/ctaes ; actively maintained by Core contributors.
+  - Upstream at https://github.com/bitcoin-core/ctaes ; maintained by Bitcoin
+    Core contributors.
 
 - src/univalue
-  - Upstream at https://github.com/jgarzik/univalue ; report important PRs to Core to avoid delay.
+  - Upstream at https://github.com/jgarzik/univalue ; maintained by Jeff Garzik.
 
 Upgrading LevelDB
 ---------------------
