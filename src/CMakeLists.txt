@@ -489,17 +489,23 @@ add_library(server
 	versionbits.cpp
 )
 
-# This require libevent
-find_package(Event REQUIRED)
-
 target_include_directories(server PRIVATE leveldb/helpers/memenv)
 
+# This require libevent
+set(EVENT_MIN_VERSION 2.0.22)
+find_package(Event ${EVENT_MIN_VERSION} REQUIRED COMPONENTS event)
+
 target_link_libraries(server
-	Event
+	Event::event
 	bitcoinconsensus
 	leveldb
 	memenv
 )
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	find_package(Event ${EVENT_MIN_VERSION} REQUIRED COMPONENTS pthreads)
+	target_link_libraries(server Event::pthreads)
+endif()
 
 if(ENABLE_UPNP)
 	target_include_directories(server PUBLIC ${MINIUPNPC_INCLUDE_DIR})
@@ -560,7 +566,7 @@ if(BUILD_BITCOIN_CLI)
 		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
 	endif()
 
-	target_link_libraries(bitcoin-cli common rpcclient Event)
+	target_link_libraries(bitcoin-cli common rpcclient Event::event)
 
 	add_to_symbols_check(bitcoin-cli)
 	add_to_security_check(bitcoin-cli)
