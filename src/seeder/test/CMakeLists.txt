@@ -10,7 +10,7 @@ add_dependencies(check check-bitcoin-seeder)
 
 add_boost_unit_tests_to_suite(bitcoin-seeder test_bitcoin-seeder
 	TESTS
-		seeder_tests.cpp
+		p2p_messaging_tests.cpp
 		dns_tests.cpp
 )
 

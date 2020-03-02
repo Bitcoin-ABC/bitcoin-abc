@@ -9,7 +9,7 @@ seeder_test_test_bitcoin_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLU
   $(SEEDER_INCLUDES) $(SEEDER_TEST_INCLUDES) $(TESTDEFS)
 
 seeder_test_test_bitcoin_seeder_SOURCES = \
-  seeder/test/seeder_tests.cpp \
+  seeder/test/p2p_messaging_tests.cpp \
   seeder/test/dns_tests.cpp
 
 seeder_test_test_bitcoin_seeder_LDADD = $(LIBBITCOIN_SEEDER)
