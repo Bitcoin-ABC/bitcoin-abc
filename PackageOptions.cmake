@@ -64,3 +64,6 @@ add_start_menu_link("${PACKAGE_NAME} (testnet)"
 	"${_nsis_bitcoin_qt}"
 	1
 )
+
+get_property(CPACK_SOURCE_IGNORE_FILES GLOBAL PROPERTY SOURCE_PACKAGE_IGNORE_FILES)
+include(CPack)

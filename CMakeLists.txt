@@ -72,6 +72,4 @@ add_subdirectory(test)
 add_subdirectory(contrib)
 add_subdirectory(doc)
 
-include(PackageOptions)
-get_property(CPACK_SOURCE_IGNORE_FILES GLOBAL PROPERTY SOURCE_PACKAGE_IGNORE_FILES)
-include(CPack)
+include(PackageOptions.cmake)
