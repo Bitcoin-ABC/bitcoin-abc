@@ -3,13 +3,11 @@ os: linux
 dist: xenial
 addons:
   apt:
-    sources:
-      - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
-        key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
     packages:
-      - cmake
       - libgmp-dev
       - ninja-build
+install:
+  - ./travis/install_cmake.sh
 compiler:
   - clang
   - gcc
@@ -59,48 +57,36 @@ jobs:
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes
       addons:
         apt:
-          sources:
-            - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
-              key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
           packages:
-            - cmake
             - gcc-multilib
             - libgmp-dev:i386
             - ninja-build
+      install: ./travis/install_cmake.sh
     - compiler: clang
       env: HOST=i686-linux-gnu BIGNUM=no
       addons:
         apt:
-          sources:
-            - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
-              key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
           packages:
-            - cmake
             - gcc-multilib
             - ninja-build
+      install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no
       addons:
         apt:
-          sources:
-            - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
-              key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
           packages:
-            - cmake
             - gcc-multilib
             - ninja-build
+      install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu
       addons:
         apt:
-          sources:
-            - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
-              key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
           packages:
-            - cmake
             - gcc-multilib
             - libgmp-dev:i386
             - ninja-build
+      install: ./travis/install_cmake.sh
 script:
  - ./travis/build_autotools.sh
  - ./travis/build_cmake.sh
