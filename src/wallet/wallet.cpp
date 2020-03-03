@@ -3077,6 +3077,16 @@ bool CWallet::CreateTransactionInternal(const std::vector<CRecipient> &vecSend,
 
         // Get the fee rate to use effective values in coin selection
         CFeeRate nFeeRateNeeded = GetMinimumFeeRate(*this, coin_control);
+        // Do not, ever, assume that it's fine to change the fee rate if the
+        // user has explicitly provided one
+        if (coin_control.m_feerate &&
+            nFeeRateNeeded > *coin_control.m_feerate) {
+            error = strprintf(_("Fee rate (%s) is lower than the minimum fee "
+                                "rate setting (%s)"),
+                              coin_control.m_feerate->ToString(),
+                              nFeeRateNeeded.ToString());
+            return false;
+        }
 
         nFeeRet = Amount::zero();
         bool pick_new_inputs = true;
