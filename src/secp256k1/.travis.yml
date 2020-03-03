@@ -33,6 +33,7 @@ env:
     - SCHNORR=yes
     - EXPERIMENTAL=no
     - JNI=no
+    - OPENSSL_TESTS=auto
   jobs:
     - SCALAR=32bit    RECOVERY=yes
     - SCALAR=32bit    FIELD=32bit       ECDH=yes  EXPERIMENTAL=yes
@@ -57,7 +58,7 @@ jobs:
   fast_finish: true
   include:
     - compiler: clang
-      env: HOST=i686-linux-gnu ENDOMORPHISM=yes
+      env: HOST=i686-linux-gnu ENDOMORPHISM=yes OPENSSL_TESTS=no
       addons:
         apt:
           packages:
@@ -66,7 +67,7 @@ jobs:
             - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: clang
-      env: HOST=i686-linux-gnu BIGNUM=no
+      env: HOST=i686-linux-gnu BIGNUM=no OPENSSL_TESTS=no
       addons:
         apt:
           packages:
@@ -74,7 +75,7 @@ jobs:
             - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
-      env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no
+      env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no OPENSSL_TESTS=no
       addons:
         apt:
           packages:
@@ -82,7 +83,7 @@ jobs:
             - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
-      env: HOST=i686-linux-gnu
+      env: HOST=i686-linux-gnu OPENSSL_TESTS=no
       addons:
         apt:
           packages:

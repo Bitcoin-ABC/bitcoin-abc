@@ -33,4 +33,6 @@
 #cmakedefine ENABLE_MODULE_RECOVERY
 #cmakedefine ENABLE_MODULE_SCHNORR
 
+#cmakedefine ENABLE_OPENSSL_TESTS
+
 #endif /* LIBSECP256K1_CONFIG_H */

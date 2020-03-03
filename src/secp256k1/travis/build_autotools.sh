@@ -30,6 +30,7 @@ pushd buildautotools
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \
   --enable-jni=$JNI \
+  --enable-openssl-tests=$OPENSSL_TESTS \
   $AUTOTOOLS_EXTRA_FLAGS \
   $USE_HOST
 
