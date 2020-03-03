@@ -579,9 +579,9 @@ struct CNodeStats {
     mapMsgCmdSize mapRecvBytesPerMsgCmd;
     NetPermissionFlags m_permissionFlags;
     bool m_legacyWhitelisted;
-    double dPingTime;
-    double dPingWait;
-    double dMinPing;
+    int64_t m_ping_usec;
+    int64_t m_ping_wait_usec;
+    int64_t m_min_ping_usec;
     Amount minFeeFilter;
     // Our address, as reported by the peer
     std::string addrLocal;

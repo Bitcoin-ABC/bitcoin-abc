@@ -1295,11 +1295,11 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
     ui->peerConnTime->setText(GUIUtil::formatDurationStr(
         GetSystemTimeInSeconds() - stats->nodeStats.nTimeConnected));
     ui->peerPingTime->setText(
-        GUIUtil::formatPingTime(stats->nodeStats.dPingTime));
+        GUIUtil::formatPingTime(stats->nodeStats.m_ping_usec));
     ui->peerPingWait->setText(
-        GUIUtil::formatPingTime(stats->nodeStats.dPingWait));
+        GUIUtil::formatPingTime(stats->nodeStats.m_ping_wait_usec));
     ui->peerMinPing->setText(
-        GUIUtil::formatPingTime(stats->nodeStats.dMinPing));
+        GUIUtil::formatPingTime(stats->nodeStats.m_min_ping_usec));
     ui->timeoffset->setText(
         GUIUtil::formatTimeOffset(stats->nodeStats.nTimeOffset));
     ui->peerVersion->setText(
