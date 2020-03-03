@@ -8,6 +8,13 @@ if [ "x$HOST" = "xi686-linux-gnu" ]; then
   CMAKE_EXTRA_FLAGS="-DCMAKE_C_FLAGS=-m32"
 fi
 
+# "auto" is not a valid value for SECP256K1_ECMULT_GEN_PRECISION with cmake.
+# In this case we use the default value instead by not setting the cache
+# variable on the cmake command line.
+if [ "x$ECMULTGENPRECISION" != "xauto" ]; then
+  ECMULT_GEN_PRECISION_ARG="-DSECP256K1_ECMULT_GEN_PRECISION=$ECMULTGENPRECISION"
+fi
+
 mkdir -p buildcmake/install
 pushd buildcmake
 
@@ -18,7 +25,6 @@ ${CMAKE_COMMAND} --version
 ${CMAKE_COMMAND} -GNinja .. \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSECP256K1_ECMULT_STATIC_PRECOMPUTATION=$STATICPRECOMPUTATION \
-  -DSECP256K1_ECMULT_GEN_PRECISION=$ECMULTGENPRECISION \
   -DSECP256K1_ENABLE_MODULE_ECDH=$ECDH \
   -DSECP256K1_ENABLE_MODULE_RECOVERY=$RECOVERY \
   -DSECP256K1_ENABLE_MODULE_SCHNORR=$SCHNORR \
@@ -28,6 +34,7 @@ ${CMAKE_COMMAND} -GNinja .. \
   -DSECP256K1_USE_ASM=$ASM \
   -DUSE_FIELD=$FIELD \
   -DUSE_SCALAR=$SCALAR \
+  $ECMULT_GEN_PRECISION_ARG \
   $CMAKE_EXTRA_FLAGS
 
 ninja $CMAKE_TARGET
