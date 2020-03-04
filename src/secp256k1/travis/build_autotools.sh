@@ -27,6 +27,7 @@ pushd buildautotools
   --enable-ecmult-static-precomputation=$STATICPRECOMPUTATION \
   --with-ecmult-gen-precision=$ECMULTGENPRECISION \
   --enable-module-ecdh=$ECDH \
+  --enable-module-multiset=$MULTISET \
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \
   --enable-jni=$JNI \
