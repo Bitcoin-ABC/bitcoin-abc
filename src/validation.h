@@ -162,6 +162,9 @@ static const int DEFAULT_MAX_REORG_DEPTH = 10;
  */
 static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 2 * 60 * 60;
 
+/** Current sync state passed to tip changed callbacks. */
+enum class SynchronizationState { INIT_REINDEX, INIT_DOWNLOAD, POST_INIT };
+
 extern RecursiveMutex cs_main;
 extern CTxMemPool g_mempool;
 typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;

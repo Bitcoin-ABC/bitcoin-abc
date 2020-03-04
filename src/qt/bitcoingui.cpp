@@ -34,6 +34,7 @@
 #include <ui_interface.h>
 #include <util/system.h>
 #include <util/translation.h>
+#include <validation.h>
 
 #include <QAction>
 #include <QApplication>
@@ -672,7 +673,8 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
             QDateTime::fromTime_t(_clientModel->getHeaderTipTime()));
         setNumBlocks(m_node.getNumBlocks(),
                      QDateTime::fromTime_t(m_node.getLastBlockTime()),
-                     m_node.getVerificationProgress(), false);
+                     m_node.getVerificationProgress(), false,
+                     SynchronizationState::INIT_DOWNLOAD);
         connect(_clientModel, &ClientModel::numBlocksChanged, this,
                 &BitcoinGUI::setNumBlocks);
 
@@ -1072,13 +1074,15 @@ void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab) {
 }
 
 void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
-                              double nVerificationProgress, bool header) {
+                              double nVerificationProgress, bool header,
+                              SynchronizationState sync_state) {
 // Disabling macOS App Nap on initial sync, disk and reindex operations.
 #ifdef Q_OS_MAC
-    (m_node.isInitialBlockDownload() || m_node.getReindex() ||
-     m_node.getImporting())
-        ? m_app_nap_inhibitor->disableAppNap()
-        : m_app_nap_inhibitor->enableAppNap();
+    if (sync_state == SynchronizationState::POST_INIT) {
+        m_app_nap_inhibitor->enableAppNap();
+    } else {
+        m_app_nap_inhibitor->disableAppNap();
+    }
 #endif
 
     if (modalOverlay) {

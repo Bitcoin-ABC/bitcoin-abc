@@ -353,8 +353,9 @@ namespace {
         std::unique_ptr<Handler>
         handleNotifyBlockTip(NotifyBlockTipFn fn) override {
             return MakeHandler(::uiInterface.NotifyBlockTip_connect(
-                [fn](bool initial_download, const CBlockIndex *block) {
-                    fn(initial_download, block->nHeight, block->GetBlockTime(),
+                [fn](SynchronizationState sync_state,
+                     const CBlockIndex *block) {
+                    fn(sync_state, block->nHeight, block->GetBlockTime(),
                        GuessVerificationProgress(Params().TxData(), block));
                 }));
         }
@@ -362,9 +363,9 @@ namespace {
         handleNotifyHeaderTip(NotifyHeaderTipFn fn) override {
             /* verification progress is unused when a header was received */
             return MakeHandler(::uiInterface.NotifyHeaderTip_connect(
-                [fn](bool initial_download, const CBlockIndex *block) {
-                    fn(initial_download, block->nHeight, block->GetBlockTime(),
-                       0);
+                [fn](SynchronizationState sync_state,
+                     const CBlockIndex *block) {
+                    fn(sync_state, block->nHeight, block->GetBlockTime(), 0);
                 }));
         }
         NodeContext *context() override { return m_context; }

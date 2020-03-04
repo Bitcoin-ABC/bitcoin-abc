@@ -32,7 +32,7 @@ UniValue getblockchaininfo(const Config &config, const JSONRPCRequest &request);
 double GetDifficulty(const CBlockIndex *blockindex);
 
 /** Callback for when block tip changed. */
-void RPCNotifyBlockChange(bool ibd, const CBlockIndex *pindex);
+void RPCNotifyBlockChange(const CBlockIndex *pindex);
 
 /** Block description to JSON */
 UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,

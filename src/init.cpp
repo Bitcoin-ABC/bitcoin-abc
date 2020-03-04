@@ -81,6 +81,7 @@
 #endif
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 #include <set>
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
@@ -340,13 +341,13 @@ static void registerSignalHandler(int signal, void (*handler)(int)) {
 
 static boost::signals2::connection rpc_notify_block_change_connection;
 static void OnRPCStarted() {
-    rpc_notify_block_change_connection =
-        uiInterface.NotifyBlockTip_connect(&RPCNotifyBlockChange);
+    rpc_notify_block_change_connection = uiInterface.NotifyBlockTip_connect(
+        std::bind(RPCNotifyBlockChange, std::placeholders::_2));
 }
 
 static void OnRPCStopped() {
     rpc_notify_block_change_connection.disconnect();
-    RPCNotifyBlockChange(false, nullptr);
+    RPCNotifyBlockChange(nullptr);
     g_best_block_cv.notify_all();
     LogPrint(BCLog::RPC, "RPC stopped.\n");
 }
@@ -1211,9 +1212,9 @@ std::string LicenseInfo() {
 }
 
 #if defined(HAVE_SYSTEM)
-static void BlockNotifyCallback(bool initialSync,
+static void BlockNotifyCallback(SynchronizationState sync_state,
                                 const CBlockIndex *pBlockIndex) {
-    if (initialSync || !pBlockIndex) {
+    if (sync_state != SynchronizationState::POST_INIT || !pBlockIndex) {
         return;
     }
 
@@ -1231,7 +1232,7 @@ static bool fHaveGenesis = false;
 static Mutex g_genesis_wait_mutex;
 static std::condition_variable g_genesis_wait_cv;
 
-static void BlockNotifyGenesisWait(bool, const CBlockIndex *pBlockIndex) {
+static void BlockNotifyGenesisWait(const CBlockIndex *pBlockIndex) {
     if (pBlockIndex != nullptr) {
         {
             LOCK(g_genesis_wait_mutex);
@@ -2537,7 +2538,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     }
 
                     CBlockIndex *tip = ::ChainActive().Tip();
-                    RPCNotifyBlockChange(true, tip);
+                    RPCNotifyBlockChange(tip);
                     if (tip && tip->nTime >
                                    GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
                         strLoadError =
@@ -2664,7 +2665,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     boost::signals2::connection block_notify_genesis_wait_connection;
     if (::ChainActive().Tip() == nullptr) {
         block_notify_genesis_wait_connection =
-            uiInterface.NotifyBlockTip_connect(BlockNotifyGenesisWait);
+            uiInterface.NotifyBlockTip_connect(
+                std::bind(BlockNotifyGenesisWait, std::placeholders::_2));
     } else {
         fHaveGenesis = true;
     }

@@ -27,20 +27,20 @@
 #include <memory>
 
 class ClientModel;
+class Config;
+class HelpMessageDialog;
+class ModalOverlay;
 class NetworkStyle;
 class Notificator;
 class OptionsModel;
 class PlatformStyle;
 class RPCConsole;
 class SendCoinsRecipient;
+enum class SynchronizationState;
 class UnitDisplayStatusBarControl;
 class WalletController;
 class WalletFrame;
 class WalletModel;
-class HelpMessageDialog;
-class ModalOverlay;
-
-class Config;
 
 namespace interfaces {
 class Handler;
@@ -224,7 +224,8 @@ public Q_SLOTS:
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
     void setNumBlocks(int count, const QDateTime &blockDate,
-                      double nVerificationProgress, bool headers);
+                      double nVerificationProgress, bool headers,
+                      SynchronizationState sync_state);
 
     /**
      * Notify the user of an event from the core network or transaction

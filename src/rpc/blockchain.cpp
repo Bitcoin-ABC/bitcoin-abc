@@ -235,7 +235,7 @@ UniValue getfinalizedblockhash(const Config &config,
     return UniValue(UniValue::VSTR);
 }
 
-void RPCNotifyBlockChange(bool ibd, const CBlockIndex *pindex) {
+void RPCNotifyBlockChange(const CBlockIndex *pindex) {
     if (pindex) {
         LOCK(cs_blockchange);
         latestblock.hash = pindex->GetBlockHash();
