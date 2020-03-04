@@ -31,12 +31,12 @@ static void bench_sign_setup(void* arg) {
     }
 }
 
-static void bench_sign_run(void* arg) {
+static void bench_sign_run(void* arg, int iters) {
     int i;
     bench_sign *data = (bench_sign*)arg;
 
     unsigned char sig[74];
-    for (i = 0; i < 20000; i++) {
+    for (i = 0; i < iters; i++) {
         size_t siglen = 74;
         int j;
         secp256k1_ecdsa_signature signature;
@@ -50,12 +50,12 @@ static void bench_sign_run(void* arg) {
 }
 
 #ifdef ENABLE_MODULE_SCHNORR
-static void bench_schnorr_sign_run(void* arg) {
+static void bench_schnorr_sign_run(void* arg, int iters) {
     int i,j;
     bench_sign *data = (bench_sign*)arg;
 
     unsigned char sig[64];
-    for (i = 0; i < 20000; i++) {
+    for (i = 0; i < iters; i++) {
         CHECK(secp256k1_schnorr_sign(data->ctx, sig, data->msg, data->key, NULL, NULL));
         for (j = 0; j < 32; j++) {
             data->msg[j] = sig[j];
@@ -68,11 +68,13 @@ static void bench_schnorr_sign_run(void* arg) {
 int main(void) {
     bench_sign data;
 
+    int iters = get_iters(20000);
+
     data.ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
 
-    run_benchmark("ecdsa_sign", bench_sign_run, bench_sign_setup, NULL, &data, 10, 20000);
+    run_benchmark("ecdsa_sign", bench_sign_run, bench_sign_setup, NULL, &data, 10, iters);
 #ifdef ENABLE_MODULE_SCHNORR
-    run_benchmark("schnorr_sign", bench_schnorr_sign_run, bench_sign_setup, NULL, &data, 10, 20000);
+    run_benchmark("schnorr_sign", bench_schnorr_sign_run, bench_sign_setup, NULL, &data, 10, iters);
 #endif
 
     secp256k1_context_destroy(data.ctx);
