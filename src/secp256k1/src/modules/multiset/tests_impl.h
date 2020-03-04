@@ -102,6 +102,7 @@ void test_combine(void) {
     /* Testing if combining is effectively the same as adding the elements */
 
     secp256k1_multiset empty, r1,r2,r3;
+    secp256k1_gej gej_pos, gej_neg;
 
     secp256k1_multiset_init(ctx, &empty);
     secp256k1_multiset_init(ctx, &r1);
@@ -144,6 +145,25 @@ void test_combine(void) {
     CHECK_EQUAL(&r1,&r2); /* M(0,1,2)+M() == M(0,1,2) */
     secp256k1_multiset_combine(ctx, &r2, &r1);
     CHECK_NOTEQUAL(&r1,&r2); /* M(0,1,2)+M(0,1,2) != M(0,1,2) */
+
+    /* Combine multisets so that the combination representation is infinity */
+    secp256k1_multiset_init(ctx, &r1);
+    secp256k1_multiset_init(ctx, &r2);
+    CHECK_EQUAL(&r1, &r2); /* M() == M() */
+
+    secp256k1_multiset_add(ctx, &r1, elements[0], DATALEN);
+
+    gej_from_multiset_var(&gej_pos, &r1);
+    secp256k1_gej_neg(&gej_neg, &gej_pos);
+    secp256k1_fe_normalize(&gej_neg.x);
+    secp256k1_fe_normalize(&gej_neg.y);
+    secp256k1_fe_normalize(&gej_neg.z);
+
+    multiset_from_gej_var(&r2, &gej_neg);
+
+    /* This is equivalent to a removal due to multisets being associative */
+    secp256k1_multiset_combine(ctx, &r1, &r2);
+    CHECK_EQUAL(&empty, &r1); /* M() == M(X)+M(-X) == M(X)-M(X) */
 }
 
 

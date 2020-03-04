@@ -106,6 +106,13 @@ static int multiset_add_remove(const secp256k1_context* ctx, secp256k1_multiset 
     gej_from_multiset_var(&source, multiset);
     ge_from_data_var(&newelm, input, inputLen, remove);
 
+    /*
+     * The `target` group element needs to be initialized.
+     * If the result of the addition is infinity, the field elements won't be
+     * set and the `secp256k1_fe_normalize` calls below will branch on
+     * uninitialized data.
+     */
+    secp256k1_gej_set_infinity(&target);
     secp256k1_gej_add_ge_var(&target, &source, &newelm, NULL);
 
     secp256k1_fe_normalize(&target.x);
@@ -137,6 +144,13 @@ int secp256k1_multiset_combine(const secp256k1_context* ctx, secp256k1_multiset 
     gej_from_multiset_var(&gej_multiset, multiset);
     gej_from_multiset_var(&gej_input, input);
 
+    /*
+     * The `gej_result` group element needs to be initialized.
+     * If the result of the addition is infinity, the field elements won't be
+     * set and the `secp256k1_fe_normalize` calls below will branch on
+     * uninitialized data.
+     */
+    secp256k1_gej_set_infinity(&gej_result);
     secp256k1_gej_add_var(&gej_result, &gej_multiset, &gej_input, NULL);
 
     secp256k1_fe_normalize(&gej_result.x);
