@@ -8,6 +8,9 @@ addons:
       - ninja-build
 install:
   - ./travis/install_cmake.sh
+cache:
+  directories:
+    - /opt/cmake
 compiler:
   - clang
   - gcc

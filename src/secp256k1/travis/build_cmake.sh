@@ -18,8 +18,8 @@ fi
 mkdir -p buildcmake/install
 pushd buildcmake
 
-# Use the cmake version installed via APT instead of the Travis custom one.
-CMAKE_COMMAND=/usr/bin/cmake
+# Use the cmake version installed via the install_cmake.sh script.
+CMAKE_COMMAND=/opt/cmake/bin/cmake
 ${CMAKE_COMMAND} --version
 
 ${CMAKE_COMMAND} -GNinja .. \
