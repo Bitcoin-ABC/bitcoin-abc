@@ -200,7 +200,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 )
 
 if(ENABLE_PROPERTY_BASED_TESTS)
-	target_link_libraries(test_bitcoin Rapidcheck::Rapidcheck)
+	target_link_libraries(test_bitcoin Rapidcheck::rapidcheck)
 endif()
 
 function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
