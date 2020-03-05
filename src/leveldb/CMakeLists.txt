@@ -82,8 +82,16 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	)
 
 	find_package(SHLWAPI REQUIRED)
-	target_link_libraries(leveldb ${SHLWAPI_LIBRARY})
-	target_include_directories(leveldb PUBLIC ${SHLWAPI_INCLUDE_DIR})
+	# We cannot use the imported target here, because cmake will introduce an
+	# -isystem compilation directive and cause the build to fail with MinGw.
+	# This comes from a couple cmake bugs:
+	#  - https://gitlab.kitware.com/cmake/cmake/issues/16291
+	#  - https://gitlab.kitware.com/cmake/cmake/issues/19095
+	# These issues are solved from cmake 3.14.1. Once this version is enforced,
+	# the following can be used:
+	# target_link_libraries(leveldb SHLWAPI::shlwapi)
+	target_link_libraries(leveldb ${SHLWAPI_LIBRARIES})
+	target_include_directories(leveldb PUBLIC ${SHLWAPI_INCLUDE_DIRS})
 else()
 	set(LEVELDB_PLATFORM POSIX)
 	target_sources(leveldb PRIVATE port/port_posix.cc)

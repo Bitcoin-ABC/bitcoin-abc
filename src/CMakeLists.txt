@@ -332,8 +332,16 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Boost_THREADAPI win32)
 
 	find_package(SHLWAPI REQUIRED)
-	target_link_libraries(util ${SHLWAPI_LIBRARY})
-	target_include_directories(util PUBLIC ${SHLWAPI_INCLUDE_DIR})
+	# We cannot use the imported target here, because cmake will introduce an
+	# -isystem compilation directive and cause the build to fail with MinGw.
+	# This comes from a couple cmake bugs:
+	#  - https://gitlab.kitware.com/cmake/cmake/issues/16291
+	#  - https://gitlab.kitware.com/cmake/cmake/issues/19095
+	# These issues are solved from cmake 3.14.1. Once this version is enforced,
+	# the following can be used:
+	# target_link_libraries(util SHLWAPI::shlwapi)
+	target_link_libraries(util ${SHLWAPI_LIBRARIES})
+	target_include_directories(util PUBLIC ${SHLWAPI_INCLUDE_DIRS})
 
 	find_library(WS2_32_LIBRARY NAMES ws2_32)
 	target_link_libraries(util ${WS2_32_LIBRARY})
