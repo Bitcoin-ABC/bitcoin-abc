@@ -216,8 +216,6 @@ endif()
 
 # Try to find miniupnpc
 if(ENABLE_UPNP)
-	find_package(MiniUPnPc REQUIRED)
-
 	# The expected behavior is as follow:
 	#  - If UPnP is enabled USE_UPNP must be defined
 	#  - If UPnP should be the default port map method, USE_UPNP should be

@@ -19,7 +19,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
 | libjpeg |  |  |  |  | Yes |
 | libpng |  |  |  |  | Yes |
-| MiniUPnPc | [2.0.20170509](http://miniupnp.free.fr/files) |  | No |  |  |
+| MiniUPnPc | [2.0.20170509](http://miniupnp.free.fr/files) | 1.5 | No |  |  |
 | Ninja |  | [1.5.1](https://github.com/ninja-build/ninja/releases) |  |  |  |
 | OpenSSL | [1.0.1k](https://www.openssl.org/source) |  | Yes |  |  |
 | PCRE |  |  |  |  | Yes |
