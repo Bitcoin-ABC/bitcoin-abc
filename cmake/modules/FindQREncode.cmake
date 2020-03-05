@@ -1,27 +1,54 @@
-# Try to find libqrencode
-# QRENCODE_FOUND - system has libqrencode
-# QRENCODE_INCLUDE_DIR - the libqrencode include directory
-# QRENCODE_LIBRARY - Library needed to use libqrencode
+# Copyright (c) 2019-2020 The Bitcoin developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-if (QRENCODE_INCLUDE_DIR AND QRENCODE_LIBRARY)
-	# Already in cache, be silent
-	set(QRENCODE_FIND_QUIETLY TRUE)
-endif()
+#.rst
+# FindQREncode
+# -------------
+#
+# Find the QREncode library. The following
+# components are available::
+#   qrencode
+#
+# This will define the following variables::
+#
+#   QREncode_FOUND - system has QREncode lib
+#   QREncode_INCLUDE_DIRS - the QREncode include directories
+#   QREncode_LIBRARIES - Libraries needed to use QREncode
+#
+# And the following imported target::
+#
+#   QREncode::qrencode
 
-find_path(QRENCODE_INCLUDE_DIR qrencode.h)
+include(BrewHelper)
+find_brew_prefix(BREW_HINT qrencode)
 
-find_library(QRENCODE_LIBRARY NAMES qrencode libqrencode)
+find_package(PkgConfig)
+pkg_check_modules(PC_QREncode QUIET libqrencode)
 
-message(STATUS "QREncode lib: " ${QRENCODE_LIBRARY})
-
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(
-	QREncode DEFAULT_MSG
-	QRENCODE_INCLUDE_DIR
-	QRENCODE_LIBRARY
+find_path(QREncode_INCLUDE_DIR
+	NAMES qrencode.h
+	HINTS ${BREW_HINT}
+	PATHS ${PC_QREncode_INCLUDE_DIRS}
 )
 
-mark_as_advanced(QRENCODE_INCLUDE_DIR QRENCODE_LIBRARY)
+set(QREncode_INCLUDE_DIRS "${QREncode_INCLUDE_DIR}")
+mark_as_advanced(QREncode_INCLUDE_DIR)
 
-set(QREncode_LIBRARIES ${QRENCODE_LIBRARY})
-set(QREncode_INCLUDE_DIRS ${QRENCODE_INCLUDE_DIR})
+# TODO: extract a version number.
+# For now qrencode does not provide an easy way to extract a version number.
+
+include(ExternalLibraryHelper)
+find_component(QREncode qrencode
+	NAMES qrencode
+	HINTS ${BREW_HINT}
+	PATHS ${PC_QREncode_LIBRARY_DIRS}
+	INCLUDE_DIRS ${QREncode_INCLUDE_DIRS}
+)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(QREncode
+	REQUIRED_VARS
+		QREncode_INCLUDE_DIR
+	HANDLE_COMPONENTS
+)
