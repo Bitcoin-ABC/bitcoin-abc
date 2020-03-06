@@ -1,10 +1,13 @@
 # Facilities to run tests on the executable binaries.
 
 macro(add_to_symbols_check BINARY)
-	set(CUSTOM_TARGET_NAME "check-symbols-${BINARY}")
+	if(NOT TARGET symbol-check)
+		add_custom_target(symbol-check)
+	endif()
+
+	set(CUSTOM_TARGET_NAME "symbol-check-${BINARY}")
 	add_custom_target("${CUSTOM_TARGET_NAME}"
-		COMMAND
-			${CMAKE_COMMAND} -E echo "Running symbol-check.py on ${BINARY}..."
+		COMMENT "Running symbol-check.py on ${BINARY}..."
 		COMMAND
 			"${Python_EXECUTABLE}"
 			"${CMAKE_SOURCE_DIR}/contrib/devtools/symbol-check.py"
@@ -13,9 +16,7 @@ macro(add_to_symbols_check BINARY)
 			"${BINARY}"
 	)
 
-	if(TARGET check-symbols)
-		add_dependencies(check-symbols "${CUSTOM_TARGET_NAME}")
-	endif()
+	add_dependencies(symbol-check "${CUSTOM_TARGET_NAME}")
 endmacro()
 
 macro(add_to_security_check BINARY)

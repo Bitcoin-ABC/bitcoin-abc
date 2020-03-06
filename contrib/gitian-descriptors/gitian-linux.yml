@@ -167,7 +167,7 @@ script: |
 
     ninja
     ninja security-check
-    ninja check-symbols
+    ninja symbol-check
 
     for _component in ${INSTALL_COMPONENTS}; do
        cmake -DCOMPONENT=${_component} -P cmake_install.cmake
