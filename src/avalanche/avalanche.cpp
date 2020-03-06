@@ -11,12 +11,13 @@
 #include <util/bitmanip.h>
 #include <validation.h>
 
+#include <chrono>
 #include <tuple>
 
 /**
  * Run the avalanche event loop every 10ms.
  */
-static const int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
+static const std::chrono::milliseconds AVALANCHE_TIME_STEP_MILLISECONDS{10};
 
 // Unfortunately, the bitcoind codebase is full of global and we are kinda
 // forced into it here.

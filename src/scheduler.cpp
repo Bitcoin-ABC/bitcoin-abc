@@ -9,11 +9,13 @@
 #include <cassert>
 #include <utility>
 
-CScheduler::CScheduler()
-    : nThreadsServicingQueue(0), stopRequested(false), stopWhenEmpty(false) {}
+CScheduler::CScheduler() {}
 
 CScheduler::~CScheduler() {
     assert(nThreadsServicingQueue == 0);
+    if (stopWhenEmpty) {
+        assert(taskQueue.empty());
+    }
 }
 
 void CScheduler::serviceQueue() {
@@ -91,12 +93,6 @@ void CScheduler::schedule(CScheduler::Function f,
     newTaskScheduled.notify_one();
 }
 
-void CScheduler::scheduleFromNow(CScheduler::Function f,
-                                 int64_t deltaMilliSeconds) {
-    schedule(f, std::chrono::system_clock::now() +
-                    std::chrono::milliseconds(deltaMilliSeconds));
-}
-
 void CScheduler::MockForward(std::chrono::seconds delta_seconds) {
     assert(delta_seconds.count() > 0 && delta_seconds < std::chrono::hours{1});
 
@@ -121,18 +117,16 @@ void CScheduler::MockForward(std::chrono::seconds delta_seconds) {
     newTaskScheduled.notify_one();
 }
 
-static void Repeat(CScheduler *s, CScheduler::Predicate p,
-                   int64_t deltaMilliSeconds) {
+static void Repeat(CScheduler &s, CScheduler::Predicate p,
+                   std::chrono::milliseconds delta) {
     if (p()) {
-        s->scheduleFromNow(std::bind(&Repeat, s, p, deltaMilliSeconds),
-                           deltaMilliSeconds);
+        s.scheduleFromNow([=, &s] { Repeat(s, p, delta); }, delta);
     }
 }
 
 void CScheduler::scheduleEvery(CScheduler::Predicate p,
-                               int64_t deltaMilliSeconds) {
-    scheduleFromNow(std::bind(&Repeat, this, p, deltaMilliSeconds),
-                    deltaMilliSeconds);
+                               std::chrono::milliseconds delta) {
+    scheduleFromNow([=] { Repeat(*this, p, delta); }, delta);
 }
 
 size_t

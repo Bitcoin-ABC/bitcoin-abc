@@ -8,6 +8,7 @@
 #include <sync.h>
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <functional>
 
@@ -20,7 +21,7 @@ public:
 
     bool startEventLoop(CScheduler &scheduler,
                         std::function<void()> runEventLoop,
-                        int64_t deltaMilliSeconds);
+                        std::chrono::milliseconds delta);
     bool stopEventLoop();
 
 private:

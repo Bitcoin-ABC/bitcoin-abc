@@ -12,7 +12,7 @@ EventLoop::~EventLoop() {
 
 bool EventLoop::startEventLoop(CScheduler &scheduler,
                                std::function<void()> runEventLoop,
-                               int64_t deltaMilliSeconds) {
+                               std::chrono::milliseconds delta) {
     LOCK(cs_running);
     if (running) {
         // Do not start the event loop twice.
@@ -37,7 +37,7 @@ bool EventLoop::startEventLoop(CScheduler &scheduler,
             // A stop request was made.
             return false;
         },
-        deltaMilliSeconds);
+        delta);
 
     return true;
 }

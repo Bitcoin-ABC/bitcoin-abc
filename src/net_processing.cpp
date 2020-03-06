@@ -1333,7 +1333,7 @@ PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn, BanMan *banman,
             this->CheckForStaleTipAndEvictPeers(consensusParams);
             return true;
         },
-        EXTRA_PEER_CHECK_INTERVAL * 1000);
+        std::chrono::seconds{EXTRA_PEER_CHECK_INTERVAL});
 }
 
 /**

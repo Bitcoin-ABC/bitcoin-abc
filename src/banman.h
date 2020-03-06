@@ -10,12 +10,15 @@
 #include <fs.h>
 #include <sync.h>
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 
 // Default 24-hour ban.
 // NOTE: When adjusting this, update rpcnet:setban's help ("24h")
 static constexpr unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;
+// How often to dump addresses to banlist.dat
+static constexpr std::chrono::minutes DUMP_BANS_INTERVAL{15};
 
 class CClientUIInterface;
 class CNetAddr;

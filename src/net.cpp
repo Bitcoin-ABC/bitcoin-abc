@@ -40,8 +40,8 @@
 
 #include <cmath>
 
-// Dump addresses to peers.dat every 15 minutes (900s)
-static constexpr int DUMP_PEERS_INTERVAL = 15 * 60;
+// How often to dump addresses to peers.dat
+static constexpr std::chrono::minutes DUMP_PEERS_INTERVAL{15};
 
 // We add a random period time (0 to 1 seconds) to feeler connections to prevent
 // synchronization.
@@ -2533,7 +2533,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
             this->DumpAddresses();
             return true;
         },
-        DUMP_PEERS_INTERVAL * 1000);
+        DUMP_PEERS_INTERVAL);
 
     return true;
 }

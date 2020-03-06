@@ -84,9 +84,6 @@ static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
-// Dump addresses to banlist.dat every 15 minutes (900s)
-static constexpr int DUMP_BANS_INTERVAL = 60 * 15;
-
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for accessing
 // block files don't count towards the fd_set size limit anyway.
@@ -2127,7 +2124,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             RandAddPeriodic();
             return true;
         },
-        60000);
+        std::chrono::minutes{1});
 
     GetMainSignals().RegisterBackgroundSignalScheduler(*node.scheduler);
 
@@ -2791,7 +2788,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             banman->DumpBanlist();
             return true;
         },
-        DUMP_BANS_INTERVAL * 1000);
+        DUMP_BANS_INTERVAL);
 
     // Start Avalanche's event loop.
     g_avalanche->startEventLoop(*node.scheduler);

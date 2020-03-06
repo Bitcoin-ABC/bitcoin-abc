@@ -24,9 +24,11 @@
 // Usage:
 //
 // CScheduler* s = new CScheduler();
-// s->scheduleFromNow(doSomething, 11); // Assuming a: void doSomething() { }
-// s->scheduleFromNow(std::bind(Class::func, this, argument), 3);
-// boost::thread* t = new boost::thread(std::bind(CScheduler::serviceQueue, s));
+// // Assuming a: void doSomething() { }
+// s->scheduleFromNow(doSomething, std::chrono::milliseconds{11});
+// s->scheduleFromNow([=] { this->func(argument); },
+//                    std::chrono::milliseconds{3});
+// boost::thread *t = new boost::thread(std::bind(CScheduler::serviceQueue, s));
 //
 // ... then at program shutdown, make sure to call stop() to clean up the
 // thread(s) running serviceQueue:
@@ -47,15 +49,19 @@ public:
     // Call func at/after time t
     void schedule(Function f, std::chrono::system_clock::time_point t);
 
-    // Convenience method: call f once deltaMilliSeconds from now
-    void scheduleFromNow(Function f, int64_t deltaMilliSeconds);
+    /** Call f once after the delta has passed */
+    void scheduleFromNow(Function f, std::chrono::milliseconds delta) {
+        schedule(std::move(f), std::chrono::system_clock::now() + delta);
+    }
 
-    // Another convenience method: call p approximately every deltaMilliSeconds
-    // forever, starting deltaMilliSeconds from now untill p returns false. To
-    // be more precise: every time p is finished, it is rescheduled to run
-    // deltaMilliSeconds later. If you need more accurate scheduling, don't use
-    // this method.
-    void scheduleEvery(Predicate p, int64_t deltaMilliSeconds);
+    /**
+     * Repeat p until it return false. First run is after delta has passed once.
+     *
+     * The timing is not exact: Every time p is finished, it is rescheduled to
+     * run again after delta. If you need more accurate scheduling, don't use
+     * this method.
+     */
+    void scheduleEvery(Predicate p, std::chrono::milliseconds delta);
 
     /**
      * Mock the scheduler to fast forward in time.
@@ -88,9 +94,9 @@ private:
     std::condition_variable newTaskScheduled;
     std::multimap<std::chrono::system_clock::time_point, Function>
         taskQueue GUARDED_BY(newTaskMutex);
-    int nThreadsServicingQueue GUARDED_BY(newTaskMutex);
-    bool stopRequested GUARDED_BY(newTaskMutex);
-    bool stopWhenEmpty GUARDED_BY(newTaskMutex);
+    int nThreadsServicingQueue GUARDED_BY(newTaskMutex){0};
+    bool stopRequested GUARDED_BY(newTaskMutex){false};
+    bool stopWhenEmpty GUARDED_BY(newTaskMutex){false};
     bool shouldStop() const EXCLUSIVE_LOCKS_REQUIRED(newTaskMutex) {
         return stopRequested || (stopWhenEmpty && taskQueue.empty());
     }

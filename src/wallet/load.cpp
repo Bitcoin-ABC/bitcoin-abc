@@ -108,13 +108,13 @@ void StartWallets(CScheduler &scheduler) {
             MaybeCompactWalletDB();
             return true;
         },
-        500);
+        std::chrono::milliseconds{500});
     scheduler.scheduleEvery(
         [] {
             MaybeResendWalletTxs();
             return true;
         },
-        1000);
+        std::chrono::milliseconds{1000});
 }
 
 void FlushWallets() {
