@@ -166,7 +166,7 @@ script: |
       -DCCACHE=OFF
 
     ninja
-    ninja check-security
+    ninja security-check
     ninja check-symbols
 
     for _component in ${INSTALL_COMPONENTS}; do

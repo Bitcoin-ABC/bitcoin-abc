@@ -43,7 +43,6 @@ add_custom_target(check-extended)
 add_custom_target(check-upgrade-activated)
 add_custom_target(check-upgrade-activated-extended)
 add_custom_target(check-symbols)
-add_custom_target(check-security)
 
 include(PackageHelper)
 exclude_git_ignored_files_from_source_package()

@@ -189,7 +189,7 @@ script: |
       ${CMAKE_EXTRA_OPTIONS[${i}]}
 
     ninja
-    ninja check-security
+    ninja security-check
 
     for _component in ${INSTALL_COMPONENTS}; do
        cmake -DCOMPONENT=${_component} -P cmake_install.cmake
