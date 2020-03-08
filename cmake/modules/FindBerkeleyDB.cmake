@@ -132,27 +132,36 @@ endif()
 
 include(ExternalLibraryHelper)
 
-macro(_BerkeleyDB_find_component COMPONENT_NAME LIB_NAME)
-	# Different systems sometimes have a version in the lib name...
-	# and some have a dash or underscore before the versions.
-	# Generate all combinations from the separators "" (none), ".", "-" and "_".
-	generate_versions_variants(
-		_lib_variants
-		${LIB_NAME}
-		"${BerkeleyDB_VERSION_MAJOR}"
-		"${BerkeleyDB_VERSION_MINOR}"
-	)
+# Different systems sometimes have a version in the lib name...
+# and some have a dash or underscore before the versions.
+# Generate all combinations from the separators "" (none), ".", "-" and "_".
+generate_versions_variants(
+	_db_variants
+	db
+	"${BerkeleyDB_VERSION_MAJOR}"
+	"${BerkeleyDB_VERSION_MINOR}"
+)
 
-	find_component(BerkeleyDB ${COMPONENT_NAME}
-		NAMES ${_lib_variants}
-		HINTS ${BREW_HINT}
-		PATH_SUFFIXES ${_lib_variants}
-		INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
-	)
-endmacro()
+find_component(BerkeleyDB C
+	NAMES ${_db_variants}
+	HINTS ${BREW_HINT}
+	PATH_SUFFIXES ${_db_variants}
+	INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
+)
 
-_BerkeleyDB_find_component(C db)
-_BerkeleyDB_find_component(CXX db_cxx)
+generate_versions_variants(
+	_db_cxx_variants
+	db_cxx
+	"${BerkeleyDB_VERSION_MAJOR}"
+	"${BerkeleyDB_VERSION_MINOR}"
+)
+
+find_component(BerkeleyDB CXX
+	NAMES ${_db_cxx_variants}
+	HINTS ${BREW_HINT}
+	PATH_SUFFIXES ${_db_variants}
+	INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
+)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(BerkeleyDB
