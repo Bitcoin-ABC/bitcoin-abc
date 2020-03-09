@@ -11,11 +11,7 @@
 
 BOOST_AUTO_TEST_SUITE(dns_tests)
 
-static const int MAX_QUERY_NAME_LENGTH = 255;
-// Max size of the null-terminated buffer parse_name() writes to.
-static const int MAX_QUERY_NAME_BUFFER_LENGTH = MAX_QUERY_NAME_LENGTH + 1;
 static const uint8_t END_OF_NAME_FIELD = 0;
-static const size_t MAX_LABEL_LENGTH = 63;
 
 // Builds the name field of the question section of a DNS query
 static std::vector<uint8_t>

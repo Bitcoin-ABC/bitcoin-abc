@@ -101,13 +101,13 @@ int parse_name(const uint8_t **inpos, const uint8_t *inend,
             return parse_name(&newbuf, (*inpos) - 2, inbuf, buf + bufused,
                               bufsize - bufused);
         }
-        if (octet > 63) {
+        if (octet > MAX_LABEL_LENGTH) {
             return -1;
         }
         // The maximum size of a query name is 255. The buffer must have
         // room for the null-character at the end of the buffer after writing
         // the label.
-        if (octet + bufused > 255) {
+        if (octet + bufused > MAX_QUERY_NAME_LENGTH) {
             return -1;
         }
         // copy label
@@ -128,8 +128,8 @@ int parse_name(const uint8_t **inpos, const uint8_t *inend,
     } while (1);
 }
 
-//  0: k
-// -1: component > 63 characters
+//  0: ok
+// -1: label > MAX_LABEL_LENGTH characters
 // -2: insufficent space in output
 // -3: two subsequent dots
 static int write_name(uint8_t **outpos, const uint8_t *outend, const char *name,
@@ -140,7 +140,7 @@ static int write_name(uint8_t **outpos, const uint8_t *outend, const char *name,
         if (!dot) {
             fin = name + strlen(name);
         }
-        if (fin - name > 63) {
+        if (fin - name > MAX_LABEL_LENGTH) {
             return -1;
         }
         if (fin == name) {
@@ -422,9 +422,10 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
     {
         const uint8_t *inpos = inbuf + 12;
         const uint8_t *inend = inbuf + insize;
-        char name[256];
+        char name[MAX_QUERY_NAME_BUFFER_LENGTH];
         int offset = inpos - inbuf;
-        int ret = parse_name(&inpos, inend, inbuf, name, 256);
+        int ret = parse_name(&inpos, inend, inbuf, name,
+                             MAX_QUERY_NAME_BUFFER_LENGTH);
         if (ret == -1) {
             responseCode = DNSResponseCode::FORMAT_ERROR;
             goto error;
