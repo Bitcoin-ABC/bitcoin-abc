@@ -23,6 +23,7 @@ function(exclude_git_ignored_files_from_source_package)
 		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 		OUTPUT_VARIABLE _git_ignored_files
 		RESULT_VARIABLE _git_result
+		ERROR_QUIET
 	)
 
 	# If something goes wrong with the git command, don't proceed the output.
