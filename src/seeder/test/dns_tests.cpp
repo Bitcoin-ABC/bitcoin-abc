@@ -3,11 +3,18 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <seeder/dns.h>
+#include <seeder/test/util.h>
 
+#include <ostream>
 #include <string>
 #include <vector>
 
 #include <boost/test/unit_test.hpp>
+
+std::ostream &operator<<(std::ostream &os, const ParseNameStatus &status) {
+    os << to_integral(status);
+    return os;
+}
 
 BOOST_AUTO_TEST_SUITE(dns_tests)
 
@@ -50,11 +57,11 @@ static void CheckParseName(const std::string &queryName) {
          nameFieldEndIndex++) {
         std::vector<char> parsedQueryName(MAX_QUERY_NAME_BUFFER_LENGTH, 0);
         const uint8_t *nameFieldBegin = nameField.data();
-        int ret = parse_name(
+        ParseNameStatus ret = parse_name(
             &nameFieldBegin, nameFieldBegin + nameFieldEndIndex,
             nameField.data(), parsedQueryName.data(), parsedQueryName.size());
 
-        BOOST_CHECK(ret != 0);
+        BOOST_CHECK(ret != ParseNameStatus::OK);
     }
 
     // Test when the buffer size is too small
@@ -62,10 +69,10 @@ static void CheckParseName(const std::string &queryName) {
     while (outputBufferSize <= queryName.size()) {
         std::vector<char> parsedQueryName(outputBufferSize, 0);
         const uint8_t *nameFieldBegin = nameField.data();
-        int ret = parse_name(&nameFieldBegin, nameFieldBegin + nameField.size(),
-                             nameField.data(), parsedQueryName.data(),
-                             parsedQueryName.size());
-        BOOST_CHECK(ret != 0);
+        ParseNameStatus ret = parse_name(
+            &nameFieldBegin, nameFieldBegin + nameField.size(),
+            nameField.data(), parsedQueryName.data(), parsedQueryName.size());
+        BOOST_CHECK(ret != ParseNameStatus::OK);
         outputBufferSize++;
     }
 
@@ -73,25 +80,25 @@ static void CheckParseName(const std::string &queryName) {
     while (outputBufferSize <= MAX_QUERY_NAME_BUFFER_LENGTH) {
         std::vector<char> parsedQueryName(outputBufferSize, 0);
         const uint8_t *nameFieldBegin = nameField.data();
-        int ret = parse_name(&nameFieldBegin, nameFieldBegin + nameField.size(),
-                             nameField.data(), parsedQueryName.data(),
-                             parsedQueryName.size());
-        BOOST_CHECK_EQUAL(ret, 0);
+        ParseNameStatus ret = parse_name(
+            &nameFieldBegin, nameFieldBegin + nameField.size(),
+            nameField.data(), parsedQueryName.data(), parsedQueryName.size());
+        BOOST_CHECK_EQUAL(ret, ParseNameStatus::OK);
         BOOST_CHECK_EQUAL(parsedQueryName.data(), queryName);
         outputBufferSize++;
     }
 }
 
 static void CheckParseNameError(
-    const std::string &queryName, const int expectedError,
+    const std::string &queryName, const ParseNameStatus expectedError,
     const size_t &outputBufferSize = MAX_QUERY_NAME_BUFFER_LENGTH) {
     std::vector<uint8_t> nameField = CreateDNSQuestionNameField(queryName);
 
     std::vector<char> parsedQueryName(outputBufferSize, 0);
     const uint8_t *nameFieldBegin = nameField.data();
-    int ret = parse_name(&nameFieldBegin, nameFieldBegin + nameField.size(),
-                         nameField.data(), parsedQueryName.data(),
-                         parsedQueryName.size());
+    ParseNameStatus ret = parse_name(
+        &nameFieldBegin, nameFieldBegin + nameField.size(), nameField.data(),
+        parsedQueryName.data(), parsedQueryName.size());
 
     BOOST_CHECK_EQUAL(ret, expectedError);
 }
@@ -112,7 +119,8 @@ BOOST_AUTO_TEST_CASE(parse_name_label_tests) {
     CheckParseName("www." + maxLengthLabel + ".com");
 
     // Check that an oversized label causes an error
-    CheckParseNameError("www." + maxLengthLabel + "a.com", -1);
+    CheckParseNameError("www." + maxLengthLabel + "a.com",
+                        ParseNameStatus::InputError);
 }
 
 BOOST_AUTO_TEST_CASE(parse_name_qname_length_tests) {
@@ -131,7 +139,8 @@ BOOST_AUTO_TEST_CASE(parse_name_qname_length_tests) {
     overSizedQName.insert(overSizedQName.end() - 3, '.');
     // Allocates an extra large buffer to guarantee an error is not caused by
     // the buffer size
-    CheckParseNameError(overSizedQName, -1, 2 * overSizedQName.size());
+    CheckParseNameError(overSizedQName, ParseNameStatus::InputError,
+                        2 * overSizedQName.size());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -34,12 +34,17 @@ struct dns_opt_t {
     uint64_t nRequests;
 };
 
-//  0: ok
-// -1: premature end of input, forward reference, label > MAX_LABEL_LENGTH,
-//     invalid character
-// -2: insufficient space in output
-int parse_name(const uint8_t **inpos, const uint8_t *inend,
-               const uint8_t *inbuf, char *buf, size_t bufsize);
+enum class ParseNameStatus {
+    OK,
+    // Premature end of input, forward reference, component > 63 char, invalid
+    // character
+    InputError,
+    // Insufficient space in output
+    OutputBufferError,
+};
+
+ParseNameStatus parse_name(const uint8_t **inpos, const uint8_t *inend,
+                           const uint8_t *inbuf, char *buf, size_t bufsize);
 
 int dnsserver(dns_opt_t *opt);
 

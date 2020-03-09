@@ -62,27 +62,27 @@ enum class DNSResponseCode : uint8_t {
     REFUSED = 5,
 };
 
-int parse_name(const uint8_t **inpos, const uint8_t *inend,
-               const uint8_t *inbuf, char *buf, size_t bufsize) {
+ParseNameStatus parse_name(const uint8_t **inpos, const uint8_t *inend,
+                           const uint8_t *inbuf, char *buf, size_t bufsize) {
     if (bufsize == 0) {
-        return -2;
+        return ParseNameStatus::OutputBufferError;
     }
     size_t bufused = 0;
     int init = 1;
     do {
         if (*inpos == inend) {
-            return -1;
+            return ParseNameStatus::InputError;
         }
         // read length of next component
         int octet = *((*inpos)++);
         if (octet == 0) {
             buf[bufused] = 0;
-            return 0;
+            return ParseNameStatus::OK;
         }
         // add dot in output
         if (!init) {
             if (bufused == bufsize - 1) {
-                return -2;
+                return ParseNameStatus::OutputBufferError;
             }
             buf[bufused++] = '.';
         } else {
@@ -91,36 +91,36 @@ int parse_name(const uint8_t **inpos, const uint8_t *inend,
         // handle references
         if ((octet & 0xC0) == 0xC0) {
             if (*inpos == inend) {
-                return -1;
+                return ParseNameStatus::InputError;
             }
             int ref = ((octet - 0xC0) << 8) + *((*inpos)++);
             if (ref < 0 || ref >= (*inpos) - inbuf - 2) {
-                return -1;
+                return ParseNameStatus::InputError;
             }
             const uint8_t *newbuf = inbuf + ref;
             return parse_name(&newbuf, (*inpos) - 2, inbuf, buf + bufused,
                               bufsize - bufused);
         }
         if (octet > MAX_LABEL_LENGTH) {
-            return -1;
+            return ParseNameStatus::InputError;
         }
         // The maximum size of a query name is 255. The buffer must have
         // room for the null-character at the end of the buffer after writing
         // the label.
         if (octet + bufused > MAX_QUERY_NAME_LENGTH) {
-            return -1;
+            return ParseNameStatus::InputError;
         }
         // copy label
         while (octet) {
             if (*inpos == inend) {
-                return -1;
+                return ParseNameStatus::InputError;
             }
             if (bufused == bufsize - 1) {
-                return -2;
+                return ParseNameStatus::OutputBufferError;
             }
             int c = *((*inpos)++);
             if (c == '.') {
-                return -1;
+                return ParseNameStatus::InputError;
             }
             octet--;
             buf[bufused++] = c;
@@ -424,14 +424,14 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
         const uint8_t *inend = inbuf + insize;
         char name[MAX_QUERY_NAME_BUFFER_LENGTH];
         int offset = inpos - inbuf;
-        int ret = parse_name(&inpos, inend, inbuf, name,
-                             MAX_QUERY_NAME_BUFFER_LENGTH);
-        if (ret == -1) {
+        ParseNameStatus ret = parse_name(&inpos, inend, inbuf, name,
+                                         MAX_QUERY_NAME_BUFFER_LENGTH);
+        if (ret == ParseNameStatus::InputError) {
             responseCode = DNSResponseCode::FORMAT_ERROR;
             goto error;
         }
 
-        if (ret == -2) {
+        if (ret == ParseNameStatus::OutputBufferError) {
             responseCode = DNSResponseCode::REFUSED;
             goto error;
         }
