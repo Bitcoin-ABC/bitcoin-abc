@@ -75,7 +75,9 @@ public:
                   size_t nPosIn)
         : nType(nTypeIn), nVersion(nVersionIn), vchData(vchDataIn),
           nPos(nPosIn) {
-        if (nPos > vchData.size()) vchData.resize(nPos);
+        if (nPos > vchData.size()) {
+            vchData.resize(nPos);
+        }
     }
     /**
      * (other params same as above)
@@ -110,7 +112,9 @@ public:
     int GetType() const { return nType; }
     void seek(size_t nSize) {
         nPos += nSize;
-        if (nPos > vchData.size()) vchData.resize(nPos);
+        if (nPos > vchData.size()) {
+            vchData.resize(nPos);
+        }
     }
 
 private:
@@ -364,7 +368,9 @@ public:
 
     bool Rewind(size_type n) {
         // Rewind by n characters if the buffer hasn't been compacted yet
-        if (n > nReadPos) return false;
+        if (n > nReadPos) {
+            return false;
+        }
         nReadPos -= n;
         return true;
     }
@@ -408,9 +414,10 @@ public:
         }
         unsigned int nReadPosNext = nReadPos + nSize;
         if (nReadPosNext >= vch.size()) {
-            if (nReadPosNext > vch.size())
+            if (nReadPosNext > vch.size()) {
                 throw std::ios_base::failure(
                     "CDataStream::ignore(): end of data");
+            }
             nReadPos = 0;
             vch.clear();
             return;
@@ -627,52 +634,60 @@ public:
     int GetVersion() const { return nVersion; }
 
     void read(char *pch, size_t nSize) {
-        if (!file)
+        if (!file) {
             throw std::ios_base::failure(
                 "CAutoFile::read: file handle is nullptr");
-        if (fread(pch, 1, nSize, file) != nSize)
+        }
+        if (fread(pch, 1, nSize, file) != nSize) {
             throw std::ios_base::failure(feof(file)
                                              ? "CAutoFile::read: end of file"
                                              : "CAutoFile::read: fread failed");
+        }
     }
 
     void ignore(size_t nSize) {
-        if (!file)
+        if (!file) {
             throw std::ios_base::failure(
                 "CAutoFile::ignore: file handle is nullptr");
+        }
         uint8_t data[4096];
         while (nSize > 0) {
             size_t nNow = std::min<size_t>(nSize, sizeof(data));
-            if (fread(data, 1, nNow, file) != nNow)
+            if (fread(data, 1, nNow, file) != nNow) {
                 throw std::ios_base::failure(
                     feof(file) ? "CAutoFile::ignore: end of file"
                                : "CAutoFile::read: fread failed");
+            }
             nSize -= nNow;
         }
     }
 
     void write(const char *pch, size_t nSize) {
-        if (!file)
+        if (!file) {
             throw std::ios_base::failure(
                 "CAutoFile::write: file handle is nullptr");
-        if (fwrite(pch, 1, nSize, file) != nSize)
+        }
+        if (fwrite(pch, 1, nSize, file) != nSize) {
             throw std::ios_base::failure("CAutoFile::write: write failed");
+        }
     }
 
     template <typename T> CAutoFile &operator<<(const T &obj) {
         // Serialize to this stream
-        if (!file)
+        if (!file) {
             throw std::ios_base::failure(
                 "CAutoFile::operator<<: file handle is nullptr");
+        }
         ::Serialize(*this, obj);
         return (*this);
     }
 
     template <typename T> CAutoFile &operator>>(T &&obj) {
         // Unserialize from this stream
-        if (!file)
+        if (!file) {
             throw std::ios_base::failure(
                 "CAutoFile::operator>>: file handle is nullptr");
+        }
         ::Unserialize(*this, obj);
         return (*this);
     }
@@ -710,8 +725,12 @@ protected:
         unsigned int pos = nSrcPos % vchBuf.size();
         unsigned int readNow = vchBuf.size() - pos;
         unsigned int nAvail = vchBuf.size() - (nSrcPos - nReadPos) - nRewind;
-        if (nAvail < readNow) readNow = nAvail;
-        if (readNow == 0) return false;
+        if (nAvail < readNow) {
+            readNow = nAvail;
+        }
+        if (readNow == 0) {
+            return false;
+        }
         size_t nBytes = fread((void *)&vchBuf[pos], 1, readNow, src);
         if (nBytes == 0) {
             throw std::ios_base::failure(
@@ -752,16 +771,24 @@ public:
 
     // read a number of bytes
     void read(char *pch, size_t nSize) {
-        if (nSize + nReadPos > nReadLimit)
+        if (nSize + nReadPos > nReadLimit) {
             throw std::ios_base::failure("Read attempted past buffer limit");
-        if (nSize + nRewind > vchBuf.size())
+        }
+        if (nSize + nRewind > vchBuf.size()) {
             throw std::ios_base::failure("Read larger than buffer size");
+        }
         while (nSize > 0) {
-            if (nReadPos == nSrcPos) Fill();
+            if (nReadPos == nSrcPos) {
+                Fill();
+            }
             unsigned int pos = nReadPos % vchBuf.size();
             size_t nNow = nSize;
-            if (nNow + pos > vchBuf.size()) nNow = vchBuf.size() - pos;
-            if (nNow + nReadPos > nSrcPos) nNow = nSrcPos - nReadPos;
+            if (nNow + pos > vchBuf.size()) {
+                nNow = vchBuf.size() - pos;
+            }
+            if (nNow + nReadPos > nSrcPos) {
+                nNow = nSrcPos - nReadPos;
+            }
             memcpy(pch, &vchBuf[pos], nNow);
             nReadPos += nNow;
             pch += nNow;
@@ -788,8 +815,12 @@ public:
 
     bool Seek(uint64_t nPos) {
         long nLongPos = nPos;
-        if (nPos != (uint64_t)nLongPos) return false;
-        if (fseek(src, nLongPos, SEEK_SET)) return false;
+        if (nPos != (uint64_t)nLongPos) {
+            return false;
+        }
+        if (fseek(src, nLongPos, SEEK_SET)) {
+            return false;
+        }
         nLongPos = ftell(src);
         nSrcPos = nLongPos;
         nReadPos = nLongPos;
@@ -798,7 +829,9 @@ public:
 
     // Prevent reading beyond a certain position. No argument removes the limit.
     bool SetLimit(uint64_t nPos = (uint64_t)(-1)) {
-        if (nPos < nReadPos) return false;
+        if (nPos < nReadPos) {
+            return false;
+        }
         nReadLimit = nPos;
         return true;
     }
@@ -812,8 +845,12 @@ public:
     // search for a given byte in the stream, and remain positioned on it
     void FindByte(char ch) {
         while (true) {
-            if (nReadPos == nSrcPos) Fill();
-            if (vchBuf[nReadPos % vchBuf.size()] == ch) break;
+            if (nReadPos == nSrcPos) {
+                Fill();
+            }
+            if (vchBuf[nReadPos % vchBuf.size()] == ch) {
+                break;
+            }
             nReadPos++;
         }
     }
