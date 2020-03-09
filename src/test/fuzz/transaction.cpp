@@ -105,5 +105,9 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     }
     if (!skip_tx_to_univ) {
         TxToUniv(tx, /* hashBlock */ {}, u);
+        static const uint256 u256_max(
+            uint256S("fffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                     "fffffff"));
+        TxToUniv(tx, u256_max, u);
     }
 }

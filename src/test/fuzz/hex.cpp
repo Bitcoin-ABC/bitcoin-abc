@@ -4,6 +4,7 @@
 
 #include <core_io.h>
 #include <primitives/block.h>
+#include <pubkey.h>
 #include <rpc/util.h>
 #include <uint256.h>
 #include <util/strencodings.h>
@@ -16,6 +17,10 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+
+void initialize() {
+    static const ECCVerifyHandle verify_handle;
+}
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
     const std::string random_hex_string(buffer.begin(), buffer.end());
@@ -34,4 +39,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     }
     CBlockHeader block_header;
     (void)DecodeHexBlockHeader(block_header, random_hex_string);
+    CBlock block;
+    (void)DecodeHexBlk(block, random_hex_string);
 }

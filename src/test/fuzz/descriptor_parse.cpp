@@ -10,7 +10,7 @@
 #include <memory>
 
 void initialize() {
-    static const auto verify_handle = std::make_unique<ECCVerifyHandle>();
+    static const ECCVerifyHandle verify_handle;
     SelectParams(CBaseChainParams::REGTEST);
 }
 

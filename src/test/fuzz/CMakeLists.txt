@@ -145,10 +145,13 @@ add_deserialize_fuzz_targets(
 	pub_key_deserialize
 	script_deserialize
 	service_deserialize
+	snapshotmetadata_deserialize
 	sub_net_deserialize
 	tx_in_deserialize
 	txoutcompressor_deserialize
 	txundo_deserialize
+	uint160_deserialize
+	uint256_deserialize
 )
 
 add_process_message_fuzz_targets(

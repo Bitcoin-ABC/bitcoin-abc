@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <base58.h>
+#include <psbt.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 
@@ -48,4 +49,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         assert(ToLower(encoded_string) ==
                ToLower(TrimString(random_encoded_string)));
     }
+
+    PartiallySignedTransaction psbt;
+    std::string error;
+    (void)DecodeBase64PSBT(psbt, random_encoded_string, error);
 }

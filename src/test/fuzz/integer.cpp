@@ -16,6 +16,7 @@
 #include <netbase.h>
 #include <policy/settings.h>
 #include <pow/pow.h>
+#include <protocol.h>
 #include <pubkey.h>
 #include <rpc/util.h>
 #include <script/signingprovider.h>
@@ -216,5 +217,11 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         stream << b;
         stream >> deserialized_b;
         assert(b == deserialized_b && stream.empty());
+    }
+
+    {
+        const ServiceFlags service_flags = (ServiceFlags)u64;
+        (void)HasAllDesirableServiceFlags(service_flags);
+        (void)MayHaveUsefulAddressDB(service_flags);
     }
 }
