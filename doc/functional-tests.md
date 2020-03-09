@@ -120,7 +120,7 @@ default:
   `test_framework.log` and no logs are output to the console.
 - When run directly, *all* logs are written to `test_framework.log` and INFO
   level and above are output to the console.
-- When run on Travis, no logs are output to the console. However, if a test
+- When run by our CI, no logs are output to the console. However, if a test
   fails, the `test_framework.log` and bitcoind `debug.log`s will all be dumped
   to the console to help troubleshooting.
 
@@ -303,10 +303,14 @@ don't have test cases for.
 
 #### General test-writing advice
 
+- Instead of inline comments or no test documentation at all, log the comments
+  to the test log, e.g. `self.log.info('Create enough transactions to fill a block')`.
+  Logs make the test code easier to read and the test logic easier
+  [to debug](#test-logging).
 - Set `self.num_nodes` to the minimum number of nodes necessary for the test.
   Having additional unrequired nodes adds to the execution time of the test as
   well as memory/CPU/disk requirements (which is important when running tests in
-  parallel or on Travis).
+  parallel).
 - Avoid stop-starting the nodes multiple times during the test if possible. A
   stop-start takes several seconds, so doing it several times blows up the
   runtime of the test.
