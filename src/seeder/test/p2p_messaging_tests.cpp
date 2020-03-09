@@ -21,11 +21,6 @@ const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 #include <boost/test/unit_test.hpp>
 
-enum PeerMessagingState : bool {
-    Finished = true,
-    AwaitingMessages = false,
-};
-
 class TestCSeederNode : public CSeederNode {
 public:
     TestCSeederNode(const CService &service, std::vector<CAddress> *vAddrIn)
@@ -34,9 +29,10 @@ public:
     }
 
     void TestProcessMessage(const std::string &strCommand, CDataStream &message,
-                            PeerMessagingState state) {
-        bool ret = CSeederNode::ProcessMessage(strCommand, message);
-        BOOST_CHECK_EQUAL(ret, bool(state));
+                            PeerMessagingState expectedState) {
+        PeerMessagingState ret =
+            CSeederNode::ProcessMessage(strCommand, message);
+        BOOST_CHECK_EQUAL(ret, expectedState);
     }
 };
 
