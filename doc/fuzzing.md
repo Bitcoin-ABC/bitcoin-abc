@@ -48,14 +48,10 @@ To build Bitcoin ABC using AFL instrumentation (this assumes that the
 ```
 mkdir -p buildFuzzer
 cd buildFuzzer
-cmake -GNinja .. -DCCACHE=OFF -DCMAKE_C_COMPILER=afl-gcc -DCMAKE_CXX_COMPILER=afl-g++
+cmake -GNinja .. -DCMAKE_C_COMPILER=afl-gcc -DCMAKE_CXX_COMPILER=afl-g++
 export AFL_HARDEN=1
 ninja bitcoin-fuzzers
 ```
-
-We disable ccache because we don't want to pollute the ccache with instrumented
-objects, and similarly don't want to use non-instrumented cached objects linked
-in.
 
 The fuzzing can be sped up significantly (~200x) by using `afl-clang-fast` and
 `afl-clang-fast++` in place of `afl-gcc` and `afl-g++` when compiling. When
@@ -88,7 +84,6 @@ To build all fuzz targets with libFuzzer, run
 mkdir -p buildFuzzer
 cd buildFuzzer
 cmake -GNinja .. \
-  -DCCACHE=OFF \
   -DCMAKE_C_COMPILER=clang \
   -DCMAKE_CXX_COMPILER=clang++ \
   -DENABLE_SANITIZERS="fuzzer;address;undefined"
