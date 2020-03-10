@@ -19,3 +19,5 @@ This release includes the following features and fixes:
   if the transaction passes validation.
 - A "sequence" notifier is added to ZeroMQ notifications, enabling client-side mempool
   tracking.
+- The same ZeroMQ notification (e.g. `-zmqpubhashtx=address`) can now be specified multiple
+  times to publish the same notification to different ZeroMQ sockets.

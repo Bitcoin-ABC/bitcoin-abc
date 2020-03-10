@@ -185,7 +185,8 @@ bool CZMQAbstractPublishNotifier::SendZmqMessage(const char *command,
 
 bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
     BlockHash hash = pindex->GetBlockHash();
-    LogPrint(BCLog::ZMQ, "zmq: Publish hashblock %s\n", hash.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashblock %s to %s\n", hash.GetHex(),
+             this->address);
     char data[32];
     for (unsigned int i = 0; i < 32; i++) {
         data[31 - i] = hash.begin()[i];
@@ -196,7 +197,8 @@ bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
 bool CZMQPublishHashTransactionNotifier::NotifyTransaction(
     const CTransaction &transaction) {
     TxId txid = transaction.GetId();
-    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx %s\n", txid.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx %s to %s\n", txid.GetHex(),
+             this->address);
     char data[32];
     for (unsigned int i = 0; i < 32; i++) {
         data[31 - i] = txid.begin()[i];
@@ -205,8 +207,8 @@ bool CZMQPublishHashTransactionNotifier::NotifyTransaction(
 }
 
 bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
-    LogPrint(BCLog::ZMQ, "zmq: Publish rawblock %s\n",
-             pindex->GetBlockHash().GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish rawblock %s to %s\n",
+             pindex->GetBlockHash().GetHex(), this->address);
 
     const Config &config = GetConfig();
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
@@ -228,7 +230,8 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
 bool CZMQPublishRawTransactionNotifier::NotifyTransaction(
     const CTransaction &transaction) {
     TxId txid = transaction.GetId();
-    LogPrint(BCLog::ZMQ, "zmq: Publish rawtx %s\n", txid.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish rawtx %s to %s\n", txid.GetHex(),
+             this->address);
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     ss << transaction;
     return SendZmqMessage(MSG_RAWTX, &(*ss.begin()), ss.size());
@@ -238,8 +241,8 @@ bool CZMQPublishRawTransactionNotifier::NotifyTransaction(
 bool CZMQPublishSequenceNotifier::NotifyBlockConnect(
     const CBlockIndex *pindex) {
     BlockHash hash = pindex->GetBlockHash();
-    LogPrint(BCLog::ZMQ, "zmq: Publish sequence block connect %s\n",
-             hash.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish sequence block connect %s to %s\n",
+             hash.GetHex(), this->address);
     char data[sizeof(BlockHash) + 1];
     for (unsigned int i = 0; i < sizeof(BlockHash); i++) {
         data[sizeof(BlockHash) - 1 - i] = hash.begin()[i];
@@ -252,8 +255,8 @@ bool CZMQPublishSequenceNotifier::NotifyBlockConnect(
 bool CZMQPublishSequenceNotifier::NotifyBlockDisconnect(
     const CBlockIndex *pindex) {
     BlockHash hash = pindex->GetBlockHash();
-    LogPrint(BCLog::ZMQ, "zmq: Publish sequence block disconnect %s\n",
-             hash.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish sequence block disconnect %s to %s\n",
+             hash.GetHex(), this->address);
     char data[sizeof(BlockHash) + 1];
     for (unsigned int i = 0; i < sizeof(BlockHash); i++) {
         data[sizeof(BlockHash) - 1 - i] = hash.begin()[i];
@@ -266,8 +269,8 @@ bool CZMQPublishSequenceNotifier::NotifyBlockDisconnect(
 bool CZMQPublishSequenceNotifier::NotifyTransactionAcceptance(
     const CTransaction &transaction, uint64_t mempool_sequence) {
     TxId txid = transaction.GetId();
-    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx mempool acceptance %s\n",
-             txid.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx mempool acceptance %s to %s\n",
+             txid.GetHex(), this->address);
     uint8_t data[sizeof(TxId) + sizeof(mempool_sequence) + 1];
     for (unsigned int i = 0; i < sizeof(TxId); i++) {
         data[sizeof(TxId) - 1 - i] = txid.begin()[i];
@@ -281,8 +284,8 @@ bool CZMQPublishSequenceNotifier::NotifyTransactionAcceptance(
 bool CZMQPublishSequenceNotifier::NotifyTransactionRemoval(
     const CTransaction &transaction, uint64_t mempool_sequence) {
     TxId txid = transaction.GetId();
-    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx mempool removal %s\n",
-             txid.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx mempool removal %s to %s\n",
+             txid.GetHex(), this->address);
     uint8_t data[sizeof(TxId) + sizeof(mempool_sequence) + 1];
     for (unsigned int i = 0; i < sizeof(TxId); i++) {
         data[sizeof(TxId) - 1 - i] = txid.begin()[i];

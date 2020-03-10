@@ -87,6 +87,7 @@ class ZMQTest (BitcoinTestFramework):
             self.test_sequence()
             self.test_mempool_sync()
             self.test_reorg()
+            self.test_multiple_interfaces()
         finally:
             # Destroy the ZMQ context.
             self.log.debug("Destroying ZMQ context")
@@ -618,6 +619,34 @@ class ZMQTest (BitcoinTestFramework):
         # 5) If you miss a zmq/mempool sequence number, go back to step (2)
 
         self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
+
+    def test_multiple_interfaces(self):
+        # Set up two subscribers with different addresses
+        subscribers = []
+        for i in range(2):
+            address = f"tcp://127.0.0.1:{28334 + i}"
+            socket = self.ctx.socket(zmq.SUB)
+            socket.set(zmq.RCVTIMEO, 60000)
+            hashblock = ZMQSubscriber(socket, b"hashblock")
+            socket.connect(address)
+            subscribers.append({'address': address, 'hashblock': hashblock})
+
+        self.restart_node(
+            0,
+            [f'-zmqpub{subscriber["hashblock"].topic.decode()}={subscriber["address"]}'
+             for subscriber in subscribers])
+
+        # Relax so that the subscriber is ready before publishing zmq messages
+        sleep(0.2)
+
+        # Generate 1 block in nodes[0] and receive all notifications
+        self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
+
+        # Should receive the same block hash on both subscribers
+        assert_equal(self.nodes[0].getbestblockhash(),
+                     subscribers[0]['hashblock'].receive().hex())
+        assert_equal(self.nodes[0].getbestblockhash(),
+                     subscribers[1]['hashblock'].receive().hex())
 
 
 if __name__ == '__main__':
