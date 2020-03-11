@@ -17,7 +17,9 @@
 #include <vector>
 
 void initialize() {
-    SelectParams(CBaseChainParams::REGTEST);
+    static const ECCVerifyHandle verify_handle;
+    ECC_Start();
+    SelectParams(CBaseChainParams::MAIN);
 }
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
