@@ -27,6 +27,7 @@ option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
+option(USE_LD_GOLD "Try to use gold as a linker if available" ON)
 
 # If ccache is available, then use it.
 find_program(CCACHE ccache)
@@ -58,6 +59,10 @@ if(ENABLE_SANITIZERS)
 endif()
 
 include(AddCompilerFlags)
+
+if(USE_LD_GOLD)
+	add_linker_flags(-fuse-ld=gold)
+endif()
 
 # Prefer -g3, defaults to -g if unavailable
 foreach(LANGUAGE C CXX)
