@@ -1,4 +1,4 @@
-Source: bitcoin
+Source: bitcoinabc
 Section: utils
 Priority: optional
 Maintainer: Jonas Smedegaard <dr@jones.dk>
