@@ -3,25 +3,27 @@ Section: utils
 Priority: optional
 Maintainer: Bitcoin ABC Package Maintainers <package-maintainers@bitcoinabc.org>
 Uploaders: Jason B. Cox <jasonbcox@bitcoinabc.org>
-Build-Depends: debhelper,
- devscripts,
- automake,
- libtool,
+Build-Depends: automake,
  bash-completion,
- libboost-system-dev (>> 1.35) | libboost-system1.35-dev,
- libdb4.8++-dev,
- libssl-dev,
- pkg-config,
+ debhelper,
+ devscripts,
+ libtool,
+ libdb5.3++-dev,
+ libevent-dev,
  libminiupnpc8-dev | libminiupnpc-dev (>> 1.6),
- libboost-filesystem-dev (>> 1.35) | libboost-filesystem1.35-dev,
- libboost-program-options-dev (>> 1.35) | libboost-program-options1.35-dev,
- libboost-thread-dev (>> 1.35) | libboost-thread1.35-dev,
- libboost-test-dev (>> 1.35) | libboost-test1.35-dev,
- qt4-qmake,
- libqt4-dev,
- libqrencode-dev,
+ libboost-filesystem-dev (>> 1.58) | libboost-filesystem1.58-dev,
+ libboost-chrono-dev (>> 1.58) | libboost-chrono1.58-dev,
+ libboost-system-dev (>> 1.58) | libboost-system1.58-dev,
+ libboost-thread-dev (>> 1.58) | libboost-thread1.58-dev,
+ libboost-test-dev (>> 1.58) | libboost-test1.58-dev,
  libprotobuf-dev, protobuf-compiler,
- python
+ libqrencode-dev,
+ libssl-dev,
+ libzmq3-dev,
+ pkg-config,
+ python3,
+ qttools5-dev,
+ qttools5-dev-tools
 Standards-Version: 3.9.2
 Homepage: https://bitcoinabc.org/
 Vcs-Git: ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git
