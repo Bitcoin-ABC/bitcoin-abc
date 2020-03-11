@@ -129,9 +129,13 @@ BOOST_AUTO_TEST_CASE(parse_name_qname_length_tests) {
     CheckParseName(maxLengthQName);
 
     // Check that a query name that is too long causes an error
+    std::string overSizedQName = maxLengthQName;
+    // Split the last label into two while adding an extra character to make
+    // sure the function does not error because of an oversized label
+    overSizedQName.insert(overSizedQName.end() - 3, '.');
     // Allocates an extra large buffer to guarantee an error is not caused by
     // the buffer size
-    CheckParseNameError(maxLengthQName + "a", -1, 2 * maxLengthQName.size());
+    CheckParseNameError(overSizedQName, -1, 2 * overSizedQName.size());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
