@@ -39,19 +39,11 @@ struct CoinEntry {
     explicit CoinEntry(const COutPoint *ptr)
         : outpoint(const_cast<COutPoint *>(ptr)), key(DB_COIN) {}
 
-    template <typename Stream> void Serialize(Stream &s) const {
-        s << key;
-        s << outpoint->GetTxId();
-        s << VARINT(outpoint->GetN());
-    }
-
-    template <typename Stream> void Unserialize(Stream &s) {
-        s >> key;
-        TxId id;
-        s >> id;
-        uint32_t n = 0;
-        s >> VARINT(n);
-        *outpoint = COutPoint(id, n);
+    SERIALIZE_METHODS(CoinEntry, obj) {
+        TxId id = obj.outpoint->GetTxId();
+        uint32_t n = obj.outpoint->GetN();
+        READWRITE(obj.key, id, n);
+        SER_READ(obj, *obj.outpoint = COutPoint(id, n));
     }
 };
 } // namespace

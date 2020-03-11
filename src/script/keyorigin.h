@@ -19,11 +19,8 @@ struct KeyOriginInfo {
                a.path == b.path;
     }
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(fingerprint);
-        READWRITE(path);
+    SERIALIZE_METHODS(KeyOriginInfo, obj) {
+        READWRITE(obj.fingerprint, obj.path);
     }
 
     void clear() {

@@ -224,8 +224,6 @@ add_compiler_flags(
 	-Wunused-parameter
 	-Wmissing-braces
 	-Wthread-safety
-	-Wshadow
-	-Wshadow-field
 	-Wrange-loop-analysis
 	-Wredundant-decls
 	-Wunreachable-code-loop-increment
@@ -234,6 +232,16 @@ add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(
 	-Wredundant-move
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	# GCC has no flag variant which is granular enough to avoid raising the clang
+	# -Wshadow-uncaptured-local equivalent. This is causing a lot of warnings
+	# on serialize.h which cannot be disabled locally, so drop the flag.
+	add_compiler_flags(
+		-Wshadow
+		-Wshadow-field
+	)
+endif()
 
 option(EXTRA_WARNINGS "Enable extra warnings" OFF)
 if(EXTRA_WARNINGS)

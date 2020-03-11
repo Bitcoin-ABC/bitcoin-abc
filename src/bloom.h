@@ -68,14 +68,8 @@ public:
                  const uint32_t nTweak, uint8_t nFlagsIn);
     CBloomFilter() : nHashFuncs(0), nTweak(0), nFlags(0) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(vData);
-        READWRITE(nHashFuncs);
-        READWRITE(nTweak);
-        READWRITE(nFlags);
+    SERIALIZE_METHODS(CBloomFilter, obj) {
+        READWRITE(obj.vData, obj.nHashFuncs, obj.nTweak, obj.nFlags);
     }
 
     void insert(const std::vector<uint8_t> &vKey);

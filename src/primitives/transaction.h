@@ -30,13 +30,7 @@ public:
     COutPoint() : txid(), n(NULL_INDEX) {}
     COutPoint(TxId txidIn, uint32_t nIn) : txid(txidIn), n(nIn) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(txid);
-        READWRITE(n);
-    }
+    SERIALIZE_METHODS(COutPoint, obj) { READWRITE(obj.txid, obj.n); }
 
     bool IsNull() const { return txid.IsNull() && n == NULL_INDEX; }
 
@@ -115,13 +109,8 @@ public:
           uint32_t nSequenceIn = SEQUENCE_FINAL)
         : CTxIn(COutPoint(prevTxId, nOut), scriptSigIn, nSequenceIn) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(prevout);
-        READWRITE(scriptSig);
-        READWRITE(nSequence);
+    SERIALIZE_METHODS(CTxIn, obj) {
+        READWRITE(obj.prevout, obj.scriptSig, obj.nSequence);
     }
 
     friend bool operator==(const CTxIn &a, const CTxIn &b) {
@@ -148,13 +137,7 @@ public:
     CTxOut(Amount nValueIn, CScript scriptPubKeyIn)
         : nValue(nValueIn), scriptPubKey(scriptPubKeyIn) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(nValue);
-        READWRITE(scriptPubKey);
-    }
+    SERIALIZE_METHODS(CTxOut, obj) { READWRITE(obj.nValue, obj.scriptPubKey); }
 
     void SetNull() {
         nValue = -SATOSHI;

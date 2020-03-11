@@ -450,12 +450,7 @@ public:
     CScript(const uint8_t *pbegin, const uint8_t *pend)
         : CScriptBase(pbegin, pend) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITEAS(CScriptBase, *this);
-    }
+    SERIALIZE_METHODS(CScript, obj) { READWRITEAS(CScriptBase, obj); }
 
     explicit CScript(int64_t b) { operator<<(b); }
     explicit CScript(opcodetype b) { operator<<(b); }

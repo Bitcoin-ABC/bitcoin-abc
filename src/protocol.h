@@ -64,14 +64,9 @@ public:
     bool IsValidWithoutConfig(const MessageMagic &magic) const;
     bool IsOversized(const Config &config) const;
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(pchMessageStart);
-        READWRITE(pchCommand);
-        READWRITE(nMessageSize);
-        READWRITE(pchChecksum);
+    SERIALIZE_METHODS(CMessageHeader, obj) {
+        READWRITE(obj.pchMessageStart, obj.pchCommand, obj.nMessageSize,
+                  obj.pchChecksum);
     }
 
     MessageMagic pchMessageStart;
@@ -431,13 +426,8 @@ public:
 
     void Init();
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        if (ser_action.ForRead()) {
-            Init();
-        }
+    SERIALIZE_METHODS(CAddress, obj) {
+        SER_READ(obj, obj.Init());
         int nVersion = s.GetVersion();
         if (s.GetType() & SER_DISK) {
             READWRITE(nVersion);
@@ -450,12 +440,10 @@ public:
             // After the version handshake, serialization version is >=
             // MIN_PEER_PROTO_VERSION and all ADDR messages are serialized with
             // nTime.
-            READWRITE(nTime);
+            READWRITE(obj.nTime);
         }
-        uint64_t nServicesInt = nServices;
-        READWRITE(nServicesInt);
-        nServices = static_cast<ServiceFlags>(nServicesInt);
-        READWRITEAS(CService, *this);
+        READWRITE(Using<CustomUintFormatter<8>>(obj.nServices));
+        READWRITEAS(CService, obj);
     }
 
     ServiceFlags nServices;
@@ -496,13 +484,7 @@ public:
     CInv() : type(0), hash() {}
     CInv(uint32_t typeIn, const uint256 &hashIn) : type(typeIn), hash(hashIn) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(type);
-        READWRITE(hash);
-    }
+    SERIALIZE_METHODS(CInv, obj) { READWRITE(obj.type, obj.hash); }
 
     friend bool operator<(const CInv &a, const CInv &b) {
         return a.type < b.type || (a.type == b.type && a.hash < b.hash);
