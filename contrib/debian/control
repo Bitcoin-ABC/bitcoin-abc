@@ -1,8 +1,8 @@
 Source: bitcoinabc
 Section: utils
 Priority: optional
-Maintainer: Jonas Smedegaard <dr@jones.dk>
-Uploaders: Micah Anderson <micah@debian.org>
+Maintainer: Bitcoin ABC Package Maintainers <package-maintainers@bitcoinabc.org>
+Uploaders: Jason B. Cox <jasonbcox@bitcoinabc.org>
 Build-Depends: debhelper,
  devscripts,
  automake,
