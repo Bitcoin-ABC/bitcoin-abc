@@ -128,12 +128,8 @@ ParseNameStatus parse_name(const uint8_t **inpos, const uint8_t *inend,
     } while (1);
 }
 
-//  0: ok
-// -1: label > MAX_LABEL_LENGTH characters
-// -2: insufficent space in output
-// -3: two subsequent dots
-static int write_name(uint8_t **outpos, const uint8_t *outend, const char *name,
-                      int offset) {
+int write_name(uint8_t **outpos, const uint8_t *outend, const char *name,
+               int offset) {
     while (*name != 0) {
         const char *dot = strchr(name, '.');
         const char *fin = dot;

@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <seeder/dns.h>
+#include <seeder/test/dns_util.h>
 #include <seeder/test/util.h>
 
 #include <ostream>
@@ -16,38 +17,7 @@ std::ostream &operator<<(std::ostream &os, const ParseNameStatus &status) {
     return os;
 }
 
-BOOST_AUTO_TEST_SUITE(dns_tests)
-
-static const uint8_t END_OF_NAME_FIELD = 0;
-
-// Builds the name field of the question section of a DNS query
-static std::vector<uint8_t>
-CreateDNSQuestionNameField(const std::string &queryName) {
-    std::vector<uint8_t> nameField;
-    size_t i = 0;
-    size_t labelIndex = 0;
-    while (i < queryName.size()) {
-        if (queryName[i] == '.') {
-            // Push the length of the label and then the label
-            nameField.push_back(i - labelIndex);
-            while (labelIndex < i) {
-                nameField.push_back(queryName[labelIndex]);
-                labelIndex++;
-            }
-            labelIndex = i + 1;
-        }
-        i++;
-    }
-    // Push the length of the label and then the label
-    nameField.push_back(i - labelIndex);
-    while (labelIndex < i) {
-        nameField.push_back(queryName[labelIndex]);
-        labelIndex++;
-    }
-    nameField.push_back(END_OF_NAME_FIELD);
-
-    return nameField;
-}
+BOOST_AUTO_TEST_SUITE(parse_name_tests)
 
 static void CheckParseName(const std::string &queryName) {
     std::vector<uint8_t> nameField = CreateDNSQuestionNameField(queryName);
@@ -103,7 +73,7 @@ static void CheckParseNameError(
     BOOST_CHECK_EQUAL(ret, expectedError);
 }
 
-BOOST_AUTO_TEST_CASE(parse_name_tests) {
+BOOST_AUTO_TEST_CASE(parse_name_simple_tests) {
     CheckParseName("www.domain.com");
     CheckParseName("domain.com");
     CheckParseName("sub1.sub2.domain.co.uk");

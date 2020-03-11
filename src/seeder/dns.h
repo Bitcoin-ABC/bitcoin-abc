@@ -46,6 +46,13 @@ enum class ParseNameStatus {
 ParseNameStatus parse_name(const uint8_t **inpos, const uint8_t *inend,
                            const uint8_t *inbuf, char *buf, size_t bufsize);
 
+//  0: k
+// -1: component > 63 characters
+// -2: insufficent space in output
+// -3: two subsequent dots
+int write_name(uint8_t **outpos, const uint8_t *outend, const char *name,
+               int offset);
+
 int dnsserver(dns_opt_t *opt);
 
 #endif // BITCOIN_SEEDER_DNS_H

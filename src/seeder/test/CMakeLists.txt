@@ -11,7 +11,8 @@ add_dependencies(check check-bitcoin-seeder)
 add_boost_unit_tests_to_suite(bitcoin-seeder test_bitcoin-seeder
 	TESTS
 		p2p_messaging_tests.cpp
-		dns_tests.cpp
+		parse_name_tests.cpp
+		write_name_tests.cpp
 )
 
 target_link_libraries(test_bitcoin-seeder
