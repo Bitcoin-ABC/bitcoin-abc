@@ -33,8 +33,9 @@ public:
             BITS / 32 > 0 && BITS % 32 == 0,
             "Template parameter BITS must be a positive multiple of 32.");
 
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             pn[i] = 0;
+        }
     }
 
     base_uint(const base_uint &b) {
@@ -42,13 +43,15 @@ public:
             BITS / 32 > 0 && BITS % 32 == 0,
             "Template parameter BITS must be a positive multiple of 32.");
 
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             pn[i] = b.pn[i];
+        }
     }
 
     base_uint &operator=(const base_uint &b) {
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             pn[i] = b.pn[i];
+        }
         return *this;
     }
 
@@ -59,23 +62,26 @@ public:
 
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
-        for (int i = 2; i < WIDTH; i++)
+        for (int i = 2; i < WIDTH; i++) {
             pn[i] = 0;
+        }
     }
 
     explicit base_uint(const std::string &str);
 
     const base_uint operator~() const {
         base_uint ret;
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             ret.pn[i] = ~pn[i];
+        }
         return ret;
     }
 
     const base_uint operator-() const {
         base_uint ret;
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             ret.pn[i] = ~pn[i];
+        }
         ++ret;
         return ret;
     }
@@ -85,26 +91,30 @@ public:
     base_uint &operator=(uint64_t b) {
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
-        for (int i = 2; i < WIDTH; i++)
+        for (int i = 2; i < WIDTH; i++) {
             pn[i] = 0;
+        }
         return *this;
     }
 
     base_uint &operator^=(const base_uint &b) {
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             pn[i] ^= b.pn[i];
+        }
         return *this;
     }
 
     base_uint &operator&=(const base_uint &b) {
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             pn[i] &= b.pn[i];
+        }
         return *this;
     }
 
     base_uint &operator|=(const base_uint &b) {
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < WIDTH; i++) {
             pn[i] |= b.pn[i];
+        }
         return *this;
     }
 
@@ -159,8 +169,9 @@ public:
     base_uint &operator++() {
         // prefix operator
         int i = 0;
-        while (i < WIDTH && ++pn[i] == 0)
+        while (i < WIDTH && ++pn[i] == 0) {
             i++;
+        }
         return *this;
     }
 
@@ -174,8 +185,9 @@ public:
     base_uint &operator--() {
         // prefix operator
         int i = 0;
-        while (i < WIDTH && --pn[i] == std::numeric_limits<uint32_t>::max())
+        while (i < WIDTH && --pn[i] == std::numeric_limits<uint32_t>::max()) {
             i++;
+        }
         return *this;
     }
 
@@ -267,7 +279,7 @@ public:
     uint64_t GetLow64() const {
         static_assert(WIDTH >= 2, "Assertion WIDTH >= 2 failed (WIDTH = BITS / "
                                   "32). BITS is a template parameter.");
-        return pn[0] | (uint64_t)pn[1] << 32;
+        return pn[0] | uint64_t(pn[1]) << 32;
     }
 };
 
