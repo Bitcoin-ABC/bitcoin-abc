@@ -19,9 +19,9 @@ static inline unsigned short GetDefaultPort() {
 // The network magic to use.
 extern CMessageHeader::MessageMagic netMagic;
 
-enum PeerMessagingState : bool {
-    AwaitingMessages = false,
-    Finished = true,
+enum class PeerMessagingState {
+    AwaitingMessages,
+    Finished,
 };
 
 class CSeederNode {

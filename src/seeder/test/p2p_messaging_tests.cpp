@@ -8,18 +8,25 @@
 #include <protocol.h>
 #include <seeder/bitcoin.h>
 #include <seeder/db.h>
+#include <seeder/test/util.h>
 #include <serialize.h>
 #include <streams.h>
 #include <util/system.h>
 #include <version.h>
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 #include <boost/test/unit_test.hpp>
+
+std::ostream &operator<<(std::ostream &os, const PeerMessagingState &state) {
+    os << to_integral(state);
+    return os;
+}
 
 class TestCSeederNode : public CSeederNode {
 public:
