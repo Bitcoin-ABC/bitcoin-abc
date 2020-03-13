@@ -27,7 +27,7 @@ class WalletGroupTest(BitcoinTestFramework):
         for args in self.extra_args:
             args.append("-whitelist=noban@127.0.0.1")
 
-        self.rpc_timeout = 120
+        self.rpc_timeout = 480
         self.supports_cli = False
 
     def skip_test_if_missing_module(self):
