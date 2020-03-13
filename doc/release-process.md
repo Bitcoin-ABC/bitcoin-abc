@@ -50,18 +50,21 @@ Bitcoin ABC Release Process
 9. Upload Gitian Builds to [bitcoinabc.org](https://download.bitcoinabc.org/)
 
 10. Create a [GitHub release](https://github.com/Bitcoin-ABC/bitcoin-abc/releases):
-    `contrib/devtools/github-release.sh -a <path to release binaries> -t <release tag> -o <file containing your Github OAuth token>`
+    `contrib/release/github-release.sh -a <path to release binaries> -t <release tag> -o <file containing your Github OAuth token>`
 
-11. Notify maintainers of Ubuntu PPA, AUR, and Docker images to build their packages.
+11. Create [Ubuntu PPA packages](https://launchpad.net/~bitcoin-abc/+archive/ubuntu/ppa):
+    `contrib/release/debian-packages.sh <version> "Your Name <your-email@bitcoinabc.org>"`
+
+12. Notify maintainers of AUR and Docker images to build their packages.
     They should be given 1-day advance notice if possible.
 
 ## After Release
 
-12. Update version number on www.bitcoinabc.org
+13. Update version number on www.bitcoinabc.org
 
-13. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
+14. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
 
-14. Announce Release:
+15. Announce Release:
     - [Reddit](https://www.reddit.com/r/BitcoinABC/)
     - Twitter @Bitcoin_ABC
     - Public slack channels friendly to Bitcoin ABC announcements 
