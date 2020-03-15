@@ -11,6 +11,7 @@
 #include <core_io.h>
 #include <crypto/common.h>
 #include <crypto/siphash.h>
+#include <ctime>
 #include <key_io.h>
 #include <memusage.h>
 #include <netbase.h>
@@ -35,6 +36,7 @@
 #include <test/fuzz/fuzz.h>
 
 #include <cassert>
+#include <chrono>
 #include <limits>
 #include <vector>
 
@@ -139,6 +141,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
             assert(parsed_money == i64 * SATOSHI);
         }
     }
+    const std::chrono::seconds seconds{i64};
+    assert(count_seconds(seconds) == i64);
 
     const arith_uint256 au256 = UintToArith256(u256);
     assert(ArithToUint256(au256) == u256);

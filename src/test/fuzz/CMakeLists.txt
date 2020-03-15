@@ -79,17 +79,20 @@ add_regular_fuzz_targets(
 	asmap
 	base_encode_decode
 	block
+	block_header
 	bloom_filter
 	rolling_bloom_filter
 	cashaddr
 	descriptor_parse
 	eval_script
+	fee_rate
 	float
 	hex
 	integer
 	key
 	key_io
 	locale
+	multiplication_overflow
 	net_permissions
 	netaddress
 	p2p_transport_deserializer
@@ -106,6 +109,7 @@ add_regular_fuzz_targets(
 	script_ops
 	scriptnum_ops
 	spanparsing
+	string
 	strprintf
 	timedata
 	transaction
