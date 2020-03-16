@@ -104,7 +104,7 @@ Minipupnc dependencies (can be disabled by passing `-DENABLE_UPNP=OFF` on the cm
 
     sudo apt-get install libminiupnpc-dev
 
-ZMQ dependencies (provides ZMQ API 4.x, can be disabled by passing `-BUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
+ZMQ dependencies (provides ZMQ API 4.x, can be disabled by passing `-DBUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
 
     sudo apt-get install libzmq3-dev
 
@@ -133,7 +133,7 @@ Minipupnc dependencies (can be disabled by passing `-DENABLE_UPNP=OFF` on the cm
 
     sudo dnf install miniupnpc-devel
 
-ZMQ dependencies (can be disabled by passing `-BUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
+ZMQ dependencies (can be disabled by passing `-DBUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
 
     sudo dnf install zeromq-devel
 
