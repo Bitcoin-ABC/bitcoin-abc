@@ -20,6 +20,7 @@
 #cmakedefine USE_FIELD_10X26
 
 #cmakedefine USE_ASM_X86_64
+#cmakedefine USE_EXTERNAL_ASM
 
 #cmakedefine USE_ENDOMORPHISM
 #cmakedefine USE_EXTERNAL_DEFAULT_CALLBACKS

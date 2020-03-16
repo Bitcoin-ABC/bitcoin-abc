@@ -164,7 +164,7 @@ script: |
 
   # Allow extra cmake option to be specified for each host
   declare -A CMAKE_EXTRA_OPTIONS
-  CMAKE_EXTRA_OPTIONS[i686-w64-mingw32]="-DCPACK_PACKAGE_FILE_NAME=${DISTNAME}-win32-setup-unsigned"
+  CMAKE_EXTRA_OPTIONS[i686-w64-mingw32]="-DCPACK_PACKAGE_FILE_NAME=${DISTNAME}-win32-setup-unsigned -DSECP256K1_USE_ASM=OFF"
   CMAKE_EXTRA_OPTIONS[x86_64-w64-mingw32]="-DCPACK_PACKAGE_FILE_NAME=${DISTNAME}-win64-setup-unsigned"
 
   ORIGPATH="$PATH"
