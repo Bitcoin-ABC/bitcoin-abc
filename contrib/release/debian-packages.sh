@@ -9,27 +9,28 @@ DPUT_CONFIG_FILE=~/".dput.cf"
 
 help_message() {
   echo "Build and sign Debian packages and push to a PPA."
-  echo "Usage: $0 <options> package_version signer"
+  echo "Usage: $0 <options> signer"
   echo
-  echo "Example usage: $0 0.21.2 \"Jason B. Cox <jasonbcox@bitcoinabc.org>\""
-  echo
-  echo "package_version must be of the form: MAJOR.MINOR.REVISION[.OPTIONALPATCH]"
-  echo "OPTIONALPATCH may be necessary when source files have changed but the version revision has not, as the PPA will"
-  echo "reject source archives of the same name."
+  echo "Example usage: $0 \"Jason B. Cox <jasonbcox@bitcoinabc.org>\""
   echo
   echo "signer must be of the form: 'YOUR NAME <your-email@domain.com>'"
   echo
   echo "Note: This script will prompt you to sign with your PGP key."
   echo
-  echo "-d, --dry-run         Build and sign the packages, but do not push them to the PPA."
-  echo "-h, --help            Display this help message."
-  echo "-p, --ppa             PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}"
-  echo "                        then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than"
-  echo "                        the default will require that you add the necessary settings to the config file."
+  echo "-d, --dry-run             Build and sign the packages, but do not push them to the PPA."
+  echo "-h, --help                Display this help message."
+  echo "-p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}"
+  echo "                            then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than"
+  echo "                            the default will require that you add the necessary settings to the config file."
+  echo "-v, --version <version>   Set the package version. Defaults to the version returned by 'bitcoind --version'."
+  echo "                            If set, version must be of the form: MAJOR.MINOR.REVISION[.OPTIONALPATCH]"
+  echo "                            OPTIONALPATCH may be necessary when source files have changed but the version revision has not,"
+  echo "                            as the PPA will reject source archives of the same name."
 }
 
 DRY_RUN="false"
-NUM_EXPECTED_ARGUMENTS=2
+NUM_EXPECTED_ARGUMENTS=1
+PACKAGE_VERSION=""
 PPA="${DEFAULT_PPA}"
 
 # Parse command line arguments
@@ -45,6 +46,17 @@ case $1 in
     ;;
   -p|--ppa)
     PPA="$2"
+    shift # shift past argument
+    shift # shift past value
+    ;;
+  -v|--version)
+    PACKAGE_VERSION="$2"
+    echo "${PACKAGE_VERSION}" | grep -E "[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?" || {
+      echo "Error: package_version is not formatted correctly"
+      echo
+      help_message
+      exit 20
+    }
     shift # shift past argument
     shift # shift past value
     ;;
@@ -76,16 +88,7 @@ if [ "$#" -ne "${NUM_EXPECTED_ARGUMENTS}" ]; then
   exit 20
 fi
 
-PACKAGE_VERSION="$1"
-echo "Package version:"
-echo "${PACKAGE_VERSION}" | grep -E "[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?" || {
-  echo "Error: package_version is not formatted correctly"
-  echo
-  help_message
-  exit 20
-}
-
-SIGNER="$2"
+SIGNER="$1"
 echo "Signer:"
 echo "${SIGNER}" | grep ".* <.*@.*>" || {
   echo "Error: signer is not formatted correctly"
@@ -118,6 +121,12 @@ TOPLEVEL="$(git rev-parse --show-toplevel)"
 "${TOPLEVEL}"/contrib/devtools/build_cmake.sh
 pushd "${TOPLEVEL}"/build
 ninja package_source
+
+# Get package version if one wasn't explicitly set
+if [ -z "${PACKAGE_VERSION}" ]; then
+  PACKAGE_VERSION=$(./src/bitcoind --version | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+fi
+echo "Package version: ${PACKAGE_VERSION}"
 
 # Unpack the package source
 SOURCE_VERSION=$(echo "${PACKAGE_VERSION}" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
