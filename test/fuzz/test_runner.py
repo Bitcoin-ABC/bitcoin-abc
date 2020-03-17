@@ -55,10 +55,14 @@ def main():
     if not config["components"].getboolean("ENABLE_FUZZ"):
         logging.error("Must have fuzz targets built")
         sys.exit(1)
+    test_dir = os.path.join(
+        config["environment"]["BUILDDIR"], 'src', 'test', 'fuzz')
 
     # Build list of tests
-    test_list_all = parse_test_list(makefile=os.path.join(
-        config["environment"]["SRCDIR"], 'src', 'Makefile.test.include'))
+    test_list_all = [
+        f for f in os.listdir(test_dir)
+        if os.path.isfile(os.path.join(test_dir, f)) and
+        os.access(os.path.join(test_dir, f), os.X_OK)]
 
     if not test_list_all:
         logging.error("No fuzz targets found")
@@ -81,8 +85,7 @@ def main():
     try:
         help_output = subprocess.run(
             args=[
-                os.path.join(config["environment"]["BUILDDIR"],
-                             'src', 'test', 'fuzz', test_list_selection[0]),
+                os.path.join(test_dir, test_list_selection[0]),
                 '-help=1',
             ],
             timeout=1,
@@ -101,15 +104,15 @@ def main():
     run_once(
         corpus=args.seed_dir,
         test_list=test_list_selection,
-        build_dir=config["environment"]["BUILDDIR"],
+        test_dir=test_dir,
         export_coverage=args.export_coverage,
     )
 
 
-def run_once(*, corpus, test_list, build_dir, export_coverage):
+def run_once(*, corpus, test_list, test_dir, export_coverage):
     for t in test_list:
         args = [
-            os.path.join(build_dir, 'src', 'test', 'fuzz', t),
+            os.path.join(test_dir, t),
             '-runs=1',
             os.path.join(corpus, t),
         ]
@@ -124,23 +127,6 @@ def run_once(*, corpus, test_list, build_dir, export_coverage):
                 with open(os.path.join(corpus, t + '_coverage'), 'w', encoding='utf-8') as cov_file:
                     cov_file.write(l)
                     break
-
-
-def parse_test_list(makefile):
-    with open(makefile, encoding='utf-8') as makefile_test:
-        test_list_all = []
-        read_targets = False
-        for line in makefile_test.readlines():
-            line = line.strip().replace('test/fuzz/', '').replace(' \\', '')
-            if read_targets:
-                if not line:
-                    break
-                test_list_all.append(line)
-                continue
-
-            if line == 'FUZZ_TARGETS =':
-                read_targets = True
-    return test_list_all
 
 
 if __name__ == '__main__':

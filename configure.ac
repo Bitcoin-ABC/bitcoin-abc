@@ -1359,6 +1359,7 @@ AC_CONFIG_FILES([contrib/devtools/split-debug.sh],[chmod +x contrib/devtools/spl
 AC_CONFIG_FILES([doc/Doxyfile])
 AC_CONFIG_FILES([src/config/version.h])
 AC_CONFIG_LINKS([test/functional/test_runner.py:test/functional/test_runner.py])
+AC_CONFIG_LINKS([test/fuzz/test_runner.py:test/fuzz/test_runner.py])
 AC_CONFIG_LINKS([test/util/bitcoin-util-test.py:test/util/bitcoin-util-test.py])
 AC_CONFIG_LINKS([test/util/rpcauth-test.py:test/util/rpcauth-test.py])
 
