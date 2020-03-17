@@ -94,6 +94,7 @@ add_regular_fuzz_targets(
 	flatfile
 	float
 	hex
+	http_request
 	integer
 	key
 	key_io

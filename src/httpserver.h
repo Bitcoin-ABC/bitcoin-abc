@@ -77,7 +77,7 @@ private:
     bool replySent;
 
 public:
-    explicit HTTPRequest(struct evhttp_request *req);
+    explicit HTTPRequest(struct evhttp_request *req, bool replySent = false);
     ~HTTPRequest();
 
     enum RequestMethod { UNKNOWN, GET, POST, HEAD, PUT, OPTIONS };

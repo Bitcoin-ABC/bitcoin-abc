@@ -200,7 +200,7 @@ static bool InitHTTPAllowList() {
 }
 
 /** HTTP request method as string - use for logging only */
-static std::string RequestMethodString(HTTPRequest::RequestMethod m) {
+std::string RequestMethodString(HTTPRequest::RequestMethod m) {
     switch (m) {
         case HTTPRequest::GET:
             return "GET";
@@ -549,8 +549,8 @@ void HTTPEvent::trigger(struct timeval *tv) {
         evtimer_add(ev, tv);
     }
 }
-HTTPRequest::HTTPRequest(struct evhttp_request *_req)
-    : req(_req), replySent(false) {}
+HTTPRequest::HTTPRequest(struct evhttp_request *_req, bool _replySent)
+    : req(_req), replySent(_replySent) {}
 HTTPRequest::~HTTPRequest() {
     if (!replySent) {
         // Keep track of whether reply was sent to avoid request leaks
