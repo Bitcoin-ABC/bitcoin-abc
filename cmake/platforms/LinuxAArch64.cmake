@@ -1,11 +1,15 @@
 # Copyright (c) 2019 The Bitcoin developers
 
 set(CMAKE_SYSTEM_NAME Linux)
-set(TOOLCHAIN_PREFIX aarch64-linux-gnu)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
+set(TOOLCHAIN_PREFIX ${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
 
 # Cross compilers to use for C and C++
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
+
+set(CMAKE_C_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
+set(CMAKE_CXX_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
 
 # Target environment on the build host system
 # Set 1st to directory with the cross compiler's C/C++ headers/libs
