@@ -18,11 +18,16 @@ export LXC_GUEST_IP=10.0.3.5
 cd ~/gitian-builder
 
 if [[ "${OS_NAME}" == "osx" ]]; then
-  wget https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/MacOSX10.11.sdk.tar.gz
-  echo "4732b52b5ebe300c8c91cbeed6d19d59c1ff9c56c7a1dd6cfa518b9c2c72abde  MacOSX10.11.sdk.tar.gz" | sha256sum -c
+  OSX_SDK="MacOSX10.11.sdk.tar.gz"
+  OSX_SDK_SHA256="4732b52b5ebe300c8c91cbeed6d19d59c1ff9c56c7a1dd6cfa518b9c2c72abde"
   mkdir -p inputs
-  echo "Downloaded"
-  mv MacOSX10.11.sdk.tar.gz inputs
+  pushd inputs
+  if [ ! $(echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c) ] ; then
+    rm -f "${OSX_SDK}"
+    wget https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/"${OSX_SDK}"
+    echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c
+  fi
+  popd
 fi
 
 ## Determine the number of build threads
