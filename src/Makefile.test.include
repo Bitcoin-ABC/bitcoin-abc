@@ -59,7 +59,7 @@ BITCOIN_TEST_SUITE = \
   test/setup_common.cpp
 
 FUZZ_SUITE = \
-  test/test_bitcoin.cpp \
+  test/setup_common.cpp \
   test/test_bitcoin.h \
   test/fuzz/fuzz.cpp \
   test/fuzz/fuzz.h
