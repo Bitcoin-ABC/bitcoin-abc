@@ -71,7 +71,7 @@ if(SECP256K1_USE_ASM)
 	macro(unsupported_asm_error)
 		message(FATAL_ERROR
 			"Assembly is not supported for your target architecture."
-			"Re-run cmake with -DSECP256k1_USE_ASM=OFF to disable ASM support"
+			"Re-run cmake with -DSECP256K1_USE_ASM=OFF to disable ASM support"
 		)
 	endmacro()
 
