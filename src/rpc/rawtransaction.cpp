@@ -29,9 +29,6 @@
 #include <util/strencodings.h>
 #include <validation.h>
 #include <validationinterface.h>
-#ifdef ENABLE_WALLET
-#include <wallet/rpcwallet.h>
-#endif
 
 #include <cstdint>
 #include <future>
@@ -941,9 +938,8 @@ UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
                 view.AddCoin(out, Coin(txout, 1, false), true);
             }
 
-            // If redeemScript given and not using the local wallet (private
-            // keys given), add redeemScript to the keystore so it can be
-            // signed:
+            // If redeemScript and private keys were given, add redeemScript to
+            // the keystore so it can be signed
             if (is_temp_keystore && scriptPubKey.IsPayToScriptHash()) {
                 RPCTypeCheckObj(
                     prevOut, {

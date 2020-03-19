@@ -20,11 +20,6 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <validation.h>
-#ifdef ENABLE_WALLET
-#include <wallet/rpcwallet.h>
-#include <wallet/wallet.h>
-#include <wallet/walletdb.h>
-#endif
 #include <warnings.h>
 
 #include <univalue.h>
@@ -83,9 +78,6 @@ static UniValue validateaddress(const Config &config,
     }
     return ret;
 }
-
-// Needed even with !ENABLE_WALLET, to pass (ignored) pointers around
-class CWallet;
 
 static UniValue createmultisig(const Config &config,
                                const JSONRPCRequest &request) {
@@ -541,7 +533,7 @@ static const ContextFreeRPCCommand commands[] = {
     //  ------------------- ------------------------  ----------------------  ----------
     { "control",            "getmemoryinfo",          getmemoryinfo,          {"mode"} },
     { "control",             "logging",                logging,                {"include", "exclude"} },
-    { "util",               "validateaddress",        validateaddress,        {"address"} }, /* uses wallet if enabled */
+    { "util",               "validateaddress",        validateaddress,        {"address"} },
     { "util",               "createmultisig",         createmultisig,         {"nrequired","keys"} },
     { "util",               "verifymessage",          verifymessage,          {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", signmessagewithprivkey, {"privkey","message"} },
