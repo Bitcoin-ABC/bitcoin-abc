@@ -17,11 +17,11 @@ from test_framework.util import get_datadir_path
 
 
 class AbortNodeTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [["-noparkdeepreorg"], []]
+        self.rpc_timeout = 240
 
     def setup_network(self):
         self.setup_nodes()
