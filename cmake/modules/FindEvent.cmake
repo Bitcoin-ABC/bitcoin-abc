@@ -48,6 +48,12 @@ if(Event_INCLUDE_DIR)
 		PATHS ${PC_Event_LIBRARY_DIRS}
 	)
 
+	set(_Event_WINDOWS_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;shell32;advapi32>")
+	set_property(TARGET Event::event
+		PROPERTY INTERFACE_LINK_LIBRARIES ${_Event_WINDOWS_LIBRARIES}
+	)
+	list(APPEND Event_LIBRARIES ${_Event_WINDOWS_LIBRARIES})
+
 	pkg_check_modules(PC_Event_pthreads QUIET event_pthreads libevent_pthreads)
 	find_component(Event pthreads
 		NAMES event_pthreads
