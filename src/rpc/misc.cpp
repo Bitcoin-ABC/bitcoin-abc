@@ -14,7 +14,6 @@
 #include <netbase.h>
 #include <outputtype.h>
 #include <rpc/blockchain.h>
-#include <rpc/misc.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
 #include <timedata.h>

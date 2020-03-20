@@ -184,7 +184,6 @@ BITCOIN_CORE_H = \
   rpc/command.h \
   rpc/jsonrpcrequest.h \
   rpc/mining.h \
-  rpc/misc.h \
   rpc/protocol.h \
   rpc/rawtransaction.h \
   rpc/server.h \
