@@ -5,6 +5,8 @@
 #ifndef BITCOIN_RWCOLLECTION_H
 #define BITCOIN_RWCOLLECTION_H
 
+#include <threadsafety.h>
+
 #include <boost/noncopyable.hpp>
 #include <boost/range/iterator.hpp>
 #include <boost/thread/locks.hpp>
@@ -62,8 +64,8 @@ public:
 
 template <typename T> class RWCollection {
 private:
+    T collection GUARDED_BY(rwlock);
     mutable boost::shared_mutex rwlock;
-    T collection;
 
 public:
     RWCollection() : collection() {}
