@@ -26,7 +26,7 @@ from test_framework.messages import (
     MIN_VERSION_SUPPORTED,
     msg_addr,
     msg_avapoll,
-    msg_avaresponse,
+    msg_tcpavaresponse,
     msg_block,
     MSG_BLOCK,
     msg_blocktxn,
@@ -61,7 +61,7 @@ logger = logging.getLogger("TestFramework.mininode")
 MESSAGEMAP = {
     b"addr": msg_addr,
     b"avapoll": msg_avapoll,
-    b"avaresponse": msg_avaresponse,
+    b"avaresponse": msg_tcpavaresponse,
     b"block": msg_block,
     b"blocktxn": msg_blocktxn,
     b"cmpctblock": msg_cmpctblock,

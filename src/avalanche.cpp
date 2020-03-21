@@ -132,7 +132,10 @@ AvalancheProcessor::AvalancheProcessor(CConnman *connmanIn)
     : connman(connmanIn),
       queryTimeoutDuration(
           AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS),
-      round(0), stopRequest(false), running(false) {}
+      round(0), stopRequest(false), running(false) {
+    // Pick a random key for the session.
+    sessionKey.MakeNewKey(true);
+}
 
 AvalancheProcessor::~AvalancheProcessor() {
     stopEventLoop();
@@ -176,11 +179,51 @@ int AvalancheProcessor::getConfidence(const CBlockIndex *pindex) const {
     return it->second.getConfidence();
 }
 
+namespace {
+/**
+ * When using TCP, we need to sign all messages as the transport layer is not
+ * secure.
+ */
+class TCPAvalancheResponse {
+    AvalancheResponse response;
+    std::array<uint8_t, 64> sig;
+
+public:
+    TCPAvalancheResponse(AvalancheResponse responseIn, const CKey &key)
+        : response(std::move(responseIn)) {
+        CHashWriter hasher(SER_GETHASH, 0);
+        hasher << response;
+        const uint256 hash = hasher.GetHash();
+
+        // Now let's sign!
+        std::vector<uint8_t> vchSig;
+        if (key.SignSchnorr(hash, vchSig)) {
+            // Schnorr sigs are 64 bytes in size.
+            assert(vchSig.size() == 64);
+            std::copy(vchSig.begin(), vchSig.end(), sig.begin());
+        } else {
+            sig.fill(0);
+        }
+    }
+
+    // serialization support
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(response);
+        READWRITE(sig);
+    }
+};
+} // namespace
+
 void AvalancheProcessor::sendResponse(CNode *pfrom,
                                       AvalancheResponse response) const {
     connman->PushMessage(
-        pfrom, CNetMsgMaker(pfrom->GetSendVersion())
-                   .Make(NetMsgType::AVARESPONSE, std::move(response)));
+        pfrom,
+        CNetMsgMaker(pfrom->GetSendVersion())
+            .Make(NetMsgType::AVARESPONSE,
+                  TCPAvalancheResponse(std::move(response), sessionKey)));
 }
 
 bool AvalancheProcessor::registerVotes(

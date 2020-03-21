@@ -5,10 +5,11 @@
 """Test the resolution of forks via avalanche."""
 import random
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, wait_until
 from test_framework.mininode import P2PInterface, mininode_lock
 from test_framework.messages import AvalancheVote, CInv, msg_avapoll
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, wait_until
+from test_framework import schnorr
 
 
 BLOCK_ACCEPTED = 0
@@ -59,13 +60,22 @@ class AvalancheTest(BitcoinTestFramework):
         address = node.get_deterministic_priv_key().address
         node.generatetoaddress(100, address)
 
+        # Get the key so we can verify signatures.
+        avakey = bytes.fromhex(node.getavalanchekey())
+
         self.log.info("Poll for the chain tip...")
         best_block_hash = int(node.getbestblockhash(), 16)
         poll_node.send_poll([best_block_hash])
         poll_node.wait_for_avaresponse()
 
         def assert_response(response, expected):
-            votes = response.votes
+            r = response.response
+            assert_equal(r.cooldown, 0)
+
+            # Verify signature.
+            assert schnorr.verify(response.sig, avakey, r.get_hash())
+
+            votes = r.votes
             self.log.info("response: {}".format(repr(response)))
             assert_equal(len(votes), len(expected))
             for i in range(0, len(votes)):

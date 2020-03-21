@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_H
 
 #include <blockindexworkcomparator.h>
+#include <key.h>
 #include <net.h>
 #include <protocol.h> // for CInv
 #include <rwcollection.h>
@@ -331,6 +332,8 @@ private:
     Mutex cs_running;
     std::condition_variable cond_running;
 
+    CKey sessionKey;
+
 public:
     AvalancheProcessor(CConnman *connmanIn);
     ~AvalancheProcessor();
@@ -349,6 +352,8 @@ public:
                        std::vector<AvalancheBlockUpdate> &updates);
 
     bool addPeer(NodeId nodeid, int64_t score);
+
+    CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();

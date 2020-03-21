@@ -22,6 +22,8 @@ void RegisterMiningRPCCommands(CRPCTable &tableRPC);
 void RegisterRawTransactionRPCCommands(CRPCTable &tableRPC);
 /** Register ABC RPC commands */
 void RegisterABCRPCCommands(CRPCTable &tableRPC);
+/** Register Avalanche RPC commands */
+void RegisterAvalancheRPCCommands(CRPCTable &tableRPC);
 
 /**
  * Register all context-free (legacy) RPC commands, except for wallet and dump
@@ -34,6 +36,7 @@ static inline void RegisterAllContextFreeRPCCommands(CRPCTable &t) {
     RegisterMiningRPCCommands(t);
     RegisterRawTransactionRPCCommands(t);
     RegisterABCRPCCommands(t);
+    RegisterAvalancheRPCCommands(t);
 }
 
 /**

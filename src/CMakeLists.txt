@@ -483,6 +483,7 @@ add_library(server
 	pow.cpp
 	rest.cpp
 	rpc/abc.cpp
+	rpc/avalanche.cpp
 	rpc/blockchain.cpp
 	rpc/command.cpp
 	rpc/jsonrpcrequest.cpp

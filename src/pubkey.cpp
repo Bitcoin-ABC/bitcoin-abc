@@ -211,7 +211,7 @@ bool CPubKey::VerifySchnorr(const uint256 &hash,
         return false;
     }
 
-    return secp256k1_schnorr_verify(secp256k1_context_verify, &vchSig[0],
+    return secp256k1_schnorr_verify(secp256k1_context_verify, vchSig.data(),
                                     hash.begin(), &pubkey);
 }
 

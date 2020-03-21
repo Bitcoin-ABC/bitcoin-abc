@@ -829,9 +829,34 @@ class AvalancheResponse():
         r += ser_vector(self.votes)
         return r
 
+    def get_hash(self):
+        return hash256(self.serialize())
+
     def __repr__(self):
         return "AvalancheResponse(round={}, cooldown={}, votes={})".format(
             self.round, self.cooldown, repr(self.votes))
+
+
+class TCPAvalancheResponse():
+    __slots__ = ("response", "sig")
+
+    def __init__(self, response=AvalancheResponse()):
+        self.response = response
+        self.sig = b"\0" * 64
+
+    def deserialize(self, f):
+        self.response.deserialize(f)
+        self.sig = f.read(64)
+
+    def serialize(self):
+        r = b""
+        r += self.response.serialize()
+        r += self.sig
+        return r
+
+    def __repr__(self):
+        return "TCPAvalancheResponse(response={}, sig={})".format(
+            repr(self.response), self.sig)
 
 
 class CPartialMerkleTree:
@@ -1430,3 +1455,22 @@ class msg_avaresponse():
 
     def __repr__(self):
         return "msg_avaresponse(response={})".format(repr(self.response))
+
+
+class msg_tcpavaresponse():
+    __slots__ = ("response",)
+    command = b"avaresponse"
+
+    def __init__(self):
+        self.response = TCPAvalancheResponse()
+
+    def deserialize(self, f):
+        self.response.deserialize(f)
+
+    def serialize(self):
+        r = b""
+        r += self.response.serialize()
+        return r
+
+    def __repr__(self):
+        return "msg_tcpavaresponse(response={})".format(repr(self.response))

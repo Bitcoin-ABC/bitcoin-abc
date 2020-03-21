@@ -289,6 +289,7 @@ libbitcoin_server_a_SOURCES = \
   pow.cpp \
   rest.cpp \
   rpc/abc.cpp \
+  rpc/avalanche.cpp \
   rpc/blockchain.cpp \
   rpc/command.cpp \
   rpc/jsonrpcrequest.cpp \
