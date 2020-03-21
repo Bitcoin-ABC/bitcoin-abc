@@ -22,7 +22,7 @@ if [[ "${OS_NAME}" == "osx" ]]; then
   OSX_SDK_SHA256="4732b52b5ebe300c8c91cbeed6d19d59c1ff9c56c7a1dd6cfa518b9c2c72abde"
   mkdir -p inputs
   pushd inputs
-  if [ ! $(echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c) ] ; then
+  if ! echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c; then
     rm -f "${OSX_SDK}"
     wget https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/"${OSX_SDK}"
     echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c
