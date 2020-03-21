@@ -3,9 +3,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 '''
-A script to check that the (Linux) executables produced by gitian only contain
-allowed gcc and glibc version symbols. This makes sure they are still compatible
-with the minimum supported Linux distribution versions.
+A script to check that the executables produced by gitian only contain
+certain symbols and are only linked against allowed libraries.
 
 Example usage:
 
@@ -55,6 +54,7 @@ IGNORE_EXPORTS = {
 }
 READELF_CMD = os.getenv('READELF', '/usr/bin/readelf')
 CPPFILT_CMD = os.getenv('CPPFILT', '/usr/bin/c++filt')
+OBJDUMP_CMD = os.getenv('OBJDUMP', '/usr/bin/objdump')
 OTOOL_CMD = os.getenv('OTOOL', '/usr/bin/otool')
 
 # Allowed NEEDED libraries
@@ -103,6 +103,27 @@ MACHO_ALLOWED_LIBRARIES = {
     'libobjc.A.dylib',  # Objective-C runtime library
     'Security',  # access control and authentication
     'SystemConfiguration',  # access network configuration settings
+}
+
+PE_ALLOWED_LIBRARIES = {
+    'ADVAPI32.dll',  # security & registry
+    'IPHLPAPI.DLL',  # IP helper API
+    'KERNEL32.dll',  # win32 base APIs
+    'msvcrt.dll',  # C standard library for MSVC
+    'SHELL32.dll',  # shell API
+    'USER32.dll',  # user interface
+    'WS2_32.dll',  # sockets
+    # bitcoin-qt only
+    'dwmapi.dll',  # desktop window manager
+    'CRYPT32.dll',  # openssl
+    'GDI32.dll',  # graphics device interface
+    'IMM32.dll',  # input method editor
+    'ole32.dll',  # component object model
+    'OLEAUT32.dll',  # OLE Automation API
+    'SHLWAPI.dll',  # light weight shell API
+    'UxTheme.dll',
+    'VERSION.dll',  # version checking
+    'WINMM.dll',  # WinMM audio API
 }
 
 
@@ -250,6 +271,34 @@ def check_MACHO_libraries(filename) -> bool:
     return ok
 
 
+def pe_read_libraries(filename) -> List[str]:
+    p = subprocess.Popen([OBJDUMP_CMD,
+                          '-x',
+                          filename],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         stdin=subprocess.PIPE,
+                         universal_newlines=True)
+    (stdout, stderr) = p.communicate()
+    if p.returncode:
+        raise IOError('Error opening file')
+    libraries = []
+    for line in stdout.splitlines():
+        if 'DLL Name:' in line:
+            tokens = line.split(': ')
+            libraries.append(tokens[1])
+    return libraries
+
+
+def check_PE_libraries(filename) -> bool:
+    ok = True
+    for dylib in pe_read_libraries(filename):
+        if dylib not in PE_ALLOWED_LIBRARIES:
+            print(f'{dylib} is not in ALLOWED_LIBRARIES!')
+            ok = False
+    return ok
+
+
 CHECKS = {
     'ELF': [
         ('IMPORTED_SYMBOLS', check_imported_symbols),
@@ -258,6 +307,9 @@ CHECKS = {
     ],
     'MACHO': [
         ('DYNAMIC_LIBRARIES', check_MACHO_libraries)
+    ],
+    'PE': [
+        ('DYNAMIC_LIBRARIES', check_PE_libraries)
     ]
 }
 

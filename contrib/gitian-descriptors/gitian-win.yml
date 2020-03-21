@@ -164,6 +164,7 @@ script: |
 
     ninja
     ninja security-check
+    ninja symbol-check
 
     ninja install-debug
 
