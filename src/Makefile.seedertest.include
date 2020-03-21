@@ -8,9 +8,16 @@ TESTS += seeder/test/test_bitcoin-seeder
 seeder_test_test_bitcoin_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES) \
   $(SEEDER_INCLUDES) $(SEEDER_TEST_INCLUDES) $(TESTDEFS)
 
-seeder_test_test_bitcoin_seeder_SOURCES = \
+SEEDER_TEST_UTIL = \
+	seeder/test/dns_util.h \
+	seeder/test/util.h
+
+SEEDER_TESTS = \
   seeder/test/p2p_messaging_tests.cpp \
-  seeder/test/dns_tests.cpp
+  seeder/test/write_name_tests.cpp \
+  seeder/test/parse_name_tests.cpp
+
+seeder_test_test_bitcoin_seeder_SOURCES = $(SEEDER_TEST_UTIL) $(SEEDER_TESTS)
 
 seeder_test_test_bitcoin_seeder_LDADD = $(LIBBITCOIN_SEEDER)
 
