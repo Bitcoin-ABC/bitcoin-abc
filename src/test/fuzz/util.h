@@ -6,6 +6,7 @@
 #define BITCOIN_TEST_FUZZ_UTIL_H
 
 #include <amount.h>
+#include <arith_uint256.h>
 #include <attributes.h>
 #include <script/script.h>
 #include <serialize.h>
@@ -106,6 +107,11 @@ ConsumeUInt256(FuzzedDataProvider &fuzzed_data_provider) noexcept {
         return {};
     }
     return uint256{v256};
+}
+
+NODISCARD inline arith_uint256
+ConsumeArithUInt256(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+    return UintToArith256(ConsumeUInt256(fuzzed_data_provider));
 }
 
 template <typename T>
