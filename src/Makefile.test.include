@@ -4,6 +4,7 @@
 
 
 FUZZ_TARGETS = \
+  test/fuzz/addrdb \
   test/fuzz/addr_info_deserialize \
   test/fuzz/address_deserialize \
   test/fuzz/addrman_deserialize \
@@ -275,6 +276,12 @@ test_test_bitcoin_LDADD += $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
 endif
 
 if ENABLE_FUZZ
+test_fuzz_addrdb_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+test_fuzz_addrdb_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+test_fuzz_addrdb_LDADD = $(FUZZ_SUITE_LD_COMMON)
+test_fuzz_addrdb_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+test_fuzz_addrdb_SOURCES = $(FUZZ_SUITE) test/fuzz/addrdb.cpp
+
 test_fuzz_block_deserialize_SOURCES = $(FUZZ_SUITE) test/fuzz/deserialize.cpp
 test_fuzz_block_deserialize_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -DBLOCK_DESERIALIZE=1
 test_fuzz_block_deserialize_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)

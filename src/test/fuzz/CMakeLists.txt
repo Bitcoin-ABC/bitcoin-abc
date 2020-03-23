@@ -45,6 +45,7 @@ function(add_deserialize_fuzz_targets)
 endfunction()
 
 add_regular_fuzz_targets(
+	addrdb
 	bloom_filter
 	rolling_bloom_filter
 	cashaddr
