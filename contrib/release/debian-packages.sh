@@ -6,14 +6,18 @@ set -euo pipefail
 
 DEFAULT_PPA="bitcoin-abc"
 DPUT_CONFIG_FILE=~/".dput.cf"
+TOPLEVEL="$(git rev-parse --show-toplevel)"
+KEYS_TXT="${TOPLEVEL}"/contrib/gitian-signing/keys.txt
 
 help_message() {
   echo "Build and sign Debian packages and push to a PPA."
   echo "Usage: $0 <options> signer"
   echo
-  echo "Example usage: $0 \"Jason B. Cox <jasonbcox@bitcoinabc.org>\""
+  echo "Example usage: $0 jasonbcox"
   echo
-  echo "signer must be of the form: 'YOUR NAME <your-email@domain.com>'"
+  echo "signer will be used to fetch the signing key fingerprint from '${KEYS_TXT}'"
+  echo "  That matching fingerprint will be used to fetch the correctly formatted name and email from GPG."
+  echo "  signer must at least partially match the fingerprint or email in keys.txt"
   echo
   echo "Note: This script will prompt you to sign with your PGP key."
   echo
@@ -88,14 +92,22 @@ if [ "$#" -ne "${NUM_EXPECTED_ARGUMENTS}" ]; then
   exit 20
 fi
 
-SIGNER="$1"
-echo "Signer:"
-echo "${SIGNER}" | grep ".* <.*@.*>" || {
-  echo "Error: signer is not formatted correctly"
-  echo
-  help_message
+SIGNER_FINGERPRINT=$(grep "$1" "${KEYS_TXT}" | cut -d' ' -f 1) || {
+  echo "Error: Signer '$1' does not match any line in '${KEYS_TXT}'"
   exit 21
 }
+NUM_FINGERPRINT_MATCHES=$(echo "${SIGNER_FINGERPRINT}" | wc -l)
+if [ "${NUM_FINGERPRINT_MATCHES}" -ne 1 ]; then
+  echo "Error: '$1' is expected to match only one line in '${KEYS_TXT}'. Got '${NUM_FINGERPRINT_MATCHES}'"
+  exit 22
+fi
+
+SIGNER=$(gpg --list-key "${SIGNER_FINGERPRINT}" | grep -o "\[ultimate\] .* <.*@.*>" | cut -d' ' -f 2-)
+echo "Signer: ${SIGNER}"
+if [ -z "${SIGNER}" ]; then
+  echo "Error: Signer key for '${SIGNER}' not found."
+  exit 23
+fi
 
 # Generate default dput config file if none exists
 if [ ! -f ${DPUT_CONFIG_FILE} ]; then
@@ -117,7 +129,6 @@ grep "\[${PPA}\]" ${DPUT_CONFIG_FILE} || {
 }
 
 # Build package source archive
-TOPLEVEL="$(git rev-parse --show-toplevel)"
 "${TOPLEVEL}"/contrib/devtools/build_cmake.sh
 pushd "${TOPLEVEL}"/build
 ninja package_source
