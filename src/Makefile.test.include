@@ -32,6 +32,7 @@ FUZZ_TARGETS = \
   test/fuzz/key_origin_info_deserialize \
   test/fuzz/merkle_block_deserialize \
   test/fuzz/messageheader_deserialize \
+  test/fuzz/net_permissions \
   test/fuzz/netaddr_deserialize \
   test/fuzz/out_point_deserialize \
   test/fuzz/parse_iso8601 \
@@ -348,6 +349,12 @@ test_fuzz_descriptor_parse_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 test_fuzz_descriptor_parse_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 test_fuzz_descriptor_parse_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 test_fuzz_descriptor_parse_LDADD = $(FUZZ_SUITE_LD_COMMON)
+
+test_fuzz_net_permissions_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+test_fuzz_net_permissions_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+test_fuzz_net_permissions_LDADD = $(FUZZ_SUITE_LD_COMMON)
+test_fuzz_net_permissions_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+test_fuzz_net_permissions_SOURCES = $(FUZZ_SUITE) test/fuzz/net_permissions.cpp
 
 test_fuzz_netaddr_deserialize_SOURCES = $(FUZZ_SUITE) test/fuzz/deserialize.cpp
 test_fuzz_netaddr_deserialize_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -DNETADDR_DESERIALIZE=1

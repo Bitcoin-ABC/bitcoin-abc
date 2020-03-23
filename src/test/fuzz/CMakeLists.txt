@@ -51,6 +51,7 @@ add_regular_fuzz_targets(
 	cashaddr
 	descriptor_parse
 	eval_script
+	net_permissions
 	parse_iso8601
 	psbt
 	script
