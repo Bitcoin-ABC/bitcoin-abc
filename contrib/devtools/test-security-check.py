@@ -64,6 +64,19 @@ class TestSecurityChecks(unittest.TestCase):
         self.assertEqual(call_security_check(cc, source, executable, ['-Wl,--nxcompat', '-Wl,--dynamicbase', '-Wl,--high-entropy-va', '-pie', '-fPIE']),
                          (0, ''))
 
+    def test_MACHO(self):
+        source = 'test1.c'
+        executable = 'test1'
+        cc = 'clang'
+        write_testcode(source)
+
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-no_pie', '-Wl,-flat_namespace']),
+                         (1, executable + ': failed PIE NOUNDEFS'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-no_pie']),
+                         (1, executable + ': failed PIE'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-pie']),
+                         (0, ''))
+
 
 if __name__ == '__main__':
     unittest.main()
