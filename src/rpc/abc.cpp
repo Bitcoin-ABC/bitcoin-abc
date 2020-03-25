@@ -34,13 +34,18 @@ static UniValue setexcessiveblock(Config &config,
         throw std::runtime_error(
             "setexcessiveblock blockSize\n"
             "\nSet the excessive block size. Excessive blocks will not be used "
-            "in the active chain or relayed. This  discourages the propagation "
+            "in the active chain or relayed. This discourages the propagation "
             "of blocks that you consider excessively large."
+            "\nArguments\n"
+            "1. blockSize  (integer, required) Excessive block size in bytes.  "
+            "Must be greater than " +
+            std::to_string(LEGACY_MAX_BLOCK_SIZE) +
+            ".\n"
             "\nResult\n"
             "  blockSize (integer) excessive block size in bytes\n"
             "\nExamples:\n" +
-            HelpExampleCli("setexcessiveblock", "") +
-            HelpExampleRpc("setexcessiveblock", ""));
+            HelpExampleCli("setexcessiveblock", "25000000") +
+            HelpExampleRpc("setexcessiveblock", "25000000"));
     }
 
     int64_t ebs = 0;
