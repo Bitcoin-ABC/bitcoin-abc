@@ -56,7 +56,8 @@ class AvalancheTest(BitcoinTestFramework):
         poll_node.sync_with_ping()
 
         # Generate many block and poll for them.
-        node.generate(100)
+        address = node.get_deterministic_priv_key().address
+        node.generatetoaddress(100, address)
 
         self.log.info("Poll for the chain tip...")
         best_block_hash = int(node.getbestblockhash(), 16)
@@ -94,7 +95,10 @@ class AvalancheTest(BitcoinTestFramework):
             "Poll for a selection of blocks, but some are now invalid...")
         invalidated_block = node.getblockhash(75)
         node.invalidateblock(invalidated_block)
-        node.generate(30)
+        # We need to send the coin to a new address in order to make sure we do
+        # not regenerate the same block.
+        node.generatetoaddress(
+            30, 'bchreg:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v7ej0fffv')
         node.reconsiderblock(invalidated_block)
 
         poll_node.send_poll(various_block_hashes)
