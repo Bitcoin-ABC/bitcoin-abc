@@ -80,7 +80,7 @@ const char *ScriptErrorString(const ScriptError serror) {
         case ScriptError::MINIMALDATA:
             return "Data push larger than necessary";
         case ScriptError::SIG_PUSHONLY:
-            return "Only push operators allowed in signature scripts";
+            return "Only push operators allowed in signatures";
         case ScriptError::SIG_HIGH_S:
             return "Non-canonical signature: S value is unnecessarily high";
         case ScriptError::MINIMALIF:
