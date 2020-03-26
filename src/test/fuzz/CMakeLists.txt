@@ -82,8 +82,8 @@ add_regular_fuzz_targets(
 	block_header
 	blockfilter
 	bloom_filter
-	rolling_bloom_filter
 	cashaddr
+	chain
 	descriptor_parse
 	eval_script
 	fee_rate
@@ -104,7 +104,9 @@ add_regular_fuzz_targets(
 	parse_univalue
 	process_message
 	process_messages
+	protocol
 	psbt
+	rolling_bloom_filter
 	script
 	script_flags
 	script_ops
