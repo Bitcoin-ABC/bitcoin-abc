@@ -528,12 +528,9 @@ if(ENABLE_UPNP)
 	target_link_libraries(server MiniUPnPc::miniupnpc)
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		find_library(IPHLPAPI_LIBRARY NAMES iphlpapi)
-		if(NOT IPHLPAPI_LIBRARY)
-			message(FATAL_ERROR "Lib iphlpapi is missing")
-		endif()
-		target_link_libraries(server ${IPHLPAPI_LIBRARY})
-
+		# TODO: check if we are really using a static library. Assume this is
+		# the one from the depends for now since the native windows build is not
+		# supported.
 		target_compile_definitions(server
 			PUBLIC -DSTATICLIB
 			PUBLIC -DMINIUPNP_STATICLIB

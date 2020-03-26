@@ -67,6 +67,7 @@ find_component(MiniUPnPc miniupnpc
 	PATHS ${PC_MiniUPnPc_LIBRARY_DIRS}
 	PATH_SUFFIXES miniupnpc
 	INCLUDE_DIRS ${MiniUPnPc_INCLUDE_DIRS}
+	INTERFACE_LINK_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;iphlpapi>"
 )
 
 include(FindPackageHandleStandardArgs)
