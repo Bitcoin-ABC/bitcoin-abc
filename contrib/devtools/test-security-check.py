@@ -47,7 +47,7 @@ class TestSecurityChecks(unittest.TestCase):
         self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack', '-fstack-protector-all', '-Wl,-zrelro', '-Wl,-z,now', '-pie', '-fPIE']),
                          (0, ''))
 
-    def test_64bit_PE(self):
+    def test_PE(self):
         source = 'test1.c'
         executable = 'test1.exe'
         cc = 'x86_64-w64-mingw32-gcc'
