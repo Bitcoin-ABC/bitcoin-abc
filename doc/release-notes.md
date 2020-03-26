@@ -22,6 +22,5 @@ Low-level RPC changes
 
 Thread names in logs
 --------------------
-
-Log lines can be prefixed with the name of the thread that caused the log.
-To enable this behavior, use`-logthreadnames=1`.
+ - Log lines can be prefixed with the name of the thread that caused the log.
+To enable this behavior, use `-logthreadnames=1`.
