@@ -81,9 +81,18 @@ if(NOT DEFINED ZeroMQ_VERSION)
 endif()
 
 include(ExternalLibraryHelper)
+
+# The dependency to iphlpapi starts from 4.2.0
+if(ZeroMQ_VERSION VERSION_LESS 4.2.0)
+	set(_ZeroMQ_WINDOWS_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;rpcrt4>")
+else()
+	set(_ZeroMQ_WINDOWS_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;rpcrt4;iphlpapi>")
+endif()
+
 find_component(ZeroMQ zmq
 	NAMES zmq
 	INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIRS}
+	INTERFACE_LINK_LIBRARIES "${_ZeroMQ_WINDOWS_LIBRARIES}"
 )
 
 include(FindPackageHandleStandardArgs)
