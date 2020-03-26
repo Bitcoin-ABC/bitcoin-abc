@@ -8,6 +8,7 @@ This release includes the following features and fixes:
  - MacOS versions earlier than 10.12 are no longer supported.
    Additionally, Bitcoin ABC does not yet change appearance when macOS
    "dark mode" is activated.
+ - Fixed missing help text in `getblockchaininfo` RPC.
 
 New RPC methods
 ------------
