@@ -184,6 +184,20 @@ check_cxx_source_compiles("
     }
 " HAVE_FUNC_ATTRIBUTE_DLLEXPORT)
 
+check_cxx_source_compiles("
+    // same as in src/util/system.cpp
+    #ifdef __linux__
+    #ifdef _POSIX_C_SOURCE
+    #undef _POSIX_C_SOURCE
+    #endif
+    #define _POSIX_C_SOURCE 200112L
+    #endif // __linux__
+    #include <fcntl.h>
+    int main() {
+        return posix_fallocate(0, 0, 0);
+    }
+" HAVE_POSIX_FALLOCATE)
+
 #__fdelt_chk's params and return type have changed from long unsigned int to
 # long int. See which one is present here.
 include(CheckPrototypeDefinition)

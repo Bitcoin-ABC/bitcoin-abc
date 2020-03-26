@@ -25,7 +25,8 @@
 #endif
 
 #ifndef WIN32
-// for posix_fallocate
+// for posix_fallocate, in config/CMakeLists.txt we check if it is present after
+// this
 #ifdef __linux__
 
 #ifdef _POSIX_C_SOURCE
@@ -1219,7 +1220,7 @@ void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length) {
         fcntl(fileno(file), F_PREALLOCATE, &fst);
     }
     ftruncate(fileno(file), static_cast<off_t>(offset) + length);
-#elif defined(__linux__)
+#elif defined(HAVE_POSIX_FALLOCATE)
     // Version using posix_fallocate
     off_t nEndPos = (off_t)offset + length;
     posix_fallocate(fileno(file), 0, nEndPos);
