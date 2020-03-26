@@ -472,9 +472,9 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
     ##
 
     # Start our result collection thread.
-    t = threading.Thread(target=handle_update_messages)
-    t.daemon = True
-    t.start()
+    resultCollector = threading.Thread(target=handle_update_messages)
+    resultCollector.daemon = True
+    resultCollector.start()
 
     # Start some worker threads
     for j in range(num_jobs):
