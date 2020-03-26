@@ -6,7 +6,7 @@ function(find_component LIB COMPONENT)
 	cmake_parse_arguments(ARG
 		""
 		""
-		"HINTS;INCLUDE_DIRS;NAMES;PATHS;PATH_SUFFIXES"
+		"HINTS;INCLUDE_DIRS;INTERFACE_LINK_LIBRARIES;NAMES;PATHS;PATH_SUFFIXES"
 		${ARGN}
 	)
 
@@ -28,7 +28,10 @@ function(find_component LIB COMPONENT)
 		set(${LIB}_${COMPONENT}_FOUND TRUE PARENT_SCOPE)
 
 		# ... and append the library path to the LIBRARIES variable ...
-		list(APPEND ${LIB}_LIBRARIES "${${LIB}_${COMPONENT}_LIBRARY}")
+		list(APPEND ${LIB}_LIBRARIES
+			"${${LIB}_${COMPONENT}_LIBRARY}"
+			${ARG_INTERFACE_LINK_LIBRARIES}
+		)
 		list(REMOVE_DUPLICATES ${LIB}_LIBRARIES)
 		set(${LIB}_LIBRARIES ${${LIB}_LIBRARIES} PARENT_SCOPE)
 	
@@ -41,6 +44,9 @@ function(find_component LIB COMPONENT)
 			)
 			set_property(TARGET ${LIB}::${COMPONENT} PROPERTY
 				INTERFACE_INCLUDE_DIRECTORIES ${ARG_INCLUDE_DIRS}
+			)
+			set_property(TARGET ${LIB}::${COMPONENT} PROPERTY
+				INTERFACE_LINK_LIBRARIES ${ARG_INTERFACE_LINK_LIBRARIES}
 			)
 		endif()
 
