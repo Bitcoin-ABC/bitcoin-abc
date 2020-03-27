@@ -137,14 +137,13 @@ std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
 void EraseOrphansFor(NodeId peer);
 
 /**
- * Average delay between local address broadcasts in seconds.
+ * Average delay between local address broadcasts.
  */
-static constexpr unsigned int AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL =
-    24 * 60 * 60;
+static constexpr std::chrono::hours AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL{24};
 /**
- * Average delay between peer address broadcasts in seconds.
+ * Average delay between peer address broadcasts.
  */
-static const unsigned int AVG_ADDRESS_BROADCAST_INTERVAL = 30;
+static const std::chrono::seconds AVG_ADDRESS_BROADCAST_INTERVAL{30};
 /**
  * Average delay between trickled inventory transmissions in seconds.
  * Blocks and whitelisted receivers bypass this, outbound peers get half this
@@ -1603,7 +1602,7 @@ void RelayTransaction(const TxId &txid, const CConnman &connman) {
 }
 
 static void RelayAddress(const CAddress &addr, bool fReachable,
-                         CConnman *connman) {
+                         const CConnman &connman) {
     // Limited relaying of addresses outside our network(s)
     unsigned int nRelayNodes = fReachable ? 2 : 1;
 
@@ -1612,7 +1611,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
     // time so the m_addr_knowns of the chosen nodes prevent repeats
     uint64_t hashAddr = addr.GetHash();
     const CSipHasher hasher =
-        connman->GetDeterministicRandomizer(RANDOMIZER_ID_ADDRESS_RELAY)
+        connman.GetDeterministicRandomizer(RANDOMIZER_ID_ADDRESS_RELAY)
             .Write(hashAddr << 32)
             .Write((GetTime() + hashAddr) / (24 * 60 * 60));
     FastRandomContext insecure_rand;
@@ -1642,7 +1641,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
         }
     };
 
-    connman->ForEachNodeThen(std::move(sortfunc), std::move(pushfunc));
+    connman.ForEachNodeThen(std::move(sortfunc), std::move(pushfunc));
 }
 
 static void ProcessGetBlockData(const Config &config, CNode &pfrom,
@@ -2800,7 +2799,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             if (addr.nTime > nSince && !pfrom.fGetAddr && vAddr.size() <= 10 &&
                 addr.IsRoutable()) {
                 // Relay to a limited number of other nodes
-                RelayAddress(addr, fReachable, connman);
+                RelayAddress(addr, fReachable, *connman);
             }
             // Do not store addresses outside our network
             if (fReachable) {
@@ -4597,18 +4596,18 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
 
     if (pto->IsAddrRelayPeer() &&
         !::ChainstateActive().IsInitialBlockDownload() &&
-        pto->nNextLocalAddrSend < nNow) {
+        pto->m_next_local_addr_send < current_time) {
         AdvertiseLocal(pto);
-        pto->nNextLocalAddrSend =
-            PoissonNextSend(nNow, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
+        pto->m_next_local_addr_send =
+            PoissonNextSend(current_time, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
     }
 
     //
     // Message: addr
     //
-    if (pto->IsAddrRelayPeer() && pto->nNextAddrSend < nNow) {
-        pto->nNextAddrSend =
-            PoissonNextSend(nNow, AVG_ADDRESS_BROADCAST_INTERVAL);
+    if (pto->IsAddrRelayPeer() && pto->m_next_addr_send < current_time) {
+        pto->m_next_addr_send =
+            PoissonNextSend(current_time, AVG_ADDRESS_BROADCAST_INTERVAL);
         std::vector<CAddress> vAddr;
         vAddr.reserve(pto->vAddrToSend.size());
         assert(pto->m_addr_known);
