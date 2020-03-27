@@ -66,6 +66,7 @@ jobs:
           packages:
             - gcc-multilib
             - libgmp-dev:i386
+            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: clang
       env: HOST=i686-linux-gnu BIGNUM=no OPENSSL_TESTS=no
@@ -73,6 +74,7 @@ jobs:
         apt:
           packages:
             - gcc-multilib
+            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no OPENSSL_TESTS=no
@@ -80,6 +82,7 @@ jobs:
         apt:
           packages:
             - gcc-multilib
+            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu OPENSSL_TESTS=no
@@ -88,6 +91,7 @@ jobs:
           packages:
             - gcc-multilib
             - libgmp-dev:i386
+            - ninja-build
       install: ./travis/install_cmake.sh
     - compiler: gcc
       env:
