@@ -16,6 +16,7 @@
 #include <tinyformat.h>
 #include <util/message.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <util/ui_change_type.h>
@@ -239,7 +240,7 @@ static inline void WriteOrderPos(const int64_t &nOrderPos,
     if (nOrderPos == -1) {
         return;
     }
-    mapValue["n"] = i64tostr(nOrderPos);
+    mapValue["n"] = ToString(nOrderPos);
 }
 
 struct COutputEntry {

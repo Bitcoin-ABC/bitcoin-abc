@@ -30,6 +30,7 @@
 #include <txmempool.h>
 #include <univalue.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <validation.h>
 #include <validationinterface.h>
@@ -984,7 +985,7 @@ static UniValue getblocktemplate(const Config &config,
     result.pushKV("coinbasetxn", coinbasetxn);
     result.pushKV("coinbasevalue", int64_t(coinbasevalue / SATOSHI));
     result.pushKV("longpollid", ::ChainActive().Tip()->GetBlockHash().GetHex() +
-                                    i64tostr(nTransactionsUpdatedLast));
+                                    ToString(nTransactionsUpdatedLast));
     result.pushKV("target", hashTarget.GetHex());
     result.pushKV("mintime", int64_t(pindexPrev->GetMedianTimePast()) + 1);
     result.pushKV("mutable", aMutable);

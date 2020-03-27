@@ -26,6 +26,7 @@
 #include <uint256.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <util/time.h>
 #include <version.h>
@@ -91,11 +92,10 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     // ()GetVirtualTransactionSize(i64, i64, u32);
     (void)HexDigit(ch);
     (void)MoneyRange(i64 * SATOSHI);
-    (void)i64tostr(i64);
+    (void)ToString(i64);
     (void)IsDigit(ch);
     (void)IsSpace(ch);
     (void)IsSwitchChar(ch);
-    (void)itostr(i32);
     (void)memusage::DynamicUsage(ch);
     (void)memusage::DynamicUsage(i16);
     (void)memusage::DynamicUsage(i32);

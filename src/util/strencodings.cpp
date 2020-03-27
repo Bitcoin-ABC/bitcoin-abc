@@ -451,14 +451,6 @@ std::string FormatParagraph(const std::string &in, size_t width,
     return out.str();
 }
 
-std::string i64tostr(int64_t n) {
-    return strprintf("%d", n);
-}
-
-std::string itostr(int n) {
-    return strprintf("%d", n);
-}
-
 int64_t atoi64(const char *psz) {
 #ifdef _MSC_VER
     return _atoi64(psz);
