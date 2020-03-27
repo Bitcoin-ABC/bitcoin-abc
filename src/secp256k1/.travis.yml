@@ -4,6 +4,8 @@ dist: xenial
 addons:
   apt:
     packages:
+      - gcc-multilib
+      - libgmp-dev:i386
       - libgmp-dev
       - ninja-build
       - valgrind
@@ -18,7 +20,7 @@ compiler:
 env:
   global:
     - FIELD=auto
-    - BIGNUM=auto
+    - BIGNUM=gmp
     - SCALAR=auto
     - ENDOMORPHISM=no
     - STATICPRECOMPUTATION=yes
@@ -61,52 +63,24 @@ jobs:
   include:
     - compiler: clang
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes OPENSSL_TESTS=no
-      addons:
-        apt:
-          packages:
-            - gcc-multilib
-            - libgmp-dev:i386
-            - ninja-build
-      install: ./travis/install_cmake.sh
     - compiler: clang
       env: HOST=i686-linux-gnu BIGNUM=no OPENSSL_TESTS=no
-      addons:
-        apt:
-          packages:
-            - gcc-multilib
-            - ninja-build
-      install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no OPENSSL_TESTS=no
-      addons:
-        apt:
-          packages:
-            - gcc-multilib
-            - ninja-build
-      install: ./travis/install_cmake.sh
     - compiler: gcc
       env: HOST=i686-linux-gnu OPENSSL_TESTS=no
-      addons:
-        apt:
-          packages:
-            - gcc-multilib
-            - libgmp-dev:i386
-            - ninja-build
-      install: ./travis/install_cmake.sh
     - compiler: gcc
       env:
         - VALGRIND=yes
         - BIGNUM=no  ENDOMORPHISM=yes  ASM=x86_64  EXPERIMENTAL=yes  ECDH=yes  RECOVERY=yes  OPENSSL_TESTS=no  MULTISET=yes
         - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND  AUTOTOOLS_TARGET=
         - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="tests exhaustive_tests"
-      install: ./travis/install_cmake.sh
     - compiler: gcc
       env: # The same as above but without endomorphism.
         - VALGRIND=yes
         - BIGNUM=no  ENDOMORPHISM=no  ASM=x86_64  EXPERIMENTAL=yes  ECDH=yes  RECOVERY=yes  OPENSSL_TESTS=no  MULTISET=yes
         - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND  AUTOTOOLS_TARGET=
         - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="tests exhaustive_tests"
-      install: ./travis/install_cmake.sh
 
 script:
  - ./travis/build_autotools.sh
