@@ -179,7 +179,10 @@ public:
         }
     }
 
-    /** Generate a random integer in the range [0..range). */
+    /**
+     * Generate a random integer in the range [0..range).
+     * Precondition: range > 0.
+     */
     uint64_t randrange(uint64_t range) noexcept {
         assert(range);
         --range;

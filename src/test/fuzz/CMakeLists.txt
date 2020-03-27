@@ -87,12 +87,14 @@ add_regular_fuzz_targets(
 	descriptor_parse
 	eval_script
 	fee_rate
+	flatfile
 	float
 	hex
 	integer
 	key
 	key_io
 	locale
+	merkleblock
 	multiplication_overflow
 	net_permissions
 	netaddress
@@ -106,12 +108,14 @@ add_regular_fuzz_targets(
 	process_messages
 	protocol
 	psbt
+	random
 	rolling_bloom_filter
 	script
 	script_flags
 	script_ops
 	scriptnum_ops
 	signature_checker
+	span
 	spanparsing
 	string
 	strprintf
