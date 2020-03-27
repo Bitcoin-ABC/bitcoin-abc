@@ -201,6 +201,16 @@ set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_INCLUDE_DIR})
 set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
 check_symbol_exists(EVP_MD_CTX_new "openssl/evp.h" HAVE_DECL_EVP_MD_CTX_NEW)
 
+# Disable thread_local for mingw on 32 bits targets. See discussion in:
+# https://github.com/bitcoin/bitcoin/pull/15849/files#r280537603
+# and bug report:
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83562
+if(NOT CMAKE_C_COMPILER_TARGET MATCHES "i[3-6]86-.*mingw.*")
+	set(HAVE_THREAD_LOCAL 1)
+else()
+	message(STATUS "Disabled thread_local for this platform")
+endif()
+
 # Activate wallet
 set(ENABLE_WALLET ${BUILD_BITCOIN_WALLET})
 

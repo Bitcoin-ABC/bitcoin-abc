@@ -825,6 +825,21 @@ AC_LINK_IFELSE([AC_LANG_SOURCE([
   ]
 )
 
+AC_MSG_CHECKING([for thread_local support])
+case $host in
+  i?86-*mingw*)
+    # Disable thread_local for mingw on 32 bits targets. See discussion in:
+    # https://github.com/bitcoin/bitcoin/pull/15849/files#r280537603
+    # and bug report:
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83562
+    AC_MSG_RESULT(no)
+    ;;
+  *)
+    AC_DEFINE(HAVE_THREAD_LOCAL,1,[Define if thread_local is supported.])
+    AC_MSG_RESULT(yes)
+    ;;
+esac
+
 # Check for different ways of gathering OS randomness
 AC_MSG_CHECKING(for Linux getrandom syscall)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
