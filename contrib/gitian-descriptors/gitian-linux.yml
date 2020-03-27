@@ -56,8 +56,6 @@ script: |
 
   # Allow extra cmake option to be specified for each host
   declare -A CMAKE_EXTRA_OPTIONS
-  CMAKE_EXTRA_OPTIONS[i686-pc-linux-gnu]="-DSECP256K1_USE_ASM=OFF"
-  CMAKE_EXTRA_OPTIONS[aarch64-linux-gnu]="-DSECP256K1_USE_ASM=OFF"
   # ARM assembly is supported but experimental, disable it for the release
   CMAKE_EXTRA_OPTIONS[arm-linux-gnueabihf]="-DSECP256K1_USE_ASM=OFF"
 
