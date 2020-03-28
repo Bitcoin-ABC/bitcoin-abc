@@ -12,6 +12,7 @@
 #include <validationinterface.h>
 
 extern RecursiveMutex cs_main;
+extern RecursiveMutex g_cs_orphans;
 
 class Config;
 

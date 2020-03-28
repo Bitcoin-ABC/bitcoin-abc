@@ -2622,7 +2622,7 @@ void CConnman::Interrupt() {
     }
 }
 
-void CConnman::Stop() {
+void CConnman::StopThreads() {
     if (threadMessageHandler.joinable()) {
         threadMessageHandler.join();
     }
@@ -2638,13 +2638,16 @@ void CConnman::Stop() {
     if (threadSocketHandler.joinable()) {
         threadSocketHandler.join();
     }
+}
 
+void CConnman::StopNodes() {
     if (fAddressesInitialized) {
         DumpAddresses();
         fAddressesInitialized = false;
     }
 
     // Close sockets
+    LOCK(cs_vNodes);
     for (CNode *pnode : vNodes) {
         pnode->CloseSocketDisconnect();
     }
