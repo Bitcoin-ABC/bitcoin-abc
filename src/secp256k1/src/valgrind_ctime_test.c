@@ -11,6 +11,9 @@
 #if ENABLE_MODULE_ECDH
 # include "include/secp256k1_ecdh.h"
 #endif
+#if ENABLE_MODULE_SCHNORR
+# include "include/secp256k1_schnorr.h"
+#endif
 
 int main(void) {
     secp256k1_context* ctx;
@@ -65,6 +68,15 @@ int main(void) {
     ret = secp256k1_ecdh(ctx, msg, &pubkey, key, NULL, NULL);
     VALGRIND_MAKE_MEM_DEFINED(&ret, sizeof(ret));
     CHECK(ret == 1);
+#endif
+
+#if ENABLE_MODULE_SCHNORR
+    /* Test schnorr signing. */
+    VALGRIND_MAKE_MEM_UNDEFINED(key, 32);
+    ret = secp256k1_schnorr_sign(ctx, sig, msg, key, NULL, NULL);
+    VALGRIND_MAKE_MEM_DEFINED(&sig, sizeof(64));
+    VALGRIND_MAKE_MEM_DEFINED(&ret, sizeof(ret));
+    CHECK(ret);
 #endif
 
     VALGRIND_MAKE_MEM_UNDEFINED(key, 32);

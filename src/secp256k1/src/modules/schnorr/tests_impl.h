@@ -57,7 +57,7 @@ void test_schnorr_sign_verify(void) {
 
         do {
             secp256k1_rand256_test(ndata[i]);
-            if (secp256k1_schnorr_sig_sign(&ctx->ecmult_gen_ctx, sig64[i], msg32, &key[i], &pubkey[i], NULL, &ndata[i])) {
+            if (secp256k1_schnorr_sig_sign(ctx, sig64[i], msg32, &key[i], &pubkey[i], NULL, &ndata[i])) {
                 break;
             }
         } while(1);
