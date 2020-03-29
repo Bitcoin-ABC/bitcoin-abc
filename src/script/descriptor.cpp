@@ -169,7 +169,7 @@ std::string DescriptorChecksum(const Span<const char> &span) {
 }
 
 std::string AddChecksum(const std::string &str) {
-    return str + "#" + DescriptorChecksum(MakeSpan(str));
+    return str + "#" + DescriptorChecksum(str);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1277,7 +1277,7 @@ bool CheckChecksum(Span<const char> &sp, bool require_checksum,
 std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
                                   FlatSigningProvider &out, std::string &error,
                                   bool require_checksum) {
-    Span<const char> sp(descriptor.data(), descriptor.size());
+    Span<const char> sp{descriptor};
     if (!CheckChecksum(sp, require_checksum, error)) {
         return nullptr;
     }
@@ -1291,7 +1291,7 @@ std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
 std::string GetDescriptorChecksum(const std::string &descriptor) {
     std::string ret;
     std::string error;
-    Span<const char> sp(descriptor.data(), descriptor.size());
+    Span<const char> sp{descriptor};
     if (!CheckChecksum(sp, false, error, &ret)) {
         return "";
     }

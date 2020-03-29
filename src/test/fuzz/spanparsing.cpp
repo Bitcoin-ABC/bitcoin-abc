@@ -13,7 +13,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         std::min<size_t>(query_size, 1024 * 1024));
     const std::string span_str =
         fuzzed_data_provider.ConsumeRemainingBytesAsString();
-    const Span<const char> const_span = MakeSpan(span_str);
+    const Span<const char> const_span{span_str};
 
     Span<const char> mut_span = const_span;
     (void)spanparsing::Const(query, mut_span);
