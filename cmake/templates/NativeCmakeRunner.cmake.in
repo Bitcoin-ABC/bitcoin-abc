@@ -6,3 +6,5 @@
     -D__IS_NATIVE_BUILD=1 \
     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} \
     ${ARGS}
+
+echo "native/CMakeCache.txt: build.ninja" > "${NATIVE_BUILD_DIR}/CMakeFiles/CMakeCache.txt.d"

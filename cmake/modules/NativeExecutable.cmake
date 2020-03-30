@@ -11,7 +11,7 @@ if(__IS_NATIVE_BUILD AND CMAKE_CROSSCOMPILING)
 endif()
 
 # It is imperative that NATIVE_BUILD_DIR be in the cache.
-set(NATIVE_BUILD_DIR "${CMAKE_BINARY_DIR}/native" CACHE PATH "The path of the native build directory")
+set(NATIVE_BUILD_DIR "${CMAKE_BINARY_DIR}/native" CACHE PATH "The path of the native build directory" FORCE)
 
 function(add_native_executable NAME)
 	if(__IS_NATIVE_BUILD)
@@ -96,11 +96,17 @@ if(NOT __IS_NATIVE_BUILD AND NOT TARGET native-cmake-build)
 	# Set a hook to execute when everything is set.
 	variable_watch(CMAKE_CURRENT_LIST_DIR _gen_native_cmake_hook)
 
+	if("${CMAKE_GENERATOR}" MATCHES "Ninja")
+		set(cmake_cache_dep_file DEPFILE "${NATIVE_BUILD_DIR}/CMakeFiles/CMakeCache.txt.d")
+	endif()
+
 	add_custom_command(
 		OUTPUT "${NATIVE_BUILD_DIR}/CMakeCache.txt"
+		COMMENT "Preparing native build..."
 		COMMAND "${CMAKE_BINARY_DIR}/config/run_native_cmake.sh"
 		DEPENDS "${CMAKE_BINARY_DIR}/config/run_native_cmake.sh"
 		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+		${cmake_cache_dep_file}
 		VERBATIM USES_TERMINAL
 	)
 
