@@ -105,4 +105,7 @@ if(NOT __IS_NATIVE_BUILD AND NOT TARGET native-cmake-build)
 	)
 
 	add_custom_target(native-cmake-build DEPENDS "${NATIVE_BUILD_DIR}/CMakeCache.txt")
+
+	# Add the native directory to the list of file to cleanup.
+	set_property(DIRECTORY "${CMAKE_SOURCE_DIR}" APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${NATIVE_BUILD_DIR}")
 endif()
