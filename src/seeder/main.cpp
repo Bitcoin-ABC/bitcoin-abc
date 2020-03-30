@@ -67,11 +67,15 @@ public:
                     error.c_str());
             return EXIT_FAILURE;
         }
-        if (HelpRequested(gArgs)) {
-            std::string strUsage = "Bitcoin-cash-seeder\nUsage: bitcoin-seeder "
-                                   "-host=<host> -ns=<ns> [-mbox=<mbox>] "
-                                   "[-threads=<threads>] [-port=<port>]\n\n" +
-                                   gArgs.GetHelpMessage();
+        if (HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
+            std::string strUsage =
+                PACKAGE_NAME " Seeder " + FormatFullVersion() + "\n";
+            if (HelpRequested(gArgs)) {
+                strUsage +=
+                    "\nUsage: bitcoin-seeder -host=<host> -ns=<ns> "
+                    "[-mbox=<mbox>] [-threads=<threads>] [-port=<port>]\n\n" +
+                    gArgs.GetHelpMessage();
+            }
 
             fprintf(stdout, "%s", strUsage.c_str());
             return EXIT_SUCCESS;
@@ -117,6 +121,8 @@ public:
 private:
     void SetupSeederArgs() {
         gArgs.AddArg("-?", _("Print this help message and exit"), false,
+                     OptionsCategory::OPTIONS);
+        gArgs.AddArg("-version", _("Print version and exit"), false,
                      OptionsCategory::OPTIONS);
         gArgs.AddArg("-host=<host>", _("Hostname of the DNS seed"), false,
                      OptionsCategory::OPTIONS);
