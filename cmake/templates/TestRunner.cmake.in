@@ -1,3 +1,0 @@
-#!/bin/sh
-
-"${COMMAND}" ${ARGS} > "${LOG}" 2>&1 || (cat "${LOG}" && exit 1)
