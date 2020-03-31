@@ -823,15 +823,22 @@ bool CWallet::IsUsedDestination(const TxId &txid, unsigned int n) const {
     const CWalletTx *srctx = GetWalletTx(txid);
     if (srctx) {
         assert(srctx->tx->vout.size() > n);
-        LegacyScriptPubKeyMan *spk_man = GetLegacyScriptPubKeyMan();
-        // When descriptor wallets arrive, these additional checks are
-        // likely superfluous and can be optimized out
-        assert(spk_man != nullptr);
-        for (const auto &keyid :
-             GetAffectedKeys(srctx->tx->vout[n].scriptPubKey, *spk_man)) {
-            PKHash pkh_dest(keyid);
-            if (GetDestData(pkh_dest, "used", nullptr)) {
-                return true;
+        CTxDestination dest;
+        if (!ExtractDestination(srctx->tx->vout[n].scriptPubKey, dest)) {
+            return false;
+        }
+        if (GetDestData(dest, "used", nullptr)) {
+            return true;
+        }
+        if (IsLegacy()) {
+            LegacyScriptPubKeyMan *spk_man = GetLegacyScriptPubKeyMan();
+            assert(spk_man != nullptr);
+            for (const auto &keyid :
+                 GetAffectedKeys(srctx->tx->vout[n].scriptPubKey, *spk_man)) {
+                PKHash pkh_dest(keyid);
+                if (GetDestData(pkh_dest, "used", nullptr)) {
+                    return true;
+                }
             }
         }
     }
