@@ -69,8 +69,6 @@ ALLOWED_LIBRARIES = {
     'ld-linux-aarch64.so.1',  # 64-bit ARM dynamic linker
     'ld-linux-armhf.so.3',  # 32-bit ARM dynamic linker
     # bitcoin-qt only
-    'libX11-xcb.so.1',  # part of X11
-    'libX11.so.6',  # part of X11
     'libxcb.so.1',  # part of X11
     'libfontconfig.so.1',  # font support
     'libfreetype.so.6',  # font parsing
