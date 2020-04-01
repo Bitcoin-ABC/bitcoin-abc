@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd "${NATIVE_BUILD_DIR}"
+"${CMAKE_COMMAND}" --build "${NATIVE_BUILD_DIR}" --target "${TARGET}"
+"${CMAKE_COMMAND}" -E create_symlink "${NATIVE_BINARY}" "${NATIVE_LINK}"
+
+# Ok let's generate a depfile if we can.
+if test "x${CMAKE_GENERATOR}" = "xNinja"; then
+    "${CMAKE_SOURCE_DIR}/cmake/utils/gen-ninja-deps.py" \
+        --build-dir "${NATIVE_BUILD_DIR}" \
+        --base-dir "${CMAKE_BINARY_DIR}" \
+        --ninja "${CMAKE_MAKE_PROGRAM}" \
+        "${RELATIVE_PATH}/native-${NAME}" "${TARGET}" > "${NATIVE_LINK}.d"
+fi

@@ -13,6 +13,10 @@ endif()
 # It is imperative that NATIVE_BUILD_DIR be in the cache.
 set(NATIVE_BUILD_DIR "${CMAKE_BINARY_DIR}/native" CACHE PATH "The path of the native build directory" FORCE)
 
+# Only ninja support depfiles and this is a hard error with other generators
+# so we need a nice wrapper to handle this mess.
+include(CustomCommandWithDepFile)
+
 function(add_native_executable NAME)
 	if(__IS_NATIVE_BUILD)
 		add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
@@ -32,17 +36,32 @@ function(add_native_executable NAME)
 		if(RELATIVE_PATH)
 			string(PREPEND NATIVE_TARGET "${RELATIVE_PATH}/")
 		endif()
+		if("${CMAKE_GENERATOR}" MATCHES "Ninja")
+			set(TARGET "${NATIVE_TARGET}")
+		else()
+			set(TARGET "${NAME}")
+		endif()
+
 		set(NATIVE_BINARY "${NATIVE_BUILD_DIR}/${NATIVE_TARGET}")
+		set(NATIVE_LINK "${CMAKE_CURRENT_BINARY_DIR}/native-${NAME}")
+
+		configure_file(
+			"${CMAKE_SOURCE_DIR}/cmake/templates/NativeBuildRunner.cmake.in"
+			"${CMAKE_CURRENT_BINARY_DIR}/build_native_${NAME}.sh"
+		)
 
 		# We create a symlink because cmake craps itself if the imported
 		# executable has the same name as the executable itself.
 		# https://cmake.org/pipermail/cmake/2019-May/069480.html
-		add_custom_command(
-			OUTPUT "native-${NAME}"
+		add_custom_command_with_depfile(
+			OUTPUT "${NATIVE_LINK}"
 			COMMENT "Building native ${NATIVE_TARGET}"
-			COMMAND ${CMAKE_COMMAND} --build "${NATIVE_BUILD_DIR}" --target "${NAME}"
-			COMMAND ${CMAKE_COMMAND} -E create_symlink "${NATIVE_BINARY}" "native-${NAME}"
-			DEPENDS native-cmake-build ${ARGN}
+			COMMAND "${CMAKE_CURRENT_BINARY_DIR}/build_native_${NAME}.sh"
+			DEPENDS
+				native-cmake-build
+				"${CMAKE_CURRENT_BINARY_DIR}/build_native_${NAME}.sh"
+				${ARGN}
+			DEPFILE "${NATIVE_LINK}.d"
 			VERBATIM USES_TERMINAL
 		)
 
@@ -51,7 +70,7 @@ function(add_native_executable NAME)
 
 		# This obviously cannot depend on a file for some mysterious reasons only
 		# the cmake gods are aware of, so we need a phony custom target.
-		add_custom_target("build-native-${NAME}" DEPENDS "native-${NAME}")
+		add_custom_target("build-native-${NAME}" DEPENDS "${NATIVE_LINK}")
 		add_dependencies(${NAME} "build-native-${NAME}")
 	endif()
 endfunction(add_native_executable)
@@ -96,17 +115,13 @@ if(NOT __IS_NATIVE_BUILD AND NOT TARGET native-cmake-build)
 	# Set a hook to execute when everything is set.
 	variable_watch(CMAKE_CURRENT_LIST_DIR _gen_native_cmake_hook)
 
-	if("${CMAKE_GENERATOR}" MATCHES "Ninja")
-		set(cmake_cache_dep_file DEPFILE "${NATIVE_BUILD_DIR}/CMakeFiles/CMakeCache.txt.d")
-	endif()
-
-	add_custom_command(
+	add_custom_command_with_depfile(
 		OUTPUT "${NATIVE_BUILD_DIR}/CMakeCache.txt"
 		COMMENT "Preparing native build..."
 		COMMAND "${CMAKE_BINARY_DIR}/config/run_native_cmake.sh"
 		DEPENDS "${CMAKE_BINARY_DIR}/config/run_native_cmake.sh"
 		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-		${cmake_cache_dep_file}
+		DEPFILE "${NATIVE_BUILD_DIR}/CMakeFiles/CMakeCache.txt.d"
 		VERBATIM USES_TERMINAL
 	)
 

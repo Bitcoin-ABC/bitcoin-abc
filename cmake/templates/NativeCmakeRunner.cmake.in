@@ -9,11 +9,11 @@
 
 # Ok let's generate a depfile if we can.
 if test "x${CMAKE_GENERATOR}" = "xNinja"; then
-	"${CMAKE_SOURCE_DIR}/cmake/utils/gen-ninja-deps.py" \
-	    --build-dir "${NATIVE_BUILD_DIR}" \
-	    --base-dir "${CMAKE_BINARY_DIR}" \
-	    --ninja "${CMAKE_MAKE_PROGRAM}" \
-	    native/CMakeCache.txt build.ninja \
-	    --extra-deps build.ninja \
-	        > "${NATIVE_BUILD_DIR}/CMakeFiles/CMakeCache.txt.d"
+    "${CMAKE_SOURCE_DIR}/cmake/utils/gen-ninja-deps.py" \
+        --build-dir "${NATIVE_BUILD_DIR}" \
+        --base-dir "${CMAKE_BINARY_DIR}" \
+        --ninja "${CMAKE_MAKE_PROGRAM}" \
+        native/CMakeCache.txt build.ninja \
+        --extra-deps build.ninja \
+            > "${NATIVE_BUILD_DIR}/CMakeFiles/CMakeCache.txt.d"
 fi

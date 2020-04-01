@@ -171,7 +171,7 @@ def dump(deps):
 
 
 # Collapse everything under the base target.
-basedeps = set(d.encode() for d in extra_deps)
+basedeps = set() if extra_deps is None else set(d.encode() for d in extra_deps)
 for d in deps.values():
     basedeps.update(d)
 
