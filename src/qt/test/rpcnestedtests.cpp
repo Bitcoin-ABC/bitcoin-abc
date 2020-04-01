@@ -17,13 +17,26 @@
 #include <QDir>
 #include <QtGlobal>
 
-static UniValue rpcNestedTest_rpc(const Config &config,
-                                  const JSONRPCRequest &request) {
-    return request.params.write(0, 0);
+static RPCHelpMan rpcNestedTest_rpc() {
+    return RPCHelpMan{
+        "rpcNestedTest",
+        "echo the passed string(s)",
+        {
+            {"arg1", RPCArg::Type::STR, RPCArg::Optional::OMITTED, ""},
+            {"arg2", RPCArg::Type::STR, RPCArg::Optional::OMITTED, ""},
+            {"arg3", RPCArg::Type::STR, RPCArg::Optional::OMITTED, ""},
+        },
+        {},
+        RPCExamples{""},
+        [](const RPCHelpMan &self, const Config &config,
+           const JSONRPCRequest &request) -> UniValue {
+            return request.params.write(0, 0);
+        },
+    };
 }
 
 static const CRPCCommand vRPCCommands[] = {
-    {"test", "rpcNestedTest", &rpcNestedTest_rpc, {}},
+    {"test", "rpcNestedTest", &rpcNestedTest_rpc, {"arg1", "arg2", "arg3"}},
 };
 
 void RPCNestedTests::rpcNestedTests() {
