@@ -60,8 +60,6 @@
 
 #cmakedefine HAVE_DECL_EVP_MD_CTX_NEW 1
 
-#cmakedefine HAVE_THREAD_LOCAL 1
-
 #define FDELT_TYPE ${FDELT_TYPE}
 
 #cmakedefine ENABLE_BIP70 1
