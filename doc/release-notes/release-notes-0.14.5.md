@@ -9,7 +9,7 @@ This release includes the following features and fixes:
 - Change currency units in user interface from BTC -> BCC
 - Add NODE_BITCOIN_CASH service bit (0x20)
 - Update BU backed seeder to btccash-seeder.bitcoinunlimited.info
-- Update ABC logos for About menu, and testnet icon 
+- Update ABC logos for About menu, and testnet icon
 - Various refactoring and cleanups
 
 NOTE: Change in default value:

@@ -5,7 +5,7 @@ Bitcoin ABC version 0.18.8 is now available from:
 This release includes the following features and fixes:
  - `dumpwallet` now includes hex-encoded scripts from the wallet in the dumpfile
  - `importwallet` now imports these scripts, but corresponding addresses may not
-   be added correctly or a manual rescan may be required to find relevant 
+   be added correctly or a manual rescan may be required to find relevant
    transactions
  - `getblock <hash> 2` (verbosity = 2) now returns `hex` values in transaction JSON blobs
  - Remove miner policy estimator in favor of minimum fees, also remove `fee_estimates.dat`.
