@@ -63,40 +63,40 @@ class WalletDescriptorTest(BitcoinTestFramework):
         self.log.info("Test disabled RPCs")
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.importprivkey,
+                                recv_wrpc.rpc.importprivkey,
                                 "cVpF924EspNh8KjYsfhgY96mmxvT6DgdWiTYMtMjuM74hJaU5psW")
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.importpubkey,
+                                recv_wrpc.rpc.importpubkey,
                                 send_wrpc.getaddressinfo(send_wrpc.getnewaddress()))
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.importaddress,
+                                recv_wrpc.rpc.importaddress,
                                 recv_wrpc.getnewaddress())
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.importmulti,
+                                recv_wrpc.rpc.importmulti,
                                 [])
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.addmultisigaddress,
+                                recv_wrpc.rpc.addmultisigaddress,
                                 1,
                                 [recv_wrpc.getnewaddress()])
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.dumpprivkey,
+                                recv_wrpc.rpc.dumpprivkey,
                                 recv_wrpc.getnewaddress())
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.dumpwallet,
+                                recv_wrpc.rpc.dumpwallet,
                                 'wallet.dump')
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.importwallet,
+                                recv_wrpc.rpc.importwallet,
                                 'wallet.dump')
         assert_raises_rpc_error(-4,
                                 "This type of wallet does not support this command",
-                                recv_wrpc.sethdseed)
+                                recv_wrpc.rpc.sethdseed)
 
         self.log.info("Test encryption")
         # Get the master fingerprint before encrypt
