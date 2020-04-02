@@ -2178,7 +2178,7 @@ CConnman::CConnman(const Config &configIn, uint64_t nSeed0In, uint64_t nSeed1In)
 }
 
 NodeId CConnman::GetNewNodeId() {
-    return nLastNodeId.fetch_add(1, std::memory_order_relaxed);
+    return nLastNodeId.fetch_add(1);
 }
 
 bool CConnman::Bind(const CService &addr, unsigned int flags) {
