@@ -169,8 +169,21 @@ def main():
             if argname in IGNORE_DUMMY_ARGS:
                 # these are testing or dummy, don't warn for them
                 continue
-            print('WARNING: conversion mismatch for argument named {} ({})'.format(
-                argname, list(zip(all_methods_by_argname[argname], converts_by_argname[argname]))))
+            formattedCommands = []
+            for (cmd, convert) in list(
+                    zip(all_methods_by_argname[argname], converts_by_argname[argname])):
+                argType = 'string'
+                if convert:
+                    argType = 'JSON'
+                formattedCommands.append(
+                    "'{}' has argument '{}' of type '{}'".format(
+                        cmd, argname, argType))
+            print("WARNING: In order to keep a consistent API, arguments of the same name are expected to either both "
+                  "be string-typed or converted from JSON. But there was a conversion mismatch: {}. "
+                  "Common root causes for this warning: 1) The command and/or argument are missing from the conversion "
+                  "table in '{}'. 2) Arguments of the same name are being converted from JSON for some commands, but not "
+                  "for others. Consider renaming arguments such that one name is used for strings and the other for "
+                  "conversions from JSON.".format(formattedCommands, SOURCE_CLIENT))
 
     sys.exit(0)
 
