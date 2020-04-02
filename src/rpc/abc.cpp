@@ -55,15 +55,14 @@ static UniValue setexcessiveblock(Config &config,
             HelpExampleRpc("setexcessiveblock", "25000000"));
     }
 
-    int64_t ebs = 0;
-    if (request.params[0].isNum()) {
-        ebs = request.params[0].get_int64();
-    } else if (!ParseInt64(request.params[0].get_str(), &ebs)) {
+    if (!request.params[0].isNum()) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
             std::string(
                 "Invalid parameter, excessiveblock must be an integer"));
     }
+
+    int64_t ebs = request.params[0].get_int64();
 
     // Do not allow maxBlockSize to be set below historic 1MB limit
     if (ebs <= int64_t(LEGACY_MAX_BLOCK_SIZE)) {
