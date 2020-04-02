@@ -20,7 +20,7 @@ foreach(_raw_file ${BENCH_DATA_RAW_FILES})
 
 	add_custom_command(
 		OUTPUT "${_generated_header_output}"
-		COMMAND 
+		COMMAND
 			"${Python_EXECUTABLE}"
 			"data/convert-raw-to-header.py"
 			"${_test_name}"

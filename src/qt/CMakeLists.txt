@@ -236,7 +236,7 @@ if(ENABLE_BIP70)
 	# Do protobuf codegen
 	find_package(Protobuf REQUIRED)
 	protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
-	
+
 	add_library(bitcoin-qt-protobuf OBJECT
 		# Protobuf codegen
 			${PROTOBUF_HEADERS}
@@ -417,7 +417,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 	execute_process(
-		COMMAND 
+		COMMAND
 			"${QMAKE_EXECUTABLE}"
 			-query QT_INSTALL_TRANSLATIONS
 		OUTPUT_VARIABLE

@@ -39,7 +39,7 @@ if(NOT DEFINED GMP_VERSION)
 	if(GMP_INCLUDE_DIR)
 		# Read the version from file gmp.h into a variable.
 		file(READ "${GMP_INCLUDE_DIR}/gmp.h" _GMP_HEADER)
-	
+
 		# Parse the version into variables.
 		string(REGEX REPLACE
 			".*__GNU_MP_VERSION[ \t]+([0-9]+).*" "\\1"

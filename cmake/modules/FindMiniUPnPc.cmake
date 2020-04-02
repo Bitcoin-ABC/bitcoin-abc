@@ -42,7 +42,7 @@ if(NOT DEFINED MiniUPnPc_VERSION)
 	if(MiniUPnPc_INCLUDE_DIR)
 		# Read the version from file miniupnpc.h into a variable.
 		file(READ "${MiniUPnPc_INCLUDE_DIR}/miniupnpc.h" _MiniUPnPc_HEADER)
-	
+
 		# Parse the version into variable.
 		string(REGEX REPLACE
 			".*MINIUPNPC_VERSION[ \t]+\"([0-9]+\.[0-9]+(\.[0-9]+)?)\".*" "\\1"

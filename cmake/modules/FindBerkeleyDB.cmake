@@ -29,7 +29,7 @@
 #   BerkeleyDB::CXX
 
 # Generate a list of all the possible versioned library name variants given a
-# list of separators. 
+# list of separators.
 function(generate_versions_variants VARIANTS LIB MAJOR MINOR)
 	set(SEPARATORS
 		"" "." "-" "_"
@@ -86,7 +86,7 @@ if(NOT DEFINED BerkeleyDB_VERSION)
 	if(BerkeleyDB_INCLUDE_DIR)
 		# Read the version from file db.h into a variable.
 		file(READ "${BerkeleyDB_INCLUDE_DIR}/db.h" _BerkeleyDB_DB_HEADER)
-	
+
 		# Parse the version into variables.
 		string(REGEX REPLACE
 			".*DB_VERSION_MAJOR[ \t]+([0-9]+).*" "\\1"

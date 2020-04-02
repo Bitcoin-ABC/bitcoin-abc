@@ -21,7 +21,7 @@ function(add_native_executable NAME)
 	if(__IS_NATIVE_BUILD)
 		add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
 		# Multi-configuration generators (VS, Xcode) append a per-configuration
-		# subdirectory to the specified directory unless the 
+		# subdirectory to the specified directory unless the
 		# `RUNTIME_OUTPUT_DIRECTORY` property is defined using a generator
 		# expression.
 		# Since we don't care about the build configuration for native

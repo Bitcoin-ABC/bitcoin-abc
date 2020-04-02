@@ -34,7 +34,7 @@ function(find_component LIB COMPONENT)
 		)
 		list(REMOVE_DUPLICATES ${LIB}_LIBRARIES)
 		set(${LIB}_LIBRARIES ${${LIB}_LIBRARIES} PARENT_SCOPE)
-	
+
 		# ... and create an imported target for the component, if not already
 		# done.
 		if(NOT TARGET ${LIB}::${COMPONENT})

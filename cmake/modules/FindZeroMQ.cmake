@@ -36,7 +36,7 @@ if(NOT DEFINED ZeroMQ_VERSION)
 	if(ZeroMQ_INCLUDE_DIR)
 		# Read the version from file zmq.h into a variable.
 		file(READ "${ZeroMQ_INCLUDE_DIR}/zmq.h" _ZMQ_HEADER)
-	
+
 		# Parse the version into variables.
 		string(REGEX REPLACE
 			".*ZMQ_VERSION_MAJOR[ \t]+([0-9]+).*" "\\1"
