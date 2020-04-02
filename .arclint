@@ -192,6 +192,13 @@
             "exclude": [
                 "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
             ]
+        },
+        "lint-whitespace": {
+            "type": "lint-whitespace",
+            "include": "(\\.(ac|am|cmake|conf|in|include|json|m4|md|openrc|php|pl|sh|txt|yml)$)",
+            "exclude": [
+                "(^src/(secp256k1|univalue|leveldb)/)"
+            ]
         }
     }
 }

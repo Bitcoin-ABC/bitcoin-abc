@@ -55,6 +55,4 @@
 
     <rule ref="PSR2.Files.ClosingTag" />
 
-    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace" />
-
 </ruleset>
