@@ -126,7 +126,7 @@ AC_DEFUN([AX_BOOST_THREAD],
 								 [link_thread="no"])
 				done
 			fi
-			
+
 			if test "x$ax_lib" = "x"; then
 				AC_MSG_ERROR(Could not find a version of the boost_thread library!)
 			fi

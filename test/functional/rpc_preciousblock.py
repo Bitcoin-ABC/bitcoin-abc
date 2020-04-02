@@ -51,6 +51,7 @@ class PreciousTest(BitcoinTestFramework):
         self.log.info(
             "Ensure submitblock can in principle reorg to a competing chain")
         # A non-wallet address to mine to
+
         def gen_address(
             i): return self.nodes[i].get_deterministic_priv_key().address
         self.nodes[0].generatetoaddress(1, gen_address(0))

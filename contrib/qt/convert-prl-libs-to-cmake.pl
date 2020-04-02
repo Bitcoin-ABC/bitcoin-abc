@@ -47,7 +47,7 @@ sub processArgs {
         # library location. This is especially the case of the plugins wich are
         # located in a separated 'plugin' directory.
         # Let the caller set this installation dependent location rather than
-        # trying to determine it from the given library location. 
+        # trying to determine it from the given library location.
         "qt_lib_install_dir=s" => \$qt_lib_install_dir,
         "component=s" => \$component_name,
         "out=s" => \$out_name,

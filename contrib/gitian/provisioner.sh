@@ -9,7 +9,7 @@ export BUILDUSER=${BUILDUSER:-vagrant}
 
 apt-get update
 apt-get install -y git ruby sudo apt-cacher-ng qemu-utils debootstrap \
-	lxc python-cheetah parted kpartx bridge-utils make curl 
+	lxc python-cheetah parted kpartx bridge-utils make curl
 
 # the version of lxc-start in Debian needs to run as root, so make sure
 # that the build script can execute it without providing a password
@@ -54,12 +54,12 @@ cd gitian-builder
 git config --global user.email "vagrant@vagrant.com"
 git config --global user.name "vagrant"
 
-chown -R ${BUILDUSER}:${BUILDUSER} /home/${BUILDUSER}  
+chown -R ${BUILDUSER}:${BUILDUSER} /home/${BUILDUSER}
 
 echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 echo "!!! Provisioning Complete !!!!"
 echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-echo 
+echo
 echo "As the user ${BUILDUSER} run the following commands to produce a linux build:"
 echo "export COMMIT=v0.18.3"
 echo "export URL=https://github.com/Bitcoin-ABC/bitcoin-abc.git"

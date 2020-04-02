@@ -1,4 +1,4 @@
-# This file contains python code with % string formatters to test the 
+# This file contains python code with % string formatters to test the
 # lint-python-format.py script.
 
 # Single line
@@ -32,7 +32,7 @@
     % ("1",
     #"4",
     "2", "3")
-    
+
 # Inlined comments are not supported
 # "test %s %s %s" \
 #     % ("1", #4,

@@ -27,7 +27,7 @@ setup() {
   THREADS=$(nproc || sysctl -n hw.ncpu)
   export THREADS
 
-  # Base directories for sanitizer related files 
+  # Base directories for sanitizer related files
   SAN_SUPP_DIR="${TOPLEVEL}/test/sanitizer_suppressions"
   SAN_LOG_DIR="/tmp/sanitizer_logs"
 
