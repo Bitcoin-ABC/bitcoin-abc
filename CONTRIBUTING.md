@@ -34,8 +34,8 @@ This means that there should be quick turnaround for patches to be proposed,
 reviewed, and committed. Changes should not sit in a queue for long.
 
 Here are some tips to help keep the development working as intended. These
-are guidelines for the normal and expected development process. Developers 
-can use their judgement to deviate from these guidelines when they have a 
+are guidelines for the normal and expected development process. Developers
+can use their judgement to deviate from these guidelines when they have a
 good reason to do so.
 
 - Keep each change small and self-contained.
@@ -56,7 +56,7 @@ branch, and should always improve it (no regressions).
 - Don't break the build, it is important to keep master green as much as possible.
 If a Diff is landed, and breaks the build, fix it quickly. If it cannot be fixed
 quickly, it should be reverted, and re-applied later when it no longer breaks the build.
-- As soon as you see a bug, you fix it. Do not continue on. Fixing the bug becomes the 
+- As soon as you see a bug, you fix it. Do not continue on. Fixing the bug becomes the
 top priority, more important than completing other tasks.
 - Automate as much as possible, and spend time on things only humans can do.
 
@@ -64,7 +64,7 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 
 - [Developer Notes](doc/developer-notes.md)
 - [Statement of Bitcoin ABC Values and Visions](https://www.yours.org/content/bitcoin-abc---our-values-and-vision-a282afaade7c)
-- [How to Do Code Reviews Like a Human - Part 1](https://mtlynch.io/human-code-reviews-1/) 
+- [How to Do Code Reviews Like a Human - Part 1](https://mtlynch.io/human-code-reviews-1/)
 - [How to Do Code Reviews Like a Human - Part 2](https://mtlynch.io/human-code-reviews-2/)
 - [Large Diffs Are Hurting Your Ability To Ship](https://medium.com/@kurtisnusbaum/large-diffs-are-hurting-your-ability-to-ship-e0b2b41e8acf)
 - [Stacked Diffs: Keeping Phabricator Diffs Small](https://medium.com/@kurtisnusbaum/stacked-diffs-keeping-phabricator-diffs-small-d9964f4dcfa6)

@@ -53,7 +53,7 @@ recommended, but it is possible to compile the 32-bit version.
 Cross-compilation for Ubuntu and Windows Subsystem for Linux
 ------------------------------------------------------------
 
-At the time of writing the Windows Subsystem for Linux installs Ubuntu Bionic 18.04. 
+At the time of writing the Windows Subsystem for Linux installs Ubuntu Bionic 18.04.
 The steps below can be performed on Ubuntu (including in a VM) or WSL. The depends system
 will also work on other Linux distributions, however the commands for
 installing the toolchain will be different.

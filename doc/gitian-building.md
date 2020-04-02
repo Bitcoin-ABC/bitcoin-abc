@@ -89,7 +89,7 @@ You only need to do this once:
 ./gitian-build.py --setup satoshi 0.18.5
 ```
 
-Where `satoshi` is your Github name and `0.18.5` is the most recent tag (without `v`). 
+Where `satoshi` is your Github name and `0.18.5` is the most recent tag (without `v`).
 
 Build binaries
 --------------
@@ -109,7 +109,7 @@ You need to copy these uncommited changes to your host machine, where you can si
 
 ```bash
 export NAME=satoshi
-gpg --output $VERSION-linux/$NAME/bitcoin-abc-linux-0.18.5-build.assert.sig --detach-sign 0.18.5-linux/$NAME/bitcoin-abc-linux-0.18.5-build.assert 
-gpg --output $VERSION-osx-unsigned/$NAME/bitcoin-abc-osx-0.18.5-build.assert.sig --detach-sign 0.18.5-osx-unsigned/$NAME/bitcoin-abc-osx-0.18.5-build.assert 
-gpg --output $VERSION-win-unsigned/$NAME/bitcoin-abc-win-0.18.5-build.assert.sig --detach-sign 0.18.5-win-unsigned/$NAME/bitcoin-abc-win-0.18.5-build.assert 
+gpg --output $VERSION-linux/$NAME/bitcoin-abc-linux-0.18.5-build.assert.sig --detach-sign 0.18.5-linux/$NAME/bitcoin-abc-linux-0.18.5-build.assert
+gpg --output $VERSION-osx-unsigned/$NAME/bitcoin-abc-osx-0.18.5-build.assert.sig --detach-sign 0.18.5-osx-unsigned/$NAME/bitcoin-abc-osx-0.18.5-build.assert
+gpg --output $VERSION-win-unsigned/$NAME/bitcoin-abc-win-0.18.5-build.assert.sig --detach-sign 0.18.5-win-unsigned/$NAME/bitcoin-abc-win-0.18.5-build.assert
 ```

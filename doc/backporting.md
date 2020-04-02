@@ -61,7 +61,7 @@ Once you have identified your commit, or commits on question to backport you hav
 1. Backport each diff individually
 2. Squash the commits together for backporting.
 
-In either case, you will find there are likely merge conflicts. 
+In either case, you will find there are likely merge conflicts.
 
 Backport each diff individually
 -------------------------------

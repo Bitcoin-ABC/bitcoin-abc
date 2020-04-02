@@ -45,7 +45,7 @@ Before you start building, please make sure that your compiler supports C++14.
 
     You can disable the GUI build by passing `-DBUILD_BITCOIN_QT=OFF` to cmake.
 
-    It is recommended to create a build directory to build out-of-tree. 
+    It is recommended to create a build directory to build out-of-tree.
 
         mkdir build
         cd build

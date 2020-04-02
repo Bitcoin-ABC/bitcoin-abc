@@ -15,7 +15,7 @@ Bitcoin ABC Release Process
     - Run `arc lint --everything` and check there is no linter error
     - Ensure that bitcoind and bitcoin-qt run with no issue on all supported platforms.
       Manually test bitcoin-qt by sending some transactions and navigating through the menus.
- 
+
 3. Update the documents / code which needs to be updated every release
     - Check that [release-notes.md](doc/release-notes.md) is complete, and fill in any missing items.
     - Update [bips.md](/doc/bips.md) to account for changes since the last release.
@@ -67,6 +67,6 @@ Bitcoin ABC Release Process
 15. Announce Release:
     - [Reddit](https://www.reddit.com/r/BitcoinABC/)
     - Twitter @Bitcoin_ABC
-    - Public slack channels friendly to Bitcoin ABC announcements 
+    - Public slack channels friendly to Bitcoin ABC announcements
       (eg. #abc-announce on BTCforks,  #hardfork on BTCchat)
 

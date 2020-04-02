@@ -150,7 +150,7 @@ directory is never deleted after a failed test.
 A python debugger can be attached to tests at any point. Just add the line:
 
 ```py
-import pdb; pdb.set_trace() 
+import pdb; pdb.set_trace()
 ```
 
 anywhere in the test. You will then be able to inspect variables, as well as

@@ -63,16 +63,16 @@ to clean up the patch automatically before submitting a pull request.
   - Use CamelCase for functions/methods, and lowerCamelCase for variables.
     - GLOBAL_CONSTANTS should use UPPER_SNAKE_CASE.
     - namespaces should use lower_snake_case.
-  - Function names should generally start with an English command-form verb 
+  - Function names should generally start with an English command-form verb
     (e.g. `ValidateTransaction`, `AddTransactionToMempool`, `ConnectBlock`)
   - Variable names should generally be nouns or past/future tense verbs.
     (e.g. `canDoThing`, `signatureOperations`, `didThing`)
   - Avoid using globals, remove existing globals whenever possible.
   - Class member variable names should be prepended with `m_`
-  - DO choose easily readable identifier names. 
+  - DO choose easily readable identifier names.
   - DO favor readability over brevity.
   - DO NOT use Hungarian notation.
-  - DO NOT use abbreviations or contractions within identifiers. 
+  - DO NOT use abbreviations or contractions within identifiers.
     - WRONG: mempool
     - RIGHT: MemoryPool
     - WRONG: ChangeDir
@@ -104,11 +104,11 @@ private:
 public:
     /**
     * The documentation before a function or class method should follow Doxygen
-    * spec. The name of the function should start with an english verb which 
+    * spec. The name of the function should start with an english verb which
     * indicates the intended purpose of this code.
-    * 
+    *
     * The  function name should be should be CamelCase.
-    * 
+    *
     * @param[in] s    A description
     * @param[in] n    Another argument description
     * @pre Precondition for function...
@@ -650,7 +650,7 @@ Header Inclusions
   e.g.: `#include <qt/test/guiutiltests.h>`
 
   - Native C++ headers should be preferred over C compatibility headers.
-  e.g.: use `<cstdint>` instead of `<stdint.h>` 
+  e.g.: use `<cstdint>` instead of `<stdint.h>`
 
   - In order to make the code consistent, header files should be included in the following order, with each
   section separated by a newline:
@@ -660,7 +660,7 @@ Header Inclusions
     4. The 3rd party libraries headers. Different libraries should be in different sections.
     5. The system libraries.
 
-All headers should be lexically ordered inside their block. 
+All headers should be lexically ordered inside their block.
 
 - Use include guards to avoid the problem of double inclusion. The header file
   `foo/bar.h` should use the include guard identifier `BITCOIN_FOO_BAR_H`, e.g.
@@ -696,7 +696,7 @@ GUI
 
 Unit Tests
 -----------
- - Test suite naming convention: The Boost test suite in file 
+ - Test suite naming convention: The Boost test suite in file
    `src/test/foo_tests.cpp` should be named `foo_tests`. Test suite names must
    be unique.
 

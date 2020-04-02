@@ -53,11 +53,11 @@ see `contrib/debian/examples/bitcoin.conf`.
 
 All three configurations assume several paths that might need to be adjusted.
 
-Binary:              `/usr/bin/bitcoind`  
-Configuration file:  `/etc/bitcoin/bitcoin.conf`  
-Data directory:      `/var/lib/bitcoind`  
-PID file:            `/var/run/bitcoind/bitcoind.pid` (OpenRC and Upstart) or `/var/lib/bitcoind/bitcoind.pid` (systemd)  
-Lock file:           `/var/lock/subsys/bitcoind` (CentOS)  
+Binary:              `/usr/bin/bitcoind`
+Configuration file:  `/etc/bitcoin/bitcoin.conf`
+Data directory:      `/var/lib/bitcoind`
+PID file:            `/var/run/bitcoind/bitcoind.pid` (OpenRC and Upstart) or `/var/lib/bitcoind/bitcoind.pid` (systemd)
+Lock file:           `/var/lock/subsys/bitcoind` (CentOS)
 
 The configuration file, PID directory (if applicable) and data directory
 should all be owned by the bitcoin user and group.  It is advised for security
@@ -67,8 +67,8 @@ can then be controlled by group membership.
 
 3b) macOS
 
-Binary:              `/usr/local/bin/bitcoind`  
-Configuration file:  `~/Library/Application Support/Bitcoin/bitcoin.conf`  
+Binary:              `/usr/local/bin/bitcoind`
+Configuration file:  `~/Library/Application Support/Bitcoin/bitcoin.conf`
 Data directory:      `~/Library/Application Support/Bitcoin`
 Lock file:           `~/Library/Application Support/Bitcoin/.lock`
 

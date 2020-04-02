@@ -93,7 +93,7 @@ API, to create and destroy 'ephemeral' hidden services programmatically.
 Bitcoin Core has been updated to make use of this.
 
 This means that if Tor is running (and proper authentication has been configured),
-Bitcoin Core automatically creates a hidden service to listen on. This will positively 
+Bitcoin Core automatically creates a hidden service to listen on. This will positively
 affect the number of available .onion nodes.
 
 This new feature is enabled by default if Bitcoin ABC is listening (`-listen`), and
