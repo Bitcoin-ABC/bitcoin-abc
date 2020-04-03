@@ -211,4 +211,6 @@ public:
     }
 };
 
+bool SanityCheckASMap(const std::vector<bool> &asmap);
+
 #endif // BITCOIN_NETADDRESS_H
