@@ -9,6 +9,7 @@
 #include <policy/policy.h>
 #include <pubkey.h>
 #include <script/descriptor.h>
+#include <script/interpreter.h>
 #include <script/script.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
@@ -29,7 +30,13 @@ void initialize() {
 }
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
-    const CScript script(buffer.begin(), buffer.end());
+    FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
+    const std::optional<CScript> script_opt =
+        ConsumeDeserializable<CScript>(fuzzed_data_provider);
+    if (!script_opt) {
+        return;
+    }
+    const CScript script{*script_opt};
 
     std::vector<uint8_t> compressed;
     if (CompressScript(script, compressed)) {
@@ -85,16 +92,22 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     ScriptToUniv(script, o4, false);
 
     {
-        FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
         const std::vector<uint8_t> bytes =
             ConsumeRandomLengthByteVector(fuzzed_data_provider);
         // DecompressScript(..., ..., bytes) is not guaranteed to be defined if
-        // bytes.size() <= 23.
-        if (bytes.size() >= 24) {
+        // the bytes vector is too short
+        if (bytes.size() >= 32) {
             CScript decompressed_script;
             DecompressScript(
                 decompressed_script,
                 fuzzed_data_provider.ConsumeIntegral<unsigned int>(), bytes);
         }
+    }
+
+    const std::optional<CScript> other_script =
+        ConsumeDeserializable<CScript>(fuzzed_data_provider);
+    if (other_script) {
+        CScript script_mut{script};
+        (void)FindAndDelete(script_mut, *other_script);
     }
 }
