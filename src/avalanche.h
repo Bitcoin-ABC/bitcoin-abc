@@ -171,6 +171,7 @@ class AvalancheResponse {
     std::vector<AvalancheVote> votes;
 
 public:
+    AvalancheResponse() : round(-1), cooldown(-1) {}
     AvalancheResponse(uint64_t roundIn, uint32_t cooldownIn,
                       std::vector<AvalancheVote> votesIn)
         : round(roundIn), cooldown(cooldownIn), votes(votesIn) {}

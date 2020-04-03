@@ -840,9 +840,9 @@ class AvalancheResponse():
 class TCPAvalancheResponse():
     __slots__ = ("response", "sig")
 
-    def __init__(self, response=AvalancheResponse()):
+    def __init__(self, response=AvalancheResponse(), sig=b"\0" * 64):
         self.response = response
-        self.sig = b"\0" * 64
+        self.sig = sig
 
     def deserialize(self, f):
         self.response.deserialize(f)

@@ -3451,7 +3451,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > AVALANCHE_MAX_ELEMENT_POLL) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 20, "too-many-poll");
+            Misbehaving(pfrom, 20, "too-many-ava-poll");
             return error("poll message size = %u", nCount);
         }
 
@@ -3484,6 +3484,43 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // Send the query to the node.
         g_avalanche->sendResponse(
             pfrom, AvalancheResponse(round, cooldown, std::move(votes)));
+        return true;
+    }
+
+    // Ignore avalanche requests while importing
+    if (strCommand == NetMsgType::AVARESPONSE && !fImporting && !fReindex &&
+        g_avalanche &&
+        gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        // As long as QUIC is not implemented, we need to sign response and
+        // verify response's signatures in order to avoid any manipulation of
+        // messages at the transport level.
+        CHashVerifier<CDataStream> verifier(&vRecv);
+        AvalancheResponse response;
+        verifier >> response;
+
+        {
+            std::array<uint8_t, 64> sig;
+            vRecv >> sig;
+
+            // Unfortunately, the verify API require a vector.
+            std::vector<uint8_t> vchSig{sig.begin(), sig.end()};
+            if (!g_avalanche->getPubKey(pfrom->GetId())
+                     .VerifySchnorr(verifier.GetHash(), vchSig)) {
+                LOCK(cs_main);
+                Misbehaving(pfrom, 100, "invalid-ava-response-signature");
+                return true;
+            }
+        }
+
+        std::vector<AvalancheBlockUpdate> updates;
+        if (!g_avalanche->registerVotes(pfrom->GetId(), response, updates)) {
+            LOCK(cs_main);
+            Misbehaving(pfrom, 100, "invalid-ava-response-content");
+            return true;
+        }
+
+        // TODO: Actually process the updates.
+
         return true;
     }
 

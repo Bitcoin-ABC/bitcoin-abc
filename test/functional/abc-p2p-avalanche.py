@@ -7,9 +7,12 @@ import random
 
 from test_framework.mininode import P2PInterface, mininode_lock
 from test_framework.messages import (
+    AvalancheResponse,
     AvalancheVote,
     CInv,
     msg_avapoll,
+    msg_tcpavaresponse,
+    TCPAvalancheResponse,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -40,6 +43,13 @@ class TestNode(P2PInterface):
     def on_avapoll(self, message):
         with mininode_lock:
             self.avapolls.append(message.poll)
+
+    def send_avaresponse(self, round, votes, privkey):
+        response = AvalancheResponse(round, 0, votes)
+        sig = schnorr.sign(privkey, response.get_hash())
+        msg = msg_tcpavaresponse()
+        msg.response = TCPAvalancheResponse(response, sig)
+        self.send_message(msg)
 
     def send_poll(self, hashes):
         msg = msg_avapoll()
@@ -194,12 +204,17 @@ class AvalancheTest(BitcoinTestFramework):
                 # Vote yes to everything
                 votes.append(AvalancheVote(BLOCK_ACCEPTED, inv.hash))
 
+            poll_node.send_avaresponse(poll.round, votes, privkey)
             return found_hash
 
         # Because the new tip is a deep reorg, the node should start to poll
         # for it.
         hash_to_find = int(fork_node.getbestblockhash(), 16)
         wait_until(lambda: can_find_block_in_poll(hash_to_find), timeout=5)
+
+        # To verify that responses are processed, do it a few more times.
+        for _ in range(10):
+            wait_until(lambda: can_find_block_in_poll(hash_to_find), timeout=5)
 
 
 if __name__ == '__main__':
