@@ -111,6 +111,7 @@ TEST_PARAMS = {
     "wallet_createwallet.py": [["--usecli"]],
     "wallet_encryption.py": [["--descriptors"]],
     "wallet_hd.py": [["--descriptors"]],
+    "wallet_importprunedfunds.py": [["--descriptors"]],
     # FIXME: "wallet_keypool.py": [["--descriptors"]],
     "wallet_keypool_topup.py": [["--descriptors"]],
     "wallet_labels.py": [["--descriptors"]],
