@@ -150,6 +150,8 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"createwallet", 2, "blank"},
     {"getnodeaddresses", 0, "count"},
     {"stop", 0, "wait"},
+    // Avalanche
+    {"addavalanchepeer", 0, "nodeid"},
     // ABC specific RPC
     {"setexcessiveblock", 0, "blockSize"},
 };

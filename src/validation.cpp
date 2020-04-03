@@ -7,6 +7,7 @@
 #include <validation.h>
 
 #include <arith_uint256.h>
+#include <avalanche.h>
 #include <blockindexworkcomparator.h>
 #include <blockvalidity.h>
 #include <chainparams.h>
@@ -4269,6 +4270,10 @@ bool CChainState::AcceptBlock(const Config &config,
                       pindex->GetBlockHash().ToString());
             pindex->nStatus = pindex->nStatus.withParked();
             setDirtyBlockIndex.insert(pindex);
+            if (g_avalanche &&
+                pindex->nChainWork >= m_chain.Tip()->nChainWork) {
+                g_avalanche->addBlockToReconcile(pindex);
+            }
         }
     }
 
