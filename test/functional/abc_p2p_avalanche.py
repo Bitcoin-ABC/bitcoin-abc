@@ -193,7 +193,21 @@ class AvalancheTest(BitcoinTestFramework):
         fork_address = fork_node.get_deterministic_priv_key().address
         fork_node.generatetoaddress(2, fork_address)
 
-        def can_find_block_in_poll(hash):
+        # Because the new tip is a deep reorg, the node will not accept it
+        # right away, but poll for it.
+        def parked_block(blockhash):
+            for tip in node.getchaintips():
+                if tip["hash"] == blockhash:
+                    assert tip["status"] != "active"
+                    return tip["status"] == "parked"
+            return False
+
+        fork_tip = fork_node.getbestblockhash()
+        wait_until(lambda: parked_block(fork_tip))
+
+        self.log.info("Answer all polls to finalize...")
+
+        def can_find_block_in_poll(hash, resp):
             found_hash = False
             for n in quorum:
                 poll = n.get_avapoll_if_available()
@@ -205,24 +219,29 @@ class AvalancheTest(BitcoinTestFramework):
                 # We got a poll, check for the hash and repond
                 votes = []
                 for inv in poll.invs:
+                    # Vote yes to everything
+                    r = BLOCK_ACCEPTED
+
                     # Look for what we expect
                     if inv.hash == hash:
+                        r = resp
                         found_hash = True
-                    # Vote yes to everything
-                    votes.append(AvalancheVote(BLOCK_ACCEPTED, inv.hash))
+
+                    votes.append(AvalancheVote(r, inv.hash))
 
                 n.send_avaresponse(poll.round, votes, privkey)
 
             return found_hash
 
-        # Because the new tip is a deep reorg, the node should start to poll
-        # for it.
-        hash_to_find = int(fork_node.getbestblockhash(), 16)
-        wait_until(lambda: can_find_block_in_poll(hash_to_find), timeout=5)
+        hash_to_find = int(fork_tip, 16)
 
-        # To verify that responses are processed, do it a few more times.
-        for _ in range(10):
-            wait_until(lambda: can_find_block_in_poll(hash_to_find), timeout=5)
+        def has_accepted_new_tip():
+            can_find_block_in_poll(hash_to_find, BLOCK_ACCEPTED)
+            return node.getbestblockhash() == fork_tip
+
+        # Because everybody answers yes, the node will accept that block.
+        wait_until(has_accepted_new_tip, timeout=15)
+        assert_equal(node.getbestblockhash(), fork_tip)
 
 
 if __name__ == '__main__':

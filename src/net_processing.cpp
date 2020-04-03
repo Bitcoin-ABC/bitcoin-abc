@@ -3620,7 +3620,33 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             return true;
         }
 
-        // TODO: Actually process the updates.
+        if (updates.size()) {
+            for (AvalancheBlockUpdate &u : updates) {
+                CBlockIndex *pindex = u.getBlockIndex();
+                switch (u.getStatus()) {
+                    case AvalancheBlockUpdate::Status::Invalid:
+                    case AvalancheBlockUpdate::Status::Rejected: {
+                        CValidationState state;
+                        ParkBlock(config, state, pindex);
+                        if (!state.IsValid()) {
+                            return error("Database error: %s",
+                                         state.GetRejectReason());
+                        }
+                    } break;
+                    case AvalancheBlockUpdate::Status::Accepted:
+                    case AvalancheBlockUpdate::Status::Finalized: {
+                        LOCK(cs_main);
+                        UnparkBlock(pindex);
+                    } break;
+                }
+            }
+
+            CValidationState state;
+            if (!ActivateBestChain(config, state)) {
+                LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
+                         FormatStateMessage(state));
+            }
+        }
 
         return true;
     }
