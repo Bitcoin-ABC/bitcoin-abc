@@ -77,7 +77,7 @@ class AvalancheTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [
-            ['-enableavalanche=1', '-avacooldown=0'],
+            ['-enableavalanche=1', '-avacooldown=0', '-automaticunparking=0'],
             ['-enableavalanche=1', '-avacooldown=0', '-noparkdeepreorg', '-maxreorgdepth=-1']]
 
     def run_test(self):
@@ -245,6 +245,23 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Because everybody answers yes, the node will accept that block.
         wait_until(has_accepted_new_tip, timeout=15)
+        assert_equal(node.getbestblockhash(), fork_tip)
+
+        self.log.info("Answer all polls to park...")
+        node.generate(1)
+
+        tip_to_park = node.getbestblockhash()
+        self.log.info(tip_to_park)
+
+        hash_to_find = int(tip_to_park, 16)
+        assert(tip_to_park != fork_tip)
+
+        def has_parked_new_tip():
+            can_find_block_in_poll(hash_to_find, BLOCK_REJECTED)
+            return node.getbestblockhash() == fork_tip
+
+        # Because everybody answers no, the node will park that block.
+        wait_until(has_parked_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 
 
