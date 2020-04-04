@@ -5,6 +5,8 @@
 """Tests some generic aspects of the RPC interface."""
 
 import os
+import subprocess
+from threading import Thread
 
 from test_framework.authproxy import JSONRPCException
 from test_framework.test_framework import BitcoinTestFramework
@@ -20,6 +22,17 @@ def expect_http_status(expected_http_status, expected_rpc_code,
     except JSONRPCException as exc:
         assert_equal(exc.error["code"], expected_rpc_code)
         assert_equal(exc.http_status, expected_http_status)
+
+
+def test_work_queue_getblock(node, got_exceeded_error):
+    while not got_exceeded_error:
+        try:
+            node.cli('getrpcinfo').send_cli()
+        except subprocess.CalledProcessError as e:
+            assert_equal(
+                e.output,
+                'error: Server response: Work queue depth exceeded\n')
+            got_exceeded_error.append(True)
 
 
 class RPCInterfaceTest(BitcoinTestFramework):
@@ -76,10 +89,25 @@ class RPCInterfaceTest(BitcoinTestFramework):
         expect_http_status(404, -32601, self.nodes[0].invalidmethod)
         expect_http_status(500, -8, self.nodes[0].getblockhash, 42)
 
+    def test_work_queue_exceeded(self):
+        self.log.info("Testing work queue exceeded...")
+        self.restart_node(0, ['-rpcworkqueue=1', '-rpcthreads=1'])
+        got_exceeded_error = []
+        threads = []
+        for _ in range(3):
+            t = Thread(
+                target=test_work_queue_getblock,
+                args=(self.nodes[0], got_exceeded_error))
+            t.start()
+            threads.append(t)
+        for t in threads:
+            t.join()
+
     def run_test(self):
         self.test_getrpcinfo()
         self.test_batch_request()
         self.test_http_status_codes()
+        self.test_work_queue_exceeded()
 
 
 if __name__ == '__main__':

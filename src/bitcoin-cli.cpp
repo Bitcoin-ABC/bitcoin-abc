@@ -820,6 +820,9 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
             throw std::runtime_error(
                 "Authorization failed: Incorrect rpcuser or rpcpassword");
         }
+    } else if (response.status == HTTP_SERVICE_UNAVAILABLE) {
+        throw std::runtime_error(
+            strprintf("Server response: %s", response.body));
     } else if (response.status >= 400 && response.status != HTTP_BAD_REQUEST &&
                response.status != HTTP_NOT_FOUND &&
                response.status != HTTP_INTERNAL_SERVER_ERROR) {

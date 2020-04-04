@@ -13,6 +13,10 @@ This release includes the following features and fixes:
     `listunspent` RPC have been deprecated and will be removed in a future
     version. To keep using these fields, use the
     `-deprecatedrpc=mempool_ancestors_descendants` option.
+  - The RPC server can process a limited number of simultaneous RPC requests.
+    Previously, if this limit was exceeded, `bitcoind` would respond with
+    status code 500 (`HTTP_INTERNAL_SERVER_ERROR`). Now it returns status
+    code 503 (`HTTP_SERVICE_UNAVAILABLE`).
 
 Network upgrade
 ---------------
