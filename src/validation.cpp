@@ -2300,7 +2300,7 @@ void PruneAndFlush() {
 }
 
 /** Check warning conditions and do some notifications on new chain tip set. */
-static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
+static void UpdateTip(const CChainParams &params, CBlockIndex *pindexNew) {
     // New best block
     g_mempool.AddTransactionsUpdated(1);
 
@@ -2310,16 +2310,16 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         g_best_block_cv.notify_all();
     }
 
-    LogPrintf(
-        "%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
-        "date='%s' progress=%f cache=%.1fMiB(%utxo)\n",
-        __func__, pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
-        pindexNew->nVersion, log(pindexNew->nChainWork.getdouble()) / log(2.0),
-        (unsigned long)pindexNew->nChainTx,
-        FormatISO8601DateTime(pindexNew->GetBlockTime()),
-        GuessVerificationProgress(config.GetChainParams().TxData(), pindexNew),
-        pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
-        pcoinsTip->GetCacheSize());
+    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
+              "date='%s' progress=%f cache=%.1fMiB(%utxo)\n",
+              __func__, pindexNew->GetBlockHash().ToString(),
+              pindexNew->nHeight, pindexNew->nVersion,
+              log(pindexNew->nChainWork.getdouble()) / log(2.0),
+              (unsigned long)pindexNew->nChainTx,
+              FormatISO8601DateTime(pindexNew->GetBlockTime()),
+              GuessVerificationProgress(params.TxData(), pindexNew),
+              pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
+              pcoinsTip->GetCacheSize());
 }
 
 /**
@@ -2337,8 +2337,8 @@ bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
                                 DisconnectedBlockTransactions *disconnectpool) {
     AssertLockHeld(cs_main);
     CBlockIndex *pindexDelete = m_chain.Tip();
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
+    const CChainParams &params = config.GetChainParams();
+    const Consensus::Params &consensusParams = params.GetConsensus();
 
     assert(pindexDelete);
 
@@ -2398,7 +2398,7 @@ bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
     m_chain.SetTip(pindexDelete->pprev);
 
     // Update ::ChainActive() and related variables.
-    UpdateTip(config, pindexDelete->pprev);
+    UpdateTip(params, pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
     GetMainSignals().BlockDisconnected(pblock);
@@ -2672,7 +2672,7 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
 
     // Update m_chain & related variables.
     m_chain.SetTip(pindexNew);
-    UpdateTip(config, pindexNew);
+    UpdateTip(params, pindexNew);
 
     int64_t nTime6 = GetTimeMicros();
     nTimePostConnect += nTime6 - nTime5;
