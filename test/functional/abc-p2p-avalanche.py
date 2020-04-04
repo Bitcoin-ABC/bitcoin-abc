@@ -6,7 +6,11 @@
 import random
 
 from test_framework.mininode import P2PInterface, mininode_lock
-from test_framework.messages import AvalancheVote, CInv, msg_avapoll
+from test_framework.messages import (
+    AvalancheVote,
+    CInv,
+    msg_avapoll,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until
 from test_framework import schnorr
@@ -156,7 +160,12 @@ class AvalancheTest(BitcoinTestFramework):
                         [AvalancheVote(BLOCK_UNKNOWN, h) for h in various_block_hashes[-3:]])
 
         self.log.info("Trigger polling from the node...")
-        node.addavalanchepeer(nodeid)
+        # duplicate the deterministic sig test from src/test/key_tests.cpp
+        privkey = bytes.fromhex(
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747")
+        pubkey = schnorr.getpubkey(privkey, compressed=True)
+
+        node.addavalanchepeer(nodeid, pubkey.hex())
 
         # Sanity check
         fork_node = self.nodes[1]

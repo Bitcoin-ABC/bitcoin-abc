@@ -197,7 +197,7 @@ std::array<CNode *, 8> ConnectNodes(const Config &config, AvalancheProcessor &p,
     std::array<CNode *, 8> nodes;
     for (CNode *&n : nodes) {
         n = ConnectNode(config, nServices, peerLogic, connman);
-        BOOST_CHECK(p.addPeer(n->GetId(), 0));
+        BOOST_CHECK(p.addPeer(n->GetId(), 0, CPubKey()));
     }
 
     return nodes;
@@ -521,7 +521,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     auto avanode =
         ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(p.addPeer(avanodeid, 0));
+    BOOST_CHECK(p.addPeer(avanodeid, 0, CPubKey()));
 
     // It returns the avalanche peer.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
@@ -675,7 +675,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout) {
     auto avanode =
         ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(p.addPeer(avanodeid, 0));
+    BOOST_CHECK(p.addPeer(avanodeid, 0, CPubKey()));
 
     // Expire requests after some time.
     auto queryTimeDuration = std::chrono::milliseconds(10);
@@ -730,7 +730,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {
         n = ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
-        BOOST_CHECK(p.addPeer(n->GetId(), 0));
+        BOOST_CHECK(p.addPeer(n->GetId(), 0, CPubKey()));
     }
 
     // Add a block to poll
@@ -891,7 +891,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     auto avanode =
         ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
     NodeId nodeid = avanode->GetId();
-    BOOST_CHECK(p.addPeer(nodeid, 0));
+    BOOST_CHECK(p.addPeer(nodeid, 0, CPubKey()));
 
     // There is no query in flight at the moment.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), nodeid);

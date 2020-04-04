@@ -275,6 +275,7 @@ private:
         int64_t score;
 
         TimePoint nextRequestTime;
+        CPubKey pubkey;
     };
 
     typedef boost::multi_index_container<
@@ -351,7 +352,8 @@ public:
     bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
                        std::vector<AvalancheBlockUpdate> &updates);
 
-    bool addPeer(NodeId nodeid, int64_t score);
+    bool addPeer(NodeId nodeid, int64_t score, CPubKey pubkey);
+    CPubKey getPubKey(NodeId nodeid) const;
 
     CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }
 

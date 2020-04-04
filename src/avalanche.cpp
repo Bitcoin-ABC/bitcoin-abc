@@ -340,10 +340,21 @@ bool AvalancheProcessor::registerVotes(
     return true;
 }
 
-bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score) {
+bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
     return peerSet.getWriteView()
-        ->insert({nodeid, score, std::chrono::steady_clock::now()})
+        ->insert({nodeid, score, std::chrono::steady_clock::now(),
+                  std::move(pubkey)})
         .second;
+}
+
+CPubKey AvalancheProcessor::getPubKey(NodeId nodeid) const {
+    auto r = peerSet.getReadView();
+    auto it = r->find(nodeid);
+    if (it == r->end()) {
+        return CPubKey();
+    }
+
+    return it->pubkey;
 }
 
 bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
