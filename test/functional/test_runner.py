@@ -105,6 +105,7 @@ TEST_PARAMS = {
     "rpc_bind.py": [["--ipv4"], ["--ipv6"], ["--nonloopback"]],
     "rpc_createmultisig.py": [["--descriptors"]],
     "rpc_deriveaddresses.py": [["--usecli"]],
+    "rpc_fundrawtransaction.py": [["--descriptors"]],
     # FIXME: "rpc_psbt.py": [["--descriptors"]],
     "wallet_avoidreuse.py": [["--descriptors"]],
     # FIXME: "wallet_basic.py": [["--descriptors"]],
