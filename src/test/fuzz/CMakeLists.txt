@@ -109,6 +109,7 @@ add_regular_fuzz_targets(
 	parse_numbers
 	parse_script
 	parse_univalue
+	prevector
 	pow
 	process_message
 	process_messages
