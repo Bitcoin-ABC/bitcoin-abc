@@ -2232,12 +2232,12 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
 }
 
 bool ProcessMessage(const Config &config, CNode *pfrom,
-                    const std::string &strCommand, CDataStream &vRecv,
+                    const std::string &msg_type, CDataStream &vRecv,
                     int64_t nTimeReceived, CConnman *connman, BanMan *banman,
                     const std::atomic<bool> &interruptMsgProc) {
     const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
-             SanitizeString(strCommand), vRecv.size(), pfrom->GetId());
+             SanitizeString(msg_type), vRecv.size(), pfrom->GetId());
     if (gArgs.IsArgSet("-dropmessagestest") &&
         GetRand(gArgs.GetArg("-dropmessagestest", 0)) == 0) {
         LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n");
@@ -2245,8 +2245,8 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     if (!(pfrom->GetLocalServices() & NODE_BLOOM) &&
-        (strCommand == NetMsgType::FILTERLOAD ||
-         strCommand == NetMsgType::FILTERADD)) {
+        (msg_type == NetMsgType::FILTERLOAD ||
+         msg_type == NetMsgType::FILTERADD)) {
         if (pfrom->nVersion >= NO_BLOOM_VERSION) {
             LOCK(cs_main);
             Misbehaving(pfrom, 100, "no-bloom-version");
@@ -2257,7 +2257,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         }
     }
 
-    if (strCommand == NetMsgType::VERSION) {
+    if (msg_type == NetMsgType::VERSION) {
         // Each connection can only send one version message
         if (pfrom->nVersion != 0) {
             LOCK(cs_main);
@@ -2446,7 +2446,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
     // At this point, the outgoing message serialization version can't change.
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
 
-    if (strCommand == NetMsgType::VERACK) {
+    if (msg_type == NetMsgType::VERACK) {
         pfrom->SetRecvVersion(
             std::min(pfrom->nVersion.load(), PROTOCOL_VERSION));
 
@@ -2493,7 +2493,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return false;
     }
 
-    if (strCommand == NetMsgType::ADDR) {
+    if (msg_type == NetMsgType::ADDR) {
         std::vector<CAddress> vAddr;
         vRecv >> vAddr;
 
@@ -2562,13 +2562,13 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::SENDHEADERS) {
+    if (msg_type == NetMsgType::SENDHEADERS) {
         LOCK(cs_main);
         State(pfrom->GetId())->fPreferHeaders = true;
         return true;
     }
 
-    if (strCommand == NetMsgType::SENDCMPCT) {
+    if (msg_type == NetMsgType::SENDCMPCT) {
         bool fAnnounceUsingCMPCTBLOCK = false;
         uint64_t nCMPCTBLOCKVersion = 0;
         vRecv >> fAnnounceUsingCMPCTBLOCK >> nCMPCTBLOCKVersion;
@@ -2589,7 +2589,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::INV) {
+    if (msg_type == NetMsgType::INV) {
         std::vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
@@ -2661,7 +2661,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::GETDATA) {
+    if (msg_type == NetMsgType::GETDATA) {
         std::vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
@@ -2684,7 +2684,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::GETBLOCKS) {
+    if (msg_type == NetMsgType::GETBLOCKS) {
         CBlockLocator locator;
         uint256 hashStop;
         vRecv >> locator >> hashStop;
@@ -2767,7 +2767,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::GETBLOCKTXN) {
+    if (msg_type == NetMsgType::GETBLOCKTXN) {
         BlockTransactionsRequest req;
         vRecv >> req;
 
@@ -2823,7 +2823,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::GETHEADERS) {
+    if (msg_type == NetMsgType::GETHEADERS) {
         CBlockLocator locator;
         BlockHash hashStop;
         vRecv >> locator >> hashStop;
@@ -2903,7 +2903,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::TX) {
+    if (msg_type == NetMsgType::TX) {
         // Stop processing the transaction early if
         // We are in blocks only mode and peer is either not whitelisted or
         // whitelistrelay is off or if this peer is supposed to be a
@@ -3058,7 +3058,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::CMPCTBLOCK) {
+    if (msg_type == NetMsgType::CMPCTBLOCK) {
         // Ignore cmpctblock received while importing
         if (fImporting || fReindex) {
             LogPrint(BCLog::NET,
@@ -3331,7 +3331,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::BLOCKTXN) {
+    if (msg_type == NetMsgType::BLOCKTXN) {
         // Ignore blocktxn received while importing
         if (fImporting || fReindex) {
             LogPrint(BCLog::NET,
@@ -3431,7 +3431,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::HEADERS) {
+    if (msg_type == NetMsgType::HEADERS) {
         // Ignore headers received while importing
         if (fImporting || fReindex) {
             LogPrint(BCLog::NET,
@@ -3461,7 +3461,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
                                      /*via_compact_block=*/false);
     }
 
-    if (strCommand == NetMsgType::BLOCK) {
+    if (msg_type == NetMsgType::BLOCK) {
         // Ignore block received while importing
         if (fImporting || fReindex) {
             LogPrint(BCLog::NET,
@@ -3505,7 +3505,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     // Ignore avalanche requests while importing
-    if (strCommand == NetMsgType::AVAPOLL && !fImporting && !fReindex &&
+    if (msg_type == NetMsgType::AVAPOLL && !fImporting && !fReindex &&
         g_avalanche &&
         gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
         auto now = std::chrono::steady_clock::now();
@@ -3566,7 +3566,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     // Ignore avalanche requests while importing
-    if (strCommand == NetMsgType::AVARESPONSE && !fImporting && !fReindex &&
+    if (msg_type == NetMsgType::AVARESPONSE && !fImporting && !fReindex &&
         g_avalanche &&
         gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
         // As long as QUIC is not implemented, we need to sign response and
@@ -3628,7 +3628,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::GETADDR) {
+    if (msg_type == NetMsgType::GETADDR) {
         // This asymmetric behavior for inbound and outbound connections was
         // introduced to prevent a fingerprinting attack: an attacker can send
         // specific fake addresses to users' AddrMan and later request them by
@@ -3669,7 +3669,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::MEMPOOL) {
+    if (msg_type == NetMsgType::MEMPOOL) {
         if (!(pfrom->GetLocalServices() & NODE_BLOOM) &&
             !pfrom->HasPermission(PF_MEMPOOL)) {
             if (!pfrom->HasPermission(PF_NOBAN)) {
@@ -3701,7 +3701,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::PING) {
+    if (msg_type == NetMsgType::PING) {
         if (pfrom->nVersion > BIP0031_VERSION) {
             uint64_t nonce = 0;
             vRecv >> nonce;
@@ -3724,7 +3724,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::PONG) {
+    if (msg_type == NetMsgType::PONG) {
         int64_t pingUsecEnd = nTimeReceived;
         uint64_t nonce = 0;
         size_t nAvail = vRecv.in_avail();
@@ -3783,7 +3783,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::FILTERLOAD) {
+    if (msg_type == NetMsgType::FILTERLOAD) {
         CBloomFilter filter;
         vRecv >> filter;
 
@@ -3800,7 +3800,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::FILTERADD) {
+    if (msg_type == NetMsgType::FILTERADD) {
         std::vector<uint8_t> vData;
         vRecv >> vData;
 
@@ -3827,7 +3827,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::FILTERCLEAR) {
+    if (msg_type == NetMsgType::FILTERCLEAR) {
         if (pfrom->m_tx_relay == nullptr) {
             return true;
         }
@@ -3839,7 +3839,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::FEEFILTER) {
+    if (msg_type == NetMsgType::FEEFILTER) {
         Amount newFeeFilter = Amount::zero();
         vRecv >> newFeeFilter;
         if (MoneyRange(newFeeFilter)) {
@@ -3853,7 +3853,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
         return true;
     }
 
-    if (strCommand == NetMsgType::NOTFOUND) {
+    if (msg_type == NetMsgType::NOTFOUND) {
         // Remove the NOTFOUND transactions from the peer
         LOCK(cs_main);
         CNodeState *state = State(pfrom->GetId());
@@ -3884,7 +3884,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
 
     // Ignore unknown commands for extensibility
     LogPrint(BCLog::NET, "Unknown command \"%s\" from peer=%d\n",
-             SanitizeString(strCommand), pfrom->GetId());
+             SanitizeString(msg_type), pfrom->GetId());
     return true;
 }
 
@@ -3999,7 +3999,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
                  SanitizeString(msg.m_command), pfrom->GetId());
         return fMoreWork;
     }
-    const std::string &strCommand = msg.m_command;
+    const std::string &msg_type = msg.m_command;
 
     // Message size
     unsigned int nMessageSize = msg.m_message_size;
@@ -4008,7 +4008,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     CDataStream &vRecv = msg.m_recv;
     if (!msg.m_valid_checksum) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes): CHECKSUM ERROR peer=%d\n",
-                 __func__, SanitizeString(strCommand), nMessageSize,
+                 __func__, SanitizeString(msg_type), nMessageSize,
                  pfrom->GetId());
         if (m_banman) {
             m_banman->Discourage(pfrom->addr);
@@ -4020,7 +4020,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     // Process message
     bool fRet = false;
     try {
-        fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.m_time,
+        fRet = ProcessMessage(config, pfrom, msg_type, vRecv, msg.m_time,
                               connman, m_banman, interruptMsgProc);
         if (interruptMsgProc) {
             return false;
@@ -4031,16 +4031,16 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
         }
     } catch (const std::exception &e) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes): Exception '%s' (%s) caught\n",
-                 __func__, SanitizeString(strCommand), nMessageSize, e.what(),
+                 __func__, SanitizeString(msg_type), nMessageSize, e.what(),
                  typeid(e).name());
     } catch (...) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes): Unknown exception caught\n",
-                 __func__, SanitizeString(strCommand), nMessageSize);
+                 __func__, SanitizeString(msg_type), nMessageSize);
     }
 
     if (!fRet) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes) FAILED peer=%d\n", __func__,
-                 SanitizeString(strCommand), nMessageSize, pfrom->GetId());
+                 SanitizeString(msg_type), nMessageSize, pfrom->GetId());
     }
 
     LOCK(cs_main);
