@@ -2242,27 +2242,27 @@ UniValue importdescriptors(const Config &config,
     return response;
 }
 
-// clang-format off
-static const CRPCCommand commands[] = {
-    //  category            name                        actor (function)          argNames
-    //  ------------------- ------------------------    ----------------------    ----------
-    { "wallet",             "abortrescan",              abortrescan,              {} },
-    { "wallet",             "dumpprivkey",              dumpprivkey,              {"address"}  },
-    { "wallet",             "dumpwallet",               dumpwallet,               {"filename"} },
-    { "wallet",             "importdescriptors",        importdescriptors,        {"requests"} },
-    { "wallet",             "importmulti",              importmulti,              {"requests","options"} },
-    { "wallet",             "importprivkey",            importprivkey,            {"privkey","label","rescan"} },
-    { "wallet",             "importwallet",             importwallet,             {"filename"} },
-    { "wallet",             "importaddress",            importaddress,            {"address","label","rescan","p2sh"} },
-    { "wallet",             "importprunedfunds",        importprunedfunds,        {"rawtransaction","txoutproof"} },
-    { "wallet",             "importpubkey",             importpubkey,             {"pubkey","label","rescan"} },
-    { "wallet",             "removeprunedfunds",        removeprunedfunds,        {"txid"} },
-};
-// clang-format on
-
 void RegisterDumpRPCCommands(
     interfaces::Chain &chain,
     std::vector<std::unique_ptr<interfaces::Handler>> &handlers) {
+    // clang-format off
+    static const CRPCCommand commands[] = {
+        //  category            name                        actor (function)          argNames
+        //  ------------------- ------------------------    ----------------------    ----------
+        { "wallet",             "abortrescan",              abortrescan,              {} },
+        { "wallet",             "dumpprivkey",              dumpprivkey,              {"address"}  },
+        { "wallet",             "dumpwallet",               dumpwallet,               {"filename"} },
+        { "wallet",             "importdescriptors",        importdescriptors,        {"requests"} },
+        { "wallet",             "importmulti",              importmulti,              {"requests","options"} },
+        { "wallet",             "importprivkey",            importprivkey,            {"privkey","label","rescan"} },
+        { "wallet",             "importwallet",             importwallet,             {"filename"} },
+        { "wallet",             "importaddress",            importaddress,            {"address","label","rescan","p2sh"} },
+        { "wallet",             "importprunedfunds",        importprunedfunds,        {"rawtransaction","txoutproof"} },
+        { "wallet",             "importpubkey",             importpubkey,             {"pubkey","label","rescan"} },
+        { "wallet",             "removeprunedfunds",        removeprunedfunds,        {"txid"} },
+    };
+    // clang-format on
+
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
         handlers.emplace_back(chain.handleRpc(commands[vcidx]));
     }

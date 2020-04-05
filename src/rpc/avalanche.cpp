@@ -196,17 +196,17 @@ static UniValue buildavalancheproof(const Config &config,
     return HexStr(ss.begin(), ss.end());
 }
 
-// clang-format off
-static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)        argNames
-    //  ------------------- ------------------------  ----------------------  ----------
-    { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
-    { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
-    { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes"}},
-};
-// clang-format on
-
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
+    // clang-format off
+    static const CRPCCommand commands[] = {
+        //  category            name                      actor (function)        argNames
+        //  ------------------- ------------------------  ----------------------  ----------
+        { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
+        { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
+        { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes"}},
+    };
+    // clang-format on
+
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
     }

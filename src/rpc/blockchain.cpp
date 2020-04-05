@@ -2911,50 +2911,50 @@ static UniValue dumptxoutset(const Config &config,
     return result;
 }
 
-// clang-format off
-static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)        argNames
-    //  ------------------- ------------------------  ----------------------  ----------
-    { "blockchain",         "getbestblockhash",       getbestblockhash,       {} },
-    { "blockchain",         "getblock",               getblock,               {"blockhash","verbosity|verbose"} },
-    { "blockchain",         "getblockchaininfo",      getblockchaininfo,      {} },
-    { "blockchain",         "getblockcount",          getblockcount,          {} },
-    { "blockchain",         "getblockhash",           getblockhash,           {"height"} },
-    { "blockchain",         "getblockheader",         getblockheader,         {"blockhash","verbose"} },
-    { "blockchain",         "getblockstats",          getblockstats,          {"hash_or_height","stats"} },
-    { "blockchain",         "getchaintips",           getchaintips,           {} },
-    { "blockchain",         "getchaintxstats",        getchaintxstats,        {"nblocks", "blockhash"} },
-    { "blockchain",         "getdifficulty",          getdifficulty,          {} },
-    { "blockchain",         "getmempoolancestors",    getmempoolancestors,    {"txid","verbose"} },
-    { "blockchain",         "getmempooldescendants",  getmempooldescendants,  {"txid","verbose"} },
-    { "blockchain",         "getmempoolentry",        getmempoolentry,        {"txid"} },
-    { "blockchain",         "getmempoolinfo",         getmempoolinfo,         {} },
-    { "blockchain",         "getrawmempool",          getrawmempool,          {"verbose"} },
-    { "blockchain",         "gettxout",               gettxout,               {"txid","n","include_mempool"} },
-    { "blockchain",         "gettxoutsetinfo",        gettxoutsetinfo,        {} },
-    { "blockchain",         "pruneblockchain",        pruneblockchain,        {"height"} },
-    { "blockchain",         "savemempool",            savemempool,            {} },
-    { "blockchain",         "verifychain",            verifychain,            {"checklevel","nblocks"} },
-    { "blockchain",         "preciousblock",          preciousblock,          {"blockhash"} },
-    { "blockchain",         "scantxoutset",           scantxoutset,           {"action", "scanobjects"} },
-    { "blockchain",         "getblockfilter",         getblockfilter,         {"blockhash", "filtertype"} },
-
-    /* Not shown in help */
-    { "hidden",             "getfinalizedblockhash",            getfinalizedblockhash,            {} },
-    { "hidden",             "finalizeblock",                    finalizeblock,                    {"blockhash"} },
-    { "hidden",             "invalidateblock",                  invalidateblock,                  {"blockhash"} },
-    { "hidden",             "parkblock",                        parkblock,                        {"blockhash"} },
-    { "hidden",             "reconsiderblock",                  reconsiderblock,                  {"blockhash"} },
-    { "hidden",             "syncwithvalidationinterfacequeue", syncwithvalidationinterfacequeue, {} },
-    { "hidden",             "dumptxoutset",                     dumptxoutset,                     {"path"} },
-    { "hidden",             "unparkblock",                      unparkblock,                      {"blockhash"} },
-    { "hidden",             "waitfornewblock",                  waitfornewblock,                  {"timeout"} },
-    { "hidden",             "waitforblock",                     waitforblock,                     {"blockhash","timeout"} },
-    { "hidden",             "waitforblockheight",               waitforblockheight,               {"height","timeout"} },
-};
-// clang-format on
-
 void RegisterBlockchainRPCCommands(CRPCTable &t) {
+    // clang-format off
+    static const CRPCCommand commands[] = {
+        //  category            name                      actor (function)        argNames
+        //  ------------------- ------------------------  ----------------------  ----------
+        { "blockchain",         "getbestblockhash",       getbestblockhash,       {} },
+        { "blockchain",         "getblock",               getblock,               {"blockhash","verbosity|verbose"} },
+        { "blockchain",         "getblockchaininfo",      getblockchaininfo,      {} },
+        { "blockchain",         "getblockcount",          getblockcount,          {} },
+        { "blockchain",         "getblockhash",           getblockhash,           {"height"} },
+        { "blockchain",         "getblockheader",         getblockheader,         {"blockhash","verbose"} },
+        { "blockchain",         "getblockstats",          getblockstats,          {"hash_or_height","stats"} },
+        { "blockchain",         "getchaintips",           getchaintips,           {} },
+        { "blockchain",         "getchaintxstats",        getchaintxstats,        {"nblocks", "blockhash"} },
+        { "blockchain",         "getdifficulty",            getdifficulty,            {} },
+        { "blockchain",         "getmempoolancestors",    getmempoolancestors,    {"txid","verbose"} },
+        { "blockchain",         "getmempooldescendants",  getmempooldescendants,  {"txid","verbose"} },
+        { "blockchain",         "getmempoolentry",        getmempoolentry,        {"txid"} },
+        { "blockchain",         "getmempoolinfo",         getmempoolinfo,         {} },
+        { "blockchain",         "getrawmempool",          getrawmempool,          {"verbose"} },
+        { "blockchain",         "gettxout",               gettxout,               {"txid","n","include_mempool"} },
+        { "blockchain",         "gettxoutsetinfo",        gettxoutsetinfo,        {} },
+        { "blockchain",         "pruneblockchain",        pruneblockchain,        {"height"} },
+        { "blockchain",         "savemempool",            savemempool,            {} },
+        { "blockchain",         "verifychain",            verifychain,            {"checklevel","nblocks"} },
+        { "blockchain",         "preciousblock",          preciousblock,          {"blockhash"} },
+        { "blockchain",         "scantxoutset",           scantxoutset,           {"action", "scanobjects"} },
+        { "blockchain",         "getblockfilter",          getblockfilter,          {"blockhash", "filtertype"} },
+
+        /* Not shown in help */
+        { "hidden",             "getfinalizedblockhash",             getfinalizedblockhash,             {} },
+        { "hidden",             "finalizeblock",                     finalizeblock,                     {"blockhash"} },
+        { "hidden",             "invalidateblock",                  invalidateblock,                  {"blockhash"} },
+        { "hidden",             "parkblock",                        parkblock,                        {"blockhash"} },
+        { "hidden",             "reconsiderblock",                  reconsiderblock,                  {"blockhash"} },
+        { "hidden",             "syncwithvalidationinterfacequeue", syncwithvalidationinterfacequeue, {} },
+        { "hidden",             "dumptxoutset",                     dumptxoutset,                     {"path"} },
+        { "hidden",             "unparkblock",                      unparkblock,                      {"blockhash"} },
+        { "hidden",             "waitfornewblock",                  waitfornewblock,                  {"timeout"} },
+        { "hidden",             "waitforblock",                     waitforblock,                     {"blockhash","timeout"} },
+        { "hidden",             "waitforblockheight",               waitforblockheight,               {"height","timeout"} },
+    };
+    // clang-format on
+
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
     }

@@ -1142,26 +1142,26 @@ static UniValue estimatefee(const Config &config,
     return ValueFromAmount(mempool.estimateFee().GetFeePerK());
 }
 
-// clang-format off
-static const CRPCCommand commands[] = {
-    //  category   name                     actor (function)       argNames
-    //  ---------- ------------------------ ---------------------- ----------
-    {"mining",     "getnetworkhashps",      getnetworkhashps,      {"nblocks", "height"}},
-    {"mining",     "getmininginfo",         getmininginfo,         {}},
-    {"mining",     "prioritisetransaction", prioritisetransaction, {"txid", "dummy", "fee_delta"}},
-    {"mining",     "getblocktemplate",      getblocktemplate,      {"template_request"}},
-    {"mining",     "submitblock",           submitblock,           {"hexdata", "dummy"}},
-    {"mining",     "submitheader",          submitheader,          {"hexdata"}},
-
-    {"generating", "generatetoaddress",     generatetoaddress,     {"nblocks", "address", "maxtries"}},
-    {"generating", "generatetodescriptor",  generatetodescriptor,  {"num_blocks","descriptor","maxtries"}},
-    {"generating", "generateblock",         generateblock,         {"address","transactions"}},
-
-    {"util",       "estimatefee",           estimatefee,           {"nblocks"}},
-};
-// clang-format on
-
 void RegisterMiningRPCCommands(CRPCTable &t) {
+    // clang-format off
+    static const CRPCCommand commands[] = {
+        //  category   name                     actor (function)       argNames
+        //  ---------- ------------------------ ---------------------- ----------
+        {"mining",     "getnetworkhashps",      getnetworkhashps,      {"nblocks", "height"}},
+        {"mining",     "getmininginfo",         getmininginfo,         {}},
+        {"mining",     "prioritisetransaction", prioritisetransaction, {"txid", "dummy", "fee_delta"}},
+        {"mining",     "getblocktemplate",      getblocktemplate,      {"template_request"}},
+        {"mining",     "submitblock",           submitblock,           {"hexdata", "dummy"}},
+        {"mining",     "submitheader",          submitheader,          {"hexdata"}},
+
+        {"generating", "generatetoaddress",     generatetoaddress,     {"nblocks", "address", "maxtries"}},
+        {"generating", "generatetodescriptor",  generatetodescriptor,  {"num_blocks","descriptor","maxtries"}},
+        {"generating", "generateblock",         generateblock,         {"address","transactions"}},
+
+        {"util",       "estimatefee",           estimatefee,           {"nblocks"}},
+    };
+    // clang-format on
+
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
     }

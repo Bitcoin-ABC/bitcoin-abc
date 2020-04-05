@@ -2158,32 +2158,32 @@ UniValue analyzepsbt(const Config &config, const JSONRPCRequest &request) {
     return result;
 }
 
-// clang-format off
-static const CRPCCommand commands[] = {
-    //  category            name                         actor (function)           argNames
-    //  ------------------- ------------------------     ----------------------     ----------
-    { "rawtransactions",    "getrawtransaction",         getrawtransaction,         {"txid","verbose","blockhash"} },
-    { "rawtransactions",    "createrawtransaction",      createrawtransaction,      {"inputs","outputs","locktime"} },
-    { "rawtransactions",    "decoderawtransaction",      decoderawtransaction,      {"hexstring"} },
-    { "rawtransactions",    "decodescript",              decodescript,              {"hexstring"} },
-    { "rawtransactions",    "sendrawtransaction",        sendrawtransaction,        {"hexstring","allowhighfees|maxfeerate"} },
-    { "rawtransactions",    "combinerawtransaction",     combinerawtransaction,     {"txs"} },
-    { "rawtransactions",    "signrawtransactionwithkey", signrawtransactionwithkey, {"hexstring","privkeys","prevtxs","sighashtype"} },
-    { "rawtransactions",    "testmempoolaccept",         testmempoolaccept,         {"rawtxs","allowhighfees|maxfeerate"} },
-    { "rawtransactions",    "decodepsbt",                decodepsbt,                {"psbt"} },
-    { "rawtransactions",    "combinepsbt",               combinepsbt,               {"txs"} },
-    { "rawtransactions",    "finalizepsbt",              finalizepsbt,              {"psbt", "extract"} },
-    { "rawtransactions",    "createpsbt",                createpsbt,                {"inputs","outputs","locktime"} },
-    { "rawtransactions",    "converttopsbt",             converttopsbt,             {"hexstring","permitsigdata"} },
-    { "rawtransactions",    "utxoupdatepsbt",            utxoupdatepsbt,            {"psbt", "descriptors"} },
-    { "rawtransactions",    "joinpsbts",                 joinpsbts,                 {"txs"} },
-    { "rawtransactions",    "analyzepsbt",               analyzepsbt,               {"psbt"} },
-    { "blockchain",         "gettxoutproof",             gettxoutproof,             {"txids", "blockhash"} },
-    { "blockchain",         "verifytxoutproof",          verifytxoutproof,          {"proof"} },
-};
-// clang-format on
-
 void RegisterRawTransactionRPCCommands(CRPCTable &t) {
+    // clang-format off
+    static const CRPCCommand commands[] = {
+        //  category            name                         actor (function)           argNames
+        //  ------------------- ------------------------     ----------------------     ----------
+        { "rawtransactions",    "getrawtransaction",         getrawtransaction,         {"txid","verbose","blockhash"} },
+        { "rawtransactions",    "createrawtransaction",      createrawtransaction,      {"inputs","outputs","locktime"} },
+        { "rawtransactions",    "decoderawtransaction",      decoderawtransaction,      {"hexstring"} },
+        { "rawtransactions",    "decodescript",              decodescript,              {"hexstring"} },
+        { "rawtransactions",    "sendrawtransaction",        sendrawtransaction,        {"hexstring","allowhighfees|maxfeerate"} },
+        { "rawtransactions",    "combinerawtransaction",     combinerawtransaction,     {"txs"} },
+        { "rawtransactions",    "signrawtransactionwithkey", signrawtransactionwithkey, {"hexstring","privkeys","prevtxs","sighashtype"} },
+        { "rawtransactions",    "testmempoolaccept",         testmempoolaccept,         {"rawtxs","allowhighfees|maxfeerate"} },
+        { "rawtransactions",    "decodepsbt",                decodepsbt,                {"psbt"} },
+        { "rawtransactions",    "combinepsbt",               combinepsbt,               {"txs"} },
+        { "rawtransactions",    "finalizepsbt",               finalizepsbt,               {"psbt", "extract"} },
+        { "rawtransactions",    "createpsbt",                createpsbt,                {"inputs","outputs","locktime"} },
+        { "rawtransactions",    "converttopsbt",             converttopsbt,             {"hexstring","permitsigdata"} },
+        { "rawtransactions",    "utxoupdatepsbt",            utxoupdatepsbt,            {"psbt", "descriptors"} },
+        { "rawtransactions",    "joinpsbts",                 joinpsbts,                 {"txs"} },
+        { "rawtransactions",    "analyzepsbt",               analyzepsbt,               {"psbt"} },
+        { "blockchain",         "gettxoutproof",             gettxoutproof,             {"txids", "blockhash"} },
+        { "blockchain",         "verifytxoutproof",          verifytxoutproof,          {"proof"} },
+    };
+    // clang-format on
+
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
     }

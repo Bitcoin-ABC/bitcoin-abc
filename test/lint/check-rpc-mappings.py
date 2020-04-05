@@ -48,7 +48,7 @@ def process_commands(fname):
     in_rpcs = False
     with open(fname, "r", encoding="utf8") as f:
         for line in f:
-            line = line.rstrip()
+            line = line.strip()
             if not in_rpcs:
                 if re.match(
                         r"static const CRPCCommand .*\[\] =", line):
@@ -78,7 +78,7 @@ def process_mapping(fname):
     in_rpcs = False
     with open(fname, "r", encoding="utf8") as f:
         for line in f:
-            line = line.rstrip()
+            line = line.strip()
             if not in_rpcs:
                 if line == 'static const CRPCConvertParam vRPCConvertParams[] = {':
                     in_rpcs = True
@@ -118,6 +118,7 @@ def main():
     for cmd in cmds:
         cmds_by_name[cmd.name] = cmd
 
+    print(cmds_by_name)
     # Get current convert mapping for client
     client = SOURCE_CLIENT
     mapping = set(process_mapping(os.path.join(root, client)))

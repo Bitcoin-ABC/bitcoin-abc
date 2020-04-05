@@ -79,16 +79,16 @@ static UniValue setexcessiveblock(Config &config,
     return UniValue(ret.str());
 }
 
-// clang-format off
-static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)        argNames
-    //  ------------------- ------------------------  ----------------------  ----------
-    { "network",            "getexcessiveblock",      getexcessiveblock,      {}},
-    { "network",            "setexcessiveblock",      setexcessiveblock,      {"maxBlockSize"}},
-};
-// clang-format on
-
 void RegisterABCRPCCommands(CRPCTable &t) {
+    // clang-format off
+    static const CRPCCommand commands[] = {
+        //  category            name                      actor (function)        argNames
+        //  ------------------- ------------------------  ----------------------  ----------
+        { "network",            "getexcessiveblock",      getexcessiveblock,      {}},
+        { "network",            "setexcessiveblock",      setexcessiveblock,      {"maxBlockSize"}},
+    };
+    // clang-format on
+
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
     }
