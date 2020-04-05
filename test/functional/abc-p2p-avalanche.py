@@ -158,10 +158,13 @@ class AvalancheTest(BitcoinTestFramework):
         self.log.info("Trigger polling from the node...")
         node.addavalanchepeer(nodeid)
 
-        # Create a fork 2 blocks deep. This should trigger polling.
+        # Sanity check
         fork_node = self.nodes[1]
+        assert_equal(node.getbestblockhash(), fork_node.getbestblockhash())
+
+        # Create a fork 2 blocks deep. This should trigger polling.
         fork_node.invalidateblock(fork_node.getblockhash(100))
-        fork_node.generate(1)
+        fork_node.generate(2)
 
         def can_find_block_in_poll(hash):
             poll_node.wait_for_avapoll()

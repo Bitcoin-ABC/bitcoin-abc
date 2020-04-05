@@ -2839,6 +2839,11 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             }
         }
 
+        if (g_avalanche && pindexNew->nStatus.isOnParkedChain() &&
+            gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+            g_avalanche->addBlockToReconcile(pindexNew);
+        }
+
         // We found a candidate that has valid ancestors. This is our guy.
         if (hasValidAncestor) {
             return pindexNew;
@@ -4270,10 +4275,6 @@ bool CChainState::AcceptBlock(const Config &config,
                       pindex->GetBlockHash().ToString());
             pindex->nStatus = pindex->nStatus.withParked();
             setDirtyBlockIndex.insert(pindex);
-            if (g_avalanche &&
-                pindex->nChainWork >= m_chain.Tip()->nChainWork) {
-                g_avalanche->addBlockToReconcile(pindex);
-            }
         }
     }
 
