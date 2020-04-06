@@ -59,14 +59,17 @@ class WalletTest(BitcoinTestFramework):
         self.skip_if_no_wallet()
 
     def run_test(self):
-        self.nodes[0].importaddress(ADDRESS_WATCHONLY)
-        # Check that nodes don't own any UTXOs
-        assert_equal(len(self.nodes[0].listunspent()), 0)
-        assert_equal(len(self.nodes[1].listunspent()), 0)
+        if not self.options.descriptors:
+            # Tests legacy watchonly behavior which is not present (and does
+            # not need to be tested) in descriptor wallets
+            self.nodes[0].importaddress(ADDRESS_WATCHONLY)
+            # Check that nodes don't own any UTXOs
+            assert_equal(len(self.nodes[0].listunspent()), 0)
+            assert_equal(len(self.nodes[1].listunspent()), 0)
 
-        self.log.info("Check that only node 0 is watching an address")
-        assert 'watchonly' in self.nodes[0].getbalances()
-        assert 'watchonly' not in self.nodes[1].getbalances()
+            self.log.info("Check that only node 0 is watching an address")
+            assert 'watchonly' in self.nodes[0].getbalances()
+            assert 'watchonly' not in self.nodes[1].getbalances()
 
         self.log.info("Mining blocks ...")
         self.nodes[0].generate(1)
@@ -75,27 +78,38 @@ class WalletTest(BitcoinTestFramework):
         self.nodes[1].generatetoaddress(101, ADDRESS_WATCHONLY)
         self.sync_all()
 
-        assert_equal(self.nodes[0].getbalances()['mine']['trusted'], 50000000)
-        assert_equal(self.nodes[0].getwalletinfo()['balance'], 50000000)
-        assert_equal(self.nodes[1].getbalances()['mine']['trusted'], 50000000)
+        if not self.options.descriptors:
+            # Tests legacy watchonly behavior which is not present (and does not
+            # need to be tested) in descriptor wallets
+            assert_equal(self.nodes[0].getbalances()['mine']['trusted'],
+                         50000000)
+            assert_equal(self.nodes[0].getwalletinfo()['balance'], 50000000)
+            assert_equal(self.nodes[1].getbalances()['mine']['trusted'],
+                         50000000)
 
-        assert_equal(self.nodes[0].getbalances()[
-                     'watchonly']['immature'], 5000000000)
-        assert 'watchonly' not in self.nodes[1].getbalances()
+            assert_equal(self.nodes[0].getbalances()['watchonly']['immature'],
+                         5000000000)
+            assert 'watchonly' not in self.nodes[1].getbalances()
 
-        assert_equal(self.nodes[0].getbalance(), 50000000)
-        assert_equal(self.nodes[1].getbalance(), 50000000)
+            assert_equal(self.nodes[0].getbalance(), 50000000)
+            assert_equal(self.nodes[1].getbalance(), 50000000)
 
         self.log.info("Test getbalance with different arguments")
         assert_equal(self.nodes[0].getbalance("*"), 50000000)
         assert_equal(self.nodes[0].getbalance("*", 1), 50000000)
-        assert_equal(self.nodes[0].getbalance("*", 1, True), 100000000)
         assert_equal(self.nodes[0].getbalance(minconf=1), 50000000)
-        assert_equal(
-            self.nodes[0].getbalance(
-                minconf=0,
-                include_watchonly=True),
-            100000000)
+
+        if not self.options.descriptors:
+            assert_equal(self.nodes[0].getbalance(minconf=0,
+                                                  include_watchonly=True),
+                         100_000_000)
+            assert_equal(self.nodes[0].getbalance("*", 1, True), 100_000_000)
+        else:
+            assert_equal(self.nodes[0].getbalance(minconf=0,
+                                                  include_watchonly=True),
+                         50_000_000)
+            assert_equal(self.nodes[0].getbalance("*", 1, True), 50_000_000)
+
         assert_equal(
             self.nodes[1].getbalance(
                 minconf=0,
@@ -175,6 +189,8 @@ class WalletTest(BitcoinTestFramework):
                                             # Doesn't include output of node
                                             # 0's send since it was spent
                                             'untrusted_pending': Decimal('30000000.0') - fee_node_1}}
+            if self.options.descriptors:
+                del expected_balances_0["watchonly"]
             assert_equal(self.nodes[0].getbalances(), expected_balances_0)
             assert_equal(self.nodes[1].getbalances(), expected_balances_1)
             # getbalance without any arguments includes unconfirmed transactions, but not untrusted transactions
