@@ -7,12 +7,13 @@ Test BIP 37
 """
 
 from test_framework.messages import (
+    CInv,
     MSG_BLOCK,
     MSG_FILTERED_BLOCK,
-    msg_getdata,
-    msg_filterload,
     msg_filteradd,
     msg_filterclear,
+    msg_filterload,
+    msg_getdata,
 )
 from test_framework.mininode import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
@@ -36,8 +37,9 @@ class FilterNode(P2PInterface):
             # inv messages can only contain TX or BLOCK, so translate BLOCK to
             # FILTERED_BLOCK
             if i.type == MSG_BLOCK:
-                i.type = MSG_FILTERED_BLOCK
-            want.inv.append(i)
+                want.inv.append(CInv(MSG_FILTERED_BLOCK, i.hash))
+            else:
+                want.inv.append(i)
         if len(want.inv):
             self.send_message(want)
 
@@ -117,6 +119,25 @@ class FilterTest(BitcoinTestFramework):
             txid = self.nodes[0].sendtoaddress(
                 self.nodes[0].getnewaddress(), 7)
             filter_node.wait_for_tx(txid)
+
+        self.log.info(
+            'Check that request for filtered blocks is ignored if no filter'
+            ' is set')
+        filter_node.merkleblock_received = False
+        filter_node.tx_received = False
+        with self.nodes[0].assert_debug_log(expected_msgs=['received getdata']):
+            block_hash = self.nodes[0].generatetoaddress(
+                1, self.nodes[0].getnewaddress())[0]
+            filter_node.wait_for_inv([CInv(MSG_BLOCK, int(block_hash, 16))])
+            filter_node.sync_with_ping()
+            assert not filter_node.merkleblock_received
+            assert not filter_node.tx_received
+
+        self.log.info(
+            'Check that sending "filteradd" if no filter is set is treated as '
+            'misbehavior')
+        with self.nodes[0].assert_debug_log(['Misbehaving']):
+            filter_node.send_and_ping(msg_filteradd(data=b'letsmisbehave'))
 
         self.log.info(
             "Check that division-by-zero remote crash bug [CVE-2013-5700] is fixed")
