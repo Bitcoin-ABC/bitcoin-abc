@@ -542,7 +542,7 @@ void BitcoinGUI::createMenuBar() {
     QAction *minimize_action = window_menu->addAction(tr("Minimize"));
     minimize_action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_M));
     connect(minimize_action, &QAction::triggered,
-            [] { qApp->focusWindow()->showMinimized(); });
+            [] { QApplication::activeWindow()->showMinimized(); });
     connect(qApp, &QApplication::focusWindowChanged,
             [minimize_action](QWindow *window) {
                 minimize_action->setEnabled(
