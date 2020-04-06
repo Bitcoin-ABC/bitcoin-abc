@@ -4,12 +4,16 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the listsinceblock RPC."""
 
+from test_framework import cashaddr
+from test_framework.key import ECKey
+from test_framework.script import hash160
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_array_result,
     assert_equal,
     assert_raises_rpc_error,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 
 class ListSinceBlockTest(BitcoinTestFramework):
@@ -187,14 +191,22 @@ class ListSinceBlockTest(BitcoinTestFramework):
 
         self.sync_all()
 
+        # share utxo between nodes[1] and nodes[2]
+        eckey = ECKey()
+        eckey.generate()
+        privkey = bytes_to_wif(eckey.get_bytes())
+        address = cashaddr.encode_full("ecregtest", cashaddr.PUBKEY_TYPE,
+                                       hash160(eckey.get_pubkey().get_bytes()))
+        self.nodes[2].sendtoaddress(address, 10_000_000)
+        self.nodes[2].generate(6)
+        self.sync_all()
+        self.nodes[2].importprivkey(privkey)
+        utxos = self.nodes[2].listunspent()
+        utxo = [u for u in utxos if u["address"] == address][0]
+        self.nodes[1].importprivkey(privkey)
+
         # Split network into two
         self.split_network()
-
-        # share utxo between nodes[1] and nodes[2]
-        utxos = self.nodes[2].listunspent()
-        utxo = utxos[0]
-        privkey = self.nodes[2].dumpprivkey(utxo['address'])
-        self.nodes[1].importprivkey(privkey)
 
         # send from nodes[1] using utxo to nodes[0]
         change = '{:.2f}'.format(float(utxo['amount']) - 1000300.00)
