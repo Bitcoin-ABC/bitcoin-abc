@@ -9,7 +9,7 @@ include(BrewHelper)
 find_brew_prefix(QT5_PREFIX qt5)
 
 set(QT_REQUIRED_COMPONENTS Core Widgets Network Test)
-if(ENABLE_NOTIFICATIONS)
+if(ENABLE_DBUS_NOTIFICATIONS)
 	list(APPEND QT_REQUIRED_COMPONENTS DBus)
 endif()
 
@@ -228,7 +228,7 @@ target_link_libraries(bitcoin-qt-base
 	Qt5::Widgets
 	Qt5::Network
 )
-if(ENABLE_NOTIFICATIONS)
+if(ENABLE_DBUS_NOTIFICATIONS)
 	target_link_libraries(bitcoin-qt-base Qt5::DBus)
 endif()
 
