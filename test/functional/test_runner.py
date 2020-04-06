@@ -116,6 +116,7 @@ TEST_PARAMS = {
     # FIXME: "wallet_keypool.py": [["--descriptors"]],
     "wallet_keypool_topup.py": [["--descriptors"]],
     "wallet_labels.py": [["--descriptors"]],
+    "wallet_listtransactions.py": [["--descriptors"]],
     "wallet_multiwallet.py": [["--usecli"]],
     "wallet_txn_doublespend.py": [["--mineblock"]],
     "wallet_txn_clone.py": [["--mineblock"]],

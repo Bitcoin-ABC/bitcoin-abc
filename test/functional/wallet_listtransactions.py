@@ -87,27 +87,31 @@ class ListTransactionsTest(BitcoinTestFramework):
                                 "amount": Decimal("440000")},
                             {"txid": txid})
 
-        pubkey = self.nodes[1].getaddressinfo(
-            self.nodes[1].getnewaddress())['pubkey']
-        multisig = self.nodes[1].createmultisig(1, [pubkey])
-        self.nodes[0].importaddress(
-            multisig["redeemScript"], "watchonly", False, True)
-        txid = self.nodes[1].sendtoaddress(multisig["address"], 100000)
-        self.nodes[1].generate(1)
-        self.sync_all()
-        assert_equal(len(self.nodes[0].listtransactions(
-            label="watchonly", include_watchonly=True)), 1)
-        assert_equal(len(self.nodes[0].listtransactions(
-            dummy="watchonly", include_watchonly=True)), 1)
-        assert len(
-            self.nodes[0].listtransactions(
-                label="watchonly",
-                count=100,
-                include_watchonly=False)) == 0
-        assert_array_result(self.nodes[0].listtransactions(label="watchonly", count=100, include_watchonly=True),
-                            {"category": "receive",
-                                "amount": Decimal("100000")},
-                            {"txid": txid, "label": "watchonly"})
+        if not self.options.descriptors:
+            # include_watchonly is a legacy wallet feature, so don't test it
+            # for descriptor wallets
+            pubkey = self.nodes[1].getaddressinfo(
+                self.nodes[1].getnewaddress())['pubkey']
+            multisig = self.nodes[1].createmultisig(1, [pubkey])
+            self.nodes[0].importaddress(
+                multisig["redeemScript"], "watchonly", False, True)
+            txid = self.nodes[1].sendtoaddress(multisig["address"], 100000)
+            self.nodes[1].generate(1)
+            self.sync_all()
+            assert_equal(len(self.nodes[0].listtransactions(
+                label="watchonly", include_watchonly=True)), 1)
+            assert_equal(len(self.nodes[0].listtransactions(
+                dummy="watchonly", include_watchonly=True)), 1)
+            assert len(
+                self.nodes[0].listtransactions(
+                    label="watchonly",
+                    count=100,
+                    include_watchonly=False)) == 0
+            assert_array_result(
+                self.nodes[0].listtransactions(label="watchonly", count=100,
+                                               include_watchonly=True),
+                {"category": "receive", "amount": Decimal("100000")},
+                {"txid": txid, "label": "watchonly"})
 
 
 if __name__ == '__main__':
