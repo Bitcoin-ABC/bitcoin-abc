@@ -34,10 +34,12 @@
 
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
+#include <test/fuzz/util.h>
 
 #include <cassert>
 #include <chrono>
 #include <limits>
+#include <set>
 #include <vector>
 
 void initialize() {
@@ -101,10 +103,15 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     }
     (void)GetSizeOfCompactSize(u64);
     (void)GetSpecialScriptSize(u32);
-    // function defined only for a subset of int64_t inputs
-    // ()GetVirtualTransactionSize(i64, i64);
-    // function defined only for a subset of int64_t/uint32_t inputs
-    // ()GetVirtualTransactionSize(i64, i64, u32);
+    if (!MultiplicationOverflow(i64, static_cast<int64_t>(::nBytesPerSigOp)) &&
+        !AdditionOverflow(i64 * ::nBytesPerSigOp, static_cast<int64_t>(4))) {
+        (void)GetVirtualTransactionSize(i64, i64);
+    }
+    if (!MultiplicationOverflow(i64, static_cast<int64_t>(u32)) &&
+        !AdditionOverflow(i64, static_cast<int64_t>(4)) &&
+        !AdditionOverflow(i64 * u32, static_cast<int64_t>(4))) {
+        (void)GetVirtualTransactionSize(i64, i64, u32);
+    }
     (void)HexDigit(ch);
     (void)MoneyRange(i64 * SATOSHI);
     (void)ToString(i64);
@@ -122,6 +129,13 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     (void)memusage::DynamicUsage(u8);
     const uint8_t uch = static_cast<uint8_t>(u8);
     (void)memusage::DynamicUsage(uch);
+    {
+        const std::set<int64_t> i64s{i64, static_cast<int64_t>(u64)};
+        const size_t dynamic_usage = memusage::DynamicUsage(i64s);
+        const size_t incremental_dynamic_usage =
+            memusage::IncrementalDynamicUsage(i64s);
+        assert(dynamic_usage == incremental_dynamic_usage * i64s.size());
+    }
     (void)MillisToTimeval(i64);
     const double d = ser_uint64_to_double(u64);
     assert(ser_double_to_uint64(d) == u64);

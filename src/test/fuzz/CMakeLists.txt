@@ -75,6 +75,7 @@ function(add_process_message_fuzz_targets)
 endfunction()
 
 add_regular_fuzz_targets(
+	addition_overflow
 	addrdb
 	asmap
 	base_encode_decode
@@ -84,9 +85,12 @@ add_regular_fuzz_targets(
 	bloom_filter
 	cashaddr
 	chain
+	checkqueue
+	cuckoocache
 	descriptor_parse
 	eval_script
 	fee_rate
+	fees
 	flatfile
 	float
 	hex
