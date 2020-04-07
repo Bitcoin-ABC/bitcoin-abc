@@ -109,6 +109,7 @@ TEST_PARAMS = {
     "rpc_rawtransaction.py": [["--descriptors"]],
     "rpc_signrawtransaction.py": [["--descriptors"]],
     # FIXME: "rpc_psbt.py": [["--descriptors"]],
+    "wallet_address_types.py": [["--descriptors"]],
     "wallet_avoidreuse.py": [["--descriptors"]],
     "wallet_balance.py": [["--descriptors"]],
     # FIXME: "wallet_basic.py": [["--descriptors"]],
