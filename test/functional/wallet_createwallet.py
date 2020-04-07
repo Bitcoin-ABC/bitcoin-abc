@@ -5,8 +5,12 @@
 """Test createwallet arguments.
 """
 
+from test_framework.address import key_to_p2pkh
+from test_framework.descriptors import descsum_create
+from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.wallet_util import bytes_to_wif, generate_wif_key
 
 
 class CreateWalletTest(BitcoinTestFramework):
@@ -36,12 +40,20 @@ class CreateWalletTest(BitcoinTestFramework):
         w1.importpubkey(w0.getaddressinfo(address1)['pubkey'])
 
         self.log.info('Test that private keys cannot be imported')
-        addr = w0.getnewaddress('', 'legacy')
-        privkey = w0.dumpprivkey(addr)
+        eckey = ECKey()
+        eckey.generate()
+        privkey = bytes_to_wif(eckey.get_bytes())
         assert_raises_rpc_error(
             -4, 'Cannot import private keys to a wallet with private keys disabled', w1.importprivkey, privkey)
-        result = w1.importmulti(
-            [{'scriptPubKey': {'address': addr}, 'timestamp': 'now', 'keys': [privkey]}])
+        if self.options.descriptors:
+            result = w1.importdescriptors(
+                [{'desc': descsum_create('pkh(' + privkey + ')'),
+                  'timestamp': 'now'}])
+        else:
+            result = w1.importmulti(
+                [{'scriptPubKey': {
+                    'address': key_to_p2pkh(eckey.get_pubkey().get_bytes())},
+                    'timestamp': 'now', 'keys': [privkey]}])
         assert(not result[0]['success'])
         assert('warning' not in result[0])
         assert_equal(result[0]['error']['code'], -4)
@@ -68,13 +80,28 @@ class CreateWalletTest(BitcoinTestFramework):
         assert_raises_rpc_error(-4, "Error: This wallet has no available keys",
                                 w3.getrawchangeaddress)
         # Import private key
-        w3.importprivkey(w0.dumpprivkey(address1))
+        w3.importprivkey(generate_wif_key())
         # Imported private keys are currently ignored by the keypool
         assert_equal(w3.getwalletinfo()['keypoolsize'], 0)
         assert_raises_rpc_error(-4,
                                 "Error: This wallet has no available keys", w3.getnewaddress)
         # Set the seed
-        w3.sethdseed()
+        if self.options.descriptors:
+            w3.importdescriptors([{
+                'desc': descsum_create(
+                    'pkh(tprv8ZgxMBicQKsPcwuZGKp8TeWppSuLMiLe2d9PupB14QpPeQsqoj3LneJLhGHH13xESfvASyd4EFLJvLrG8b7DrLxEuV7hpF9uUc6XruKA1Wq/0h/*)'),
+                'timestamp': 'now',
+                'active': True
+            },
+                {
+                'desc': descsum_create(
+                    'pkh(tprv8ZgxMBicQKsPcwuZGKp8TeWppSuLMiLe2d9PupB14QpPeQsqoj3LneJLhGHH13xESfvASyd4EFLJvLrG8b7DrLxEuV7hpF9uUc6XruKA1Wq/1h/*)'),
+                'timestamp': 'now',
+                'active': True,
+                'internal': True
+            }])
+        else:
+            w3.sethdseed()
         assert_equal(w3.getwalletinfo()['keypoolsize'], 1)
         w3.getnewaddress()
         w3.getrawchangeaddress()
@@ -97,7 +124,22 @@ class CreateWalletTest(BitcoinTestFramework):
                                 w4.getrawchangeaddress)
         # Now set a seed and it should work. Wallet should also be encrypted
         w4.walletpassphrase('pass', 2)
-        w4.sethdseed()
+        if self.options.descriptors:
+            w4.importdescriptors([{
+                'desc': descsum_create(
+                    'pkh(tprv8ZgxMBicQKsPcwuZGKp8TeWppSuLMiLe2d9PupB14QpPeQsqoj3LneJLhGHH13xESfvASyd4EFLJvLrG8b7DrLxEuV7hpF9uUc6XruKA1Wq/0h/*)'),
+                'timestamp': 'now',
+                'active': True
+            },
+                {
+                'desc': descsum_create(
+                    'pkh(tprv8ZgxMBicQKsPcwuZGKp8TeWppSuLMiLe2d9PupB14QpPeQsqoj3LneJLhGHH13xESfvASyd4EFLJvLrG8b7DrLxEuV7hpF9uUc6XruKA1Wq/1h/*)'),
+                'timestamp': 'now',
+                'active': True,
+                'internal': True
+            }])
+        else:
+            w4.sethdseed()
         w4.getnewaddress()
         w4.getrawchangeaddress()
 
@@ -160,7 +202,7 @@ class CreateWalletTest(BitcoinTestFramework):
         w6.walletpassphrase('thisisapassphrase', 10)
         w6.signmessage(w6.getnewaddress('', 'legacy'), "test")
         w6.keypoolrefill(1)
-        # There should only be 1 key
+        # There should only be 1 key for legacy and for descriptors
         walletinfo = w6.getwalletinfo()
         assert_equal(walletinfo['keypoolsize'], 1)
         assert_equal(walletinfo['keypoolsize_hd_internal'], 1)
@@ -170,9 +212,9 @@ class CreateWalletTest(BitcoinTestFramework):
             disable_private_keys=False,
             blank=False,
             passphrase='')
-        assert_equal(
-            resp['warning'],
-            'Empty string given as passphrase, wallet will not be encrypted.')
+        assert (
+            'Empty string given as passphrase, wallet will not be encrypted.'
+            in resp['warning'])
         w7 = node.get_wallet_rpc('w7')
         assert_raises_rpc_error(
             -15,

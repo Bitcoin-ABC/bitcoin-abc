@@ -111,7 +111,7 @@ TEST_PARAMS = {
     "wallet_avoidreuse.py": [["--descriptors"]],
     "wallet_balance.py": [["--descriptors"]],
     # FIXME: "wallet_basic.py": [["--descriptors"]],
-    "wallet_createwallet.py": [["--usecli"]],
+    "wallet_createwallet.py": [["--usecli"], ["--descriptors"]],
     "wallet_encryption.py": [["--descriptors"]],
     "wallet_hd.py": [["--descriptors"]],
     "wallet_importprunedfunds.py": [["--descriptors"]],
