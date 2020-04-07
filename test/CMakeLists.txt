@@ -128,3 +128,6 @@ exclude_from_source_package(
 	"lint/"
 	"sanitizer_suppressions/"
 )
+
+
+set_property(DIRECTORY "${CMAKE_SOURCE_DIR}" APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/tmp" "${CMAKE_CURRENT_BINARY_DIR}/cache")
