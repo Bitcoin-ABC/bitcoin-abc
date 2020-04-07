@@ -554,7 +554,7 @@ static UniValue listaddressgroupings(const Config &config,
             const auto *address_book_entry =
                 pwallet->FindAddressBookEntry(address);
             if (address_book_entry) {
-                addressInfo.push_back(address_book_entry->name);
+                addressInfo.push_back(address_book_entry->GetLabel());
             }
             jsonGrouping.push_back(addressInfo);
         }
@@ -1273,7 +1273,7 @@ ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
             continue;
         }
         const CTxDestination &address = item_it->first;
-        const std::string &label = item_it->second.name;
+        const std::string &label = item_it->second.GetLabel();
         std::map<CTxDestination, tallyitem>::iterator it =
             mapTally.find(address);
         if (it == mapTally.end() && !fIncludeEmpty) {
@@ -1500,7 +1500,7 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
             const auto *address_book_entry =
                 pwallet->FindAddressBookEntry(s.destination);
             if (address_book_entry) {
-                entry.pushKV("label", address_book_entry->name);
+                entry.pushKV("label", address_book_entry->GetLabel());
             }
             entry.pushKV("vout", s.vout);
             entry.pushKV("fee", ValueFromAmount(-1 * nFee));
@@ -1519,7 +1519,7 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
             const auto *address_book_entry =
                 pwallet->FindAddressBookEntry(r.destination);
             if (address_book_entry) {
-                label = address_book_entry->name;
+                label = address_book_entry->GetLabel();
             }
             if (filter_label && label != *filter_label) {
                 continue;
@@ -3536,7 +3536,7 @@ static UniValue listunspent(const Config &config,
             const auto *address_book_entry =
                 pwallet->FindAddressBookEntry(address);
             if (address_book_entry) {
-                entry.pushKV("label", address_book_entry->name);
+                entry.pushKV("label", address_book_entry->GetLabel());
             }
 
             const SigningProvider *provider =
@@ -4143,7 +4143,7 @@ static UniValue AddressBookDataToJSON(const CAddressBookData &data,
                                       const bool verbose) {
     UniValue ret(UniValue::VOBJ);
     if (verbose) {
-        ret.pushKV("name", data.name);
+        ret.pushKV("name", data.GetLabel());
     }
     ret.pushKV("purpose", data.purpose);
     return ret;
@@ -4296,7 +4296,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     // value of the name key/value pair in the labels array below.
     const auto *address_book_entry = pwallet->FindAddressBookEntry(dest);
     if (address_book_entry) {
-        ret.pushKV("label", address_book_entry->name);
+        ret.pushKV("label", address_book_entry->GetLabel());
     }
 
     ret.pushKV("ischange", pwallet->IsChange(scriptPubKey));
@@ -4328,7 +4328,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
         if (pwallet->chain().rpcEnableDeprecated("labelspurpose")) {
             labels.push_back(AddressBookDataToJSON(*address_book_entry, true));
         } else {
-            labels.push_back(address_book_entry->name);
+            labels.push_back(address_book_entry->GetLabel());
         }
     }
     ret.pushKV("labels", std::move(labels));
@@ -4375,7 +4375,7 @@ UniValue getaddressesbylabel(const Config &config,
         if (item.second.IsChange()) {
             continue;
         }
-        if (item.second.name == label) {
+        if (item.second.GetLabel() == label) {
             std::string address = EncodeDestination(item.first, config);
             // CWallet::m_address_book is not expected to contain duplicate
             // address strings, but build a separate set as a precaution just in
@@ -4443,7 +4443,7 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
             continue;
         }
         if (purpose.empty() || entry.second.purpose == purpose) {
-            label_set.insert(entry.second.name);
+            label_set.insert(entry.second.GetLabel());
         }
     }
 

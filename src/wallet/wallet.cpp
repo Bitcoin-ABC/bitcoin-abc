@@ -3462,7 +3462,12 @@ bool CWallet::DelAddressBook(const CTxDestination &address) {
     // NOTE: This isn't a problem for sending addresses because they never have
     // any DestData yet! When adding new DestData, it should be considered here
     // whether to retain or delete it (or move it?).
-    assert(!IsMine(address));
+    if (IsMine(address)) {
+        WalletLogPrintf("%s called with IsMine address, NOT SUPPORTED. Please "
+                        "report this bug! %s\n",
+                        __func__, PACKAGE_BUGREPORT);
+        return false;
+    }
 
     {
         LOCK(cs_wallet);
@@ -3731,7 +3736,7 @@ CWallet::GetLabelAddresses(const std::string &label) const {
             continue;
         }
         const CTxDestination &address = item.first;
-        const std::string &strName = item.second.name;
+        const std::string &strName = item.second.GetLabel();
         if (strName == label) {
             result.insert(address);
         }

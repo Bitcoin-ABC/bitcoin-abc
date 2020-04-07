@@ -42,8 +42,8 @@ BOOST_AUTO_TEST_CASE(write_erase_name) {
         auto w = LoadWallet(batch);
         LOCK(w->cs_wallet);
         BOOST_CHECK_EQUAL(1, w->m_address_book.count(dst1));
-        BOOST_CHECK_EQUAL("name1", w->m_address_book[dst1].name);
-        BOOST_CHECK_EQUAL("name2", w->m_address_book[dst2].name);
+        BOOST_CHECK_EQUAL("name1", w->m_address_book[dst1].GetLabel());
+        BOOST_CHECK_EQUAL("name2", w->m_address_book[dst2].GetLabel());
     }
 
     batch.EraseName(dst1);

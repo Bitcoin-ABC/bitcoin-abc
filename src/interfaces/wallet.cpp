@@ -171,7 +171,7 @@ namespace {
                 return false;
             }
             if (name) {
-                *name = it->second.name;
+                *name = it->second.GetLabel();
             }
             if (is_mine) {
                 *is_mine = m_wallet->IsMine(dest);
@@ -189,7 +189,8 @@ namespace {
                     continue;
                 }
                 result.emplace_back(item.first, m_wallet->IsMine(item.first),
-                                    item.second.name, item.second.purpose);
+                                    item.second.GetLabel(),
+                                    item.second.purpose);
             }
             return result;
         }
