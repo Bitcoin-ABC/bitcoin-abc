@@ -102,10 +102,6 @@ static CDataStream CreateAddrMessage(std::vector<CAddress> sendAddrs,
     return payload;
 }
 
-// After the 1000th addr, the seeder will only add one more address per addr
-// message.
-static const int ADDR_SOFT_CAP = 1000;
-
 BOOST_AUTO_TEST_CASE(seeder_node_addr_test) {
     // vAddrs starts with 1 entry.
     std::vector<CAddress> sendAddrs(ADDR_SOFT_CAP - 1, vAddr[0]);

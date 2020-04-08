@@ -16,6 +16,10 @@ static inline unsigned short GetDefaultPort() {
     return Params().GetDefaultPort();
 }
 
+// After the 1000th addr, the seeder will only add one more address per addr
+// message.
+static const unsigned int ADDR_SOFT_CAP = 1000;
+
 // The network magic to use.
 extern CMessageHeader::MessageMagic netMagic;
 

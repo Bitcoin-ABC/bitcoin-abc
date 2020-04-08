@@ -153,7 +153,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
             // fprintf(stdout, "%s: added address %s (#%i)\n",
             // ToString(you).c_str(),
             //        addr.ToString().c_str(), (int)(vAddr->size()));
-            if (vAddr->size() > 1000) {
+            if (vAddr->size() > ADDR_SOFT_CAP) {
                 doneAfter = 1;
                 return PeerMessagingState::Finished;
             }
