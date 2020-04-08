@@ -173,7 +173,8 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Create a fork 2 blocks deep. This should trigger polling.
         fork_node.invalidateblock(fork_node.getblockhash(100))
-        fork_node.generate(2)
+        fork_node.generatetoaddress(
+            2, 'bchreg:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v7ej0fffv')
 
         def can_find_block_in_poll(hash):
             poll_node.wait_for_avapoll()
