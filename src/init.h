@@ -76,9 +76,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                  NodeContext &node);
 
 /**
- * Setup the arguments for gArgs.
+ * Register all arguments with the ArgsManager
  */
-void SetupServerArgs();
+void SetupServerArgs(NodeContext &node);
 
 /** Returns licensing information (for -version) */
 std::string LicenseInfo();

@@ -62,7 +62,7 @@ static bool AppInit(int argc, char *argv[]) {
     //
     // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's
     // main()
-    SetupServerArgs();
+    SetupServerArgs(node);
     std::string error;
     if (!gArgs.ParseParameters(argc, argv, error)) {
         return InitError(Untranslated(

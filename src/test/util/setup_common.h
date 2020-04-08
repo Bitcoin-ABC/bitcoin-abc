@@ -92,6 +92,8 @@ static inline bool InsecureRandBool() {
 
 static constexpr Amount CENT(COIN / 100);
 
+extern std::vector<const char *> fixture_extra_args;
+
 /**
  * Basic testing setup.
  * This just configures logging, data dir and chain parameters.
@@ -101,7 +103,8 @@ struct BasicTestingSetup {
     NodeContext m_node;
 
     explicit BasicTestingSetup(
-        const std::string &chainName = CBaseChainParams::MAIN);
+        const std::string &chainName = CBaseChainParams::MAIN,
+        const std::vector<const char *> &extra_args = {});
     ~BasicTestingSetup();
 
 private:
@@ -115,8 +118,8 @@ private:
 struct TestingSetup : public BasicTestingSetup {
     boost::thread_group threadGroup;
 
-    explicit TestingSetup(
-        const std::string &chainName = CBaseChainParams::MAIN);
+    explicit TestingSetup(const std::string &chainName = CBaseChainParams::MAIN,
+                          const std::vector<const char *> &extra_args = {});
     ~TestingSetup();
 };
 

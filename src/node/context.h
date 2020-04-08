@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+class ArgsManager;
 class BanMan;
 class CConnman;
 class CScheduler;
@@ -38,6 +39,8 @@ struct NodeContext {
     // Currently a raw pointer because the memory is not managed by this struct
     ChainstateManager *chainman{nullptr};
     std::unique_ptr<BanMan> banman;
+    // Currently a raw pointer because the memory is not managed by this struct
+    ArgsManager *args{nullptr};
     std::unique_ptr<interfaces::Chain> chain;
     std::vector<std::unique_ptr<interfaces::ChainClient>> chain_clients;
     std::unique_ptr<CScheduler> scheduler;

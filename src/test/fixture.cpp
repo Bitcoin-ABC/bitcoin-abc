@@ -6,6 +6,8 @@
 
 #include <util/system.h>
 
+#include <test/util/setup_common.h>
+
 #include <boost/test/unit_test.hpp>
 
 namespace utf = boost::unit_test::framework;
@@ -15,29 +17,24 @@ namespace utf = boost::unit_test::framework;
  * test case.
  */
 struct CustomArgumentsFixture {
-    std::string error;
-
     CustomArgumentsFixture() {
-        const std::string testsuitename = "-testsuitename";
-
-        const std::set<std::string> testArgs = {
-            testsuitename,
-            "-axionactivationtime",
-        };
-
-        for (const auto &arg : testArgs) {
-            gArgs.AddArg(arg, "", ArgsManager::ALLOW_ANY,
-                         OptionsCategory::HIDDEN);
-        }
-
         auto &master_test_suite = utf::master_test_suite();
-        if (!gArgs.ParseParameters(master_test_suite.argc,
-                                   master_test_suite.argv, error)) {
-            throw utf::setup_error(error);
-        }
 
-        master_test_suite.p_name.value =
-            gArgs.GetArg(testsuitename, master_test_suite.p_name.value);
+        for (int i = 1; i < master_test_suite.argc; i++) {
+            std::string key(master_test_suite.argv[i]);
+            std::string val;
+
+            if (!ParseKeyValue(key, val)) {
+                break;
+            }
+
+            if (key == "-testsuitename") {
+                master_test_suite.p_name.value = val;
+                continue;
+            }
+
+            fixture_extra_args.push_back(master_test_suite.argv[i]);
+        }
     }
 
     ~CustomArgumentsFixture(){};

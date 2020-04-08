@@ -128,9 +128,7 @@ namespace {
                 StopMapPort();
             }
         }
-        // PR18571: return SetupServerArgs(*m_context)
-        // See https://reviews.bitcoinabc.org/D7993
-        void setupServerArgs() override { return SetupServerArgs(); }
+        void setupServerArgs() override { return SetupServerArgs(*m_context); }
         bool getProxy(Network net, proxyType &proxy_info) override {
             return GetProxy(net, proxy_info);
         }

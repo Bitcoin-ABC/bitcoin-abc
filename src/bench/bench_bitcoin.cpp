@@ -109,6 +109,10 @@ int main(int argc, char **argv) {
         printer.reset(new benchmark::JunitPrinter());
     }
 
+    // gArgs no longer needed. Clear it here to avoid interactions with the
+    // testing setup in the benches
+    gArgs.ClearArgs();
+
     benchmark::BenchRunner::RunAll(*printer, evaluations, scaling_factor,
                                    regex_filter, is_list_only);
 

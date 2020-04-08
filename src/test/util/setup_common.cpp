@@ -30,6 +30,7 @@
 #include <util/strencodings.h>
 #include <util/time.h>
 #include <util/translation.h>
+#include <util/vector.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <walletinitinterface.h>
@@ -83,17 +84,40 @@ std::ostream &operator<<(std::ostream &os, const ScriptError &err) {
     return os;
 }
 
-BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
+std::vector<const char *> fixture_extra_args{};
+
+BasicTestingSetup::BasicTestingSetup(
+    const std::string &chainName, const std::vector<const char *> &extra_args)
     : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME /
                   g_insecure_rand_ctx_temp_path.rand256().ToString()} {
+    std::vector<const char *> arguments = Cat(
+        {
+            "dummy",
+            "-printtoconsole=0",
+            "-logtimemicros",
+            "-debug",
+            "-debugexclude=libevent",
+            "-debugexclude=leveldb",
+        },
+        extra_args);
+    arguments = Cat(arguments, fixture_extra_args);
+    auto &config = const_cast<Config &>(GetConfig());
     SetMockTime(0);
     fs::create_directories(m_path_root);
     gArgs.ForceSetArg("-datadir", m_path_root.string());
     ClearDatadirCache();
+    {
+        SetupServerArgs(m_node);
+        std::string error;
+        const bool success{m_node.args->ParseParameters(
+            arguments.size(), arguments.data(), error)};
+        assert(success);
+        assert(error.empty());
+    }
     SelectParams(chainName);
     SeedInsecureRand();
-    gArgs.ForceSetArg("-printtoconsole", "0");
     InitLogging();
+    AppInitParameterInteraction(config);
     LogInstance().StartLogging();
     SHA256AutoDetect();
     ECC_Start();
@@ -102,7 +126,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
     InitSignatureCache();
     InitScriptExecutionCache();
 
-    m_node.chain = interfaces::MakeChain(m_node, Params());
+    m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
     g_wallet_init_interface.Construct(m_node);
 
     fCheckBlockIndex = true;
@@ -116,11 +140,13 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
 BasicTestingSetup::~BasicTestingSetup() {
     LogInstance().DisconnectTestLogger();
     fs::remove_all(m_path_root);
+    gArgs.ClearArgs();
     ECC_Stop();
 }
 
-TestingSetup::TestingSetup(const std::string &chainName)
-    : BasicTestingSetup(chainName) {
+TestingSetup::TestingSetup(const std::string &chainName,
+                           const std::vector<const char *> &extra_args)
+    : BasicTestingSetup(chainName, extra_args) {
     const Config &config = GetConfig();
     const CChainParams &chainparams = config.GetChainParams();
 
@@ -198,6 +224,7 @@ TestingSetup::~TestingSetup() {
     GetMainSignals().UnregisterBackgroundSignalScheduler();
     m_node.connman.reset();
     m_node.banman.reset();
+    m_node.args = nullptr;
     m_node.mempool = nullptr;
     m_node.scheduler.reset();
     UnloadBlockIndex();
