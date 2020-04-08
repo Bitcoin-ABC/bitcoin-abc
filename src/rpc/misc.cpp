@@ -137,8 +137,10 @@ static UniValue createmultisig(const Config &config,
     const UniValue &keys = request.params[1].get_array();
     std::vector<CPubKey> pubkeys;
     for (size_t i = 0; i < keys.size(); ++i) {
-        if (IsHex(keys[i].get_str()) && (keys[i].get_str().length() == 66 ||
-                                         keys[i].get_str().length() == 130)) {
+        if ((keys[i].get_str().length() ==
+                 2 * CPubKey::COMPRESSED_PUBLIC_KEY_SIZE ||
+             keys[i].get_str().length() == 2 * CPubKey::PUBLIC_KEY_SIZE) &&
+            IsHex(keys[i].get_str())) {
             pubkeys.push_back(HexToPubKey(keys[i].get_str()));
         } else {
             throw JSONRPCError(
