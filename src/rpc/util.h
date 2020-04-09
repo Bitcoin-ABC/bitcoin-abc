@@ -53,10 +53,41 @@ struct RPCArg {
     //! Only used for arrays or dicts
     const std::vector<RPCArg> m_inner;
     const bool m_optional;
+    const std::string m_default_value; //!< Only used for optional args
+    const std::string m_description;
     //! Should be empty unless it is supposed to override the auto-generated
     //! summary line
     const std::string m_oneline_description;
 
+    //! Should be empty unless it is supposed to override the
+    //! auto-generated type strings. Vector length is either 0
+    //! or 2, m_type_str.at(0) will override the type of the
+    //! value in a key-value pair, m_type_str.at(1) will
+    //! override the type in the argument description.
+    const std::vector<std::string> m_type_str;
+
+    RPCArg(const std::string &name, const Type &type, const bool opt,
+           const std::string &default_val, const std::string &description,
+           const std::string &oneline_description = "",
+           const std::vector<std::string> &type_str = {})
+        : m_name{name}, m_type{type}, m_optional{opt},
+          m_default_value{default_val}, m_description{description},
+          m_oneline_description{oneline_description}, m_type_str{type_str} {
+        assert(type != Type::ARR && type != Type::OBJ);
+    }
+
+    RPCArg(const std::string &name, const Type &type, const bool opt,
+           const std::string &default_val, const std::string &description,
+           const std::vector<RPCArg> &inner,
+           const std::string &oneline_description = "",
+           const std::vector<std::string> &type_str = {})
+        : m_name{name}, m_type{type}, m_inner{inner}, m_optional{opt},
+          m_default_value{default_val}, m_description{description},
+          m_oneline_description{oneline_description}, m_type_str{type_str} {
+        assert(type == Type::ARR || type == Type::OBJ);
+    }
+
+    // Remove once PR14796 backport is completed
     RPCArg(const std::string &name, const Type &type, const bool optional,
            const std::string &oneline_description = "")
         : m_name{name}, m_type{type}, m_optional{optional},
@@ -64,6 +95,7 @@ struct RPCArg {
         assert(type != Type::ARR && type != Type::OBJ);
     }
 
+    // Remove once PR14796 backport is completed
     RPCArg(const std::string &name, const Type &type,
            const std::vector<RPCArg> &inner, const bool optional,
            const std::string &oneline_description = "")
@@ -72,9 +104,30 @@ struct RPCArg {
         assert(type == Type::ARR || type == Type::OBJ);
     }
 
+    // Remove once PR14796 backport is completed
     std::string ToString() const;
 
+    /**
+     * Return the type string of the argument.
+     * Set oneline to allow it to be overrided by a custom oneline type string
+     * (m_oneline_description).
+     */
+    std::string ToString(bool oneline) const;
+    /**
+     * Return the type string of the argument when it is in an object (dict).
+     * Set oneline to get the oneline representation (less whitespace)
+     */
+    std::string ToStringObj(bool oneline) const;
+    /**
+     * Return the description string, including the argument type and whether
+     * the argument is required.
+     * implicitly_required is set for arguments in an array, which are neither
+     * optional nor required.
+     */
+    std::string ToDescriptionString(bool implicitly_required = false) const;
+
 private:
+    // Remove once PR14796 backport is completed
     std::string ToStringObj() const;
 };
 
@@ -85,6 +138,9 @@ public:
         : m_name{name}, m_description{description}, m_args{args} {}
 
     std::string ToString() const;
+
+    // Remove once PR14796 backport is completed
+    std::string ToStringWithArgs() const;
 
 private:
     const std::string m_name;
