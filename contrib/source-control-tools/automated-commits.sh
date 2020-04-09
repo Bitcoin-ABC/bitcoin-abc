@@ -201,23 +201,8 @@ case "${COMMIT_TYPE}" in
     ;;
 esac
 
-echo "Sanity checks..."
-
-LINT_OUTPUT=$(arc lint --never-apply-patches)
-LINT_EXIT_CODE=$?
-# If there is more than one line of output, then lint advice lines are likely present.
-# We treat these as errors because code generators should always produce lint-free code.
-LINT_NUM_LINES=$(echo ${LINT_OUTPUT} | wc -l)
-if [ "${LINT_EXIT_CODE}" -ne 0 ] || [ "${LINT_NUM_LINES}" -gt 1 ]; then
-  echo "Error: The linter found issues with the automated commit. Correct the issue in the code generator and try again."
-  exit 20
-fi
-
 # Smoke tests to give some confidence that master won't be put into a bad state
-pushd "${BUILD_DIR}"
-"${DEVTOOLS_DIR}"/build_cmake.sh
-ninja check-bitcoin check-functional
-popd
+"${DEVTOOLS_DIR}"/smoke-tests.sh
 
 echo "Pushing automated commit '${COMMIT_TYPE}'..."
 
