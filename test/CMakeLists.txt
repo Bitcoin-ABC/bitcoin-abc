@@ -52,19 +52,21 @@ make_link(util/bitcoin-util-test.py)
 make_link(util/rpcauth-test.py)
 make_link(fuzz/test_runner.py)
 
+include(TestSuite)
 macro(add_functional_test_check TARGET COMMENT)
-	add_custom_target(${TARGET}
-		COMMENT "${COMMENT}"
-		COMMAND
+	add_test_custom_target(${TARGET}
+		TEST_COMMAND
 			"${Python_EXECUTABLE}"
 			./functional/test_runner.py
 			${ARGN}
-		DEPENDS
-			bitcoind
-			bitcoin-cli
-			${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
-		USES_TERMINAL
-		VERBATIM
+		CUSTOM_TARGET_ARGS
+			COMMENT "${COMMENT}"
+			DEPENDS
+				bitcoind
+				bitcoin-cli
+				${CMAKE_CURRENT_BINARY_DIR}/functional/test_runner.py
+			USES_TERMINAL
+			VERBATIM
 	)
 endmacro()
 
@@ -97,14 +99,15 @@ add_functional_test_check(check-functional-upgrade-activated-extended
 add_dependencies(check-upgrade-activated-extended check-functional-upgrade-activated-extended)
 
 if(BUILD_BITCOIN_TX)
-	add_custom_target(check-bitcoin-util
-		COMMENT "Test Bitcoin utilities..."
-		COMMAND
+	add_test_custom_target(check-bitcoin-util
+		TEST_COMMAND
 			"${Python_EXECUTABLE}"
 			./util/bitcoin-util-test.py
-		DEPENDS
-			bitcoin-tx
-			${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
+		CUSTOM_TARGET_ARGS
+			COMMENT "Test Bitcoin utilities..."
+			DEPENDS
+				bitcoin-tx
+				${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
 	)
 
 	add_dependencies(check check-bitcoin-util)
