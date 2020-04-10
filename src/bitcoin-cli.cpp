@@ -387,7 +387,8 @@ public:
 };
 
 static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
-                        const std::vector<std::string> &args) {
+                        const std::vector<std::string> &args,
+                        const std::optional<std::string> &rpcwallet = {}) {
     std::string host;
     // In preference order, we choose the following for the port:
     //     1. -rpcport
@@ -462,10 +463,9 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
 
     // check if we should use a special wallet endpoint
     std::string endpoint = "/";
-    if (!gArgs.GetArgs("-rpcwallet").empty()) {
-        std::string walletName = gArgs.GetArg("-rpcwallet", "");
+    if (rpcwallet) {
         char *encodedURI =
-            evhttp_uriencode(walletName.data(), walletName.size(), false);
+            evhttp_uriencode(rpcwallet->data(), rpcwallet->size(), false);
         if (encodedURI) {
             endpoint = "/wallet/" + std::string(encodedURI);
             free(encodedURI);
@@ -535,19 +535,22 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
  *
  * @param[in] rh         Pointer to RequestHandler.
  * @param[in] strMethod  Reference to const string method to forward to CallRPC.
+ * @param[in] rpcwallet  Reference to const optional string wallet name to
+ *                       forward to CallRPC.
  * @returns the RPC response as a UniValue object.
  * @throws a CConnectionFailed std::runtime_error if connection failed or RPC
  * server still in warmup.
  */
-static UniValue ConnectAndCallRPC(BaseRequestHandler *rh,
-                                  const std::string &strMethod,
-                                  const std::vector<std::string> &args) {
+static UniValue
+ConnectAndCallRPC(BaseRequestHandler *rh, const std::string &strMethod,
+                  const std::vector<std::string> &args,
+                  const std::optional<std::string> &rpcwallet = {}) {
     UniValue response(UniValue::VOBJ);
     // Execute and handle connection failures with -rpcwait.
     const bool fWait = gArgs.GetBoolArg("-rpcwait", false);
     do {
         try {
-            response = CallRPC(rh, strMethod, args);
+            response = CallRPC(rh, strMethod, args, rpcwallet);
             if (fWait) {
                 const UniValue &error = find_value(response, "error");
                 if (!error.isNull() &&
@@ -642,7 +645,12 @@ static int CommandLineRPC(int argc, char *argv[]) {
             args.erase(args.begin());
         }
 
-        const UniValue reply = ConnectAndCallRPC(rh.get(), method, args);
+        std::optional<std::string> wallet_name{};
+        if (gArgs.IsArgSet("-rpcwallet")) {
+            wallet_name = gArgs.GetArg("-rpcwallet", "");
+        }
+        const UniValue reply =
+            ConnectAndCallRPC(rh.get(), method, args, wallet_name);
 
         // Parse reply
         UniValue result = find_value(reply, "result");
