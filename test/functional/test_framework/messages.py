@@ -1318,10 +1318,23 @@ class msg_reject:
 
 
 class msg_merkleblock:
+    __slots__ = ("merkleblock",)
     command = b"merkleblock"
 
+    def __init__(self, merkleblock=None):
+        if merkleblock is None:
+            self.merkleblock = CMerkleBlock()
+        else:
+            self.merkleblock = merkleblock
+
     def deserialize(self, f):
-        pass  # Placeholder for now
+        self.merkleblock.deserialize(f)
+
+    def serialize(self):
+        return self.merkleblock.serialize()
+
+    def __repr__(self):
+        return "msg_merkleblock(merkleblock={})".format(repr(self.merkleblock))
 
 
 class msg_filterload:
