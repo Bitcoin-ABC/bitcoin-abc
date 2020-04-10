@@ -507,24 +507,24 @@ void AvalancheProcessor::runEventLoop() {
     // them.
     clearTimedoutRequests();
 
-    while (true) {
-        NodeId nodeid = getSuitableNodeToQuery();
-        if (nodeid == NO_NODE) {
-            return;
-        }
+    // Make sure there is at least one suitable node to query before gathering
+    // invs.
+    NodeId nodeid = getSuitableNodeToQuery();
+    if (nodeid == NO_NODE) {
+        return;
+    }
+    std::vector<CInv> invs = getInvsForNextPoll();
+    if (invs.empty()) {
+        return;
+    }
 
+    do {
         /**
          * If we lost contact to that node, then we remove it from nodeids, but
          * never add the request to queries, which ensures bad nodes get cleaned
          * up over time.
          */
-        std::vector<CInv> invs;
         bool hasSent = connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
-            invs = getInvsForNextPoll();
-            if (invs.empty()) {
-                return false;
-            }
-
             uint64_t current_round = round++;
 
             {
@@ -554,11 +554,14 @@ void AvalancheProcessor::runEventLoop() {
         });
 
         // Success!
-        if (hasSent || invs.empty()) {
+        if (hasSent) {
             return;
         }
 
         // This node is obsolete, delete it.
         peerSet.getWriteView()->erase(nodeid);
-    }
+
+        // Get next suitable node to try again
+        nodeid = getSuitableNodeToQuery();
+    } while (nodeid != NO_NODE);
 }
