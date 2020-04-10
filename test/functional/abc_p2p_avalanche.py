@@ -185,29 +185,7 @@ class AvalancheTest(BitcoinTestFramework):
         for n in quorum:
             node.addavalanchepeer(n.nodeid, pubkey.hex())
 
-        # Make sure the fork node has synced the blocks
-        self.sync_blocks([node, fork_node])
-
-        # Create a fork 2 blocks deep. This should trigger polling.
-        fork_node.invalidateblock(fork_node.getblockhash(100))
-        fork_address = fork_node.get_deterministic_priv_key().address
-        fork_node.generatetoaddress(2, fork_address)
-
-        # Because the new tip is a deep reorg, the node will not accept it
-        # right away, but poll for it.
-        def parked_block(blockhash):
-            for tip in node.getchaintips():
-                if tip["hash"] == blockhash:
-                    assert tip["status"] != "active"
-                    return tip["status"] == "parked"
-            return False
-
-        fork_tip = fork_node.getbestblockhash()
-        wait_until(lambda: parked_block(fork_tip))
-
-        self.log.info("Answer all polls to finalize...")
-
-        def can_find_block_in_poll(hash, resp):
+        def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):
             found_hash = False
             for n in quorum:
                 poll = n.get_avapoll_if_available()
@@ -233,10 +211,36 @@ class AvalancheTest(BitcoinTestFramework):
 
             return found_hash
 
+        # Now that we have a peer, we should start polling for the tip.
+        hash_tip = int(node.getbestblockhash(), 16)
+        wait_until(lambda: can_find_block_in_poll(hash_tip), timeout=5)
+
+        # Make sure the fork node has synced the blocks
+        self.sync_blocks([node, fork_node])
+
+        # Create a fork 2 blocks deep. This should trigger polling.
+        fork_node.invalidateblock(fork_node.getblockhash(100))
+        fork_address = fork_node.get_deterministic_priv_key().address
+        fork_node.generatetoaddress(2, fork_address)
+
+        # Because the new tip is a deep reorg, the node will not accept it
+        # right away, but poll for it.
+        def parked_block(blockhash):
+            for tip in node.getchaintips():
+                if tip["hash"] == blockhash:
+                    assert tip["status"] != "active"
+                    return tip["status"] == "parked"
+            return False
+
+        fork_tip = fork_node.getbestblockhash()
+        wait_until(lambda: parked_block(fork_tip))
+
+        self.log.info("Answer all polls to finalize...")
+
         hash_to_find = int(fork_tip, 16)
 
         def has_accepted_new_tip():
-            can_find_block_in_poll(hash_to_find, BLOCK_ACCEPTED)
+            can_find_block_in_poll(hash_to_find)
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers yes, the node will accept that block.

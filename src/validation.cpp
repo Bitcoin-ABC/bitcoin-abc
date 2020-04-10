@@ -2561,7 +2561,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             }
         }
 
-        if (g_avalanche && pindexNew->nStatus.isOnParkedChain() &&
+        if (g_avalanche &&
             gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
             g_avalanche->addBlockToReconcile(pindexNew);
         }
