@@ -35,7 +35,7 @@ setup() {
   mkdir -p "${SAN_LOG_DIR}"
   rm -rf "${SAN_LOG_DIR:?}"/*
 
-  # Sanitizers options, not used if sanitizers are not enabled
+  # Needed options are set by the build system, add the log path to all runs
   export ASAN_OPTIONS="log_path=${SAN_LOG_DIR}/asan.log"
   export LSAN_OPTIONS="log_path=${SAN_LOG_DIR}/lsan.log"
   export TSAN_OPTIONS="log_path=${SAN_LOG_DIR}/tsan.log"
@@ -52,6 +52,11 @@ run_test_bitcoin() {
   TEST_BITCOIN_JUNIT="junit_results_unit_tests${1:+_${1// /_}}.xml"
   TEST_BITCOIN_SUITE_NAME="Bitcoin ABC unit tests${1:+ $1}"
 
+  # More sanitizer options are needed to run the executable directly
+  ASAN_OPTIONS="malloc_context_size=0:${ASAN_OPTIONS}" \
+  LSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/lsan:${LSAN_OPTIONS}" \
+  TSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/tsan:${TSAN_OPTIONS}" \
+  UBSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/ubsan:print_stacktrace=1:halt_on_error=1:${UBSAN_OPTIONS}" \
   ./src/test/test_bitcoin \
     --logger=HRF:JUNIT,${UNIT_TESTS_JUNIT_LOG_LEVEL},${TEST_BITCOIN_JUNIT} \
     -- \
