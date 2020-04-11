@@ -4281,7 +4281,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         }
 
         {
-            WalletRescanReserver reserver(walletInstance.get());
+            WalletRescanReserver reserver(*walletInstance);
             if (!reserver.reserve() ||
                 (ScanResult::SUCCESS !=
                  walletInstance

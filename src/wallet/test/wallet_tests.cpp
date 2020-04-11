@@ -56,7 +56,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
                                          ::ChainActive().Tip()->GetBlockHash());
         }
         AddKey(wallet, coinbaseKey);
-        WalletRescanReserver reserver(&wallet);
+        WalletRescanReserver reserver(wallet);
         reserver.reserve();
         CWallet::ScanResult result = wallet.ScanForWalletTransactions(
             BlockHash(), BlockHash(), reserver, false /* update */);
@@ -78,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
                                          ::ChainActive().Tip()->GetBlockHash());
         }
         AddKey(wallet, coinbaseKey);
-        WalletRescanReserver reserver(&wallet);
+        WalletRescanReserver reserver(wallet);
         reserver.reserve();
         CWallet::ScanResult result = wallet.ScanForWalletTransactions(
             oldTip->GetBlockHash(), BlockHash(), reserver, false /* update */);
@@ -104,7 +104,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
                                          ::ChainActive().Tip()->GetBlockHash());
         }
         AddKey(wallet, coinbaseKey);
-        WalletRescanReserver reserver(&wallet);
+        WalletRescanReserver reserver(wallet);
         reserver.reserve();
         CWallet::ScanResult result = wallet.ScanForWalletTransactions(
             oldTip->GetBlockHash(), BlockHash(), reserver, false /* update */);
@@ -129,7 +129,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
                                          ::ChainActive().Tip()->GetBlockHash());
         }
         AddKey(wallet, coinbaseKey);
-        WalletRescanReserver reserver(&wallet);
+        WalletRescanReserver reserver(wallet);
         reserver.reserve();
         CWallet::ScanResult result = wallet.ScanForWalletTransactions(
             oldTip->GetBlockHash(), BlockHash(), reserver, false /* update */);
@@ -501,7 +501,7 @@ public:
         bool firstRun;
         wallet->LoadWallet(firstRun);
         AddKey(*wallet, coinbaseKey);
-        WalletRescanReserver reserver(wallet.get());
+        WalletRescanReserver reserver(*wallet);
         reserver.reserve();
         CWallet::ScanResult result = wallet->ScanForWalletTransactions(
             ::ChainActive().Genesis()->GetBlockHash(), BlockHash(), reserver,

@@ -136,7 +136,7 @@ void TestGUI(interfaces::Node &node) {
         auto locked_chain = wallet->chain().lock();
         LockAssertion lock(::cs_main);
 
-        WalletRescanReserver reserver(wallet.get());
+        WalletRescanReserver reserver(*wallet);
         reserver.reserve();
         CWallet::ScanResult result = wallet->ScanForWalletTransactions(
             locked_chain->getBlockHash(0), BlockHash(), reserver,

@@ -144,7 +144,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
 
     EnsureLegacyScriptPubKeyMan(*wallet);
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     bool fRescan = true;
     {
         auto locked_chain = pwallet->chain().lock();
@@ -310,7 +310,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
                            "Rescan is disabled when blocks are pruned");
     }
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     if (fRescan && !reserver.reserve()) {
         throw JSONRPCError(
             RPC_WALLET_ERROR,
@@ -563,7 +563,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
                            "Rescan is disabled when blocks are pruned");
     }
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     if (fRescan && !reserver.reserve()) {
         throw JSONRPCError(
             RPC_WALLET_ERROR,
@@ -649,7 +649,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             "Importing wallets is disabled when blocks are pruned");
     }
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     if (!reserver.reserve()) {
         throw JSONRPCError(
             RPC_WALLET_ERROR,
@@ -1696,7 +1696,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
         }
     }
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     if (fRescan && !reserver.reserve()) {
         throw JSONRPCError(
             RPC_WALLET_ERROR,
