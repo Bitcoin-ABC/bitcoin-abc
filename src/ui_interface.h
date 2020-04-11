@@ -11,6 +11,8 @@
 #include <string>
 
 class CBlockIndex;
+struct bilingual_str;
+
 namespace boost {
 namespace signals2 {
     class connection;
@@ -82,9 +84,11 @@ public:
     boost::signals2::connection signal_name##_connect(                         \
         std::function<signal_name##Sig> fn);
 
-    /** Show message box. */
+    /**
+     * Show message box.
+     */
     ADD_SIGNALS_DECL_WRAPPER(ThreadSafeMessageBox, bool,
-                             const std::string &message,
+                             const bilingual_str &message,
                              const std::string &caption, unsigned int style);
 
     /**
@@ -93,7 +97,7 @@ public:
      * false.
      */
     ADD_SIGNALS_DECL_WRAPPER(ThreadSafeQuestion, bool,
-                             const std::string &message,
+                             const bilingual_str &message,
                              const std::string &noninteractive_message,
                              const std::string &caption, unsigned int style);
 

@@ -4,6 +4,8 @@
 
 #include <ui_interface.h>
 
+#include <util/translation.h>
+
 #include <boost/signals2/last_value.hpp>
 #include <boost/signals2/signal.hpp>
 
@@ -50,13 +52,13 @@ ADD_SIGNALS_IMPL_WRAPPER(NotifyBlockTip);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyHeaderTip);
 ADD_SIGNALS_IMPL_WRAPPER(BannedListChanged);
 
-bool CClientUIInterface::ThreadSafeMessageBox(const std::string &message,
+bool CClientUIInterface::ThreadSafeMessageBox(const bilingual_str &message,
                                               const std::string &caption,
                                               unsigned int style) {
     return g_ui_signals.ThreadSafeMessageBox(message, caption, style);
 }
 bool CClientUIInterface::ThreadSafeQuestion(
-    const std::string &message, const std::string &non_interactive_message,
+    const bilingual_str &message, const std::string &non_interactive_message,
     const std::string &caption, unsigned int style) {
     return g_ui_signals.ThreadSafeQuestion(message, non_interactive_message,
                                            caption, style);
@@ -88,10 +90,12 @@ void CClientUIInterface::BannedListChanged() {
 }
 
 bool InitError(const std::string &str) {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR);
+    uiInterface.ThreadSafeMessageBox(Untranslated(str), "",
+                                     CClientUIInterface::MSG_ERROR);
     return false;
 }
 
 void InitWarning(const std::string &str) {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING);
+    uiInterface.ThreadSafeMessageBox(Untranslated(str), "",
+                                     CClientUIInterface::MSG_WARNING);
 }

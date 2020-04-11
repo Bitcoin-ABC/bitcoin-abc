@@ -1173,13 +1173,13 @@ static bool AbortNode(const std::string &strMessage,
     SetMiscWarning(strMessage);
     LogPrintf("*** %s\n", strMessage);
     if (!userMessage.empty()) {
-        uiInterface.ThreadSafeMessageBox(
-            userMessage, "", CClientUIInterface::MSG_ERROR | prefix);
+        uiInterface.ThreadSafeMessageBox(Untranslated(userMessage), "",
+                                         CClientUIInterface::MSG_ERROR |
+                                             prefix);
     } else {
         uiInterface.ThreadSafeMessageBox(
             _("Error: A fatal internal error occurred, see debug.log for "
-              "details")
-                .translated,
+              "details"),
             "",
             CClientUIInterface::MSG_ERROR | CClientUIInterface::MSG_NOPREFIX);
     }

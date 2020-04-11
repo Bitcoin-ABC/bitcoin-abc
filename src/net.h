@@ -40,6 +40,7 @@ class BanMan;
 class Config;
 class CNode;
 class CScheduler;
+struct bilingual_str;
 
 /** Default for -whitelistrelay. */
 static const bool DEFAULT_WHITELISTRELAY = true;
@@ -363,7 +364,7 @@ private:
         NetPermissionFlags m_permissions;
     };
 
-    bool BindListenPort(const CService &bindAddr, std::string &strError,
+    bool BindListenPort(const CService &bindAddr, bilingual_str &strError,
                         NetPermissionFlags permissions);
     bool Bind(const CService &addr, unsigned int flags,
               NetPermissionFlags permissions);

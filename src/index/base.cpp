@@ -11,6 +11,7 @@
 #include <tinyformat.h>
 #include <ui_interface.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <validation.h>
 #include <warnings.h>
 
@@ -25,8 +26,9 @@ static void FatalError(const char *fmt, const Args &... args) {
     SetMiscWarning(strMessage);
     LogPrintf("*** %s\n", strMessage);
     uiInterface.ThreadSafeMessageBox(
-        "Error: A fatal internal error occurred, see debug.log for details", "",
-        CClientUIInterface::MSG_ERROR);
+        Untranslated("Error: A fatal internal error occurred, see debug.log "
+                     "for details"),
+        "", CClientUIInterface::MSG_ERROR);
     StartShutdown();
 }
 

@@ -405,8 +405,7 @@ static bool InitRPCAuthentication() {
             // Same message as AbortNode.
             uiInterface.ThreadSafeMessageBox(
                 _("Error: A fatal internal error occurred, see debug.log for "
-                  "details")
-                    .translated,
+                  "details"),
                 "", CClientUIInterface::MSG_ERROR);
             return false;
         }

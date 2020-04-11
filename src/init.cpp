@@ -2395,7 +2395,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     bool fLoaded = false;
     while (!fLoaded && !ShutdownRequested()) {
         const bool fReset = fReindex;
-        std::string strLoadError;
+        bilingual_str strLoadError;
 
         uiInterface.InitMessage(_("Loading block index...").translated);
         do {
@@ -2437,7 +2437,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     if (ShutdownRequested()) {
                         break;
                     }
-                    strLoadError = _("Error loading block database").translated;
+                    strLoadError = _("Error loading block database");
                     break;
                 }
 
@@ -2458,8 +2458,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     strLoadError =
                         _("You need to rebuild the database using -reindex to "
                           "go back to unpruned mode.  This will redownload the "
-                          "entire blockchain")
-                            .translated;
+                          "entire blockchain");
                     break;
                 }
 
@@ -2470,8 +2469,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // This is called again in ThreadImport after the reindex
                 // completes.
                 if (!fReindex && !LoadGenesisBlock(chainparams)) {
-                    strLoadError =
-                        _("Error initializing block database").translated;
+                    strLoadError = _("Error initializing block database");
                     break;
                 }
 
@@ -2486,8 +2484,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 ::ChainstateActive().CoinsErrorCatcher().AddReadErrCallback(
                     []() {
                         uiInterface.ThreadSafeMessageBox(
-                            _("Error reading from database, shutting down.")
-                                .translated,
+                            _("Error reading from database, shutting down."),
                             "", CClientUIInterface::MSG_ERROR);
                     });
 
@@ -2495,8 +2492,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // This is a no-op if we cleared the coinsviewdb with -reindex
                 // or -reindex-chainstate
                 if (!::ChainstateActive().CoinsDB().Upgrade()) {
-                    strLoadError =
-                        _("Error upgrading chainstate database").translated;
+                    strLoadError = _("Error upgrading chainstate database");
                     break;
                 }
 
@@ -2505,8 +2501,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 if (!::ChainstateActive().ReplayBlocks(params)) {
                     strLoadError =
                         _("Unable to replay blocks. You will need to rebuild "
-                          "the database using -reindex-chainstate.")
-                            .translated;
+                          "the database using -reindex-chainstate.");
                     break;
                 }
 
@@ -2521,8 +2516,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     // LoadChainTip initializes the chain based on CoinsTip()'s
                     // best block
                     if (!::ChainstateActive().LoadChainTip(chainparams)) {
-                        strLoadError =
-                            _("Error initializing block database").translated;
+                        strLoadError = _("Error initializing block database");
                         break;
                     }
                     assert(::ChainActive().Tip() != nullptr);
@@ -2548,8 +2542,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                               "to your computer's date and time being set "
                               "incorrectly. Only rebuild the block database if "
                               "you are sure that your computer's date and time "
-                              "are correct")
-                                .translated;
+                              "are correct");
                         break;
                     }
 
@@ -2558,14 +2551,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                             gArgs.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
                             gArgs.GetArg("-checkblocks",
                                          DEFAULT_CHECKBLOCKS))) {
-                        strLoadError =
-                            _("Corrupted block database detected").translated;
+                        strLoadError = _("Corrupted block database detected");
                         break;
                     }
                 }
             } catch (const std::exception &e) {
                 LogPrintf("%s\n", e.what());
-                strLoadError = _("Error opening block database").translated;
+                strLoadError = _("Error opening block database");
                 break;
             }
 
@@ -2578,11 +2570,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             // first suggest a reindex
             if (!fReset) {
                 bool fRet = uiInterface.ThreadSafeQuestion(
-                    strLoadError + ".\n\n" +
-                        _("Do you want to rebuild the block database now?")
-                            .translated,
-                    strLoadError + ".\nPlease restart with -reindex or "
-                                   "-reindex-chainstate to recover.",
+                    strLoadError + Untranslated(".\n\n") +
+                        _("Do you want to rebuild the block database now?"),
+                    strLoadError.original +
+                        ".\nPlease restart with -reindex or "
+                        "-reindex-chainstate to recover.",
                     "",
                     CClientUIInterface::MSG_ERROR |
                         CClientUIInterface::BTN_ABORT);
@@ -2594,7 +2586,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     return false;
                 }
             } else {
-                return InitError(strLoadError);
+                return InitError(strLoadError.translated);
             }
         }
     }

@@ -33,6 +33,7 @@
 #endif // ENABLE_WALLET
 #include <ui_interface.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 #include <QAction>
 #include <QApplication>
@@ -1507,7 +1508,7 @@ void BitcoinGUI::showModalOverlay() {
     }
 }
 
-static bool ThreadSafeMessageBox(BitcoinGUI *gui, const std::string &message,
+static bool ThreadSafeMessageBox(BitcoinGUI *gui, const bilingual_str &message,
                                  const std::string &caption,
                                  unsigned int style) {
     bool modal = (style & CClientUIInterface::MODAL);
@@ -1515,14 +1516,22 @@ static bool ThreadSafeMessageBox(BitcoinGUI *gui, const std::string &message,
     // bool secure = (style & CClientUIInterface::SECURE);
     style &= ~CClientUIInterface::SECURE;
     bool ret = false;
+    // This is original message, in English, for googling and referencing.
+    QString detailed_message;
+    if (message.original != message.translated) {
+        detailed_message = BitcoinGUI::tr("Original message:") + "\n" +
+                           QString::fromStdString(message.original);
+    }
+
     // In case of modal message, use blocking connection to wait for user to
     // click a button
     bool invoked = QMetaObject::invokeMethod(
         gui, "message",
         modal ? GUIUtil::blockingGUIThreadConnection() : Qt::QueuedConnection,
         Q_ARG(QString, QString::fromStdString(caption)),
-        Q_ARG(QString, QString::fromStdString(message)),
-        Q_ARG(unsigned int, style), Q_ARG(bool *, &ret));
+        Q_ARG(QString, QString::fromStdString(message.translated)),
+        Q_ARG(unsigned int, style), Q_ARG(bool *, &ret),
+        Q_ARG(QString, detailed_message));
     assert(invoked);
     return ret;
 }
