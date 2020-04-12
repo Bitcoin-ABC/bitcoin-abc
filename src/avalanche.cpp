@@ -281,7 +281,7 @@ bool AvalancheProcessor::registerVotes(
 
     {
         LOCK(cs_main);
-        for (auto &v : votes) {
+        for (const auto &v : votes) {
             BlockMap::iterator mi = mapBlockIndex.find(BlockHash(v.GetHash()));
             if (mi == mapBlockIndex.end()) {
                 // This should not happen, but just in case...
@@ -301,7 +301,7 @@ bool AvalancheProcessor::registerVotes(
     {
         // Register votes.
         auto w = vote_records.getWriteView();
-        for (auto &p : responseIndex) {
+        for (const auto &p : responseIndex) {
             CBlockIndex *pindex = p.first;
             const AvalancheVote &v = p.second;
 
@@ -463,7 +463,7 @@ void AvalancheProcessor::clearTimedoutRequests() {
         auto w = queries.getWriteView();
         auto it = w->get<query_timeout>().begin();
         while (it != w->get<query_timeout>().end() && it->timeout < now) {
-            for (auto &i : it->invs) {
+            for (const auto &i : it->invs) {
                 timedout_items[i]++;
             }
 
