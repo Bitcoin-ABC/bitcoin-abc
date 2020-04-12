@@ -530,6 +530,43 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
     return reply;
 }
 
+/**
+ * ConnectAndCallRPC wraps CallRPC with -rpcwait and an exception handler.
+ *
+ * @param[in] rh         Pointer to RequestHandler.
+ * @param[in] strMethod  Reference to const string method to forward to CallRPC.
+ * @returns the RPC response as a UniValue object.
+ * @throws a CConnectionFailed std::runtime_error if connection failed or RPC
+ * server still in warmup.
+ */
+static UniValue ConnectAndCallRPC(BaseRequestHandler *rh,
+                                  const std::string &strMethod,
+                                  const std::vector<std::string> &args) {
+    UniValue response(UniValue::VOBJ);
+    // Execute and handle connection failures with -rpcwait.
+    const bool fWait = gArgs.GetBoolArg("-rpcwait", false);
+    do {
+        try {
+            response = CallRPC(rh, strMethod, args);
+            if (fWait) {
+                const UniValue &error = find_value(response, "error");
+                if (!error.isNull() &&
+                    error["code"].get_int() == RPC_IN_WARMUP) {
+                    throw CConnectionFailed("server in warmup");
+                }
+            }
+            break; // Connection succeeded, no need to retry.
+        } catch (const CConnectionFailed &) {
+            if (fWait) {
+                UninterruptibleSleep(std::chrono::milliseconds{1000});
+            } else {
+                throw;
+            }
+        }
+    } while (fWait);
+    return response;
+}
+
 static int CommandLineRPC(int argc, char *argv[]) {
     std::string strPrint;
     int nRet = 0;
@@ -605,63 +642,41 @@ static int CommandLineRPC(int argc, char *argv[]) {
             args.erase(args.begin());
         }
 
-        // Execute and handle connection failures with -rpcwait
-        const bool fWait = gArgs.GetBoolArg("-rpcwait", false);
-        do {
-            try {
-                const UniValue reply = CallRPC(rh.get(), method, args);
+        const UniValue reply = ConnectAndCallRPC(rh.get(), method, args);
 
-                // Parse reply
-                const UniValue &result = find_value(reply, "result");
-                const UniValue &error = find_value(reply, "error");
+        // Parse reply
+        UniValue result = find_value(reply, "result");
+        const UniValue &error = find_value(reply, "error");
+        if (!error.isNull()) {
+            // Error
+            strPrint = "error: " + error.write();
+            nRet = abs(error["code"].get_int());
+            if (error.isObject()) {
+                const UniValue &errCode = find_value(error, "code");
+                const UniValue &errMsg = find_value(error, "message");
+                strPrint = errCode.isNull()
+                               ? ""
+                               : ("error code: " + errCode.getValStr() + "\n");
 
-                if (!error.isNull()) {
-                    // Error
-                    int code = error["code"].get_int();
-                    if (fWait && code == RPC_IN_WARMUP) {
-                        throw CConnectionFailed("server in warmup");
-                    }
-                    strPrint = "error: " + error.write();
-                    nRet = abs(code);
-                    if (error.isObject()) {
-                        UniValue errCode = find_value(error, "code");
-                        UniValue errMsg = find_value(error, "message");
-                        strPrint =
-                            errCode.isNull()
-                                ? ""
-                                : "error code: " + errCode.getValStr() + "\n";
-
-                        if (errMsg.isStr()) {
-                            strPrint += "error message:\n" + errMsg.get_str();
-                        }
-
-                        if (errCode.isNum() &&
-                            errCode.get_int() == RPC_WALLET_NOT_SPECIFIED) {
-                            strPrint += "\nTry adding "
-                                        "\"-rpcwallet=<filename>\" option to "
-                                        "bitcoin-cli command line.";
-                        }
-                    }
-                } else {
-                    // Result
-                    if (result.isNull()) {
-                        strPrint = "";
-                    } else if (result.isStr()) {
-                        strPrint = result.get_str();
-                    } else {
-                        strPrint = result.write(2);
-                    }
+                if (errMsg.isStr()) {
+                    strPrint += ("error message:\n" + errMsg.get_str());
                 }
-                // Connection succeeded, no need to retry.
-                break;
-            } catch (const CConnectionFailed &) {
-                if (fWait) {
-                    UninterruptibleSleep(std::chrono::milliseconds{1000});
-                } else {
-                    throw;
+                if (errCode.isNum() &&
+                    errCode.get_int() == RPC_WALLET_NOT_SPECIFIED) {
+                    strPrint += "\nTry adding \"-rpcwallet=<filename>\" option "
+                                "to bitcoin-cli command line.";
                 }
             }
-        } while (fWait);
+        } else {
+            // Result
+            if (result.isNull()) {
+                strPrint = "";
+            } else if (result.isStr()) {
+                strPrint = result.get_str();
+            } else {
+                strPrint = result.write(2);
+            }
+        }
     } catch (const std::exception &e) {
         strPrint = std::string("error: ") + e.what();
         nRet = EXIT_FAILURE;
