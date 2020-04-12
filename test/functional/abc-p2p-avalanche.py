@@ -48,20 +48,18 @@ class TestNode(P2PInterface):
         self.send_message(msg)
 
     def wait_for_avaresponse(self, timeout=5):
-        self.sync_with_ping()
-
-        def test_function():
-            m = self.last_message.get("avaresponse")
-            return m is not None and m != self.last_avaresponse
-        wait_until(test_function, timeout=timeout, lock=mininode_lock)
+        previous_response = self.last_avaresponse
+        wait_until(
+            lambda: self.last_avaresponse is not previous_response,
+            timeout=timeout,
+            lock=mininode_lock)
 
     def wait_for_avapoll(self, timeout=5):
-        self.sync_with_ping()
-
-        def test_function():
-            m = self.last_message.get("avapoll")
-            return m is not None and m != self.last_avapoll
-        wait_until(test_function, timeout=timeout, lock=mininode_lock)
+        previous_poll = self.last_avapoll
+        wait_until(
+            lambda: self.last_avapoll is not previous_poll,
+            timeout=timeout,
+            lock=mininode_lock)
 
 
 class AvalancheTest(BitcoinTestFramework):
