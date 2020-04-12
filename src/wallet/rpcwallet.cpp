@@ -1617,7 +1617,8 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
         "\nReturns up to 'count' most recent transactions skipping the first "
         "'from' transactions.\n",
         {
-            {"label", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+            {"label|dummy", RPCArg::Type::STR,
+             RPCArg::Optional::OMITTED_NAMED_ARG,
              "If set, should be a valid label name to return only incoming "
              "transactions with the specified label, or \"*\" to disable "
              "filtering and return all transactions."},

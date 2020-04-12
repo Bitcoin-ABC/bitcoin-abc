@@ -168,8 +168,9 @@ struct RPCArg {
         boost::variant<Optional,
                        /* default value for optional args */ std::string>;
 
-    //! The name of the arg (can be empty for inner args)
-    const std::string m_name;
+    //! The name of the arg (can be empty for inner args, can contain multiple
+    //! aliases separated by | for named request arguments)
+    const std::string m_names;
     const Type m_type;
     //! Only used for arrays or dicts
     const std::vector<RPCArg> m_inner;
@@ -190,7 +191,7 @@ struct RPCArg {
            const std::string description,
            const std::string oneline_description = "",
            const std::vector<std::string> type_str = {})
-        : m_name{std::move(name)}, m_type{std::move(type)},
+        : m_names{std::move(name)}, m_type{std::move(type)},
           m_fallback{std::move(fallback)}, m_description{std::move(
                                                description)},
           m_oneline_description{std::move(oneline_description)},
@@ -202,8 +203,8 @@ struct RPCArg {
            const std::string description, const std::vector<RPCArg> inner,
            const std::string oneline_description = "",
            const std::vector<std::string> type_str = {})
-        : m_name{std::move(name)}, m_type{std::move(type)}, m_inner{std::move(
-                                                                inner)},
+        : m_names{std::move(name)}, m_type{std::move(type)}, m_inner{std::move(
+                                                                 inner)},
           m_fallback{std::move(fallback)}, m_description{std::move(
                                                description)},
           m_oneline_description{std::move(oneline_description)},
@@ -212,6 +213,12 @@ struct RPCArg {
     }
 
     bool IsOptional() const;
+
+    /** Return the first of all aliases */
+    std::string GetFirstName() const;
+
+    /** Return the name, throws when there are aliases */
+    std::string GetName() const;
 
     /**
      * Return the type string of the argument.

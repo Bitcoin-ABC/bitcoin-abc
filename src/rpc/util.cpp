@@ -13,6 +13,8 @@
 
 #include <tuple>
 
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/variant/static_visitor.hpp>
 
 const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
@@ -337,7 +339,8 @@ struct Sections {
                 }
                 auto left = indent;
                 if (arg.m_type_str.size() != 0 && push_name) {
-                    left += "\"" + arg.m_name + "\": " + arg.m_type_str.at(0);
+                    left +=
+                        "\"" + arg.GetName() + "\": " + arg.m_type_str.at(0);
                 } else {
                     left += push_name ? arg.ToStringObj(/* oneline */ false)
                                       : arg.ToString(/* oneline */ false);
@@ -351,10 +354,10 @@ struct Sections {
                 const auto right = outer_type == OuterType::NONE
                                        ? ""
                                        : arg.ToDescriptionString();
-                PushSection({indent +
-                                 (push_name ? "\"" + arg.m_name + "\": " : "") +
-                                 "{",
-                             right});
+                PushSection(
+                    {indent + (push_name ? "\"" + arg.GetName() + "\": " : "") +
+                         "{",
+                     right});
                 for (const auto &arg_inner : arg.m_inner) {
                     Push(arg_inner, current_indent + 2, OuterType::OBJ);
                 }
@@ -368,7 +371,7 @@ struct Sections {
             }
             case RPCArg::Type::ARR: {
                 auto left = indent;
-                left += push_name ? "\"" + arg.m_name + "\": " : "";
+                left += push_name ? "\"" + arg.GetName() + "\": " : "";
                 left += "[";
                 const auto right = outer_type == OuterType::NONE
                                        ? ""
@@ -429,16 +432,20 @@ struct Sections {
     }
 };
 
-RPCHelpMan::RPCHelpMan(std::string name, std::string description,
+RPCHelpMan::RPCHelpMan(std::string name_, std::string description,
                        std::vector<RPCArg> args, RPCResults results,
                        RPCExamples examples)
-    : m_name{std::move(name)}, m_description{std::move(description)},
+    : m_name{std::move(name_)}, m_description{std::move(description)},
       m_args{std::move(args)}, m_results{std::move(results)},
       m_examples{std::move(examples)} {
     std::set<std::string> named_args;
     for (const auto &arg : m_args) {
+        std::vector<std::string> names;
+        boost::split(names, arg.m_names, boost::is_any_of("|"));
         // Should have unique named arguments
-        CHECK_NONFATAL(named_args.insert(arg.m_name).second);
+        for (const std::string &name : names) {
+            CHECK_NONFATAL(named_args.insert(name).second);
+        }
     }
 }
 
@@ -512,7 +519,7 @@ std::string RPCHelpMan::ToString() const {
 
         // Push named argument name and description
         sections.m_sections.emplace_back(std::to_string(i + 1) + ". " +
-                                             arg.m_name,
+                                             arg.GetFirstName(),
                                          arg.ToDescriptionString());
         sections.m_max_pad = std::max(sections.m_max_pad,
                                       sections.m_sections.back().m_left.size());
@@ -529,6 +536,15 @@ std::string RPCHelpMan::ToString() const {
     ret += m_examples.ToDescriptionString();
 
     return ret;
+}
+
+std::string RPCArg::GetFirstName() const {
+    return m_names.substr(0, m_names.find("|"));
+}
+
+std::string RPCArg::GetName() const {
+    CHECK_NONFATAL(std::string::npos == m_names.find("|"));
+    return m_names;
 }
 
 bool RPCArg::IsOptional() const {
@@ -707,7 +723,7 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
 std::string RPCArg::ToStringObj(const bool oneline) const {
     std::string res;
     res += "\"";
-    res += m_name;
+    res += GetFirstName();
     if (oneline) {
         res += "\":";
     } else {
@@ -750,13 +766,13 @@ std::string RPCArg::ToString(const bool oneline) const {
     switch (m_type) {
         case Type::STR_HEX:
         case Type::STR: {
-            return "\"" + m_name + "\"";
+            return "\"" + GetFirstName() + "\"";
         }
         case Type::NUM:
         case Type::RANGE:
         case Type::AMOUNT:
         case Type::BOOL: {
-            return m_name;
+            return GetFirstName();
         }
         case Type::OBJ:
         case Type::OBJ_USER_KEYS: {

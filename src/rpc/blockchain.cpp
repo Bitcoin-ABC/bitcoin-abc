@@ -980,7 +980,7 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The block hash"},
-            {"verbosity", RPCArg::Type::NUM, /* default */ "1",
+            {"verbosity|verbose", RPCArg::Type::NUM, /* default */ "1",
              "0 for hex-encoded data, 1 for a json object, and 2 for json "
              "object with transaction data"},
         },
