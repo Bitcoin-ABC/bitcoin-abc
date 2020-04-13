@@ -141,3 +141,26 @@ function(add_linker_flags)
 		endif()
 	endforeach()
 endfunction()
+
+macro(remove_optimization_level_from_var VAR)
+	string(REGEX REPLACE "-O[0-3gs]( |$)" "" ${VAR} "${${VAR}}")
+endmacro()
+
+function(set_optimization_level_for_language LANGUAGE LEVEL)
+	if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "")
+		string(TOUPPER "CMAKE_${LANGUAGE}_FLAGS_${CMAKE_BUILD_TYPE}" BUILD_TYPE_FLAGS)
+		remove_optimization_level_from_var(${BUILD_TYPE_FLAGS})
+		set(${BUILD_TYPE_FLAGS} "${${BUILD_TYPE_FLAGS}}" PARENT_SCOPE)
+	endif()
+
+	remove_optimization_level_from_var(CMAKE_${LANGUAGE}_FLAGS)
+	set(CMAKE_${LANGUAGE}_FLAGS "${CMAKE_${LANGUAGE}_FLAGS} -O${LEVEL}" PARENT_SCOPE)
+endfunction()
+
+macro(set_c_optimization_level LEVEL)
+	set_optimization_level_for_language(C ${LEVEL})
+endmacro()
+
+macro(set_cxx_optimization_level LEVEL)
+	set_optimization_level_for_language(CXX ${LEVEL})
+endmacro()

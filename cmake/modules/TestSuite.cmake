@@ -28,6 +28,8 @@ macro(get_target_from_suite SUITE TARGET)
 	set(${TARGET} "check-${SUITE}")
 endmacro()
 
+include(Coverage)
+
 function(create_test_suite_with_parent_targets NAME)
 	get_target_from_suite(${NAME} TARGET)
 
@@ -41,6 +43,8 @@ function(create_test_suite_with_parent_targets NAME)
 			add_dependencies(${PARENT_TARGET} ${TARGET})
 		endif()
 	endforeach()
+
+	add_custom_target_coverage(${TARGET})
 endfunction()
 
 macro(create_test_suite NAME)

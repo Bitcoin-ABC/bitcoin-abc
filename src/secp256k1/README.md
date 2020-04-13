@@ -101,7 +101,9 @@ Test coverage
 
 This library aims to have full coverage of the reachable lines and branches.
 
-To create a test coverage report, configure with `--enable-coverage` (use of GCC is necessary):
+__To create a test coverage report with autotools:__
+
+Configure with `--enable-coverage` (use of GCC is necessary):
 
     $ ./configure --enable-coverage
 
@@ -116,6 +118,27 @@ To create a report, `gcovr` is recommended, as it includes branch coverage repor
 To create a HTML report with coloured and annotated source code:
 
     $ gcovr --exclude 'src/bench*' --html --html-details -o coverage.html
+
+
+__To create a test coverage report with CMake:__
+
+Make sure you installed the dependencies first, and they are in your `PATH`:
+`c++filt`, `gcov`, `genhtml`, `lcov` and `python3`.
+
+Then run the build, tests and generate the coverage report with:
+
+```bash
+mkdir coverage
+cd coverage
+cmake -GNinja .. \
+  -DCMAKE_C_COMPILER=gcc \
+  -DSECP256K1_ENABLE_COVERAGE=ON \
+  -DSECP256K1_ENABLE_BRANCH_COVERAGE=ON # optional
+ninja coverage-check-secp256k1
+```
+
+The coverage report will be available by opening the file
+`check-secp256k1.coverage/index.html` with a web browser.
 
 Reporting a vulnerability
 ------------

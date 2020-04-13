@@ -36,4 +36,6 @@
 
 #cmakedefine ENABLE_OPENSSL_TESTS
 
+#cmakedefine COVERAGE
+
 #endif /* LIBSECP256K1_CONFIG_H */

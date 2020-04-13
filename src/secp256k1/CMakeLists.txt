@@ -10,12 +10,35 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
 		"Select the configuration for the build" FORCE)
+	set(__NO_USER_CMAKE_BUILD_TYPE ON CACHE BOOL "True if the user didn't set a build type on the command line")
 endif()
 
-# TODO: use -O0 instead of -O3 when coverage is enabled
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -O3")
 
+option(SECP256K1_ENABLE_COVERAGE "Enable coverage" OFF)
+option(SECP256K1_ENABLE_BRANCH_COVERAGE "Enable branch coverage" OFF)
+
 include(AddCompilerFlags)
+
+if(SECP256K1_ENABLE_COVERAGE)
+	include(Coverage)
+
+	enable_coverage(${SECP256K1_ENABLE_BRANCH_COVERAGE})
+
+	exclude_from_coverage("${CMAKE_CURRENT_SOURCE_DIR}/src/bench")
+
+	# If no build type is manually defined, override the optimization level.
+	# Otherwise, alert the user than the coverage result might be useless.
+	if(__NO_USER_CMAKE_BUILD_TYPE)
+		set_c_optimization_level(0)
+	else()
+		message(WARNING "It is advised to not enforce CMAKE_BUILD_TYPE to get the best coverage results")
+	endif()
+
+	set(COVERAGE 1)
+endif()
+
+
 
 # libsecp256k1 use a different set of flags.
 add_c_compiler_flags(
@@ -346,12 +369,15 @@ if(SECP256K1_BUILD_TEST)
 	endfunction()
 
 	create_secp256k1_test(tests src/tests.c)
-	target_compile_definitions(tests PRIVATE VERIFY)
-
 	create_secp256k1_test(exhaustive_tests src/tests_exhaustive.c)
+
 	# This should not be enabled at the same time as coverage is.
-	# TODO: support coverage.
-	target_compile_definitions(exhaustive_tests PRIVATE VERIFY)
+	# The VERIFY failure branch is not expected to be reached, so it would make
+	# coverage appear lower if set.
+	if(NOT SECP256K1_ENABLE_COVERAGE)
+		target_compile_definitions(tests PRIVATE VERIFY)
+		target_compile_definitions(exhaustive_tests PRIVATE VERIFY)
+	endif()
 
 	if(SECP256K1_ENABLE_JNI)
 		set(SECP256k1_JNI_TEST_JAR "secp256k1-jni-test")

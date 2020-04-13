@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -e
+
+# Build the default target
+"${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}"
+
+# Capture (-c) initial (-i) coverage data in order to get a baseline
+# before running any test.
+"${LCOV_EXECUTABLE}" --gcov-tool="${GCOV_EXECUTABLE}" ${LCOV_OPTIONS} \
+  -c -i -d "${CMAKE_BINARY_DIR}" \
+  -o baseline_raw.info
+
+# Remove the coverage data for the paths matching any of the patterns.
+"${__COVERAGE_PYTHON}" "${CMAKE_SOURCE_DIR}/cmake/utils/filter-lcov.py" \
+  ${LCOV_FILTER_PATTERN} baseline_raw.info "${CMAKE_BINARY_DIR}/baseline.info"

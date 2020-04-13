@@ -283,19 +283,28 @@ $ valgrind -v --leak-check=full src/bitcoind -printtoconsole
 
 ### Compiling for test coverage
 
-LCOV can be used to generate a test coverage report based upon `make check`
-execution. LCOV must be installed on your system (e.g. the `lcov` package
-on Debian/Ubuntu).
+LCOV can be used to generate a test coverage report based upon some test targets
+execution. Some packages are required to generate the coverage report:
+`c++filt`, `gcov`, `genhtml`, `lcov` and `python3`.
+
+To install these dependencies on Debian 10:
+
+```shell
+sudo apt install binutils-common g++ lcov python3
+```
 
 To enable LCOV report generation during test runs:
 
 ```shell
-./configure --enable-lcov
-make
-make cov
-
-# A coverage report will now be accessible at `./test_bitcoin.coverage/index.html`.
+cmake -GNinja .. -DENABLE_COVERAGE=ON
+ninja coverage-check-all
 ```
+
+A coverage report will now be accessible at `./check-all.coverage/index.html`.
+
+To include branch coverage, you can add the `-DENABLE_BRANCH_COVERAGE=ON` option
+to the `cmake` command line.
+
 
 ### Sanitizers
 
