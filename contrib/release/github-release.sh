@@ -119,7 +119,6 @@ if [ -d "${ASSET_DIR}" ]; then
   ASSET_LIST+=("${ASSET_DIR}/osx/bitcoin-abc-${VERSION}-osx-unsigned.dmg")
 
   # Windows binaries
-  ASSET_LIST+=("${ASSET_DIR}/win/bitcoin-abc-${VERSION}-win32-setup-unsigned.exe")
   ASSET_LIST+=("${ASSET_DIR}/win/bitcoin-abc-${VERSION}-win64-setup-unsigned.exe")
 
   for FILENAME in "${ASSET_LIST[@]}"; do
