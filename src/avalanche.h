@@ -247,8 +247,8 @@ public:
     }
 };
 
-typedef std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>
-    BlockVoteMap;
+using BlockVoteMap =
+    std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
 
 struct next_request_time {};
 struct query_timeout {};
@@ -268,7 +268,7 @@ private:
      */
     std::atomic<uint64_t> round;
 
-    typedef std::chrono::time_point<std::chrono::steady_clock> TimePoint;
+    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
     struct Peer {
         NodeId nodeid;
@@ -278,7 +278,7 @@ private:
         CPubKey pubkey;
     };
 
-    typedef boost::multi_index_container<
+    using PeerSet = boost::multi_index_container<
         Peer, boost::multi_index::indexed_by<
                   // index by nodeid
                   boost::multi_index::hashed_unique<
@@ -287,8 +287,7 @@ private:
                   boost::multi_index::ordered_non_unique<
                       boost::multi_index::tag<next_request_time>,
                       boost::multi_index::member<Peer, TimePoint,
-                                                 &Peer::nextRequestTime>>>>
-        PeerSet;
+                                                 &Peer::nextRequestTime>>>>;
 
     RWCollection<PeerSet> peerSet;
 
@@ -306,7 +305,7 @@ private:
         mutable std::vector<CInv> invs;
     };
 
-    typedef boost::multi_index_container<
+    using QuerySet = boost::multi_index_container<
         Query,
         boost::multi_index::indexed_by<
             // index by nodeid/round
@@ -319,8 +318,8 @@ private:
             // sorted by timeout
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<query_timeout>,
-                boost::multi_index::member<Query, TimePoint, &Query::timeout>>>>
-        QuerySet;
+                boost::multi_index::member<Query, TimePoint,
+                                           &Query::timeout>>>>;
 
     RWCollection<QuerySet> queries;
 
