@@ -9,6 +9,7 @@
 #include <sync.h>
 #include <test/util/setup_common.h>
 #include <validation.h>
+#include <validationinterface.h>
 
 #include <vector>
 
@@ -100,7 +101,10 @@ BOOST_AUTO_TEST_CASE(chainstatemanager) {
     exp_tip = c1.m_chain.Tip();
     BOOST_CHECK_EQUAL(validated_tip, exp_tip);
 
-    // Avoid triggering the address sanitizer.
+    // Let scheduler events finish running to avoid accessing memory that is
+    // going to be unloaded
+    SyncWithValidationInterfaceQueue();
+
     WITH_LOCK(::cs_main, manager.Unload());
 }
 
