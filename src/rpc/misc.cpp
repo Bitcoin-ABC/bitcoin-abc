@@ -37,12 +37,10 @@ static UniValue validateaddress(const Config &config,
                 "validateaddress",
                 "\nReturn information about the given bitcoin address.\n",
                 {
-                    {"address", RPCArg::Type::STR, false},
+                    {"address", RPCArg::Type::STR, /* opt */ false,
+                     /* default_val */ "", "The bitcoin address to validate"},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"address\"                    (string, required) The bitcoin "
-            "address to validate\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"isvalid\" : true|false,       (boolean) If the address is "
@@ -89,20 +87,26 @@ static UniValue createmultisig(const Config &config,
     if (request.fHelp || request.params.size() < 2 ||
         request.params.size() > 2) {
         std::string msg =
-            "createmultisig nrequired [\"key\",...]\n"
-            "\nCreates a multi-signature address with n signature of m keys "
-            "required.\n"
-            "It returns a json object with the address and redeemScript.\n"
-            "\nArguments:\n"
-            "1. nrequired      (numeric, required) The number of required "
-            "signatures out of the n keys.\n"
-            "2. \"keys\"       (string, required) A json array of hex-encoded "
-            "public keys\n"
-            "     [\n"
-            "       \"key\"    (string) The hex-encoded public key\n"
-            "       ,...\n"
-            "     ]\n"
-
+            RPCHelpMan{
+                "createmultisig",
+                "\nCreates a multi-signature address with n signature of m "
+                "keys required.\n"
+                "It returns a json object with the address and redeemScript.\n",
+                {
+                    {"nrequired", RPCArg::Type::NUM, /* opt */ false,
+                     /* default_val */ "",
+                     "The number of required signatures out of the n keys."},
+                    {"keys",
+                     RPCArg::Type::ARR,
+                     /* opt */ false,
+                     /* default_val */ "",
+                     "A json array of hex-encoded public keys.",
+                     {
+                         {"key", RPCArg::Type::STR_HEX, /* opt */ false,
+                          /* default_val */ "", "The hex-encoded public key"},
+                     }},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"address\":\"multisigaddress\",  (string) The value of the new "
@@ -169,21 +173,21 @@ static UniValue verifymessage(const Config &config,
                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 3) {
         throw std::runtime_error(
-            RPCHelpMan{"verifymessage",
-                       "\nVerify a signed message\n",
-                       {
-                           {"address", RPCArg::Type::STR, false},
-                           {"signature", RPCArg::Type::STR, false},
-                           {"message", RPCArg::Type::STR, false},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"address\"         (string, required) The bitcoin address to "
-            "use for the signature.\n"
-            "2. \"signature\"       (string, required) The signature provided "
-            "by the signer in base 64 encoding (see signmessage).\n"
-            "3. \"message\"         (string, required) The message that was "
-            "signed.\n"
+            RPCHelpMan{
+                "verifymessage",
+                "\nVerify a signed message\n",
+                {
+                    {"address", RPCArg::Type::STR, /* opt */ false,
+                     /* default_val */ "",
+                     "The bitcoin address to use for the signature."},
+                    {"signature", RPCArg::Type::STR, /* opt */ false,
+                     /* default_val */ "",
+                     "The signature provided by the signer in base 64 encoding "
+                     "(see signmessage)."},
+                    {"message", RPCArg::Type::STR, /* opt */ false,
+                     /* default_val */ "", "The message that was signed."},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "true|false   (boolean) If the signature is verified or not.\n"
             "\nExamples:\n"
@@ -247,15 +251,14 @@ static UniValue signmessagewithprivkey(const Config &config,
             RPCHelpMan{"signmessagewithprivkey",
                        "\nSign a message with the private key of an address\n",
                        {
-                           {"privkey", RPCArg::Type::STR, false},
-                           {"message", RPCArg::Type::STR, false},
+                           {"privkey", RPCArg::Type::STR, /* opt */ false,
+                            /* default_val */ "",
+                            "The private key to sign the message with."},
+                           {"message", RPCArg::Type::STR, /* opt */ false,
+                            /* default_val */ "",
+                            "The message to create a signature of."},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"privkey\"         (string, required) The private key to sign "
-            "the message with.\n"
-            "2. \"message\"         (string, required) The message to create a "
-            "signature of.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message "
             "encoded in base 64\n"
@@ -295,18 +298,15 @@ static UniValue signmessagewithprivkey(const Config &config,
 static UniValue setmocktime(const Config &config,
                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "setmocktime",
-                "\nSet the local time to given timestamp (-regtest only)\n",
-                {
-                    {"timestamp", RPCArg::Type::NUM, false},
-                }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. timestamp  (integer, required) Unix seconds-since-epoch "
-            "timestamp\n"
-            "   Pass 0 to go back to using the system time.");
+        throw std::runtime_error(RPCHelpMan{
+            "setmocktime",
+            "\nSet the local time to given timestamp (-regtest only)\n",
+            {
+                {"timestamp", RPCArg::Type::NUM, /* opt */ false,
+                 /* default_val */ "",
+                 "Unix seconds-since-epoch timestamp\n"
+                 "   Pass 0 to go back to using the system time."},
+            }}.ToStringWithArgs());
     }
 
     if (!config.GetChainParams().MineBlocksOnDemand()) {
@@ -364,20 +364,22 @@ static UniValue getmemoryinfo(const Config &config,
      */
     if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
-            RPCHelpMan{"getmemoryinfo",
-                       "Returns an object containing information about memory "
-                       "usage.\n",
-                       {
-                           {"mode", RPCArg::Type::STR, true},
-                       }}
-                .ToString() +
-            "Arguments:\n"
-            "1. \"mode\" determines what kind of information is returned. This "
-            "argument is optional, the default mode is \"stats\".\n"
-            "  - \"stats\" returns general statistics about memory usage in "
-            "the daemon.\n"
-            "  - \"mallocinfo\" returns an XML string describing low-level "
-            "heap state (only available if compiled with glibc 2.10+).\n"
+            RPCHelpMan{
+                "getmemoryinfo",
+                "Returns an object containing information about memory "
+                "usage.\n",
+                {
+                    {"mode", RPCArg::Type::STR, /* opt */ true,
+                     /* default_val */ "",
+                     "determines what kind of information is returned. This "
+                     "argument is optional, the default mode is \"stats\".\n"
+                     "  - \"stats\" returns general statistics about memory "
+                     "usage in the daemon.\n"
+                     "  - \"mallocinfo\" returns an XML string describing "
+                     "low-level heap state (only available if compiled with "
+                     "glibc 2.10+)."},
+                }}
+                .ToStringWithArgs() +
             "\nResult (mode \"stats\"):\n"
             "{\n"
             "  \"locked\": {               (json object) Information about "
@@ -464,23 +466,28 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
                     "  - \"none\", \"0\" : even if other logging categories "
                     "are specified, ignore all of them.\n",
                 {
-                    {"include", RPCArg::Type::STR, true},
-                    {"exclude", RPCArg::Type::STR, true},
+                    {"include",
+                     RPCArg::Type::ARR,
+                     /* opt */ true,
+                     /* default_val */ "",
+                     "A json array of categories to add debug logging",
+                     {
+                         {"include_category", RPCArg::Type::STR,
+                          /* opt */ false, /* default_val */ "",
+                          "the valid logging category"},
+                     }},
+                    {"exclude",
+                     RPCArg::Type::ARR,
+                     /* opt */ true,
+                     /* default_val */ "",
+                     "A json array of categories to remove debug logging",
+                     {
+                         {"exclude_category", RPCArg::Type::STR,
+                          /* opt */ false, /* default_val */ "",
+                          "the valid logging category"},
+                     }},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"include\"        (array of strings, optional) A json array "
-            "of categories to add debug logging\n"
-            "     [\n"
-            "       \"category\"   (string) the valid logging category\n"
-            "       ,...\n"
-            "     ]\n"
-            "2. \"exclude\"        (array of strings, optional) A json array "
-            "of categories to remove debug logging\n"
-            "     [\n"
-            "       \"category\"   (string) the valid logging category\n"
-            "       ,...\n"
-            "     ]\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{                   (json object where keys are the logging "
             "categories, and values indicates its status\n"
@@ -545,13 +552,12 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
                 "has argument conversion enabled in the client-side table in "
                 "bitcoin-cli and the GUI. There is no server-side difference.",
                 {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "");
     }
 
     return request.params;
 }
-
 
 // clang-format off
 static const ContextFreeRPCCommand commands[] = {
