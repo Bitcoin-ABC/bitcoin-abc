@@ -96,15 +96,15 @@ static UniValue getnetworkhashps(const Config &config,
                        "Pass in [height] to estimate the network speed at the "
                        "time when a certain block was found.\n",
                        {
-                           {"nblocks", RPCArg::Type::NUM, true},
-                           {"height", RPCArg::Type::NUM, true},
+                           {"nblocks", RPCArg::Type::NUM, /* opt */ true,
+                            /* default_val */ "120",
+                            "The number of blocks, or -1 for blocks since last "
+                            "difficulty change."},
+                           {"height", RPCArg::Type::NUM, /* opt */ true,
+                            /* default_val */ "-1",
+                            "To estimate at the time of the given height."},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. nblocks     (numeric, optional, default=120) The number of "
-            "blocks, or -1 for blocks since last difficulty change.\n"
-            "2. height      (numeric, optional, default=-1) To estimate at the "
-            "time of the given height.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "x             (numeric) Hashes per second estimated\n"
             "\nExamples:\n" +
@@ -190,22 +190,22 @@ static UniValue generatetoaddress(const Config &config,
     if (request.fHelp || request.params.size() < 2 ||
         request.params.size() > 3) {
         throw std::runtime_error(
-            RPCHelpMan{"generatetoaddress",
-                       "\nMine blocks immediately to a specified address "
-                       "before the RPC call returns)\n",
-                       {
-                           {"nblocks", RPCArg::Type::NUM, false},
-                           {"address", RPCArg::Type::STR, false},
-                           {"maxtries", RPCArg::Type::NUM, true},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. nblocks      (numeric, required) How many blocks are generated "
-            "immediately.\n"
-            "2. address      (string, required) The address to send the newly "
-            "generated bitcoin to.\n"
-            "3. maxtries     (numeric, optional) How many iterations to try "
-            "(default = 1000000).\n"
+            RPCHelpMan{
+                "generatetoaddress",
+                "\nMine blocks immediately to a specified address before the "
+                "RPC call returns)\n",
+                {
+                    {"nblocks", RPCArg::Type::NUM, /* opt */ false,
+                     /* default_val */ "",
+                     "How many blocks are generated immediately."},
+                    {"address", RPCArg::Type::STR, /* opt */ false,
+                     /* default_val */ "",
+                     "The address to send the newly generated bitcoin to."},
+                    {"maxtries", RPCArg::Type::NUM, /* opt */ true,
+                     /* default_val */ "1000000",
+                     "How many iterations to try."},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "[ blockhashes ]     (array) hashes of blocks generated\n"
             "\nExamples:\n"
@@ -241,7 +241,7 @@ static UniValue getmininginfo(const Config &config,
                        "\nReturns a json object containing mining-related "
                        "information.",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"blocks\": nnn,             (numeric) The current block\n"
@@ -283,27 +283,30 @@ static UniValue prioritisetransaction(const Config &config,
                                       const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 3) {
         throw std::runtime_error(
-            RPCHelpMan{"prioritisetransaction",
-                       "Accepts the transaction into mined blocks at a higher "
-                       "(or lower) priority\n",
-                       {
-                           {"txid", RPCArg::Type::STR_HEX, false},
-                           {"dummy", RPCArg::Type::NUM, false},
-                           {"fee_delta", RPCArg::Type::NUM, false},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"txid\"       (string, required) The transaction id.\n"
-            "2. dummy          (numeric, optional) API-Compatibility for "
-            "previous API. Must be zero or null.\n"
-            "                  DEPRECATED. For forward compatibility use named "
-            "arguments and omit this parameter.\n"
-            "3. fee_delta      (numeric, required) The fee value (in satoshis) "
-            "to add (or subtract, if negative).\n"
-            "                  The fee is not actually paid, only the "
-            "algorithm for selecting transactions into a block\n"
-            "                  considers the transaction as it would have paid "
-            "a higher (or lower) fee.\n"
+            RPCHelpMan{
+                "prioritisetransaction",
+                "Accepts the transaction into mined blocks at a higher "
+                "(or lower) priority\n",
+                {
+                    {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "", "The transaction id."},
+                    {"dummy", RPCArg::Type::NUM, /* opt */ true,
+                     /* default_val */ "null",
+                     "API-Compatibility for previous API. Must be zero or "
+                     "null.\n"
+                     "                  DEPRECATED. For forward compatibility "
+                     "use named arguments and omit this parameter."},
+                    {"fee_delta", RPCArg::Type::NUM, /* opt */ false,
+                     /* default_val */ "",
+                     "The fee value (in satoshis) to add (or subtract, if "
+                     "negative).\n"
+                     "                        The fee is not actually paid, "
+                     "only the algorithm for selecting transactions into a "
+                     "block\n"
+                     "                  considers the transaction as it would "
+                     "have paid a higher (or lower) fee."},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "true              (boolean) Returns true\n"
             "\nExamples:\n" +
@@ -374,35 +377,32 @@ static UniValue getblocktemplate(const Config &config,
                 {
                     {"template_request",
                      RPCArg::Type::OBJ,
+                     /* opt */ true,
+                     /* default_val */ "",
+                     "A json object in the following spec",
                      {
-                         {"mode", RPCArg::Type::STR, true},
-                         {"capabilities",
-                          RPCArg::Type::ARR,
-                          {
-                              {"support", RPCArg::Type::STR, true},
-                          },
-                          true},
+                         {"mode", RPCArg::Type::STR, /* opt */ true,
+                          /* default_val */ "",
+                          "This must be set to \"template\", \"proposal\" (see "
+                          "BIP 23), or omitted"},
+                         {
+                             "capabilities",
+                             RPCArg::Type::ARR,
+                             /* opt */ true,
+                             /* default_val */ "",
+                             "A list of strings",
+                             {
+                                 {"support", RPCArg::Type::STR, /* opt */ true,
+                                  /* default_val */ "",
+                                  "client side supported feature, 'longpoll', "
+                                  "'coinbasetxn', 'coinbasevalue', 'proposal', "
+                                  "'serverlist', 'workid'"},
+                             },
+                         },
                      },
-                     true,
                      "\"template_request\""},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. template_request         (json object, optional) A json object "
-            "in the following spec\n"
-            "     {\n"
-            "       \"mode\":\"template\"    (string, optional) This must be "
-            "set to \"template\", \"proposal\" (see BIP 23), or omitted\n"
-            "       \"capabilities\":[     (array, optional) A list of "
-            "strings\n"
-            "           \"support\"          (string) client side supported "
-            "feature, 'longpoll', 'coinbasetxn', 'coinbasevalue', 'proposal', "
-            "'serverlist', 'workid'\n"
-            "           ,...\n"
-            "       ]\n"
-            "     }\n"
-            "\n"
-
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"version\" : n,                    (numeric) The preferred "
@@ -739,15 +739,15 @@ static UniValue submitblock(const Config &config,
                        "See https://en.bitcoin.it/wiki/BIP_0022 for full "
                        "specification.\n",
                        {
-                           {"hexdata", RPCArg::Type::STR_HEX, false},
-                           {"dummy", RPCArg::Type::STR, true},
+                           {"hexdata", RPCArg::Type::STR_HEX, /* opt */ false,
+                            /* default_val */ "",
+                            "the hex-encoded block data to submit"},
+                           {"dummy", RPCArg::Type::STR, /* opt */ true,
+                            /* default_val */ "",
+                            "dummy value, for compatibility with BIP22. This "
+                            "value is ignored."},
                        }}
-                .ToString() +
-            "\nArguments\n"
-            "1. \"hexdata\"        (string, required) the hex-encoded block "
-            "data to submit\n"
-            "2. \"dummy\"          (optional) dummy value, for compatibility "
-            "with BIP22. This value is ignored.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("submitblock", "\"mydata\"") +
@@ -806,17 +806,16 @@ static UniValue submitheader(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            RPCHelpMan{"submitheader",
-                       "\nDecode the given hexdata as a header and submit it "
-                       "as a candidate chain tip if valid."
-                       "\nThrows when the header is invalid.\n",
-                       {
-                           {"hexdata", RPCArg::Type::STR_HEX, false},
-                       }}
-                .ToString() +
-            "\nArguments\n"
-            "1. \"hexdata\"        (string, required) the "
-            "hex-encoded block header data\n"
+            RPCHelpMan{
+                "submitheader",
+                "\nDecode the given hexdata as a header and submit it as a "
+                "candidate chain tip if valid."
+                "\nThrows when the header is invalid.\n",
+                {
+                    {"hexdata", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "", "the hex-encoded block header data"},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "None"
             "\nExamples:\n" +
@@ -858,7 +857,7 @@ static UniValue estimatefee(const Config &config,
                        "\nEstimates the approximate fee per kilobyte needed "
                        "for a transaction\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "n              (numeric) estimated fee-per-kilobyte\n"
             "\nExample:\n" +
