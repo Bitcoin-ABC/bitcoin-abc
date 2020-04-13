@@ -159,7 +159,7 @@ static UniValue getblockcount(const Config &config,
                 "getblockcount",
                 "\nReturns the number of blocks in the longest blockchain.\n",
                 {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "n    (numeric) The current block count\n"
             "\nExamples:\n" +
@@ -179,7 +179,7 @@ static UniValue getbestblockhash(const Config &config,
                        "\nReturns the hash of the best (tip) block in the "
                        "longest blockchain.\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\"hex\"      (string) the block hash hex-encoded\n"
             "\nExamples:\n" +
@@ -198,7 +198,7 @@ UniValue getfinalizedblockhash(const Config &config,
             RPCHelpMan{"getfinalizedblockhash",
                        "\nReturns the hash of the currently finalized block\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\"hex\"      (string) the block hash hex-encoded\n");
     }
@@ -229,13 +229,12 @@ static UniValue waitfornewblock(const Config &config,
                        "info about it.\n"
                        "\nReturns the current block on timeout or exit.\n",
                        {
-                           {"timeout", RPCArg::Type::NUM, true},
+                           {"timeout", RPCArg::Type::NUM, /* opt */ true,
+                            /* default_val */ "0",
+                            "Time in milliseconds to wait for a response. 0 "
+                            "indicates no timeout."},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. timeout (int, optional, default=0) Time in "
-            "milliseconds to wait for a response. 0 indicates "
-            "no timeout.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"hash\" : {       (string) The blockhash\n"
@@ -285,14 +284,14 @@ static UniValue waitforblock(const Config &config,
                        "info about it.\n"
                        "\nReturns the current block on timeout or exit.\n",
                        {
-                           {"blockhash", RPCArg::Type::STR_HEX, false},
-                           {"timeout", RPCArg::Type::NUM, true},
+                           {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                            /* default_val */ "", "Block hash to wait for."},
+                           {"timeout", RPCArg::Type::NUM, /* opt */ true,
+                            /* default_val */ "0",
+                            "Time in milliseconds to wait for a response. 0 "
+                            "indicates no timeout."},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\" (required, string) Block hash to wait for.\n"
-            "2. timeout       (int, optional, default=0) Time in milliseconds "
-            "to wait for a response. 0 indicates no timeout.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"hash\" : {       (string) The blockhash\n"
@@ -347,14 +346,14 @@ static UniValue waitforblockheight(const Config &config,
                        "height and hash\nof the current tip.\n"
                        "\nReturns the current block on timeout or exit.\n",
                        {
-                           {"height", RPCArg::Type::NUM, false},
-                           {"timeout", RPCArg::Type::NUM, true},
+                           {"height", RPCArg::Type::NUM, /* opt */ false,
+                            /* default_val */ "", "Block height to wait for."},
+                           {"timeout", RPCArg::Type::NUM, /* opt */ true,
+                            /* default_val */ "0",
+                            "Time in milliseconds to wait for a response. 0 "
+                            "indicates no timeout."},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. height  (int, required) Block height to wait for (int)\n"
-            "2. timeout (int, optional, default=0) Time in milliseconds to "
-            "wait for a response. 0 indicates no timeout.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"hash\" : {       (string) The blockhash\n"
@@ -404,7 +403,7 @@ syncwithvalidationinterfacequeue(const Config &config,
                 "\nWaits for the validation interface queue to catch up on "
                 "everything that was there when we entered this function.\n",
                 {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nExamples:\n" +
             HelpExampleCli("syncwithvalidationinterfacequeue", "") +
             HelpExampleRpc("syncwithvalidationinterfacequeue", ""));
@@ -421,7 +420,7 @@ static UniValue getdifficulty(const Config &config,
                        "\nReturns the proof-of-work difficulty as a "
                        "multiple of the minimum difficulty.\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "n.nnn       (numeric) the proof-of-work "
             "difficulty as a multiple of the minimum "
@@ -563,16 +562,16 @@ static UniValue getrawmempool(const Config &config,
         throw std::runtime_error(
             RPCHelpMan{"getrawmempool",
                        "\nReturns all transaction ids in memory pool as a json "
-                       "array of string transaction ids.\n",
+                       "array of string transaction ids.\n"
+                       "\nHint: use getmempoolentry to fetch a specific "
+                       "transaction from the mempool.\n",
                        {
-                           {"verbose", RPCArg::Type::BOOL, true},
+                           {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                            /* default_val */ "false",
+                            "True for a json object, false for array of "
+                            "transaction ids"},
                        }}
-                .ToString() +
-            "\nHint: use getmempoolentry to fetch a specific transaction from "
-            "the mempool.\n"
-            "\nArguments:\n"
-            "1. verbose (boolean, optional, default=false) True for a json "
-            "object, false for array of transaction ids\n"
+                .ToStringWithArgs() +
             "\nResult: (for verbose = false):\n"
             "[                     (json array of string)\n"
             "  \"transactionid\"     (string) The transaction id\n"
@@ -606,15 +605,15 @@ static UniValue getmempoolancestors(const Config &config,
                        "\nIf txid is in the mempool, returns all in-mempool "
                        "ancestors.\n",
                        {
-                           {"txid", RPCArg::Type::STR_HEX, false},
-                           {"verbose", RPCArg::Type::BOOL, true},
+                           {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                            /* default_val */ "",
+                            "The transaction id (must be in mempool)"},
+                           {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                            /* default_val */ "false",
+                            "True for a json object, false for array of "
+                            "transaction ids"},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"txid\"                 (string, required) The transaction id "
-            "(must be in mempool)\n"
-            "2. verbose                  (boolean, optional, default=false) "
-            "True for a json object, false for array of transaction ids\n"
+                .ToStringWithArgs() +
             "\nResult (for verbose = false):\n"
             "[                       (json array of strings)\n"
             "  \"transactionid\"           (string) The transaction id of an "
@@ -682,15 +681,15 @@ static UniValue getmempooldescendants(const Config &config,
                        "\nIf txid is in the mempool, returns all in-mempool "
                        "descendants.\n",
                        {
-                           {"txid", RPCArg::Type::STR_HEX, false},
-                           {"verbose", RPCArg::Type::BOOL, true},
+                           {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                            /* default_val */ "",
+                            "The transaction id (must be in mempool)"},
+                           {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                            /* default_val */ "false",
+                            "True for a json object, false for array of "
+                            "transaction ids"},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"txid\"                 (string, required) The transaction id "
-            "(must be in mempool)\n"
-            "2. verbose                  (boolean, optional, default=false) "
-            "True for a json object, false for array of transaction ids\n"
+                .ToStringWithArgs() +
             "\nResult (for verbose = false):\n"
             "[                       (json array of strings)\n"
             "  \"transactionid\"           (string) The transaction id of an "
@@ -755,12 +754,11 @@ static UniValue getmempoolentry(const Config &config,
             RPCHelpMan{"getmempoolentry",
                        "\nReturns mempool data for given transaction\n",
                        {
-                           {"txid", RPCArg::Type::STR_HEX, false},
+                           {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                            /* default_val */ "",
+                            "The transaction id (must be in mempool)"},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"txid\"                   (string, required) "
-            "The transaction id (must be in mempool)\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{                           (json object)\n" +
             EntryDescriptionString() +
@@ -794,11 +792,10 @@ static UniValue getblockhash(const Config &config,
                        "\nReturns hash of block in best-block-chain at height "
                        "provided.\n",
                        {
-                           {"height", RPCArg::Type::NUM, false},
+                           {"height", RPCArg::Type::NUM, /* opt */ false,
+                            /* default_val */ "", "The height index"},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. height         (numeric, required) The height index\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\"hash\"         (string) The block hash\n"
             "\nExamples:\n" +
@@ -822,20 +819,20 @@ static UniValue getblockheader(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
-            RPCHelpMan{"getblockheader",
-                       "\nIf verbose is false, returns a string that is "
-                       "serialized, hex-encoded data for blockheader 'hash'.\n"
-                       "If verbose is true, returns an Object with information "
-                       "about blockheader <hash>.\n",
-                       {
-                           {"blockhash", RPCArg::Type::STR_HEX, false},
-                           {"verbose", RPCArg::Type::BOOL, true},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\"     (string, required) The block hash\n"
-            "2. verbose           (boolean, optional, default=true) true for a "
-            "json object, false for the hex-encoded data\n"
+            RPCHelpMan{
+                "getblockheader",
+                "\nIf verbose is false, returns a string that is "
+                "serialized, hex-encoded data for blockheader 'hash'.\n"
+                "If verbose is true, returns an Object with information "
+                "about blockheader <hash>.\n",
+                {
+                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "", "The block hash"},
+                    {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                     /* default_val */ "true",
+                     "true for a json object, false for the hex-encoded data"},
+                }}
+                .ToStringWithArgs() +
             "\nResult (for verbose = true):\n"
             "{\n"
             "  \"hash\" : \"hash\",     (string) the block hash (same as "
@@ -936,15 +933,14 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
                 "If verbosity is 2, returns an Object with information about "
                 "block <hash> and information about each transaction.\n",
                 {
-                    {"blockhash", RPCArg::Type::STR_HEX, false},
-                    {"verbosity", RPCArg::Type::NUM, true},
+                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "", "The block hash"},
+                    {"verbosity", RPCArg::Type::NUM, /* opt */ true,
+                     /* default_val */ "1",
+                     "0 for hex-encoded data, 1 for a json object, and 2 for "
+                     "json object with transaction data"},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\"           (string, required) The block hash\n"
-            "2. verbosity             (numeric, optional, default=1) 0 for "
-            "hex-encoded data, 1 for a json object, and 2 for json object with "
-            "transaction data\n"
+                .ToStringWithArgs() +
             "\nResult (for verbosity = 0):\n"
             "\"data\"                   (string) A string that is serialized, "
             "hex-encoded data for block 'hash'.\n"
@@ -1108,17 +1104,18 @@ static UniValue pruneblockchain(const Config &config,
                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            RPCHelpMan{"pruneblockchain",
-                       "",
-                       {
-                           {"height", RPCArg::Type::NUM, false},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"height\"       (numeric, required) The block height to prune "
-            "up to. May be set to a discrete height, or a unix timestamp\n"
-            "                  to prune blocks whose block time is at least 2 "
-            "hours older than the provided timestamp.\n"
+            RPCHelpMan{
+                "pruneblockchain",
+                "",
+                {
+                    {"height", RPCArg::Type::NUM, /* opt */ false,
+                     /* default_val */ "",
+                     "The block height to prune up to. May be set to a "
+                     "discrete height, or a unix timestamp\n"
+                     "                  to prune blocks whose block time is at "
+                     "least 2 hours older than the provided timestamp."},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "n    (numeric) Height of the last block pruned.\n"
             "\nExamples:\n" +
@@ -1182,7 +1179,7 @@ static UniValue gettxoutsetinfo(const Config &config,
                        "output set.\n"
                        "Note this call may take some time.\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"height\":n,     (numeric) The current block height (index)\n"
@@ -1229,18 +1226,16 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
                 "gettxout",
                 "\nReturns details about an unspent transaction output.\n",
                 {
-                    {"txid", RPCArg::Type::STR_HEX, false},
-                    {"n", RPCArg::Type::NUM, false},
-                    {"include_mempool", RPCArg::Type::BOOL, true},
+                    {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "", "The transaction id"},
+                    {"n", RPCArg::Type::NUM, /* opt */ false,
+                     /* default_val */ "", "vout number"},
+                    {"include_mempool", RPCArg::Type::BOOL, /* opt */ true,
+                     /* default_val */ "true",
+                     "Whether to include the mempool. Note that an unspent "
+                     "output that is spent in the mempool won't appear."},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"txid\"             (string, required) The transaction id\n"
-            "2. \"n\"                (numeric, required) vout number\n"
-            "3. \"include_mempool\"  (boolean, optional) Whether to include "
-            "the mempool. Default: true."
-            "     Note that an unspent output that is spent in the mempool "
-            "won't appear.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"bestblock\" : \"hash\",    (string) the block hash\n"
@@ -1321,20 +1316,18 @@ static UniValue verifychain(const Config &config,
     int nCheckDepth = gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS);
     if (request.fHelp || request.params.size() > 2) {
         throw std::runtime_error(
-            RPCHelpMan{"verifychain",
-                       "\nVerifies blockchain database.\n",
-                       {
-                           {"checklevel", RPCArg::Type::NUM, true},
-                           {"nblocks", RPCArg::Type::NUM, true},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. checklevel   (numeric, optional, 0-4, default=" +
-            strprintf("%d", nCheckLevel) +
-            ") How thorough the block verification is.\n"
-            "2. nblocks      (numeric, optional, default=" +
-            strprintf("%d", nCheckDepth) +
-            ", 0=all) The number of blocks to check.\n"
+            RPCHelpMan{
+                "verifychain",
+                "\nVerifies blockchain database.\n",
+                {
+                    {"checklevel", RPCArg::Type::NUM, /* opt */ true,
+                     /* default_val */ strprintf("%d, range=0-4", nCheckLevel),
+                     "How thorough the block verification is."},
+                    {"nblocks", RPCArg::Type::NUM, /* opt */ true,
+                     /* default_val */ strprintf("%d, 0=all", nCheckDepth),
+                     "The number of blocks to check."},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "true|false       (boolean) Verified or not\n"
             "\nExamples:\n" +
@@ -1425,7 +1418,7 @@ UniValue getblockchaininfo(const Config &config,
                        "Returns an object containing various state info "
                        "regarding blockchain processing.\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"chain\": \"xxxx\",              (string) current network name "
@@ -1572,7 +1565,7 @@ static UniValue getchaintips(const Config &config,
                 "Return information about all known tips in the block tree, "
                 "including the main chain as well as orphaned branches.\n",
                 {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -1714,7 +1707,7 @@ static UniValue getmempoolinfo(const Config &config,
                        "\nReturns details on the active state of the TX memory "
                        "pool.\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"loaded\": true|false         (boolean) True if the mempool is "
@@ -1752,12 +1745,11 @@ static UniValue preciousblock(const Config &config,
                        "\nThe effects of preciousblock are not retained across "
                        "restarts.\n",
                        {
-                           {"blockhash", RPCArg::Type::STR_HEX, false},
+                           {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                            /* default_val */ "",
+                            "the hash of the block to mark as precious"},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\"   (string, required) the hash of the block to "
-            "mark as precious\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("preciousblock", "\"blockhash\"") +
@@ -1795,9 +1787,11 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
                 "work chain, it can effectively PUTS YOU OUT OF CONSENSUS.\n"
                 "USE WITH CAUTION!\n",
                 {
-                    {"blockhash", RPCArg::Type::STR_HEX, false},
+                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "",
+                     "the hash of the block to mark as invalid"},
                 }}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("finalizeblock", "\"blockhash\"") +
@@ -1837,12 +1831,11 @@ static UniValue invalidateblock(const Config &config,
                        "\nPermanently marks a block as invalid, as if it "
                        "violated a consensus rule.\n",
                        {
-                           {"blockhash", RPCArg::Type::STR_HEX, false},
+                           {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                            /* default_val */ "",
+                            "the hash of the block to mark as invalid"},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\"   (string, required) the hash of "
-            "the block to mark as invalid\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("invalidateblock", "\"blockhash\"") +
@@ -1876,15 +1869,14 @@ static UniValue invalidateblock(const Config &config,
 UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            RPCHelpMan{"parkblock",
-                       "\nMarks a block as parked.\n",
-                       {
-                           {"blockhash", RPCArg::Type::STR_HEX, false},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\"   (string, required) the "
-            "hash of the block to park\n"
+            RPCHelpMan{
+                "parkblock",
+                "\nMarks a block as parked.\n",
+                {
+                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "", "the hash of the block to park"},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("parkblock", "\"blockhash\"") +
@@ -1927,12 +1919,11 @@ static UniValue reconsiderblock(const Config &config,
                 "reconsider them for activation.\n"
                 "This can be used to undo the effects of invalidateblock.\n",
                 {
-                    {"blockhash", RPCArg::Type::STR_HEX, false},
+                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "",
+                     "the hash of the block to reconsider"},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\"   (string, required) the hash of the block to "
-            "reconsider\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("reconsiderblock", "\"blockhash\"") +
@@ -1964,17 +1955,16 @@ static UniValue reconsiderblock(const Config &config,
 UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            RPCHelpMan{"unparkblock",
-                       "\nRemoves parked status of a block and its "
-                       "descendants, reconsider them for activation.\n"
-                       "This can be used to undo the effects of parkblock.\n",
-                       {
-                           {"blockhash", RPCArg::Type::STR_HEX, false},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"blockhash\"   (string, required) the hash of the block to "
-            "unpark\n"
+            RPCHelpMan{
+                "unparkblock",
+                "\nRemoves parked status of a block and its descendants, "
+                "reconsider them for activation.\n"
+                "This can be used to undo the effects of parkblock.\n",
+                {
+                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                     /* default_val */ "", "the hash of the block to unpark"},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("unparkblock", "\"blockhash\"") +
@@ -2012,15 +2002,14 @@ static UniValue getchaintxstats(const Config &config,
                        "\nCompute statistics about the total number and rate "
                        "of transactions in the chain.\n",
                        {
-                           {"nblocks", RPCArg::Type::NUM, true},
-                           {"blockhash", RPCArg::Type::STR_HEX, true},
+                           {"nblocks", RPCArg::Type::NUM, /* opt */ true,
+                            /* default_val */ "one month",
+                            "Size of the window in number of blocks"},
+                           {"blockhash", RPCArg::Type::STR_HEX, /* opt */ true,
+                            /* default_val */ "",
+                            "The hash of the block that ends the window."},
                        }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. nblocks      (numeric, optional) Size of the window in number "
-            "of blocks (default: one month).\n"
-            "2. \"blockhash\"  (string, optional) The hash of the block that "
-            "ends the window.\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"time\": xxxxx,                         (numeric) The "
@@ -2148,27 +2137,27 @@ static UniValue getblockstats(const Config &config,
                     "It won't work without -txindex for utxo_size_inc, *fee or "
                     "*feerate stats.\n",
                 {
-                    {"hash_or_height", RPCArg::Type::NUM, false},
+                    {"hash_or_height",
+                     RPCArg::Type::NUM,
+                     /* opt */ false,
+                     /* default_val */ "",
+                     "The block hash or height of the target block",
+                     "",
+                     {"", "string or numeric"}},
                     {"stats",
                      RPCArg::Type::ARR,
+                     /* opt */ true,
+                     /* default_val */ "",
+                     "Values to plot, by default all values (see result below)",
                      {
-                         {"height", RPCArg::Type::STR, true},
-                         {"time", RPCArg::Type::STR, true},
+                         {"height", RPCArg::Type::STR, /* opt */ true,
+                          /* default_val */ "", "Selected statistic"},
+                         {"time", RPCArg::Type::STR, /* opt */ true,
+                          /* default_val */ "", "Selected statistic"},
                      },
-                     true,
                      "stats"},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"hash_or_height\"     (string or numeric, required) The block "
-            "hash or height of the target block\n"
-            "2. \"stats\"              (array,  optional) Values to plot, by "
-            "default all values (see result below)\n"
-            "    [\n"
-            "      \"height\",         (string, optional) Selected statistic\n"
-            "      \"time\",           (string, optional) Selected statistic\n"
-            "      ,...\n"
-            "    ]\n"
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"avgfee\": x.xxx,          (numeric) Average fee in the block\n"
@@ -2443,7 +2432,7 @@ static UniValue savemempool(const Config &config,
                        "\nDumps the mempool to disk. It will fail until the "
                        "previous dump is fully loaded.\n",
                        {}}
-                .ToString() +
+                .ToStringWithArgs() +
             "\nExamples:\n" + HelpExampleCli("savemempool", "") +
             HelpExampleRpc("savemempool", ""));
     }
@@ -2531,75 +2520,75 @@ static UniValue scantxoutset(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
-            RPCHelpMan{"scantxoutset",
-                       "\nEXPERIMENTAL warning: this call may be removed or "
-                       "changed in future releases.\n"
-                       "\nScans the unspent transaction output set for entries "
-                       "that match certain output descriptors.\n"
-                       "Examples of output descriptors are:\n"
-                       "    addr(<address>)                      Outputs whose "
-                       "scriptPubKey corresponds to the specified address "
-                       "(does not include P2PK)\n"
-                       "    raw(<hex script>)                    Outputs whose "
-                       "scriptPubKey equals the specified hex scripts\n"
-                       "    combo(<pubkey>)                      P2PK and "
-                       "P2PKH outputs for the given pubkey\n"
-                       "    pkh(<pubkey>)                        P2PKH outputs "
-                       "for the given pubkey\n"
-                       "    sh(multi(<n>,<pubkey>,<pubkey>,...)) P2SH-multisig "
-                       "outputs for the given threshold and pubkeys\n"
-                       "\nIn the above, <pubkey> either refers to a fixed "
-                       "public key in hexadecimal notation, or to an xpub/xprv "
-                       "optionally followed by one\n"
-                       "or more path elements separated by \"/\", and "
-                       "optionally ending in \"/*\" (unhardened), or \"/*'\" "
-                       "or \"/*h\" (hardened) to specify all\n"
-                       "unhardened or hardened child keys.\n"
-                       "In the latter case, a range needs to be specified by "
-                       "below if different from 1000.\n"
-                       "For more information on output descriptors, see the "
-                       "documentation in the doc/descriptors.md file.\n",
-                       {
-                           {"action", RPCArg::Type::STR, false},
-                           {"scanobjects",
-                            RPCArg::Type::ARR,
-                            {
-                                {"descriptor",
-                                 RPCArg::Type::OBJ,
-                                 {
-                                     {"desc", RPCArg::Type::STR, false},
-                                     {"range", RPCArg::Type::NUM, true},
-                                 },
-                                 false,
-                                 "scanobjects"},
-                            },
-                            false},
-                       }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"action\"                       (string, required) The action "
-            "to execute\n"
-            "                                      \"start\" for starting a "
-            "scan\n"
-            "                                      \"abort\" for aborting the "
-            "current scan (returns true when abort was successful)\n"
-            "                                      \"status\" for progress "
-            "report (in %) of the current scan\n"
-            "2. \"scanobjects\"                  (array, required) Array of "
-            "scan objects\n"
-            "    [                             Every scan object is either a "
-            "string descriptor or an object:\n"
-            "        \"descriptor\",             (string, optional) An output "
-            "descriptor\n"
-            "        {                         (object, optional) An object "
-            "with output descriptor and metadata\n"
-            "          \"desc\": \"descriptor\",   (string, required) An "
-            "output descriptor\n"
-            "          \"range\": n,             (numeric, optional) Up to "
-            "what child index HD chains should be explored (default: 1000)\n"
-            "        },\n"
-            "        ...\n"
-            "    ]\n"
+            RPCHelpMan{
+                "scantxoutset",
+                "\nEXPERIMENTAL warning: this call may be removed or changed "
+                "in future releases.\n"
+                "\nScans the unspent transaction output set for entries that "
+                "match certain output descriptors.\n"
+                "Examples of output descriptors are:\n"
+                "    addr(<address>)                      Outputs whose "
+                "scriptPubKey corresponds to the specified address (does not "
+                "include P2PK)\n"
+                "    raw(<hex script>)                    Outputs whose "
+                "scriptPubKey equals the specified hex scripts\n"
+                "    combo(<pubkey>)                      P2PK and P2PKH "
+                "outputs for the given pubkey\n"
+                "    pkh(<pubkey>)                        P2PKH outputs for "
+                "the given pubkey\n"
+                "    sh(multi(<n>,<pubkey>,<pubkey>,...)) P2SH-multisig "
+                "outputs for the given threshold and pubkeys\n"
+                "\nIn the above, <pubkey> either refers to a fixed public key "
+                "in hexadecimal notation, or to an xpub/xprv optionally "
+                "followed by one\n"
+                "or more path elements separated by \"/\", and optionally "
+                "ending in \"/*\" (unhardened), or \"/*'\" or \"/*h\" "
+                "(hardened) to specify all\n"
+                "unhardened or hardened child keys.\n"
+                "In the latter case, a range needs to be specified by below if "
+                "different from 1000.\n"
+                "For more information on output descriptors, see the "
+                "documentation in the doc/descriptors.md file.\n",
+                {
+                    {"action", RPCArg::Type::STR, /* opt */ false,
+                     /* default_val */ "",
+                     "The action to execute\n"
+                     "                                      \"start\" for "
+                     "starting a scan\n"
+                     "                                      \"abort\" for "
+                     "aborting the current scan (returns true when abort was "
+                     "successful)\n"
+                     "                                      \"status\" for "
+                     "progress report (in %) of the current scan"},
+                    {"scanobjects",
+                     RPCArg::Type::ARR,
+                     /* opt */ false,
+                     /* default_val */ "",
+                     "Array of scan objects\n"
+                     "                                  Every scan object is "
+                     "either a string descriptor or an object:",
+                     {
+                         {"descriptor", RPCArg::Type::STR, /* opt */ true,
+                          /* default_val */ "", "An output descriptor"},
+                         {
+                             "",
+                             RPCArg::Type::OBJ,
+                             /* opt */ true,
+                             /* default_val */ "",
+                             "An object with output descriptor and metadata",
+                             {
+                                 {"desc", RPCArg::Type::STR, /* opt */ false,
+                                  /* default_val */ "", "An output descriptor"},
+                                 {"range", RPCArg::Type::NUM, /* opt */ true,
+                                  /* default_val */ "1000",
+                                  "Up to what child index HD chains should be "
+                                  "explored"},
+                             },
+                         },
+                     },
+                     "[scanobjects,...]"},
+                }}
+                .ToStringWithArgs() +
             "\nResult:\n"
             "{\n"
             "  \"unspents\": [\n"
