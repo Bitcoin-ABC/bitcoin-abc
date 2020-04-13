@@ -29,15 +29,17 @@ class TestNode(P2PInterface):
 
     def __init__(self):
         self.round = 0
-        self.last_avaresponse = None
-        self.last_avapoll = None
+        self.avaresponses = []
+        self.avapolls = []
         super().__init__()
 
     def on_avaresponse(self, message):
-        self.last_avaresponse = message.response
+        with mininode_lock:
+            self.avaresponses.append(message.response)
 
     def on_avapoll(self, message):
-        self.last_avapoll = message.poll
+        with mininode_lock:
+            self.avapolls.append(message.poll)
 
     def send_poll(self, hashes):
         msg = msg_avapoll()
@@ -48,18 +50,22 @@ class TestNode(P2PInterface):
         self.send_message(msg)
 
     def wait_for_avaresponse(self, timeout=5):
-        previous_response = self.last_avaresponse
         wait_until(
-            lambda: self.last_avaresponse is not previous_response,
+            lambda: len(self.avaresponses) > 0,
             timeout=timeout,
             lock=mininode_lock)
 
+        with mininode_lock:
+            return self.avaresponses.pop(0)
+
     def wait_for_avapoll(self, timeout=5):
-        previous_poll = self.last_avapoll
         wait_until(
-            lambda: self.last_avapoll is not previous_poll,
+            lambda: len(self.avapolls) > 0,
             timeout=timeout,
             lock=mininode_lock)
+
+        with mininode_lock:
+            return self.avapolls.pop(0)
 
 
 class AvalancheTest(BitcoinTestFramework):
@@ -96,9 +102,9 @@ class AvalancheTest(BitcoinTestFramework):
         self.log.info("Poll for the chain tip...")
         best_block_hash = int(node.getbestblockhash(), 16)
         poll_node.send_poll([best_block_hash])
-        poll_node.wait_for_avaresponse()
 
-        def assert_response(response, expected):
+        def assert_response(expected):
+            response = poll_node.wait_for_avaresponse()
             r = response.response
             assert_equal(r.cooldown, 0)
 
@@ -110,8 +116,7 @@ class AvalancheTest(BitcoinTestFramework):
             for i in range(0, len(votes)):
                 assert_equal(repr(votes[i]), repr(expected[i]))
 
-        assert_response(poll_node.last_avaresponse, [
-                        AvalancheVote(BLOCK_ACCEPTED, best_block_hash)])
+        assert_response([AvalancheVote(BLOCK_ACCEPTED, best_block_hash)])
 
         self.log.info("Poll for a selection of blocks...")
         various_block_hashes = [
@@ -126,9 +131,8 @@ class AvalancheTest(BitcoinTestFramework):
         ]
 
         poll_node.send_poll(various_block_hashes)
-        poll_node.wait_for_avaresponse()
-        assert_response(poll_node.last_avaresponse,
-                        [AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes])
+        assert_response([AvalancheVote(BLOCK_ACCEPTED, h)
+                         for h in various_block_hashes])
 
         self.log.info(
             "Poll for a selection of blocks, but some are now invalid...")
@@ -141,9 +145,7 @@ class AvalancheTest(BitcoinTestFramework):
         node.reconsiderblock(invalidated_block)
 
         poll_node.send_poll(various_block_hashes)
-        poll_node.wait_for_avaresponse()
-        assert_response(poll_node.last_avaresponse,
-                        [AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:5]] +
+        assert_response([AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:5]] +
                         [AvalancheVote(BLOCK_REJECTED, h) for h in various_block_hashes[-3:]])
 
         self.log.info("Poll for unknown blocks...")
@@ -159,9 +161,7 @@ class AvalancheTest(BitcoinTestFramework):
             random.randrange(1 << 255, (1 << 256) - 1),
         ]
         poll_node.send_poll(various_block_hashes)
-        poll_node.wait_for_avaresponse()
-        assert_response(poll_node.last_avaresponse,
-                        [AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:3]] +
+        assert_response([AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:3]] +
                         [AvalancheVote(BLOCK_REJECTED, h) for h in various_block_hashes[3:6]] +
                         [AvalancheVote(BLOCK_UNKNOWN, h) for h in various_block_hashes[-3:]])
 
@@ -182,8 +182,8 @@ class AvalancheTest(BitcoinTestFramework):
         fork_node.generatetoaddress(2, fork_address)
 
         def can_find_block_in_poll(hash):
-            poll_node.wait_for_avapoll()
-            invs = poll_node.last_avapoll.invs
+            poll = poll_node.wait_for_avapoll()
+            invs = poll.invs
 
             votes = []
             found_hash = False
