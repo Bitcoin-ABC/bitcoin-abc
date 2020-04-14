@@ -392,6 +392,7 @@ add_library(common
 	consensus/merkle.cpp
 	coins.cpp
 	compressor.cpp
+	eventloop.cpp
 	feerate.cpp
 	globals.cpp
 	core_read.cpp

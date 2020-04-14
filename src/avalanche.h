@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_H
 
 #include <blockindexworkcomparator.h>
+#include <eventloop.h>
 #include <key.h>
 #include <net.h>
 #include <protocol.h> // for CInv
@@ -21,7 +22,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <cstdint>
 #include <vector>
 
@@ -323,16 +323,11 @@ private:
 
     RWCollection<QuerySet> queries;
 
-    /**
-     * Start stop machinery.
-     */
-    std::atomic<bool> stopRequest;
-    bool running GUARDED_BY(cs_running);
-
-    Mutex cs_running;
-    std::condition_variable cond_running;
-
+    /** The key used to sign responses. */
     CKey sessionKey;
+
+    /** Event loop machinery. */
+    EventLoop eventLoop;
 
 public:
     AvalancheProcessor(CConnman *connmanIn);

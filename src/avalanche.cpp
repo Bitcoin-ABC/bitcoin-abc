@@ -132,7 +132,7 @@ AvalancheProcessor::AvalancheProcessor(CConnman *connmanIn)
     : connman(connmanIn),
       queryTimeoutDuration(
           AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS),
-      round(0), stopRequest(false), running(false) {
+      round(0) {
     // Pick a random key for the session.
     sessionKey.MakeNewKey(true);
 }
@@ -358,51 +358,13 @@ CPubKey AvalancheProcessor::getPubKey(NodeId nodeid) const {
 }
 
 bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
-    LOCK(cs_running);
-    if (running) {
-        // Do not start the event loop twice.
-        return false;
-    }
-
-    running = true;
-
-    // Start the event loop.
-    scheduler.scheduleEvery(
-        [this]() -> bool {
-            runEventLoop();
-            if (!stopRequest) {
-                return true;
-            }
-
-            LOCK(cs_running);
-            running = false;
-
-            cond_running.notify_all();
-
-            // A stop request was made.
-            return false;
-        },
+    return eventLoop.startEventLoop(
+        scheduler, [this]() { this->runEventLoop(); },
         AVALANCHE_TIME_STEP_MILLISECONDS);
-
-    return true;
 }
 
 bool AvalancheProcessor::stopEventLoop() {
-    WAIT_LOCK(cs_running, lock);
-    if (!running) {
-        return false;
-    }
-
-    // Request avalanche to stop.
-    stopRequest = true;
-
-    // Wait for avalanche to stop.
-    cond_running.wait(lock, [this]() EXCLUSIVE_LOCKS_REQUIRED(cs_running) {
-        return !running;
-    });
-
-    stopRequest = false;
-    return true;
+    return eventLoop.stopEventLoop();
 }
 
 std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) const {

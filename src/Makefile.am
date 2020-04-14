@@ -139,6 +139,7 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \
+  eventloop.h \
   flatfile.h \
   fs.h \
   globals.h \
@@ -450,6 +451,7 @@ libbitcoin_common_a_SOURCES = \
   config.cpp \
   coins.cpp \
   compressor.cpp \
+  eventloop.cpp \
   feerate.cpp \
   globals.cpp \
   core_read.cpp \
