@@ -17,7 +17,7 @@ static UniValue getexcessiveblock(const Config &config,
         throw std::runtime_error(
             RPCHelpMan{
                 "getexcessiveblock", "\nReturn the excessive block size.", {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult\n"
             "  excessiveBlockSize (integer) block size in bytes\n"
             "\nExamples:\n" +
@@ -45,7 +45,7 @@ static UniValue setexcessiveblock(Config &config,
                      "Excessive block size in bytes.  Must be greater than " +
                          std::to_string(LEGACY_MAX_BLOCK_SIZE) + "."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult\n"
             "  blockSize (integer) excessive block size in bytes\n"
             "\nExamples:\n" +

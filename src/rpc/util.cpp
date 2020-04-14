@@ -254,40 +254,7 @@ struct Sections {
     }
 };
 
-// Remove once PR14796 backport is completed
 std::string RPCHelpMan::ToString() const {
-    std::string ret;
-
-    ret += m_name;
-    bool is_optional{false};
-    for (const auto &arg : m_args) {
-        ret += " ";
-        if (arg.m_optional) {
-            if (!is_optional) {
-                ret += "( ";
-            }
-            is_optional = true;
-        } else {
-            // Currently we still support unnamed arguments, so any argument
-            // following an optional argument must also be optional If support
-            // for positional arguments is deprecated in the future, remove this
-            // line
-            assert(!is_optional);
-        }
-        ret += arg.ToString();
-    }
-    if (is_optional) {
-        ret += " )";
-    }
-    ret += "\n";
-
-    ret += m_description;
-
-    return ret;
-}
-
-// Rename to ToString() once PR14796 is completed
-std::string RPCHelpMan::ToStringWithArgs() const {
     std::string ret;
 
     // Oneline summary
@@ -399,36 +366,6 @@ std::string RPCArg::ToDescriptionString(const bool implicitly_required) const {
     return ret;
 }
 
-// Remove once PR14796 backport is completed
-std::string RPCArg::ToStringObj() const {
-    std::string res = "\"" + m_name + "\":";
-    switch (m_type) {
-        case Type::STR:
-            return res + "\"str\"";
-        case Type::STR_HEX:
-            return res + "\"hex\"";
-        case Type::NUM:
-            return res + "n";
-        case Type::AMOUNT:
-            return res + "amount";
-        case Type::BOOL:
-            return res + "bool";
-        case Type::ARR:
-            res += "[";
-            for (const auto &i : m_inner) {
-                res += i.ToString() + ",";
-            }
-            return res + "...]";
-        case Type::OBJ:
-        case Type::OBJ_USER_KEYS:
-            // Currently unused, so avoid writing dead code
-            assert(false);
-
-            // no default case, so the compiler can warn about missing cases
-    }
-    assert(false);
-}
-
 std::string RPCArg::ToStringObj(const bool oneline) const {
     std::string res;
     res += "\"";
@@ -459,50 +396,6 @@ std::string RPCArg::ToStringObj(const bool oneline) const {
         case Type::OBJ_USER_KEYS:
             // Currently unused, so avoid writing dead code
             assert(false);
-
-            // no default case, so the compiler can warn about missing cases
-    }
-    assert(false);
-}
-
-// Remove once PR14796 backport is completed
-std::string RPCArg::ToString() const {
-    if (!m_oneline_description.empty()) {
-        return m_oneline_description;
-    }
-
-    switch (m_type) {
-        case Type::STR_HEX:
-        case Type::STR: {
-            return "\"" + m_name + "\"";
-        }
-        case Type::NUM:
-        case Type::AMOUNT:
-        case Type::BOOL: {
-            return m_name;
-        }
-        case Type::OBJ:
-        case Type::OBJ_USER_KEYS: {
-            std::string res;
-            for (size_t i = 0; i < m_inner.size();) {
-                res += m_inner[i].ToStringObj();
-                if (++i < m_inner.size()) {
-                    res += ",";
-                }
-            }
-            if (m_type == Type::OBJ) {
-                return "{" + res + "}";
-            } else {
-                return "{" + res + ",...}";
-            }
-        }
-        case Type::ARR: {
-            std::string res;
-            for (const auto &i : m_inner) {
-                res += i.ToString() + ",";
-            }
-            return "[" + res + "...]";
-        }
 
             // no default case, so the compiler can warn about missing cases
     }

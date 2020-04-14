@@ -33,7 +33,7 @@ static UniValue getconnectioncount(const Config &config,
             RPCHelpMan{"getconnectioncount",
                        "\nReturns the number of connections to other nodes.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "n          (numeric) The connection count\n"
             "\nExamples:\n" +
@@ -62,7 +62,7 @@ static UniValue ping(const Config &config, const JSONRPCRequest &request) {
                 "Ping command is handled in queue with all other commands, so "
                 "it measures processing backlog, not just network ping.\n",
                 {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("ping", "") +
             HelpExampleRpc("ping", ""));
     }
@@ -86,7 +86,7 @@ static UniValue getpeerinfo(const Config &config,
                        "\nReturns data about each connected network node as a "
                        "json array of objects.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -273,7 +273,7 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
                      "node from the list, 'onetry' to try a connection to the "
                      "node once"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" +
             HelpExampleCli("addnode", "\"192.168.0.6:8333\" \"onetry\"") +
             HelpExampleRpc("addnode", "\"192.168.0.6:8333\", \"onetry\""));
@@ -325,7 +325,7 @@ static UniValue disconnectnode(const Config &config,
                      /* default_val */ "",
                      "The node ID (see getpeerinfo for node IDs)"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" +
             HelpExampleCli("disconnectnode", "\"192.168.0.6:8333\"") +
             HelpExampleCli("disconnectnode", "\"\" 1") +
@@ -380,7 +380,7 @@ static UniValue getaddednodeinfo(const Config &config,
                             "If provided, return information about this "
                             "specific node, otherwise all nodes are returned."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -456,7 +456,7 @@ static UniValue getnettotals(const Config &config,
                        "bytes in, bytes out,\n"
                        "and current time.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"totalbytesrecv\": n,   (numeric) Total bytes received\n"
@@ -539,7 +539,7 @@ static UniValue getnetworkinfo(const Config &config,
                        "Returns an object containing various state info "
                        "regarding P2P networking.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"version\": xxxxx,                      (numeric) the server "
@@ -672,7 +672,7 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
                      "If set, the bantime must be an absolute timestamp in "
                      "seconds since epoch (Jan 1 1970 GMT)"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" +
             HelpExampleCli("setban", "\"192.168.0.6\" \"add\" 86400") +
             HelpExampleCli("setban", "\"192.168.0.0/24\" \"add\"") +
@@ -749,7 +749,7 @@ static UniValue listbanned(const Config &config,
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             RPCHelpMan{"listbanned", "\nList all banned IPs/Subnets.\n", {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("listbanned", "") +
             HelpExampleRpc("listbanned", ""));
     }
@@ -782,7 +782,7 @@ static UniValue clearbanned(const Config &config,
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             RPCHelpMan{"clearbanned", "\nClear all banned IPs.\n", {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("clearbanned", "") +
             HelpExampleRpc("clearbanned", ""));
     }
@@ -807,7 +807,7 @@ static UniValue setnetworkactive(const Config &config,
                 {"state", RPCArg::Type::BOOL, /* opt */ false,
                  /* default_val */ "",
                  "true to enable networking, false to disable"},
-            }}.ToStringWithArgs());
+            }}.ToString());
     }
 
     if (!g_connman) {
@@ -837,7 +837,7 @@ static UniValue getnodeaddresses(const Config &config,
                                 std::to_string(ADDRMAN_GETADDR_MAX_PCT) +
                                 "% of all known addresses."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {\n"

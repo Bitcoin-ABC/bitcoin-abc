@@ -18,7 +18,7 @@ static UniValue getavalanchekey(const Config &config,
             RPCHelpMan{"getavalanchekey",
                        "\nReturns the key used to sign avalanche messages.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleRpc("getavalanchekey", ""));
     }
 
@@ -42,7 +42,7 @@ static UniValue addavalanchepeer(const Config &config,
                     {"publickey", RPCArg::Type::STR_HEX, /* opt */ false,
                      /* default_value */ "", "The public key of the node."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleRpc("addavalanchepeer", "5"));
     }
 

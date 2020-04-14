@@ -104,7 +104,7 @@ static UniValue getnetworkhashps(const Config &config,
                             /* default_val */ "-1",
                             "To estimate at the time of the given height."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "x             (numeric) Hashes per second estimated\n"
             "\nExamples:\n" +
@@ -205,7 +205,7 @@ static UniValue generatetoaddress(const Config &config,
                      /* default_val */ "1000000",
                      "How many iterations to try."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[ blockhashes ]     (array) hashes of blocks generated\n"
             "\nExamples:\n"
@@ -241,7 +241,7 @@ static UniValue getmininginfo(const Config &config,
                        "\nReturns a json object containing mining-related "
                        "information.",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"blocks\": nnn,             (numeric) The current block\n"
@@ -306,7 +306,7 @@ static UniValue prioritisetransaction(const Config &config,
                      "                  considers the transaction as it would "
                      "have paid a higher (or lower) fee."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "true              (boolean) Returns true\n"
             "\nExamples:\n" +
@@ -402,7 +402,7 @@ static UniValue getblocktemplate(const Config &config,
                      },
                      "\"template_request\""},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"version\" : n,                    (numeric) The preferred "
@@ -747,7 +747,7 @@ static UniValue submitblock(const Config &config,
                             "dummy value, for compatibility with BIP22. This "
                             "value is ignored."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("submitblock", "\"mydata\"") +
@@ -815,7 +815,7 @@ static UniValue submitheader(const Config &config,
                     {"hexdata", RPCArg::Type::STR_HEX, /* opt */ false,
                      /* default_val */ "", "the hex-encoded block header data"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "None"
             "\nExamples:\n" +
@@ -857,7 +857,7 @@ static UniValue estimatefee(const Config &config,
                        "\nEstimates the approximate fee per kilobyte needed "
                        "for a transaction\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "n              (numeric) estimated fee-per-kilobyte\n"
             "\nExample:\n" +

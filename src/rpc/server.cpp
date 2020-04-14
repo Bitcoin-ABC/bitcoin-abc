@@ -291,7 +291,7 @@ static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
                     {"command", RPCArg::Type::STR, /* opt */ true,
                      /* default_val */ "", "The command to get help on"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"text\"     (string) The help text\n");
     }

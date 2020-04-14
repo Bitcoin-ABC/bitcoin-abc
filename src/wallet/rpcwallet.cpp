@@ -184,7 +184,7 @@ static UniValue getnewaddress(const Config &config,
                      "label. The label does not need to exist, it will be "
                      "created if there is no label by the given name."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"address\"    (string) The new bitcoin address\n"
             "\nExamples:\n" +
@@ -328,7 +328,7 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
                      /* default_val */ "",
                      "The label to assign to the address."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" +
             HelpExampleCli("setlabel",
                            "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"tabby\"") +
@@ -455,7 +455,7 @@ static UniValue sendtoaddress(const Config &config,
                      "                             The recipient will receive "
                      "less bitcoins than you enter in the amount field."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"txid\"                  (string) The transaction id.\n"
             "\nExamples:\n" +
@@ -603,7 +603,7 @@ static UniValue signmessage(const Config &config,
                             /* default_val */ "",
                             "The message to create a signature of."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message "
             "encoded in base 64\n"
@@ -685,7 +685,7 @@ static UniValue getreceivedbyaddress(const Config &config,
                      "Only include transactions confirmed at least this many "
                      "times."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "amount   (numeric) The total amount in " +
             CURRENCY_UNIT +
@@ -784,7 +784,7 @@ static UniValue getreceivedbylabel(const Config &config,
                      "Only include transactions confirmed at least this "
                      "many times."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "amount              (numeric) The total amount in " +
             CURRENCY_UNIT +
@@ -878,7 +878,7 @@ static UniValue getbalance(const Config &config,
                             "Also include balance in watch-only addresses (see "
                             "'importaddress')"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "amount              (numeric) The total amount in " +
             CURRENCY_UNIT +
@@ -1005,7 +1005,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                         },
                     },
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id for the "
             "send. Only 1 transaction is created regardless of \n"
@@ -1190,7 +1190,7 @@ static UniValue addmultisigaddress(const Config &config,
                      /* default_val */ "",
                      "A label to assign the addresses to."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"address\":\"multisigaddress\",    (string) The value of the "
@@ -1449,7 +1449,7 @@ static UniValue listreceivedbyaddress(const Config &config,
                      /* default_val */ "",
                      "If present, only return information on this address."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -1520,7 +1520,7 @@ static UniValue listreceivedbylabel(const Config &config,
                             "Whether to include watch-only addresses (see "
                             "'importaddress')."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -1683,7 +1683,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
                      "Include transactions to watch-only addresses (see "
                      "'importaddress')"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -1868,7 +1868,7 @@ static UniValue listsinceblock(const Config &config,
                      "                                                         "
                      "  (not guaranteed to work on pruned nodes)"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"transactions\": [\n"
@@ -2063,7 +2063,7 @@ static UniValue gettransaction(const Config &config,
                             "Whether to include watch-only addresses in "
                             "balance calculation and details[]"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"amount\" : x.xxx,        (numeric) The transaction amount "
@@ -2206,7 +2206,7 @@ static UniValue abandontransaction(const Config &config,
                            {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
                             /* default_val */ "", "The transaction id"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("abandontransaction", "\"1075db55d416d3ca199f55b6084"
@@ -2258,7 +2258,7 @@ static UniValue backupwallet(const Config &config,
                     {"destination", RPCArg::Type::STR, /* opt */ false,
                      /* default_val */ "", "The destination directory or file"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("backupwallet", "\"backup.dat\"") +
             HelpExampleRpc("backupwallet", "\"backup.dat\""));
     }
@@ -2296,7 +2296,7 @@ static UniValue keypoolrefill(const Config &config,
                            {"newsize", RPCArg::Type::NUM, /* opt */ true,
                             /* default_val */ "100", "The new keypool size"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("keypoolrefill", "") +
             HelpExampleRpc("keypoolrefill", ""));
     }
@@ -2361,7 +2361,7 @@ static UniValue walletpassphrase(const Config &config,
                      "The time to keep the decryption key in seconds; capped "
                      "at 100000000 (~3 years)."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nNote:\n"
             "Issuing the walletpassphrase command while the wallet is already "
             "unlocked will set a new unlock\n"
@@ -2451,7 +2451,7 @@ static UniValue walletpassphrasechange(const Config &config,
                            {"newpassphrase", RPCArg::Type::STR, /* opt */ false,
                             /* default_val */ "", "The new passphrase"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" +
             HelpExampleCli("walletpassphrasechange",
                            "\"old one\" \"new one\"") +
@@ -2577,7 +2577,7 @@ static UniValue encryptwallet(const Config &config,
                      "The pass phrase to encrypt the wallet with. It must be "
                      "at least 1 character, but should be long."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n"
             "\nEncrypt your wallet\n" +
             HelpExampleCli("encryptwallet", "\"my pass phrase\"") +
@@ -2682,7 +2682,7 @@ static UniValue lockunspent(const Config &config,
                         },
                     },
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "true|false    (boolean) Whether the command was successful or "
             "not\n"
@@ -2883,7 +2883,7 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
                      /* default_val */ "",
                      "The transaction fee in " + CURRENCY_UNIT + "/kB"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult\n"
             "true|false        (boolean) Returns true if successful\n"
             "\nExamples:\n" +
@@ -3100,7 +3100,7 @@ static UniValue loadwallet(const Config &config,
                             /* default_val */ "",
                             "The wallet directory or .dat file."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"name\" :    <wallet_name>,        (string) The wallet name if "
@@ -3176,7 +3176,7 @@ static UniValue createwallet(const Config &config,
                             "Create a blank wallet. A blank wallet has no keys "
                             "or HD seed. One can be set using sethdseed.\n"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"name\" :    <wallet_name>,        (string) The wallet name if "
@@ -3247,7 +3247,7 @@ static UniValue unloadwallet(const Config &config,
                     {"wallet_name", RPCArg::Type::STR, /* opt */ true,
                      /* default_val */ "", "The name of the wallet to unload."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("unloadwallet", "wallet_name") +
             HelpExampleRpc("unloadwallet", "wallet_name"));
     }
@@ -3392,7 +3392,7 @@ static UniValue listunspent(const Config &config,
                      },
                      "query_options"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult\n"
             "[                   (array of json object)\n"
             "  {\n"
@@ -3770,7 +3770,7 @@ static UniValue fundrawtransaction(const Config &config,
                      },
                      "options"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"hex\":       \"value\", (string)  The resulting raw "
@@ -3880,7 +3880,7 @@ UniValue signrawtransactionwithwallet(const Config &config,
                      "       \"NONE|FORKID|ANYONECANPAY\"\n"
                      "       \"SINGLE|FORKID|ANYONECANPAY\""},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"hex\" : \"value\",                  (string) The hex-encoded "
@@ -3949,7 +3949,7 @@ UniValue generate(const Config &config, const JSONRPCRequest &request) {
                             /* default_val */ "",
                             "How many iterations to try (default = 1000000)."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[ blockhashes ]     (array) hashes of blocks generated\n"
             "\nExamples:\n"
@@ -4003,7 +4003,7 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
                             /* default_val */ "",
                             "the last block height that should be scanned"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"start_height\"     (numeric) The block height where the "
@@ -4214,7 +4214,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
                             /* default_val */ "",
                             "The bitcoin address to get the information of."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"address\" : \"address\",        (string) The bitcoin address "
@@ -4367,7 +4367,7 @@ UniValue getaddressesbylabel(const Config &config,
                            {"label", RPCArg::Type::STR, /* opt */ false,
                             /* default_val */ "", "The label."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{ (json object with addresses as keys)\n"
             "  \"address\": { (json object with information about address)\n"
@@ -4422,7 +4422,7 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
                             "('send','receive'). An empty string is the same "
                             "as not providing this argument."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[               (json array of string)\n"
             "  \"label\",      (string) Label name\n"
@@ -4503,7 +4503,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
                      "retrieved using the dumpwallet command. It is the "
                      "private key marked hdseed=1"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("sethdseed", "") +
             HelpExampleCli("sethdseed", "false") +
             HelpExampleCli("sethdseed", "true \"wifkey\"") +
@@ -4605,7 +4605,7 @@ static UniValue walletprocesspsbt(const Config &config,
                      "If true, includes the BIP 32 derivation paths for public "
                      "keys if we know them"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"psbt\" : \"value\",          (string) The base64-encoded "
@@ -4799,7 +4799,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                      "If true, includes the BIP 32 derivation paths for public "
                      "keys if we know them"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"psbt\": \"value\",        (string)  The resulting raw "

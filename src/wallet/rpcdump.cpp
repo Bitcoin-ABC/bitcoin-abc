@@ -116,7 +116,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
                      /* default_val */ "true",
                      "Rescan the wallet for transactions"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nNote: This call can take minutes to complete if rescan is true, "
             "during that time, other rpc calls\n"
             "may report that the imported key exists but related transactions "
@@ -225,7 +225,7 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
                        "\nStops current wallet rescan triggered by "
                        "an RPC call, e.g. by an importprivkey call.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n"
             "\nImport a private key\n" +
             HelpExampleCli("importprivkey", "\"mykey\"") +
@@ -312,7 +312,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
                             /* default_val */ "false",
                             "Add the P2SH version of the script as well"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nNote: This call can take minutes to complete if rescan is true, "
             "during that time, other rpc calls\n"
             "may report that the imported address exists but related "
@@ -419,7 +419,7 @@ UniValue importprunedfunds(const Config &config,
                  /* default_val */ "",
                  "The hex output from gettxoutproof that contains the "
                  "transaction"},
-            }}.ToStringWithArgs());
+            }}.ToString());
     }
 
     CMutableTransaction tx;
@@ -497,7 +497,7 @@ UniValue removeprunedfunds(const Config &config,
                      /* default_val */ "",
                      "The hex-encoded id of the transaction you are deleting"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" +
             HelpExampleCli("removeprunedfunds", "\"a8d0c0184dde994a09ec054286f1"
                                                 "ce581bebf46446a512166eae762873"
@@ -552,7 +552,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
                             /* default_val */ "true",
                             "Rescan the wallet for transactions"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nNote: This call can take minutes to complete if rescan is true, "
             "during that time, other rpc calls\n"
             "may report that the imported pubkey exists but related "
@@ -637,7 +637,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                     {"filename", RPCArg::Type::STR, /* opt */ false,
                      /* default_val */ "", "The wallet file"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n"
             "\nDump the wallet\n" +
             HelpExampleCli("dumpwallet", "\"test\"") + "\nImport the wallet\n" +
@@ -840,7 +840,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
                             /* default_val */ "",
                             "The bitcoin address for the private key"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"key\"                (string) The private key\n"
             "\nExamples:\n" +
@@ -901,7 +901,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
                      "The filename with path (either absolute or relative to "
                      "bitcoind)"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"filename\" : {        (string) The filename with full "
@@ -1550,7 +1550,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                      },
                      "\"options\""},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nNote: This call can take minutes to complete if rescan is true, "
             "during that time, other rpc calls\n"
             "may report that the imported keys, addresses or scripts exists "

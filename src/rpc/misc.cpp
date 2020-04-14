@@ -40,7 +40,7 @@ static UniValue validateaddress(const Config &config,
                     {"address", RPCArg::Type::STR, /* opt */ false,
                      /* default_val */ "", "The bitcoin address to validate"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"isvalid\" : true|false,       (boolean) If the address is "
@@ -106,7 +106,7 @@ static UniValue createmultisig(const Config &config,
                           /* default_val */ "", "The hex-encoded public key"},
                      }},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"address\":\"multisigaddress\",  (string) The value of the new "
@@ -187,7 +187,7 @@ static UniValue verifymessage(const Config &config,
                     {"message", RPCArg::Type::STR, /* opt */ false,
                      /* default_val */ "", "The message that was signed."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "true|false   (boolean) If the signature is verified or not.\n"
             "\nExamples:\n"
@@ -258,7 +258,7 @@ static UniValue signmessagewithprivkey(const Config &config,
                             /* default_val */ "",
                             "The message to create a signature of."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message "
             "encoded in base 64\n"
@@ -306,7 +306,7 @@ static UniValue setmocktime(const Config &config,
                  /* default_val */ "",
                  "Unix seconds-since-epoch timestamp\n"
                  "   Pass 0 to go back to using the system time."},
-            }}.ToStringWithArgs());
+            }}.ToString());
     }
 
     if (!config.GetChainParams().MineBlocksOnDemand()) {
@@ -379,7 +379,7 @@ static UniValue getmemoryinfo(const Config &config,
                      "low-level heap state (only available if compiled with "
                      "glibc 2.10+)."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult (mode \"stats\"):\n"
             "{\n"
             "  \"locked\": {               (json object) Information about "
@@ -487,7 +487,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
                           "the valid logging category"},
                      }},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{                   (json object where keys are the logging "
             "categories, and values indicates its status\n"
@@ -552,7 +552,7 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
                 "has argument conversion enabled in the client-side table in "
                 "bitcoin-cli and the GUI. There is no server-side difference.",
                 {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "");
     }
 

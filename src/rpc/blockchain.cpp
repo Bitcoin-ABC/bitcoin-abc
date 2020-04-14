@@ -159,7 +159,7 @@ static UniValue getblockcount(const Config &config,
                 "getblockcount",
                 "\nReturns the number of blocks in the longest blockchain.\n",
                 {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "n    (numeric) The current block count\n"
             "\nExamples:\n" +
@@ -179,7 +179,7 @@ static UniValue getbestblockhash(const Config &config,
                        "\nReturns the hash of the best (tip) block in the "
                        "longest blockchain.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"hex\"      (string) the block hash hex-encoded\n"
             "\nExamples:\n" +
@@ -198,7 +198,7 @@ UniValue getfinalizedblockhash(const Config &config,
             RPCHelpMan{"getfinalizedblockhash",
                        "\nReturns the hash of the currently finalized block\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"hex\"      (string) the block hash hex-encoded\n");
     }
@@ -234,7 +234,7 @@ static UniValue waitfornewblock(const Config &config,
                             "Time in milliseconds to wait for a response. 0 "
                             "indicates no timeout."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"hash\" : {       (string) The blockhash\n"
@@ -291,7 +291,7 @@ static UniValue waitforblock(const Config &config,
                             "Time in milliseconds to wait for a response. 0 "
                             "indicates no timeout."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"hash\" : {       (string) The blockhash\n"
@@ -353,7 +353,7 @@ static UniValue waitforblockheight(const Config &config,
                             "Time in milliseconds to wait for a response. 0 "
                             "indicates no timeout."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"hash\" : {       (string) The blockhash\n"
@@ -403,7 +403,7 @@ syncwithvalidationinterfacequeue(const Config &config,
                 "\nWaits for the validation interface queue to catch up on "
                 "everything that was there when we entered this function.\n",
                 {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" +
             HelpExampleCli("syncwithvalidationinterfacequeue", "") +
             HelpExampleRpc("syncwithvalidationinterfacequeue", ""));
@@ -420,7 +420,7 @@ static UniValue getdifficulty(const Config &config,
                        "\nReturns the proof-of-work difficulty as a "
                        "multiple of the minimum difficulty.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "n.nnn       (numeric) the proof-of-work "
             "difficulty as a multiple of the minimum "
@@ -571,7 +571,7 @@ static UniValue getrawmempool(const Config &config,
                             "True for a json object, false for array of "
                             "transaction ids"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult: (for verbose = false):\n"
             "[                     (json array of string)\n"
             "  \"transactionid\"     (string) The transaction id\n"
@@ -613,7 +613,7 @@ static UniValue getmempoolancestors(const Config &config,
                             "True for a json object, false for array of "
                             "transaction ids"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult (for verbose = false):\n"
             "[                       (json array of strings)\n"
             "  \"transactionid\"           (string) The transaction id of an "
@@ -689,7 +689,7 @@ static UniValue getmempooldescendants(const Config &config,
                             "True for a json object, false for array of "
                             "transaction ids"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult (for verbose = false):\n"
             "[                       (json array of strings)\n"
             "  \"transactionid\"           (string) The transaction id of an "
@@ -758,7 +758,7 @@ static UniValue getmempoolentry(const Config &config,
                             /* default_val */ "",
                             "The transaction id (must be in mempool)"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{                           (json object)\n" +
             EntryDescriptionString() +
@@ -795,7 +795,7 @@ static UniValue getblockhash(const Config &config,
                            {"height", RPCArg::Type::NUM, /* opt */ false,
                             /* default_val */ "", "The height index"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\"hash\"         (string) The block hash\n"
             "\nExamples:\n" +
@@ -832,7 +832,7 @@ static UniValue getblockheader(const Config &config,
                      /* default_val */ "true",
                      "true for a json object, false for the hex-encoded data"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult (for verbose = true):\n"
             "{\n"
             "  \"hash\" : \"hash\",     (string) the block hash (same as "
@@ -940,7 +940,7 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
                      "0 for hex-encoded data, 1 for a json object, and 2 for "
                      "json object with transaction data"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult (for verbosity = 0):\n"
             "\"data\"                   (string) A string that is serialized, "
             "hex-encoded data for block 'hash'.\n"
@@ -1115,7 +1115,7 @@ static UniValue pruneblockchain(const Config &config,
                      "                  to prune blocks whose block time is at "
                      "least 2 hours older than the provided timestamp."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "n    (numeric) Height of the last block pruned.\n"
             "\nExamples:\n" +
@@ -1179,7 +1179,7 @@ static UniValue gettxoutsetinfo(const Config &config,
                        "output set.\n"
                        "Note this call may take some time.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"height\":n,     (numeric) The current block height (index)\n"
@@ -1235,7 +1235,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
                      "Whether to include the mempool. Note that an unspent "
                      "output that is spent in the mempool won't appear."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"bestblock\" : \"hash\",    (string) the block hash\n"
@@ -1327,7 +1327,7 @@ static UniValue verifychain(const Config &config,
                      /* default_val */ strprintf("%d, 0=all", nCheckDepth),
                      "The number of blocks to check."},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "true|false       (boolean) Verified or not\n"
             "\nExamples:\n" +
@@ -1418,7 +1418,7 @@ UniValue getblockchaininfo(const Config &config,
                        "Returns an object containing various state info "
                        "regarding blockchain processing.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"chain\": \"xxxx\",              (string) current network name "
@@ -1565,7 +1565,7 @@ static UniValue getchaintips(const Config &config,
                 "Return information about all known tips in the block tree, "
                 "including the main chain as well as orphaned branches.\n",
                 {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -1707,7 +1707,7 @@ static UniValue getmempoolinfo(const Config &config,
                        "\nReturns details on the active state of the TX memory "
                        "pool.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"loaded\": true|false         (boolean) True if the mempool is "
@@ -1749,7 +1749,7 @@ static UniValue preciousblock(const Config &config,
                             /* default_val */ "",
                             "the hash of the block to mark as precious"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("preciousblock", "\"blockhash\"") +
@@ -1791,7 +1791,7 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
                      /* default_val */ "",
                      "the hash of the block to mark as invalid"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("finalizeblock", "\"blockhash\"") +
@@ -1835,7 +1835,7 @@ static UniValue invalidateblock(const Config &config,
                             /* default_val */ "",
                             "the hash of the block to mark as invalid"},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("invalidateblock", "\"blockhash\"") +
@@ -1876,7 +1876,7 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
                     {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
                      /* default_val */ "", "the hash of the block to park"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("parkblock", "\"blockhash\"") +
@@ -1923,7 +1923,7 @@ static UniValue reconsiderblock(const Config &config,
                      /* default_val */ "",
                      "the hash of the block to reconsider"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("reconsiderblock", "\"blockhash\"") +
@@ -1964,7 +1964,7 @@ UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
                     {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
                      /* default_val */ "", "the hash of the block to unpark"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("unparkblock", "\"blockhash\"") +
@@ -2009,7 +2009,7 @@ static UniValue getchaintxstats(const Config &config,
                             /* default_val */ "",
                             "The hash of the block that ends the window."},
                        }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"time\": xxxxx,                         (numeric) The "
@@ -2157,7 +2157,7 @@ static UniValue getblockstats(const Config &config,
                      },
                      "stats"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{                           (json object)\n"
             "  \"avgfee\": x.xxx,          (numeric) Average fee in the block\n"
@@ -2432,7 +2432,7 @@ static UniValue savemempool(const Config &config,
                        "\nDumps the mempool to disk. It will fail until the "
                        "previous dump is fully loaded.\n",
                        {}}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nExamples:\n" + HelpExampleCli("savemempool", "") +
             HelpExampleRpc("savemempool", ""));
     }
@@ -2588,7 +2588,7 @@ static UniValue scantxoutset(const Config &config,
                      },
                      "[scanobjects,...]"},
                 }}
-                .ToStringWithArgs() +
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"unspents\": [\n"

@@ -87,26 +87,6 @@ struct RPCArg {
         assert(type == Type::ARR || type == Type::OBJ);
     }
 
-    // Remove once PR14796 backport is completed
-    RPCArg(const std::string &name, const Type &type, const bool optional,
-           const std::string &oneline_description = "")
-        : m_name{name}, m_type{type}, m_optional{optional},
-          m_oneline_description{oneline_description} {
-        assert(type != Type::ARR && type != Type::OBJ);
-    }
-
-    // Remove once PR14796 backport is completed
-    RPCArg(const std::string &name, const Type &type,
-           const std::vector<RPCArg> &inner, const bool optional,
-           const std::string &oneline_description = "")
-        : m_name{name}, m_type{type}, m_inner{inner}, m_optional{optional},
-          m_oneline_description{oneline_description} {
-        assert(type == Type::ARR || type == Type::OBJ);
-    }
-
-    // Remove once PR14796 backport is completed
-    std::string ToString() const;
-
     /**
      * Return the type string of the argument.
      * Set oneline to allow it to be overrided by a custom oneline type string
@@ -125,10 +105,6 @@ struct RPCArg {
      * optional nor required.
      */
     std::string ToDescriptionString(bool implicitly_required = false) const;
-
-private:
-    // Remove once PR14796 backport is completed
-    std::string ToStringObj() const;
 };
 
 class RPCHelpMan {
@@ -138,9 +114,6 @@ public:
         : m_name{name}, m_description{description}, m_args{args} {}
 
     std::string ToString() const;
-
-    // Remove once PR14796 backport is completed
-    std::string ToStringWithArgs() const;
 
 private:
     const std::string m_name;
