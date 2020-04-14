@@ -53,7 +53,7 @@ Bitcoin ABC Release Process
     `contrib/release/github-release.sh -a <path to release binaries> -t <release tag> -o <file containing your Github OAuth token>`
 
 11. Create [Ubuntu PPA packages](https://launchpad.net/~bitcoin-abc/+archive/ubuntu/ppa):
-    `contrib/release/debian-packages.sh <version> "Your Name <your-email@bitcoinabc.org>"`
+    `contrib/release/debian-packages.sh <name-or-email-for-gpg-signing>`
 
 12. Notify maintainers of AUR and Docker images to build their packages.
     They should be given 1-day advance notice if possible.
