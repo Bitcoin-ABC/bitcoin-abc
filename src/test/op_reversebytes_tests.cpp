@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <policy/policy.h>
 #include <script/interpreter.h>
 #include <script/script.h>
 
@@ -14,11 +15,6 @@ typedef std::vector<uint8_t> valtype;
 typedef std::vector<valtype> stacktype;
 
 BOOST_FIXTURE_TEST_SUITE(op_reversebytes_tests, BasicTestingSetup)
-
-struct ReverseTestCase {
-    const valtype item;
-    const valtype reversed_item;
-};
 
 static void CheckErrorWithFlags(const uint32_t flags,
                                 const stacktype &original_stack,
@@ -74,82 +70,119 @@ static void CheckPassIfEnabled(const uint32_t flags,
 }
 
 /**
- * Verifies a given reverse test case.
- * Checks both if <item> OP_REVERSEBYTES results in <reversed_item> and
- * whether double-reversing <item> is a no-op.
+ * Verifies the different combinations of a given test case.
+ * Checks if
+ * - <item> OP_REVERSEBYTES results in <reversed_item>,
+ * - <reversed_item> OP_REVERSEBYTES results in <item>,
+ * - <item> {OP_REVERSEBYTES} x 2 results in <item> and
+ * - <reversed_item> {OP_REVERSEBYTES} x 2 results in <reversed_item>.
  */
-static void CheckPassReverse(const uint32_t flags,
-                             const ReverseTestCase &reverse_case) {
-    CheckPassIfEnabled(flags, {reverse_case.item}, CScript() << OP_REVERSEBYTES,
-                       {reverse_case.reversed_item});
-    CheckPassIfEnabled(flags, {reverse_case.item},
-                       CScript() << OP_DUP << OP_REVERSEBYTES << OP_REVERSEBYTES
-                                 << OP_EQUALVERIFY,
-                       {});
+static void CheckPassForCombinations(const uint32_t flags, const valtype &item,
+                                     const valtype &reversed_item) {
+    CheckPassIfEnabled(flags, {item}, CScript() << OP_REVERSEBYTES,
+                       {reversed_item});
+    CheckPassIfEnabled(flags, {reversed_item}, CScript() << OP_REVERSEBYTES,
+                       {item});
+    CheckPassIfEnabled(flags, {item},
+                       CScript() << OP_REVERSEBYTES << OP_REVERSEBYTES, {item});
+    CheckPassIfEnabled(flags, {reversed_item},
+                       CScript() << OP_REVERSEBYTES << OP_REVERSEBYTES,
+                       {reversed_item});
 }
 
-BOOST_AUTO_TEST_CASE(op_reversebytes_tests) {
+// Test a few simple manual cases with random flags (proxy for exhaustive
+// testing).
+BOOST_AUTO_TEST_CASE(op_reversebytes_manual_random_flags) {
     MMIXLinearCongruentialGenerator lcg;
-    // Manual tests.
-    std::vector<ReverseTestCase> test_cases({
-        {{}, {}},
-        {{99}, {99}},
-        {{0xde, 0xad}, {0xad, 0xde}},
-        {{0xde, 0xad, 0xa1}, {0xa1, 0xad, 0xde}},
-        {{0xde, 0xad, 0xbe, 0xef}, {0xef, 0xbe, 0xad, 0xde}},
-        {{0x12, 0x34, 0x56}, {0x56, 0x34, 0x12}},
-    });
+    for (size_t i = 0; i < 4096; i++) {
+        uint32_t flags = lcg.next();
+        CheckPassForCombinations(flags, {}, {});
+        CheckPassForCombinations(flags, {99}, {99});
+        CheckPassForCombinations(flags, {0xde, 0xad}, {0xad, 0xde});
+        CheckPassForCombinations(flags, {0xde, 0xad, 0xa1}, {0xa1, 0xad, 0xde});
+        CheckPassForCombinations(flags, {0xde, 0xad, 0xbe, 0xef},
+                                 {0xef, 0xbe, 0xad, 0xde});
+        CheckPassForCombinations(flags, {0x12, 0x34, 0x56}, {0x56, 0x34, 0x12});
+    }
+}
 
-    // Palindrome tests, they are their own reverse.
-    std::vector<valtype> palindromes;
-    palindromes.reserve(MAX_SCRIPT_ELEMENT_SIZE);
-
-    // Generated tests:
-    // - for iota(n) mod 256, n = 0,..,520.
-    // - for random bitstrings, n = 0,..,520.
-    // - for palindromes 0,..,n,..,0.
-    for (size_t datasize = 0; datasize <= MAX_SCRIPT_ELEMENT_SIZE; ++datasize) {
-        valtype iota_data, random_data, palindrome;
+// Test byte strings 0..n (mod 256) with random flags.
+BOOST_AUTO_TEST_CASE(op_reversebytes_iota) {
+    MMIXLinearCongruentialGenerator lcg;
+    for (uint32_t datasize :
+         {0, 1, 2, 10, 16, 32, 50, 128, 300, 400, 512, 519, 520}) {
+        valtype iota_data;
         iota_data.reserve(datasize);
-        random_data.reserve(datasize);
-        palindrome.reserve(datasize);
         for (size_t item = 0; item < datasize; ++item) {
             iota_data.emplace_back(item % 256);
+        }
+        valtype iota_data_reversed = {iota_data.rbegin(), iota_data.rend()};
+        for (size_t i = 0; i < 4096; i++) {
+            uint32_t flags = lcg.next();
+            CheckPassForCombinations(flags, iota_data, iota_data_reversed);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(op_reversebytes_random_and_palindrome) {
+    MMIXLinearCongruentialGenerator lcg;
+
+    // Prepare a couple of interesting script flags.
+    std::vector<uint32_t> flaglist({
+        SCRIPT_VERIFY_NONE,
+        STANDARD_SCRIPT_VERIFY_FLAGS,
+        MANDATORY_SCRIPT_VERIFY_FLAGS,
+    });
+    for (uint32_t flagindex = 0; flagindex < 32; ++flagindex) {
+        uint32_t flags = 1 << flagindex;
+        flaglist.push_back(flags);
+    }
+
+    // Test every possible stack item size.
+    for (uint32_t datasize = 0; datasize < MAX_SCRIPT_ELEMENT_SIZE;
+         ++datasize) {
+        // Generate random data.
+        valtype random_data;
+        random_data.reserve(datasize);
+        for (size_t item = 0; item < datasize; ++item) {
             random_data.emplace_back(lcg.next() % 256);
+        }
+        valtype random_data_reversed = {random_data.rbegin(),
+                                        random_data.rend()};
+
+        // Make a palindrome of the form 0..n..0.
+        valtype palindrome;
+        palindrome.reserve(datasize);
+        for (size_t item = 0; item < datasize; ++item) {
             palindrome.emplace_back(
                 (item < (datasize + 1) / 2 ? item : datasize - item - 1) % 256);
         }
-        test_cases.push_back(
-            {iota_data, {iota_data.rbegin(), iota_data.rend()}});
-        test_cases.push_back(
-            {random_data, {random_data.rbegin(), random_data.rend()}});
-        palindromes.push_back(palindrome);
+
+        for (const uint32_t flags : flaglist) {
+            // Verify random data passes.
+            CheckPassForCombinations(flags, random_data, random_data_reversed);
+            // Verify palindrome check passes.
+            CheckPassIfEnabled(flags, {palindrome},
+                               CScript() << OP_REVERSEBYTES, {palindrome});
+        }
     }
+}
 
-    for (int i = 0; i < 4096; i++) {
-        // Generate random flags.
+BOOST_AUTO_TEST_CASE(op_reversebytes_failures) {
+    MMIXLinearCongruentialGenerator lcg;
+    // Test for random flags (proxy for exhaustive testing).
+    for (size_t i = 0; i < 4096; i++) {
         uint32_t flags = lcg.next();
-
-        // Empty stack.
-        CheckErrorIfEnabled(flags, {}, CScript() << OP_REVERSEBYTES,
-                            ScriptError::INVALID_STACK_OPERATION);
-
-        for (const ReverseTestCase &test_case : test_cases) {
-            CheckPassReverse(flags, test_case);
-        }
-
-        for (const valtype &palindrome : palindromes) {
-            // Verify palindrome.
-            CheckPassIfEnabled(
-                flags, {palindrome},
-                CScript() << OP_DUP << OP_REVERSEBYTES << OP_EQUALVERIFY, {});
-        }
 
         // Verify non-palindrome fails.
         CheckErrorIfEnabled(flags, {{0x01, 0x02, 0x03, 0x02, 0x02}},
                             CScript()
                                 << OP_DUP << OP_REVERSEBYTES << OP_EQUALVERIFY,
                             ScriptError::EQUALVERIFY);
+
+        // Test empty stack results in INVALID_STACK_OPERATION.
+        CheckErrorIfEnabled(flags, {}, CScript() << OP_REVERSEBYTES,
+                            ScriptError::INVALID_STACK_OPERATION);
     }
 }
 
