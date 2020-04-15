@@ -3455,7 +3455,9 @@ bool CheckBlock(const Config &config, const CBlock &block,
     }
 
     // And a valid coinbase.
-    if (!CheckCoinbase(*block.vtx[0], state)) {
+    // do not check coinbase for genesis block
+    if (block.GetHash() != config.GetChainParams().GetConsensus().hashGenesisBlock
+        && !CheckCoinbase(*block.vtx[0], state)) {
         return state.Invalid(false, state.GetRejectCode(),
                              state.GetRejectReason(),
                              strprintf("Coinbase check failed (txid %s) %s",

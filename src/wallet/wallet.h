@@ -259,6 +259,8 @@ public:
     TxId GetId() const { return tx->GetId(); }
     bool IsCoinBase() const { return tx->IsCoinBase(); }
     bool IsImmatureCoinBase() const;
+
+    bool IsImmatureCoinBaseDevReward() const;
 };
 
 // Get the marginal bytes of spending the specified output
@@ -444,6 +446,10 @@ public:
     Amount GetCredit(const isminefilter &filter) const;
     Amount GetImmatureCredit(bool fUseCache = true) const;
     Amount GetAvailableCredit(bool fUseCache = true) const;
+
+    Amount GetImmatureDevReward() const;
+
+    Amount GetAvailableDevReward() const;
     Amount GetImmatureWatchOnlyCredit(const bool fUseCache = true) const;
     Amount GetAvailableWatchOnlyCredit(const bool fUseCache = true) const;
     Amount GetChange() const;
@@ -1029,6 +1035,9 @@ public:
                             const std::string *account) const;
     Amount GetAvailableBalance(const CCoinControl *coinControl = nullptr) const;
 
+    Amount GetDevRewardBalance() const;
+
+    Amount GetDevRewardImmatureBalance() const;
     /**
      * Insert additional inputs into the transaction by calling
      * CreateTransaction();

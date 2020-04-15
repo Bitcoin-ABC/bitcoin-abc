@@ -3168,6 +3168,14 @@ static UniValue getwalletinfo(const Config &config,
             "the total immature balance of the wallet in " +
             CURRENCY_UNIT +
             "\n"
+            "  \"devreward_balance\": xxxxxxx,              (numeric) the total "
+            "matured and unspent dev reward balance of the wallet in " +
+            CURRENCY_UNIT +
+            "\n"
+            "  \"devreward_immature_balance\": xxxxxx,      (numeric) "
+            "the total dev reward immature balance of the wallet in " +
+            CURRENCY_UNIT +
+            "\n"
             "  \"txcount\": xxxxxxx,              (numeric) the total number "
             "of transactions in the wallet\n"
             "  \"keypoololdest\": xxxxxx,         (numeric) the timestamp "
@@ -3210,6 +3218,9 @@ static UniValue getwalletinfo(const Config &config,
                ValueFromAmount(pwallet->GetUnconfirmedBalance()));
     obj.pushKV("immature_balance",
                ValueFromAmount(pwallet->GetImmatureBalance()));
+    obj.pushKV("devreward_balance", ValueFromAmount(pwallet->GetDevRewardBalance()));
+    obj.pushKV("devreward_immature_balance",
+               ValueFromAmount(pwallet->GetDevRewardImmatureBalance()));
     obj.pushKV("txcount", (int)pwallet->mapWallet.size());
     obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
     obj.pushKV("keypoolsize", (int64_t)kpExternalSize);

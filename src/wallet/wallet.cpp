@@ -1481,7 +1481,12 @@ bool CWallet::IsAllFromMe(const CTransaction &tx,
 Amount CWallet::GetCredit(const CTransaction &tx,
                           const isminefilter &filter) const {
     Amount nCredit = Amount::zero();
-    for (const CTxOut &txout : tx.vout) {
+    for (uint32_t i = 0; i < tx.vout.size(); i++) {
+        // ignore dev reward
+        if (tx.IsCoinBase() && i == 1) {
+            continue;
+        }
+        const CTxOut &txout = tx.vout[i];
         nCredit += GetCredit(txout, filter);
         if (!MoneyRange(nCredit)) {
             throw std::runtime_error(std::string(__func__) +
@@ -2037,6 +2042,10 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     Amount nCredit = Amount::zero();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(GetId(), i)) {
+            // ignore dev reward
+            if (tx->IsCoinBase() && i == 1) {
+                continue;
+            }
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             if (!MoneyRange(nCredit)) {
@@ -2049,6 +2058,42 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     nAvailableCreditCached = nCredit;
     fAvailableCreditCached = true;
     return nCredit;
+}
+
+Amount CWalletTx::GetImmatureDevReward() const {
+    if (pwallet == nullptr) {
+        return Amount::zero();
+    }
+
+    // Must wait until coinbase is safely deep enough in the chain before
+    // valuing it.
+    if (IsImmatureCoinBaseDevReward() && IsInMainChain()) {
+        return tx->vout[1].nValue;
+    }
+
+    return Amount::zero();
+}
+
+Amount CWalletTx::GetAvailableDevReward() const {
+    if (pwallet == nullptr) {
+        return Amount::zero();
+    }
+
+    if (!IsCoinBase()) {
+        return Amount::zero();
+    }
+
+    // Must wait until coinbase is safely deep enough in the chain before
+    // valuing it.
+    if (IsImmatureCoinBaseDevReward()) {
+        return Amount::zero();
+    }
+
+    if (pwallet->IsSpent(GetId(), 1)) {
+        return Amount::zero();
+    }
+
+    return tx->vout[1].nValue;
 }
 
 Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool fUseCache) const {
@@ -2083,6 +2128,10 @@ Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool fUseCache) const {
     Amount nCredit = Amount::zero();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(GetId(), i)) {
+            // ignore dev reward
+            if (tx->IsCoinBase() && i == 1) {
+                continue;
+            }
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, ISMINE_WATCH_ONLY);
             if (!MoneyRange(nCredit)) {
@@ -2244,6 +2293,7 @@ Amount CWallet::GetBalance() const {
             nTotal += pcoin->GetAvailableCredit();
         }
     }
+    nTotal += GetDevRewardBalance();
 
     return nTotal;
 }
@@ -2271,6 +2321,7 @@ Amount CWallet::GetImmatureBalance() const {
         const CWalletTx *pcoin = &entry.second;
         nTotal += pcoin->GetImmatureCredit();
     }
+    nTotal += GetDevRewardImmatureBalance();
 
     return nTotal;
 }
@@ -2316,6 +2367,43 @@ Amount CWallet::GetImmatureWatchOnlyBalance() const {
     return nTotal;
 }
 
+Amount CWallet::GetDevRewardBalance() const {
+    CTxDestination v = DecodeDestination(Params().GetConsensus().rewardAddress, Params());
+    if (v.type() != typeid(CKeyID)) {
+        throw std::runtime_error(std::string(__func__) +
+                                 "rewardAddress format error");
+    }
+    CKeyID rewardKey = boost::get<CKeyID>(v);
+    if (HaveKey(rewardKey)) {
+        Amount nTotal = Amount::zero();
+        for (const auto &entry : mapWallet) {
+            const CWalletTx *pcoin = &entry.second;
+            nTotal += pcoin->GetAvailableDevReward();
+        }
+        return nTotal;
+    }
+
+    return Amount::zero();
+}
+
+Amount CWallet::GetDevRewardImmatureBalance() const {
+    CTxDestination v = DecodeDestination(Params().GetConsensus().rewardAddress, Params());
+    if (v.type() != typeid(CKeyID)) {
+        throw std::runtime_error(std::string(__func__) +
+                                 "rewardAddress format error");
+    }
+    CKeyID rewardKey = boost::get<CKeyID>(v);
+    if (HaveKey(rewardKey)) {
+        Amount nTotal = Amount::zero();
+        for (const auto &entry : mapWallet) {
+            const CWalletTx *pcoin = &entry.second;
+            nTotal += pcoin->GetImmatureDevReward();
+        }
+        return nTotal;
+    }
+
+    return Amount::zero();
+}
 // Calculate total balance in a different way from GetBalance. The biggest
 // difference is that GetBalance sums up all unspent TxOuts paying to the
 // wallet, while this sums up both spent and unspent TxOuts paying to the
@@ -2466,6 +2554,12 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
             isminetype mine = IsMine(pcoin->tx->vout[i]);
 
             if (mine == ISMINE_NO) {
+                continue;
+            }
+
+            // immature dev reward vout do not count in
+            // dev reward is aways at i=1
+            if (i == 1 && pcoin->IsImmatureCoinBaseDevReward()) {
                 continue;
             }
 
@@ -4578,6 +4672,14 @@ int CMerkleTx::GetBlocksToMaturity() const {
 bool CMerkleTx::IsImmatureCoinBase() const {
     // note GetBlocksToMaturity is 0 for non-coinbase tx
     return GetBlocksToMaturity() > 0;
+}
+
+bool CMerkleTx::IsImmatureCoinBaseDevReward() const {
+    if (!IsCoinBase()) {
+        return false;
+    }
+
+    return (Params().GetConsensus().developerRewardMaturity + 1) - GetDepthInMainChain() > 0;
 }
 
 bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,

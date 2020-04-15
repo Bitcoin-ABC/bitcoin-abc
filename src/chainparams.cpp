@@ -369,10 +369,10 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "bchreg";
-        consensus.rewardAddress = "n3XZfRdRFVXi4A47rEu2u7JifVo12WPE8d";
+        consensus.rewardAddress = "mhf3NbUU8zFTCBg14D9tifsyiyyPrVYoDK";
         vRewardAddresses.push_back(consensus.rewardAddress);
         consensus.coinbaseMaturity = 100;
-        consensus.developerRewardMaturity = 100;
+        consensus.developerRewardMaturity = 110;
     }
 };
 

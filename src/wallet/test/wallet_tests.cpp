@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <base58.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
@@ -208,6 +209,13 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     wtx.MarkDirty();
     wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
     BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(), INITIAL_REWARD);
+        // this is secret of regtest rewardAddress
+//    const std::string strSecretOfRegtestReward =
+//                "cSv1G6P25uZSthhCCKE1MwV2hodGCjs4Ux1wty6UF4H6n8qKMd6r";
+//    CBitcoinSecret bSecret;
+//    bSecret.SetString(strSecretOfRegtestReward);
+//    AddKey(wallet, bSecret.GetKey());
+        BOOST_CHECK_EQUAL(wtx.GetImmatureDevReward(), INITIAL_REWARD);
 }
 
 static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
