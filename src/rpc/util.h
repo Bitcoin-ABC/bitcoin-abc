@@ -113,17 +113,65 @@ struct RPCArg {
     std::string ToDescriptionString(bool implicitly_required = false) const;
 };
 
+struct RPCResult {
+    const std::string m_cond;
+    const std::string m_result;
+
+    explicit RPCResult(std::string result)
+        : m_cond{}, m_result{std::move(result)} {
+        CHECK_NONFATAL(!m_result.empty());
+    }
+
+    RPCResult(std::string cond, std::string result)
+        : m_cond{std::move(cond)}, m_result{std::move(result)} {
+        CHECK_NONFATAL(!m_cond.empty());
+        CHECK_NONFATAL(!m_result.empty());
+    }
+};
+
+struct RPCResults {
+    const std::vector<RPCResult> m_results;
+
+    RPCResults() : m_results{} {}
+
+    RPCResults(RPCResult result) : m_results{{result}} {}
+
+    RPCResults(std::initializer_list<RPCResult> results) : m_results{results} {}
+
+    /**
+     * Return the description string.
+     */
+    std::string ToDescriptionString() const;
+};
+
+struct RPCExamples {
+    const std::string m_examples;
+    RPCExamples(std::string examples) : m_examples(std::move(examples)) {}
+    RPCExamples() : m_examples(std::move("")) {}
+    std::string ToDescriptionString() const;
+};
+
 class RPCHelpMan {
 public:
+    // Remove once PR14987 backport is completed
     RPCHelpMan(const std::string &name, const std::string &description,
                const std::vector<RPCArg> &args);
 
+    RPCHelpMan(std::string name, std::string description,
+               std::vector<RPCArg> args, RPCResults results,
+               RPCExamples examples);
+
     std::string ToString() const;
+
+    // Remove once PR14987 backport is completed
+    std::string ToStringWithResultsAndExamples() const;
 
 private:
     const std::string m_name;
     const std::string m_description;
     const std::vector<RPCArg> m_args;
+    const RPCResults m_results;
+    const RPCExamples m_examples;
 };
 
 #endif // BITCOIN_RPC_UTIL_H

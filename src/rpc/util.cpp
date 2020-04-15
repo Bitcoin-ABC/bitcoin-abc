@@ -283,9 +283,12 @@ struct Sections {
     }
 };
 
+// Remove once backport of PR14987 is completed
 RPCHelpMan::RPCHelpMan(const std::string &name, const std::string &description,
                        const std::vector<RPCArg> &args)
-    : m_name{name}, m_description{description}, m_args{args} {
+    : m_name{std::move(name)}, m_description{std::move(description)},
+      m_args{std::move(args)}, m_results{RPCResults()}, m_examples{
+                                                            RPCExamples()} {
     std::set<std::string> named_args;
     for (const auto &arg : m_args) {
         // Should have unique named arguments
@@ -293,6 +296,37 @@ RPCHelpMan::RPCHelpMan(const std::string &name, const std::string &description,
     }
 }
 
+RPCHelpMan::RPCHelpMan(std::string name, std::string description,
+                       std::vector<RPCArg> args, RPCResults results,
+                       RPCExamples examples)
+    : m_name{std::move(name)}, m_description{std::move(description)},
+      m_args{std::move(args)}, m_results{std::move(results)},
+      m_examples{std::move(examples)} {
+    std::set<std::string> named_args;
+    for (const auto &arg : m_args) {
+        // Should have unique named arguments
+        CHECK_NONFATAL(named_args.insert(arg.m_name).second);
+    }
+}
+
+std::string RPCResults::ToDescriptionString() const {
+    std::string result;
+    for (const auto &r : m_results) {
+        if (r.m_cond.empty()) {
+            result += "\nResult:\n";
+        } else {
+            result += "\nResult (" + r.m_cond + "):\n";
+        }
+        result += r.m_result;
+    }
+    return result;
+}
+
+std::string RPCExamples::ToDescriptionString() const {
+    return m_examples.empty() ? m_examples : "\nExamples:\n" + m_examples;
+}
+
+// Remove once PR14987 backport is completed
 std::string RPCHelpMan::ToString() const {
     std::string ret;
 
@@ -342,6 +376,66 @@ std::string RPCHelpMan::ToString() const {
         sections.Push(arg);
     }
     ret += sections.ToString();
+
+    return ret;
+}
+
+// Rename to ToString() once PR14987 backport is completed
+std::string RPCHelpMan::ToStringWithResultsAndExamples() const {
+    std::string ret;
+
+    // Oneline summary
+    ret += m_name;
+    bool was_optional{false};
+    for (const auto &arg : m_args) {
+        ret += " ";
+        if (arg.m_optional) {
+            if (!was_optional) {
+                ret += "( ";
+            }
+            was_optional = true;
+        } else {
+            if (was_optional) {
+                ret += ") ";
+            }
+            was_optional = false;
+        }
+        ret += arg.ToString(/* oneline */ true);
+    }
+    if (was_optional) {
+        ret += " )";
+    }
+    ret += "\n";
+
+    // Description
+    ret += m_description;
+
+    // Arguments
+    Sections sections;
+    for (size_t i{0}; i < m_args.size(); ++i) {
+        const auto &arg = m_args.at(i);
+
+        if (i == 0) {
+            ret += "\nArguments:\n";
+        }
+
+        // Push named argument name and description
+        sections.m_sections.emplace_back(std::to_string(i + 1) + ". " +
+                                             arg.m_name,
+                                         arg.ToDescriptionString());
+        sections.m_max_pad = std::max(sections.m_max_pad,
+                                      sections.m_sections.back().m_left.size());
+
+        // Recursively push nested args
+        sections.Push(arg);
+    }
+    ret += sections.ToString();
+
+    // Result
+    ret += m_results.ToDescriptionString();
+
+    // Examples
+    ret += m_examples.ToDescriptionString();
 
     return ret;
 }
