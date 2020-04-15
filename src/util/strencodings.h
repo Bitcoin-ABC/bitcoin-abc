@@ -204,14 +204,12 @@ bool ConvertBits(O &out, I it, I end) {
         ++it;
     }
 
-    // We have remaining bits to encode but do not pad.
-    if (!pad && bits) {
+    if (pad) {
+        if (bits) {
+            out.push_back((acc << (tobits - bits)) & maxv);
+        }
+    } else if (bits >= frombits || ((acc << (tobits - bits)) & maxv)) {
         return false;
-    }
-
-    // We have remaining bits to encode so we do pad.
-    if (pad && bits) {
-        out.push_back((acc << (tobits - bits)) & maxv);
     }
 
     return true;

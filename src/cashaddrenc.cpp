@@ -123,23 +123,11 @@ CashAddrContent DecodeCashAddrContent(const std::string &addr,
         return {};
     }
 
-    // Check that the padding is zero.
-    size_t extrabits = payload.size() * 5 % 8;
-    if (extrabits >= 5) {
-        // We have more padding than allowed.
-        return {};
-    }
-
-    uint8_t last = payload.back();
-    uint8_t mask = (1 << extrabits) - 1;
-    if (last & mask) {
-        // We have non zero bits as padding.
-        return {};
-    }
-
     std::vector<uint8_t> data;
     data.reserve(payload.size() * 5 / 8);
-    ConvertBits<5, 8, false>(data, begin(payload), end(payload));
+    if (!ConvertBits<5, 8, false>(data, begin(payload), end(payload))) {
+        return {};
+    }
 
     // Decode type and size from the version.
     uint8_t version = data[0];
