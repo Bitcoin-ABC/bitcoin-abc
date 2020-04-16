@@ -986,6 +986,7 @@ void SetupServerArgs(NodeContext &node) {
         strprintf("Prepend debug output with timestamp (default: %d)",
                   DEFAULT_LOGTIMESTAMPS),
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+#ifdef HAVE_THREAD_LOCAL
     argsman.AddArg(
         "-logthreadnames",
         strprintf(
@@ -993,6 +994,9 @@ void SetupServerArgs(NodeContext &node) {
             "available on platforms supporting thread_local) (default: %u)",
             DEFAULT_LOGTHREADNAMES),
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+#else
+    hidden_args.emplace_back("-logthreadnames");
+#endif
     argsman.AddArg(
         "-logtimemicros",
         strprintf("Add microsecond precision to debug timestamps (default: %d)",
@@ -1641,8 +1645,10 @@ void InitLogging(const ArgsManager &args) {
         args.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
     LogInstance().m_log_time_micros =
         args.GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
+#ifdef HAVE_THREAD_LOCAL
     LogInstance().m_log_threadnames =
         args.GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
+#endif
 
     fLogIPs = args.GetBoolArg("-logips", DEFAULT_LOGIPS);
 
