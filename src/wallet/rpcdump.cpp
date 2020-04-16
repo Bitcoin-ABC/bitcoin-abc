@@ -867,9 +867,9 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
 }
 
 UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    std::shared_ptr<CWallet> const pwallet =
+        GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet.get(), request.fHelp)) {
         return NullUniValue;
     }
 
@@ -897,12 +897,17 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*wallet);
+    CWallet &wallet = *pwallet;
+    LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(wallet);
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    wallet.BlockUntilSyncedToCurrentChain();
 
     auto locked_chain = pwallet->chain().lock();
     LOCK2(pwallet->cs_wallet, spk_man.cs_KeyStore);
 
-    EnsureWalletIsUnlocked(pwallet);
+    EnsureWalletIsUnlocked(&wallet);
 
     fs::path filepath = request.params[0].get_str();
     filepath = fs::absolute(filepath);
@@ -945,11 +950,11 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     file << strprintf("# Wallet dump created by Bitcoin %s\n", CLIENT_BUILD);
     file << strprintf("# * Created on %s\n", FormatISO8601DateTime(GetTime()));
     file << strprintf("# * Best block at time of backup was %i (%s),\n",
-                      pwallet->GetLastBlockHeight(),
-                      pwallet->GetLastBlockHash().ToString());
+                      wallet.GetLastBlockHeight(),
+                      wallet.GetLastBlockHash().ToString());
     int64_t block_time = 0;
-    CHECK_NONFATAL(pwallet->chain().findBlock(pwallet->GetLastBlockHash(),
-                                              FoundBlock().time(block_time)));
+    CHECK_NONFATAL(wallet.chain().findBlock(wallet.GetLastBlockHash(),
+                                            FoundBlock().time(block_time)));
     file << strprintf("#   mined on %s\n", FormatISO8601DateTime(block_time));
     file << "\n";
 
@@ -975,7 +980,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         CKey key;
         if (spk_man.GetKey(keyid, key)) {
             file << strprintf("%s %s ", EncodeSecret(key), strTime);
-            if (GetWalletAddressesForKey(config, &spk_man, pwallet, keyid,
+            if (GetWalletAddressesForKey(config, &spk_man, &wallet, keyid,
                                          strAddr, strLabel)) {
                 file << strprintf("label=%s", strLabel);
             } else if (keyid == seed_id) {
