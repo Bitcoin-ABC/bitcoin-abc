@@ -3168,12 +3168,12 @@ static UniValue getwalletinfo(const Config &config,
             "the total immature balance of the wallet in " +
             CURRENCY_UNIT +
             "\n"
-            "  \"devreward_balance\": xxxxxxx,              (numeric) the total "
-            "matured and unspent dev reward balance of the wallet in " +
+            "  \"publicfund_balance\": xxxxxxx,              (numeric) the total "
+            "matured and unspent public fund balance of the wallet in " +
             CURRENCY_UNIT +
             "\n"
-            "  \"devreward_immature_balance\": xxxxxx,      (numeric) "
-            "the total dev reward immature balance of the wallet in " +
+            "  \"publicfund_immature_balance\": xxxxxx,      (numeric) "
+            "the total public fund immature balance of the wallet in " +
             CURRENCY_UNIT +
             "\n"
             "  \"txcount\": xxxxxxx,              (numeric) the total number "
