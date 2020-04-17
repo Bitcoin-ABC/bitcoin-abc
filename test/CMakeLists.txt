@@ -1,28 +1,14 @@
 ###
 # Create config.ini file for tests
 ###
-set(abs_top_srcdir ${CMAKE_SOURCE_DIR})
-set(abs_top_builddir ${CMAKE_BINARY_DIR})
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	set(EXEEXT ".exe")
-endif()
-
-if(NOT BUILD_BITCOIN_WALLET)
-	set(ENABLE_WALLET_TRUE "#")
-endif()
-
-if(NOT BUILD_BITCOIN_CLI)
-	set(BUILD_BITCOIN_CLI_TRUE "#")
-endif()
-if(NOT BUILD_BITCOIN_ZMQ)
-	set(ENABLE_ZMQ_TRUE "#")
-endif()
-if(NOT "fuzzer" IN_LIST ENABLE_SANITIZERS)
-	set(ENABLE_FUZZ_TRUE "#")
+if("fuzzer" IN_LIST ENABLE_SANITIZERS)
+	set(ENABLE_FUZZ ON)
+else()
+	set(ENABLE_FUZZ OFF)
 endif()
 
 # Create build ini file
-configure_file(config.ini.in config.ini @ONLY)
+configure_file(config.ini.cmake.in config.ini)
 
 ###
 # Setup symlinks for testing
