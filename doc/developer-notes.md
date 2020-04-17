@@ -334,7 +334,10 @@ build configuration.
 
 There are a number of known problems for which suppressions files are provided
 under `test/sanitizer_suppressions`. These files are intended to be used with
-the `suppressions` option from the sanitizers.
+the `suppressions` option from the sanitizers. If you are using the `check-*`
+targets to run the tests, the suppression options are automatically set.
+Otherwise they need to be set manually using environment variables; refer to
+your compiler manual for the correct syntax.
 
 The address sanitizer is known to fail in
 [sha256_sse4::Transform](/src/crypto/sha256_sse4.cpp) which makes it unusable
@@ -356,9 +359,6 @@ Build and run the test suite with the address sanitizer enabled:
 mkdir build_asan
 cd build_asan
 
-export ASAN_OPTIONS="malloc_context_size=0"
-export LSAN_OPTIONS="suppressions=${PWD}/../test/sanitizer_suppressions/lsan"
-
 cmake -GNinja .. \
   -DCMAKE_BUILD_TYPE=Debug \
   -DENABLE_SANITIZERS=address \
@@ -374,8 +374,6 @@ very long time to complete):
 mkdir build_tsan
 cd build_tsan
 
-export TSAN_OPTIONS="suppressions=${PWD}/../test/sanitizer_suppressions/tsan"
-
 cmake -GNinja .. \
   -DCMAKE_BUILD_TYPE=Debug \
   -DENABLE_SANITIZERS=thread
@@ -388,8 +386,6 @@ Build and run the test suite with the undefined sanitizer enabled:
 ```bash
 mkdir build_ubsan
 cd build_ubsan
-
-export UBSAN_OPTIONS="suppressions=${PWD}/../test/sanitizer_suppressions/ubsan"
 
 cmake -GNinja .. \
   -DCMAKE_BUILD_TYPE=Debug \
