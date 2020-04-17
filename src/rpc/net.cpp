@@ -47,7 +47,7 @@ static UniValue getconnectioncount(const Config &config,
             "Error: Peer-to-peer functionality missing or disabled");
     }
 
-    return int(g_rpc_node->connman->GetNodeCount(CConnman::CONNECTIONS_ALL));
+    return int(node.connman->GetNodeCount(CConnman::CONNECTIONS_ALL));
 }
 
 static UniValue ping(const Config &config, const JSONRPCRequest &request) {
@@ -73,8 +73,7 @@ static UniValue ping(const Config &config, const JSONRPCRequest &request) {
     }
 
     // Request that each node send a ping during next message processing pass
-    g_rpc_node->connman->ForEachNode(
-        [](CNode *pnode) { pnode->fPingQueued = true; });
+    node.connman->ForEachNode([](CNode *pnode) { pnode->fPingQueued = true; });
     return NullUniValue;
 }
 
@@ -187,7 +186,7 @@ static UniValue getpeerinfo(const Config &config,
     }
 
     std::vector<CNodeStats> vstats;
-    g_rpc_node->connman->GetNodeStats(vstats);
+    node.connman->GetNodeStats(vstats);
 
     UniValue ret(UniValue::VARR);
 
@@ -314,16 +313,16 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
 
     if (strCommand == "onetry") {
         CAddress addr;
-        g_rpc_node->connman->OpenNetworkConnection(
+        node.connman->OpenNetworkConnection(
             addr, false, nullptr, strNode.c_str(), false, false, true);
         return NullUniValue;
     }
 
-    if ((strCommand == "add") && (!g_rpc_node->connman->AddNode(strNode))) {
+    if ((strCommand == "add") && (!node.connman->AddNode(strNode))) {
         throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED,
                            "Error: Node already added");
     } else if ((strCommand == "remove") &&
-               (!g_rpc_node->connman->RemoveAddedNode(strNode))) {
+               (!node.connman->RemoveAddedNode(strNode))) {
         throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED,
                            "Error: Node has not been added.");
     }
@@ -369,13 +368,13 @@ static UniValue disconnectnode(const Config &config,
 
     if (!address_arg.isNull() && id_arg.isNull()) {
         /* handle disconnect-by-address */
-        success = g_rpc_node->connman->DisconnectNode(address_arg.get_str());
+        success = node.connman->DisconnectNode(address_arg.get_str());
     } else if (!id_arg.isNull() &&
                (address_arg.isNull() ||
                 (address_arg.isStr() && address_arg.get_str().empty()))) {
         /* handle disconnect-by-id */
         NodeId nodeid = (NodeId)id_arg.get_int64();
-        success = g_rpc_node->connman->DisconnectNode(nodeid);
+        success = node.connman->DisconnectNode(nodeid);
     } else {
         throw JSONRPCError(
             RPC_INVALID_PARAMS,
@@ -431,7 +430,7 @@ static UniValue getaddednodeinfo(const Config &config,
             "Error: Peer-to-peer functionality missing or disabled");
     }
 
-    std::vector<AddedNodeInfo> vInfo = g_rpc_node->connman->GetAddedNodeInfo();
+    std::vector<AddedNodeInfo> vInfo = node.connman->GetAddedNodeInfo();
 
     if (!request.params[0].isNull()) {
         bool found = false;
@@ -510,22 +509,21 @@ static UniValue getnettotals(const Config &config,
     }
 
     UniValue obj(UniValue::VOBJ);
-    obj.pushKV("totalbytesrecv", g_rpc_node->connman->GetTotalBytesRecv());
-    obj.pushKV("totalbytessent", g_rpc_node->connman->GetTotalBytesSent());
+    obj.pushKV("totalbytesrecv", node.connman->GetTotalBytesRecv());
+    obj.pushKV("totalbytessent", node.connman->GetTotalBytesSent());
     obj.pushKV("timemillis", GetTimeMillis());
 
     UniValue outboundLimit(UniValue::VOBJ);
-    outboundLimit.pushKV("timeframe",
-                         g_rpc_node->connman->GetMaxOutboundTimeframe());
-    outboundLimit.pushKV("target", g_rpc_node->connman->GetMaxOutboundTarget());
+    outboundLimit.pushKV("timeframe", node.connman->GetMaxOutboundTimeframe());
+    outboundLimit.pushKV("target", node.connman->GetMaxOutboundTarget());
     outboundLimit.pushKV("target_reached",
-                         g_rpc_node->connman->OutboundTargetReached(false));
+                         node.connman->OutboundTargetReached(false));
     outboundLimit.pushKV("serve_historical_blocks",
-                         !g_rpc_node->connman->OutboundTargetReached(true));
+                         !node.connman->OutboundTargetReached(true));
     outboundLimit.pushKV("bytes_left_in_cycle",
-                         g_rpc_node->connman->GetOutboundTargetBytesLeft());
+                         node.connman->GetOutboundTargetBytesLeft());
     outboundLimit.pushKV("time_left_in_cycle",
-                         g_rpc_node->connman->GetMaxOutboundTimeLeftInCycle());
+                         node.connman->GetMaxOutboundTimeLeftInCycle());
     obj.pushKV("uploadtarget", outboundLimit);
     return obj;
 }
@@ -632,16 +630,16 @@ static UniValue getnetworkinfo(const Config &config,
     obj.pushKV("protocolversion", PROTOCOL_VERSION);
     NodeContext &node = EnsureNodeContext(request.context);
     if (node.connman) {
-        ServiceFlags services = g_rpc_node->connman->GetLocalServices();
+        ServiceFlags services = node.connman->GetLocalServices();
         obj.pushKV("localservices", strprintf("%016x", services));
         obj.pushKV("localservicesnames", GetServicesNames(services));
     }
     obj.pushKV("localrelay", g_relay_txes);
     obj.pushKV("timeoffset", GetTimeOffset());
-    if (g_rpc_node->connman) {
-        obj.pushKV("networkactive", g_rpc_node->connman->GetNetworkActive());
-        obj.pushKV("connections", int(g_rpc_node->connman->GetNodeCount(
-                                      CConnman::CONNECTIONS_ALL)));
+    if (node.connman) {
+        obj.pushKV("networkactive", node.connman->GetNetworkActive());
+        obj.pushKV("connections",
+                   int(node.connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
     }
     obj.pushKV("networks", GetNetworksInfo());
     obj.pushKV("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK()));
@@ -728,8 +726,8 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (strCommand == "add") {
-        if (isSubnet ? g_rpc_node->banman->IsBanned(subNet)
-                     : g_rpc_node->banman->IsBanned(netAddr)) {
+        if (isSubnet ? node.banman->IsBanned(subNet)
+                     : node.banman->IsBanned(netAddr)) {
             throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED,
                                "Error: IP/Subnet already banned");
         }
@@ -746,19 +744,19 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
         }
 
         if (isSubnet) {
-            g_rpc_node->banman->Ban(subNet, banTime, absolute);
-            if (g_rpc_node->connman) {
-                g_rpc_node->connman->DisconnectNode(subNet);
+            node.banman->Ban(subNet, banTime, absolute);
+            if (node.connman) {
+                node.connman->DisconnectNode(subNet);
             }
         } else {
-            g_rpc_node->banman->Ban(netAddr, banTime, absolute);
-            if (g_rpc_node->connman) {
-                g_rpc_node->connman->DisconnectNode(netAddr);
+            node.banman->Ban(netAddr, banTime, absolute);
+            if (node.connman) {
+                node.connman->DisconnectNode(netAddr);
             }
         }
     } else if (strCommand == "remove") {
-        if (!(isSubnet ? g_rpc_node->banman->Unban(subNet)
-                       : g_rpc_node->banman->Unban(netAddr))) {
+        if (!(isSubnet ? node.banman->Unban(subNet)
+                       : node.banman->Unban(netAddr))) {
             throw JSONRPCError(RPC_CLIENT_INVALID_IP_OR_SUBNET,
                                "Error: Unban failed. Requested address/subnet "
                                "was not previously manually banned.");
@@ -786,7 +784,7 @@ static UniValue listbanned(const Config &config,
     }
 
     banmap_t banMap;
-    g_rpc_node->banman->GetBanned(banMap);
+    node.banman->GetBanned(banMap);
 
     UniValue bannedAddresses(UniValue::VARR);
     for (const auto &entry : banMap) {
@@ -821,7 +819,7 @@ static UniValue clearbanned(const Config &config,
             "Error: Peer-to-peer functionality missing or disabled");
     }
 
-    g_rpc_node->banman->ClearBanned();
+    node.banman->ClearBanned();
 
     return NullUniValue;
 }
@@ -847,9 +845,9 @@ static UniValue setnetworkactive(const Config &config,
             "Error: Peer-to-peer functionality missing or disabled");
     }
 
-    g_rpc_node->connman->SetNetworkActive(request.params[0].get_bool());
+    node.connman->SetNetworkActive(request.params[0].get_bool());
 
-    return g_rpc_node->connman->GetNetworkActive();
+    return node.connman->GetNetworkActive();
 }
 
 static UniValue getnodeaddresses(const Config &config,
@@ -899,7 +897,7 @@ static UniValue getnodeaddresses(const Config &config,
         }
     }
     // returns a shuffled list of CAddress
-    std::vector<CAddress> vAddr = g_rpc_node->connman->GetAddresses();
+    std::vector<CAddress> vAddr = node.connman->GetAddresses();
     UniValue ret(UniValue::VARR);
 
     int address_return_count = std::min<int>(count, vAddr.size());
