@@ -117,13 +117,11 @@ BasicTestingSetup::~BasicTestingSetup() {
 TestingSetup::TestingSetup(const std::string &chainName)
     : BasicTestingSetup(chainName) {
     const Config &config = GetConfig();
-    g_rpc_node = &m_node;
     const CChainParams &chainparams = config.GetChainParams();
 
     // Ideally we'd move all the RPC tests to the functional testing framework
     // instead of unit tests, but for now we need these here.
     RPCServer rpcServer;
-    g_rpc_node = &m_node;
     RegisterAllRPCCommands(config, rpcServer, tableRPC);
 
     /**
@@ -183,7 +181,6 @@ TestingSetup::~TestingSetup() {
     threadGroup.join_all();
     GetMainSignals().FlushBackgroundCallbacks();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
-    g_rpc_node = nullptr;
     m_node.connman.reset();
     m_node.banman.reset();
     m_node.mempool = nullptr;

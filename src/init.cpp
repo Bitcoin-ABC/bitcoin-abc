@@ -2134,7 +2134,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     for (const auto &client : node.chain_clients) {
         client->registerRpcs();
     }
-    g_rpc_node = &node;
 #if ENABLE_ZMQ
     RegisterZMQRPCCommands(tableRPC);
 #endif
