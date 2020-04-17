@@ -3,7 +3,6 @@
 // file COPYING or https://opensource.org/licenses/mit-license.php.
 
 #include <iomanip>
-#include <sstream>
 #include <stdio.h>
 #include "univalue.h"
 #include "univalue_escapes.h"

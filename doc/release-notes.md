@@ -4,3 +4,4 @@ Bitcoin ABC version 0.21.5 is now available from:
 
 This release includes the following features and fixes:
  - Removed deprecated `getinfo` RPC.
+ - Update univalue to 1.0.5

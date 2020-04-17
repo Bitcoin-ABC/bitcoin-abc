@@ -12,6 +12,12 @@ an arbitrary depth.
 This class is aligned with the JSON standard, [RFC
 7159](https://tools.ietf.org/html/rfc7159.html).
 
+## Motivation
+
+UniValue is a reaction to json_spirit, seeking to minimize template
+and memory use, providing a straightforward RAII class compatible with
+link-time optimization and embedded uses.
+
 ## Installation
 
 This project is a standard GNU
@@ -24,9 +30,4 @@ $ ./autogen.sh
 $ ./configure
 $ make
 ```
-
-## Design
-
-UniValue provides a single dynamic RAII C++ object class,
-and minimizes template use (contra json_spirit).
 
