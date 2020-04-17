@@ -361,7 +361,9 @@ class TestNode():
                 if "No RPC credentials" not in str(e):
                     raise
             time.sleep(1.0 / poll_per_s)
-        self._raise_assertion_error("Unable to connect to bitcoind")
+        self._raise_assertion_error(
+            "Unable to connect to bitcoind after {}s".format(
+                self.rpc_timeout))
 
     def wait_for_cookie_credentials(self):
         """Ensures auth cookie credentials can be read, e.g. for testing CLI
