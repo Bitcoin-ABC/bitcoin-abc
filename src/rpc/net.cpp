@@ -40,7 +40,8 @@ static UniValue getconnectioncount(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -64,7 +65,8 @@ static UniValue ping(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -177,7 +179,8 @@ static UniValue getpeerinfo(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -300,7 +303,8 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
                                      .ToString());
     }
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -352,7 +356,8 @@ static UniValue disconnectnode(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -419,7 +424,8 @@ static UniValue getaddednodeinfo(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -496,7 +502,8 @@ static UniValue getnettotals(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -623,7 +630,8 @@ static UniValue getnetworkinfo(const Config &config,
     obj.pushKV("version", CLIENT_VERSION);
     obj.pushKV("subversion", userAgent(config));
     obj.pushKV("protocolversion", PROTOCOL_VERSION);
-    if (g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (node.connman) {
         ServiceFlags services = g_rpc_node->connman->GetLocalServices();
         obj.pushKV("localservices", strprintf("%016x", services));
         obj.pushKV("localservicesnames", GetServicesNames(services));
@@ -692,7 +700,8 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
         throw std::runtime_error(help.ToString());
     }
 
-    if (!g_rpc_node->banman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.banman) {
         throw JSONRPCError(RPC_DATABASE_ERROR,
                            "Error: Ban database not loaded");
     }
@@ -770,7 +779,8 @@ static UniValue listbanned(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->banman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.banman) {
         throw JSONRPCError(RPC_DATABASE_ERROR,
                            "Error: Ban database not loaded");
     }
@@ -804,7 +814,8 @@ static UniValue clearbanned(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->banman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.banman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -829,7 +840,8 @@ static UniValue setnetworkactive(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.banman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
@@ -871,7 +883,8 @@ static UniValue getnodeaddresses(const Config &config,
     }
         .Check(request);
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.banman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");

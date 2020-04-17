@@ -11,6 +11,7 @@
 #include <core_io.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
+#include <util/ref.h>
 #include <util/time.h>
 
 #include <test/util/setup_common.h>
@@ -20,13 +21,13 @@
 
 #include <univalue.h>
 
-UniValue CallRPC(std::string args) {
+UniValue CallRPC(const std::string &args, const util::Ref &context) {
     std::vector<std::string> vArgs;
     boost::split(vArgs, args, boost::is_any_of(" \t"));
     std::string strMethod = vArgs[0];
     vArgs.erase(vArgs.begin());
     GlobalConfig config;
-    JSONRPCRequest request;
+    JSONRPCRequest request(context);
     request.strMethod = strMethod;
     request.params = RPCConvertValues(strMethod, vArgs);
     request.fHelp = false;
@@ -41,7 +42,15 @@ UniValue CallRPC(std::string args) {
     }
 }
 
-BOOST_FIXTURE_TEST_SUITE(rpc_tests, TestingSetup)
+class RPCTestingSetup : public TestingSetup {
+public:
+    UniValue CallRPC(const std::string &args) {
+        const util::Ref context{m_node};
+        return ::CallRPC(args, context);
+    }
+};
+
+BOOST_FIXTURE_TEST_SUITE(rpc_tests, RPCTestingSetup)
 
 BOOST_AUTO_TEST_CASE(rpc_rawparams) {
     // Test raw transaction API argument handling

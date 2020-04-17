@@ -15,6 +15,9 @@ class Config;
 class CTxMemPool;
 class JSONRPCRequest;
 struct NodeContext;
+namespace util {
+class Ref;
+} // namespace util
 
 extern RecursiveMutex cs_main;
 
@@ -52,6 +55,7 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
 //! direct way to pass in state to RPC methods without globals.
 extern NodeContext *g_rpc_node;
 
-CTxMemPool &EnsureMemPool();
+NodeContext &EnsureNodeContext(const util::Ref &context);
+CTxMemPool &EnsureMemPool(const util::Ref &context);
 
 #endif // BITCOIN_RPC_BLOCKCHAIN_H

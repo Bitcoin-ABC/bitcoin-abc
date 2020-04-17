@@ -709,7 +709,7 @@ static UniValue combinerawtransaction(const Config &config,
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     {
-        const CTxMemPool &mempool = EnsureMemPool();
+        const CTxMemPool &mempool = EnsureMemPool(request.context);
         LOCK(cs_main);
         LOCK(mempool.cs);
         CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
@@ -874,7 +874,8 @@ static UniValue signrawtransactionwithkey(const Config &config,
         // Create empty map entry keyed by prevout.
         coins[txin.prevout];
     }
-    FindCoins(*g_rpc_node, coins);
+    NodeContext &node = EnsureNodeContext(request.context);
+    FindCoins(node, coins);
 
     // Parse the prevtxs array
     ParsePrevouts(request.params[2], &keystore, coins);
@@ -945,8 +946,9 @@ static UniValue sendrawtransaction(const Config &config,
     }
     std::string err_string;
     AssertLockNotHeld(cs_main);
+    NodeContext &node = EnsureNodeContext(request.context);
     const TransactionError err = BroadcastTransaction(
-        *g_rpc_node, config, tx, err_string, max_raw_tx_fee, /*relay*/ true,
+        node, config, tx, err_string, max_raw_tx_fee, /*relay*/ true,
         /*wait_callback*/ true);
     if (err != TransactionError::OK) {
         throw JSONRPCTransactionError(err, err_string);
@@ -1041,7 +1043,7 @@ static UniValue testmempoolaccept(const Config &config,
         max_raw_tx_fee = fr.GetFee(sz);
     }
 
-    CTxMemPool &mempool = EnsureMemPool();
+    CTxMemPool &mempool = EnsureMemPool(request.context);
 
     UniValue result(UniValue::VARR);
     UniValue result_0(UniValue::VOBJ);
@@ -1728,7 +1730,7 @@ UniValue utxoupdatepsbt(const Config &config, const JSONRPCRequest &request) {
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     {
-        const CTxMemPool &mempool = EnsureMemPool();
+        const CTxMemPool &mempool = EnsureMemPool(request.context);
         LOCK2(cs_main, mempool.cs);
         CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
         CCoinsViewMemPool viewMempool(&viewChain, mempool);

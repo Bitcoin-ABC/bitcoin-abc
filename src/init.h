@@ -22,6 +22,9 @@ class RPCServer;
 namespace boost {
 class thread_group;
 } // namespace boost
+namespace util {
+class Ref;
+} // namespace util
 
 /** Interrupt threads */
 void Interrupt(NodeContext &node);

@@ -14,6 +14,7 @@
 #include <qt/rpcconsole.h>
 #include <rpc/server.h>
 #include <shutdown.h>
+#include <util/ref.h>
 #include <validation.h>
 
 #if defined(HAVE_CONFIG_H)
@@ -93,7 +94,8 @@ void AppTests::appTests() {
     m_app.baseInitialize(config);
 
     RPCServer rpcServer;
-    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
+    util::Ref context{test.m_node};
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
     m_app.requestInitialize(config, rpcServer, httpRPCRequestProcessor);
     m_app.exec();
     m_app.requestShutdown(config);

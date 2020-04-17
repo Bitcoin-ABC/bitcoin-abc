@@ -1413,7 +1413,7 @@ static bool AppInitServers(Config &config,
         return false;
     }
     if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE)) {
-        StartREST();
+        StartREST(httpRPCRequestProcessor.context);
     }
 
     StartHTTPServer();

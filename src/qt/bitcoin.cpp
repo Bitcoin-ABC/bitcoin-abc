@@ -23,6 +23,7 @@
 #include <qt/winshutdownmonitor.h>
 #include <ui_interface.h>
 #include <uint256.h>
+#include <util/ref.h>
 #include <util/system.h>
 #include <util/threadnames.h>
 
@@ -728,7 +729,8 @@ int GuiMain(int argc, char *argv[]) {
     }
 
     RPCServer rpcServer;
-    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
+    util::Ref context{node};
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
 
     try {
         app.createWindow(&config, networkStyle.data());

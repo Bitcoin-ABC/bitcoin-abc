@@ -225,7 +225,7 @@ static UniValue generatetodescriptor(const Config &config,
             strprintf("Cannot derive script without private keys"));
     }
 
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
 
     CHECK_NONFATAL(coinbase_script.size() == 1);
 
@@ -270,7 +270,7 @@ static UniValue generatetoaddress(const Config &config,
                            "Error: Invalid address");
     }
 
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
 
     CScript coinbase_script = GetScriptForDestination(destination);
 
@@ -309,7 +309,7 @@ static UniValue getmininginfo(const Config &config,
         .Check(request);
 
     LOCK(cs_main);
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("blocks", int(::ChainActive().Height()));
@@ -368,7 +368,7 @@ static UniValue prioritisetransaction(const Config &config,
                            "prioritisetransaction must be 0.");
     }
 
-    EnsureMemPool().PrioritiseTransaction(txid, nAmount);
+    EnsureMemPool(request.context).PrioritiseTransaction(txid, nAmount);
     return true;
 }
 
@@ -589,13 +589,14 @@ static UniValue getblocktemplate(const Config &config,
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
     }
 
-    if (!g_rpc_node->connman) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
     }
 
-    if (g_rpc_node->connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0) {
+    if (node.connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0) {
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED,
                            "Bitcoin is not connected!");
     }
@@ -606,7 +607,7 @@ static UniValue getblocktemplate(const Config &config,
     }
 
     static unsigned int nTransactionsUpdatedLast;
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
 
     if (!lpval.isNull()) {
         // Wait to respond until either the best block changes, OR a minute has
@@ -929,7 +930,7 @@ static UniValue estimatefee(const Config &config,
     }
         .Check(request);
 
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
     return ValueFromAmount(mempool.estimateFee().GetFeePerK());
 }
 

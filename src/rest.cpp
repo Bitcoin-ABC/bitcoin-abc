@@ -19,6 +19,7 @@
 #include <streams.h>
 #include <sync.h>
 #include <txmempool.h>
+#include <util/ref.h>
 #include <util/strencodings.h>
 #include <validation.h>
 #include <version.h>
@@ -82,12 +83,14 @@ static bool RESTERR(HTTPRequest *req, enum HTTPStatusCode status,
  * @param[in]  req the HTTP request
  * return pointer to the mempool or nullptr if no mempool found
  */
-static CTxMemPool *GetMemPool(HTTPRequest *req) {
-    if (!g_rpc_node || !g_rpc_node->mempool) {
+static CTxMemPool *GetMemPool(const util::Ref &context, HTTPRequest *req) {
+    NodeContext *node =
+        context.Has<NodeContext>() ? &context.Get<NodeContext>() : nullptr;
+    if (!node || !node->mempool) {
         RESTERR(req, HTTP_NOT_FOUND, "Mempool disabled or instance not found");
         return nullptr;
     }
-    return g_rpc_node->mempool;
+    return node->mempool;
 }
 
 static RetFormat ParseDataFormat(std::string &param,
@@ -139,8 +142,8 @@ static bool CheckWarmup(HTTPRequest *req) {
     return true;
 }
 
-static bool rest_headers(Config &config, HTTPRequest *req,
-                         const std::string &strURIPart) {
+static bool rest_headers(Config &config, const util::Ref &context,
+                         HTTPRequest *req, const std::string &strURIPart) {
     if (!CheckWarmup(req)) {
         return false;
     }
@@ -304,18 +307,20 @@ static bool rest_block(const Config &config, HTTPRequest *req,
     }
 }
 
-static bool rest_block_extended(Config &config, HTTPRequest *req,
+static bool rest_block_extended(Config &config, const util::Ref &context,
+                                HTTPRequest *req,
                                 const std::string &strURIPart) {
     return rest_block(config, req, strURIPart, true);
 }
 
-static bool rest_block_notxdetails(Config &config, HTTPRequest *req,
+static bool rest_block_notxdetails(Config &config, const util::Ref &context,
+                                   HTTPRequest *req,
                                    const std::string &strURIPart) {
     return rest_block(config, req, strURIPart, false);
 }
 
-static bool rest_chaininfo(Config &config, HTTPRequest *req,
-                           const std::string &strURIPart) {
+static bool rest_chaininfo(Config &config, const util::Ref &context,
+                           HTTPRequest *req, const std::string &strURIPart) {
     if (!CheckWarmup(req)) {
         return false;
     }
@@ -325,7 +330,7 @@ static bool rest_chaininfo(Config &config, HTTPRequest *req,
 
     switch (rf) {
         case RetFormat::JSON: {
-            JSONRPCRequest jsonRequest;
+            JSONRPCRequest jsonRequest(context);
             jsonRequest.params = UniValue(UniValue::VARR);
             UniValue chainInfoObject = getblockchaininfo(config, jsonRequest);
             std::string strJSON = chainInfoObject.write() + "\n";
@@ -340,13 +345,13 @@ static bool rest_chaininfo(Config &config, HTTPRequest *req,
     }
 }
 
-static bool rest_mempool_info(Config &config, HTTPRequest *req,
-                              const std::string &strURIPart) {
+static bool rest_mempool_info(Config &config, const util::Ref &context,
+                              HTTPRequest *req, const std::string &strURIPart) {
     if (!CheckWarmup(req)) {
         return false;
     }
 
-    const CTxMemPool *mempool = GetMemPool(req);
+    const CTxMemPool *mempool = GetMemPool(context, req);
     if (!mempool) {
         return false;
     }
@@ -370,13 +375,14 @@ static bool rest_mempool_info(Config &config, HTTPRequest *req,
     }
 }
 
-static bool rest_mempool_contents(Config &config, HTTPRequest *req,
+static bool rest_mempool_contents(Config &config, const util::Ref &context,
+                                  HTTPRequest *req,
                                   const std::string &strURIPart) {
     if (!CheckWarmup(req)) {
         return false;
     }
 
-    const CTxMemPool *mempool = GetMemPool(req);
+    const CTxMemPool *mempool = GetMemPool(context, req);
     if (!mempool) {
         return false;
     }
@@ -400,7 +406,7 @@ static bool rest_mempool_contents(Config &config, HTTPRequest *req,
     }
 }
 
-static bool rest_tx(Config &config, HTTPRequest *req,
+static bool rest_tx(Config &config, const util::Ref &context, HTTPRequest *req,
                     const std::string &strURIPart) {
     if (!CheckWarmup(req)) {
         return false;
@@ -467,8 +473,8 @@ static bool rest_tx(Config &config, HTTPRequest *req,
     }
 }
 
-static bool rest_getutxos(Config &config, HTTPRequest *req,
-                          const std::string &strURIPart) {
+static bool rest_getutxos(Config &config, const util::Ref &context,
+                          HTTPRequest *req, const std::string &strURIPart) {
     if (!CheckWarmup(req)) {
         return false;
     }
@@ -599,7 +605,7 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
         };
 
         if (fCheckMemPool) {
-            const CTxMemPool *mempool = GetMemPool(req);
+            const CTxMemPool *mempool = GetMemPool(context, req);
             if (!mempool) {
                 return false;
             }
@@ -692,7 +698,8 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
     }
 }
 
-static bool rest_blockhash_by_height(Config &config, HTTPRequest *req,
+static bool rest_blockhash_by_height(Config &config, const util::Ref &context,
+                                     HTTPRequest *req,
                                      const std::string &str_uri_part) {
     if (!CheckWarmup(req)) {
         return false;
@@ -745,7 +752,7 @@ static bool rest_blockhash_by_height(Config &config, HTTPRequest *req,
 
 static const struct {
     const char *prefix;
-    bool (*handler)(Config &config, HTTPRequest *req,
+    bool (*handler)(Config &config, const util::Ref &context, HTTPRequest *req,
                     const std::string &strReq);
 } uri_prefixes[] = {
     {"/rest/tx/", rest_tx},
@@ -759,10 +766,13 @@ static const struct {
     {"/rest/blockhashbyheight/", rest_blockhash_by_height},
 };
 
-void StartREST() {
-    for (size_t i = 0; i < ARRAYLEN(uri_prefixes); i++) {
-        RegisterHTTPHandler(uri_prefixes[i].prefix, false,
-                            uri_prefixes[i].handler);
+void StartREST(const util::Ref &context) {
+    for (const auto &up : uri_prefixes) {
+        auto handler = [&context, up](Config &config, HTTPRequest *req,
+                                      const std::string &prefix) {
+            return up.handler(config, context, req, prefix);
+        };
+        RegisterHTTPHandler(up.prefix, false, handler);
     }
 }
 

@@ -17,6 +17,7 @@
 #include <scheduler.h>
 #include <script/descriptor.h>
 #include <util/check.h>
+#include <util/ref.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/validation.h>
@@ -453,8 +454,9 @@ static UniValue setmocktime(const Config &config,
                            "Timestamp must be 0 or greater");
     }
     SetMockTime(time);
-    if (g_rpc_node) {
-        for (const auto &chain_client : g_rpc_node->chain_clients) {
+    if (request.context.Has<NodeContext>()) {
+        for (const auto &chain_client :
+             request.context.Get<NodeContext>().chain_clients) {
             chain_client->setMockTime(time);
         }
     }
@@ -490,9 +492,10 @@ static UniValue mockscheduler(const Config &config,
     }
 
     // protect against null pointer dereference
-    CHECK_NONFATAL(g_rpc_node);
-    CHECK_NONFATAL(g_rpc_node->scheduler);
-    g_rpc_node->scheduler->MockForward(std::chrono::seconds(delta_seconds));
+    CHECK_NONFATAL(request.context.Has<NodeContext>());
+    NodeContext &node = request.context.Get<NodeContext>();
+    CHECK_NONFATAL(node.scheduler);
+    node.scheduler->MockForward(std::chrono::seconds(delta_seconds));
 
     return NullUniValue;
 }

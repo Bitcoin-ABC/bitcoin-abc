@@ -10,6 +10,10 @@
 
 class Config;
 
+namespace util {
+class Ref;
+} // namespace util
+
 class HTTPRPCRequestProcessor {
 private:
     Config &config;
@@ -18,8 +22,11 @@ private:
     bool ProcessHTTPRequest(HTTPRequest *request);
 
 public:
-    HTTPRPCRequestProcessor(Config &configIn, RPCServer &rpcServerIn)
-        : config(configIn), rpcServer(rpcServerIn) {}
+    const util::Ref &context;
+
+    HTTPRPCRequestProcessor(Config &configIn, RPCServer &rpcServerIn,
+                            const util::Ref &contextIn)
+        : config(configIn), rpcServer(rpcServerIn), context(contextIn) {}
 
     static bool DelegateHTTPRequest(HTTPRPCRequestProcessor *requestProcessor,
                                     HTTPRequest *request) {
@@ -46,7 +53,7 @@ void StopHTTPRPC();
  * Start HTTP REST subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-void StartREST();
+void StartREST(const util::Ref &context);
 
 /** Interrupt RPC REST subsystem */
 void InterruptREST();

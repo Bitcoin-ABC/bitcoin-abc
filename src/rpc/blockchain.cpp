@@ -29,6 +29,7 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <undo.h>
+#include <util/ref.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/validation.h>
@@ -53,13 +54,20 @@ static Mutex cs_blockchange;
 static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock GUARDED_BY(cs_blockchange);
 
-CTxMemPool &EnsureMemPool() {
-    CHECK_NONFATAL(g_rpc_node);
-    if (!g_rpc_node->mempool) {
+NodeContext &EnsureNodeContext(const util::Ref &context) {
+    if (!context.Has<NodeContext>()) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Node context not found");
+    }
+    return context.Get<NodeContext>();
+}
+
+CTxMemPool &EnsureMemPool(const util::Ref &context) {
+    NodeContext &node = EnsureNodeContext(context);
+    if (!node.mempool) {
         throw JSONRPCError(RPC_CLIENT_MEMPOOL_DISABLED,
                            "Mempool disabled or instance not found");
     }
-    return *g_rpc_node->mempool;
+    return *node.mempool;
 }
 
 /**
@@ -595,7 +603,7 @@ static UniValue getrawmempool(const Config &config,
         fVerbose = request.params[0].get_bool();
     }
 
-    return MempoolToJSON(EnsureMemPool(), fVerbose);
+    return MempoolToJSON(EnsureMemPool(request.context), fVerbose);
 }
 
 static UniValue getmempoolancestors(const Config &config,
@@ -635,7 +643,7 @@ static UniValue getmempoolancestors(const Config &config,
 
     TxId txid(ParseHashV(request.params[0], "parameter 1"));
 
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
     LOCK(mempool.cs);
 
     CTxMemPool::txiter it = mempool.mapTx.find(txid);
@@ -707,7 +715,7 @@ static UniValue getmempooldescendants(const Config &config,
 
     TxId txid(ParseHashV(request.params[0], "parameter 1"));
 
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
     LOCK(mempool.cs);
 
     CTxMemPool::txiter it = mempool.mapTx.find(txid);
@@ -759,7 +767,7 @@ static UniValue getmempoolentry(const Config &config,
 
     TxId txid(ParseHashV(request.params[0], "parameter 1"));
 
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
     LOCK(mempool.cs);
 
     CTxMemPool::txiter it = mempool.mapTx.find(txid);
@@ -1219,7 +1227,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     CCoinsViewCache *coins_view = &::ChainstateActive().CoinsTip();
 
     if (fMempool) {
-        const CTxMemPool &mempool = EnsureMemPool();
+        const CTxMemPool &mempool = EnsureMemPool(request.context);
         LOCK(mempool.cs);
         CCoinsViewMemPool view(coins_view, mempool);
         if (!view.GetCoin(out, coin) || mempool.isSpent(out)) {
@@ -1657,7 +1665,7 @@ static UniValue getmempoolinfo(const Config &config,
     }
         .Check(request);
 
-    return MempoolInfoToJSON(EnsureMemPool());
+    return MempoolInfoToJSON(EnsureMemPool(request.context));
 }
 
 static UniValue preciousblock(const Config &config,
@@ -2323,7 +2331,7 @@ static UniValue savemempool(const Config &config,
     }
         .Check(request);
 
-    const CTxMemPool &mempool = EnsureMemPool();
+    const CTxMemPool &mempool = EnsureMemPool(request.context);
 
     if (!mempool.IsLoaded()) {
         throw JSONRPCError(RPC_MISC_ERROR, "The mempool was not loaded yet");

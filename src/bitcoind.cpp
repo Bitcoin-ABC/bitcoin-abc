@@ -18,6 +18,7 @@
 #include <noui.h>
 #include <shutdown.h>
 #include <ui_interface.h>
+#include <util/ref.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/threadnames.h>
@@ -64,10 +65,14 @@ static bool AppInit(int argc, char *argv[]) {
     // not possible as the whole application has too many global state. However,
     // this is a first step.
     auto &config = const_cast<Config &>(GetConfig());
+
     RPCServer rpcServer;
-    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
     NodeContext node;
+    util::Ref context{node};
+
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
+
     bool fRet = false;
 
     util::ThreadSetInternalName("init");

@@ -141,7 +141,7 @@ TestingSetup::TestingSetup(const std::string &chainName)
     // We have to run a scheduler thread to prevent ActivateBestChain
     // from blocking due to queue overrun.
     threadGroup.create_thread([&] { m_node.scheduler->serviceQueue(); });
-    GetMainSignals().RegisterBackgroundSignalScheduler(*g_rpc_node->scheduler);
+    GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
 
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
     g_chainstate = std::make_unique<CChainState>();

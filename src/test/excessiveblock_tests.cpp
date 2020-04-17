@@ -4,6 +4,7 @@
 
 #include <consensus/consensus.h>
 #include <rpc/server.h>
+#include <util/ref.h>
 
 #include <test/util/setup_common.h>
 
@@ -13,9 +14,17 @@
 #include <limits>
 #include <string>
 
-extern UniValue CallRPC(std::string strMethod);
+extern UniValue CallRPC(const std::string &args, const util::Ref &context);
 
-BOOST_FIXTURE_TEST_SUITE(excessiveblock_tests, TestingSetup)
+class ExcessiveBlockTestingSetup : public TestingSetup {
+public:
+    UniValue CallRPC(const std::string &args) {
+        const util::Ref context{m_node};
+        return ::CallRPC(args, context);
+    }
+};
+
+BOOST_FIXTURE_TEST_SUITE(excessiveblock_tests, ExcessiveBlockTestingSetup)
 
 BOOST_AUTO_TEST_CASE(excessiveblock_rpc) {
     BOOST_CHECK_NO_THROW(CallRPC("getexcessiveblock"));
