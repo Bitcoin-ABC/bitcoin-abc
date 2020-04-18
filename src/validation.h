@@ -44,6 +44,7 @@ class CChainParams;
 class CChain;
 class CConnman;
 class CInv;
+class ChainstateManager;
 class Config;
 class CScriptCheck;
 class CTxMemPool;
@@ -780,9 +781,6 @@ public:
     //! Initialize the CCoinsViewCache member.
     void InitCache() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 };
-
-// Defined below, but needed for `friend` usage in CChainState.
-class ChainstateManager;
 
 /**
  * CChainState stores and provides an API to update our local knowledge of the
