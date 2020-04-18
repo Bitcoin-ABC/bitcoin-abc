@@ -2215,8 +2215,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.chainman = &g_chainman;
     ChainstateManager &chainman = EnsureChainman(node);
 
-    node.peer_logic.reset(new PeerLogicValidation(
-        node.connman.get(), node.banman.get(), *node.scheduler));
+    node.peer_logic.reset(
+        new PeerLogicValidation(node.connman.get(), node.banman.get(),
+                                *node.scheduler, *node.chainman));
     RegisterValidationInterface(node.peer_logic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size

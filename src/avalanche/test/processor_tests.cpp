@@ -78,7 +78,8 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_connman = connman.get();
         m_node.connman = std::move(connman);
         m_node.peer_logic = std::make_unique<PeerLogicValidation>(
-            m_connman, m_node.banman.get(), *m_node.scheduler);
+            m_connman, m_node.banman.get(), *m_node.scheduler,
+            *m_node.chainman);
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // The master private key we delegate to.

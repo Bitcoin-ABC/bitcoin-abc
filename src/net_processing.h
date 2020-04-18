@@ -14,6 +14,7 @@
 extern RecursiveMutex cs_main;
 extern RecursiveMutex g_cs_orphans;
 
+class ChainstateManager;
 class Config;
 
 /**
@@ -33,12 +34,13 @@ class PeerLogicValidation final : public CValidationInterface,
 private:
     CConnman *const connman;
     BanMan *const m_banman;
+    ChainstateManager &m_chainman;
 
     bool CheckIfBanned(CNode &pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 public:
     PeerLogicValidation(CConnman *connman, BanMan *banman,
-                        CScheduler &scheduler);
+                        CScheduler &scheduler, ChainstateManager &chainman);
 
     /**
      * Overridden from CValidationInterface.

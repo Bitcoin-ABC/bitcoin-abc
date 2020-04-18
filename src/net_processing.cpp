@@ -1346,8 +1346,10 @@ static bool BlockRequestAllowed(const CBlockIndex *pindex,
 }
 
 PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn, BanMan *banman,
-                                         CScheduler &scheduler)
-    : connman(connmanIn), m_banman(banman), m_stale_tip_check_time(0) {
+                                         CScheduler &scheduler,
+                                         ChainstateManager &chainman)
+    : connman(connmanIn), m_banman(banman), m_chainman(chainman),
+      m_stale_tip_check_time(0) {
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
@@ -2488,7 +2490,8 @@ static void ProcessGetCFCheckPt(CNode &pfrom, CDataStream &vRecv,
 
 bool ProcessMessage(const Config &config, CNode &pfrom,
                     const std::string &msg_type, CDataStream &vRecv,
-                    int64_t nTimeReceived, CConnman &connman, BanMan *banman,
+                    int64_t nTimeReceived, ChainstateManager &chainman,
+                    CConnman &connman, BanMan *banman,
                     const std::atomic<bool> &interruptMsgProc) {
     const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
@@ -3518,8 +3521,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
 
         if (fProcessBLOCKTXN) {
             return ProcessMessage(config, pfrom, NetMsgType::BLOCKTXN,
-                                  blockTxnMsg, nTimeReceived, connman, banman,
-                                  interruptMsgProc);
+                                  blockTxnMsg, nTimeReceived, chainman, connman,
+                                  banman, interruptMsgProc);
         }
 
         if (fRevertToHeaderProcessing) {
@@ -4329,7 +4332,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     bool fRet = false;
     try {
         fRet = ProcessMessage(config, *pfrom, msg_type, vRecv, msg.m_time,
-                              *connman, m_banman, interruptMsgProc);
+                              m_chainman, *connman, m_banman, interruptMsgProc);
         if (interruptMsgProc) {
             return false;
         }
