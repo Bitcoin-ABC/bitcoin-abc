@@ -85,9 +85,11 @@ class ToolWalletTest(BitcoinTestFramework):
         self.assert_raises_tool_error(
             'Error parsing command line arguments: Invalid parameter -foo', '-foo')
         self.assert_raises_tool_error(
-            'Error loading wallet.dat. Is wallet being used by other process?',
+            'Error initializing wallet database environment "{}"!\nError loading wallet.dat. Is wallet being used by other process?'
+            .format(os.path.join(self.nodes[0].datadir, self.chain, 'wallets')),
             '-wallet=wallet.dat',
-            'info')
+            'info',
+        )
         self.assert_raises_tool_error(
             'Error: no wallet file at nonexistent.dat',
             '-wallet=nonexistent.dat',
@@ -105,7 +107,7 @@ class ToolWalletTest(BitcoinTestFramework):
         #
         # self.log.debug('Setting wallet file permissions to 400 (read-only)')
         # os.chmod(self.wallet_path, stat.S_IRUSR)
-        # assert(self.wallet_permissions() in ['400', '666']) # Sanity check. 666 because Appveyor.
+        # assert self.wallet_permissions() in ['400', '666'] # Sanity check. 666 because Appveyor.
         # shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(
@@ -128,7 +130,7 @@ class ToolWalletTest(BitcoinTestFramework):
             'Setting wallet file permissions back to 600 (read/write)')
         os.chmod(self.wallet_path, stat.S_IRUSR | stat.S_IWUSR)
         # Sanity check. 666 because Appveyor.
-        assert(self.wallet_permissions() in ['600', '666'])
+        assert self.wallet_permissions() in ['600', '666']
         #
         # TODO: Wallet tool info should not write to the wallet file.
         # The following lines should be uncommented and the tests still succeed:
