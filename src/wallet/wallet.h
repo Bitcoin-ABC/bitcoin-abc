@@ -1054,7 +1054,7 @@ public:
      * CreateTransaction();
      */
     bool FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
-                         int &nChangePosInOut, std::string &strFailReason,
+                         int &nChangePosInOut, bilingual_str &error,
                          bool lockUnspents,
                          const std::set<int> &setSubtractFeeFromOutputs,
                          CCoinControl coinControl);
@@ -1070,7 +1070,7 @@ public:
     bool CreateTransaction(interfaces::Chain::Lock &locked_chain,
                            const std::vector<CRecipient> &vecSend,
                            CTransactionRef &tx, Amount &nFeeRet,
-                           int &nChangePosInOut, std::string &strFailReason,
+                           int &nChangePosInOut, bilingual_str &error,
                            const CCoinControl &coin_control, bool sign = true);
     /**
      * Submit the transaction to the node's mempool and then relay to peers.

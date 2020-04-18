@@ -9,6 +9,7 @@
 #include <node/context.h>
 #include <policy/policy.h>
 #include <rpc/server.h>
+#include <util/translation.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/rpcdump.h>
@@ -521,7 +522,7 @@ public:
         CTransactionRef tx;
         Amount fee;
         int changePos = -1;
-        std::string error;
+        bilingual_str error;
         CCoinControl dummy;
         {
             auto locked_chain = m_chain->lock();

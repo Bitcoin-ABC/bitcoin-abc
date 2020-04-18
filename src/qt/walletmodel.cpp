@@ -15,6 +15,7 @@
 #include <qt/transactiontablemodel.h>
 #include <ui_interface.h>
 #include <util/system.h> // for GetBoolArg
+#include <util/translation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
 
@@ -197,12 +198,11 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
     Amount nFeeRequired = Amount::zero();
     int nChangePosRet = -1;
-    std::string strFailReason;
+    bilingual_str error;
 
     auto &newTx = transaction.getWtx();
-    newTx =
-        m_wallet->createTransaction(vecSend, coinControl, true /* sign */,
-                                    nChangePosRet, nFeeRequired, strFailReason);
+    newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */,
+                                        nChangePosRet, nFeeRequired, error);
     transaction.setTransactionFee(nFeeRequired);
     if (fSubtractFeeFromAmount && newTx) {
         transaction.reassignAmounts(nChangePosRet);
@@ -212,7 +212,8 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         if (!fSubtractFeeFromAmount && (total + nFeeRequired) > nBalance) {
             return SendCoinsReturn(AmountWithFeeExceedsBalance);
         }
-        Q_EMIT message(tr("Send Coins"), QString::fromStdString(strFailReason),
+        Q_EMIT message(tr("Send Coins"),
+                       QString::fromStdString(error.translated),
                        CClientUIInterface::MSG_ERROR);
         return TransactionCreationFailed;
     }

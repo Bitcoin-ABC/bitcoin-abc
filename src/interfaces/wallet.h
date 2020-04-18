@@ -35,6 +35,7 @@ typedef uint8_t isminefilter;
 enum class OutputType;
 struct CRecipient;
 struct TxId;
+struct bilingual_str;
 
 namespace interfaces {
 
@@ -156,7 +157,7 @@ public:
     createTransaction(const std::vector<CRecipient> &recipients,
                       const CCoinControl &coin_control, bool sign,
                       int &change_pos, Amount &fee,
-                      std::string &fail_reason) = 0;
+                      bilingual_str &fail_reason) = 0;
 
     //! Commit transaction.
     virtual void commitTransaction(CTransactionRef tx, WalletValueMap value_map,

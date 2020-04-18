@@ -16,7 +16,6 @@
 #include <key_io.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
-#include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <random.h>
 #include <script/descriptor.h>
@@ -2736,7 +2735,7 @@ bool CWallet::SignTransaction(CMutableTransaction &tx) {
 }
 
 bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
-                              int &nChangePosInOut, std::string &strFailReason,
+                              int &nChangePosInOut, bilingual_str &error,
                               bool lockUnspents,
                               const std::set<int> &setSubtractFeeFromOutputs,
                               CCoinControl coinControl) {
@@ -2763,8 +2762,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
 
     CTransactionRef tx_new;
     if (!CreateTransaction(*locked_chain, vecSend, tx_new, nFeeRet,
-                           nChangePosInOut, strFailReason, coinControl,
-                           false)) {
+                           nChangePosInOut, error, coinControl, false)) {
         return false;
     }
 
@@ -2879,8 +2877,7 @@ CWallet::TransactionChangeType(OutputType change_type,
 bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                                 const std::vector<CRecipient> &vecSend,
                                 CTransactionRef &tx, Amount &nFeeRet,
-                                int &nChangePosInOut,
-                                std::string &strFailReason,
+                                int &nChangePosInOut, bilingual_str &error,
                                 const CCoinControl &coinControl, bool sign) {
     Amount nValue = Amount::zero();
     const OutputType change_type = TransactionChangeType(
@@ -2892,8 +2889,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto &recipient : vecSend) {
         if (nValue < Amount::zero() || recipient.nAmount < Amount::zero()) {
-            strFailReason =
-                _("Transaction amounts must not be negative").translated;
+            error = _("Transaction amounts must not be negative");
             return false;
         }
 
@@ -2905,8 +2901,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
     }
 
     if (vecSend.empty()) {
-        strFailReason =
-            _("Transaction must have at least one recipient").translated;
+        error = _("Transaction must have at least one recipient");
         return false;
     }
 
@@ -2946,18 +2941,14 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 
             // Reserve a new key pair from key pool
             if (!CanGetAddresses(true)) {
-                strFailReason =
-                    _("Can't generate a change-address key. No keys in the "
-                      "internal keypool and can't generate any keys.")
-                        .translated;
+                error = _("Can't generate a change-address key. No keys in the "
+                          "internal keypool and can't generate any keys.");
                 return false;
             }
             CTxDestination dest;
             bool ret = reservedest.GetReservedDestination(dest, true);
             if (!ret) {
-                strFailReason =
-                    _("Keypool ran out, please call keypoolrefill first")
-                        .translated;
+                error = _("Keypool ran out, please call keypoolrefill first");
                 return false;
             }
 
@@ -3027,18 +3018,14 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                     if (recipient.fSubtractFeeFromAmount &&
                         nFeeRet > Amount::zero()) {
                         if (txout.nValue < Amount::zero()) {
-                            strFailReason = _("The transaction amount is too "
-                                              "small to pay the fee")
-                                                .translated;
+                            error = _("The transaction amount is too small to "
+                                      "pay the fee");
                         } else {
-                            strFailReason =
-                                _("The transaction amount is too small to "
-                                  "send after the fee has been deducted")
-                                    .translated;
+                            error = _("The transaction amount is too small to "
+                                      "send after the fee has been deducted");
                         }
                     } else {
-                        strFailReason =
-                            _("Transaction amount too small").translated;
+                        error = _("Transaction amount too small");
                     }
 
                     return false;
@@ -3065,7 +3052,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                         coin_selection_params.use_bnb = false;
                         continue;
                     } else {
-                        strFailReason = _("Insufficient funds").translated;
+                        error = _("Insufficient funds");
                         return false;
                     }
                 }
@@ -3090,8 +3077,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                         nChangePosInOut = GetRandInt(txNew.vout.size() + 1);
                     } else if ((unsigned int)nChangePosInOut >
                                txNew.vout.size()) {
-                        strFailReason =
-                            _("Change index out of range").translated;
+                        error = _("Change index out of range");
                         return false;
                     }
 
@@ -3113,7 +3099,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
             int nBytes = CalculateMaximumSignedTxSize(
                 txNewConst, this, coinControl.fAllowWatchOnly);
             if (nBytes < 0) {
-                strFailReason = _("Signing transaction failed").translated;
+                error = _("Signing transaction failed");
                 return false;
             }
 
@@ -3165,9 +3151,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                 // to pay for the new output and still meet nFeeNeeded.
                 // Or we should have just subtracted fee from recipients and
                 // nFeeNeeded should not have changed.
-                strFailReason =
-                    _("Transaction fee and change calculation failed")
-                        .translated;
+                error = _("Transaction fee and change calculation failed");
                 return false;
             }
 
@@ -3230,7 +3214,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                         MutableTransactionSignatureCreator(
                             &txNew, nIn, coin.txout.nValue, sigHashType),
                         scriptPubKey, sigdata)) {
-                    strFailReason = _("Signing transaction failed").translated;
+                    error = _("Signing transaction failed");
                     return false;
                 }
 
@@ -3244,14 +3228,14 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 
         // Limit size.
         if (tx->GetTotalSize() > MAX_STANDARD_TX_SIZE) {
-            strFailReason = _("Transaction too large").translated;
+            error = _("Transaction too large");
             return false;
         }
     }
 
     if (nFeeRet > m_default_max_tx_fee) {
-        strFailReason =
-            TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
+        error = Untranslated(
+            TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED));
         return false;
     }
 
@@ -3259,8 +3243,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                          DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
         // Lastly, ensure this tx will pass the mempool's chain limits
         if (!chain().checkChainLimits(tx)) {
-            strFailReason =
-                _("Transaction has too long of a mempool chain").translated;
+            error = _("Transaction has too long of a mempool chain");
             return false;
         }
     }

@@ -377,7 +377,7 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
 
     // Create and send the transaction
     Amount nFeeRequired;
-    std::string strError;
+    bilingual_str error;
     std::vector<CRecipient> vecSend;
     int nChangePosRet = -1;
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
@@ -386,13 +386,13 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     CCoinControl coinControl;
     CTransactionRef tx;
     if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, nFeeRequired,
-                                    nChangePosRet, strError, coinControl)) {
+                                    nChangePosRet, error, coinControl)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
-            strError = strprintf("Error: This transaction requires a "
-                                 "transaction fee of at least %s",
-                                 FormatMoney(nFeeRequired));
+            error = strprintf(Untranslated("Error: This transaction requires a "
+                                           "transaction fee of at least %s"),
+                              FormatMoney(nFeeRequired));
         }
-        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+        throw JSONRPCError(RPC_WALLET_ERROR, error.original);
     }
     pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */);
     return tx;
@@ -1065,14 +1065,14 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     // Send
     Amount nFeeRequired = Amount::zero();
     int nChangePosRet = -1;
-    std::string strFailReason;
+    bilingual_str error;
     CTransactionRef tx;
     CCoinControl coinControl;
     bool fCreated =
         pwallet->CreateTransaction(*locked_chain, vecSend, tx, nFeeRequired,
-                                   nChangePosRet, strFailReason, coinControl);
+                                   nChangePosRet, error, coinControl);
     if (!fCreated) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
     }
     pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */);
     return tx->GetId().GetHex();
@@ -3670,12 +3670,12 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
         setSubtractFeeFromOutputs.insert(pos);
     }
 
-    std::string strFailReason;
+    bilingual_str error;
 
-    if (!pwallet->FundTransaction(tx, fee_out, change_position, strFailReason,
+    if (!pwallet->FundTransaction(tx, fee_out, change_position, error,
                                   lockUnspents, setSubtractFeeFromOutputs,
                                   coinControl)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
+        throw JSONRPCError(RPC_WALLET_ERROR, error.original);
     }
 }
 

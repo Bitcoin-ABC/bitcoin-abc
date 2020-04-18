@@ -235,7 +235,7 @@ namespace {
         createTransaction(const std::vector<CRecipient> &recipients,
                           const CCoinControl &coin_control, bool sign,
                           int &change_pos, Amount &fee,
-                          std::string &fail_reason) override {
+                          bilingual_str &fail_reason) override {
             auto locked_chain = m_wallet->chain().lock();
             LOCK(m_wallet->cs_wallet);
             CTransactionRef tx;
