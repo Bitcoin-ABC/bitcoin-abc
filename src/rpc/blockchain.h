@@ -11,6 +11,7 @@
 
 class CBlock;
 class CBlockIndex;
+class ChainstateManager;
 class Config;
 class CTxMemPool;
 class JSONRPCRequest;
@@ -52,5 +53,6 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
 
 NodeContext &EnsureNodeContext(const util::Ref &context);
 CTxMemPool &EnsureMemPool(const util::Ref &context);
+ChainstateManager &EnsureChainman(const util::Ref &context);
 
 #endif // BITCOIN_RPC_BLOCKCHAIN_H

@@ -1945,6 +1945,7 @@ inline static void SendBlockTransactions(const CBlock &block,
 
 static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
                                   CConnman &connman,
+                                  ChainstateManager &chainman,
                                   const std::vector<CBlockHeader> &headers,
                                   bool via_compact_block) {
     const CChainParams &chainparams = config.GetChainParams();
@@ -2016,7 +2017,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
     }
 
     BlockValidationState state;
-    if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast)) {
+    if (!chainman.ProcessNewBlockHeaders(config, headers, state, &pindexLast)) {
         if (state.IsInvalid()) {
             MaybePunishNodeForBlock(pfrom.GetId(), state, via_compact_block,
                                     "invalid header received");
@@ -3339,8 +3340,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
 
         const CBlockIndex *pindex = nullptr;
         BlockValidationState state;
-        if (!ProcessNewBlockHeaders(config, {cmpctblock.header}, state,
-                                    &pindex)) {
+        if (!chainman.ProcessNewBlockHeaders(config, {cmpctblock.header}, state,
+                                             &pindex)) {
             if (state.IsInvalid()) {
                 MaybePunishNodeForBlock(pfrom.GetId(), state,
                                         /*via_compact_block*/ true,
@@ -3531,7 +3532,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             // disconnect the peer if the header turns out to be for an invalid
             // block. Note that if a peer tries to build on an invalid chain,
             // that will be detected and the peer will be banned.
-            return ProcessHeadersMessage(config, pfrom, connman,
+            return ProcessHeadersMessage(config, pfrom, connman, chainman,
                                          {cmpctblock.header},
                                          /*via_compact_block=*/true);
         }
@@ -3554,8 +3555,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             // we have a chain with at least nMinimumChainWork), and we ignore
             // compact blocks with less work than our tip, it is safe to treat
             // reconstructed compact blocks as having been requested.
-            ProcessNewBlock(config, pblock, /*fForceProcessing=*/true,
-                            &fNewBlock);
+            chainman.ProcessNewBlock(config, pblock, /*fForceProcessing=*/true,
+                                     &fNewBlock);
             if (fNewBlock) {
                 pfrom.nLastBlockTime = GetTime();
             } else {
@@ -3664,8 +3665,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             // disk-space attacks), but this should be safe due to the
             // protections in the compact block handler -- see related comment
             // in compact block optimistic reconstruction handling.
-            ProcessNewBlock(config, pblock, /*fForceProcessing=*/true,
-                            &fNewBlock);
+            chainman.ProcessNewBlock(config, pblock, /*fForceProcessing=*/true,
+                                     &fNewBlock);
             if (fNewBlock) {
                 pfrom.nLastBlockTime = GetTime();
             } else {
@@ -3702,7 +3703,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             ReadCompactSize(vRecv);
         }
 
-        return ProcessHeadersMessage(config, pfrom, connman, headers,
+        return ProcessHeadersMessage(config, pfrom, connman, chainman, headers,
                                      /*via_compact_block=*/false);
     }
 
@@ -3739,7 +3740,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             mapBlockSource.emplace(hash, std::make_pair(pfrom.GetId(), true));
         }
         bool fNewBlock = false;
-        ProcessNewBlock(config, pblock, forceProcessing, &fNewBlock);
+        chainman.ProcessNewBlock(config, pblock, forceProcessing, &fNewBlock);
         if (fNewBlock) {
             pfrom.nLastBlockTime = GetTime();
         } else {

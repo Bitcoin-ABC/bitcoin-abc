@@ -36,7 +36,8 @@ CTxIn MineBlock(const Config &config, const NodeContext &node,
         assert(block->nNonce);
     }
 
-    bool processed{ProcessNewBlock(config, block, true, nullptr)};
+    bool processed{
+        EnsureChainman(node).ProcessNewBlock(config, block, true, nullptr)};
     assert(processed);
 
     return CTxIn{block->vtx[0]->GetId(), 0};

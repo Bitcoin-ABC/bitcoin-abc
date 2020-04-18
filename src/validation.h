@@ -274,52 +274,6 @@ public:
 };
 
 /**
- * Process an incoming block. This only returns after the best known valid
- * block is made active. Note that it does not, however, guarantee that the
- * specific block passed to it has been checked for validity!
- *
- * If you want to *possibly* get feedback on whether pblock is valid, you must
- * install a CValidationInterface (see validationinterface.h) - this will have
- * its BlockChecked method called whenever *any* block completes validation.
- *
- * Note that we guarantee that either the proof-of-work is valid on pblock, or
- * (and possibly also) BlockChecked will have been called.
- *
- * May not be called in a validationinterface callback.
- *
- * @param[in]   config  The global config.
- * @param[in]   pblock  The block we want to process.
- * @param[in]   fForceProcessing Process this block even if unrequested; used
- * for non-network block sources and whitelisted peers.
- * @param[out]  fNewBlock A boolean which is set to indicate if the block was
- *                        first received via this call.
- * @returns     If the block was processed, independently of block validity
- */
-bool ProcessNewBlock(const Config &config,
-                     const std::shared_ptr<const CBlock> pblock,
-                     bool fForceProcessing, bool *fNewBlock)
-    LOCKS_EXCLUDED(cs_main);
-
-/**
- * Process incoming block headers.
- *
- * May not be called in a validationinterface callback.
- *
- * @param[in]  config        The config.
- * @param[in]  block         The block headers themselves.
- * @param[out] state         This may be set to an Error state if any error
- *                           occurred processing them.
- * @param[out] ppindex       If set, the pointer will be set to point to the
- *                           last new block index object for the given headers.
- * @return True if block headers were accepted as valid.
- */
-bool ProcessNewBlockHeaders(const Config &config,
-                            const std::vector<CBlockHeader> &block,
-                            BlockValidationState &state,
-                            const CBlockIndex **ppindex = nullptr)
-    LOCKS_EXCLUDED(cs_main);
-
-/**
  * Import blocks from an external file.
  */
 bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
@@ -1210,6 +1164,54 @@ public:
 
     CChain &ValidatedChain() const { return ValidatedChainstate().m_chain; }
     CBlockIndex *ValidatedTip() const { return ValidatedChain().Tip(); }
+
+    /**
+     * Process an incoming block. This only returns after the best known valid
+     * block is made active. Note that it does not, however, guarantee that the
+     * specific block passed to it has been checked for validity!
+     *
+     * If you want to *possibly* get feedback on whether pblock is valid, you
+     * must install a CValidationInterface (see validationinterface.h) - this
+     * will have its BlockChecked method called whenever *any* block completes
+     * validation.
+     *
+     * Note that we guarantee that either the proof-of-work is valid on pblock,
+     * or (and possibly also) BlockChecked will have been called.
+     *
+     * May not be called in a validationinterface callback.
+     *
+     * @param[in]   config  The global config.
+     * @param[in]   pblock  The block we want to process.
+     * @param[in]   fForceProcessing Process this block even if unrequested;
+     * used for non-network block sources and whitelisted peers.
+     * @param[out]  fNewBlock A boolean which is set to indicate if the block
+     * was first received via this call.
+     * @returns     If the block was processed, independently of block validity
+     */
+    bool ProcessNewBlock(const Config &config,
+                         const std::shared_ptr<const CBlock> pblock,
+                         bool fForceProcessing, bool *fNewBlock)
+        LOCKS_EXCLUDED(cs_main);
+
+    /**
+     * Process incoming block headers.
+     *
+     * May not be called in a validationinterface callback.
+     *
+     * @param[in]  config        The config.
+     * @param[in]  block         The block headers themselves.
+     * @param[out] state         This may be set to an Error state if any error
+     *                           occurred processing them.
+     * @param[out] ppindex       If set, the pointer will be set to point to the
+     *                           last new block index object for the given
+     * headers.
+     * @return True if block headers were accepted as valid.
+     */
+    bool ProcessNewBlockHeaders(const Config &config,
+                                const std::vector<CBlockHeader> &block,
+                                BlockValidationState &state,
+                                const CBlockIndex **ppindex = nullptr)
+        LOCKS_EXCLUDED(cs_main);
 
     //! Mark one block file as pruned (modify associated database entries)
     void PruneOneBlockFile(const int fileNumber)

@@ -103,7 +103,8 @@ bool BuildChainTestingSetup::BuildChain(
         CBlockHeader header = block->GetBlockHeader();
 
         BlockValidationState state;
-        if (!ProcessNewBlockHeaders(GetConfig(), {header}, state, &pindex)) {
+        if (!EnsureChainman(m_node).ProcessNewBlockHeaders(
+                GetConfig(), {header}, state, &pindex)) {
             return false;
         }
     }
@@ -189,7 +190,8 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
     uint256 chainA_last_header = last_header;
     for (size_t i = 0; i < 2; i++) {
         const auto &block = chainA[i];
-        BOOST_REQUIRE(ProcessNewBlock(GetConfig(), block, true, nullptr));
+        BOOST_REQUIRE(EnsureChainman(m_node).ProcessNewBlock(GetConfig(), block,
+                                                             true, nullptr));
     }
     for (size_t i = 0; i < 2; i++) {
         const auto &block = chainA[i];
@@ -207,7 +209,8 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
     uint256 chainB_last_header = last_header;
     for (size_t i = 0; i < 3; i++) {
         const auto &block = chainB[i];
-        BOOST_REQUIRE(ProcessNewBlock(GetConfig(), block, true, nullptr));
+        BOOST_REQUIRE(EnsureChainman(m_node).ProcessNewBlock(GetConfig(), block,
+                                                             true, nullptr));
     }
     for (size_t i = 0; i < 3; i++) {
         const auto &block = chainB[i];
@@ -238,7 +241,8 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
     // Reorg back to chain A.
     for (size_t i = 2; i < 4; i++) {
         const auto &block = chainA[i];
-        BOOST_REQUIRE(ProcessNewBlock(GetConfig(), block, true, nullptr));
+        BOOST_REQUIRE(EnsureChainman(m_node).ProcessNewBlock(GetConfig(), block,
+                                                             true, nullptr));
     }
 
     // Check that chain A and B blocks can be retrieved.

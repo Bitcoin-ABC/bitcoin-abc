@@ -186,10 +186,11 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
         [](std::shared_ptr<const CBlock> b) { return b->GetBlockHeader(); });
 
     // Process all the headers so we understand the toplogy of the chain
-    BOOST_CHECK(ProcessNewBlockHeaders(config, headers, state));
+    BOOST_CHECK(
+        EnsureChainman(m_node).ProcessNewBlockHeaders(config, headers, state));
 
     // Connect the genesis block and drain any outstanding events
-    BOOST_CHECK(ProcessNewBlock(
+    BOOST_CHECK(EnsureChainman(m_node).ProcessNewBlock(
         config, std::make_shared<CBlock>(chainParams.GenesisBlock()), true,
         &ignored));
     SyncWithValidationInterfaceQueue();
@@ -209,20 +210,21 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     // validation and assert on ordering invariance
     std::vector<std::thread> threads;
     for (int i = 0; i < 10; i++) {
-        threads.emplace_back([&config, &blocks]() {
+        threads.emplace_back([&]() {
             bool tlignored;
             FastRandomContext insecure;
             for (int j = 0; j < 1000; j++) {
                 auto block = blocks[insecure.randrange(blocks.size() - 1)];
-                ProcessNewBlock(config, block, true, &tlignored);
+                EnsureChainman(m_node).ProcessNewBlock(config, block, true,
+                                                       &tlignored);
             }
 
             // to make sure that eventually we process the full chain - do it
             // here
             for (auto block : blocks) {
                 if (block->vtx.size() == 1) {
-                    bool processed =
-                        ProcessNewBlock(config, block, true, &tlignored);
+                    bool processed = EnsureChainman(m_node).ProcessNewBlock(
+                        config, block, true, &tlignored);
                     assert(processed);
                 }
             }
@@ -266,10 +268,10 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
     const CChainParams &chainParams = config.GetChainParams();
 
     bool ignored;
-    auto ProcessBlock = [&ignored,
-                         &config](std::shared_ptr<const CBlock> block) -> bool {
-        return ProcessNewBlock(config, block, /* fForceProcessing */ true,
-                               /* fNewBlock */ &ignored);
+    auto ProcessBlock = [&](std::shared_ptr<const CBlock> block) -> bool {
+        return EnsureChainman(m_node).ProcessNewBlock(
+            config, block, /* fForceProcessing */ true,
+            /* fNewBlock */ &ignored);
     };
 
     // Process all mined blocks

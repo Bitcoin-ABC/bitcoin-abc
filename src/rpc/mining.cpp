@@ -116,9 +116,9 @@ static UniValue getnetworkhashps(const Config &config,
         !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-static bool GenerateBlock(const Config &config, CBlock &block,
-                          uint64_t &max_tries, unsigned int &extra_nonce,
-                          BlockHash &block_hash) {
+static bool GenerateBlock(const Config &config, ChainstateManager &chainman,
+                          CBlock &block, uint64_t &max_tries,
+                          unsigned int &extra_nonce, BlockHash &block_hash) {
     block_hash.SetNull();
     const uint64_t nExcessiveBlockSize = config.GetMaxBlockSize();
 
@@ -146,7 +146,7 @@ static bool GenerateBlock(const Config &config, CBlock &block,
 
     std::shared_ptr<const CBlock> shared_pblock =
         std::make_shared<const CBlock>(block);
-    if (!ProcessNewBlock(config, shared_pblock, true, nullptr)) {
+    if (!chainman.ProcessNewBlock(config, shared_pblock, true, nullptr)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR,
                            "ProcessNewBlock, block not accepted");
     }
@@ -155,7 +155,9 @@ static bool GenerateBlock(const Config &config, CBlock &block,
     return true;
 }
 
-static UniValue generateBlocks(const Config &config, const CTxMemPool &mempool,
+static UniValue generateBlocks(const Config &config,
+                               ChainstateManager &chainman,
+                               const CTxMemPool &mempool,
                                const CScript &coinbase_script, int nGenerate,
                                uint64_t nMaxTries) {
     int nHeightEnd = 0;
@@ -181,7 +183,7 @@ static UniValue generateBlocks(const Config &config, const CTxMemPool &mempool,
         CBlock *pblock = &pblocktemplate->block;
 
         BlockHash block_hash;
-        if (!GenerateBlock(config, *pblock, nMaxTries, nExtraNonce,
+        if (!GenerateBlock(config, chainman, *pblock, nMaxTries, nExtraNonce,
                            block_hash)) {
             break;
         }
@@ -268,9 +270,10 @@ static UniValue generatetodescriptor(const Config &config,
     }
 
     const CTxMemPool &mempool = EnsureMemPool(request.context);
+    ChainstateManager &chainman = EnsureChainman(request.context);
 
-    return generateBlocks(config, mempool, coinbase_script, num_blocks,
-                          max_tries);
+    return generateBlocks(config, chainman, mempool, coinbase_script,
+                          num_blocks, max_tries);
 }
 
 static UniValue generatetoaddress(const Config &config,
@@ -316,10 +319,11 @@ static UniValue generatetoaddress(const Config &config,
     }
 
     const CTxMemPool &mempool = EnsureMemPool(request.context);
+    ChainstateManager &chainman = EnsureChainman(request.context);
 
     CScript coinbase_script = GetScriptForDestination(destination);
 
-    return generateBlocks(config, mempool, coinbase_script, nGenerate,
+    return generateBlocks(config, chainman, mempool, coinbase_script, nGenerate,
                           nMaxTries);
 }
 
@@ -444,7 +448,8 @@ static UniValue generateblock(const Config &config,
     uint64_t max_tries{1000000};
     unsigned int extra_nonce{0};
 
-    if (!GenerateBlock(config, block, max_tries, extra_nonce, block_hash) ||
+    if (!GenerateBlock(config, EnsureChainman(request.context), block,
+                       max_tries, extra_nonce, block_hash) ||
         block_hash.IsNull()) {
         throw JSONRPCError(RPC_MISC_ERROR, "Failed to make block.");
     }
@@ -1059,8 +1064,9 @@ static UniValue submitblock(const Config &config,
     submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
     bool accepted =
-        ProcessNewBlock(config, blockptr, /* fForceProcessing */ true,
-                        /* fNewBlock */ &new_block);
+        EnsureChainman(request.context)
+            .ProcessNewBlock(config, blockptr, /* fForceProcessing */ true,
+                             /* fNewBlock */ &new_block);
     // We are only interested in BlockChecked which will have been dispatched
     // in-thread, so no need to sync before unregistering.
     UnregisterValidationInterface(&sc);
@@ -1110,7 +1116,7 @@ static UniValue submitheader(const Config &config,
     }
 
     BlockValidationState state;
-    ProcessNewBlockHeaders(config, {h}, state);
+    EnsureChainman(request.context).ProcessNewBlockHeaders(config, {h}, state);
     if (state.IsValid()) {
         return NullUniValue;
     }

@@ -3995,17 +3995,17 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
 }
 
 // Exposed wrapper for AcceptBlockHeader
-bool ProcessNewBlockHeaders(const Config &config,
-                            const std::vector<CBlockHeader> &headers,
-                            BlockValidationState &state,
-                            const CBlockIndex **ppindex) {
+bool ChainstateManager::ProcessNewBlockHeaders(
+    const Config &config, const std::vector<CBlockHeader> &headers,
+    BlockValidationState &state, const CBlockIndex **ppindex) {
+    AssertLockNotHeld(cs_main);
     {
         LOCK(cs_main);
         for (const CBlockHeader &header : headers) {
             // Use a temp pindex instead of ppindex to avoid a const_cast
             CBlockIndex *pindex = nullptr;
-            bool accepted = g_chainman.m_blockman.AcceptBlockHeader(
-                config, header, state, &pindex);
+            bool accepted =
+                m_blockman.AcceptBlockHeader(config, header, state, &pindex);
             ::ChainstateActive().CheckBlockIndex(
                 config.GetChainParams().GetConsensus());
 
@@ -4229,9 +4229,9 @@ bool CChainState::AcceptBlock(const Config &config,
     return true;
 }
 
-bool ProcessNewBlock(const Config &config,
-                     const std::shared_ptr<const CBlock> pblock,
-                     bool fForceProcessing, bool *fNewBlock) {
+bool ChainstateManager::ProcessNewBlock(
+    const Config &config, const std::shared_ptr<const CBlock> pblock,
+    bool fForceProcessing, bool *fNewBlock) {
     AssertLockNotHeld(cs_main);
 
     {
