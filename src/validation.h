@@ -1229,6 +1229,10 @@ public:
     void Reset();
 };
 
+/**
+ * DEPRECATED! Please use node.chainman instead. May only be used in
+ * validation.cpp internally
+ */
 extern ChainstateManager g_chainman GUARDED_BY(::cs_main);
 
 /** @returns the most-work valid chainstate. */
