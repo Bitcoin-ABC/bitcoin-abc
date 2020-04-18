@@ -2488,7 +2488,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // Note that it also sets fReindex based on the disk flag!
                 // From here on out fReindex and fReset mean something
                 // different!
-                if (!LoadBlockIndex(params)) {
+                if (!chainman.LoadBlockIndex(params)) {
                     if (ShutdownRequested()) {
                         break;
                     }

@@ -4613,9 +4613,10 @@ void BlockManager::Unload() {
     m_block_index.clear();
 }
 
-static bool LoadBlockIndexDB(const Consensus::Params &params)
+static bool LoadBlockIndexDB(ChainstateManager &chainman,
+                             const Consensus::Params &params)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    if (!g_chainman.m_blockman.LoadBlockIndex(
+    if (!chainman.m_blockman.LoadBlockIndex(
             params, *pblocktree,
             ::ChainstateActive().setBlockIndexCandidates)) {
         return false;
@@ -4628,10 +4629,8 @@ static bool LoadBlockIndexDB(const Consensus::Params &params)
     for (int nFile = 0; nFile <= nLastBlockFile; nFile++) {
         pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
     }
-
     LogPrintf("%s: last block file info: %s\n", __func__,
               vinfoBlockFile[nLastBlockFile].ToString());
-
     for (int nFile = nLastBlockFile + 1; true; nFile++) {
         CBlockFileInfo info;
         if (pblocktree->ReadBlockFileInfo(nFile, info)) {
@@ -4645,7 +4644,7 @@ static bool LoadBlockIndexDB(const Consensus::Params &params)
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
     for (const std::pair<const BlockHash, CBlockIndex *> &item :
-         g_chainman.BlockIndex()) {
+         chainman.BlockIndex()) {
         CBlockIndex *pindex = item.second;
         if (pindex->nStatus.hasData()) {
             setBlkDataFiles.insert(pindex->nFile);
@@ -5036,16 +5035,17 @@ void UnloadBlockIndex() {
     fHavePruned = false;
 }
 
-bool LoadBlockIndex(const Consensus::Params &params) {
+bool ChainstateManager::LoadBlockIndex(const Consensus::Params &params) {
+    AssertLockHeld(cs_main);
     // Load block index from databases
     bool needs_init = fReindex;
     if (!fReindex) {
-        bool ret = LoadBlockIndexDB(params);
+        bool ret = LoadBlockIndexDB(*this, params);
         if (!ret) {
             return false;
         }
 
-        needs_init = g_chainman.m_blockman.m_block_index.empty();
+        needs_init = m_blockman.m_block_index.empty();
     }
 
     if (needs_init) {
