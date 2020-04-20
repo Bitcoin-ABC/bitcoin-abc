@@ -77,7 +77,7 @@ fi
 
 # Fetch and checkout latest changes, bailing if the branch isn't an ancestor of the remote branch.
 REMOTE_AND_BRANCH="${REMOTE}/${BRANCH}"
-git fetch "${REMOTE}" "${BRANCH}:${REMOTE_AND_BRANCH}"
+git fetch "${REMOTE}" "${BRANCH}"
 git checkout "${BRANCH}"
 git merge-base --is-ancestor "${BRANCH}" "${REMOTE_AND_BRANCH}" || {
   echo "Error: Branch '${BRANCH}' is not an ancestor of '${REMOTE_AND_BRANCH}'"
