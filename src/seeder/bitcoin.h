@@ -75,7 +75,4 @@ public:
     int GetStartingHeight() { return nStartingHeight; }
 };
 
-bool TestNode(const CService &cip, int &ban, int &client, std::string &clientSV,
-              int &blocks, std::vector<CAddress> *vAddr);
-
 #endif // BITCOIN_SEEDER_BITCOIN_H

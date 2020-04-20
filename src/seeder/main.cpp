@@ -190,9 +190,24 @@ extern "C" void *ThreadCrawler(void *data) {
             res.nHeight = 0;
             res.strClientV = "";
             bool getaddr = res.ourLastSuccess + 86400 < now;
-            res.fGood = TestNode(res.service, res.nBanTime, res.nClientV,
-                                 res.strClientV, res.nHeight,
-                                 getaddr ? &addr : nullptr);
+            try {
+                CSeederNode node(res.service, getaddr ? &addr : nullptr);
+                bool ret = node.Run();
+                if (!ret) {
+                    res.nBanTime = node.GetBan();
+                } else {
+                    res.nBanTime = 0;
+                }
+                res.nClientV = node.GetClientVersion();
+                res.strClientV = node.GetClientSubVersion();
+                res.nHeight = node.GetStartingHeight();
+                // tfm::format(std::cout, "%s: %s!!!\n", cip.ToString().c_str(),
+                // ret ? "GOOD" : "BAD");
+                res.fGood = ret;
+            } catch (std::ios_base::failure &e) {
+                res.nBanTime = 0;
+                res.fGood = false;
+            }
         }
 
         db.ResultMany(ips);

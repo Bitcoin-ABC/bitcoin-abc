@@ -327,26 +327,3 @@ bool CSeederNode::Run() {
     sock = INVALID_SOCKET;
     return (ban == 0) && res;
 }
-
-bool TestNode(const CService &cip, int &ban, int &clientV,
-              std::string &clientSV, int &blocks,
-              std::vector<CAddress> *vAddr) {
-    try {
-        CSeederNode node(cip, vAddr);
-        bool ret = node.Run();
-        if (!ret) {
-            ban = node.GetBan();
-        } else {
-            ban = 0;
-        }
-        clientV = node.GetClientVersion();
-        clientSV = node.GetClientSubVersion();
-        blocks = node.GetStartingHeight();
-        // tfm::format(std::cout, "%s: %s!!!\n", cip.ToString().c_str(), ret ?
-        // "GOOD" : "BAD");
-        return ret;
-    } catch (std::ios_base::failure &e) {
-        ban = 0;
-        return false;
-    }
-}
