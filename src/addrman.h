@@ -22,9 +22,9 @@
 
 #include <cstdint>
 #include <iostream>
-#include <map>
 #include <optional>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 /**
@@ -227,10 +227,10 @@ private:
     int nIdCount GUARDED_BY(cs);
 
     //! table with information about all nIds
-    std::map<int, CAddrInfo> mapInfo GUARDED_BY(cs);
+    std::unordered_map<int, CAddrInfo> mapInfo GUARDED_BY(cs);
 
     //! find an nId based on its network address
-    std::map<CNetAddr, int> mapAddr GUARDED_BY(cs);
+    std::unordered_map<CNetAddr, int, CNetAddrHash> mapAddr GUARDED_BY(cs);
 
     //! randomly-ordered vector of all nIds
     std::vector<int> vRandom GUARDED_BY(cs);
@@ -430,7 +430,7 @@ public:
 
         int nUBuckets = ADDRMAN_NEW_BUCKET_COUNT ^ (1 << 30);
         s << nUBuckets;
-        std::map<int, int> mapUnkIds;
+        std::unordered_map<int, int> mapUnkIds;
         int nIds = 0;
         for (const auto &entry : mapInfo) {
             mapUnkIds[entry.first] = nIds;
@@ -611,14 +611,13 @@ public:
 
         // Prune new entries with refcount 0 (as a result of collisions).
         int nLostUnk = 0;
-        for (std::map<int, CAddrInfo>::const_iterator it = mapInfo.begin();
-             it != mapInfo.end();) {
+        for (auto it = mapInfo.cbegin(); it != mapInfo.cend();) {
             if (it->second.fInTried == false && it->second.nRefCount == 0) {
-                std::map<int, CAddrInfo>::const_iterator itCopy = it++;
+                const auto itCopy = it++;
                 Delete(itCopy->first);
-                nLostUnk++;
+                ++nLostUnk;
             } else {
-                it++;
+                ++it;
             }
         }
         if (nLost + nLostUnk > 0) {
