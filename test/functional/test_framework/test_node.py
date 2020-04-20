@@ -93,7 +93,7 @@ class TestNode():
             "-noprinttoconsole",
         ]
 
-        if not os.path.isfile(bitcoin_cli):
+        if use_cli and not os.path.isfile(bitcoin_cli):
             raise FileNotFoundError(
                 "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOINCLI=<path/to/bitcoin-cli> {}".format(bitcoin_cli, sys.argv[0]))
         self.cli = TestNodeCLI(bitcoin_cli, self.datadir)
