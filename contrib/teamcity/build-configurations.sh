@@ -212,6 +212,16 @@ case "$ABC_BUILD_NAME" in
     ninja check-functional-upgrade-activated-extended
     ;;
 
+  build-without-cli)
+    # Build without bitcoin-cli
+    CMAKE_FLAGS=(
+      "-DBUILD_BITCOIN_CLI=OFF"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    ninja check-functional
+    ;;
+
   build-without-wallet)
     # Build without wallet and run the unit tests.
     CMAKE_FLAGS=(
