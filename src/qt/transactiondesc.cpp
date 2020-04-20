@@ -23,7 +23,6 @@
 #include <util/system.h>
 #include <validation.h>
 #include <wallet/db.h>
-#include <wallet/finaltx.h>
 #include <wallet/wallet.h>
 
 #include <cstdint>

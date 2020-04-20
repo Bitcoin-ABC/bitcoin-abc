@@ -12,7 +12,6 @@
 #include <key_io.h>
 #include <timedata.h>
 #include <validation.h>
-#include <wallet/finaltx.h>
 
 #include <QDateTime>
 

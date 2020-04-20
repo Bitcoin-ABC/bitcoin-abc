@@ -16,7 +16,6 @@ add_library(wallet
 	crypter.cpp
 	db.cpp
 	fees.cpp
-	finaltx.cpp
 	init.cpp
 	psbtwallet.cpp
 	rpcdump.cpp

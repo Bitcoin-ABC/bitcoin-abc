@@ -34,7 +34,6 @@
 #include <wallet/coincontrol.h>
 #include <wallet/coinselection.h>
 #include <wallet/fees.h>
-#include <wallet/finaltx.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -2184,11 +2183,14 @@ bool CWalletTx::InMempool() const {
 }
 
 bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain) const {
-    // Temporary, for CheckFinalTx below. Removed in upcoming commit.
+    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
+    // in upcoming commit.
     LockAnnotation lock(::cs_main);
 
     // Quick answer in most cases
-    if (!CheckFinalTx(*tx)) {
+    CValidationState state;
+    if (!ContextualCheckTransactionForCurrentBlock(Params().GetConsensus(), *tx,
+                                                   state)) {
         return false;
     }
 
@@ -2398,16 +2400,22 @@ Amount CWallet::GetImmatureWatchOnlyBalance() const {
 // trusted.
 Amount CWallet::GetLegacyBalance(const isminefilter &filter,
                                  int minDepth) const {
-    // Temporary, for CheckFinalTx below. Removed in upcoming commit.
+    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
+    // in upcoming commit.
     LockAnnotation lock(::cs_main);
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
+
+    const Consensus::Params params = Params().GetConsensus();
 
     Amount balance = Amount::zero();
     for (const auto &entry : mapWallet) {
         const CWalletTx &wtx = entry.second;
         const int depth = wtx.GetDepthInMainChain(*locked_chain);
-        if (depth < 0 || !CheckFinalTx(*wtx.tx) ||
+        CValidationState state;
+        if (depth < 0 ||
+            !ContextualCheckTransactionForCurrentBlock(params, *wtx.tx,
+                                                       state) ||
             wtx.IsImmatureCoinBase(*locked_chain)) {
             continue;
         }
@@ -2462,11 +2470,15 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
     vCoins.clear();
     Amount nTotal = Amount::zero();
 
+    const Consensus::Params params = Params().GetConsensus();
+
     for (const auto &entry : mapWallet) {
         const TxId &wtxid = entry.first;
         const CWalletTx *pcoin = &entry.second;
 
-        if (!CheckFinalTx(*pcoin->tx)) {
+        CValidationState state;
+        if (!ContextualCheckTransactionForCurrentBlock(params, *pcoin->tx,
+                                                       state)) {
             continue;
         }
 

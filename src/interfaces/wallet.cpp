@@ -25,7 +25,6 @@
 #include <util/system.h>
 #include <validation.h>
 #include <wallet/fees.h>
-#include <wallet/finaltx.h>
 #include <wallet/rpcdump.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
@@ -99,7 +98,8 @@ namespace {
     static WalletTxStatus
     MakeWalletTxStatus(interfaces::Chain::Lock &locked_chain,
                        const CWalletTx &wtx) {
-        // Temporary, for CheckFinalTx below. Removed in upcoming commit.
+        // Temporary, for ContextualCheckTransactionForCurrentBlock below.
+        // Removed in upcoming commit.
         LockAnnotation lock(::cs_main);
 
         WalletTxStatus result;
@@ -110,7 +110,9 @@ namespace {
         result.depth_in_main_chain = wtx.GetDepthInMainChain(locked_chain);
         result.time_received = wtx.nTimeReceived;
         result.lock_time = wtx.tx->nLockTime;
-        result.is_final = CheckFinalTx(*wtx.tx);
+        CValidationState state;
+        result.is_final = ContextualCheckTransactionForCurrentBlock(
+            Params().GetConsensus(), *wtx.tx, state);
         result.is_trusted = wtx.IsTrusted(locked_chain);
         result.is_abandoned = wtx.isAbandoned();
         result.is_coinbase = wtx.IsCoinBase();
