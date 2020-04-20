@@ -653,6 +653,61 @@ static UniValue signmessage(const Config &config,
     return EncodeBase64(vchSig.data(), vchSig.size());
 }
 
+static Amount GetReceived(interfaces::Chain::Lock &locked_chain,
+                          const CWallet &wallet, const UniValue &params,
+                          bool by_label)
+    EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet) {
+    std::set<CTxDestination> address_set;
+
+    if (by_label) {
+        // Get the set of addresses assigned to label
+        std::string label = LabelFromValue(params[0]);
+        address_set = wallet.GetLabelAddresses(label);
+    } else {
+        // Get the address
+        CTxDestination dest =
+            DecodeDestination(params[0].get_str(), wallet.chainParams);
+        if (!IsValidDestination(dest)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                               "Invalid Bitcoin address");
+        }
+        CScript script_pub_key = GetScriptForDestination(dest);
+        if (!wallet.IsMine(script_pub_key)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Address not found in wallet");
+        }
+        address_set.insert(dest);
+    }
+
+    // Minimum confirmations
+    int min_depth = 1;
+    if (!params[1].isNull()) {
+        min_depth = params[1].get_int();
+    }
+
+    // Tally
+    Amount amount = Amount::zero();
+    for (const std::pair<const TxId, CWalletTx> &wtx_pair : wallet.mapWallet) {
+        const CWalletTx &wtx = wtx_pair.second;
+        TxValidationState txState;
+        if (wtx.IsCoinBase() ||
+            !locked_chain.contextualCheckTransactionForCurrentBlock(
+                wallet.chainParams.GetConsensus(), *wtx.tx, txState) ||
+            wtx.GetDepthInMainChain() < min_depth) {
+            continue;
+        }
+
+        for (const CTxOut &txout : wtx.tx->vout) {
+            CTxDestination address;
+            if (ExtractDestination(txout.scriptPubKey, address) &&
+                wallet.IsMine(address) && address_set.count(address)) {
+                amount += txout.nValue;
+            }
+        }
+    }
+
+    return amount;
+}
+
 static UniValue getreceivedbyaddress(const Config &config,
                                      const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -698,46 +753,8 @@ static UniValue getreceivedbyaddress(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    // Bitcoin address
-    CTxDestination dest =
-        DecodeDestination(request.params[0].get_str(), wallet->chainParams);
-    if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           "Invalid Bitcoin address");
-    }
-    CScript scriptPubKey = GetScriptForDestination(dest);
-    if (!pwallet->IsMine(scriptPubKey)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Address not found in wallet");
-    }
-
-    // Minimum confirmations
-    int nMinDepth = 1;
-    if (!request.params[1].isNull()) {
-        nMinDepth = request.params[1].get_int();
-    }
-
-    // Tally
-    Amount nAmount = Amount::zero();
-    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
-        const CWalletTx &wtx = pairWtx.second;
-
-        TxValidationState state;
-        if (wtx.IsCoinBase() ||
-            !locked_chain->contextualCheckTransactionForCurrentBlock(
-                wallet->chainParams.GetConsensus(), *wtx.tx, state)) {
-            continue;
-        }
-
-        for (const CTxOut &txout : wtx.tx->vout) {
-            if (txout.scriptPubKey == scriptPubKey) {
-                if (wtx.GetDepthInMainChain() >= nMinDepth) {
-                    nAmount += txout.nValue;
-                }
-            }
-        }
-    }
-
-    return ValueFromAmount(nAmount);
+    return ValueFromAmount(GetReceived(*locked_chain, *pwallet, request.params,
+                                       /* by_label */ false));
 }
 
 static UniValue getreceivedbylabel(const Config &config,
@@ -781,39 +798,8 @@ static UniValue getreceivedbylabel(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    // Minimum confirmations
-    int nMinDepth = 1;
-    if (!request.params[1].isNull()) {
-        nMinDepth = request.params[1].get_int();
-    }
-
-    // Get the set of pub keys assigned to label
-    std::string label = LabelFromValue(request.params[0]);
-    std::set<CTxDestination> setAddress = pwallet->GetLabelAddresses(label);
-
-    // Tally
-    Amount nAmount = Amount::zero();
-    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
-        const CWalletTx &wtx = pairWtx.second;
-        TxValidationState state;
-        if (wtx.IsCoinBase() ||
-            !locked_chain->contextualCheckTransactionForCurrentBlock(
-                wallet->chainParams.GetConsensus(), *wtx.tx, state)) {
-            continue;
-        }
-
-        for (const CTxOut &txout : wtx.tx->vout) {
-            CTxDestination address;
-            if (ExtractDestination(txout.scriptPubKey, address) &&
-                pwallet->IsMine(address) && setAddress.count(address)) {
-                if (wtx.GetDepthInMainChain() >= nMinDepth) {
-                    nAmount += txout.nValue;
-                }
-            }
-        }
-    }
-
-    return ValueFromAmount(nAmount);
+    return ValueFromAmount(GetReceived(*locked_chain, *pwallet, request.params,
+                                       /* by_label */ true));
 }
 
 static UniValue getbalance(const Config &config,
