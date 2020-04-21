@@ -5,6 +5,9 @@ Bitcoin ABC version 0.21.5 is now available from:
 This release includes the following features and fixes:
  - Removed deprecated `getinfo` RPC.
  - Update univalue to 1.0.5
+ - The Official Ubuntu PPA will no longer update the package for the 16.04
+   Xenial version. The most recent versions can still be download from
+   bitcoinabc.org. The PPA is now offering a package for 20.04 Focal.
 
 Tests
 -----

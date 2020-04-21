@@ -181,11 +181,11 @@ EOF
   fi
 }
 
-# Xenial: Ubuntu 16.04
-package "xenial"
-# Bionic: Ubuntu 18.04 (latest LTS release)
+# Bionic: Ubuntu 18.04 LTS
 package "bionic"
-# Eoan: Ubuntu 19.10 (latest release)
+# Eoan: Ubuntu 19.10
 package "eoan"
+# Focal: Ubuntu 20.04 LTS
+package "focal"
 
 popd
