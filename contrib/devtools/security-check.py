@@ -252,6 +252,26 @@ def check_MACHO_NX(executable) -> bool:
     return 'ALLOW_STACK_EXECUTION' not in flags
 
 
+def check_MACHO_Canary(executable) -> bool:
+    '''
+    Check for use of stack canary
+    '''
+    p = subprocess.Popen([OTOOL_CMD,
+                          '-Iv',
+                          executable],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         stdin=subprocess.PIPE,
+                         universal_newlines=True)
+    (stdout, stderr) = p.communicate()
+    if p.returncode:
+        raise IOError('Error opening file')
+    for line in stdout.splitlines():
+        if '___stack_chk_fail' in line:
+            return True
+    return False
+
+
 CHECKS = {
     'ELF': [
         ('PIE', check_ELF_PIE),
@@ -269,6 +289,7 @@ CHECKS = {
         ('PIE', check_MACHO_PIE),
         ('NOUNDEFS', check_MACHO_NOUNDEFS),
         ('NX', check_MACHO_NX),
+        ('Canary', check_MACHO_Canary),
     ]
 }
 
