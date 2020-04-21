@@ -1,4 +1,4 @@
-usr/local/bin/bitcoin-qt usr/bin
+usr/bin/bitcoin-qt usr/bin
 share/pixmaps/bitcoin-abc32.xpm usr/share/pixmaps
 share/pixmaps/bitcoin-abc16.xpm usr/share/pixmaps
 share/pixmaps/bitcoin-abc128.png usr/share/pixmaps
