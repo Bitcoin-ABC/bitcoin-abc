@@ -590,5 +590,18 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	endif()
 endif()
 
+configure_file(
+	"${CMAKE_SOURCE_DIR}/cmake/utils/translate.sh.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/translate.sh"
+	@ONLY
+)
+
+add_custom_target(translate
+	COMMENT "Updating the translations..."
+	COMMAND "${CMAKE_CURRENT_BINARY_DIR}/translate.sh"
+	DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/translate.sh"
+	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+)
+
 # Test tests
 add_subdirectory(test)

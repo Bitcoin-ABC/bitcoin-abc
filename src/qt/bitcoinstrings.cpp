@@ -90,6 +90,7 @@ QT_TRANSLATE_NOOP("bitcoin-abc", ""
 "mode.  This will redownload the entire blockchain"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "%s corrupt, salvage failed"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "%s is set very high!"),
+QT_TRANSLATE_NOOP("bitcoin-abc", "(press q to shutdown and continue later)"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "-maxmempool must be at least %d MB"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Cannot downgrade wallet"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Cannot resolve -%s address: '%s'"),
@@ -179,4 +180,5 @@ QT_TRANSLATE_NOOP("bitcoin-abc", "Wallet %s resides outside wallet directory %s"
 QT_TRANSLATE_NOOP("bitcoin-abc", "Wallet needed to be rewritten: restart %s to complete"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Warning"),
 QT_TRANSLATE_NOOP("bitcoin-abc", "Zapping all transactions from wallet..."),
+QT_TRANSLATE_NOOP("bitcoin-abc", "press q to shutdown"),
 };

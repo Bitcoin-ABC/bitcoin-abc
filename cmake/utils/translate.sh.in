@@ -1,0 +1,36 @@
+#!/bin/sh
+
+export LC_ALL=C.UTF-8
+
+check_command() {
+  if ! command -v "$1" > /dev/null; then
+    echo "$1 is required to update the translations"
+    exit 1
+  fi
+}
+
+check_command xgettext
+check_command lupdate
+check_command git
+
+GETTEXT_SOURCES=$("@GIT_EXECUTABLE@" ls-files "@CMAKE_SOURCE_DIR@/src/*.cpp" "@CMAKE_SOURCE_DIR@/src/*.h" | \
+  grep -v secp256k1 | \
+  grep -v crypto/ctaes | \
+  grep -v leveldb | \
+  grep -v univalue)
+
+COPYRIGHT_HOLDERS="@COPYRIGHT_HOLDERS@" \
+"@Python_EXECUTABLE@" "@CMAKE_SOURCE_DIR@/share/qt/extract_strings_qt.py" ${GETTEXT_SOURCES}
+
+LUPDATE_FILES=$("@GIT_EXECUTABLE@" ls-files \
+  "@CMAKE_SOURCE_DIR@/src/qt/*.cpp" \
+  "@CMAKE_SOURCE_DIR@/src/qt/*.h" \
+  "@CMAKE_SOURCE_DIR@/src/qt/*.mm" \
+  "@CMAKE_SOURCE_DIR@/src/qt/forms/*.ui")
+
+QT_SELECT=qt5 \
+lupdate "@CMAKE_CURRENT_SOURCE_DIR@/bitcoinstrings.cpp" \
+${LUPDATE_FILES} \
+-locations relative \
+-no-obsolete \
+-ts "@CMAKE_CURRENT_SOURCE_DIR@/locale/bitcoin_en.ts"
