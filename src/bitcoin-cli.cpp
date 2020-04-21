@@ -49,7 +49,7 @@ static void SetupCliArgs() {
                            "prefixed by datadir location. (default: %s)",
                            BITCOIN_CONF_FILENAME),
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-datadir=<dir>", _("Specify data directory"),
+    gArgs.AddArg("-datadir=<dir>", "Specify data directory",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg(
         "-getinfo",

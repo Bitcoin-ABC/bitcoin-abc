@@ -120,42 +120,40 @@ public:
 
 private:
     void SetupSeederArgs() {
-        gArgs.AddArg("-?", _("Print this help message and exit"),
+        gArgs.AddArg("-?", "Print this help message and exit",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-version", _("Print version and exit"),
+        gArgs.AddArg("-version", "Print version and exit",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-host=<host>", _("Hostname of the DNS seed"),
+        gArgs.AddArg("-host=<host>", "Hostname of the DNS seed",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-ns=<ns>", _("Hostname of the nameserver"),
+        gArgs.AddArg("-ns=<ns>", "Hostname of the nameserver",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-mbox=<mbox>",
-                     _("E-Mail address reported in SOA records"),
+        gArgs.AddArg("-mbox=<mbox>", "E-Mail address reported in SOA records",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-threads=<threads>",
-                     _("Number of crawlers to run in parallel (default 96)"),
+                     "Number of crawlers to run in parallel (default 96)",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         gArgs.AddArg("-dnsthreads=<threads>",
-                     _("Number of DNS server threads (default 4)"),
+                     "Number of DNS server threads (default 4)",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-port=<port>", _("UDP port to listen on (default 53)"),
+        gArgs.AddArg("-port=<port>", "UDP port to listen on (default 53)",
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-onion=<ip:port>", _("Tor proxy IP/Port"),
+        gArgs.AddArg("-onion=<ip:port>", "Tor proxy IP/Port",
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-proxyipv4=<ip:port>", _("IPV4 SOCKS5 proxy IP/Port"),
+        gArgs.AddArg("-proxyipv4=<ip:port>", "IPV4 SOCKS5 proxy IP/Port",
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-proxyipv6=<ip:port>", _("IPV6 SOCKS5 proxy IP/Port"),
+        gArgs.AddArg("-proxyipv6=<ip:port>", "IPV6 SOCKS5 proxy IP/Port",
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         gArgs.AddArg("-filter=<f1,f2,...>",
-                     _("Allow these flag combinations as filters"),
+                     "Allow these flag combinations as filters",
                      ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-wipeban", _("Wipe list of banned nodes"),
+        gArgs.AddArg("-wipeban", "Wipe list of banned nodes",
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-wipeignore", _("Wipe list of ignored nodes"),
+        gArgs.AddArg("-wipeignore", "Wipe list of ignored nodes",
                      ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg(
-            "-help-debug",
-            _("Show all debugging options (usage: --help -help-debug)"),
-            ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+        gArgs.AddArg("-help-debug",
+                     "Show all debugging options (usage: --help -help-debug)",
+                     ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
         SetupChainParamsBaseOptions();
 
         gArgs.AddArg("-help", "", ArgsManager::ALLOW_ANY,

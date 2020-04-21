@@ -669,7 +669,7 @@ void SetupServerArgs() {
                            regtestChainParams->GetDefaultPort()),
                  ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
                  OptionsCategory::CONNECTION);
-    gArgs.AddArg("-proxy=<ip:port>", _("Connect through SOCKS5 proxy"),
+    gArgs.AddArg("-proxy=<ip:port>", "Connect through SOCKS5 proxy",
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg("-proxyrandomize",
                  strprintf("Randomize credentials for every proxy connection. "
@@ -976,8 +976,8 @@ void SetupServerArgs() {
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     gArgs.AddArg(
         "-whitelistrelay",
-        strprintf(_("Accept relayed transactions received from whitelisted "
-                    "peers even when not relaying transactions (default: %d)"),
+        strprintf("Accept relayed transactions received from whitelisted "
+                  "peers even when not relaying transactions (default: %d)",
                   DEFAULT_WHITELISTRELAY),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     gArgs.AddArg(
@@ -1032,9 +1032,9 @@ void SetupServerArgs() {
                  "Location of the auth cookie. Relative paths will be prefixed "
                  "by a net-specific datadir location. (default: data dir)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-rpcuser=<user>", _("Username for JSON-RPC connections"),
+    gArgs.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections",
                  ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-rpcpassword=<pw>", _("Password for JSON-RPC connections"),
+    gArgs.AddArg("-rpcpassword=<pw>", "Password for JSON-RPC connections",
                  ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg(
         "-rpcauth=<userpw>",
@@ -1083,7 +1083,7 @@ void SetupServerArgs() {
 
 #if HAVE_DECL_DAEMON
     gArgs.AddArg("-daemon",
-                 _("Run in the background as a daemon and accept commands"),
+                 "Run in the background as a daemon and accept commands",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #else
     hidden_args.emplace_back("-daemon");
