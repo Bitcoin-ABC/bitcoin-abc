@@ -297,13 +297,19 @@ class MultiWalletTest(BitcoinTestFramework):
                                 self.nodes[0].loadwallet, 'wallets')
 
         # Fail to load duplicate wallets
-        assert_raises_rpc_error(-4, 'Wallet file verification failed: Error loading wallet w1. Duplicate -wallet filename specified.',
-                                self.nodes[0].loadwallet, wallet_names[0])
+        assert_raises_rpc_error(
+            -4,
+            'Wallet file verification failed. Error loading wallet w1. Duplicate -wallet filename specified.',
+            self.nodes[0].loadwallet,
+            wallet_names[0])
 
         # Fail to load duplicate wallets by different ways (directory and
         # filepath)
-        assert_raises_rpc_error(-4, "Wallet file verification failed: Error loading wallet wallet.dat. Duplicate -wallet filename specified.",
-                                self.nodes[0].loadwallet, 'wallet.dat')
+        assert_raises_rpc_error(
+            -4,
+            "Wallet file verification failed. Error loading wallet wallet.dat. Duplicate -wallet filename specified.",
+            self.nodes[0].loadwallet,
+            'wallet.dat')
 
         # Fail to load if one wallet is a copy of another
         assert_raises_rpc_error(-1, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
@@ -317,8 +323,11 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # Fail to load if wallet file is a symlink
         if os.name != 'nt':
-            assert_raises_rpc_error(-4, "Wallet file verification failed: Invalid -wallet path 'w8_symlink'",
-                                    self.nodes[0].loadwallet, 'w8_symlink')
+            assert_raises_rpc_error(
+                -4,
+                "Wallet file verification failed. Invalid -wallet path 'w8_symlink'",
+                self.nodes[0].loadwallet,
+                'w8_symlink')
 
         # Fail to load if a directory is specified that doesn't contain a
         # wallet
@@ -431,7 +440,7 @@ class MultiWalletTest(BitcoinTestFramework):
         self.log.info("Fail -upgradewallet that results in downgrade")
         assert_raises_rpc_error(
             -4,
-            'Wallet loading failed: Error loading {}: Wallet requires newer version of {}'.format(
+            'Wallet loading failed. Error loading {}: Wallet requires newer version of {}'.format(
                 wallet_dir('high_minversion', 'wallet.dat'), self.config['environment']['PACKAGE_NAME']),
             lambda: self.nodes[0].loadwallet(filename='high_minversion'),
         )
