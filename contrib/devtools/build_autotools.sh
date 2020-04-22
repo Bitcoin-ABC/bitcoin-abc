@@ -13,6 +13,7 @@ set -euxo pipefail
 # Generate necessary autoconf files
 cd ${TOPLEVEL}
 ./autogen.sh
+mkdir -p "${BUILD_DIR}"
 cd ${BUILD_DIR}
 
 rm -f build.status test_bitcoin.xml

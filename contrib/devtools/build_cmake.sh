@@ -10,6 +10,7 @@ set -euxo pipefail
 # Default to nothing
 : "${CMAKE_FLAGS:=}"
 
+mkdir -p "${BUILD_DIR}"
 cd ${BUILD_DIR}
 git clean -xffd
 
