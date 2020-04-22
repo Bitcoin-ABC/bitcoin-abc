@@ -112,6 +112,7 @@ add_regular_fuzz_targets(
 	parse_univalue
 	prevector
 	pow
+	primitives_transaction
 	process_message
 	process_messages
 	protocol

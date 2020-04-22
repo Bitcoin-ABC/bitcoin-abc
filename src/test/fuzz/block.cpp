@@ -63,4 +63,9 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     (void)block.GetHash();
     (void)block.ToString();
     (void)BlockMerkleRoot(block);
+
+    CBlock block_copy = block;
+    block_copy.SetNull();
+    const bool is_null = block_copy.IsNull();
+    assert(is_null);
 }
