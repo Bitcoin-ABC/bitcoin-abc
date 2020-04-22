@@ -9,6 +9,7 @@ set -euxo pipefail
 
 # Default to nothing
 : "${CONFIGURE_FLAGS:=}"
+: "${THREADS:=$(nproc || sysctl -n hw.ncpu)}"
 
 # Generate necessary autoconf files
 cd ${TOPLEVEL}
