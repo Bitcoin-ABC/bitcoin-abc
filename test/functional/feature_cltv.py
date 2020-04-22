@@ -186,7 +186,7 @@ class BIP65Test(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
 
-        with self.nodes[0].assert_debug_log(expected_msgs=['ConnectBlock {} failed (blk-bad-inputs'.format(block.hash)]):
+        with self.nodes[0].assert_debug_log(expected_msgs=['ConnectBlock {} failed, blk-bad-inputs'.format(block.hash)]):
             self.nodes[0].p2p.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
             self.nodes[0].p2p.sync_with_ping()
