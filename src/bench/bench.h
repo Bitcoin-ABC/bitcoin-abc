@@ -129,6 +129,18 @@ private:
     int64_t m_width;
     int64_t m_height;
 };
+
+// Junit compatible printer, allow to log durations on compatible CI
+class JunitPrinter : public Printer {
+public:
+    void header() override;
+    void result(const State &state) override;
+    void footer() override;
+
+private:
+    std::vector<std::pair<std::string, double>> bench_results;
+    double total_duration;
+};
 } // namespace benchmark
 
 // BENCHMARK(foo, num_iters_for_one_second) expands to:  benchmark::BenchRunner

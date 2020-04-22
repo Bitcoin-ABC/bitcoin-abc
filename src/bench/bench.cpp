@@ -85,6 +85,39 @@ void benchmark::PlotlyPrinter::footer() {
               << "</script></body></html>";
 }
 
+void benchmark::JunitPrinter::header() {
+    std::cout << "<?xml version='1.0' encoding='UTF-8'?>" << std::endl;
+}
+
+void benchmark::JunitPrinter::result(const State &state) {
+    auto results = state.m_elapsed_results;
+    double bench_duration =
+        state.m_num_iters *
+        std::accumulate(results.begin(), results.end(), 0.0);
+
+    /*
+     * Don't print the results now, we need them all to build the <testsuite>
+     * node.
+     */
+    bench_results.emplace_back(std::move(state.m_name), bench_duration);
+    total_duration += bench_duration;
+}
+
+void benchmark::JunitPrinter::footer() {
+    std::cout << std::setprecision(6);
+    std::cout << "<testsuite tests=\"" << bench_results.size() << "\" time=\""
+              << total_duration
+              << "\" name=\"Bitcoin ABC benchmarks\" id=\"0\">" << std::endl;
+
+    for (const auto &result : bench_results) {
+        std::cout << "<testcase classname=\"" << result.first << "\" name=\""
+                  << result.first << "\" time=\"" << result.second
+                  << "\"></testcase>" << std::endl;
+    }
+
+    std::cout << "</testsuite>" << std::endl;
+}
+
 benchmark::BenchRunner::BenchmarkMap &benchmark::BenchRunner::benchmarks() {
     static std::map<std::string, Bench> benchmarks_map;
     return benchmarks_map;

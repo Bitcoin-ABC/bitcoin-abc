@@ -270,7 +270,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_RECOVERY=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
-    ninja bench-bitcoin
+    ./src/bench/bitcoin-bench -printer=junit > junit_results_bench.xml
     ninja bench-secp256k1
     ;;
 

@@ -43,9 +43,10 @@ static void SetupBenchArgs() {
                   DEFAULT_BENCH_SCALING),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg(
-        "-printer=(console|plot)",
+        "-printer=(console|junit|plot)",
         strprintf("Choose printer format. console: print data to console. "
-                  "plot: Print results as HTML graph (default: %s)",
+                  "junit: print results as a Junit compliant XML."
+                  "plot: print results as HTML graph (default: %s)",
                   DEFAULT_BENCH_PRINTER),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-plot-plotlyurl=<uri>",
@@ -100,6 +101,9 @@ int main(int argc, char **argv) {
             gArgs.GetArg("-plot-plotlyurl", DEFAULT_PLOT_PLOTLYURL),
             gArgs.GetArg("-plot-width", DEFAULT_PLOT_WIDTH),
             gArgs.GetArg("-plot-height", DEFAULT_PLOT_HEIGHT)));
+    }
+    if ("junit" == printer_arg) {
+        printer.reset(new benchmark::JunitPrinter());
     }
 
     benchmark::BenchRunner::RunAll(*printer, evaluations, scaling_factor,
