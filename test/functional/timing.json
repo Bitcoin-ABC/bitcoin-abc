@@ -25,7 +25,7 @@
  },
  {
   "name": "abc-magnetic-anomaly-mining.py",
-  "time": 1
+  "time": 2
  },
  {
   "name": "abc-mempool-accept-txn.py",
@@ -37,7 +37,7 @@
  },
  {
   "name": "abc-miner-fund.py",
-  "time": 7
+  "time": 8
  },
  {
   "name": "abc-minimaldata.py",
@@ -53,7 +53,7 @@
  },
  {
   "name": "abc-p2p-compactblocks.py",
-  "time": 354
+  "time": 336
  },
  {
   "name": "abc-p2p-fullblocktest-sigops.py",
@@ -61,7 +61,7 @@
  },
  {
   "name": "abc-p2p-fullblocktest.py",
-  "time": 75
+  "time": 82
  },
  {
   "name": "abc-parkedchain.py",
@@ -81,7 +81,7 @@
  },
  {
   "name": "abc-schnorr.py",
-  "time": 2
+  "time": 1
  },
  {
   "name": "abc-schnorrmultisig.py",
@@ -125,11 +125,11 @@
  },
  {
   "name": "feature_bip68_sequence.py",
-  "time": 21
+  "time": 27
  },
  {
   "name": "feature_block.py",
-  "time": 72
+  "time": 73
  },
  {
   "name": "feature_block_sigops.py",
@@ -145,7 +145,7 @@
  },
  {
   "name": "feature_config_args.py",
-  "time": 4
+  "time": 5
  },
  {
   "name": "feature_csv_activation.py",
@@ -153,7 +153,7 @@
  },
  {
   "name": "feature_dbcrash.py",
-  "time": 1194
+  "time": 1164
  },
  {
   "name": "feature_dersig.py",
@@ -189,7 +189,7 @@
  },
  {
   "name": "feature_pruning.py",
-  "time": 200
+  "time": 199
  },
  {
   "name": "feature_reindex.py",
@@ -213,7 +213,7 @@
  },
  {
   "name": "interface_rest.py",
-  "time": 8
+  "time": 5
  },
  {
   "name": "interface_rpc.py",
@@ -221,7 +221,7 @@
  },
  {
   "name": "interface_zmq.py",
-  "time": 5
+  "time": 2
  },
  {
   "name": "mempool_accept.py",
@@ -233,11 +233,11 @@
  },
  {
   "name": "mempool_packages.py",
-  "time": 9
+  "time": 11
  },
  {
   "name": "mempool_persist.py",
-  "time": 14
+  "time": 8
  },
  {
   "name": "mempool_reorg.py",
@@ -265,7 +265,7 @@
  },
  {
   "name": "p2p_compactblocks.py",
-  "time": 10
+  "time": 9
  },
  {
   "name": "p2p_disconnect_ban.py",
@@ -273,7 +273,7 @@
  },
  {
   "name": "p2p_feefilter.py",
-  "time": 29
+  "time": 30
  },
  {
   "name": "p2p_fingerprint.py",
@@ -329,7 +329,7 @@
  },
  {
   "name": "rpc_createmultisig.py",
-  "time": 3
+  "time": 2
  },
  {
   "name": "rpc_decodescript.py",
@@ -345,7 +345,7 @@
  },
  {
   "name": "rpc_fundrawtransaction.py",
-  "time": 33
+  "time": 32
  },
  {
   "name": "rpc_getblockstats.py",
@@ -385,7 +385,7 @@
  },
  {
   "name": "rpc_rawtransaction.py",
-  "time": 22
+  "time": 28
  },
  {
   "name": "rpc_scantxoutset.py",
@@ -412,16 +412,20 @@
   "time": 2
  },
  {
+  "name": "tool_wallet.py",
+  "time": 2
+ },
+ {
   "name": "wallet_abandonconflict.py",
-  "time": 8
+  "time": 7
  },
  {
   "name": "wallet_backup.py",
-  "time": 39
+  "time": 31
  },
  {
   "name": "wallet_basic.py",
-  "time": 26
+  "time": 22
  },
  {
   "name": "wallet_create_tx.py",
@@ -433,7 +437,7 @@
  },
  {
   "name": "wallet_createwallet.py --usecli",
-  "time": 2
+  "time": 1
  },
  {
   "name": "wallet_disable.py",
@@ -441,19 +445,19 @@
  },
  {
   "name": "wallet_dump.py",
-  "time": 2
+  "time": 3
  },
  {
   "name": "wallet_encryption.py",
-  "time": 4
+  "time": 5
  },
  {
   "name": "wallet_groups.py",
-  "time": 11
+  "time": 8
  },
  {
   "name": "wallet_hd.py",
-  "time": 3
+  "time": 2
  },
  {
   "name": "wallet_import_rescan.py",
@@ -469,7 +473,7 @@
  },
  {
   "name": "wallet_keypool.py",
-  "time": 2
+  "time": 3
  },
  {
   "name": "wallet_keypool_topup.py",
@@ -481,7 +485,7 @@
  },
  {
   "name": "wallet_listreceivedby.py",
-  "time": 17
+  "time": 13
  },
  {
   "name": "wallet_listsinceblock.py",
@@ -489,7 +493,7 @@
  },
  {
   "name": "wallet_listtransactions.py",
-  "time": 8
+  "time": 9
  },
  {
   "name": "wallet_multiwallet.py",
@@ -497,7 +501,7 @@
  },
  {
   "name": "wallet_multiwallet.py --usecli",
-  "time": 12
+  "time": 11
  },
  {
   "name": "wallet_resendwallettransactions.py",
@@ -521,6 +525,6 @@
  },
  {
   "name": "wallet_zapwallettxes.py",
-  "time": 2
+  "time": 3
  }
 ]
