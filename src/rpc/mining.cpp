@@ -1000,7 +1000,7 @@ static UniValue getblocktemplate(const Config &config,
     return result;
 }
 
-class submitblock_StateCatcher : public CValidationInterface {
+class submitblock_StateCatcher final : public CValidationInterface {
 public:
     uint256 hash;
     bool found;
@@ -1069,27 +1069,22 @@ static UniValue submitblock(const Config &config,
     }
 
     bool new_block;
-    submitblock_StateCatcher sc(block.GetHash());
-    RegisterValidationInterface(&sc);
+    auto sc = std::make_shared<submitblock_StateCatcher>(block.GetHash());
+    RegisterSharedValidationInterface(sc);
     bool accepted =
         EnsureChainman(request.context)
             .ProcessNewBlock(config, blockptr, /* fForceProcessing */ true,
                              /* fNewBlock */ &new_block);
-    // We are only interested in BlockChecked which will have been dispatched
-    // in-thread, so no need to sync before unregistering.
-    UnregisterValidationInterface(&sc);
-    // Sync to ensure that the catcher's slots aren't executing when it goes out
-    // of scope and is deleted.
-    SyncWithValidationInterfaceQueue();
+    UnregisterSharedValidationInterface(sc);
     if (!new_block && accepted) {
         return "duplicate";
     }
 
-    if (!sc.found) {
+    if (!sc->found) {
         return "inconclusive";
     }
 
-    return BIP22ValidationResult(config, sc.state);
+    return BIP22ValidationResult(config, sc->state);
 }
 
 static UniValue submitheader(const Config &config,
