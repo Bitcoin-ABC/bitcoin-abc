@@ -21,7 +21,7 @@ rm -f build.status test_bitcoin.xml
 
 read -a CONFIGURE_FLAGS <<< "$CONFIGURE_FLAGS --prefix=$(pwd)"
 
-../configure "${CONFIGURE_FLAGS[@]}"
+../configure --enable-deprecated-build-system "${CONFIGURE_FLAGS[@]}"
 
 # Run build
 make -j "${THREADS}"

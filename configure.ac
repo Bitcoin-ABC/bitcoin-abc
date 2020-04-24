@@ -97,6 +97,21 @@ AC_PATH_TOOL(OBJCOPY, objcopy)
 
 AC_ARG_VAR(PYTHONPATH, Augments the default search path for python module files)
 
+AC_ARG_ENABLE([deprecated-build-system],
+  [AS_HELP_STRING([--enable-deprecated-build-system],
+  [force use of the deprecated autotools build system (disabled by default)])],
+  [enable_deprecated_build_system=$enableval],
+  [enable_deprecated_build_system=no])
+
+if test "x$enable_deprecated_build_system" != "xyes"; then
+  AC_MSG_ERROR([
+    The autotools build system is deprecated, and will be removed in the future.
+    The cmake build system is aimed to replace it, please look at the documentation for the new build instructions.
+    Depending on your OS, these build instructions are located under doc/build-<your OS>.md. For cross compilation, see depends/README.md.
+    To continue using the autotools build system, pass the --enable-deprecated-build-system flag to configure.
+  ])
+fi
+
 AC_ARG_ENABLE([wallet],
   [AS_HELP_STRING([--disable-wallet],
   [disable wallet (enabled by default)])],
