@@ -13,7 +13,6 @@ PACKAGES=(
   bsdmainutils
   build-essential
   ccache
-  clang
   cmake
   curl
   g++-aarch64-linux-gnu
@@ -83,7 +82,16 @@ echo 'JAVA_HOME="/usr/lib/jvm/default-java"' >> /etc/environment
 apt-key add "${TEAMCITY_DIR}"/llvm.pub
 add-apt-repository "deb http://apt.llvm.org/buster/   llvm-toolchain-buster-8  main"
 apt-get update
-apt-get install -y clang-format-8 clang-tidy-8 clang-tools-8
+
+LLVM_PACKAGES=(
+  clang-8
+  clang-format-8
+  clang-tidy-8
+  clang-tools-8
+)
+DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${LLVM_PACKAGES[@]}")
+update-alternatives --install /usr/bin/clang clang "$(command -v clang-8)" 100
+update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-8)" 100
 
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
