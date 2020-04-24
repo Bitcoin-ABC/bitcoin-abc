@@ -112,12 +112,12 @@ public:
         ret.uptime[3] = stat1W.reliability;
         ret.uptime[4] = stat1M.reliability;
         ret.lastSuccess = ourLastSuccess;
-        ret.fGood = IsGood();
+        ret.fGood = IsReliable();
         ret.services = services;
         return ret;
     }
 
-    bool IsGood() const {
+    bool IsReliable() const {
         if (ip.GetPort() != GetDefaultPort()) {
             return false;
         }
@@ -158,7 +158,7 @@ public:
     }
 
     int64_t GetBanTime() const {
-        if (IsGood()) {
+        if (IsReliable()) {
             return 0;
         }
         if (clientVersion && clientVersion < 31900) {
@@ -180,7 +180,7 @@ public:
     }
 
     int64_t GetIgnoreTime() const {
-        if (IsGood()) {
+        if (IsReliable()) {
             return 0;
         }
         if (stat1M.reliability - stat1M.weight + 1.0 < 0.20 &&
@@ -399,7 +399,7 @@ public:
                 db->ipToId[info.ip] = id;
                 if (info.ourLastTry) {
                     db->ourId.push_back(id);
-                    if (info.IsGood()) {
+                    if (info.IsReliable()) {
                         db->goodId.insert(id);
                     }
                 } else {
