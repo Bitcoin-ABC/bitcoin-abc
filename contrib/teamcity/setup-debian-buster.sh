@@ -74,7 +74,7 @@ TEAMCITY_DIR=$(dirname "$0")
 apt-key add "${TEAMCITY_DIR}"/adoptopenjdk.pub
 add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes adoptopenjdk-8-hotspot
+DEBIAN_FRONTEND=noninteractive apt-get install -y adoptopenjdk-8-hotspot
 
 ln -s /usr/lib/jvm/adoptopenjdk-8-hotspot-amd64 /usr/lib/jvm/default-java
 echo 'JAVA_HOME="/usr/lib/jvm/default-java"' >> /etc/environment
@@ -83,7 +83,7 @@ echo 'JAVA_HOME="/usr/lib/jvm/default-java"' >> /etc/environment
 apt-key add "${TEAMCITY_DIR}"/llvm.pub
 add-apt-repository "deb http://apt.llvm.org/buster/   llvm-toolchain-buster-8  main"
 apt-get update
-apt-get install -y --force-yes clang-format-8 clang-tidy-8 clang-tools-8
+apt-get install -y clang-format-8 clang-tidy-8 clang-tools-8
 
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
