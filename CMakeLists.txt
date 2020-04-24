@@ -7,7 +7,7 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
 )
 
 project(bitcoin-abc
-	VERSION 0.21.5
+	VERSION 0.21.6
 	DESCRIPTION "Bitcoin ABC is a full node implementation of the Bitcoin Cash protocol."
 	HOMEPAGE_URL "https://www.bitcoinabc.org"
 )
