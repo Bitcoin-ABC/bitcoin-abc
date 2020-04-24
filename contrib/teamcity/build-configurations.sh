@@ -314,6 +314,28 @@ case "$ABC_BUILD_NAME" in
     ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
     ;;
 
+  build-linux-arm)
+    "${DEVTOOLS_DIR}"/build_depends.sh
+    CMAKE_FLAGS=(
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/LinuxARM.cmake"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    # Build all the targets that are not built as part of the default target
+    ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
+    ;;
+
+  build-linux-aarch64)
+    "${DEVTOOLS_DIR}"/build_depends.sh
+    CMAKE_FLAGS=(
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/LinuxAArch64.cmake"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    # Build all the targets that are not built as part of the default target
+    ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
+    ;;
+
   check-seeds)
     "${DEVTOOLS_DIR}"/build_cmake.sh
     # Run on different ports to avoid a race where the rpc port used in the
