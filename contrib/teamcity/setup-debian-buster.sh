@@ -56,6 +56,7 @@ PACKAGES=(
   qttools5-dev-tools
   software-properties-common
   wget
+  wine
 )
 
 function join_by() {
@@ -83,3 +84,7 @@ apt-key add "${TEAMCITY_DIR}"/llvm.pub
 add-apt-repository "deb http://apt.llvm.org/buster/   llvm-toolchain-buster-8  main"
 apt-get update
 apt-get install -y --force-yes clang-format-8 clang-tidy-8 clang-tools-8
+
+# Use the mingw posix variant
+update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
+update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32-gcc-posix)

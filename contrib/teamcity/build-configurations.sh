@@ -27,6 +27,8 @@ setup() {
   THREADS=$(nproc || sysctl -n hw.ncpu)
   export THREADS
 
+  CMAKE_PLATFORMS_DIR="${TOPLEVEL}/cmake/platforms"
+
   # Base directories for sanitizer related files
   SAN_SUPP_DIR="${TOPLEVEL}/test/sanitizer_suppressions"
   SAN_LOG_DIR="/tmp/sanitizer_logs"
@@ -281,6 +283,22 @@ case "$ABC_BUILD_NAME" in
     git clean -xffd
     cmake -G "Unix Makefiles" ..
     make -j "${THREADS}" all check
+    ;;
+
+  build-win64)
+    "${DEVTOOLS_DIR}"/build_depends.sh
+    CMAKE_FLAGS=(
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Win64.cmake"
+      "-DBUILD_BITCOIN_SEEDER=OFF"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    # Build all the targets that are not built as part of the default target
+    ninja test_bitcoin test_bitcoin-qt
+
+    # Run the tests. Not all will run with wine, so exclude them
+    find src -name "libbitcoinconsensus*.dll" -exec cp {} src/test/ \;
+    wine ./src/test/test_bitcoin.exe --run_test=\!radix_tests,rcu_tests
     ;;
 
   check-seeds)
