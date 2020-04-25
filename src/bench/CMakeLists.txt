@@ -34,6 +34,7 @@ foreach(_raw_file ${BENCH_DATA_RAW_FILES})
 endforeach()
 
 add_executable(bitcoin-bench
+	addrman.cpp
 	base58.cpp
 	bench.cpp
 	bench_bitcoin.cpp
