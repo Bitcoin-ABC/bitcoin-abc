@@ -385,6 +385,15 @@ template <typename Callable> void TraceThread(const char *name, Callable func) {
 
 std::string CopyrightHolders(const std::string &strPrefix);
 
+/**
+ * On platforms that support it, tell the kernel the calling thread is
+ * CPU-intensive and non-interactive. See SCHED_BATCH in sched(7) for details.
+ *
+ * @return The return value of sched_setschedule(), or 1 on systems without
+ * sched_setchedule().
+ */
+int ScheduleBatchPriority();
+
 namespace util {
 
 //! Simplification of std insertion
@@ -412,14 +421,5 @@ private:
 #endif
 
 } // namespace util
-
-/**
- * On platforms that support it, tell the kernel the calling thread is
- * CPU-intensive and non-interactive. See SCHED_BATCH in sched(7) for details.
- *
- * @return The return value of sched_setschedule(), or 1 on systems without
- * sched_setchedule().
- */
-int ScheduleBatchPriority();
 
 #endif // BITCOIN_UTIL_SYSTEM_H
