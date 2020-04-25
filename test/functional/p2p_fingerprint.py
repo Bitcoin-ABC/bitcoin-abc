@@ -13,6 +13,7 @@ import time
 from test_framework.blocktools import (create_block, create_coinbase)
 from test_framework.messages import (
     CInv,
+    MSG_BLOCK,
     msg_block,
     msg_getdata,
     msg_getheaders,
@@ -46,8 +47,7 @@ class P2PFingerprintTest(BitcoinTestFramework):
     # Send a getdata request for a given block hash
     def send_block_request(self, block_hash, node):
         msg = msg_getdata()
-        # 2 == "Block"
-        msg.inv.append(CInv(2, block_hash))
+        msg.inv.append(CInv(MSG_BLOCK, block_hash))
         node.send_message(msg)
 
     # Send a getheaders request for a given single block hash

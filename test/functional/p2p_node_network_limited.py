@@ -10,6 +10,7 @@ and that it responds to getdata requests for blocks correctly:
     - disconnect peers who request blocks older than that."""
 from test_framework.messages import (
     CInv,
+    MSG_BLOCK,
     msg_getdata,
     msg_verack,
     NODE_BLOOM,
@@ -44,7 +45,7 @@ class P2PIgnoreInv(P2PInterface):
 
     def send_getdata_for_block(self, blockhash):
         getdata_request = msg_getdata()
-        getdata_request.inv.append(CInv(2, int(blockhash, 16)))
+        getdata_request.inv.append(CInv(MSG_BLOCK, int(blockhash, 16)))
         self.send_message(getdata_request)
 
 
