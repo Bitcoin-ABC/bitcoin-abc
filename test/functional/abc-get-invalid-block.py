@@ -10,7 +10,7 @@ from test_framework.messages import (
     msg_getdata,
     msg_getheaders,
     MSG_BLOCK,
-    MSG_CMPCTBLOCK,
+    MSG_CMPCT_BLOCK,
 )
 from test_framework.mininode import mininode_lock, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
@@ -61,7 +61,7 @@ class GetInvalidBlockTest(BitcoinTestFramework):
 
             with node.assert_debug_log(expected_msgs=["ignoring request from peer=0 for old block that isn't in the main chain"]):
                 msg = msg_getdata()
-                msg.inv.append(CInv(MSG_CMPCTBLOCK, block_hash))
+                msg.inv.append(CInv(MSG_CMPCT_BLOCK, block_hash))
                 node.p2p.send_message(msg)
                 node.p2p.sync_with_ping()
 

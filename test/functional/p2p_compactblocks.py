@@ -25,6 +25,7 @@ from test_framework.messages import (
     FromHex,
     HeaderAndShortIDs,
     MSG_BLOCK,
+    MSG_CMPCT_BLOCK,
     msg_block,
     msg_blocktxn,
     msg_cmpctblock,
@@ -355,7 +356,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # Now fetch the compact block using a normal non-announce getdata
         with mininode_lock:
             test_node.clear_block_announcement()
-            inv = CInv(4, block_hash)  # 4 == "CompactBlock"
+            inv = CInv(MSG_CMPCT_BLOCK, block_hash)
             test_node.send_message(msg_getdata([inv]))
 
         wait_until(test_node.received_block_announcement,
@@ -685,7 +686,8 @@ class CompactBlocksTest(BitcoinTestFramework):
                        timeout=30, lock=mininode_lock)
 
         test_node.clear_block_announcement()
-        test_node.send_message(msg_getdata([CInv(4, int(new_blocks[0], 16))]))
+        test_node.send_message(msg_getdata(
+            [CInv(MSG_CMPCT_BLOCK, int(new_blocks[0], 16))]))
         wait_until(lambda: "cmpctblock" in test_node.last_message,
                    timeout=30, lock=mininode_lock)
 
@@ -696,7 +698,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         test_node.clear_block_announcement()
         with mininode_lock:
             test_node.last_message.pop("block", None)
-        test_node.send_message(msg_getdata([CInv(4, int(new_blocks[0], 16))]))
+        test_node.send_message(msg_getdata(
+            [CInv(MSG_CMPCT_BLOCK, int(new_blocks[0], 16))]))
         wait_until(lambda: "block" in test_node.last_message,
                    timeout=30, lock=mininode_lock)
         with mininode_lock:

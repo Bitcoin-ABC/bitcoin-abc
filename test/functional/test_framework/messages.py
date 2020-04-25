@@ -60,7 +60,7 @@ NODE_AVALANCHE = (1 << 24)
 MSG_TX = 1
 MSG_BLOCK = 2
 MSG_FILTERED_BLOCK = 3
-MSG_CMPCTBLOCK = 4
+MSG_CMPCT_BLOCK = 4
 MSG_TYPE_MASK = 0xffffffff >> 2
 
 FILTER_TYPE_BASIC = 0
@@ -250,7 +250,7 @@ class CInv:
         MSG_TX: "TX",
         MSG_BLOCK: "Block",
         MSG_FILTERED_BLOCK: "filtered Block",
-        MSG_CMPCTBLOCK: "CompactBlock"
+        MSG_CMPCT_BLOCK: "CompactBlock"
     }
 
     def __init__(self, t=0, h=0):
