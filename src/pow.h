@@ -8,6 +8,7 @@
 
 #include <cstdint>
 
+struct BlockHash;
 class CBlockHeader;
 class CBlockIndex;
 class uint256;
@@ -27,7 +28,7 @@ uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,
  * Check whether a block hash satisfies the proof-of-work requirement specified
  * by nBits
  */
-bool CheckProofOfWork(uint256 hash, uint32_t nBits,
+bool CheckProofOfWork(const BlockHash &hash, uint32_t nBits,
                       const Consensus::Params &params);
 
 /**

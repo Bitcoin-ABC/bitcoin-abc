@@ -11,6 +11,7 @@
 #include <consensus/activation.h>
 #include <consensus/params.h>
 #include <primitives/block.h>
+#include <primitives/blockhash.h>
 #include <uint256.h>
 #include <util/system.h>
 
@@ -139,7 +140,7 @@ uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,
     return bnNew.GetCompact();
 }
 
-bool CheckProofOfWork(uint256 hash, uint32_t nBits,
+bool CheckProofOfWork(const BlockHash &hash, uint32_t nBits,
                       const Consensus::Params &params) {
     bool fNegative;
     bool fOverflow;
