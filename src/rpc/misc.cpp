@@ -641,7 +641,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
         "If an item is both included and excluded, it will thus end up being "
         "excluded.\n"
         "The valid logging categories are: " +
-            ListLogCategories() +
+            LogInstance().LogCategoriesString() +
             "\n"
             "In addition, the following are available as category names with "
             "special meanings:\n"
@@ -713,8 +713,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
     }
 
     UniValue result(UniValue::VOBJ);
-    std::vector<CLogCategoryActive> vLogCatActive = ListActiveLogCategories();
-    for (const auto &logCatActive : vLogCatActive) {
+    for (const auto &logCatActive : LogInstance().LogCategoriesList()) {
         result.pushKV(logCatActive.category, logCatActive.active);
     }
 

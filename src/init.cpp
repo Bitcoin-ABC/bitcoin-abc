@@ -955,9 +955,8 @@ void SetupServerArgs(NodeContext &node) {
                              0) +
                        ". " +
                        "If <category> is not supplied or if <category> = 1, "
-                       "output all debugging information."
-                       "<category> can be: " +
-                       ListLogCategories() + ".",
+                       "output all debugging information. <category> can be: " +
+                       LogInstance().LogCategoriesString() + ".",
                    ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
         "-debugexclude=<category>",

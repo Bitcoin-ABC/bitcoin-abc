@@ -10,6 +10,7 @@
 #include <fs.h>
 #include <threadsafety.h>
 #include <tinyformat.h>
+#include <util/string.h>
 
 #include <atomic>
 #include <cstdint>
@@ -25,7 +26,7 @@ static const bool DEFAULT_LOGTHREADNAMES = false;
 extern bool fLogIPs;
 extern const char *const DEFAULT_DEBUGLOGFILE;
 
-struct CLogCategoryActive {
+struct LogCategory {
     std::string category;
     bool active;
 };
@@ -142,6 +143,14 @@ public:
     /** Return true if log accepts specified category */
     bool WillLogCategory(LogFlags category) const;
 
+    /** Returns a vector of the log categories */
+    std::vector<LogCategory> LogCategoriesList();
+    /** Returns a string with the log categories */
+    std::string LogCategoriesString() {
+        return Join(LogCategoriesList(), ", ",
+                    [&](const LogCategory &i) { return i.category; });
+    };
+
     /** Default for whether ShrinkDebugFile should be run */
     bool DefaultShrinkDebugFile() const;
 };
@@ -154,12 +163,6 @@ BCLog::Logger &LogInstance();
 static inline bool LogAcceptCategory(BCLog::LogFlags category) {
     return LogInstance().WillLogCategory(category);
 }
-
-/** Returns a string with the log categories. */
-std::string ListLogCategories();
-
-/** Returns a vector of the active log categories. */
-std::vector<CLogCategoryActive> ListActiveLogCategories();
 
 /** Return true if str parses as a log category and set the flag */
 bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);
