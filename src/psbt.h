@@ -329,6 +329,9 @@ struct PartiallySignedTransaction {
           unknown(psbt_in.unknown) {}
     explicit PartiallySignedTransaction(const CTransaction &txIn);
 
+    PartiallySignedTransaction &
+    operator=(const PartiallySignedTransaction &other) = default;
+
     template <typename Stream> inline void Serialize(Stream &s) const {
         // magic bytes
         s << PSBT_MAGIC_BYTES;
