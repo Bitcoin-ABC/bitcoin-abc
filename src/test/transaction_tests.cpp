@@ -732,7 +732,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
 
     // Clear custom confirguration.
-    gArgs.ClearArg("-datacarriersize");
+    gArgs.ClearForcedArg("-datacarriersize");
 
     // Data payload can be encoded in any way...
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << ParseHex("");

@@ -764,7 +764,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     // If the parameter is not specified, we use
     // DEFAULT_MAX_GENERATED_BLOCK_SIZE
     {
-        gArgs.ClearArg("-blockmaxsize");
+        gArgs.ClearForcedArg("-blockmaxsize");
         BlockAssembler ba(config, g_mempool);
         BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
                           DEFAULT_MAX_GENERATED_BLOCK_SIZE);

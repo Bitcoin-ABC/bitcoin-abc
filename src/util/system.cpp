@@ -659,10 +659,9 @@ void ArgsManager::AddHiddenArgs(const std::vector<std::string> &names) {
     }
 }
 
-void ArgsManager::ClearArg(const std::string &strArg) {
+void ArgsManager::ClearForcedArg(const std::string &strArg) {
     LOCK(cs_args);
     m_override_args.erase(strArg);
-    m_config_args.erase(strArg);
 }
 
 std::string ArgsManager::GetHelpMessage() const {

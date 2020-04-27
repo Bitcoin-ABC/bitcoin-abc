@@ -301,8 +301,10 @@ public:
     void AddArg(const std::string &name, const std::string &help,
                 unsigned int flags, const OptionsCategory &cat);
 
-    // Remove an arg setting, used only in testing
-    void ClearArg(const std::string &strArg);
+    /**
+     * Remove a forced arg setting, used only in testing.
+     */
+    void ClearForcedArg(const std::string &strArg);
 
     /**
      * Add many hidden arguments
