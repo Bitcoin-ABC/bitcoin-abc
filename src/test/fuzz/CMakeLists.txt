@@ -102,6 +102,7 @@ add_regular_fuzz_targets(
 	kitchen_sink
 	locale
 	merkleblock
+	message
 	multiplication_overflow
 	net_permissions
 	netaddress
