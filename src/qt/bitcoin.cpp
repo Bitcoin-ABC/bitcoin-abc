@@ -185,9 +185,8 @@ void BitcoinABC::handleRunawayException(const std::exception *e) {
 void BitcoinABC::initialize(Config *config, RPCServer *rpcServer,
                             HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
     try {
-        qDebug() << __func__ << ": Running initialization in thread";
         util::ThreadRename("qt-init");
-
+        qDebug() << __func__ << ": Running initialization in thread";
         interfaces::BlockAndHeaderTipInfo tip_info;
         bool rv = m_node.appInitMain(*config, *rpcServer,
                                      *httpRPCRequestProcessor, &tip_info);
