@@ -336,6 +336,30 @@ case "$ABC_BUILD_NAME" in
     ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
     ;;
 
+  build-linux64)
+    "${DEVTOOLS_DIR}"/build_depends.sh
+
+    # Build, run unit tests and functional tests.
+    CMAKE_FLAGS=(
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Linux64.cmake"
+      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
+      "-DENABLE_PROPERTY_BASED_TESTS=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    # Unit tests
+    run_test_bitcoin "for Linux 64 bits"
+
+    ninja \
+      check-bitcoin-qt \
+      check-bitcoin-seeder \
+      check-bitcoin-util \
+      check-secp256k1
+
+    # Functional tests
+    ninja check-functional
+    ;;
+
   check-seeds)
     "${DEVTOOLS_DIR}"/build_cmake.sh
     # Run on different ports to avoid a race where the rpc port used in the
