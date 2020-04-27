@@ -124,10 +124,10 @@ CMainSignals &GetMainSignals() {
 }
 
 void RegisterSharedValidationInterface(
-    std::shared_ptr<CValidationInterface> pwalletIn) {
-    // Each connection captures pwalletIn to ensure that each callback is
-    // executed before pwalletIn is destroyed. For more details see #18338.
-    g_signals.m_internals->Register(std::move(pwalletIn));
+    std::shared_ptr<CValidationInterface> callbacks) {
+    // Each connection captures the shared_ptr to ensure that each callback is
+    // executed before the subscriber is destroyed. For more details see #18338.
+    g_signals.m_internals->Register(std::move(callbacks));
 }
 
 void RegisterValidationInterface(CValidationInterface *callbacks) {
@@ -142,9 +142,9 @@ void UnregisterSharedValidationInterface(
     UnregisterValidationInterface(callbacks.get());
 }
 
-void UnregisterValidationInterface(CValidationInterface *pwalletIn) {
+void UnregisterValidationInterface(CValidationInterface *callbacks) {
     if (g_signals.m_internals) {
-        g_signals.m_internals->Unregister(pwalletIn);
+        g_signals.m_internals->Unregister(callbacks);
     }
 }
 
