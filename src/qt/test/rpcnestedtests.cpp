@@ -16,10 +16,10 @@
 
 #include <test/setup_common.h>
 
+#include <univalue.h>
+
 #include <QDir>
 #include <QtGlobal>
-
-#include <univalue.h>
 
 static UniValue rpcNestedTest_rpc(const Config &config,
                                   const JSONRPCRequest &request) {

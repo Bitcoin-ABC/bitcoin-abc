@@ -25,6 +25,8 @@
 
 #include <test/setup_common.h>
 
+#include <univalue.h>
+
 #include <QAction>
 #include <QEventLoop>
 #include <QLineEdit>
@@ -46,8 +48,6 @@
 #include <QtTest/QtTestWidgets>
 #include <QtTest/QtTestGui>
 // clang-format on
-
-#include <univalue.h>
 
 #include <string>
 

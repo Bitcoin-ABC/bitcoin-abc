@@ -12,9 +12,9 @@
 #include <test/data/blockfilters.json.h>
 #include <test/setup_common.h>
 
-#include <boost/test/unit_test.hpp>
-
 #include <univalue.h>
+
+#include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(blockfilter_tests)
 

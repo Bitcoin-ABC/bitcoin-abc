@@ -21,9 +21,9 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 
-#include <boost/algorithm/string.hpp>
-
 #include <univalue.h>
+
+#include <boost/algorithm/string.hpp>
 
 #include <cstdio>
 #include <memory>

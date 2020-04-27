@@ -28,6 +28,8 @@
 #include <db_cxx.h>
 #endif
 
+#include <univalue.h>
+
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
@@ -39,8 +41,6 @@
 #include <QThread>
 #include <QTime>
 #include <QTimer>
-
-#include <univalue.h>
 
 // TODO: add a scrollback limit, as there is currently none
 // TODO: make it possible to filter out categories (esp debug messages when
