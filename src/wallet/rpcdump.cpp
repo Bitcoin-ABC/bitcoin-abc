@@ -878,8 +878,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         "ensure you back up the whole dumpfile).\n",
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
-             "The filename with path (either absolute or relative to "
-             "bitcoind)"},
+             "The filename with path (absolute path recommended)"},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
