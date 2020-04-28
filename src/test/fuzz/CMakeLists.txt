@@ -87,6 +87,7 @@ add_regular_fuzz_targets(
 	cashaddr
 	chain
 	checkqueue
+	coins_view
 	cuckoocache
 	descriptor_parse
 	eval_script
