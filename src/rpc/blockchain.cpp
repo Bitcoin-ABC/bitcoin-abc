@@ -153,17 +153,15 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
 static UniValue getblockcount(const Config &config,
                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getblockcount",
-                "\nReturns the number of blocks in the longest blockchain.\n",
-                {}}
-                .ToString() +
-            "\nResult:\n"
-            "n    (numeric) The current block count\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getblockcount", "") +
-            HelpExampleRpc("getblockcount", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "getblockcount",
+            "\nReturns the number of blocks in the longest blockchain.\n",
+            {},
+            RPCResult{"n    (numeric) The current block count\n"},
+            RPCExamples{HelpExampleCli("getblockcount", "") +
+                        HelpExampleRpc("getblockcount", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     LOCK(cs_main);
@@ -173,17 +171,16 @@ static UniValue getblockcount(const Config &config,
 static UniValue getbestblockhash(const Config &config,
                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"getbestblockhash",
-                       "\nReturns the hash of the best (tip) block in the "
-                       "longest blockchain.\n",
-                       {}}
-                .ToString() +
-            "\nResult:\n"
-            "\"hex\"      (string) the block hash hex-encoded\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getbestblockhash", "") +
-            HelpExampleRpc("getbestblockhash", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "getbestblockhash",
+            "\nReturns the hash of the best (tip) block in the "
+            "longest blockchain.\n",
+            {},
+            RPCResult{"\"hex\"      (string) the block hash, hex-encoded\n"},
+            RPCExamples{HelpExampleCli("getbestblockhash", "") +
+                        HelpExampleRpc("getbestblockhash", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     LOCK(cs_main);
@@ -193,13 +190,15 @@ static UniValue getbestblockhash(const Config &config,
 UniValue getfinalizedblockhash(const Config &config,
                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"getfinalizedblockhash",
-                       "\nReturns the hash of the currently finalized block\n",
-                       {}}
-                .ToString() +
-            "\nResult:\n"
-            "\"hex\"      (string) the block hash hex-encoded\n");
+        throw std::runtime_error(RPCHelpMan{
+            "getfinalizedblockhash",
+            "\nReturns the hash of the currently finalized block\n",
+            {},
+            RPCResult{"\"hex\"      (string) the block hash hex-encoded\n"},
+            RPCExamples{HelpExampleCli("getfinalizedblockhash", "") +
+                        HelpExampleRpc("getfinalizedblockhash", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     LOCK(cs_main);
@@ -222,28 +221,26 @@ void RPCNotifyBlockChange(bool ibd, const CBlockIndex *pindex) {
 static UniValue waitfornewblock(const Config &config,
                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"waitfornewblock",
-                       "\nWaits for a specific new block and returns useful "
-                       "info about it.\n"
-                       "\nReturns the current block on timeout or exit.\n",
-                       {
-                           {"timeout", RPCArg::Type::NUM, /* opt */ true,
-                            /* default_val */ "0",
-                            "Time in milliseconds to wait for a response. 0 "
-                            "indicates no timeout."},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "{                           (json object)\n"
-            "  \"hash\" : {       (string) The blockhash\n"
-            "  \"height\" : {     (int) Block height\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("waitfornewblock", "1000") +
-            HelpExampleRpc("waitfornewblock", "1000"));
+        throw std::runtime_error(RPCHelpMan{
+            "waitfornewblock",
+            "\nWaits for a specific new block and returns useful "
+            "info about it.\n"
+            "\nReturns the current block on timeout or exit.\n",
+            {
+                {"timeout", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "0",
+                 "Time in milliseconds to wait for a response. 0 "
+                 "indicates no timeout."},
+            },
+            RPCResult{"{                           (json object)\n"
+                      "  \"hash\" : {       (string) The blockhash\n"
+                      "  \"height\" : {     (int) Block height\n"
+                      "}\n"},
+            RPCExamples{HelpExampleCli("waitfornewblock", "1000") +
+                        HelpExampleRpc("waitfornewblock", "1000")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
-
     int timeout = 0;
     if (!request.params[0].isNull()) {
         timeout = request.params[0].get_int();
@@ -277,32 +274,33 @@ static UniValue waitforblock(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{"waitforblock",
-                       "\nWaits for a specific new block and returns useful "
-                       "info about it.\n"
-                       "\nReturns the current block on timeout or exit.\n",
-                       {
-                           {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
-                            /* default_val */ "", "Block hash to wait for."},
-                           {"timeout", RPCArg::Type::NUM, /* opt */ true,
-                            /* default_val */ "0",
-                            "Time in milliseconds to wait for a response. 0 "
-                            "indicates no timeout."},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "{                           (json object)\n"
-            "  \"hash\" : {       (string) The blockhash\n"
-            "  \"height\" : {     (int) Block height\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4"
-                                           "570b24c9ed7b4a8c619eb02596f8862\", "
-                                           "1000") +
-            HelpExampleRpc("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4"
-                                           "570b24c9ed7b4a8c619eb02596f8862\", "
-                                           "1000"));
+        throw std::runtime_error(RPCHelpMan{
+            "waitforblock",
+            "\nWaits for a specific new block and returns useful "
+            "info about it.\n"
+            "\nReturns the current block on timeout or exit.\n",
+            {
+                {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_val */ "", "Block hash to wait for."},
+                {"timeout", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "0",
+                 "Time in milliseconds to wait for a response. 0 "
+                 "indicates no timeout."},
+            },
+            RPCResult{"{                           (json object)\n"
+                      "  \"hash\" : {       (string) The blockhash\n"
+                      "  \"height\" : {     (int) Block height\n"
+                      "}\n"},
+            RPCExamples{HelpExampleCli("waitforblock",
+                                       "\"0000000000079f8ef3d2c688c244eb7a4"
+                                       "570b24c9ed7b4a8c619eb02596f8862\", "
+                                       "1000") +
+                        HelpExampleRpc("waitforblock",
+                                       "\"0000000000079f8ef3d2c688c244eb7a4"
+                                       "570b24c9ed7b4a8c619eb02596f8862\", "
+                                       "1000")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     int timeout = 0;
@@ -339,28 +337,27 @@ static UniValue waitforblockheight(const Config &config,
                                    const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{"waitforblockheight",
-                       "\nWaits for (at least) block height and returns the "
-                       "height and hash\nof the current tip.\n"
-                       "\nReturns the current block on timeout or exit.\n",
-                       {
-                           {"height", RPCArg::Type::NUM, /* opt */ false,
-                            /* default_val */ "", "Block height to wait for."},
-                           {"timeout", RPCArg::Type::NUM, /* opt */ true,
-                            /* default_val */ "0",
-                            "Time in milliseconds to wait for a response. 0 "
-                            "indicates no timeout."},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "{                           (json object)\n"
-            "  \"hash\" : {       (string) The blockhash\n"
-            "  \"height\" : {     (int) Block height\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("waitforblockheight", "\"100\", 1000") +
-            HelpExampleRpc("waitforblockheight", "\"100\", 1000"));
+        throw std::runtime_error(RPCHelpMan{
+            "waitforblockheight",
+            "\nWaits for (at least) block height and returns the "
+            "height and hash\nof the current tip.\n"
+            "\nReturns the current block on timeout or exit.\n",
+            {
+                {"height", RPCArg::Type::NUM, /* opt */ false,
+                 /* default_val */ "", "Block height to wait for."},
+                {"timeout", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "0",
+                 "Time in milliseconds to wait for a response. 0 "
+                 "indicates no timeout."},
+            },
+            RPCResult{"{                           (json object)\n"
+                      "  \"hash\" : {       (string) The blockhash\n"
+                      "  \"height\" : {     (int) Block height\n"
+                      "}\n"},
+            RPCExamples{HelpExampleCli("waitforblockheight", "\"100\", 1000") +
+                        HelpExampleRpc("waitforblockheight", "\"100\", 1000")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     int timeout = 0;
@@ -396,16 +393,16 @@ static UniValue
 syncwithvalidationinterfacequeue(const Config &config,
                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 0) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "syncwithvalidationinterfacequeue",
-                "\nWaits for the validation interface queue to catch up on "
-                "everything that was there when we entered this function.\n",
-                {}}
-                .ToString() +
-            "\nExamples:\n" +
-            HelpExampleCli("syncwithvalidationinterfacequeue", "") +
-            HelpExampleRpc("syncwithvalidationinterfacequeue", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "syncwithvalidationinterfacequeue",
+            "\nWaits for the validation interface queue to catch up on "
+            "everything that was there when we entered this function.\n",
+            {},
+            RPCResults{},
+            RPCExamples{HelpExampleCli("syncwithvalidationinterfacequeue", "") +
+                        HelpExampleRpc("syncwithvalidationinterfacequeue", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
     SyncWithValidationInterfaceQueue();
     return NullUniValue;
@@ -414,19 +411,17 @@ syncwithvalidationinterfacequeue(const Config &config,
 static UniValue getdifficulty(const Config &config,
                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"getdifficulty",
-                       "\nReturns the proof-of-work difficulty as a "
-                       "multiple of the minimum difficulty.\n",
-                       {}}
-                .ToString() +
-            "\nResult:\n"
-            "n.nnn       (numeric) the proof-of-work "
-            "difficulty as a multiple of the minimum "
-            "difficulty.\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getdifficulty", "") +
-            HelpExampleRpc("getdifficulty", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "getdifficulty",
+            "\nReturns the proof-of-work difficulty as a multiple of the "
+            "minimum difficulty.\n",
+            {},
+            RPCResult{"n.nnn       (numeric) the proof-of-work difficulty as a "
+                      "multiple of the minimum difficulty.\n"},
+            RPCExamples{HelpExampleCli("getdifficulty", "") +
+                        HelpExampleRpc("getdifficulty", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     LOCK(cs_main);
@@ -558,33 +553,33 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose) {
 static UniValue getrawmempool(const Config &config,
                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"getrawmempool",
-                       "\nReturns all transaction ids in memory pool as a json "
-                       "array of string transaction ids.\n"
-                       "\nHint: use getmempoolentry to fetch a specific "
-                       "transaction from the mempool.\n",
-                       {
-                           {"verbose", RPCArg::Type::BOOL, /* opt */ true,
-                            /* default_val */ "false",
-                            "True for a json object, false for array of "
-                            "transaction ids"},
-                       }}
-                .ToString() +
-            "\nResult: (for verbose = false):\n"
-            "[                     (json array of string)\n"
-            "  \"transactionid\"     (string) The transaction id\n"
-            "  ,...\n"
-            "]\n"
-            "\nResult: (for verbose = true):\n"
-            "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n" +
-            EntryDescriptionString() +
-            "  }, ...\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getrawmempool", "true") +
-            HelpExampleRpc("getrawmempool", "true"));
+        throw std::runtime_error(RPCHelpMan{
+            "getrawmempool",
+            "\nReturns all transaction ids in memory pool as a json "
+            "array of string transaction ids.\n"
+            "\nHint: use getmempoolentry to fetch a specific "
+            "transaction from the mempool.\n",
+            {
+                {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "True for a json object, false for array of "
+                 "transaction ids"},
+            },
+            RPCResult{"for verbose = false",
+                      "[                     (json array of string)\n"
+                      "  \"transactionid\"     (string) The transaction id\n"
+                      "  ,...\n"
+                      "]\n"
+                      "\nResult: (for verbose = true):\n"
+                      "{                           (json object)\n"
+                      "  \"transactionid\" : {       (json object)\n" +
+                          EntryDescriptionString() +
+                          "  }, ...\n"
+                          "}\n"},
+            RPCExamples{HelpExampleCli("getrawmempool", "true") +
+                        HelpExampleRpc("getrawmempool", "true")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     bool fVerbose = false;
@@ -599,35 +594,38 @@ static UniValue getmempoolancestors(const Config &config,
                                     const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{"getmempoolancestors",
-                       "\nIf txid is in the mempool, returns all in-mempool "
-                       "ancestors.\n",
-                       {
-                           {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
-                            /* default_val */ "",
-                            "The transaction id (must be in mempool)"},
-                           {"verbose", RPCArg::Type::BOOL, /* opt */ true,
-                            /* default_val */ "false",
-                            "True for a json object, false for array of "
-                            "transaction ids"},
-                       }}
-                .ToString() +
-            "\nResult (for verbose = false):\n"
-            "[                       (json array of strings)\n"
-            "  \"transactionid\"           (string) The transaction id of an "
-            "in-mempool ancestor transaction\n"
-            "  ,...\n"
-            "]\n"
-            "\nResult (for verbose = true):\n"
-            "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n" +
-            EntryDescriptionString() +
-            "  }, ...\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getmempoolancestors", "\"mytxid\"") +
-            HelpExampleRpc("getmempoolancestors", "\"mytxid\""));
+        throw std::runtime_error(RPCHelpMan{
+            "getmempoolancestors",
+            "\nIf txid is in the mempool, returns all in-mempool "
+            "ancestors.\n",
+            {
+                {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_val */ "",
+                 "The transaction id (must be in mempool)"},
+                {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "True for a json object, false for array of "
+                 "transaction ids"},
+            },
+            {
+                RPCResult{
+                    "for verbose = false",
+                    "[                       (json array of strings)\n"
+                    "  \"transactionid\"           (string) The transaction id "
+                    "of an in-mempool ancestor transaction\n"
+                    "  ,...\n"
+                    "]\n"},
+                RPCResult{"for verbose = true",
+                          "{                           (json object)\n"
+                          "  \"transactionid\" : {       (json object)\n" +
+                              EntryDescriptionString() +
+                              "  }, ...\n"
+                              "}\n"},
+            },
+            RPCExamples{HelpExampleCli("getmempoolancestors", "\"mytxid\"") +
+                        HelpExampleRpc("getmempoolancestors", "\"mytxid\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     bool fVerbose = false;
@@ -675,35 +673,38 @@ static UniValue getmempooldescendants(const Config &config,
                                       const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{"getmempooldescendants",
-                       "\nIf txid is in the mempool, returns all in-mempool "
-                       "descendants.\n",
-                       {
-                           {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
-                            /* default_val */ "",
-                            "The transaction id (must be in mempool)"},
-                           {"verbose", RPCArg::Type::BOOL, /* opt */ true,
-                            /* default_val */ "false",
-                            "True for a json object, false for array of "
-                            "transaction ids"},
-                       }}
-                .ToString() +
-            "\nResult (for verbose = false):\n"
-            "[                       (json array of strings)\n"
-            "  \"transactionid\"           (string) The transaction id of an "
-            "in-mempool descendant transaction\n"
-            "  ,...\n"
-            "]\n"
-            "\nResult (for verbose = true):\n"
-            "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n" +
-            EntryDescriptionString() +
-            "  }, ...\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getmempooldescendants", "\"mytxid\"") +
-            HelpExampleRpc("getmempooldescendants", "\"mytxid\""));
+        throw std::runtime_error(RPCHelpMan{
+            "getmempooldescendants",
+            "\nIf txid is in the mempool, returns all in-mempool "
+            "descendants.\n",
+            {
+                {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_val */ "",
+                 "The transaction id (must be in mempool)"},
+                {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "True for a json object, false for array of "
+                 "transaction ids"},
+            },
+            {
+                RPCResult{
+                    "for verbose = false",
+                    "[                       (json array of strings)\n"
+                    "  \"transactionid\"           (string) The transaction id "
+                    "of an in-mempool descendant transaction\n"
+                    "  ,...\n"
+                    "]\n"},
+                RPCResult{"for verbose = true",
+                          "{                           (json object)\n"
+                          "  \"transactionid\" : {       (json object)\n" +
+                              EntryDescriptionString() +
+                              "  }, ...\n"
+                              "}\n"},
+            },
+            RPCExamples{HelpExampleCli("getmempooldescendants", "\"mytxid\"") +
+                        HelpExampleRpc("getmempooldescendants", "\"mytxid\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     bool fVerbose = false;
@@ -749,22 +750,20 @@ static UniValue getmempooldescendants(const Config &config,
 static UniValue getmempoolentry(const Config &config,
                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"getmempoolentry",
-                       "\nReturns mempool data for given transaction\n",
-                       {
-                           {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
-                            /* default_val */ "",
-                            "The transaction id (must be in mempool)"},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "{                           (json object)\n" +
-            EntryDescriptionString() +
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getmempoolentry", "\"mytxid\"") +
-            HelpExampleRpc("getmempoolentry", "\"mytxid\""));
+        throw std::runtime_error(RPCHelpMan{
+            "getmempoolentry",
+            "\nReturns mempool data for given transaction\n",
+            {
+                {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_val */ "",
+                 "The transaction id (must be in mempool)"},
+            },
+            RPCResult{"{                           (json object)\n" +
+                      EntryDescriptionString() + "}\n"},
+            RPCExamples{HelpExampleCli("getmempoolentry", "\"mytxid\"") +
+                        HelpExampleRpc("getmempoolentry", "\"mytxid\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     TxId txid(ParseHashV(request.params[0], "parameter 1"));
@@ -786,20 +785,19 @@ static UniValue getmempoolentry(const Config &config,
 static UniValue getblockhash(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"getblockhash",
-                       "\nReturns hash of block in best-block-chain at height "
-                       "provided.\n",
-                       {
-                           {"height", RPCArg::Type::NUM, /* opt */ false,
-                            /* default_val */ "", "The height index"},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "\"hash\"         (string) The block hash\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getblockhash", "1000") +
-            HelpExampleRpc("getblockhash", "1000"));
+        throw std::runtime_error(RPCHelpMan{
+            "getblockhash",
+            "\nReturns hash of block in best-block-chain at height "
+            "provided.\n",
+            {
+                {"height", RPCArg::Type::NUM, /* opt */ false,
+                 /* default_val */ "", "The height index"},
+            },
+            RPCResult{"\"hash\"         (string) The block hash\n"},
+            RPCExamples{HelpExampleCli("getblockhash", "1000") +
+                        HelpExampleRpc("getblockhash", "1000")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     LOCK(cs_main);
@@ -817,58 +815,65 @@ static UniValue getblockheader(const Config &config,
                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getblockheader",
-                "\nIf verbose is false, returns a string that is "
-                "serialized, hex-encoded data for blockheader 'hash'.\n"
-                "If verbose is true, returns an Object with information "
-                "about blockheader <hash>.\n",
-                {
-                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
-                     /* default_val */ "", "The block hash"},
-                    {"verbose", RPCArg::Type::BOOL, /* opt */ true,
-                     /* default_val */ "true",
-                     "true for a json object, false for the hex-encoded data"},
-                }}
-                .ToString() +
-            "\nResult (for verbose = true):\n"
-            "{\n"
-            "  \"hash\" : \"hash\",     (string) the block hash (same as "
-            "provided)\n"
-            "  \"confirmations\" : n,   (numeric) The number of confirmations, "
-            "or -1 if the block is not on the main chain\n"
-            "  \"height\" : n,          (numeric) The block height or index\n"
-            "  \"version\" : n,         (numeric) The block version\n"
-            "  \"versionHex\" : \"00000000\", (string) The block version "
-            "formatted in hexadecimal\n"
-            "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
-            "  \"time\" : ttt,          (numeric) The block time in seconds "
-            "since epoch (Jan 1 1970 GMT)\n"
-            "  \"mediantime\" : ttt,    (numeric) The median block time in "
-            "seconds since epoch (Jan 1 1970 GMT)\n"
-            "  \"nonce\" : n,           (numeric) The nonce\n"
-            "  \"bits\" : \"1d00ffff\", (string) The bits\n"
-            "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
-            "  \"chainwork\" : \"0000...1f3\"     (string) Expected number of "
-            "hashes required to produce the current chain (in hex)\n"
-            "  \"nTx\" : n,             (numeric) The number of transactions "
-            "in the block.\n"
-            "  \"previousblockhash\" : \"hash\",  (string) The hash of the "
-            "previous block\n"
-            "  \"nextblockhash\" : \"hash\",      (string) The hash of the "
-            "next block\n"
-            "}\n"
-            "\nResult (for verbose=false):\n"
-            "\"data\"             (string) A string that is serialized, "
-            "hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getblockheader", "\"00000000c937983704a73af28acdec3"
-                                             "7b049d214adbda81d7e2a3dd146f6ed09"
-                                             "\"") +
-            HelpExampleRpc("getblockheader", "\"00000000c937983704a73af28acdec3"
-                                             "7b049d214adbda81d7e2a3dd146f6ed09"
-                                             "\""));
+        throw std::runtime_error(RPCHelpMan{
+            "getblockheader",
+            "\nIf verbose is false, returns a string that is "
+            "serialized, hex-encoded data for blockheader 'hash'.\n"
+            "If verbose is true, returns an Object with information "
+            "about blockheader <hash>.\n",
+            {
+                {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_val */ "", "The block hash"},
+                {"verbose", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "true",
+                 "true for a json object, false for the hex-encoded data"},
+            },
+            {
+                RPCResult{
+                    "for verbose = true",
+                    "{\n"
+                    "  \"hash\" : \"hash\",     (string) the block hash (same "
+                    "as provided)\n"
+                    "  \"confirmations\" : n,   (numeric) The number of "
+                    "confirmations, or -1 if the block is not on the main "
+                    "chain\n"
+                    "  \"height\" : n,          (numeric) The block height or "
+                    "index\n"
+                    "  \"version\" : n,         (numeric) The block version\n"
+                    "  \"versionHex\" : \"00000000\", (string) The block "
+                    "version formatted in hexadecimal\n"
+                    "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
+                    "  \"time\" : ttt,          (numeric) The block time in "
+                    "seconds since epoch (Jan 1 1970 GMT)\n"
+                    "  \"mediantime\" : ttt,    (numeric) The median block "
+                    "time in seconds since epoch (Jan 1 1970 GMT)\n"
+                    "  \"nonce\" : n,           (numeric) The nonce\n"
+                    "  \"bits\" : \"1d00ffff\", (string) The bits\n"
+                    "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
+                    "  \"chainwork\" : \"0000...1f3\"     (string) Expected "
+                    "number of hashes required to produce the current chain "
+                    "(in hex)\n"
+                    "  \"nTx\" : n,             (numeric) The number of "
+                    "transactions in the block.\n"
+                    "  \"previousblockhash\" : \"hash\",  (string) The hash of "
+                    "the previous block\n"
+                    "  \"nextblockhash\" : \"hash\",      (string) The hash of "
+                    "the next block\n"
+                    "}\n"},
+                RPCResult{"for verbose=false",
+                          "\"data\"             (string) A string that is "
+                          "serialized, hex-encoded data for block 'hash'.\n"},
+            },
+            RPCExamples{HelpExampleCli("getblockheader",
+                                       "\"00000000c937983704a73af28acdec3"
+                                       "7b049d214adbda81d7e2a3dd146f6ed09"
+                                       "\"") +
+                        HelpExampleRpc("getblockheader",
+                                       "\"00000000c937983704a73af28acdec3"
+                                       "7b049d214adbda81d7e2a3dd146f6ed09"
+                                       "\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     BlockHash hash(ParseHashV(request.params[0], "hash"));
@@ -922,74 +927,84 @@ static CBlock GetBlockChecked(const Config &config,
 static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getblock",
-                "\nIf verbosity is 0 or false, returns a string that is "
-                "serialized, hex-encoded data for block 'hash'.\n"
-                "If verbosity is 1 or true, returns an Object with information "
-                "about block <hash>.\n"
-                "If verbosity is 2, returns an Object with information about "
-                "block <hash> and information about each transaction.\n",
-                {
-                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
-                     /* default_val */ "", "The block hash"},
-                    {"verbosity", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "1",
-                     "0 for hex-encoded data, 1 for a json object, and 2 for "
-                     "json object with transaction data"},
-                }}
-                .ToString() +
-            "\nResult (for verbosity = 0):\n"
-            "\"data\"                   (string) A string that is serialized, "
-            "hex-encoded data for block 'hash'.\n"
-            "\nResult (for verbosity = 1):\n"
-            "{\n"
-            "  \"hash\" : \"hash\",       (string) The block hash (same as "
-            "provided)\n"
-            "  \"confirmations\" : n,   (numeric) The number of confirmations, "
-            "or -1 if the block is not on the main chain\n"
-            "  \"size\" : n,            (numeric) The block size\n"
-            "  \"height\" : n,          (numeric) The block height or index\n"
-            "  \"version\" : n,         (numeric) The block version\n"
-            "  \"versionHex\" : \"00000000\", (string) The block version "
-            "formatted in hexadecimal\n"
-            "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
-            "  \"tx\" : [               (array of string) The transaction ids\n"
-            "     \"transactionid\"     (string) The transaction id\n"
-            "     ,...\n"
-            "  ],\n"
-            "  \"time\" : ttt,          (numeric) The block time in seconds "
-            "since epoch (Jan 1 1970 GMT)\n"
-            "  \"mediantime\" : ttt,    (numeric) The median block time in "
-            "seconds since epoch (Jan 1 1970 GMT)\n"
-            "  \"nonce\" : n,           (numeric) The nonce\n"
-            "  \"bits\" : \"1d00ffff\",   (string) The bits\n"
-            "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
-            "  \"chainwork\" : \"xxxx\",  (string) Expected number of hashes "
-            "required to produce the chain up to this block (in hex)\n"
-            "  \"nTx\" : n,             (numeric) The number of transactions "
-            "in the block.\n"
-            "  \"previousblockhash\" : \"hash\",  (string) The hash of the "
-            "previous block\n"
-            "  \"nextblockhash\" : \"hash\"       (string) The hash of the "
-            "next block\n"
-            "}\n"
-            "\nResult (for verbosity = 2):\n"
-            "{\n"
-            "  ...,                   Same output as verbosity = 1\n"
-            "  \"tx\" : [               (array of Objects) The transactions in "
-            "the format of the getrawtransaction RPC; different from verbosity "
-            "= 1 \"tx\" result\n"
-            "    ...\n"
-            "  ],\n"
-            "  ...                    Same output as verbosity = 1\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d"
+        throw std::runtime_error(RPCHelpMan{
+            "getblock",
+            "\nIf verbosity is 0 or false, returns a string that is "
+            "serialized, hex-encoded data for block 'hash'.\n"
+            "If verbosity is 1 or true, returns an Object with information "
+            "about block <hash>.\n"
+            "If verbosity is 2, returns an Object with information about "
+            "block <hash> and information about each transaction.\n",
+            {
+                {"blockhash", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_val */ "", "The block hash"},
+                {"verbosity", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "1",
+                 "0 for hex-encoded data, 1 for a json object, and 2 for "
+                 "json object with transaction data"},
+            },
+            {
+                RPCResult{
+                    "for verbosity = 0",
+                    "\"data\"                   (string) A string that is "
+                    "serialized, hex-encoded data for block 'hash'.\n"},
+                RPCResult{
+                    "for verbosity = 1",
+                    "{\n"
+                    "  \"hash\" : \"hash\",       (string) The block hash "
+                    "(same as provided)\n"
+                    "  \"confirmations\" : n,   (numeric) The number of "
+                    "confirmations, or -1 if the block is not on the main "
+                    "chain\n"
+                    "  \"size\" : n,            (numeric) The block size\n"
+                    "  \"height\" : n,          (numeric) The block height or "
+                    "index\n"
+                    "  \"version\" : n,         (numeric) The block version\n"
+                    "  \"versionHex\" : \"00000000\", (string) The block "
+                    "version formatted in hexadecimal\n"
+                    "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
+                    "  \"tx\" : [               (array of string) The "
+                    "transaction ids\n"
+                    "     \"transactionid\"     (string) The transaction id\n"
+                    "     ,...\n"
+                    "  ],\n"
+                    "  \"time\" : ttt,          (numeric) The block time in "
+                    "seconds since epoch (Jan 1 1970 GMT)\n"
+                    "  \"mediantime\" : ttt,    (numeric) The median block "
+                    "time in seconds since epoch (Jan 1 1970 GMT)\n"
+                    "  \"nonce\" : n,           (numeric) The nonce\n"
+                    "  \"bits\" : \"1d00ffff\",   (string) The bits\n"
+                    "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
+                    "  \"chainwork\" : \"xxxx\",  (string) Expected number of "
+                    "hashes required to produce the chain up to this block (in "
+                    "hex)\n"
+                    "  \"nTx\" : n,             (numeric) The number of "
+                    "transactions in the block.\n"
+                    "  \"previousblockhash\" : \"hash\",  (string) The hash of "
+                    "the previous block\n"
+                    "  \"nextblockhash\" : \"hash\"       (string) The hash of "
+                    "the next block\n"
+                    "}\n"},
+                RPCResult{
+                    "for verbosity = 2",
+                    "{\n"
+                    "  ...,                   Same output as verbosity = 1\n"
+                    "  \"tx\" : [               (array of Objects) The "
+                    "transactions in the format of the getrawtransaction RPC; "
+                    "different from verbosity = 1 \"tx\" result\n"
+                    "    ...\n"
+                    "  ],\n"
+                    "  ...                    Same output as verbosity = 1\n"
+                    "}\n"},
+            },
+            RPCExamples{HelpExampleCli("getblock",
+                                       "\"00000000c937983704a73af28acdec37b049d"
                                        "214adbda81d7e2a3dd146f6ed09\"") +
-            HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d"
-                                       "214adbda81d7e2a3dd146f6ed09\""));
+                        HelpExampleRpc("getblock",
+                                       "\"00000000c937983704a73af28acdec37b049d"
+                                       "214adbda81d7e2a3dd146f6ed09\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     LOCK(cs_main);
