@@ -237,6 +237,19 @@ case "$ABC_BUILD_NAME" in
     run_test_bitcoin "without wallet"
     ;;
 
+  build-without-zmq)
+    # Build without Zeromq and run the unit tests.
+    CMAKE_FLAGS=(
+      "-DBUILD_BITCOIN_ZMQ=OFF"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    ninja check-bitcoin-qt
+    ninja check-functional
+
+    run_test_bitcoin "without zmq"
+    ;;
+
   build-ibd)
     "${DEVTOOLS_DIR}"/build_cmake.sh
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -debug=net
