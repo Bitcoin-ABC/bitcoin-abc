@@ -51,6 +51,7 @@ PACKAGES=(
   python3
   python3-setuptools
   python3-zmq
+  qemu-user-static
   qttools5-dev
   qttools5-dev-tools
   software-properties-common
