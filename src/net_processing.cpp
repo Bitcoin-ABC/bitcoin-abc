@@ -4268,7 +4268,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         } else if (pfrom.m_tx_relay != nullptr) {
             LOCK(pfrom.m_tx_relay->cs_filter);
             pfrom.m_tx_relay->pfilter.reset(new CBloomFilter(filter));
-            pfrom.m_tx_relay->pfilter->UpdateEmptyFull();
             pfrom.m_tx_relay->fRelayTxes = true;
         }
         return;

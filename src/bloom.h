@@ -45,8 +45,6 @@ enum bloomflags {
 class CBloomFilter {
 private:
     std::vector<uint8_t> vData;
-    bool isFull;
-    bool isEmpty;
     uint32_t nHashFuncs;
     uint32_t nTweak;
     uint8_t nFlags;
@@ -68,8 +66,7 @@ public:
      */
     CBloomFilter(const uint32_t nElements, const double nFPRate,
                  const uint32_t nTweak, uint8_t nFlagsIn);
-    CBloomFilter()
-        : isFull(true), isEmpty(false), nHashFuncs(0), nTweak(0), nFlags(0) {}
+    CBloomFilter() : nHashFuncs(0), nTweak(0), nFlags(0) {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -109,9 +106,6 @@ public:
     bool IsRelevantAndUpdate(const CTransaction &tx) {
         return MatchAndInsertOutputs(tx) || MatchInputs(tx);
     }
-
-    //! Checks for empty and full filters to avoid wasting cpu
-    void UpdateEmptyFull();
 };
 
 /**

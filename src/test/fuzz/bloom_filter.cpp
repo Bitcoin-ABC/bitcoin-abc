@@ -26,7 +26,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
             {BLOOM_UPDATE_NONE, BLOOM_UPDATE_ALL, BLOOM_UPDATE_P2PUBKEY_ONLY,
              BLOOM_UPDATE_MASK}))};
     while (fuzzed_data_provider.remaining_bytes() > 0) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange(0, 4)) {
+        switch (fuzzed_data_provider.ConsumeIntegralInRange(0, 3)) {
             case 0: {
                 const std::vector<uint8_t> b =
                     ConsumeRandomLengthByteVector(fuzzed_data_provider);
@@ -71,9 +71,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 (void)bloom_filter.IsRelevantAndUpdate(tx);
                 break;
             }
-            case 4:
-                bloom_filter.UpdateEmptyFull();
-                break;
         }
         (void)bloom_filter.IsWithinSizeConstraints();
     }

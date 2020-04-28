@@ -37,7 +37,6 @@ CBloomFilter::CBloomFilter(const uint32_t nElements, const double nFPRate,
     : vData(std::min<uint32_t>(-1 / LN2SQUARED * nElements * log(nFPRate),
                                MAX_BLOOM_FILTER_SIZE * 8) /
             8),
-      isFull(false), isEmpty(true),
       nHashFuncs(std::min<uint32_t>(vData.size() * 8 / nElements * LN2,
                                     MAX_HASH_FUNCS)),
       nTweak(nTweakIn), nFlags(nFlagsIn) {}
@@ -52,7 +51,8 @@ CBloomFilter::Hash(uint32_t nHashNum,
 }
 
 void CBloomFilter::insert(const std::vector<uint8_t> &vKey) {
-    if (isFull) {
+    if (vData.empty()) {
+        // Avoid divide-by-zero (CVE-2013-5700)
         return;
     }
 
@@ -61,7 +61,6 @@ void CBloomFilter::insert(const std::vector<uint8_t> &vKey) {
         // Sets bit nIndex of vData
         vData[nIndex >> 3] |= (1 << (7 & nIndex));
     }
-    isEmpty = false;
 }
 
 void CBloomFilter::insert(const COutPoint &outpoint) {
@@ -77,11 +76,9 @@ void CBloomFilter::insert(const uint256 &hash) {
 }
 
 bool CBloomFilter::contains(const std::vector<uint8_t> &vKey) const {
-    if (isFull) {
+    if (vData.empty()) {
+        // Avoid divide-by-zero (CVE-2013-5700)
         return true;
-    }
-    if (isEmpty) {
-        return false;
     }
     for (uint32_t i = 0; i < nHashFuncs; i++) {
         uint32_t nIndex = Hash(i, vKey);
@@ -114,11 +111,9 @@ bool CBloomFilter::MatchAndInsertOutputs(const CTransaction &tx) {
     bool fFound = false;
     // Match if the filter contains the hash of tx for finding tx when they
     // appear in a block
-    if (isFull) {
+    if (vData.empty()) {
+        // zero-size = "match-all" filter
         return true;
-    }
-    if (isEmpty) {
-        return false;
     }
 
     const TxId &txid = tx.GetId();
@@ -162,10 +157,6 @@ bool CBloomFilter::MatchAndInsertOutputs(const CTransaction &tx) {
 }
 
 bool CBloomFilter::MatchInputs(const CTransaction &tx) {
-    if (isEmpty) {
-        return false;
-    }
-
     for (const CTxIn &txin : tx.vin) {
         // Match if the filter contains an outpoint tx spends
         if (contains(txin.prevout)) {
@@ -188,17 +179,6 @@ bool CBloomFilter::MatchInputs(const CTransaction &tx) {
     }
 
     return false;
-}
-
-void CBloomFilter::UpdateEmptyFull() {
-    bool full = true;
-    bool empty = true;
-    for (const auto d : vData) {
-        full &= (d == 0xff);
-        empty &= (d == 0);
-    }
-    isFull = full;
-    isEmpty = empty;
 }
 
 CRollingBloomFilter::CRollingBloomFilter(const uint32_t nElements,
