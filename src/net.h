@@ -140,6 +140,7 @@ enum class ConnectionType {
     INBOUND,
     OUTBOUND,
     MANUAL,
+    FEELER,
 };
 
 namespace {
@@ -238,7 +239,7 @@ public:
     OpenNetworkConnection(const CAddress &addrConnect, bool fCountFailure,
                           CSemaphoreGrant *grantOutbound = nullptr,
                           const char *strDest = nullptr,
-                          bool m_addr_fetch = false, bool fFeeler = false,
+                          bool m_addr_fetch = false,
                           ConnectionType conn_type = ConnectionType::OUTBOUND,
                           bool block_relay_only = false);
     bool CheckIncomingNonce(uint64_t nonce);

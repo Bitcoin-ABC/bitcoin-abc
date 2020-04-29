@@ -1934,7 +1934,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
             for (const std::string &strAddr : connect) {
                 CAddress addr(CService(), NODE_NONE);
                 OpenNetworkConnection(addr, false, nullptr, strAddr.c_str(),
-                                      false, false, ConnectionType::MANUAL);
+                                      false, ConnectionType::MANUAL);
                 for (int i = 0; i < 10 && i < nLoop; i++) {
                     if (!interruptNet.sleep_for(
                             std::chrono::milliseconds(500))) {
@@ -2127,11 +2127,13 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
                 nOutboundBlockRelay < m_max_outbound_block_relay && !fFeeler &&
                 nOutboundFullRelay >= m_max_outbound_full_relay;
 
-            OpenNetworkConnection(addrConnect,
-                                  int(setConnected.size()) >=
-                                      std::min(nMaxConnections - 1, 2),
-                                  &grant, nullptr, false, fFeeler,
-                                  ConnectionType::OUTBOUND, block_relay_only);
+            ConnectionType conn_type =
+                (fFeeler ? ConnectionType::FEELER : ConnectionType::OUTBOUND);
+
+            OpenNetworkConnection(
+                addrConnect,
+                int(setConnected.size()) >= std::min(nMaxConnections - 1, 2),
+                &grant, nullptr, false, conn_type, block_relay_only);
         }
     }
 }
@@ -2208,7 +2210,7 @@ void CConnman::ThreadOpenAddedConnections() {
                 tried = true;
                 CAddress addr(CService(), NODE_NONE);
                 OpenNetworkConnection(addr, false, &grant,
-                                      info.strAddedNode.c_str(), false, false,
+                                      info.strAddedNode.c_str(), false,
                                       ConnectionType::MANUAL);
                 if (!interruptNet.sleep_for(std::chrono::milliseconds(500))) {
                     return;
@@ -2228,7 +2230,7 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
                                      bool fCountFailure,
                                      CSemaphoreGrant *grantOutbound,
                                      const char *pszDest, bool m_addr_fetch,
-                                     bool fFeeler, ConnectionType conn_type,
+                                     ConnectionType conn_type,
                                      bool block_relay_only) {
     assert(conn_type != ConnectionType::INBOUND);
 
@@ -2265,9 +2267,6 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
     }
     if (m_addr_fetch) {
         pnode->m_addr_fetch = true;
-    }
-    if (fFeeler) {
-        pnode->fFeeler = true;
     }
 
     m_msgproc->InitializeNode(*config, pnode);
@@ -2991,7 +2990,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
              ConnectionType conn_type_in, bool block_relay_only)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
-      addrBind(addrBindIn),
+      addrBind(addrBindIn), fFeeler(conn_type_in == ConnectionType::FEELER),
       m_manual_connection(conn_type_in == ConnectionType::MANUAL),
       fInbound(conn_type_in == ConnectionType::INBOUND),
       nKeyedNetGroup(nKeyedNetGroupIn),
