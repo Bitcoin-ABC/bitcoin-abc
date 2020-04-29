@@ -318,7 +318,7 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-osx)
-    export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin14/native/lib/python3/dist-packages:${PYTHONPATH:-}"
+    export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin16/native/lib/python3/dist-packages:${PYTHONPATH:-}"
 
     "${DEVTOOLS_DIR}"/build_depends.sh
     CMAKE_FLAGS=(
@@ -328,6 +328,8 @@ case "$ABC_BUILD_NAME" in
 
     # Build all the targets that are not built as part of the default target
     ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
+
+    ninja osx-dmg
     ;;
 
   build-linux-arm)
