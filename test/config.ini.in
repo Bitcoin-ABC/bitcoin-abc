@@ -10,6 +10,8 @@ SRCDIR=@abs_top_srcdir@
 BUILDDIR=@abs_top_builddir@
 EXEEXT=@EXEEXT@
 RPCAUTH=@abs_top_srcdir@/share/rpcauth/rpcauth.py
+# EMULATOR is unsupported on autotools, and added for compatibility with cmake
+EMULATOR=
 
 [components]
 # Which components are enabled. These are commented out by `configure` if they were disabled when running config.
