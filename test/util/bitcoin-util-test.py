@@ -80,6 +80,8 @@ def bctest(testDir, testObj, buildenv):
         buildenv["BUILDDIR"], "src", testObj["exec"] + buildenv["EXEEXT"])
     execargs = testObj['args']
     execrun = [execprog] + execargs
+    if buildenv["EMULATOR"]:
+        execrun = [buildenv["EMULATOR"]] + execrun
 
     # Read the input data (if there is any)
     stdinCfg = None
