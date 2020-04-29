@@ -17,10 +17,24 @@ class DebugLogHelper {
     std::list<std::function<void(const std::string &)>>::iterator
         m_print_connection;
 
+    //! Custom match checking function.
+    //!
+    //! Invoked with pointers to lines containing matching strings, and with
+    //! null if check_found() is called without any successful match.
+    //!
+    //! Can return true to enable default DebugLogHelper behavior of:
+    //! (1) ending search after first successful match, and
+    //! (2) raising an error in check_found if no match was found
+    //! Can return false to do the opposite in either case.
+    using MatchFn = std::function<bool(const std::string *line)>;
+    MatchFn m_match;
+
     void check_found();
 
 public:
-    explicit DebugLogHelper(std::string message);
+    explicit DebugLogHelper(
+        std::string message,
+        MatchFn match = [](const std::string *) { return true; });
     ~DebugLogHelper() { check_found(); }
 };
 
