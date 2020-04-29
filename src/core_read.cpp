@@ -15,12 +15,13 @@
 #include <util/system.h>
 #include <version.h>
 
+#include <univalue.h>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 
 #include <algorithm>
-#include <univalue.h>
 
 CScript ParseScript(const std::string &s) {
     CScript result;
