@@ -303,6 +303,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Win64.cmake"
       "-DBUILD_BITCOIN_SEEDER=OFF"
+      "-DCPACK_STRIP_FILES=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
@@ -312,6 +313,8 @@ case "$ABC_BUILD_NAME" in
     # Run the tests. Not all will run with wine, so exclude them
     find src -name "libbitcoinconsensus*.dll" -exec cp {} src/test/ \;
     wine ./src/test/test_bitcoin.exe --run_test=\!radix_tests,rcu_tests
+
+    ninja package
     ;;
 
   build-osx)
