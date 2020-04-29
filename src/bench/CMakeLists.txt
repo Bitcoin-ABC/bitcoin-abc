@@ -55,6 +55,7 @@ add_executable(bitcoin-bench
 	hashpadding.cpp
 	load_external.cpp
 	lockedpool.cpp
+	logging.cpp
 	mempool_eviction.cpp
 	mempool_stress.cpp
 	merkle_root.cpp

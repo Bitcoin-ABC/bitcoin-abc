@@ -16,6 +16,9 @@
 #include <util/time.h>
 #include <util/translation.h>
 
+#include <functional>
+#include <vector>
+
 using node::DEFAULT_PRINTPRIORITY;
 
 using util::SplitString;
@@ -24,9 +27,9 @@ namespace init {
 void AddLoggingArgs(ArgsManager &argsman) {
     argsman.AddArg(
         "-debuglogfile=<file>",
-        strprintf("Specify location of debug log file. Relative paths will be "
-                  "prefixed by a net-specific datadir location. "
-                  "(-nodebuglogfile to disable; default: %s)",
+        strprintf("Specify location of debug log file (default: %s). Relative "
+                  "paths will be prefixed by a net-specific datadir location. "
+                  "Pass -nodebuglogfile to disable writing the log to a file.)",
                   DEFAULT_DEBUGLOGFILE),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-debug=<category>",
