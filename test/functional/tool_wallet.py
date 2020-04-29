@@ -25,7 +25,13 @@ class ToolWalletTest(BitcoinTestFramework):
             '/src/bitcoin-wallet' + self.config["environment"]["EXEEXT"]
         args = ['-datadir={}'.format(self.nodes[0].datadir),
                 '-regtest'] + list(args)
-        return subprocess.Popen([binary] + args, stdin=subprocess.PIPE,
+
+        command_line = [binary] + args
+        if self.config["environment"]["EMULATOR"]:
+            command_line = [
+                self.config["environment"]["EMULATOR"]] + command_line
+
+        return subprocess.Popen(command_line, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
     def assert_raises_tool_error(self, error, *args):
