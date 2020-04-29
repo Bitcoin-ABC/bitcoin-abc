@@ -11,6 +11,7 @@ SRCDIR=${CMAKE_SOURCE_DIR}
 BUILDDIR=${CMAKE_BINARY_DIR}
 EXEEXT=${CMAKE_EXECUTABLE_SUFFIX}
 RPCAUTH=${CMAKE_SOURCE_DIR}/share/rpcauth/rpcauth.py
+EMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}
 
 [components]
 # Which components are enabled. Note that bitcoind cannot be disabled by cmake

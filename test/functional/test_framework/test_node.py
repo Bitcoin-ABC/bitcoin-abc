@@ -58,7 +58,7 @@ class TestNode():
     be dispatched to the RPC connection."""
 
     def __init__(self, i, datadir, *, host, rpc_port, p2p_port, timewait, bitcoind,
-                 bitcoin_cli, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
+                 bitcoin_cli, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False, emulator=None):
         self.index = i
         self.datadir = datadir
         self.stdout_dir = os.path.join(self.datadir, "stdout")
@@ -93,10 +93,16 @@ class TestNode():
             "-noprinttoconsole",
         ]
 
+        if emulator is not None:
+            if not os.path.isfile(emulator):
+                raise FileNotFoundError(
+                    "Emulator '{}' could not be found.".format(emulator))
+        self.emulator = emulator
+
         if use_cli and not os.path.isfile(bitcoin_cli):
             raise FileNotFoundError(
                 "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOINCLI=<path/to/bitcoin-cli> {}".format(bitcoin_cli, sys.argv[0]))
-        self.cli = TestNodeCLI(bitcoin_cli, self.datadir)
+        self.cli = TestNodeCLI(bitcoin_cli, self.datadir, self.emulator)
         self.use_cli = use_cli
 
         self.running = False
@@ -207,8 +213,16 @@ class TestNode():
         # written to stderr and not the terminal
         subp_env = dict(os.environ, LIBC_FATAL_STDERR_="1")
 
+        p_args = [self.binary] + self.default_args + extra_args
+        if self.emulator is not None:
+            p_args = [self.emulator] + p_args
         self.process = subprocess.Popen(
-            [self.binary] + self.default_args + extra_args, env=subp_env, stdout=stdout, stderr=stderr, *args, **kwargs)
+            p_args,
+            env=subp_env,
+            stdout=stdout,
+            stderr=stderr,
+            *args,
+            **kwargs)
 
         self.running = True
         self.log.debug("bitcoind started, waiting for RPC to come up")
@@ -447,16 +461,17 @@ def arg_to_cli(arg):
 class TestNodeCLI():
     """Interface to bitcoin-cli for an individual node"""
 
-    def __init__(self, binary, datadir):
+    def __init__(self, binary, datadir, emulator=None):
         self.options = []
         self.binary = binary
         self.datadir = datadir
         self.input = None
         self.log = logging.getLogger('TestFramework.bitcoincli')
+        self.emulator = emulator
 
     def __call__(self, *options, input=None):
         # TestNodeCLI is callable with bitcoin-cli command-line options
-        cli = TestNodeCLI(self.binary, self.datadir)
+        cli = TestNodeCLI(self.binary, self.datadir, self.emulator)
         cli.options = [str(o) for o in options]
         cli.input = input
         return cli
@@ -486,6 +501,8 @@ class TestNodeCLI():
         if command is not None:
             p_args += [command]
         p_args += pos_args + named_args
+        if self.emulator is not None:
+            p_args = [self.emulator] + p_args
         self.log.debug("Running bitcoin-cli command: {}".format(command))
         process = subprocess.Popen(p_args, stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)

@@ -132,6 +132,7 @@ class BitcoinTestFramework():
             "BITCOIND", default=config["environment"]["BUILDDIR"] + '/src/bitcoind' + config["environment"]["EXEEXT"])
         self.options.bitcoincli = os.getenv(
             "BITCOINCLI", default=config["environment"]["BUILDDIR"] + '/src/bitcoin-cli' + config["environment"]["EXEEXT"])
+        self.options.emulator = config["environment"]["EMULATOR"] or None
 
         os.environ['PATH'] = config['environment']['BUILDDIR'] + os.pathsep + \
             config['environment']['BUILDDIR'] + os.path.sep + "qt" + os.pathsep + \
@@ -310,6 +311,7 @@ class BitcoinTestFramework():
                 extra_conf=extra_confs[i],
                 extra_args=extra_args[i],
                 use_cli=self.options.usecli,
+                emulator=self.options.emulator,
             ))
             if self.options.phononactivation:
                 self.nodes[i].extend_default_args(
@@ -466,7 +468,8 @@ class BitcoinTestFramework():
                     bitcoind=self.options.bitcoind,
                     bitcoin_cli=self.options.bitcoincli,
                     mocktime=self.mocktime,
-                    coverage_dir=None
+                    coverage_dir=None,
+                    emulator=self.options.emulator,
                 ))
                 self.nodes[i].clear_default_args()
                 self.nodes[i].extend_default_args(["-datadir=" + datadir])
