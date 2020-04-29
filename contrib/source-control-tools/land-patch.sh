@@ -57,6 +57,8 @@ done
 # Temporarily stop verbose logging to prevent leaking CONDUIT_TOKEN
 set +x
 : "${CONDUIT_TOKEN:=}"
+# Remove export property from CONDUIT_TOKEN so it is not accidentally logged
+export -n CONDUIT_TOKEN
 if [ -n "${REVISION}" ] && [ -z "${CONDUIT_TOKEN}" ]; then
   echo "Error: CONDUIT_TOKEN was not set"
   exit 10
