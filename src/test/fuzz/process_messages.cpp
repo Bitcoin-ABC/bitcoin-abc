@@ -47,7 +47,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         const ServiceFlags service_flags =
             ServiceFlags(fuzzed_data_provider.ConsumeIntegral<uint64_t>());
         const ConnectionType conn_type = fuzzed_data_provider.PickValueInArray(
-            {ConnectionType::INBOUND, ConnectionType::OUTBOUND});
+            {ConnectionType::INBOUND, ConnectionType::OUTBOUND,
+             ConnectionType::MANUAL});
         const bool block_relay_only{fuzzed_data_provider.ConsumeBool()};
         peers.push_back(
             std::make_unique<CNode>(
