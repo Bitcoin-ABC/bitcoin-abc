@@ -336,11 +336,27 @@ case "$ABC_BUILD_NAME" in
     "${DEVTOOLS_DIR}"/build_depends.sh
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/LinuxARM.cmake"
+      # This will prepend our executable commands with the given emulator call
+      "-DCMAKE_CROSSCOMPILING_EMULATOR=$(command -v qemu-arm-static)"
+      # The ZMQ functional test will fail with qemu (due to a qemu limitation),
+      # so disable it to avoid the failure.
+      # Extracted from stderr:
+      #   Unknown host QEMU_IFLA type: 50
+      #   Unknown host QEMU_IFLA type: 51
+      #   Unknown QEMU_IFLA_BRPORT type 33
+      "-DBUILD_BITCOIN_ZMQ=OFF"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
-    # Build all the targets that are not built as part of the default target
-    ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
+    # Let qemu know where to find the system libraries
+    export QEMU_LD_PREFIX=/usr/arm-linux-gnueabihf
+
+    # Unit tests
+    ninja check
+    ninja check-secp256k1
+
+    # Functional tests
+    ninja check-functional
     ;;
 
   build-linux-aarch64)
