@@ -620,9 +620,8 @@ public:
         std::atomic<std::chrono::seconds> m_last_mempool_req{0s};
         std::chrono::microseconds nNextInvSend{0};
 
-        RecursiveMutex cs_feeFilter;
-        // Minimum fee rate with which to filter inv's to this node
-        Amount minFeeFilter GUARDED_BY(cs_feeFilter){Amount::zero()};
+        /** Minimum fee rate with which to filter inv's to this node */
+        std::atomic<Amount> minFeeFilter{Amount::zero()};
         Amount lastSentFeeFilter{Amount::zero()};
         std::chrono::microseconds m_next_send_feefilter{0};
     };

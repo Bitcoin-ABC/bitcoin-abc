@@ -620,7 +620,6 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.m_legacyWhitelisted = m_legacyWhitelisted;
     stats.m_permissionFlags = m_permissionFlags;
     if (m_tx_relay != nullptr) {
-        LOCK(m_tx_relay->cs_feeFilter);
         stats.minFeeFilter = m_tx_relay->minFeeFilter;
     } else {
         stats.minFeeFilter = Amount::zero();

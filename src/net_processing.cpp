@@ -5790,7 +5790,6 @@ void PeerManagerImpl::ProcessMessage(
         vRecv >> newFeeFilter;
         if (MoneyRange(newFeeFilter)) {
             if (pfrom.m_tx_relay != nullptr) {
-                LOCK(pfrom.m_tx_relay->cs_feeFilter);
                 pfrom.m_tx_relay->minFeeFilter = newFeeFilter;
             }
             LogPrint(BCLog::NET, "received: feefilter of %s from peer=%d\n",
@@ -6891,11 +6890,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             if (fSendTrickle && pto->m_tx_relay->fSendMempool) {
                 auto vtxinfo = m_mempool.infoAll();
                 pto->m_tx_relay->fSendMempool = false;
-                CFeeRate filterrate;
-                {
-                    LOCK(pto->m_tx_relay->cs_feeFilter);
-                    filterrate = CFeeRate(pto->m_tx_relay->minFeeFilter);
-                }
+                const CFeeRate filterrate{pto->m_tx_relay->minFeeFilter.load()};
 
                 LOCK(pto->m_tx_relay->cs_filter);
 
@@ -6932,11 +6927,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                      it != pto->m_tx_relay->setInventoryTxToSend.end(); it++) {
                     vInvTx.push_back(it);
                 }
-                CFeeRate filterrate;
-                {
-                    LOCK(pto->m_tx_relay->cs_feeFilter);
-                    filterrate = CFeeRate(pto->m_tx_relay->minFeeFilter);
-                }
+                const CFeeRate filterrate{pto->m_tx_relay->minFeeFilter.load()};
                 // Send out the inventory in the order of admission to our
                 // mempool, which is guaranteed to be a topological sort order.
                 // A heap is used so that not all items need sorting if only a
