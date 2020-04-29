@@ -169,27 +169,26 @@ static UniValue getnewaddress(const Config &config,
     }
 
     if (request.fHelp || request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getnewaddress",
-                "\nReturns a new Bitcoin address for receiving payments.\n"
-                "If 'label' is specified, it is added to the address book \n"
-                "so payments received with the address will be associated with "
-                "'label'.\n",
-                {
-                    {"label", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "",
-                     "The label name for the address to be linked to. If not "
-                     "provided, the default label \"\" is used. It can also be "
-                     "set to the empty string \"\" to represent the default "
-                     "label. The label does not need to exist, it will be "
-                     "created if there is no label by the given name."},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "\"address\"    (string) The new bitcoin address\n"
-            "\nExamples:\n" +
-            HelpExampleRpc("getnewaddress", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "getnewaddress",
+            "\nReturns a new Bitcoin address for receiving payments.\n"
+            "If 'label' is specified, it is added to the address book \n"
+            "so payments received with the address will be associated with "
+            "'label'.\n",
+            {
+                {"label", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "",
+                 "The label name for the address to be linked to. If not "
+                 "provided, the default label \"\" is used. It can also be "
+                 "set to the empty string \"\" to represent the default "
+                 "label. The label does not need to exist, it will be "
+                 "created if there is no label by the given name."},
+            },
+            RPCResult{"\"address\"    (string) The new bitcoin address\n"},
+            RPCExamples{HelpExampleCli("getnewaddress", "") +
+                        HelpExampleRpc("getnewaddress", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Belt and suspenders check for disabled private keys
@@ -249,18 +248,16 @@ static UniValue getrawchangeaddress(const Config &config,
     }
 
     if (request.fHelp || request.params.size() > 1) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getrawchangeaddress",
-                "\nReturns a new Bitcoin address, for receiving change.\n"
-                "This is for use with raw transactions, NOT normal use.\n",
-                {}}
-                .ToString() +
-            "\nResult:\n"
-            "\"address\"    (string) The address\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getrawchangeaddress", "") +
-            HelpExampleRpc("getrawchangeaddress", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "getrawchangeaddress",
+            "\nReturns a new Bitcoin address, for receiving change.\n"
+            "This is for use with raw transactions, NOT normal use.\n",
+            {},
+            RPCResult{"\"address\"    (string) The address\n"},
+            RPCExamples{HelpExampleCli("getrawchangeaddress", "") +
+                        HelpExampleRpc("getrawchangeaddress", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Belt and suspenders check for disabled private keys
@@ -317,25 +314,26 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (request.fHelp || request.params.size() != 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "setlabel",
-                "\nSets the label associated with the given address.\n",
-                {
-                    {"address", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "",
-                     "The bitcoin address to be associated with a label."},
-                    {"label", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "",
-                     "The label to assign to the address."},
-                }}
-                .ToString() +
-            "\nExamples:\n" +
-            HelpExampleCli("setlabel",
-                           "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"tabby\"") +
-            HelpExampleRpc(
-                "setlabel",
-                "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"tabby\""));
+        throw std::runtime_error(RPCHelpMan{
+            "setlabel",
+            "\nSets the label associated with the given address.\n",
+            {
+                {"address", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "",
+                 "The bitcoin address to be associated with a label."},
+                {"label", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The label to assign to the address."},
+            },
+            RPCResults{},
+            RPCExamples{
+                HelpExampleCli(
+                    "setlabel",
+                    "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"tabby\"") +
+                HelpExampleRpc(
+                    "setlabel",
+                    "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"tabby\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
     LOCK(pwallet->cs_wallet);
 
@@ -426,51 +424,52 @@ static UniValue sendtoaddress(const Config &config,
 
     if (request.fHelp || request.params.size() < 2 ||
         request.params.size() > 5) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "sendtoaddress",
-                "\nSend an amount to a given address.\n" +
-                    HelpRequiringPassphrase(pwallet) + "\n",
-                {
-                    {"address", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "", "The bitcoin address to send to."},
-                    {"amount", RPCArg::Type::AMOUNT, /* opt */ false,
-                     /* default_val */ "",
-                     "The amount in " + CURRENCY_UNIT + " to send. eg 0.1"},
-                    {"comment", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "",
-                     "A comment used to store what the transaction is for.\n"
-                     "                             This is not part of the "
-                     "transaction, just kept in your wallet."},
-                    {"comment_to", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "",
-                     "A comment to store the name of the person or "
-                     "organization\n"
-                     "                             to which you're sending the "
-                     "transaction. This is not part of the \n"
-                     "                             transaction, just kept in "
-                     "your wallet."},
-                    {"subtractfeefromamount", RPCArg::Type::BOOL,
-                     /* opt */ true, /* default_val */ "false",
-                     "The fee will be deducted from the amount being sent.\n"
-                     "                             The recipient will receive "
-                     "less bitcoins than you enter in the amount field."},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "\"txid\"                  (string) The transaction id.\n"
-            "\nExamples:\n" +
-            HelpExampleCli("sendtoaddress",
-                           "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1") +
-            HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvay"
-                                            "dd\" 0.1 \"donation\" \"seans "
-                                            "outpost\"") +
-            HelpExampleCli(
-                "sendtoaddress",
-                "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"\" \"\" true") +
-            HelpExampleRpc("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvay"
-                                            "dd\", 0.1, \"donation\", \"seans "
-                                            "outpost\""));
+        throw std::runtime_error(RPCHelpMan{
+            "sendtoaddress",
+            "\nSend an amount to a given address.\n" +
+                HelpRequiringPassphrase(pwallet) + "\n",
+            {
+                {"address", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The bitcoin address to send to."},
+                {"amount", RPCArg::Type::AMOUNT, /* opt */ false,
+                 /* default_val */ "",
+                 "The amount in " + CURRENCY_UNIT + " to send. eg 0.1"},
+                {"comment", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "",
+                 "A comment used to store what the transaction is for.\n"
+                 "                             This is not part of the "
+                 "transaction, just kept in your wallet."},
+                {"comment_to", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "",
+                 "A comment to store the name of the person or "
+                 "organization\n"
+                 "                             to which you're sending the "
+                 "transaction. This is not part of the \n"
+                 "                             transaction, just kept in "
+                 "your wallet."},
+                {"subtractfeefromamount", RPCArg::Type::BOOL,
+                 /* opt */ true, /* default_val */ "false",
+                 "The fee will be deducted from the amount being sent.\n"
+                 "                             The recipient will receive "
+                 "less bitcoins than you enter in the amount field."},
+            },
+            RPCResult{
+                "\"txid\"                  (string) The transaction id.\n"},
+            RPCExamples{
+                HelpExampleCli("sendtoaddress",
+                               "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1") +
+                HelpExampleCli("sendtoaddress",
+                               "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvay"
+                               "dd\" 0.1 \"donation\" \"seans "
+                               "outpost\"") +
+                HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44"
+                                                "Jvaydd\" 0.1 \"\" \"\" true") +
+                HelpExampleRpc("sendtoaddress",
+                               "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvay"
+                               "dd\", 0.1, \"donation\", \"seans "
+                               "outpost\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -523,32 +522,32 @@ static UniValue listaddressgroupings(const Config &config,
     }
 
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"listaddressgroupings",
-                       "\nLists groups of addresses which have had their "
-                       "common ownership\n"
-                       "made public by common use as inputs or as the "
-                       "resulting change\n"
-                       "in past transactions\n",
-                       {}}
-                .ToString() +
-            "\nResult:\n"
-            "[\n"
-            "  [\n"
-            "    [\n"
-            "      \"address\",            (string) The bitcoin address\n"
-            "      amount,                 (numeric) The amount in " +
-            CURRENCY_UNIT +
-            "\n"
-            "      \"label\"               (string, optional) The label\n"
-            "    ]\n"
-            "    ,...\n"
-            "  ]\n"
-            "  ,...\n"
-            "]\n"
-            "\nExamples:\n" +
-            HelpExampleCli("listaddressgroupings", "") +
-            HelpExampleRpc("listaddressgroupings", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "listaddressgroupings",
+            "\nLists groups of addresses which have had their "
+            "common ownership\n"
+            "made public by common use as inputs or as the "
+            "resulting change\n"
+            "in past transactions\n",
+            {},
+            RPCResult{
+                "[\n"
+                "  [\n"
+                "    [\n"
+                "      \"address\",            (string) The bitcoin address\n"
+                "      amount,                 (numeric) The amount in " +
+                CURRENCY_UNIT +
+                "\n"
+                "      \"label\"               (string, optional) The label\n"
+                "    ]\n"
+                "    ,...\n"
+                "  ]\n"
+                "  ,...\n"
+                "]\n"},
+            RPCExamples{HelpExampleCli("listaddressgroupings", "") +
+                        HelpExampleRpc("listaddressgroupings", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -592,37 +591,38 @@ static UniValue signmessage(const Config &config,
     }
 
     if (request.fHelp || request.params.size() != 2) {
-        throw std::runtime_error(
-            RPCHelpMan{"signmessage",
-                       "\nSign a message with the private key of an address" +
-                           HelpRequiringPassphrase(pwallet) + "\n",
-                       {
-                           {"address", RPCArg::Type::STR, /* opt */ false,
-                            /* default_val */ "",
-                            "The bitcoin address to use for the private key."},
-                           {"message", RPCArg::Type::STR, /* opt */ false,
-                            /* default_val */ "",
-                            "The message to create a signature of."},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "\"signature\"          (string) The signature of the message "
-            "encoded in base 64\n"
-            "\nExamples:\n"
-            "\nUnlock the wallet for 30 seconds\n" +
-            HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
-            "\nCreate the signature\n" +
-            HelpExampleCli(
-                "signmessage",
-                "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"my message\"") +
-            "\nVerify the signature\n" +
-            HelpExampleCli("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4"
-                                            "XX\" \"signature\" \"my "
-                                            "message\"") +
-            "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc(
-                "signmessage",
-                "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"my message\""));
+        throw std::runtime_error(RPCHelpMan{
+            "signmessage",
+            "\nSign a message with the private key of an address" +
+                HelpRequiringPassphrase(pwallet) + "\n",
+            {
+                {"address", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "",
+                 "The bitcoin address to use for the private key."},
+                {"message", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The message to create a signature of."},
+            },
+            RPCResult{
+                "\"signature\"          (string) The signature of the message "
+                "encoded in base 64\n"},
+            RPCExamples{
+                "\nUnlock the wallet for 30 seconds\n" +
+                HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+                "\nCreate the signature\n" +
+                HelpExampleCli(
+                    "signmessage",
+                    "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"my message\"") +
+                "\nVerify the signature\n" +
+                HelpExampleCli("verifymessage",
+                               "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4"
+                               "XX\" \"signature\" \"my "
+                               "message\"") +
+                "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc(
+                    "signmessage",
+                    "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"my message\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -672,39 +672,37 @@ static UniValue getreceivedbyaddress(const Config &config,
 
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getreceivedbyaddress",
-                "\nReturns the total amount received by the given address in "
-                "transactions with at least minconf confirmations.\n",
-                {
-                    {"address", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "",
-                     "The bitcoin address for transactions."},
-                    {"minconf", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "1",
-                     "Only include transactions confirmed at least this many "
-                     "times."},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "amount   (numeric) The total amount in " +
-            CURRENCY_UNIT +
-            " received at this address.\n"
-            "\nExamples:\n"
-            "\nThe amount from transactions with at least 1 confirmation\n" +
-            HelpExampleCli("getreceivedbyaddress",
-                           "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\"") +
-            "\nThe amount including unconfirmed transactions, zero "
-            "confirmations\n" +
-            HelpExampleCli("getreceivedbyaddress",
-                           "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 0") +
-            "\nThe amount with at least 6 confirmations\n" +
-            HelpExampleCli("getreceivedbyaddress",
-                           "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 6") +
-            "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("getreceivedbyaddress",
-                           "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", 6"));
+        throw std::runtime_error(RPCHelpMan{
+            "getreceivedbyaddress",
+            "\nReturns the total amount received by the given address in "
+            "transactions with at least minconf confirmations.\n",
+            {
+                {"address", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The bitcoin address for transactions."},
+                {"minconf", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "1",
+                 "Only include transactions confirmed at least this many "
+                 "times."},
+            },
+            RPCResult{"amount   (numeric) The total amount in " +
+                      CURRENCY_UNIT + " received at this address.\n"},
+            RPCExamples{
+                "\nThe amount from transactions with at least 1 "
+                "confirmation\n" +
+                HelpExampleCli("getreceivedbyaddress",
+                               "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\"") +
+                "\nThe amount including unconfirmed transactions, zero "
+                "confirmations\n" +
+                HelpExampleCli("getreceivedbyaddress",
+                               "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 0") +
+                "\nThe amount with at least 6 confirmations\n" +
+                HelpExampleCli("getreceivedbyaddress",
+                               "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 6") +
+                "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc("getreceivedbyaddress",
+                               "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", 6")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -767,37 +765,35 @@ static UniValue getreceivedbylabel(const Config &config,
 
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getreceivedbylabel",
-                "\nReturns the total amount received by addresses with <label> "
-                "in transactions with at least [minconf] confirmations.\n",
-                {
-                    {"label", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "",
-                     "The selected label, may be the default label "
-                     "using \"\"."},
-                    {"minconf", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "1",
-                     "Only include transactions confirmed at least this "
-                     "many times."},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "amount              (numeric) The total amount in " +
-            CURRENCY_UNIT +
-            " received for this label.\n"
-            "\nExamples:\n"
-            "\nAmount received by the default label with at least 1 "
-            "confirmation\n" +
-            HelpExampleCli("getreceivedbylabel", "\"\"") +
-            "\nAmount received at the tabby label including unconfirmed "
-            "amounts with zero confirmations\n" +
-            HelpExampleCli("getreceivedbylabel", "\"tabby\" 0") +
-            "\nThe amount with at least 6 confirmations\n" +
-            HelpExampleCli("getreceivedbylabel", "\"tabby\" 6") +
-            "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("getreceivedbylabel", "\"tabby\", 6"));
+        throw std::runtime_error(RPCHelpMan{
+            "getreceivedbylabel",
+            "\nReturns the total amount received by addresses with <label> "
+            "in transactions with at least [minconf] confirmations.\n",
+            {
+                {"label", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "",
+                 "The selected label, may be the default label "
+                 "using \"\"."},
+                {"minconf", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "1",
+                 "Only include transactions confirmed at least this "
+                 "many times."},
+            },
+            RPCResult{"amount              (numeric) The total amount in " +
+                      CURRENCY_UNIT + " received for this label.\n"},
+            RPCExamples{
+                "\nAmount received by the default label with at least 1 "
+                "confirmation\n" +
+                HelpExampleCli("getreceivedbylabel", "\"\"") +
+                "\nAmount received at the tabby label including unconfirmed "
+                "amounts with zero confirmations\n" +
+                HelpExampleCli("getreceivedbylabel", "\"tabby\" 0") +
+                "\nThe amount with at least 6 confirmations\n" +
+                HelpExampleCli("getreceivedbylabel", "\"tabby\" 6") +
+                "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc("getreceivedbylabel", "\"tabby\", 6")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -852,38 +848,39 @@ static UniValue getbalance(const Config &config,
     }
 
     if (request.fHelp || (request.params.size() > 3)) {
-        throw std::runtime_error(
-            RPCHelpMan{"getbalance",
-                       "\nReturns the total available balance.\n"
-                       "The available balance is what the wallet considers "
-                       "currently spendable, and is\n"
-                       "thus affected by options which limit spendability such "
-                       "as -spendzeroconfchange.\n",
-                       {
-                           {"dummy", RPCArg::Type::STR, /* opt */ true,
-                            /* default_val */ "",
-                            "Remains for backward compatibility. Must be "
-                            "excluded or set to \"*\"."},
-                           {"minconf", RPCArg::Type::NUM, /* opt */ true,
-                            /* default_val */ "0",
-                            "Only include transactions confirmed at least this "
-                            "many times."},
-                           {"include_watchonly", RPCArg::Type::BOOL,
-                            /* opt */ true, /* default_val */ "false",
-                            "Also include balance in watch-only addresses (see "
-                            "'importaddress')"},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "amount              (numeric) The total amount in " +
-            CURRENCY_UNIT +
-            " received for this wallet.\n"
-            "\nExamples:\n"
-            "\nThe total amount in the wallet with 1 or more confirmations\n" +
-            HelpExampleCli("getbalance", "") +
-            "\nThe total amount in the wallet at least 6 blocks confirmed\n" +
-            HelpExampleCli("getbalance", "\"*\" 6") + "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("getbalance", "\"*\", 6"));
+        throw std::runtime_error(RPCHelpMan{
+            "getbalance",
+            "\nReturns the total available balance.\n"
+            "The available balance is what the wallet considers "
+            "currently spendable, and is\n"
+            "thus affected by options which limit spendability such "
+            "as -spendzeroconfchange.\n",
+            {
+                {"dummy", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "",
+                 "Remains for backward compatibility. Must be "
+                 "excluded or set to \"*\"."},
+                {"minconf", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "0",
+                 "Only include transactions confirmed at least this "
+                 "many times."},
+                {"include_watchonly", RPCArg::Type::BOOL,
+                 /* opt */ true, /* default_val */ "false",
+                 "Also include balance in watch-only addresses (see "
+                 "'importaddress')"},
+            },
+            RPCResult{"amount              (numeric) The total amount in " +
+                      CURRENCY_UNIT + " received for this wallet.\n"},
+            RPCExamples{"\nThe total amount in the wallet with 1 or more "
+                        "confirmations\n" +
+                        HelpExampleCli("getbalance", "") +
+                        "\nThe total amount in the wallet at least 6 blocks "
+                        "confirmed\n" +
+                        HelpExampleCli("getbalance", "\"*\" 6") +
+                        "\nAs a JSON-RPC call\n" +
+                        HelpExampleRpc("getbalance", "\"*\", 6")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -926,7 +923,11 @@ static UniValue getunconfirmedbalance(const Config &config,
         throw std::runtime_error(RPCHelpMan{
             "getunconfirmedbalance",
             "Returns the server's total unconfirmed balance\n",
-            {}}.ToString());
+            {},
+            RPCResults{},
+            RPCExamples{""},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -949,91 +950,95 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     if (request.fHelp || request.params.size() < 2 ||
         request.params.size() > 5) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "sendmany",
-                "\nSend multiple times. Amounts are double-precision "
-                "floating point numbers." +
-                    HelpRequiringPassphrase(pwallet) + "\n",
+        throw std::runtime_error(RPCHelpMan{
+            "sendmany",
+            "\nSend multiple times. Amounts are double-precision "
+            "floating point numbers." +
+                HelpRequiringPassphrase(pwallet) + "\n",
+            {
+                {"dummy", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "",
+                 "Must be set to \"\" for backwards compatibility.", "\"\""},
                 {
-                    {"dummy", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "",
-                     "Must be set to \"\" for backwards compatibility.",
-                     "\"\""},
+                    "amounts",
+                    RPCArg::Type::OBJ,
+                    /* opt */ false,
+                    /* default_val */ "",
+                    "A json object with addresses and amounts",
                     {
-                        "amounts",
-                        RPCArg::Type::OBJ,
-                        /* opt */ false,
-                        /* default_val */ "",
-                        "A json object with addresses and amounts",
-                        {
-                            {"address", RPCArg::Type::AMOUNT, /* opt */ false,
-                             /* default_val */ "",
-                             "The bitcoin address is the key, the numeric "
-                             "amount (can be string) in " +
-                                 CURRENCY_UNIT + " is the value"},
-                        },
+                        {"address", RPCArg::Type::AMOUNT, /* opt */ false,
+                         /* default_val */ "",
+                         "The bitcoin address is the key, the numeric "
+                         "amount (can be string) in " +
+                             CURRENCY_UNIT + " is the value"},
                     },
-                    {"minconf", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "1",
-                     "Only use the balance confirmed at least this many "
-                     "times."},
-                    {"comment", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "", "A comment"},
+                },
+                {"minconf", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "1",
+                 "Only use the balance confirmed at least this many "
+                 "times."},
+                {"comment", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "", "A comment"},
+                {
+                    "subtractfeefrom",
+                    RPCArg::Type::ARR,
+                    /* opt */ true,
+                    /* default_val */ "",
+                    "A json array with addresses.\n"
+                    "                           The fee will be equally "
+                    "deducted from the amount of each selected address.\n"
+                    "                           Those recipients will "
+                    "receive less bitcoins than you enter in their "
+                    "corresponding amount field.\n"
+                    "                           If no addresses are "
+                    "specified here, the sender pays the fee.",
                     {
-                        "subtractfeefrom",
-                        RPCArg::Type::ARR,
-                        /* opt */ true,
-                        /* default_val */ "",
-                        "A json array with addresses.\n"
-                        "                           The fee will be equally "
-                        "deducted from the amount of each selected address.\n"
-                        "                           Those recipients will "
-                        "receive less bitcoins than you enter in their "
-                        "corresponding amount field.\n"
-                        "                           If no addresses are "
-                        "specified here, the sender pays the fee.",
-                        {
-                            {"address", RPCArg::Type::STR, /* opt */ true,
-                             /* default_val */ "",
-                             "Subtract fee from this address"},
-                        },
+                        {"address", RPCArg::Type::STR, /* opt */ true,
+                         /* default_val */ "",
+                         "Subtract fee from this address"},
                     },
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "\"txid\"                   (string) The transaction id for the "
-            "send. Only 1 transaction is created regardless of \n"
-            "                                    the number of addresses.\n"
-            "\nExamples:\n"
-            "\nSend two amounts to two different addresses:\n" +
-            HelpExampleCli("sendmany",
-                           "\"\" "
-                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}"
-                           "\"") +
-            "\nSend two amounts to two different addresses setting the "
-            "confirmation and comment:\n" +
-            HelpExampleCli("sendmany",
-                           "\"\" "
-                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
-                           "6 \"testing\"") +
-            "\nSend two amounts to two different addresses, subtract fee from "
-            "amount:\n" +
-            HelpExampleCli("sendmany",
-                           "\"\" "
-                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
-                           "1 \"\" "
-                           "\"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\","
-                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
-            "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("sendmany",
-                           "\"\", "
-                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\","
-                           " 6, \"testing\""));
+                },
+            },
+            RPCResult{
+                "\"txid\"                   (string) The transaction id for "
+                "the send. Only 1 transaction is created regardless of \n"
+                "                                    the number of "
+                "addresses.\n"},
+            RPCExamples{
+                "\nSend two amounts to two different addresses:\n" +
+                HelpExampleCli(
+                    "sendmany",
+                    "\"\" "
+                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}"
+                    "\"") +
+                "\nSend two amounts to two different addresses setting the "
+                "confirmation and comment:\n" +
+                HelpExampleCli(
+                    "sendmany",
+                    "\"\" "
+                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
+                    "6 \"testing\"") +
+                "\nSend two amounts to two different addresses, subtract fee "
+                "from amount:\n" +
+                HelpExampleCli(
+                    "sendmany",
+                    "\"\" "
+                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
+                    "1 \"\" "
+                    "\"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\","
+                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
+                "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc(
+                    "sendmany",
+                    "\"\", "
+                    "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
+                    "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\","
+                    " 6, \"testing\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
