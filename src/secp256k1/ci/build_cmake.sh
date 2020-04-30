@@ -54,6 +54,10 @@ ${CMAKE_COMMAND} -GNinja .. \
 
 ninja $CMAKE_TARGET
 
+if [ "$EXAMPLES" = "yes" ]; then
+    ninja secp256k1-examples
+fi
+
 # Print information about binaries so that we can see that the architecture is correct
 file *tests || true
 file *bench || true

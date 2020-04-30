@@ -348,3 +348,5 @@ install_target(bench
 	COMPONENT secp256k1-bench
 	EXCLUDE_FROM_ALL
 )
+
+add_subdirectory(examples)

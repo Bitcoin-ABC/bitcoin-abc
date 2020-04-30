@@ -59,6 +59,7 @@ pushd buildautotools
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \
   --enable-module-schnorrsig=$SCHNORRSIG \
+  --enable-examples="$EXAMPLES" \
   --with-valgrind=$WITH_VALGRIND \
   $AUTOTOOLS_EXTRA_FLAGS \
   $USE_HOST

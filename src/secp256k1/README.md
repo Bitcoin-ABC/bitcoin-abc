@@ -88,6 +88,15 @@ ninja check-secp256k1
 sudo ninja install  # optional
 ```
 
+Usage examples
+-----------
+  Usage examples can be found in the [examples](examples) directory. To compile them you need to configure with `--enable-examples`.
+  For experimental modules, you will also need `--enable-experimental` as well as a flag for each individual module, e.g. `--enable-module-ecdh`.
+  If using CMake, a `secp256k1-examples` ninja target is available to build all examples whose modules are enabled.
+  * [ECDSA example](examples/ecdsa.c)
+  * [Schnorr Signatures (taproot) example](examples/schnorr.c)
+  * [Deriving a shared secret(ECDH) example](examples/ecdh.c)
+
 Test coverage
 -----------
 

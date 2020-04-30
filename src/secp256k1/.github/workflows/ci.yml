@@ -37,6 +37,8 @@ env:
   BENCH: 'yes'
   SECP256K1_BENCH_ITERS: 2
   CTIMETESTS: 'yes'
+  # Compile and run the examples.
+  EXAMPLES: 'yes'
 
 jobs:
   docker_cache:
