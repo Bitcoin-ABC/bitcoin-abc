@@ -185,7 +185,7 @@ static UniValue getrawtransaction(const Config &config,
                 HelpExampleCli("getrawtransaction",
                                "\"mytxid\" true \"myblockhash\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     bool in_active_chain = true;
@@ -298,7 +298,7 @@ static UniValue gettxoutproof(const Config &config,
                       "serialized, hex-encoded data for the proof.\n"},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::set<TxId> setTxIds;
@@ -409,7 +409,7 @@ static UniValue verifytxoutproof(const Config &config,
                       "be validated.\n"},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     CDataStream ssMB(ParseHexV(request.params[0], "proof"), SER_NETWORK,
@@ -670,7 +670,7 @@ static UniValue createrawtransaction(const Config &config,
                                "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]"
                                "\", \"[{\\\"data\\\":\\\"00010203\\\"}]\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params,
@@ -745,7 +745,7 @@ static UniValue decoderawtransaction(const Config &config,
                 HelpExampleCli("decoderawtransaction", "\"hexstring\"") +
                 HelpExampleRpc("decoderawtransaction", "\"hexstring\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR});
@@ -790,7 +790,7 @@ static UniValue decodescript(const Config &config,
             RPCExamples{HelpExampleCli("decodescript", "\"hexstring\"") +
                         HelpExampleRpc("decodescript", "\"hexstring\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR});
@@ -864,7 +864,7 @@ static UniValue combinerawtransaction(const Config &config,
             RPCExamples{HelpExampleCli("combinerawtransaction",
                                        "[\"myhex1\", \"myhex2\", \"myhex3\"]")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     UniValue txs = request.params[0].get_array();
@@ -1204,7 +1204,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
                 HelpExampleCli("signrawtransactionwithkey", "\"myhex\"") +
                 HelpExampleRpc("signrawtransactionwithkey", "\"myhex\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(
@@ -1263,7 +1263,7 @@ static UniValue sendrawtransaction(const Config &config,
                 "\nAs a JSON-RPC call\n" +
                 HelpExampleRpc("sendrawtransaction", "\"signedhex\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL});
@@ -1345,7 +1345,7 @@ static UniValue testmempoolaccept(const Config &config,
                 "\nAs a JSON-RPC call\n" +
                 HelpExampleRpc("testmempoolaccept", "[\"signedhex\"]")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VARR, UniValue::VBOOL});
@@ -1530,7 +1530,7 @@ static UniValue decodepsbt(const Config &config,
                 "}\n"},
             RPCExamples{HelpExampleCli("decodepsbt", "\"psbt\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR});
@@ -1722,7 +1722,7 @@ static UniValue combinepsbt(const Config &config,
                 "combinepsbt",
                 "[\"mybase64_1\", \"mybase64_2\", \"mybase64_3\"]")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VARR}, true);
@@ -1787,7 +1787,7 @@ static UniValue finalizepsbt(const Config &config,
                 "}\n"},
             RPCExamples{HelpExampleCli("finalizepsbt", "\"psbt\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL}, true);
@@ -1912,7 +1912,7 @@ static UniValue createpsbt(const Config &config,
                 "createpsbt", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]"
                               "\" \"[{\\\"data\\\":\\\"00010203\\\"}]\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params,
@@ -1975,7 +1975,7 @@ static UniValue converttopsbt(const Config &config,
                 "\nConvert the transaction to a PSBT\n" +
                 HelpExampleCli("converttopsbt", "\"rawtransaction\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL}, true);

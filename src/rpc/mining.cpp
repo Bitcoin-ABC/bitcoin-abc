@@ -108,7 +108,7 @@ static UniValue getnetworkhashps(const Config &config,
             RPCExamples{HelpExampleCli("getnetworkhashps", "") +
                         HelpExampleRpc("getnetworkhashps", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -208,7 +208,7 @@ static UniValue generatetoaddress(const Config &config,
                 "\nGenerate 11 blocks to myaddress\n" +
                 HelpExampleCli("generatetoaddress", "11 \"myaddress\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     int nGenerate = request.params[0].get_int();
@@ -262,7 +262,7 @@ static UniValue getmininginfo(const Config &config,
             RPCExamples{HelpExampleCli("getmininginfo", "") +
                         HelpExampleRpc("getmininginfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -318,7 +318,7 @@ static UniValue prioritisetransaction(const Config &config,
                 HelpExampleRpc("prioritisetransaction",
                                "\"txid\", 0.0, 10000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -486,7 +486,7 @@ static UniValue getblocktemplate(const Config &config,
             RPCExamples{HelpExampleCli("getblocktemplate", "") +
                         HelpExampleRpc("getblocktemplate", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -758,7 +758,7 @@ static UniValue submitblock(const Config &config,
             RPCExamples{HelpExampleCli("submitblock", "\"mydata\"") +
                         HelpExampleRpc("submitblock", "\"mydata\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::shared_ptr<CBlock> blockptr = std::make_shared<CBlock>();
@@ -825,7 +825,7 @@ static UniValue submitheader(const Config &config,
             RPCExamples{HelpExampleCli("submitheader", "\"aabbcc\"") +
                         HelpExampleRpc("submitheader", "\"aabbcc\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     CBlockHeader h;
@@ -865,7 +865,7 @@ static UniValue estimatefee(const Config &config,
             RPCResult{"n              (numeric) estimated fee-per-kilobyte\n"},
             RPCExamples{HelpExampleCli("estimatefee", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     return ValueFromAmount(g_mempool.estimateFee().GetFeePerK());

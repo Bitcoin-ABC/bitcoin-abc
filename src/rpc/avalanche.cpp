@@ -21,7 +21,7 @@ static UniValue getavalanchekey(const Config &config,
             RPCResults{},
             RPCExamples{HelpExampleRpc("getavalanchekey", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_avalanche) {
@@ -46,7 +46,7 @@ static UniValue addavalanchepeer(const Config &config,
             RPCResults{},
             RPCExamples{HelpExampleRpc("addavalanchepeer", "5")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_avalanche) {

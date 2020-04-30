@@ -22,7 +22,7 @@ static UniValue getexcessiveblock(const Config &config,
             RPCExamples{HelpExampleCli("getexcessiveblock", "") +
                         HelpExampleRpc("getexcessiveblock", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     UniValue ret(UniValue::VOBJ);
@@ -48,7 +48,7 @@ static UniValue setexcessiveblock(Config &config,
             RPCExamples{HelpExampleCli("setexcessiveblock", "25000000") +
                         HelpExampleRpc("setexcessiveblock", "25000000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!request.params[0].isNum()) {

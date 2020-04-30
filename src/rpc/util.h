@@ -153,18 +153,11 @@ struct RPCExamples {
 
 class RPCHelpMan {
 public:
-    // Remove once PR14987 backport is completed
-    RPCHelpMan(const std::string &name, const std::string &description,
-               const std::vector<RPCArg> &args);
-
     RPCHelpMan(std::string name, std::string description,
                std::vector<RPCArg> args, RPCResults results,
                RPCExamples examples);
 
     std::string ToString() const;
-
-    // Remove once PR14987 backport is completed
-    std::string ToStringWithResultsAndExamples() const;
 
 private:
     const std::string m_name;

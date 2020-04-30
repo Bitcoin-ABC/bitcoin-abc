@@ -38,7 +38,7 @@ static UniValue getconnectioncount(const Config &config,
             RPCExamples{HelpExampleCli("getconnectioncount", "") +
                         HelpExampleRpc("getconnectioncount", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -65,7 +65,7 @@ static UniValue ping(const Config &config, const JSONRPCRequest &request) {
             RPCExamples{HelpExampleCli("ping", "") +
                         HelpExampleRpc("ping", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -160,7 +160,7 @@ static UniValue getpeerinfo(const Config &config,
             RPCExamples{HelpExampleCli("getpeerinfo", "") +
                         HelpExampleRpc("getpeerinfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -284,7 +284,7 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
                 HelpExampleCli("addnode", "\"192.168.0.6:8333\" \"onetry\"") +
                 HelpExampleRpc("addnode", "\"192.168.0.6:8333\", \"onetry\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -339,7 +339,7 @@ static UniValue disconnectnode(const Config &config,
                 HelpExampleRpc("disconnectnode", "\"192.168.0.6:8333\"") +
                 HelpExampleRpc("disconnectnode", "\"\", 1")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -412,7 +412,7 @@ static UniValue getaddednodeinfo(const Config &config,
                 HelpExampleCli("getaddednodeinfo", "\"192.168.0.201\"") +
                 HelpExampleRpc("getaddednodeinfo", "\"192.168.0.201\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -492,7 +492,7 @@ static UniValue getnettotals(const Config &config,
             RPCExamples{HelpExampleCli("getnettotals", "") +
                         HelpExampleRpc("getnettotals", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -609,7 +609,7 @@ static UniValue getnetworkinfo(const Config &config,
             RPCExamples{HelpExampleCli("getnetworkinfo", "") +
                         HelpExampleRpc("getnetworkinfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -687,7 +687,7 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
                 HelpExampleCli("setban", "\"192.168.0.0/24\" \"add\"") +
                 HelpExampleRpc("setban", "\"192.168.0.6\", \"add\", 86400")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
     if (!g_banman) {
         throw JSONRPCError(RPC_DATABASE_ERROR,
@@ -765,7 +765,7 @@ static UniValue listbanned(const Config &config,
             RPCExamples{HelpExampleCli("listbanned", "") +
                         HelpExampleRpc("listbanned", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_banman) {
@@ -802,7 +802,7 @@ static UniValue clearbanned(const Config &config,
             RPCExamples{HelpExampleCli("clearbanned", "") +
                         HelpExampleRpc("clearbanned", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
     if (!g_banman) {
         throw JSONRPCError(
@@ -829,7 +829,7 @@ static UniValue setnetworkactive(const Config &config,
             RPCResults{},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!g_connman) {
@@ -876,7 +876,7 @@ static UniValue getnodeaddresses(const Config &config,
             RPCExamples{HelpExampleCli("getnodeaddresses", "8") +
                         HelpExampleRpc("getnodeaddresses", "8")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
     if (!g_connman) {
         throw JSONRPCError(

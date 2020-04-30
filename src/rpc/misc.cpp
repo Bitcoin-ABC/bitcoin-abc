@@ -57,7 +57,7 @@ static UniValue validateaddress(const Config &config,
                 HelpExampleRpc("validateaddress",
                                "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     CTxDestination dest =
@@ -133,7 +133,7 @@ static UniValue createmultisig(const Config &config,
                         "\\\"03dbc6764b8884a92e871274b87583e6d5c2a58819473e1"
                         "7e107ef3f6aa5a61626\\\"]\"")},
             }
-                .ToStringWithResultsAndExamples();
+                .ToString();
         throw std::runtime_error(msg);
     }
 
@@ -208,7 +208,7 @@ static UniValue verifymessage(const Config &config,
                                "XX\", \"signature\", \"my "
                                "message\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -275,7 +275,7 @@ static UniValue signmessagewithprivkey(const Config &config,
                         HelpExampleRpc("signmessagewithprivkey",
                                        "\"privkey\", \"my message\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::string strPrivkey = request.params[0].get_str();
@@ -313,7 +313,7 @@ static UniValue setmocktime(const Config &config,
             RPCResults{},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!config.GetChainParams().MineBlocksOnDemand()) {
@@ -411,7 +411,7 @@ static UniValue getmemoryinfo(const Config &config,
             RPCExamples{HelpExampleCli("getmemoryinfo", "") +
                         HelpExampleRpc("getmemoryinfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::string mode =
@@ -504,7 +504,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
                                        "\"[\\\"all\\\"]\" \"[\\\"http\\\"]\"") +
                         HelpExampleRpc("logging", "[\"all\"], \"[libevent]\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     uint32_t original_log_categories = LogInstance().GetCategoryMask();
@@ -561,7 +561,7 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
             RPCResults{},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     CHECK_NONFATAL(request.params.size() != 100);

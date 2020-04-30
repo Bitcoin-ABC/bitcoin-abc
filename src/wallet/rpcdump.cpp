@@ -134,7 +134,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
                 HelpExampleRpc("importprivkey",
                                "\"mykey\", \"testing\", false")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
@@ -235,7 +235,7 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
                         "\nAs a JSON-RPC call\n" +
                         HelpExampleRpc("abortrescan", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!pwallet->IsScanning() || pwallet->IsAbortingRescan()) {
@@ -337,7 +337,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
                         HelpExampleRpc("importaddress",
                                        "\"myaddress\", \"testing\", false")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::string strLabel;
@@ -429,7 +429,7 @@ UniValue importprunedfunds(const Config &config,
             RPCResults{},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     CMutableTransaction tx;
@@ -518,7 +518,7 @@ UniValue removeprunedfunds(const Config &config,
                     "\"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166"
                     "eae7628734ea0a5\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -581,7 +581,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
                         HelpExampleRpc("importpubkey",
                                        "\"mypubkey\", \"testing\", false")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::string strLabel;
@@ -660,7 +660,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                         "\nImport using the json rpc call\n" +
                         HelpExampleRpc("importwallet", "\"test\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (pwallet->chain().getPruneMode()) {
@@ -862,7 +862,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
                         HelpExampleCli("importprivkey", "\"mykey\"") +
                         HelpExampleRpc("dumpprivkey", "\"myaddress\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -924,7 +924,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             RPCExamples{HelpExampleCli("dumpwallet", "\"test\"") +
                         HelpExampleRpc("dumpwallet", "\"test\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -1587,7 +1587,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 
             },
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(mainRequest.params, {UniValue::VARR, UniValue::VOBJ});

@@ -188,7 +188,7 @@ static UniValue getnewaddress(const Config &config,
             RPCExamples{HelpExampleCli("getnewaddress", "") +
                         HelpExampleRpc("getnewaddress", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Belt and suspenders check for disabled private keys
@@ -257,7 +257,7 @@ static UniValue getrawchangeaddress(const Config &config,
             RPCExamples{HelpExampleCli("getrawchangeaddress", "") +
                         HelpExampleRpc("getrawchangeaddress", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Belt and suspenders check for disabled private keys
@@ -333,7 +333,7 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
                     "setlabel",
                     "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"tabby\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
     LOCK(pwallet->cs_wallet);
 
@@ -469,7 +469,7 @@ static UniValue sendtoaddress(const Config &config,
                                "dd\", 0.1, \"donation\", \"seans "
                                "outpost\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -547,7 +547,7 @@ static UniValue listaddressgroupings(const Config &config,
             RPCExamples{HelpExampleCli("listaddressgroupings", "") +
                         HelpExampleRpc("listaddressgroupings", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -622,7 +622,7 @@ static UniValue signmessage(const Config &config,
                     "signmessage",
                     "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"my message\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -702,7 +702,7 @@ static UniValue getreceivedbyaddress(const Config &config,
                 HelpExampleRpc("getreceivedbyaddress",
                                "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", 6")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -793,7 +793,7 @@ static UniValue getreceivedbylabel(const Config &config,
                 "\nAs a JSON-RPC call\n" +
                 HelpExampleRpc("getreceivedbylabel", "\"tabby\", 6")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -880,7 +880,7 @@ static UniValue getbalance(const Config &config,
                         "\nAs a JSON-RPC call\n" +
                         HelpExampleRpc("getbalance", "\"*\", 6")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -927,7 +927,7 @@ static UniValue getunconfirmedbalance(const Config &config,
             RPCResults{},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1038,7 +1038,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                     "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\","
                     " 6, \"testing\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1210,7 +1210,7 @@ static UniValue addmultisigaddress(const Config &config,
                         "\"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\","
                         "\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"")},
             }
-                .ToStringWithResultsAndExamples();
+                .ToString();
         throw std::runtime_error(msg);
     }
 
@@ -1476,7 +1476,7 @@ static UniValue listreceivedbyaddress(const Config &config,
                     "listreceivedbyaddress",
                     "6, true, true, \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1534,7 +1534,7 @@ static UniValue listreceivedbylabel(const Config &config,
                         HelpExampleCli("listreceivedbylabel", "6 true") +
                         HelpExampleRpc("listreceivedbylabel", "6, true, true")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1732,7 +1732,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
                 "\nAs a JSON-RPC call\n" +
                 HelpExampleRpc("listtransactions", "\"*\", 20, 100")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1938,7 +1938,7 @@ static UniValue listsinceblock(const Config &config,
                                        "5ef753ee9a7d38571037cdb1a57f663ad"
                                        "\", 6")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2132,7 +2132,7 @@ static UniValue gettransaction(const Config &config,
                                        "5b9345e16c5cf302fc80e9d5fbf5d48d"
                                        "\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2215,7 +2215,7 @@ static UniValue abandontransaction(const Config &config,
                                        "e2115b9345e16c5cf302fc80e9d5f"
                                        "bf5d48d\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2262,7 +2262,7 @@ static UniValue backupwallet(const Config &config,
             RPCExamples{HelpExampleCli("backupwallet", "\"backup.dat\"") +
                         HelpExampleRpc("backupwallet", "\"backup.dat\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2301,7 +2301,7 @@ static UniValue keypoolrefill(const Config &config,
             RPCExamples{HelpExampleCli("keypoolrefill", "") +
                         HelpExampleRpc("keypoolrefill", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
@@ -2375,7 +2375,7 @@ static UniValue walletpassphrase(const Config &config,
                 HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
                 HelpExampleRpc("walletpassphrase", "\"my pass phrase\", 60")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2461,7 +2461,7 @@ static UniValue walletpassphrasechange(const Config &config,
                         HelpExampleRpc("walletpassphrasechange",
                                        "\"old one\", \"new one\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2534,7 +2534,7 @@ static UniValue walletlock(const Config &config,
                 HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
                 HelpExampleRpc("walletlock", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2597,7 +2597,7 @@ static UniValue encryptwallet(const Config &config,
                 HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
                 HelpExampleRpc("encryptwallet", "\"my pass phrase\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2718,7 +2718,7 @@ static UniValue lockunspent(const Config &config,
                                        "b764ed838b5655e72f463568df1aadf0\\\""
                                        ",\\\"vout\\\":1}]\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2853,7 +2853,7 @@ static UniValue listlockunspent(const Config &config,
                         "\nAs a JSON-RPC call\n" +
                         HelpExampleRpc("listlockunspent", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2899,7 +2899,7 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
             RPCExamples{HelpExampleCli("settxfee", "0.00001") +
                         HelpExampleRpc("settxfee", "0.00001")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2988,7 +2988,7 @@ static UniValue getwalletinfo(const Config &config,
             RPCExamples{HelpExampleCli("getwalletinfo", "") +
                         HelpExampleRpc("getwalletinfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -3048,7 +3048,7 @@ static UniValue listwalletdir(const Config &config,
             RPCExamples{HelpExampleCli("listwalletdir", "") +
                         HelpExampleRpc("listwalletdir", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     UniValue wallets(UniValue::VARR);
@@ -3078,7 +3078,7 @@ static UniValue listwallets(const Config &config,
             RPCExamples{HelpExampleCli("listwallets", "") +
                         HelpExampleRpc("listwallets", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     UniValue obj(UniValue::VARR);
@@ -3119,7 +3119,7 @@ static UniValue loadwallet(const Config &config,
             RPCExamples{HelpExampleCli("loadwallet", "\"test.dat\"") +
                         HelpExampleRpc("loadwallet", "\"test.dat\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     const CChainParams &chainParams = config.GetChainParams();
@@ -3196,7 +3196,7 @@ static UniValue createwallet(const Config &config,
             RPCExamples{HelpExampleCli("createwallet", "\"testwallet\"") +
                         HelpExampleRpc("createwallet", "\"testwallet\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     const CChainParams &chainParams = config.GetChainParams();
@@ -3259,7 +3259,7 @@ static UniValue unloadwallet(const Config &config,
             RPCExamples{HelpExampleCli("unloadwallet", "wallet_name") +
                         HelpExampleRpc("unloadwallet", "wallet_name")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::string wallet_name;
@@ -3312,7 +3312,7 @@ static UniValue resendwallettransactions(const Config &config,
                 "Returns array of transaction ids that were re-broadcast.\n"},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!pwallet->chain().p2pEnabled()) {
@@ -3450,7 +3450,7 @@ static UniValue listunspent(const Config &config,
                     "listunspent",
                     "6, 9999999, [] , true, { \"minimumAmount\": 0.005 } ")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     int nMinDepth = 1;
@@ -3799,7 +3799,7 @@ static UniValue fundrawtransaction(const Config &config,
                 HelpExampleCli("sendrawtransaction",
                                "\"signedtransactionhex\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
@@ -3913,7 +3913,7 @@ UniValue signrawtransactionwithwallet(const Config &config,
                 HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
                 HelpExampleRpc("signrawtransactionwithwallet", "\"myhex\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params,
@@ -3959,7 +3959,7 @@ UniValue generate(const Config &config, const JSONRPCRequest &request) {
                 "[ blockhashes ]     (array) hashes of blocks generated\n"},
             RPCExamples{"\nGenerate 11 blocks\n" +
                         HelpExampleCli("generate", "11")}}
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     int num_generate = request.params[0].get_int();
@@ -4018,7 +4018,7 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
             RPCExamples{HelpExampleCli("rescanblockchain", "100000 120000") +
                         HelpExampleRpc("rescanblockchain", "100000, 120000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     WalletRescanReserver reserver(pwallet);
@@ -4288,7 +4288,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
                 HelpExampleRpc("getaddressinfo",
                                "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4383,7 +4383,7 @@ UniValue getaddressesbylabel(const Config &config,
             RPCExamples{HelpExampleCli("getaddressesbylabel", "\"tabby\"") +
                         HelpExampleRpc("getaddressesbylabel", "\"tabby\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4440,7 +4440,7 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
                         "\nAs a JSON-RPC call\n" +
                         HelpExampleRpc("listlabels", "receive")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4512,7 +4512,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
                         HelpExampleCli("sethdseed", "true \"wifkey\"") +
                         HelpExampleRpc("sethdseed", "true, \"wifkey\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (pwallet->chain().isInitialBlockDownload()) {
@@ -4618,7 +4618,7 @@ static UniValue walletprocesspsbt(const Config &config,
                       "}\n"},
             RPCExamples{HelpExampleCli("walletprocesspsbt", "\"psbt\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params,
@@ -4818,7 +4818,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                             "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" "
                             "\"[{\\\"data\\\":\\\"00010203\\\"}]\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params,

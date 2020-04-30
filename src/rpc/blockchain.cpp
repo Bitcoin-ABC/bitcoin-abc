@@ -161,7 +161,7 @@ static UniValue getblockcount(const Config &config,
             RPCExamples{HelpExampleCli("getblockcount", "") +
                         HelpExampleRpc("getblockcount", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -180,7 +180,7 @@ static UniValue getbestblockhash(const Config &config,
             RPCExamples{HelpExampleCli("getbestblockhash", "") +
                         HelpExampleRpc("getbestblockhash", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -198,7 +198,7 @@ UniValue getfinalizedblockhash(const Config &config,
             RPCExamples{HelpExampleCli("getfinalizedblockhash", "") +
                         HelpExampleRpc("getfinalizedblockhash", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -239,7 +239,7 @@ static UniValue waitfornewblock(const Config &config,
             RPCExamples{HelpExampleCli("waitfornewblock", "1000") +
                         HelpExampleRpc("waitfornewblock", "1000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
     int timeout = 0;
     if (!request.params[0].isNull()) {
@@ -300,7 +300,7 @@ static UniValue waitforblock(const Config &config,
                                        "570b24c9ed7b4a8c619eb02596f8862\", "
                                        "1000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     int timeout = 0;
@@ -357,7 +357,7 @@ static UniValue waitforblockheight(const Config &config,
             RPCExamples{HelpExampleCli("waitforblockheight", "\"100\", 1000") +
                         HelpExampleRpc("waitforblockheight", "\"100\", 1000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     int timeout = 0;
@@ -402,7 +402,7 @@ syncwithvalidationinterfacequeue(const Config &config,
             RPCExamples{HelpExampleCli("syncwithvalidationinterfacequeue", "") +
                         HelpExampleRpc("syncwithvalidationinterfacequeue", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
     SyncWithValidationInterfaceQueue();
     return NullUniValue;
@@ -421,7 +421,7 @@ static UniValue getdifficulty(const Config &config,
             RPCExamples{HelpExampleCli("getdifficulty", "") +
                         HelpExampleRpc("getdifficulty", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -579,7 +579,7 @@ static UniValue getrawmempool(const Config &config,
             RPCExamples{HelpExampleCli("getrawmempool", "true") +
                         HelpExampleRpc("getrawmempool", "true")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     bool fVerbose = false;
@@ -625,7 +625,7 @@ static UniValue getmempoolancestors(const Config &config,
             RPCExamples{HelpExampleCli("getmempoolancestors", "\"mytxid\"") +
                         HelpExampleRpc("getmempoolancestors", "\"mytxid\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     bool fVerbose = false;
@@ -704,7 +704,7 @@ static UniValue getmempooldescendants(const Config &config,
             RPCExamples{HelpExampleCli("getmempooldescendants", "\"mytxid\"") +
                         HelpExampleRpc("getmempooldescendants", "\"mytxid\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     bool fVerbose = false;
@@ -763,7 +763,7 @@ static UniValue getmempoolentry(const Config &config,
             RPCExamples{HelpExampleCli("getmempoolentry", "\"mytxid\"") +
                         HelpExampleRpc("getmempoolentry", "\"mytxid\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     TxId txid(ParseHashV(request.params[0], "parameter 1"));
@@ -797,7 +797,7 @@ static UniValue getblockhash(const Config &config,
             RPCExamples{HelpExampleCli("getblockhash", "1000") +
                         HelpExampleRpc("getblockhash", "1000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -873,7 +873,7 @@ static UniValue getblockheader(const Config &config,
                                        "7b049d214adbda81d7e2a3dd146f6ed09"
                                        "\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     BlockHash hash(ParseHashV(request.params[0], "hash"));
@@ -1004,7 +1004,7 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
                                        "\"00000000c937983704a73af28acdec37b049d"
                                        "214adbda81d7e2a3dd146f6ed09\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -1132,7 +1132,7 @@ static UniValue pruneblockchain(const Config &config,
             RPCExamples{HelpExampleCli("pruneblockchain", "1000") +
                         HelpExampleRpc("pruneblockchain", "1000")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!fPruneMode) {
@@ -1211,7 +1211,7 @@ static UniValue gettxoutsetinfo(const Config &config,
             RPCExamples{HelpExampleCli("gettxoutsetinfo", "") +
                         HelpExampleRpc("gettxoutsetinfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     UniValue ret(UniValue::VOBJ);
@@ -1280,7 +1280,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
                         "\nAs a JSON-RPC call\n" +
                         HelpExampleRpc("gettxout", "\"txid\", 1")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -1345,7 +1345,7 @@ static UniValue verifychain(const Config &config,
             RPCExamples{HelpExampleCli("verifychain", "") +
                         HelpExampleRpc("verifychain", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -1513,7 +1513,7 @@ UniValue getblockchaininfo(const Config &config,
             RPCExamples{HelpExampleCli("getblockchaininfo", "") +
                         HelpExampleRpc("getblockchaininfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -1620,7 +1620,7 @@ static UniValue getchaintips(const Config &config,
             RPCExamples{HelpExampleCli("getchaintips", "") +
                         HelpExampleRpc("getchaintips", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -1749,7 +1749,7 @@ static UniValue getmempoolinfo(const Config &config,
             RPCExamples{HelpExampleCli("getmempoolinfo", "") +
                         HelpExampleRpc("getmempoolinfo", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     return MempoolInfoToJSON(::g_mempool);
@@ -1775,7 +1775,7 @@ static UniValue preciousblock(const Config &config,
             RPCExamples{HelpExampleCli("preciousblock", "\"blockhash\"") +
                         HelpExampleRpc("preciousblock", "\"blockhash\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     BlockHash hash(ParseHashV(request.params[0], "blockhash"));
@@ -1816,7 +1816,7 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
             RPCExamples{HelpExampleCli("invalidateblock", "\"blockhash\"") +
                         HelpExampleRpc("invalidateblock", "\"blockhash\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::string strHash = request.params[0].get_str();
@@ -1860,7 +1860,7 @@ static UniValue invalidateblock(const Config &config,
             RPCExamples{HelpExampleCli("invalidateblock", "\"blockhash\"") +
                         HelpExampleRpc("invalidateblock", "\"blockhash\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
@@ -1900,7 +1900,7 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
             RPCExamples{HelpExampleCli("parkblock", "\"blockhash\"") +
                         HelpExampleRpc("parkblock", "\"blockhash\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     const std::string strHash = request.params[0].get_str();
@@ -1945,7 +1945,7 @@ static UniValue reconsiderblock(const Config &config,
             RPCExamples{HelpExampleCli("reconsiderblock", "\"blockhash\"") +
                         HelpExampleRpc("reconsiderblock", "\"blockhash\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
@@ -1985,7 +1985,7 @@ UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
             RPCExamples{HelpExampleCli("unparkblock", "\"blockhash\"") +
                         HelpExampleRpc("unparkblock", "\"blockhash\"")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     const std::string strHash = request.params[0].get_str();
@@ -2049,7 +2049,7 @@ static UniValue getchaintxstats(const Config &config,
             RPCExamples{HelpExampleCli("getchaintxstats", "") +
                         HelpExampleRpc("getchaintxstats", "2016")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     const CBlockIndex *pindex;
@@ -2236,7 +2236,7 @@ static UniValue getblockstats(const Config &config,
                 HelpExampleRpc("getblockstats",
                                "1000 '[\"minfeerate\",\"avgfeerate\"]'")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(cs_main);
@@ -2462,7 +2462,7 @@ static UniValue savemempool(const Config &config,
             RPCExamples{HelpExampleCli("savemempool", "") +
                         HelpExampleRpc("savemempool", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     if (!::g_mempool.IsLoaded()) {
@@ -2639,7 +2639,7 @@ static UniValue scantxoutset(const Config &config,
                 "]\n"},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR});

@@ -33,7 +33,7 @@ UniValue getzmqnotifications(const Config &config,
             RPCExamples{HelpExampleCli("getzmqnotifications", "") +
                         HelpExampleRpc("getzmqnotifications", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     UniValue result(UniValue::VARR);

@@ -298,7 +298,7 @@ static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
             RPCResult{"\"text\"     (string) The help text\n"},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     std::string strCommand;
@@ -322,7 +322,7 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
             RPCResults{},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     // Event loop will exit after current HTTP requests have been handled, so
@@ -346,7 +346,7 @@ static UniValue uptime(const Config &config,
             RPCExamples{HelpExampleCli("uptime", "") +
                         HelpExampleRpc("uptime", "")},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     return GetTime() - GetStartupTime();
@@ -362,7 +362,7 @@ static UniValue getrpcinfo(const Config &config,
             RPCResults{},
             RPCExamples{""},
         }
-                                     .ToStringWithResultsAndExamples());
+                                     .ToString());
     }
 
     LOCK(g_rpc_server_info.mutex);
