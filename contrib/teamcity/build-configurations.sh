@@ -154,11 +154,7 @@ case "$ABC_BUILD_NAME" in
 
   build-diff)
     # Build, run unit tests and functional tests.
-    CMAKE_FLAGS=(
-      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
-      "-DSECP256K1_ENABLE_JNI=ON"
-    )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh
 
     # Unit tests
     run_test_bitcoin
@@ -185,11 +181,7 @@ case "$ABC_BUILD_NAME" in
 
   build-master)
     # Build, run unit tests and extended functional tests.
-    CMAKE_FLAGS=(
-      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
-      "-DSECP256K1_ENABLE_JNI=ON"
-    )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh
 
     # Unit tests
     run_test_bitcoin
@@ -212,6 +204,26 @@ case "$ABC_BUILD_NAME" in
     # Functional tests
     ninja check-functional-extended
     ninja check-functional-upgrade-activated-extended
+    ;;
+
+  build-secp256k1)
+    # Enable all the features but endomorphism.
+    CMAKE_FLAGS=(
+      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
+      "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
+      "-DSECP256K1_ENABLE_JNI=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    ninja check-secp256k1
+
+    # Repeat with endomorphism.
+    CMAKE_FLAGS+=(
+      "-DSECP256K1_ENABLE_ENDOMORPHISM=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    ninja check-secp256k1
     ;;
 
   build-without-cli)
@@ -282,7 +294,6 @@ case "$ABC_BUILD_NAME" in
       "-DBUILD_BITCOIN_WALLET=ON"
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
-      "-DSECP256K1_ENABLE_MODULE_RECOVERY=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
     ./src/bench/bitcoin-bench -printer=junit > junit_results_bench.xml
@@ -392,7 +403,6 @@ case "$ABC_BUILD_NAME" in
     # Build, run unit tests and functional tests.
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Linux64.cmake"
-      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DENABLE_PROPERTY_BASED_TESTS=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
