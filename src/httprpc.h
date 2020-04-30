@@ -34,8 +34,7 @@ public:
  * Start HTTP RPC subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-bool StartHTTPRPC(Config &config,
-                  HTTPRPCRequestProcessor &httpRPCRequestProcessor);
+bool StartHTTPRPC(HTTPRPCRequestProcessor &httpRPCRequestProcessor);
 
 /** Interrupt HTTP RPC subsystem */
 void InterruptHTTPRPC();

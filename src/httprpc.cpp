@@ -68,6 +68,10 @@ private:
     struct event_base *base;
 };
 
+/* Pre-base64-encoded authentication token */
+static std::string strRPCUserColonPass;
+/* Pre-base64-encoded authentication token */
+static std::string strRPCCORSDomain;
 /* Stored RPC timer interface (for unregistration) */
 static std::unique_ptr<HTTPRPCTimerInterface> httpRPCTimerInterface;
 /* RPC Auth Whitelist */
@@ -138,10 +142,10 @@ static bool multiUserAuthorized(std::string strUserPass) {
     return false;
 }
 
-static bool RPCAuthorized(Config &config, const std::string &strAuth,
+static bool RPCAuthorized(const std::string &strAuth,
                           std::string &strAuthUsernameOut) {
     // Belt-and-suspenders measure if InitRPCAuthentication was not called.
-    if (config.GetRPCUserAndPassword().empty()) {
+    if (strRPCUserColonPass.empty()) {
         return false;
     }
 
@@ -158,13 +162,13 @@ static bool RPCAuthorized(Config &config, const std::string &strAuth,
     }
 
     // Check if authorized under single-user field
-    if (TimingResistantEqual(strUserPass, config.GetRPCUserAndPassword())) {
+    if (TimingResistantEqual(strUserPass, strRPCUserColonPass)) {
         return true;
     }
     return multiUserAuthorized(strUserPass);
 }
 
-static bool checkCORS(Config &config, HTTPRequest *req) {
+static bool checkCORS(HTTPRequest *req) {
     // https://www.w3.org/TR/cors/#resource-requests
 
     // 1. If the Origin header is not present terminate this set of steps.
@@ -179,7 +183,7 @@ static bool checkCORS(Config &config, HTTPRequest *req) {
     // and terminate this set of steps.
     // Note: Always matching is acceptable since the list of origins can be
     // unbounded.
-    if (origin.second != config.GetRPCCORSDomain()) {
+    if (origin.second != strRPCCORSDomain) {
         return false;
     }
 
@@ -287,7 +291,7 @@ static bool checkCORS(Config &config, HTTPRequest *req) {
 
 bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
     // First, check and/or set CORS headers
-    if (checkCORS(config, req)) {
+    if (checkCORS(req)) {
         return true;
     }
 
@@ -306,7 +310,7 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
     }
 
     JSONRPCRequest jreq;
-    if (!RPCAuthorized(config, authHeader.second, jreq.authUser)) {
+    if (!RPCAuthorized(authHeader.second, jreq.authUser)) {
         LogPrintf("ThreadRPCServer incorrect password attempt from %s\n",
                   req->GetPeer().ToString());
 
@@ -396,11 +400,10 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
     return true;
 }
 
-static bool InitRPCAuthentication(Config &config) {
+static bool InitRPCAuthentication() {
     if (gArgs.GetArg("-rpcpassword", "") == "") {
         LogPrintf("No rpcpassword set - using random cookie authentication.\n");
-        std::string generatedUserAndPassword;
-        if (!GenerateAuthCookie(&generatedUserAndPassword)) {
+        if (!GenerateAuthCookie(&strRPCUserColonPass)) {
             // Same message as AbortNode.
             uiInterface.ThreadSafeMessageBox(
                 _("Error: A fatal internal error occurred, see debug.log for "
@@ -408,17 +411,16 @@ static bool InitRPCAuthentication(Config &config) {
                 "", CClientUIInterface::MSG_ERROR);
             return false;
         }
-        config.SetRPCUserAndPassword(generatedUserAndPassword);
     } else {
         LogPrintf("Config options rpcuser and rpcpassword will soon be "
                   "deprecated. Locally-run instances may remove rpcuser to use "
                   "cookie-based auth, or may be replaced with rpcauth. Please "
                   "see share/rpcauth for rpcauth auth generation.\n");
-        config.SetRPCUserAndPassword(gArgs.GetArg("-rpcuser", "") + ":" +
-                                     gArgs.GetArg("-rpcpassword", ""));
+        strRPCUserColonPass = gArgs.GetArg("-rpcuser", "") + ":" +
+                              gArgs.GetArg("-rpcpassword", "");
     }
 
-    config.SetRPCCORSDomain(gArgs.GetArg("-rpccorsdomain", ""));
+    strRPCCORSDomain = gArgs.GetArg("-rpccorsdomain", "");
 
     if (gArgs.GetArg("-rpcauth", "") != "") {
         LogPrintf("Using rpcauth authentication.\n");
@@ -450,10 +452,9 @@ static bool InitRPCAuthentication(Config &config) {
     return true;
 }
 
-bool StartHTTPRPC(Config &config,
-                  HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
+bool StartHTTPRPC(HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     LogPrint(BCLog::RPC, "Starting HTTP RPC server\n");
-    if (!InitRPCAuthentication(config)) {
+    if (!InitRPCAuthentication()) {
         return false;
     }
 
