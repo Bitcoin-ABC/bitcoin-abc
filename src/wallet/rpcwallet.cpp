@@ -1184,27 +1184,28 @@ static UniValue addmultisigaddress(const Config &config,
                     {"label", RPCArg::Type::STR, /* opt */ true,
                      /* default_val */ "",
                      "A label to assign the addresses to."},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "{\n"
-            "  \"address\":\"multisigaddress\",    (string) The value of the "
-            "new multisig address.\n"
-            "  \"redeemScript\":\"script\"         (string) The string value "
-            "of the hex-encoded redemption script.\n"
-            "}\n"
-
-            "\nExamples:\n"
-            "\nAdd a multisig address from 2 addresses\n" +
-            HelpExampleCli("addmultisigaddress",
-                           "2 "
-                           "\"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\","
-                           "\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"") +
-            "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("addmultisigaddress",
-                           "2, "
-                           "\"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\","
-                           "\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"");
+                },
+                RPCResult{"{\n"
+                          "  \"address\":\"multisigaddress\",    (string) The "
+                          "value of the new multisig address.\n"
+                          "  \"redeemScript\":\"script\"         (string) The "
+                          "string value of the hex-encoded redemption script.\n"
+                          "}\n"},
+                RPCExamples{
+                    "\nAdd a multisig address from 2 addresses\n" +
+                    HelpExampleCli(
+                        "addmultisigaddress",
+                        "2 "
+                        "\"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\","
+                        "\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"") +
+                    "\nAs a JSON-RPC call\n" +
+                    HelpExampleRpc(
+                        "addmultisigaddress",
+                        "2, "
+                        "\"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\","
+                        "\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"")},
+            }
+                .ToStringWithResultsAndExamples();
         throw std::runtime_error(msg);
     }
 
@@ -1419,59 +1420,58 @@ static UniValue listreceivedbyaddress(const Config &config,
     }
 
     if (request.fHelp || request.params.size() > 4) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "listreceivedbyaddress",
-                "\nList balances by receiving address.\n",
-                {
-                    {"minconf", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "1",
-                     "The minimum number of confirmations before payments are "
-                     "included."},
-                    {"include_empty", RPCArg::Type::BOOL, /* opt */ true,
-                     /* default_val */ "false",
-                     "Whether to include addresses that haven't received any "
-                     "payments."},
-                    {"include_watchonly", RPCArg::Type::BOOL, /* opt */ true,
-                     /* default_val */ "false",
-                     "Whether to include watch-only addresses (see "
-                     "'importaddress')."},
-                    {"address_filter", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "",
-                     "If present, only return information on this address."},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "[\n"
-            "  {\n"
-            "    \"involvesWatchonly\" : true,        (bool) Only returned if "
-            "imported addresses were involved in transaction\n"
-            "    \"address\" : \"receivingaddress\",  (string) The receiving "
-            "address\n"
-            "    \"amount\" : x.xxx,                  (numeric) The total "
-            "amount in " +
-            CURRENCY_UNIT +
-            " received by the address\n"
-            "    \"confirmations\" : n,               (numeric) The number of "
-            "confirmations of the most recent transaction included\n"
-            "    \"label\" : \"label\",               (string) The label of "
-            "the receiving address. The default label is \"\".\n"
-            "    \"txids\": [\n"
-            "       \"txid\",                         (string) The ids of "
-            "transactions received with the address \n"
-            "       ...\n"
-            "    ]\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"
-
-            "\nExamples:\n" +
-            HelpExampleCli("listreceivedbyaddress", "") +
-            HelpExampleCli("listreceivedbyaddress", "6 true") +
-            HelpExampleRpc("listreceivedbyaddress", "6, true, true") +
-            HelpExampleRpc(
-                "listreceivedbyaddress",
-                "6, true, true, \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\""));
+        throw std::runtime_error(RPCHelpMan{
+            "listreceivedbyaddress",
+            "\nList balances by receiving address.\n",
+            {
+                {"minconf", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "1",
+                 "The minimum number of confirmations before payments are "
+                 "included."},
+                {"include_empty", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "Whether to include addresses that haven't received any "
+                 "payments."},
+                {"include_watchonly", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "Whether to include watch-only addresses (see "
+                 "'importaddress')."},
+                {"address_filter", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "",
+                 "If present, only return information on this address."},
+            },
+            RPCResult{
+                "[\n"
+                "  {\n"
+                "    \"involvesWatchonly\" : true,        (bool) Only returned "
+                "if imported addresses were involved in transaction\n"
+                "    \"address\" : \"receivingaddress\",  (string) The "
+                "receiving address\n"
+                "    \"amount\" : x.xxx,                  (numeric) The total "
+                "amount in " +
+                CURRENCY_UNIT +
+                " received by the address\n"
+                "    \"confirmations\" : n,               (numeric) The number "
+                "of confirmations of the most recent transaction included\n"
+                "    \"label\" : \"label\",               (string) The label "
+                "of the receiving address. The default label is \"\".\n"
+                "    \"txids\": [\n"
+                "       \"txid\",                         (string) The ids of "
+                "transactions received with the address \n"
+                "       ...\n"
+                "    ]\n"
+                "  }\n"
+                "  ,...\n"
+                "]\n"},
+            RPCExamples{
+                HelpExampleCli("listreceivedbyaddress", "") +
+                HelpExampleCli("listreceivedbyaddress", "6 true") +
+                HelpExampleRpc("listreceivedbyaddress", "6, true, true") +
+                HelpExampleRpc(
+                    "listreceivedbyaddress",
+                    "6, true, true, \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1494,43 +1494,42 @@ static UniValue listreceivedbylabel(const Config &config,
     }
 
     if (request.fHelp || request.params.size() > 3) {
-        throw std::runtime_error(
-            RPCHelpMan{"listreceivedbylabel",
-                       "\nList received transactions by label.\n",
-                       {
-                           {"minconf", RPCArg::Type::NUM, /* opt */ true,
-                            /* default_val */ "1",
-                            "The minimum number of confirmations before "
-                            "payments are included."},
-                           {"include_empty", RPCArg::Type::BOOL, /* opt */ true,
-                            /* default_val */ "false",
-                            "Whether to include labels that haven't received "
-                            "any payments."},
-                           {"include_watchonly", RPCArg::Type::BOOL,
-                            /* opt */ true, /* default_val */ "false",
-                            "Whether to include watch-only addresses (see "
-                            "'importaddress')."},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "[\n"
-            "  {\n"
-            "    \"involvesWatchonly\" : true,   (bool) Only returned if "
-            "imported addresses were involved in transaction\n"
-            "    \"amount\" : x.xxx,             (numeric) The total amount "
-            "received by addresses with this label\n"
-            "    \"confirmations\" : n,          (numeric) The number of "
-            "confirmations of the most recent transaction included\n"
-            "    \"label\" : \"label\"           (string) The label of the "
-            "receiving address. The default label is \"\".\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"
-
-            "\nExamples:\n" +
-            HelpExampleCli("listreceivedbylabel", "") +
-            HelpExampleCli("listreceivedbylabel", "6 true") +
-            HelpExampleRpc("listreceivedbylabel", "6, true, true"));
+        throw std::runtime_error(RPCHelpMan{
+            "listreceivedbylabel",
+            "\nList received transactions by label.\n",
+            {
+                {"minconf", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "1",
+                 "The minimum number of confirmations before "
+                 "payments are included."},
+                {"include_empty", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "Whether to include labels that haven't received "
+                 "any payments."},
+                {"include_watchonly", RPCArg::Type::BOOL,
+                 /* opt */ true, /* default_val */ "false",
+                 "Whether to include watch-only addresses (see "
+                 "'importaddress')."},
+            },
+            RPCResult{
+                "[\n"
+                "  {\n"
+                "    \"involvesWatchonly\" : true,   (bool) Only returned if "
+                "imported addresses were involved in transaction\n"
+                "    \"amount\" : x.xxx,             (numeric) The total "
+                "amount received by addresses with this label\n"
+                "    \"confirmations\" : n,          (numeric) The number of "
+                "confirmations of the most recent transaction included\n"
+                "    \"label\" : \"label\"           (string) The label of the "
+                "receiving address. The default label is \"\".\n"
+                "  }\n"
+                "  ,...\n"
+                "]\n"},
+            RPCExamples{HelpExampleCli("listreceivedbylabel", "") +
+                        HelpExampleCli("listreceivedbylabel", "6 true") +
+                        HelpExampleRpc("listreceivedbylabel", "6, true, true")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1649,88 +1648,86 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (request.fHelp || request.params.size() > 4) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "listtransactions",
-                "\nIf a label name is provided, this will return only incoming "
-                "transactions paying to addresses with the specified label.\n"
-                "\nReturns up to 'count' most recent transactions skipping the "
-                "first 'from' transactions.\n",
-                {
-                    {"label", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "",
-                     "If set, should be a valid label name to return only "
-                     "incoming transactions with the specified label, or \"*\" "
-                     "to "
-                     "disable filtering and return all transactions."},
-                    {"count", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "10",
-                     "The number of transactions to return"},
-                    {"skip", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "0",
-                     "The number of transactions to skip"},
-                    {"include_watchonly", RPCArg::Type::BOOL, /* opt */ true,
-                     /* default_val */ "false",
-                     "Include transactions to watch-only addresses (see "
-                     "'importaddress')"},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "[\n"
-            "  {\n"
-            "    \"address\":\"address\",    (string) The bitcoin address of "
-            "the transaction.\n"
-            "    \"category\":\"send|receive\", (string) The transaction "
-            "category.\n"
-            "    \"amount\": x.xxx,          (numeric) The amount in " +
-            CURRENCY_UNIT +
-            ". This is negative for the 'send' category, and is positive\n"
-            "                                        for the 'receive' "
-            "category,\n"
-            "    \"label\": \"label\",       (string) A comment for the "
-            "address/transaction, if any\n"
-            "    \"vout\": n,                (numeric) the vout value\n"
-            "    \"fee\": x.xxx,             (numeric) The amount of the fee "
-            "in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the \n"
-            "                                         'send' category of "
-            "transactions.\n"
-            "    \"confirmations\": n,       (numeric) The number of "
-            "confirmations for the transaction. Negative confirmations "
-            "indicate the\n"
-            "                                         transaction conflicts "
-            "with the block chain\n"
-            "    \"trusted\": xxx,           (bool) Whether we consider the "
-            "outputs of this unconfirmed transaction safe to spend.\n"
-            "    \"blockhash\": \"hashvalue\", (string) The block hash "
-            "containing the transaction.\n"
-            "    \"blockindex\": n,          (numeric) The index of the "
-            "transaction in the block that includes it.\n"
-            "    \"blocktime\": xxx,         (numeric) The block time in "
-            "seconds since epoch (1 Jan 1970 GMT).\n"
-            "    \"txid\": \"transactionid\", (string) The transaction id.\n"
-            "    \"time\": xxx,              (numeric) The transaction time in "
-            "seconds since epoch (midnight Jan 1 1970 GMT).\n"
-            "    \"timereceived\": xxx,      (numeric) The time received in "
-            "seconds since epoch (midnight Jan 1 1970 GMT).\n"
-            "    \"comment\": \"...\",       (string) If a comment is "
-            "associated with the transaction.\n"
-            "    \"abandoned\": xxx          (bool) 'true' if the transaction "
-            "has been abandoned (inputs are respendable). Only available for "
-            "the \n"
-            "                                         'send' category of "
-            "transactions.\n"
-            "  }\n"
-            "]\n"
-
-            "\nExamples:\n"
-            "\nList the most recent 10 transactions in the systems\n" +
-            HelpExampleCli("listtransactions", "") +
-            "\nList transactions 100 to 120\n" +
-            HelpExampleCli("listtransactions", "\"*\" 20 100") +
-            "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("listtransactions", "\"*\", 20, 100"));
+        throw std::runtime_error(RPCHelpMan{
+            "listtransactions",
+            "\nIf a label name is provided, this will return only incoming "
+            "transactions paying to addresses with the specified label.\n"
+            "\nReturns up to 'count' most recent transactions skipping the "
+            "first 'from' transactions.\n",
+            {
+                {"label", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "",
+                 "If set, should be a valid label name to return only incoming "
+                 "transactions with the specified label, or \"*\" to disable "
+                 "filtering and return all transactions."},
+                {"count", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "10",
+                 "The number of transactions to return"},
+                {"skip", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "0", "The number of transactions to skip"},
+                {"include_watchonly", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "Include transactions to watch-only addresses (see "
+                 "'importaddress')"},
+            },
+            RPCResult{
+                "[\n"
+                "  {\n"
+                "    \"address\":\"address\",    (string) The bitcoin address "
+                "of the transaction.\n"
+                "    \"category\":\"send|receive\", (string) The transaction "
+                "category.\n"
+                "    \"amount\": x.xxx,          (numeric) The amount in " +
+                CURRENCY_UNIT +
+                ". This is negative for the 'send' category, and is positive\n"
+                "                                        for the 'receive' "
+                "category,\n"
+                "    \"label\": \"label\",       (string) A comment for the "
+                "address/transaction, if any\n"
+                "    \"vout\": n,                (numeric) the vout value\n"
+                "    \"fee\": x.xxx,             (numeric) The amount of the "
+                "fee in " +
+                CURRENCY_UNIT +
+                ". This is negative and only available for the \n"
+                "                                         'send' category of "
+                "transactions.\n"
+                "    \"confirmations\": n,       (numeric) The number of "
+                "confirmations for the transaction. Negative confirmations "
+                "indicate the\n"
+                "                                         transaction "
+                "conflicts with the block chain\n"
+                "    \"trusted\": xxx,           (bool) Whether we consider "
+                "the outputs of this unconfirmed transaction safe to spend.\n"
+                "    \"blockhash\": \"hashvalue\", (string) The block hash "
+                "containing the transaction.\n"
+                "    \"blockindex\": n,          (numeric) The index of the "
+                "transaction in the block that includes it.\n"
+                "    \"blocktime\": xxx,         (numeric) The block time in "
+                "seconds since epoch (1 Jan 1970 GMT).\n"
+                "    \"txid\": \"transactionid\", (string) The transaction "
+                "id.\n"
+                "    \"time\": xxx,              (numeric) The transaction "
+                "time in seconds since epoch (midnight Jan 1 1970 GMT).\n"
+                "    \"timereceived\": xxx,      (numeric) The time received "
+                "in seconds since epoch (midnight Jan 1 1970 GMT).\n"
+                "    \"comment\": \"...\",       (string) If a comment is "
+                "associated with the transaction.\n"
+                "    \"abandoned\": xxx          (bool) 'true' if the "
+                "transaction has been abandoned (inputs are respendable). Only "
+                "available for the \n"
+                "                                         'send' category of "
+                "transactions.\n"
+                "  }\n"
+                "]\n"},
+            RPCExamples{
+                "\nList the most recent 10 transactions in the systems\n" +
+                HelpExampleCli("listtransactions", "") +
+                "\nList transactions 100 to 120\n" +
+                HelpExampleCli("listtransactions", "\"*\" 20 100") +
+                "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc("listtransactions", "\"*\", 20, 100")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -1828,113 +1825,115 @@ static UniValue listsinceblock(const Config &config,
     }
 
     if (request.fHelp || request.params.size() > 4) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "listsinceblock",
-                "\nGet all transactions in blocks since block [blockhash], or "
-                "all transactions if omitted.\n"
-                "If \"blockhash\" is no longer a part of the main chain, "
-                "transactions from the fork point onward are included.\n"
-                "Additionally, if include_removed is set, transactions "
-                "affecting the wallet which were removed are returned in the "
-                "\"removed\" array.\n",
-                {
-                    {"blockhash", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "",
-                     "The block hash to list transactions since"},
-                    {"target_confirmations", RPCArg::Type::NUM, /* opt */ true,
-                     /* default_val */ "1",
-                     "Return the nth block hash from the main chain. e.g. 1 "
-                     "would mean the best block hash. Note: this is not used "
-                     "as a filter, but only affects [lastblock] in the return "
-                     "value"},
-                    {"include_watchonly", RPCArg::Type::BOOL, /* opt */ true,
-                     /* default_val */ "false",
-                     "Include transactions to watch-only addresses (see "
-                     "'importaddress')"},
-                    {"include_removed", RPCArg::Type::BOOL, /* opt */ true,
-                     /* default_val */ "true",
-                     "Show transactions that were removed due to a reorg in "
-                     "the \"removed\" array\n"
-                     "                                                         "
-                     "  (not guaranteed to work on pruned nodes)"},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "{\n"
-            "  \"transactions\": [\n"
-            "    \"address\":\"address\",    (string) The bitcoin address of "
-            "the transaction. Not present for move transactions (category = "
-            "move).\n"
-            "    \"category\":\"send|receive\",     (string) The transaction "
-            "category. 'send' has negative amounts, 'receive' has positive "
-            "amounts.\n"
-            "    \"amount\": x.xxx,          (numeric) The amount in " +
-            CURRENCY_UNIT +
-            ". This is negative for the 'send' category, and for the 'move' "
-            "category for moves \n"
-            "                                          outbound. It is "
-            "positive for the 'receive' category, and for the 'move' category "
-            "for inbound funds.\n"
-            "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"fee\": x.xxx,             (numeric) The amount of the fee "
-            "in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the 'send' category of "
-            "transactions.\n"
-            "    \"confirmations\": n,       (numeric) The number of "
-            "confirmations for the transaction. Available for 'send' and "
-            "'receive' category of transactions.\n"
-            "                                          When it's < 0, it means "
-            "the transaction conflicted that many blocks ago.\n"
-            "    \"blockhash\": \"hashvalue\",     (string) The block hash "
-            "containing the transaction. Available for 'send' and 'receive' "
-            "category of transactions.\n"
-            "    \"blockindex\": n,          (numeric) The index of the "
-            "transaction in the block that includes it. Available for 'send' "
-            "and 'receive' category of transactions.\n"
-            "    \"blocktime\": xxx,         (numeric) The block time in "
-            "seconds since epoch (1 Jan 1970 GMT).\n"
-            "    \"txid\": \"transactionid\",  (string) The transaction id. "
-            "Available for 'send' and 'receive' category of transactions.\n"
-            "    \"time\": xxx,              (numeric) The transaction time in "
-            "seconds since epoch (Jan 1 1970 GMT).\n"
-            "    \"timereceived\": xxx,      (numeric) The time received in "
-            "seconds since epoch (Jan 1 1970 GMT). Available for 'send' and "
-            "'receive' category of transactions.\n"
-            "    \"abandoned\": xxx,         (bool) 'true' if the transaction "
-            "has been abandoned (inputs are respendable). Only available for "
-            "the 'send' category of transactions.\n"
-            "    \"comment\": \"...\",       (string) If a comment is "
-            "associated with the transaction.\n"
-            "    \"label\" : \"label\"       (string) A comment for the "
-            "address/transaction, if any\n"
-            "    \"to\": \"...\",            (string) If a comment to is "
-            "associated with the transaction.\n"
-            "  ],\n"
-            "  \"removed\": [\n"
-            "    <structure is the same as \"transactions\" above, only "
-            "present if include_removed=true>\n"
-            "    Note: transactions that were re-added in the active chain "
-            "will appear as-is in this array, and may thus have a positive "
-            "confirmation count.\n"
-            "  ],\n"
-            "  \"lastblock\": \"lastblockhash\"     (string) The hash of the "
-            "block (target_confirmations-1) from the best block on the main "
-            "chain. This is typically used to feed back into listsinceblock "
-            "the next time you call it. So you would generally use a "
-            "target_confirmations of say 6, so you will be continually "
-            "re-notified of transactions until they've reached 6 confirmations "
-            "plus any new ones\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("listsinceblock", "") +
-            HelpExampleCli("listsinceblock", "\"000000000000000bacf66f7497b7dc4"
-                                             "5ef753ee9a7d38571037cdb1a57f663ad"
-                                             "\" 6") +
-            HelpExampleRpc("listsinceblock", "\"000000000000000bacf66f7497b7dc4"
-                                             "5ef753ee9a7d38571037cdb1a57f663ad"
-                                             "\", 6"));
+        throw std::runtime_error(RPCHelpMan{
+            "listsinceblock",
+            "\nGet all transactions in blocks since block [blockhash], or all "
+            "transactions if omitted.\n"
+            "If \"blockhash\" is no longer a part of the main chain, "
+            "transactions from the fork point onward are included.\n"
+            "Additionally, if include_removed is set, transactions affecting "
+            "the wallet which were removed are returned in the \"removed\" "
+            "array.\n",
+            {
+                {"blockhash", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "",
+                 "The block hash to list transactions since"},
+                {"target_confirmations", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "1",
+                 "Return the nth block hash from the main chain. e.g. 1 "
+                 "would mean the best block hash. Note: this is not used "
+                 "as a filter, but only affects [lastblock] in the return "
+                 "value"},
+                {"include_watchonly", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "Include transactions to watch-only addresses (see "
+                 "'importaddress')"},
+                {"include_removed", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "true",
+                 "Show transactions that were removed due to a reorg in "
+                 "the \"removed\" array\n"
+                 "                                                         "
+                 "  (not guaranteed to work on pruned nodes)"},
+            },
+            RPCResult{
+                "{\n"
+                "  \"transactions\": [\n"
+                "    \"address\":\"address\",    (string) The bitcoin address "
+                "of the transaction. Not present for move transactions "
+                "(category = move).\n"
+                "    \"category\":\"send|receive\",     (string) The "
+                "transaction category. 'send' has negative amounts, 'receive' "
+                "has positive amounts.\n"
+                "    \"amount\": x.xxx,          (numeric) The amount in " +
+                CURRENCY_UNIT +
+                ". This is negative for the 'send' category, and for the "
+                "'move' category for moves \n"
+                "                                          outbound. It is "
+                "positive for the 'receive' category, and for the 'move' "
+                "category for inbound funds.\n"
+                "    \"vout\" : n,               (numeric) the vout value\n"
+                "    \"fee\": x.xxx,             (numeric) The amount of the "
+                "fee in " +
+                CURRENCY_UNIT +
+                ". This is negative and only available for the 'send' category "
+                "of transactions.\n"
+                "    \"confirmations\": n,       (numeric) The number of "
+                "confirmations for the transaction. Available for 'send' and "
+                "'receive' category of transactions.\n"
+                "                                          When it's < 0, it "
+                "means the transaction conflicted that many blocks ago.\n"
+                "    \"blockhash\": \"hashvalue\",     (string) The block hash "
+                "containing the transaction. Available for 'send' and "
+                "'receive' category of transactions.\n"
+                "    \"blockindex\": n,          (numeric) The index of the "
+                "transaction in the block that includes it. Available for "
+                "'send' and 'receive' category of transactions.\n"
+                "    \"blocktime\": xxx,         (numeric) The block time in "
+                "seconds since epoch (1 Jan 1970 GMT).\n"
+                "    \"txid\": \"transactionid\",  (string) The transaction "
+                "id. Available for 'send' and 'receive' category of "
+                "transactions.\n"
+                "    \"time\": xxx,              (numeric) The transaction "
+                "time in seconds since epoch (Jan 1 1970 GMT).\n"
+                "    \"timereceived\": xxx,      (numeric) The time received "
+                "in seconds since epoch (Jan 1 1970 GMT). Available for 'send' "
+                "and 'receive' category of transactions.\n"
+                "    \"abandoned\": xxx,         (bool) 'true' if the "
+                "transaction has been abandoned (inputs are respendable). Only "
+                "available for the 'send' category of transactions.\n"
+                "    \"comment\": \"...\",       (string) If a comment is "
+                "associated with the transaction.\n"
+                "    \"label\" : \"label\"       (string) A comment for the "
+                "address/transaction, if any\n"
+                "    \"to\": \"...\",            (string) If a comment to is "
+                "associated with the transaction.\n"
+                "  ],\n"
+                "  \"removed\": [\n"
+                "    <structure is the same as \"transactions\" above, only "
+                "present if include_removed=true>\n"
+                "    Note: transactions that were re-added in the active chain "
+                "will appear as-is in this array, and may thus have a positive "
+                "confirmation count.\n"
+                "  ],\n"
+                "  \"lastblock\": \"lastblockhash\"     (string) The hash of "
+                "the block (target_confirmations-1) from the best block on the "
+                "main chain. This is typically used to feed back into "
+                "listsinceblock the next time you call it. So you would "
+                "generally use a target_confirmations of say 6, so you will be "
+                "continually re-notified of transactions until they've reached "
+                "6 confirmations plus any new ones\n"
+                "}\n"},
+            RPCExamples{HelpExampleCli("listsinceblock", "") +
+                        HelpExampleCli("listsinceblock",
+                                       "\"000000000000000bacf66f7497b7dc4"
+                                       "5ef753ee9a7d38571037cdb1a57f663ad"
+                                       "\" 6") +
+                        HelpExampleRpc("listsinceblock",
+                                       "\"000000000000000bacf66f7497b7dc4"
+                                       "5ef753ee9a7d38571037cdb1a57f663ad"
+                                       "\", 6")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2042,88 +2041,93 @@ static UniValue gettransaction(const Config &config,
 
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{"gettransaction",
-                       "\nGet detailed information about in-wallet transaction "
-                       "<txid>\n",
-                       {
-                           {"txid", RPCArg::Type::STR, /* opt */ false,
-                            /* default_val */ "", "The transaction id"},
-                           {"include_watchonly", RPCArg::Type::BOOL,
-                            /* opt */ true, /* default_val */ "false",
-                            "Whether to include watch-only addresses in "
-                            "balance calculation and details[]"},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "{\n"
-            "  \"amount\" : x.xxx,        (numeric) The transaction amount "
-            "in " +
-            CURRENCY_UNIT +
-            "\n"
-            "  \"fee\": x.xxx,            (numeric) The amount of the fee in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the \n"
-            "                              'send' category of transactions.\n"
-            "  \"confirmations\" : n,     (numeric) The number of "
-            "confirmations\n"
-            "  \"blockhash\" : \"hash\",  (string) The block hash\n"
-            "  \"blockindex\" : xx,       (numeric) The index of the "
-            "transaction in the block that includes it\n"
-            "  \"blocktime\" : ttt,       (numeric) The time in seconds since "
-            "epoch (1 Jan 1970 GMT)\n"
-            "  \"txid\" : \"transactionid\",   (string) The transaction id.\n"
-            "  \"time\" : ttt,            (numeric) The transaction time in "
-            "seconds since epoch (1 Jan 1970 GMT)\n"
-            "  \"timereceived\" : ttt,    (numeric) The time received in "
-            "seconds since epoch (1 Jan 1970 GMT)\n"
-            "  \"bip125-replaceable\": \"yes|no|unknown\",  (string) Whether "
-            "this transaction could be replaced due to BIP125 "
-            "(replace-by-fee);\n"
-            "                                                   may be unknown "
-            "for unconfirmed transactions not in the mempool\n"
-            "  \"details\" : [\n"
-            "    {\n"
-            "      \"address\" : \"address\",          (string) The bitcoin "
-            "address involved in the transaction\n"
-            "      \"category\" : \"send|receive\",    (string) The category, "
-            "either 'send' or 'receive'\n"
-            "      \"amount\" : x.xxx,                 (numeric) The amount "
-            "in " +
-            CURRENCY_UNIT +
-            "\n"
-            "      \"label\" : \"label\",              "
-            "(string) A comment for the address/transaction, "
-            "if any\n"
-            "      \"vout\" : n,                       "
-            "(numeric) the vout value\n"
-            "      \"fee\": x.xxx,                     "
-            "(numeric) The amount of the fee in " +
-            CURRENCY_UNIT +
-            ". This is negative and only available for the \n"
-            "                                           'send' category of "
-            "transactions.\n"
-            "      \"abandoned\": xxx                  (bool) 'true' if the "
-            "transaction has been abandoned (inputs are respendable). Only "
-            "available for the \n"
-            "                                           'send' category of "
-            "transactions.\n"
-            "    }\n"
-            "    ,...\n"
-            "  ],\n"
-            "  \"hex\" : \"data\"         (string) Raw data for transaction\n"
-            "}\n"
-
-            "\nExamples:\n" +
-            HelpExampleCli("gettransaction", "\"1075db55d416d3ca199f55b6084e211"
-                                             "5b9345e16c5cf302fc80e9d5fbf5d48d"
-                                             "\"") +
-            HelpExampleCli("gettransaction", "\"1075db55d416d3ca199f55b6084e211"
-                                             "5b9345e16c5cf302fc80e9d5fbf5d48d"
-                                             "\" true") +
-            HelpExampleRpc("gettransaction", "\"1075db55d416d3ca199f55b6084e211"
-                                             "5b9345e16c5cf302fc80e9d5fbf5d48d"
-                                             "\""));
+        throw std::runtime_error(RPCHelpMan{
+            "gettransaction",
+            "\nGet detailed information about in-wallet transaction "
+            "<txid>\n",
+            {
+                {"txid", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The transaction id"},
+                {"include_watchonly", RPCArg::Type::BOOL,
+                 /* opt */ true, /* default_val */ "false",
+                 "Whether to include watch-only addresses in "
+                 "balance calculation and details[]"},
+            },
+            RPCResult{
+                "{\n"
+                "  \"amount\" : x.xxx,        (numeric) The transaction amount "
+                "in " +
+                CURRENCY_UNIT +
+                "\n"
+                "  \"fee\": x.xxx,            (numeric) The amount of the fee "
+                "in " +
+                CURRENCY_UNIT +
+                ". This is negative and only available for the \n"
+                "                              'send' category of "
+                "transactions.\n"
+                "  \"confirmations\" : n,     (numeric) The number of "
+                "confirmations\n"
+                "  \"blockhash\" : \"hash\",  (string) The block hash\n"
+                "  \"blockindex\" : xx,       (numeric) The index of the "
+                "transaction in the block that includes it\n"
+                "  \"blocktime\" : ttt,       (numeric) The time in seconds "
+                "since epoch (1 Jan 1970 GMT)\n"
+                "  \"txid\" : \"transactionid\",   (string) The transaction "
+                "id.\n"
+                "  \"time\" : ttt,            (numeric) The transaction time "
+                "in seconds since epoch (1 Jan 1970 GMT)\n"
+                "  \"timereceived\" : ttt,    (numeric) The time received in "
+                "seconds since epoch (1 Jan 1970 GMT)\n"
+                "  \"bip125-replaceable\": \"yes|no|unknown\",  (string) "
+                "Whether this transaction could be replaced due to BIP125 "
+                "(replace-by-fee);\n"
+                "                                                   may be "
+                "unknown for unconfirmed transactions not in the mempool\n"
+                "  \"details\" : [\n"
+                "    {\n"
+                "      \"address\" : \"address\",          (string) The "
+                "bitcoin address involved in the transaction\n"
+                "      \"category\" : \"send|receive\",    (string) The "
+                "category, either 'send' or 'receive'\n"
+                "      \"amount\" : x.xxx,                 (numeric) The "
+                "amount in " +
+                CURRENCY_UNIT +
+                "\n"
+                "      \"label\" : \"label\",              (string) A comment "
+                "for the address/transaction, if any\n"
+                "      \"vout\" : n,                       (numeric) the vout "
+                "value\n"
+                "      \"fee\": x.xxx,                     (numeric) The "
+                "amount of the fee in " +
+                CURRENCY_UNIT +
+                ". This is negative and only available for the \n"
+                "                                           'send' category of "
+                "transactions.\n"
+                "      \"abandoned\": xxx                  (bool) 'true' if "
+                "the transaction has been abandoned (inputs are respendable). "
+                "Only available for the \n"
+                "                                           'send' category of "
+                "transactions.\n"
+                "    }\n"
+                "    ,...\n"
+                "  ],\n"
+                "  \"hex\" : \"data\"         (string) Raw data for "
+                "transaction\n"
+                "}\n"},
+            RPCExamples{HelpExampleCli("gettransaction",
+                                       "\"1075db55d416d3ca199f55b6084e211"
+                                       "5b9345e16c5cf302fc80e9d5fbf5d48d"
+                                       "\"") +
+                        HelpExampleCli("gettransaction",
+                                       "\"1075db55d416d3ca199f55b6084e211"
+                                       "5b9345e16c5cf302fc80e9d5fbf5d48d"
+                                       "\" true") +
+                        HelpExampleRpc("gettransaction",
+                                       "\"1075db55d416d3ca199f55b6084e211"
+                                       "5b9345e16c5cf302fc80e9d5fbf5d48d"
+                                       "\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2182,30 +2186,31 @@ static UniValue abandontransaction(const Config &config,
     }
 
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"abandontransaction",
-                       "\nMark in-wallet transaction <txid> as abandoned\n"
-                       "This will mark this transaction and all its in-wallet "
-                       "descendants as abandoned which will allow\n"
-                       "for their inputs to be respent.  It can be used to "
-                       "replace \"stuck\" or evicted transactions.\n"
-                       "It only works on transactions which are not included "
-                       "in a block and are not currently in the mempool.\n"
-                       "It has no effect on transactions which are already "
-                       "abandoned.\n",
-                       {
-                           {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
-                            /* default_val */ "", "The transaction id"},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "\nExamples:\n" +
-            HelpExampleCli("abandontransaction", "\"1075db55d416d3ca199f55b6084"
-                                                 "e2115b9345e16c5cf302fc80e9d5f"
-                                                 "bf5d48d\"") +
-            HelpExampleRpc("abandontransaction", "\"1075db55d416d3ca199f55b6084"
-                                                 "e2115b9345e16c5cf302fc80e9d5f"
-                                                 "bf5d48d\""));
+        throw std::runtime_error(RPCHelpMan{
+            "abandontransaction",
+            "\nMark in-wallet transaction <txid> as abandoned\n"
+            "This will mark this transaction and all its in-wallet descendants "
+            "as abandoned which will allow\n"
+            "for their inputs to be respent.  It can be used to replace "
+            "\"stuck\" or evicted transactions.\n"
+            "It only works on transactions which are not included in a block "
+            "and are not currently in the mempool.\n"
+            "It has no effect on transactions which are already abandoned.\n",
+            {
+                {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_val */ "", "The transaction id"},
+            },
+            RPCResults{},
+            RPCExamples{HelpExampleCli("abandontransaction",
+                                       "\"1075db55d416d3ca199f55b6084"
+                                       "e2115b9345e16c5cf302fc80e9d5f"
+                                       "bf5d48d\"") +
+                        HelpExampleRpc("abandontransaction",
+                                       "\"1075db55d416d3ca199f55b6084"
+                                       "e2115b9345e16c5cf302fc80e9d5f"
+                                       "bf5d48d\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2240,18 +2245,19 @@ static UniValue backupwallet(const Config &config,
     }
 
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "backupwallet",
-                "\nSafely copies current wallet file to destination, "
-                "which can be a directory or a path with filename.\n",
-                {
-                    {"destination", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "", "The destination directory or file"},
-                }}
-                .ToString() +
-            "\nExamples:\n" + HelpExampleCli("backupwallet", "\"backup.dat\"") +
-            HelpExampleRpc("backupwallet", "\"backup.dat\""));
+        throw std::runtime_error(RPCHelpMan{
+            "backupwallet",
+            "\nSafely copies current wallet file to destination, "
+            "which can be a directory or a path with filename.\n",
+            {
+                {"destination", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The destination directory or file"},
+            },
+            RPCResults{},
+            RPCExamples{HelpExampleCli("backupwallet", "\"backup.dat\"") +
+                        HelpExampleRpc("backupwallet", "\"backup.dat\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2279,17 +2285,18 @@ static UniValue keypoolrefill(const Config &config,
     }
 
     if (request.fHelp || request.params.size() > 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"keypoolrefill",
-                       "\nFills the keypool." +
-                           HelpRequiringPassphrase(pwallet) + "\n",
-                       {
-                           {"newsize", RPCArg::Type::NUM, /* opt */ true,
-                            /* default_val */ "100", "The new keypool size"},
-                       }}
-                .ToString() +
-            "\nExamples:\n" + HelpExampleCli("keypoolrefill", "") +
-            HelpExampleRpc("keypoolrefill", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "keypoolrefill",
+            "\nFills the keypool." + HelpRequiringPassphrase(pwallet) + "\n",
+            {
+                {"newsize", RPCArg::Type::NUM, /* opt */ true,
+                 /* default_val */ "100", "The new keypool size"},
+            },
+            RPCResults{},
+            RPCExamples{HelpExampleCli("keypoolrefill", "") +
+                        HelpExampleRpc("keypoolrefill", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
@@ -2337,32 +2344,33 @@ static UniValue walletpassphrase(const Config &config,
     }
 
     if (pwallet->IsCrypted() && (request.fHelp || request.params.size() != 2)) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "walletpassphrase",
-                "\nStores the wallet decryption key in memory for "
-                "'timeout' seconds.\n"
-                "This is needed prior to performing transactions "
-                "related to private keys such as sending bitcoins\n",
-                {
-                    {"passphrase", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "", "The wallet passphrase"},
-                    {"timeout", RPCArg::Type::NUM, /* opt */ false,
-                     /* default_val */ "",
-                     "The time to keep the decryption key in seconds; capped "
-                     "at 100000000 (~3 years)."},
-                }}
-                .ToString() +
+        throw std::runtime_error(RPCHelpMan{
+            "walletpassphrase",
+            "\nStores the wallet decryption key in memory for 'timeout' "
+            "seconds.\n"
+            "This is needed prior to performing transactions related to "
+            "private keys such as sending bitcoins\n"
             "\nNote:\n"
             "Issuing the walletpassphrase command while the wallet is already "
             "unlocked will set a new unlock\n"
-            "time that overrides the old one.\n"
-            "\nExamples:\n"
-            "\nUnlock the wallet for 60 seconds\n" +
-            HelpExampleCli("walletpassphrase", "\"my pass phrase\" 60") +
-            "\nLock the wallet again (before 60 seconds)\n" +
-            HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("walletpassphrase", "\"my pass phrase\", 60"));
+            "time that overrides the old one.\n",
+            {
+                {"passphrase", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The wallet passphrase"},
+                {"timeout", RPCArg::Type::NUM, /* opt */ false,
+                 /* default_val */ "",
+                 "The time to keep the decryption key in seconds; capped "
+                 "at 100000000 (~3 years)."},
+            },
+            RPCResults{},
+            RPCExamples{
+                "\nUnlock the wallet for 60 seconds\n" +
+                HelpExampleCli("walletpassphrase", "\"my pass phrase\" 60") +
+                "\nLock the wallet again (before 60 seconds)\n" +
+                HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc("walletpassphrase", "\"my pass phrase\", 60")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2432,22 +2440,23 @@ static UniValue walletpassphrasechange(const Config &config,
     }
 
     if (pwallet->IsCrypted() && (request.fHelp || request.params.size() != 2)) {
-        throw std::runtime_error(
-            RPCHelpMan{"walletpassphrasechange",
-                       "\nChanges the wallet passphrase from 'oldpassphrase' "
-                       "to 'newpassphrase'.\n",
-                       {
-                           {"oldpassphrase", RPCArg::Type::STR, /* opt */ false,
-                            /* default_val */ "", "The current passphrase"},
-                           {"newpassphrase", RPCArg::Type::STR, /* opt */ false,
-                            /* default_val */ "", "The new passphrase"},
-                       }}
-                .ToString() +
-            "\nExamples:\n" +
-            HelpExampleCli("walletpassphrasechange",
-                           "\"old one\" \"new one\"") +
-            HelpExampleRpc("walletpassphrasechange",
-                           "\"old one\", \"new one\""));
+        throw std::runtime_error(RPCHelpMan{
+            "walletpassphrasechange",
+            "\nChanges the wallet passphrase from 'oldpassphrase' to "
+            "'newpassphrase'.\n",
+            {
+                {"oldpassphrase", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The current passphrase"},
+                {"newpassphrase", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The new passphrase"},
+            },
+            RPCResults{},
+            RPCExamples{HelpExampleCli("walletpassphrasechange",
+                                       "\"old one\" \"new one\"") +
+                        HelpExampleRpc("walletpassphrasechange",
+                                       "\"old one\", \"new one\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     auto locked_chain = pwallet->chain().lock();
