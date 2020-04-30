@@ -1117,24 +1117,22 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
 static UniValue pruneblockchain(const Config &config,
                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "pruneblockchain",
-                "",
-                {
-                    {"height", RPCArg::Type::NUM, /* opt */ false,
-                     /* default_val */ "",
-                     "The block height to prune up to. May be set to a "
-                     "discrete height, or a unix timestamp\n"
-                     "                  to prune blocks whose block time is at "
-                     "least 2 hours older than the provided timestamp."},
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "n    (numeric) Height of the last block pruned.\n"
-            "\nExamples:\n" +
-            HelpExampleCli("pruneblockchain", "1000") +
-            HelpExampleRpc("pruneblockchain", "1000"));
+        throw std::runtime_error(RPCHelpMan{
+            "pruneblockchain",
+            "",
+            {
+                {"height", RPCArg::Type::NUM, /* opt */ false,
+                 /* default_val */ "",
+                 "The block height to prune up to. May be set to a discrete "
+                 "height, or a unix timestamp\n"
+                 "                  to prune blocks whose block time is at "
+                 "least 2 hours older than the provided timestamp."},
+            },
+            RPCResult{"n    (numeric) Height of the last block pruned.\n"},
+            RPCExamples{HelpExampleCli("pruneblockchain", "1000") +
+                        HelpExampleRpc("pruneblockchain", "1000")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     if (!fPruneMode) {
