@@ -66,8 +66,6 @@
 #cmakedefine HAVE_FUNC_ATTRIBUTE_VISIBILITY 1
 #cmakedefine HAVE_FUNC_ATTRIBUTE_DLLEXPORT 1
 
-#define FDELT_TYPE ${FDELT_TYPE}
-
 #cmakedefine ENABLE_BIP70 1
 #cmakedefine ENABLE_WALLET 1
 #cmakedefine ENABLE_ZMQ 1

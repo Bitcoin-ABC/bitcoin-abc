@@ -192,20 +192,6 @@ set(CMAKE_REQUIRED_DEFINITIONS -D_FORTIFY_SOURCE=2)
 # and always succeed to build.
 set(CMAKE_REQUIRED_FLAGS -O2)
 
-check_prototype_definition(
-	__fdelt_warn
-	"extern long unsigned int __fdelt_warn(long unsigned int a)"
-	"0"
-	"sys/select.h"
-	FDELT_PROTOTYPE_LONG_UNSIGNED_INT
-)
-
-if(FDELT_PROTOTYPE_LONG_UNSIGNED_INT)
-	set(FDELT_TYPE "long unsigned int")
-else()
-	set(FDELT_TYPE "long int")
-endif()
-
 # Activate wallet
 set(ENABLE_WALLET ${BUILD_BITCOIN_WALLET})
 
