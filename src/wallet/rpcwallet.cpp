@@ -2507,26 +2507,29 @@ static UniValue walletlock(const Config &config,
     }
 
     if (pwallet->IsCrypted() && (request.fHelp || request.params.size() != 0)) {
-        throw std::runtime_error(
-            RPCHelpMan{"walletlock",
-                       "\nRemoves the wallet encryption key from memory, "
-                       "locking the wallet.\n"
-                       "After calling this method, you will need to call "
-                       "walletpassphrase again\n"
-                       "before being able to call any methods which require "
-                       "the wallet to be unlocked.\n",
-                       {}}
-                .ToString() +
-            "\nExamples:\n"
-            "\nSet the passphrase for 2 minutes to perform a transaction\n" +
-            HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
-            "\nPerform a send (requires passphrase set)\n" +
-            HelpExampleCli("sendtoaddress",
-                           "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 1.0") +
-            "\nClear the passphrase since we are done before 2 minutes is "
-            "up\n" +
-            HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("walletlock", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "walletlock",
+            "\nRemoves the wallet encryption key from memory, locking the "
+            "wallet.\n"
+            "After calling this method, you will need to call walletpassphrase "
+            "again\n"
+            "before being able to call any methods which require the wallet to "
+            "be unlocked.\n",
+            {},
+            RPCResults{},
+            RPCExamples{
+                "\nSet the passphrase for 2 minutes to perform a "
+                "transaction\n" +
+                HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
+                "\nPerform a send (requires passphrase set)\n" +
+                HelpExampleCli("sendtoaddress",
+                               "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 1.0") +
+                "\nClear the passphrase since we are done before 2 minutes is "
+                "up\n" +
+                HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc("walletlock", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2558,37 +2561,38 @@ static UniValue encryptwallet(const Config &config,
 
     if (!pwallet->IsCrypted() &&
         (request.fHelp || request.params.size() != 1)) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "encryptwallet",
-                "\nEncrypts the wallet with 'passphrase'. This is for "
-                "first time encryption.\n"
-                "After this, any calls that interact with private keys "
-                "such as sending or signing \n"
-                "will require the passphrase to be set prior the making "
-                "these calls.\n"
-                "Use the walletpassphrase call for this, and then "
-                "walletlock call.\n"
-                "If the wallet is already encrypted, use the "
-                "walletpassphrasechange call.\n",
-                {
-                    {"passphrase", RPCArg::Type::STR, /* opt */ false,
-                     /* default_val */ "",
-                     "The pass phrase to encrypt the wallet with. It must be "
-                     "at least 1 character, but should be long."},
-                }}
-                .ToString() +
-            "\nExamples:\n"
-            "\nEncrypt your wallet\n" +
-            HelpExampleCli("encryptwallet", "\"my pass phrase\"") +
-            "\nNow set the passphrase to use the wallet, such as for signing "
-            "or sending bitcoin\n" +
-            HelpExampleCli("walletpassphrase", "\"my pass phrase\"") +
-            "\nNow we can do something like sign\n" +
-            HelpExampleCli("signmessage", "\"address\" \"test message\"") +
-            "\nNow lock the wallet again by removing the passphrase\n" +
-            HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("encryptwallet", "\"my pass phrase\""));
+        throw std::runtime_error(RPCHelpMan{
+            "encryptwallet",
+            "\nEncrypts the wallet with 'passphrase'. This is for first time "
+            "encryption.\n"
+            "After this, any calls that interact with private keys such as "
+            "sending or signing \n"
+            "will require the passphrase to be set prior the making these "
+            "calls.\n"
+            "Use the walletpassphrase call for this, and then walletlock "
+            "call.\n"
+            "If the wallet is already encrypted, use the "
+            "walletpassphrasechange call.\n",
+            {
+                {"passphrase", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "",
+                 "The pass phrase to encrypt the wallet with. It must be "
+                 "at least 1 character, but should be long."},
+            },
+            RPCResults{},
+            RPCExamples{
+                "\nEncrypt your wallet\n" +
+                HelpExampleCli("encryptwallet", "\"my pass phrase\"") +
+                "\nNow set the passphrase to use the wallet, such as for "
+                "signing or sending bitcoin\n" +
+                HelpExampleCli("walletpassphrase", "\"my pass phrase\"") +
+                "\nNow we can do something like sign\n" +
+                HelpExampleCli("signmessage", "\"address\" \"test message\"") +
+                "\nNow lock the wallet again by removing the passphrase\n" +
+                HelpExampleCli("walletlock", "") + "\nAs a JSON-RPC call\n" +
+                HelpExampleRpc("encryptwallet", "\"my pass phrase\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2637,79 +2641,79 @@ static UniValue lockunspent(const Config &config,
 
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "lockunspent",
-                "\nUpdates list of temporarily unspendable outputs.\n"
-                "Temporarily lock (unlock=false) or unlock (unlock=true) "
-                "specified transaction outputs.\n"
-                "If no transaction outputs are specified when unlocking then "
-                "all current locked transaction outputs are unlocked.\n"
-                "A locked transaction output will not be chosen by automatic "
-                "coin selection, when spending bitcoins.\n"
-                "Locks are stored in memory only. Nodes start with zero locked "
-                "outputs, and the locked output list\n"
-                "is always cleared (by virtue of process exit) when a node "
-                "stops or fails.\n"
-                "Also see the listunspent call\n",
+        throw std::runtime_error(RPCHelpMan{
+            "lockunspent",
+            "\nUpdates list of temporarily unspendable outputs.\n"
+            "Temporarily lock (unlock=false) or unlock (unlock=true) specified "
+            "transaction outputs.\n"
+            "If no transaction outputs are specified when unlocking then all "
+            "current locked transaction outputs are unlocked.\n"
+            "A locked transaction output will not be chosen by automatic coin "
+            "selection, when spending bitcoins.\n"
+            "Locks are stored in memory only. Nodes start with zero locked "
+            "outputs, and the locked output list\n"
+            "is always cleared (by virtue of process exit) when a node stops "
+            "or fails.\n"
+            "Also see the listunspent call\n",
+            {
+                {"unlock", RPCArg::Type::BOOL, /* opt */ false,
+                 /* default_val */ "",
+                 "Whether to unlock (true) or lock (false) the specified "
+                 "transactions"},
                 {
-                    {"unlock", RPCArg::Type::BOOL, /* opt */ false,
-                     /* default_val */ "",
-                     "Whether to unlock (true) or lock (false) the specified "
-                     "transactions"},
+                    "transactions",
+                    RPCArg::Type::ARR,
+                    /* opt */ true,
+                    /* default_val */ "",
+                    "A json array of objects. Each object the txid "
+                    "(string) vout (numeric)",
                     {
-                        "transactions",
-                        RPCArg::Type::ARR,
-                        /* opt */ true,
-                        /* default_val */ "",
-                        "A json array of objects. Each object the txid "
-                        "(string) vout (numeric)",
                         {
+                            "",
+                            RPCArg::Type::OBJ,
+                            /* opt */ true,
+                            /* default_val */ "",
+                            "",
                             {
-                                "",
-                                RPCArg::Type::OBJ,
-                                /* opt */ true,
-                                /* default_val */ "",
-                                "",
-                                {
-                                    {"txid", RPCArg::Type::STR_HEX,
-                                     /* opt */ false, /* default_val */ "",
-                                     "The transaction id"},
-                                    {"vout", RPCArg::Type::NUM, /* opt */ false,
-                                     /* default_val */ "", "The output number"},
-                                },
+                                {"txid", RPCArg::Type::STR_HEX,
+                                 /* opt */ false, /* default_val */ "",
+                                 "The transaction id"},
+                                {"vout", RPCArg::Type::NUM, /* opt */ false,
+                                 /* default_val */ "", "The output number"},
                             },
                         },
                     },
-                }}
-                .ToString() +
-            "\nResult:\n"
-            "true|false    (boolean) Whether the command was successful or "
-            "not\n"
-
-            "\nExamples:\n"
-            "\nList the unspent transactions\n" +
-            HelpExampleCli("listunspent", "") +
-            "\nLock an unspent transaction\n" +
-            HelpExampleCli("lockunspent", "false "
-                                          "\"[{\\\"txid\\\":"
-                                          "\\\"a08e6907dbbd3d809776dbfc5d82e371"
-                                          "b764ed838b5655e72f463568df1aadf0\\\""
-                                          ",\\\"vout\\\":1}]\"") +
-            "\nList the locked transactions\n" +
-            HelpExampleCli("listlockunspent", "") +
-            "\nUnlock the transaction again\n" +
-            HelpExampleCli("lockunspent", "true "
-                                          "\"[{\\\"txid\\\":"
-                                          "\\\"a08e6907dbbd3d809776dbfc5d82e371"
-                                          "b764ed838b5655e72f463568df1aadf0\\\""
-                                          ",\\\"vout\\\":1}]\"") +
-            "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("lockunspent", "false, "
-                                          "\"[{\\\"txid\\\":"
-                                          "\\\"a08e6907dbbd3d809776dbfc5d82e371"
-                                          "b764ed838b5655e72f463568df1aadf0\\\""
-                                          ",\\\"vout\\\":1}]\""));
+                },
+            },
+            RPCResult{"true|false    (boolean) Whether the command was "
+                      "successful or not\n"},
+            RPCExamples{"\nList the unspent transactions\n" +
+                        HelpExampleCli("listunspent", "") +
+                        "\nLock an unspent transaction\n" +
+                        HelpExampleCli("lockunspent",
+                                       "false "
+                                       "\"[{\\\"txid\\\":"
+                                       "\\\"a08e6907dbbd3d809776dbfc5d82e371"
+                                       "b764ed838b5655e72f463568df1aadf0\\\""
+                                       ",\\\"vout\\\":1}]\"") +
+                        "\nList the locked transactions\n" +
+                        HelpExampleCli("listlockunspent", "") +
+                        "\nUnlock the transaction again\n" +
+                        HelpExampleCli("lockunspent",
+                                       "true "
+                                       "\"[{\\\"txid\\\":"
+                                       "\\\"a08e6907dbbd3d809776dbfc5d82e371"
+                                       "b764ed838b5655e72f463568df1aadf0\\\""
+                                       ",\\\"vout\\\":1}]\"") +
+                        "\nAs a JSON-RPC call\n" +
+                        HelpExampleRpc("lockunspent",
+                                       "false, "
+                                       "\"[{\\\"txid\\\":"
+                                       "\\\"a08e6907dbbd3d809776dbfc5d82e371"
+                                       "b764ed838b5655e72f463568df1aadf0\\\""
+                                       ",\\\"vout\\\":1}]\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -2808,40 +2812,43 @@ static UniValue listlockunspent(const Config &config,
     }
 
     if (request.fHelp || request.params.size() > 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"listlockunspent",
-                       "\nReturns list of temporarily unspendable outputs.\n"
-                       "See the lockunspent call to lock and unlock "
-                       "transactions for spending.\n",
-                       {}}
-                .ToString() +
-            "\nResult:\n"
-            "[\n"
-            "  {\n"
-            "    \"txid\" : \"transactionid\",     (string) The transaction id "
-            "locked\n"
-            "    \"vout\" : n                      (numeric) The vout value\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"
-            "\nExamples:\n"
-            "\nList the unspent transactions\n" +
-            HelpExampleCli("listunspent", "") +
-            "\nLock an unspent transaction\n" +
-            HelpExampleCli("lockunspent", "false "
-                                          "\"[{\\\"txid\\\":"
-                                          "\\\"a08e6907dbbd3d809776dbfc5d82e371"
-                                          "b764ed838b5655e72f463568df1aadf0\\\""
-                                          ",\\\"vout\\\":1}]\"") +
-            "\nList the locked transactions\n" +
-            HelpExampleCli("listlockunspent", "") +
-            "\nUnlock the transaction again\n" +
-            HelpExampleCli("lockunspent", "true "
-                                          "\"[{\\\"txid\\\":"
-                                          "\\\"a08e6907dbbd3d809776dbfc5d82e371"
-                                          "b764ed838b5655e72f463568df1aadf0\\\""
-                                          ",\\\"vout\\\":1}]\"") +
-            "\nAs a JSON-RPC call\n" + HelpExampleRpc("listlockunspent", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "listlockunspent",
+            "\nReturns list of temporarily unspendable outputs.\n"
+            "See the lockunspent call to lock and unlock transactions for "
+            "spending.\n",
+            {},
+            RPCResult{"[\n"
+                      "  {\n"
+                      "    \"txid\" : \"transactionid\",     (string) The "
+                      "transaction id locked\n"
+                      "    \"vout\" : n                      (numeric) The "
+                      "vout value\n"
+                      "  }\n"
+                      "  ,...\n"
+                      "]\n"},
+            RPCExamples{"\nList the unspent transactions\n" +
+                        HelpExampleCli("listunspent", "") +
+                        "\nLock an unspent transaction\n" +
+                        HelpExampleCli("lockunspent",
+                                       "false "
+                                       "\"[{\\\"txid\\\":"
+                                       "\\\"a08e6907dbbd3d809776dbfc5d82e371"
+                                       "b764ed838b5655e72f463568df1aadf0\\\""
+                                       ",\\\"vout\\\":1}]\"") +
+                        "\nList the locked transactions\n" +
+                        HelpExampleCli("listlockunspent", "") +
+                        "\nUnlock the transaction again\n" +
+                        HelpExampleCli("lockunspent",
+                                       "true "
+                                       "\"[{\\\"txid\\\":"
+                                       "\\\"a08e6907dbbd3d809776dbfc5d82e371"
+                                       "b764ed838b5655e72f463568df1aadf0\\\""
+                                       ",\\\"vout\\\":1}]\"") +
+                        "\nAs a JSON-RPC call\n" +
+                        HelpExampleRpc("listlockunspent", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2873,22 +2880,21 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
 
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 1) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "settxfee",
-                "\nSet the transaction fee per kB for this wallet. Overrides "
-                "the global -paytxfee command line parameter.\n",
-                {
-                    {"amount", RPCArg::Type::AMOUNT, /* opt */ false,
-                     /* default_val */ "",
-                     "The transaction fee in " + CURRENCY_UNIT + "/kB"},
-                }}
-                .ToString() +
-            "\nResult\n"
-            "true|false        (boolean) Returns true if successful\n"
-            "\nExamples:\n" +
-            HelpExampleCli("settxfee", "0.00001") +
-            HelpExampleRpc("settxfee", "0.00001"));
+        throw std::runtime_error(RPCHelpMan{
+            "settxfee",
+            "\nSet the transaction fee per kB for this wallet. Overrides the "
+            "global -paytxfee command line parameter.\n",
+            {
+                {"amount", RPCArg::Type::AMOUNT, /* opt */ false,
+                 /* default_val */ "",
+                 "The transaction fee in " + CURRENCY_UNIT + "/kB"},
+            },
+            RPCResult{
+                "true|false        (boolean) Returns true if successful\n"},
+            RPCExamples{HelpExampleCli("settxfee", "0.00001") +
+                        HelpExampleRpc("settxfee", "0.00001")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     auto locked_chain = pwallet->chain().lock();
@@ -2924,59 +2930,60 @@ static UniValue getwalletinfo(const Config &config,
     }
 
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "getwalletinfo",
-                "Returns an object containing various wallet state info.\n",
-                {}}
-                .ToString() +
-            "\nResult:\n"
-            "{\n"
-            "  \"walletname\": xxxxx,             (string) the wallet name\n"
-            "  \"walletversion\": xxxxx,          (numeric) the wallet "
-            "version\n"
-            "  \"balance\": xxxxxxx,              (numeric) the total "
-            "confirmed balance of the wallet in " +
-            CURRENCY_UNIT +
-            "\n"
-            "  \"unconfirmed_balance\": xxx,      (numeric) "
-            "the total unconfirmed balance of the wallet in " +
-            CURRENCY_UNIT +
-            "\n"
-            "  \"immature_balance\": xxxxxx,      (numeric) "
-            "the total immature balance of the wallet in " +
-            CURRENCY_UNIT +
-            "\n"
-            "  \"txcount\": xxxxxxx,              (numeric) the total number "
-            "of transactions in the wallet\n"
-            "  \"keypoololdest\": xxxxxx,         (numeric) the timestamp "
-            "(seconds since Unix epoch) of the oldest pre-generated key in the "
-            "key pool\n"
-            "  \"keypoolsize\": xxxx,             (numeric) how many new keys "
-            "are pre-generated (only counts external keys)\n"
-            "  \"keypoolsize_hd_internal\": xxxx, (numeric) how many new keys "
-            "are pre-generated for internal use (used for change outputs, only "
-            "appears if the wallet is using this feature, otherwise external "
-            "keys are used)\n"
-            "  \"unlocked_until\": ttt,           (numeric) the timestamp in "
-            "seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is "
-            "unlocked for transfers, or 0 if the wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,              (numeric) the transaction "
-            "fee configuration, set in " +
-            CURRENCY_UNIT +
-            "/kB\n"
-            "  \"hdseedid\": \"<hash160>\"          (string, optional) the "
-            "Hash160 of the HD seed (only present when HD is enabled)\n"
-            "  \"hdmasterkeyid\": \"<hash160>\"     (string, optional) alias "
-            "for hdseedid retained for backwards-compatibility. Will be "
-            "removed in V0.21.\n"
-            "  \"private_keys_enabled\": true|false (boolean) false if "
-            "privatekeys are disabled for this wallet (enforced watch-only "
-            "wallet)\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getwalletinfo", "") +
-            HelpExampleRpc("getwalletinfo", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "getwalletinfo",
+            "Returns an object containing various wallet state info.\n",
+            {},
+            RPCResult{
+                "{\n"
+                "  \"walletname\": xxxxx,             (string) the wallet "
+                "name\n"
+                "  \"walletversion\": xxxxx,          (numeric) the wallet "
+                "version\n"
+                "  \"balance\": xxxxxxx,              (numeric) the total "
+                "confirmed balance of the wallet in " +
+                CURRENCY_UNIT +
+                "\n"
+                "  \"unconfirmed_balance\": xxx,      (numeric) the total "
+                "unconfirmed balance of the wallet in " +
+                CURRENCY_UNIT +
+                "\n"
+                "  \"immature_balance\": xxxxxx,      (numeric) the total "
+                "immature balance of the wallet in " +
+                CURRENCY_UNIT +
+                "\n"
+                "  \"txcount\": xxxxxxx,              (numeric) the total "
+                "number of transactions in the wallet\n"
+                "  \"keypoololdest\": xxxxxx,         (numeric) the timestamp "
+                "(seconds since Unix epoch) of the oldest pre-generated key in "
+                "the key pool\n"
+                "  \"keypoolsize\": xxxx,             (numeric) how many new "
+                "keys are pre-generated (only counts external keys)\n"
+                "  \"keypoolsize_hd_internal\": xxxx, (numeric) how many new "
+                "keys are pre-generated for internal use (used for change "
+                "outputs, only appears if the wallet is using this feature, "
+                "otherwise external keys are used)\n"
+                "  \"unlocked_until\": ttt,           (numeric) the timestamp "
+                "in seconds since epoch (midnight Jan 1 1970 GMT) that the "
+                "wallet is unlocked for transfers, or 0 if the wallet is "
+                "locked\n"
+                "  \"paytxfee\": x.xxxx,              (numeric) the "
+                "transaction fee configuration, set in " +
+                CURRENCY_UNIT +
+                "/kB\n"
+                "  \"hdseedid\": \"<hash160>\"          (string, optional) the "
+                "Hash160 of the HD seed (only present when HD is enabled)\n"
+                "  \"hdmasterkeyid\": \"<hash160>\"     (string, optional) "
+                "alias for hdseedid retained for backwards-compatibility. Will "
+                "be removed in V0.21.\n"
+                "  \"private_keys_enabled\": true|false (boolean) false if "
+                "privatekeys are disabled for this wallet (enforced watch-only "
+                "wallet)\n"
+                "}\n"},
+            RPCExamples{HelpExampleCli("getwalletinfo", "") +
+                        HelpExampleRpc("getwalletinfo", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     // Make sure the results are valid at least up to the most recent block
@@ -3020,22 +3027,23 @@ static UniValue getwalletinfo(const Config &config,
 static UniValue listwalletdir(const Config &config,
                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"listwalletdir",
-                       "Returns a list of wallets in the wallet directory.\n",
-                       {}}
-                .ToString() +
-            "{\n"
-            "  \"wallets\" : [                (json array of objects)\n"
-            "    {\n"
-            "      \"name\" : \"name\"          (string) The wallet name\n"
-            "    }\n"
-            "    ,...\n"
-            "  ]\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("listwalletdir", "") +
-            HelpExampleRpc("listwalletdir", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "listwalletdir",
+            "Returns a list of wallets in the wallet directory.\n",
+            {},
+            RPCResult{
+                "{\n"
+                "  \"wallets\" : [                (json array of objects)\n"
+                "    {\n"
+                "      \"name\" : \"name\"          (string) The wallet name\n"
+                "    }\n"
+                "    ,...\n"
+                "  ]\n"
+                "}\n"},
+            RPCExamples{HelpExampleCli("listwalletdir", "") +
+                        HelpExampleRpc("listwalletdir", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     UniValue wallets(UniValue::VARR);
@@ -3053,21 +3061,19 @@ static UniValue listwalletdir(const Config &config,
 static UniValue listwallets(const Config &config,
                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "listwallets",
-                "Returns a list of currently loaded wallets.\n"
-                "For full information on the wallet, use \"getwalletinfo\"\n",
-                {}}
-                .ToString() +
-            "\nResult:\n"
-            "[                         (json array of strings)\n"
-            "  \"walletname\"            (string) the wallet name\n"
-            "   ...\n"
-            "]\n"
-            "\nExamples:\n" +
-            HelpExampleCli("listwallets", "") +
-            HelpExampleRpc("listwallets", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "listwallets",
+            "Returns a list of currently loaded wallets.\n"
+            "For full information on the wallet, use \"getwalletinfo\"\n",
+            {},
+            RPCResult{"[                         (json array of strings)\n"
+                      "  \"walletname\"            (string) the wallet name\n"
+                      "   ...\n"
+                      "]\n"},
+            RPCExamples{HelpExampleCli("listwallets", "") +
+                        HelpExampleRpc("listwallets", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     UniValue obj(UniValue::VARR);
@@ -3088,29 +3094,27 @@ static UniValue listwallets(const Config &config,
 static UniValue loadwallet(const Config &config,
                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"loadwallet",
-                       "\nLoads a wallet from a wallet file or directory."
-                       "\nNote that all wallet command-line options used when "
-                       "starting bitcoind will be"
-                       "\napplied to the new wallet (eg -zapwallettxes, "
-                       "upgradewallet, rescan, etc).\n",
-                       {
-                           {"filename", RPCArg::Type::STR, /* opt */ false,
-                            /* default_val */ "",
-                            "The wallet directory or .dat file."},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "{\n"
-            "  \"name\" :    <wallet_name>,        (string) The wallet name if "
-            "loaded successfully.\n"
-            "  \"warning\" : <warning>,            (string) Warning message if "
-            "wallet was not loaded cleanly.\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("loadwallet", "\"test.dat\"") +
-            HelpExampleRpc("loadwallet", "\"test.dat\""));
+        throw std::runtime_error(RPCHelpMan{
+            "loadwallet",
+            "\nLoads a wallet from a wallet file or directory."
+            "\nNote that all wallet command-line options used when starting "
+            "bitcoind will be"
+            "\napplied to the new wallet (eg -zapwallettxes, upgradewallet, "
+            "rescan, etc).\n",
+            {
+                {"filename", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "", "The wallet directory or .dat file."},
+            },
+            RPCResult{"{\n"
+                      "  \"name\" :    <wallet_name>,        (string) The "
+                      "wallet name if loaded successfully.\n"
+                      "  \"warning\" : <warning>,            (string) Warning "
+                      "message if wallet was not loaded cleanly.\n"
+                      "}\n"},
+            RPCExamples{HelpExampleCli("loadwallet", "\"test.dat\"") +
+                        HelpExampleRpc("loadwallet", "\"test.dat\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     const CChainParams &chainParams = config.GetChainParams();
@@ -3159,35 +3163,35 @@ static UniValue createwallet(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 3) {
-        throw std::runtime_error(
-            RPCHelpMan{"createwallet",
-                       "\nCreates and loads a new wallet.\n",
-                       {
-                           {"wallet_name", RPCArg::Type::STR, /* opt */ false,
-                            /* default_val */ "",
-                            "The name for the new wallet. If this is a path, "
-                            "the wallet will be created at the path location."},
-                           {"disable_private_keys", RPCArg::Type::BOOL,
-                            /* opt */ true, /* default_val */ "false",
-                            "Disable the possibility of private keys (only "
-                            "watchonlys are possible in this mode)."},
-                           {"blank", RPCArg::Type::BOOL, /* opt */ true,
-                            /* default_val */ "false",
-                            "Create a blank wallet. A blank wallet has no keys "
-                            "or HD seed. One can be set using sethdseed.\n"},
-                       }}
-                .ToString() +
-            "\nResult:\n"
-            "{\n"
-            "  \"name\" :    <wallet_name>,        (string) The wallet name if "
-            "created successfully. If the wallet was created using a full "
-            "path, the wallet_name will be the full path.\n"
-            "  \"warning\" : <warning>,            (string) Warning message if "
-            "wallet was not loaded cleanly.\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("createwallet", "\"testwallet\"") +
-            HelpExampleRpc("createwallet", "\"testwallet\""));
+        throw std::runtime_error(RPCHelpMan{
+            "createwallet",
+            "\nCreates and loads a new wallet.\n",
+            {
+                {"wallet_name", RPCArg::Type::STR, /* opt */ false,
+                 /* default_val */ "",
+                 "The name for the new wallet. If this is a path, "
+                 "the wallet will be created at the path location."},
+                {"disable_private_keys", RPCArg::Type::BOOL,
+                 /* opt */ true, /* default_val */ "false",
+                 "Disable the possibility of private keys (only "
+                 "watchonlys are possible in this mode)."},
+                {"blank", RPCArg::Type::BOOL, /* opt */ true,
+                 /* default_val */ "false",
+                 "Create a blank wallet. A blank wallet has no keys "
+                 "or HD seed. One can be set using sethdseed.\n"},
+            },
+            RPCResult{
+                "{\n"
+                "  \"name\" :    <wallet_name>,        (string) The wallet "
+                "name if created successfully. If the wallet was created using "
+                "a full path, the wallet_name will be the full path.\n"
+                "  \"warning\" : <warning>,            (string) Warning "
+                "message if wallet was not loaded cleanly.\n"
+                "}\n"},
+            RPCExamples{HelpExampleCli("createwallet", "\"testwallet\"") +
+                        HelpExampleRpc("createwallet", "\"testwallet\"")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     const CChainParams &chainParams = config.GetChainParams();
@@ -3237,19 +3241,20 @@ static UniValue createwallet(const Config &config,
 static UniValue unloadwallet(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "unloadwallet",
-                "Unloads the wallet referenced by the request endpoint "
-                "otherwise unloads the wallet specified in the argument.\n"
-                "Specifying the wallet name on a wallet endpoint is invalid.",
-                {
-                    {"wallet_name", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "", "The name of the wallet to unload."},
-                }}
-                .ToString() +
-            "\nExamples:\n" + HelpExampleCli("unloadwallet", "wallet_name") +
-            HelpExampleRpc("unloadwallet", "wallet_name"));
+        throw std::runtime_error(RPCHelpMan{
+            "unloadwallet",
+            "Unloads the wallet referenced by the request endpoint "
+            "otherwise unloads the wallet specified in the argument.\n"
+            "Specifying the wallet name on a wallet endpoint is invalid.",
+            {
+                {"wallet_name", RPCArg::Type::STR, /* opt */ true,
+                 /* default_val */ "", "The name of the wallet to unload."},
+            },
+            RPCResults{},
+            RPCExamples{HelpExampleCli("unloadwallet", "wallet_name") +
+                        HelpExampleRpc("unloadwallet", "wallet_name")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     std::string wallet_name;
@@ -3290,17 +3295,19 @@ static UniValue resendwallettransactions(const Config &config,
     }
 
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"resendwallettransactions",
-                       "Immediately re-broadcast unconfirmed wallet "
-                       "transactions to all peers.\n"
-                       "Intended only for testing; the wallet code "
-                       "periodically re-broadcasts\n",
-                       {}}
-                .ToString() +
-            "automatically.\n"
-            "Returns an RPC error if -walletbroadcast is set to false.\n"
-            "Returns array of transaction ids that were re-broadcast.\n");
+        throw std::runtime_error(RPCHelpMan{
+            "resendwallettransactions",
+            "Immediately re-broadcast unconfirmed wallet transactions to all "
+            "peers.\n"
+            "Intended only for testing; the wallet code periodically "
+            "re-broadcasts\n",
+            {},
+            RPCResult{
+                "Returns an RPC error if -walletbroadcast is set to false.\n"
+                "Returns array of transaction ids that were re-broadcast.\n"},
+            RPCExamples{""},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     if (!pwallet->chain().p2pEnabled()) {
