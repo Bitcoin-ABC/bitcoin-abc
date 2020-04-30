@@ -49,7 +49,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         const ConnectionType conn_type = fuzzed_data_provider.PickValueInArray(
             {ConnectionType::INBOUND, ConnectionType::OUTBOUND,
              ConnectionType::MANUAL, ConnectionType::FEELER,
-             ConnectionType::BLOCK_RELAY});
+             ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH});
         peers.push_back(
             std::make_unique<CNode>(
                 i, service_flags, 0, INVALID_SOCKET,
