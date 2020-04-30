@@ -14,12 +14,14 @@
 static UniValue getavalanchekey(const Config &config,
                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            RPCHelpMan{"getavalanchekey",
-                       "\nReturns the key used to sign avalanche messages.\n",
-                       {}}
-                .ToString() +
-            "\nExamples:\n" + HelpExampleRpc("getavalanchekey", ""));
+        throw std::runtime_error(RPCHelpMan{
+            "getavalanchekey",
+            "\nReturns the key used to sign avalanche messages.\n",
+            {},
+            RPCResults{},
+            RPCExamples{HelpExampleRpc("getavalanchekey", "")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     if (!g_avalanche) {
@@ -32,18 +34,19 @@ static UniValue getavalanchekey(const Config &config,
 static UniValue addavalanchepeer(const Config &config,
                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 2) {
-        throw std::runtime_error(
-            RPCHelpMan{
-                "addavalanchepeer",
-                "\nAdd a peer to the set of peer to poll for avalanche.\n",
-                {
-                    {"nodeid", RPCArg::Type::NUM, /* opt */ false,
-                     /* default_value */ "", "Node to be added to avalanche."},
-                    {"publickey", RPCArg::Type::STR_HEX, /* opt */ false,
-                     /* default_value */ "", "The public key of the node."},
-                }}
-                .ToString() +
-            "\nExamples:\n" + HelpExampleRpc("addavalanchepeer", "5"));
+        throw std::runtime_error(RPCHelpMan{
+            "addavalanchepeer",
+            "\nAdd a peer to the set of peer to poll for avalanche.\n",
+            {
+                {"nodeid", RPCArg::Type::NUM, /* opt */ false,
+                 /* default_value */ "", "Node to be added to avalanche."},
+                {"publickey", RPCArg::Type::STR_HEX, /* opt */ false,
+                 /* default_value */ "", "The public key of the node."},
+            },
+            RPCResults{},
+            RPCExamples{HelpExampleRpc("addavalanchepeer", "5")},
+        }
+                                     .ToStringWithResultsAndExamples());
     }
 
     if (!g_avalanche) {
