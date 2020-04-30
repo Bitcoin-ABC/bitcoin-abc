@@ -141,6 +141,7 @@ enum class ConnectionType {
     OUTBOUND,
     MANUAL,
     FEELER,
+    BLOCK_RELAY,
 };
 
 namespace {
@@ -240,8 +241,7 @@ public:
                           CSemaphoreGrant *grantOutbound = nullptr,
                           const char *strDest = nullptr,
                           bool m_addr_fetch = false,
-                          ConnectionType conn_type = ConnectionType::OUTBOUND,
-                          bool block_relay_only = false);
+                          ConnectionType conn_type = ConnectionType::OUTBOUND);
     bool CheckIncomingNonce(uint64_t nonce);
 
     bool ForNode(NodeId id, std::function<bool(CNode *pnode)> func);
@@ -419,8 +419,7 @@ private:
 
     bool AttemptToEvictConnection();
     CNode *ConnectNode(CAddress addrConnect, const char *pszDest,
-                       bool fCountFailure, ConnectionType conn_type,
-                       bool block_relay_only);
+                       bool fCountFailure, ConnectionType conn_type);
     void AddWhitelistPermissionFlags(NetPermissionFlags &flags,
                                      const CNetAddr &addr) const;
 
@@ -948,8 +947,7 @@ public:
           SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
           uint64_t nLocalHostNonceIn, const CAddress &addrBindIn,
           const std::string &addrNameIn = "",
-          ConnectionType conn_type_in = ConnectionType::OUTBOUND,
-          bool block_relay_only = false);
+          ConnectionType conn_type_in = ConnectionType::OUTBOUND);
     ~CNode();
     CNode(const CNode &) = delete;
     CNode &operator=(const CNode &) = delete;

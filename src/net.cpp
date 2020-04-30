@@ -363,8 +363,7 @@ static CAddress GetBindAddress(SOCKET sock) {
 }
 
 CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
-                             bool fCountFailure, ConnectionType conn_type,
-                             bool block_relay_only) {
+                             bool fCountFailure, ConnectionType conn_type) {
     assert(conn_type != ConnectionType::INBOUND);
 
     if (pszDest == nullptr) {
@@ -474,7 +473,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     CNode *pnode =
         new CNode(id, nLocalServices, GetBestHeight(), hSocket, addrConnect,
                   CalculateKeyedNetGroup(addrConnect), nonce, addr_bind,
-                  pszDest ? pszDest : "", conn_type, block_relay_only);
+                  pszDest ? pszDest : "", conn_type);
     pnode->AddRef();
 
     // We're making a new connection, harvest entropy from the time (and our
@@ -2120,20 +2119,22 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
 
             // Open this connection as block-relay-only if we're already at our
             // full-relay capacity, but not yet at our block-relay peer limit.
-            // (It should not be possible for fFeeler to be set if we're not
-            // also at our block-relay peer limit, but check against that as
-            // well for sanity.)
             bool block_relay_only =
-                nOutboundBlockRelay < m_max_outbound_block_relay && !fFeeler &&
+                nOutboundBlockRelay < m_max_outbound_block_relay &&
                 nOutboundFullRelay >= m_max_outbound_full_relay;
+            ConnectionType conn_type;
+            if (fFeeler) {
+                conn_type = ConnectionType::FEELER;
+            } else if (block_relay_only) {
+                conn_type = ConnectionType::BLOCK_RELAY;
+            } else {
+                conn_type = ConnectionType::OUTBOUND;
+            }
 
-            ConnectionType conn_type =
-                (fFeeler ? ConnectionType::FEELER : ConnectionType::OUTBOUND);
-
-            OpenNetworkConnection(
-                addrConnect,
-                int(setConnected.size()) >= std::min(nMaxConnections - 1, 2),
-                &grant, nullptr, false, conn_type, block_relay_only);
+            OpenNetworkConnection(addrConnect,
+                                  int(setConnected.size()) >=
+                                      std::min(nMaxConnections - 1, 2),
+                                  &grant, nullptr, false, conn_type);
         }
     }
 }
@@ -2230,8 +2231,7 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
                                      bool fCountFailure,
                                      CSemaphoreGrant *grantOutbound,
                                      const char *pszDest, bool m_addr_fetch,
-                                     ConnectionType conn_type,
-                                     bool block_relay_only) {
+                                     ConnectionType conn_type) {
     assert(conn_type != ConnectionType::INBOUND);
 
     //
@@ -2256,8 +2256,7 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
         return;
     }
 
-    CNode *pnode = ConnectNode(addrConnect, pszDest, fCountFailure, conn_type,
-                               block_relay_only);
+    CNode *pnode = ConnectNode(addrConnect, pszDest, fCountFailure, conn_type);
 
     if (!pnode) {
         return;
@@ -2988,7 +2987,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
-             ConnectionType conn_type_in, bool block_relay_only)
+             ConnectionType conn_type_in)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
       addrBind(addrBindIn), fFeeler(conn_type_in == ConnectionType::FEELER),
       m_manual_connection(conn_type_in == ConnectionType::MANUAL),
@@ -2997,7 +2996,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
-      m_addr_known{block_relay_only
+      m_addr_known{conn_type_in == ConnectionType::BLOCK_RELAY
                        ? nullptr
                        : std::make_unique<CRollingBloomFilter>(5000, 0.001)},
       id(idIn), nLocalHostNonce(nLocalHostNonceIn),
@@ -3005,7 +3004,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     hSocket = hSocketIn;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
     hashContinue = BlockHash();
-    if (!block_relay_only) {
+    if (conn_type_in != ConnectionType::BLOCK_RELAY) {
         m_tx_relay = std::make_unique<TxRelay>();
     }
 
