@@ -978,6 +978,7 @@ public:
 private:
     const NodeId id;
     const uint64_t nLocalHostNonce;
+    const ConnectionType m_conn_type;
 
     //! Services offered to this peer.
     //!

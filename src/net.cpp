@@ -2995,7 +2995,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
-      id(idIn), nLocalHostNonce(nLocalHostNonceIn),
+      id(idIn), nLocalHostNonce(nLocalHostNonceIn), m_conn_type(conn_type_in),
       nLocalServices(nLocalServicesIn), nMyStartingHeight(nMyStartingHeightIn) {
     hSocket = hSocketIn;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
