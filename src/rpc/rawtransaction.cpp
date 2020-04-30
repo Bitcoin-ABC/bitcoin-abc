@@ -2018,7 +2018,7 @@ static UniValue converttopsbt(const Config &config,
 }
 
 // clang-format off
-static const ContextFreeRPCCommand commands[] = {
+static const CRPCCommand commands[] = {
     //  category            name                         actor (function)           argNames
     //  ------------------- ------------------------     ----------------------     ----------
     { "rawtransactions",    "getrawtransaction",         getrawtransaction,         {"txid","verbose","blockhash"} },

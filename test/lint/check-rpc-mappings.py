@@ -51,7 +51,7 @@ def process_commands(fname):
             line = line.rstrip()
             if not in_rpcs:
                 if re.match(
-                        r"static const ContextFreeRPCCommand .*\[\] =", line):
+                        r"static const CRPCCommand .*\[\] =", line):
                     in_rpcs = True
             else:
                 if line.startswith('};'):

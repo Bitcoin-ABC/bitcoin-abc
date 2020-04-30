@@ -75,7 +75,7 @@ static UniValue addavalanchepeer(const Config &config,
 }
 
 // clang-format off
-static const ContextFreeRPCCommand commands[] = {
+static const CRPCCommand commands[] = {
     //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
     { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},

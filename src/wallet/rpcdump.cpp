@@ -1713,7 +1713,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 }
 
 // clang-format off
-static const ContextFreeRPCCommand commands[] = {
+static const CRPCCommand commands[] = {
     //  category            name                        actor (function)          argNames
     //  ------------------- ------------------------    ----------------------    ----------
     { "wallet",             "abortrescan",              abortrescan,              {} },

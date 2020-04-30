@@ -29,7 +29,7 @@ static UniValue rpcNestedTest_rpc(const Config &config,
     return request.params.write(0, 0);
 }
 
-static const ContextFreeRPCCommand vRPCCommands[] = {
+static const CRPCCommand vRPCCommands[] = {
     {"test", "rpcNestedTest", &rpcNestedTest_rpc, {}},
 };
 

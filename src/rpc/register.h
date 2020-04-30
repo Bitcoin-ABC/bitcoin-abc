@@ -5,8 +5,10 @@
 #ifndef BITCOIN_RPC_REGISTER_H
 #define BITCOIN_RPC_REGISTER_H
 
-/** These are in one header file to avoid creating tons of single-function
- * headers for everything under src/rpc/ */
+/**
+ * These are in one header file to avoid creating tons of single-function
+ * headers for everything under src/rpc/
+ */
 class CRPCTable;
 class RPCServer;
 
@@ -25,11 +27,7 @@ void RegisterABCRPCCommands(CRPCTable &tableRPC);
 /** Register Avalanche RPC commands */
 void RegisterAvalancheRPCCommands(CRPCTable &tableRPC);
 
-/**
- * Register all context-free (legacy) RPC commands, except for wallet and dump
- * RPC commands.
- */
-static inline void RegisterAllContextFreeRPCCommands(CRPCTable &t) {
+static inline void RegisterAllCoreRPCCommands(CRPCTable &t) {
     RegisterBlockchainRPCCommands(t);
     RegisterNetRPCCommands(t);
     RegisterMiscRPCCommands(t);
@@ -47,7 +45,7 @@ static inline void RegisterAllRPCCommands(const Config &config,
                                           CRPCTable &rpcTable) {
     // TODO Register context-sensitive RPC commands using rpcServer
 
-    RegisterAllContextFreeRPCCommands(rpcTable);
+    RegisterAllCoreRPCCommands(rpcTable);
 }
 
 #endif // BITCOIN_RPC_REGISTER_H

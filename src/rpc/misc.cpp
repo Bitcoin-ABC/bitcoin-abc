@@ -565,7 +565,7 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
 }
 
 // clang-format off
-static const ContextFreeRPCCommand commands[] = {
+static const CRPCCommand commands[] = {
     //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
     { "control",            "getmemoryinfo",          getmemoryinfo,          {"mode"} },

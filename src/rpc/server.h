@@ -26,7 +26,7 @@
 
 static const unsigned int DEFAULT_RPC_SERIALIZE_VERSION = 1;
 
-class ContextFreeRPCCommand;
+class CRPCCommand;
 
 namespace RPCServerSignals {
 void OnStarted(std::function<void()> slot);
@@ -177,7 +177,7 @@ typedef UniValue (*rpcfn_type)(Config &config,
 typedef UniValue (*const_rpcfn_type)(const Config &config,
                                      const JSONRPCRequest &jsonRequest);
 
-class ContextFreeRPCCommand {
+class CRPCCommand {
 public:
     std::string category;
     std::string name;
@@ -192,8 +192,8 @@ private:
 public:
     std::vector<std::string> argNames;
 
-    ContextFreeRPCCommand(std::string _category, std::string _name,
-                          rpcfn_type _actor, std::vector<std::string> _argNames)
+    CRPCCommand(std::string _category, std::string _name, rpcfn_type _actor,
+                std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
           useConstConfig{false}, argNames{std::move(_argNames)} {
         actor.fn = _actor;
@@ -204,9 +204,8 @@ public:
      * can call the command through the proper pointer. Casting constness
      * on parameters of function is undefined behavior.
      */
-    ContextFreeRPCCommand(std::string _category, std::string _name,
-                          const_rpcfn_type _actor,
-                          std::vector<std::string> _argNames)
+    CRPCCommand(std::string _category, std::string _name,
+                const_rpcfn_type _actor, std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
           useConstConfig{true}, argNames{std::move(_argNames)} {
         actor.cfn = _actor;
@@ -223,11 +222,11 @@ public:
  */
 class CRPCTable {
 private:
-    std::map<std::string, const ContextFreeRPCCommand *> mapCommands;
+    std::map<std::string, const CRPCCommand *> mapCommands;
 
 public:
     CRPCTable();
-    const ContextFreeRPCCommand *operator[](const std::string &name) const;
+    const CRPCCommand *operator[](const std::string &name) const;
     std::string help(Config &config, const std::string &name,
                      const JSONRPCRequest &helpreq) const;
 
@@ -246,7 +245,7 @@ public:
     std::vector<std::string> listCommands() const;
 
     /**
-     * Appends a ContextFreeRPCCommand to the dispatch table.
+     * Appends a CRPCCommand to the dispatch table.
      *
      * Returns false if RPC server is already running (dump concurrency
      * protection).
@@ -260,8 +259,7 @@ public:
      * between calls based on method name, and aliased commands can also
      * register different names, types, and numbers of parameters.
      */
-    bool appendCommand(const std::string &name,
-                       const ContextFreeRPCCommand *pcmd);
+    bool appendCommand(const std::string &name, const CRPCCommand *pcmd);
 };
 
 bool IsDeprecatedRPCEnabled(ArgsManager &args, const std::string &method);
