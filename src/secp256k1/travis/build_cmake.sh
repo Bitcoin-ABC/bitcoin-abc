@@ -7,6 +7,10 @@ set -ex
 if [ "x$HOST" = "xi686-linux-gnu" ]; then
   CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_C_FLAGS=-m32"
 fi
+if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$TRAVIS_COMPILER" = "gcc" ]
+then
+  CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_C_COMPILER=gcc-9"
+fi
 
 # "auto" is not a valid value for SECP256K1_ECMULT_GEN_PRECISION with cmake.
 # In this case we use the default value instead by not setting the cache
@@ -18,8 +22,13 @@ fi
 mkdir -p buildcmake/install
 pushd buildcmake
 
-# Use the cmake version installed via the install_cmake.sh script.
-CMAKE_COMMAND=/opt/cmake/bin/cmake
+# Use the cmake version installed via the install_cmake.sh script on linux
+if [ "$TRAVIS_OS_NAME" = "linux" ]
+then
+  CMAKE_COMMAND=/opt/cmake/bin/cmake
+else
+  CMAKE_COMMAND=cmake
+fi
 ${CMAKE_COMMAND} --version
 
 ${CMAKE_COMMAND} -GNinja .. \
@@ -40,5 +49,13 @@ ${CMAKE_COMMAND} -GNinja .. \
   $CMAKE_EXTRA_FLAGS
 
 ninja $CMAKE_TARGET
+
+if [ -n "$VALGRIND" ]; then
+  # the `--error-exitcode` is required to make the test fail if valgrind found
+  # errors, otherwise it'll return 0
+  # (http://valgrind.org/docs/manual/manual-core.html)
+  valgrind --error-exitcode=42 ./secp256k1-tests 16
+  valgrind --error-exitcode=42 ./secp256k1-exhaustive_tests
+fi
 
 popd

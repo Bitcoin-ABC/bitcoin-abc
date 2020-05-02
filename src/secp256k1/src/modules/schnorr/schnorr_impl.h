@@ -152,6 +152,11 @@ static int secp256k1_schnorr_sig_sign(
     secp256k1_ecmult_gen(&ctx->ecmult_gen_ctx, &Rj, &k);
     secp256k1_ge_set_gej(&R, &Rj);
 
+    /*
+     * We declassify R to allow using it as a branch point.
+     * This is fine because R is not a secret.
+     */
+    secp256k1_declassify(ctx, &R, sizeof(R));
     /** Negate the nonce if R.y is not a quadratic residue. */
     secp256k1_scalar_cond_negate(&k, !secp256k1_fe_is_quad_var(&R.y));
 
