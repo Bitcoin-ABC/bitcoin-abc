@@ -109,6 +109,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         # know the parser options during setup.
         self.parse_args()
         self.set_test_params()
+        # optionally, increase timeout by a factor
+        self.rpc_timeout = int(self.rpc_timeout * self.options.factor)
 
     def main(self):
         """Main function. This should not be overridden by the subclass test scripts."""
@@ -172,6 +174,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                             help="set a random seed for deterministically reproducing a previous test run")
         parser.add_argument("--with-axionactivation", dest="axionactivation", default=False, action="store_true",
                             help="Activate axion update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
+        parser.add_argument(
+            '--factor',
+            type=float,
+            default=1.0,
+            help='adjust test timeouts by a factor')
 
         self.add_options(parser)
         self.options = parser.parse_args()
@@ -412,6 +419,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 rpc_port=rpc_port(i),
                 p2p_port=p2p_port(i),
                 timewait=self.rpc_timeout,
+                factor=self.options.factor,
                 bitcoind=binary[i],
                 bitcoin_cli=self.options.bitcoincli,
                 coverage_dir=self.options.coveragedir,
@@ -574,6 +582,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                     rpc_port=rpc_port(CACHE_NODE_ID),
                     p2p_port=p2p_port(CACHE_NODE_ID),
                     timewait=self.rpc_timeout,
+                    factor=self.options.factor,
                     bitcoind=self.options.bitcoind,
                     bitcoin_cli=self.options.bitcoincli,
                     coverage_dir=None,
