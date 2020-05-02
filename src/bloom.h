@@ -12,7 +12,6 @@
 
 class COutPoint;
 class CTransaction;
-class uint256;
 
 //! 20,000 items with fp rate < 0.1% or 10,000 items and <0.0001%
 static const uint32_t MAX_BLOOM_FILTER_SIZE = 36000; // bytes
@@ -49,8 +48,7 @@ private:
     uint32_t nTweak;
     uint8_t nFlags;
 
-    uint32_t Hash(uint32_t nHashNum,
-                  const std::vector<uint8_t> &vDataToHash) const;
+    uint32_t Hash(uint32_t nHashNum, Span<const uint8_t> vDataToHash) const;
 
 public:
     /**
@@ -72,13 +70,11 @@ public:
         READWRITE(obj.vData, obj.nHashFuncs, obj.nTweak, obj.nFlags);
     }
 
-    void insert(const std::vector<uint8_t> &vKey);
+    void insert(Span<const uint8_t> vKey);
     void insert(const COutPoint &outpoint);
-    void insert(const uint256 &hash);
 
-    bool contains(const std::vector<uint8_t> &vKey) const;
+    bool contains(Span<const uint8_t> vKey) const;
     bool contains(const COutPoint &outpoint) const;
-    bool contains(const uint256 &hash) const;
 
     //! True if the size is <= MAX_BLOOM_FILTER_SIZE and the number of hash
     //! functions is <= MAX_HASH_FUNCS (catch a filter which was just
@@ -120,10 +116,8 @@ class CRollingBloomFilter {
 public:
     CRollingBloomFilter(const uint32_t nElements, const double nFPRate);
 
-    void insert(const std::vector<uint8_t> &vKey);
-    void insert(const uint256 &hash);
-    bool contains(const std::vector<uint8_t> &vKey) const;
-    bool contains(const uint256 &hash) const;
+    void insert(Span<const uint8_t> vKey);
+    bool contains(Span<const uint8_t> vKey) const;
 
     void reset();
 
