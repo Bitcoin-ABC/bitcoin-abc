@@ -950,7 +950,8 @@ UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
     // Fetch previous transactions (inputs):
     std::map<COutPoint, Coin> coins;
     for (const CTxIn &txin : mtx.vin) {
-        coins[txin.prevout]; // Create empty map entry keyed by prevout.
+        // Create empty map entry keyed by prevout.
+        coins[txin.prevout];
     }
     chain.findCoins(coins);
 
