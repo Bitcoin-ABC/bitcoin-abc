@@ -866,4 +866,43 @@ BOOST_FIXTURE_TEST_CASE(CreateWalletFromFile, TestChain100Setup) {
     TestUnloadWallet(std::move(wallet));
 }
 
+BOOST_FIXTURE_TEST_CASE(ZapSelectTx, TestChain100Setup) {
+    NodeContext node;
+    auto chain = interfaces::MakeChain(node, Params());
+    auto wallet = TestLoadWallet(*chain);
+    CKey key;
+    key.MakeNewKey(true);
+    AddKey(*wallet, key);
+
+    std::string error;
+    m_coinbase_txns.push_back(
+        CreateAndProcessBlock({},
+                              GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
+            .vtx[0]);
+    auto block_tx = TestSimpleSpend(*m_coinbase_txns[0], 0, coinbaseKey,
+                                    GetScriptForRawPubKey(key.GetPubKey()));
+    CreateAndProcessBlock({block_tx},
+                          GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
+
+    SyncWithValidationInterfaceQueue();
+
+    {
+        auto block_id = block_tx.GetId();
+        auto prev_id = m_coinbase_txns[0]->GetId();
+
+        LOCK(wallet->cs_wallet);
+        BOOST_CHECK(wallet->HasWalletSpend(prev_id));
+        BOOST_CHECK_EQUAL(wallet->mapWallet.count(block_id), 1u);
+
+        std::vector<TxId> vIdIn{block_id}, vIdOut;
+        BOOST_CHECK_EQUAL(wallet->ZapSelectTx(vIdIn, vIdOut),
+                          DBErrors::LOAD_OK);
+
+        BOOST_CHECK(!wallet->HasWalletSpend(prev_id));
+        BOOST_CHECK_EQUAL(wallet->mapWallet.count(block_id), 0u);
+    }
+
+    TestUnloadWallet(std::move(wallet));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -3553,6 +3553,9 @@ DBErrors CWallet::ZapSelectTx(std::vector<TxId> &txIdsIn,
     for (const TxId &txid : txIdsOut) {
         const auto &it = mapWallet.find(txid);
         wtxOrdered.erase(it->second.m_it_wtxOrdered);
+        for (const auto &txin : it->second.tx->vin) {
+            mapTxSpends.erase(txin.prevout);
+        }
         mapWallet.erase(it);
         NotifyTransactionChanged(this, txid, CT_DELETED);
     }
