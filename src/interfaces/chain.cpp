@@ -343,6 +343,9 @@ namespace {
                 limit_descendant_count, limit_descendant_size,
                 unused_error_string);
         }
+        CFeeRate estimateFee() const override {
+            return ::g_mempool.estimateFee();
+        }
         CFeeRate relayMinFee() override { return ::minRelayTxFee; }
         CFeeRate relayDustFee() override { return ::dustRelayFee; }
         Amount maxTxFee() override { return ::maxTxFee; }

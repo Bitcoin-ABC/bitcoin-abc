@@ -200,6 +200,9 @@ public:
     //! Check if transaction will pass the mempool's chain limits.
     virtual bool checkChainLimits(const CTransactionRef &tx) = 0;
 
+    //! Estimate fee
+    virtual CFeeRate estimateFee() const = 0;
+
     //! Relay current minimum fee (from -minrelaytxfee settings).
     virtual CFeeRate relayMinFee() = 0;
 

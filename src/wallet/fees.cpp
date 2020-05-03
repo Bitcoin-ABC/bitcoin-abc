@@ -18,9 +18,9 @@ Amount GetRequiredFee(const CWallet &wallet, unsigned int nTxBytes) {
 }
 
 Amount GetMinimumFee(const CWallet &wallet, unsigned int nTxBytes,
-                     const CCoinControl &coin_control, const CTxMemPool &pool) {
+                     const CCoinControl &coin_control) {
     Amount nFeeNeeded =
-        GetMinimumFeeRate(wallet, coin_control, pool).GetFeeCeiling(nTxBytes);
+        GetMinimumFeeRate(wallet, coin_control).GetFeeCeiling(nTxBytes);
 
     // But always obey the maximum.
     const Amount max_tx_fee = wallet.chain().maxTxFee();
@@ -36,15 +36,14 @@ CFeeRate GetRequiredFeeRate(const CWallet &wallet) {
 }
 
 CFeeRate GetMinimumFeeRate(const CWallet &wallet,
-                           const CCoinControl &coin_control,
-                           const CTxMemPool &pool) {
+                           const CCoinControl &coin_control) {
     CFeeRate neededFeeRate =
         (coin_control.fOverrideFeeRate && coin_control.m_feerate)
             ? *coin_control.m_feerate
             : wallet.m_pay_tx_fee;
 
     if (neededFeeRate == CFeeRate()) {
-        neededFeeRate = pool.estimateFee();
+        neededFeeRate = wallet.chain().estimateFee();
         // ... unless we don't have enough mempool data for estimatefee, then
         // use fallback fee.
         if (neededFeeRate == CFeeRate()) {

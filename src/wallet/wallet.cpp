@@ -2646,7 +2646,7 @@ bool CWallet::SelectCoinsMinConf(
         // Get long term estimate
         CCoinControl temp;
         temp.m_confirm_target = 1008;
-        CFeeRate long_term_feerate = GetMinimumFeeRate(*this, temp, g_mempool);
+        CFeeRate long_term_feerate = GetMinimumFeeRate(*this, temp);
 
         // Calculate cost of change
         Amount cost_of_change =
@@ -3111,8 +3111,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
             GetSerializeSize(change_prototype_txout);
 
         // Get the fee rate to use effective values in coin selection
-        CFeeRate nFeeRateNeeded =
-            GetMinimumFeeRate(*this, coinControl, g_mempool);
+        CFeeRate nFeeRateNeeded = GetMinimumFeeRate(*this, coinControl);
 
         nFeeRet = Amount::zero();
         bool pick_new_inputs = true;
@@ -3247,8 +3246,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                 return false;
             }
 
-            Amount nFeeNeeded =
-                GetMinimumFee(*this, nBytes, coinControl, g_mempool);
+            Amount nFeeNeeded = GetMinimumFee(*this, nBytes, coinControl);
 
             // If we made it here and we aren't even able to meet the relay fee
             // on the next pass, give up because we must be at the maximum
@@ -3275,8 +3273,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                     // compact size
                     unsigned int tx_size_with_change =
                         nBytes + coin_selection_params.change_output_size + 2;
-                    Amount fee_needed_with_change = GetMinimumFee(
-                        *this, tx_size_with_change, coinControl, g_mempool);
+                    Amount fee_needed_with_change =
+                        GetMinimumFee(*this, tx_size_with_change, coinControl);
                     Amount minimum_value_for_change =
                         GetDustThreshold(change_prototype_txout, dustRelayFee);
                     if (nFeeRet >=

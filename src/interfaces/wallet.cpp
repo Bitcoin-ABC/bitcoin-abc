@@ -482,7 +482,7 @@ namespace {
         }
         Amount getMinimumFee(unsigned int tx_bytes,
                              const CCoinControl &coin_control) override {
-            return GetMinimumFee(m_wallet, tx_bytes, coin_control, g_mempool);
+            return GetMinimumFee(m_wallet, tx_bytes, coin_control);
         }
 
         std::shared_ptr<CWallet> m_shared_wallet;
