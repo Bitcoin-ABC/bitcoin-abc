@@ -690,6 +690,12 @@ void SetupServerArgs() {
                            "bloom filters (default: %d)",
                            DEFAULT_PEERBLOOMFILTERS),
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    gArgs.AddArg(
+        "-peerblockfilters",
+        strprintf(
+            "Serve compact block filters to peers per BIP 157 (default: %u)",
+            DEFAULT_PEERBLOCKFILTERS),
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg("-permitbaremultisig",
                  strprintf("Relay non-P2SH multisig (default: %d)",
                            DEFAULT_PERMIT_BAREMULTISIG),
@@ -1687,6 +1693,14 @@ bool AppInitParameterInteraction(Config &config) {
             }
             g_enabled_filter_types.insert(filter_type);
         }
+    }
+
+    // Basic filters are the only supported filters. The basic filters index
+    // must be enabled to serve compact filters
+    if (gArgs.GetBoolArg("-peerblockfilters", DEFAULT_PEERBLOCKFILTERS) &&
+        g_enabled_filter_types.count(BlockFilterType::BASIC) != 1) {
+        return InitError(
+            _("Cannot set -peerblockfilters without -blockfilterindex."));
     }
 
     // if using block pruning, then disallow txindex

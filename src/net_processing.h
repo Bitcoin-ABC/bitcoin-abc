@@ -26,6 +26,7 @@ static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
  * reconstruction.
  */
 static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
+static const bool DEFAULT_PEERBLOCKFILTERS = false;
 
 class PeerLogicValidation final : public CValidationInterface,
                                   public NetEventsInterface {
