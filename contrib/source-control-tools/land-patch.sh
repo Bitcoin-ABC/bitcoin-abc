@@ -65,6 +65,30 @@ if [ -n "${REVISION}" ] && [ -z "${CONDUIT_TOKEN}" ]; then
 fi
 set -x
 
+if [ -n "${REVISION}" ]; then
+  # Temporarily stop verbose logging to prevent leaking CONDUIT_TOKEN
+  set +x
+  # Fetch the revision and check its review status
+  REVIEW_STATUS=$(curl "https://reviews.bitcoinabc.org/api/differential.revision.search" \
+    -d "api.token=${CONDUIT_TOKEN}" \
+    -d "constraints[ids][0]=${REVISION:1}" |\
+    jq '.result.data[].fields.status.value') || {
+      echo "Error: Failed to fetch review status of revision '${REVISION}'"
+      echo "The 'status' fields may be missing or malformed."
+      exit 30
+    }
+  set -x
+
+  # We only trust code that has been accepted
+  if [ "${REVIEW_STATUS}" != "\"accepted\"" ]; then
+    echo "Error: Revision '${REVISION}' has not been accepted"
+    exit 31
+  fi
+fi
+
+# IMPORTANT NOTE: The patch is trusted past this point. It was either reviewed
+# and accepted or it was auto-generated.
+
 TOPLEVEL=$(git rev-parse --show-toplevel)
 DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 BUILD_DIR="${TOPLEVEL}"/build
