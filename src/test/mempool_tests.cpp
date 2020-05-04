@@ -813,8 +813,6 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
         pool.GetMinFee(pool.DynamicMemoryUsage() * 9 / 2).GetFeePerK(),
         (maxFeeRateRemoved.GetFeePerK() + feeIncrement) / 8 + SATOSHI);
     // ... with a 1/4 halflife when mempool is < 1/4 its target size
-
-    SetMockTime(0);
 }
 
 // expectedSize can be smaller than correctlyOrderedIds.size(), since we

@@ -53,6 +53,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
     : m_path_root(fs::temp_directory_path() / "test_common_" PACKAGE_NAME /
                   strprintf("%lu_%i", static_cast<unsigned long>(GetTime()),
                             int(InsecureRandRange(1 << 30)))) {
+    SetMockTime(0);
     fs::create_directories(m_path_root);
     gArgs.ForceSetArg("-datadir", m_path_root.string());
     ClearDatadirCache();

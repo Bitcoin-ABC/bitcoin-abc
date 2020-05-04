@@ -255,8 +255,6 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
             BOOST_CHECK_EQUAL(found, expected);
         }
     }
-
-    SetMockTime(0);
 }
 
 // Check that GetImmatureCredit() returns a newly calculated value instead of
