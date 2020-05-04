@@ -276,6 +276,8 @@ static std::string serviceFlagToStr(const size_t bit) {
             return "XTHIN";
         case NODE_NETWORK_LIMITED:
             return "NETWORK_LIMITED";
+        case NODE_COMPACT_FILTERS:
+            return "COMPACT_FILTERS";
         case NODE_AVALANCHE:
             return "AVALANCHE";
         default:

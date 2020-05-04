@@ -2262,7 +2262,7 @@ static bool PrepareBlockFilterRequest(
     const CBlockIndex *&stop_index, BlockFilterIndex *&filter_index) {
     const bool supported_filter_type =
         (filter_type == BlockFilterType::BASIC &&
-         gArgs.GetBoolArg("-peerblockfilters", DEFAULT_PEERBLOCKFILTERS));
+         (peer.GetLocalServices() & NODE_COMPACT_FILTERS));
     if (!supported_filter_type) {
         LogPrint(BCLog::NET,
                  "peer %d requested unsupported block filter type: %d\n",

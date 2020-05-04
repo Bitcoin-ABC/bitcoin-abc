@@ -337,6 +337,11 @@ enum ServiceFlags : uint64_t {
 
     // Bit 5 was NODE_BITCOIN_CASH, removed in v0.22.8
 
+    // NODE_COMPACT_FILTERS means the node will service basic block filter
+    // requests.
+    // See BIP157 and BIP158 for details on how this is implemented.
+    NODE_COMPACT_FILTERS = (1 << 6),
+
     // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation
     // of only serving the last 288 (2 day) blocks
     // See BIP159 for details on how this is implemented.
