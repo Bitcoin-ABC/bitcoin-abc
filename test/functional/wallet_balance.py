@@ -121,8 +121,9 @@ class WalletTest(BitcoinTestFramework):
         self.log.info(
             "Test getbalance and getunconfirmedbalance with conflicted unconfirmed inputs")
 
+        # output of node 1's send
         assert_equal(self.nodes[0].getwalletinfo()[
-                     "unconfirmed_balance"], Decimal('60'))  # output of node 1's send
+                     "unconfirmed_balance"], Decimal('60'))
         assert_equal(self.nodes[0].getunconfirmedbalance(), Decimal('60'))
         # Doesn't include output of node 0's send since it was spent
         assert_equal(self.nodes[1].getwalletinfo()[
