@@ -63,4 +63,3 @@ void GlobalConfig::SetExcessUTXOCharge(Amount fee) {
 Amount GlobalConfig::GetExcessUTXOCharge() const {
     return excessUTXOCharge;
 }
-

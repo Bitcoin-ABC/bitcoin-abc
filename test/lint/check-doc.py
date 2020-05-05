@@ -49,7 +49,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-dbcrashratio',
 
 def main():
     top_level = check_output(TOP_LEVEL, shell=True,
-                             universal_newlines=True).strip()
+                             universal_newlines=True, encoding='utf8').strip()
     source_files = []
     test_files = []
 
