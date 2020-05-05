@@ -223,7 +223,7 @@ def main():
     logging.info("Starting {}".format(args.testsuitename))
 
     # Create base test directory
-    tmpdir = os.path.join("{}", "test_runner_₿_🏃_{:%Y%m%d_%H%M%S}").format(
+    tmpdir = os.path.join("{}", "test_runner_₿₵_🏃_{:%Y%m%d_%H%M%S}").format(
         args.tmpdirprefix, datetime.datetime.now())
 
     # If we fixed the command-line and filename encoding issue on Windows,
