@@ -10,7 +10,7 @@
 """
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import wait_until
+from test_framework.util import assert_equal
 
 
 class ReindexTest(BitcoinTestFramework):
@@ -27,7 +27,8 @@ class ReindexTest(BitcoinTestFramework):
         extra_args = [
             ["-reindex-chainstate" if justchainstate else "-reindex"]]
         self.start_nodes(extra_args)
-        wait_until(lambda: self.nodes[0].getblockcount() == blockcount)
+        # start_node is blocking on reindex
+        assert_equal(self.nodes[0].getblockcount(), blockcount)
         self.log.info("Success")
 
     def run_test(self):

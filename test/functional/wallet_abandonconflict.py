@@ -19,7 +19,6 @@ from test_framework.util import (
     connect_nodes,
     disconnect_nodes,
     satoshi_round,
-    wait_until,
 )
 
 
@@ -126,7 +125,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # TODO: redo with eviction
         self.stop_node(0)
         self.start_node(0, extra_args=["-minrelaytxfee=0.0001"])
-        wait_until(lambda: self.nodes[0].getmempoolinfo()['loaded'])
+        assert self.nodes[0].getmempoolinfo()['loaded']
 
         # Verify txs no longer in either node's mempool
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
@@ -160,7 +159,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # from wallet on startup once abandoned.
         self.stop_node(0)
         self.start_node(0, extra_args=["-minrelaytxfee=0.00001"])
-        wait_until(lambda: self.nodes[0].getmempoolinfo()['loaded'])
+        assert self.nodes[0].getmempoolinfo()['loaded']
 
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         assert_equal(self.nodes[0].getbalance(), balance)
@@ -185,7 +184,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Reset to a higher relay fee so that we abandon a transaction
         self.stop_node(0)
         self.start_node(0, extra_args=["-minrelaytxfee=0.0001"])
-        wait_until(lambda: self.nodes[0].getmempoolinfo()['loaded'])
+        assert self.nodes[0].getmempoolinfo()['loaded']
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         newbalance = self.nodes[0].getbalance()
         assert_equal(newbalance, balance - Decimal("24.9996"))
