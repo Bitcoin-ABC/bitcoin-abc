@@ -399,7 +399,6 @@ add_library(common
 	compressor.cpp
 	eventloop.cpp
 	feerate.cpp
-	globals.cpp
 	core_read.cpp
 	core_write.cpp
 	key.cpp
@@ -477,7 +476,6 @@ add_library(server
 	consensus/tx_check.cpp
 	dbwrapper.cpp
 	flatfile.cpp
-	globals.cpp
 	httprpc.cpp
 	httpserver.cpp
 	index/base.cpp

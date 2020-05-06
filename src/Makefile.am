@@ -153,7 +153,6 @@ BITCOIN_CORE_H = \
   eventloop.h \
   flatfile.h \
   fs.h \
-  globals.h \
   httprpc.h \
   httpserver.h \
   index/base.h \
@@ -288,7 +287,6 @@ libbitcoin_server_a_SOURCES = \
   consensus/activation.cpp \
   consensus/tx_verify.cpp \
   flatfile.cpp \
-  globals.cpp \
   httprpc.cpp \
   httpserver.cpp \
   index/base.cpp \
@@ -482,7 +480,6 @@ libbitcoin_common_a_SOURCES = \
   compressor.cpp \
   eventloop.cpp \
   feerate.cpp \
-  globals.cpp \
   core_read.cpp \
   core_write.cpp \
   key.cpp \
