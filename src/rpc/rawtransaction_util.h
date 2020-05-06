@@ -9,7 +9,7 @@ class CBasicKeyStore;
 class CChainParams;
 
 class UniValue;
-struct CMutableTransaction;
+class CMutableTransaction;
 
 namespace interfaces {
 class Chain;
