@@ -84,8 +84,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     // Mock an outbound peer
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
     CNode dummyNode1(id++, ServiceFlags(NODE_NETWORK), 0, INVALID_SOCKET, addr1,
-                     0, 0, CAddress(), "",
-                     /*fInboundIn=*/false);
+                     0, 0, CAddress(), "", ConnectionType::OUTBOUND);
     dummyNode1.SetSendVersion(PROTOCOL_VERSION);
 
     peerLogic->InitializeNode(config, &dummyNode1);
@@ -147,7 +146,7 @@ static void AddRandomOutboundPeer(const Config &config,
     CAddress addr(ip(g_insecure_rand_ctx.randbits(32)), NODE_NONE);
     vNodes.emplace_back(new CNode(id++, ServiceFlags(NODE_NETWORK), 0,
                                   INVALID_SOCKET, addr, 0, 0, CAddress(), "",
-                                  /*fInboundIn=*/false));
+                                  ConnectionType::OUTBOUND));
     CNode &node = *vNodes.back();
     node.SetSendVersion(PROTOCOL_VERSION);
 
@@ -247,7 +246,7 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     banman->ClearBanned();
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
     CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 0, 0,
-                     CAddress(), "", true);
+                     CAddress(), "", ConnectionType::INBOUND);
     dummyNode1.SetSendVersion(PROTOCOL_VERSION);
     peerLogic->InitializeNode(config, &dummyNode1);
     dummyNode1.nVersion = 1;
@@ -268,7 +267,7 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
 
     CAddress addr2(ip(0xa0b0c002), NODE_NONE);
     CNode dummyNode2(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr2, 1, 1,
-                     CAddress(), "", true);
+                     CAddress(), "", ConnectionType::INBOUND);
     dummyNode2.SetSendVersion(PROTOCOL_VERSION);
     peerLogic->InitializeNode(config, &dummyNode2);
     dummyNode2.nVersion = 1;
@@ -318,7 +317,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     gArgs.ForceSetArg("-banscore", "111");
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
     CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 3, 1,
-                     CAddress(), "", true);
+                     CAddress(), "", ConnectionType::INBOUND);
     dummyNode1.SetSendVersion(PROTOCOL_VERSION);
     peerLogic->InitializeNode(config, &dummyNode1);
     dummyNode1.nVersion = 1;
@@ -377,7 +376,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
 
     CAddress addr(ip(0xa0b0c001), NODE_NONE);
     CNode dummyNode(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr, 4, 4,
-                    CAddress(), "", true);
+                    CAddress(), "", ConnectionType::INBOUND);
     dummyNode.SetSendVersion(PROTOCOL_VERSION);
     peerLogic->InitializeNode(config, &dummyNode);
     dummyNode.nVersion = 1;

@@ -136,6 +136,11 @@ struct CSerializedNetMsg {
     std::string m_type;
 };
 
+enum class ConnectionType {
+    INBOUND,
+    OUTBOUND,
+};
+
 namespace {
 struct CConnmanTest;
 }
@@ -939,7 +944,8 @@ public:
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn,
           SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
           uint64_t nLocalHostNonceIn, const CAddress &addrBindIn,
-          const std::string &addrNameIn = "", bool fInboundIn = false,
+          const std::string &addrNameIn = "",
+          ConnectionType conn_type_in = ConnectionType::OUTBOUND,
           bool block_relay_only = false);
     ~CNode();
     CNode(const CNode &) = delete;

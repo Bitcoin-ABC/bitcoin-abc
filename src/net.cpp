@@ -468,10 +468,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
                          .Write(id)
                          .Finalize();
     CAddress addr_bind = GetBindAddress(hSocket);
-    CNode *pnode =
-        new CNode(id, nLocalServices, GetBestHeight(), hSocket, addrConnect,
-                  CalculateKeyedNetGroup(addrConnect), nonce, addr_bind,
-                  pszDest ? pszDest : "", false, block_relay_only);
+    CNode *pnode = new CNode(id, nLocalServices, GetBestHeight(), hSocket,
+                             addrConnect, CalculateKeyedNetGroup(addrConnect),
+                             nonce, addr_bind, pszDest ? pszDest : "",
+                             ConnectionType::OUTBOUND, block_relay_only);
     pnode->AddRef();
 
     // We're making a new connection, harvest entropy from the time (and our
@@ -1155,9 +1155,9 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     if (NetPermissions::HasFlag(permissionFlags, PF_BLOOMFILTER)) {
         nodeServices = static_cast<ServiceFlags>(nodeServices | NODE_BLOOM);
     }
-    CNode *pnode =
-        new CNode(id, nodeServices, GetBestHeight(), hSocket, addr,
-                  CalculateKeyedNetGroup(addr), nonce, addr_bind, "", true);
+    CNode *pnode = new CNode(id, nodeServices, GetBestHeight(), hSocket, addr,
+                             CalculateKeyedNetGroup(addr), nonce, addr_bind, "",
+                             ConnectionType::INBOUND);
     pnode->AddRef();
     pnode->m_permissionFlags = permissionFlags;
     // If this flag is present, the user probably expect that RPC and QT report
@@ -2986,9 +2986,9 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
-             bool fInboundIn, bool block_relay_only)
+             ConnectionType conn_type_in, bool block_relay_only)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
-      addrBind(addrBindIn), fInbound(fInboundIn),
+      addrBind(addrBindIn), fInbound(conn_type_in == ConnectionType::INBOUND),
       nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these

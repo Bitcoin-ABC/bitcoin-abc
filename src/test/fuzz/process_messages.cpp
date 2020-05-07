@@ -46,13 +46,14 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     for (int i = 0; i < num_peers_to_add; ++i) {
         const ServiceFlags service_flags =
             ServiceFlags(fuzzed_data_provider.ConsumeIntegral<uint64_t>());
-        const bool inbound{fuzzed_data_provider.ConsumeBool()};
+        const ConnectionType conn_type = fuzzed_data_provider.PickValueInArray(
+            {ConnectionType::INBOUND, ConnectionType::OUTBOUND});
         const bool block_relay_only{fuzzed_data_provider.ConsumeBool()};
         peers.push_back(
             std::make_unique<CNode>(
                 i, service_flags, 0, INVALID_SOCKET,
                 CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0,
-                0, CAddress{}, std::string{}, inbound, block_relay_only)
+                0, CAddress{}, std::string{}, conn_type, block_relay_only)
                 .release());
         CNode &p2p_node = *peers.back();
 

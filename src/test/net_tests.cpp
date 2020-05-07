@@ -184,19 +184,17 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test) {
 
     CAddress addr = CAddress(CService(ipv4Addr, 7777), NODE_NETWORK);
     std::string pszDest;
-    bool fInboundIn = false;
 
     // Test that fFeeler is false by default.
     auto pnode1 =
         std::make_unique<CNode>(id++, NODE_NETWORK, height, hSocket, addr, 0, 0,
-                                CAddress(), pszDest, fInboundIn);
+                                CAddress(), pszDest, ConnectionType::OUTBOUND);
     BOOST_CHECK(pnode1->fInbound == false);
     BOOST_CHECK(pnode1->fFeeler == false);
 
-    fInboundIn = true;
     auto pnode2 =
         std::make_unique<CNode>(id++, NODE_NETWORK, height, hSocket, addr, 1, 1,
-                                CAddress(), pszDest, fInboundIn);
+                                CAddress(), pszDest, ConnectionType::INBOUND);
     BOOST_CHECK(pnode2->fInbound == true);
     BOOST_CHECK(pnode2->fFeeler == false);
 }
@@ -320,9 +318,9 @@ BOOST_AUTO_TEST_CASE(ipv4_peer_with_ipv6_addrMe_test) {
     in_addr ipv4AddrPeer;
     ipv4AddrPeer.s_addr = 0xa0b0c001;
     CAddress addr = CAddress(CService(ipv4AddrPeer, 7777), NODE_NETWORK);
-    std::unique_ptr<CNode> pnode =
-        std::make_unique<CNode>(0, NODE_NETWORK, 0, INVALID_SOCKET, addr, 0, 0,
-                                CAddress{}, std::string{}, false);
+    std::unique_ptr<CNode> pnode = std::make_unique<CNode>(
+        0, NODE_NETWORK, 0, INVALID_SOCKET, addr, 0, 0, CAddress{},
+        std::string{}, ConnectionType::OUTBOUND);
     pnode->fSuccessfullyConnected.store(true);
 
     // the peer claims to be reaching us via IPv6

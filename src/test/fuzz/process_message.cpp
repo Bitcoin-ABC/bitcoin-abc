@@ -105,7 +105,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         *std::make_unique<CNode>(
              0, ServiceFlags(NODE_NETWORK | NODE_BLOOM), 0, INVALID_SOCKET,
              CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0, 0,
-             CAddress{}, std::string{}, false)
+             CAddress{}, std::string{}, ConnectionType::OUTBOUND, false)
              .release();
     p2p_node.fSuccessfullyConnected = true;
     p2p_node.nVersion = PROTOCOL_VERSION;

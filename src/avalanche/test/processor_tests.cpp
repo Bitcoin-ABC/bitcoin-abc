@@ -99,9 +99,9 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         static NodeId id = 0;
 
         CAddress addr(ip(GetRandInt(0xffffffff)), NODE_NONE);
-        auto node = new CNode(id++, ServiceFlags(NODE_NETWORK), 0,
-                              INVALID_SOCKET, addr, 0, 0, CAddress(), "",
-                              /*fInboundIn=*/false);
+        auto node =
+            new CNode(id++, ServiceFlags(NODE_NETWORK), 0, INVALID_SOCKET, addr,
+                      0, 0, CAddress(), "", ConnectionType::OUTBOUND);
         node->SetSendVersion(PROTOCOL_VERSION);
         node->nServices = nServices;
         m_node.peer_logic->InitializeNode(config, node);
