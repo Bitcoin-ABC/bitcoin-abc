@@ -7,11 +7,10 @@
 #define BITCOIN_COINS_H
 
 #include <compressor.h>
-#include <core_memusage.h>
 #include <crypto/siphash.h>
 #include <memusage.h>
+#include <primitives/blockhash.h>
 #include <serialize.h>
-#include <uint256.h>
 
 #include <cassert>
 #include <cstdint>

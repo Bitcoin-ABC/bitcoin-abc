@@ -8,6 +8,7 @@
 
 #include <amount.h>
 #include <coins.h>
+#include <core_memusage.h>
 #include <crypto/siphash.h>
 #include <indirectmap.h>
 #include <primitives/transaction.h>
