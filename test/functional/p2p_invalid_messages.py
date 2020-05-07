@@ -6,7 +6,16 @@
 import asyncio
 import struct
 
-from test_framework import messages
+from test_framework.messages import (
+    CBlockHeader,
+    CInv,
+    msg_getdata,
+    msg_headers,
+    msg_inv,
+    msg_ping,
+    MSG_TX,
+    ser_string,
+)
 from test_framework.mininode import (
     NetworkThread,
     P2PDataStore,
@@ -24,7 +33,7 @@ class msg_unrecognized:
         self.str_data = str_data.encode() if not isinstance(str_data, bytes) else str_data
 
     def serialize(self):
-        return messages.ser_string(self.str_data)
+        return ser_string(self.str_data)
 
     def __repr__(self):
         return "{}(data={})".format(self.msgtype, self.str_data)
@@ -136,7 +145,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
             # For some reason unknown to me, we sometimes have to push additional data to the
             # peer in order for it to realize a disconnect.
             try:
-                node.p2p.send_message(messages.msg_ping(nonce=123123))
+                node.p2p.send_message(msg_ping(nonce=123123))
             except IOError:
                 pass
 
@@ -163,7 +172,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
             NetworkThread.network_event_loop).result()
 
         with self.nodes[0].assert_debug_log(['PROCESSMESSAGE: INVALID MESSAGESTART ping']):
-            conn.send_message(messages.msg_ping(nonce=0xff))
+            conn.send_message(msg_ping(nonce=0xff))
             conn.wait_for_disconnect(timeout=1)
             self.nodes[0].disconnect_p2ps()
 
@@ -217,14 +226,13 @@ class InvalidMessagesTest(BitcoinTestFramework):
     def test_large_inv(self):
         conn = self.nodes[0].add_p2p_connection(P2PInterface())
         with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (0 -> 20): oversized-inv: message inv size() = 50001']):
-            msg = messages.msg_inv([messages.CInv(messages.MSG_TX, 1)] * 50001)
+            msg = msg_inv([CInv(MSG_TX, 1)] * 50001)
             conn.send_and_ping(msg)
         with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (20 -> 40): too-many-inv: message getdata size() = 50001']):
-            msg = messages.msg_getdata(
-                [messages.CInv(messages.MSG_TX, 1)] * 50001)
+            msg = msg_getdata([CInv(MSG_TX, 1)] * 50001)
             conn.send_and_ping(msg)
         with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (40 -> 60): too-many-headers: headers message size = 2001']):
-            msg = messages.msg_headers([messages.CBlockHeader()] * 2001)
+            msg = msg_headers([CBlockHeader()] * 2001)
             conn.send_and_ping(msg)
         self.nodes[0].disconnect_p2ps()
 
