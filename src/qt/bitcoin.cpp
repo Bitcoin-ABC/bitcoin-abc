@@ -469,7 +469,7 @@ void BitcoinApplication::handleRunawayException(const QString &message) {
         BitcoinGUI::tr("A fatal error occurred. %1 can no longer continue "
                        "safely and will quit.")
                 .arg(PACKAGE_NAME) +
-            QString("\n\n") + message);
+            QString("<br><br>") + message);
     ::exit(EXIT_FAILURE);
 }
 
