@@ -6,6 +6,7 @@
 #include <config.h>
 #include <fs.h>
 #include <streams.h>
+#include <util/translation.h>
 #include <wallet/salvage.h>
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
@@ -21,10 +22,9 @@ bool RecoverDatabaseFile(const fs::path &file_path) {
     std::shared_ptr<BerkeleyEnvironment> env =
         GetWalletEnv(file_path, filename);
 
-    if (!env->Open(true /* retry */)) {
-        tfm::format(std::cerr,
-                    "Error initializing wallet database environment %s!",
-                    env->Directory());
+    bilingual_str open_err;
+    if (!env->Open(open_err)) {
+        tfm::format(std::cerr, "%s\n", open_err.original);
         return false;
     }
 
