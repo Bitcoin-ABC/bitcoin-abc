@@ -150,6 +150,7 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \
+  disconnectresult.h \
   eventloop.h \
   flatfile.h \
   fs.h \
