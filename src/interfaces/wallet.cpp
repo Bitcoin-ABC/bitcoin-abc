@@ -25,6 +25,7 @@
 #include <util/system.h>
 #include <validation.h>
 #include <wallet/fees.h>
+#include <wallet/load.h>
 #include <wallet/rpcdump.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>

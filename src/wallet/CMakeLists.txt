@@ -9,6 +9,11 @@ find_package(BerkeleyDB 5.3 REQUIRED COMPONENTS CXX)
 # in rpcwallet.cpp so it may be worth considering using an alternative.
 find_package(Event 2.0.22 REQUIRED COMPONENTS event)
 
+# PR15638(https://reviews.bitcoinabc.org/D6000) moved some wallet load
+# functions to wallet/load.cpp, the others in wallet/init.cpp remain in
+# the server
+target_sources(server PRIVATE init.cpp)
+
 add_library(wallet
 	../interfaces/wallet.cpp
 	coincontrol.cpp
@@ -16,7 +21,7 @@ add_library(wallet
 	crypter.cpp
 	db.cpp
 	fees.cpp
-	init.cpp
+	load.cpp
 	psbtwallet.cpp
 	rpcdump.cpp
 	rpcwallet.cpp
