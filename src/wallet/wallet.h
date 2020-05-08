@@ -1356,7 +1356,7 @@ public:
     //! Verify wallet naming and perform salvage on the wallet if required
     static bool Verify(const CChainParams &chainParams,
                        interfaces::Chain &chain, const WalletLocation &location,
-                       bool salvage_wallet, bilingual_str &error_string,
+                       bilingual_str &error_string,
                        std::vector<bilingual_str> &warnings);
 
     /**

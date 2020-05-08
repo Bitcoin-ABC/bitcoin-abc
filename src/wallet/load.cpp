@@ -45,12 +45,6 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
 
     chain.initMessage(_("Verifying wallet(s)...").translated);
 
-    // Parameter interaction code should have thrown an error if -salvagewallet
-    // was enabled with more than wallet file, so the wallet_files size check
-    // here should have no effect.
-    bool salvage_wallet =
-        gArgs.GetBoolArg("-salvagewallet", false) && wallet_files.size() <= 1;
-
     // Keep track of each wallet absolute path to detect duplicates.
     std::set<fs::path> wallet_paths;
 
@@ -66,9 +60,8 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
 
         bilingual_str error_string;
         std::vector<bilingual_str> warnings;
-        bool verify_success =
-            CWallet::Verify(chainParams, chain, location, salvage_wallet,
-                            error_string, warnings);
+        bool verify_success = CWallet::Verify(chainParams, chain, location,
+                                              error_string, warnings);
         if (!warnings.empty()) {
             chain.initWarning(Join(warnings, "\n", OpTranslated));
         }

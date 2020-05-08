@@ -156,8 +156,7 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                                     const WalletLocation &location,
                                     bilingual_str &error,
                                     std::vector<bilingual_str> &warnings) {
-    if (!CWallet::Verify(chainParams, chain, location, false, error,
-                         warnings)) {
+    if (!CWallet::Verify(chainParams, chain, location, error, warnings)) {
         error = Untranslated("Wallet file verification failed.") +
                 Untranslated(" ") + error;
         return nullptr;
@@ -210,7 +209,7 @@ WalletCreationStatus CreateWallet(const CChainParams &params,
 
     // Wallet::Verify will check if we're trying to create a wallet with a
     // duplicate name.
-    if (!CWallet::Verify(params, chain, location, false, error, warnings)) {
+    if (!CWallet::Verify(params, chain, location, error, warnings)) {
         error = Untranslated("Wallet file verification failed.") +
                 Untranslated(" ") + error;
         return WalletCreationStatus::CREATION_FAILED;
@@ -4104,7 +4103,7 @@ CWallet::GetDestValues(const std::string &prefix) const {
 }
 
 bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
-                     const WalletLocation &location, bool salvage_wallet,
+                     const WalletLocation &location,
                      bilingual_str &error_string,
                      std::vector<bilingual_str> &warnings) {
     // Do some checking on wallet path. It should be either a:
@@ -4153,18 +4152,6 @@ bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
             strprintf("Error loading wallet %s. %s", location.GetName(),
                       fsbridge::get_filesystem_error_message(e)));
         return false;
-    }
-
-    if (salvage_wallet) {
-        // Recover readable keypairs:
-        CWallet dummyWallet(chainParams, &chain, WalletLocation(),
-                            WalletDatabase::CreateDummy());
-        std::string backup_filename;
-        if (!WalletBatch::Recover(
-                wallet_path, static_cast<void *>(&dummyWallet),
-                WalletBatch::RecoverKeysOnlyFilter, backup_filename)) {
-            return false;
-        }
     }
 
     return WalletBatch::VerifyDatabaseFile(wallet_path, warnings, error_string);

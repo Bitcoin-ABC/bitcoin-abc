@@ -98,11 +98,6 @@ void WalletInit::AddWalletOptions() const {
         "Rescan the block chain for missing wallet transactions on startup",
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     gArgs.AddArg(
-        "-salvagewallet",
-        "Attempt to recover private keys from a corrupt wallet on startup",
-        ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
-
-    gArgs.AddArg(
         "-spendzeroconfchange",
         strprintf(
             "Spend unconfirmed change when sending transactions (default: %d)",
@@ -187,20 +182,6 @@ bool WalletInit::ParameterInteraction() const {
         LogPrintf("%s: parameter interaction: -blocksonly=1 -> setting "
                   "-walletbroadcast=0\n",
                   __func__);
-    }
-
-    if (gArgs.GetBoolArg("-salvagewallet", false)) {
-        if (is_multiwallet) {
-            return InitError(strprintf(
-                Untranslated("%s is only allowed with a single wallet file"),
-                "-salvagewallet"));
-        }
-        // Rewrite just private keys: rescan to find transactions
-        if (gArgs.SoftSetBoolArg("-rescan", true)) {
-            LogPrintf("%s: parameter interaction: -salvagewallet=1 -> setting "
-                      "-rescan=1\n",
-                      __func__);
-        }
     }
 
     bool zapwallettxes = gArgs.GetBoolArg("-zapwallettxes", false);
