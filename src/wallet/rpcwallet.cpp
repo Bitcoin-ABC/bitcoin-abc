@@ -2923,9 +2923,6 @@ static UniValue getwalletinfo(const Config &config,
                 "/kB\n"
                 "  \"hdseedid\": \"<hash160>\"          (string, optional) the "
                 "Hash160 of the HD seed (only present when HD is enabled)\n"
-                "  \"hdmasterkeyid\": \"<hash160>\"     (string, optional) "
-                "alias for hdseedid retained for backwards-compatibility. Will "
-                "be removed in V0.21.\n"
                 "  \"private_keys_enabled\": true|false (boolean) false if "
                 "privatekeys are disabled for this wallet (enforced watch-only "
                 "wallet)\n"
@@ -2967,7 +2964,6 @@ static UniValue getwalletinfo(const Config &config,
     obj.pushKV("paytxfee", ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
     if (!seed_id.IsNull()) {
         obj.pushKV("hdseedid", seed_id.GetHex());
-        obj.pushKV("hdmasterkeyid", seed_id.GetHex());
     }
     obj.pushKV("private_keys_enabled",
                !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
@@ -4157,9 +4153,6 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
                 "keypath if the key is HD and available\n"
                 "  \"hdseedid\" : \"<hash160>\"      (string, optional) The "
                 "Hash160 of the HD seed\n"
-                "  \"hdmasterkeyid\" : \"<hash160>\" (string, optional) alias "
-                "for hdseedid maintained for backwards compatibility. Will be "
-                "removed in V0.21.\n"
                 "  \"labels\"                      (object) Array of labels "
                 "associated with the address.\n"
                 "    [\n"
@@ -4231,7 +4224,6 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
         if (!meta->hdKeypath.empty()) {
             ret.pushKV("hdkeypath", meta->hdKeypath);
             ret.pushKV("hdseedid", meta->hd_seed_id.GetHex());
-            ret.pushKV("hdmasterkeyid", meta->hd_seed_id.GetHex());
         }
     }
 

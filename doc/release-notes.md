@@ -34,6 +34,8 @@ Low-level Changes section below.
   that coin selection is influenced by the `-spendzeroconfchange`,
   `-limitancestorcount`, `-limitdescendantcount` and `-walletrejectlongchains`
   command line arguments.
+- The `hdmasterkeyid` return field has been removed from `getaddressinfo` and
+  `getwalletinfo`.  Use `hdseedid` instead.
 
 RPC importprivkey: new label behavior
 -------------------------------------

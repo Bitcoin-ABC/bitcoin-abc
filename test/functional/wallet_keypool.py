@@ -22,8 +22,6 @@ class KeyPoolTest(BitcoinTestFramework):
         addr_before_encrypting_data = nodes[
             0].getaddressinfo(addr_before_encrypting)
         wallet_info_old = nodes[0].getwalletinfo()
-        assert_equal(wallet_info_old['hdseedid'],
-                     wallet_info_old['hdmasterkeyid'])
         assert addr_before_encrypting_data[
             'hdseedid'] == wallet_info_old['hdseedid']
 
@@ -33,7 +31,6 @@ class KeyPoolTest(BitcoinTestFramework):
         addr = nodes[0].getnewaddress()
         addr_data = nodes[0].getaddressinfo(addr)
         wallet_info = nodes[0].getwalletinfo()
-        assert_equal(wallet_info['hdseedid'], wallet_info['hdmasterkeyid'])
         assert addr_before_encrypting_data[
             'hdseedid'] != wallet_info['hdseedid']
         assert addr_data['hdseedid'] == wallet_info['hdseedid']
