@@ -1008,10 +1008,8 @@ bool WalletBatch::VerifyEnvironment(const fs::path &wallet_path,
 }
 
 bool WalletBatch::VerifyDatabaseFile(const fs::path &wallet_path,
-                                     std::vector<bilingual_str> &warnings,
                                      bilingual_str &errorStr) {
-    return BerkeleyBatch::VerifyDatabaseFile(wallet_path, warnings, errorStr,
-                                             WalletBatch::Recover);
+    return BerkeleyBatch::VerifyDatabaseFile(wallet_path, errorStr);
 }
 
 bool WalletBatch::WriteDestData(const CTxDestination &address,

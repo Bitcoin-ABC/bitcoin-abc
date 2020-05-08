@@ -268,7 +268,6 @@ public:
                                   bilingual_str &errorStr);
     /* verifies the database file */
     static bool VerifyDatabaseFile(const fs::path &wallet_path,
-                                   std::vector<bilingual_str> &warnings,
                                    bilingual_str &errorStr);
 
     //! write the hdchain model (external chain child index counter)

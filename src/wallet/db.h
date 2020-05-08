@@ -62,19 +62,7 @@ public:
     }
     fs::path Directory() const { return strPath; }
 
-    /**
-     * Verify that database file strFile is OK. If it is not, call the callback
-     * to try to recover.
-     * This must be called BEFORE strFile is opened.
-     * Returns true if strFile is OK.
-     */
-    enum class VerifyResult { VERIFY_OK, RECOVER_OK, RECOVER_FAIL };
-    typedef bool (*recoverFunc_type)(const fs::path &file_path,
-                                     std::string &out_backup_filename);
-    VerifyResult Verify(const std::string &strFile,
-                        recoverFunc_type recoverFunc,
-                        std::string &out_backup_filename);
-
+    bool Verify(const std::string &strFile);
     /**
      * Salvage data from a file that Verify says is bad.
      * fAggressive sets the DB_AGGRESSIVE flag (see berkeley DB->verify() method
@@ -275,11 +263,8 @@ public:
     static bool VerifyEnvironment(const fs::path &file_path,
                                   bilingual_str &errorStr);
     /* verifies the database file */
-    static bool
-    VerifyDatabaseFile(const fs::path &file_path,
-                       std::vector<bilingual_str> &warnings,
-                       bilingual_str &errorStr,
-                       BerkeleyEnvironment::recoverFunc_type recoverFunc);
+    static bool VerifyDatabaseFile(const fs::path &file_path,
+                                   bilingual_str &errorStr);
 
     template <typename K, typename T> bool Read(const K &key, T &value) {
         if (!pdb) {

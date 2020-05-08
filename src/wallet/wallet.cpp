@@ -4154,7 +4154,7 @@ bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
         return false;
     }
 
-    return WalletBatch::VerifyDatabaseFile(wallet_path, warnings, error_string);
+    return WalletBatch::VerifyDatabaseFile(wallet_path, error_string);
 }
 
 std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
