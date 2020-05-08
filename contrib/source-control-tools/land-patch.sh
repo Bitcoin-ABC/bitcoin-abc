@@ -95,29 +95,39 @@ BUILD_DIR="${TOPLEVEL}"/build
 mkdir -p "${BUILD_DIR}"
 export BUILD_DIR
 
-if [ -n "${REVISION}" ]; then
-  # Pull the patch from Phabricator and rebase it on latest master
-  "${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
-else
-  # TODO: This will primarily be for scheduled, automated commits.
-  echo "Error: Landing unreviewed patches is not supported yet."
-  exit 20
-fi
+# Applying brace expansion ensures the remainder of this script is loaded into memory,
+# as most versions of bash typically load scripts in chunks as they run. For patches
+# that alter this script, this prevents those changes from affecting the remainder of
+# the execution.
+{
+  if [ -n "${REVISION}" ]; then
+    # Pull the patch from Phabricator and rebase it on latest master
+    "${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
+  else
+    # TODO: This will primarily be for scheduled, automated commits.
+    echo "Error: Landing unreviewed patches is not supported yet."
+    exit 20
+  fi
 
-# TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
+  # TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
 
-# Sanity checks
-"${DEVTOOLS_DIR}"/smoke-tests.sh
+  # Sanity checks
+  "${DEVTOOLS_DIR}"/smoke-tests.sh
 
-if [ -n "${REVISION}" ]; then
-  echo "Landing revision '${REVISION}' with arcanist arguments: ${ARC_LAND_ARGS[*]}"
-  # Stop logging verbosely to prevent leaking CONDUIT_TOKEN
-  set +x
-  # Land a commit using arcanist. This ensures the diff is reviewed and closed properly.
-  : | arc land "${ARC_LAND_ARGS[@]}" --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
-  set -x
-else
-  # TODO: Push a git commit directly. This will primarily be for scheduled, automated commits.
-  echo "Error: Pushing unreviewed patches is not supported yet."
-  exit 30
-fi
+  if [ -n "${REVISION}" ]; then
+    echo "Landing revision '${REVISION}' with arcanist arguments: ${ARC_LAND_ARGS[*]}"
+    # Stop logging verbosely to prevent leaking CONDUIT_TOKEN
+    set +x
+    # Land a commit using arcanist. This ensures the diff is reviewed and closed properly.
+    : | arc land "${ARC_LAND_ARGS[@]}" --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
+    set -x
+  else
+    # TODO: Push a git commit directly. This will primarily be for scheduled, automated commits.
+    echo "Error: Pushing unreviewed patches is not supported yet."
+    exit 30
+  fi
+
+  # This MUST be the last line to ensure no changes to this script on-disk can affect the execution
+  # that is running right now. See note above for more details.
+  exit 0
+}
