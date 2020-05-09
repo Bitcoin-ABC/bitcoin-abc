@@ -20,7 +20,11 @@
 #include <test/fuzz/util.h>
 #include <univalue.h>
 
+#include <cstdint>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 void initialize() {
     // Fuzzers using pubkey must hold an ECCVerifyHandle.
