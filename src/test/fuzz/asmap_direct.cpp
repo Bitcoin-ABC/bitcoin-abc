@@ -8,31 +8,31 @@
 
 #include <cassert>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
     // Encoding: [asmap using 1 bit / byte] 0xFF [addr using 1 bit / byte]
-    bool have_sep = false;
-    size_t sep_pos;
+    std::optional<size_t> sep_pos_opt;
     for (size_t pos = 0; pos < buffer.size(); ++pos) {
         uint8_t x = buffer[pos];
         if ((x & 0xFE) == 0) {
             continue;
         }
         if (x == 0xFF) {
-            if (have_sep) {
+            if (sep_pos_opt) {
                 return;
             }
-            have_sep = true;
-            sep_pos = pos;
+            sep_pos_opt = pos;
         } else {
             return;
         }
     }
-    if (!have_sep) {
+    if (!sep_pos_opt) {
         // Needs exactly 1 separator
         return;
     }
+    const size_t sep_pos{sep_pos_opt.value()};
     if (buffer.size() - sep_pos - 1 > 128) {
         // At most 128 bits in IP address
         return;
