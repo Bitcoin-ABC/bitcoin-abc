@@ -35,8 +35,9 @@ int64_t GetAdjustedTime() {
     return GetTime() + GetTimeOffset();
 }
 
-static int64_t abs64(int64_t n) {
-    return (n >= 0 ? n : -n);
+static uint64_t abs64(int64_t n) {
+    const uint64_t un = n;
+    return (n >= 0) ? un : -un;
 }
 
 #define BITCOIN_TIMEDATA_MAX_SAMPLES 200
@@ -81,8 +82,9 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
         std::vector<int64_t> vSorted = vTimeOffsets.sorted();
         // Only let other nodes change our time by so much
         if (abs64(nMedian) <=
-            std::max<int64_t>(0, gArgs.GetArg("-maxtimeadjustment",
-                                              DEFAULT_MAX_TIME_ADJUSTMENT))) {
+            uint64_t(std::max<int64_t>(
+                0, gArgs.GetArg("-maxtimeadjustment",
+                                DEFAULT_MAX_TIME_ADJUSTMENT)))) {
             nTimeOffset = nMedian;
         } else {
             nTimeOffset = 0;
