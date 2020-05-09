@@ -64,7 +64,7 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
         bool verify_success = CWallet::Verify(chainParams, chain, location,
                                               error_string, warnings);
         if (!warnings.empty()) {
-            chain.initWarning(Join(warnings, "\n", OpTranslated));
+            chain.initWarning(Join(warnings, Untranslated("\n")));
         }
         if (!verify_success) {
             chain.initError(error_string);
@@ -83,7 +83,7 @@ bool LoadWallets(const CChainParams &chainParams, interfaces::Chain &chain,
         std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
             chainParams, chain, WalletLocation(walletFile), error, warnings);
         if (!warnings.empty()) {
-            chain.initWarning(Join(warnings, "\n", OpTranslated));
+            chain.initWarning(Join(warnings, Untranslated("\n")));
         }
         if (!pwallet) {
             chain.initError(error);

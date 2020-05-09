@@ -3212,7 +3212,7 @@ static UniValue loadwallet(const Config &config,
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
-    obj.pushKV("warning", Join(warnings, "\n", OpOriginal));
+    obj.pushKV("warning", Join(warnings, Untranslated("\n")).original);
 
     return obj;
 }
@@ -3384,7 +3384,7 @@ static UniValue createwallet(const Config &config,
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
-    obj.pushKV("warning", Join(warnings, "\n", OpOriginal));
+    obj.pushKV("warning", Join(warnings, Untranslated("\n")).original);
 
     return obj;
 }

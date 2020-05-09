@@ -395,7 +395,7 @@ namespace {
         void initMessage(const std::string &message) override {
             ::uiInterface.InitMessage(message);
         }
-        void initWarning(const std::string &message) override {
+        void initWarning(const bilingual_str &message) override {
             InitWarning(message);
         }
         void initError(const bilingual_str &message) override {
