@@ -330,7 +330,12 @@ static UniValue setmocktime(const Config &config,
     LOCK(cs_main);
 
     RPCTypeCheck(request.params, {UniValue::VNUM});
-    SetMockTime(request.params[0].get_int64());
+    int64_t mockTime = request.params[0].get_int64();
+    if (mockTime < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "Timestamp must be 0 or greater");
+    }
+    SetMockTime(mockTime);
 
     return NullUniValue;
 }

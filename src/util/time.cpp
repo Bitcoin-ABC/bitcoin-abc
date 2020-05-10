@@ -44,6 +44,7 @@ template std::chrono::milliseconds GetTime();
 template std::chrono::microseconds GetTime();
 
 void SetMockTime(int64_t nMockTimeIn) {
+    assert(nMockTimeIn >= 0);
     nMockTime.store(nMockTimeIn, std::memory_order_relaxed);
 }
 
