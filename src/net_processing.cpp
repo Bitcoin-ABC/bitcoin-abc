@@ -2287,9 +2287,17 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                  pfrom->nStartingHeight, addrMe.ToString(), pfrom->GetId(),
                  remoteAddr);
 
-        int64_t nTimeOffset = nTime - GetTime();
-        pfrom->nTimeOffset = nTimeOffset;
-        AddTimeData(pfrom->addr, nTimeOffset);
+        // Ignore time offsets that are improbable (before the Genesis block)
+        // and may underflow the nTimeOffset calculation.
+        int64_t currentTime = GetTime();
+        if (nTime >= int64_t(chainparams.GenesisBlock().nTime)) {
+            int64_t nTimeOffset = nTime - currentTime;
+            pfrom->nTimeOffset = nTimeOffset;
+            AddTimeData(pfrom->addr, nTimeOffset);
+        } else {
+            Misbehaving(pfrom, 20,
+                        "Ignoring invalid timestamp in version message");
+        }
 
         // Feeler connections exist only to verify if address is online.
         if (pfrom->fFeeler) {
