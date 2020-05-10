@@ -243,7 +243,7 @@ void CreateWalletActivity::createWallet() {
 void CreateWalletActivity::finish() {
     m_progress_dialog->hide();
 
-    if (!m_error_message.original.empty()) {
+    if (!m_error_message.empty()) {
         QMessageBox::critical(
             m_parent_widget, tr("Create wallet failed"),
             QString::fromStdString(m_error_message.translated));
@@ -287,7 +287,7 @@ OpenWalletActivity::OpenWalletActivity(WalletController *wallet_controller,
 void OpenWalletActivity::finish() {
     m_progress_dialog->hide();
 
-    if (!m_error_message.original.empty()) {
+    if (!m_error_message.empty()) {
         QMessageBox::critical(
             m_parent_widget, tr("Open wallet failed"),
             QString::fromStdString(m_error_message.translated));

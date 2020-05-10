@@ -21,11 +21,8 @@ bool noui_ThreadSafeMessageBox(const bilingual_str &message,
                                const std::string &caption, unsigned int style) {
     bool fSecure = style & CClientUIInterface::SECURE;
     style &= ~CClientUIInterface::SECURE;
-    bool prefix = !(style & CClientUIInterface::MSG_NOPREFIX);
-    style &= ~CClientUIInterface::MSG_NOPREFIX;
 
     std::string strCaption;
-    if (prefix) {
         switch (style) {
             case CClientUIInterface::MSG_ERROR:
                 strCaption = "Error: ";
@@ -40,7 +37,6 @@ bool noui_ThreadSafeMessageBox(const bilingual_str &message,
                 // Use supplied caption (can be empty)
                 strCaption = caption + ": ";
         }
-    }
 
     if (!fSecure) {
         LogPrintf("%s%s\n", strCaption, message.original);

@@ -1288,32 +1288,26 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
     return true;
 }
 
+constexpr auto AbortError = InitError;
+
 /** Abort with a message */
 static bool AbortNode(const std::string &strMessage,
-                      const std::string &userMessage = "",
-                      unsigned int prefix = 0) {
+                      bilingual_str user_message = bilingual_str()) {
     SetMiscWarning(strMessage);
     LogPrintf("*** %s\n", strMessage);
-    if (!userMessage.empty()) {
-        uiInterface.ThreadSafeMessageBox(Untranslated(userMessage), "",
-                                         CClientUIInterface::MSG_ERROR |
-                                             prefix);
-    } else {
-        uiInterface.ThreadSafeMessageBox(
-            _("Error: A fatal internal error occurred, see debug.log for "
-              "details"),
-            "",
-            CClientUIInterface::MSG_ERROR | CClientUIInterface::MSG_NOPREFIX);
+    if (!user_message.empty()) {
+        user_message =
+            _("A fatal internal error occurred, see debug.log for details");
     }
+    AbortError(user_message);
     StartShutdown();
     return false;
 }
 
 static bool AbortNode(BlockValidationState &state,
                       const std::string &strMessage,
-                      const std::string &userMessage = "",
-                      unsigned int prefix = 0) {
-    AbortNode(strMessage, userMessage, prefix);
+                      const bilingual_str &userMessage = bilingual_str()) {
+    AbortNode(strMessage, userMessage);
     return state.Error(strMessage);
 }
 
@@ -2118,10 +2112,8 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
             if (fDoFullFlush || fPeriodicWrite) {
                 // Depend on nMinDiskSpace to ensure we can write block index
                 if (!CheckDiskSpace(GetBlocksDir())) {
-                    return AbortNode(
-                        state, "Disk space is too low!",
-                        _("Error: Disk space is too low!").translated,
-                        CClientUIInterface::MSG_NOPREFIX);
+                    return AbortNode(state, "Disk space is too low!",
+                                     _("Disk space is too low!"));
                 }
 
                 // First make sure all block and undo data is flushed to disk.
@@ -2169,10 +2161,8 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                 // factor of 2.
                 if (!CheckDiskSpace(GetDataDir(),
                                     48 * 2 * 2 * CoinsTip().GetCacheSize())) {
-                    return AbortNode(
-                        state, "Disk space is too low!",
-                        _("Error: Disk space is too low!").translated,
-                        CClientUIInterface::MSG_NOPREFIX);
+                    return AbortNode(state, "Disk space is too low!",
+                                     _("Disk space is too low!"));
                 }
 
                 // Flush the chainstate (which may refer to block index
@@ -3651,8 +3641,7 @@ static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
             BlockFileSeq().Allocate(pos, nAddSize, out_of_space);
         if (out_of_space) {
             return AbortNode("Disk space is too low!",
-                             _("Error: Disk space is too low!").translated,
-                             CClientUIInterface::MSG_NOPREFIX);
+                             _("Disk space is too low!"));
         }
         if (bytes_allocated != 0 && fPruneMode) {
             fCheckForPruning = true;
@@ -3678,8 +3667,7 @@ static bool FindUndoPos(BlockValidationState &state, int nFile,
         UndoFileSeq().Allocate(pos, nAddSize, out_of_space);
     if (out_of_space) {
         return AbortNode(state, "Disk space is too low!",
-                         _("Error: Disk space is too low!").translated,
-                         CClientUIInterface::MSG_NOPREFIX);
+                         _("Disk space is too low!"));
     }
     if (bytes_allocated != 0 && fPruneMode) {
         fCheckForPruning = true;

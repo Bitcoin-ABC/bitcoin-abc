@@ -1207,9 +1207,6 @@ void BitcoinGUI::message(const QString &title, QString message,
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
 
-    bool prefix = !(style & CClientUIInterface::MSG_NOPREFIX);
-    style &= ~CClientUIInterface::MSG_NOPREFIX;
-
     QString msgType;
     if (!title.isEmpty()) {
         msgType = title;
@@ -1217,15 +1214,11 @@ void BitcoinGUI::message(const QString &title, QString message,
         switch (style) {
             case CClientUIInterface::MSG_ERROR:
                 msgType = tr("Error");
-                if (prefix) {
-                    message = tr("Error: %1").arg(message);
-                }
+                message = tr("Error: %1").arg(message);
                 break;
             case CClientUIInterface::MSG_WARNING:
                 msgType = tr("Warning");
-                if (prefix) {
-                    message = tr("Warning: %1").arg(message);
-                }
+                message = tr("Warning: %1").arg(message);
                 break;
             case CClientUIInterface::MSG_INFORMATION:
                 msgType = tr("Information");
