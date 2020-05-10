@@ -757,7 +757,7 @@ void V1TransportSerializer::prepareForTransport(const Config &config,
     uint256 hash = Hash(msg.data.begin(), msg.data.end());
 
     // create header
-    CMessageHeader hdr(config.GetChainParams().NetMagic(), msg.command.c_str(),
+    CMessageHeader hdr(config.GetChainParams().NetMagic(), msg.m_type.c_str(),
                        msg.data.size());
     memcpy(hdr.pchChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
 
@@ -2966,7 +2966,7 @@ bool CConnman::NodeFullyConnected(const CNode *pnode) {
 void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     size_t nMessageSize = msg.data.size();
     LogPrint(BCLog::NET, "sending %s (%d bytes) peer=%d\n",
-             SanitizeString(msg.command), nMessageSize, pnode->GetId());
+             SanitizeString(msg.m_type), nMessageSize, pnode->GetId());
 
     // make sure we use the appropriate network transport format
     std::vector<uint8_t> serializedHeader;
@@ -2978,8 +2978,8 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
         LOCK(pnode->cs_vSend);
         bool optimisticSend(pnode->vSendMsg.empty());
 
-        // log total amount of bytes per command
-        pnode->mapSendBytesPerMsgCmd[msg.command] += nTotalSize;
+        // log total amount of bytes per message type
+        pnode->mapSendBytesPerMsgCmd[msg.m_type] += nTotalSize;
         pnode->nSendSize += nTotalSize;
 
         if (pnode->nSendSize > nSendBufferMaxSize) {
