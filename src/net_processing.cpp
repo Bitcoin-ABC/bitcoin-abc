@@ -166,9 +166,6 @@ static constexpr unsigned int AVG_FEEFILTER_BROADCAST_INTERVAL = 10 * 60;
  */
 static constexpr unsigned int MAX_FEEFILTER_CHANGE_DELAY = 5 * 60;
 
-/** Interval between compact filter checkpoints. See BIP 157. */
-static constexpr int CFCHECKPT_INTERVAL = 1000;
-
 // Internal stuff
 namespace {
 /** Number of nodes with fSyncStarted. */
@@ -2257,7 +2254,7 @@ static bool PrepareBlockFilterRequest(CNode *pfrom,
                                       BlockFilterType filter_type,
                                       const BlockHash &stop_hash,
                                       const CBlockIndex *&stop_index,
-                                      const BlockFilterIndex *&filter_index) {
+                                      BlockFilterIndex *&filter_index) {
     const bool supported_filter_type =
         (filter_type == BlockFilterType::BASIC &&
          gArgs.GetBoolArg("-peerblockfilters", DEFAULT_PEERBLOCKFILTERS));
@@ -2316,7 +2313,7 @@ static void ProcessGetCFCheckPt(CNode *pfrom, CDataStream &vRecv,
         static_cast<BlockFilterType>(filter_type_ser);
 
     const CBlockIndex *stop_index;
-    const BlockFilterIndex *filter_index;
+    BlockFilterIndex *filter_index;
     if (!PrepareBlockFilterRequest(pfrom, chain_params, filter_type, stop_hash,
                                    stop_index, filter_index)) {
         return;

@@ -39,6 +39,15 @@ constexpr unsigned int MAX_FLTR_FILE_SIZE = 0x1000000;
 // 1 MiB
 constexpr unsigned int FLTR_FILE_CHUNK_SIZE = 0x100000;
 
+/**
+ *  Maximum size of the cfheaders cache.
+ *  We have a limit to prevent a bug in filling this cache
+ *  potentially turning into an OOM. At 2000 entries, this cache
+ *  is big enough for a 2,000,000 length block chain, which
+ *  we should be enough until ~2047.
+ */
+constexpr size_t CF_HEADERS_CACHE_MAX_SZ{2000};
+
 namespace {
 
 struct DBVal {
@@ -417,10 +426,29 @@ bool BlockFilterIndex::LookupFilter(const CBlockIndex *block_index,
 }
 
 bool BlockFilterIndex::LookupFilterHeader(const CBlockIndex *block_index,
-                                          uint256 &header_out) const {
+                                          uint256 &header_out) {
+    LOCK(m_cs_headers_cache);
+
+    bool is_checkpoint{block_index->nHeight % CFCHECKPT_INTERVAL == 0};
+
+    if (is_checkpoint) {
+        // Try to find the block in the headers cache if this is a checkpoint
+        // height.
+        auto header = m_headers_cache.find(block_index->GetBlockHash());
+        if (header != m_headers_cache.end()) {
+            header_out = header->second;
+            return true;
+        }
+    }
+
     DBVal entry;
     if (!LookupOne(*m_db, block_index, entry)) {
         return false;
+    }
+
+    if (is_checkpoint && m_headers_cache.size() < CF_HEADERS_CACHE_MAX_SZ) {
+        // Add to the headers cache if this is a checkpoint height.
+        m_headers_cache.emplace(block_index->GetBlockHash(), entry.header);
     }
 
     header_out = entry.header;
