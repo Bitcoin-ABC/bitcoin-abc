@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+class ArgsManager;
 class CChainParams;
 class CScheduler;
 
@@ -26,7 +27,7 @@ bool LoadWallets(const CChainParams &chainParams, interfaces::Chain &chain,
                  const std::vector<std::string> &wallet_files);
 
 //! Complete startup of wallets.
-void StartWallets(CScheduler &scheduler);
+void StartWallets(CScheduler &scheduler, const ArgsManager &args);
 
 //! Flush all wallets in preparation for shutdown.
 void FlushWallets();

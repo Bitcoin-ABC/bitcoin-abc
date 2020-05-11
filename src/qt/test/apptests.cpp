@@ -76,11 +76,10 @@ void AppTests::appTests() {
     Config &config = const_cast<Config &>(GetConfig());
 
     // Create a temp data directory to backup the gui settings to
-    BasicTestingSetup test{CBaseChainParams::REGTEST};
-    // Already started by the common test setup, so stop it to avoid
-    // interference
-    ECC_Stop();
-    LogInstance().DisconnectTestLogger();
+    fs::create_directories([] {
+        BasicTestingSetup test{CBaseChainParams::REGTEST};
+        return GetDataDir() / "blocks";
+    }());
 
     m_app.parameterSetup();
     m_app.createOptionsModel(true /* reset settings */);
@@ -94,7 +93,7 @@ void AppTests::appTests() {
     m_app.baseInitialize(config);
 
     RPCServer rpcServer;
-    util::Ref context{test.m_node};
+    util::Ref context;
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
     m_app.requestInitialize(config, rpcServer, httpRPCRequestProcessor);
     m_app.exec();
@@ -102,6 +101,7 @@ void AppTests::appTests() {
     m_app.exec();
 
     // Reset global state to avoid interfering with later tests.
+    LogInstance().DisconnectTestLogger();
     AbortShutdown();
     UnloadBlockIndex();
     WITH_LOCK(::cs_main, g_chainman.Reset());

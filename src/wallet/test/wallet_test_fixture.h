@@ -8,6 +8,7 @@
 #include <interfaces/chain.h>
 #include <interfaces/wallet.h>
 #include <node/context.h>
+#include <util/check.h>
 #include <wallet/wallet.h>
 
 #include <test/util/setup_common.h>
@@ -23,7 +24,7 @@ struct WalletTestingSetup : public TestingSetup {
 
     std::unique_ptr<interfaces::Chain> m_chain;
     std::unique_ptr<interfaces::ChainClient> m_chain_client =
-        interfaces::MakeWalletClient(*m_chain, {});
+        interfaces::MakeWalletClient(*m_chain, *Assert(m_node.args), {});
     CWallet m_wallet;
     std::unique_ptr<interfaces::Handler> m_chain_notifications_handler;
 };

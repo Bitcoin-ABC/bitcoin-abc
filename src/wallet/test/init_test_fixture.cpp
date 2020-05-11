@@ -6,13 +6,14 @@
 
 #include <chainparams.h>
 #include <fs.h>
+#include <util/check.h>
 #include <util/system.h>
 
 InitWalletDirTestingSetup::InitWalletDirTestingSetup(
     const std::string &chainName)
     : BasicTestingSetup(chainName) {
     m_chain = interfaces::MakeChain(m_node, Params());
-    m_chain_client = MakeWalletClient(*m_chain, {});
+    m_chain_client = MakeWalletClient(*m_chain, *Assert(m_node.args), {});
 
     std::string sep;
     sep += fs::path::preferred_separator;

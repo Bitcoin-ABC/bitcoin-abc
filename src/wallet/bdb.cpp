@@ -699,9 +699,8 @@ bool BerkeleyDatabase::PeriodicFlush() {
     }
 
     // Don't flush if any databases are in use
-    for (auto it = env->mapFileUseCount.begin();
-         it != env->mapFileUseCount.end(); it++) {
-        if ((*it).second > 0) {
+    for (const auto &use_count : env->mapFileUseCount) {
+        if (use_count.second > 0) {
             return false;
         }
     }
