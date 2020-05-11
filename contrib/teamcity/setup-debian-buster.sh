@@ -81,7 +81,7 @@ echo 'JAVA_HOME="/usr/lib/jvm/default-java"' >> /etc/environment
 
 # Install llvm-8
 apt-key add "${TEAMCITY_DIR}"/llvm.pub
-add-apt-repository "deb http://apt.llvm.org/buster/   llvm-toolchain-buster-8  main"
+add-apt-repository "deb https://apt.llvm.org/buster/   llvm-toolchain-buster-8  main"
 apt-get update
 
 LLVM_PACKAGES=(
