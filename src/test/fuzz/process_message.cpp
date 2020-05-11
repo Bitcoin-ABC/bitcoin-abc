@@ -18,6 +18,7 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/util/mining.h>
+#include <test/util/net.h>
 #include <test/util/setup_common.h>
 
 #include <algorithm>
@@ -89,6 +90,7 @@ void initialize() {
 void test_one_input(const std::vector<uint8_t> &buffer) {
     const Config &config = GetConfig();
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
+    ConnmanTestMsg &connman = *(ConnmanTestMsg *)g_setup->m_node.connman.get();
     const std::string random_message_type{
         fuzzed_data_provider.ConsumeBytesAsString(CMessageHeader::COMMAND_SIZE)
             .c_str()};
@@ -99,19 +101,16 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     CDataStream random_bytes_data_stream{
         fuzzed_data_provider.ConsumeRemainingBytes<uint8_t>(), SER_NETWORK,
         PROTOCOL_VERSION};
-    CNode p2p_node{0,
-                   ServiceFlags(NODE_NETWORK | NODE_BLOOM),
-                   0,
-                   INVALID_SOCKET,
-                   CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK},
-                   0,
-                   0,
-                   CAddress{},
-                   std::string{},
-                   false};
+    CNode &p2p_node =
+        *std::make_unique<CNode>(
+             0, ServiceFlags(NODE_NETWORK | NODE_BLOOM), 0, INVALID_SOCKET,
+             CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0, 0,
+             CAddress{}, std::string{}, false)
+             .release();
     p2p_node.fSuccessfullyConnected = true;
     p2p_node.nVersion = PROTOCOL_VERSION;
     p2p_node.SetSendVersion(PROTOCOL_VERSION);
+    connman.AddTestNode(p2p_node);
     g_setup->m_node.peer_logic->InitializeNode(config, &p2p_node);
     try {
         (void)ProcessMessage(
@@ -132,4 +131,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         }
     }
     SyncWithValidationInterfaceQueue();
+    // See init.cpp for rationale for implicit locking order requirement
+    LOCK2(::cs_main, g_cs_orphans);
+    g_setup->m_node.connman->StopNodes();
 }
