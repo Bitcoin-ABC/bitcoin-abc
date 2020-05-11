@@ -15,6 +15,7 @@ RAPIDCHECK ?=
 NO_WALLET ?=
 NO_ZMQ ?=
 NO_UPNP ?=
+NO_JEMALLOC ?=
 FALLBACK_DOWNLOAD_PATH ?= https://download.bitcoinabc.org/depends-sources
 
 BUILD = $(shell ./config.guess)
@@ -110,6 +111,8 @@ zmq_packages_$(NO_ZMQ) = $(zmq_packages)
 protobuf_packages_$(NO_PROTOBUF) = $(protobuf_packages)
 rapidcheck_packages_$(RAPIDCHECK) = $(rapidcheck_packages)
 
+jemalloc_packages_$(NO_JEMALLOC) = $(jemalloc_packages)
+
 packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_)
 native_packages += $($(host_arch)_$(host_os)_native_packages) $($(host_os)_native_packages)
 
@@ -124,6 +127,10 @@ endif
 
 ifeq ($(rapidcheck_packages_),)
 packages += $(rapidcheck_packages)
+endif
+
+ifneq ($(jemalloc_packages_),)
+packages += $(jemalloc_packages)
 endif
 
 all_packages = $(packages) $(native_packages)

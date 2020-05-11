@@ -89,6 +89,7 @@ The following can be set when running make: make FOO=bar
     NO_ZMQ: Don't download/build/cache packages needed for enabling zeromq
     NO_WALLET: Don't download/build/cache libs needed to enable the wallet
     NO_UPNP: Don't download/build/cache packages needed for enabling upnp
+    NO_JEMALLOC: Don't download/build/cache jemalloc
     DEBUG: disable some optimizations and enable more runtime checking
     RAPIDCHECK: build rapidcheck (experimental, requires cmake)
     NO_PROTOBUF: Don't download/build/cache protobuf (used for BIP70 support)
