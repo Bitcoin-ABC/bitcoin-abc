@@ -341,14 +341,26 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase &database, const char *pszMode,
                              bool fFlushOnCloseIn)
     : pdb(nullptr), activeTxn(nullptr), m_cursor(nullptr),
       m_database(database) {
+    database.AddRef();
+    database.Open(pszMode);
     fReadOnly = (!strchr(pszMode, '+') && !strchr(pszMode, 'w'));
     fFlushOnClose = fFlushOnCloseIn;
     env = database.env.get();
-    if (database.IsDummy()) {
+    pdb = database.m_db.get();
+    strFile = database.strFile;
+    bool fCreate = strchr(pszMode, 'c') != nullptr;
+    if (fCreate && !Exists(std::string("version"))) {
+        bool fTmp = fReadOnly;
+        fReadOnly = false;
+        Write(std::string("version"), CLIENT_VERSION);
+        fReadOnly = fTmp;
+    }
+}
+
+void BerkeleyDatabase::Open(const char *pszMode) {
+    if (IsDummy()) {
         return;
     }
-
-    const std::string &strFilename = database.strFile;
 
     bool fCreate = strchr(pszMode, 'c') != nullptr;
     unsigned int nFlags = DB_THREAD;
@@ -361,10 +373,10 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase &database, const char *pszMode,
         bilingual_str open_err;
         if (!env->Open(open_err)) {
             throw std::runtime_error(
-                "BerkeleyBatch: Failed to open database environment.");
+                "BerkeleyDatabase: Failed to open database environment.");
         }
-        pdb = database.m_db.get();
-        if (pdb == nullptr) {
+
+        if (m_db == nullptr) {
             int ret;
             std::unique_ptr<Db> pdb_temp =
                 std::make_unique<Db>(env->dbenv.get(), 0);
@@ -374,25 +386,25 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase &database, const char *pszMode,
                 DbMpoolFile *mpf = pdb_temp->get_mpf();
                 ret = mpf->set_flags(DB_MPOOL_NOFILE, 1);
                 if (ret != 0) {
-                    throw std::runtime_error(
-                        strprintf("BerkeleyBatch: Failed to configure for no "
-                                  "temp file backing for database %s",
-                                  strFilename));
+                    throw std::runtime_error(strprintf(
+                        "BerkeleyDatabase: Failed to configure for no "
+                        "temp file backing for database %s",
+                        strFile));
                 }
             }
 
             ret = pdb_temp->open(
-                nullptr,                                 // Txn pointer
-                fMockDb ? nullptr : strFilename.c_str(), // Filename
-                fMockDb ? strFilename.c_str() : "main",  // Logical db name
-                DB_BTREE,                                // Database type
-                nFlags,                                  // Flags
+                nullptr,                             // Txn pointer
+                fMockDb ? nullptr : strFile.c_str(), // Filename
+                fMockDb ? strFile.c_str() : "main",  // Logical db name
+                DB_BTREE,                            // Database type
+                nFlags,                              // Flags
                 0);
 
             if (ret != 0) {
-                throw std::runtime_error(
-                    strprintf("BerkeleyBatch: Error %d, can't open database %s",
-                              ret, strFilename));
+                throw std::runtime_error(strprintf(
+                    "BerkeleyDatabase: Error %d, can't open database %s", ret,
+                    strFile));
             }
 
             // Call CheckUniqueFileid on the containing BDB environment to
@@ -411,28 +423,13 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase &database, const char *pszMode,
             // versions of BDB have an set_lk_exclusive method for this
             // purpose, but the older version we use does not.)
             for (const auto &dbenv : g_dbenvs) {
-                CheckUniqueFileid(*dbenv.second.lock().get(), strFilename,
-                                  *pdb_temp, this->env->m_fileids[strFilename]);
+                CheckUniqueFileid(*dbenv.second.lock().get(), strFile,
+                                  *pdb_temp, this->env->m_fileids[strFile]);
             }
 
-            pdb = pdb_temp.release();
-            database.m_db.reset(pdb);
-
-            if (fCreate && !Exists(std::string("version"))) {
-                bool fTmp = fReadOnly;
-                fReadOnly = false;
-                Write(std::string("version"), CLIENT_VERSION);
-                fReadOnly = fTmp;
-            }
+            m_db.reset(pdb_temp.release());
         }
-        database.AddRef();
-        strFile = strFilename;
     }
-}
-
-void BerkeleyDatabase::Open(const char *mode) {
-    throw std::logic_error("BerkeleyDatabase does not implement Open. "
-                           "This function should not be called.");
 }
 
 void BerkeleyBatch::Flush() {
@@ -461,6 +458,11 @@ void BerkeleyDatabase::IncrementUpdateCounter() {
     ++nUpdateCounter;
 }
 
+BerkeleyBatch::~BerkeleyBatch() {
+    Close();
+    m_database.RemoveRef();
+}
+
 void BerkeleyBatch::Close() {
     if (!pdb) {
         return;
@@ -475,8 +477,6 @@ void BerkeleyBatch::Close() {
     if (fFlushOnClose) {
         Flush();
     }
-
-    m_database.RemoveRef();
 }
 
 void BerkeleyEnvironment::CloseDb(const std::string &strFile) {
@@ -927,7 +927,9 @@ void BerkeleyDatabase::AddRef() {
 void BerkeleyDatabase::RemoveRef() {
     LOCK(cs_db);
     m_refcount--;
-    env->m_db_in_use.notify_all();
+    if (env) {
+        env->m_db_in_use.notify_all();
+    }
 }
 
 std::unique_ptr<DatabaseBatch>
