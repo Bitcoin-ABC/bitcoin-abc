@@ -50,8 +50,9 @@ public:
             return vSorted[vSortedSize / 2];
         } else {
             // Even number of elements
-            return (vSorted[vSortedSize / 2 - 1] + vSorted[vSortedSize / 2]) /
-                   2;
+            auto left = vSorted[vSortedSize / 2 - 1];
+            auto right = vSorted[vSortedSize / 2];
+            return left / 2 + right / 2 + (left & right & 1);
         }
     }
 
