@@ -46,6 +46,7 @@ pushd buildautotools
   --enable-module-multiset=$MULTISET \
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \
+  --enable-module-schnorrsig=$SCHNORRSIG \
   --enable-jni=$JNI \
   --enable-openssl-tests=$OPENSSL_TESTS \
   --with-valgrind=$WITH_VALGRIND \
