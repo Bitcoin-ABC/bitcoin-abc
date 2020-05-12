@@ -7,7 +7,6 @@ set -euxo pipefail
 dpkg --add-architecture i386
 
 PACKAGES=(
-  apt-cacher-ng
   automake
   autotools-dev
   bsdmainutils
