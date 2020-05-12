@@ -240,6 +240,7 @@ if(SECP256K1_ENABLE_MODULE_SCHNORRSIG)
 		message(FATAL_ERROR "The module Schnorrsig require Extrakeys. Try running cmake using -DSECP256K1_ENABLE_MODULE_EXTRAKEYS=On")
 	endif()
 	set(ENABLE_MODULE_SCHNORRSIG 1)
+	add_secp256k1_bench(schnorrsig src/bench_schnorrsig.c)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorrsig.h)
 endif()
 
