@@ -226,6 +226,13 @@ if(SECP256K1_ENABLE_MODULE_SCHNORR)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorr.h)
 endif()
 
+# Extrakeys module
+option(SECP256K1_ENABLE_MODULE_EXTRAKEYS "Build libsecp256k1's Extrakeys module" OFF)
+if(SECP256K1_ENABLE_MODULE_EXTRAKEYS)
+	set(ENABLE_MODULE_EXTRAKEYS 1)
+	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_extrakeys.h)
+endif()
+
 # External default callbacks
 option(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS "Enable external default callbacks" OFF)
 if(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS)
