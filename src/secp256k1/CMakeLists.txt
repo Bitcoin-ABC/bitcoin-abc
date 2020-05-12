@@ -233,6 +233,16 @@ if(SECP256K1_ENABLE_MODULE_EXTRAKEYS)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_extrakeys.h)
 endif()
 
+# Schnorrsig module
+option(SECP256K1_ENABLE_MODULE_SCHNORRSIG "Build libsecp256k1's Schnorrsig module" OFF)
+if(SECP256K1_ENABLE_MODULE_SCHNORRSIG)
+	if(NOT SECP256K1_ENABLE_MODULE_EXTRAKEYS)
+		message(FATAL_ERROR "The module Schnorrsig require Extrakeys. Try running cmake using -DSECP256K1_ENABLE_MODULE_EXTRAKEYS=On")
+	endif()
+	set(ENABLE_MODULE_SCHNORRSIG 1)
+	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorrsig.h)
+endif()
+
 # External default callbacks
 option(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS "Enable external default callbacks" OFF)
 if(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS)
