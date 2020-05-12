@@ -864,8 +864,6 @@ public:
     // This boolean is unusued in actual processing, only present for backward
     // compatibility at RPC/QT level
     bool m_legacyWhitelisted{false};
-    // If true this node is being used as a short lived feeler.
-    bool fFeeler{false};
     bool m_addr_fetch{false};
     // set by version message
     bool fClient{false};
@@ -885,6 +883,8 @@ public:
     std::atomic_bool fPauseSend{false};
 
     bool IsManualConn() const { return m_conn_type == ConnectionType::MANUAL; }
+
+    bool IsFeelerConn() const { return m_conn_type == ConnectionType::FEELER; }
 
 protected:
     mapMsgCmdSize mapSendBytesPerMsgCmd;

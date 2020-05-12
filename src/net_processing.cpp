@@ -935,7 +935,7 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
 }
 
 static bool IsOutboundDisconnectionCandidate(const CNode &node) {
-    return !(node.fInbound || node.IsManualConn() || node.fFeeler ||
+    return !(node.fInbound || node.IsManualConn() || node.IsFeelerConn() ||
              node.m_addr_fetch);
 }
 
@@ -2537,7 +2537,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         if (!pfrom.fInbound) {
             connman.SetServices(pfrom.addr, nServices);
         }
-        if (!pfrom.fInbound && !pfrom.fFeeler && !pfrom.IsManualConn() &&
+        if (!pfrom.fInbound && !pfrom.IsFeelerConn() && !pfrom.IsManualConn() &&
             !HasAllDesirableServiceFlags(nServices)) {
             LogPrint(BCLog::NET,
                      "peer=%d does not offer the expected services "
@@ -2678,8 +2678,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         }
 
         // Feeler connections exist only to verify if address is online.
-        if (pfrom.fFeeler) {
-            assert(pfrom.fInbound == false);
+        if (pfrom.IsFeelerConn()) {
             pfrom.fDisconnect = true;
         }
         return true;
