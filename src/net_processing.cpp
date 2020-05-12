@@ -2295,6 +2295,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             pfrom->nTimeOffset = nTimeOffset;
             AddTimeData(pfrom->addr, nTimeOffset);
         } else {
+            LOCK(cs_main);
             Misbehaving(pfrom, 20,
                         "Ignoring invalid timestamp in version message");
         }
