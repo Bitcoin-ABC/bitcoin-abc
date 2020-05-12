@@ -355,6 +355,18 @@ class TestNode():
 
     @contextlib.contextmanager
     def assert_debug_log(self, expected_msgs, unexpected_msgs=None, timeout=2):
+        """Assert that some debug messages are present within some timeout.
+        Unexpected debug messages may be optionally provided to fail a test
+        if they appear before expected messages.
+
+        Note: expected_msgs must always be non-empty even if the goal is to check
+        for unexpected_msgs. This provides a bounded scenario such that "we expect
+        to reach some target resulting in expected_msgs without seeing unexpected_msgs.
+        Otherwise, we are testing that something never happens, which is fundamentally
+        not robust test logic.
+        """
+        if not expected_msgs:
+            raise AssertionError("Expected debug messages is empty")
         if unexpected_msgs is None:
             unexpected_msgs = []
         time_end = time.time() + timeout

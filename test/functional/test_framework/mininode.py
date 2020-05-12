@@ -597,8 +597,7 @@ class P2PDataStore(P2PInterface):
                 self.block_store[block.sha256] = block
                 self.last_block_hash = block.sha256
 
-        reject_reason = [reject_reason] if reject_reason else []
-        with node.assert_debug_log(expected_msgs=reject_reason):
+        def test():
             self.send_message(msg_headers([CBlockHeader(blocks[-1])]))
 
             if request_block:
@@ -611,10 +610,16 @@ class P2PDataStore(P2PInterface):
                 self.sync_with_ping(timeout=timeout)
 
             if success:
-                wait_until(lambda: node.getbestblockhash()
-                           == blocks[-1].hash, timeout=timeout)
+                wait_until(lambda: node.getbestblockhash() ==
+                           blocks[-1].hash, timeout=timeout)
             else:
                 assert node.getbestblockhash() != blocks[-1].hash
+
+        if reject_reason:
+            with node.assert_debug_log(expected_msgs=[reject_reason]):
+                test()
+        else:
+            test()
 
     def send_txs_and_test(self, txs, node, *, success=True,
                           expect_disconnect=False, reject_reason=None):
@@ -630,8 +635,7 @@ class P2PDataStore(P2PInterface):
             for tx in txs:
                 self.tx_store[tx.sha256] = tx
 
-        reject_reason = [reject_reason] if reject_reason else []
-        with node.assert_debug_log(expected_msgs=reject_reason):
+        def test():
             for tx in txs:
                 self.send_message(msg_tx(tx))
 
@@ -651,3 +655,9 @@ class P2PDataStore(P2PInterface):
                 for tx in txs:
                     assert tx.hash not in raw_mempool, "{} tx found in mempool".format(
                         tx.hash)
+
+        if reject_reason:
+            with node.assert_debug_log(expected_msgs=[reject_reason]):
+                test()
+        else:
+            test()
