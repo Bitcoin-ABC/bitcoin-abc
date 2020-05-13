@@ -657,6 +657,7 @@ static UniValue getblocktemplate(const Config &config,
     aCaps.push_back("proposal");
 
     UniValue transactions(UniValue::VARR);
+    transactions.reserve(pblock->vtx.size());
     int index_in_template = 0;
     for (const auto &it : pblock->vtx) {
         const CTransaction &tx = *it;
@@ -668,14 +669,15 @@ static UniValue getblocktemplate(const Config &config,
         }
 
         UniValue entry(UniValue::VOBJ);
-        entry.pushKV("data", EncodeHexTx(tx));
-        entry.pushKV("txid", txId.GetHex());
-        entry.pushKV("hash", tx.GetHash().GetHex());
-        entry.pushKV("fee",
-                     pblocktemplate->entries[index_in_template].fees / SATOSHI);
+        entry.reserve(5);
+        entry.__pushKV("data", EncodeHexTx(tx));
+        entry.__pushKV("txid", txId.GetHex());
+        entry.__pushKV("hash", tx.GetHash().GetHex());
+        entry.__pushKV("fee", pblocktemplate->entries[index_in_template].fees /
+                                  SATOSHI);
         int64_t nTxSigOps =
             pblocktemplate->entries[index_in_template].sigOpCount;
-        entry.pushKV("sigops", nTxSigOps);
+        entry.__pushKV("sigops", nTxSigOps);
 
         transactions.push_back(entry);
         index_in_template++;
