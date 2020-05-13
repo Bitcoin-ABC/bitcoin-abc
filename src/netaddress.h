@@ -193,7 +193,8 @@ public:
     explicit CService(const struct sockaddr_in6 &addr);
 
     SERIALIZE_METHODS(CService, obj) {
-        READWRITE(obj.ip, Using<BigEndianFormatter<2>>(obj.port));
+        READWRITEAS(CNetAddr, obj);
+        READWRITE(Using<BigEndianFormatter<2>>(obj.port));
     }
 };
 

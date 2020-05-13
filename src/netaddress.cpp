@@ -755,14 +755,12 @@ bool CService::GetSockAddr(struct sockaddr *paddr, socklen_t *addrlen) const {
  * @returns An identifier unique to this service's address and port number.
  */
 std::vector<uint8_t> CService::GetKey() const {
-    std::vector<uint8_t> vKey;
-    vKey.resize(18);
-    memcpy(vKey.data(), ip, 16);
+    auto key = GetAddrBytes();
     // most significant byte of our port
-    vKey[16] = port / 0x100;
+    key.push_back(port / 0x100);
     // least significant byte of our port
-    vKey[17] = port & 0x0FF;
-    return vKey;
+    key.push_back(port & 0x0FF);
+    return key;
 }
 
 std::string CService::ToStringPort() const {
