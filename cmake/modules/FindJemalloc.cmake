@@ -38,12 +38,50 @@ mark_as_advanced(Jemalloc_INCLUDE_DIR)
 if(Jemalloc_INCLUDE_DIR)
 	include(ExternalLibraryHelper)
 
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+	find_package(Threads REQUIRED)
+
 	find_component(Jemalloc jemalloc
-		NAMES jemalloc
+		NAMES jemalloc_pic jemalloc
 		HINTS "${BREW_HINT}"
 		INCLUDE_DIRS ${Jemalloc_INCLUDE_DIRS}
 		PATHS ${PC_Jemalloc_LIBRARY_DIRS}
+		INTERFACE_LINK_LIBRARIES "$<$<NOT:$<PLATFORM_ID:Windows>>:m>" Threads::Threads
 	)
+
+	# jemalloc might be built with or without libdl support. Check if the link
+	# succeeds without -ldl, and add the flag otherwise.
+	if(TARGET Jemalloc::jemalloc)
+		try_compile(_Jemalloc_BUILD_WITHOUT_DL
+			${CMAKE_BINARY_DIR}
+			"${CMAKE_SOURCE_DIR}/cmake/utils/CheckJemallocBuilds.c"
+			LINK_LIBRARIES Jemalloc::jemalloc
+			OUTPUT_VARIABLE _Jemalloc_BUILD_OUTPUT
+		)
+
+		if(NOT _Jemalloc_BUILD_WITHOUT_DL)
+			# The expected error is: undefined reference to `dlsym`. Search for
+			# the `dlsym` word only in the output to check the failure is
+			# related to libdl, in order to accommodate with various compilers
+			# and locales.
+			string(REGEX MATCH "dlsym" _Jemalloc_DLSYM_IN_OUTPUT "${_Jemalloc_BUILD_OUTPUT}")
+			if(_Jemalloc_DLSYM_IN_OUTPUT)
+				set_property(
+					TARGET Jemalloc::jemalloc APPEND
+					PROPERTY INTERFACE_LINK_LIBRARIES dl
+				)
+				set(_Jemalloc_NEEDS_DL TRUE)
+			else()
+				message(FATAL_ERROR "Jemalloc was found, but the configuration failed to build a simple program. Please check it is installed properly or consider disabling it. Build output: ${_Jemalloc_BUILD_OUTPUT}")
+			endif()
+		else()
+			set(_Jemalloc_NEEDS_DL FALSE)
+		endif()
+
+		if(NOT Jemalloc_FIND_QUIETLY)
+			message(STATUS "Check if jemalloc needs libdl - ${_Jemalloc_NEEDS_DL}")
+		endif()
+	endif()
 endif()
 
 if(NOT Jemalloc_VERSION)
