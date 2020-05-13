@@ -18,6 +18,17 @@ UniValue is a reaction to json_spirit, seeking to minimize template
 and memory use, providing a straightforward RAII class compatible with
 link-time optimization and embedded uses.
 
+## Status
+
+The current production version is available from the [stable-1.0.x branch](https://github.com/jgarzik/univalue/tree/stable-1.0.x).
+
+The current development series is 1.1.x, and is pushed to the `master` branch.
+
+The next stable version will be 1.2.0, to be released immediately
+following the conclusion of the 1.1.x series, similar to [this
+variant](https://en.wikipedia.org/wiki/Software_versioning#Odd-numbered_versions_for_development_releases)
+of semver.
+
 ## Installation
 
 This project is a standard GNU
