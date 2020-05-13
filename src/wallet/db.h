@@ -81,6 +81,7 @@ public:
 };
 
 /** Return whether a wallet database is currently loaded. */
+bool IsBDBWalletLoaded(const fs::path &wallet_path);
 bool IsWalletLoaded(const fs::path &wallet_path);
 
 /**
