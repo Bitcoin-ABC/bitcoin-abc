@@ -108,21 +108,16 @@ static UniValue getrawtransaction(const Config &config,
                     "if verbose is set to true",
                     "{\n"
                     "  \"in_active_chain\": b, (bool) Whether specified block "
-                    "is in "
-                    "the active chain or not (only present with explicit "
-                    "\"blockhash\" "
-                    "argument)\n"
+                    "is in the active chain or not (only present with explicit "
+                    "\"blockhash\" argument)\n"
                     "  \"hex\" : \"data\",       (string) The serialized, "
-                    "hex-encoded "
-                    "data for 'txid'\n"
+                    "hex-encoded data for 'txid'\n"
                     "  \"txid\" : \"id\",        (string) The transaction id "
-                    "(same as "
-                    "provided)\n"
+                    "(same as provided)\n"
                     "  \"hash\" : \"id\",        (string) The transaction hash "
                     "(differs from txid for witness transactions)\n"
                     "  \"size\" : n,             (numeric) The serialized "
-                    "transaction "
-                    "size\n"
+                    "transaction size\n"
                     "  \"version\" : n,          (numeric) The version\n"
                     "  \"locktime\" : ttt,       (numeric) The lock time\n"
                     "  \"vin\" : [               (array of json objects)\n"
@@ -153,8 +148,7 @@ static UniValue getrawtransaction(const Config &config,
                         "         \"reqSigs\" : n,            (numeric) The "
                         "required sigs\n"
                         "         \"type\" : \"pubkeyhash\",  (string) The "
-                        "type, eg "
-                        "'pubkeyhash'\n"
+                        "type, eg 'pubkeyhash'\n"
                         "         \"addresses\" : [           (json array of "
                         "string)\n"
                         "           \"address\"        (string) bitcoin "
@@ -170,11 +164,10 @@ static UniValue getrawtransaction(const Config &config,
                         "  \"confirmations\" : n,      (numeric) The "
                         "confirmations\n"
                         "  \"time\" : ttt,             (numeric) The "
-                        "transaction time in "
-                        "seconds since epoch (Jan 1 1970 GMT)\n"
+                        "transaction time in seconds since epoch (Jan 1 1970 "
+                        "GMT)\n"
                         "  \"blocktime\" : ttt         (numeric) The block "
-                        "time in seconds "
-                        "since epoch (Jan 1 1970 GMT)\n"
+                        "time in seconds since epoch (Jan 1 1970 GMT)\n"
                         "}\n"},
             },
             RPCExamples{
@@ -456,8 +449,7 @@ static UniValue createrawtransaction(const Config &config,
             "Outputs can be addresses or data.\n"
             "Returns hex-encoded raw transaction.\n"
             "Note that the transaction's inputs are not signed, and\n"
-            "it is not stored in the wallet or transmitted to the "
-            "network.\n",
+            "it is not stored in the wallet or transmitted to the network.\n",
             {
                 {
                     "inputs",
@@ -649,21 +641,19 @@ static UniValue decodescript(const Config &config,
                 {"hexstring", RPCArg::Type::STR_HEX, /* opt */ false,
                  /* default_val */ "", "the hex-encoded script"},
             },
-            RPCResult{
-                "{\n"
-                "  \"asm\":\"asm\",   (string) Script public key\n"
-                "  \"hex\":\"hex\",   (string) hex-encoded public key\n"
-                "  \"type\":\"type\", (string) The output type\n"
-                "  \"reqSigs\": n,    (numeric) The required signatures\n"
-                "  \"addresses\": [   (json array of string)\n"
-                "     \"address\"     (string) bitcoin address\n"
-                "     ,...\n"
-                "  ],\n"
-                "  \"p2sh\",\"address\" (string) address of P2SH script "
-                "wrapping "
-                "this redeem script (not returned if the script is already a "
-                "P2SH).\n"
-                "}\n"},
+            RPCResult{"{\n"
+                      "  \"asm\":\"asm\",   (string) Script public key\n"
+                      "  \"hex\":\"hex\",   (string) hex-encoded public key\n"
+                      "  \"type\":\"type\", (string) The output type\n"
+                      "  \"reqSigs\": n,    (numeric) The required signatures\n"
+                      "  \"addresses\": [   (json array of string)\n"
+                      "     \"address\"     (string) bitcoin address\n"
+                      "     ,...\n"
+                      "  ],\n"
+                      "  \"p2sh\",\"address\" (string) address of P2SH script "
+                      "wrapping this redeem script (not returned if the script "
+                      "is already a P2SH).\n"
+                      "}\n"},
             RPCExamples{HelpExampleCli("decodescript", "\"hexstring\"") +
                         HelpExampleRpc("decodescript", "\"hexstring\"")},
         }
@@ -701,10 +691,10 @@ static UniValue combinerawtransaction(const Config &config,
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(RPCHelpMan{
             "combinerawtransaction",
-            "\nCombine multiple partially signed transactions into "
-            "one transaction.\n"
-            "The combined transaction may be another partially "
-            "signed transaction or a \n"
+            "\nCombine multiple partially signed transactions into one "
+            "transaction.\n"
+            "The combined transaction may be another partially signed "
+            "transaction or a \n"
             "fully signed transaction.",
             {
                 {
@@ -712,8 +702,8 @@ static UniValue combinerawtransaction(const Config &config,
                     RPCArg::Type::ARR,
                     /* opt */ false,
                     /* default_val */ "",
-                    "A json array of hex strings of partially "
-                    "signed transactions",
+                    "A json array of hex strings of partially signed "
+                    "transactions",
                     {
                         {"hexstring", RPCArg::Type::STR_HEX,
                          /* opt */ false, /* default_val */ "",
@@ -807,10 +797,9 @@ static UniValue signrawtransactionwithkey(const Config &config,
             "signrawtransactionwithkey",
             "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
             "The second argument is an array of base58-encoded private\n"
-            "keys that will be the only keys used to sign the "
-            "transaction.\n"
-            "The third optional argument (may be null) is an array of "
-            "previous transaction outputs that\n"
+            "keys that will be the only keys used to sign the transaction.\n"
+            "The third optional argument (may be null) is an array of previous "
+            "transaction outputs that\n"
             "this transaction depends on but may not yet be in the block "
             "chain.\n",
             {
@@ -821,8 +810,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
                     RPCArg::Type::ARR,
                     /* opt */ false,
                     /* default_val */ "",
-                    "A json array of base58-encoded private keys for "
-                    "signing",
+                    "A json array of base58-encoded private keys for signing",
                     {
                         {"privatekey", RPCArg::Type::STR,
                          /* opt */ false, /* default_val */ "",
@@ -834,8 +822,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
                     RPCArg::Type::ARR,
                     /* opt */ true,
                     /* default_val */ "",
-                    "A json array of previous dependent transaction "
-                    "outputs",
+                    "A json array of previous dependent transaction outputs",
                     {
                         {
                             "",
@@ -932,8 +919,8 @@ static UniValue sendrawtransaction(const Config &config,
         request.params.size() > 2) {
         throw std::runtime_error(RPCHelpMan{
             "sendrawtransaction",
-            "\nSubmits raw transaction (serialized, hex-encoded) to "
-            "local node and network.\n"
+            "\nSubmits raw transaction (serialized, hex-encoded) to local node "
+            "and network.\n"
             "\nAlso see createrawtransaction and "
             "signrawtransactionwithkey calls.\n",
             {
@@ -992,10 +979,10 @@ static UniValue testmempoolaccept(const Config &config,
         request.params.size() > 2) {
         throw std::runtime_error(RPCHelpMan{
             "testmempoolaccept",
-            "\nReturns if raw transaction (serialized, hex-encoded) "
-            "would be accepted by mempool.\n"
-            "\nThis checks if the transaction violates the "
-            "consensus or policy rules.\n"
+            "\nReturns if raw transaction (serialized, hex-encoded) would be "
+            "accepted by mempool.\n"
+            "\nThis checks if the transaction violates the consensus or policy "
+            "rules.\n"
             "\nSee sendrawtransaction call.\n",
             {
                 {
@@ -1004,8 +991,8 @@ static UniValue testmempoolaccept(const Config &config,
                     /* opt */ false,
                     /* default_val */ "",
                     "An array of hex strings of raw transactions.\n"
-                    "                                        Length "
-                    "must be one for now.",
+                    "                                        Length must be "
+                    "one for now.",
                     {
                         {"rawtx", RPCArg::Type::STR_HEX,
                          /* opt */ false, /* default_val */ "", ""},
@@ -1465,9 +1452,9 @@ static UniValue finalizepsbt(const Config &config,
                 {"extract", RPCArg::Type::BOOL, /* opt */ true,
                  /* default_val */ "true",
                  "If true and the transaction is complete,\n"
-                 "                             extract and return "
-                 "the complete transaction in normal network "
-                 "serialization instead of the PSBT."},
+                 "                             extract and return the complete "
+                 "transaction in normal network serialization instead of the "
+                 "PSBT."},
             },
             RPCResult{
                 "{\n"
@@ -1524,8 +1511,8 @@ static UniValue createpsbt(const Config &config,
         request.params.size() > 3) {
         throw std::runtime_error(RPCHelpMan{
             "createpsbt",
-            "\nCreates a transaction in the Partially Signed "
-            "Transaction format.\n"
+            "\nCreates a transaction in the Partially Signed Transaction "
+            "format.\n"
             "Implements the Creator role.\n",
             {
                 {
@@ -1597,8 +1584,7 @@ static UniValue createpsbt(const Config &config,
                 },
                 {"locktime", RPCArg::Type::NUM, /* opt */ true,
                  /* default_val */ "0",
-                 "Raw locktime. Non-0 value also locktime-activates "
-                 "inputs"},
+                 "Raw locktime. Non-0 value also locktime-activates inputs"},
             },
             RPCResult{"  \"psbt\"        (string)  The resulting raw "
                       "transaction (base64-encoded string)\n"},
@@ -1647,17 +1633,17 @@ static UniValue converttopsbt(const Config &config,
             "\nConverts a network serialized transaction to a PSBT. "
             "This should be used only with createrawtransaction and "
             "fundrawtransaction\n"
-            "createpsbt and walletcreatefundedpsbt should be used "
-            "for new applications.\n",
+            "createpsbt and walletcreatefundedpsbt should be used for new "
+            "applications.\n",
             {
                 {"hexstring", RPCArg::Type::STR_HEX, /* opt */ false,
                  /* default_val */ "", "The hex string of a raw transaction"},
                 {"permitsigdata", RPCArg::Type::BOOL, /* opt */ true,
                  /* default_val */ "false",
-                 "If true, any signatures in the input will be discarded "
-                 "and conversion.\n"
-                 "                              will continue. If false, "
-                 "RPC will fail if any signatures are present."},
+                 "If true, any signatures in the input will be discarded and "
+                 "conversion.\n"
+                 "                              will continue. If false, RPC "
+                 "will fail if any signatures are present."},
             },
             RPCResult{"  \"psbt\"        (string)  The resulting raw "
                       "transaction (base64-encoded string)\n"},
