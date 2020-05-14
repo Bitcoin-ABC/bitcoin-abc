@@ -3906,8 +3906,8 @@ UniValue generate(const Config &config, const JSONRPCRequest &request) {
     if (!IsDeprecatedRPCEnabled(gArgs, "generate")) {
         throw JSONRPCError(RPC_METHOD_DEPRECATED,
                            "The wallet generate rpc method is deprecated and "
-                           "will be fully removed in v0.19. "
-                           "To use generate in v0.18, restart bitcoind with "
+                           "will be fully removed in v0.22. "
+                           "To use generate in v0.21, restart bitcoind with "
                            "-deprecatedrpc=generate.\n"
                            "Clients should transition to using the node rpc "
                            "method generatetoaddress\n");

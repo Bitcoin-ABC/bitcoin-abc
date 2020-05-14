@@ -34,3 +34,20 @@ Tools
  - A new `bitcoin-wallet` tool is now available, distributed alongside our usual binaries.
    This tool provides a way to create new wallet files and inspect basic information about
    a wallet without using any RPCs.
+
+Wallet `generate` RPC method deprecated
+---------------------------------------
+
+ - The wallet's `generate` RPC method has been deprecated and will be fully
+   removed in v0.22.
+
+ - `generate` is only used for testing. The RPC call reaches across multiple
+    subsystems (wallet and mining), so is deprecated to simplify the
+    wallet-node interface. Projects that are using `generate` for testing
+    purposes should transition to using the `generatetoaddress` call, which
+    does not require or use the wallet component. Calling `generatetoaddress`
+    with an address returned by `getnewaddress` gives the same functionality as
+    the old `generate` method.
+
+ - To continue using `generate` in v0.21, restart bitcoind with the
+   `-deprecatedrpc=generate` configuration.
