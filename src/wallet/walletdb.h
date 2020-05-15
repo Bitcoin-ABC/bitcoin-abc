@@ -290,4 +290,8 @@ private:
 //! changes)
 void MaybeCompactWalletDB();
 
+//! Unserialize a given Key-Value pair and load it into the wallet
+bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
+                  std::string &strType, std::string &strErr);
+
 #endif // BITCOIN_WALLET_WALLETDB_H
