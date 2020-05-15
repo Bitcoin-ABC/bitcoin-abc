@@ -965,28 +965,8 @@ void MaybeCompactWalletDB() {
     fOneThread = false;
 }
 
-//
-// Try to (very carefully!) recover wallet file if there is a problem.
-//
-bool WalletBatch::Recover(const fs::path &wallet_path, void *callbackDataIn,
-                          bool (*recoverKVcallback)(void *callbackData,
-                                                    CDataStream ssKey,
-                                                    CDataStream ssValue),
-                          std::string &out_backup_filename) {
-    return BerkeleyBatch::Recover(wallet_path, callbackDataIn,
-                                  recoverKVcallback, out_backup_filename);
-}
-
-bool WalletBatch::Recover(const fs::path &wallet_path,
-                          std::string &out_backup_filename) {
-    // recover without a key filter callback
-    // results in recovering all record types
-    return WalletBatch::Recover(wallet_path, nullptr, nullptr,
-                                out_backup_filename);
-}
-
-bool WalletBatch::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
-                                        CDataStream ssValue) {
+bool RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
+                           CDataStream ssValue) {
     CWallet *dummyWallet = reinterpret_cast<CWallet *>(callbackData);
     std::string strType, strErr;
     bool fReadOK;
@@ -995,7 +975,7 @@ bool WalletBatch::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
         LOCK(dummyWallet->cs_wallet);
         fReadOK = ReadKeyValue(dummyWallet, ssKey, ssValue, strType, strErr);
     }
-    if (!IsKeyType(strType) && strType != DBKeys::HDCHAIN) {
+    if (!WalletBatch::IsKeyType(strType) && strType != DBKeys::HDCHAIN) {
         return false;
     }
     if (!fReadOK) {
