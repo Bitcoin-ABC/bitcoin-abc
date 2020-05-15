@@ -10,7 +10,7 @@ the index.
 """
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, try_rpc
+from test_framework.util import assert_equal, assert_raises_rpc_error, try_rpc
 
 
 class CoinStatsIndexTest(BitcoinTestFramework):
@@ -52,8 +52,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
                         "Unable to read UTXO set", node.gettxoutsetinfo))
         res0 = node.gettxoutsetinfo('none')
 
-        # The fields 'disk_size' and 'transactions' do not work on the index, so
-        # don't check them.
+        # The fields 'disk_size' and 'transactions' do not exist on the index
         del res0['disk_size'], res0['transactions']
 
         self.wait_until(lambda: not try_rpc(-32603,
@@ -64,13 +63,34 @@ class CoinStatsIndexTest(BitcoinTestFramework):
             res1 = index_node.gettxoutsetinfo(hash_option)
             res1.pop('muhash', None)
 
-            # The fields 'disk_size' and 'transactions' do not work on the index
-            # so don't check them (they will be removed from the index in the
-            # next commit).
-            del res1['disk_size'], res1['transactions']
-
             # Everything left should be the same
             assert_equal(res1, res0)
+
+        self.log.info(
+            "Test that gettxoutsetinfo() can get fetch data on specific "
+            "heights with index")
+
+        # Generate a new tip
+        node.generate(5)
+
+        self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
+                                            index_node.gettxoutsetinfo,
+                                            'muhash'))
+        for hash_option in index_hash_options:
+            # Fetch old stats by height
+            res2 = index_node.gettxoutsetinfo(hash_option, 102)
+            res2.pop('muhash', None)
+            assert_equal(res0, res2)
+
+            # Fetch old stats by hash
+            res3 = index_node.gettxoutsetinfo(hash_option, res0['bestblock'])
+            res3.pop('muhash', None)
+            assert_equal(res0, res3)
+
+            # It does not work without coinstatsindex
+            assert_raises_rpc_error(
+                -8, "Querying specific block heights requires coinstatsindex",
+                node.gettxoutsetinfo, hash_option, 102)
 
 
 if __name__ == '__main__':

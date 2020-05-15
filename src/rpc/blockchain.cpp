@@ -115,6 +115,42 @@ static int ComputeNextBlockAndDepth(const CBlockIndex *tip,
     return blockindex == tip ? 1 : -1;
 }
 
+static CBlockIndex *ParseHashOrHeight(const UniValue &param,
+                                      ChainstateManager &chainman) {
+    LOCK(::cs_main);
+    CChain &active_chain = chainman.ActiveChain();
+
+    if (param.isNum()) {
+        const int height{param.get_int()};
+        if (height < 0) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                strprintf("Target block height %d is negative", height));
+        }
+        const int current_tip{active_chain.Height()};
+        if (height > current_tip) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                strprintf("Target block height %d after current tip %d", height,
+                          current_tip));
+        }
+
+        return active_chain[height];
+    } else {
+        const BlockHash hash{ParseHashV(param, "hash_or_height")};
+        CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(hash);
+
+        if (!pindex) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
+        if (!active_chain.Contains(pindex)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("Block is not in chain %s",
+                                         Params().NetworkIDString()));
+        }
+        return pindex;
+    }
+}
 UniValue blockheaderToJSON(const CBlockIndex *tip,
                            const CBlockIndex *blockindex) {
     // Serialize passed information without accessing chain state of the active
@@ -1248,11 +1284,19 @@ static RPCHelpMan gettxoutsetinfo() {
     return RPCHelpMan{
         "gettxoutsetinfo",
         "Returns statistics about the unspent transaction output set.\n"
-        "Note this call may take some time.\n",
+        "Note this call may take some time if you are not using "
+        "coinstatsindex.\n",
         {
             {"hash_type", RPCArg::Type::STR, /* default */ "hash_serialized",
              "Which UTXO set hash should be calculated. Options: "
              "'hash_serialized' (the legacy algorithm), 'muhash', 'none'."},
+            {"hash_or_height",
+             RPCArg::Type::NUM,
+             RPCArg::Optional::OMITTED,
+             "The block hash or height of the target height (only available "
+             "with coinstatsindex).",
+             "",
+             {"", "string or numeric"}},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -1262,12 +1306,11 @@ static RPCHelpMan gettxoutsetinfo() {
                        "The current block height (index)"},
                       {RPCResult::Type::STR_HEX, "bestblock",
                        "The hash of the block at the tip of the chain"},
-                      {RPCResult::Type::NUM, "transactions",
-                       "The number of transactions with unspent outputs"},
                       {RPCResult::Type::NUM, "txouts",
                        "The number of unspent transaction outputs"},
                       {RPCResult::Type::NUM, "bogosize",
-                       "A meaningless metric for UTXO set size"},
+                       "Database-independent, meaningless metric indicating "
+                       "the UTXO set size"},
                       {RPCResult::Type::STR_HEX, "hash_serialized",
                        /* optional */ true,
                        "The serialized hash (only present if 'hash_serialized' "
@@ -1275,16 +1318,33 @@ static RPCHelpMan gettxoutsetinfo() {
                       {RPCResult::Type::STR_HEX, "muhash", /* optional */ true,
                        "The serialized hash (only present if 'muhash' "
                        "hash_type is chosen)"},
+                      {RPCResult::Type::NUM, "transactions",
+                       "The number of transactions with unspent outputs (not "
+                       "available when coinstatsindex is used)"},
                       {RPCResult::Type::NUM, "disk_size",
-                       "The estimated size of the chainstate on disk"},
+                       "The estimated size of the chainstate on disk (not "
+                       "available when coinstatsindex is used)"},
                       {RPCResult::Type::STR_AMOUNT, "total_amount",
                        "The total amount"},
                   }},
-        RPCExamples{HelpExampleCli("gettxoutsetinfo", "") +
-                    HelpExampleRpc("gettxoutsetinfo", "")},
+        RPCExamples{
+            HelpExampleCli("gettxoutsetinfo", "") +
+            HelpExampleCli("gettxoutsetinfo", R"("none")") +
+            HelpExampleCli("gettxoutsetinfo", R"("none" 1000)") +
+            HelpExampleCli(
+                "gettxoutsetinfo",
+                R"("none" '"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09"')") +
+            HelpExampleRpc("gettxoutsetinfo", "") +
+            HelpExampleRpc("gettxoutsetinfo", R"("none")") +
+            HelpExampleRpc("gettxoutsetinfo", R"("none", 1000)") +
+            HelpExampleRpc(
+                "gettxoutsetinfo",
+                R"("none", "00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09")")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             UniValue ret(UniValue::VOBJ);
+
+            CBlockIndex *pindex{nullptr};
 
             const CoinStatsHashType hash_type{
                 request.params[0].isNull()
@@ -1305,11 +1365,20 @@ static RPCHelpMan gettxoutsetinfo() {
                 blockman = &active_chainstate.m_blockman;
             }
 
+            if (!request.params[1].isNull()) {
+                if (!g_coin_stats_index) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Querying specific block heights "
+                                       "requires coinstatsindex");
+                }
+
+                pindex = ParseHashOrHeight(request.params[1], chainman);
+            }
+
             if (GetUTXOStats(coins_view, *blockman, stats,
-                             node.rpc_interruption_point)) {
+                             node.rpc_interruption_point, pindex)) {
                 ret.pushKV("height", int64_t(stats.nHeight));
                 ret.pushKV("bestblock", stats.hashBlock.GetHex());
-                ret.pushKV("transactions", int64_t(stats.nTransactions));
                 ret.pushKV("txouts", int64_t(stats.nTransactionOutputs));
                 ret.pushKV("bogosize", int64_t(stats.nBogoSize));
                 if (hash_type == CoinStatsHashType::HASH_SERIALIZED) {
@@ -1319,7 +1388,11 @@ static RPCHelpMan gettxoutsetinfo() {
                 if (hash_type == CoinStatsHashType::MUHASH) {
                     ret.pushKV("muhash", stats.hashSerialized.GetHex());
                 }
-                ret.pushKV("disk_size", stats.nDiskSize);
+                if (!stats.from_index) {
+                    ret.pushKV("transactions",
+                               static_cast<int64_t>(stats.nTransactions));
+                    ret.pushKV("disk_size", stats.nDiskSize);
+                }
                 ret.pushKV("total_amount", stats.nTotalAmount);
             } else {
                 if (g_coin_stats_index) {
@@ -2405,41 +2478,7 @@ static RPCHelpMan getblockstats() {
             const JSONRPCRequest &request) -> UniValue {
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            CChain &active_chain = chainman.ActiveChain();
-
-            CBlockIndex *pindex;
-            if (request.params[0].isNum()) {
-                const int height = request.params[0].get_int();
-                const int current_tip = active_chain.Height();
-                if (height < 0) {
-                    throw JSONRPCError(
-                        RPC_INVALID_PARAMETER,
-                        strprintf("Target block height %d is negative",
-                                  height));
-                }
-                if (height > current_tip) {
-                    throw JSONRPCError(
-                        RPC_INVALID_PARAMETER,
-                        strprintf("Target block height %d after current tip %d",
-                                  height, current_tip));
-                }
-
-                pindex = active_chain[height];
-            } else {
-                const BlockHash hash(
-                    ParseHashV(request.params[0], "hash_or_height"));
-                pindex = chainman.m_blockman.LookupBlockIndex(hash);
-                if (!pindex) {
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                       "Block not found");
-                }
-                if (!active_chain.Contains(pindex)) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                       strprintf("Block is not in chain %s",
-                                                 Params().NetworkIDString()));
-                }
-            }
-
+            CBlockIndex *pindex{ParseHashOrHeight(request.params[0], chainman)};
             CHECK_NONFATAL(pindex != nullptr);
 
             std::set<std::string> stats;
