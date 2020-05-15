@@ -970,6 +970,7 @@
 ["0x02 0xbeef", "REVERSEBYTES 0x02 0xefbe EQUAL", "P2SH,REVERSEBYTES", "OK", "REVERSEBYTES, 2 bytes"],
 ["0x03 0xdeada1", "REVERSEBYTES 0x03 0xa1adde EQUAL", "P2SH,REVERSEBYTES", "OK", "REVERSEBYTES, 3 bytes"],
 ["0x04 0xdeadbeef", "REVERSEBYTES 0x04 0xefbeadde EQUAL", "P2SH,REVERSEBYTES", "OK", "REVERSEBYTES, 4 bytes"],
+["0x41 0x1052a02f76cf6c3bc43e4671af4c6065f6d918c79f58ad7f90a49c4e2603a4728fc6d81d49087dd97bc43ae184da55dc5195553526ce076df092be27a398b68f41", "0x21 0xa8f459fbe84e0568ff03454d438183b0464e0c18ff73658ec0d2619b20ff29e502 REVERSEBYTES CHECKSIG", "NULLFAIL,STRICTENC,REVERSEBYTES,SIGHASH_FORKID", "OK", "REVERSEBYTES, reversed pubkey"],
 ["'Bitcoin:_A_peer-to-peer_electronic_cash_system'", "REVERSEBYTES 'metsys_hsac_cinortcele_reep-ot-reep_A_:nioctiB' EQUAL", "P2SH,REVERSEBYTES", "OK", "REVERSEBYTES, whitepaper title"],
 [
     "'zngyivniryrgefgnvqwfwqplmramujzilzyrsdvinxfkfmuowdpuzycnzbupwwpzrfxsbyrhdlsyixyzysodseayvvrtbsfxtikrjwkbduulrjyjlwlaigomhyohsukawdwbrpuacdijzzgxhataguajvuopuktvtklwhsxqvzzfttpdgnxtnbpsiqecxurlczqmoxznlsuejvneiyejetcxlblzrydscnrbydnqytorstjtuzlbbtbyzfiniuehbisqnqhvexylhohjiyiknzgjowvobsrwcxyfowqcvakgdolwpltfcxtrhuysrrvtprzpsucgogsjapdkrbobpxccqgkdumskaleycwsbkabdkuukqiyizceduplmauszwjdzptvmthxocwrignxjogxsvrsjrrlecvdmazlpfkgmskiqqitrevuwiisvpxvkeypzaqjwwiozvmahmtvtjpbolwrymvzfstopzcexalirwbbcqgjvfjfuirrcnlgcfyqnafhh'",
