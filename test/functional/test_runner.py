@@ -657,7 +657,7 @@ def get_all_scripts_from_disk(test_dir, non_scripts):
 def check_script_prefixes(all_scripts):
     """Check that no more than `EXPECTED_VIOLATION_COUNT` of the
        test scripts don't start with one of the allowed name prefixes."""
-    EXPECTED_VIOLATION_COUNT = 29
+    EXPECTED_VIOLATION_COUNT = 27
 
     # LEEWAY is provided as a transition measure, so that pull-requests
     # that introduce new tests that don't conform with the naming
@@ -665,7 +665,7 @@ def check_script_prefixes(all_scripts):
     LEEWAY = 10
 
     good_prefixes_re = re.compile(
-        "(example|feature|interface|mempool|mining|p2p|rpc|wallet|tool)_")
+        "(abc_)?(example|feature|interface|mempool|mining|p2p|rpc|wallet|tool)_")
     bad_script_names = [
         script for script in all_scripts if good_prefixes_re.match(script) is None]
 
