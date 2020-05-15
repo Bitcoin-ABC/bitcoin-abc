@@ -6,6 +6,7 @@
 #include <fs.h>
 #include <util/system.h>
 #include <util/translation.h>
+#include <wallet/salvage.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
 
