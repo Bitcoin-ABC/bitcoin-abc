@@ -331,55 +331,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     const Amount HIGHFEE = COIN;
     const Amount HIGHERFEE = 4 * COIN;
 
-    // block sigops > limit: 1000 CHECKMULTISIG + 1
-    tx.vin.resize(1);
-    // NOTE: OP_NOP is used to force 20 SigOps for the CHECKMULTISIG
-    tx.vin[0].scriptSig = CScript() << OP_0 << OP_0 << OP_0 << OP_NOP
-                                    << OP_CHECKMULTISIG << OP_1;
-    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
-    tx.vout.resize(1);
-    tx.vout[0].nValue = BLOCKSUBSIDY;
-    for (unsigned int i = 0; i < 1001; ++i) {
-        tx.vout[0].nValue -= LOWFEE;
-        const TxId txid = tx.GetId();
-        // Only first tx spends coinbase.
-        bool spendsCoinbase = i == 0;
-        // If we don't set the # of sig ops in the CTxMemPoolEntry, template
-        // creation fails.
-        g_mempool.addUnchecked(entry.Fee(LOWFEE)
-                                   .Time(GetTime())
-                                   .SpendsCoinbase(spendsCoinbase)
-                                   .FromTx(tx));
-        tx.vin[0].prevout = COutPoint(txid, 0);
-    }
-
-    BOOST_CHECK_EXCEPTION(
-        AssemblerForTest(chainparams, g_mempool).CreateNewBlock(scriptPubKey),
-        std::runtime_error, HasReason("bad-blk-sigops"));
-    g_mempool.clear();
-
-    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
-    tx.vout[0].nValue = BLOCKSUBSIDY;
-    for (unsigned int i = 0; i < 1001; ++i) {
-        tx.vout[0].nValue -= LOWFEE;
-        const TxId txid = tx.GetId();
-        // Only first tx spends coinbase.
-        bool spendsCoinbase = i == 0;
-        // If we do set the # of sig ops in the CTxMemPoolEntry, template
-        // creation passes.
-        g_mempool.addUnchecked(entry.Fee(LOWFEE)
-                                   .Time(GetTime())
-                                   .SpendsCoinbase(spendsCoinbase)
-                                   .SigOpCount(20)
-                                   .FromTx(tx));
-        tx.vin[0].prevout = COutPoint(txid, 0);
-    }
-
-    BOOST_CHECK(pblocktemplate = AssemblerForTest(chainparams, g_mempool)
-                                     .CreateNewBlock(scriptPubKey));
-    g_mempool.clear();
-
     // block size > limit
+    tx.vin.resize(1);
     tx.vin[0].scriptSig = CScript();
     // 18 * (520char + DROP) + OP_1 = 9433 bytes
     std::vector<uint8_t> vchData(520);
@@ -389,6 +342,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     tx.vin[0].scriptSig << OP_1;
     tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
+    tx.vout.resize(1);
     tx.vout[0].nValue = BLOCKSUBSIDY;
     for (unsigned int i = 0; i < 128; ++i) {
         tx.vout[0].nValue -= LOWFEE;

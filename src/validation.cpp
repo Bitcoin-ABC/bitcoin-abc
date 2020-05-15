@@ -1514,7 +1514,6 @@ static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
     if (IsPhononEnabled(params, pindex)) {
         flags |= SCRIPT_ENABLE_OP_REVERSEBYTES;
         flags |= SCRIPT_REPORT_SIGCHECKS;
-        flags |= SCRIPT_ZERO_SIGOPS;
     }
 
     // We make sure this node will have replay protection during the next hard

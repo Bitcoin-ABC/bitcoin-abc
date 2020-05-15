@@ -407,64 +407,6 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
                               SigHashType().withForkId()));
     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 2,
                               SigHashType().withForkId()));
-    // SignSignature doesn't know how to sign these. We're not testing
-    // validating signatures, so just create dummy signatures that DO include
-    // the correct P2SH scripts:
-    txTo.vin[3].scriptSig << OP_11 << OP_11
-                          << std::vector<uint8_t>(oneAndTwo.begin(),
-                                                  oneAndTwo.end());
-    txTo.vin[4].scriptSig << std::vector<uint8_t>(fifteenSigops.begin(),
-                                                  fifteenSigops.end());
-
-    BOOST_CHECK(::AreInputsStandard(CTransaction(txTo), coins,
-                                    STANDARD_SCRIPT_VERIFY_FLAGS));
-    // 22 P2SH sigops for all inputs (1 for vin[0], 6 for vin[3], 15 for vin[4]
-    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txTo), coins,
-                                        STANDARD_SCRIPT_VERIFY_FLAGS),
-                      22U);
-    // Check that no sigops show up when P2SH is not activated.
-    BOOST_CHECK_EQUAL(
-        GetP2SHSigOpCount(CTransaction(txTo), coins, SCRIPT_VERIFY_NONE), 0);
-
-    CMutableTransaction txToNonStd1;
-    txToNonStd1.vout.resize(1);
-    txToNonStd1.vout[0].scriptPubKey =
-        GetScriptForDestination(key[1].GetPubKey().GetID());
-    txToNonStd1.vout[0].nValue = 1000 * SATOSHI;
-    txToNonStd1.vin.resize(1);
-    txToNonStd1.vin[0].prevout = COutPoint(txFrom.GetId(), 5);
-    txToNonStd1.vin[0].scriptSig
-        << std::vector<uint8_t>(sixteenSigops.begin(), sixteenSigops.end());
-
-    BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd1), coins,
-                                     STANDARD_SCRIPT_VERIFY_FLAGS));
-    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd1), coins,
-                                        STANDARD_SCRIPT_VERIFY_FLAGS),
-                      16U);
-    // Check that no sigops show up when P2SH is not activated.
-    BOOST_CHECK_EQUAL(
-        GetP2SHSigOpCount(CTransaction(txToNonStd1), coins, SCRIPT_VERIFY_NONE),
-        0);
-
-    CMutableTransaction txToNonStd2;
-    txToNonStd2.vout.resize(1);
-    txToNonStd2.vout[0].scriptPubKey =
-        GetScriptForDestination(key[1].GetPubKey().GetID());
-    txToNonStd2.vout[0].nValue = 1000 * SATOSHI;
-    txToNonStd2.vin.resize(1);
-    txToNonStd2.vin[0].prevout = COutPoint(txFrom.GetId(), 6);
-    txToNonStd2.vin[0].scriptSig
-        << std::vector<uint8_t>(twentySigops.begin(), twentySigops.end());
-
-    BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd2), coins,
-                                     STANDARD_SCRIPT_VERIFY_FLAGS));
-    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd2), coins,
-                                        STANDARD_SCRIPT_VERIFY_FLAGS),
-                      20U);
-    // Check that no sigops show up when P2SH is not activated.
-    BOOST_CHECK_EQUAL(
-        GetP2SHSigOpCount(CTransaction(txToNonStd2), coins, SCRIPT_VERIFY_NONE),
-        0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

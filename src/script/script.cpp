@@ -371,47 +371,7 @@ bool CScriptNum::MinimallyEncode(std::vector<uint8_t> &data) {
 }
 
 uint32_t CScript::GetSigOpCount(uint32_t flags, bool fAccurate) const {
-    if (flags & SCRIPT_ZERO_SIGOPS) {
-        return 0;
-    }
-    uint32_t n = 0;
-    const_iterator pc = begin();
-    opcodetype lastOpcode = OP_INVALIDOPCODE;
-    while (pc < end()) {
-        opcodetype opcode;
-        if (!GetOp(pc, opcode)) {
-            break;
-        }
-
-        switch (opcode) {
-            case OP_CHECKSIG:
-            case OP_CHECKSIGVERIFY:
-                n++;
-                break;
-
-            case OP_CHECKDATASIG:
-            case OP_CHECKDATASIGVERIFY:
-                if (flags & SCRIPT_VERIFY_CHECKDATASIG_SIGOPS) {
-                    n++;
-                }
-                break;
-
-            case OP_CHECKMULTISIG:
-            case OP_CHECKMULTISIGVERIFY:
-                if (fAccurate && lastOpcode >= OP_1 && lastOpcode <= OP_16) {
-                    n += DecodeOP_N(lastOpcode);
-                } else {
-                    n += MAX_PUBKEYS_PER_MULTISIG;
-                }
-                break;
-            default:
-                break;
-        }
-
-        lastOpcode = opcode;
-    }
-
-    return n;
+    return 0;
 }
 
 uint32_t CScript::GetSigOpCount(uint32_t flags,
