@@ -13,6 +13,7 @@ from test_framework.util import (
     connect_nodes,
     disconnect_nodes,
     wait_until,
+    disconnect_nodes,
     hex_str_to_bytes,
 )
 

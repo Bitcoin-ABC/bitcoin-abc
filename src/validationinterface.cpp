@@ -213,10 +213,11 @@ void CMainSignals::TransactionAddedToMempool(const CTransactionRef &ptx) {
                           ptx->GetHash().ToString());
 }
 
-void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef &ptx) {
-    auto event = [ptx, this] {
+void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef &ptx,
+                                                 MemPoolRemovalReason reason) {
+    auto event = [ptx, reason, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.TransactionRemovedFromMempool(ptx);
+            callbacks.TransactionRemovedFromMempool(ptx, reason);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,

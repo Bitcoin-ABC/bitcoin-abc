@@ -25,6 +25,8 @@ class CRPCCommand;
 class CScheduler;
 class TxValidationState;
 
+enum class MemPoolRemovalReason;
+
 struct BlockHash;
 struct bilingual_str;
 struct CBlockLocator;
@@ -271,8 +273,9 @@ public:
     public:
         virtual ~Notifications() {}
         virtual void transactionAddedToMempool(const CTransactionRef &tx) {}
-        virtual void transactionRemovedFromMempool(const CTransactionRef &ptx) {
-        }
+        virtual void
+        transactionRemovedFromMempool(const CTransactionRef &ptx,
+                                      MemPoolRemovalReason reason) {}
         virtual void blockConnected(const CBlock &block, int height) {}
         virtual void blockDisconnected(const CBlock &block, int height) {}
         virtual void updatedBlockTip() {}
