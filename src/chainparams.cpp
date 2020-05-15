@@ -283,6 +283,9 @@ public:
                 // Graviton activation.
                 {609136, BlockHash::fromHex("000000000000000000b48bb207faac5ac6"
                                             "55c313e41ac909322eaa694f5bc5b1")},
+                // Phonon activation.
+                {635259, BlockHash::fromHex("00000000000000000033dfef1fc2d6a5d5"
+                                            "520b078c55193a9bf498c5b27530f7")},
             }};
 
         // Data as of block
@@ -474,6 +477,10 @@ public:
                 {1341712,
                  BlockHash::fromHex("00000000fffc44ea2e202bd905a9fbbb9491ef9e9d"
                                     "5a9eed4039079229afa35b")},
+                // Phonon activation.
+                {1378461, BlockHash::fromHex(
+                              "0000000099f5509b5f36b1926bcf82b21d936ebeade"
+                              "e811030dfbbb7fae915d7")},
             }};
 
         // Data as of block
