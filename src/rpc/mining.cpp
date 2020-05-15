@@ -132,6 +132,8 @@ UniValue generateBlocks(const Config &config,
         nHeightEnd = nHeight + nGenerate;
     }
 
+    const uint64_t nExcessiveBlockSize = config.GetMaxBlockSize();
+
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd && !ShutdownRequested()) {
@@ -148,7 +150,7 @@ UniValue generateBlocks(const Config &config,
         {
             LOCK(cs_main);
             IncrementExtraNonce(pblock, ::ChainActive().Tip(),
-                                config.GetMaxBlockSize(), nExtraNonce);
+                                nExcessiveBlockSize, nExtraNonce);
         }
 
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount &&
@@ -709,8 +711,8 @@ static UniValue getblocktemplate(const Config &config,
     result.pushKV("mintime", int64_t(pindexPrev->GetMedianTimePast()) + 1);
     result.pushKV("mutable", aMutable);
     result.pushKV("noncerange", "00000000ffffffff");
-    // FIXME: Allow for mining block greater than 1M.
-    result.pushKV("sigoplimit", GetMaxBlockSigOpsCount(DEFAULT_MAX_BLOCK_SIZE));
+    result.pushKV("sigoplimit",
+                  GetMaxBlockSigChecksCount(DEFAULT_MAX_BLOCK_SIZE));
     result.pushKV("sizelimit", DEFAULT_MAX_BLOCK_SIZE);
     result.pushKV("curtime", pblock->GetBlockTime());
     result.pushKV("bits", strprintf("%08x", pblock->nBits));
