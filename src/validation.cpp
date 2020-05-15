@@ -5297,7 +5297,6 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     dbp->nPos = nBlockPos;
                 }
                 blkdat.SetLimit(nBlockPos + nSize);
-                blkdat.SetPos(nBlockPos);
                 std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
                 CBlock &block = *pblock;
                 blkdat >> block;
