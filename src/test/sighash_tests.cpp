@@ -162,20 +162,20 @@ BOOST_AUTO_TEST_CASE(sighash_test) {
                                       sigHashType, Amount::zero(), nullptr,
                                       SCRIPT_ENABLE_SIGHASH_FORKID |
                                           SCRIPT_ENABLE_REPLAY_PROTECTION);
-        uint32_t newForValue = 0xff0000 | ((nHashType >> 8) ^ 0xdead);
+        uint32_t newForkValue = 0xff0000 | ((nHashType >> 8) ^ 0xdead);
         uint256 manualshrep = SignatureHash(
             scriptCode, CTransaction(txTo), nIn,
-            sigHashType.withForkValue(newForValue), Amount::zero());
+            sigHashType.withForkValue(newForkValue), Amount::zero());
         BOOST_CHECK(shrep == manualshrep);
 
         // Replay protection works even if the hash is of the form 0xffxxxx
         uint256 shrepff = SignatureHash(
             scriptCode, CTransaction(txTo), nIn,
-            sigHashType.withForkValue(newForValue), Amount::zero(), nullptr,
+            sigHashType.withForkValue(newForkValue), Amount::zero(), nullptr,
             SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_ENABLE_REPLAY_PROTECTION);
         uint256 manualshrepff = SignatureHash(
             scriptCode, CTransaction(txTo), nIn,
-            sigHashType.withForkValue(newForValue ^ 0xdead), Amount::zero());
+            sigHashType.withForkValue(newForkValue ^ 0xdead), Amount::zero());
         BOOST_CHECK(shrepff == manualshrepff);
 
         uint256 shrepabcdef = SignatureHash(
