@@ -63,35 +63,4 @@ bool EvaluateSequenceLocks(const CBlockIndex &block,
 bool SequenceLocks(const CTransaction &tx, int flags,
                    std::vector<int> *prevHeights, const CBlockIndex &block);
 
-/**
- * Count ECDSA signature operations the old-fashioned (pre-0.6) way
- * @return number of sigops this transaction's outputs will produce when spent
- * @see CTransaction::FetchInputs
- */
-uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx, uint32_t flags);
-
-/**
- * Count ECDSA signature operations in pay-to-script-hash inputs.
- *
- * @param[in] mapInputs Map of previous transactions that have outputs we're
- * spending
- * @return maximum number of sigops required to validate this transaction's
- * inputs
- * @see CTransaction::FetchInputs
- */
-uint64_t GetP2SHSigOpCount(const CTransaction &tx,
-                           const CCoinsViewCache &mapInputs, uint32_t flags);
-
-/**
- * Compute total signature operation of a transaction.
- * @param[in] tx     Transaction for which we are computing the count
- * @param[in] inputs Map of previous transactions that have outputs we're
- * spending
- * @param[in] flags  Script verification flags
- * @return Total signature operation count of tx
- */
-uint64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                  const CCoinsViewCache &inputs,
-                                  uint32_t flags);
-
 #endif // BITCOIN_CONSENSUS_TX_VERIFY_H

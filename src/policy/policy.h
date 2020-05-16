@@ -44,10 +44,6 @@ static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
 static const unsigned int MAX_TX_IN_SCRIPT_SIG_SIZE = 1650;
 
 /**
- * The maximum number of sigops we're willing to relay/mine in a single tx.
- */
-static const unsigned int MAX_STANDARD_TX_SIGOPS = MAX_TX_SIGOPS_COUNT / 5;
-/**
  * Default for -maxmempool, maximum megabytes of mempool memory usage.
  */
 static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE = 300;

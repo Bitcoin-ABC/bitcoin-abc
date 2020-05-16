@@ -152,21 +152,6 @@ bool SequenceLocks(const CTransaction &tx, int flags,
         block, CalculateSequenceLocks(tx, flags, prevHeights, block));
 }
 
-uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx, uint32_t flags) {
-    return 0;
-}
-
-uint64_t GetP2SHSigOpCount(const CTransaction &tx, const CCoinsViewCache &view,
-                           uint32_t flags) {
-    return 0;
-}
-
-uint64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                  const CCoinsViewCache &view, uint32_t flags) {
-    return GetSigOpCountWithoutP2SH(tx, flags) +
-           GetP2SHSigOpCount(tx, view, flags);
-}
-
 namespace Consensus {
 bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
                    const CCoinsViewCache &inputs, int nSpendHeight,
