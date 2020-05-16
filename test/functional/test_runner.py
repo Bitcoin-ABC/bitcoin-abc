@@ -662,7 +662,7 @@ def check_script_prefixes(all_scripts):
     # LEEWAY is provided as a transition measure, so that pull-requests
     # that introduce new tests that don't conform with the naming
     # convention don't immediately cause the tests to fail.
-    LEEWAY = 10
+    LEEWAY = 0
 
     good_prefixes_re = re.compile(
         "(abc_)?(example|feature|interface|mempool|mining|p2p|rpc|wallet|tool)_")
