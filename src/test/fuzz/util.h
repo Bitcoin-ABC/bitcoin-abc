@@ -10,6 +10,7 @@
 #include <attributes.h>
 #include <coins.h>
 #include <script/script.h>
+#include <script/standard.h>
 #include <serialize.h>
 #include <streams.h>
 #include <uint256.h>
@@ -18,9 +19,17 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <vector>
+
+namespace fuzzer {
+// FIXME find a better way to avoid duplicating the MAX_MONEY definition
+constexpr int64_t MAX_MONEY_AS_INT = int64_t(21000000) * int64_t(100000000);
+} // end namespace fuzzer
+
+using namespace fuzzer;
 
 NODISCARD inline std::vector<uint8_t>
 ConsumeRandomLengthByteVector(FuzzedDataProvider &fuzzed_data_provider,
@@ -28,6 +37,13 @@ ConsumeRandomLengthByteVector(FuzzedDataProvider &fuzzed_data_provider,
     const std::string s =
         fuzzed_data_provider.ConsumeRandomLengthString(max_length);
     return {s.begin(), s.end()};
+}
+
+NODISCARD inline CDataStream
+ConsumeDataStream(FuzzedDataProvider &fuzzed_data_provider,
+                  const size_t max_length = 4096) noexcept {
+    return {ConsumeRandomLengthByteVector(fuzzed_data_provider, max_length),
+            SER_NETWORK, INIT_PROTO_VERSION};
 }
 
 NODISCARD inline std::vector<std::string>
@@ -81,10 +97,8 @@ ConsumeOpcodeType(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 
 NODISCARD inline Amount
 ConsumeMoney(FuzzedDataProvider &fuzzed_data_provider) noexcept {
-    // FIXME find a better way to avoid duplicating the MAX_MONEY definition
-    int64_t maxMoneyAsInt = int64_t(21000000) * int64_t(100000000);
-    return fuzzed_data_provider.ConsumeIntegralInRange<int64_t>(0,
-                                                                maxMoneyAsInt) *
+    return fuzzed_data_provider.ConsumeIntegralInRange<int64_t>(
+               0, MAX_MONEY_AS_INT) *
            SATOSHI;
 }
 
@@ -100,11 +114,21 @@ ConsumeScriptNum(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return CScriptNum{fuzzed_data_provider.ConsumeIntegral<int64_t>()};
 }
 
+NODISCARD inline uint160
+ConsumeUInt160(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+    const std::vector<uint8_t> v160 =
+        fuzzed_data_provider.ConsumeBytes<uint8_t>(160 / 8);
+    if (v160.size() != 160 / 8) {
+        return {};
+    }
+    return uint160{v160};
+}
+
 NODISCARD inline uint256
 ConsumeUInt256(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     const std::vector<uint8_t> v256 =
-        fuzzed_data_provider.ConsumeBytes<uint8_t>(sizeof(uint256));
-    if (v256.size() != sizeof(uint256)) {
+        fuzzed_data_provider.ConsumeBytes<uint8_t>(256 / 8);
+    if (v256.size() != 256 / 8) {
         return {};
     }
     return uint256{v256};
@@ -113,6 +137,26 @@ ConsumeUInt256(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 NODISCARD inline arith_uint256
 ConsumeArithUInt256(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return UintToArith256(ConsumeUInt256(fuzzed_data_provider));
+}
+
+NODISCARD inline CTxDestination
+ConsumeTxDestination(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+    CTxDestination tx_destination;
+    switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 3)) {
+        case 0: {
+            tx_destination = CNoDestination{};
+            break;
+        }
+        case 1: {
+            tx_destination = PKHash{ConsumeUInt160(fuzzed_data_provider)};
+            break;
+        }
+        case 2: {
+            tx_destination = ScriptHash{ConsumeUInt160(fuzzed_data_provider)};
+            break;
+        }
+    }
+    return tx_destination;
 }
 
 template <typename T>

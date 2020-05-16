@@ -17,6 +17,11 @@ macro(add_fuzz_target TARGET EXE_NAME)
 	set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 
 	target_link_libraries(${TARGET} server testutil rpcclient)
+	if(TARGET bitcoinconsensus-shared)
+		target_link_libraries(${TARGET} bitcoinconsensus-shared)
+	else()
+		target_link_libraries(${TARGET} bitcoinconsensus)
+	endif()
 
 	add_dependencies(bitcoin-fuzzers ${TARGET})
 
@@ -124,8 +129,13 @@ add_regular_fuzz_targets(
 	random
 	rolling_bloom_filter
 	script
+	script_bitcoin_consensus
+	script_descriptor_cache
 	script_flags
+	script_interpreter
 	script_ops
+	script_sigcache
+	script_sign
 	scriptnum_ops
 	signature_checker
 	span
