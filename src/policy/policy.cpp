@@ -154,11 +154,6 @@ bool AreInputsStandard(const CTransaction &tx, const CCoinsViewCache &mapInputs,
         txnouttype whichType = Solver(prev.scriptPubKey, vSolutions);
         if (whichType == TX_NONSTANDARD) {
             return false;
-        } else if (whichType == TX_SCRIPTHASH) {
-            if (prev.scriptPubKey.GetSigOpCount(flags, in.scriptSig) >
-                MAX_P2SH_SIGOPS) {
-                return false;
-            }
         }
     }
 

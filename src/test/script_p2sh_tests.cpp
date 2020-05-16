@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     }
 
     CMutableTransaction txFrom;
-    txFrom.vout.resize(7);
+    txFrom.vout.resize(4);
 
     // First three are standard:
     CScript pay1 = GetScriptForDestination(key[0].GetPubKey().GetID());
@@ -362,32 +362,6 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     keystore.AddCScript(oneAndTwo);
     txFrom.vout[3].scriptPubKey = GetScriptForDestination(CScriptID(oneAndTwo));
     txFrom.vout[3].nValue = 4000 * SATOSHI;
-
-    // vout[4] is max sigops:
-    CScript fifteenSigops;
-    fifteenSigops << OP_1;
-    for (unsigned i = 0; i < MAX_P2SH_SIGOPS; i++) {
-        fifteenSigops << ToByteVector(key[i % 3].GetPubKey());
-    }
-    fifteenSigops << OP_15 << OP_CHECKMULTISIG;
-    keystore.AddCScript(fifteenSigops);
-    txFrom.vout[4].scriptPubKey =
-        GetScriptForDestination(CScriptID(fifteenSigops));
-    txFrom.vout[4].nValue = 5000 * SATOSHI;
-
-    // vout[5/6] are non-standard because they exceed MAX_P2SH_SIGOPS
-    CScript sixteenSigops;
-    sixteenSigops << OP_16 << OP_CHECKMULTISIG;
-    keystore.AddCScript(sixteenSigops);
-    txFrom.vout[5].scriptPubKey =
-        GetScriptForDestination(CScriptID(sixteenSigops));
-    txFrom.vout[5].nValue = 5000 * SATOSHI;
-    CScript twentySigops;
-    twentySigops << OP_CHECKMULTISIG;
-    keystore.AddCScript(twentySigops);
-    txFrom.vout[6].scriptPubKey =
-        GetScriptForDestination(CScriptID(twentySigops));
-    txFrom.vout[6].nValue = 6000 * SATOSHI;
 
     AddCoins(coins, CTransaction(txFrom), 0);
 

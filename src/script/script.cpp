@@ -370,36 +370,6 @@ bool CScriptNum::MinimallyEncode(std::vector<uint8_t> &data) {
     return true;
 }
 
-uint32_t CScript::GetSigOpCount(uint32_t flags, bool fAccurate) const {
-    return 0;
-}
-
-uint32_t CScript::GetSigOpCount(uint32_t flags,
-                                const CScript &scriptSig) const {
-    if ((flags & SCRIPT_VERIFY_P2SH) == 0 || !IsPayToScriptHash()) {
-        return GetSigOpCount(flags, true);
-    }
-
-    // This is a pay-to-script-hash scriptPubKey;
-    // get the last item that the scriptSig
-    // pushes onto the stack:
-    const_iterator pc = scriptSig.begin();
-    std::vector<uint8_t> vData;
-    while (pc < scriptSig.end()) {
-        opcodetype opcode;
-        if (!scriptSig.GetOp(pc, opcode, vData)) {
-            return 0;
-        }
-        if (opcode > OP_16) {
-            return 0;
-        }
-    }
-
-    /// ... and return its opcount:
-    CScript subscript(vData.begin(), vData.end());
-    return subscript.GetSigOpCount(flags, true);
-}
-
 bool CScript::IsPayToScriptHash() const {
     // Extra-fast test for pay-to-script-hash CScripts:
     return (this->size() == 23 && (*this)[0] == OP_HASH160 &&

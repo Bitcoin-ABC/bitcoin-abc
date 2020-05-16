@@ -546,20 +546,6 @@ public:
         return (opcodetype)(OP_1 + n - 1);
     }
 
-    /**
-     * Pre-version-0.6, Bitcoin always counted CHECKMULTISIGs as 20 sigops. With
-     * pay-to-script-hash, that changed: CHECKMULTISIGs serialized in scriptSigs
-     * are counted more accurately, assuming they are of the form
-     *  ... OP_N CHECKMULTISIG ...
-     */
-    uint32_t GetSigOpCount(uint32_t flags, bool fAccurate) const;
-
-    /**
-     * Accurately count sigOps, including sigOps in pay-to-script-hash
-     * transactions:
-     */
-    uint32_t GetSigOpCount(uint32_t flags, const CScript &scriptSig) const;
-
     bool IsPayToScriptHash() const;
     bool IsCommitment(const std::vector<uint8_t> &data) const;
     bool IsWitnessProgram(int &version, std::vector<uint8_t> &program) const;

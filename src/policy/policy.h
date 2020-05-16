@@ -44,10 +44,6 @@ static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
 static const unsigned int MAX_TX_IN_SCRIPT_SIG_SIZE = 1650;
 
 /**
- * Maximum number of signature check operations in an IsStandard() P2SH script.
- */
-static const unsigned int MAX_P2SH_SIGOPS = 15;
-/**
  * The maximum number of sigops we're willing to relay/mine in a single tx.
  */
 static const unsigned int MAX_STANDARD_TX_SIGOPS = MAX_TX_SIGOPS_COUNT / 5;
