@@ -39,4 +39,4 @@ callback() {
 }
 export -f callback
 
-LOG_FILE="${DEBUG_LOG}" "${TOPLEVEL}/contrib/devtools/bitcoind-exit-on-log.sh" --grep 'progress=1.000000' --params "-datadir=${DATA_DIR} $*" --callback callback
+LOG_FILE="${DEBUG_LOG}" "${TOPLEVEL}/contrib/devtools/bitcoind-exit-on-log.sh" --grep 'Leaving InitialBlockDownload (latching to false)' --params "-datadir=${DATA_DIR} $*" --callback callback
