@@ -154,7 +154,6 @@ private:
     int64_t nLockTimeCutoff;
     int64_t nMedianTimePast;
     const CChainParams &chainparams;
-    bool fUseSigChecks;
 
     const CTxMemPool *mempool;
 
@@ -185,13 +184,6 @@ private:
     void resetBlock();
     /** Add a tx to the block */
     void AddToBlock(CTxMemPool::txiter iter);
-
-    /**
-     * Calculate the "SigOps" limit for a given block size (may actually be the
-     * SigChecks limit which is independent of blockSize, depending on
-     * fUseSigChecks)
-     */
-    uint64_t MaxBlockSigOpsCountForSize(uint64_t blockSize) const;
 
     // Methods for how to add transactions to a block.
     /**

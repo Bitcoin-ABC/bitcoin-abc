@@ -161,11 +161,6 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
             ? nMedianTimePast
             : pblock->GetBlockTime();
 
-    // After the sigchecks activation we repurpose the 'sigops' tracking in
-    // mempool/mining to actually track sigchecks instead. (Proper SigOps will
-    // not need to be counted any more since it's getting deactivated.)
-    fUseSigChecks = IsPhononEnabled(chainparams.GetConsensus(), pindexPrev);
-
     int nPackagesSelected = 0;
     int nDescendantsUpdated = 0;
     addPackageTxs(nPackagesSelected, nDescendantsUpdated);
@@ -230,8 +225,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     UpdateTime(pblock, consensusParams, pindexPrev);
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams);
     pblock->nNonce = 0;
-    pblocktemplate->entries[0].sigOpCount = GetSigOpCountWithoutP2SH(
-        *pblocktemplate->entries[0].tx, STANDARD_SCRIPT_VERIFY_FLAGS);
+    pblocktemplate->entries[0].sigOpCount = 0;
 
     CValidationState state;
     if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev,
@@ -266,11 +260,6 @@ void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries &testSet) {
     }
 }
 
-uint64_t BlockAssembler::MaxBlockSigOpsCountForSize(uint64_t blockSize) const {
-    return fUseSigChecks ? nMaxGeneratedBlockSigChecks
-                         : GetMaxBlockSigOpsCount(blockSize);
-}
-
 bool BlockAssembler::TestPackage(uint64_t packageSize,
                                  int64_t packageSigOps) const {
     auto blockSizeWithPackage = nBlockSize + packageSize;
@@ -278,8 +267,7 @@ bool BlockAssembler::TestPackage(uint64_t packageSize,
         return false;
     }
 
-    if (nBlockSigOps + packageSigOps >=
-        MaxBlockSigOpsCountForSize(blockSizeWithPackage)) {
+    if (nBlockSigOps + packageSigOps >= nMaxGeneratedBlockSigChecks) {
         return false;
     }
 
