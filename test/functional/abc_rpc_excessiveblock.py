@@ -19,7 +19,7 @@ BLOCKSIZE_TOO_LOW = "Invalid parameter, excessiveblock must be larger than {}".f
     LEGACY_MAX_BLOCK_SIZE)
 
 
-class ABC_RPC_Test (BitcoinTestFramework):
+class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
@@ -90,4 +90,4 @@ class ABC_RPC_Test (BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    ABC_RPC_Test().main()
+    ExcessiveBlockSizeRPCTest().main()
