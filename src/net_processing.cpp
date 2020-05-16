@@ -2546,8 +2546,10 @@ void PeerManager::ProcessOrphanTx(const Config &config,
             if (orphan_state.IsInvalid()) {
                 // Punish peer that gave us an invalid orphan tx
                 MaybePunishNodeForTx(fromPeer, orphan_state);
-                LogPrint(BCLog::MEMPOOL, "   invalid orphan tx %s\n",
-                         orphanTxId.ToString());
+                LogPrint(BCLog::MEMPOOL,
+                         "   invalid orphan tx %s from peer=%d. %s\n",
+                         orphanTxId.ToString(), fromPeer,
+                         orphan_state.ToString());
             }
             // Has inputs but not accepted to mempool
             // Probably non-standard or insufficient fee

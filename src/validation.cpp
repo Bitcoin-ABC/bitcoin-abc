@@ -551,8 +551,8 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     Amount nFees = Amount::zero();
     if (!Consensus::CheckTxInputs(tx, state, m_view, GetSpendHeight(m_view),
                                   nFees)) {
-        return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
-                     tx.GetId().ToString(), state.ToString());
+        // state filled in by CheckTxInputs
+        return false;
     }
 
     // Check for non-standard pay-to-script-hash in inputs
