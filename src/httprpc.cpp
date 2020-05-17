@@ -401,7 +401,7 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
 
 static bool InitRPCAuthentication() {
     if (gArgs.GetArg("-rpcpassword", "") == "") {
-        LogPrintf("No rpcpassword set - using random cookie authentication.\n");
+        LogPrintf("Using random cookie authentication.\n");
         if (!GenerateAuthCookie(&strRPCUserColonPass)) {
             // Same message as AbortNode.
             uiInterface.ThreadSafeMessageBox(
