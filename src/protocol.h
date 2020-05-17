@@ -458,8 +458,6 @@ public:
         READWRITEAS(CService, *this);
     }
 
-    // TODO: make private (improves encapsulation)
-public:
     ServiceFlags nServices;
 
     // disk and network only
@@ -492,11 +490,9 @@ enum GetDataMsg {
  */
 class CInv {
 public:
-    // TODO: make private (improves encapsulation)
     uint32_t type;
     uint256 hash;
 
-public:
     CInv() : type(0), hash() {}
     CInv(uint32_t typeIn, const uint256 &hashIn) : type(typeIn), hash(hashIn) {}
 
