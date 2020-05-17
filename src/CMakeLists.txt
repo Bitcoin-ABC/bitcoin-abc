@@ -203,8 +203,10 @@ endif()
 
 if(ENABLE_WERROR)
 	add_compiler_flags(
-		-Werror=vla
+		-Werror=return-type
+		-Werror=switch
 		-Werror=thread-safety-analysis
+		-Werror=vla
 	)
 endif()
 

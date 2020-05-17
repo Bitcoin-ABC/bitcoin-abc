@@ -278,7 +278,7 @@ CombinePSBTs(PartiallySignedTransaction &out,
     return TransactionError::OK;
 }
 
-std::string PSBTRoleName(PSBTRole role) {
+std::string PSBTRoleName(const PSBTRole role) {
     switch (role) {
         case PSBTRole::UPDATER:
             return "updater";
@@ -289,6 +289,7 @@ std::string PSBTRoleName(PSBTRole role) {
         case PSBTRole::EXTRACTOR:
             return "extractor";
     }
+    assert(false);
 }
 
 bool DecodeBase64PSBT(PartiallySignedTransaction &psbt,
