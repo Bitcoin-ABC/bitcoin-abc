@@ -59,8 +59,7 @@ static const CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
 /**
  * Default for -bytespersigop .
  */
-static const unsigned int DEFAULT_BYTES_PER_SIGOP =
-    1000000 / MAX_BLOCK_SIGOPS_PER_MB;
+static const unsigned int DEFAULT_BYTES_PER_SIGOP = 50;
 /** Default for -permitbaremultisig */
 static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 /**
