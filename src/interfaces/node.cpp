@@ -278,7 +278,7 @@ namespace {
         loadWallet(const CChainParams &params, const std::string &name,
                    std::string &error, std::string &warning) const override {
             return MakeWallet(
-                LoadWallet(params, *m_interfaces.chain, name, error, warning));
+                LoadWallet(params, *m_context.chain, name, error, warning));
         }
         std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override {
             return MakeHandler(::uiInterface.InitMessage_connect(fn));
