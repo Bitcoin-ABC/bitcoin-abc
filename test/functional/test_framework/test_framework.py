@@ -109,8 +109,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         # know the parser options during setup.
         self.parse_args()
         self.set_test_params()
+        if self.options.timeout_factor == 0:
+            self.options.timeout_factor = 99999
         # optionally, increase timeout by a factor
-        self.rpc_timeout = int(self.rpc_timeout * self.options.factor)
+        self.rpc_timeout = int(self.rpc_timeout * self.options.timeout_factor)
 
     def main(self):
         """Main function. This should not be overridden by the subclass test scripts."""
@@ -175,10 +177,12 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         parser.add_argument("--with-axionactivation", dest="axionactivation", default=False, action="store_true",
                             help="Activate axion update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
         parser.add_argument(
-            '--factor',
+            '--timeout-factor',
+            dest="timeout_factor",
             type=float,
             default=1.0,
-            help='adjust test timeouts by a factor')
+            help='adjust test timeouts by a factor. '
+                 'Setting it to 0 disables all timeouts')
 
         self.add_options(parser)
         self.options = parser.parse_args()
@@ -428,7 +432,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 rpc_port=rpc_port(i),
                 p2p_port=p2p_port(i),
                 timewait=self.rpc_timeout,
-                factor=self.options.factor,
+                timeout_factor=self.options.timeout_factor,
                 bitcoind=binary[i],
                 bitcoin_cli=self.options.bitcoincli,
                 coverage_dir=self.options.coveragedir,
@@ -591,7 +595,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                     rpc_port=rpc_port(CACHE_NODE_ID),
                     p2p_port=p2p_port(CACHE_NODE_ID),
                     timewait=self.rpc_timeout,
-                    factor=self.options.factor,
+                    timeout_factor=self.options.timeout_factor,
                     bitcoind=self.options.bitcoind,
                     bitcoin_cli=self.options.bitcoincli,
                     coverage_dir=None,

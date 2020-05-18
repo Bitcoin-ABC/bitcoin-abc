@@ -194,6 +194,10 @@ Note: gdb attach step may require `sudo`. To get rid of this, you can run:
 echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 ```
 
+Often while debugging rpc calls from functional tests, the test might reach timeout before
+process can return a response. Use `--timeout-factor 0` to disable all rpc timeouts for that particular
+functional test. Ex: `test/functional/test_runner.py wallet_hd --timeout-factor 0`.
+
 ### Benchmarking and profiling with perf
 
 An easy way to profile node performance during functional tests is provided
