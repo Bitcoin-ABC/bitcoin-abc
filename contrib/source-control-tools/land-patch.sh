@@ -69,20 +69,32 @@ if [ -n "${REVISION}" ]; then
   # Temporarily stop verbose logging to prevent leaking CONDUIT_TOKEN
   set +x
   # Fetch the revision and check its review status
-  REVIEW_STATUS=$(curl "https://reviews.bitcoinabc.org/api/differential.revision.search" \
+  REVISION_RESULT=$(curl "https://reviews.bitcoinabc.org/api/differential.revision.search" \
     -d "api.token=${CONDUIT_TOKEN}" \
-    -d "constraints[ids][0]=${REVISION:1}" |\
-    jq '.result.data[].fields.status.value') || {
-      echo "Error: Failed to fetch review status of revision '${REVISION}'"
-      echo "The 'status' fields may be missing or malformed."
-      exit 30
-    }
+    -d "constraints[ids][0]=${REVISION:1}") || {
+      echo "Error: Failed to fetch revision '${REVISION}'"
+      echo "curl output:"
+      echo "${REVISION_RESULT}"
+      exit 20
+  }
   set -x
+
+  ERROR_INFO=$(echo "${REVISION_RESULT}" | jq '.error_info')
+  if [ "${ERROR_INFO}" != "null" ]; then
+    echo "Conduit error while fetching '${REVISION}': ${ERROR_INFO}"
+    exit 21
+  fi
+
+  REVIEW_STATUS=$(echo "${REVISION_RESULT}" | jq '.result.data[].fields.status.value') || {
+    echo "Error: Failed to fetch review status of revision '${REVISION}'"
+    echo "The 'status' fields may be missing or malformed."
+    exit 22
+  }
 
   # We only trust code that has been accepted
   if [ "${REVIEW_STATUS}" != "\"accepted\"" ]; then
     echo "Error: Revision '${REVISION}' has not been accepted"
-    exit 31
+    exit 23
   fi
 fi
 
@@ -106,7 +118,7 @@ export BUILD_DIR
   else
     # TODO: This will primarily be for scheduled, automated commits.
     echo "Error: Landing unreviewed patches is not supported yet."
-    exit 20
+    exit 30
   fi
 
   # TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
@@ -124,7 +136,7 @@ export BUILD_DIR
   else
     # TODO: Push a git commit directly. This will primarily be for scheduled, automated commits.
     echo "Error: Pushing unreviewed patches is not supported yet."
-    exit 30
+    exit 31
   fi
 
   # This MUST be the last line to ensure no changes to this script on-disk can affect the execution
