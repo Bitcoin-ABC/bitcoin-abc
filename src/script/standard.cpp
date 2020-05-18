@@ -8,6 +8,8 @@
 #include <crypto/sha256.h>
 #include <script/script.h>
 
+#include <string>
+
 typedef std::vector<uint8_t> valtype;
 
 bool fAcceptDatacarrier = DEFAULT_ACCEPT_DATACARRIER;
@@ -20,7 +22,7 @@ ScriptHash::ScriptHash(const CScript &in)
 
 PKHash::PKHash(const CPubKey &pubkey) : uint160(pubkey.GetID()) {}
 
-const char *GetTxnOutputType(txnouttype t) {
+std::string GetTxnOutputType(txnouttype t) {
     switch (t) {
         case TX_NONSTANDARD:
             return "nonstandard";
@@ -35,7 +37,7 @@ const char *GetTxnOutputType(txnouttype t) {
         case TX_NULL_DATA:
             return "nulldata";
     }
-    return nullptr;
+    assert(false);
 }
 
 static bool MatchPayToPubkey(const CScript &script, valtype &pubkey) {

@@ -95,7 +95,7 @@ static ScriptErrorDesc script_errors[] = {
     {ScriptError::INVALID_BIT_RANGE, "BIT_RANGE"},
 };
 
-static const char *FormatScriptError(ScriptError err) {
+static std::string FormatScriptError(ScriptError err) {
     for (size_t i = 0; i < ARRAYLEN(script_errors); ++i) {
         if (script_errors[i].err == err) {
             return script_errors[i].name;
@@ -138,10 +138,9 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
                                          &tx, 0, txCredit.vout[0].nValue),
                                      &err) == expect,
                         message);
-    BOOST_CHECK_MESSAGE(err == scriptError,
-                        std::string(FormatScriptError(err)) + " where " +
-                            std::string(FormatScriptError(scriptError)) +
-                            " expected: " + message);
+    BOOST_CHECK_MESSAGE(err == scriptError, FormatScriptError(err) + " where " +
+                                                FormatScriptError(scriptError) +
+                                                " expected: " + message);
 
     // Verify that removing flags from a passing test or adding flags to a
     // failing test does not change the result, except for some special flags.

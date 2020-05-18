@@ -9,8 +9,9 @@
 #include <util/strencodings.h>
 
 #include <algorithm>
+#include <string>
 
-const char *GetOpName(opcodetype opcode) {
+std::string GetOpName(opcodetype opcode) {
     switch (opcode) {
         // push value
         case OP_0:

@@ -6,6 +6,8 @@
 #ifndef BITCOIN_SCRIPT_SCRIPT_ERROR_H
 #define BITCOIN_SCRIPT_SCRIPT_ERROR_H
 
+#include <string>
+
 enum class ScriptError {
     OK = 0,
     UNKNOWN,
@@ -85,7 +87,7 @@ enum class ScriptError {
 
 #define SCRIPT_ERR_LAST ScriptError::ERROR_COUNT
 
-const char *ScriptErrorString(const ScriptError error);
+std::string ScriptErrorString(const ScriptError error);
 
 namespace {
 

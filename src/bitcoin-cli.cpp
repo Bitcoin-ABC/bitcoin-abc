@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <functional>
 #include <memory>
+#include <string>
 #include <tuple>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
@@ -225,7 +226,7 @@ struct HTTPReply {
     std::string body;
 };
 
-static const char *http_errorstring(int code) {
+static std::string http_errorstring(int code) {
     switch (code) {
 #if LIBEVENT_VERSION_NUMBER >= 0x02010300
         case EVREQ_HTTP_TIMEOUT:
