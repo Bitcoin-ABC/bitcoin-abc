@@ -142,8 +142,8 @@ class TestCase():
 
         process.wait()
         log_stdout.seek(0), log_stderr.seek(0)
-        [stdout, stderr] = [l.read().decode('utf-8')
-                            for l in (log_stdout, log_stderr)]
+        [stdout, stderr] = [log.read().decode('utf-8')
+                            for log in (log_stdout, log_stderr)]
         log_stdout.close(), log_stderr.close()
         if process.returncode == TEST_EXIT_PASSED and stderr == "":
             status = "Passed"

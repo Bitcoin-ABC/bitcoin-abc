@@ -744,20 +744,20 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         block, _ = self.build_block_with_transactions(node, utxo, 10)
 
-        [l.clear_block_announcement() for l in listeners]
+        [listener.clear_block_announcement() for listener in listeners]
 
         node.submitblock(ToHex(block))
 
-        for l in listeners:
-            wait_until(lambda: l.received_block_announcement(),
+        for listener in listeners:
+            wait_until(lambda: listener.received_block_announcement(),
                        timeout=30, lock=mininode_lock)
         with mininode_lock:
-            for l in listeners:
-                assert "cmpctblock" in l.last_message
-                l.last_message["cmpctblock"].header_and_shortids.header.calc_sha256(
+            for listener in listeners:
+                assert "cmpctblock" in listener.last_message
+                listener.last_message["cmpctblock"].header_and_shortids.header.calc_sha256(
                 )
                 assert_equal(
-                    l.last_message["cmpctblock"].header_and_shortids.header.sha256, block.sha256)
+                    listener.last_message["cmpctblock"].header_and_shortids.header.sha256, block.sha256)
 
     # Test that we don't get disconnected if we relay a compact block with valid header,
     # but invalid transactions.

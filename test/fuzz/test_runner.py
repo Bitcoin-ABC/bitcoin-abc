@@ -122,10 +122,10 @@ def run_once(*, corpus, test_list, test_dir, export_coverage):
         logging.debug('Output: {}'.format(output))
         if not export_coverage:
             continue
-        for l in output.splitlines():
-            if 'INITED' in l:
+        for line in output.splitlines():
+            if 'INITED' in line:
                 with open(os.path.join(corpus, t + '_coverage'), 'w', encoding='utf-8') as cov_file:
-                    cov_file.write(l)
+                    cov_file.write(line)
                     break
 
 

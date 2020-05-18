@@ -194,7 +194,7 @@ def find_errors(file):
     pattern = re.compile(r"(?:\"|')\s*\\?\s+%\s+(?:\\\s+)?.+$", re.MULTILINE)
     snippets = find_snippets(file)
     return dict(
-        [(l, s) for l, s in snippets.items() if pattern.search(s) is not None])
+        [(line, snippet) for line, snippet in snippets.items() if pattern.search(snippet) is not None])
 
 
 def main(file):
