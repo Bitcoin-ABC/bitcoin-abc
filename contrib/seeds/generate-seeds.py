@@ -119,7 +119,10 @@ def process_nodes(g, f, structname, defaultport):
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: {} <path_to_nodes_txt>'.format(sys.argv[0]), file=sys.stderr)
+        print(
+            'Usage: {} <path_to_nodes_txt>'.format(
+                sys.argv[0]),
+            file=sys.stderr)
         sys.exit(1)
     g = sys.stdout
     indir = sys.argv[1]

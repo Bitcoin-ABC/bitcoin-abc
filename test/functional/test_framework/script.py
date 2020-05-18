@@ -532,7 +532,7 @@ class CScript(bytes):
                 # Check for truncation
                 if len(data) < datasize:
                     raise CScriptTruncatedPushDataError(
-                        '{}: truncated data'.format(pushdata_type, data))
+                        '{}: truncated data'.format(pushdata_type), data)
 
                 i += datasize
 
