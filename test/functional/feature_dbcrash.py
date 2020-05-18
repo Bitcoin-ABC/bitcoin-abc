@@ -252,11 +252,23 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
 
         starting_tip_height = self.nodes[3].getblockcount()
 
+        # Set mock time to the last block time. This will allow us to increase
+        # the time at each loop so the block hash will always differ for the
+        # same block height, and avoid duplication.
+        # Note that the current time can be behind the block time due to the
+        # way the miner sets the block time.
+        tip = self.nodes[3].getbestblockhash()
+        block_time = self.nodes[3].getblockheader(tip)['time']
+        self.nodes[3].setmocktime(block_time)
+
         # Main test loop:
         # each time through the loop, generate a bunch of transactions,
         # and then either mine a single new block on the tip, or some-sized
         # reorg.
         for i in range(40):
+            block_time += 10
+            self.nodes[3].setmocktime(block_time)
+
             self.log.info(
                 "Iteration {}, generating 2500 transactions {}".format(
                     i, self.restart_counts))
