@@ -641,7 +641,9 @@ bool RPCConsole::eventFilter(QObject *obj, QEvent *event) {
     return QWidget::eventFilter(obj, event);
 }
 
-void RPCConsole::setClientModel(ClientModel *model) {
+void RPCConsole::setClientModel(ClientModel *model, int bestblock_height,
+                                int64_t bestblock_date,
+                                double verification_progress) {
     clientModel = model;
 
     bool wallet_enabled{false};
@@ -663,10 +665,8 @@ void RPCConsole::setClientModel(ClientModel *model) {
         connect(model, &ClientModel::numConnectionsChanged, this,
                 &RPCConsole::setNumConnections);
 
-        interfaces::Node &node = clientModel->node();
-        setNumBlocks(node.getNumBlocks(),
-                     QDateTime::fromTime_t(node.getLastBlockTime()),
-                     node.getVerificationProgress(), false);
+        setNumBlocks(bestblock_height, QDateTime::fromTime_t(bestblock_date),
+                     verification_progress, false);
         connect(model, &ClientModel::numBlocksChanged, this,
                 &RPCConsole::setNumBlocks);
 
@@ -674,6 +674,7 @@ void RPCConsole::setClientModel(ClientModel *model) {
         connect(model, &ClientModel::networkActiveChanged, this,
                 &RPCConsole::setNetworkActive);
 
+        interfaces::Node &node = clientModel->node();
         updateTrafficStats(node.getTotalBytesRecv(), node.getTotalBytesSent());
         connect(model, &ClientModel::bytesChanged, this,
                 &RPCConsole::updateTrafficStats);
