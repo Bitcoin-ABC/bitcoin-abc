@@ -52,6 +52,7 @@ static_assert(sizeof(double) == 8, "64-bit double assumed");
 //             code.
 static_assert(sizeof(short) == 2, "16-bit short assumed");
 static_assert(sizeof(int) == 4, "32-bit int assumed");
+static_assert(sizeof(unsigned) == 4, "32-bit unsigned assumed");
 
 // Assumption: We assume 8-bit bytes, because 32-bit int and 16-bit short are
 // assumed.
