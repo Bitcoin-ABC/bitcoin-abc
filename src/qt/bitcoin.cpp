@@ -84,6 +84,8 @@ static void RegisterMetaTypes() {
 
     qRegisterMetaType<std::function<void()>>("std::function<void()>");
     qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
+    qRegisterMetaType<interfaces::BlockAndHeaderTipInfo>(
+        "interfaces::BlockAndHeaderTipInfo");
 
     // Need to register any types Qt doesn't know about if you intend
     // to use them with the signal/slot mechanism Qt provides. Even pointers.
@@ -185,9 +187,11 @@ void BitcoinABC::initialize(Config *config, RPCServer *rpcServer,
     try {
         qDebug() << __func__ << ": Running initialization in thread";
         util::ThreadRename("qt-init");
-        bool rv =
-            m_node.appInitMain(*config, *rpcServer, *httpRPCRequestProcessor);
-        Q_EMIT initializeResult(rv);
+
+        interfaces::BlockAndHeaderTipInfo tip_info;
+        bool rv = m_node.appInitMain(*config, *rpcServer,
+                                     *httpRPCRequestProcessor, &tip_info);
+        Q_EMIT initializeResult(rv, tip_info);
     } catch (const std::exception &e) {
         handleRunawayException(&e);
     } catch (...) {
@@ -389,7 +393,8 @@ void BitcoinApplication::requestShutdown(Config &config) {
     Q_EMIT requestedShutdown();
 }
 
-void BitcoinApplication::initializeResult(bool success) {
+void BitcoinApplication::initializeResult(
+    bool success, interfaces::BlockAndHeaderTipInfo tip_info) {
     qDebug() << __func__ << ": Initialization result: " << success;
     returnValue = success ? EXIT_SUCCESS : EXIT_FAILURE;
     if (!success) {
@@ -403,7 +408,7 @@ void BitcoinApplication::initializeResult(bool success) {
     // guaranteed complete.
     qInfo() << "Platform customization:" << platformStyle->getName();
     clientModel = new ClientModel(node(), optionsModel);
-    window->setClientModel(clientModel);
+    window->setClientModel(clientModel, &tip_info);
 #ifdef ENABLE_WALLET
     if (WalletModel::isWalletEnabled()) {
         m_wallet_controller =

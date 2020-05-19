@@ -14,6 +14,8 @@
 #include <cassert>
 #include <memory>
 
+#include <interfaces/node.h>
+
 class BitcoinGUI;
 class ClientModel;
 class Config;
@@ -26,11 +28,6 @@ class RPCServer;
 class SplashScreen;
 class WalletController;
 class WalletModel;
-
-namespace interfaces {
-class Handler;
-class Node;
-} // namespace interfaces
 
 /**
  * Class encapsulating Bitcoin ABC startup and shutdown.
@@ -47,7 +44,8 @@ public Q_SLOTS:
     void shutdown();
 
 Q_SIGNALS:
-    void initializeResult(bool success);
+    void initializeResult(bool success,
+                          interfaces::BlockAndHeaderTipInfo tip_info);
     void shutdownResult();
     void runawayException(const QString &message);
 
@@ -105,7 +103,8 @@ public:
     void setNode(interfaces::Node &node);
 
 public Q_SLOTS:
-    void initializeResult(bool success);
+    void initializeResult(bool success,
+                          interfaces::BlockAndHeaderTipInfo tip_info);
     void shutdownResult();
     /// Handle runaway exceptions. Shows a message box with the problem and
     /// quits the program.

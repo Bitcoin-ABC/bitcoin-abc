@@ -81,6 +81,8 @@ void AppTests::appTests() {
         return GetDataDir() / "blocks";
     }());
 
+    qRegisterMetaType<interfaces::BlockAndHeaderTipInfo>(
+        "interfaces::BlockAndHeaderTipInfo");
     m_app.parameterSetup();
     m_app.createOptionsModel(true /* reset settings */);
     QScopedPointer<const NetworkStyle> style(
