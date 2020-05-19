@@ -1256,6 +1256,8 @@ static void ThreadImport(const Config &config,
     ScheduleBatchPriority();
 
     {
+        const CChainParams &chainParams = config.GetChainParams();
+
         CImportingNow imp;
 
         // -reindex
@@ -1282,7 +1284,7 @@ static void ThreadImport(const Config &config,
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
-            LoadGenesisBlock(config.GetChainParams());
+            LoadGenesisBlock(chainParams);
         }
 
         // hardcoded $DATADIR/bootstrap.dat
@@ -1309,6 +1311,23 @@ static void ThreadImport(const Config &config,
             } else {
                 LogPrintf("Warning: Could not open blocks file %s\n",
                           path.string());
+            }
+        }
+
+        // Reconsider blocks we know are valid. They may have been marked
+        // invalid by, for instance, running an outdated version of the node
+        // software.
+        const MapCheckpoints &checkpoints =
+            chainParams.Checkpoints().mapCheckpoints;
+        for (const MapCheckpoints::value_type &i : checkpoints) {
+            const BlockHash &hash = i.second;
+
+            LOCK(cs_main);
+            CBlockIndex *pblockindex = LookupBlockIndex(hash);
+            if (pblockindex && !pblockindex->nStatus.isValid()) {
+                LogPrintf("Reconsidering checkpointed block %s ...\n",
+                          hash.GetHex());
+                ResetBlockFailureFlags(pblockindex);
             }
         }
 
