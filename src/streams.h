@@ -48,6 +48,7 @@ public:
 
     int GetVersion() const { return nVersion; }
     int GetType() const { return nType; }
+    void ignore(size_t size) { return stream->ignore(size); }
 };
 
 template <typename S> OverrideStream<S> WithOrVersion(S *s, int nVersionFlag) {

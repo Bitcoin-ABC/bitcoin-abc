@@ -5,8 +5,12 @@
 #include <netbase.h>
 
 #include <net_permissions.h>
+#include <protocol.h>
+#include <serialize.h>
+#include <streams.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
+#include <version.h>
 
 #include <test/util/setup_common.h>
 
@@ -519,6 +523,134 @@ BOOST_AUTO_TEST_CASE(
         std::string("5wyqrzbvrdsumnok.onion\0example.com", 34), ret));
     BOOST_CHECK(!LookupSubNet(
         std::string("5wyqrzbvrdsumnok.onion\0example.com\0", 35), ret));
+}
+
+// Since CNetAddr (un)ser is tested separately in net_tests.cpp here we only
+// try a few edge cases for port, service flags and time.
+
+static const std::vector<CAddress> fixture_addresses(
+    {CAddress(CService(CNetAddr(in6_addr(IN6ADDR_LOOPBACK_INIT)), 0 /* port */),
+              NODE_NONE, 0x4966bc61U /* Fri Jan  9 02:54:25 UTC 2009 */
+              ),
+     CAddress(CService(CNetAddr(in6_addr(IN6ADDR_LOOPBACK_INIT)),
+                       0x00f1 /* port */),
+              NODE_NETWORK, 0x83766279U /* Tue Nov 22 11:22:33 UTC 2039 */
+              ),
+     CAddress(
+         CService(CNetAddr(in6_addr(IN6ADDR_LOOPBACK_INIT)), 0xf1f2 /* port */),
+         static_cast<ServiceFlags>(NODE_COMPACT_FILTERS | NODE_NETWORK_LIMITED),
+         0xffffffffU /* Sun Feb  7 06:28:15 UTC 2106 */
+         )});
+
+// fixture_addresses should equal to this when serialized in V1 format.
+// When this is unserialized from V1 format it should equal to
+// fixture_addresses.
+static constexpr const char *stream_addrv1_hex =
+    // number of entries
+    "03"
+
+    // time, Fri Jan  9 02:54:25 UTC 2009
+    "61bc6649"
+    // service flags, NODE_NONE
+    "0000000000000000"
+    // address, fixed 16 bytes (IPv4 embedded in IPv6)
+    "00000000000000000000000000000001"
+    // port
+    "0000"
+
+    // time, Tue Nov 22 11:22:33 UTC 2039
+    "79627683"
+    // service flags, NODE_NETWORK
+    "0100000000000000"
+    // address, fixed 16 bytes (IPv6)
+    "00000000000000000000000000000001"
+    // port
+    "00f1"
+
+    // time, Sun Feb  7 06:28:15 UTC 2106
+    "ffffffff"
+    // service flags, NODE_COMPACT_FILTERS | NODE_NETWORK_LIMITED
+    "4004000000000000"
+    // address, fixed 16 bytes (IPv6)
+    "00000000000000000000000000000001"
+    // port
+    "f1f2";
+
+// fixture_addresses should equal to this when serialized in V2 format.
+// When this is unserialized from V2 format it should equal to
+// fixture_addresses.
+static constexpr const char *stream_addrv2_hex =
+    // number of entries
+    "03"
+
+    // time, Fri Jan  9 02:54:25 UTC 2009
+    "61bc6649"
+    // service flags, COMPACTSIZE(NODE_NONE)
+    "00"
+    // network id, IPv6
+    "02"
+    // address length, COMPACTSIZE(16)
+    "10"
+    // address
+    "00000000000000000000000000000001"
+    // port
+    "0000"
+
+    // time, Tue Nov 22 11:22:33 UTC 2039
+    "79627683"
+    // service flags, COMPACTSIZE(NODE_NETWORK)
+    "01"
+    // network id, IPv6
+    "02"
+    // address length, COMPACTSIZE(16)
+    "10"
+    // address
+    "00000000000000000000000000000001"
+    // port
+    "00f1"
+
+    // time, Sun Feb  7 06:28:15 UTC 2106
+    "ffffffff"
+    // service flags, COMPACTSIZE(NODE_COMPACT_FILTERS | NODE_NETWORK_LIMITED)
+    "fd4004"
+    // network id, IPv6
+    "02"
+    // address length, COMPACTSIZE(16)
+    "10"
+    // address
+    "00000000000000000000000000000001"
+    // port
+    "f1f2";
+
+BOOST_AUTO_TEST_CASE(caddress_serialize_v1) {
+    CDataStream s(SER_NETWORK, PROTOCOL_VERSION);
+
+    s << fixture_addresses;
+    BOOST_CHECK_EQUAL(HexStr(s), stream_addrv1_hex);
+}
+
+BOOST_AUTO_TEST_CASE(caddress_unserialize_v1) {
+    CDataStream s(ParseHex(stream_addrv1_hex), SER_NETWORK, PROTOCOL_VERSION);
+    std::vector<CAddress> addresses_unserialized;
+
+    s >> addresses_unserialized;
+    BOOST_CHECK(fixture_addresses == addresses_unserialized);
+}
+
+BOOST_AUTO_TEST_CASE(caddress_serialize_v2) {
+    CDataStream s(SER_NETWORK, PROTOCOL_VERSION | ADDRV2_FORMAT);
+
+    s << fixture_addresses;
+    BOOST_CHECK_EQUAL(HexStr(s), stream_addrv2_hex);
+}
+
+BOOST_AUTO_TEST_CASE(caddress_unserialize_v2) {
+    CDataStream s(ParseHex(stream_addrv2_hex), SER_NETWORK,
+                  PROTOCOL_VERSION | ADDRV2_FORMAT);
+    std::vector<CAddress> addresses_unserialized;
+
+    s >> addresses_unserialized;
+    BOOST_CHECK(fixture_addresses == addresses_unserialized);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
