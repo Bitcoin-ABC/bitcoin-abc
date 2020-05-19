@@ -4744,7 +4744,10 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                             {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO,
                              "The output number"},
                             {"sequence", RPCArg::Type::NUM,
-                             RPCArg::Optional::NO, "The sequence number"},
+                             /* default */
+                             "depends on the value of the 'locktime' and "
+                             "'options.replaceable' arguments",
+                             "The sequence number"},
                         },
                     },
                 },
