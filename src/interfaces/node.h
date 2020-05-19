@@ -43,6 +43,15 @@ class Handler;
 class Wallet;
 struct BlockTip;
 
+//! Block and header tip information
+struct BlockAndHeaderTipInfo {
+    int block_height;
+    int64_t block_time;
+    int header_height;
+    int64_t header_time;
+    double verification_progress;
+};
+
 //! Top-level interface for a bitcoin node (bitcoind process).
 class Node {
 public:
@@ -63,7 +72,8 @@ public:
     //! Start node.
     virtual bool
     appInitMain(Config &config, RPCServer &rpcServer,
-                HTTPRPCRequestProcessor &httpRPCRequestProcessor) = 0;
+                HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                interfaces::BlockAndHeaderTipInfo *tip_info = nullptr) = 0;
 
     //! Stop node.
     virtual void appShutdown() = 0;

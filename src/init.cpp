@@ -32,6 +32,7 @@
 #include <index/blockfilterindex.h>
 #include <index/txindex.h>
 #include <interfaces/chain.h>
+#include <interfaces/node.h>
 #include <key.h>
 #include <miner.h>
 #include <net.h>
@@ -2115,7 +2116,8 @@ bool AppInitLockDataDirectory() {
 
 bool AppInitMain(Config &config, RPCServer &rpcServer,
                  HTTPRPCRequestProcessor &httpRPCRequestProcessor,
-                 NodeContext &node) {
+                 NodeContext &node,
+                 interfaces::BlockAndHeaderTipInfo *tip_info) {
     // Step 4a: application initialization
     const ArgsManager &args = *Assert(node.args);
     const CChainParams &chainparams = config.GetChainParams();
@@ -2907,6 +2909,19 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LOCK(cs_main);
         LogPrintf("block tree size = %u\n", chainman.BlockIndex().size());
         chain_active_height = chainman.ActiveChain().Height();
+        if (tip_info) {
+            tip_info->block_height = chain_active_height;
+            tip_info->block_time =
+                chainman.ActiveChain().Tip()
+                    ? chainman.ActiveChain().Tip()->GetBlockTime()
+                    : Params().GenesisBlock().GetBlockTime();
+            tip_info->verification_progress = GuessVerificationProgress(
+                Params().TxData(), chainman.ActiveChain().Tip());
+        }
+        if (tip_info && ::pindexBestHeader) {
+            tip_info->header_height = ::pindexBestHeader->nHeight;
+            tip_info->header_time = ::pindexBestHeader->GetBlockTime();
+        }
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);
 

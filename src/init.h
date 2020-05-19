@@ -18,6 +18,9 @@ class CScheduler;
 class CWallet;
 class HTTPRPCRequestProcessor;
 struct NodeContext;
+namespace interfaces {
+struct BlockAndHeaderTipInfo;
+}
 class RPCServer;
 
 namespace boost {
@@ -74,7 +77,8 @@ bool AppInitLockDataDirectory();
  */
 bool AppInitMain(Config &config, RPCServer &rpcServer,
                  HTTPRPCRequestProcessor &httpRPCRequestProcessor,
-                 NodeContext &node);
+                 NodeContext &node,
+                 interfaces::BlockAndHeaderTipInfo *tip_info = nullptr);
 
 /**
  * Register all arguments with the ArgsManager

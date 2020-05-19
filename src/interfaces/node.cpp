@@ -78,12 +78,12 @@ namespace {
                    AppInitParameterInteraction(config, gArgs) &&
                    AppInitSanityChecks() && AppInitLockDataDirectory();
         }
-        bool
-        appInitMain(Config &config, RPCServer &rpcServer,
-                    HTTPRPCRequestProcessor &httpRPCRequestProcessor) override {
+        bool appInitMain(Config &config, RPCServer &rpcServer,
+                         HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                         interfaces::BlockAndHeaderTipInfo *tip_info) override {
             m_context->chain = MakeChain(*m_context, config.GetChainParams());
             return AppInitMain(config, rpcServer, httpRPCRequestProcessor,
-                               *m_context);
+                               *m_context, tip_info);
         }
         void appShutdown() override {
             Interrupt(*m_context);
