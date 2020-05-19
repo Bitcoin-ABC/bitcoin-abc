@@ -302,8 +302,11 @@ class TestNode():
                         self.host,
                         self.rpc_port),
                     self.index,
-                    timeout=self.rpc_timeout,
-                    coveragedir=self.coverage_dir)
+                    # Shorter timeout to allow for one retry in case of
+                    # ETIMEDOUT
+                    timeout=self.rpc_timeout // 2,
+                    coveragedir=self.coverage_dir
+                )
                 rpc.getblockcount()
                 # If the call to getblockcount() succeeds then the RPC
                 # connection is up
@@ -343,8 +346,15 @@ class TestNode():
                 # succeeds. Try again to properly raise the FailedToStartError
                 pass
             except OSError as e:
-                if e.errno != errno.ECONNREFUSED:  # Port not yet open?
-                    raise  # unknown OS error
+                if e.errno == errno.ETIMEDOUT:
+                    # Treat identical to ConnectionResetError
+                    pass
+                elif e.errno == errno.ECONNREFUSED:
+                    # Port not yet open?
+                    pass
+                else:
+                    # unknown OS error
+                    raise
             except ValueError as e:
                 # cookie file not found and no rpcuser or rpcpassword;
                 # bitcoind is still starting
