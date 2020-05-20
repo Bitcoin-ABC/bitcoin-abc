@@ -42,34 +42,6 @@ static void CheckPassWithFlags(const uint32_t flags,
 }
 
 /**
- * Verifies that the given error occurs with OP_REVERSEBYTES enabled
- * and that BAD_OPCODE occurs if disabled.
- */
-static void CheckErrorIfEnabled(const uint32_t flags,
-                                const stacktype &original_stack,
-                                const CScript &script,
-                                const ScriptError expected) {
-    CheckErrorWithFlags(flags | SCRIPT_ENABLE_OP_REVERSEBYTES, original_stack,
-                        script, expected);
-    CheckErrorWithFlags(flags & ~SCRIPT_ENABLE_OP_REVERSEBYTES, original_stack,
-                        script, ScriptError::BAD_OPCODE);
-}
-
-/**
- * Verifies that the given stack results with OP_REVERSEBYTES enabled
- * and that BAD_OPCODE occurs if disabled.
- */
-static void CheckPassIfEnabled(const uint32_t flags,
-                               const stacktype &original_stack,
-                               const CScript &script,
-                               const stacktype &expected) {
-    CheckPassWithFlags(flags | SCRIPT_ENABLE_OP_REVERSEBYTES, original_stack,
-                       script, expected);
-    CheckErrorWithFlags(flags & ~SCRIPT_ENABLE_OP_REVERSEBYTES, original_stack,
-                        script, ScriptError::BAD_OPCODE);
-}
-
-/**
  * Verifies the different combinations of a given test case.
  * Checks if
  * - <item> OP_REVERSEBYTES results in <reversed_item>,
@@ -79,13 +51,13 @@ static void CheckPassIfEnabled(const uint32_t flags,
  */
 static void CheckPassForCombinations(const uint32_t flags, const valtype &item,
                                      const valtype &reversed_item) {
-    CheckPassIfEnabled(flags, {item}, CScript() << OP_REVERSEBYTES,
+    CheckPassWithFlags(flags, {item}, CScript() << OP_REVERSEBYTES,
                        {reversed_item});
-    CheckPassIfEnabled(flags, {reversed_item}, CScript() << OP_REVERSEBYTES,
+    CheckPassWithFlags(flags, {reversed_item}, CScript() << OP_REVERSEBYTES,
                        {item});
-    CheckPassIfEnabled(flags, {item},
+    CheckPassWithFlags(flags, {item},
                        CScript() << OP_REVERSEBYTES << OP_REVERSEBYTES, {item});
-    CheckPassIfEnabled(flags, {reversed_item},
+    CheckPassWithFlags(flags, {reversed_item},
                        CScript() << OP_REVERSEBYTES << OP_REVERSEBYTES,
                        {reversed_item});
 }
@@ -162,7 +134,7 @@ BOOST_AUTO_TEST_CASE(op_reversebytes_random_and_palindrome) {
             // Verify random data passes.
             CheckPassForCombinations(flags, random_data, random_data_reversed);
             // Verify palindrome check passes.
-            CheckPassIfEnabled(flags, {palindrome},
+            CheckPassWithFlags(flags, {palindrome},
                                CScript() << OP_REVERSEBYTES, {palindrome});
         }
     }
@@ -175,13 +147,13 @@ BOOST_AUTO_TEST_CASE(op_reversebytes_failures) {
         uint32_t flags = lcg.next();
 
         // Verify non-palindrome fails.
-        CheckErrorIfEnabled(flags, {{0x01, 0x02, 0x03, 0x02, 0x02}},
+        CheckErrorWithFlags(flags, {{0x01, 0x02, 0x03, 0x02, 0x02}},
                             CScript()
                                 << OP_DUP << OP_REVERSEBYTES << OP_EQUALVERIFY,
                             ScriptError::EQUALVERIFY);
 
         // Test empty stack results in INVALID_STACK_OPERATION.
-        CheckErrorIfEnabled(flags, {}, CScript() << OP_REVERSEBYTES,
+        CheckErrorWithFlags(flags, {}, CScript() << OP_REVERSEBYTES,
                             ScriptError::INVALID_STACK_OPERATION);
     }
 }

@@ -1236,10 +1236,6 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                     } break;
 
                     case OP_REVERSEBYTES: {
-                        if (!(flags & SCRIPT_ENABLE_OP_REVERSEBYTES)) {
-                            return set_error(serror, ScriptError::BAD_OPCODE);
-                        }
-
                         // (in -- out)
                         if (stack.size() < 1) {
                             return set_error(
