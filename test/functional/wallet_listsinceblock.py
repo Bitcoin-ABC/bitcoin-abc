@@ -99,7 +99,8 @@ class ListSinceBlockTest (BitcoinTestFramework):
         self.nodes[2].generate(7)
         self.log.info('lastblockhash={}'.format(lastblockhash))
 
-        self.sync_all([self.nodes[:2], self.nodes[2:]])
+        self.sync_all(self.nodes[:2])
+        self.sync_all(self.nodes[2:])
 
         self.join_network()
 

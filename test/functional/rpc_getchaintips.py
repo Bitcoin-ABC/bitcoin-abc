@@ -32,7 +32,8 @@ class GetChainTipsTest (BitcoinTestFramework):
             10, self.nodes[0].get_deterministic_priv_key().address)
         self.nodes[2].generatetoaddress(
             20, self.nodes[2].get_deterministic_priv_key().address)
-        self.sync_all([self.nodes[:2], self.nodes[2:]])
+        self.sync_all(self.nodes[:2])
+        self.sync_all(self.nodes[2:])
 
         tips = self.nodes[1].getchaintips()
         assert_equal(len(tips), 1)

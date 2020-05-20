@@ -38,7 +38,7 @@ class WalletTest(BitcoinTestFramework):
         connect_nodes_bi(self.nodes[0], self.nodes[1])
         connect_nodes_bi(self.nodes[1], self.nodes[2])
         connect_nodes_bi(self.nodes[0], self.nodes[2])
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
     def check_fee_amount(self, curr_balance,
                          balance_with_fee, fee_per_byte, tx_size):
@@ -61,9 +61,9 @@ class WalletTest(BitcoinTestFramework):
         assert_equal(walletinfo['immature_balance'], 50)
         assert_equal(walletinfo['balance'], 0)
 
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         self.nodes[1].generate(101)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
         assert_equal(self.nodes[0].getbalance(), 50)
         assert_equal(self.nodes[1].getbalance(), 50)
@@ -114,7 +114,7 @@ class WalletTest(BitcoinTestFramework):
 
         # Have node0 mine a block, thus it will collect its own fee.
         self.nodes[0].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
         # Exercise locking of unspent outputs
         unspent_0 = self.nodes[2].listunspent()[0]
@@ -143,7 +143,7 @@ class WalletTest(BitcoinTestFramework):
 
         # Have node1 generate 100 blocks (so node0 can recover the fee)
         self.nodes[1].generate(100)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
         # node0 should end up with 100 btc in block rewards plus fees, but
         # minus the 21 plus fees sent to node2
@@ -173,7 +173,7 @@ class WalletTest(BitcoinTestFramework):
 
         # Have node1 mine a block to confirm transactions:
         self.nodes[1].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
         assert_equal(self.nodes[0].getbalance(), 0)
         assert_equal(self.nodes[2].getbalance(), 94)
@@ -191,7 +191,7 @@ class WalletTest(BitcoinTestFramework):
         self.nodes[2].settxfee(fee_per_byte * 1000)
         txid = self.nodes[2].sendtoaddress(address, 10, "", "", False)
         self.nodes[2].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         ctx = FromHex(CTransaction(),
                       self.nodes[2].gettransaction(txid)['hex'])
 
@@ -202,7 +202,7 @@ class WalletTest(BitcoinTestFramework):
         # Send 10 BCH with subtract fee from amount
         txid = self.nodes[2].sendtoaddress(address, 10, "", "", True)
         self.nodes[2].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         node_2_bal -= Decimal('10')
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
         node_0_bal = self.check_fee_amount(self.nodes[0].getbalance(), Decimal(
@@ -211,7 +211,7 @@ class WalletTest(BitcoinTestFramework):
         # Sendmany 10 BCH
         txid = self.nodes[2].sendmany('', {address: 10}, 0, "", [])
         self.nodes[2].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         node_0_bal += Decimal('10')
         ctx = FromHex(CTransaction(),
                       self.nodes[2].gettransaction(txid)['hex'])
@@ -222,7 +222,7 @@ class WalletTest(BitcoinTestFramework):
         # Sendmany 10 BCH with subtract fee from amount
         txid = self.nodes[2].sendmany('', {address: 10}, 0, "", [address])
         self.nodes[2].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         node_2_bal -= Decimal('10')
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
         ctx = FromHex(CTransaction(),
@@ -273,13 +273,13 @@ class WalletTest(BitcoinTestFramework):
         connect_nodes_bi(self.nodes[0], self.nodes[1])
         connect_nodes_bi(self.nodes[1], self.nodes[2])
         connect_nodes_bi(self.nodes[0], self.nodes[2])
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
         txIdNotBroadcasted = self.nodes[0].sendtoaddress(
             self.nodes[2].getnewaddress(), 2)
         txObjNotBroadcasted = self.nodes[0].gettransaction(txIdNotBroadcasted)
         self.nodes[1].generate(1)  # mine a block, tx should not be in there
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         # should not be changed because tx was not broadcasted
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
 
@@ -287,7 +287,7 @@ class WalletTest(BitcoinTestFramework):
         # balance
         self.nodes[1].sendrawtransaction(txObjNotBroadcasted['hex'])
         self.nodes[1].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         node_2_bal += 2
         txObjNotBroadcasted = self.nodes[0].gettransaction(txIdNotBroadcasted)
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
@@ -343,7 +343,7 @@ class WalletTest(BitcoinTestFramework):
         address_to_import = self.nodes[2].getnewaddress()
         txid = self.nodes[0].sendtoaddress(address_to_import, 1)
         self.nodes[0].generate(1)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
         # 2. Import address from node2 to node1
         self.nodes[1].importaddress(address_to_import)
@@ -369,15 +369,15 @@ class WalletTest(BitcoinTestFramework):
         cbAddr = self.nodes[1].getnewaddress()
         blkHash = self.nodes[0].generatetoaddress(1, cbAddr)[0]
         cbTxId = self.nodes[0].getblock(blkHash)['tx'][0]
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
 
         # Check that the txid and balance is found by node1
         self.nodes[1].gettransaction(cbTxId)
 
         # check if wallet or blockchain maintenance changes the balance
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         blocks = self.nodes[0].generate(2)
-        self.sync_all([self.nodes[0:3]])
+        self.sync_all(self.nodes[0:3])
         balance_nodes = [self.nodes[i].getbalance() for i in range(3)]
         block_count = self.nodes[0].getblockcount()
 
