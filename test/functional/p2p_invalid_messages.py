@@ -5,6 +5,7 @@
 """Test node responses to invalid network messages."""
 import asyncio
 import struct
+import time
 
 from test_framework.messages import (
     CBlockHeader,
@@ -22,6 +23,7 @@ from test_framework.mininode import (
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import hex_str_to_bytes
 
 
 class msg_unrecognized:
@@ -37,6 +39,11 @@ class msg_unrecognized:
 
     def __repr__(self):
         return "{}(data={})".format(self.msgtype, self.str_data)
+
+
+class SenderOfAddrV2(P2PInterface):
+    def wait_for_sendaddrv2(self):
+        self.wait_until(lambda: 'sendaddrv2' in self.last_message)
 
 
 class InvalidMessagesTest(BitcoinTestFramework):
@@ -59,6 +66,10 @@ class InvalidMessagesTest(BitcoinTestFramework):
         self.test_checksum()
         self.test_size()
         self.test_msgtype()
+        self.test_addrv2_empty()
+        self.test_addrv2_no_addresses()
+        self.test_addrv2_too_long_address()
+        self.test_addrv2_unrecognized_network()
         self.test_large_inv()
 
         node = self.nodes[0]
@@ -223,15 +234,118 @@ class InvalidMessagesTest(BitcoinTestFramework):
             conn.sync_with_ping(timeout=1)
             self.nodes[0].disconnect_p2ps()
 
+    def test_addrv2(self, label, required_log_messages, raw_addrv2):
+        node = self.nodes[0]
+        conn = node.add_p2p_connection(SenderOfAddrV2())
+
+        # Make sure bitcoind signals support for ADDRv2, otherwise this test
+        # will bombard an old node with messages it does not recognize which
+        # will produce unexpected results.
+        conn.wait_for_sendaddrv2()
+
+        self.log.info('Test addrv2: ' + label)
+
+        msg = msg_unrecognized(str_data=b'')
+        msg.msgtype = b'addrv2'
+        with node.assert_debug_log(required_log_messages):
+            # override serialize() which would include the length of the data
+            msg.serialize = lambda: raw_addrv2
+            conn.send_raw_message(conn.build_message(msg))
+            conn.sync_with_ping()
+
+        node.disconnect_p2ps()
+
+    def test_addrv2_empty(self):
+        self.test_addrv2('empty',
+                         [
+                             'received: addrv2 (0 bytes)',
+                             'ProcessMessages(addrv2, 0 bytes): Exception',
+                             'end of data',
+                         ],
+                         b'')
+
+    def test_addrv2_no_addresses(self):
+        self.test_addrv2('no addresses',
+                         [
+                             'received: addrv2 (1 bytes)',
+                         ],
+                         hex_str_to_bytes('00'))
+
+    def test_addrv2_too_long_address(self):
+        self.test_addrv2('too long address',
+                         [
+                             'received: addrv2 (525 bytes)',
+                             'ProcessMessages(addrv2, 525 bytes): Exception',
+                             'Address too long: 513 > 512',
+                         ],
+                         hex_str_to_bytes(
+                             # number of entries
+                             '01' +
+                             # time, Fri Jan  9 02:54:25 UTC 2009
+                             '61bc6649' +
+                             # service flags, COMPACTSIZE(NODE_NONE)
+                             '00' +
+                             # network type (IPv4)
+                             '01' +
+                             # address length (COMPACTSIZE(513))
+                             'fd0102' +
+                             # address
+                             'ab' * 513 +
+                             # port
+                             '208d'))
+
+    def test_addrv2_unrecognized_network(self):
+        now_hex = struct.pack('<I', int(time.time())).hex()
+        self.test_addrv2('unrecognized network',
+                         [
+                             'received: addrv2 (25 bytes)',
+                             'IP 9.9.9.9 mapped',
+                             'Added 1 addresses',
+                         ],
+                         hex_str_to_bytes(
+                             # number of entries
+                             '02' +
+
+                             # this should be ignored without impeding acceptance of
+                             # subsequent ones
+
+                             # time
+                             now_hex +
+                             # service flags, COMPACTSIZE(NODE_NETWORK)
+                             '01' +
+                             # network type (unrecognized)
+                             '99' +
+                             # address length (COMPACTSIZE(2))
+                             '02' +
+                             # address
+                             'ab' * 2 +
+                             # port
+                             '208d' +
+
+                             # this should be added:
+
+                             # time
+                             now_hex +
+                             # service flags, COMPACTSIZE(NODE_NETWORK)
+                             '01' +
+                             # network type (IPv4)
+                             '01' +
+                             # address length (COMPACTSIZE(4))
+                             '04' +
+                             # address
+                             '09' * 4 +
+                             # port
+                             '208d'))
+
     def test_large_inv(self):
         conn = self.nodes[0].add_p2p_connection(P2PInterface())
-        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (0 -> 20): oversized-inv: message inv size() = 50001']):
+        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=8 (0 -> 20): oversized-inv: message inv size() = 50001']):
             msg = msg_inv([CInv(MSG_TX, 1)] * 50001)
             conn.send_and_ping(msg)
-        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (20 -> 40): too-many-inv: message getdata size() = 50001']):
+        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=8 (20 -> 40): too-many-inv: message getdata size() = 50001']):
             msg = msg_getdata([CInv(MSG_TX, 1)] * 50001)
             conn.send_and_ping(msg)
-        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (40 -> 60): too-many-headers: headers message size = 2001']):
+        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=8 (40 -> 60): too-many-headers: headers message size = 2001']):
             msg = msg_headers([CBlockHeader()] * 2001)
             conn.send_and_ping(msg)
         self.nodes[0].disconnect_p2ps()

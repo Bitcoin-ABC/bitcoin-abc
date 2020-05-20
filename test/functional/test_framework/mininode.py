@@ -28,6 +28,7 @@ from test_framework.messages import (
     CBlockHeader,
     MIN_VERSION_SUPPORTED,
     msg_addr,
+    msg_addrv2,
     msg_avapoll,
     msg_tcpavaresponse,
     msg_avahello,
@@ -54,6 +55,7 @@ from test_framework.messages import (
     msg_notfound,
     msg_ping,
     msg_pong,
+    msg_sendaddrv2,
     msg_sendcmpct,
     msg_sendheaders,
     msg_tx,
@@ -70,6 +72,7 @@ logger = logging.getLogger("TestFramework.mininode")
 
 MESSAGEMAP = {
     b"addr": msg_addr,
+    b"addrv2": msg_addrv2,
     b"avapoll": msg_avapoll,
     b"avaresponse": msg_tcpavaresponse,
     b"avahello": msg_avahello,
@@ -95,6 +98,7 @@ MESSAGEMAP = {
     b"notfound": msg_notfound,
     b"ping": msg_ping,
     b"pong": msg_pong,
+    b"sendaddrv2": msg_sendaddrv2,
     b"sendcmpct": msg_sendcmpct,
     b"sendheaders": msg_sendheaders,
     b"tx": msg_tx,
@@ -314,7 +318,7 @@ class P2PInterface(P2PConnection):
     Individual testcases should subclass this and override the on_* methods
     if they want to alter message handling behaviour."""
 
-    def __init__(self):
+    def __init__(self, support_addrv2=False):
         super().__init__()
 
         # Track number of messages of each type received and the most recent
@@ -327,6 +331,8 @@ class P2PInterface(P2PConnection):
 
         # The network services received from the peer
         self.nServices = 0
+
+        self.support_addrv2 = support_addrv2
 
     def peer_connect(self, *args, services=NODE_NETWORK,
                      send_version=True, **kwargs):
@@ -375,6 +381,8 @@ class P2PInterface(P2PConnection):
 
     def on_addr(self, message): pass
 
+    def on_addrv2(self, message): pass
+
     def on_avapoll(self, message): pass
 
     def on_avaresponse(self, message): pass
@@ -421,6 +429,8 @@ class P2PInterface(P2PConnection):
 
     def on_pong(self, message): pass
 
+    def on_sendaddrv2(self, message): pass
+
     def on_sendcmpct(self, message): pass
 
     def on_sendheaders(self, message): pass
@@ -445,6 +455,8 @@ class P2PInterface(P2PConnection):
         assert message.nVersion >= MIN_VERSION_SUPPORTED, "Version {} received. Test framework only supports versions greater than {}".format(
             message.nVersion, MIN_VERSION_SUPPORTED)
         self.send_message(msg_verack())
+        if self.support_addrv2:
+            self.send_message(msg_sendaddrv2())
         self.nServices = message.nServices
 
     # Connection helper methods

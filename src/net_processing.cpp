@@ -30,6 +30,7 @@
 #include <random.h>
 #include <reverse_iterator.h>
 #include <scheduler.h>
+#include <streams.h>
 #include <tinyformat.h>
 #include <txmempool.h>
 #include <util/check.h> // For NDEBUG compile time check
@@ -2762,9 +2763,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         pfrom.SetCommonVersion(greatest_common_version);
         pfrom.nVersion = nVersion;
 
-        m_connman.PushMessage(
-            &pfrom,
-            CNetMsgMaker(greatest_common_version).Make(NetMsgType::VERACK));
+        const CNetMsgMaker msg_maker(greatest_common_version);
+
+        m_connman.PushMessage(&pfrom, msg_maker.Make(NetMsgType::VERACK));
+
+        // Signal ADDRv2 support (BIP155).
+        m_connman.PushMessage(&pfrom, msg_maker.Make(NetMsgType::SENDADDRV2));
 
         pfrom.nServices = nServices;
         pfrom.SetAddrLocal(addrMe);
@@ -2921,17 +2925,27 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         return;
     }
 
-    if (msg_type == NetMsgType::ADDR) {
+    if (msg_type == NetMsgType::ADDR || msg_type == NetMsgType::ADDRV2) {
+        int stream_version = vRecv.GetVersion();
+        if (msg_type == NetMsgType::ADDRV2) {
+            // Add ADDRV2_FORMAT to the version so that the CNetAddr and
+            // CAddress unserialize methods know that an address in v2 format is
+            // coming.
+            stream_version |= ADDRV2_FORMAT;
+        }
+
+        OverrideStream<CDataStream> s(&vRecv, vRecv.GetType(), stream_version);
         std::vector<CAddress> vAddr;
-        vRecv >> vAddr;
+
+        s >> vAddr;
 
         if (!pfrom.IsAddrRelayPeer()) {
             return;
         }
         if (vAddr.size() > 1000) {
-            Misbehaving(pfrom, 20,
-                        strprintf("oversized-addr: message addr size() = %u",
-                                  vAddr.size()));
+            Misbehaving(
+                pfrom, 20,
+                strprintf("%s message size = %u", msg_type, vAddr.size()));
             return;
         }
 
@@ -2981,6 +2995,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         if (pfrom.IsAddrFetchConn()) {
             pfrom.fDisconnect = true;
         }
+        return;
+    }
+
+    if (msg_type == NetMsgType::SENDADDRV2) {
+        pfrom.m_wants_addrv2 = true;
         return;
     }
 
@@ -4855,6 +4874,17 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             std::vector<CAddress> vAddr;
             vAddr.reserve(pto->vAddrToSend.size());
             assert(pto->m_addr_known);
+
+            const char *msg_type;
+            int make_flags;
+            if (pto->m_wants_addrv2) {
+                msg_type = NetMsgType::ADDRV2;
+                make_flags = ADDRV2_FORMAT;
+            } else {
+                msg_type = NetMsgType::ADDR;
+                make_flags = 0;
+            }
+
             for (const CAddress &addr : pto->vAddrToSend) {
                 if (!pto->m_addr_known->contains(addr.GetKey())) {
                     pto->m_addr_known->insert(addr.GetKey());
@@ -4862,15 +4892,15 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                     // receiver rejects addr messages larger than 1000
                     if (vAddr.size() >= 1000) {
                         m_connman.PushMessage(
-                            pto, msgMaker.Make(NetMsgType::ADDR, vAddr));
+                            pto, msgMaker.Make(make_flags, msg_type, vAddr));
                         vAddr.clear();
                     }
                 }
             }
             pto->vAddrToSend.clear();
             if (!vAddr.empty()) {
-                m_connman.PushMessage(pto,
-                                      msgMaker.Make(NetMsgType::ADDR, vAddr));
+                m_connman.PushMessage(
+                    pto, msgMaker.Make(make_flags, msg_type, vAddr));
             }
 
             // we only send the big addr message once
