@@ -83,7 +83,7 @@ void CSeederNode::PushVersion() {
     int64_t nLocalServices = 0;
     CService myService;
     CAddress me(myService, ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH));
-    BeginMessage("version");
+    BeginMessage(NetMsgType::VERSION);
     int nBestHeight = GetRequireHeight();
     std::string ver = "/bitcoin-cash-seeder:0.15/";
     vSend << PROTOCOL_VERSION << nLocalServices << nTime << you << me
@@ -95,7 +95,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
                                                CDataStream &recv) {
     // tfm::format(std::cout, "%s: RECV %s\n", ToString(you),
     // strCommand);
-    if (strCommand == "version") {
+    if (strCommand == NetMsgType::VERSION) {
         int64_t nTime;
         CAddress addrMe;
         CAddress addrFrom;
@@ -107,18 +107,18 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         recv >> strSubVer;
         recv >> nStartingHeight;
 
-        BeginMessage("verack");
+        BeginMessage(NetMsgType::VERACK);
         EndMessage();
         vSend.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
         return PeerMessagingState::AwaitingMessages;
     }
 
-    if (strCommand == "verack") {
+    if (strCommand == NetMsgType::VERACK) {
         vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
         // tfm::format(std::cout, "\n%s: version %i\n", ToString(you),
         // nVersion);
         if (vAddr) {
-            BeginMessage("getaddr");
+            BeginMessage(NetMsgType::GETADDR);
             EndMessage();
             doneAfter = time(nullptr) + GetTimeout();
         } else {
@@ -127,7 +127,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         return PeerMessagingState::AwaitingMessages;
     }
 
-    if (strCommand == "addr" && vAddr) {
+    if (strCommand == NetMsgType::ADDR && vAddr) {
         std::vector<CAddress> vAddrNew;
         recv >> vAddrNew;
         // tfm::format(std::cout, "%s: got %i addresses\n",
