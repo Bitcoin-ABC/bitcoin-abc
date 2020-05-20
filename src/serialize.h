@@ -48,22 +48,6 @@ static const unsigned int MAX_VECTOR_ALLOCATE = 5000000;
 struct deserialize_type {};
 constexpr deserialize_type deserialize{};
 
-/**
- * Used to bypass the rule against non-const reference to temporary
- * where it makes sense with wrappers.
- */
-template <typename T> inline T &REF(const T &val) {
-    return const_cast<T &>(val);
-}
-
-/**
- * Used to acquire a non-const pointer "this" to generate bodies of const
- * serialization operations from a template
- */
-template <typename T> inline T *NCONST_PTR(const T *val) {
-    return const_cast<T *>(val);
-}
-
 //! Safely convert odd char pointer types to standard ones.
 inline char *CharCast(char *c) {
     return c;
@@ -201,20 +185,6 @@ template <typename X> const X &ReadWriteAsHelper(const X &x) {
         [&](Stream &s, typename std::remove_const<Type>::type &obj) { code; })
 #define SER_WRITE(obj, code)                                                   \
     ::SerWrite(s, ser_action, obj, [&](Stream &s, const Type &obj) { code; })
-
-/**
- * Implement three methods for serializable objects. These are actually wrappers
- * over "SerializationOp" template, which implements the body of each class'
- * serialization code. Adding "ADD_SERIALIZE_METHODS" in the body of the class
- * causes these wrappers to be added as members.
- */
-#define ADD_SERIALIZE_METHODS                                                  \
-    template <typename Stream> void Serialize(Stream &s) const {               \
-        NCONST_PTR(this)->SerializationOp(s, CSerActionSerialize());           \
-    }                                                                          \
-    template <typename Stream> void Unserialize(Stream &s) {                   \
-        SerializationOp(s, CSerActionUnserialize());                           \
-    }
 
 /**
  * Implement the Ser and Unser methods needed for implementing a formatter
@@ -1108,7 +1078,7 @@ void Unserialize(Stream &is, std::shared_ptr<const T> &p) {
 }
 
 /**
- * Support for ADD_SERIALIZE_METHODS and READWRITE macro
+ * Support for SERIALIZE_METHODS and READWRITE macro.
  */
 struct CSerActionSerialize {
     constexpr bool ForRead() const { return false; }
