@@ -59,45 +59,41 @@ public:
     static const int CURRENT_VERSION = 1;
     int nVersion;
 
-    ADD_SERIALIZE_METHODS;
+    SERIALIZE_METHODS(SendCoinsRecipient, obj) {
+        std::string address_str, label_str, message_str, auth_merchant_str;
+        std::string payment_request_str;
 
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        std::string sAddress = address.toStdString();
-        std::string sLabel = label.toStdString();
-        std::string sMessage = message.toStdString();
+        SER_WRITE(obj, address_str = obj.address.toStdString());
+        SER_WRITE(obj, label_str = obj.label.toStdString());
+        SER_WRITE(obj, message_str = obj.message.toStdString());
 #ifdef ENABLE_BIP70
-        std::string sPaymentRequest;
-        if (!ser_action.ForRead() && paymentRequest.IsInitialized()) {
-            paymentRequest.SerializeToString(&sPaymentRequest);
+        if (obj.paymentRequest.IsInitialized()) {
+            SER_WRITE(obj, obj.paymentRequest.SerializeToString(
+                               &payment_request_str));
         }
+#else
+        SER_WRITE(obj, payment_request_str = obj.sPaymentRequest);
 #endif
+        SER_WRITE(obj,
+                  auth_merchant_str = obj.authenticatedMerchant.toStdString());
 
-        std::string sAuthenticatedMerchant =
-            authenticatedMerchant.toStdString();
+        READWRITE(obj.nVersion, address_str, label_str, obj.amount, message_str,
+                  payment_request_str, auth_merchant_str);
 
-        READWRITE(this->nVersion);
-        READWRITE(sAddress);
-        READWRITE(sLabel);
-        READWRITE(amount);
-        READWRITE(sMessage);
-        READWRITE(sPaymentRequest);
-        READWRITE(sAuthenticatedMerchant);
-
-        if (ser_action.ForRead()) {
-            address = QString::fromStdString(sAddress);
-            label = QString::fromStdString(sLabel);
-            message = QString::fromStdString(sMessage);
+        SER_READ(obj, obj.address = QString::fromStdString(address_str));
+        SER_READ(obj, obj.label = QString::fromStdString(label_str));
+        SER_READ(obj, obj.message = QString::fromStdString(message_str));
 #ifdef ENABLE_BIP70
-            if (!sPaymentRequest.empty()) {
-                paymentRequest.parse(QByteArray::fromRawData(
-                    sPaymentRequest.data(), sPaymentRequest.size()));
-            }
-#endif
-
-            authenticatedMerchant =
-                QString::fromStdString(sAuthenticatedMerchant);
+        if (!payment_request_str.empty()) {
+            SER_READ(obj, obj.paymentRequest.parse(QByteArray::fromRawData(
+                              payment_request_str.data(),
+                              payment_request_str.size())));
         }
+#else
+        SER_READ(obj, obj.sPaymentRequest = payment_request_str);
+#endif
+        SER_READ(obj, obj.authenticatedMerchant =
+                          QString::fromStdString(auth_merchant_str));
     }
 };
 
