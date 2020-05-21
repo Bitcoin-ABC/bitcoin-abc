@@ -580,7 +580,7 @@ static const CRPCCommand commands[] = {
     //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
     { "control",            "getmemoryinfo",          getmemoryinfo,          {"mode"} },
-    { "control",             "logging",                logging,                {"include", "exclude"} },
+    { "control",            "logging",                logging,                {"include", "exclude"} },
     { "util",               "validateaddress",        validateaddress,        {"address"} },
     { "util",               "createmultisig",         createmultisig,         {"nrequired","keys"} },
     { "util",               "verifymessage",          verifymessage,          {"address","signature","message"} },
