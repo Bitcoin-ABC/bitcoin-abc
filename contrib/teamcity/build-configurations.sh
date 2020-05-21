@@ -356,6 +356,17 @@ case "$ABC_BUILD_NAME" in
       #   Unknown host QEMU_IFLA type: 51
       #   Unknown QEMU_IFLA_BRPORT type 33
       "-DBUILD_BITCOIN_ZMQ=OFF"
+      # This is an horrible hack to workaround a qemu bug:
+      # https://bugs.launchpad.net/qemu/+bug/1748612
+      # Qemu emits a message for unsupported features called by the guest.
+      # Because the output filtering is not working at all, it causes the
+      # qemu stderr to end up in the node stderr and fail the functional
+      # tests.
+      # Disabling the unsupported feature (here bypassing the config
+      # detection) fixes the issue.
+      # FIXME: get rid of the hack, either by using a better qemu version
+      # or by filtering stderr at the framework level.
+      "-DHAVE_DECL_GETIFADDRS=OFF"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
@@ -383,6 +394,17 @@ case "$ABC_BUILD_NAME" in
       #   Unknown host QEMU_IFLA type: 51
       #   Unknown QEMU_IFLA_BRPORT type 33
       "-DBUILD_BITCOIN_ZMQ=OFF"
+      # This is an horrible hack to workaround a qemu bug:
+      # https://bugs.launchpad.net/qemu/+bug/1748612
+      # Qemu emits a message for unsupported features called by the guest.
+      # Because the output filtering is not working at all, it causes the
+      # qemu stderr to end up in the node stderr and fail the functional
+      # tests.
+      # Disabling the unsupported feature (here bypassing the config
+      # detection) fixes the issue.
+      # FIXME: get rid of the hack, either by using a better qemu version
+      # or by filtering stderr at the framework level.
+      "-DHAVE_DECL_GETIFADDRS=OFF"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
 
