@@ -173,6 +173,7 @@ bool LegacyScriptPubKeyMan::CheckDecryptionKey(
         bool keyPass = mapCryptedKeys.empty();
         bool keyFail = false;
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
+        WalletBatch batch(m_storage.GetDatabase());
         for (; mi != mapCryptedKeys.end(); ++mi) {
             const CPubKey &vchPubKey = (*mi).second.first;
             const std::vector<uint8_t> &vchCryptedSecret = (*mi).second.second;
@@ -184,6 +185,10 @@ bool LegacyScriptPubKeyMan::CheckDecryptionKey(
             keyPass = true;
             if (fDecryptionThoroughlyChecked) {
                 break;
+            } else {
+                // Rewrite these encrypted keys with checksums
+                batch.WriteCryptedKey(vchPubKey, vchCryptedSecret,
+                                      mapKeyMetadata[vchPubKey.GetID()]);
             }
         }
         if (keyPass && keyFail) {
@@ -687,7 +692,13 @@ bool LegacyScriptPubKeyMan::AddKeyPubKeyInner(const CKey &key,
 }
 
 bool LegacyScriptPubKeyMan::LoadCryptedKey(
-    const CPubKey &vchPubKey, const std::vector<uint8_t> &vchCryptedSecret) {
+    const CPubKey &vchPubKey, const std::vector<uint8_t> &vchCryptedSecret,
+    bool checksum_valid) {
+    // Set fDecryptionThoroughlyChecked to false when the checksum is invalid
+    if (!checksum_valid) {
+        fDecryptionThoroughlyChecked = false;
+    }
+
     return AddCryptedKeyInner(vchPubKey, vchCryptedSecret);
 }
 

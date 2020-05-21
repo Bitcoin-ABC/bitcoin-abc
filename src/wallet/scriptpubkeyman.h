@@ -314,7 +314,7 @@ class LegacyScriptPubKeyMan : public ScriptPubKeyMan,
                               public FillableSigningProvider {
 private:
     //! keeps track of whether Unlock has run a thorough check before
-    bool fDecryptionThoroughlyChecked = false;
+    bool fDecryptionThoroughlyChecked = true;
 
     using WatchOnlySet = std::set<CScript>;
     using WatchKeyMap = std::map<CKeyID, CPubKey>;
@@ -490,7 +490,8 @@ public:
     //! Adds an encrypted key to the store, without saving it to disk (used by
     //! LoadWallet)
     bool LoadCryptedKey(const CPubKey &vchPubKey,
-                        const std::vector<uint8_t> &vchCryptedSecret);
+                        const std::vector<uint8_t> &vchCryptedSecret,
+                        bool checksum_valid);
     void UpdateTimeFirstKey(int64_t nCreateTime)
         EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     //! Adds a CScript to the store
