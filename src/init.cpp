@@ -802,7 +802,8 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-maxuploadtarget=<n>",
         strprintf("Tries to keep outbound traffic under the given target (in "
-                  "MiB per 24h), 0 = no limit (default: %d)",
+                  "MiB per 24h). Limit does not apply to peers with 'noban' "
+                  "permission. 0 = no limit (default: %d)",
                   DEFAULT_MAX_UPLOAD_TARGET),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
