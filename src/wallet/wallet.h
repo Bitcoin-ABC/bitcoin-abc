@@ -1442,6 +1442,11 @@ public:
      */
     bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const override;
 
+    /**
+     * Add a KeyOriginInfo to the wallet
+     */
+    bool AddKeyOrigin(const CPubKey &pubkey, const KeyOriginInfo &info);
+
     friend struct WalletTestingSetup;
 };
 
