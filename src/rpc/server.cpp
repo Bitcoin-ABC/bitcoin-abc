@@ -355,6 +355,12 @@ bool IsRPCRunning() {
     return g_rpc_running;
 }
 
+void RpcInterruptionPoint() {
+    if (!IsRPCRunning()) {
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Shutting down");
+    }
+}
+
 void SetRPCWarmupStatus(const std::string &newStatus) {
     LOCK(cs_rpcWarmup);
     rpcWarmupStatus = newStatus;

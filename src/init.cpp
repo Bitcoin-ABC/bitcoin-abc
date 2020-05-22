@@ -1451,7 +1451,8 @@ static bool InitSanityCheck() {
 }
 
 static bool AppInitServers(Config &config,
-                           HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
+                           HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                           NodeContext &node) {
     RPCServerSignals::OnStarted(&OnRPCStarted);
     RPCServerSignals::OnStopped(&OnRPCStopped);
     if (!InitHTTPServer(config)) {
@@ -1459,6 +1460,7 @@ static bool AppInitServers(Config &config,
     }
 
     StartRPC();
+    node.rpc_interruption_point = RpcInterruptionPoint;
 
     if (!StartHTTPRPC(httpRPCRequestProcessor)) {
         return false;
@@ -2202,7 +2204,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
      */
     if (gArgs.GetBoolArg("-server", false)) {
         uiInterface.InitMessage_connect(SetRPCWarmupStatus);
-        if (!AppInitServers(config, httpRPCRequestProcessor)) {
+        if (!AppInitServers(config, httpRPCRequestProcessor, node)) {
             return InitError(
                 _("Unable to start HTTP server. See debug log for details."));
         }

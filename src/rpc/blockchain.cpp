@@ -1209,7 +1209,8 @@ static UniValue gettxoutsetinfo(const Config &config,
 
     CCoinsView *coins_view =
         WITH_LOCK(cs_main, return &ChainstateActive().CoinsDB());
-    if (GetUTXOStats(coins_view, stats)) {
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (GetUTXOStats(coins_view, stats, node.rpc_interruption_point)) {
         ret.pushKV("height", int64_t(stats.nHeight));
         ret.pushKV("bestblock", stats.hashBlock.GetHex());
         ret.pushKV("transactions", int64_t(stats.nTransactions));
@@ -2443,12 +2444,14 @@ static UniValue savemempool(const Config &config,
     return NullUniValue;
 }
 
+namespace {
 //! Search for a given set of pubkey scripts
 static bool FindScriptPubKey(std::atomic<int> &scan_progress,
                              const std::atomic<bool> &should_abort,
                              int64_t &count, CCoinsViewCursor *cursor,
                              const std::set<CScript> &needles,
-                             std::map<COutPoint, Coin> &out_results) {
+                             std::map<COutPoint, Coin> &out_results,
+                             std::function<void()> &interruption_point) {
     scan_progress = 0;
     count = 0;
     while (cursor->Valid()) {
@@ -2458,6 +2461,7 @@ static bool FindScriptPubKey(std::atomic<int> &scan_progress,
             return false;
         }
         if (++count % 8192 == 0) {
+            interruption_point();
             if (should_abort) {
                 // allow to abort the scan via the abort reference
                 return false;
@@ -2477,6 +2481,7 @@ static bool FindScriptPubKey(std::atomic<int> &scan_progress,
     scan_progress = 100;
     return true;
 }
+} // namespace
 
 /** RAII object to prevent concurrency issue when scanning the txout set */
 static std::atomic<int> g_scan_progress;
@@ -2680,8 +2685,10 @@ static UniValue scantxoutset(const Config &config,
             tip = ::ChainActive().Tip();
             CHECK_NONFATAL(tip);
         }
+        NodeContext &node = EnsureNodeContext(request.context);
         bool res = FindScriptPubKey(g_scan_progress, g_should_abort_scan, count,
-                                    pcursor.get(), needles, coins);
+                                    pcursor.get(), needles, coins,
+                                    node.rpc_interruption_point);
         result.pushKV("success", res);
         result.pushKV("txouts", count);
         result.pushKV("height", tip->nHeight);
@@ -2850,6 +2857,7 @@ static UniValue dumptxoutset(const Config &config,
     std::unique_ptr<CCoinsViewCursor> pcursor;
     CCoinsStats stats;
     CBlockIndex *tip;
+    NodeContext &node = EnsureNodeContext(request.context);
 
     {
         // We need to lock cs_main to ensure that the coinsdb isn't written to
@@ -2868,7 +2876,8 @@ static UniValue dumptxoutset(const Config &config,
 
         ::ChainstateActive().ForceFlushStateToDisk();
 
-        if (!GetUTXOStats(&::ChainstateActive().CoinsDB(), stats)) {
+        if (!GetUTXOStats(&::ChainstateActive().CoinsDB(), stats,
+                          node.rpc_interruption_point)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
         }
 
@@ -2888,8 +2897,8 @@ static UniValue dumptxoutset(const Config &config,
     unsigned int iter{0};
 
     while (pcursor->Valid()) {
-        if (iter % 5000 == 0 && !IsRPCRunning()) {
-            throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Shutting down");
+        if (iter % 5000 == 0) {
+            node.rpc_interruption_point();
         }
         ++iter;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {

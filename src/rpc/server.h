@@ -63,6 +63,9 @@ public:
  */
 bool IsRPCRunning();
 
+/** Throw JSONRPCError if RPC is not running */
+void RpcInterruptionPoint();
+
 /**
  * Set the RPC warmup status.  When this is done, all RPC calls will error out
  * immediately with RPC_IN_WARMUP.
