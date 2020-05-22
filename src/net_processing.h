@@ -34,7 +34,7 @@ private:
     CConnman *const connman;
     BanMan *const m_banman;
 
-    bool CheckIfBanned(CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool CheckIfBanned(CNode &pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 public:
     PeerLogicValidation(CConnman *connman, BanMan *banman,
@@ -95,7 +95,7 @@ public:
      * Consider evicting an outbound peer based on the amount of time they've
      * been behind our tip.
      */
-    void ConsiderEviction(CNode *pto, int64_t time_in_seconds)
+    void ConsiderEviction(CNode &pto, int64_t time_in_seconds)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     /**
      * Evict extra outbound peers. If we think our tip may be stale, connect to
@@ -130,7 +130,7 @@ void Misbehaving(NodeId nodeid, int howmuch, const std::string &reason = "");
 /** Relay transaction to every node */
 void RelayTransaction(const TxId &txid, const CConnman &connman);
 
-bool ProcessMessage(const Config &config, CNode *pfrom,
+bool ProcessMessage(const Config &config, CNode &pfrom,
                     const std::string &msg_type, CDataStream &vRecv,
                     int64_t nTimeReceived, CConnman *connman, BanMan *banman,
                     const std::atomic<bool> &interruptMsgProc);
