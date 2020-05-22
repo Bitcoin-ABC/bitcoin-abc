@@ -419,6 +419,13 @@ void CWallet::LoadScriptMetadata(const CScriptID &script_id,
     m_script_metadata[script_id] = meta;
 }
 
+// Writes a keymetadata for a public key. overwrite specifies whether to
+// overwrite an existing metadata for that key if there exists one.
+bool CWallet::WriteKeyMetadata(const CKeyMetadata &meta, const CPubKey &pubkey,
+                               const bool overwrite) {
+    return WalletBatch(*database).WriteKeyMetadata(meta, pubkey, overwrite);
+}
+
 bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey,
                              const std::vector<uint8_t> &vchCryptedSecret) {
     return CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret);
