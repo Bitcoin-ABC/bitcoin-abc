@@ -132,8 +132,10 @@ if(ENABLE_HARDENING)
 	# Enable stack protection
 	add_cxx_compiler_flags(-fstack-protector-all -Wstack-protector)
 
-	# Enable some buffer overflow checking
-	add_compiler_flags(-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+	# Enable some buffer overflow checking, except in -O0 builds which
+	# do not support them
+	add_compiler_flags(-U_FORTIFY_SOURCE)
+	add_compile_options($<$<NOT:$<CONFIG:Debug>>:-D_FORTIFY_SOURCE=2>)
 
 	# Enable ASLR (these flags are primarily targeting MinGw)
 	add_linker_flags(-Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)
