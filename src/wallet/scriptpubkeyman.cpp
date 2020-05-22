@@ -14,6 +14,10 @@
 #include <util/translation.h>
 #include <wallet/scriptpubkeyman.h>
 
+//! Value for the first BIP 32 hardened derivation. Can be used as a bit mask
+//! and as a value. See BIP 32 for more details.
+const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
+
 bool LegacyScriptPubKeyMan::GetNewDestination(const OutputType type,
                                               CTxDestination &dest,
                                               std::string &error) {
@@ -254,6 +258,51 @@ bool LegacyScriptPubKeyMan::GetReservedDestination(const OutputType type,
     return true;
 }
 
+bool LegacyScriptPubKeyMan::TopUpInactiveHDChain(const CKeyID seed_id,
+                                                 int64_t index, bool internal) {
+    LOCK(cs_KeyStore);
+
+    if (m_storage.IsLocked()) {
+        return false;
+    }
+
+    auto it = m_inactive_hd_chains.find(seed_id);
+    if (it == m_inactive_hd_chains.end()) {
+        return false;
+    }
+
+    CHDChain &chain = it->second;
+
+    // Top up key pool
+    int64_t target_size =
+        std::max(gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t)1);
+
+    // "size" of the keypools. Not really the size, actually the difference
+    // between index and the chain counter Since chain counter is 1 based and
+    // index is 0 based, one of them needs to be offset by 1.
+    int64_t kp_size =
+        (internal ? chain.nInternalChainCounter : chain.nExternalChainCounter) -
+        (index + 1);
+
+    // make sure the keypool fits the user-selected target (-keypool)
+    int64_t missing = std::max(target_size - kp_size, (int64_t)0);
+
+    if (missing > 0) {
+        WalletBatch batch(m_storage.GetDatabase());
+        for (int64_t i = missing; i > 0; --i) {
+            GenerateNewKey(batch, chain, internal);
+        }
+        if (internal) {
+            WalletLogPrintf("inactive seed with id %s added %d internal keys\n",
+                            HexStr(seed_id), missing);
+        } else {
+            WalletLogPrintf("inactive seed with id %s added %d keys\n",
+                            HexStr(seed_id), missing);
+        }
+    }
+    return true;
+}
+
 void LegacyScriptPubKeyMan::MarkUnusedAddresses(const CScript &script) {
     LOCK(cs_KeyStore);
     // extract addresses and check if they match with an unused keypool key
@@ -262,7 +311,7 @@ void LegacyScriptPubKeyMan::MarkUnusedAddresses(const CScript &script) {
             m_pool_key_to_index.find(keyid);
         if (mi != m_pool_key_to_index.end()) {
             WalletLogPrintf("%s: Detected a used keypool key, mark all keypool "
-                            "key up to this key as used\n",
+                            "keys up to this key as used\n",
                             __func__);
             MarkReserveKeysAsUsed(mi->second);
 
@@ -270,6 +319,26 @@ void LegacyScriptPubKeyMan::MarkUnusedAddresses(const CScript &script) {
                 WalletLogPrintf(
                     "%s: Topping up keypool failed (locked wallet)\n",
                     __func__);
+            }
+        }
+
+        // Find the key's metadata and check if it's seed id (if it has one) is
+        // inactive, i.e. it is not the current m_hd_chain seed id. If so, TopUp
+        // the inactive hd chain
+        auto it = mapKeyMetadata.find(keyid);
+        if (it != mapKeyMetadata.end()) {
+            CKeyMetadata meta = it->second;
+            if (!meta.hd_seed_id.IsNull() &&
+                meta.hd_seed_id != m_hd_chain.seed_id) {
+                bool internal =
+                    (meta.key_origin.path[1] & ~BIP32_HARDENED_KEY_LIMIT) != 0;
+                int64_t index =
+                    meta.key_origin.path[2] & ~BIP32_HARDENED_KEY_LIMIT;
+
+                if (!TopUpInactiveHDChain(meta.hd_seed_id, index, internal)) {
+                    WalletLogPrintf("%s: Adding inactive seed keys failed\n",
+                                    __func__);
+                }
             }
         }
     }
@@ -327,7 +396,7 @@ bool LegacyScriptPubKeyMan::SetupGeneration(bool force) {
 }
 
 bool LegacyScriptPubKeyMan::IsHDEnabled() const {
-    return !hdChain.seed_id.IsNull();
+    return !m_hd_chain.seed_id.IsNull();
 }
 
 bool LegacyScriptPubKeyMan::CanGetAddresses(bool internal) const {
@@ -811,12 +880,28 @@ bool LegacyScriptPubKeyMan::AddWatchOnly(const CScript &dest,
 
 void LegacyScriptPubKeyMan::SetHDChain(const CHDChain &chain, bool memonly) {
     LOCK(cs_KeyStore);
-    if (!memonly && !WalletBatch(m_storage.GetDatabase()).WriteHDChain(chain)) {
-        throw std::runtime_error(std::string(__func__) +
-                                 ": writing chain failed");
+    // memonly == true means we are loading the wallet file
+    // memonly == false means that the chain is actually being changed
+    if (!memonly) {
+        // Store the new chain
+        if (!WalletBatch(m_storage.GetDatabase()).WriteHDChain(chain)) {
+            throw std::runtime_error(std::string(__func__) +
+                                     ": writing chain failed");
+        }
+        // When there's an old chain, add it as an inactive chain as we are now
+        // rotating hd chains
+        if (!m_hd_chain.seed_id.IsNull()) {
+            AddInactiveHDChain(m_hd_chain);
+        }
     }
 
-    hdChain = chain;
+    m_hd_chain = chain;
+}
+
+void LegacyScriptPubKeyMan::AddInactiveHDChain(const CHDChain &chain) {
+    LOCK(cs_KeyStore);
+    assert(!chain.seed_id.IsNull());
+    m_inactive_hd_chains[chain.seed_id] = chain;
 }
 
 bool LegacyScriptPubKeyMan::HaveKey(const CKeyID &address) const {
@@ -896,6 +981,7 @@ bool LegacyScriptPubKeyMan::GetPubKey(const CKeyID &address,
 }
 
 CPubKey LegacyScriptPubKeyMan::GenerateNewKey(WalletBatch &batch,
+                                              CHDChain &hd_chain,
                                               bool internal) {
     assert(!m_storage.IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
     assert(!m_storage.IsWalletFlagSet(WALLET_FLAG_BLANK_WALLET));
@@ -913,7 +999,7 @@ CPubKey LegacyScriptPubKeyMan::GenerateNewKey(WalletBatch &batch,
     // is present
     if (IsHDEnabled()) {
         DeriveNewChildKey(
-            batch, metadata, secret,
+            batch, metadata, secret, hd_chain,
             (m_storage.CanSupportFeature(FEATURE_HD_SPLIT) ? internal : false));
     } else {
         secret.MakeNewKey(fCompressed);
@@ -937,11 +1023,10 @@ CPubKey LegacyScriptPubKeyMan::GenerateNewKey(WalletBatch &batch,
     return pubkey;
 }
 
-const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
-
 void LegacyScriptPubKeyMan::DeriveNewChildKey(WalletBatch &batch,
                                               CKeyMetadata &metadata,
-                                              CKey &secret, bool internal) {
+                                              CKey &secret, CHDChain &hd_chain,
+                                              bool internal) {
     // for now we use a fixed keypath scheme of m/0'/0'/k
     // seed (256bit)
     CKey seed;
@@ -955,7 +1040,7 @@ void LegacyScriptPubKeyMan::DeriveNewChildKey(WalletBatch &batch,
     CExtKey childKey;
 
     // try to get the seed
-    if (!GetKey(hdChain.seed_id, seed)) {
+    if (!GetKey(hd_chain.seed_id, seed)) {
         throw std::runtime_error(std::string(__func__) + ": seed not found");
     }
 
@@ -978,37 +1063,38 @@ void LegacyScriptPubKeyMan::DeriveNewChildKey(WalletBatch &batch,
         // child-index-range
         // example: 1 | BIP32_HARDENED_KEY_LIMIT == 0x80000001 == 2147483649
         if (internal) {
-            chainChildKey.Derive(childKey, hdChain.nInternalChainCounter |
+            chainChildKey.Derive(childKey, hd_chain.nInternalChainCounter |
                                                BIP32_HARDENED_KEY_LIMIT);
             metadata.hdKeypath =
-                "m/0'/1'/" + ToString(hdChain.nInternalChainCounter) + "'";
+                "m/0'/1'/" + ToString(hd_chain.nInternalChainCounter) + "'";
             metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
             metadata.key_origin.path.push_back(1 | BIP32_HARDENED_KEY_LIMIT);
-            metadata.key_origin.path.push_back(hdChain.nInternalChainCounter |
+            metadata.key_origin.path.push_back(hd_chain.nInternalChainCounter |
                                                BIP32_HARDENED_KEY_LIMIT);
-            hdChain.nInternalChainCounter++;
+            hd_chain.nInternalChainCounter++;
         } else {
-            chainChildKey.Derive(childKey, hdChain.nExternalChainCounter |
+            chainChildKey.Derive(childKey, hd_chain.nExternalChainCounter |
                                                BIP32_HARDENED_KEY_LIMIT);
             metadata.hdKeypath =
-                "m/0'/0'/" + ToString(hdChain.nExternalChainCounter) + "'";
+                "m/0'/0'/" + ToString(hd_chain.nExternalChainCounter) + "'";
             metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
             metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
-            metadata.key_origin.path.push_back(hdChain.nExternalChainCounter |
+            metadata.key_origin.path.push_back(hd_chain.nExternalChainCounter |
                                                BIP32_HARDENED_KEY_LIMIT);
-            hdChain.nExternalChainCounter++;
+            hd_chain.nExternalChainCounter++;
         }
     } while (HaveKey(childKey.key.GetPubKey().GetID()));
     secret = childKey.key;
-    metadata.hd_seed_id = hdChain.seed_id;
+    metadata.hd_seed_id = hd_chain.seed_id;
     CKeyID master_id = masterKey.key.GetPubKey().GetID();
     std::copy(master_id.begin(), master_id.begin() + 4,
               metadata.key_origin.fingerprint);
     metadata.has_key_origin = true;
     // update the chain model in the database
-    if (!batch.WriteHDChain(hdChain)) {
+    if (hd_chain.seed_id == m_hd_chain.seed_id &&
+        !batch.WriteHDChain(hd_chain)) {
         throw std::runtime_error(std::string(__func__) +
-                                 ": Writing HD chain model failed");
+                                 ": writing HD chain model failed");
     }
 }
 
@@ -1165,7 +1251,7 @@ bool LegacyScriptPubKeyMan::TopUp(unsigned int kpSize) {
                 internal = true;
             }
 
-            CPubKey pubkey(GenerateNewKey(batch, internal));
+            CPubKey pubkey(GenerateNewKey(batch, m_hd_chain, internal));
             AddKeypoolPubkeyWithDB(pubkey, internal, batch);
         }
         if (missingInternal + missingExternal > 0) {
@@ -1250,7 +1336,7 @@ bool LegacyScriptPubKeyMan::GetKeyFromPool(CPubKey &result,
             return false;
         }
         WalletBatch batch(m_storage.GetDatabase());
-        result = GenerateNewKey(batch, internal);
+        result = GenerateNewKey(batch, m_hd_chain, internal);
         return true;
     }
 

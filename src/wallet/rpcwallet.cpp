@@ -4661,12 +4661,6 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     LegacyScriptPubKeyMan &spk_man =
         EnsureLegacyScriptPubKeyMan(*pwallet, true);
 
-    if (pwallet->chain().isInitialBlockDownload()) {
-        throw JSONRPCError(
-            RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-            "Cannot set a new HD seed while still in Initial Block Download");
-    }
-
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         throw JSONRPCError(
             RPC_WALLET_ERROR,
