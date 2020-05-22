@@ -203,25 +203,25 @@ void CMainSignals::UpdatedBlockTip(const CBlockIndex *pindexNew,
         fInitialDownload);
 }
 
-void CMainSignals::TransactionAddedToMempool(const CTransactionRef &ptx) {
-    auto event = [ptx, this] {
+void CMainSignals::TransactionAddedToMempool(const CTransactionRef &tx) {
+    auto event = [tx, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.TransactionAddedToMempool(ptx);
+            callbacks.TransactionAddedToMempool(tx);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,
-                          ptx->GetHash().ToString());
+                          tx->GetHash().ToString());
 }
 
-void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef &ptx,
+void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef &tx,
                                                  MemPoolRemovalReason reason) {
-    auto event = [ptx, reason, this] {
+    auto event = [tx, reason, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.TransactionRemovedFromMempool(ptx, reason);
+            callbacks.TransactionRemovedFromMempool(tx, reason);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,
-                          ptx->GetHash().ToString());
+                          tx->GetHash().ToString());
 }
 
 void CMainSignals::BlockConnected(const std::shared_ptr<const CBlock> &pblock,

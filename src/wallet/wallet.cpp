@@ -1213,23 +1213,22 @@ void CWallet::SyncTransaction(const CTransactionRef &ptx,
     MarkInputsDirty(ptx);
 }
 
-void CWallet::transactionAddedToMempool(const CTransactionRef &ptx) {
+void CWallet::transactionAddedToMempool(const CTransactionRef &tx) {
     LOCK(cs_wallet);
-    CWalletTx::Confirmation confirm(CWalletTx::Status::UNCONFIRMED,
-                                    /* block_height */ 0, BlockHash(),
-                                    /* nIndex */ 0);
-    SyncTransaction(ptx, confirm);
 
-    auto it = mapWallet.find(ptx->GetId());
+    SyncTransaction(tx, {CWalletTx::Status::UNCONFIRMED, /* block_height */ 0,
+                         BlockHash(), /* nIndex */ 0});
+
+    auto it = mapWallet.find(tx->GetId());
     if (it != mapWallet.end()) {
         it->second.fInMempool = true;
     }
 }
 
-void CWallet::transactionRemovedFromMempool(const CTransactionRef &ptx,
+void CWallet::transactionRemovedFromMempool(const CTransactionRef &tx,
                                             MemPoolRemovalReason reason) {
     LOCK(cs_wallet);
-    auto it = mapWallet.find(ptx->GetId());
+    auto it = mapWallet.find(tx->GetId());
     if (it != mapWallet.end()) {
         it->second.fInMempool = false;
     }
@@ -1261,7 +1260,7 @@ void CWallet::transactionRemovedFromMempool(const CTransactionRef &ptx,
         // distinguishing between conflicted and unconfirmed transactions are
         // imperfect, and could be improved in general, see
         // https://github.com/bitcoin-core/bitcoin-devwiki/wiki/Wallet-Transaction-Conflict-Tracking
-        SyncTransaction(ptx,
+        SyncTransaction(tx,
                         {CWalletTx::Status::UNCONFIRMED, /* block height  */ 0,
                          BlockHash(), /* index */ 0});
     }
@@ -1274,9 +1273,8 @@ void CWallet::blockConnected(const CBlock &block, int height) {
     m_last_block_processed_height = height;
     m_last_block_processed = block_hash;
     for (size_t index = 0; index < block.vtx.size(); index++) {
-        CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED, height,
-                                        block_hash, index);
-        SyncTransaction(block.vtx[index], confirm);
+        SyncTransaction(block.vtx[index], {CWalletTx::Status::CONFIRMED, height,
+                                           block_hash, int(index)});
         transactionRemovedFromMempool(block.vtx[index],
                                       MemPoolRemovalReason::BLOCK);
     }
@@ -1293,10 +1291,9 @@ void CWallet::blockDisconnected(const CBlock &block, int height) {
     m_last_block_processed_height = height - 1;
     m_last_block_processed = block.hashPrevBlock;
     for (const CTransactionRef &ptx : block.vtx) {
-        CWalletTx::Confirmation confirm(CWalletTx::Status::UNCONFIRMED,
-                                        /* block_height */ 0, BlockHash(),
-                                        /* nIndex */ 0);
-        SyncTransaction(ptx, confirm);
+        SyncTransaction(ptx,
+                        {CWalletTx::Status::UNCONFIRMED, /* block_height */ 0,
+                         BlockHash(), /* nIndex */ 0});
     }
 }
 
@@ -1899,7 +1896,10 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
                 CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED,
                                                 block_height, block_hash,
                                                 posInBlock);
-                SyncTransaction(block.vtx[posInBlock], confirm, fUpdate);
+                SyncTransaction(block.vtx[posInBlock],
+                                {CWalletTx::Status::CONFIRMED, block_height,
+                                 block_hash, int(posInBlock)},
+                                fUpdate);
             }
             // scan succeeded, record block as most recent successfully
             // scanned

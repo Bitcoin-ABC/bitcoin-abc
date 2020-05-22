@@ -105,7 +105,7 @@ protected:
      *
      * Called on a background thread.
      */
-    virtual void TransactionAddedToMempool(const CTransactionRef &ptxn) {}
+    virtual void TransactionAddedToMempool(const CTransactionRef &tx) {}
     /**
      * Notifies listeners of a transaction leaving mempool.
      *
@@ -138,7 +138,7 @@ protected:
      *
      * Called on a background thread.
      */
-    virtual void TransactionRemovedFromMempool(const CTransactionRef &ptx,
+    virtual void TransactionRemovedFromMempool(const CTransactionRef &tx,
                                                MemPoolRemovalReason reason) {}
     /**
      * Notifies listeners of a block being connected.
