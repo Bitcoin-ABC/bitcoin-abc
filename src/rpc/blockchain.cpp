@@ -525,7 +525,7 @@ static std::vector<RPCResult> MempoolEntryDescription() {
                        "child transaction id"}}},
         RPCResult{RPCResult::Type::BOOL, "unbroadcast",
                   "Whether this transaction is currently unbroadcast (initial "
-                  "broadcast not yet confirmed)"},
+                  "broadcast not yet acknowledged by any peers)"},
     };
 }
 
