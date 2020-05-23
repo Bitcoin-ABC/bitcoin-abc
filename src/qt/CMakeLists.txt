@@ -426,17 +426,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	find_program_or_fail(CMAKE_INSTALL_NAME_TOOL "install_name_tool")
 	find_program_or_fail(CMAKE_OTOOL "otool")
 
-	set(QT_INSTALLER_SUPPORTED_LANGUAGES
-		"da"
-		"de"
-		"es"
-		"hu"
-		"ru"
-		"uk"
-		"zh_CN"
+	set(QT_BASE_TRANSLATIONS
+		"ar" "bg" "ca" "cs" "da" "de" "es" "fa" "fi" "fr" "gd" "gl" "he" "hu"
+		"it" "ja" "ko" "lt" "lv" "pl" "pt" "ru" "sk" "sl" "sv" "uk" "zh_CN"
 		"zh_TW"
 	)
-	string(JOIN "," QT_LOCALES ${QT_INSTALLER_SUPPORTED_LANGUAGES})
+	string(JOIN "," QT_LOCALES ${QT_BASE_TRANSLATIONS})
 
 	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 	execute_process(
@@ -470,7 +465,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set(QT_TRANSLATION_DIR ${_qt_translation_dir} PARENT_SCOPE)
 	endfunction()
 
-	get_qt_translation_dir(QT_TRANSLATION_DIR ${QT_INSTALLER_SUPPORTED_LANGUAGES})
+	get_qt_translation_dir(QT_TRANSLATION_DIR ${QT_BASE_TRANSLATIONS})
 	if(NOT QT_TRANSLATION_DIR)
 		message(FATAL_ERROR "Qt translation files are not found")
 	endif()
