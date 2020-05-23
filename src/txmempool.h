@@ -786,7 +786,7 @@ public:
     /** Adds a transaction to the unbroadcast set */
     void AddUnbroadcastTx(const TxId &txid) {
         LOCK(cs);
-        /** Sanity Check: the transaction should also be in the mempool */
+        // Sanity Check: the transaction should also be in the mempool
         if (exists(txid)) {
             m_unbroadcast_txids.insert(txid);
         }
@@ -801,7 +801,7 @@ public:
         return m_unbroadcast_txids;
     }
 
-    // Returns if a txid is in the unbroadcast set
+    /** Returns whether a txid is in the unbroadcast set */
     bool IsUnbroadcastTx(const TxId &txid) const {
         LOCK(cs);
         return (m_unbroadcast_txids.count(txid) != 0);
