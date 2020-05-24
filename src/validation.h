@@ -285,11 +285,12 @@ void PruneBlockFilesManual(int nManualPruneHeight);
 
 /**
  * (try to) add transaction to memory pool
+ * @param[out] fee_out optional argument to return tx fee to the caller
  */
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         TxValidationState &state, const CTransactionRef &tx,
                         bool bypass_limits, const Amount nAbsurdFee,
-                        bool test_accept = false)
+                        bool test_accept = false, Amount *fee_out = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**

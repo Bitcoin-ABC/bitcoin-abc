@@ -15,3 +15,5 @@ This release includes the following features and fixes:
 - A new `send` RPC with similar syntax to `walletcreatefundedpsbt`, including
   support for coin selection and a custom fee rate. Using the new `send` method
   is encouraged: `sendmany` and `sendtoaddress` may be deprecated in a future release.
+- The `testmempoolaccept` RPC returns `size` and a `fee` object with the `base` fee
+  if the transaction passes validation.

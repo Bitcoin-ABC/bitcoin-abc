@@ -368,6 +368,7 @@ public:
          */
         std::vector<COutPoint> &m_coins_to_uncache;
         const bool m_test_accept;
+        Amount *m_fee_out;
     };
 
     // Single transaction acceptance
@@ -553,6 +554,11 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
                                   nFees)) {
         // state filled in by CheckTxInputs
         return false;
+    }
+
+    // If fee_out is passed, return the fee to the caller
+    if (args.m_fee_out) {
+        *args.m_fee_out = nFees;
     }
 
     // Check for non-standard pay-to-script-hash in inputs
@@ -744,17 +750,16 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool
-AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
-                           TxValidationState &state, const CTransactionRef &tx,
-                           int64_t nAcceptTime, bool bypass_limits,
-                           const Amount nAbsurdFee, bool test_accept)
+static bool AcceptToMemoryPoolWithTime(
+    const Config &config, CTxMemPool &pool, TxValidationState &state,
+    const CTransactionRef &tx, int64_t nAcceptTime, bool bypass_limits,
+    const Amount nAbsurdFee, bool test_accept, Amount *fee_out = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
     MemPoolAccept::ATMPArgs args{config,        state,      nAcceptTime,
                                  bypass_limits, nAbsurdFee, coins_to_uncache,
-                                 test_accept};
+                                 test_accept,   fee_out};
     bool res = MemPoolAccept(pool).AcceptSingleTransaction(tx, args);
     if (!res) {
         // Remove coins that were not present in the coins cache before calling
@@ -779,9 +784,10 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         TxValidationState &state, const CTransactionRef &tx,
                         bool bypass_limits, const Amount nAbsurdFee,
-                        bool test_accept) {
+                        bool test_accept, Amount *fee_out) {
     return AcceptToMemoryPoolWithTime(config, pool, state, tx, GetTime(),
-                                      bypass_limits, nAbsurdFee, test_accept);
+                                      bypass_limits, nAbsurdFee, test_accept,
+                                      fee_out);
 }
 
 CTransactionRef GetTransaction(const CBlockIndex *const block_index,

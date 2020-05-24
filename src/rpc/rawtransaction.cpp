@@ -1058,25 +1058,34 @@ static UniValue testmempoolaccept(const Config &config,
              "value, expressed in " +
                  Currency::get().ticker + "/kB\n"},
         },
-        RPCResult{RPCResult::Type::ARR,
-                  "",
-                  "The result of the mempool acceptance test for each raw "
-                  "transaction in the input array.\n"
-                  "Length is exactly one for now.",
-                  {
-                      {RPCResult::Type::OBJ,
-                       "",
-                       "",
-                       {
-                           {RPCResult::Type::STR_HEX, "txid",
-                            "The transaction hash in hex"},
-                           {RPCResult::Type::BOOL, "allowed",
-                            "If the mempool allows this tx to be inserted"},
-                           {RPCResult::Type::STR, "reject-reason",
-                            "Rejection string (only present when 'allowed' is "
-                            "false)"},
-                       }},
-                  }},
+        RPCResult{
+            RPCResult::Type::ARR,
+            "",
+            "The result of the mempool acceptance test for each raw "
+            "transaction in the input array.\n"
+            "Length is exactly one for now.",
+            {
+                {RPCResult::Type::OBJ,
+                 "",
+                 "",
+                 {
+                     {RPCResult::Type::STR_HEX, "txid",
+                      "The transaction hash in hex"},
+                     {RPCResult::Type::BOOL, "allowed",
+                      "If the mempool allows this tx to be inserted"},
+                     {RPCResult::Type::NUM, "size", "The transaction size"},
+                     {RPCResult::Type::OBJ,
+                      "fees",
+                      "Transaction fees (only present if 'allowed' is true)",
+                      {
+                          {RPCResult::Type::STR_AMOUNT, "base",
+                           "transaction fee in " + Currency::get().ticker},
+                      }},
+                     {RPCResult::Type::STR, "reject-reason",
+                      "Rejection string (only present when 'allowed' is "
+                      "false)"},
+                 }},
+            }},
         RPCExamples{
             "\nCreate a transaction\n" +
             HelpExampleCli(
@@ -1127,14 +1136,23 @@ static UniValue testmempoolaccept(const Config &config,
 
     TxValidationState state;
     bool test_accept_res;
+    Amount fee;
     {
         LOCK(cs_main);
         test_accept_res = AcceptToMemoryPool(
             config, mempool, state, std::move(tx), false /* bypass_limits */,
-            max_raw_tx_fee, true /* test_accept */);
+            max_raw_tx_fee, true /* test_accept */, &fee);
     }
     result_0.pushKV("allowed", test_accept_res);
-    if (!test_accept_res) {
+
+    // Only return the fee and size if the transaction would pass ATMP.
+    // These can be used to calculate the feerate.
+    if (test_accept_res) {
+        result_0.pushKV("size", virtual_size);
+        UniValue fees(UniValue::VOBJ);
+        fees.pushKV("base", fee);
+        result_0.pushKV("fees", fees);
+    } else {
         if (state.IsInvalid()) {
             if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
                 result_0.pushKV("reject-reason", "missing-inputs");
