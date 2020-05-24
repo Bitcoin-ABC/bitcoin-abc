@@ -45,8 +45,19 @@ NOT_FINAL_ERROR = "non-BIP68-final"
 class BIP68Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-noparkdeepreorg", "-maxreorgdepth=-1", "-acceptnonstdtxn=1"],
-                           ["-acceptnonstdtxn=0", "-maxreorgdepth=-1"]]
+        self.extra_args = [
+            [
+                "-noparkdeepreorg",
+                "-maxreorgdepth=-1",
+                "-acceptnonstdtxn=1",
+                # bump because mocktime might cause a disconnect otherwise
+                "-peertimeout=9999",
+            ],
+            [
+                "-acceptnonstdtxn=0",
+                "-maxreorgdepth=-1"
+            ]
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

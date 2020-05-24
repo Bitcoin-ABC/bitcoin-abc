@@ -40,7 +40,12 @@ class MaxUploadTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         # Start a node with maxuploadtarget of 200 MB (/24h)
-        self.extra_args = [["-maxuploadtarget=200", "-acceptnonstdtxn=1"]]
+        self.extra_args = [[
+            "-maxuploadtarget=200",
+            "-acceptnonstdtxn=1",
+            # bump because mocktime might cause a disconnect otherwise
+            "-peertimeout=9999",
+        ]]
         self.supports_cli = False
 
         # Cache for utxos, as the listunspent may take a long time later in the

@@ -86,10 +86,9 @@ static constexpr int STALE_RELAY_AGE_LIMIT = 30 * 24 * 60 * 60;
 /// limiting block relay. Set to one week, denominated in seconds.
 static constexpr int HISTORICAL_BLOCK_AGE = 7 * 24 * 60 * 60;
 /**
- * Time between pings automatically sent out for latency probing and keepalive
- * (in seconds).
+ * Time between pings automatically sent out for latency probing and keepalive.
  */
-static const int PING_INTERVAL = 2 * 60;
+static constexpr std::chrono::minutes PING_INTERVAL{2};
 /** The maximum number of entries in a locator */
 static const unsigned int MAX_LOCATOR_SZ = 101;
 /** The maximum number of entries in an 'inv' protocol message */
@@ -2645,7 +2644,8 @@ static void ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv,
 
 void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                                  const std::string &msg_type,
-                                 CDataStream &vRecv, int64_t nTimeReceived,
+                                 CDataStream &vRecv,
+                                 const std::chrono::microseconds time_received,
                                  const std::atomic<bool> &interruptMsgProc) {
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
              SanitizeString(msg_type), vRecv.size(), pfrom.GetId());
@@ -3689,7 +3689,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         if (fProcessBLOCKTXN) {
             return ProcessMessage(config, pfrom, NetMsgType::BLOCKTXN,
-                                  blockTxnMsg, nTimeReceived, interruptMsgProc);
+                                  blockTxnMsg, time_received, interruptMsgProc);
         }
 
         if (fRevertToHeaderProcessing) {
@@ -4210,7 +4210,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     }
 
     if (msg_type == NetMsgType::PONG) {
-        int64_t pingUsecEnd = nTimeReceived;
+        const auto ping_end = time_received;
         uint64_t nonce = 0;
         size_t nAvail = vRecv.in_avail();
         bool bPingFinished = false;
@@ -4226,12 +4226,13 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     // Matching pong received, this ping is no longer
                     // outstanding
                     bPingFinished = true;
-                    int64_t pingUsecTime = pingUsecEnd - pfrom.nPingUsecStart;
-                    if (pingUsecTime > 0) {
+                    const auto ping_time = ping_end - pfrom.m_ping_start.load();
+                    if (ping_time.count() > 0) {
                         // Successful ping time measurement, replace previous
-                        pfrom.nPingUsecTime = pingUsecTime;
-                        pfrom.nMinPingUsecTime = std::min(
-                            pfrom.nMinPingUsecTime.load(), pingUsecTime);
+                        pfrom.nPingUsecTime = count_microseconds(ping_time);
+                        pfrom.nMinPingUsecTime =
+                            std::min(pfrom.nMinPingUsecTime.load(),
+                                     count_microseconds(ping_time));
                     } else {
                         // This should never happen
                         sProblem = "Timing mishap";
@@ -4794,8 +4795,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         // RPC ping request by user
         pingSend = true;
     }
-    if (pto->nPingNonceSent == 0 &&
-        pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
+    if (pto->nPingNonceSent == 0 && pto->m_ping_start.load() + PING_INTERVAL <
+                                        GetTime<std::chrono::microseconds>()) {
         // Ping automatically sent as a latency probe & keepalive.
         pingSend = true;
     }
@@ -4805,7 +4806,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             GetRandBytes((uint8_t *)&nonce, sizeof(nonce));
         }
         pto->fPingQueued = false;
-        pto->nPingUsecStart = GetTimeMicros();
+        pto->m_ping_start = GetTime<std::chrono::microseconds>();
         if (pto->nVersion > BIP0031_VERSION) {
             pto->nPingNonceSent = nonce;
             m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::PING, nonce));

@@ -87,7 +87,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     try {
         g_setup->m_node.peerman->ProcessMessage(
             config, p2p_node, random_message_type, random_bytes_data_stream,
-            GetTimeMillis(), std::atomic<bool>{false});
+            GetTime<std::chrono::microseconds>(), std::atomic<bool>{false});
     } catch (const std::ios_base::failure &) {
     }
     SyncWithValidationInterfaceQueue();

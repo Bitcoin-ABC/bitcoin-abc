@@ -586,9 +586,9 @@ void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
     // responsive, since pingtime does not update until the ping is complete,
     // which might take a while. So, if a ping is taking an unusually long time
     // in flight, the caller can immediately detect that this is happening.
-    int64_t nPingUsecWait = 0;
-    if ((0 != nPingNonceSent) && (0 != nPingUsecStart)) {
-        nPingUsecWait = GetTimeMicros() - nPingUsecStart;
+    std::chrono::microseconds ping_wait{0};
+    if ((0 != nPingNonceSent) && (0 != m_ping_start.load().count())) {
+        ping_wait = GetTime<std::chrono::microseconds>() - m_ping_start.load();
     }
 
     // Raw ping time is in microseconds, but show it to user as whole seconds
@@ -596,7 +596,7 @@ void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
     // places by now :)
     stats.m_ping_usec = nPingUsecTime;
     stats.m_min_ping_usec = nMinPingUsecTime;
-    stats.m_ping_wait_usec = nPingUsecWait;
+    stats.m_ping_wait_usec = count_microseconds(ping_wait);
 
     // Leave string empty if addrLocal invalid (not filled in yet)
     CService addrLocalUnlocked = GetAddrLocal();
@@ -607,9 +607,9 @@ void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
 bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
                             uint32_t nBytes, bool &complete) {
     complete = false;
-    int64_t nTimeMicros = GetTimeMicros();
+    const auto time = GetTime<std::chrono::microseconds>();
     LOCK(cs_vRecv);
-    nLastRecv = nTimeMicros / 1000000;
+    nLastRecv = std::chrono::duration_cast<std::chrono::seconds>(time).count();
     nRecvBytes += nBytes;
     while (nBytes > 0) {
         // Absorb network data.
@@ -624,7 +624,7 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
 
         if (m_deserializer->Complete()) {
             // decompose a transport agnostic CNetMessage from the deserializer
-            CNetMessage msg = m_deserializer->GetMessage(config, nTimeMicros);
+            CNetMessage msg = m_deserializer->GetMessage(config, time);
 
             // Store received bytes per message command to prevent a memory DOS,
             // only allow valid commands.
@@ -731,8 +731,9 @@ const uint256 &V1TransportDeserializer::GetMessageHash() const {
     return data_hash;
 }
 
-CNetMessage V1TransportDeserializer::GetMessage(const Config &config,
-                                                int64_t time) {
+CNetMessage
+V1TransportDeserializer::GetMessage(const Config &config,
+                                    const std::chrono::microseconds time) {
     // decompose a single CNetMessage from the TransportDeserializer
     CNetMessage msg(std::move(vRecv));
 
@@ -1286,10 +1287,13 @@ void CConnman::InactivityCheck(CNode *pnode) {
                       nTime - pnode->nLastRecv);
             pnode->fDisconnect = true;
         } else if (pnode->nPingNonceSent &&
-                   pnode->nPingUsecStart + TIMEOUT_INTERVAL * 1000000 <
-                       GetTimeMicros()) {
+                   pnode->m_ping_start.load() +
+                           std::chrono::seconds{TIMEOUT_INTERVAL} <
+                       GetTime<std::chrono::microseconds>()) {
             LogPrintf("ping timeout: %fs\n",
-                      0.000001 * (GetTimeMicros() - pnode->nPingUsecStart));
+                      0.000001 * count_microseconds(
+                                     GetTime<std::chrono::microseconds>() -
+                                     pnode->m_ping_start.load()));
             pnode->fDisconnect = true;
         } else if (!pnode->fSuccessfullyConnected) {
             LogPrint(BCLog::NET, "version handshake timeout from %d\n",
