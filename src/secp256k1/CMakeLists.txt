@@ -203,6 +203,8 @@ cmake_dependent_option(
 	SECP256K1_BUILD_TEST ON
 )
 if(SECP256K1_BUILD_OPENSSL_TESTS)
+	include(BrewHelper)
+	find_brew_prefix(OPENSSL_ROOT_DIR openssl)
 	find_package(OpenSSL COMPONENTS Crypto)
 	if(NOT OpenSSL_FOUND)
 		message(FATAL_ERROR
