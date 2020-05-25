@@ -359,7 +359,8 @@ bool RPCIsInWarmup(std::string *outStatus) {
     return fRPCInWarmup;
 }
 
-bool IsDeprecatedRPCEnabled(ArgsManager &args, const std::string &method) {
+bool IsDeprecatedRPCEnabled(const ArgsManager &args,
+                            const std::string &method) {
     const std::vector<std::string> enabled_methods =
         args.GetArgs("-deprecatedrpc");
 
