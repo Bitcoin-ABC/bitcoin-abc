@@ -26,7 +26,7 @@ option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
 option(USE_LD_GOLD "Try to use gold as a linker if available" ON)
-option(USE_JEMALLOC_EXPERIMENTAL "Use jemalloc as an allocation library (experimental)" OFF)
+option(USE_JEMALLOC "Use jemalloc as an allocation library" ON)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(DEFAULT_ENABLE_DBUS_NOTIFICATIONS ON)
@@ -49,6 +49,7 @@ native_add_cmake_flags(
 	"-DBUILD_BITCOIN_ZMQ=OFF"
 	"-DENABLE_QRCODE=OFF"
 	"-DENABLE_UPNP=OFF"
+	"-DUSE_JEMALLOC=OFF"
 	# Forward the current setting for clang-tidy
 	"-DENABLE_CLANG_TIDY=${ENABLE_CLANG_TIDY}"
 )
@@ -228,14 +229,14 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 	endif()
 endif()
 
-if(USE_JEMALLOC_EXPERIMENTAL)
+if(USE_JEMALLOC)
 	# Most of the sanitizers require their instrumented allocation functions to
 	# be fully functional. This is obviously the case for all the memory related
 	# sanitizers (asan, lsan, msan) but not only.
 	if(ENABLE_SANITIZERS)
 		message(WARNING "Jemalloc is incompatible with the sanitizers and has been disabled.")
 	else()
-		find_package(Jemalloc REQUIRED)
+		find_package(Jemalloc 3.6.0 REQUIRED)
 		link_libraries(Jemalloc::jemalloc)
 	endif()
 endif()

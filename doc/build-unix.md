@@ -38,6 +38,7 @@ Optional dependencies:
  ------------|------------------|----------------------
  miniupnpc   | UPnP Support     | Firewall-jumping support
  libdb       | Berkeley DB      | Wallet storage (only needed when wallet enabled)
+ jemalloc    | Memory allocator | Library to enhance the memory allocation and improve performances
  qt          | GUI              | GUI toolkit (only needed when GUI enabled)
  protobuf    | Payments in GUI  | Data interchange format used for payment protocol (only needed when BIP70 enabled)
  libqrencode | QR codes in GUI  | Optional for generating QR codes (only needed when GUI enabled)
@@ -107,6 +108,10 @@ Minipupnc dependencies (can be disabled by passing `-DENABLE_UPNP=OFF` on the cm
 ZMQ dependencies (provides ZMQ API, can be disabled by passing `-DBUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
 
     sudo apt-get install libzmq3-dev
+
+jemalloc dependencies (provides the jemalloc library, can be disabled by passing `-DUSE_JEMALLOC=OFF` on the cmake command line):
+
+    sudo apt-get install libjemalloc-dev
 
 Dependencies for the GUI: Ubuntu & Debian
 -----------------------------------------

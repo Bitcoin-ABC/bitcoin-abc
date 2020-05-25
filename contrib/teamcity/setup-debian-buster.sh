@@ -33,6 +33,7 @@ PACKAGES=(
   libdb++-dev
   libdb-dev
   libevent-dev
+  libjemalloc-dev
   libminiupnpc-dev
   libprotobuf-dev
   libqrencode-dev

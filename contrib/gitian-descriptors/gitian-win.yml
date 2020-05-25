@@ -144,7 +144,8 @@ script: |
     -DBUILD_LIBBITCOINCONSENSUS=OFF \
     -DENABLE_CLANG_TIDY=OFF \
     -DENABLE_QRCODE=OFF \
-    -DENABLE_UPNP=OFF
+    -DENABLE_UPNP=OFF \
+    -DUSE_JEMALLOC=OFF
 
   ninja package_source
   SOURCEDIST=`echo bitcoin-abc-*.tar.gz`
