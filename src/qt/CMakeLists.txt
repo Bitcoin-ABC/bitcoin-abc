@@ -252,6 +252,19 @@ if(ENABLE_BIP70)
 		target_disable_clang_tidy(bitcoin-qt-protobuf)
 	endif()
 
+	# OpenSSL functionality
+	include(BrewHelper)
+	find_brew_prefix(OPENSSL_ROOT_DIR openssl)
+	find_package(OpenSSL REQUIRED)
+
+	include(CheckSymbolExists)
+	set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_INCLUDE_DIR})
+	set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
+	check_symbol_exists(EVP_MD_CTX_new "openssl/evp.h" HAVE_DECL_EVP_MD_CTX_NEW)
+	if(HAVE_DECL_EVP_MD_CTX_NEW)
+		target_compile_definitions(bitcoin-qt-base PRIVATE HAVE_DECL_EVP_MD_CTX_NEW=1)
+	endif()
+
 	target_link_libraries(bitcoin-qt-base
 		OpenSSL::SSL
 		bitcoin-qt-protobuf

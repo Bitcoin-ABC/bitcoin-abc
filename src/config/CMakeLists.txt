@@ -206,11 +206,6 @@ else()
 	set(FDELT_TYPE "long int")
 endif()
 
-# OpenSSL functionality
-set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_INCLUDE_DIR})
-set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
-check_symbol_exists(EVP_MD_CTX_new "openssl/evp.h" HAVE_DECL_EVP_MD_CTX_NEW)
-
 # Activate wallet
 set(ENABLE_WALLET ${BUILD_BITCOIN_WALLET})
 
