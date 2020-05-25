@@ -123,6 +123,7 @@ add_regular_fuzz_targets(
 	merkleblock
 	message
 	multiplication_overflow
+	net
 	net_permissions
 	netaddress
 	p2p_transport_deserializer
