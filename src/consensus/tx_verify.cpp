@@ -68,9 +68,9 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
  */
 std::pair<int, int64_t> CalculateSequenceLocks(const CTransaction &tx,
                                                int flags,
-                                               std::vector<int> *prevHeights,
+                                               std::vector<int> &prevHeights,
                                                const CBlockIndex &block) {
-    assert(prevHeights->size() == tx.vin.size());
+    assert(prevHeights.size() == tx.vin.size());
 
     // Will be set to the equivalent height- and time-based nLockTime
     // values that would be necessary to satisfy all relative lock-
@@ -100,11 +100,11 @@ std::pair<int, int64_t> CalculateSequenceLocks(const CTransaction &tx,
         // consensus-enforced meaning at this point.
         if (txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_DISABLE_FLAG) {
             // The height of this input is not relevant for sequence locks
-            (*prevHeights)[txinIndex] = 0;
+            prevHeights[txinIndex] = 0;
             continue;
         }
 
-        int nCoinHeight = (*prevHeights)[txinIndex];
+        int nCoinHeight = prevHeights[txinIndex];
 
         if (txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG) {
             int64_t nCoinTime = block.GetAncestor(std::max(nCoinHeight - 1, 0))
@@ -149,7 +149,7 @@ bool EvaluateSequenceLocks(const CBlockIndex &block,
 }
 
 bool SequenceLocks(const CTransaction &tx, int flags,
-                   std::vector<int> *prevHeights, const CBlockIndex &block) {
+                   std::vector<int> &prevHeights, const CBlockIndex &block) {
     return EvaluateSequenceLocks(
         block, CalculateSequenceLocks(tx, flags, prevHeights, block));
 }

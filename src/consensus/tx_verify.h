@@ -50,7 +50,7 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
  */
 std::pair<int, int64_t> CalculateSequenceLocks(const CTransaction &tx,
                                                int flags,
-                                               std::vector<int> *prevHeights,
+                                               std::vector<int> &prevHeights,
                                                const CBlockIndex &block);
 
 bool EvaluateSequenceLocks(const CBlockIndex &block,
@@ -62,6 +62,6 @@ bool EvaluateSequenceLocks(const CBlockIndex &block,
  * tx's inputs (in order) confirmed.
  */
 bool SequenceLocks(const CTransaction &tx, int flags,
-                   std::vector<int> *prevHeights, const CBlockIndex &block);
+                   std::vector<int> &prevHeights, const CBlockIndex &block);
 
 #endif // BITCOIN_CONSENSUS_TX_VERIFY_H

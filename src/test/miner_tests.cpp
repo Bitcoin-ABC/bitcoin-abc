@@ -524,7 +524,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     BOOST_CHECK(!TestSequenceLocks(CTransaction(tx), flags));
     // Sequence locks pass on 2nd block.
     BOOST_CHECK(
-        SequenceLocks(CTransaction(tx), flags, &prevheights,
+        SequenceLocks(CTransaction(tx), flags, prevheights,
                       CreateBlockIndex(::ChainActive().Tip()->nHeight + 2)));
 
     // Relative time locked.
@@ -558,7 +558,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
     // Sequence locks pass 512 seconds later.
     BOOST_CHECK(
-        SequenceLocks(CTransaction(tx), flags, &prevheights,
+        SequenceLocks(CTransaction(tx), flags, prevheights,
                       CreateBlockIndex(::ChainActive().Tip()->nHeight + 1)));
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
         // Undo tricked MTP.
