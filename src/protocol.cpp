@@ -43,6 +43,8 @@ const char *SENDCMPCT = "sendcmpct";
 const char *CMPCTBLOCK = "cmpctblock";
 const char *GETBLOCKTXN = "getblocktxn";
 const char *BLOCKTXN = "blocktxn";
+const char *GETCFILTERS = "getcfilters";
+const char *CFILTER = "cfilter";
 const char *GETCFHEADERS = "getcfheaders";
 const char *CFHEADERS = "cfheaders";
 const char *GETCFCHECKPT = "getcfcheckpt";
@@ -62,16 +64,17 @@ bool IsBlockLike(const std::string &strCommand) {
  * above and in protocol.h.
  */
 static const std::string allNetMessageTypes[] = {
-    NetMsgType::VERSION,      NetMsgType::VERACK,       NetMsgType::ADDR,
-    NetMsgType::INV,          NetMsgType::GETDATA,      NetMsgType::MERKLEBLOCK,
-    NetMsgType::GETBLOCKS,    NetMsgType::GETHEADERS,   NetMsgType::TX,
-    NetMsgType::HEADERS,      NetMsgType::BLOCK,        NetMsgType::GETADDR,
-    NetMsgType::MEMPOOL,      NetMsgType::PING,         NetMsgType::PONG,
-    NetMsgType::NOTFOUND,     NetMsgType::FILTERLOAD,   NetMsgType::FILTERADD,
-    NetMsgType::FILTERCLEAR,  NetMsgType::SENDHEADERS,  NetMsgType::FEEFILTER,
-    NetMsgType::SENDCMPCT,    NetMsgType::CMPCTBLOCK,   NetMsgType::GETBLOCKTXN,
-    NetMsgType::BLOCKTXN,     NetMsgType::GETCFHEADERS, NetMsgType::CFHEADERS,
-    NetMsgType::GETCFCHECKPT, NetMsgType::CFCHECKPT,
+    NetMsgType::VERSION,      NetMsgType::VERACK,      NetMsgType::ADDR,
+    NetMsgType::INV,          NetMsgType::GETDATA,     NetMsgType::MERKLEBLOCK,
+    NetMsgType::GETBLOCKS,    NetMsgType::GETHEADERS,  NetMsgType::TX,
+    NetMsgType::HEADERS,      NetMsgType::BLOCK,       NetMsgType::GETADDR,
+    NetMsgType::MEMPOOL,      NetMsgType::PING,        NetMsgType::PONG,
+    NetMsgType::NOTFOUND,     NetMsgType::FILTERLOAD,  NetMsgType::FILTERADD,
+    NetMsgType::FILTERCLEAR,  NetMsgType::SENDHEADERS, NetMsgType::FEEFILTER,
+    NetMsgType::SENDCMPCT,    NetMsgType::CMPCTBLOCK,  NetMsgType::GETBLOCKTXN,
+    NetMsgType::BLOCKTXN,     NetMsgType::GETCFILTERS, NetMsgType::CFILTER,
+    NetMsgType::GETCFHEADERS, NetMsgType::CFHEADERS,   NetMsgType::GETCFCHECKPT,
+    NetMsgType::CFCHECKPT,
 };
 static const std::vector<std::string>
     allNetMessageTypesVec(allNetMessageTypes,

@@ -142,7 +142,7 @@ public:
     uint256 ComputeHeader(const uint256 &prev_header) const;
 
     template <typename Stream> void Serialize(Stream &s) const {
-        s << m_block_hash << static_cast<uint8_t>(m_filter_type)
+        s << static_cast<uint8_t>(m_filter_type) << m_block_hash
           << m_filter.GetEncoded();
     }
 
@@ -150,7 +150,7 @@ public:
         std::vector<uint8_t> encoded_filter;
         uint8_t filter_type;
 
-        s >> m_block_hash >> filter_type >> encoded_filter;
+        s >> filter_type >> m_block_hash >> encoded_filter;
 
         m_filter_type = static_cast<BlockFilterType>(filter_type);
 
