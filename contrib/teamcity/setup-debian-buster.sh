@@ -7,6 +7,7 @@ set -euxo pipefail
 dpkg --add-architecture i386
 
 PACKAGES=(
+  arcanist
   automake
   autotools-dev
   bsdmainutils
@@ -14,6 +15,7 @@ PACKAGES=(
   ccache
   cmake
   curl
+  flake8
   g++-aarch64-linux-gnu
   g++-arm-linux-gnueabihf
   git
@@ -21,6 +23,7 @@ PACKAGES=(
   gnupg
   gperf
   imagemagick
+  jq
   less
   lib32stdc++-8-dev
   libboost-all-dev
@@ -48,6 +51,7 @@ PACKAGES=(
   pkg-config
   protobuf-compiler
   python3
+  python3-autopep8
   python3-setuptools
   python3-zmq
   qemu-user-static
