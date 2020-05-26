@@ -38,7 +38,7 @@ namespace {
 
     class LockImpl : public Chain::Lock, public UniqueLock<RecursiveMutex> {
         Optional<int> getHeight() override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             int height = ::ChainActive().Height();
             if (height >= 0) {
                 return height;
@@ -46,7 +46,7 @@ namespace {
             return nullopt;
         }
         Optional<int> getBlockHeight(const BlockHash &hash) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             CBlockIndex *block = LookupBlockIndex(hash);
             if (block && ::ChainActive().Contains(block)) {
                 return block->nHeight;
@@ -59,32 +59,32 @@ namespace {
             return tip_height && height ? *tip_height - *height + 1 : 0;
         }
         BlockHash getBlockHash(int height) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             CBlockIndex *block = ::ChainActive()[height];
             assert(block != nullptr);
             return block->GetBlockHash();
         }
         int64_t getBlockTime(int height) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             CBlockIndex *block = ::ChainActive()[height];
             assert(block != nullptr);
             return block->GetBlockTime();
         }
         int64_t getBlockMedianTimePast(int height) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             CBlockIndex *block = ::ChainActive()[height];
             assert(block != nullptr);
             return block->GetMedianTimePast();
         }
         bool haveBlockOnDisk(int height) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             CBlockIndex *block = ::ChainActive()[height];
             return block && (block->nStatus.hasData() != 0) && block->nTx > 0;
         }
         Optional<int>
         findFirstBlockWithTimeAndHeight(int64_t time, int height,
                                         BlockHash *hash) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             CBlockIndex *block =
                 ::ChainActive().FindEarliestAtLeast(time, height);
             if (block) {
@@ -97,7 +97,7 @@ namespace {
         }
         Optional<int> findPruned(int start_height,
                                  Optional<int> stop_height) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             if (::fPruneMode) {
                 CBlockIndex *block = stop_height ? ::ChainActive()[*stop_height]
                                                  : ::ChainActive().Tip();
@@ -112,7 +112,7 @@ namespace {
         }
         Optional<int> findFork(const BlockHash &hash,
                                Optional<int> *height) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             const CBlockIndex *block = LookupBlockIndex(hash);
             const CBlockIndex *fork =
                 block ? ::ChainActive().FindFork(block) : nullptr;
@@ -129,11 +129,11 @@ namespace {
             return nullopt;
         }
         CBlockLocator getTipLocator() override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             return ::ChainActive().GetLocator();
         }
         Optional<int> findLocatorFork(const CBlockLocator &locator) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             if (CBlockIndex *fork =
                     FindForkInGlobalIndex(::ChainActive(), locator)) {
                 return fork->nHeight;
@@ -143,13 +143,13 @@ namespace {
         bool contextualCheckTransactionForCurrentBlock(
             const Consensus::Params &params, const CTransaction &tx,
             CValidationState &state) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             return ContextualCheckTransactionForCurrentBlock(params, tx, state);
         }
         bool submitToMemoryPool(const Config &config, CTransactionRef tx,
                                 Amount absurd_fee,
                                 CValidationState &state) override {
-            LockAnnotation lock(::cs_main);
+            LockAssertion lock(::cs_main);
             return AcceptToMemoryPool(config, ::g_mempool, state, tx,
                                       nullptr /* missing inputs */,
                                       false /* bypass limits */, absurd_fee);
