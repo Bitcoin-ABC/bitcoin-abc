@@ -8,7 +8,6 @@
 
 #include <consensus/consensus.h>
 #include <feerate.h>
-#include <policy/settings.h>
 #include <script/standard.h>
 
 #include <string>
@@ -142,10 +141,5 @@ int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCount,
                                   unsigned int bytes_per_sigop);
 int64_t GetVirtualTransactionInputSize(const CTxIn &txin, int64_t nSigOpCount,
                                        unsigned int bytes_per_sigop);
-
-static inline int64_t GetVirtualTransactionSize(int64_t nSize,
-                                                int64_t nSigOpCount) {
-    return GetVirtualTransactionSize(nSize, nSigOpCount, ::nBytesPerSigOp);
-}
 
 #endif // BITCOIN_POLICY_POLICY_H

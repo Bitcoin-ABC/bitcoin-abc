@@ -6,6 +6,8 @@
 #ifndef BITCOIN_POLICY_SETTINGS_H
 #define BITCOIN_POLICY_SETTINGS_H
 
+#include <policy/policy.h>
+
 #include <cstdint>
 
 class CFeeRate;
@@ -14,5 +16,10 @@ class CFeeRate;
 extern CFeeRate dustRelayFee;
 extern uint32_t nBytesPerSigOp;
 extern bool fIsBareMultisigStd;
+
+static inline int64_t GetVirtualTransactionSize(int64_t nSize,
+                                                int64_t nSigOpCount) {
+    return GetVirtualTransactionSize(nSize, nSigOpCount, ::nBytesPerSigOp);
+}
 
 #endif // BITCOIN_POLICY_SETTINGS_H

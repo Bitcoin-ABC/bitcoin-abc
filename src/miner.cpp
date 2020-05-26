@@ -19,6 +19,7 @@
 #include <minerfund.h>
 #include <net.h>
 #include <policy/policy.h>
+#include <policy/settings.h>
 #include <pow.h>
 #include <primitives/transaction.h>
 #include <script/standard.h>

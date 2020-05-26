@@ -4,7 +4,7 @@
 
 #include <txmempool.h>
 
-#include <policy/policy.h>
+#include <policy/settings.h>
 #include <reverse_iterator.h>
 #include <util/system.h>
 #include <util/time.h>
