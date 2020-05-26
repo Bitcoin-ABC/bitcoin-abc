@@ -6,17 +6,17 @@
 
 #include <util/translation.h>
 
-#include <boost/signals2/last_value.hpp>
+#include <boost/signals2/optional_last_value.hpp>
 #include <boost/signals2/signal.hpp>
 
 CClientUIInterface uiInterface;
 
 struct UISignals {
     boost::signals2::signal<CClientUIInterface::ThreadSafeMessageBoxSig,
-                            boost::signals2::last_value<bool>>
+                            boost::signals2::optional_last_value<bool>>
         ThreadSafeMessageBox;
     boost::signals2::signal<CClientUIInterface::ThreadSafeQuestionSig,
-                            boost::signals2::last_value<bool>>
+                            boost::signals2::optional_last_value<bool>>
         ThreadSafeQuestion;
     boost::signals2::signal<CClientUIInterface::InitMessageSig> InitMessage;
     boost::signals2::signal<CClientUIInterface::NotifyNumConnectionsChangedSig>
@@ -55,13 +55,15 @@ ADD_SIGNALS_IMPL_WRAPPER(BannedListChanged);
 bool CClientUIInterface::ThreadSafeMessageBox(const bilingual_str &message,
                                               const std::string &caption,
                                               unsigned int style) {
-    return g_ui_signals.ThreadSafeMessageBox(message, caption, style);
+    return g_ui_signals.ThreadSafeMessageBox(message, caption, style)
+        .value_or(false);
 }
 bool CClientUIInterface::ThreadSafeQuestion(
     const bilingual_str &message, const std::string &non_interactive_message,
     const std::string &caption, unsigned int style) {
-    return g_ui_signals.ThreadSafeQuestion(message, non_interactive_message,
-                                           caption, style);
+    return g_ui_signals
+        .ThreadSafeQuestion(message, non_interactive_message, caption, style)
+        .value_or(false);
 }
 void CClientUIInterface::InitMessage(const std::string &message) {
     return g_ui_signals.InitMessage(message);
