@@ -48,7 +48,3 @@ factors that affect the dependency list.
 * qrencode is not needed with `-DENABLE_QRCODE=OFF`.
 * systemtap is not needed with `-DENABLE_TRACING=OFF`.
 * ZeroMQ is not needed with the `-DBUILD_BITCOIN_ZMQ=OFF`.
-
-#### Other
-* librsvg is only needed if you need to run `ninja osx-dmg` on
-  (cross-compilation to) macOS.

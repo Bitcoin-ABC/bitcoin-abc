@@ -1,0 +1,12 @@
+#!/bin/sh
+
+export LC_ALL=C.UTF-8
+
+if [ -n "$ENV{SOURCE_DATE_EPOCH}" ]; then
+  find "${APP_DIST_DIR}" -exec touch -d "@$ENV{SOURCE_DATE_EPOCH}" {} +
+fi
+
+cd "${APP_DIST_DIR}"
+find . | sort | "${ZIP_EXECUTABLE}" -X@ "${ZIP_ARCHIVE_NAME}"
+
+mv "${ZIP_ARCHIVE_NAME}" "${CMAKE_BINARY_DIR}/${ZIP_ARCHIVE_NAME}"

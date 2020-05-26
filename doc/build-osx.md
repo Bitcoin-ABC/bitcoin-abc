@@ -21,14 +21,10 @@ Dependencies
 
 Install dependencies:
 
-    brew install berkeley-db boost cmake jemalloc libevent librsvg miniupnpc libnatpmp ninja openssl protobuf python qrencode qt@5 sqlite zeromq
-    pip install pytest
+    brew install berkeley-db boost cmake jemalloc libevent miniupnpc libnatpmp ninja openssl protobuf python qrencode qt@5 sqlite zeromq
+    pip install pytest zip
 
 See [dependencies.md](dependencies.md) for a complete overview.
-
-If you want to build the disk image with `ninja osx-dmg` (.dmg / optional), you need RSVG:
-
-    brew install librsvg
 
 Build Bitcoin ABC
 -----------------
@@ -57,9 +53,9 @@ Before you start building, please make sure that your compiler supports C++17.
 
         ninja check
 
-4.  You can also create a .dmg that contains the .app bundle (optional):
+4.  You can also create a .zip that contains the .app bundle (optional):
 
-        ninja osx-dmg
+        ninja osx-zip
 
 Disable-wallet mode
 --------------------

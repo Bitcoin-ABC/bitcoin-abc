@@ -446,8 +446,8 @@ EOF
             mv dist unsigned-app-${HOST}
             find unsigned-app-${HOST} -print0 | sort --zero-terminated | tar --create --no-recursion --mode='u+rw,go+r-w,a+X' --null --files-from=- | gzip -9n > ${OUTDIR}/${DISTNAME}-osx-unsigned.tar.gz
 
-            ninja osx-dmg
-            mv "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
+            ninja osx-zip
+            mv "${OSX_VOLNAME}.zip" ${OUTDIR}/${DISTNAME}-osx-unsigned.zip
 
             pushd installed
             find . -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;

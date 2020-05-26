@@ -428,7 +428,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			MACOSX_PACKAGE_LOCATION "Resources/${INFO_PLIST_STRINGS_FILE}"
 	)
 
-	# Create a stripped version of the application bundle to be used in the DMG.
+	# Create a stripped version of the application bundle to be used in the ZIP.
 	# Since the LOCATION property and the BundleUtilities package are deprecated
 	# by cmake, only generator expressions can be used to determine the path to
 	# the bundle and its executable. However the generator expressions are
@@ -497,12 +497,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 	set(MACDEPLOY_DIR "${CMAKE_SOURCE_DIR}/contrib/macdeploy")
 	set(MACDEPLOYQTPLUS "${MACDEPLOY_DIR}/macdeployqtplus.py")
-	set(DMG_DIST "${CMAKE_BINARY_DIR}/dist")
-	set(DMG_DSSTORE "${DMG_DIST}/.DS_Store")
+	set(APP_DIST_DIR "${CMAKE_BINARY_DIR}/dist")
+	set(APP_DSSTORE "${APP_DIST_DIR}/.DS_Store")
 	add_custom_command(
 		OUTPUT
-			"${DMG_DIST}"
-			"${DMG_DSSTORE}"
+			"${APP_DIST_DIR}"
+			"${APP_DSSTORE}"
 		COMMAND
 			"INSTALLNAMETOOL=${CMAKE_INSTALL_NAME_TOOL}"
 			"OTOOL=${CMAKE_OTOOL}"
@@ -518,77 +518,56 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"${STRIPPED_BUNDLE}"
 	)
 
-	set(BACKGROUND_TIFF_NAME "background.tiff")
-	set(BACKGROUND_TIFF_MULTIRES "${CMAKE_SOURCE_DIR}/contrib/macdeploy/${BACKGROUND_TIFF_NAME}")
-	set(BACKGROUND_DIST_DIR "${DMG_DIST}/.background")
-	set(BACKGROUND_DIST_TIFF "${BACKGROUND_DIST_DIR}/${BACKGROUND_TIFF_NAME}")
-	add_custom_command(
-		OUTPUT
-			"${BACKGROUND_DIST_TIFF}"
-		COMMAND
-			${CMAKE_COMMAND} -E make_directory "${BACKGROUND_DIST_DIR}"
-		COMMAND
-			${CMAKE_COMMAND} -E copy "${BACKGROUND_TIFF_MULTIRES}" "${BACKGROUND_DIST_TIFF}"
-		DEPENDS
-			"${BACKGROUND_TIFF_MULTIRES}"
-			"${DMG_DIST}"
-	)
-
 	set(OSX_APPLICATION_DIR "Applications")
-	set(OSX_APPLICATION_SYMLINK "${DMG_DIST}/${OSX_APPLICATION_DIR}")
+	set(OSX_APPLICATION_SYMLINK "${APP_DIST_DIR}/${OSX_APPLICATION_DIR}")
 	add_custom_command(
 		OUTPUT
 			"${OSX_APPLICATION_SYMLINK}"
 		COMMAND
 			${CMAKE_COMMAND} -E create_symlink "/${OSX_APPLICATION_DIR}" "${OSX_APPLICATION_SYMLINK}"
 		DEPENDS
-			"${DMG_DIST}"
+			"${APP_DIST_DIR}"
 	)
 
 	add_custom_target(osx-deploydir
 		DEPENDS
 			"${OSX_APPLICATION_SYMLINK}"
-			"${DMG_DSSTORE}"
-			"${BACKGROUND_DIST_TIFF}"
+			"${APP_DSSTORE}"
 	)
 
 	if(CMAKE_CROSSCOMPILING)
-		find_program_or_fail(XORRISOFS_EXECUTABLE xorrisofs)
+		find_program_or_fail(ZIP_EXECUTABLE zip)
 
-		if (DEFINED ENV{SOURCE_DATE_EPOCH})
-			set(OVERRIDE_DATE -- -volume_date all_file_dates "=$ENV{SOURCE_DATE_EPOCH}")
-		endif()
+		set(ZIP_ARCHIVE_NAME "${OSX_VOLNAME}.zip")
+		configure_file(
+			"${CMAKE_SOURCE_DIR}/cmake/templates/deterministicZip.sh.in"
+			"${CMAKE_BINARY_DIR}/config/deterministicZip.sh"
+		)
 
-		add_custom_target(osx-dmg
+		add_custom_target(osx-zip
+			COMMENT
+				"Creating a deterministic Zip archive of the MacOS Application"
 			COMMAND
-				"${XORRISOFS_EXECUTABLE}"
-				-D
-				-l
-				-V "${OSX_VOLNAME}"
-				-no-pad
-				-r
-				-dir-mode 0755
-				-o "${OSX_VOLNAME}.dmg"
-				"${DMG_DIST}"
-				${OVERRIDE_DATE}
+				"${CMAKE_BINARY_DIR}/config/deterministicZip.sh"
 			WORKING_DIRECTORY
 				"${CMAKE_BINARY_DIR}"
+			DEPENDS
+				"${CMAKE_BINARY_DIR}/config/deterministicZip.sh"
 		)
-		add_dependencies(osx-dmg osx-deploydir)
+		add_dependencies(osx-zip osx-deploydir)
 	else()
-		add_custom_target(osx-dmg
+		add_custom_target(osx-zip
 			COMMAND
 				"${Python_EXECUTABLE}"
 				"${MACDEPLOYQTPLUS}"
 				"${STRIPPED_BUNDLE}"
 				"${OSX_VOLNAME}"
 				-translations-dir "${QT_TRANSLATION_DIR}"
-				-dmg
+				-zip
 			WORKING_DIRECTORY
 				"${CMAKE_BINARY_DIR}"
 			DEPENDS
 				"${STRIPPED_BUNDLE}"
-				"${BACKGROUND_TIFF_MULTIRES}"
 		)
 	endif()
 endif()

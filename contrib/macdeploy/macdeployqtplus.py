@@ -27,9 +27,6 @@ from pathlib import Path
 from subprocess import PIPE, run
 from typing import List, Optional
 
-from ds_store import DSStore
-from mac_alias import Alias
-
 # This is ported from the original macdeployqt with modifications
 
 
@@ -615,7 +612,7 @@ def deployPlugins(
 ap = ArgumentParser(
     description="""Improved version of macdeployqt.
 
-Outputs a ready-to-deploy app in a folder "dist" and optionally wraps it in a .dmg file.
+Outputs a ready-to-deploy app in a folder "dist" and optionally wraps it in a .zip file.
 Note, that the "dist" folder will be deleted before deploying on each run.
 
 Optionally, Qt translation files (.qm) can be added to the bundle."""
@@ -658,13 +655,6 @@ ap.add_argument(
     help="sign .app bundle with codesign tool",
 )
 ap.add_argument(
-    "-dmg",
-    nargs="?",
-    const="",
-    metavar="basename",
-    help="create a .dmg disk image",
-)
-ap.add_argument(
     "-translations-dir",
     nargs=1,
     metavar="path",
@@ -673,6 +663,13 @@ ap.add_argument(
         "Path to Qt's translations. Base translations will automatically be added to"
         " the bundle's resources."
     ),
+)
+ap.add_argument(
+    "-zip",
+    nargs="?",
+    const="",
+    metavar="zip",
+    help="create a .zip containing the app bundle",
 )
 
 config = ap.parse_args()
@@ -694,9 +691,9 @@ if os.path.exists("dist"):
     print("+ Removing existing dist folder +")
     shutil.rmtree("dist")
 
-if os.path.exists(appname + ".dmg"):
-    print("+ Removing existing DMG +")
-    os.unlink(appname + ".dmg")
+if os.path.exists(appname + ".zip"):
+    print("+ Removing existing .zip +")
+    os.unlink(appname + ".zip")
 
 # ------------------------------------------------
 
@@ -783,135 +780,10 @@ with open(os.path.join(applicationBundle.resourcesPath, "qt.conf"), "wb") as f:
 
 # ------------------------------------------------
 
-print("+ Generating .DS_Store +")
-
-output_file = os.path.join("dist", ".DS_Store")
-
-ds = DSStore.open(output_file, "w+")
-
-ds["."]["bwsp"] = {
-    "WindowBounds": "{{300, 280}, {500, 343}}",
-    "PreviewPaneVisibility": False,
-}
-
-icvp = {
-    "gridOffsetX": 0.0,
-    "textSize": 12.0,
-    "viewOptionsVersion": 1,
-    "backgroundImageAlias": (
-        b"\x00\x00\x00\x00\x02\x1e\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xd1\x94\\\xb0H+\x00\x05\x00\x00\x00\x98\x0fbackground.tiff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x99\xd19\xb0\xf8\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\x00\x00\r\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0b.background\x00\x00\x10\x00\x08\x00\x00\xd1\x94\\\xb0\x00\x00\x00\x11\x00\x08\x00\x00\xd19\xb0\xf8\x00\x00\x00\x01\x00\x04\x00\x00\x00\x98\x00\x0e\x00"
-        b" \x00\x0f\x00b\x00a\x00c\x00k\x00g\x00r\x00o\x00u\x00n\x00d\x00.\x00t\x00i\x00f\x00f\x00\x0f\x00\x02\x00\x00\x00\x12\x00\x1c/.background/background.tiff\x00\x14\x01\x06\x00\x00\x00\x00\x01\x06\x00\x02\x00\x00\x0cMacintosh"
-        b" HD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xce\x97\xab\xc3H+\x00\x00\x01\x88[\x88\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02u\xab\x8d\xd1\x94\\\xb0devrddsk\xff\xff\xff\xff\x00\x00\t"
-        b" \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07bitcoin\x00\x00\x10\x00\x08\x00\x00\xce\x97\xab\xc3\x00\x00\x00\x11\x00\x08\x00\x00\xd1\x94\\\xb0\x00\x00\x00\x01\x00\x14\x01\x88[\x88\x00\x16\xa9\t\x00\x08\xfaR\x00\x08\xfaQ\x00\x02d\x8e\x00\x0e\x00\x02\x00\x00\x00\x0f\x00\x1a\x00\x0c\x00M\x00a\x00c\x00i\x00n\x00t\x00o\x00s\x00h\x00"
-        b" \x00H\x00D\x00\x13\x00\x01/\x00\x00\x15\x00\x02\x00\x14\xff\xff\x00\x00\xff\xff\x00\x00"
-    ),
-    "backgroundColorBlue": 1.0,
-    "iconSize": 96.0,
-    "backgroundColorGreen": 1.0,
-    "arrangeBy": "none",
-    "showIconPreview": True,
-    "gridSpacing": 100.0,
-    "gridOffsetY": 0.0,
-    "showItemInfo": False,
-    "labelOnBottom": True,
-    "backgroundType": 2,
-    "backgroundColorRed": 1.0,
-}
-alias = Alias().from_bytes(icvp["backgroundImageAlias"])
-alias.volume.name = appname
-alias.volume.posix_path = "/Volumes/" + appname
-icvp["backgroundImageAlias"] = alias.to_bytes()
-ds["."]["icvp"] = icvp
-
-ds["."]["vSrn"] = ("long", 1)
-
-ds["Applications"]["Iloc"] = (370, 156)
-ds["BitcoinABC-Qt.app"]["Iloc"] = (128, 156)
-
-ds.flush()
-ds.close()
-
-# ------------------------------------------------
-
-if config.dmg is not None:
-    print("+ Preparing .dmg disk image +")
-
-    if verbose:
-        print('Determining size of "dist"...')
-    size = 0
-    for path, dirs, files in os.walk("dist"):
-        for file in files:
-            size += os.path.getsize(os.path.join(path, file))
-    size += int(size * 0.15)
-
-    if verbose:
-        print("Creating temp image for modification...")
-
-    tempname: str = appname + ".temp.dmg"
-
-    run(
-        [
-            "hdiutil",
-            "create",
-            tempname,
-            "-srcfolder",
-            "dist",
-            "-format",
-            "UDRW",
-            "-size",
-            str(size),
-            "-volname",
-            appname,
-        ],
-        check=True,
-        universal_newlines=True,
+if config.zip is not None:
+    shutil.make_archive(
+        f"{appname}", format="zip", root_dir="dist", base_dir="Bitcoin-Qt.app"
     )
-
-    if verbose:
-        print("Attaching temp image...")
-    output = run(
-        ["hdiutil", "attach", tempname, "-readwrite"],
-        check=True,
-        universal_newlines=True,
-        stdout=PIPE,
-    ).stdout
-
-    m = re.search(r"/Volumes/(.+$)", output)
-    disk_root = m.group(0)
-
-    print("+ Applying fancy settings +")
-
-    bg_path = os.path.join(
-        disk_root, ".background", os.path.basename("background.tiff")
-    )
-    os.mkdir(os.path.dirname(bg_path))
-    if verbose:
-        print("background.tiff", "->", bg_path)
-    shutil.copy2("contrib/macdeploy/background.tiff", bg_path)
-
-    os.symlink("/Applications", os.path.join(disk_root, "Applications"))
-
-    print("+ Finalizing .dmg disk image +")
-
-    run(["hdiutil", "detach", f"/Volumes/{appname}"], universal_newlines=True)
-
-    run(
-        [
-            "hdiutil",
-            "convert",
-            tempname,
-            "-format",
-            "UDZO",
-            "-o",
-            appname,
-            "-imagekey",
-            "zlib-level=9",
-        ],
-        check=True,
-        universal_newlines=True,
-    )
-
-    os.unlink(tempname)
 
 # ------------------------------------------------
 

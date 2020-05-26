@@ -44,7 +44,7 @@ src/qt/bitcoin-qt.includes
 
 *.log
 *.trs
-*.dmg
+*.zip
 
 *.json.h
 *.raw.h

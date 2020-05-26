@@ -3,10 +3,10 @@
 The `macdeployqtplus.py` script should not be run manually. Instead, after building as usual:
 
 ```bash
-ninja osx-dmg
+ninja osx-zip
 ```
 
-When complete, it will have produced `Bitcoin-ABC.dmg`.
+When complete, it will have produced `Bitcoin-ABC.zip`.
 
 ## SDK Extraction
 
@@ -53,9 +53,10 @@ path to `Xcode.app` (extracted in the previous stage) as the first argument.
 The generated archive should be: `Xcode-15.0-15A240d-extracted-SDK-with-libcxx-headers.tar.gz`.
 The `sha256sum` should be `c0c2e7bb92c1fee0c4e9f3a485e4530786732d6c6dd9e9f418c282aa6892f55d`.
 
-## Deterministic macOS DMG Notes
-Working macOS DMGs are created in Linux by combining a recent `clang`, the Apple
-`binutils` (`ld`, `ar`, etc) and DMG authoring tools.
+## Deterministic macOS App Notes
+
+macOS Applications are created in Linux by combining a recent `clang` and the Apple
+`binutils` (`ld`, `ar`, etc).
 
 Apple uses `clang` extensively for development and has upstreamed the necessary
 functionality so that a vanilla clang can take advantage. It supports the use of `-F`,
@@ -85,20 +86,15 @@ created using these tools. The build process has been designed to avoid includin
 SDK's files in GUIX's outputs. All interim tarballs are fully deterministic and may be freely
 redistributed.
 
-[`xorrisofs`](https://www.gnu.org/software/xorriso/) is used to create the DMG.
-
-A background image is added to DMG files by inserting a `.DS_Store` during creation.
-
 As of OS X 10.9 Mavericks, using an Apple-blessed key to sign binaries is a requirement in
 order to satisfy the new Gatekeeper requirements. Because this private key cannot be
 shared, we'll have to be a bit creative in order for the build process to remain somewhat
 deterministic. Here's how it works:
 
-- Builders use GUIX to create an unsigned release. This outputs an unsigned DMG which
+- Builders use GUIX to create an unsigned release. This outputs an unsigned ZIP which
   users may choose to bless and run. It also outputs an unsigned app structure in the form
-  of a tarball, which also contains all of the tools that have been previously (deterministically)
-  built in order to create a final DMG.
+  of a tarball.
 - The Apple keyholder uses this unsigned app to create a detached signature, using the
   script that is also included there. Detached signatures are available from this [repository](https://github.com/bitcoin-core/bitcoin-detached-sigs).
 - Builders feed the unsigned app + detached signature back into GUIX. It uses the
-  pre-built tools to recombine the pieces into a deterministic DMG.
+  pre-built tools to recombine the pieces into a deterministic ZIP.
