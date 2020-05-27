@@ -9,6 +9,7 @@
 #include <wallet/db.h>
 
 #include <cstdint>
+#include <sqlite3.h>
 
 static const char *const DATABASE_FILENAME = "wallet.dat";
 
@@ -86,4 +87,8 @@ std::unique_ptr<SQLiteDatabase>
 MakeSQLiteDatabase(const fs::path &path, const DatabaseOptions &options,
                    DatabaseStatus &status, bilingual_str &error) {
     return std::make_unique<SQLiteDatabase>(path, path / DATABASE_FILENAME);
+}
+
+std::string SQLiteDatabaseVersion() {
+    return std::string(sqlite3_libversion());
 }
