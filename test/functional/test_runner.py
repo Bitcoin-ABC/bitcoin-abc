@@ -76,6 +76,7 @@ TEST_EXIT_SKIPPED = 77
 
 TEST_FRAMEWORK_MODULES = [
     "address",
+    "blocktools",
     "script",
 ]
 
@@ -178,6 +179,9 @@ def main():
     src_dir = config["environment"]["SRCDIR"]
     build_dir = config["environment"]["BUILDDIR"]
     tests_dir = os.path.join(src_dir, 'test', 'functional')
+
+    # SRCDIR must be set for cdefs.py to find and parse consensus.h
+    os.environ["SRCDIR"] = src_dir
 
     # Parse arguments and pass through unrecognised args
     parser = argparse.ArgumentParser(add_help=False,

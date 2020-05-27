@@ -4,6 +4,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Utilities for manipulating blocks and transactions."""
 
+import unittest
+
 from .script import (
     CScript,
     CScriptNum,
@@ -226,3 +228,10 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
         txid = node.sendrawtransaction(signresult["hex"], 0)
         txids.append(txid)
     return txids
+
+
+class TestFrameworkBlockTools(unittest.TestCase):
+    def test_create_coinbase(self):
+        height = 20
+        coinbase_tx = create_coinbase(height=height)
+        assert_equal(CScriptNum.decode(coinbase_tx.vin[0].scriptSig), height)
