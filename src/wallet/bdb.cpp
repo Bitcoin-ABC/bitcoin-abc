@@ -9,8 +9,6 @@
 #include <util/strencodings.h>
 #include <util/translation.h>
 
-#include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
-
 #include <cstdint>
 #ifndef WIN32
 #include <sys/stat.h>
@@ -722,7 +720,6 @@ bool BerkeleyBatch::PeriodicFlush(BerkeleyDatabase &database) {
         }
 
         if (nRefCount == 0) {
-            boost::this_thread::interruption_point();
             std::map<std::string, int>::iterator mi =
                 env->mapFileUseCount.find(strFile);
             if (mi != env->mapFileUseCount.end()) {
