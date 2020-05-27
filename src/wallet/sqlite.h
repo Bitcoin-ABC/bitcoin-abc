@@ -15,8 +15,7 @@ class SQLiteDatabase;
 /** RAII class that provides access to a WalletDatabase */
 class SQLiteBatch : public DatabaseBatch {
 private:
-    // FIXME: uncomment m_database when it is used in commit a0de833
-    // SQLiteDatabase &m_database;
+    SQLiteDatabase &m_database;
 
     bool ReadKey(CDataStream &&key, CDataStream &value) override;
     bool WriteKey(CDataStream &&key, CDataStream &&value,
@@ -45,8 +44,7 @@ public:
 /** An instance of this class represents one SQLite3 database. */
 class SQLiteDatabase : public WalletDatabase {
 private:
-    // FIXME: uncomment this line when m_mock is used in commit a0de833
-    // const bool m_mock{false};
+    const bool m_mock{false};
 
     const std::string m_dir_path;
 
