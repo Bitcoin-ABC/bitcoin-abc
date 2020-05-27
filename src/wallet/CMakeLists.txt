@@ -5,10 +5,6 @@ project(wallet)
 # Add Berkeley DB dependency.
 find_package(BerkeleyDB 5.3 REQUIRED COMPONENTS CXX)
 
-# Add event dependency. This is only required for evhttp_uridecode
-# in rpcwallet.cpp so it may be worth considering using an alternative.
-find_package(Event 2.0.22 REQUIRED COMPONENTS event)
-
 # PR15638(https://reviews.bitcoinabc.org/D6000) moved some wallet load
 # functions to wallet/load.cpp, the others in wallet/init.cpp remain in
 # the server
@@ -30,7 +26,9 @@ add_library(wallet
 	walletutil.cpp
 )
 
-target_link_libraries(wallet script univalue Event::event BerkeleyDB::CXX)
+# There is a circular dependency between wallet and server, see:
+# https://github.com/bitcoin/bitcoin/pull/14437#discussion_r226237048
+target_link_libraries(wallet server script univalue BerkeleyDB::CXX)
 
 # wallet-tool library
 add_library(wallet-tool wallettool.cpp)

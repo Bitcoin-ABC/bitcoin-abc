@@ -390,7 +390,12 @@ endfunction(prepend)
 prepend(BOOST_LIBRARIES "Boost::" ${BOOST_PACKAGES_REQUIRED})
 
 find_package(Boost 1.58 REQUIRED ${BOOST_PACKAGES_REQUIRED})
-target_link_libraries(util univalue crypto ${BOOST_LIBRARIES})
+
+# This require libevent
+set(EVENT_MIN_VERSION 2.0.22)
+find_package(Event ${EVENT_MIN_VERSION} REQUIRED COMPONENTS event)
+
+target_link_libraries(util univalue crypto Event::event ${BOOST_LIBRARIES})
 
 # Make sure boost uses std::atomic (it doesn't before 1.63)
 target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
@@ -536,10 +541,6 @@ add_library(server
 
 target_include_directories(server PRIVATE leveldb/helpers/memenv)
 
-# This require libevent
-set(EVENT_MIN_VERSION 2.0.22)
-find_package(Event ${EVENT_MIN_VERSION} REQUIRED COMPONENTS event)
-
 target_link_libraries(server
 	Event::event
 	bitcoinconsensus
@@ -579,9 +580,6 @@ include(BinaryTest)
 if(BUILD_BITCOIN_WALLET)
 	add_subdirectory(wallet)
 	target_link_libraries(server wallet)
-	# There is a circular dependency between wallet and server, see:
-	# https://github.com/bitcoin/bitcoin/pull/14437#discussion_r226237048
-	target_link_libraries(wallet server)
 
 	# bitcoin-wallet
 	add_executable(bitcoin-wallet bitcoin-wallet.cpp)
