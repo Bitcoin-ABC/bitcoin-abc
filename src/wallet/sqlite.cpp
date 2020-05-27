@@ -4,6 +4,7 @@
 
 #include <wallet/sqlite.h>
 
+#include <logging.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
 #include <wallet/db.h>
@@ -17,9 +18,16 @@ SQLiteDatabase::SQLiteDatabase(const fs::path &dir_path,
                                const fs::path &file_path, bool mock)
     // FIXME: uncomment m_mock when backporting commit a0de833
     : WalletDatabase(), /* m_mock(mock), */ m_dir_path(dir_path.string()),
-      m_file_path(file_path.string()) {}
+      m_file_path(file_path.string()) {
+    LogPrintf("Using SQLite Version %s\n", SQLiteDatabaseVersion());
+    LogPrintf("Using wallet %s\n", m_dir_path);
 
-SQLiteDatabase::~SQLiteDatabase() {}
+    Open();
+}
+
+SQLiteDatabase::~SQLiteDatabase() {
+    Close();
+}
 
 void SQLiteDatabase::Open() {}
 
@@ -36,6 +44,10 @@ void SQLiteDatabase::Close() {}
 std::unique_ptr<DatabaseBatch> SQLiteDatabase::MakeBatch(bool flush_on_close) {
     return nullptr;
 }
+
+// FIXME: uncomment m_database when backporting commit a0de833
+SQLiteBatch::SQLiteBatch(
+    SQLiteDatabase &database) /* : m_database(database) */ {}
 
 void SQLiteBatch::Close() {}
 

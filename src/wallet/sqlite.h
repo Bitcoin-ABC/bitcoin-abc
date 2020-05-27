@@ -7,13 +7,16 @@
 
 #include <wallet/db.h>
 
+#include <sqlite3.h>
+
 struct bilingual_str;
 class SQLiteDatabase;
 
 /** RAII class that provides access to a WalletDatabase */
 class SQLiteBatch : public DatabaseBatch {
 private:
-    SQLiteDatabase &m_database;
+    // FIXME: uncomment m_database when it is used in commit a0de833
+    // SQLiteDatabase &m_database;
 
     bool ReadKey(CDataStream &&key, CDataStream &value) override;
     bool WriteKey(CDataStream &&key, CDataStream &&value,
@@ -23,6 +26,7 @@ private:
 
 public:
     explicit SQLiteBatch(SQLiteDatabase &database);
+    ~SQLiteBatch() override { Close(); }
 
     /** No-op. See comment on SQLiteDatabase::Flush */
     void Flush() override {}
@@ -94,6 +98,8 @@ public:
     /** Make a SQLiteBatch connected to this database */
     std::unique_ptr<DatabaseBatch>
     MakeBatch(bool flush_on_close = true) override;
+
+    sqlite3 *m_db{nullptr};
 };
 
 bool ExistsSQLiteDatabase(const fs::path &path);
