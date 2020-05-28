@@ -252,6 +252,12 @@ if(ENABLE_BIP70)
 		target_disable_clang_tidy(bitcoin-qt-protobuf)
 	endif()
 
+	# Message::ByteSize() is deprecated and replaced by ByteSizeLong() since
+	# protobuf 3.1.
+	if(Protobuf_VERSION GREATER_EQUAL "3.1.0")
+		target_compile_definitions(bitcoin-qt-base PRIVATE USE_PROTOBUF_MESSAGE_BYTESIZELONG)
+	endif()
+
 	# OpenSSL functionality
 	include(BrewHelper)
 	find_brew_prefix(OPENSSL_ROOT_DIR openssl)
