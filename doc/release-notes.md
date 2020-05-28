@@ -43,8 +43,8 @@ Updated RPCs
   `allowhighfees` boolean option has been removed and replaced by the
   `maxfeerate` numeric option.
 
-Note: some low-level RPC changes mainly useful for testing are described in the
-Low-level Changes section below.
+Low-level RPC changes (primarily for testing)
+---------------------------------------------
 
 - The `sendmany` RPC had an argument `minconf` that was not well specified and
   would lead to RPC errors even when the wallet's coin selection would succeed.
@@ -86,15 +86,19 @@ previously had a label, they will still receive the default empty label
   empty label ("").
 
 Descriptor import support
----------------------
+-------------------------
 
-The `importmulti` RPC now supports importing of addresses from descriptors. A "desc" parameter can be provided instead of the "scriptPubKey" in a request, as well as an optional range for ranged descriptors to specify the start and end of the range to import. More information about
-descriptors can be found [here](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/descriptors.md).
+The `importmulti` RPC now supports importing of addresses from descriptors.
+A `desc` parameter can be provided instead of the `scriptPubKey` in a request,
+as well as an optional range for ranged descriptors to specify the start and
+end of the range to import. More information about descriptors can be found
+[here](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/descriptors.md).
 
 New RPC methods
-------------
+---------------
 
-- `deriveaddresses` returns one or more addresses corresponding to an [output descriptor](/doc/descriptors.md).
+- `deriveaddresses` returns one or more addresses corresponding to an
+  [output descriptor](/doc/descriptors.md).
 
 Miscellaneous Wallet changes
 ----------------------------
