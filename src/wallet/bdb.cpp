@@ -362,10 +362,6 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase &database, const char *pszMode,
 }
 
 void BerkeleyDatabase::Open(const char *pszMode) {
-    if (IsDummy()) {
-        return;
-    }
-
     bool fCreate = strchr(pszMode, 'c') != nullptr;
     unsigned int nFlags = DB_THREAD;
     if (fCreate) {
@@ -512,9 +508,6 @@ void BerkeleyEnvironment::ReloadDbEnv() {
 }
 
 bool BerkeleyDatabase::Rewrite(const char *pszSkip) {
-    if (IsDummy()) {
-        return true;
-    }
     while (true) {
         {
             LOCK(cs_db);
@@ -673,11 +666,6 @@ void BerkeleyEnvironment::Flush(bool fShutdown) {
 }
 
 bool BerkeleyDatabase::PeriodicFlush() {
-    // There's nothing to do for dummy databases. Return true.
-    if (IsDummy()) {
-        return true;
-    }
-
     // Don't flush if we can't acquire the lock.
     TRY_LOCK(cs_db, lockDb);
     if (!lockDb) {
@@ -711,9 +699,6 @@ bool BerkeleyDatabase::PeriodicFlush() {
 }
 
 bool BerkeleyDatabase::Backup(const std::string &strDest) const {
-    if (IsDummy()) {
-        return false;
-    }
     while (true) {
         {
             LOCK(cs_db);
@@ -753,21 +738,15 @@ bool BerkeleyDatabase::Backup(const std::string &strDest) const {
 }
 
 void BerkeleyDatabase::Flush() {
-    if (!IsDummy()) {
-        env->Flush(false);
-    }
+    env->Flush(false);
 }
 
 void BerkeleyDatabase::Close() {
-    if (!IsDummy()) {
-        env->Flush(true);
-    }
+    env->Flush(true);
 }
 
 void BerkeleyDatabase::ReloadDbEnv() {
-    if (!IsDummy()) {
-        env->ReloadDbEnv();
-    }
+    env->ReloadDbEnv();
 }
 
 bool BerkeleyBatch::StartCursor() {
