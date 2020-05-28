@@ -62,10 +62,10 @@
 #define MICRO 0.000001
 #define MILLI 0.001
 
-/** Time to wait (in seconds) between writing blocks/block index to disk. */
-static const unsigned int DATABASE_WRITE_INTERVAL = 60 * 60;
-/** Time to wait (in seconds) between flushing chainstate to disk. */
-static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
+/** Time to wait between writing blocks/block index to disk. */
+static constexpr std::chrono::hours DATABASE_WRITE_INTERVAL{1};
+/** Time to wait between flushing chainstate to disk. */
+static constexpr std::chrono::hours DATABASE_FLUSH_INTERVAL{24};
 
 ChainstateManager g_chainman;
 
@@ -2093,8 +2093,8 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                                    int nManualPruneHeight) {
     LOCK(cs_main);
     assert(this->CanFlushToDisk());
-    static int64_t nLastWrite = 0;
-    static int64_t nLastFlush = 0;
+    static std::chrono::microseconds nLastWrite{0};
+    static std::chrono::microseconds nLastFlush{0};
     std::set<int> setFilesToPrune;
     bool full_flush_completed = false;
 
@@ -2130,12 +2130,12 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                     }
                 }
             }
-            int64_t nNow = GetTimeMicros();
+            const auto nNow = GetTime<std::chrono::microseconds>();
             // Avoid writing/flushing immediately after startup.
-            if (nLastWrite == 0) {
+            if (nLastWrite.count() == 0) {
                 nLastWrite = nNow;
             }
-            if (nLastFlush == 0) {
+            if (nLastFlush.count() == 0) {
                 nLastFlush = nNow;
             }
             // The cache is large and we're within 10% and 10 MiB of the limit,
@@ -2147,14 +2147,12 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                                   cache_state >= CoinsCacheSizeState::CRITICAL;
             // It's been a while since we wrote the block index to disk. Do this
             // frequently, so we don't need to redownload after a crash.
-            bool fPeriodicWrite =
-                mode == FlushStateMode::PERIODIC &&
-                nNow > nLastWrite + (int64_t)DATABASE_WRITE_INTERVAL * 1000000;
+            bool fPeriodicWrite = mode == FlushStateMode::PERIODIC &&
+                                  nNow > nLastWrite + DATABASE_WRITE_INTERVAL;
             // It's been very long since we flushed the cache. Do this
             // infrequently, to optimize cache usage.
-            bool fPeriodicFlush =
-                mode == FlushStateMode::PERIODIC &&
-                nNow > nLastFlush + (int64_t)DATABASE_FLUSH_INTERVAL * 1000000;
+            bool fPeriodicFlush = mode == FlushStateMode::PERIODIC &&
+                                  nNow > nLastFlush + DATABASE_FLUSH_INTERVAL;
             // Combine all conditions that result in a full cache flush.
             fDoFullFlush = (mode == FlushStateMode::ALWAYS) || fCacheLarge ||
                            fCacheCritical || fPeriodicFlush || fFlushForPrune;
