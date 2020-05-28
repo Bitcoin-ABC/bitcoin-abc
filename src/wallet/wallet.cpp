@@ -198,15 +198,6 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
     return wallet;
 }
 
-std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
-                                    interfaces::Chain &chain,
-                                    const std::string &name,
-                                    bilingual_str &error,
-                                    std::vector<bilingual_str> &warnings) {
-    return LoadWallet(chainParams, chain, WalletLocation(name), error,
-                      warnings);
-}
-
 WalletCreationStatus CreateWallet(const CChainParams &params,
                                   interfaces::Chain &chain,
                                   const SecureString &passphrase,

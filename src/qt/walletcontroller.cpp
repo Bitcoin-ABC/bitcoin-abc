@@ -30,12 +30,13 @@ WalletController::WalletController(ClientModel &client_model,
       m_activity_worker(new QObject), m_client_model(client_model),
       m_node(client_model.node()), m_platform_style(platform_style),
       m_options_model(client_model.getOptionsModel()) {
-    m_handler_load_wallet = m_node.handleLoadWallet(
+    m_handler_load_wallet = m_node.walletClient().handleLoadWallet(
         [this](std::unique_ptr<interfaces::Wallet> wallet) {
             getOrCreateWallet(std::move(wallet));
         });
 
-    for (std::unique_ptr<interfaces::Wallet> &wallet : m_node.getWallets()) {
+    for (std::unique_ptr<interfaces::Wallet> &wallet :
+         m_node.walletClient().getWallets()) {
         getOrCreateWallet(std::move(wallet));
     }
 
@@ -59,7 +60,7 @@ std::vector<WalletModel *> WalletController::getOpenWallets() const {
 std::map<std::string, bool> WalletController::listWalletDir() const {
     QMutexLocker locker(&m_mutex);
     std::map<std::string, bool> wallets;
-    for (const std::string &name : m_node.listWalletDir()) {
+    for (const std::string &name : m_node.walletClient().listWalletDir()) {
         wallets[name] = false;
     }
     for (WalletModel *wallet_model : m_wallets) {
@@ -255,8 +256,9 @@ void CreateWalletActivity::createWallet() {
     QTimer::singleShot(500, worker(), [this, name, flags] {
         WalletCreationStatus status;
         std::unique_ptr<interfaces::Wallet> wallet =
-            node().createWallet(m_chainparams, m_passphrase, flags, name,
-                                m_error_message, m_warning_message, status);
+            node().walletClient().createWallet(
+                m_chainparams, name, m_passphrase, flags, status,
+                m_error_message, m_warning_message);
 
         if (status == WalletCreationStatus::SUCCESS) {
             m_wallet_model =
@@ -340,8 +342,9 @@ void OpenWalletActivity::open(const std::string &path) {
         tr("Opening Wallet <b>%1</b>...").arg(name.toHtmlEscaped()));
 
     QTimer::singleShot(0, worker(), [this, path] {
-        std::unique_ptr<interfaces::Wallet> wallet = node().loadWallet(
-            this->m_chainparams, path, m_error_message, m_warning_message);
+        std::unique_ptr<interfaces::Wallet> wallet =
+            node().walletClient().loadWallet(
+                this->m_chainparams, path, m_error_message, m_warning_message);
 
         if (wallet) {
             m_wallet_model =

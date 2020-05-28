@@ -20,6 +20,7 @@ class PeerManager;
 namespace interfaces {
 class Chain;
 class ChainClient;
+class WalletClient;
 } // namespace interfaces
 
 //! NodeContext struct containing references to chain state and connection
@@ -42,7 +43,12 @@ struct NodeContext {
     // Currently a raw pointer because the memory is not managed by this struct
     ArgsManager *args{nullptr};
     std::unique_ptr<interfaces::Chain> chain;
+    //! List of all chain clients (wallet processes or other client) connected
+    //! to node.
     std::vector<std::unique_ptr<interfaces::ChainClient>> chain_clients;
+    //! Reference to chain client that should used to load or create wallets
+    //! opened by the gui.
+    interfaces::WalletClient *wallet_client{nullptr};
     std::unique_ptr<CScheduler> scheduler;
     std::function<void()> rpc_interruption_point = [] {};
 

@@ -35,12 +35,11 @@ class RPCServer;
 class RPCTimerInterface;
 enum class SynchronizationState;
 class UniValue;
-enum class WalletCreationStatus;
 struct bilingual_str;
 
 namespace interfaces {
 class Handler;
-class Wallet;
+class WalletClient;
 struct BlockTip;
 
 //! Block and header tip information
@@ -178,29 +177,8 @@ public:
     //! Get unspent outputs associated with a transaction.
     virtual bool getUnspentOutput(const COutPoint &output, Coin &coin) = 0;
 
-    //! Return default wallet directory.
-    virtual std::string getWalletDir() = 0;
-
-    //! Return available wallets in wallet directory.
-    virtual std::vector<std::string> listWalletDir() = 0;
-
-    //! Return interfaces for accessing wallets (if any).
-    virtual std::vector<std::unique_ptr<Wallet>> getWallets() = 0;
-
-    //! Attempts to load a wallet from file or directory.
-    //! The loaded wallet is also notified to handlers previously registered
-    //! with handleLoadWallet.
-    virtual std::unique_ptr<Wallet>
-    loadWallet(const CChainParams &params, const std::string &name,
-               bilingual_str &error,
-               std::vector<bilingual_str> &warnings) const = 0;
-
-    //! Create a wallet from file
-    virtual std::unique_ptr<Wallet>
-    createWallet(const CChainParams &params, const SecureString &passphrase,
-                 uint64_t wallet_creation_flags, const std::string &name,
-                 bilingual_str &error, std::vector<bilingual_str> &warnings,
-                 WalletCreationStatus &status) = 0;
+    //! Get wallet client.
+    virtual WalletClient &walletClient() = 0;
 
     //! Register handler for init messages.
     using InitMessageFn = std::function<void(const std::string &message)>;
@@ -223,10 +201,6 @@ public:
     using ShowProgressFn = std::function<void(
         const std::string &title, int progress, bool resume_possible)>;
     virtual std::unique_ptr<Handler> handleShowProgress(ShowProgressFn fn) = 0;
-
-    //! Register handler for load wallet messages.
-    using LoadWalletFn = std::function<void(std::unique_ptr<Wallet> wallet)>;
-    virtual std::unique_ptr<Handler> handleLoadWallet(LoadWalletFn fn) = 0;
 
     //! Register handler for number of connections changed messages.
     using NotifyNumConnectionsChangedFn =
