@@ -105,7 +105,7 @@ public:
 
     /** Returns whether logs will be written to any output */
     bool Enabled() const {
-        LockGuard scoped_lock(m_cs);
+        StdLockGuard scoped_lock(m_cs);
         return m_buffering || m_print_to_console || m_print_to_file ||
                !m_print_callbacks.empty();
     }
@@ -113,7 +113,7 @@ public:
     /** Connect a slot to the print signal and return the connection */
     std::list<std::function<void(const std::string &)>>::iterator
     PushBackCallback(std::function<void(const std::string &)> fun) {
-        LockGuard scoped_lock(m_cs);
+        StdLockGuard scoped_lock(m_cs);
         m_print_callbacks.push_back(std::move(fun));
         return --m_print_callbacks.end();
     }
@@ -121,7 +121,7 @@ public:
     /** Delete a connection */
     void DeleteCallback(
         std::list<std::function<void(const std::string &)>>::iterator it) {
-        LockGuard scoped_lock(m_cs);
+        StdLockGuard scoped_lock(m_cs);
         m_print_callbacks.erase(it);
     }
 
