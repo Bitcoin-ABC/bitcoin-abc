@@ -351,9 +351,8 @@ struct PrecomputedTransactionData {
     PrecomputedTransactionData()
         : hashPrevouts(), hashSequence(), hashOutputs() {}
 
-    PrecomputedTransactionData(const PrecomputedTransactionData &txdata)
-        : hashPrevouts(txdata.hashPrevouts), hashSequence(txdata.hashSequence),
-          hashOutputs(txdata.hashOutputs) {}
+    PrecomputedTransactionData(const PrecomputedTransactionData &txdata) =
+        default;
 
     template <class T> explicit PrecomputedTransactionData(const T &tx);
 };
