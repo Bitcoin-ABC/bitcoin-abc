@@ -103,6 +103,8 @@ endfunction()
 # CMAKE_EXE_LINKER_FLAGS variable is used by the try_compile function, so there
 # is a workaround that allow for testing the linker flags.
 function(check_linker_flag RESULT FLAG)
+	sanitize_c_cxx_definition("have_linker_" ${FLAG} FLAG_IS_SUPPORTED)
+
 	# Some linkers (e.g.: Clang) will issue a -Wunused-command-line-argument
 	# warning when an unknown linker flag is set.
 	# Using -Werror will promote these warnings to errors so
@@ -122,19 +124,17 @@ function(check_linker_flag RESULT FLAG)
 
 	# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
 	# calls try_compile, so it will check our flag
-	CHECK_CXX_COMPILER_FLAG("" ${RESULT})
+	CHECK_CXX_COMPILER_FLAG("" ${FLAG_IS_SUPPORTED})
 
 	# Restore CMAKE_EXE_LINKER_FLAGS
 	set(CMAKE_EXE_LINKER_FLAGS ${SAVE_CMAKE_EXE_LINKER_FLAGS})
 
-	set(${RESULT} ${${RESULT}} PARENT_SCOPE)
+	set(${RESULT} ${${FLAG_IS_SUPPORTED}} PARENT_SCOPE)
 endfunction()
 
 function(add_linker_flags)
 	foreach(f ${ARGN})
-		sanitize_c_cxx_definition("have_linker_" ${f} FLAG_IS_SUPPORTED)
-
-		check_linker_flag(${FLAG_IS_SUPPORTED} ${f})
+		check_linker_flag(FLAG_IS_SUPPORTED ${f})
 
 		if(${FLAG_IS_SUPPORTED})
 			add_link_options(${f})
