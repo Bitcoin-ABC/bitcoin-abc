@@ -12,26 +12,26 @@
 #include <list>
 #include <map>
 
-//
-// Simple class for background tasks that should be run periodically or once
-// "after a while"
-//
-// Usage:
-//
-// CScheduler* s = new CScheduler();
-// // Assuming a: void doSomething() { }
-// s->scheduleFromNow(doSomething, std::chrono::milliseconds{11});
-// s->scheduleFromNow([=] { this->func(argument); },
-//                    std::chrono::milliseconds{3});
-// std::thread *t = new std::thread([?] { s->serviceQueue(); });
-//
-// ... then at program shutdown, make sure to call stop() to clean up the
-// thread(s) running serviceQueue:
-// s->stop();
-// t->join();
-// delete t;
-// delete s; // Must be done after thread is interrupted/joined.
-//
+/**
+ * Simple class for background tasks that should be run periodically or once
+ * "after a while"
+ *
+ * Usage:
+ *
+ * CScheduler* s = new CScheduler();
+ *  * Assuming a: void doSomething() { }
+ * s->scheduleFromNow(doSomething, std::chrono::milliseconds{11});
+ * s->scheduleFromNow([=] { this->func(argument); },
+ *                    std::chrono::milliseconds{3});
+ * std::thread *t = new std::thread([?] { s->serviceQueue(); });
+ *
+ * ... then at program shutdown, make sure to call stop() to clean up the
+ * thread(s) running serviceQueue:
+ * s->stop();
+ * t->join();
+ * delete t;
+ * delete s; // Must be done after thread is interrupted/joined.
+ */
 class CScheduler {
 public:
     CScheduler();
@@ -40,7 +40,7 @@ public:
     typedef std::function<void()> Function;
     typedef std::function<bool()> Predicate;
 
-    // Call func at/after time t
+    /** Call func at/after time t */
     void schedule(Function f, std::chrono::system_clock::time_point t);
 
     /** Call f once after the delta has passed */
@@ -64,8 +64,10 @@ public:
      */
     void MockForward(std::chrono::seconds delta_seconds);
 
-    // Services the queue 'forever'. Should be run in a thread, and interrupted
-    // using boost::interrupt_thread
+    /**
+     * Services the queue 'forever'. Should be run in a thread, and interrupted
+     * using boost::interrupt_thread
+     */
     void serviceQueue();
 
     /**
@@ -86,12 +88,14 @@ public:
         newTaskScheduled.notify_all();
     }
 
-    // Returns number of tasks waiting to be serviced,
-    // and first and last task times
+    /**
+     * Returns number of tasks waiting to be serviced,
+     * and first and last task times
+     */
     size_t getQueueInfo(std::chrono::system_clock::time_point &first,
                         std::chrono::system_clock::time_point &last) const;
 
-    // Returns true if there are threads actively running in serviceQueue()
+    /** Returns true if there are threads actively running in serviceQueue() */
     bool AreThreadsServicingQueue() const;
 
 private:
@@ -141,9 +145,11 @@ public:
      */
     void AddToProcessQueue(std::function<void()> func);
 
-    // Processes all remaining queue members on the calling thread, blocking
-    // until queue is empty. Must be called after the CScheduler has no
-    // remaining processing threads!
+    /**
+     * Processes all remaining queue members on the calling thread, blocking
+     * until queue is empty.
+     * Must be called after the CScheduler has no remaining processing threads!
+     */
     void EmptyQueue();
 
     size_t CallbacksPending();
