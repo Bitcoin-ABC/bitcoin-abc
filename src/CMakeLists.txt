@@ -206,6 +206,7 @@ add_compiler_flags(
 	-Wunused-parameter
 	-Wmissing-braces
 	-Wthread-safety-analysis
+	-Wthread-safety-precise
 	-Wshadow
 	-Wshadow-field
 	-Wrange-loop-analysis

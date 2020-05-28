@@ -905,7 +905,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     wallet.BlockUntilSyncedToCurrentChain();
 
     auto locked_chain = pwallet->chain().lock();
-    LOCK2(pwallet->cs_wallet, spk_man.cs_KeyStore);
+    LOCK2(wallet.cs_wallet, spk_man.cs_KeyStore);
 
     EnsureWalletIsUnlocked(&wallet);
 
@@ -934,7 +934,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
 
     std::map<CKeyID, int64_t> mapKeyBirth;
     const std::map<CKeyID, int64_t> &mapKeyPool = spk_man.GetAllReserveKeys();
-    pwallet->GetKeyBirthTimes(*locked_chain, mapKeyBirth);
+    wallet.GetKeyBirthTimes(*locked_chain, mapKeyBirth);
 
     std::set<CScriptID> scripts = spk_man.GetCScripts();
 
