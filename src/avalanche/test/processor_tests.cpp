@@ -956,7 +956,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     BOOST_CHECK(!m_processor->stopEventLoop());
 
     // Wait for the scheduler to stop.
-    s.stop(true);
+    s.StopWhenDrained();
     schedulerThread.join();
 }
 
@@ -980,7 +980,7 @@ BOOST_AUTO_TEST_CASE(destructor) {
     BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 0);
 
     // Wait for the scheduler to stop.
-    s.stop(true);
+    s.StopWhenDrained();
     schedulerThread.join();
 }
 

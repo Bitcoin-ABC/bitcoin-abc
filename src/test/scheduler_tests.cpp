@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(manythreads) {
     }
 
     // Drain the task queue then exit threads
-    microTasks.stop(true);
+    microTasks.StopWhenDrained();
     // ... wait until all the threads are done
     microThreads.join_all();
 
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(schedule_every) {
     }
 
     BOOST_CHECK_EQUAL(counter, 0);
-    scheduler.stop(true);
+    scheduler.StopWhenDrained();
     schedulerThread.join();
     BOOST_CHECK_EQUAL(counter, 42);
 }
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(singlethreadedscheduler_ordered) {
     }
 
     // finish up
-    scheduler.stop(true);
+    scheduler.StopWhenDrained();
     threads.join_all();
 
     BOOST_CHECK_EQUAL(counter1, 100);
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE(mockforward) {
 
     // ensure scheduler has chance to process all tasks queued for before 1 ms
     // from now.
-    scheduler.scheduleFromNow([&scheduler] { scheduler.stop(false); },
+    scheduler.scheduleFromNow([&scheduler] { scheduler.stop(); },
                               std::chrono::milliseconds{1});
     scheduler_thread.join();
 
