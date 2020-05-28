@@ -99,10 +99,10 @@ static void RescanWallet(CWallet &wallet, const WalletRescanReserver &reserver,
 
 UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "importprivkey",
@@ -217,10 +217,10 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
 
 UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "abortrescan",
@@ -248,10 +248,10 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
 
 UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "importaddress",
@@ -378,10 +378,10 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
 UniValue importprunedfunds(const Config &config,
                            const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "importprunedfunds",
@@ -457,10 +457,10 @@ UniValue importprunedfunds(const Config &config,
 UniValue removeprunedfunds(const Config &config,
                            const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "removeprunedfunds",
@@ -504,10 +504,10 @@ UniValue removeprunedfunds(const Config &config,
 
 UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "importpubkey",
@@ -610,10 +610,10 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
 
 UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "importwallet",
@@ -813,10 +813,10 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
 
 UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "dumpprivkey",
@@ -861,7 +861,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
 UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const pwallet =
         GetWalletForJSONRPCRequest(request);
-    if (!EnsureWalletIsAvailable(pwallet.get(), request.fHelp)) {
+    if (!pwallet) {
         return NullUniValue;
     }
 
@@ -1022,7 +1022,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
 static UniValue dumpcoins(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const pwallet =
         GetWalletForJSONRPCRequest(request);
-    if (!EnsureWalletIsAvailable(pwallet.get(), request.fHelp)) {
+    if (!pwallet) {
         return NullUniValue;
     }
 
@@ -1592,10 +1592,10 @@ static int64_t GetImportTimestamp(const UniValue &data, int64_t now) {
 UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     std::shared_ptr<CWallet> const wallet =
         GetWalletForJSONRPCRequest(mainRequest);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, mainRequest.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "importmulti",
@@ -2080,10 +2080,10 @@ UniValue importdescriptors(const Config &config,
     // Acquire the wallet
     std::shared_ptr<CWallet> const wallet =
         GetWalletForJSONRPCRequest(main_request);
-    CWallet *const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, main_request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "importdescriptors",

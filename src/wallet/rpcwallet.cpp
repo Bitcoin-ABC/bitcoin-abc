@@ -113,18 +113,14 @@ GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
     }
 
     std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
-    return wallets.size() == 1 || (request.fHelp && wallets.size() > 0)
-               ? wallets[0]
-               : nullptr;
-}
+    if (wallets.size() == 1 || (request.fHelp && wallets.size() > 0)) {
+        return wallets[0];
+    }
 
-bool EnsureWalletIsAvailable(const CWallet *pwallet, bool avoidException) {
-    if (pwallet) {
-        return true;
+    if (request.fHelp) {
+        return nullptr;
     }
-    if (avoidException) {
-        return false;
-    }
+
     if (!HasWallets()) {
         throw JSONRPCError(RPC_METHOD_NOT_FOUND,
                            "Method not found (wallet method is disabled "
@@ -210,11 +206,10 @@ static std::string LabelFromValue(const UniValue &value) {
 static UniValue getnewaddress(const Config &config,
                               const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getnewaddress",
@@ -273,11 +268,10 @@ static UniValue getnewaddress(const Config &config,
 static UniValue getrawchangeaddress(const Config &config,
                                     const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getrawchangeaddress",
@@ -319,11 +313,10 @@ static UniValue getrawchangeaddress(const Config &config,
 
 static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "setlabel",
@@ -410,11 +403,10 @@ static CTransactionRef SendMoney(CWallet *const pwallet,
 static UniValue sendtoaddress(const Config &config,
                               const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "sendtoaddress",
@@ -511,11 +503,10 @@ static UniValue sendtoaddress(const Config &config,
 static UniValue listaddressgroupings(const Config &config,
                                      const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "listaddressgroupings",
@@ -581,11 +572,10 @@ static UniValue listaddressgroupings(const Config &config,
 static UniValue signmessage(const Config &config,
                             const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "signmessage",
@@ -704,11 +694,10 @@ static Amount GetReceived(const CWallet &wallet, const UniValue &params,
 static UniValue getreceivedbyaddress(const Config &config,
                                      const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getreceivedbyaddress",
@@ -753,11 +742,10 @@ static UniValue getreceivedbyaddress(const Config &config,
 static UniValue getreceivedbylabel(const Config &config,
                                    const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getreceivedbylabel",
@@ -798,11 +786,10 @@ static UniValue getreceivedbylabel(const Config &config,
 static UniValue getbalance(const Config &config,
                            const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getbalance",
@@ -871,11 +858,10 @@ static UniValue getbalance(const Config &config,
 static UniValue getunconfirmedbalance(const Config &config,
                                       const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getunconfirmedbalance",
@@ -897,11 +883,10 @@ static UniValue getunconfirmedbalance(const Config &config,
 
 static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "sendmany",
@@ -1072,11 +1057,10 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 static UniValue addmultisigaddress(const Config &config,
                                    const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "addmultisigaddress",
@@ -1341,11 +1325,10 @@ static UniValue ListReceived(const Config &config, const CWallet *const pwallet,
 static UniValue listreceivedbyaddress(const Config &config,
                                       const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "listreceivedbyaddress",
@@ -1417,11 +1400,10 @@ static UniValue listreceivedbyaddress(const Config &config,
 static UniValue listreceivedbylabel(const Config &config,
                                     const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "listreceivedbylabel",
@@ -1610,11 +1592,10 @@ static const std::vector<RPCResult> TransactionDescriptionString() {
 
 UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "listtransactions",
@@ -1766,7 +1747,7 @@ static UniValue listsinceblock(const Config &config,
     std::shared_ptr<CWallet> const pwallet =
         GetWalletForJSONRPCRequest(request);
 
-    if (!EnsureWalletIsAvailable(pwallet.get(), request.fHelp)) {
+    if (!pwallet) {
         return NullUniValue;
     }
 
@@ -1986,11 +1967,10 @@ static UniValue listsinceblock(const Config &config,
 static UniValue gettransaction(const Config &config,
                                const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "gettransaction",
@@ -2149,11 +2129,10 @@ static UniValue gettransaction(const Config &config,
 static UniValue abandontransaction(const Config &config,
                                    const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "abandontransaction",
@@ -2203,11 +2182,10 @@ static UniValue abandontransaction(const Config &config,
 static UniValue backupwallet(const Config &config,
                              const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "backupwallet",
@@ -2240,11 +2218,10 @@ static UniValue backupwallet(const Config &config,
 static UniValue keypoolrefill(const Config &config,
                               const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "keypoolrefill",
@@ -2291,11 +2268,10 @@ static UniValue keypoolrefill(const Config &config,
 static UniValue walletpassphrase(const Config &config,
                                  const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "walletpassphrase",
@@ -2407,11 +2383,10 @@ static UniValue walletpassphrase(const Config &config,
 static UniValue walletpassphrasechange(const Config &config,
                                        const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "walletpassphrasechange",
@@ -2468,11 +2443,10 @@ static UniValue walletpassphrasechange(const Config &config,
 static UniValue walletlock(const Config &config,
                            const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "walletlock",
@@ -2513,11 +2487,10 @@ static UniValue walletlock(const Config &config,
 static UniValue encryptwallet(const Config &config,
                               const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "encryptwallet",
@@ -2590,11 +2563,10 @@ static UniValue encryptwallet(const Config &config,
 static UniValue lockunspent(const Config &config,
                             const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "lockunspent",
@@ -2752,11 +2724,10 @@ static UniValue lockunspent(const Config &config,
 static UniValue listlockunspent(const Config &config,
                                 const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "listlockunspent",
@@ -2818,11 +2789,10 @@ static UniValue listlockunspent(const Config &config,
 
 static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "settxfee",
@@ -2872,7 +2842,7 @@ static UniValue getbalances(const Config &config,
                             const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const rpc_wallet =
         GetWalletForJSONRPCRequest(request);
-    if (!EnsureWalletIsAvailable(rpc_wallet.get(), request.fHelp)) {
+    if (!rpc_wallet) {
         return NullUniValue;
     }
     CWallet &wallet = *rpc_wallet;
@@ -2967,11 +2937,10 @@ static UniValue getbalances(const Config &config,
 static UniValue getwalletinfo(const Config &config,
                               const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getwalletinfo",
@@ -3156,12 +3125,7 @@ static UniValue listwallets(const Config &config,
     UniValue obj(UniValue::VARR);
 
     for (const std::shared_ptr<CWallet> &wallet : GetWallets()) {
-        if (!EnsureWalletIsAvailable(wallet.get(), request.fHelp)) {
-            return NullUniValue;
-        }
-
         LOCK(wallet->cs_wallet);
-
         obj.push_back(wallet->GetName());
     }
 
@@ -3231,11 +3195,10 @@ static UniValue loadwallet(const Config &config,
 static UniValue setwalletflag(const Config &config,
                               const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     std::string flags = "";
     for (auto &it : WALLET_FLAG_MAP) {
@@ -3451,11 +3414,10 @@ static UniValue unloadwallet(const Config &config,
 static UniValue listunspent(const Config &config,
                             const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "listunspent",
@@ -3830,11 +3792,10 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
 static UniValue fundrawtransaction(const Config &config,
                                    const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "fundrawtransaction",
@@ -3963,11 +3924,10 @@ static UniValue fundrawtransaction(const Config &config,
 UniValue signrawtransactionwithwallet(const Config &config,
                                       const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "signrawtransactionwithwallet",
@@ -4093,11 +4053,10 @@ UniValue signrawtransactionwithwallet(const Config &config,
 
 UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "rescanblockchain",
@@ -4296,11 +4255,10 @@ static UniValue AddressBookDataToJSON(const CAddressBookData &data,
 
 UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getaddressinfo",
@@ -4492,11 +4450,10 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
 UniValue getaddressesbylabel(const Config &config,
                              const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "getaddressesbylabel",
@@ -4559,11 +4516,10 @@ UniValue getaddressesbylabel(const Config &config,
 
 UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "listlabels",
@@ -4619,11 +4575,10 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "sethdseed",
@@ -4716,11 +4671,10 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
 static UniValue walletprocesspsbt(const Config &config,
                                   const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    const CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "walletprocesspsbt",
@@ -4800,11 +4754,10 @@ static UniValue walletprocesspsbt(const Config &config,
 static UniValue walletcreatefundedpsbt(const Config &config,
                                        const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{
         "walletcreatefundedpsbt",
@@ -4991,11 +4944,10 @@ static UniValue walletcreatefundedpsbt(const Config &config,
 static UniValue upgradewallet(const Config &config,
                               const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet *const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!wallet) {
         return NullUniValue;
     }
+    CWallet *const pwallet = wallet.get();
 
     RPCHelpMan{"upgradewallet",
                "\nUpgrade the wallet. Upgrades to the latest version if no "
