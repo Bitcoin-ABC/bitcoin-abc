@@ -1045,14 +1045,14 @@ DBErrors WalletBatch::ZapSelectTx(std::vector<TxId> &txIdsIn,
     return DBErrors::LOAD_OK;
 }
 
-void MaybeCompactWalletDB() {
-    static std::atomic<bool> fOneThread;
+void MaybeCompactWalletDB(WalletContext &context) {
+    static std::atomic<bool> fOneThread(false);
     if (fOneThread.exchange(true)) {
         return;
     }
 
-    for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
-        WalletDatabase &dbh = pwallet->GetDBHandle();
+    for (const std::shared_ptr<CWallet> &pwallet : GetWallets(context)) {
+        WalletDatabase &dbh = pwallet->GetDatabase();
 
         unsigned int nUpdateCounter = dbh.nUpdateCounter;
 

@@ -45,6 +45,8 @@
 
 #include <boost/signals2/signal.hpp>
 
+struct WalletContext;
+
 using LoadWalletFn =
     std::function<void(std::unique_ptr<interfaces::Wallet> wallet)>;
 
@@ -57,25 +59,30 @@ struct bilingual_str;
 //! by the shared pointer deleter.
 void UnloadWallet(std::shared_ptr<CWallet> &&wallet);
 
-bool AddWallet(const std::shared_ptr<CWallet> &wallet);
-bool RemoveWallet(const std::shared_ptr<CWallet> &wallet,
+bool AddWallet(WalletContext &context, const std::shared_ptr<CWallet> &wallet);
+bool RemoveWallet(WalletContext &context,
+                  const std::shared_ptr<CWallet> &wallet,
                   std::optional<bool> load_on_start,
                   std::vector<bilingual_str> &warnings);
-bool RemoveWallet(const std::shared_ptr<CWallet> &wallet,
+bool RemoveWallet(WalletContext &context,
+                  const std::shared_ptr<CWallet> &wallet,
                   std::optional<bool> load_on_start);
-std::vector<std::shared_ptr<CWallet>> GetWallets();
-std::shared_ptr<CWallet> GetWallet(const std::string &name);
+
+std::vector<std::shared_ptr<CWallet>> GetWallets(WalletContext &context);
+std::shared_ptr<CWallet> GetWallet(WalletContext &context,
+                                   const std::string &name);
 std::shared_ptr<CWallet>
-LoadWallet(interfaces::Chain &chain, const std::string &name,
+LoadWallet(WalletContext &context, const std::string &name,
            std::optional<bool> load_on_start, const DatabaseOptions &options,
            DatabaseStatus &status, bilingual_str &error,
            std::vector<bilingual_str> &warnings);
 std::shared_ptr<CWallet>
-CreateWallet(interfaces::Chain &chain, const std::string &name,
-             std::optional<bool> load_on_start, const DatabaseOptions &options,
+CreateWallet(WalletContext &context, const std::string &name,
+             std::optional<bool> load_on_start, DatabaseOptions &options,
              DatabaseStatus &status, bilingual_str &error,
              std::vector<bilingual_str> &warnings);
-std::unique_ptr<interfaces::Handler> HandleLoadWallet(LoadWalletFn load_wallet);
+std::unique_ptr<interfaces::Handler> HandleLoadWallet(WalletContext &context,
+                                                      LoadWalletFn load_wallet);
 std::unique_ptr<WalletDatabase>
 MakeWalletDatabase(const std::string &name, const DatabaseOptions &options,
                    DatabaseStatus &status, bilingual_str &error);
@@ -902,7 +909,7 @@ public:
      * in case of an error.
      */
     static std::shared_ptr<CWallet>
-    Create(interfaces::Chain *chain, const std::string &name,
+    Create(WalletContext &context, const std::string &name,
            std::unique_ptr<WalletDatabase> database,
            uint64_t wallet_creation_flags, bilingual_str &error,
            std::vector<bilingual_str> &warnings);
@@ -1107,7 +1114,7 @@ public:
  * resend their transactions. Actual rebroadcast schedule is managed by the
  * wallets themselves.
  */
-void MaybeResendWalletTxs();
+void MaybeResendWalletTxs(WalletContext &context);
 
 /** RAII object to check and reserve a wallet rescan */
 class WalletRescanReserver {

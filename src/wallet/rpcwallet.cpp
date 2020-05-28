@@ -2641,7 +2641,8 @@ static RPCHelpMan listwallets() {
             const JSONRPCRequest &request) -> UniValue {
             UniValue obj(UniValue::VARR);
 
-            for (const std::shared_ptr<CWallet> &wallet : GetWallets()) {
+            WalletContext &context = EnsureWalletContext(request.context);
+            for (const std::shared_ptr<CWallet> &wallet : GetWallets(context)) {
                 LOCK(wallet->cs_wallet);
                 obj.push_back(wallet->GetName());
             }
@@ -2872,7 +2873,7 @@ static RPCHelpMan createwallet() {
                     ? std::nullopt
                     : std::make_optional<bool>(request.params[6].get_bool());
             std::shared_ptr<CWallet> wallet =
-                CreateWallet(*context.chain, request.params[0].get_str(),
+                CreateWallet(context, request.params[0].get_str(),
                              load_on_start, options, status, error, warnings);
             if (!wallet) {
                 RPCErrorCode code = status == DatabaseStatus::FAILED_ENCRYPT
@@ -2926,7 +2927,8 @@ static RPCHelpMan unloadwallet() {
                 wallet_name = request.params[0].get_str();
             }
 
-            std::shared_ptr<CWallet> wallet = GetWallet(wallet_name);
+            WalletContext &context = EnsureWalletContext(request.context);
+            std::shared_ptr<CWallet> wallet = GetWallet(context, wallet_name);
             if (!wallet) {
                 throw JSONRPCError(
                     RPC_WALLET_NOT_FOUND,
@@ -2938,7 +2940,7 @@ static RPCHelpMan unloadwallet() {
             // would fail until the wallet is destroyed (see CheckUniqueFileid).
             std::vector<bilingual_str> warnings;
             std::optional<bool> load_on_start{self.MaybeArg<bool>(1)};
-            if (!RemoveWallet(wallet, load_on_start, warnings)) {
+            if (!RemoveWallet(context, wallet, load_on_start, warnings)) {
                 throw JSONRPCError(RPC_MISC_ERROR,
                                    "Requested wallet already unloaded");
             }

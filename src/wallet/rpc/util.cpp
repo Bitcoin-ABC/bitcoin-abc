@@ -62,9 +62,11 @@ bool GetWalletNameFromJSONRPCRequest(const JSONRPCRequest &request,
 std::shared_ptr<CWallet>
 GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
     CHECK_NONFATAL(request.mode == JSONRPCRequest::EXECUTE);
+    WalletContext &context = EnsureWalletContext(request.context);
+
     std::string wallet_name;
     if (GetWalletNameFromJSONRPCRequest(request, wallet_name)) {
-        std::shared_ptr<CWallet> pwallet = GetWallet(wallet_name);
+        std::shared_ptr<CWallet> pwallet = GetWallet(context, wallet_name);
         if (!pwallet) {
             throw JSONRPCError(
                 RPC_WALLET_NOT_FOUND,
@@ -73,7 +75,7 @@ GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
         return pwallet;
     }
 
-    std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
+    std::vector<std::shared_ptr<CWallet>> wallets = GetWallets(context);
     if (wallets.size() == 1) {
         return wallets[0];
     }
@@ -142,9 +144,8 @@ LoadWalletHelper(WalletContext &context, UniValue load_on_start_param,
         load_on_start_param.isNull()
             ? std::nullopt
             : std::make_optional<bool>(load_on_start_param.get_bool());
-    std::shared_ptr<CWallet> const wallet =
-        LoadWallet(*context.chain, wallet_name, load_on_start, options, status,
-                   error, warnings);
+    std::shared_ptr<CWallet> const wallet = LoadWallet(
+        context, wallet_name, load_on_start, options, status, error, warnings);
     if (!wallet) {
         // Map bad format to not found, since bad format is returned
         // when the wallet directory exists, but doesn't contain a data

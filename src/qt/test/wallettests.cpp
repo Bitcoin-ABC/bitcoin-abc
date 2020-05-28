@@ -153,10 +153,11 @@ void TestGUI(interfaces::Node &node) {
         PlatformStyle::instantiate("other"));
     OptionsModel optionsModel;
     ClientModel clientModel(node, &optionsModel);
-    AddWallet(wallet);
-    WalletModel walletModel(interfaces::MakeWallet(wallet), clientModel,
-                            platformStyle.get());
-    RemoveWallet(wallet, std::nullopt);
+    WalletContext &context = *node.walletClient().context();
+    AddWallet(context, wallet);
+    WalletModel walletModel(interfaces::MakeWallet(context, wallet),
+                            clientModel, platformStyle.get());
+    RemoveWallet(context, wallet, /*load_on_start= */ std::nullopt);
     SendCoinsDialog sendCoinsDialog(platformStyle.get(), &walletModel);
 
     {
