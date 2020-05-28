@@ -53,8 +53,9 @@ void LeaveCritical();
 void CheckLastCritical(void *cs, std::string &lockname, const char *guardname,
                        const char *file, int line);
 std::string LocksHeld();
+template <typename MutexType>
 void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
-                            void *cs) ASSERT_EXCLUSIVE_LOCK(cs);
+                            MutexType *cs) ASSERT_EXCLUSIVE_LOCK(cs);
 void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
                                int nLine, void *cs);
 void DeleteLock(void *cs);
@@ -72,9 +73,11 @@ static inline void LeaveCritical() {}
 static inline void CheckLastCritical(void *cs, std::string &lockname,
                                      const char *guardname, const char *file,
                                      int line) {}
+template <typename MutexType>
 static inline void AssertLockHeldInternal(const char *pszName,
                                           const char *pszFile, int nLine,
-                                          void *cs) ASSERT_EXCLUSIVE_LOCK(cs) {}
+                                          MutexType *cs)
+    ASSERT_EXCLUSIVE_LOCK(cs) {}
 static inline void AssertLockNotHeldInternal(const char *pszName,
                                              const char *pszFile, int nLine,
                                              void *cs) {}
