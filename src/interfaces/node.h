@@ -284,12 +284,14 @@ public:
     virtual std::unique_ptr<Handler>
     handleNotifyHeaderTip(NotifyHeaderTipFn fn) = 0;
 
-    //! Return pointer to internal chain interface, useful for testing.
+    //! Get and set internal node context. Useful for testing, but not
+    //! accessible across processes.
     virtual NodeContext *context() { return nullptr; }
+    virtual void setContext(NodeContext *context) {}
 };
 
 //! Return implementation of Node interface.
-std::unique_ptr<Node> MakeNode();
+std::unique_ptr<Node> MakeNode(NodeContext *context = nullptr);
 
 } // namespace interfaces
 

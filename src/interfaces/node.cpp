@@ -65,6 +65,7 @@ namespace {
 
     class NodeImpl : public Node {
     public:
+        NodeImpl(NodeContext *context) { setContext(context); }
         void initError(const std::string &message) override {
             InitError(Untranslated(message));
         }
@@ -108,13 +109,13 @@ namespace {
         bool
         appInitMain(Config &config, RPCServer &rpcServer,
                     HTTPRPCRequestProcessor &httpRPCRequestProcessor) override {
-            m_context.chain = MakeChain(m_context, config.GetChainParams());
+            m_context->chain = MakeChain(*m_context, config.GetChainParams());
             return AppInitMain(config, rpcServer, httpRPCRequestProcessor,
-                               m_context);
+                               *m_context);
         }
         void appShutdown() override {
-            Interrupt(m_context);
-            Shutdown(m_context);
+            Interrupt(*m_context);
+            Shutdown(*m_context);
         }
         void startShutdown() override { StartShutdown(); }
         bool shutdownRequested() override { return ShutdownRequested(); }
@@ -126,20 +127,22 @@ namespace {
                 StopMapPort();
             }
         }
+        // PR18571: return SetupServerArgs(*m_context)
+        // See https://reviews.bitcoinabc.org/D7993
         void setupServerArgs() override { return SetupServerArgs(); }
         bool getProxy(Network net, proxyType &proxy_info) override {
             return GetProxy(net, proxy_info);
         }
         size_t getNodeCount(CConnman::NumConnections flags) override {
-            return m_context.connman ? m_context.connman->GetNodeCount(flags)
-                                     : 0;
+            return m_context->connman ? m_context->connman->GetNodeCount(flags)
+                                      : 0;
         }
         bool getNodesStats(NodesStats &stats) override {
             stats.clear();
 
-            if (m_context.connman) {
+            if (m_context->connman) {
                 std::vector<CNodeStats> stats_temp;
-                m_context.connman->GetNodeStats(stats_temp);
+                m_context->connman->GetNodeStats(stats_temp);
 
                 stats.reserve(stats_temp.size());
                 for (auto &node_stats_temp : stats_temp) {
@@ -161,52 +164,52 @@ namespace {
             return false;
         }
         bool getBanned(banmap_t &banmap) override {
-            if (m_context.banman) {
-                m_context.banman->GetBanned(banmap);
+            if (m_context->banman) {
+                m_context->banman->GetBanned(banmap);
                 return true;
             }
             return false;
         }
         bool ban(const CNetAddr &net_addr, int64_t ban_time_offset) override {
-            if (m_context.banman) {
-                m_context.banman->Ban(net_addr, ban_time_offset);
+            if (m_context->banman) {
+                m_context->banman->Ban(net_addr, ban_time_offset);
                 return true;
             }
             return false;
         }
         bool unban(const CSubNet &ip) override {
-            if (m_context.banman) {
-                m_context.banman->Unban(ip);
+            if (m_context->banman) {
+                m_context->banman->Unban(ip);
                 return true;
             }
             return false;
         }
         bool disconnect(const CNetAddr &net_addr) override {
-            if (m_context.connman) {
-                return m_context.connman->DisconnectNode(net_addr);
+            if (m_context->connman) {
+                return m_context->connman->DisconnectNode(net_addr);
             }
             return false;
         }
         bool disconnect(NodeId id) override {
-            if (m_context.connman) {
-                return m_context.connman->DisconnectNode(id);
+            if (m_context->connman) {
+                return m_context->connman->DisconnectNode(id);
             }
             return false;
         }
         int64_t getTotalBytesRecv() override {
-            return m_context.connman ? m_context.connman->GetTotalBytesRecv()
-                                     : 0;
+            return m_context->connman ? m_context->connman->GetTotalBytesRecv()
+                                      : 0;
         }
         int64_t getTotalBytesSent() override {
-            return m_context.connman ? m_context.connman->GetTotalBytesSent()
-                                     : 0;
+            return m_context->connman ? m_context->connman->GetTotalBytesSent()
+                                      : 0;
         }
         size_t getMempoolSize() override {
-            return m_context.mempool ? m_context.mempool->size() : 0;
+            return m_context->mempool ? m_context->mempool->size() : 0;
         }
         size_t getMempoolDynamicUsage() override {
-            return m_context.mempool ? m_context.mempool->DynamicMemoryUsage()
-                                     : 0;
+            return m_context->mempool ? m_context->mempool->DynamicMemoryUsage()
+                                      : 0;
         }
         bool getHeaderTip(int &height, int64_t &block_time) override {
             LOCK(::cs_main);
@@ -243,16 +246,16 @@ namespace {
         bool getReindex() override { return ::fReindex; }
         bool getImporting() override { return ::fImporting; }
         void setNetworkActive(bool active) override {
-            if (m_context.connman) {
-                m_context.connman->SetNetworkActive(active);
+            if (m_context->connman) {
+                m_context->connman->SetNetworkActive(active);
             }
         }
         bool getNetworkActive() override {
-            return m_context.connman && m_context.connman->GetNetworkActive();
+            return m_context->connman && m_context->connman->GetNetworkActive();
         }
         CFeeRate estimateSmartFee() override {
-            return m_context.mempool ? m_context.mempool->estimateFee()
-                                     : CFeeRate();
+            return m_context->mempool ? m_context->mempool->estimateFee()
+                                      : CFeeRate();
         }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }
         UniValue executeRpc(Config &config, const std::string &command,
@@ -287,7 +290,7 @@ namespace {
         }
         std::vector<std::unique_ptr<Wallet>> getWallets() override {
             std::vector<std::unique_ptr<Wallet>> wallets;
-            for (auto &client : m_context.chain_clients) {
+            for (auto &client : m_context->chain_clients) {
                 auto client_wallets = client->getWallets();
                 std::move(client_wallets.begin(), client_wallets.end(),
                           std::back_inserter(wallets));
@@ -299,7 +302,7 @@ namespace {
                    bilingual_str &error,
                    std::vector<bilingual_str> &warnings) const override {
             return MakeWallet(
-                LoadWallet(params, *m_context.chain, name, error, warnings));
+                LoadWallet(params, *m_context->chain, name, error, warnings));
         }
         WalletCreationStatus
         createWallet(const CChainParams &params, const SecureString &passphrase,
@@ -308,7 +311,7 @@ namespace {
                      std::unique_ptr<Wallet> &result) override {
             std::shared_ptr<CWallet> wallet;
             WalletCreationStatus status = CreateWallet(
-                params, *m_context.chain, passphrase, wallet_creation_flags,
+                params, *m_context->chain, passphrase, wallet_creation_flags,
                 name, error, warnings, wallet);
             result = MakeWallet(wallet);
             return status;
@@ -363,14 +366,22 @@ namespace {
                        GuessVerificationProgress(Params().TxData(), block));
                 }));
         }
-        NodeContext *context() override { return &m_context; }
-        NodeContext m_context;
+        NodeContext *context() override { return m_context; }
+        void setContext(NodeContext *context) override {
+            m_context = context;
+            if (context) {
+                m_context_ref.Set(*context);
+            } else {
+                m_context_ref.Clear();
+            }
+        }
+        NodeContext *m_context{nullptr};
         util::Ref m_context_ref{m_context};
     };
 } // namespace
 
-std::unique_ptr<Node> MakeNode() {
-    return std::make_unique<NodeImpl>();
+std::unique_ptr<Node> MakeNode(NodeContext *context) {
+    return std::make_unique<NodeImpl>(context);
 }
 
 } // namespace interfaces

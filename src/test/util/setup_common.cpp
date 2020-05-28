@@ -11,6 +11,7 @@
 #include <consensus/validation.h>
 #include <crypto/sha256.h>
 #include <init.h>
+#include <interfaces/chain.h>
 #include <logging.h>
 #include <miner.h>
 #include <net.h>
@@ -31,6 +32,7 @@
 #include <util/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include <walletinitinterface.h>
 
 #include <functional>
 #include <memory>
@@ -99,6 +101,9 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
     SetupNetworking();
     InitSignatureCache();
     InitScriptExecutionCache();
+
+    m_node.chain = interfaces::MakeChain(m_node, Params());
+    g_wallet_init_interface.Construct(m_node);
 
     fCheckBlockIndex = true;
     static bool noui_connected = false;
