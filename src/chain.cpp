@@ -70,9 +70,9 @@ CBlockIndex *CChain::FindEarliestAtLeast(int64_t nTime, int height) const {
     std::vector<CBlockIndex *>::const_iterator lower = std::lower_bound(
         vChain.begin(), vChain.end(), blockparams,
         [](CBlockIndex *pBlock,
-           const std::pair<int64_t, int> &blockparams) -> bool {
-            return pBlock->GetBlockTimeMax() < blockparams.first ||
-                   pBlock->nHeight < blockparams.second;
+           const std::pair<int64_t, int> &_blockparams) -> bool {
+            return pBlock->GetBlockTimeMax() < _blockparams.first ||
+                   pBlock->nHeight < _blockparams.second;
         });
     return (lower == vChain.end() ? nullptr : *lower);
 }
