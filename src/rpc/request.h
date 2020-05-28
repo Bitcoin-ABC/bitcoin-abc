@@ -45,6 +45,14 @@ public:
         : id(NullUniValue), params(NullUniValue), fHelp(false),
           context(contextIn) {}
 
+    //! Initializes request information from another request object and the
+    //! given context. The implementation should be updated if any members are
+    //! added or removed above.
+    JSONRPCRequest(const JSONRPCRequest &other, const util::Ref &contextIn)
+        : id(other.id), strMethod(other.strMethod), params(other.params),
+          fHelp(other.fHelp), URI(other.URI), authUser(other.authUser),
+          peerAddr(other.peerAddr), context(contextIn) {}
+
     void parse(const UniValue &valRequest);
 };
 

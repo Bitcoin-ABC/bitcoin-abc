@@ -5,23 +5,17 @@
 #ifndef BITCOIN_WALLET_RPCDUMP_H
 #define BITCOIN_WALLET_RPCDUMP_H
 
+#include <span.h>
 #include <univalue.h>
 
 #include <memory>
 #include <vector>
 
 class Config;
-class CRPCTable;
+class CRPCCommand;
 class JSONRPCRequest;
 
-namespace interfaces {
-class Chain;
-class Handler;
-} // namespace interfaces
-
-void RegisterDumpRPCCommands(
-    interfaces::Chain &chain,
-    std::vector<std::unique_ptr<interfaces::Handler>> &handlers);
+Span<const CRPCCommand> GetWalletDumpRPCCommands();
 
 UniValue importmulti(const Config &config, const JSONRPCRequest &request);
 UniValue dumpwallet(const Config &config, const JSONRPCRequest &request);

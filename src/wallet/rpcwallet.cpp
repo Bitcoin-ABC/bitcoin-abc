@@ -23,12 +23,14 @@
 #include <util/error.h>
 #include <util/message.h> // For MessageSign()
 #include <util/moneystr.h>
+#include <util/ref.h>
 #include <util/string.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <util/url.h>
 #include <util/vector.h>
 #include <wallet/coincontrol.h>
+#include <wallet/context.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
@@ -144,6 +146,13 @@ void EnsureWalletIsUnlocked(const CWallet *pwallet) {
                            "Error: Please enter the wallet passphrase with "
                            "walletpassphrase first.");
     }
+}
+
+WalletContext &EnsureWalletContext(const util::Ref &context) {
+    if (!context.Has<WalletContext>()) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Wallet context not found");
+    }
+    return context.Get<WalletContext>();
 }
 
 // also_create should only be set to true only when the RPC is expected to add
@@ -3174,6 +3183,7 @@ static UniValue loadwallet(const Config &config,
 
     const CChainParams &chainParams = config.GetChainParams();
 
+    WalletContext &context = EnsureWalletContext(request.context);
     WalletLocation location(request.params[0].get_str());
 
     if (!location.Exists()) {
@@ -3193,7 +3203,7 @@ static UniValue loadwallet(const Config &config,
     bilingual_str error;
     std::vector<bilingual_str> warnings;
     std::shared_ptr<CWallet> const wallet =
-        LoadWallet(chainParams, *g_rpc_chain, location, error, warnings);
+        LoadWallet(chainParams, *context.chain, location, error, warnings);
     if (!wallet) {
         throw JSONRPCError(RPC_WALLET_ERROR, error.original);
     }
@@ -3325,6 +3335,7 @@ static UniValue createwallet(const Config &config,
     }
         .Check(request);
 
+    WalletContext &context = EnsureWalletContext(request.context);
     uint64_t flags = 0;
     if (!request.params[1].isNull() && request.params[1].get_bool()) {
         flags |= WALLET_FLAG_DISABLE_PRIVATE_KEYS;
@@ -3357,7 +3368,7 @@ static UniValue createwallet(const Config &config,
     bilingual_str error;
     std::shared_ptr<CWallet> wallet;
     WalletCreationStatus status =
-        CreateWallet(config.GetChainParams(), *g_rpc_chain, passphrase, flags,
+        CreateWallet(config.GetChainParams(), *context.chain, passphrase, flags,
                      request.params[0].get_str(), error, warnings, wallet);
     switch (status) {
         case WalletCreationStatus::CREATION_FAILED:
@@ -4994,9 +5005,7 @@ static UniValue upgradewallet(const Config &config,
     return error.original;
 }
 
-void RegisterWalletRPCCommands(
-    interfaces::Chain &chain,
-    std::vector<std::unique_ptr<interfaces::Handler>> &handlers) {
+Span<const CRPCCommand> GetWalletRPCCommands() {
     // clang-format off
     static const CRPCCommand commands[] = {
         //  category            name                            actor (function)              argNames
@@ -5050,9 +5059,5 @@ void RegisterWalletRPCCommands(
     };
     // clang-format on
 
-    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
-        handlers.emplace_back(chain.handleRpc(commands[vcidx]));
-    }
+    return MakeSpan(commands);
 }
-
-interfaces::Chain *g_rpc_chain = nullptr;

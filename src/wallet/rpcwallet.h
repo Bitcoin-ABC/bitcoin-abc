@@ -6,34 +6,27 @@
 #define BITCOIN_WALLET_RPCWALLET_H
 
 #include <script/sighashtype.h>
+#include <span.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
-class Config;
-class CRPCTable;
+class CRPCCommand;
 class CTransaction;
 class CWallet;
+class Config;
 class JSONRPCRequest;
 class LegacyScriptPubKeyMan;
 struct PartiallySignedTransaction;
 class UniValue;
+struct WalletContext;
 
-namespace interfaces {
-class Chain;
-class Handler;
-} // namespace interfaces
+namespace util {
+class Ref;
+}
 
-//! Pointer to chain interface that needs to be declared as a global to be
-//! accessible loadwallet and createwallet methods. Due to limitations of the
-//! RPC framework, there's currently no direct way to pass in state to RPC
-//! methods without globals.
-extern interfaces::Chain *g_rpc_chain;
-
-void RegisterWalletRPCCommands(
-    interfaces::Chain &chain,
-    std::vector<std::unique_ptr<interfaces::Handler>> &handlers);
+Span<const CRPCCommand> GetWalletRPCCommands();
 
 /**
  * Figures out what wallet, if any, to use for a JSONRPCRequest.
@@ -47,6 +40,7 @@ GetWalletForJSONRPCRequest(const JSONRPCRequest &request);
 std::string HelpRequiringPassphrase(const CWallet *);
 void EnsureWalletIsUnlocked(const CWallet *);
 bool EnsureWalletIsAvailable(const CWallet *, bool avoidException);
+WalletContext &EnsureWalletContext(const util::Ref &context);
 LegacyScriptPubKeyMan &EnsureLegacyScriptPubKeyMan(CWallet &wallet,
                                                    bool also_create = false);
 

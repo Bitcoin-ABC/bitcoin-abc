@@ -14,6 +14,7 @@ add_library(wallet
 	../interfaces/wallet.cpp
 	coincontrol.cpp
 	coinselection.cpp
+	context.cpp
 	crypter.cpp
 	db.cpp
 	fees.cpp

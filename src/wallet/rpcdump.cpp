@@ -2242,9 +2242,7 @@ UniValue importdescriptors(const Config &config,
     return response;
 }
 
-void RegisterDumpRPCCommands(
-    interfaces::Chain &chain,
-    std::vector<std::unique_ptr<interfaces::Handler>> &handlers) {
+Span<const CRPCCommand> GetWalletDumpRPCCommands() {
     // clang-format off
     static const CRPCCommand commands[] = {
         //  category            name                        actor (function)          argNames
@@ -2263,7 +2261,5 @@ void RegisterDumpRPCCommands(
     };
     // clang-format on
 
-    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
-        handlers.emplace_back(chain.handleRpc(commands[vcidx]));
-    }
+    return MakeSpan(commands);
 }

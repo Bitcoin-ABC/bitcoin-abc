@@ -6,17 +6,21 @@
 
 #include <amount.h>
 #include <chainparams.h>
+#include <config.h>
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
 #include <policy/fees.h>
 #include <primitives/transaction.h>
+#include <rpc/server.h>
 #include <script/standard.h>
 #include <support/allocators/secure.h>
 #include <sync.h>
 #include <ui_interface.h>
 #include <util/check.h>
+#include <util/ref.h>
 #include <util/system.h>
+#include <wallet/context.h>
 #include <wallet/fees.h>
 #include <wallet/ismine.h>
 #include <wallet/load.h>
@@ -461,18 +465,37 @@ namespace {
     public:
         WalletClientImpl(Chain &chain,
                          std::vector<std::string> wallet_filenames)
-            : m_chain(chain), m_wallet_filenames(std::move(wallet_filenames)) {}
+            : m_wallet_filenames(std::move(wallet_filenames)) {
+            m_context.chain = &chain;
+        }
+
+        void registerRpcs(const Span<const CRPCCommand> &commands) {
+            for (const CRPCCommand &command : commands) {
+                m_rpc_commands.emplace_back(
+                    command.category, command.name,
+                    [this, &command](Config &config,
+                                     const JSONRPCRequest &request,
+                                     UniValue &result, bool last_handler) {
+                        return command.actor(config, {request, m_context},
+                                             result, last_handler);
+                    },
+                    command.argNames, command.unique_id);
+                m_rpc_handlers.emplace_back(
+                    m_context.chain->handleRpc(m_rpc_commands.back()));
+            }
+        }
 
         void registerRpcs() override {
-            g_rpc_chain = &m_chain;
-            RegisterWalletRPCCommands(m_chain, m_rpc_handlers);
-            RegisterDumpRPCCommands(m_chain, m_rpc_handlers);
+            registerRpcs(GetWalletRPCCommands());
+            registerRpcs(GetWalletDumpRPCCommands());
         }
         bool verify(const CChainParams &chainParams) override {
-            return VerifyWallets(chainParams, m_chain, m_wallet_filenames);
+            return VerifyWallets(chainParams, *m_context.chain,
+                                 m_wallet_filenames);
         }
         bool load(const CChainParams &chainParams) override {
-            return LoadWallets(chainParams, m_chain, m_wallet_filenames);
+            return LoadWallets(chainParams, *m_context.chain,
+                               m_wallet_filenames);
         }
         void start(CScheduler &scheduler) override {
             return StartWallets(scheduler);
@@ -489,9 +512,10 @@ namespace {
         }
         ~WalletClientImpl() override { UnloadWallets(); }
 
-        Chain &m_chain;
+        WalletContext m_context;
         std::vector<std::string> m_wallet_filenames;
         std::vector<std::unique_ptr<Handler>> m_rpc_handlers;
+        std::list<CRPCCommand> m_rpc_commands;
     };
 
 } // namespace
