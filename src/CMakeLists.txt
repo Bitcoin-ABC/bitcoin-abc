@@ -205,8 +205,7 @@ add_compiler_flags(
 	-Wcast-align
 	-Wunused-parameter
 	-Wmissing-braces
-	-Wthread-safety-analysis
-	-Wthread-safety-precise
+	-Wthread-safety
 	-Wshadow
 	-Wshadow-field
 	-Wrange-loop-analysis
