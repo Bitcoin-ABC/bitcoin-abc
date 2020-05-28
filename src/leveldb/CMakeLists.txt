@@ -9,7 +9,14 @@ project(Leveldb VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 11)
 
 # Remove some warnings for leveldb as they can get noisy.
-add_compiler_flags(-Wno-sign-compare -Wno-implicit-fallthrough)
+add_compiler_flags(
+	-Wno-implicit-fallthrough
+	-Wno-inconsistent-missing-override
+	-Wno-maybe-uninitialized
+	-Wno-shadow
+	-Wno-sign-compare
+	-Wno-unused-const-variable
+)
 add_c_compiler_flags(-Wno-strict-prototypes)
 
 include(CheckIncludeFileCXX)
