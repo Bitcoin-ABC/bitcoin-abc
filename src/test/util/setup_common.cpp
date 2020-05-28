@@ -21,6 +21,7 @@
 #include <rpc/blockchain.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
+#include <scheduler.h>
 #include <script/script_error.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>

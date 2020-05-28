@@ -11,6 +11,7 @@
 #include <chain.h>
 #include <config.h>
 #include <net_processing.h> // For ::PeerManager
+#include <scheduler.h>
 #include <util/time.h>
 #include <util/translation.h> // For bilingual_str
 // D6970 moved LookupBlockIndex from chain.h to validation.h TODO: remove this
