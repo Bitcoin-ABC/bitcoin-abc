@@ -1135,7 +1135,7 @@ std::unique_ptr<WalletDatabase> CreateWalletDatabase(const fs::path &path) {
  * Return object for accessing dummy database with no read/write capabilities.
  */
 std::unique_ptr<WalletDatabase> CreateDummyWalletDatabase() {
-    return std::make_unique<BerkeleyDatabase>();
+    return std::make_unique<DummyDatabase>();
 }
 
 /** Return object for accessing temporary in-memory database. */
