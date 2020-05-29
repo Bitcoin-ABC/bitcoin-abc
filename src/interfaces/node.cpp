@@ -76,12 +76,12 @@ namespace {
         bool baseInitialize(Config &config) override {
             return AppInitBasicSetup(gArgs) &&
                    AppInitParameterInteraction(config, gArgs) &&
-                   AppInitSanityChecks() && AppInitLockDataDirectory();
+                   AppInitSanityChecks() && AppInitLockDataDirectory() &&
+                   AppInitInterfaces(*m_context);
         }
         bool appInitMain(Config &config, RPCServer &rpcServer,
                          HTTPRPCRequestProcessor &httpRPCRequestProcessor,
                          interfaces::BlockAndHeaderTipInfo *tip_info) override {
-            m_context->chain = MakeChain(*m_context, config.GetChainParams());
             return AppInitMain(config, rpcServer, httpRPCRequestProcessor,
                                *m_context, tip_info);
         }

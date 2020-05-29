@@ -70,6 +70,11 @@ bool AppInitSanityChecks();
  */
 bool AppInitLockDataDirectory();
 /**
+ * Initialize node and wallet interface pointers. Has no prerequisites or side
+ * effects besides allocating memory.
+ */
+bool AppInitInterfaces(NodeContext &node);
+/**
  * Bitcoin main initialization.
  * @note This should only be done after daemonization.
  * @pre Parameters should be parsed and config file should be read,

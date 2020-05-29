@@ -98,7 +98,6 @@ static bool AppInit(int argc, char *argv[]) {
         // only valid after this clause)
         try {
             SelectParams(args.GetChainName());
-            node.chain = interfaces::MakeChain(node, config.GetChainParams());
         } catch (const std::exception &e) {
             return InitError(Untranslated(strprintf("%s\n", e.what())));
         }
@@ -178,7 +177,8 @@ static bool AppInit(int argc, char *argv[]) {
             // If locking the data directory failed, exit immediately
             return false;
         }
-        fRet = AppInitMain(config, rpcServer, httpRPCRequestProcessor, node);
+        fRet = AppInitInterfaces(node) &&
+               AppInitMain(config, rpcServer, httpRPCRequestProcessor, node);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {
