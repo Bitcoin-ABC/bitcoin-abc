@@ -282,11 +282,7 @@ static std::string serviceFlagToStr(const size_t bit) {
             std::ostringstream stream;
             stream.imbue(std::locale::classic());
             stream << "UNKNOWN[";
-            if (bit < 8) {
-                stream << mask;
-            } else {
-                stream << "2^" << bit;
-            }
+            stream << "2^" << bit;
             stream << "]";
             return stream.str();
     }

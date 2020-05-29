@@ -60,6 +60,7 @@ class NetTest(BitcoinTestFramework):
         self._test_getnetworkinfo()
         self._test_getaddednodeinfo()
         self._test_getpeerinfo()
+        self.test_service_flags()
         self._test_getnodeaddresses()
 
     def _test_connection_count(self):
@@ -158,6 +159,15 @@ class NetTest(BitcoinTestFramework):
         for info in peer_info:
             assert_net_servicesnames(int(info[0]["services"], 0x10),
                                      info[0]["servicesnames"])
+
+    def test_service_flags(self):
+        self.nodes[0].add_p2p_connection(
+            P2PInterface(), services=(
+                1 << 5) | (
+                1 << 63))
+        assert_equal(['UNKNOWN[2^5]', 'UNKNOWN[2^63]'],
+                     self.nodes[0].getpeerinfo()[-1]['servicesnames'])
+        self.nodes[0].disconnect_p2ps()
 
     def _test_getnodeaddresses(self):
         self.nodes[0].add_p2p_connection(P2PInterface())
