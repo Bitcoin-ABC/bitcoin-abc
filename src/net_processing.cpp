@@ -202,11 +202,26 @@ static const std::chrono::seconds AVG_ADDRESS_BROADCAST_INTERVAL{30};
  */
 static const unsigned int INVENTORY_BROADCAST_INTERVAL = 5;
 /**
- * Maximum number of inventory items to send per transmission.
+ * Maximum rate of inventory items to send per second.
  * Limits the impact of low-fee transaction floods.
  */
+static constexpr unsigned int INVENTORY_BROADCAST_PER_SECOND = 7;
+/** Maximum number of inventory items to send per transmission. */
 static constexpr unsigned int INVENTORY_BROADCAST_MAX_PER_MB =
-    7 * INVENTORY_BROADCAST_INTERVAL;
+    INVENTORY_BROADCAST_PER_SECOND * INVENTORY_BROADCAST_INTERVAL;
+/** The number of most recently announced transactions a peer can request. */
+static constexpr unsigned int INVENTORY_MAX_RECENT_RELAY = 3500;
+/**
+ * Verify that INVENTORY_MAX_RECENT_RELAY is enough to cache everything
+ * typically relayed before unconditional relay from the mempool kicks in. This
+ * is only a lower bound, and it should be larger to account for higher inv rate
+ * to outbound peers, and random variations in the broadcast mechanism.
+ */
+static_assert(INVENTORY_MAX_RECENT_RELAY >= INVENTORY_BROADCAST_PER_SECOND *
+                                                UNCONDITIONAL_RELAY_DELAY /
+                                                std::chrono::seconds{1},
+              "INVENTORY_RELAY_MAX too low");
+
 /**
  * Average delay between feefilter broadcasts in seconds.
  */
@@ -508,6 +523,10 @@ struct CNodeState {
     //! Whether this peer is a manual connection
     bool m_is_manual_connection;
 
+    //! A rolling bloom filter of all announced tx CInvs to this peer.
+    CRollingBloomFilter m_recently_announced_invs =
+        CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
+
     CNodeState(CAddress addrIn, bool is_inbound, bool is_manual)
         : address(addrIn), m_is_inbound(is_inbound),
           m_is_manual_connection(is_manual) {
@@ -530,6 +549,7 @@ struct CNodeState {
         fSupportsDesiredCmpctVersion = false;
         m_chain_sync = {0, nullptr, false, false};
         m_last_block_announcement = 0;
+        m_recently_announced_invs.reset();
     }
 };
 
@@ -1997,21 +2017,29 @@ CTransactionRef static FindTxForGetData(const CNode &peer, const TxId &txid,
 
     auto txinfo = g_mempool.info(txid);
     if (txinfo.tx) {
-        // To protect privacy, do not answer getdata using the mempool when
-        // that TX couldn't have been INVed in reply to a MEMPOOL request,
-        // and it's more recent than UNCONDITIONAL_RELAY_DELAY.
+        // If a TX could have been INVed in reply to a MEMPOOL request,
+        // or is older than UNCONDITIONAL_RELAY_DELAY, permit the request
+        // unconditionally.
         if ((mempool_req.count() && txinfo.m_time <= mempool_req) ||
             txinfo.m_time <= now - UNCONDITIONAL_RELAY_DELAY) {
-            return txinfo.tx;
+            return std::move(txinfo.tx);
         }
     }
 
     {
         LOCK(cs_main);
-        // Look up transaction in relay pool
-        auto mi = mapRelay.find(txid);
-        if (mi != mapRelay.end()) {
-            return mi->second;
+
+        // Otherwise, the transaction must have been announced recently.
+        if (State(peer.GetId())->m_recently_announced_invs.contains(txid)) {
+            // If it was, it can be relayed from either the mempool...
+            if (txinfo.tx) {
+                return std::move(txinfo.tx);
+            }
+            // ... or the relay pool.
+            auto mi = mapRelay.find(txid);
+            if (mi != mapRelay.end()) {
+                return mi->second;
+            }
         }
     }
 
@@ -5223,6 +5251,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                             continue;
                         }
                         pto->m_tx_relay->filterInventoryKnown.insert(txid);
+                        // Responses to MEMPOOL requests bypass the
+                        // m_recently_announced_invs filter.
                         vInv.push_back(inv);
                         if (vInv.size() == MAX_INV_SZ) {
                             m_connman.PushMessage(
@@ -5295,6 +5325,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                             continue;
                         }
                         // Send
+                        State(pto->GetId())
+                            ->m_recently_announced_invs.insert(txid);
                         vInv.push_back(CInv(MSG_TX, txid));
                         nRelayedTransactions++;
                         {
