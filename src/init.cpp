@@ -2360,12 +2360,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     break;
                 }
 
+                const Consensus::Params &params = chainparams.GetConsensus();
+
                 // LoadBlockIndex will load fHavePruned if we've ever removed a
                 // block file from disk.
                 // Note that it also sets fReindex based on the disk flag!
                 // From here on out fReindex and fReset mean something
                 // different!
-                if (!LoadBlockIndex(config)) {
+                if (!LoadBlockIndex(params)) {
                     strLoadError = _("Error loading block database").translated;
                     break;
                 }
@@ -2374,8 +2376,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // (we're likely using a testnet datadir, or the other way
                 // around).
                 if (!mapBlockIndex.empty() &&
-                    !LookupBlockIndex(
-                        chainparams.GetConsensus().hashGenesisBlock)) {
+                    !LookupBlockIndex(params.hashGenesisBlock)) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?")
                                          .translated);
@@ -2424,8 +2425,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                 // ReplayBlocks is a no-op if we cleared the coinsviewdb with
                 // -reindex or -reindex-chainstate
-                if (!ReplayBlocks(chainparams.GetConsensus(),
-                                  pcoinsdbview.get())) {
+                if (!ReplayBlocks(params, pcoinsdbview.get())) {
                     strLoadError =
                         _("Unable to replay blocks. You will need to rebuild "
                           "the database using -reindex-chainstate.")

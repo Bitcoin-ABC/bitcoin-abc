@@ -346,7 +346,8 @@ bool LoadGenesisBlock(const CChainParams &chainparams);
  * Load the block tree and coins database from disk, initializing state if we're
  * running with -reindex.
  */
-bool LoadBlockIndex(const Config &config) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+bool LoadBlockIndex(const Consensus::Params &params)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Update the chain tip based on database information.
@@ -763,7 +764,8 @@ public:
     CBlockIndex *pindexBestParked = nullptr;
     CBlockIndex const *pindexFinalized = nullptr;
 
-    bool LoadBlockIndex(const Config &config, CBlockTreeDB &blocktree)
+    bool LoadBlockIndex(const Consensus::Params &params,
+                        CBlockTreeDB &blocktree)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**

@@ -4356,14 +4356,12 @@ CBlockIndex *CChainState::InsertBlockIndex(const BlockHash &hash) {
     return pindexNew;
 }
 
-bool CChainState::LoadBlockIndex(const Config &config,
+bool CChainState::LoadBlockIndex(const Consensus::Params &params,
                                  CBlockTreeDB &blocktree) {
     AssertLockHeld(cs_main);
     if (!blocktree.LoadBlockIndexGuts(
-            config.GetChainParams().GetConsensus(),
-            [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-                return this->InsertBlockIndex(hash);
-            })) {
+            params, [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(
+                        cs_main) { return this->InsertBlockIndex(hash); })) {
         return false;
     }
 
@@ -4436,9 +4434,9 @@ bool CChainState::LoadBlockIndex(const Config &config,
     return true;
 }
 
-static bool LoadBlockIndexDB(const Config &config)
+static bool LoadBlockIndexDB(const Consensus::Params &params)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    if (!::ChainstateActive().LoadBlockIndex(config, *pblocktree)) {
+    if (!::ChainstateActive().LoadBlockIndex(params, *pblocktree)) {
         return false;
     }
 
@@ -4876,11 +4874,11 @@ void UnloadBlockIndex() {
     ::ChainstateActive().UnloadBlockIndex();
 }
 
-bool LoadBlockIndex(const Config &config) {
+bool LoadBlockIndex(const Consensus::Params &params) {
     // Load block index from databases
     bool needs_init = fReindex;
     if (!fReindex) {
-        bool ret = LoadBlockIndexDB(config);
+        bool ret = LoadBlockIndexDB(params);
         if (!ret) {
             return false;
         }
