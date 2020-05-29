@@ -2053,12 +2053,12 @@ static void UpdateTip(const CChainParams &params, CBlockIndex *pindexNew) {
         g_best_block_cv.notify_all();
     }
 
-    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
+    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%ld "
               "date='%s' progress=%f cache=%.1fMiB(%utxo)\n",
               __func__, pindexNew->GetBlockHash().ToString(),
               pindexNew->nHeight, pindexNew->nVersion,
               log(pindexNew->nChainWork.getdouble()) / log(2.0),
-              (unsigned long)pindexNew->nChainTx,
+              pindexNew->GetChainTxCount(),
               FormatISO8601DateTime(pindexNew->GetBlockTime()),
               GuessVerificationProgress(params.TxData(), pindexNew),
               pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
@@ -5605,10 +5605,9 @@ bool IsBlockPruned(const CBlockIndex *pblockindex) {
 }
 
 //! Guess how far we are in the verification process at the given block index
-//! require cs_main if pindex has not been validated yet (because nChainTx might
-//! be unset)
-//! This conditional lock requirement might be confusing, see:
-//! https://github.com/bitcoin/bitcoin/issues/15994
+//! require cs_main if pindex has not been validated yet (because the chain's
+//! transaction count might be unset) This conditional lock requirement might be
+//! confusing, see: https://github.com/bitcoin/bitcoin/issues/15994
 double GuessVerificationProgress(const ChainTxData &data,
                                  const CBlockIndex *pindex) {
     if (pindex == nullptr) {
@@ -5618,14 +5617,14 @@ double GuessVerificationProgress(const ChainTxData &data,
     int64_t nNow = time(nullptr);
 
     double fTxTotal;
-    if (pindex->nChainTx <= data.nTxCount) {
+    if (pindex->GetChainTxCount() <= data.nTxCount) {
         fTxTotal = data.nTxCount + (nNow - data.nTime) * data.dTxRate;
     } else {
-        fTxTotal =
-            pindex->nChainTx + (nNow - pindex->GetBlockTime()) * data.dTxRate;
+        fTxTotal = pindex->GetChainTxCount() +
+                   (nNow - pindex->GetBlockTime()) * data.dTxRate;
     }
 
-    return pindex->nChainTx / fTxTotal;
+    return pindex->GetChainTxCount() / fTxTotal;
 }
 
 class CMainCleanup {

@@ -2005,11 +2005,11 @@ static UniValue getchaintxstats(const Config &config,
         pindex->GetAncestor(pindex->nHeight - blockcount);
     int nTimeDiff =
         pindex->GetMedianTimePast() - pindexPast->GetMedianTimePast();
-    int nTxDiff = pindex->nChainTx - pindexPast->nChainTx;
+    int nTxDiff = pindex->GetChainTxCount() - pindexPast->GetChainTxCount();
 
     UniValue ret(UniValue::VOBJ);
-    ret.pushKV("time", int64_t(pindex->nTime));
-    ret.pushKV("txcount", int64_t(pindex->nChainTx));
+    ret.pushKV("time", pindex->GetBlockTime());
+    ret.pushKV("txcount", pindex->GetChainTxCount());
     ret.pushKV("window_final_block_hash", pindex->GetBlockHash().GetHex());
     ret.pushKV("window_block_count", blockcount);
     if (blockcount > 0) {

@@ -153,6 +153,11 @@ public:
     BlockHash GetBlockHash() const { return *phashBlock; }
 
     /**
+     * Get the number of transaction in the chain so far.
+     */
+    int64_t GetChainTxCount() const { return nChainTx; }
+
+    /**
      * Check whether this block's and all previous blocks' transactions have
      * been downloaded (and stored to disk) at some point.
      *
@@ -160,7 +165,7 @@ public:
      * fail) Does not imply the transactions are still stored on disk.
      * (IsBlockPruned might return true)
      */
-    bool HaveTxsDownloaded() const { return nChainTx != 0; }
+    bool HaveTxsDownloaded() const { return GetChainTxCount() != 0; }
 
     int64_t GetBlockTime() const { return int64_t(nTime); }
 
