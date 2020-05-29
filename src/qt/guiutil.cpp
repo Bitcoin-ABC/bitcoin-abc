@@ -754,15 +754,10 @@ QString formatDurationStr(int secs) {
 QString formatServicesStr(quint64 mask) {
     QStringList strList;
 
-    // Don't display experimental service bits
-    for (int i = 0; i < 64; i++) {
-        uint64_t check = 1ull << i;
-        if (check > NODE_LAST_NON_EXPERIMENTAL_SERVICE_BIT) {
-            break;
-        }
-        if (mask & check) {
-            strList.append(QString::fromStdString(serviceFlagToStr(check, i)));
-        }
+    constexpr uint64_t nonExperimentalMask =
+        (NODE_LAST_NON_EXPERIMENTAL_SERVICE_BIT << 1) - 1;
+    for (const auto &flag : serviceFlagsToStr(mask & nonExperimentalMask)) {
+        strList.append(QString::fromStdString(flag));
     }
 
     if (strList.size()) {
