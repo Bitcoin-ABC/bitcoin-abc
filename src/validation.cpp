@@ -3260,7 +3260,6 @@ void CChainState::ReceivedBlockTransactions(const CBlock &block,
                                             CBlockIndex *pindexNew,
                                             const FlatFilePos &pos) {
     pindexNew->nTx = block.vtx.size();
-    pindexNew->nChainTx = 0;
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
@@ -3268,7 +3267,7 @@ void CChainState::ReceivedBlockTransactions(const CBlock &block,
     pindexNew->RaiseValidity(BlockValidity::TRANSACTIONS);
     setDirtyBlockIndex.insert(pindexNew);
 
-    if (pindexNew->pprev == nullptr || pindexNew->pprev->HaveTxsDownloaded()) {
+    if (pindexNew->UpdateChainStats()) {
         // If pindexNew is the genesis block or all parents are
         // BLOCK_VALID_TRANSACTIONS.
         std::deque<CBlockIndex *> queue;
@@ -3279,8 +3278,7 @@ void CChainState::ReceivedBlockTransactions(const CBlock &block,
         while (!queue.empty()) {
             CBlockIndex *pindex = queue.front();
             queue.pop_front();
-            pindex->nChainTx =
-                (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
+            pindex->UpdateChainStats();
             if (pindex->nSequenceId == 0) {
                 // We assign a sequence is when transaction are received to
                 // prevent a miner from being able to broadcast a block but not
@@ -4385,16 +4383,8 @@ bool CChainState::LoadBlockIndex(const Consensus::Params &params,
         // We can link the chain of blocks for which we've received transactions
         // at some point. Pruned nodes may have deleted the block.
         if (pindex->nTx > 0) {
-            if (pindex->pprev) {
-                if (pindex->pprev->HaveTxsDownloaded()) {
-                    pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
-                } else {
-                    pindex->nChainTx = 0;
-                    mapBlocksUnlinked.insert(
-                        std::make_pair(pindex->pprev, pindex));
-                }
-            } else {
-                pindex->nChainTx = pindex->nTx;
+            if (!pindex->UpdateChainStats() && pindex->pprev) {
+                mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
             }
         }
 

@@ -81,6 +81,7 @@ public:
     //! upon
     unsigned int nTx = 0;
 
+private:
     //! (memory only) Number of transactions in the chain up to and including
     //! this block.
     //! This value will be non-zero only if and only if transactions for this
@@ -88,6 +89,7 @@ public:
     //! necessary; won't happen before 2030
     unsigned int nChainTx = 0;
 
+public:
     //! Verification status of this block. See enum BlockStatus
     BlockStatus nStatus = BlockStatus();
 
@@ -156,6 +158,11 @@ public:
      * Get the number of transaction in the chain so far.
      */
     int64_t GetChainTxCount() const { return nChainTx; }
+
+    /**
+     * Update chain tx stats.
+     */
+    bool UpdateChainStats();
 
     /**
      * Check whether this block's and all previous blocks' transactions have

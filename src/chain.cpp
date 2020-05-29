@@ -77,7 +77,23 @@ CBlockIndex *CChain::FindEarliestAtLeast(int64_t nTime, int height) const {
     return (lower == vChain.end() ? nullptr : *lower);
 }
 
-/** Turn the lowest '1' bit in the binary representation of a number into a '0'.
+bool CBlockIndex::UpdateChainStats() {
+    if (pprev == nullptr) {
+        nChainTx = nTx;
+        return true;
+    }
+
+    if (pprev->HaveTxsDownloaded()) {
+        nChainTx = pprev->nChainTx + nTx;
+        return true;
+    }
+
+    nChainTx = 0;
+    return false;
+}
+
+/**
+ * Turn the lowest '1' bit in the binary representation of a number into a '0'.
  */
 static inline int InvertLowestOne(int n) {
     return n & (n - 1);
