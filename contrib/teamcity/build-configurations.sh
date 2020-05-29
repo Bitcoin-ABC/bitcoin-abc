@@ -273,11 +273,12 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-werror)
-    # Build with variable-length-array and thread-safety-analysis treated as errors
+    # Build with variable-length-array and thread-safety-analysis treated as errors.
+    # Use clang-10 for this build instead of the default clang-8.
     CMAKE_FLAGS=(
       "-DENABLE_WERROR=ON"
-      "-DCMAKE_C_COMPILER=clang"
-      "-DCMAKE_CXX_COMPILER=clang++"
+      "-DCMAKE_C_COMPILER=clang-10"
+      "-DCMAKE_CXX_COMPILER=clang++-10"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
     ;;

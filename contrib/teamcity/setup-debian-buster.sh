@@ -82,13 +82,15 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y adoptopenjdk-8-hotspot
 ln -s /usr/lib/jvm/adoptopenjdk-8-hotspot-amd64 /usr/lib/jvm/default-java
 echo 'JAVA_HOME="/usr/lib/jvm/default-java"' >> /etc/environment
 
-# Install llvm-8
+# Install llvm-8 and clang-10
 apt-key add "${TEAMCITY_DIR}"/llvm.pub
 add-apt-repository "deb https://apt.llvm.org/buster/   llvm-toolchain-buster-8  main"
+add-apt-repository "deb https://apt.llvm.org/buster/   llvm-toolchain-buster-10  main"
 apt-get update
 
 LLVM_PACKAGES=(
   clang-8
+  clang-10
   clang-format-8
   clang-tidy-8
   clang-tools-8
@@ -96,6 +98,9 @@ LLVM_PACKAGES=(
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${LLVM_PACKAGES[@]}")
 update-alternatives --install /usr/bin/clang clang "$(command -v clang-8)" 100
 update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-8)" 100
+# Use a lower priority to keep clang-8 the default
+update-alternatives --install /usr/bin/clang clang "$(command -v clang-10)" 50
+update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-10)" 50
 
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
