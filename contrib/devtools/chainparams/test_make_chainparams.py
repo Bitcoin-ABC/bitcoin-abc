@@ -9,13 +9,15 @@ from make_chainparams import main as GenerateChainParams
 
 
 class MockRPC:
-    def __init__(self, test, chain, numBlocks,
-                 expectedBlock, blockHash, chainWork):
+    def __init__(self, test, chain, numBlocks, expectedBlock,
+                 blockHash, chainWork, blockchainSize, chainstateSize):
         self.test = test
         self.chain = chain
         self.numBlocks = numBlocks
         self.expectedBlock = expectedBlock
+        self.blockchainSize = blockchainSize
         self.blockHash = blockHash
+        self.chainstateSize = chainstateSize
         self.chainWork = chainWork
 
     def getblockchaininfo(self):
@@ -29,7 +31,7 @@ class MockRPC:
             "verificationprogress": 0.9999958005632363,
             "initialblockdownload": False,
             "chainwork": self.chainWork,
-            "size_on_disk": 952031444,
+            "size_on_disk": self.blockchainSize,
             "pruned": True,
             "pruneheight": 582974,
             "automatic_pruning": True,
@@ -66,13 +68,33 @@ class MockRPC:
             "previousblockhash": "00000000000000000307b45e4a6cf8d49e70b9012ea1d72a5ce334a4213f66bd",
         }
 
+    def gettxoutsetinfo(self):
+        return {
+            "height": 636013,
+            "bestblock": "00000000000000000250a6ab6c6c4778086807f5b39910a8c108efa511282280",
+            "transactions": 19360831,
+            "txouts": 42145889,
+            "bogosize": 3187119531,
+            "hash_serialized": "1b1cc457771e8b6f849ac21c4da43ebe5c614df9e61a943252978437ad774ce5",
+            "disk_size": self.chainstateSize,
+            "total_amount": 18412423.42452419,
+        }
+
 
 class MockFailRPC(MockRPC):
     # Provides a fail counter to fail after the Nth RPC command
 
-    def __init__(self, test, chain, numBlocks, expectedBlock,
-                 blockHash, chainWork, failCounter):
-        super().__init__(test, chain, numBlocks, expectedBlock, blockHash, chainWork)
+    def __init__(self, test, chain, numBlocks, expectedBlock, blockHash,
+                 chainWork, blockchainSize, chainstateSize, failCounter):
+        super().__init__(
+            test,
+            chain,
+            numBlocks,
+            expectedBlock,
+            blockHash,
+            chainWork,
+            blockchainSize,
+            chainstateSize)
         self.failCounter = failCounter
 
     def checkFailCounter(self):
@@ -94,6 +116,10 @@ class MockFailRPC(MockRPC):
         self.checkFailCounter()
         return super().getblockheader(blockHash)
 
+    def gettxoutsetinfo(self):
+        self.checkFailCounter()
+        return super().gettxoutsetinfo()
+
 
 def CheckMockFailure(test, args, errorMessage='error code: -99'):
     with test.assertRaises(Exception) as context:
@@ -111,41 +137,72 @@ class GenerateChainParamsTests(unittest.TestCase):
         self.chainWork2 = '00000000000000000000000000000000000000000000004fdb4795a837f19671'
 
     def test_happy_path_mainnet(self):
-        mockRPC = MockRPC(test=self, chain='main', numBlocks=123000,
-                          expectedBlock=122990, blockHash=self.blockHash1, chainWork=self.chainWork1)
+        mockRPC = MockRPC(
+            test=self,
+            chain='main',
+            numBlocks=123000,
+            expectedBlock=122990,
+            blockHash=self.blockHash1,
+            chainWork=self.chainWork1,
+            blockchainSize=160111222333,
+            chainstateSize=2000111222)
         args = {
             'rpc': mockRPC,
             'block': None,
         }
-        self.assertEqual(GenerateChainParams(args), "{}\n{}".format(
+        self.assertEqual(GenerateChainParams(args), "\n".join([
                          "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
-                         "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1"))
+                         "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1",
+                         "194", "3"]))
 
     def test_happy_path_testnet(self):
-        mockRPC = MockRPC(test=self, chain='test', numBlocks=234000,
-                          expectedBlock=232000, blockHash=self.blockHash1, chainWork=self.chainWork1)
+        mockRPC = MockRPC(
+            test=self,
+            chain='test',
+            numBlocks=234000,
+            expectedBlock=232000,
+            blockHash=self.blockHash1,
+            chainWork=self.chainWork1,
+            blockchainSize=50111222333,
+            chainstateSize=1000111222)
         args = {
             'rpc': mockRPC,
             'block': None,
         }
-        self.assertEqual(GenerateChainParams(args), "{}\n{}".format(
+        self.assertEqual(GenerateChainParams(args), "\n".join([
                          "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
-                         "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1"))
+                         "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1",
+                         "61", "2"]))
 
     def test_specific_block(self):
-        mockRPC = MockRPC(test=self, chain='main', numBlocks=123000,
-                          expectedBlock=122990, blockHash=self.blockHash1, chainWork=self.chainWork1)
+        mockRPC = MockRPC(
+            test=self,
+            chain='main',
+            numBlocks=123000,
+            expectedBlock=122990,
+            blockHash=self.blockHash1,
+            chainWork=self.chainWork1,
+            blockchainSize=160111222333,
+            chainstateSize=2000111222)
         args = {
             'rpc': mockRPC,
             'block': self.blockHash1,
         }
-        self.assertEqual(GenerateChainParams(args), "{}\n{}".format(
+        self.assertEqual(GenerateChainParams(args), "\n".join([
                          "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
-                         "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1"))
+                         "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1",
+                         "194", "3"]))
 
     def test_wrong_chain(self):
-        mockRPC = MockRPC(test=self, chain='main', numBlocks=123000,
-                          expectedBlock=122990, blockHash=self.blockHash1, chainWork=self.chainWork1)
+        mockRPC = MockRPC(
+            test=self,
+            chain='main',
+            numBlocks=123000,
+            expectedBlock=122990,
+            blockHash=self.blockHash1,
+            chainWork=self.chainWork1,
+            blockchainSize=160111222333,
+            chainstateSize=2000111222)
         args = {
             'rpc': mockRPC,
             'block': self.blockHash2,
@@ -159,9 +216,17 @@ class GenerateChainParamsTests(unittest.TestCase):
             if chain == 'test':
                 expectedBlock = 132000
 
-            for failCounter in range(3):
-                mockFailRPC = MockFailRPC(test=self, chain=chain, numBlocks=134000, expectedBlock=expectedBlock,
-                                          blockHash=self.blockHash1, chainWork=self.chainWork1, failCounter=failCounter)
+            for failCounter in range(4):
+                mockFailRPC = MockFailRPC(
+                    test=self,
+                    chain=chain,
+                    numBlocks=134000,
+                    expectedBlock=expectedBlock,
+                    blockHash=self.blockHash1,
+                    chainWork=self.chainWork1,
+                    failCounter=failCounter,
+                    blockchainSize=160111222333,
+                    chainstateSize=2000111222)
                 argsFail = {
                     'rpc': mockFailRPC,
                     'block': None,

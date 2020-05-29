@@ -16,6 +16,8 @@ These files must consist of lines in the format
 
     <assumevalid hash>
     <minimum chainwork>
+    <assumed blockchain size on disk (in GB)>
+    <assumed chainstate size on disk (in GB)>
 
 The outputted constants should be pasted into `src/chainparamsconstants.h`.
 '''
@@ -28,8 +30,8 @@ def process_constants(indir, file_name):
     with open(os.path.join(indir, file_name), 'r', encoding="utf8") as f:
         constants = f.readlines()
 
-    # Ensure only two lines are read from the file.
-    assert(len(constants) == 2)
+    # Ensure only the expected number of lines are read from the file
+    assert(len(constants) == 4)
 
     return [line.rstrip() for line in constants]
 
@@ -56,9 +58,13 @@ def main():
 namespace ChainParamsConstants {{
     const BlockHash MAINNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("{}");
     const uint256 MAINNET_MINIMUM_CHAIN_WORK = uint256S("{}");
+    const uint64_t MAINNET_ASSUMED_BLOCKCHAIN_SIZE = {};
+    const uint64_t MAINNET_ASSUMED_CHAINSTATE_SIZE = {};
 
     const BlockHash TESTNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("{}");
     const uint256 TESTNET_MINIMUM_CHAIN_WORK = uint256S("{}");
+    const uint64_t TESTNET_ASSUMED_BLOCKCHAIN_SIZE = {};
+    const uint64_t TESTNET_ASSUMED_CHAINSTATE_SIZE = {};
 }} // namespace ChainParamsConstants
 
 #endif // BITCOIN_CHAINPARAMSCONSTANTS_H\

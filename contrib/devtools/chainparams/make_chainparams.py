@@ -5,6 +5,7 @@
 
 from enum import Enum
 import argparse
+import math
 import os.path
 import re
 import sys
@@ -16,6 +17,9 @@ from authproxy import AuthServiceProxy  # noqa: E402
 class Chain(Enum):
     MainNet = "MAINNET"
     TestNet = "TESTNET"
+
+
+GIGABYTE = 1024 * 1024 * 1024
 
 
 def get_chainparams(rpc_caller, block):
@@ -52,13 +56,20 @@ def get_chainparams(rpc_caller, block):
     # exception if not.
     rpc_caller.getblockheader(block)
 
-    return (chainwork, block)
+    # Block size on disk (in GB) with some margin for growth
+    diskSizeBlocks = str(
+        int(math.ceil(chaininfo['size_on_disk'] / GIGABYTE * 1.3)))
+
+    # Chainstate size on disk (in GB) with some margin for growth
+    utxos = rpc_caller.gettxoutsetinfo()
+    diskSizeChainstate = str(
+        int(math.ceil(utxos['disk_size'] / GIGABYTE * 1.3)))
+
+    return (block, chainwork, diskSizeBlocks, diskSizeChainstate)
 
 
 def main(args):
-    (chainwork, blockhash) = get_chainparams(args['rpc'], args['block'])
-    output = "{}\n{}".format(blockhash, chainwork)
-    return output
+    return "\n".join(get_chainparams(args['rpc'], args['block']))
 
 
 if __name__ == "__main__":
@@ -102,7 +113,7 @@ if __name__ == "__main__":
         raise ValueError("Config is missing rpcpassword")
 
     args.rpc = AuthServiceProxy(
-        'http://{}:{}@{}'.format(user, password, args.address))
+        service_url='http://{}:{}@{}'.format(user, password, args.address), timeout=1200)
     output = main(vars(args))
     if output:
         print(output)
