@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(multisig_IsStandard) {
         key[i].MakeNewKey(true);
     }
 
-    txnouttype whichType;
+    TxoutType whichType;
 
     CScript a_and_b;
     a_and_b << OP_2 << ToByteVector(key[0].GetPubKey())

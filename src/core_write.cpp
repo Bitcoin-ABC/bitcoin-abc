@@ -180,19 +180,19 @@ void ScriptToUniv(const CScript &script, UniValue &out, bool include_address) {
     out.pushKV("hex", HexStr(script));
 
     std::vector<std::vector<uint8_t>> solns;
-    txnouttype type = Solver(script, solns);
+    TxoutType type = Solver(script, solns);
     out.pushKV("type", GetTxnOutputType(type));
 
     CTxDestination address;
     if (include_address && ExtractDestination(script, address) &&
-        type != TX_PUBKEY) {
+        type != TxoutType::PUBKEY) {
         out.pushKV("address", EncodeDestination(address, GetConfig()));
     }
 }
 
 void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
                         bool fIncludeHex) {
-    txnouttype type;
+    TxoutType type;
     std::vector<CTxDestination> addresses;
     int nRequired;
 
@@ -202,7 +202,7 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
     }
 
     if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired) ||
-        type == TX_PUBKEY) {
+        type == TxoutType::PUBKEY) {
         out.pushKV("type", GetTxnOutputType(type));
         return;
     }

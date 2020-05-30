@@ -98,14 +98,14 @@ static bool CreateSig(const BaseSignatureCreator &creator,
 /**
  * Sign scriptPubKey using signature made with creator.
  * Signatures are returned in scriptSigRet (or returns false if scriptPubKey
- * can't be signed), unless whichTypeRet is TX_SCRIPTHASH, in which case
- * scriptSigRet is the redemption script.
+ * can't be signed), unless whichTypeRet is TxoutType::SCRIPTHASH, in which
+ * case scriptSigRet is the redemption script.
  * Returns false if scriptPubKey could not be completely satisfied.
  */
 static bool SignStep(const SigningProvider &provider,
                      const BaseSignatureCreator &creator,
                      const CScript &scriptPubKey, std::vector<valtype> &ret,
-                     txnouttype &whichTypeRet, SignatureData &sigdata) {
+                     TxoutType &whichTypeRet, SignatureData &sigdata) {
     CScript scriptRet;
     uint160 h160;
     ret.clear();
@@ -115,17 +115,17 @@ static bool SignStep(const SigningProvider &provider,
     whichTypeRet = Solver(scriptPubKey, vSolutions);
 
     switch (whichTypeRet) {
-        case TX_NONSTANDARD:
-        case TX_NULL_DATA:
+        case TxoutType::NONSTANDARD:
+        case TxoutType::NULL_DATA:
             return false;
-        case TX_PUBKEY:
+        case TxoutType::PUBKEY:
             if (!CreateSig(creator, sigdata, provider, sig,
                            CPubKey(vSolutions[0]), scriptPubKey)) {
                 return false;
             }
             ret.push_back(std::move(sig));
             return true;
-        case TX_PUBKEYHASH: {
+        case TxoutType::PUBKEYHASH: {
             CKeyID keyID = CKeyID(uint160(vSolutions[0]));
             CPubKey pubkey;
             if (!GetPubKey(provider, sigdata, keyID, pubkey)) {
@@ -141,7 +141,7 @@ static bool SignStep(const SigningProvider &provider,
             ret.push_back(ToByteVector(pubkey));
             return true;
         }
-        case TX_SCRIPTHASH:
+        case TxoutType::SCRIPTHASH:
             h160 = uint160(vSolutions[0]);
             if (GetCScript(provider, sigdata, h160, scriptRet)) {
                 ret.push_back(
@@ -151,7 +151,7 @@ static bool SignStep(const SigningProvider &provider,
             // Could not find redeemScript, add to missing
             sigdata.missing_redeem_script = h160;
             return false;
-        case TX_MULTISIG: {
+        case TxoutType::MULTISIG: {
             size_t required = vSolutions.front()[0];
             // workaround CHECKMULTISIG bug
             ret.push_back(valtype());
@@ -202,12 +202,12 @@ bool ProduceSignature(const SigningProvider &provider,
     }
 
     std::vector<valtype> result;
-    txnouttype whichType;
+    TxoutType whichType;
     bool solved =
         SignStep(provider, creator, fromPubKey, result, whichType, sigdata);
     CScript subscript;
 
-    if (solved && whichType == TX_SCRIPTHASH) {
+    if (solved && whichType == TxoutType::SCRIPTHASH) {
         // Solver returns the subscript that needs to be evaluated; the final
         // scriptSig is the signatures from that and then the serialized
         // subscript:
@@ -217,7 +217,7 @@ bool ProduceSignature(const SigningProvider &provider,
         solved = solved &&
                  SignStep(provider, creator, subscript, result, whichType,
                           sigdata) &&
-                 whichType != TX_SCRIPTHASH;
+                 whichType != TxoutType::SCRIPTHASH;
         result.push_back(
             std::vector<uint8_t>(subscript.begin(), subscript.end()));
     }
@@ -289,10 +289,10 @@ SignatureData DataFromTransaction(const CMutableTransaction &tx,
 
     // Get scripts
     std::vector<std::vector<uint8_t>> solutions;
-    txnouttype script_type = Solver(txout.scriptPubKey, solutions);
+    TxoutType script_type = Solver(txout.scriptPubKey, solutions);
     CScript next_script = txout.scriptPubKey;
 
-    if (script_type == TX_SCRIPTHASH && !stack.script.empty() &&
+    if (script_type == TxoutType::SCRIPTHASH && !stack.script.empty() &&
         !stack.script.back().empty()) {
         // Get the redeemScript
         CScript redeem_script(stack.script.back().begin(),
@@ -304,7 +304,7 @@ SignatureData DataFromTransaction(const CMutableTransaction &tx,
         script_type = Solver(next_script, solutions);
         stack.script.pop_back();
     }
-    if (script_type == TX_MULTISIG && !stack.script.empty()) {
+    if (script_type == TxoutType::MULTISIG && !stack.script.empty()) {
         // Build a map of pubkey -> signature by matching sigs to pubkeys:
         assert(solutions.size() > 1);
         unsigned int num_pubkeys = solutions.size() - 2;

@@ -76,26 +76,26 @@ IsMineResult IsMineInner(const LegacyScriptPubKeyMan &keystore,
     IsMineResult ret = IsMineResult::NO;
 
     std::vector<valtype> vSolutions;
-    txnouttype whichType = Solver(scriptPubKey, vSolutions);
+    TxoutType whichType = Solver(scriptPubKey, vSolutions);
 
     CKeyID keyID;
     switch (whichType) {
-        case TX_NONSTANDARD:
-        case TX_NULL_DATA:
+        case TxoutType::NONSTANDARD:
+        case TxoutType::NULL_DATA:
             break;
-        case TX_PUBKEY:
+        case TxoutType::PUBKEY:
             keyID = CPubKey(vSolutions[0]).GetID();
             if (keystore.HaveKey(keyID)) {
                 ret = std::max(ret, IsMineResult::SPENDABLE);
             }
             break;
-        case TX_PUBKEYHASH:
+        case TxoutType::PUBKEYHASH:
             keyID = CKeyID(uint160(vSolutions[0]));
             if (keystore.HaveKey(keyID)) {
                 ret = std::max(ret, IsMineResult::SPENDABLE);
             }
             break;
-        case TX_SCRIPTHASH: {
+        case TxoutType::SCRIPTHASH: {
             if (sigversion != IsMineSigVersion::TOP) {
                 // P2SH inside P2SH is invalid.
                 return IsMineResult::INVALID;
@@ -108,7 +108,7 @@ IsMineResult IsMineInner(const LegacyScriptPubKeyMan &keystore,
             }
             break;
         }
-        case TX_MULTISIG: {
+        case TxoutType::MULTISIG: {
             // Never treat bare multisig outputs as ours (they can still be made
             // watchonly-though)
             if (sigversion == IsMineSigVersion::TOP) {
@@ -724,7 +724,7 @@ bool LegacyScriptPubKeyMan::HaveWatchOnly() const {
 
 static bool ExtractPubKey(const CScript &dest, CPubKey &pubKeyOut) {
     std::vector<std::vector<uint8_t>> solutions;
-    return Solver(dest, solutions) == TX_PUBKEY &&
+    return Solver(dest, solutions) == TxoutType::PUBKEY &&
            (pubKeyOut = CPubKey(solutions[0])).IsFullyValid();
 }
 

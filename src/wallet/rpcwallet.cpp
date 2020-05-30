@@ -4202,7 +4202,7 @@ public:
     void ProcessSubScript(const CScript &subscript, UniValue &obj) const {
         // Always present: script type and redeemscript
         std::vector<std::vector<uint8_t>> solutions_data;
-        txnouttype which_type = Solver(subscript, solutions_data);
+        TxoutType which_type = Solver(subscript, solutions_data);
         obj.pushKV("script", GetTxnOutputType(which_type));
         obj.pushKV("hex", HexStr(subscript));
 
@@ -4222,7 +4222,7 @@ public:
                 obj.pushKV("pubkey", subobj["pubkey"]);
             }
             obj.pushKV("embedded", std::move(subobj));
-        } else if (which_type == TX_MULTISIG) {
+        } else if (which_type == TxoutType::MULTISIG) {
             // Also report some information on multisig scripts (which do not
             // have a corresponding address).
             // TODO: abstract out the common functionality between this logic
