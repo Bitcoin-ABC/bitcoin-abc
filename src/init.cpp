@@ -861,20 +861,12 @@ void SetupServerArgs(NodeContext &node) {
                   DEFAULT_CHECKBLOCKS),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-checklevel=<n>",
-        strprintf("How thorough the block verification of "
-                  "-checkblocks is: "
-                  "level 0 reads the blocks from disk, "
-                  "level 1 verifies block validity, "
-                  "level 2 verifies undo data, "
-                  "level 3 checks disconnection of tip blocks, "
-                  "and level 4 tries to reconnect the blocks. "
-                  "Each level includes the checks of the previous levels "
-                  "(0-4, default: %u)",
-                  DEFAULT_CHECKLEVEL),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-checklevel=<n>",
+                   strprintf("How thorough the block verification of "
+                             "-checkblocks is: %s (0-4, default: %u)",
+                             Join(CHECKLEVEL_DOC, ", "), DEFAULT_CHECKLEVEL),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-checkblockindex",
                    strprintf("Do a consistency check for the block tree, "
                              "chainstate, and other validation data structures "

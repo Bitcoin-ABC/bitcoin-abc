@@ -33,6 +33,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -173,6 +174,8 @@ extern bool fHavePruned;
 extern bool fPruneMode;
 /** Number of MiB of block files that we're trying to stay below. */
 extern uint64_t nPruneTarget;
+/** Documentation for argument 'checklevel'. */
+extern const std::vector<std::string> CHECKLEVEL_DOC;
 
 class BlockValidationOptions {
 private:
