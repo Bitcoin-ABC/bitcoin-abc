@@ -257,6 +257,7 @@ class WalletHDTest(BitcoinTestFramework):
         origin_rpc.sendrawtransaction(
             self.nodes[0].gettransaction(txid)['hex'])
         self.nodes[0].generate(1)
+        self.sync_blocks()
         origin_rpc.gettransaction(txid)
         assert_raises_rpc_error(-5,
                                 'Invalid or non-wallet transaction id',
@@ -273,6 +274,7 @@ class WalletHDTest(BitcoinTestFramework):
         origin_rpc.sendrawtransaction(
             self.nodes[0].gettransaction(txid)['hex'])
         self.nodes[0].generate(1)
+        self.sync_blocks()
         origin_rpc.gettransaction(txid)
         restore_rpc.gettransaction(txid)
         assert_raises_rpc_error(-5,
