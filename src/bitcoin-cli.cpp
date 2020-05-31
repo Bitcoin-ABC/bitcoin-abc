@@ -11,6 +11,7 @@
 #include <clientversion.h>
 #include <currencyunit.h>
 #include <rpc/client.h>
+#include <rpc/mining.h>
 #include <rpc/protocol.h>
 #include <rpc/request.h>
 #include <support/events.h>
@@ -39,6 +40,9 @@ static const int CONTINUE_EXECUTION = -1;
 static const std::string ONION{".onion"};
 static const size_t ONION_LEN{ONION.size()};
 
+/** Default number of blocks to generate for RPC generatetoaddress. */
+static const std::string DEFAULT_NBLOCKS = "1";
+
 static void SetupCliArgs(ArgsManager &argsman) {
     SetupHelpOptions(argsman);
 
@@ -60,6 +64,17 @@ static void SetupCliArgs(ArgsManager &argsman) {
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-datadir=<dir>", "Specify data directory",
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-generate",
+        strprintf(
+            "Generate blocks immediately, equivalent to RPC generatenewaddress "
+            "followed by RPC generatetoaddress. Optional positional integer "
+            "arguments are number of blocks to generate (default: %s) and "
+            "maximum iterations to try (default: %s), equivalent to RPC "
+            "generatetoaddress nblocks and maxtries arguments. Example: "
+            "bitcoin-cli -generate 4 1000",
+            DEFAULT_NBLOCKS, DEFAULT_MAX_TRIES),
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-getinfo",
         "Get general information from the remote server. Note that unlike "
@@ -943,10 +958,33 @@ static void GetWalletBalances(UniValue &result) {
  * Call RPC getnewaddress.
  * @returns getnewaddress response as a UniValue object.
  */
-[[maybe_unused]] static UniValue GetNewAddress() {
+static UniValue GetNewAddress() {
     std::unique_ptr<BaseRequestHandler> rh{
         std::make_unique<DefaultRequestHandler>()};
     return ConnectAndCallRPC(rh.get(), "getnewaddress", /* args=*/{});
+}
+
+/**
+ * Check bounds and set up args for RPC generatetoaddress params: nblocks,
+ * address, maxtries.
+ * @param[in] address  Reference to const string address to insert into the
+ *                     args.
+ * @param     args     Reference to vector of string args to modify.
+ */
+static void SetGenerateToAddressArgs(const std::string &address,
+                                     std::vector<std::string> &args) {
+    if (args.size() > 2) {
+        throw std::runtime_error(
+            "too many arguments (maximum 2 for nblocks and maxtries)");
+    }
+    if (args.size() == 0) {
+        args.emplace_back(DEFAULT_NBLOCKS);
+    } else if (args.at(0) == "0") {
+        throw std::runtime_error(
+            "the first argument (number of blocks to generate, default: " +
+            DEFAULT_NBLOCKS + ") must be an integer value greater than zero");
+    }
+    args.emplace(args.begin() + 1, address);
 }
 
 static int CommandLineRPC(int argc, char *argv[]) {
@@ -1012,6 +1050,16 @@ static int CommandLineRPC(int argc, char *argv[]) {
         std::string method;
         if (gArgs.IsArgSet("-getinfo")) {
             rh.reset(new GetinfoRequestHandler());
+        } else if (gArgs.GetBoolArg("-generate", false)) {
+            const UniValue getnewaddress{GetNewAddress()};
+            const UniValue &error{find_value(getnewaddress, "error")};
+            if (error.isNull()) {
+                SetGenerateToAddressArgs(
+                    find_value(getnewaddress, "result").get_str(), args);
+                rh.reset(new GenerateToAddressRequestHandler());
+            } else {
+                ParseError(error, strPrint, nRet);
+            }
         } else if (gArgs.GetBoolArg("-netinfo", false)) {
             rh.reset(new NetinfoRequestHandler());
         } else {
