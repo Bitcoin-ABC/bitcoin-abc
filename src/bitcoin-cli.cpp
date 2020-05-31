@@ -959,9 +959,14 @@ static void GetWalletBalances(UniValue &result) {
  * @returns getnewaddress response as a UniValue object.
  */
 static UniValue GetNewAddress() {
+    std::optional<std::string> wallet_name{};
+    if (gArgs.IsArgSet("-rpcwallet")) {
+        wallet_name = gArgs.GetArg("-rpcwallet", "");
+    }
     std::unique_ptr<BaseRequestHandler> rh{
         std::make_unique<DefaultRequestHandler>()};
-    return ConnectAndCallRPC(rh.get(), "getnewaddress", /* args=*/{});
+    return ConnectAndCallRPC(rh.get(), "getnewaddress", /* args=*/{},
+                             wallet_name);
 }
 
 /**
