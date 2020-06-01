@@ -72,7 +72,7 @@ endif()
 # Prefer -g3, defaults to -g if unavailable
 foreach(LANGUAGE C CXX)
 	set(COMPILER_DEBUG_LEVEL -g)
-	check_compiler_flag(G3_IS_SUPPORTED ${LANGUAGE} -g3)
+	check_compiler_flags(G3_IS_SUPPORTED ${LANGUAGE} -g3)
 	if(${G3_IS_SUPPORTED})
 		set(COMPILER_DEBUG_LEVEL -g3)
 	endif()
@@ -112,7 +112,7 @@ if(ENABLE_REDUCE_EXPORTS)
 	# doesn't tell if the visibility set is effective.
 	# Check if the flag -fvisibility=hidden is supported, as using the hidden
 	# visibility is a requirement to reduce exports.
-	check_compiler_flag(HAS_CXX_FVISIBILITY CXX -fvisibility=hidden)
+	check_compiler_flags(HAS_CXX_FVISIBILITY CXX -fvisibility=hidden)
 	if(NOT HAS_CXX_FVISIBILITY)
 		message(FATAL_ERROR "Cannot set default symbol visibility. Use -DENABLE_REDUCE_EXPORTS=OFF.")
 	endif()
