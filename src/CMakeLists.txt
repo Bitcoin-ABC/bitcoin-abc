@@ -22,7 +22,6 @@ option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
 option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
 option(ENABLE_UPNP "Enable UPnP support" ON)
-option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
@@ -206,15 +205,6 @@ if(EXTRA_WARNINGS)
 else()
 	add_compiler_flags(-Wno-unused-parameter)
 	add_compiler_flags(-Wno-implicit-fallthrough)
-endif()
-
-if(ENABLE_WERROR)
-	add_compiler_flags(
-		-Werror=return-type
-		-Werror=switch
-		-Werror=thread-safety-analysis
-		-Werror=vla
-	)
 endif()
 
 # libtool style configure
