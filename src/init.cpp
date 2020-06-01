@@ -2428,11 +2428,19 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     }
                 }
 
-                if (ShutdownRequested()) {
+                const Consensus::Params &params = chainparams.GetConsensus();
+
+                // If necessary, upgrade from older database format.
+                // This is a no-op if we cleared the block tree db with -reindex
+                // or -reindex-chainstate
+                if (!pblocktree->Upgrade(params)) {
+                    strLoadError = _("Error upgrading block index database");
                     break;
                 }
 
-                const Consensus::Params &params = chainparams.GetConsensus();
+                if (ShutdownRequested()) {
+                    break;
+                }
 
                 // LoadBlockIndex will load fHavePruned if we've ever removed a
                 // block file from disk.

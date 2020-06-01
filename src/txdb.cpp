@@ -5,6 +5,7 @@
 
 #include <txdb.h>
 
+#include <blockdb.h>
 #include <chain.h>
 #include <pow/pow.h>
 #include <random.h>
@@ -13,6 +14,7 @@
 #include <util/system.h>
 #include <util/translation.h>
 #include <util/vector.h>
+#include <version.h>
 
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
 
@@ -269,6 +271,17 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
     std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex) {
     std::unique_ptr<CDBIterator> pcursor(NewIterator());
 
+    uint64_t version = 0;
+    pcursor->Seek("version");
+    if (pcursor->Valid()) {
+        pcursor->GetValue(version);
+    }
+
+    if (version != CLIENT_VERSION) {
+        return error("%s: Invalid block index database version: %s", __func__,
+                     version);
+    }
+
     pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
 
     // Load m_block_index
@@ -440,6 +453,111 @@ bool CCoinsViewDB::Upgrade() {
 
     db.WriteBatch(batch);
     db.CompactRange({DB_COINS, uint256()}, key);
+    uiInterface.ShowProgress("", 100, false);
+    LogPrintf("[%s].\n", ShutdownRequested() ? "CANCELLED" : "DONE");
+    return !ShutdownRequested();
+}
+
+bool CBlockTreeDB::Upgrade(const Consensus::Params &params) {
+    std::unique_ptr<CDBIterator> pcursor(NewIterator());
+
+    uint64_t version = 0;
+    pcursor->Seek("version");
+    if (pcursor->Valid()) {
+        pcursor->GetValue(version);
+    }
+
+    if (version >= CLIENT_VERSION) {
+        // The DB is already up to date.
+        return true;
+    }
+
+    CDBBatch batch(*this);
+
+    pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
+    if (!pcursor->Valid()) {
+        // The DB is empty, so just write the version number and consider the
+        // upgrade done.
+        batch.Write("version", uint64_t(CLIENT_VERSION));
+        WriteBatch(batch);
+        return true;
+    }
+
+    int64_t count = 0;
+    LogPrintf("Upgrading block index database...\n");
+    int reportDone = -1;
+    std::pair<uint8_t, uint256> key = {DB_BLOCK_INDEX, uint256()};
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        if (ShutdownRequested()) {
+            break;
+        }
+
+        if (!pcursor->GetKey(key) || key.first != DB_BLOCK_INDEX) {
+            break;
+        }
+
+        if (count++ % 256 == 0) {
+            uint32_t high =
+                0x100 * *key.second.begin() + *(key.second.begin() + 1);
+            int percentageDone = (int)(high * 100.0 / 65536.0 + 0.5);
+            uiInterface.ShowProgress(
+                _("Upgrading block index database").translated, percentageDone,
+                true);
+            if (reportDone < percentageDone / 10) {
+                // report max. every 10% step
+                LogPrintfToBeContinued("[%d%%]...", percentageDone);
+                reportDone = percentageDone / 10;
+            }
+        }
+
+        // Read the block index entry and update it.
+        CDiskBlockIndex diskindex;
+        if (!pcursor->GetValue(diskindex)) {
+            return error("%s: cannot parse CDiskBlockIndex record", __func__);
+        }
+
+        // The block hash needs to be usable.
+        BlockHash blockhash = diskindex.GetBlockHash();
+        diskindex.phashBlock = &blockhash;
+
+        bool mustUpdate = false;
+
+        // We must update the block index to add the size.
+        if (CLIENT_VERSION >= CDiskBlockIndex::TRACK_SIZE_VERSION &&
+            version < CDiskBlockIndex::TRACK_SIZE_VERSION &&
+            diskindex.nTx > 0 && diskindex.nSize == 0) {
+            if (!diskindex.nStatus.hasData()) {
+                // The block was pruned, we need a full reindex.
+                LogPrintf("\nThe block %s is pruned. The block index cannot be "
+                          "upgraded and reindexing is required.\n",
+                          blockhash.GetHex());
+                return false;
+            }
+
+            CBlock block;
+            if (!ReadBlockFromDisk(block, &diskindex, params)) {
+                // Failed to read the block from disk, even though it is marked
+                // that we have data for this block.
+                return false;
+            }
+
+            mustUpdate = true;
+            diskindex.nSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
+        }
+
+        if (mustUpdate) {
+            batch.Write(std::make_pair(DB_BLOCK_INDEX, blockhash), diskindex);
+        }
+
+        pcursor->Next();
+    }
+
+    // Upgrade is done, now let's update the version number.
+    batch.Write("version", uint64_t(CLIENT_VERSION));
+
+    WriteBatch(batch);
+    CompactRange({DB_BLOCK_INDEX, uint256()}, key);
     uiInterface.ShowProgress("", 100, false);
     LogPrintf("[%s].\n", ShutdownRequested() ? "CANCELLED" : "DONE");
     return !ShutdownRequested();

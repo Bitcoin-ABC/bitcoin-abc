@@ -82,9 +82,11 @@ bool AreOnTheSameFork(const CBlockIndex *pa, const CBlockIndex *pb);
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex {
 public:
+    static constexpr int TRACK_SIZE_VERSION = 220800;
+
     BlockHash hashPrev;
 
-    CDiskBlockIndex() { hashPrev = BlockHash(); }
+    CDiskBlockIndex() : hashPrev() {}
 
     explicit CDiskBlockIndex(const CBlockIndex *pindex) : CBlockIndex(*pindex) {
         hashPrev = (pprev ? pprev->GetBlockHash() : BlockHash());
@@ -102,6 +104,12 @@ public:
         READWRITE(VARINT(nHeight, VarIntMode::NONNEGATIVE_SIGNED));
         READWRITE(nStatus);
         READWRITE(VARINT(nTx));
+
+        // The size of the blocks are tracked starting at version 0.22.8
+        if (nStatus.hasData() && _nVersion >= TRACK_SIZE_VERSION) {
+            READWRITE(VARINT(nSize));
+        }
+
         if (nStatus.hasData() || nStatus.hasUndo()) {
             READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));
         }

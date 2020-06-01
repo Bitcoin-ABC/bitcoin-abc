@@ -53,6 +53,11 @@ public:
     //! upon
     unsigned int nTx = 0;
 
+    //! Size of this block.
+    //! Note: in a potential headers-first mode, this number cannot be relied
+    //! upon
+    unsigned int nSize = 0;
+
 private:
     //! (memory only) Number of transactions in the chain up to and including
     //! this block.
@@ -60,6 +65,11 @@ private:
     //! block and all its parents are available. Change to 64-bit type when
     //! necessary; won't happen before 2030
     unsigned int nChainTx = 0;
+
+    //! (memory only) Size of all blocks in the chain up to and including this
+    //! block. This value will be non-zero only if and only if transactions for
+    //! this block and all its parents are available.
+    uint64_t nChainSize = 0;
 
 public:
     //! Verification status of this block. See enum BlockStatus
@@ -130,6 +140,11 @@ public:
      * Get the number of transaction in the chain so far.
      */
     int64_t GetChainTxCount() const { return nChainTx; }
+
+    /**
+     * Get the size of all the blocks in the chain so far.
+     */
+    uint64_t GetChainSize() const { return nChainSize; }
 
     /**
      * Update chain tx stats.

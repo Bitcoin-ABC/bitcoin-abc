@@ -27,15 +27,18 @@ static inline int GetSkipHeight(int height) {
 bool CBlockIndex::UpdateChainStats() {
     if (pprev == nullptr) {
         nChainTx = nTx;
+        nChainSize = nSize;
         return true;
     }
 
     if (pprev->HaveTxsDownloaded()) {
         nChainTx = pprev->nChainTx + nTx;
+        nChainSize = pprev->nChainSize + nSize;
         return true;
     }
 
     nChainTx = 0;
+    nChainSize = 0;
     return false;
 }
 

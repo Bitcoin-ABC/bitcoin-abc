@@ -3418,6 +3418,7 @@ void CChainState::ReceivedBlockTransactions(const CBlock &block,
                                             CBlockIndex *pindexNew,
                                             const FlatFilePos &pos) {
     pindexNew->nTx = block.vtx.size();
+    pindexNew->nSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;

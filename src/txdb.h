@@ -112,6 +112,10 @@ public:
     bool LoadBlockIndexGuts(
         const Consensus::Params &params,
         std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex);
+
+    //! Attempt to update from an older database format.
+    //! Returns whether an error occurred.
+    bool Upgrade(const Consensus::Params &params);
 };
 
 #endif // BITCOIN_TXDB_H
