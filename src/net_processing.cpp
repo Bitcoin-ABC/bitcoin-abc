@@ -1989,15 +1989,6 @@ CTransactionRef static FindTxForGetData(
         }
     }
 
-    {
-        LOCK(cs_main);
-        // Look up transaction in relay pool
-        auto mi = mapRelay.find(txid);
-        if (mi != mapRelay.end()) {
-            return mi->second;
-        }
-    }
-
     auto txinfo = g_mempool.info(txid);
     if (txinfo.tx) {
         // To protect privacy, do not answer getdata using the mempool when
@@ -2006,6 +1997,15 @@ CTransactionRef static FindTxForGetData(
         if ((mempool_req.count() && txinfo.m_time <= mempool_req) ||
             txinfo.m_time <= longlived_mempool_time) {
             return txinfo.tx;
+        }
+    }
+
+    {
+        LOCK(cs_main);
+        // Look up transaction in relay pool
+        auto mi = mapRelay.find(txid);
+        if (mi != mapRelay.end()) {
+            return mi->second;
         }
     }
 
