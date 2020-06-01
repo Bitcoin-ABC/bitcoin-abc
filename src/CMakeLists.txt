@@ -214,6 +214,7 @@ add_compiler_flags(
 	-Wshadow-field
 	-Wrange-loop-analysis
 	-Wredundant-decls
+	-Wunreachable-code-loop-increment
 )
 add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(

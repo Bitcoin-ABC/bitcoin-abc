@@ -85,7 +85,6 @@ class ConfArgsTest(BitcoinTestFramework):
             inc_conf_file_path +
             ':1 Section [testnot] is not recognized.' +
             os.linesep +
-            'Warning: ' +
             inc_conf_file2_path +
             ':1 Section [testnet] is not recognized.')
 
