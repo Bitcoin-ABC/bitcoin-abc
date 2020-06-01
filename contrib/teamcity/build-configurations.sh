@@ -95,7 +95,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     run_test_bitcoin "with address sanitizer"
 
@@ -117,7 +117,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     run_test_bitcoin "with undefined sanitizer"
 
@@ -139,7 +139,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     run_test_bitcoin "with thread sanitizer"
 
@@ -154,7 +154,7 @@ case "$ABC_BUILD_NAME" in
 
   build-diff)
     # Build, run unit tests and functional tests.
-    "${DEVTOOLS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     # Unit tests
     run_test_bitcoin
@@ -181,7 +181,7 @@ case "$ABC_BUILD_NAME" in
 
   build-master)
     # Build, run unit tests and extended functional tests.
-    "${DEVTOOLS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     # Unit tests
     run_test_bitcoin
@@ -213,7 +213,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
       "-DSECP256K1_ENABLE_JNI=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     ninja check-secp256k1
 
@@ -221,7 +221,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS+=(
       "-DSECP256K1_ENABLE_ENDOMORPHISM=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     ninja check-secp256k1
     ;;
@@ -231,7 +231,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DBUILD_BITCOIN_CLI=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     ninja check-functional
     ;;
@@ -241,7 +241,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DBUILD_BITCOIN_WALLET=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     ninja check-bitcoin-qt
     ninja check-functional
@@ -254,7 +254,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DBUILD_BITCOIN_ZMQ=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     ninja check-bitcoin-qt
     ninja check-functional
@@ -272,15 +272,23 @@ case "$ABC_BUILD_NAME" in
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     ;;
 
-  build-werror)
-    # Build with variable-length-array and thread-safety-analysis treated as errors.
+  build-clang-10)
     # Use clang-10 for this build instead of the default clang-8.
+    # This allow for checking that no warning is introduced for newer versions
+    # of the compiler
     CMAKE_FLAGS=(
-      "-DENABLE_WERROR=ON"
       "-DCMAKE_C_COMPILER=clang-10"
       "-DCMAKE_CXX_COMPILER=clang++-10"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    ninja \
+      test_bitcoin \
+      test_bitcoin-qt \
+      test_bitcoin-seeder \
+      secp256k1-tests \
+      secp256k1-exhaustive_tests
+
+    # TODO do the same with the latest GCC
     ;;
 
   build-autotools)
@@ -296,7 +304,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
     ./src/bench/bitcoin-bench -printer=junit > junit_results_bench.xml
     ninja bench-secp256k1
     ;;
