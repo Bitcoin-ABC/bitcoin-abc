@@ -117,9 +117,9 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		#define BOOST_TEST_DYN_LINK
 		#define BOOST_TEST_MAIN
 		#include <boost/test/unit_test.hpp>
-	" BOOST_TEST_DYN_LINK)
+	" BOOST_REQUIRES_TEST_DYN_LINK)
 
-	if(BOOST_TEST_DYN_LINK)
+	if(BOOST_REQUIRES_TEST_DYN_LINK)
 		target_compile_definitions(${NAME} PRIVATE BOOST_TEST_DYN_LINK)
-	endif(BOOST_TEST_DYN_LINK)
+	endif()
 endfunction(add_boost_unit_tests_to_suite)
