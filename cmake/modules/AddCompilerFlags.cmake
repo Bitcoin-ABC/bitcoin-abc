@@ -38,6 +38,26 @@ macro(add_compiler_flags)
 	add_cxx_compiler_flags(${ARGN})
 endmacro()
 
+function(add_compiler_flag_group_for_language LANGUAGE)
+	check_compiler_flags(FLAG_GROUP_IS_SUPPORTED ${LANGUAGE} ${ARGN})
+	if(${FLAG_GROUP_IS_SUPPORTED})
+		add_compile_options("$<$<COMPILE_LANGUAGE:${LANGUAGE}>:${ARGN}>")
+	endif()
+endfunction()
+
+macro(add_c_compiler_flag_group)
+	add_compiler_flag_group_for_language(C ${ARGN})
+endmacro()
+
+macro(add_cxx_compiler_flag_group)
+	add_compiler_flag_group_for_language(CXX ${ARGN})
+endmacro()
+
+macro(add_compiler_flag_group)
+	add_c_compiler_flag_group(${ARGN})
+	add_cxx_compiler_flag_group(${ARGN})
+endmacro()
+
 macro(remove_compiler_flags_from_var TARGET)
 	foreach(f ${ARGN})
 		string(REGEX REPLACE "${f}( |$)" "" ${TARGET} "${${TARGET}}")

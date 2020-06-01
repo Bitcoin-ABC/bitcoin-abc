@@ -187,7 +187,6 @@ add_compiler_flags(
 	-Wextra
 	-Wformat
 	-Wvla
-	-Wformat-security
 	-Wcast-align
 	-Wunused-parameter
 	-Wmissing-braces
@@ -196,6 +195,7 @@ add_compiler_flags(
 	-Wrange-loop-analysis
 	-Wredundant-decls
 )
+add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(
 	-Wredundant-move
 )
