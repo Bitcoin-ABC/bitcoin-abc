@@ -7,6 +7,8 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <primitives/blockhash.h>
+#include <primitives/txid.h>
 #include <rpc/server.h>
 #include <streams.h>
 #include <util/system.h>
@@ -145,7 +147,7 @@ bool CZMQAbstractPublishNotifier::SendMessage(const char *command,
 }
 
 bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
-    uint256 hash = pindex->GetBlockHash();
+    BlockHash hash = pindex->GetBlockHash();
     LogPrint(BCLog::ZMQ, "zmq: Publish hashblock %s\n", hash.GetHex());
     char data[32];
     for (unsigned int i = 0; i < 32; i++) {
@@ -156,7 +158,7 @@ bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
 
 bool CZMQPublishHashTransactionNotifier::NotifyTransaction(
     const CTransaction &transaction) {
-    uint256 txid = transaction.GetId();
+    TxId txid = transaction.GetId();
     LogPrint(BCLog::ZMQ, "zmq: Publish hashtx %s\n", txid.GetHex());
     char data[32];
     for (unsigned int i = 0; i < 32; i++) {
@@ -188,7 +190,7 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
 
 bool CZMQPublishRawTransactionNotifier::NotifyTransaction(
     const CTransaction &transaction) {
-    uint256 txid = transaction.GetId();
+    TxId txid = transaction.GetId();
     LogPrint(BCLog::ZMQ, "zmq: Publish rawtx %s\n", txid.GetHex());
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     ss << transaction;
