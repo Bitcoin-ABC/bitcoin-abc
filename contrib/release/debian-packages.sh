@@ -96,13 +96,14 @@ SIGNER_FINGERPRINT=$(grep "$1" "${KEYS_TXT}" | cut -d' ' -f 1) || {
   echo "Error: Signer '$1' does not match any line in '${KEYS_TXT}'"
   exit 21
 }
+SIGNER_EMAIL=$(grep "$1" "${KEYS_TXT}" | cut -d' ' -f 2)
 NUM_FINGERPRINT_MATCHES=$(echo "${SIGNER_FINGERPRINT}" | wc -l)
 if [ "${NUM_FINGERPRINT_MATCHES}" -ne 1 ]; then
   echo "Error: '$1' is expected to match only one line in '${KEYS_TXT}'. Got '${NUM_FINGERPRINT_MATCHES}'"
   exit 22
 fi
 
-SIGNER=$(gpg --list-key "${SIGNER_FINGERPRINT}" | grep -o "\[ultimate\] .* <.*@.*>" | cut -d' ' -f 2-)
+SIGNER=$(gpg --list-key "${SIGNER_FINGERPRINT}" | grep -o "\[ultimate\] .* <.*@.*>" | cut -d' ' -f 2- | grep "${SIGNER_EMAIL}")
 echo "Signer: ${SIGNER}"
 if [ -z "${SIGNER}" ]; then
   echo "Error: Signer key for '${SIGNER}' not found."
