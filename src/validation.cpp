@@ -53,7 +53,6 @@
 #include <warnings.h>
 
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
 
 #include <optional>
 #include <string>
@@ -2995,8 +2994,6 @@ bool CChainState::ActivateBestChain(const Config &config,
     CBlockIndex *pindexNewTip = nullptr;
     int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
     do {
-        boost::this_thread::interruption_point();
-
         // Block until the validation queue drains. This should largely
         // never happen in normal operation, however may happen during
         // reindex, causing memory blowup if we run too far ahead.
@@ -4889,7 +4886,6 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     LogPrintfToBeContinued("[0%%]...");
     for (pindex = ::ChainActive().Tip(); pindex && pindex->pprev;
          pindex = pindex->pprev) {
-        boost::this_thread::interruption_point();
         const int percentageDone =
             std::max(1, std::min(99, (int)(((double)(::ChainActive().Height() -
                                                      pindex->nHeight)) /
@@ -4985,7 +4981,6 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     // check level 4: try reconnecting blocks
     if (nCheckLevel >= 4) {
         while (pindex != ::ChainActive().Tip()) {
-            boost::this_thread::interruption_point();
             const int percentageDone = std::max(
                 1, std::min(99, 100 - int(double(::ChainActive().Height() -
                                                  pindex->nHeight) /
@@ -5011,6 +5006,9 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                              "hash=%s (%s)",
                              pindex->nHeight, pindex->GetBlockHash().ToString(),
                              state.ToString());
+            }
+            if (ShutdownRequested()) {
+                return true;
             }
         }
     }
