@@ -144,6 +144,8 @@ CoinStatsHashType ParseHashType(const UniValue &param,
 
         if (hash_type_input == "hash_serialized") {
             return CoinStatsHashType::HASH_SERIALIZED;
+        } else if (hash_type_input == "none") {
+            return CoinStatsHashType::NONE;
         } else {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,

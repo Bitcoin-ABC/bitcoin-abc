@@ -1183,7 +1183,7 @@ static UniValue gettxoutsetinfo(const Config &config,
         {
             {"hash_type", RPCArg::Type::STR, /* default */ "hash_serialized",
              "Which UTXO set hash should be calculated. Options: "
-             "'hash_serialized' (the legacy algorithm)."},
+             "'hash_serialized' (the legacy algorithm), 'none'."},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -2897,7 +2897,7 @@ static UniValue dumptxoutset(const Config &config,
         ::ChainstateActive().ForceFlushStateToDisk();
 
         if (!GetUTXOStats(&::ChainstateActive().CoinsDB(), stats,
-                          CoinStatsHashType::HASH_SERIALIZED,
+                          CoinStatsHashType::NONE,
                           node.rpc_interruption_point)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
         }
