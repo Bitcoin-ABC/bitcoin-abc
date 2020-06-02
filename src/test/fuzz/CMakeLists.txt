@@ -84,12 +84,14 @@ add_regular_fuzz_targets(
 	addrdb
 	asmap
 	asmap_direct
+	autofile
 	banman
 	base_encode_decode
 	block
 	block_header
 	blockfilter
 	bloom_filter
+	buffered_file
 	cashaddr
 	chain
 	checkqueue
@@ -116,6 +118,7 @@ add_regular_fuzz_targets(
 	key
 	key_io
 	kitchen_sink
+	load_external_block_file
 	locale
 	merkleblock
 	message
