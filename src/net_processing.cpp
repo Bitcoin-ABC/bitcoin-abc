@@ -2005,15 +2005,6 @@ CTransactionRef static FindTxForGetData(const CNode &peer, const TxId &txid,
                                         const std::chrono::seconds mempool_req,
                                         const std::chrono::seconds now)
     LOCKS_EXCLUDED(cs_main) {
-    // Check if the requested transaction is so recent that we're just
-    // about to announce it to the peer; if so, they certainly shouldn't
-    // know we already have it.
-    {
-        LOCK(peer.m_tx_relay->cs_tx_inventory);
-        if (peer.m_tx_relay->setInventoryTxToSend.count(txid)) {
-            return {};
-        }
-    }
 
     auto txinfo = g_mempool.info(txid);
     if (txinfo.tx) {
