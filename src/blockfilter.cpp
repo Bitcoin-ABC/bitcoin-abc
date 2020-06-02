@@ -221,7 +221,8 @@ static GCSFilter::ElementSet BasicFilterElements(const CBlock &block,
     return elements;
 }
 
-BlockFilter::BlockFilter(BlockFilterType filter_type, const uint256 &block_hash,
+BlockFilter::BlockFilter(BlockFilterType filter_type,
+                         const BlockHash &block_hash,
                          std::vector<uint8_t> filter)
     : m_filter_type(filter_type), m_block_hash(block_hash) {
     GCSFilter::Params params;

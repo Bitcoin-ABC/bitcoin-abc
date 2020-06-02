@@ -6,6 +6,7 @@
 #define BITCOIN_BLOCKFILTER_H
 
 #include <primitives/block.h>
+#include <primitives/blockhash.h>
 #include <serialize.h>
 #include <uint256.h>
 #include <undo.h>
@@ -94,7 +95,7 @@ enum class BlockFilterType : uint8_t {
 class BlockFilter {
 private:
     BlockFilterType m_filter_type = BlockFilterType::INVALID;
-    uint256 m_block_hash;
+    BlockHash m_block_hash;
     GCSFilter m_filter;
 
     bool BuildParams(GCSFilter::Params &params) const;
@@ -103,7 +104,7 @@ public:
     BlockFilter() = default;
 
     //! Reconstruct a BlockFilter from parts.
-    BlockFilter(BlockFilterType filter_type, const uint256 &block_hash,
+    BlockFilter(BlockFilterType filter_type, const BlockHash &block_hash,
                 std::vector<uint8_t> filter);
 
     //! Construct a new BlockFilter of the specified type from a block.
@@ -111,7 +112,7 @@ public:
                 const CBlockUndo &block_undo);
 
     BlockFilterType GetFilterType() const { return m_filter_type; }
-    const uint256 &GetBlockHash() const { return m_block_hash; }
+    const BlockHash &GetBlockHash() const { return m_block_hash; }
     const GCSFilter &GetFilter() const { return m_filter; }
 
     const std::vector<uint8_t> &GetEncodedFilter() const {
