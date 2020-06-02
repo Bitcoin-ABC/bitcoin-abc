@@ -136,12 +136,35 @@ struct CSerializedNetMsg {
     std::string m_type;
 };
 
+/**
+ * Different types of connections to a peer. This enum encapsulates the
+ * information we have available at the time of opening or accepting the
+ * connection. Aside from INBOUND, all types are initiated by us.
+ */
 enum class ConnectionType {
+    /** Peer initiated connections. */
     INBOUND,
+    /**
+     * Full relay connections (blocks, addrs, txns) made automatically.
+     * Addresses selected from AddrMan.
+     */
     OUTBOUND,
+    /**
+     * Connections to addresses added via addnode or the connect command line
+     * argument.
+     */
     MANUAL,
+    /** Short lived connections used to test address validity. */
     FEELER,
+    /**
+     * Only relay blocks to these automatic outbound connections.
+     * Addresses selected from AddrMan.
+     */
     BLOCK_RELAY,
+    /**
+     * Short lived connections used to solicit addrs when starting the node
+     * without a populated AddrMan.
+     */
     ADDR_FETCH,
 };
 
