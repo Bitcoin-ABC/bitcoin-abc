@@ -260,6 +260,18 @@ BOOST_AUTO_TEST_CASE(methods) {
     ss >> TmpS;
     BOOST_CHECK(MaxS == TmpS);
     ss.clear();
+
+    // Check that '0x' or '0X', and leading spaces are correctly skipped in
+    // SetHex
+    const auto baseHexstring{uint256S(
+        "0x7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529c")};
+    const auto hexstringWithCharactersToSkip{uint256S(
+        " 0X7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529c")};
+    const auto wrongHexstringWithCharactersToSkip{uint256S(
+        " 0X7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529d")};
+
+    BOOST_CHECK(baseHexstring == hexstringWithCharactersToSkip);
+    BOOST_CHECK(baseHexstring != wrongHexstringWithCharactersToSkip);
 }
 
 BOOST_AUTO_TEST_CASE(conversion) {
