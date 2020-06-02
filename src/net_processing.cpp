@@ -934,10 +934,8 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
     }
 }
 
-// Returns true for outbound peers, excluding manual connections, feelers, and
-// one-shots.
 static bool IsOutboundDisconnectionCandidate(const CNode &node) {
-    return !(node.fInbound || node.m_manual_connection || node.fFeeler ||
+    return !(node.fInbound || node.IsManualConn() || node.fFeeler ||
              node.m_addr_fetch);
 }
 
@@ -951,7 +949,7 @@ void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
             mapNodeState.end(), std::piecewise_construct,
             std::forward_as_tuple(nodeid),
             std::forward_as_tuple(addr, std::move(addrName), pnode->fInbound,
-                                  pnode->m_manual_connection));
+                                  pnode->IsManualConn()));
     }
     if (!pnode->fInbound) {
         PushNodeVersion(config, *pnode, *connman, GetTime());
@@ -2539,7 +2537,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         if (!pfrom.fInbound) {
             connman.SetServices(pfrom.addr, nServices);
         }
-        if (!pfrom.fInbound && !pfrom.fFeeler && !pfrom.m_manual_connection &&
+        if (!pfrom.fInbound && !pfrom.fFeeler && !pfrom.IsManualConn() &&
             !HasAllDesirableServiceFlags(nServices)) {
             LogPrint(BCLog::NET,
                      "peer=%d does not offer the expected services "
@@ -4201,7 +4199,7 @@ bool PeerLogicValidation::CheckIfBanned(CNode &pnode) {
         if (pnode.HasPermission(PF_NOBAN)) {
             LogPrintf("Warning: not punishing whitelisted peer %s!\n",
                       pnode.addr.ToString());
-        } else if (pnode.m_manual_connection) {
+        } else if (pnode.IsManualConn()) {
             LogPrintf("Warning: not punishing manually-connected peer %s!\n",
                       pnode.addr.ToString());
         } else if (pnode.addr.IsLocal()) {

@@ -867,7 +867,6 @@ public:
     // If true this node is being used as a short lived feeler.
     bool fFeeler{false};
     bool m_addr_fetch{false};
-    bool m_manual_connection{false};
     // set by version message
     bool fClient{false};
     // after BIP159, set by version message
@@ -884,6 +883,8 @@ public:
     const uint64_t nKeyedNetGroup;
     std::atomic_bool fPauseRecv{false};
     std::atomic_bool fPauseSend{false};
+
+    bool IsManualConn() const { return m_conn_type == ConnectionType::MANUAL; }
 
 protected:
     mapMsgCmdSize mapSendBytesPerMsgCmd;
