@@ -80,9 +80,6 @@ extern uint256 ParseHashO(const UniValue &o, std::string strKey);
 extern std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName);
 extern std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey);
 
-CoinStatsHashType ParseHashType(const UniValue &param,
-                                const CoinStatsHashType default_type);
-
 extern Amount AmountFromValue(const UniValue &value);
 extern std::string HelpExampleCli(const std::string &methodname,
                                   const std::string &args);

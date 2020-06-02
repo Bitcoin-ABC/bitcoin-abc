@@ -1232,6 +1232,20 @@ static RPCHelpMan pruneblockchain() {
     };
 }
 
+static CoinStatsHashType ParseHashType(const std::string &hash_type_input) {
+    if (hash_type_input == "hash_serialized") {
+        return CoinStatsHashType::HASH_SERIALIZED;
+    } else if (hash_type_input == "muhash") {
+        return CoinStatsHashType::MUHASH;
+    } else if (hash_type_input == "none") {
+        return CoinStatsHashType::NONE;
+    } else {
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            strprintf("%s is not a valid hash_type", hash_type_input));
+    }
+}
+
 static RPCHelpMan gettxoutsetinfo() {
     return RPCHelpMan{
         "gettxoutsetinfo",
@@ -1240,7 +1254,7 @@ static RPCHelpMan gettxoutsetinfo() {
         {
             {"hash_type", RPCArg::Type::STR, /* default */ "hash_serialized",
              "Which UTXO set hash should be calculated. Options: "
-             "'hash_serialized' (the legacy algorithm), 'none'."},
+             "'hash_serialized' (the legacy algorithm), 'muhash', 'none'."},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -1257,7 +1271,11 @@ static RPCHelpMan gettxoutsetinfo() {
                       {RPCResult::Type::NUM, "bogosize",
                        "A meaningless metric for UTXO set size"},
                       {RPCResult::Type::STR_HEX, "hash_serialized",
+                       /* optional */ true,
                        "The serialized hash (only present if 'hash_serialized' "
+                       "hash_type is chosen)"},
+                      {RPCResult::Type::STR_HEX, "muhash", /* optional */ true,
+                       "The serialized hash (only present if 'muhash' "
                        "hash_type is chosen)"},
                       {RPCResult::Type::NUM, "disk_size",
                        "The estimated size of the chainstate on disk"},
@@ -1273,8 +1291,10 @@ static RPCHelpMan gettxoutsetinfo() {
             CCoinsStats stats;
             ::ChainstateActive().ForceFlushStateToDisk();
 
-            const CoinStatsHashType hash_type = ParseHashType(
-                request.params[0], CoinStatsHashType::HASH_SERIALIZED);
+            const CoinStatsHashType hash_type{
+                request.params[0].isNull()
+                    ? CoinStatsHashType::HASH_SERIALIZED
+                    : ParseHashType(request.params[0].get_str())};
 
             CCoinsView *coins_view =
                 WITH_LOCK(cs_main, return &ChainstateActive().CoinsDB());
@@ -1289,6 +1309,9 @@ static RPCHelpMan gettxoutsetinfo() {
                 if (hash_type == CoinStatsHashType::HASH_SERIALIZED) {
                     ret.pushKV("hash_serialized",
                                stats.hashSerialized.GetHex());
+                }
+                if (hash_type == CoinStatsHashType::MUHASH) {
+                    ret.pushKV("muhash", stats.hashSerialized.GetHex());
                 }
                 ret.pushKV("disk_size", stats.nDiskSize);
                 ret.pushKV("total_amount", stats.nTotalAmount);
