@@ -3771,8 +3771,8 @@ bool CChainState::AcceptBlockHeader(const Config &config,
          */
         if (!pindexPrev->IsValid(BlockValidity::SCRIPTS)) {
             // The above does not mean "invalid": it checks if the previous
-            // block hasn't been validated up to BLOCK_VALID_SCRIPTS. This is a
-            // performance optimization, in the common case of adding a new
+            // block hasn't been validated up to BlockValidity::SCRIPTS. This is
+            // a performance optimization, in the common case of adding a new
             // block to the tip, we don't need to iterate over the failed blocks
             // list.
             for (const CBlockIndex *failedit : m_failed_blocks) {
