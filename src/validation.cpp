@@ -5744,10 +5744,11 @@ bool Chainstate::ResizeCoinsCaches(size_t coinstip_size, size_t coinsdb_size) {
 static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 
 bool LoadMempool(const Config &config, CTxMemPool &pool,
-                 Chainstate &active_chainstate) {
+                 Chainstate &active_chainstate,
+                 FopenFn mockable_fopen_function) {
     int64_t nExpiryTimeout = std::chrono::seconds{pool.m_expiry}.count();
-    FILE *filestr =
-        fsbridge::fopen(gArgs.GetDataDirNet() / "mempool.dat", "rb");
+    FILE *filestr{
+        mockable_fopen_function(gArgs.GetDataDirNet() / "mempool.dat", "rb")};
     CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
     if (file.IsNull()) {
         LogPrintf(
@@ -5843,7 +5844,8 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
     return true;
 }
 
-bool DumpMempool(const CTxMemPool &pool) {
+bool DumpMempool(const CTxMemPool &pool, FopenFn mockable_fopen_function,
+                 bool skip_file_commit) {
     int64_t start = GetTimeMicros();
 
     std::map<uint256, Amount> mapDeltas;
@@ -5866,8 +5868,8 @@ bool DumpMempool(const CTxMemPool &pool) {
     int64_t mid = GetTimeMicros();
 
     try {
-        FILE *filestr =
-            fsbridge::fopen(gArgs.GetDataDirNet() / "mempool.dat.new", "wb");
+        FILE *filestr{mockable_fopen_function(
+            gArgs.GetDataDirNet() / "mempool.dat.new", "wb")};
         if (!filestr) {
             return false;
         }
@@ -5891,7 +5893,7 @@ bool DumpMempool(const CTxMemPool &pool) {
                   unbroadcast_txids.size());
         file << unbroadcast_txids;
 
-        if (!FileCommit(file.Get())) {
+        if (!skip_file_commit && !FileCommit(file.Get())) {
             throw std::runtime_error("FileCommit failed");
         }
         file.fclose();

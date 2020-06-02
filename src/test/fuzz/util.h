@@ -119,6 +119,16 @@ ConsumeMoney(FuzzedDataProvider &fuzzed_data_provider) noexcept {
            SATOSHI;
 }
 
+[[nodiscard]] inline int64_t
+ConsumeTime(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+    static const int64_t time_min =
+        ParseISO8601DateTime("1970-01-01T00:00:00Z");
+    static const int64_t time_max =
+        ParseISO8601DateTime("9999-12-31T23:59:59Z");
+    return fuzzed_data_provider.ConsumeIntegralInRange<int64_t>(time_min,
+                                                                time_max);
+}
+
 [[nodiscard]] inline CScript
 ConsumeScript(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     const std::vector<uint8_t> b =
@@ -213,6 +223,16 @@ ContainsSpentInput(const CTransaction &tx,
 }
 
 /**
+ * Sets a fuzzed errno in the range [0, 133 (EHWPOISON)]. Can be used from
+ * functions emulating standard library functions that set errno, or in other
+ * contexts where the value of errno might be relevant for the execution path
+ * that will be taken.
+ */
+inline void SetFuzzedErrNo(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+    errno = fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 133);
+}
+
+/**
  * Returns a byte vector of specified size regardless of the number of remaining
  * bytes available from the fuzzer. Pads with zero value bytes if needed to
  * achieve the specified size.
@@ -300,7 +320,6 @@ inline CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
             inbound_onion};
 }
 
-
 class FuzzedFileProvider {
     FuzzedDataProvider &m_fuzzed_data_provider;
     int64_t m_offset = 0;
@@ -310,6 +329,7 @@ public:
         : m_fuzzed_data_provider{fuzzed_data_provider} {}
 
     FILE *open() {
+        SetFuzzedErrNo(m_fuzzed_data_provider);
         if (m_fuzzed_data_provider.ConsumeBool()) {
             return nullptr;
         }
@@ -341,6 +361,7 @@ public:
 
     static ssize_t read(void *cookie, char *buf, size_t size) {
         FuzzedFileProvider *fuzzed_file = (FuzzedFileProvider *)cookie;
+        SetFuzzedErrNo(fuzzed_file->m_fuzzed_data_provider);
         if (buf == nullptr || size == 0 ||
             fuzzed_file->m_fuzzed_data_provider.ConsumeBool()) {
             return fuzzed_file->m_fuzzed_data_provider.ConsumeBool() ? 0 : -1;
@@ -361,6 +382,7 @@ public:
 
     static ssize_t write(void *cookie, const char *buf, size_t size) {
         FuzzedFileProvider *fuzzed_file = (FuzzedFileProvider *)cookie;
+        SetFuzzedErrNo(fuzzed_file->m_fuzzed_data_provider);
         const ssize_t n =
             fuzzed_file->m_fuzzed_data_provider.ConsumeIntegralInRange<ssize_t>(
                 0, size);
@@ -372,9 +394,9 @@ public:
     }
 
     static int seek(void *cookie, int64_t *offset, int whence) {
-        // SEEK_END not implemented yet.
-        assert(whence == SEEK_SET || whence == SEEK_CUR);
+        assert(whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END);
         FuzzedFileProvider *fuzzed_file = (FuzzedFileProvider *)cookie;
+        SetFuzzedErrNo(fuzzed_file->m_fuzzed_data_provider);
         int64_t new_offset = 0;
         if (whence == SEEK_SET) {
             new_offset = *offset;
@@ -383,6 +405,13 @@ public:
                 return -1;
             }
             new_offset = fuzzed_file->m_offset + *offset;
+        } else if (whence == SEEK_END) {
+            const int64_t n = fuzzed_file->m_fuzzed_data_provider
+                                  .ConsumeIntegralInRange<int64_t>(0, 4096);
+            if (AdditionOverflow(n, *offset)) {
+                return -1;
+            }
+            new_offset = n + *offset;
         }
         if (new_offset < 0) {
             return -1;
@@ -395,6 +424,7 @@ public:
 
     static int close(void *cookie) {
         FuzzedFileProvider *fuzzed_file = (FuzzedFileProvider *)cookie;
+        SetFuzzedErrNo(fuzzed_file->m_fuzzed_data_provider);
         return fuzzed_file->m_fuzzed_data_provider.ConsumeIntegralInRange<int>(
             -1, 0);
     }
