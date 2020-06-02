@@ -79,6 +79,8 @@ enum RPCErrorCode {
     RPC_CLIENT_INVALID_IP_OR_SUBNET = -30,
     //! No valid connection manager instance found
     RPC_CLIENT_P2P_DISABLED = -31,
+    //! Max number of outbound or block-relay connections already open
+    RPC_CLIENT_NODE_CAPACITY_REACHED = -34,
 
     //! Chain errors
     RPC_CLIENT_MEMPOOL_DISABLED = -33, //!< No mempool instance found
