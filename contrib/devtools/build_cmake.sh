@@ -27,18 +27,21 @@ git clean -xffd
 
 read -a CMAKE_FLAGS <<< "${CMAKE_FLAGS}"
 
-case "$1" in
-  "--Werror")
-    CMAKE_FLAGS+=(
-      "-DCMAKE_C_FLAGS=-Werror"
-      "-DCMAKE_CXX_FLAGS=-Werror"
-    )
-    ;;
-  *)
-    usage
-    exit 1
-    ;;
-esac
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --Werror)
+      CMAKE_FLAGS+=(
+        "-DCMAKE_C_FLAGS=-Werror"
+        "-DCMAKE_CXX_FLAGS=-Werror"
+      )
+      shift
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+done
 
 cmake -GNinja .. "${CMAKE_FLAGS[@]}"
 
