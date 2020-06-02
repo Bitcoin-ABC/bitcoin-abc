@@ -39,19 +39,21 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
 }
 
 //! Calculate statistics about the unspent transaction output set
-bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats,
-                  const std::function<void()> &interruption_point) {
+template <typename T>
+static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats, T hash_obj,
+                         const std::function<void()> &interruption_point) {
     stats = CCoinsStats();
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
     assert(pcursor);
 
-    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
     stats.hashBlock = pcursor->GetBestBlock();
     {
         LOCK(cs_main);
         stats.nHeight = LookupBlockIndex(stats.hashBlock)->nHeight;
     }
-    ss << stats.hashBlock;
+
+    PrepareHash(hash_obj, stats);
+
     uint256 prevkey;
     std::map<uint32_t, Coin> outputs;
     while (pcursor->Valid()) {
@@ -60,7 +62,7 @@ bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats,
         Coin coin;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
             if (!outputs.empty() && key.GetTxId() != prevkey) {
-                ApplyStats(stats, ss, prevkey, outputs);
+                ApplyStats(stats, hash_obj, prevkey, outputs);
                 outputs.clear();
             }
             prevkey = key.GetTxId();
@@ -72,9 +74,32 @@ bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats,
         pcursor->Next();
     }
     if (!outputs.empty()) {
-        ApplyStats(stats, ss, prevkey, outputs);
+        ApplyStats(stats, hash_obj, prevkey, outputs);
     }
-    stats.hashSerialized = ss.GetHash();
+
+    FinalizeHash(hash_obj, stats);
+
     stats.nDiskSize = view->EstimateSize();
     return true;
+}
+
+bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats,
+                  CoinStatsHashType hash_type,
+                  const std::function<void()> &interruption_point) {
+    switch (hash_type) {
+        case (CoinStatsHashType::HASH_SERIALIZED): {
+            CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+            return GetUTXOStats(view, stats, ss, interruption_point);
+        }
+    } // no default case, so the compiler can warn about missing cases
+    assert(false);
+}
+
+// The legacy hash serializes the hashBlock
+static void PrepareHash(CHashWriter &ss, CCoinsStats &stats) {
+    ss << stats.hashBlock;
+}
+
+static void FinalizeHash(CHashWriter &ss, CCoinsStats &stats) {
+    stats.hashSerialized = ss.GetHash();
 }
