@@ -1,6 +1,30 @@
 # ThreadSanitizer suppressions
 # ============================
 
+# double locks (TODO fix)
+mutex:g_genesis_wait_mutex
+mutex:Interrupt
+mutex:CThreadInterrupt
+mutex:CConnman::Interrupt
+mutex:CConnman::WakeMessageHandler
+mutex:CConnman::ThreadOpenConnections
+mutex:CConnman::ThreadOpenAddedConnections
+mutex:CConnman::SocketHandler
+mutex:UpdateTip
+mutex:PeerLogicValidation::UpdatedBlockTip
+mutex:rcu_tests::synchronize_test
+# race (TODO fix)
+race:CConnman::WakeMessageHandler
+race:CConnman::ThreadMessageHandler
+race:fHaveGenesis
+race:ProcessNewBlock
+race:ThreadImport
+race:zmq::*
+race:bitcoin-qt
+# deadlock (TODO fix)
+deadlock:CConnman::ForNode
+deadlock:UpdateTip
+
 # WalletBatch (unidentified deadlock)
 deadlock:WalletBatch
 
@@ -8,12 +32,12 @@ deadlock:WalletBatch
 deadlock:TestPotentialDeadLockDetected
 
 # Wildcard for all gui tests, should be replaced with non-wildcard suppressions
+mutex:src/qt/test/*
 race:src/qt/test/*
 deadlock:src/qt/test/*
 
 # External libraries
 deadlock:libdb
-race:libzmq
 
 # Reverselock tests is triggering lock-order-inversion errors when run as part
 # of test_bitcoin.
