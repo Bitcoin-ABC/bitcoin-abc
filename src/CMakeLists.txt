@@ -304,7 +304,6 @@ add_custom_command(
 add_library(util
 	chainparamsbase.cpp
 	clientversion.cpp
-	compat/glibc_sanity.cpp
 	compat/glibcxx_sanity.cpp
 	compat/strnlen.cpp
 	fs.cpp

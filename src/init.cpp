@@ -1364,7 +1364,7 @@ static bool InitSanityCheck() {
         return false;
     }
 
-    if (!glibc_sanity_test() || !glibcxx_sanity_test()) {
+    if (!glibcxx_sanity_test()) {
         return false;
     }
 
