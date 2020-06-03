@@ -61,7 +61,7 @@ public:
         READWRITE(reliability);
     }
 
-    friend class CAddrInfo;
+    friend class SeederAddrInfo;
 };
 
 class CAddrReport {
@@ -76,7 +76,7 @@ public:
     uint64_t services;
 };
 
-class CAddrInfo {
+class SeederAddrInfo {
 private:
     CService ip;
     uint64_t services;
@@ -96,7 +96,7 @@ private:
     std::string clientSubVersion;
 
 public:
-    CAddrInfo()
+    SeederAddrInfo()
         : services(0), lastTry(0), ourLastTry(0), ourLastSuccess(0),
           ignoreTill(0), clientVersion(0), blocks(0), total(0), success(0) {}
 
@@ -282,7 +282,7 @@ private:
     // number of address id's
     int nId;
     // map address id to address info (b,c,d,e)
-    std::map<int, CAddrInfo> idToInfo;
+    std::map<int, SeederAddrInfo> idToInfo;
     // map ip to id (b,c,d,e)
     std::map<CService, int> ipToId;
     // sequence of tried nodes, in order we have tried connecting to them (c,d)
@@ -330,7 +330,7 @@ public:
     }
 
     void ResetIgnores() {
-        for (std::map<int, CAddrInfo>::iterator it = idToInfo.begin();
+        for (std::map<int, SeederAddrInfo>::iterator it = idToInfo.begin();
              it != idToInfo.end(); it++) {
             (*it).second.ignoreTill = 0;
         }
@@ -341,7 +341,7 @@ public:
         LOCK(cs);
         for (std::deque<int>::const_iterator it = ourId.begin();
              it != ourId.end(); it++) {
-            const CAddrInfo &info = idToInfo[*it];
+            const SeederAddrInfo &info = idToInfo[*it];
             if (info.success > 0) {
                 ret.push_back(info.GetReport());
             }
@@ -353,7 +353,7 @@ public:
     // format:
     //   nVersion (0 for now)
     //   n (number of ips in (b,c,d))
-    //   CAddrInfo[n]
+    //   SeederAddrInfo[n]
     //   banned
     // acquires a shared lock (this does not suffice for read mode, but we
     // assume that only happens at startup, single-threaded) this way, dumping
@@ -369,12 +369,12 @@ public:
         s << n;
         for (std::deque<int>::const_iterator it = ourId.begin();
              it != ourId.end(); it++) {
-            std::map<int, CAddrInfo>::iterator ci = db->idToInfo.find(*it);
+            std::map<int, SeederAddrInfo>::iterator ci = db->idToInfo.find(*it);
             s << (*ci).second;
         }
         for (std::set<int>::const_iterator it = unkId.begin();
              it != unkId.end(); it++) {
-            std::map<int, CAddrInfo>::iterator ci = db->idToInfo.find(*it);
+            std::map<int, SeederAddrInfo>::iterator ci = db->idToInfo.find(*it);
             s << (*ci).second;
         }
         s << banned;
@@ -391,7 +391,7 @@ public:
         int n;
         s >> n;
         for (int i = 0; i < n; i++) {
-            CAddrInfo info;
+            SeederAddrInfo info;
             s >> info;
             if (!info.GetBanTime()) {
                 int id = db->nId++;

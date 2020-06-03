@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-void CAddrInfo::Update(bool good) {
+void SeederAddrInfo::Update(bool good) {
     int64_t now = time(nullptr);
     if (ourLastTry == 0) {
         ourLastTry = now - MIN_RETRY;
@@ -92,7 +92,7 @@ void CAddrDb::Good_(const CService &addr, int clientV, std::string clientSV,
     }
     unkId.erase(id);
     banned.erase(addr);
-    CAddrInfo &info = idToInfo[id];
+    SeederAddrInfo &info = idToInfo[id];
     info.clientVersion = clientV;
     info.clientSubVersion = clientSV;
     info.blocks = blocks;
@@ -112,7 +112,7 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
         return;
     }
     unkId.erase(id);
-    CAddrInfo &info = idToInfo[id];
+    SeederAddrInfo &info = idToInfo[id];
     info.Update(false);
     uint32_t now = time(nullptr);
     int ter = info.GetBanTime();
@@ -154,7 +154,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
         }
     }
     if (ipToId.count(ipp)) {
-        CAddrInfo &ai = idToInfo[ipToId[ipp]];
+        SeederAddrInfo &ai = idToInfo[ipToId[ipp]];
         if (addr.nTime > ai.lastTry || ai.services != addr.nServices) {
             ai.lastTry = addr.nTime;
             ai.services |= addr.nServices;
@@ -167,7 +167,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
         return;
     }
 
-    CAddrInfo ai;
+    SeederAddrInfo ai;
     ai.ip = ipp;
     ai.services = addr.nServices;
     ai.lastTry = addr.nTime;
