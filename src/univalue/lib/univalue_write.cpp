@@ -2,8 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or https://opensource.org/licenses/mit-license.php.
 
-#include <cstring>
+#include <string>
 #include <sstream>
+#include <stdint.h>
 #include <stdio.h>
 #include "univalue.h"
 #include "univalue_escapes.h"
@@ -17,7 +18,13 @@ struct UniValueStreamWriter {
     }
 
     std::string getString() {
+#if __cplusplus >= 201103L
         return std::move(str);
+#else
+        std::string ret;
+        std::swap(ret, str);
+        return ret;
+#endif
     }
 
     void put(char c) {
@@ -44,7 +51,9 @@ struct UniValueStreamWriter {
 };
 
 void UniValueStreamWriter::escapeJson(const std::string &inS) {
-    for (const auto ch : inS) {
+    size_t len = inS.length();
+    for (size_t i = 0; i < len; i++) {
+        const char ch = inS[i];
         const char * const escStr = escapes[uint8_t(ch)];
 
         if (escStr) {
