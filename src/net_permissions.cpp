@@ -21,7 +21,8 @@ const std::vector<std::string> NET_PERMISSIONS_DOC{
     "maxuploadtarget limit)",
     "bypass_proof_request_limits (experimental, bypass the limits on avalanche "
     "proof downloads)",
-};
+    "addr (responses to GETADDR avoid hitting the cache and contain random "
+    "records with the most up-to-date info)"};
 
 namespace {
 
@@ -71,6 +72,8 @@ bool TryParsePermissionFlags(const std::string str, NetPermissionFlags &output,
                 NetPermissions::AddFlag(flags, PF_ALL);
             } else if (permission == "relay") {
                 NetPermissions::AddFlag(flags, PF_RELAY);
+            } else if (permission == "addr") {
+                NetPermissions::AddFlag(flags, PF_ADDR);
             } else if (permission == "bypass_proof_request_limits") {
                 NetPermissions::AddFlag(flags, PF_BYPASS_PROOF_REQUEST_LIMITS);
             } else if (permission.length() == 0) {
@@ -110,6 +113,9 @@ std::vector<std::string> NetPermissions::ToStrings(NetPermissionFlags flags) {
     }
     if (NetPermissions::HasFlag(flags, PF_DOWNLOAD)) {
         strings.push_back("download");
+    }
+    if (NetPermissions::HasFlag(flags, PF_ADDR)) {
+        strings.push_back("addr");
     }
     if (NetPermissions::HasFlag(flags, PF_BYPASS_PROOF_REQUEST_LIMITS)) {
         strings.push_back("bypass_proof_request_limits");

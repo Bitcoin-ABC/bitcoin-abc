@@ -4472,8 +4472,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         pfrom.fSentAddr = true;
 
         pfrom.vAddrToSend.clear();
-        std::vector<CAddress> vAddr =
-            m_connman.GetAddresses(pfrom.addr.GetNetwork());
+        std::vector<CAddress> vAddr;
+        if (pfrom.HasPermission(PF_ADDR)) {
+            vAddr = m_connman.GetAddresses();
+        } else {
+            vAddr = m_connman.GetAddresses(pfrom.addr.GetNetwork());
+        }
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {
             pfrom.PushAddress(addr, insecure_rand);
