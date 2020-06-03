@@ -117,7 +117,7 @@ if(ENABLE_REDUCE_EXPORTS)
 	endif()
 
 	# Also hide symbols from static libraries
-	add_linker_flags(-Wl,--exclude-libs,ALL)
+	add_linker_flags(-Wl,--exclude-libs,libstdc++)
 endif()
 
 # Enable statically linking libstdc++
