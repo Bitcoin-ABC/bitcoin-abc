@@ -229,8 +229,15 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 endif()
 
 if(USE_JEMALLOC_EXPERIMENTAL)
-	find_package(Jemalloc REQUIRED)
-	link_libraries(Jemalloc::jemalloc)
+	# Most of the sanitizers require their instrumented allocation functions to
+	# be fully functional. This is obviously the case for all the memory related
+	# sanitizers (asan, lsan, msan) but not only.
+	if(ENABLE_SANITIZERS)
+		message(WARNING "Jemalloc is incompatible with the sanitizers and has been disabled.")
+	else()
+		find_package(Jemalloc REQUIRED)
+		link_libraries(Jemalloc::jemalloc)
+	endif()
 endif()
 
 
