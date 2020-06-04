@@ -8,7 +8,11 @@ import os
 
 from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, connect_nodes_bi, wait_until
+from test_framework.util import (
+    assert_equal,
+    connect_nodes_bi,
+    wait_until
+)
 
 FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {}"
 

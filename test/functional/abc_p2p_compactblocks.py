@@ -40,7 +40,10 @@ from test_framework.mininode import (
 from test_framework.script import CScript, OP_RETURN, OP_TRUE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, wait_until
+from test_framework.util import (
+    assert_equal,
+    wait_until
+)
 
 
 class PreviousSpendableOutput():

@@ -5,7 +5,11 @@
 """Test the parckblock and unparkblock RPC calls."""
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, connect_nodes_bi, wait_until
+from test_framework.util import (
+    assert_equal,
+    connect_nodes_bi,
+    wait_until
+)
 
 
 class ParkedChainTest(BitcoinTestFramework):
