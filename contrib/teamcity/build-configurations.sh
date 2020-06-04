@@ -212,7 +212,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh secp256k1 --Werror
 
     ninja check-secp256k1
 
@@ -220,7 +220,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS+=(
       "-DSECP256K1_ENABLE_ENDOMORPHISM=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh secp256k1 --Werror
 
     ninja check-secp256k1
 
@@ -231,7 +231,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
       "-DUSE_JEMALLOC=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh secp256k1 --Werror
 
     ninja check-secp256k1-java
     ;;
@@ -314,7 +314,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh bitcoin-bench --Werror
     ./src/bench/bitcoin-bench -printer=junit > junit_results_bench.xml
     ninja bench-secp256k1
     ;;
@@ -462,7 +462,7 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   check-seeds)
-    "${DEVTOOLS_DIR}"/build_cmake.sh
+    "${DEVTOOLS_DIR}"/build_cmake.sh bitcoind bitcoin-cli
     # Run on different ports to avoid a race where the rpc port used in the
     # first run may not be closed in time for the second to start.
     SEEDS_DIR="${TOPLEVEL}"/contrib/seeds
