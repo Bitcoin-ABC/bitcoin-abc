@@ -12,6 +12,7 @@ class ClientModel;
 
 QT_BEGIN_NAMESPACE
 class QPaintEvent;
+class QPainterPath;
 class QTimer;
 QT_END_NAMESPACE
 
