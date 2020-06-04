@@ -7,7 +7,7 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
-    connect_nodes_bi,
+    connect_nodes,
     wait_until
 )
 
@@ -233,7 +233,7 @@ class ParkedChainTest(BitcoinTestFramework):
         # Restart the parking node without parkdeepreorg.
         self.restart_node(1, ["-parkdeepreorg=0"])
         parking_node = self.nodes[1]
-        connect_nodes_bi(node, parking_node)
+        connect_nodes(node, parking_node)
         # The other chain should still be marked 'parked'.
         wait_for_parked_block(node.getbestblockhash())
         # Three more blocks is not enough to unpark. Even though its PoW is

@@ -10,7 +10,7 @@ from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
-    connect_nodes_bi,
+    connect_nodes,
     wait_until
 )
 
@@ -83,7 +83,7 @@ class NotificationsTest(BitcoinTestFramework):
             self.log.info("test -walletnotify after rescan")
             # restart node to rescan to force wallet notifications
             self.restart_node(1)
-            connect_nodes_bi(self.nodes[0], self.nodes[1])
+            connect_nodes(self.nodes[0], self.nodes[1])
 
             wait_until(
                 lambda: len(

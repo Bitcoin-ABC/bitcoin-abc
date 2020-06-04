@@ -23,7 +23,6 @@ from .util import (
     assert_equal,
     check_json_precision,
     connect_nodes,
-    connect_nodes_bi,
     disconnect_nodes,
     get_datadir_path,
     initialize_datadir,
@@ -427,7 +426,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         """
         Join the (previously split) network halves together.
         """
-        connect_nodes_bi(self.nodes[1], self.nodes[2])
+        connect_nodes(self.nodes[1], self.nodes[2])
         self.sync_all()
 
     def sync_blocks(self, nodes=None, **kwargs):
