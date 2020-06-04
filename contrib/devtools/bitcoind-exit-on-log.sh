@@ -92,6 +92,13 @@ BITCOIND_PID=$!
 
 # Wait for log checking to finish and kill the daemon
 (
+  # When this subshell finishes, kill bitcoind
+  log_subshell_cleanup() {
+    echo "Cleaning up bitcoin daemon (PID: ${BITCOIND_PID})."
+    kill ${BITCOIND_PID}
+  }
+  trap "log_subshell_cleanup" EXIT
+
   (
     # Ignore the broken pipe when tail tries to write pipe closed by grep
     set +o pipefail
@@ -110,17 +117,6 @@ BITCOIND_PID=$!
   fi
 ) &
 LOG_PID=$!
-
-# When the log subshell finishes, kill bitcoind
-(
-  # Disable verbosity to avoid bloating the output with sleep prints
-  set +x
-  while [ -e /proc/${LOG_PID} ]; do sleep 0.1; done
-  set -x
-
-  echo "Cleaning up bitcoin daemon (PID: ${BITCOIND_PID})."
-  kill ${BITCOIND_PID}
-) &
 
 # Wait for bitcoind to exit, whether it exited on its own or the log subshell finished
 wait ${BITCOIND_PID}
