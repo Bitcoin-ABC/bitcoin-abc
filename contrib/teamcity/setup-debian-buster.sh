@@ -49,6 +49,7 @@ PACKAGES=(
   make
   ninja-build
   nsis
+  php-codesniffer
   pkg-config
   protobuf-compiler
   python3
@@ -58,6 +59,7 @@ PACKAGES=(
   qemu-user-static
   qttools5-dev
   qttools5-dev-tools
+  shellcheck
   software-properties-common
   wget
   wine
