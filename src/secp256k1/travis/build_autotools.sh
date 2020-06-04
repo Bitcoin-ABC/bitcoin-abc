@@ -61,6 +61,9 @@ if [ -n "$BENCH" ]; then
   if [ "$ECDH" == "yes" ]; then
     $EXEC ./bench_ecdh &>> bench.log
   fi
+  if [ "$MULTISET" == "yes" ]; then
+    $EXEC ./bench_multiset &>> bench.log
+  fi
 if [ -n "$CTIMETEST" ]; then
   libtool --mode=execute valgrind  ./valgrind_ctime_test &> valgrind_ctime_test.log
 fi
