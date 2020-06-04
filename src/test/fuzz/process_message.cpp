@@ -111,7 +111,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     try {
         (void)ProcessMessage(
             config, p2p_node, random_message_type, random_bytes_data_stream,
-            GetTimeMillis(), g_setup->m_node.connman.get(),
+            GetTimeMillis(), *g_setup->m_node.connman.get(),
             g_setup->m_node.banman.get(), std::atomic<bool>{false});
     } catch (const std::ios_base::failure &e) {
         const std::string exception_message{e.what()};

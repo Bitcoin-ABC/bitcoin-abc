@@ -497,7 +497,7 @@ static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
 }
 
 static void PushNodeVersion(const Config &config, CNode &pnode,
-                            CConnman *connman, int64_t nTime) {
+                            CConnman &connman, int64_t nTime) {
     // Note that pnode.GetLocalServices() is a reflection of the local
     // services we were offering when the CNode object was created for this
     // peer.
@@ -512,7 +512,7 @@ static void PushNodeVersion(const Config &config, CNode &pnode,
                             : CAddress(CService(), addr.nServices));
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
-    connman->PushMessage(
+    connman.PushMessage(
         &pnode, CNetMsgMaker(INIT_PROTO_VERSION)
                     .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
                           uint64_t(nLocalNodeServices), nTime, addrYou, addrMe,
@@ -671,7 +671,7 @@ static void UpdateBlockAvailability(NodeId nodeid, const BlockHash &hash)
  * removing the first element if necessary.
  */
 static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
-                                                 CConnman *connman)
+                                                 CConnman &connman)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     CNodeState *nodestate = State(nodeid);
@@ -690,17 +690,17 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
             return;
         }
     }
-    connman->ForNode(nodeid, [&connman](CNode *pfrom) {
+    connman.ForNode(nodeid, [&connman](CNode *pfrom) {
         AssertLockHeld(cs_main);
         uint64_t nCMPCTBLOCKVersion = 1;
         if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
             // As per BIP152, we only get 3 of our peers to announce
             // blocks using compact encodings.
-            connman->ForNode(
+            connman.ForNode(
                 lNodesAnnouncingHeaderAndIDs.front(),
                 [&connman, nCMPCTBLOCKVersion](CNode *pnodeStop) {
                     AssertLockHeld(cs_main);
-                    connman->PushMessage(
+                    connman.PushMessage(
                         pnodeStop, CNetMsgMaker(pnodeStop->GetSendVersion())
                                        .Make(NetMsgType::SENDCMPCT,
                                              /*fAnnounceUsingCMPCTBLOCK=*/false,
@@ -709,10 +709,10 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
                 });
             lNodesAnnouncingHeaderAndIDs.pop_front();
         }
-        connman->PushMessage(pfrom, CNetMsgMaker(pfrom->GetSendVersion())
-                                        .Make(NetMsgType::SENDCMPCT,
-                                              /*fAnnounceUsingCMPCTBLOCK=*/true,
-                                              nCMPCTBLOCKVersion));
+        connman.PushMessage(pfrom, CNetMsgMaker(pfrom->GetSendVersion())
+                                       .Make(NetMsgType::SENDCMPCT,
+                                             /*fAnnounceUsingCMPCTBLOCK=*/true,
+                                             nCMPCTBLOCKVersion));
         lNodesAnnouncingHeaderAndIDs.push_back(pfrom->GetId());
         return true;
     });
@@ -957,7 +957,7 @@ void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
                                   pnode->m_manual_connection));
     }
     if (!pnode->fInbound) {
-        PushNodeVersion(config, *pnode, connman, GetTime());
+        PushNodeVersion(config, *pnode, *connman, GetTime());
     }
 }
 
@@ -1540,7 +1540,7 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
              !::ChainstateActive().IsInitialBlockDownload() &&
              mapBlocksInFlight.count(hash) == mapBlocksInFlight.size()) {
         if (it != mapBlockSource.end()) {
-            MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first, connman);
+            MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first, *connman);
         }
     }
 
@@ -1645,7 +1645,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
 }
 
 static void ProcessGetBlockData(const Config &config, CNode &pfrom,
-                                const CInv &inv, CConnman *connman,
+                                const CInv &inv, CConnman &connman,
                                 const std::atomic<bool> &interruptMsgProc) {
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -1701,7 +1701,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
     // Disconnect node in case we have reached the outbound limit for serving
     // historical blocks.
     // Never disconnect whitelisted nodes.
-    if (send && connman->OutboundTargetReached(true) &&
+    if (send && connman.OutboundTargetReached(true) &&
         (((pindexBestHeader != nullptr) &&
           (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() >
            HISTORICAL_BLOCK_AGE)) ||
@@ -1750,8 +1750,8 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
             pblock = pblockRead;
         }
         if (inv.type == MSG_BLOCK) {
-            connman->PushMessage(&pfrom,
-                                 msgMaker.Make(NetMsgType::BLOCK, *pblock));
+            connman.PushMessage(&pfrom,
+                                msgMaker.Make(NetMsgType::BLOCK, *pblock));
         } else if (inv.type == MSG_FILTERED_BLOCK) {
             bool sendMerkleBlock = false;
             CMerkleBlock merkleBlock;
@@ -1764,7 +1764,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
                 }
             }
             if (sendMerkleBlock) {
-                connman->PushMessage(
+                connman.PushMessage(
                     &pfrom,
                     msgMaker.Make(NetMsgType::MERKLEBLOCK, merkleBlock));
                 // CMerkleBlock just contains hashes, so also push any
@@ -1778,7 +1778,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
                 // remote peer needs.
                 typedef std::pair<size_t, uint256> PairType;
                 for (PairType &pair : merkleBlock.vMatchedTxn) {
-                    connman->PushMessage(
+                    connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::TX,
                                               *pblock->vtx[pair.first]));
                 }
@@ -1795,11 +1795,11 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
                 pindex->nHeight >=
                     ::ChainActive().Height() - MAX_CMPCTBLOCK_DEPTH) {
                 CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
-                connman->PushMessage(
+                connman.PushMessage(
                     &pfrom, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK,
                                           cmpctblock));
             } else {
-                connman->PushMessage(
+                connman.PushMessage(
                     &pfrom,
                     msgMaker.Make(nSendFlags, NetMsgType::BLOCK, *pblock));
             }
@@ -1814,14 +1814,14 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
             std::vector<CInv> vInv;
             vInv.push_back(
                 CInv(MSG_BLOCK, ::ChainActive().Tip()->GetBlockHash()));
-            connman->PushMessage(&pfrom, msgMaker.Make(NetMsgType::INV, vInv));
+            connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::INV, vInv));
             pfrom.hashContinue = BlockHash();
         }
     }
 }
 
 static void ProcessGetData(const Config &config, CNode &pfrom,
-                           CConnman *connman,
+                           CConnman &connman,
                            const std::atomic<bool> &interruptMsgProc)
     LOCKS_EXCLUDED(cs_main) {
     AssertLockNotHeld(cs_main);
@@ -1861,7 +1861,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
             auto mi = mapRelay.find(inv.hash);
             int nSendFlags = 0;
             if (mi != mapRelay.end()) {
-                connman->PushMessage(
+                connman.PushMessage(
                     &pfrom,
                     msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                 push = true;
@@ -1874,7 +1874,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
                 if (txinfo.tx &&
                     ((mempool_req.count() && txinfo.m_time <= mempool_req) ||
                      (txinfo.m_time <= longlived_mempool_time))) {
-                    connman->PushMessage(
+                    connman.PushMessage(
                         &pfrom,
                         msgMaker.Make(nSendFlags, NetMsgType::TX, *txinfo.tx));
                     push = true;
@@ -1915,14 +1915,14 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
         // respond. In normal operation, we often send NOTFOUND messages for
         // parents of transactions that we relay; if a peer is missing a parent,
         // they may assume we have them and request the parents from us.
-        connman->PushMessage(&pfrom,
-                             msgMaker.Make(NetMsgType::NOTFOUND, vNotFound));
+        connman.PushMessage(&pfrom,
+                            msgMaker.Make(NetMsgType::NOTFOUND, vNotFound));
     }
 }
 
 inline static void SendBlockTransactions(const CBlock &block,
                                          const BlockTransactionsRequest &req,
-                                         CNode &pfrom, CConnman *connman) {
+                                         CNode &pfrom, CConnman &connman) {
     BlockTransactions resp(req);
     for (size_t i = 0; i < req.indices.size(); i++) {
         if (req.indices[i] >= block.vtx.size()) {
@@ -1938,12 +1938,12 @@ inline static void SendBlockTransactions(const CBlock &block,
     LOCK(cs_main);
     const CNetMsgMaker msgMaker(pfrom.GetSendVersion());
     int nSendFlags = 0;
-    connman->PushMessage(&pfrom,
-                         msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
+    connman.PushMessage(&pfrom,
+                        msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
 static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
-                                  CConnman *connman,
+                                  CConnman &connman,
                                   const std::vector<CBlockHeader> &headers,
                                   bool via_compact_block) {
     const CChainParams &chainparams = config.GetChainParams();
@@ -1972,7 +1972,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
         if (!LookupBlockIndex(headers[0].hashPrevBlock) &&
             nCount < MAX_BLOCKS_TO_ANNOUNCE) {
             nodestate->nUnconnectingHeaders++;
-            connman->PushMessage(
+            connman.PushMessage(
                 &pfrom,
                 msgMaker.Make(NetMsgType::GETHEADERS,
                               ::ChainActive().GetLocator(pindexBestHeader),
@@ -2055,7 +2055,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
                 BCLog::NET,
                 "more getheaders (%d) to end to peer=%d (startheight:%d)\n",
                 pindexLast->nHeight, pfrom.GetId(), pfrom.nStartingHeight);
-            connman->PushMessage(
+            connman.PushMessage(
                 &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                       ::ChainActive().GetLocator(pindexLast),
                                       uint256()));
@@ -2118,7 +2118,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
                         // block, not a regular one.
                         vGetData[0] = CInv(MSG_CMPCT_BLOCK, vGetData[0].hash);
                     }
-                    connman->PushMessage(
+                    connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::GETDATA, vGetData));
                 }
             }
@@ -2173,7 +2173,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
     return true;
 }
 
-void static ProcessOrphanTx(const Config &config, CConnman *connman,
+void static ProcessOrphanTx(const Config &config, CConnman &connman,
                             std::set<TxId> &orphan_work_set)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans) {
     AssertLockHeld(cs_main);
@@ -2209,7 +2209,7 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
                                Amount::zero() /* nAbsurdFee */)) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
-            RelayTransaction(orphanTxId, *connman);
+            RelayTransaction(orphanTxId, connman);
             for (size_t i = 0; i < orphanTx.vout.size(); i++) {
                 auto it_by_prev =
                     mapOrphanTransactionsByPrev.find(COutPoint(orphanTxId, i));
@@ -2489,7 +2489,7 @@ static void ProcessGetCFCheckPt(CNode &pfrom, CDataStream &vRecv,
 
 bool ProcessMessage(const Config &config, CNode &pfrom,
                     const std::string &msg_type, CDataStream &vRecv,
-                    int64_t nTimeReceived, CConnman *connman, BanMan *banman,
+                    int64_t nTimeReceived, CConnman &connman, BanMan *banman,
                     const std::atomic<bool> &interruptMsgProc) {
     const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
@@ -2537,7 +2537,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         nSendVersion = std::min(nVersion, PROTOCOL_VERSION);
         nServices = ServiceFlags(nServiceInt);
         if (!pfrom.fInbound) {
-            connman->SetServices(pfrom.addr, nServices);
+            connman.SetServices(pfrom.addr, nServices);
         }
         if (!pfrom.fInbound && !pfrom.fFeeler && !pfrom.m_manual_connection &&
             !HasAllDesirableServiceFlags(nServices)) {
@@ -2574,7 +2574,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             vRecv >> fRelay;
         }
         // Disconnect if we connected to ourself
-        if (pfrom.fInbound && !connman->CheckIncomingNonce(nNonce)) {
+        if (pfrom.fInbound && !connman.CheckIncomingNonce(nNonce)) {
             LogPrintf("connected to self at %s, disconnecting\n",
                       pfrom.addr.ToString());
             pfrom.fDisconnect = true;
@@ -2590,7 +2590,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             PushNodeVersion(config, pfrom, connman, GetAdjustedTime());
         }
 
-        connman->PushMessage(
+        connman.PushMessage(
             &pfrom, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::VERACK));
 
         pfrom.nServices = nServices;
@@ -2649,13 +2649,13 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
 
             // Get recent addresses
             if (pfrom.fOneShot || pfrom.nVersion >= CADDR_TIME_VERSION ||
-                connman->GetAddressCount() < 1000) {
-                connman->PushMessage(
+                connman.GetAddressCount() < 1000) {
+                connman.PushMessage(
                     &pfrom,
                     CNetMsgMaker(nSendVersion).Make(NetMsgType::GETADDR));
                 pfrom.fGetAddr = true;
             }
-            connman->MarkAddressGood(pfrom.addr);
+            connman.MarkAddressGood(pfrom.addr);
         }
 
         std::string remoteAddr;
@@ -2723,8 +2723,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             // We send this to non-NODE NETWORK peers as well, because even
             // non-NODE NETWORK peers can announce blocks (such as pruning
             // nodes)
-            connman->PushMessage(&pfrom,
-                                 msgMaker.Make(NetMsgType::SENDHEADERS));
+            connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::SENDHEADERS));
         }
         if (pfrom.nVersion >= SHORT_IDS_BLOCKS_VERSION) {
             // Tell our peer we are willing to provide version 1 or 2
@@ -2733,9 +2732,9 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             // as well, because they may wish to request compact blocks from us.
             bool fAnnounceUsingCMPCTBLOCK = false;
             uint64_t nCMPCTBLOCKVersion = 1;
-            connman->PushMessage(&pfrom, msgMaker.Make(NetMsgType::SENDCMPCT,
-                                                       fAnnounceUsingCMPCTBLOCK,
-                                                       nCMPCTBLOCKVersion));
+            connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::SENDCMPCT,
+                                                      fAnnounceUsingCMPCTBLOCK,
+                                                      nCMPCTBLOCKVersion));
         }
         pfrom.fSuccessfullyConnected = true;
         return true;
@@ -2754,7 +2753,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
 
         // Don't want addr from older versions unless seeding
         if (pfrom.nVersion < CADDR_TIME_VERSION &&
-            connman->GetAddressCount() > 1000) {
+            connman.GetAddressCount() > 1000) {
             return true;
         }
         if (!pfrom.IsAddrRelayPeer()) {
@@ -2799,7 +2798,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             if (addr.nTime > nSince && !pfrom.fGetAddr && vAddr.size() <= 10 &&
                 addr.IsRoutable()) {
                 // Relay to a limited number of other nodes
-                RelayAddress(addr, fReachable, *connman);
+                RelayAddress(addr, fReachable, connman);
             }
             // Do not store addresses outside our network
             if (fReachable) {
@@ -2807,7 +2806,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             }
         }
 
-        connman->AddNewAddresses(vAddrOk, pfrom.addr, 2 * 60 * 60);
+        connman.AddNewAddresses(vAddrOk, pfrom.addr, 2 * 60 * 60);
         if (vAddr.size() < 1000) {
             pfrom.fGetAddr = false;
         }
@@ -2888,7 +2887,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                     // should get the headers for first, we now only provide a
                     // getheaders response here. When we receive the headers, we
                     // will then ask for the blocks we need.
-                    connman->PushMessage(
+                    connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                               ::ChainActive().GetLocator(
                                                   pindexBestHeader),
@@ -3153,8 +3152,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         // in the SendMessages logic.
         nodestate->pindexBestHeaderSent =
             pindex ? pindex : ::ChainActive().Tip();
-        connman->PushMessage(&pfrom,
-                             msgMaker.Make(NetMsgType::HEADERS, vHeaders));
+        connman.PushMessage(&pfrom,
+                            msgMaker.Make(NetMsgType::HEADERS, vHeaders));
         return true;
     }
 
@@ -3194,7 +3193,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             g_mempool.check(&::ChainstateActive().CoinsTip());
-            RelayTransaction(tx.GetId(), *connman);
+            RelayTransaction(tx.GetId(), connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
                 auto it_by_prev =
                     mapOrphanTransactionsByPrev.find(COutPoint(txid, i));
@@ -3282,7 +3281,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                 } else {
                     LogPrintf("Force relaying tx %s from whitelisted peer=%d\n",
                               tx.GetId().ToString(), pfrom.GetId());
-                    RelayTransaction(tx.GetId(), *connman);
+                    RelayTransaction(tx.GetId(), connman);
                 }
             }
         }
@@ -3334,7 +3333,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                 // Doesn't connect (or is genesis), instead of DoSing in
                 // AcceptBlockHeader, request deeper headers
                 if (!::ChainstateActive().IsInitialBlockDownload()) {
-                    connman->PushMessage(
+                    connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                               ::ChainActive().GetLocator(
                                                   pindexBestHeader),
@@ -3415,7 +3414,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                     // normal getdata.
                     std::vector<CInv> vInv(1);
                     vInv[0] = CInv(MSG_BLOCK, cmpctblock.header.GetHash());
-                    connman->PushMessage(
+                    connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::GETDATA, vInv));
                 }
                 return true;
@@ -3470,7 +3469,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                         // just request it.
                         std::vector<CInv> vInv(1);
                         vInv[0] = CInv(MSG_BLOCK, cmpctblock.header.GetHash());
-                        connman->PushMessage(
+                        connman.PushMessage(
                             &pfrom, msgMaker.Make(NetMsgType::GETDATA, vInv));
                         return true;
                     }
@@ -3490,7 +3489,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                         fProcessBLOCKTXN = true;
                     } else {
                         req.blockhash = pindex->GetBlockHash();
-                        connman->PushMessage(
+                        connman.PushMessage(
                             &pfrom,
                             msgMaker.Make(NetMsgType::GETBLOCKTXN, req));
                     }
@@ -3519,7 +3518,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                     // normally.
                     std::vector<CInv> vInv(1);
                     vInv[0] = CInv(MSG_BLOCK, cmpctblock.header.GetHash());
-                    connman->PushMessage(
+                    connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::GETDATA, vInv));
                     return true;
                 } else {
@@ -3632,8 +3631,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                 // Might have collided, fall back to getdata now :(
                 std::vector<CInv> invs;
                 invs.push_back(CInv(MSG_BLOCK, resp.blockhash));
-                connman->PushMessage(&pfrom,
-                                     msgMaker.Make(NetMsgType::GETDATA, invs));
+                connman.PushMessage(&pfrom,
+                                    msgMaker.Make(NetMsgType::GETDATA, invs));
             } else {
                 // Block is either okay, or possibly we received
                 // READ_STATUS_CHECKBLOCK_FAILED.
@@ -3914,7 +3913,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         pfrom.fSentAddr = true;
 
         pfrom.vAddrToSend.clear();
-        std::vector<CAddress> vAddr = connman->GetAddresses();
+        std::vector<CAddress> vAddr = connman.GetAddresses();
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {
             if (!banman->IsDiscouraged(addr) && !banman->IsBanned(addr)) {
@@ -3937,7 +3936,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             return true;
         }
 
-        if (connman->OutboundTargetReached(false) &&
+        if (connman.OutboundTargetReached(false) &&
             !pfrom.HasPermission(PF_MEMPOOL)) {
             if (!pfrom.HasPermission(PF_NOBAN)) {
                 LogPrint(BCLog::NET,
@@ -3974,8 +3973,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             // pings: without it, if the remote node sends a ping once per
             // second and this node takes 5 seconds to respond to each, the 5th
             // ping the remote sends would appear to return very quickly.
-            connman->PushMessage(&pfrom,
-                                 msgMaker.Make(NetMsgType::PONG, nonce));
+            connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::PONG, nonce));
         }
         return true;
     }
@@ -4110,17 +4108,17 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
     }
 
     if (msg_type == NetMsgType::GETCFILTERS) {
-        ProcessGetCFilters(pfrom, vRecv, chainparams, *connman);
+        ProcessGetCFilters(pfrom, vRecv, chainparams, connman);
         return true;
     }
 
     if (msg_type == NetMsgType::GETCFHEADERS) {
-        ProcessGetCFHeaders(pfrom, vRecv, chainparams, *connman);
+        ProcessGetCFHeaders(pfrom, vRecv, chainparams, connman);
         return true;
     }
 
     if (msg_type == NetMsgType::GETCFCHECKPT) {
-        ProcessGetCFCheckPt(pfrom, vRecv, chainparams, *connman);
+        ProcessGetCFCheckPt(pfrom, vRecv, chainparams, connman);
         return true;
     }
 
@@ -4204,12 +4202,12 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     bool fMoreWork = false;
 
     if (!pfrom->vRecvGetData.empty()) {
-        ProcessGetData(config, *pfrom, connman, interruptMsgProc);
+        ProcessGetData(config, *pfrom, *connman, interruptMsgProc);
     }
 
     if (!pfrom->orphan_work_set.empty()) {
         LOCK2(cs_main, g_cs_orphans);
-        ProcessOrphanTx(config, connman, pfrom->orphan_work_set);
+        ProcessOrphanTx(config, *connman, pfrom->orphan_work_set);
     }
 
     if (pfrom->fDisconnect) {
@@ -4292,7 +4290,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     bool fRet = false;
     try {
         fRet = ProcessMessage(config, *pfrom, msg_type, vRecv, msg.m_time,
-                              connman, m_banman, interruptMsgProc);
+                              *connman, m_banman, interruptMsgProc);
         if (interruptMsgProc) {
             return false;
         }
