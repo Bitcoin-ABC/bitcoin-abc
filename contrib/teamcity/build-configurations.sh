@@ -211,7 +211,6 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
-      "-DSECP256K1_ENABLE_JNI=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
@@ -224,6 +223,17 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
 
     ninja check-secp256k1
+
+    # Check JNI bindings. Note that Jemalloc needs to be disabled:
+    # https://github.com/jemalloc/jemalloc/issues/247
+    CMAKE_FLAGS=(
+      "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
+      "-DSECP256K1_ENABLE_JNI=ON"
+      "-DUSE_JEMALLOC=OFF"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+
+    ninja check-secp256k1-java
     ;;
 
   build-without-cli)
