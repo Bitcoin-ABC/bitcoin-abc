@@ -46,7 +46,6 @@ TransactionRecord::decomposeTransaction(const interfaces::WalletTx &wtx) {
             isminetype mine = wtx.txout_is_mine[i];
             if (mine) {
                 TransactionRecord sub(txid, nTime);
-                CTxDestination address;
                 sub.idx = i; // vout index
                 sub.credit = txout.nValue;
                 sub.involvesWatchAddress = mine & ISMINE_WATCH_ONLY;

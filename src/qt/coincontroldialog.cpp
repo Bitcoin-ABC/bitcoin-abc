@@ -448,14 +448,12 @@ void CoinControlDialog::updateLabels(CCoinControl &m_coin_control,
     // nPayAmount
     Amount nPayAmount = Amount::zero();
     bool fDust = false;
-    CMutableTransaction txDummy;
     for (const Amount &amount : CoinControlDialog::payAmounts) {
         nPayAmount += amount;
 
         if (amount > Amount::zero()) {
             // Assumes a p2pkh script size
             CTxOut txout(amount, CScript() << std::vector<uint8_t>(24, 0));
-            txDummy.vout.push_back(txout);
             fDust |= IsDust(txout, model->node().getDustRelayFee());
         }
     }
