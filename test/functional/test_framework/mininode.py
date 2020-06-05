@@ -584,7 +584,7 @@ class P2PInterface(P2PConnection):
 # P2PConnection acquires this lock whenever delivering a message to a P2PInterface.
 # This lock should be acquired in the thread running the test logic to synchronize
 # access to any data shared with the P2PInterface or P2PConnection.
-mininode_lock = threading.RLock()
+mininode_lock = threading.Lock()
 
 
 class NetworkThread(threading.Thread):
@@ -787,7 +787,7 @@ class P2PTxInvStore(P2PInterface):
         The mempool should mark unbroadcast=False for these transactions.
         """
         # Wait until invs have been received (and getdatas sent) for each txid.
-        self.wait_until(lambda: set(self.get_invs()) == set(
+        self.wait_until(lambda: set(self.tx_invs_received.keys()) == set(
             [int(tx, 16) for tx in txns]), timeout)
         # Flush messages and wait for the getdatas to be processed
         self.sync_with_ping()

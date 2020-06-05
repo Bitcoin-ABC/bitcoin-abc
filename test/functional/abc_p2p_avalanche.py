@@ -64,17 +64,14 @@ class TestNode(P2PInterface):
         self.remote_extra_entropy = message.nExtraEntropy
 
     def on_avaresponse(self, message):
-        with mininode_lock:
-            self.avaresponses.append(message.response)
+        self.avaresponses.append(message.response)
 
     def on_avapoll(self, message):
-        with mininode_lock:
-            self.avapolls.append(message.poll)
+        self.avapolls.append(message.poll)
 
     def on_avahello(self, message):
-        with mininode_lock:
-            assert(self.avahello is None)
-            self.avahello = message
+        assert(self.avahello is None)
+        self.avahello = message
 
     def send_avaresponse(self, round, votes, privkey):
         response = AvalancheResponse(round, 0, votes)
