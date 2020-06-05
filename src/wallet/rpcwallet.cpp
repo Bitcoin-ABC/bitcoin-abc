@@ -3533,6 +3533,15 @@ static UniValue listunspent(const Config &config,
     if (!request.params[4].isNull()) {
         const UniValue &options = request.params[4].get_obj();
 
+        RPCTypeCheckObj(options,
+                        {
+                            {"minimumAmount", UniValueType()},
+                            {"maximumAmount", UniValueType()},
+                            {"minimumSumAmount", UniValueType()},
+                            {"maximumCount", UniValueType(UniValue::VNUM)},
+                        },
+                        true, true);
+
         if (options.exists("minimumAmount")) {
             nMinimumAmount = AmountFromValue(options["minimumAmount"]);
         }
