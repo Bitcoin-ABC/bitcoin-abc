@@ -50,6 +50,7 @@
 #include <script/sigcache.h>
 #include <script/standard.h>
 #include <shutdown.h>
+#include <sync.h>
 #include <timedata.h>
 #include <torcontrol.h>
 #include <txdb.h>
@@ -176,12 +177,12 @@ void Interrupt(NodeContext &node) {
 }
 
 void Shutdown(NodeContext &node) {
-    LogPrintf("%s: In progress...\n", __func__);
-    static RecursiveMutex cs_Shutdown;
-    TRY_LOCK(cs_Shutdown, lockShutdown);
-    if (!lockShutdown) {
+    static Mutex g_shutdown_mutex;
+    TRY_LOCK(g_shutdown_mutex, lock_shutdown);
+    if (!lock_shutdown) {
         return;
     }
+    LogPrintf("%s: In progress...\n", __func__);
     Assert(node.args);
 
     /// Note: Shutdown() must be able to handle cases in which initialization
