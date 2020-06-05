@@ -575,8 +575,8 @@ int GuiMain(int argc, char *argv[]) {
     SetupUIArgs(gArgs);
     std::string error;
     if (!node->parseParameters(argc, argv, error)) {
-        node->initError(
-            strprintf("Error parsing command line arguments: %s\n", error));
+        node->initError(strprintf(
+            Untranslated("Error parsing command line arguments: %s\n"), error));
         // Create a message box, because the gui has neither been created nor
         // has subscribed to core signals
         QMessageBox::critical(
@@ -635,9 +635,9 @@ int GuiMain(int argc, char *argv[]) {
     /// bitcoin.conf
     /// - Do not call GetDataDir(true) before this step finishes.
     if (!CheckDataDirOption()) {
-        node->initError(
-            strprintf("Specified data directory \"%s\" does not exist.\n",
-                      gArgs.GetArg("-datadir", "")));
+        node->initError(strprintf(
+            Untranslated("Specified data directory \"%s\" does not exist.\n"),
+            gArgs.GetArg("-datadir", "")));
         QMessageBox::critical(
             nullptr, PACKAGE_NAME,
             QObject::tr(
@@ -646,8 +646,8 @@ int GuiMain(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     if (!node->readConfigFiles(error)) {
-        node->initError(
-            strprintf("Error reading configuration file: %s\n", error));
+        node->initError(strprintf(
+            Untranslated("Error reading configuration file: %s\n"), error));
         QMessageBox::critical(
             nullptr, PACKAGE_NAME,
             QObject::tr("Error: Cannot parse configuration file: %1.")
@@ -668,7 +668,7 @@ int GuiMain(int argc, char *argv[]) {
     try {
         node->selectParams(gArgs.GetChainName());
     } catch (std::exception &e) {
-        node->initError(strprintf("%s\n", e.what()));
+        node->initError(Untranslated(strprintf("%s\n", e.what())));
         QMessageBox::critical(nullptr, PACKAGE_NAME,
                               QObject::tr("Error: %1").arg(e.what()));
         return EXIT_FAILURE;
@@ -678,7 +678,7 @@ int GuiMain(int argc, char *argv[]) {
     PaymentServer::ipcParseCommandLine(*node, argc, argv);
 #endif
     if (!node->initSettings(error)) {
-        node->initError(Untranslated(error).original);
+        node->initError(Untranslated(error));
         QMessageBox::critical(nullptr, PACKAGE_NAME,
                               QObject::tr("Error initializing settings: %1")
                                   .arg(QString::fromStdString(error)));

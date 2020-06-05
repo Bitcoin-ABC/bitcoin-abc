@@ -66,8 +66,8 @@ namespace {
     class NodeImpl : public Node {
     public:
         NodeImpl(NodeContext *context) { setContext(context); }
-        void initError(const std::string &message) override {
-            InitError(Untranslated(message));
+        void initError(const bilingual_str &message) override {
+            InitError(message);
         }
         bool parseParameters(int argc, const char *const argv[],
                              std::string &error) override {

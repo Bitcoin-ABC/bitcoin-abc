@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+struct bilingual_str;
+
 enum NetPermissionFlags {
     PF_NONE = 0,
     // Can query bloomfilter even if -peerbloomfilters is false
@@ -48,14 +50,14 @@ public:
 class NetWhitebindPermissions : public NetPermissions {
 public:
     static bool TryParse(const std::string str, NetWhitebindPermissions &output,
-                         std::string &error);
+                         bilingual_str &error);
     CService m_service;
 };
 
 class NetWhitelistPermissions : public NetPermissions {
 public:
     static bool TryParse(const std::string str, NetWhitelistPermissions &output,
-                         std::string &error);
+                         bilingual_str &error);
     CSubNet m_subnet;
 };
 

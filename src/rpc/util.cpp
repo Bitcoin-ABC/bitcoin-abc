@@ -10,6 +10,7 @@
 #include <tinyformat.h>
 #include <util/strencodings.h>
 #include <util/string.h>
+#include <util/translation.h>
 
 #include <tuple>
 
@@ -288,7 +289,7 @@ UniValue JSONRPCTransactionError(TransactionError terr,
         return JSONRPCError(RPCErrorFromTransactionError(terr), err_string);
     } else {
         return JSONRPCError(RPCErrorFromTransactionError(terr),
-                            TransactionErrorString(terr));
+                            TransactionErrorString(terr).original);
     }
 }
 

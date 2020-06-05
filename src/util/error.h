@@ -33,10 +33,10 @@ enum class TransactionError {
     MAX_FEE_EXCEEDED,
 };
 
-std::string TransactionErrorString(TransactionError error);
+bilingual_str TransactionErrorString(TransactionError error);
 
-std::string ResolveErrMsg(const std::string &optname,
-                          const std::string &strBind);
+bilingual_str ResolveErrMsg(const std::string &optname,
+                            const std::string &strBind);
 
 bilingual_str AmountHighWarn(const std::string &optname);
 

@@ -2368,8 +2368,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             addrLocal.IsValid()) {
             AddLocal(addrLocal, LOCAL_MANUAL);
         } else {
-            return InitError(
-                Untranslated(ResolveErrMsg("externalip", strAddr)));
+            return InitError(ResolveErrMsg("externalip", strAddr));
         }
     }
 
@@ -2892,25 +2891,25 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     for (const std::string &strBind : args.GetArgs("-bind")) {
         CService addrBind;
         if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false)) {
-            return InitError(Untranslated(ResolveErrMsg("bind", strBind)));
+            return InitError(ResolveErrMsg("bind", strBind));
         }
         connOptions.vBinds.push_back(addrBind);
     }
 
     for (const std::string &strBind : args.GetArgs("-whitebind")) {
         NetWhitebindPermissions whitebind;
-        std::string error;
+        bilingual_str error;
         if (!NetWhitebindPermissions::TryParse(strBind, whitebind, error)) {
-            return InitError(Untranslated(error));
+            return InitError(error);
         }
         connOptions.vWhiteBinds.push_back(whitebind);
     }
 
     for (const auto &net : args.GetArgs("-whitelist")) {
         NetWhitelistPermissions subnet;
-        std::string error;
+        bilingual_str error;
         if (!NetWhitelistPermissions::TryParse(net, subnet, error)) {
-            return InitError(Untranslated(error));
+            return InitError(error);
         }
         connOptions.vWhitelistedRange.push_back(subnet);
     }
