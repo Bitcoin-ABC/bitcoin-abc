@@ -748,7 +748,7 @@ public:
     // List of block ids we still have announce. There is no final sorting
     // before sending, as they are always sent immediately and in the order
     // requested.
-    std::vector<uint256> vInventoryBlockToSend GUARDED_BY(cs_inventory);
+    std::vector<BlockHash> vInventoryBlockToSend GUARDED_BY(cs_inventory);
     RecursiveMutex cs_inventory;
     int64_t nNextInvSend{0};
     // Used for headers announcements - unfiltered blocks to relay.
@@ -870,7 +870,8 @@ public:
                 setInventoryTxToSend.insert(txid);
             }
         } else if (inv.type == MSG_BLOCK) {
-            vInventoryBlockToSend.push_back(inv.hash);
+            const BlockHash hash(inv.hash);
+            vInventoryBlockToSend.push_back(hash);
         }
     }
 

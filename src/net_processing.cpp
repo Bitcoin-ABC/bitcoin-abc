@@ -4508,7 +4508,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                                           config.GetMaxBlockSize() / 1000000));
 
         // Add blocks
-        for (const uint256 &hash : pto->vInventoryBlockToSend) {
+        for (const BlockHash &hash : pto->vInventoryBlockToSend) {
             vInv.push_back(CInv(MSG_BLOCK, hash));
             if (vInv.size() == MAX_INV_SZ) {
                 connman->PushMessage(pto, msgMaker.Make(NetMsgType::INV, vInv));
