@@ -102,7 +102,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         auto node =
             new CNode(id++, ServiceFlags(NODE_NETWORK), 0, INVALID_SOCKET, addr,
                       0, 0, 0, CAddress(), "", ConnectionType::OUTBOUND);
-        node->SetSendVersion(PROTOCOL_VERSION);
+        node->SetCommonVersion(PROTOCOL_VERSION);
         node->nServices = nServices;
         m_node.peerman->InitializeNode(config, node);
         node->nVersion = 1;

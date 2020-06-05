@@ -275,7 +275,7 @@ namespace {
 
 void Processor::sendResponse(CNode *pfrom, Response response) const {
     connman->PushMessage(
-        pfrom, CNetMsgMaker(pfrom->GetSendVersion())
+        pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
                    .Make(NetMsgType::AVARESPONSE,
                          TCPResponse(std::move(response), sessionKey)));
 }
@@ -424,7 +424,7 @@ bool Processor::sendHello(CNode *pfrom) const {
         }
     }
 
-    connman->PushMessage(pfrom, CNetMsgMaker(pfrom->GetSendVersion())
+    connman->PushMessage(pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
                                     .Make(NetMsgType::AVAHELLO,
                                           Hello(peerData->delegation, sig)));
 
@@ -569,7 +569,7 @@ void Processor::runEventLoop() {
 
             // Send the query to the node.
             connman->PushMessage(
-                pnode, CNetMsgMaker(pnode->GetSendVersion())
+                pnode, CNetMsgMaker(pnode->GetCommonVersion())
                            .Make(NetMsgType::AVAPOLL,
                                  Poll(current_round, std::move(invs))));
             return true;

@@ -836,7 +836,6 @@ public:
 
     std::deque<CInv> vRecvGetData;
     uint64_t nRecvBytes GUARDED_BY(cs_vRecv){0};
-    std::atomic<int> nRecvVersion{INIT_PROTO_VERSION};
 
     std::atomic<int64_t> nLastSend{0};
     std::atomic<int64_t> nLastRecv{0};
@@ -1035,6 +1034,7 @@ private:
     const uint64_t nLocalHostNonce;
     const uint64_t nLocalExtraEntropy;
     const ConnectionType m_conn_type;
+    std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
 
     //! Services offered to this peer.
     //!
@@ -1054,7 +1054,6 @@ private:
     const ServiceFlags nLocalServices;
 
     const int nMyStartingHeight;
-    int nSendVersion{0};
     NetPermissionFlags m_permissionFlags{PF_NONE};
     // Used only by SocketHandler thread
     std::list<CNetMessage> vRecvMsg;
@@ -1082,10 +1081,10 @@ public:
     bool ReceiveMsgBytes(const Config &config, const char *pch, uint32_t nBytes,
                          bool &complete);
 
-    void SetRecvVersion(int nVersionIn) { nRecvVersion = nVersionIn; }
-    int GetRecvVersion() const { return nRecvVersion; }
-    void SetSendVersion(int nVersionIn);
-    int GetSendVersion() const;
+    void SetCommonVersion(int greatest_common_version) {
+        m_greatest_common_version = greatest_common_version;
+    }
+    int GetCommonVersion() const { return m_greatest_common_version; }
 
     CService GetAddrLocal() const;
     //! May not be called more than once

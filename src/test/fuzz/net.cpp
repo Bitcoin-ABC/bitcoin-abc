@@ -56,7 +56,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                     ConnectionType::MANUAL, ConnectionType::FEELER,
                     ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH})};
     while (fuzzed_data_provider.ConsumeBool()) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 12)) {
+        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 11)) {
             case 0: {
                 node.CloseSocketDisconnect();
                 break;
@@ -67,7 +67,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 break;
             }
             case 2: {
-                node.SetSendVersion(
+                node.SetCommonVersion(
                     fuzzed_data_provider.ConsumeIntegral<int>());
                 break;
             }
@@ -83,22 +83,17 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 break;
             }
             case 4: {
-                node.SetRecvVersion(
-                    fuzzed_data_provider.ConsumeIntegral<int>());
-                break;
-            }
-            case 5: {
                 const CNode *add_ref_node = node.AddRef();
                 assert(add_ref_node == &node);
                 break;
             }
-            case 6: {
+            case 5: {
                 if (node.GetRefCount() > 0) {
                     node.Release();
                 }
                 break;
             }
-            case 7: {
+            case 6: {
                 if (node.m_addr_known == nullptr) {
                     break;
                 }
@@ -110,7 +105,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 node.AddAddressKnown(*addr_opt);
                 break;
             }
-            case 8: {
+            case 7: {
                 if (node.m_addr_known == nullptr) {
                     break;
                 }
@@ -124,7 +119,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 node.PushAddress(*addr_opt, fast_random_context);
                 break;
             }
-            case 9: {
+            case 8: {
                 const std::optional<CInv> inv_opt =
                     ConsumeDeserializable<CInv>(fuzzed_data_provider);
                 if (!inv_opt) {
@@ -134,12 +129,12 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 node.AddKnownTx(txid);
                 break;
             }
-            case 10: {
+            case 9: {
                 const TxId &txid = TxId(ConsumeUInt256(fuzzed_data_provider));
                 node.PushTxInventory(txid);
                 break;
             }
-            case 11: {
+            case 10: {
                 const std::optional<CService> service_opt =
                     ConsumeDeserializable<CService>(fuzzed_data_provider);
                 if (!service_opt) {
@@ -148,7 +143,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 node.SetAddrLocal(*service_opt);
                 break;
             }
-            case 12: {
+            case 11: {
                 const std::vector<uint8_t> b =
                     ConsumeRandomLengthByteVector(fuzzed_data_provider);
                 bool complete;
@@ -165,10 +160,9 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     (void)node.GetLocalNonce();
     (void)node.GetLocalServices();
     (void)node.GetMyStartingHeight();
-    (void)node.GetRecvVersion();
     const int ref_count = node.GetRefCount();
     assert(ref_count >= 0);
-    (void)node.GetSendVersion();
+    (void)node.GetCommonVersion();
     (void)node.IsAddrRelayPeer();
 
     const NetPermissionFlags net_permission_flags =
