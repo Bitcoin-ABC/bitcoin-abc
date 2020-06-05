@@ -36,7 +36,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     }
 
     (void)psbt.IsNull();
-    (void)psbt.IsSane();
 
     std::optional<CMutableTransaction> tx = psbt.tx;
     if (tx) {
@@ -47,7 +46,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     for (const PSBTInput &input : psbt.inputs) {
         (void)PSBTInputSigned(input);
         (void)input.IsNull();
-        (void)input.IsSane();
     }
 
     for (const PSBTOutput &output : psbt.outputs) {

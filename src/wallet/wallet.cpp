@@ -2812,11 +2812,6 @@ TransactionError CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
             continue;
         }
 
-        // Verify input looks sane.
-        if (!input.IsSane()) {
-            return TransactionError::INVALID_PSBT;
-        }
-
         // If we have no utxo, grab it from the wallet.
         if (input.utxo.IsNull()) {
             const TxId &txid = txin.prevout.GetTxId();

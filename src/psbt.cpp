@@ -34,15 +34,6 @@ bool PartiallySignedTransaction::Merge(const PartiallySignedTransaction &psbt) {
     return true;
 }
 
-bool PartiallySignedTransaction::IsSane() const {
-    for (PSBTInput input : inputs) {
-        if (!input.IsSane()) {
-            return false;
-        }
-    }
-    return true;
-}
-
 bool PartiallySignedTransaction::AddInput(const CTxIn &txin,
                                           PSBTInput &psbtin) {
     if (std::find(tx->vin.begin(), tx->vin.end(), txin) != tx->vin.end()) {
@@ -134,10 +125,6 @@ void PSBTInput::Merge(const PSBTInput &input) {
     }
 }
 
-bool PSBTInput::IsSane() const {
-    return true;
-}
-
 void PSBTOutput::FillSignatureData(SignatureData &sigdata) const {
     if (!redeem_script.empty()) {
         sigdata.redeem_script = redeem_script;
@@ -213,11 +200,6 @@ bool SignPSBTInput(const SigningProvider &provider,
     // Get UTXO
     CTxOut utxo;
 
-    // Verify input sanity
-    if (!input.IsSane()) {
-        return false;
-    }
-
     if (input.utxo.IsNull()) {
         return false;
     }
@@ -288,9 +270,6 @@ CombinePSBTs(PartiallySignedTransaction &out,
         if (!out.Merge(*it)) {
             return TransactionError::PSBT_MISMATCH;
         }
-    }
-    if (!out.IsSane()) {
-        return TransactionError::INVALID_PSBT;
     }
 
     return TransactionError::OK;
