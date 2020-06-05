@@ -148,7 +148,7 @@ EOTEXT
     unset($token);
 
     // Prepare cURL request to land bot
-    $ch = curl_init('https://buildbot-prod.bitframe.org/land');
+    $ch = curl_init('https://buildbot.bitcoinabc.org/land');
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
       'Content-Type:application/json', 'Accept:application/json'));
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(array(
