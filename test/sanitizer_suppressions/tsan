@@ -12,6 +12,7 @@ mutex:CConnman::ThreadOpenAddedConnections
 mutex:CConnman::SocketHandler
 mutex:UpdateTip
 mutex:PeerManager::UpdatedBlockTip
+mutex:g_best_block_mutex
 mutex:rcu_tests::synchronize_test
 # race (TODO fix)
 race:CConnman::WakeMessageHandler
@@ -19,12 +20,16 @@ race:CConnman::ThreadMessageHandler
 race:fHaveGenesis
 race:ProcessNewBlock
 race:ThreadImport
+race:WalletBatch::WriteHDChain
 race:CZMQAbstractPublishNotifier::SendMessage
 race:BerkeleyBatch
 race:bitcoin-qt
 # deadlock (TODO fix)
 deadlock:CConnman::ForNode
+deadlock:CConnman::GetNodeStats
+deadlock:CChainState::ConnectTip
 deadlock:UpdateTip
+deadlock:wallet_tests::CreateWalletFromFile
 
 # WalletBatch (unidentified deadlock)
 deadlock:WalletBatch
