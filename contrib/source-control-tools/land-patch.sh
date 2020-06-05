@@ -93,7 +93,7 @@ if [ -n "${REVISION}" ]; then
 
   # We only trust code that has been accepted
   if [ "${REVIEW_STATUS}" != "\"accepted\"" ]; then
-    echo "Error: Revision '${REVISION}' has not been accepted"
+    echo "Error: Revision '${REVISION}' is not accepted. Review status is: ${REVIEW_STATUS}"
     exit 23
   fi
 fi
