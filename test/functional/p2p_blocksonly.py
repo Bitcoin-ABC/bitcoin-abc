@@ -80,12 +80,12 @@ class P2PBlocksOnly(BitcoinTestFramework):
         assert_equal(peer_1_info['whitelisted'], True)
         assert_equal(
             peer_1_info['permissions'], [
-                'noban', 'forcerelay', 'relay', 'mempool'])
+                'noban', 'forcerelay', 'relay', 'mempool', 'download'])
         peer_2_info = self.nodes[0].getpeerinfo()[1]
         assert_equal(peer_2_info['whitelisted'], True)
         assert_equal(
             peer_2_info['permissions'], [
-                'noban', 'forcerelay', 'relay', 'mempool'])
+                'noban', 'forcerelay', 'relay', 'mempool', 'download'])
         assert_equal(
             self.nodes[0].testmempoolaccept(
                 [sigtx])[0]['allowed'], True)

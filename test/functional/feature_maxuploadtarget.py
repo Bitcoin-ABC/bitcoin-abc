@@ -150,9 +150,9 @@ class MaxUploadTest(BitcoinTestFramework):
 
         self.nodes[0].disconnect_p2ps()
 
-        self.log.info("Restarting node 0 with noban permission"
+        self.log.info("Restarting node 0 with download permission"
                       " and 1MB maxuploadtarget")
-        self.restart_node(0, ["-whitelist=noban@127.0.0.1",
+        self.restart_node(0, ["-whitelist=download@127.0.0.1",
                               "-maxuploadtarget=1", "-blockmaxsize=999000"])
 
         # Reconnect to self.nodes[0]
@@ -167,12 +167,13 @@ class MaxUploadTest(BitcoinTestFramework):
 
         getdata_request.inv = [CInv(MSG_BLOCK, big_old_block)]
         self.nodes[0].p2p.send_and_ping(getdata_request)
-        # node is still connected because of the noban permission
-        assert_equal(len(self.nodes[0].getpeerinfo()), 1)
 
         self.log.info(
-            "Peer still connected after trying to download old block "
-            "(noban permission)")
+            "Peer still connected after trying to download old block (download permission)")
+        peer_info = self.nodes[0].getpeerinfo()
+        # node is still connected
+        assert_equal(len(peer_info), 1)
+        assert_equal(peer_info[0]['permissions'], ['download'])
 
 
 if __name__ == '__main__':

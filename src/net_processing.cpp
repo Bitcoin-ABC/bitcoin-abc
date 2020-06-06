@@ -1858,8 +1858,8 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
           (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() >
            HISTORICAL_BLOCK_AGE)) ||
          inv.type == MSG_FILTERED_BLOCK) &&
-        /* never disconnect nodes with the noban permission */
-        !pfrom.HasPermission(PF_NOBAN)) {
+        // nodes with the download permission may exceed target
+        !pfrom.HasPermission(PF_DOWNLOAD)) {
         LogPrint(BCLog::NET,
                  "historical block serving limit reached, disconnect peer=%d\n",
                  pfrom.GetId());
@@ -3286,7 +3286,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         LOCK(cs_main);
         if (::ChainstateActive().IsInitialBlockDownload() &&
-            !pfrom.HasPermission(PF_NOBAN)) {
+            !pfrom.HasPermission(PF_DOWNLOAD)) {
             LogPrint(BCLog::NET,
                      "Ignoring getheaders from peer=%d because node is in "
                      "initial block download\n",

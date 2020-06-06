@@ -487,7 +487,7 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
         error));
 
     const auto strings = NetPermissions::ToStrings(PF_ALL);
-    BOOST_CHECK_EQUAL(strings.size(), 5U);
+    BOOST_CHECK_EQUAL(strings.size(), 6U);
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "bloomfilter") !=
                 strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "forcerelay") !=
@@ -497,6 +497,8 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "noban") !=
                 strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "mempool") !=
+                strings.end());
+    BOOST_CHECK(std::find(strings.begin(), strings.end(), "download") !=
                 strings.end());
 }
 

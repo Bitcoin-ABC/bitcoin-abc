@@ -783,24 +783,26 @@ void SetupServerArgs(NodeContext &node) {
 #endif
     argsman.AddArg(
         "-whitebind=<[permissions@]addr>",
-        "Bind to given address and whitelist peers connecting to it."
+        "Bind to the given address and add permission flags to the peers "
+        "connecting to it."
         "Use [host]:port notation for IPv6. Allowed permissions: " +
             Join(NET_PERMISSIONS_DOC, ", ") +
             ". "
             "Specify multiple permissions separated by commas (default: "
-            "noban,mempool,relay). Can be specified multiple times.",
+            "download,noban,mempool,relay). Can be specified multiple times.",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
     argsman.AddArg("-whitelist=<[permissions@]IP address or network>",
-                   "Whitelist peers connecting from the given IP address "
-                   "(e.g. 1.2.3.4) or CIDR notated network(e.g. 1.2.3.0/24). "
-                   "Uses same permissions as -whitebind. Can be specified "
+                   "Add permission flags to the peers connecting from the "
+                   "given IP address (e.g. 1.2.3.4) or CIDR-notated network "
+                   "(e.g. 1.2.3.0/24). "
+                   "Uses the same permissions as -whitebind. Can be specified "
                    "multiple times.",
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-maxuploadtarget=<n>",
         strprintf("Tries to keep outbound traffic under the given target (in "
-                  "MiB per 24h). Limit does not apply to peers with 'noban' "
+                  "MiB per 24h). Limit does not apply to peers with 'download' "
                   "permission. 0 = no limit (default: %d)",
                   DEFAULT_MAX_UPLOAD_TARGET),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
