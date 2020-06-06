@@ -23,7 +23,7 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                                       std::string &err_string,
                                       const Amount max_tx_fee, bool relay,
                                       bool wait_callback) {
-    assert(g_connman);
+    assert(node.connman);
     std::promise<void> promise;
     TxId txid = tx->GetId();
     bool callback_set = false;
@@ -77,7 +77,7 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
     }
 
     if (relay) {
-        RelayTransaction(txid, *g_connman);
+        RelayTransaction(txid, *node.connman);
     }
 
     return TransactionError::OK;

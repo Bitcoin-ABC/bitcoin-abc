@@ -20,6 +20,7 @@
 #include <pow.h>
 #include <pubkey.h>
 #include <random.h>
+#include <rpc/blockchain.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
 #include <script/script_error.h>
@@ -88,6 +89,7 @@ BasicTestingSetup::~BasicTestingSetup() {
 TestingSetup::TestingSetup(const std::string &chainName)
     : BasicTestingSetup(chainName) {
     const Config &config = GetConfig();
+    g_rpc_node = &m_node;
     const CChainParams &chainparams = config.GetChainParams();
 
     // Ideally we'd move all the RPC tests to the functional testing framework
@@ -129,11 +131,11 @@ TestingSetup::TestingSetup(const std::string &chainName)
         threadGroup.create_thread([i]() { return ThreadScriptCheck(i); });
     }
 
-    g_banman =
+    m_node.banman =
         std::make_unique<BanMan>(GetDataDir() / "banlist.dat", chainparams,
                                  nullptr, DEFAULT_MISBEHAVING_BANTIME);
     // Deterministic randomness for tests.
-    g_connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
+    m_node.connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
 }
 
 TestingSetup::~TestingSetup() {
@@ -141,8 +143,9 @@ TestingSetup::~TestingSetup() {
     threadGroup.join_all();
     GetMainSignals().FlushBackgroundCallbacks();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
-    g_connman.reset();
-    g_banman.reset();
+    g_rpc_node = nullptr;
+    m_node.connman.reset();
+    m_node.banman.reset();
     UnloadBlockIndex();
     pcoinsTip.reset();
     pcoinsdbview.reset();

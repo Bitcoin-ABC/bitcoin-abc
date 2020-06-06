@@ -87,10 +87,6 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 // Dump addresses to banlist.dat every 15 minutes (900s)
 static constexpr int DUMP_BANS_INTERVAL = 60 * 15;
 
-std::unique_ptr<CConnman> g_connman;
-std::unique_ptr<PeerLogicValidation> peerLogic;
-std::unique_ptr<BanMan> g_banman;
-
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for accessing
 // block files don't count towards the fd_set size limit anyway.
@@ -194,8 +190,8 @@ void Interrupt(NodeContext &node) {
         // the scheduler will stop working then.
         g_avalanche->stopEventLoop();
     }
-    if (g_connman) {
-        g_connman->Interrupt();
+    if (node.connman) {
+        node.connman->Interrupt();
     }
     if (g_txindex) {
         g_txindex->Interrupt();
@@ -239,11 +235,11 @@ void Shutdown(NodeContext &node) {
 
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.
-    if (peerLogic) {
-        UnregisterValidationInterface(peerLogic.get());
+    if (node.peer_logic) {
+        UnregisterValidationInterface(node.peer_logic.get());
     }
-    if (g_connman) {
-        g_connman->Stop();
+    if (node.connman) {
+        node.connman->Stop();
     }
     if (g_txindex) {
         g_txindex->Stop();
@@ -259,12 +255,12 @@ void Shutdown(NodeContext &node) {
 
     // After the threads that potentially access these pointers have been
     // stopped, destruct and reset all to nullptr.
-    peerLogic.reset();
+    node.peer_logic.reset();
 
     // Destroy various global instances
     g_avalanche.reset();
-    g_connman.reset();
-    g_banman.reset();
+    node.connman.reset();
+    node.banman.reset();
     g_txindex.reset();
     DestroyAllBlockFilterIndexes();
 
@@ -2172,19 +2168,19 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // is not yet setup and may end up being set up twice if we
     // need to reindex later.
 
-    assert(!g_banman);
-    g_banman = std::make_unique<BanMan>(
+    assert(!node.banman);
+    node.banman = std::make_unique<BanMan>(
         GetDataDir() / "banlist.dat", config.GetChainParams(), &uiInterface,
         gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
-    assert(!g_connman);
-    g_connman = std::make_unique<CConnman>(
+    assert(!node.connman);
+    node.connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
         GetRand(std::numeric_limits<uint64_t>::max()));
 
-    peerLogic = std::make_unique<PeerLogicValidation>(
-        g_connman.get(), g_banman.get(), scheduler,
+    node.peer_logic = std::make_unique<PeerLogicValidation>(
+        node.connman.get(), node.banman.get(), scheduler,
         gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61));
-    RegisterValidationInterface(peerLogic.get());
+    RegisterValidationInterface(node.peer_logic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size
     std::vector<std::string> uacomments;
@@ -2321,7 +2317,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 6.5 (I guess ?): Initialize Avalanche.
-    g_avalanche = std::make_unique<AvalancheProcessor>(g_connman.get());
+    g_avalanche = std::make_unique<AvalancheProcessor>(node.connman.get());
 
     // Step 7: load block chain
 
@@ -2696,8 +2692,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nMaxFeeler = 1;
     connOptions.nBestHeight = chain_active_height;
     connOptions.uiInterface = &uiInterface;
-    connOptions.m_banman = g_banman.get();
-    connOptions.m_msgproc = peerLogic.get();
+    connOptions.m_banman = node.banman.get();
+    connOptions.m_msgproc = node.peer_logic.get();
     connOptions.nSendBufferMaxSize =
         1000 * gArgs.GetArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
     connOptions.nReceiveFloodSize =
@@ -2744,7 +2740,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             connOptions.m_specified_outgoing = connect;
         }
     }
-    if (!g_connman->Start(scheduler, connOptions)) {
+    if (!node.connman->Start(scheduler, connOptions)) {
         return false;
     }
 
@@ -2757,7 +2753,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         client->start(scheduler);
     }
 
-    BanMan *banman = g_banman.get();
+    BanMan *banman = node.banman.get();
     scheduler.scheduleEvery(
         [banman] {
             banman->DumpBanlist();

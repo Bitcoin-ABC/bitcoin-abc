@@ -956,7 +956,7 @@ BOOST_AUTO_TEST_CASE(destructor) {
     std::thread schedulerThread(std::bind(&CScheduler::serviceQueue, &s));
 
     {
-        AvalancheProcessor p(g_connman.get());
+        AvalancheProcessor p(m_node.connman.get());
         BOOST_CHECK(p.startEventLoop(s));
         BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 1);
     }

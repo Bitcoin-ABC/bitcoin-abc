@@ -120,14 +120,15 @@ namespace {
             return GetProxy(net, proxy_info);
         }
         size_t getNodeCount(CConnman::NumConnections flags) override {
-            return g_connman ? g_connman->GetNodeCount(flags) : 0;
+            return m_context.connman ? m_context.connman->GetNodeCount(flags)
+                                     : 0;
         }
         bool getNodesStats(NodesStats &stats) override {
             stats.clear();
 
-            if (g_connman) {
+            if (m_context.connman) {
                 std::vector<CNodeStats> stats_temp;
-                g_connman->GetNodeStats(stats_temp);
+                m_context.connman->GetNodeStats(stats_temp);
 
                 stats.reserve(stats_temp.size());
                 for (auto &node_stats_temp : stats_temp) {
@@ -149,44 +150,46 @@ namespace {
             return false;
         }
         bool getBanned(banmap_t &banmap) override {
-            if (g_banman) {
-                g_banman->GetBanned(banmap);
+            if (m_context.banman) {
+                m_context.banman->GetBanned(banmap);
                 return true;
             }
             return false;
         }
         bool ban(const CNetAddr &net_addr, BanReason reason,
                  int64_t ban_time_offset) override {
-            if (g_banman) {
-                g_banman->Ban(net_addr, reason, ban_time_offset);
+            if (m_context.banman) {
+                m_context.banman->Ban(net_addr, reason, ban_time_offset);
                 return true;
             }
             return false;
         }
         bool unban(const CSubNet &ip) override {
-            if (g_banman) {
-                g_banman->Unban(ip);
+            if (m_context.banman) {
+                m_context.banman->Unban(ip);
                 return true;
             }
             return false;
         }
         bool disconnect(const CNetAddr &net_addr) override {
-            if (g_connman) {
-                return g_connman->DisconnectNode(net_addr);
+            if (m_context.connman) {
+                return m_context.connman->DisconnectNode(net_addr);
             }
             return false;
         }
         bool disconnect(NodeId id) override {
-            if (g_connman) {
-                return g_connman->DisconnectNode(id);
+            if (m_context.connman) {
+                return m_context.connman->DisconnectNode(id);
             }
             return false;
         }
         int64_t getTotalBytesRecv() override {
-            return g_connman ? g_connman->GetTotalBytesRecv() : 0;
+            return m_context.connman ? m_context.connman->GetTotalBytesRecv()
+                                     : 0;
         }
         int64_t getTotalBytesSent() override {
-            return g_connman ? g_connman->GetTotalBytesSent() : 0;
+            return m_context.connman ? m_context.connman->GetTotalBytesSent()
+                                     : 0;
         }
         size_t getMempoolSize() override { return g_mempool.size(); }
         size_t getMempoolDynamicUsage() override {
@@ -227,12 +230,12 @@ namespace {
         bool getReindex() override { return ::fReindex; }
         bool getImporting() override { return ::fImporting; }
         void setNetworkActive(bool active) override {
-            if (g_connman) {
-                g_connman->SetNetworkActive(active);
+            if (m_context.connman) {
+                m_context.connman->SetNetworkActive(active);
             }
         }
         bool getNetworkActive() override {
-            return g_connman && g_connman->GetNetworkActive();
+            return m_context.connman && m_context.connman->GetNetworkActive();
         }
         CFeeRate estimateSmartFee() override { return g_mempool.estimateFee(); }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }

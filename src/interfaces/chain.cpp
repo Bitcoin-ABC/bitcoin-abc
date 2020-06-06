@@ -296,7 +296,7 @@ namespace {
             return it && (*it)->GetCountWithDescendants() > 1;
         }
         void relayTransaction(const TxId &txid) override {
-            RelayTransaction(txid, *g_connman);
+            RelayTransaction(txid, *m_node.connman);
         }
         bool broadcastTransaction(const Config &config,
                                   const CTransactionRef &tx,
@@ -346,7 +346,7 @@ namespace {
         CFeeRate relayMinFee() override { return ::minRelayTxFee; }
         CFeeRate relayDustFee() override { return ::dustRelayFee; }
         bool getPruneMode() override { return ::fPruneMode; }
-        bool p2pEnabled() override { return g_connman != nullptr; }
+        bool p2pEnabled() override { return m_node.connman != nullptr; }
         bool isReadyToBroadcast() override {
             return !::fImporting && !::fReindex && !isInitialBlockDownload();
         }
