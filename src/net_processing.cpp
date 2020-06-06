@@ -2005,7 +2005,6 @@ CTransactionRef static FindTxForGetData(const CNode &peer, const TxId &txid,
                                         const std::chrono::seconds mempool_req,
                                         const std::chrono::seconds now)
     LOCKS_EXCLUDED(cs_main) {
-
     auto txinfo = g_mempool.info(txid);
     if (txinfo.tx) {
         // If a TX could have been INVed in reply to a MEMPOOL request,
@@ -2082,6 +2081,25 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
             connman.PushMessage(&pfrom,
                                 msgMaker.Make(nSendFlags, NetMsgType::TX, *tx));
             mempool.RemoveUnbroadcastTx(TxId(inv.hash));
+            // As we're going to send tx, make sure its unconfirmed parents are
+            // made requestable.
+            for (const auto &txin : tx->vin) {
+                auto txinfo = mempool.info(txin.prevout.GetTxId());
+                if (txinfo.tx &&
+                    txinfo.m_time > now - UNCONDITIONAL_RELAY_DELAY) {
+                    // Relaying a transaction with a recent but unconfirmed
+                    // parent.
+                    if (WITH_LOCK(
+                            pfrom.m_tx_relay->cs_tx_inventory,
+                            return !pfrom.m_tx_relay->filterInventoryKnown
+                                        .contains(txin.prevout.GetTxId()))) {
+                        LOCK(cs_main);
+                        State(pfrom.GetId())
+                            ->m_recently_announced_invs.insert(
+                                txin.prevout.GetTxId());
+                    }
+                }
+            }
         } else {
             vNotFound.push_back(inv);
         }
