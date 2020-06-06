@@ -4304,18 +4304,13 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
                  "relevant and known.",
                  {
                      {RPCResult::Type::ELISION, "",
-                      "Includes all\n"
-                      "                                                        "
-                      " getaddressinfo output fields for the embedded address, "
-                      "excluding metadata (timestamp, hdkeypath,\n"
-                      "hdseedid) and relation to the wallet (ismine, "
-                      "iswatchonly)."},
+                      "Includes all getaddressinfo output fields for the "
+                      "embedded address excluding metadata (timestamp, "
+                      "hdkeypath, hdseedid)\n"
+                      "and relation to the wallet (ismine, iswatchonly)."},
                  }},
                 {RPCResult::Type::BOOL, "iscompressed", /* optional */ true,
                  "If the pubkey is compressed."},
-                {RPCResult::Type::STR, "label",
-                 "DEPRECATED. The label associated with the address. Defaults "
-                 "to \"\". Replaced by the labels array below."},
                 {RPCResult::Type::NUM_TIME, "timestamp", /* optional */ true,
                  "The creation time of the key, if available, expressed in " +
                      UNIX_EPOCH_TIME + "."},
@@ -4333,19 +4328,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
                  "enabled in the future.",
                  {
                      {RPCResult::Type::STR, "label name",
-                      "The label name. Defaults to \"\"."},
-                     {RPCResult::Type::OBJ,
-                      "",
-                      "DEPRECATED, will be removed in a future version. To "
-                      "re-enable, launch bitcoind with "
-                      "`-deprecatedrpc=labelspurpose`",
-                      {
-                          {RPCResult::Type::STR, "name",
-                           "The label name. Defaults to \"\"."},
-                          {RPCResult::Type::STR, "purpose",
-                           "The purpose of the associated address (send or "
-                           "receive)."},
-                      }},
+                      "Label name (defaults to \"\")."},
                  }},
             }},
         RPCExamples{HelpExampleCli("getaddressinfo", EXAMPLE_ADDRESS) +
@@ -4394,14 +4377,6 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     UniValue detail = DescribeWalletAddress(pwallet, dest);
     ret.pushKVs(detail);
 
-    // DEPRECATED: Return label field if existing. Currently only one label can
-    // be associated with an address, so the label should be equivalent to the
-    // value of the name key/value pair in the labels array below.
-    const auto *address_book_entry = pwallet->FindAddressBookEntry(dest);
-    if (pwallet->chain().rpcEnableDeprecated("label") && address_book_entry) {
-        ret.pushKV("label", address_book_entry->GetLabel());
-    }
-
     ret.pushKV("ischange", pwallet->IsChange(scriptPubKey));
 
     ScriptPubKeyMan *spk_man = pwallet->GetScriptPubKeyMan(scriptPubKey);
@@ -4424,14 +4399,9 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     // stable if we allow multiple labels to be associated with an address in
     // the future.
     UniValue labels(UniValue::VARR);
+    const auto *address_book_entry = pwallet->FindAddressBookEntry(dest);
     if (address_book_entry) {
-        // DEPRECATED: The previous behavior of returning an array containing a
-        // JSON object of `name` and `purpose` key/value pairs is deprecated.
-        if (pwallet->chain().rpcEnableDeprecated("labelspurpose")) {
-            labels.push_back(AddressBookDataToJSON(*address_book_entry, true));
-        } else {
-            labels.push_back(address_book_entry->GetLabel());
-        }
+        labels.push_back(address_book_entry->GetLabel());
     }
     ret.pushKV("labels", std::move(labels));
 
