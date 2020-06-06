@@ -156,6 +156,8 @@ NODISCARD static bool CreatePidFile(const ArgsManager &args) {
 
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
+static std::thread g_load_block;
+
 static boost::thread_group threadGroup;
 
 void Interrupt(NodeContext &node) {
@@ -240,9 +242,12 @@ void Shutdown(NodeContext &node) {
     StopTorControl();
 
     // After everything has been shut down, but before things get flushed, stop
-    // the CScheduler/checkqueue threadGroup
+    // the CScheduler/checkqueue, threadGroup and load block thread.
     if (node.scheduler) {
         node.scheduler->stop();
+    }
+    if (g_load_block.joinable()) {
+        g_load_block.join();
     }
     threadGroup.interrupt_all();
     threadGroup.join_all();
@@ -1367,7 +1372,6 @@ static void CleanupBlockRevFiles() {
 static void ThreadImport(const Config &config, ChainstateManager &chainman,
                          std::vector<fs::path> vImportFiles,
                          const ArgsManager &args) {
-    util::ThreadRename("loadblk");
     ScheduleBatchPriority();
 
     {
@@ -2888,9 +2892,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         vImportFiles.push_back(strFile);
     }
 
-    threadGroup.create_thread([=, &config, &chainman, &args] {
-        ThreadImport(config, chainman, vImportFiles, args);
-    });
+    g_load_block =
+        std::thread(&TraceThread<std::function<void()>>, "loadblk",
+                    [=, &config, &chainman, &args] {
+                        ThreadImport(config, chainman, vImportFiles, args);
+                    });
 
     // Wait for genesis block to be processed
     {
