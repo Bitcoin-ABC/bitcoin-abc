@@ -15,8 +15,8 @@
 #include <util/translation.h>
 #include <warnings.h>
 
-static RecursiveMutex cs_nTimeOffset;
-static int64_t nTimeOffset GUARDED_BY(cs_nTimeOffset) = 0;
+static Mutex g_timeoffset_mutex;
+static int64_t nTimeOffset GUARDED_BY(g_timeoffset_mutex) = 0;
 
 /**
  * "Never go to sea with two chronometers; take one or three."
@@ -27,7 +27,7 @@ static int64_t nTimeOffset GUARDED_BY(cs_nTimeOffset) = 0;
  * disagree)
  */
 int64_t GetTimeOffset() {
-    LOCK(cs_nTimeOffset);
+    LOCK(g_timeoffset_mutex);
     return nTimeOffset;
 }
 
@@ -43,7 +43,7 @@ static uint64_t abs64(int64_t n) {
 #define BITCOIN_TIMEDATA_MAX_SAMPLES 200
 
 void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
-    LOCK(cs_nTimeOffset);
+    LOCK(g_timeoffset_mutex);
     // Ignore duplicates
     static std::set<CNetAddr> setKnown;
     if (setKnown.size() == BITCOIN_TIMEDATA_MAX_SAMPLES) {
