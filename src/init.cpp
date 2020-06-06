@@ -58,6 +58,7 @@
 #include <util/asmap.h>
 #include <util/check.h>
 #include <util/moneystr.h>
+#include <util/string.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -783,14 +784,11 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-whitebind=<[permissions@]addr>",
         "Bind to given address and whitelist peers connecting to it."
-        " Use [host]:port notation for IPv6. Allowed permissions are "
-        "bloomfilter (allow requesting BIP37 filtered blocks and "
-        "transactions), noban (do not ban for misbehavior), "
-        "forcerelay (relay even non-standard transactions), "
-        "relay (relay even in -blocksonly mode), "
-        "and mempool (allow requesting BIP35 mempool contents). "
-        "Specify multiple permissions separated by commas (default: "
-        "noban,mempool,relay). Can be specified multiple times.",
+        "Use [host]:port notation for IPv6. Allowed permissions: " +
+            Join(NET_PERMISSIONS_DOC, ", ") +
+            ". "
+            "Specify multiple permissions separated by commas (default: "
+            "noban,mempool,relay). Can be specified multiple times.",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
     argsman.AddArg("-whitelist=<[permissions@]IP address or network>",

@@ -12,6 +12,8 @@
 
 struct bilingual_str;
 
+extern const std::vector<std::string> NET_PERMISSIONS_DOC;
+
 enum NetPermissionFlags {
     PF_NONE = 0,
     // Can query bloomfilter even if -peerbloomfilters is false
@@ -30,6 +32,7 @@ enum NetPermissionFlags {
     PF_ISIMPLICIT = (1U << 31),
     PF_ALL = PF_BLOOMFILTER | PF_FORCERELAY | PF_RELAY | PF_NOBAN | PF_MEMPOOL,
 };
+
 class NetPermissions {
 public:
     NetPermissionFlags m_flags;
@@ -47,6 +50,7 @@ public:
         flags = static_cast<NetPermissionFlags>(flags & ~f);
     }
 };
+
 class NetWhitebindPermissions : public NetPermissions {
 public:
     static bool TryParse(const std::string str, NetWhitebindPermissions &output,
