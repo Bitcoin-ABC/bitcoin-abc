@@ -316,14 +316,6 @@ void BCLog::Logger::EnableCategory(LogFlags category) {
 bool BCLog::Logger::EnableCategory(const std::string &str) {
     BCLog::LogFlags flag;
     if (!GetLogCategory(flag, str)) {
-        if (str == "db") {
-            // DEPRECATION: Added in 0.22.4, should start returning an error in
-            // a future release
-            LogPrintf("Warning: logging category 'db' is deprecated, use "
-                      "'walletdb' instead\n");
-            EnableCategory(BCLog::WALLETDB);
-            return true;
-        }
         return false;
     }
     EnableCategory(flag);

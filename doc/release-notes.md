@@ -12,3 +12,9 @@ Updated RPCs
 
 - The `getchaintxstats` RPC now returns the additional key of
   `window_final_block_height`.
+
+Updated settings
+----------------
+
+- The `-debug=db` logging category, which was deprecated in 0.22.4 and replaced by
+  `-debug=walletdb` to distinguish it from `coindb`, has been removed.
