@@ -175,6 +175,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		netbase_tests.cpp
 		op_reversebytes_tests.cpp
 		pmt_tests.cpp
+		policy_fee_tests.cpp
 		policyestimator_tests.cpp
 		prevector_tests.cpp
 		radix_tests.cpp

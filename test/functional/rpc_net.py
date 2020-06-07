@@ -51,6 +51,8 @@ class NetTest(BitcoinTestFramework):
         self.supports_cli = False
 
     def run_test(self):
+        self.log.info('Get out of IBD for the minfeefilter test')
+        self.nodes[0].generate(1)
         self.log.info('Connect nodes both way')
         connect_nodes(self.nodes[0], self.nodes[1])
         connect_nodes(self.nodes[1], self.nodes[0])

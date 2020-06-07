@@ -6092,9 +6092,9 @@ ChainstateManager::InitializeChainstate(const BlockHash &snapshot_blockhash) {
     return *to_modify;
 }
 
-CChain &ChainstateManager::ActiveChain() const {
+CChainState &ChainstateManager::ActiveChainstate() const {
     assert(m_active_chainstate);
-    return m_active_chainstate->m_chain;
+    return *m_active_chainstate;
 }
 
 bool ChainstateManager::IsSnapshotActive() const {
