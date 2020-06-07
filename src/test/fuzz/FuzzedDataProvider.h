@@ -14,6 +14,7 @@
 #define LLVM_FUZZER_FUZZED_DATA_PROVIDER_H_
 
 #include <algorithm>
+#include <array>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -175,6 +176,12 @@ public:
     // Returns a copy of the value selected from the given fixed-size |array|.
     template <typename T, size_t size>
     T PickValueInArray(const T (&array)[size]) {
+        static_assert(size > 0, "The array must be non empty.");
+        return array[ConsumeIntegralInRange<size_t>(0, size - 1)];
+    }
+
+    template <typename T, size_t size>
+    T PickValueInArray(const std::array<T, size> &array) {
         static_assert(size > 0, "The array must be non empty.");
         return array[ConsumeIntegralInRange<size_t>(0, size - 1)];
     }

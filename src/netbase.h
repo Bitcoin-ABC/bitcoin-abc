@@ -61,6 +61,12 @@ public:
     bool randomize_credentials;
 };
 
+/** Credentials for proxy authentication */
+struct ProxyCredentials {
+    std::string username;
+    std::string password;
+};
+
 /**
  * Wrapper for getaddrinfo(3). Do not use directly: call
  * Lookup/LookupHost/LookupNumeric/LookupSubNet.
@@ -245,6 +251,9 @@ bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking);
 /** Set the TCP_NODELAY flag on a socket */
 bool SetSocketNoDelay(const SOCKET &hSocket);
 void InterruptSocks5(bool interrupt);
+
+bool Socks5(const std::string &strDest, uint16_t port,
+            const ProxyCredentials *auth, const Sock &socket);
 
 /**
  * Determine if a port is "bad" from the perspective of attempting to connect

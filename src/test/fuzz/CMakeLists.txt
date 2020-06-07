@@ -87,6 +87,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	secp256k1_ecdsa_signature_parse_der_lax.cpp
 	secp256k1_ec_seckey_import_export_der.cpp
 	signature_checker.cpp
+	socks5.cpp
 	span.cpp
 	spanparsing.cpp
 	string.cpp
