@@ -234,7 +234,8 @@ void MinerTestingSetup::TestPackageSelection(
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetId() == lowFeeTxId2);
 }
 
-void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
+void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
+                           const CTxMemPool &mempool) {
     GlobalConfig config;
     config.SetMaxBlockSize(eb);
 
@@ -245,7 +246,7 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
                   << OP_CHECKSIG;
 
     std::unique_ptr<CBlockTemplate> pblocktemplate =
-        BlockAssembler(config, g_mempool).CreateNewBlock(scriptPubKey);
+        BlockAssembler(config, mempool).CreateNewBlock(scriptPubKey);
 
     CBlock *pblock = &pblocktemplate->block;
 
@@ -263,10 +264,10 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
 // Coinbase scriptSig has to contains the correct EB value
 // converted to MB, rounded down to the first decimal
 BOOST_AUTO_TEST_CASE(CheckCoinbase_EB) {
-    TestCoinbaseMessageEB(1000001, "/EB1.0/");
-    TestCoinbaseMessageEB(2000000, "/EB2.0/");
-    TestCoinbaseMessageEB(8000000, "/EB8.0/");
-    TestCoinbaseMessageEB(8320000, "/EB8.3/");
+    TestCoinbaseMessageEB(1000001, "/EB1.0/", ::g_mempool);
+    TestCoinbaseMessageEB(2000000, "/EB2.0/", ::g_mempool);
+    TestCoinbaseMessageEB(8000000, "/EB8.0/", ::g_mempool);
+    TestCoinbaseMessageEB(8320000, "/EB8.3/", ::g_mempool);
 }
 
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
@@ -684,10 +685,11 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     fCheckpointsEnabled = true;
 }
 
-void CheckBlockMaxSize(const Config &config, uint64_t size, uint64_t expected) {
+void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,
+                       uint64_t size, uint64_t expected) {
     gArgs.ForceSetArg("-blockmaxsize", std::to_string(size));
 
-    BlockAssembler ba(config, g_mempool);
+    BlockAssembler ba(config, mempool);
     BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), expected);
 }
 
@@ -699,27 +701,30 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
 
     // Test around historical 1MB (plus one byte because that's mandatory)
     config.SetMaxBlockSize(ONE_MEGABYTE + 1);
-    CheckBlockMaxSize(config, 0, 1000);
-    CheckBlockMaxSize(config, 1000, 1000);
-    CheckBlockMaxSize(config, 1001, 1001);
-    CheckBlockMaxSize(config, 12345, 12345);
+    CheckBlockMaxSize(config, ::g_mempool, 0, 1000);
+    CheckBlockMaxSize(config, ::g_mempool, 1000, 1000);
+    CheckBlockMaxSize(config, ::g_mempool, 1001, 1001);
+    CheckBlockMaxSize(config, ::g_mempool, 12345, 12345);
 
-    CheckBlockMaxSize(config, ONE_MEGABYTE - 1001, ONE_MEGABYTE - 1001);
-    CheckBlockMaxSize(config, ONE_MEGABYTE - 1000, ONE_MEGABYTE - 1000);
-    CheckBlockMaxSize(config, ONE_MEGABYTE - 999, ONE_MEGABYTE - 999);
-    CheckBlockMaxSize(config, ONE_MEGABYTE, ONE_MEGABYTE - 999);
+    CheckBlockMaxSize(config, ::g_mempool, ONE_MEGABYTE - 1001,
+                      ONE_MEGABYTE - 1001);
+    CheckBlockMaxSize(config, ::g_mempool, ONE_MEGABYTE - 1000,
+                      ONE_MEGABYTE - 1000);
+    CheckBlockMaxSize(config, ::g_mempool, ONE_MEGABYTE - 999,
+                      ONE_MEGABYTE - 999);
+    CheckBlockMaxSize(config, ::g_mempool, ONE_MEGABYTE, ONE_MEGABYTE - 999);
 
     // Test around default cap
     config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
 
     // Now we can use the default max block size.
-    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE - 1001,
+    CheckBlockMaxSize(config, ::g_mempool, DEFAULT_MAX_BLOCK_SIZE - 1001,
                       DEFAULT_MAX_BLOCK_SIZE - 1001);
-    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE - 1000,
+    CheckBlockMaxSize(config, ::g_mempool, DEFAULT_MAX_BLOCK_SIZE - 1000,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
-    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE - 999,
+    CheckBlockMaxSize(config, ::g_mempool, DEFAULT_MAX_BLOCK_SIZE - 999,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
-    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE,
+    CheckBlockMaxSize(config, ::g_mempool, DEFAULT_MAX_BLOCK_SIZE,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
 
     // If the parameter is not specified, we use

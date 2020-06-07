@@ -50,7 +50,7 @@ struct TestSubscriber : public CValidationInterface {
     }
 };
 
-std::shared_ptr<CBlock> Block(const Config &config,
+std::shared_ptr<CBlock> Block(const Config &config, const CTxMemPool &mempool,
                               const BlockHash &prev_hash) {
     static int i = 0;
     static uint64_t time = config.GetChainParams().GenesisBlock().nTime;
@@ -58,7 +58,7 @@ std::shared_ptr<CBlock> Block(const Config &config,
     CScript pubKey;
     pubKey << i++ << OP_TRUE;
 
-    auto ptemplate = BlockAssembler(config, g_mempool).CreateNewBlock(pubKey);
+    auto ptemplate = BlockAssembler(config, mempool).CreateNewBlock(pubKey);
     auto pblock = std::make_shared<CBlock>(ptemplate->block);
     pblock->hashPrevBlock = prev_hash;
     pblock->nTime = ++time;
@@ -83,15 +83,17 @@ std::shared_ptr<CBlock> FinalizeBlock(const Consensus::Params &params,
 
 // construct a valid block
 const std::shared_ptr<const CBlock> GoodBlock(const Config &config,
+                                              const CTxMemPool &mempool,
                                               const BlockHash &prev_hash) {
     return FinalizeBlock(config.GetChainParams().GetConsensus(),
-                         Block(config, prev_hash));
+                         Block(config, mempool, prev_hash));
 }
 
 // construct an invalid block (but with a valid header)
 const std::shared_ptr<const CBlock> BadBlock(const Config &config,
+                                             const CTxMemPool &mempool,
                                              const BlockHash &prev_hash) {
-    auto pblock = Block(config, prev_hash);
+    auto pblock = Block(config, mempool, prev_hash);
 
     CMutableTransaction coinbase_spend;
     coinbase_spend.vin.push_back(
@@ -105,7 +107,8 @@ const std::shared_ptr<const CBlock> BadBlock(const Config &config,
     return ret;
 }
 
-void BuildChain(const Config &config, const BlockHash &root, int height,
+void BuildChain(const Config &config, const CTxMemPool &mempool,
+                const BlockHash &root, int height,
                 const unsigned int invalid_rate, const unsigned int branch_rate,
                 const unsigned int max_size,
                 std::vector<std::shared_ptr<const CBlock>> &blocks) {
@@ -117,17 +120,18 @@ void BuildChain(const Config &config, const BlockHash &root, int height,
     bool gen_fork = InsecureRandRange(100) < branch_rate;
 
     const std::shared_ptr<const CBlock> pblock =
-        gen_invalid ? BadBlock(config, root) : GoodBlock(config, root);
+        gen_invalid ? BadBlock(config, mempool, root)
+                    : GoodBlock(config, mempool, root);
     blocks.push_back(pblock);
     if (!gen_invalid) {
-        BuildChain(config, pblock->GetHash(), height - 1, invalid_rate,
+        BuildChain(config, mempool, pblock->GetHash(), height - 1, invalid_rate,
                    branch_rate, max_size, blocks);
     }
 
     if (gen_fork) {
-        blocks.push_back(GoodBlock(config, root));
-        BuildChain(config, blocks.back()->GetHash(), height - 1, invalid_rate,
-                   branch_rate, max_size, blocks);
+        blocks.push_back(GoodBlock(config, mempool, root));
+        BuildChain(config, mempool, blocks.back()->GetHash(), height - 1,
+                   invalid_rate, branch_rate, max_size, blocks);
     }
 }
 
@@ -139,8 +143,8 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     std::vector<std::shared_ptr<const CBlock>> blocks;
     while (blocks.size() < 50) {
         blocks.clear();
-        BuildChain(config, chainParams.GenesisBlock().GetHash(), 100, 15, 10,
-                   500, blocks);
+        BuildChain(config, ::g_mempool, chainParams.GenesisBlock().GetHash(),
+                   100, 15, 10, 500, blocks);
     }
 
     bool ignored;

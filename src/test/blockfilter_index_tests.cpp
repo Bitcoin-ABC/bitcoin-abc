@@ -57,10 +57,11 @@ static bool CheckFilterLookups(BlockFilterIndex &filter_index,
 
 static CBlock CreateBlock(const CBlockIndex *prev,
                           const std::vector<CMutableTransaction> &txns,
-                          const CScript &scriptPubKey) {
+                          const CScript &scriptPubKey,
+                          const CTxMemPool &mempool) {
     const Config &config = GetConfig();
     std::unique_ptr<CBlockTemplate> pblocktemplate =
-        BlockAssembler(config, g_mempool).CreateNewBlock(scriptPubKey);
+        BlockAssembler(config, mempool).CreateNewBlock(scriptPubKey);
     CBlock &block = pblocktemplate->block;
     block.hashPrevBlock = prev->GetBlockHash();
     block.nTime = prev->nTime + 1;
@@ -84,13 +85,14 @@ static CBlock CreateBlock(const CBlockIndex *prev,
 
 static bool BuildChain(const CBlockIndex *pindex,
                        const CScript &coinbase_script_pub_key, size_t length,
-                       std::vector<std::shared_ptr<CBlock>> &chain) {
+                       std::vector<std::shared_ptr<CBlock>> &chain,
+                       const CTxMemPool &mempool) {
     std::vector<CMutableTransaction> no_txns;
 
     chain.resize(length);
     for (auto &block : chain) {
         block = std::make_shared<CBlock>(
-            CreateBlock(pindex, no_txns, coinbase_script_pub_key));
+            CreateBlock(pindex, no_txns, coinbase_script_pub_key, mempool));
         CBlockHeader header = block->GetBlockHeader();
 
         CValidationState state;
@@ -164,8 +166,10 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync, TestChain100Setup) {
     CScript coinbase_script_pub_key =
         GetScriptForDestination(PKHash(coinbaseKey.GetPubKey()));
     std::vector<std::shared_ptr<CBlock>> chainA, chainB;
-    BOOST_REQUIRE(BuildChain(tip, coinbase_script_pub_key, 10, chainA));
-    BOOST_REQUIRE(BuildChain(tip, coinbase_script_pub_key, 10, chainB));
+    BOOST_REQUIRE(
+        BuildChain(tip, coinbase_script_pub_key, 10, chainA, ::g_mempool));
+    BOOST_REQUIRE(
+        BuildChain(tip, coinbase_script_pub_key, 10, chainB, ::g_mempool));
 
     // Check that new blocks on chain A get indexed.
     uint256 chainA_last_header = last_header;
