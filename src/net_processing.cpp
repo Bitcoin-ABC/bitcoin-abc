@@ -5554,8 +5554,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         //
         // Message: feefilter
         //
-        // We don't want white listed peers to filter txs to us if we have
-        // -whitelistforcerelay
+        // peers with the forcerelay permission should not filter txs to us
         if (pto->m_tx_relay != nullptr &&
             pto->GetCommonVersion() >= FEEFILTER_VERSION &&
             gArgs.GetBoolArg("-feefilter", DEFAULT_FEEFILTER) &&
