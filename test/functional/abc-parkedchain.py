@@ -16,7 +16,7 @@ class ParkedChainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.extra_args = [["-noparkdeepreorg",
-                            "-noautomaticunparking"], ["-maxreorgdepth=-1"]]
+                            "-noautomaticunparking", "-whitelist=noban@127.0.0.1"], ["-maxreorgdepth=-1"]]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

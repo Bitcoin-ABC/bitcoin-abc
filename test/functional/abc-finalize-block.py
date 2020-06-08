@@ -22,7 +22,7 @@ RPC_BLOCK_NOT_FOUND_ERROR = 'Block not found'
 class FinalizeBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 3
-        self.extra_args = [["-finalizationdelay=0"],
+        self.extra_args = [["-finalizationdelay=0", "-whitelist=noban@127.0.0.1"],
                            ["-finalizationdelay=0"], []]
         self.finalization_delay = 2 * 60 * 60
 
