@@ -4,6 +4,7 @@
 
 #include <bench/bench.h>
 
+#include <crypto/sha256.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 
@@ -50,6 +51,7 @@ static std::vector<double> parseAsymptote(const std::string &str) {
 int main(int argc, char **argv) {
     ArgsManager argsman;
     SetupBenchArgs(argsman);
+    SHA256AutoDetect();
     std::string error;
     if (!argsman.ParseParameters(argc, argv, error)) {
         tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
