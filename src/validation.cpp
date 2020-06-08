@@ -42,6 +42,7 @@
 #include <txmempool.h>
 #include <ui_interface.h>
 #include <undo.h>
+#include <util/check.h> // For NDEBUG compile time check
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <util/system.h>

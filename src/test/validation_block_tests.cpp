@@ -186,13 +186,15 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
         [](std::shared_ptr<const CBlock> b) { return b->GetBlockHeader(); });
 
     // Process all the headers so we understand the toplogy of the chain
-    BOOST_CHECK(
-        EnsureChainman(m_node).ProcessNewBlockHeaders(config, headers, state));
+    BOOST_CHECK(Assert(m_node.chainman)
+                    ->ProcessNewBlockHeaders(config, headers, state));
 
     // Connect the genesis block and drain any outstanding events
-    BOOST_CHECK(EnsureChainman(m_node).ProcessNewBlock(
-        config, std::make_shared<CBlock>(chainParams.GenesisBlock()), true,
-        &ignored));
+    BOOST_CHECK(Assert(m_node.chainman)
+                    ->ProcessNewBlock(
+                        config,
+                        std::make_shared<CBlock>(chainParams.GenesisBlock()),
+                        true, &ignored));
     SyncWithValidationInterfaceQueue();
 
     // subscribe to events (this subscriber will validate event ordering)
@@ -215,16 +217,17 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
             FastRandomContext insecure;
             for (int j = 0; j < 1000; j++) {
                 auto block = blocks[insecure.randrange(blocks.size() - 1)];
-                EnsureChainman(m_node).ProcessNewBlock(config, block, true,
-                                                       &tlignored);
+                Assert(m_node.chainman)
+                    ->ProcessNewBlock(config, block, true, &tlignored);
             }
 
             // to make sure that eventually we process the full chain - do it
             // here
             for (auto block : blocks) {
                 if (block->vtx.size() == 1) {
-                    bool processed = EnsureChainman(m_node).ProcessNewBlock(
-                        config, block, true, &tlignored);
+                    bool processed =
+                        Assert(m_node.chainman)
+                            ->ProcessNewBlock(config, block, true, &tlignored);
                     assert(processed);
                 }
             }
@@ -269,9 +272,9 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
 
     bool ignored;
     auto ProcessBlock = [&](std::shared_ptr<const CBlock> block) -> bool {
-        return EnsureChainman(m_node).ProcessNewBlock(
-            config, block, /* fForceProcessing */ true,
-            /* fNewBlock */ &ignored);
+        return Assert(m_node.chainman)
+            ->ProcessNewBlock(config, block, /* fForceProcessing */ true,
+                              /* fNewBlock */ &ignored);
     };
 
     // Process all mined blocks

@@ -45,7 +45,7 @@ final class CheckNonFatalOverAssertInRpc extends ArcanistLinter {
     $absPath = Filesystem::resolvePath($path, $this->getProjectRoot());
     $fileContent = Filesystem::readFile($absPath);
 
-    if (!preg_match_all("/(assert\((.*)\);)/", $fileContent,
+    if (!preg_match_all("/((A|a)ssert\((.*)\);)/", $fileContent,
       $matches, PREG_OFFSET_CAPTURE)) {
       return;
     }

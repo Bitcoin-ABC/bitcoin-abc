@@ -55,6 +55,7 @@
 #include <txmempool.h>
 #include <ui_interface.h>
 #include <util/asmap.h>
+#include <util/check.h>
 #include <util/moneystr.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
@@ -2213,11 +2214,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         GetRand(std::numeric_limits<uint64_t>::max()));
     assert(!node.chainman);
     node.chainman = &g_chainman;
-    ChainstateManager &chainman = EnsureChainman(node);
+    ChainstateManager &chainman = *Assert(node.chainman);
 
-    node.peer_logic.reset(
-        new PeerLogicValidation(node.connman.get(), node.banman.get(),
-                                *node.scheduler, *node.chainman));
+    node.peer_logic.reset(new PeerLogicValidation(
+        node.connman.get(), node.banman.get(), *node.scheduler, chainman));
     RegisterValidationInterface(node.peer_logic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size

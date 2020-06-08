@@ -30,16 +30,13 @@
 #include <scheduler.h>
 #include <tinyformat.h>
 #include <txmempool.h>
+#include <util/check.h> // For NDEBUG compile time check
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <validation.h>
 
 #include <memory>
 #include <typeinfo>
-
-#if defined(NDEBUG)
-#error "Bitcoin cannot be compiled without assertions."
-#endif
 
 /** Expiration time for orphan transactions in seconds */
 static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;

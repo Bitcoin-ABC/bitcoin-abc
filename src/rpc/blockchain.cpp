@@ -70,7 +70,10 @@ CTxMemPool &EnsureMemPool(const util::Ref &context) {
 
 ChainstateManager &EnsureChainman(const util::Ref &context) {
     NodeContext &node = EnsureNodeContext(context);
-    return EnsureChainman(node);
+    if (!node.chainman) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Node chainman not found");
+    }
+    return *node.chainman;
 }
 
 /**

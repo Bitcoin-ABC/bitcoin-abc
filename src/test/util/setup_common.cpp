@@ -252,8 +252,8 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
 
     std::shared_ptr<const CBlock> shared_pblock =
         std::make_shared<const CBlock>(block);
-    EnsureChainman(m_node).ProcessNewBlock(config, shared_pblock, true,
-                                           nullptr);
+    Assert(m_node.chainman)
+        ->ProcessNewBlock(config, shared_pblock, true, nullptr);
 
     CBlock result = block;
     return result;

@@ -12,6 +12,7 @@
 #include <node/context.h>
 #include <pow/pow.h>
 #include <script/standard.h>
+#include <util/check.h>
 #include <validation.h>
 
 const std::string ADDRESS_BCHREG_UNSPENDABLE =
@@ -37,7 +38,7 @@ CTxIn MineBlock(const Config &config, const NodeContext &node,
     }
 
     bool processed{
-        EnsureChainman(node).ProcessNewBlock(config, block, true, nullptr)};
+        Assert(node.chainman)->ProcessNewBlock(config, block, true, nullptr)};
     assert(processed);
 
     return CTxIn{block->vtx[0]->GetId(), 0};
@@ -46,9 +47,8 @@ CTxIn MineBlock(const Config &config, const NodeContext &node,
 std::shared_ptr<CBlock> PrepareBlock(const Config &config,
                                      const NodeContext &node,
                                      const CScript &coinbase_scriptPubKey) {
-    assert(node.mempool);
     auto block =
-        std::make_shared<CBlock>(BlockAssembler{config, *node.mempool}
+        std::make_shared<CBlock>(BlockAssembler{config, *Assert(node.mempool)}
                                      .CreateNewBlock(coinbase_scriptPubKey)
                                      ->block);
 
