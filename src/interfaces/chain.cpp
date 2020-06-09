@@ -56,6 +56,15 @@ namespace {
         if (block.m_mtp_time) {
             *block.m_mtp_time = index->GetMedianTimePast();
         }
+        if (block.m_in_active_chain) {
+            *block.m_in_active_chain = ChainActive()[index->nHeight] == index;
+        }
+        if (block.m_next_block) {
+            FillBlock(ChainActive()[index->nHeight] == index
+                          ? ChainActive()[index->nHeight + 1]
+                          : nullptr,
+                      *block.m_next_block, lock);
+        }
         if (block.m_data) {
             REVERSE_LOCK(lock);
             if (!ReadBlockFromDisk(*block.m_data, index,
@@ -175,14 +184,6 @@ namespace {
             }
             return std::nullopt;
         }
-        std::optional<int> getBlockHeight(const BlockHash &hash) override {
-            LOCK(::cs_main);
-            CBlockIndex *block = g_chainman.m_blockman.LookupBlockIndex(hash);
-            if (block && ::ChainActive().Contains(block)) {
-                return block->nHeight;
-            }
-            return std::nullopt;
-        }
         BlockHash getBlockHash(int height) override {
             LOCK(::cs_main);
             CBlockIndex *block = ::ChainActive()[height];
@@ -193,20 +194,6 @@ namespace {
             LOCK(cs_main);
             CBlockIndex *block = ::ChainActive()[height];
             return block && (block->nStatus.hasData() != 0) && block->nTx > 0;
-        }
-        std::optional<int>
-        findFirstBlockWithTimeAndHeight(int64_t time, int height,
-                                        BlockHash *hash) override {
-            LOCK(cs_main);
-            CBlockIndex *block =
-                ::ChainActive().FindEarliestAtLeast(time, height);
-            if (block) {
-                if (hash) {
-                    *hash = block->GetBlockHash();
-                }
-                return block->nHeight;
-            }
-            return std::nullopt;
         }
         CBlockLocator getTipLocator() override {
             LOCK(cs_main);
@@ -239,19 +226,6 @@ namespace {
             return FillBlock(
                 ChainActive().FindEarliestAtLeast(min_time, min_height), block,
                 lock);
-        }
-        bool findNextBlock(const BlockHash &block_hash, int block_height,
-                           const FoundBlock &next, bool *reorg) override {
-            WAIT_LOCK(cs_main, lock);
-            CBlockIndex *block = ChainActive()[block_height];
-            if (block && block->GetBlockHash() != block_hash) {
-                block = nullptr;
-            }
-            if (reorg) {
-                *reorg = !block;
-            }
-            return FillBlock(block ? ChainActive()[block_height + 1] : nullptr,
-                             next, lock);
         }
         bool findAncestorByHeight(const BlockHash &block_hash,
                                   int ancestor_height,
