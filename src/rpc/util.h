@@ -7,6 +7,7 @@
 
 #include <node/transaction.h>
 #include <rpc/protocol.h>
+#include <rpc/request.h>
 #include <script/standard.h> // For CTxDestination
 #include <univalue.h>
 #include <util/check.h>

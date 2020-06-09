@@ -206,10 +206,10 @@ BITCOIN_CORE_H = \
   rpc/blockchain.h \
   rpc/client.h \
   rpc/command.h \
-  rpc/jsonrpcrequest.h \
   rpc/mining.h \
   rpc/protocol.h \
   rpc/rawtransaction_util.h \
+  rpc/request.h \
   rpc/server.h \
   rpc/register.h \
   rpc/util.h \
@@ -331,11 +331,11 @@ libbitcoin_server_a_SOURCES = \
   rpc/avalanche.cpp \
   rpc/blockchain.cpp \
   rpc/command.cpp \
-  rpc/jsonrpcrequest.cpp \
   rpc/mining.cpp \
   rpc/misc.cpp \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
+  rpc/request.cpp \
   rpc/server.cpp \
   script/scriptcache.cpp \
   script/sigcache.cpp \

@@ -524,11 +524,11 @@ add_library(server
 	rpc/avalanche.cpp
 	rpc/blockchain.cpp
 	rpc/command.cpp
-	rpc/jsonrpcrequest.cpp
 	rpc/mining.cpp
 	rpc/misc.cpp
 	rpc/net.cpp
 	rpc/rawtransaction.cpp
+	rpc/request.cpp
 	rpc/server.cpp
 	script/scriptcache.cpp
 	script/sigcache.cpp

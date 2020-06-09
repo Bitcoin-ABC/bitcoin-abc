@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <logging.h>
-#include <rpc/jsonrpcrequest.h>
 #include <rpc/protocol.h>
+#include <rpc/request.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
 

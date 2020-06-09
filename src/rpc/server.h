@@ -9,8 +9,8 @@
 
 #include <amount.h>
 #include <rpc/command.h>
-#include <rpc/jsonrpcrequest.h>
 #include <rpc/protocol.h>
+#include <rpc/request.h>
 #include <rwcollection.h>
 #include <uint256.h>
 #include <util/system.h>
