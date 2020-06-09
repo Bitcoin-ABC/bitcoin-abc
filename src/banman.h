@@ -6,6 +6,7 @@
 #define BITCOIN_BANMAN_H
 
 #include <addrdb.h>
+#include <bloom.h>
 #include <fs.h>
 #include <sync.h>
 
@@ -67,7 +68,18 @@ private:
     CClientUIInterface *m_client_interface = nullptr;
     CBanDB m_ban_db;
     const int64_t m_default_ban_time;
-};
 
+    /**
+     *  Individual addresses that of peers that misbehave (see Misbehaving() in
+     *  net_processing) are not banned but discouraged: we still allow incoming
+     *  connections from them, but prefer them for eviction. Similar to banned
+     *  IPs, we never make outgoing connections to them, and do not rumour them
+     *  to other peers.
+     *
+     *  This is implemented as a bloom filter. We can (probabilistically) test
+     *  for membership, but can't list or unban automatically banned peers.
+     */
+    CRollingBloomFilter m_discouraged GUARDED_BY(m_cs_banned){50000, 0.000001};
+};
 
 #endif // BITCOIN_BANMAN_H

@@ -100,6 +100,9 @@ public:
     uint64_t GetHash() const;
     bool GetInAddr(struct in_addr *pipv4Addr) const;
     std::vector<uint8_t> GetGroup() const;
+    std::vector<uint8_t> GetAddrBytes() const {
+        return {std::begin(ip), std::end(ip)};
+    }
     int GetReachabilityFrom(const CNetAddr *paddrPartner = nullptr) const;
 
     explicit CNetAddr(const struct in6_addr &pipv6Addr,

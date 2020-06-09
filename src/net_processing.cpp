@@ -3903,11 +3903,14 @@ bool PeerLogicValidation::SendRejectsAndCheckIfBanned(CNode *pnode,
                       pnode->addr.ToString());
         } else if (pnode->addr.IsLocal()) {
             // Disconnect but don't ban _this_ local node
-            LogPrintf("Warning: disconnecting but not banning local peer %s!\n",
-                      pnode->addr.ToString());
+            LogPrintf(
+                "Warning: disconnecting but not discouraging local peer %s!\n",
+                pnode->addr.ToString());
             pnode->fDisconnect = true;
         } else {
             // Disconnect and ban all nodes sharing the address
+            LogPrintf("Disconnecting and discouraging peer %s!\n",
+                      pnode->addr.ToString());
             if (m_banman) {
                 m_banman->Ban(pnode->addr, BanReasonNodeMisbehaving);
             }

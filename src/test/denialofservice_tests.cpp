@@ -382,12 +382,6 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     }
     BOOST_CHECK(banman->IsBanned(addr));
 
-    SetMockTime(nStartTime + 60 * 60);
-    BOOST_CHECK(banman->IsBanned(addr));
-
-    SetMockTime(nStartTime + 60 * 60 * 24 + 1);
-    BOOST_CHECK(!banman->IsBanned(addr));
-
     bool dummy;
     peerLogic->FinalizeNode(config, dummyNode.GetId(), dummy);
 }

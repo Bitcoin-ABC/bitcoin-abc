@@ -664,8 +664,8 @@ static UniValue getnetworkinfo(const Config &config,
 static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     const RPCHelpMan help{
         "setban",
-        "\nAttempts to add or remove an IP/Subnet from the "
-        "banned list.\n",
+        "\nAttempts to add or remove an IP/Subnet from the banned list.\n"
+        "Peers that are automatically banned cannot be unbanned.\n",
         {
             {"subnet", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The IP/Subnet (see getpeerinfo for nodes IP) with an optional "
@@ -725,8 +725,9 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (strCommand == "add") {
-        if (isSubnet ? g_rpc_node->banman->IsBanned(subNet)
-                     : g_rpc_node->banman->IsBanned(netAddr)) {
+        if ((isSubnet && g_rpc_node->banman->IsBanned(subNet)) ||
+            (!isSubnet && g_rpc_node->banman->IsBannedLevel(netAddr) ==
+                              BanReasonManuallyAdded)) {
             throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED,
                                "Error: IP/Subnet already banned");
         }
@@ -760,7 +761,7 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
                        : g_rpc_node->banman->Unban(netAddr))) {
             throw JSONRPCError(RPC_CLIENT_INVALID_IP_OR_SUBNET,
                                "Error: Unban failed. Requested address/subnet "
-                               "was not previously banned.");
+                               "was not previously manually banned.");
         }
     }
     return NullUniValue;
@@ -771,7 +772,7 @@ static UniValue listbanned(const Config &config,
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(RPCHelpMan{
             "listbanned",
-            "\nList all banned IPs/Subnets.\n",
+            "\nList all manually banned IPs/Subnets.\n",
             {},
             RPCResults{},
             RPCExamples{HelpExampleCli("listbanned", "") +
@@ -795,7 +796,6 @@ static UniValue listbanned(const Config &config,
         rec.pushKV("address", entry.first.ToString());
         rec.pushKV("banned_until", banEntry.nBanUntil);
         rec.pushKV("ban_created", banEntry.nCreateTime);
-        rec.pushKV("ban_reason", banEntry.banReasonToString());
 
         bannedAddresses.push_back(rec);
     }
