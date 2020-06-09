@@ -84,6 +84,7 @@ add_regular_fuzz_targets(
 	addrdb
 	asmap
 	asmap_direct
+	banman
 	base_encode_decode
 	block
 	block_header
