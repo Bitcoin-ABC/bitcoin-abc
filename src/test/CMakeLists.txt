@@ -84,8 +84,8 @@ if(ENABLE_PROPERTY_BASED_TESTS)
 endif()
 
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
+	fixture.cpp
 	jsonutil.cpp
-	main.cpp
 	scriptflags.cpp
 	sigutil.cpp
 

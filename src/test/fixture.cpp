@@ -10,7 +10,7 @@
 
 namespace utf = boost::unit_test::framework;
 
-/*
+/**
  * Global fixture for passing custom arguments, and clearing them all after each
  * test case.
  */
@@ -43,4 +43,4 @@ struct CustomArgumentsFixture {
     ~CustomArgumentsFixture(){};
 };
 
-BOOST_GLOBAL_FIXTURE(CustomArgumentsFixture);
+BOOST_TEST_GLOBAL_FIXTURE(CustomArgumentsFixture);
