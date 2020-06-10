@@ -72,7 +72,7 @@ namespace {
         void initParameterInteraction() override {
             InitParameterInteraction(*Assert(m_context->args));
         }
-        std::string getWarnings() override { return GetWarnings(true); }
+        bilingual_str getWarnings() override { return GetWarnings(true); }
         bool baseInitialize(Config &config) override {
             return AppInitBasicSetup(gArgs) &&
                    AppInitParameterInteraction(config, gArgs) &&

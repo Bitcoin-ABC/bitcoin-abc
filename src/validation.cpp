@@ -1310,7 +1310,7 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
 /** Abort with a message */
 static bool AbortNode(const std::string &strMessage,
                       bilingual_str user_message = bilingual_str()) {
-    SetMiscWarning(strMessage);
+    SetMiscWarning(Untranslated(strMessage));
     LogPrintf("*** %s\n", strMessage);
     if (!user_message.empty()) {
         user_message =

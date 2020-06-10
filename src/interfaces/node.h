@@ -11,6 +11,7 @@
 #include <netaddress.h> // For Network
 
 #include <support/allocators/secure.h> // For SecureString
+#include <util/translation.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -54,7 +55,7 @@ public:
     virtual void initParameterInteraction() = 0;
 
     //! Get warnings.
-    virtual std::string getWarnings() = 0;
+    virtual bilingual_str getWarnings() = 0;
 
     //! Initialize app dependencies.
     virtual bool baseInitialize(Config &config) = 0;

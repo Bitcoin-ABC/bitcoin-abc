@@ -151,7 +151,8 @@ BitcoinABC::BitcoinABC(interfaces::Node &node) : QObject(), m_node(node) {}
 
 void BitcoinABC::handleRunawayException(const std::exception *e) {
     PrintExceptionContinue(e, "Runaway exception");
-    Q_EMIT runawayException(QString::fromStdString(m_node.getWarnings()));
+    Q_EMIT runawayException(
+        QString::fromStdString(m_node.getWarnings().translated));
 }
 
 void BitcoinABC::initialize(Config *config, RPCServer *rpcServer,
@@ -789,11 +790,11 @@ int GuiMain(int argc, char *argv[]) {
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "Runaway exception");
         app.handleRunawayException(
-            QString::fromStdString(app.node().getWarnings()));
+            QString::fromStdString(app.node().getWarnings().translated));
     } catch (...) {
         PrintExceptionContinue(nullptr, "Runaway exception");
         app.handleRunawayException(
-            QString::fromStdString(app.node().getWarnings()));
+            QString::fromStdString(app.node().getWarnings().translated));
     }
     return EXIT_FAILURE;
 }

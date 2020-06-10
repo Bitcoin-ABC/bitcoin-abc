@@ -107,7 +107,7 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
                                     "and time are correct! If your clock is "
                                     "wrong, %s will not work properly."),
                                   PACKAGE_NAME);
-                    SetMiscWarning(strMessage.translated);
+                    SetMiscWarning(strMessage);
                     uiInterface.ThreadSafeMessageBox(
                         strMessage, "", CClientUIInterface::MSG_WARNING);
                 }

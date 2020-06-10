@@ -33,6 +33,7 @@
 #include <util/ref.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <versionbitsinfo.h> // For VersionBitsDeploymentInfo
@@ -1577,7 +1578,7 @@ UniValue getblockchaininfo(const Config &config,
     }
     obj.pushKV("softforks", softforks);
 
-    obj.pushKV("warnings", GetWarnings(false));
+    obj.pushKV("warnings", GetWarnings(false).original);
     return obj;
 }
 
