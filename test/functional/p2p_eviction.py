@@ -17,7 +17,7 @@ import time
 
 from test_framework.avatools import AvaP2PInterface, create_coinbase_stakes
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.key import ECKey, bytes_to_wif
+from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheProof,
     CTransaction,
@@ -29,6 +29,7 @@ from test_framework.messages import (
 from test_framework.p2p import P2PDataStore, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until
+from test_framework.wallet_util import bytes_to_wif
 
 
 class SlowP2PDataStore(P2PDataStore):

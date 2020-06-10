@@ -13,7 +13,7 @@ from test_framework.avatools import (
     get_proof_ids,
     wait_for_proof,
 )
-from test_framework.key import ECKey, bytes_to_wif
+from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheDelegation,
     AvalancheDelegationLevel,
@@ -30,6 +30,7 @@ from test_framework.util import (
     wait_until,
     assert_raises_rpc_error,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 AVALANCHE_MAX_PROOF_STAKES = 1000
 

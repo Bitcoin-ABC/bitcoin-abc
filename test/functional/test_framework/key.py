@@ -12,8 +12,6 @@ anything but tests.
 import hashlib
 import random
 
-from .address import byte_to_base58
-
 
 def modinv(a, n):
     """Compute the modular inverse of a modulo n
@@ -423,16 +421,3 @@ class ECKey():
 
         assert pubkey.verify_schnorr(sig, msg32)
         return sig
-
-
-def bytes_to_wif(b, compressed=True):
-    if compressed:
-        b += b'\x01'
-    return byte_to_base58(b, 239)
-
-
-def generate_wif_key():
-    # Makes a WIF privkey for imports
-    k = ECKey()
-    k.generate()
-    return bytes_to_wif(k.get_bytes(), k.is_compressed)

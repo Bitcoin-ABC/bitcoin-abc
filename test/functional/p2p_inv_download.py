@@ -8,7 +8,7 @@ Test inventory download behavior
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import wait_for_proof
-from test_framework.key import ECKey, bytes_to_wif
+from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheProof,
     CInv,
@@ -31,6 +31,7 @@ from test_framework.util import (
     assert_raises_rpc_error,
     wait_until,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 import functools
 import time

@@ -17,7 +17,6 @@ from test_framework.avatools import (
     get_proof_ids,
 )
 from test_framework.key import (
-    bytes_to_wif,
     ECKey,
     ECPubKey,
 )
@@ -36,6 +35,7 @@ from test_framework.util import (
     assert_equal,
     wait_until,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 UNCONDITIONAL_RELAY_DELAY = 2 * 60
 
