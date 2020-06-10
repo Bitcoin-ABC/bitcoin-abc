@@ -320,7 +320,8 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
          * If this results in a DoS the user really shouldn't have their RPC
          * port exposed.
          */
-        MilliSleep(RPC_AUTH_BRUTE_FORCE_DELAY);
+        UninterruptibleSleep(
+            std::chrono::milliseconds{RPC_AUTH_BRUTE_FORCE_DELAY});
 
         req->WriteHeader("WWW-Authenticate", WWW_AUTH_HEADER_DATA);
         req->WriteReply(HTTP_UNAUTHORIZED);

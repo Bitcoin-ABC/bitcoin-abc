@@ -218,7 +218,8 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
     // this reply will get back to the client.
     StartShutdown();
     if (jsonRequest.params[0].isNum()) {
-        MilliSleep(jsonRequest.params[0].get_int());
+        UninterruptibleSleep(
+            std::chrono::milliseconds{jsonRequest.params[0].get_int()});
     }
     return "Bitcoin server stopping";
 }
