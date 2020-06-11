@@ -205,12 +205,6 @@ static std::string LabelFromValue(const UniValue &value) {
 
 static UniValue getnewaddress(const Config &config,
                               const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getnewaddress",
         "Returns a new Bitcoin address for receiving payments.\n"
@@ -233,6 +227,12 @@ static UniValue getnewaddress(const Config &config,
                     HelpExampleRpc("getnewaddress", "")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -267,12 +267,6 @@ static UniValue getnewaddress(const Config &config,
 
 static UniValue getrawchangeaddress(const Config &config,
                                     const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getrawchangeaddress",
         "Returns a new Bitcoin address, for receiving change.\n"
@@ -283,6 +277,12 @@ static UniValue getrawchangeaddress(const Config &config,
                     HelpExampleRpc("getrawchangeaddress", "")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -312,12 +312,6 @@ static UniValue getrawchangeaddress(const Config &config,
 }
 
 static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "setlabel",
         "Sets the label associated with the given address.\n",
@@ -336,6 +330,12 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
                 "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"tabby\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -402,12 +402,6 @@ static CTransactionRef SendMoney(CWallet *const pwallet,
 
 static UniValue sendtoaddress(const Config &config,
                               const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "sendtoaddress",
         "Send an amount to a given address.\n" + HELP_REQUIRING_PASSPHRASE,
@@ -453,6 +447,12 @@ static UniValue sendtoaddress(const Config &config,
                                             "outpost\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -502,12 +502,6 @@ static UniValue sendtoaddress(const Config &config,
 
 static UniValue listaddressgroupings(const Config &config,
                                      const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "listaddressgroupings",
         "Lists groups of addresses which have had their common ownership\n"
@@ -540,6 +534,12 @@ static UniValue listaddressgroupings(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -571,12 +571,6 @@ static UniValue listaddressgroupings(const Config &config,
 
 static UniValue signmessage(const Config &config,
                             const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "signmessage",
         "Sign a message with the private key of an address" +
@@ -606,6 +600,11 @@ static UniValue signmessage(const Config &config,
                 "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"my message\"")},
     }
         .Check(request);
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -693,12 +692,6 @@ static Amount GetReceived(const CWallet &wallet, const UniValue &params,
 
 static UniValue getreceivedbyaddress(const Config &config,
                                      const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getreceivedbyaddress",
         "Returns the total amount received by the given address in "
@@ -729,6 +722,12 @@ static UniValue getreceivedbyaddress(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -741,12 +740,6 @@ static UniValue getreceivedbyaddress(const Config &config,
 
 static UniValue getreceivedbylabel(const Config &config,
                                    const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getreceivedbylabel",
         "Returns the total amount received by addresses with <label> in "
@@ -773,6 +766,12 @@ static UniValue getreceivedbylabel(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -785,12 +784,6 @@ static UniValue getreceivedbylabel(const Config &config,
 
 static UniValue getbalance(const Config &config,
                            const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getbalance",
         "Returns the total available balance.\n"
@@ -826,6 +819,12 @@ static UniValue getbalance(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -857,12 +856,6 @@ static UniValue getbalance(const Config &config,
 
 static UniValue getunconfirmedbalance(const Config &config,
                                       const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getunconfirmedbalance",
         "DEPRECATED\nIdentical to getbalances().mine.untrusted_pending\n",
@@ -871,6 +864,12 @@ static UniValue getunconfirmedbalance(const Config &config,
         RPCExamples{""},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -882,12 +881,6 @@ static UniValue getunconfirmedbalance(const Config &config,
 }
 
 static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "sendmany",
         "Send multiple times. Amounts are double-precision "
@@ -974,6 +967,12 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -1056,12 +1055,6 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue addmultisigaddress(const Config &config,
                                    const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "addmultisigaddress",
         "Add an nrequired-to-sign multisignature address to the wallet. "
@@ -1112,6 +1105,12 @@ static UniValue addmultisigaddress(const Config &config,
                            "\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*pwallet);
 
@@ -1324,12 +1323,6 @@ static UniValue ListReceived(const Config &config, const CWallet *const pwallet,
 
 static UniValue listreceivedbyaddress(const Config &config,
                                       const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "listreceivedbyaddress",
         "List balances by receiving address.\n",
@@ -1388,6 +1381,12 @@ static UniValue listreceivedbyaddress(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -1399,12 +1398,6 @@ static UniValue listreceivedbyaddress(const Config &config,
 
 static UniValue listreceivedbylabel(const Config &config,
                                     const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "listreceivedbylabel",
         "List received transactions by label.\n",
@@ -1445,6 +1438,12 @@ static UniValue listreceivedbylabel(const Config &config,
                     HelpExampleRpc("listreceivedbylabel", "6, true, true")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -1591,12 +1590,6 @@ static const std::vector<RPCResult> TransactionDescriptionString() {
 }
 
 UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "listtransactions",
         "If a label name is provided, this will return only incoming "
@@ -1673,6 +1666,12 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -1744,13 +1743,6 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue listsinceblock(const Config &config,
                                const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const pwallet =
-        GetWalletForJSONRPCRequest(request);
-
-    if (!pwallet) {
-        return NullUniValue;
-    }
-
     RPCHelpMan{
         "listsinceblock",
         "Get all transactions in blocks since block [blockhash], or all "
@@ -1867,6 +1859,13 @@ static UniValue listsinceblock(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const pwallet =
+        GetWalletForJSONRPCRequest(request);
+
+    if (!pwallet) {
+        return NullUniValue;
+    }
+
     const CWallet &wallet = *pwallet;
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -1966,12 +1965,6 @@ static UniValue listsinceblock(const Config &config,
 
 static UniValue gettransaction(const Config &config,
                                const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "gettransaction",
         "Get detailed information about in-wallet transaction <txid>\n",
@@ -2071,6 +2064,12 @@ static UniValue gettransaction(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -2128,12 +2127,6 @@ static UniValue gettransaction(const Config &config,
 
 static UniValue abandontransaction(const Config &config,
                                    const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "abandontransaction",
         "Mark in-wallet transaction <txid> as abandoned\n"
@@ -2158,6 +2151,12 @@ static UniValue abandontransaction(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -2181,12 +2180,6 @@ static UniValue abandontransaction(const Config &config,
 
 static UniValue backupwallet(const Config &config,
                              const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "backupwallet",
         "Safely copies current wallet file to destination, which can be a "
@@ -2200,6 +2193,12 @@ static UniValue backupwallet(const Config &config,
                     HelpExampleRpc("backupwallet", "\"backup.dat\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -2217,12 +2216,6 @@ static UniValue backupwallet(const Config &config,
 
 static UniValue keypoolrefill(const Config &config,
                               const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "keypoolrefill",
         "Fills the keypool." + HELP_REQUIRING_PASSPHRASE,
@@ -2235,6 +2228,12 @@ static UniValue keypoolrefill(const Config &config,
                     HelpExampleRpc("keypoolrefill", "")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     if (pwallet->IsLegacy() &&
         pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
@@ -2267,12 +2266,6 @@ static UniValue keypoolrefill(const Config &config,
 
 static UniValue walletpassphrase(const Config &config,
                                  const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "walletpassphrase",
         "Stores the wallet decryption key in memory for 'timeout' seconds.\n"
@@ -2298,6 +2291,12 @@ static UniValue walletpassphrase(const Config &config,
             HelpExampleRpc("walletpassphrase", "\"my pass phrase\", 60")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     int64_t nSleepTime;
     int64_t relock_time;
@@ -2382,12 +2381,6 @@ static UniValue walletpassphrase(const Config &config,
 
 static UniValue walletpassphrasechange(const Config &config,
                                        const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "walletpassphrasechange",
         "Changes the wallet passphrase from 'oldpassphrase' to "
@@ -2405,6 +2398,12 @@ static UniValue walletpassphrasechange(const Config &config,
                                    "\"old one\", \"new one\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -2442,12 +2441,6 @@ static UniValue walletpassphrasechange(const Config &config,
 
 static UniValue walletlock(const Config &config,
                            const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "walletlock",
         "Removes the wallet encryption key from memory, locking the wallet.\n"
@@ -2470,6 +2463,12 @@ static UniValue walletlock(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
+
     LOCK(pwallet->cs_wallet);
 
     if (!pwallet->IsCrypted()) {
@@ -2486,12 +2485,6 @@ static UniValue walletlock(const Config &config,
 
 static UniValue encryptwallet(const Config &config,
                               const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "encryptwallet",
         "Encrypts the wallet with 'passphrase'. This is for first time "
@@ -2522,6 +2515,12 @@ static UniValue encryptwallet(const Config &config,
             HelpExampleRpc("encryptwallet", "\"my pass phrase\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -2562,12 +2561,6 @@ static UniValue encryptwallet(const Config &config,
 
 static UniValue lockunspent(const Config &config,
                             const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "lockunspent",
         "Updates list of temporarily unspendable outputs.\n"
@@ -2635,6 +2628,12 @@ static UniValue lockunspent(const Config &config,
                                           ",\\\"vout\\\":1}]\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -2723,12 +2722,6 @@ static UniValue lockunspent(const Config &config,
 
 static UniValue listlockunspent(const Config &config,
                                 const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "listlockunspent",
         "Returns list of temporarily unspendable outputs.\n"
@@ -2769,6 +2762,12 @@ static UniValue listlockunspent(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     LOCK(pwallet->cs_wallet);
 
     std::vector<COutPoint> vOutpts;
@@ -2788,12 +2787,6 @@ static UniValue listlockunspent(const Config &config,
 }
 
 static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "settxfee",
         "Set the transaction fee per kB for this wallet. Overrides the "
@@ -2809,6 +2802,12 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("settxfee", "0.00001")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -2840,13 +2839,6 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue getbalances(const Config &config,
                             const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const rpc_wallet =
-        GetWalletForJSONRPCRequest(request);
-    if (!rpc_wallet) {
-        return NullUniValue;
-    }
-    CWallet &wallet = *rpc_wallet;
-
     RPCHelpMan{
         "getbalances",
         "Returns an object with all balances in " + CURRENCY_UNIT + ".\n",
@@ -2892,6 +2884,13 @@ static UniValue getbalances(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const rpc_wallet =
+        GetWalletForJSONRPCRequest(request);
+    if (!rpc_wallet) {
+        return NullUniValue;
+    }
+    CWallet &wallet = *rpc_wallet;
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     wallet.BlockUntilSyncedToCurrentChain();
@@ -2936,12 +2935,6 @@ static UniValue getbalances(const Config &config,
 
 static UniValue getwalletinfo(const Config &config,
                               const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getwalletinfo",
         "Returns an object containing various wallet state info.\n",
@@ -3007,6 +3000,12 @@ static UniValue getwalletinfo(const Config &config,
                     HelpExampleRpc("getwalletinfo", "")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -3194,12 +3193,6 @@ static UniValue loadwallet(const Config &config,
 
 static UniValue setwalletflag(const Config &config,
                               const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     std::string flags = "";
     for (auto &it : WALLET_FLAG_MAP) {
         if (it.second & MUTABLE_WALLET_FLAGS) {
@@ -3231,6 +3224,12 @@ static UniValue setwalletflag(const Config &config,
                     HelpExampleRpc("setwalletflag", "\"avoid_reuse\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     std::string flag_str = request.params[0].get_str();
     bool value = request.params[1].isNull() || request.params[1].get_bool();
@@ -3413,12 +3412,6 @@ static UniValue unloadwallet(const Config &config,
 
 static UniValue listunspent(const Config &config,
                             const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "listunspent",
         "Returns array of unspent transaction outputs\n"
@@ -3521,6 +3514,12 @@ static UniValue listunspent(const Config &config,
                 "6, 9999999, [] , true, { \"minimumAmount\": 0.005 } ")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     int nMinDepth = 1;
     if (!request.params[0].isNull()) {
@@ -3791,12 +3790,6 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
 
 static UniValue fundrawtransaction(const Config &config,
                                    const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "fundrawtransaction",
         "If the transaction has no inputs, they will be automatically selected "
@@ -3896,6 +3889,12 @@ static UniValue fundrawtransaction(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
+
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
 
     // parse hex string from parameter
@@ -3923,12 +3922,6 @@ static UniValue fundrawtransaction(const Config &config,
 
 UniValue signrawtransactionwithwallet(const Config &config,
                                       const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "signrawtransactionwithwallet",
         "Sign inputs for raw transaction (serialized, hex-encoded).\n"
@@ -4012,6 +4005,12 @@ UniValue signrawtransactionwithwallet(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     RPCTypeCheck(request.params,
                  {UniValue::VSTR, UniValue::VARR, UniValue::VSTR}, true);
 
@@ -4052,12 +4051,6 @@ UniValue signrawtransactionwithwallet(const Config &config,
 }
 
 UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "rescanblockchain",
         "Rescan the local blockchain for wallet related transactions.\n"
@@ -4086,6 +4079,12 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("rescanblockchain", "100000, 120000")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     WalletRescanReserver reserver(*pwallet);
     if (!reserver.reserve()) {
@@ -4254,12 +4253,6 @@ static UniValue AddressBookDataToJSON(const CAddressBookData &data,
 }
 
 UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getaddressinfo",
         "\nReturn information about the given bitcoin address.\n"
@@ -4368,6 +4361,12 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
+
     LOCK(pwallet->cs_wallet);
 
     UniValue ret(UniValue::VOBJ);
@@ -4449,12 +4448,6 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
 
 UniValue getaddressesbylabel(const Config &config,
                              const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "getaddressesbylabel",
         "Returns the list of addresses assigned the specified label.\n",
@@ -4478,6 +4471,12 @@ UniValue getaddressesbylabel(const Config &config,
                     HelpExampleRpc("getaddressesbylabel", "\"tabby\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -4515,12 +4514,6 @@ UniValue getaddressesbylabel(const Config &config,
 }
 
 UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "listlabels",
         "Returns the list of all labels, or labels that are assigned to "
@@ -4545,6 +4538,12 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("listlabels", "receive")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -4574,12 +4573,6 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
 }
 
 static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "sethdseed",
         "Set or generate a new HD wallet seed. Non-HD wallets will not be "
@@ -4614,6 +4607,12 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("sethdseed", "true, \"wifkey\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LegacyScriptPubKeyMan &spk_man =
         EnsureLegacyScriptPubKeyMan(*pwallet, true);
@@ -4670,12 +4669,6 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue walletprocesspsbt(const Config &config,
                                   const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "walletprocesspsbt",
         "Update a PSBT with input information from our wallet and then sign "
@@ -4711,6 +4704,12 @@ static UniValue walletprocesspsbt(const Config &config,
         RPCExamples{HelpExampleCli("walletprocesspsbt", "\"psbt\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     RPCTypeCheck(request.params,
                  {UniValue::VSTR, UniValue::VBOOL, UniValue::VSTR});
@@ -4753,12 +4752,6 @@ static UniValue walletprocesspsbt(const Config &config,
 
 static UniValue walletcreatefundedpsbt(const Config &config,
                                        const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "walletcreatefundedpsbt",
         "Creates and funds a transaction in the Partially Signed Transaction "
@@ -4899,6 +4892,12 @@ static UniValue walletcreatefundedpsbt(const Config &config,
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
+
     RPCTypeCheck(request.params,
                  {UniValue::VARR,
                   UniValueType(), // ARR or OBJ, checked later
@@ -4943,12 +4942,6 @@ static UniValue walletcreatefundedpsbt(const Config &config,
 
 static UniValue upgradewallet(const Config &config,
                               const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{"upgradewallet",
                "\nUpgrade the wallet. Upgrades to the latest version if no "
                "version number is specified\n"
@@ -4962,6 +4955,12 @@ static UniValue upgradewallet(const Config &config,
                RPCExamples{HelpExampleCli("upgradewallet", "200300") +
                            HelpExampleRpc("upgradewallet", "200300")}}
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     RPCTypeCheck(request.params, {UniValue::VNUM}, true);
 

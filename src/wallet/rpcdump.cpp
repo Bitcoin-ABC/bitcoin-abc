@@ -98,12 +98,6 @@ static void RescanWallet(CWallet &wallet, const WalletRescanReserver &reserver,
 }
 
 UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "importprivkey",
         "Adds a private key (as returned by dumpprivkey) to your wallet. "
@@ -138,6 +132,12 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("importprivkey", "\"mykey\", \"testing\", false")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         throw JSONRPCError(RPC_WALLET_ERROR,
@@ -216,12 +216,6 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
 }
 
 UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "abortrescan",
         "Stops current wallet rescan triggered by an RPC call, e.g. by an "
@@ -239,6 +233,12 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
     }
         .Check(request);
 
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
+
     if (!pwallet->IsScanning() || pwallet->IsAbortingRescan()) {
         return false;
     }
@@ -247,12 +247,6 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
 }
 
 UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "importaddress",
         "Adds an address or script (in hex) that can be watched as if it "
@@ -291,6 +285,12 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
                            "\"myaddress\", \"testing\", false")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     EnsureLegacyScriptPubKeyMan(*pwallet, true);
 
@@ -377,12 +377,6 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
 
 UniValue importprunedfunds(const Config &config,
                            const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "importprunedfunds",
         "Imports funds without rescan. Corresponding address or script must "
@@ -401,6 +395,12 @@ UniValue importprunedfunds(const Config &config,
         RPCExamples{""},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     CMutableTransaction tx;
     if (!DecodeHexTx(tx, request.params[0].get_str())) {
@@ -456,12 +456,6 @@ UniValue importprunedfunds(const Config &config,
 
 UniValue removeprunedfunds(const Config &config,
                            const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "removeprunedfunds",
         "Deletes the specified transaction from the wallet. Meant for use "
@@ -481,6 +475,12 @@ UniValue removeprunedfunds(const Config &config,
                                    "6a512166eae7628734ea0a5\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     LOCK(pwallet->cs_wallet);
 
@@ -503,12 +503,6 @@ UniValue removeprunedfunds(const Config &config,
 }
 
 UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "importpubkey",
         "Adds a public key (in hex) that can be watched as if it were in "
@@ -539,6 +533,12 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("importpubkey", "\"mypubkey\", \"testing\", false")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     EnsureLegacyScriptPubKeyMan(*wallet, true);
 
@@ -609,12 +609,6 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
 }
 
 UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "importwallet",
         "Imports keys from a wallet dump file (see dumpwallet). Requires a "
@@ -633,6 +627,12 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("importwallet", "\"test\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     EnsureLegacyScriptPubKeyMan(*wallet, true);
 
@@ -812,12 +812,6 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
 }
 
 UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    const CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "dumpprivkey",
         "Reveals the private key corresponding to 'address'.\n"
@@ -832,6 +826,12 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("dumpprivkey", "\"myaddress\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    const CWallet *const pwallet = wallet.get();
 
     LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(*wallet);
 
@@ -859,12 +859,6 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
 }
 
 UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const pwallet =
-        GetWalletForJSONRPCRequest(request);
-    if (!pwallet) {
-        return NullUniValue;
-    }
-
     RPCHelpMan{
         "dumpwallet",
         "Dumps all wallet keys in a human-readable format to a server-side "
@@ -890,6 +884,12 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("dumpwallet", "\"test\"")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const pwallet =
+        GetWalletForJSONRPCRequest(request);
+    if (!pwallet) {
+        return NullUniValue;
+    }
 
     CWallet &wallet = *pwallet;
     LegacyScriptPubKeyMan &spk_man = EnsureLegacyScriptPubKeyMan(wallet);
@@ -1020,12 +1020,6 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
 }
 
 static UniValue dumpcoins(const Config &config, const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const pwallet =
-        GetWalletForJSONRPCRequest(request);
-    if (!pwallet) {
-        return NullUniValue;
-    }
-
     RPCHelpMan{
         "dumpcoins",
         "dump all the UTXO tracked by the wallet.\n",
@@ -1057,6 +1051,12 @@ static UniValue dumpcoins(const Config &config, const JSONRPCRequest &request) {
                     HelpExampleRpc("dumpcoins", "")},
     }
         .Check(request);
+
+    std::shared_ptr<CWallet> const pwallet =
+        GetWalletForJSONRPCRequest(request);
+    if (!pwallet) {
+        return NullUniValue;
+    }
 
     CWallet &wallet = *pwallet;
 
@@ -1590,13 +1590,6 @@ static int64_t GetImportTimestamp(const UniValue &data, int64_t now) {
 }
 
 UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
-    std::shared_ptr<CWallet> const wallet =
-        GetWalletForJSONRPCRequest(mainRequest);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "importmulti",
         "\nImport addresses/scripts (with private or public keys, redeem "
@@ -1773,6 +1766,13 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
         },
     }
         .Check(mainRequest);
+
+    std::shared_ptr<CWallet> const wallet =
+        GetWalletForJSONRPCRequest(mainRequest);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     RPCTypeCheck(mainRequest.params, {UniValue::VARR, UniValue::VOBJ});
 
@@ -2077,14 +2077,6 @@ static UniValue ProcessDescriptorImport(CWallet *const pwallet,
 
 UniValue importdescriptors(const Config &config,
                            const JSONRPCRequest &main_request) {
-    // Acquire the wallet
-    std::shared_ptr<CWallet> const wallet =
-        GetWalletForJSONRPCRequest(main_request);
-    if (!wallet) {
-        return NullUniValue;
-    }
-    CWallet *const pwallet = wallet.get();
-
     RPCHelpMan{
         "importdescriptors",
         "\nImport descriptors. This will trigger a rescan of the blockchain "
@@ -2194,6 +2186,13 @@ UniValue importdescriptors(const Config &config,
                 "cashaddr wallet>\" }]'")},
     }
         .Check(main_request);
+
+    std::shared_ptr<CWallet> const wallet =
+        GetWalletForJSONRPCRequest(main_request);
+    if (!wallet) {
+        return NullUniValue;
+    }
+    CWallet *const pwallet = wallet.get();
 
     //  Make sure wallet is a descriptor wallet
     if (!pwallet->IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS)) {
