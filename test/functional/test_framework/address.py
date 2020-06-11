@@ -110,31 +110,26 @@ class TestFrameworkScript(unittest.TestCase):
                 (data, version))
 
         check_base58(
-            b'\x1f\x8e\xa1p*{\xd4\x94\x1b\xca\tA\xb8R\xc4\xbb\xfe\xdb.\x05',
-            111)
+            bytes.fromhex('1f8ea1702a7bd4941bca0941b852c4bbfedb2e05'), 111)
         check_base58(
-            b':\x0b\x05\xf4\xd7\xf6l;\xa7\x00\x9fE50)l\x84\\\xc9\xcf', 111)
+            bytes.fromhex('3a0b05f4d7f66c3ba7009f453530296c845cc9cf'), 111)
         check_base58(
-            b'A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a',
-            111)
+            bytes.fromhex('41c1eaf111802559bad61b60d62b1f897c63928a'), 111)
         check_base58(
-            b'\0A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a',
-            111)
+            bytes.fromhex('0041c1eaf111802559bad61b60d62b1f897c63928a'), 111)
         check_base58(
-            b'\0\0A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a',
-            111)
+            bytes.fromhex('000041c1eaf111802559bad61b60d62b1f897c63928a'), 111)
         check_base58(
-            b'\0\0\0A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a',
-            111)
+            bytes.fromhex('00000041c1eaf111802559bad61b60d62b1f897c63928a'), 111)
         check_base58(
-            b'\x1f\x8e\xa1p*{\xd4\x94\x1b\xca\tA\xb8R\xc4\xbb\xfe\xdb.\x05', 0)
+            bytes.fromhex('1f8ea1702a7bd4941bca0941b852c4bbfedb2e05'), 0)
         check_base58(
-            b':\x0b\x05\xf4\xd7\xf6l;\xa7\x00\x9fE50)l\x84\\\xc9\xcf', 0)
+            bytes.fromhex('3a0b05f4d7f66c3ba7009f453530296c845cc9cf'), 0)
         check_base58(
-            b'A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a', 0)
+            bytes.fromhex('41c1eaf111802559bad61b60d62b1f897c63928a'), 0)
         check_base58(
-            b'\0A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a', 0)
+            bytes.fromhex('0041c1eaf111802559bad61b60d62b1f897c63928a'), 0)
         check_base58(
-            b'\0\0A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a', 0)
+            bytes.fromhex('000041c1eaf111802559bad61b60d62b1f897c63928a'), 0)
         check_base58(
-            b'\0\0\0A\xc1\xea\xf1\x11\x80%Y\xba\xd6\x1b`\xd6+\x1f\x89|c\x92\x8a', 0)
+            bytes.fromhex('00000041c1eaf111802559bad61b60d62b1f897c63928a'), 0)
