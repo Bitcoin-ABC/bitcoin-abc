@@ -78,7 +78,9 @@ TEST_FRAMEWORK_MODULES = [
     "address",
     "blocktools",
     "messages",
+    "muhash",
     "script",
+    "util",
 ]
 
 NON_SCRIPTS = [
