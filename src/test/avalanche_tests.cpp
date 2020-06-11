@@ -6,6 +6,7 @@
 
 #include <config.h>
 #include <net_processing.h> // For PeerLogicValidation
+#include <util/time.h>
 
 #include <test/util/setup_common.h>
 
@@ -903,7 +904,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     for (int i = 0; i < 60 * 1000; i++) {
         // Technically, this is a race condition, but this should do just fine
         // as we wait up to 1 minute for an event that should take 10ms.
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+        UninterruptibleSleep(std::chrono::milliseconds(1));
         if (AvalancheTest::getRound(p) != queryRound) {
             break;
         }
@@ -922,7 +923,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
                     updates);
     for (int i = 0; i < 10000; i++) {
         // We make sure that we do not get a request before queryTime.
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+        UninterruptibleSleep(std::chrono::milliseconds(1));
         if (AvalancheTest::getRound(p) != responseRound) {
             BOOST_CHECK(std::chrono::steady_clock::now() > queryTime);
             break;
