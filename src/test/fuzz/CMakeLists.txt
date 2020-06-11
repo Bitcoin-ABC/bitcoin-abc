@@ -93,6 +93,7 @@ add_regular_fuzz_targets(
 	chain
 	checkqueue
 	coins_view
+	crypto_common
 	cuckoocache
 	descriptor_parse
 	eval_script
