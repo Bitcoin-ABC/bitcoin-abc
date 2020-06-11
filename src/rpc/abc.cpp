@@ -6,6 +6,7 @@
 #include <consensus/consensus.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
+#include <sync.h>
 #include <util/strencodings.h>
 #include <validation.h>
 
@@ -69,8 +70,11 @@ static UniValue setexcessiveblock(Config &config,
     }
 
     // Set the new max block size.
-    if (!config.SetMaxBlockSize(ebs)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unexpected error");
+    {
+        LOCK(cs_main);
+        if (!config.SetMaxBlockSize(ebs)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Unexpected error");
+        }
     }
 
     // settingsToUserAgentString();
