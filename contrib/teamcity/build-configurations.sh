@@ -133,7 +133,6 @@ case "$ABC_BUILD_NAME" in
   build-tsan)
     # Build with the thread sanitizer, then run unit tests and functional tests.
     CMAKE_FLAGS=(
-      "-DCMAKE_BUILD_TYPE=Debug"
       "-DENABLE_SANITIZERS=thread"
       "-DCCACHE=OFF"
       "-DCMAKE_C_COMPILER=clang"
