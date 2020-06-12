@@ -433,6 +433,7 @@ def connect_nodes(from_node, to_node):
     wait_until(lambda: all(peer['version']
                            != 0 for peer in from_node.getpeerinfo()))
 
+
 def sync_blocks(rpc_connections, *, wait=1, timeout=60):
     """
     Wait until everybody has the same tip.
