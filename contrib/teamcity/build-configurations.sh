@@ -5,7 +5,7 @@ export LC_ALL=C.UTF-8
 set -euxo pipefail
 
 : "${ABC_BUILD_NAME:=""}"
-if [ -z "$ABC_BUILD_NAME" ]; then
+if [ -z "${ABC_BUILD_NAME}" ]; then
   echo "Error: Environment variable ABC_BUILD_NAME must be set"
   exit 1
 fi
@@ -16,7 +16,8 @@ TOPLEVEL=$(git rev-parse --show-toplevel)
 export TOPLEVEL
 
 setup() {
-  : "${BUILD_DIR:=${TOPLEVEL}/build}"
+  # Use separate build dirs to get the most out of ccache and prevent crosstalk
+  : "${BUILD_DIR:=${TOPLEVEL}/${ABC_BUILD_NAME}}"
   mkdir -p "${BUILD_DIR}"
   BUILD_DIR=$(cd "${BUILD_DIR}"; pwd)
   export BUILD_DIR
@@ -91,7 +92,6 @@ case "$ABC_BUILD_NAME" in
       # Disabling the assembly works around the issue.
       "-DCRYPTO_USE_ASM=OFF"
       "-DENABLE_SANITIZERS=address"
-      "-DCCACHE=OFF"
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
@@ -113,7 +113,6 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DCMAKE_BUILD_TYPE=Debug"
       "-DENABLE_SANITIZERS=undefined"
-      "-DCCACHE=OFF"
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
@@ -134,7 +133,6 @@ case "$ABC_BUILD_NAME" in
     # Build with the thread sanitizer, then run unit tests and functional tests.
     CMAKE_FLAGS=(
       "-DENABLE_SANITIZERS=thread"
-      "-DCCACHE=OFF"
       "-DCMAKE_C_COMPILER=clang"
       "-DCMAKE_CXX_COMPILER=clang++"
     )
