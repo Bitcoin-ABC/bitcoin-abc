@@ -81,7 +81,7 @@ private:
     const CChainParams &chainParams;
 
 public:
-    CAddrDB(const CChainParams &chainParams);
+    explicit CAddrDB(const CChainParams &chainParams);
     bool Write(const CAddrMan &addr);
     bool Read(CAddrMan &addr);
     bool Read(CAddrMan &addr, CDataStream &ssPeers);

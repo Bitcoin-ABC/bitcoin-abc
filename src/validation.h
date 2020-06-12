@@ -250,9 +250,10 @@ private:
 
 public:
     // Do full validation by default
-    BlockValidationOptions(const Config &config);
-    BlockValidationOptions(uint64_t _excessiveBlockSize, bool _checkPow = true,
-                           bool _checkMerkleRoot = true)
+    explicit BlockValidationOptions(const Config &config);
+    explicit BlockValidationOptions(uint64_t _excessiveBlockSize,
+                                    bool _checkPow = true,
+                                    bool _checkMerkleRoot = true)
         : excessiveBlockSize(_excessiveBlockSize), checkPoW(_checkPow),
           checkMerkleRoot(_checkMerkleRoot) {}
 
@@ -427,7 +428,7 @@ protected:
     std::atomic<int64_t> remaining;
 
 public:
-    CheckInputsLimiter(int64_t limit) : remaining(limit) {}
+    explicit CheckInputsLimiter(int64_t limit) : remaining(limit) {}
 
     bool consume_and_check(int consumed) {
         auto newvalue = (remaining -= consumed);

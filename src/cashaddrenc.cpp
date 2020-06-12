@@ -68,7 +68,7 @@ std::vector<uint8_t> PackAddrData(const T &id, uint8_t type) {
 // Implements encoding of CTxDestination using cashaddr.
 class CashAddrEncoder : public boost::static_visitor<std::string> {
 public:
-    CashAddrEncoder(const CChainParams &p) : params(p) {}
+    explicit CashAddrEncoder(const CChainParams &p) : params(p) {}
 
     std::string operator()(const PKHash &id) const {
         std::vector<uint8_t> data = PackAddrData(id, PUBKEY_TYPE);

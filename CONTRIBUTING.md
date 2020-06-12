@@ -131,7 +131,7 @@ will have to install the following:
 
 On Ubuntu (>= 18.04+updates) or Debian (>= 10):
 ```
-sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 python-autopep8 flake8 php-codesniffer shellcheck
+sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python-autopep8 flake8 php-codesniffer shellcheck
 ```
 
 If not available in the distribution, `clang-format-8` and `clang-tidy` can be

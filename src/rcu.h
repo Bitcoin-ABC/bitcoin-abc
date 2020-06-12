@@ -60,7 +60,7 @@ class RCUInfos {
 class RCULock : public boost::noncopyable {
     RCUInfos *infos;
 
-    RCULock(RCUInfos *infosIn) : infos(infosIn) { infos->readLock(); }
+    explicit RCULock(RCUInfos *infosIn) : infos(infosIn) { infos->readLock(); }
     friend class RCUInfos;
 
 public:

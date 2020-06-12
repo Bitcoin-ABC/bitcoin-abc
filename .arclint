@@ -199,6 +199,13 @@
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)"
             ]
+        },
+        "lint-cppcheck": {
+            "type": "lint-cppcheck",
+            "include": "(^src/.*\\.(h|c|cpp)$)",
+            "exclude": [
+                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
+            ]
         }
     }
 }

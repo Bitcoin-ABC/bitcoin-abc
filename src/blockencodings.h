@@ -162,7 +162,7 @@ public:
     // Dummy for deserialization
     CBlockHeaderAndShortTxIDs() {}
 
-    CBlockHeaderAndShortTxIDs(const CBlock &block);
+    explicit CBlockHeaderAndShortTxIDs(const CBlock &block);
 
     uint64_t GetShortID(const TxHash &txhash) const;
 

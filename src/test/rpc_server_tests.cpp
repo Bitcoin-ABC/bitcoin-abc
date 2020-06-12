@@ -20,7 +20,7 @@ BOOST_FIXTURE_TEST_SUITE(rpc_server_tests, TestingSetup)
 
 class ArgsTestRPCCommand : public RPCCommandWithArgsContext {
 public:
-    ArgsTestRPCCommand(const std::string &nameIn)
+    explicit ArgsTestRPCCommand(const std::string &nameIn)
         : RPCCommandWithArgsContext(nameIn) {}
 
     UniValue Execute(const UniValue &args) const override {
@@ -59,7 +59,8 @@ BOOST_AUTO_TEST_CASE(rpc_server_execute_command) {
 
 class RequestContextRPCCommand : public RPCCommand {
 public:
-    RequestContextRPCCommand(const std::string &nameIn) : RPCCommand(nameIn) {}
+    explicit RequestContextRPCCommand(const std::string &nameIn)
+        : RPCCommand(nameIn) {}
 
     // Sanity check that Execute(JSONRPCRequest) is called correctly from
     // RPCServer

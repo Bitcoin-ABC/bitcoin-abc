@@ -20,7 +20,7 @@ class DebugLogHelper {
     void check_found();
 
 public:
-    DebugLogHelper(std::string message);
+    explicit DebugLogHelper(std::string message);
     ~DebugLogHelper() { check_found(); }
 };
 

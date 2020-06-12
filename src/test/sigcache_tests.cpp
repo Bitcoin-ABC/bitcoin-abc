@@ -32,7 +32,7 @@ class TestCachingTransactionSignatureChecker {
     CachingTransactionSignatureChecker *pchecker;
 
 public:
-    TestCachingTransactionSignatureChecker(
+    explicit TestCachingTransactionSignatureChecker(
         CachingTransactionSignatureChecker &checkerarg) {
         pchecker = &checkerarg;
     }

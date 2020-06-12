@@ -62,7 +62,7 @@ static CBlock BuildBlockTestCase() {
 // BOOST_CHECK_EXCEPTION predicates to check the exception message
 class HasReason {
 public:
-    HasReason(const std::string &reason) : m_reason(reason) {}
+    explicit HasReason(const std::string &reason) : m_reason(reason) {}
     bool operator()(const std::exception &e) const {
         return std::string(e.what()).find(m_reason) != std::string::npos;
     };

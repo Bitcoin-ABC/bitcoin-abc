@@ -90,7 +90,7 @@ private:
     std::array<uint16_t, 8> nodeFilter{{0, 0, 0, 0, 0, 0, 0, 0}};
 
 public:
-    VoteRecord(bool accepted) : confidence(accepted) {}
+    explicit VoteRecord(bool accepted) : confidence(accepted) {}
 
     /**
      * Copy semantic
@@ -331,7 +331,7 @@ private:
     EventLoop eventLoop;
 
 public:
-    AvalancheProcessor(CConnman *connmanIn);
+    explicit AvalancheProcessor(CConnman *connmanIn);
     ~AvalancheProcessor();
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {
