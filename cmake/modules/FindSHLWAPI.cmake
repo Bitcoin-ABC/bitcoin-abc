@@ -27,11 +27,13 @@ find_path(SHLWAPI_INCLUDE_DIR
 set(SHLWAPI_INCLUDE_DIRS "${SHLWAPI_INCLUDE_DIR}")
 mark_as_advanced(SHLWAPI_INCLUDE_DIR)
 
-include(ExternalLibraryHelper)
-find_component(SHLWAPI shlwapi
-	NAMES shlwapi
-	INCLUDE_DIRS ${SHLWAPI_INCLUDE_DIRS}
-)
+if(SHLWAPI_INCLUDE_DIR)
+	include(ExternalLibraryHelper)
+	find_component(SHLWAPI shlwapi
+		NAMES shlwapi
+		INCLUDE_DIRS ${SHLWAPI_INCLUDE_DIRS}
+	)
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SHLWAPI

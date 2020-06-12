@@ -55,29 +55,29 @@ if(Event_INCLUDE_DIR)
 		INCLUDE_DIRS ${Event_INCLUDE_DIRS}
 		PATHS ${PC_Event_pthreads_LIBRARY_DIRS}
 	)
-endif()
 
-if(NOT Event_VERSION)
-	# If pkgconfig found a version number, use it.
-	if(PC_Event_VERSION)
-		set(_Event_VERSION ${PC_Event_VERSION})
-	elseif(NOT CMAKE_CROSSCOMPILING)
-		try_run(_Event_CheckVersion_RESULT _Event_CheckVersion_BUILD
-			"${CMAKE_BINARY_DIR}"
-			"${CMAKE_SOURCE_DIR}/cmake/utils/EventCheckVersion.cpp"
-			CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${Event_INCLUDE_DIRS}"
-			LINK_LIBRARIES "${Event_event_LIBRARY}"
-			RUN_OUTPUT_VARIABLE _Event_VERSION
+	if(NOT Event_VERSION)
+		# If pkgconfig found a version number, use it.
+		if(PC_Event_VERSION)
+			set(_Event_VERSION ${PC_Event_VERSION})
+		elseif(NOT CMAKE_CROSSCOMPILING)
+			try_run(_Event_CheckVersion_RESULT _Event_CheckVersion_BUILD
+				"${CMAKE_BINARY_DIR}"
+				"${CMAKE_SOURCE_DIR}/cmake/utils/EventCheckVersion.cpp"
+				CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${Event_INCLUDE_DIRS}"
+				LINK_LIBRARIES "${Event_event_LIBRARY}"
+				RUN_OUTPUT_VARIABLE _Event_VERSION
+			)
+		else()
+			# There is no way to determine the version.
+			# Let's assume the user read the doc.
+			set(_Event_VERSION 99.99.99)
+		endif()
+
+		set(Event_VERSION ${_Event_VERSION}
+			CACHE INTERNAL "Event library full version"
 		)
-	else()
-		# There is no way to determine the version.
-		# Let's assume the user read the doc.
-		set(_Event_VERSION 99.99.99)
 	endif()
-
-	set(Event_VERSION ${_Event_VERSION}
-		CACHE INTERNAL "Event library full version"
-	)
 endif()
 
 include(FindPackageHandleStandardArgs)

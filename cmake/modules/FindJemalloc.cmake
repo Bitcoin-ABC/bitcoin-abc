@@ -36,6 +36,29 @@ set(Jemalloc_INCLUDE_DIRS ${Jemalloc_INCLUDE_DIR})
 mark_as_advanced(Jemalloc_INCLUDE_DIR)
 
 if(Jemalloc_INCLUDE_DIR)
+	if(NOT Jemalloc_VERSION)
+		# If pkgconfig found a version number, use it.
+		if(PC_Jemalloc_VERSION)
+			set(_Jemalloc_VERSION ${PC_Jemalloc_VERSION})
+		else()
+			# Read the version from file db.h into a variable.
+			file(READ "${Jemalloc_INCLUDE_DIR}/jemalloc.h" _Jemalloc_HEADER)
+
+			# Parse the version into variables.
+			string(REGEX REPLACE
+				".*JEMALLOC_VERSION[ \t]+\"([^\"]+)\".*" "\\1"
+				_Jemalloc_VERSION
+				"${_Jemalloc_HEADER}"
+			)
+		endif()
+
+		string(REGEX MATCH "[0-9]+\.[0-9]+\.[0-9]+" Jemalloc_VERSION "${_Jemalloc_VERSION}")
+
+		set(Jemalloc_VERSION ${Jemalloc_VERSION}
+			CACHE INTERNAL "Jemalloc library full version"
+		)
+	endif()
+
 	include(ExternalLibraryHelper)
 
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -82,33 +105,6 @@ if(Jemalloc_INCLUDE_DIR)
 			message(STATUS "Check if jemalloc needs libdl - ${_Jemalloc_NEEDS_DL}")
 		endif()
 	endif()
-endif()
-
-if(NOT Jemalloc_VERSION)
-	# If pkgconfig found a version number, use it.
-	if(PC_Jemalloc_VERSION)
-		set(_Jemalloc_VERSION ${PC_Jemalloc_VERSION})
-	elseif(Jemalloc_INCLUDE_DIR)
-		# Read the version from file db.h into a variable.
-		file(READ "${Jemalloc_INCLUDE_DIR}/jemalloc.h" _Jemalloc_HEADER)
-
-		# Parse the version into variables.
-		string(REGEX REPLACE
-			".*JEMALLOC_VERSION[ \t]+\"([^\"]+)\".*" "\\1"
-			_Jemalloc_VERSION
-			"${_Jemalloc_HEADER}"
-		)
-	else()
-		# Set some garbage values to the version since we didn't find a file to
-		# read.
-		set(_Jemalloc_VERSION "0.0.0")
-	endif()
-
-	string(REGEX MATCH "[0-9]+\.[0-9]+\.[0-9]+" Jemalloc_VERSION "${_Jemalloc_VERSION}")
-
-	set(Jemalloc_VERSION ${Jemalloc_VERSION}
-		CACHE INTERNAL "Jemalloc library full version"
-	)
 endif()
 
 include(FindPackageHandleStandardArgs)

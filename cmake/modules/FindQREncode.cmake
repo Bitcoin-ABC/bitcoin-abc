@@ -38,13 +38,15 @@ mark_as_advanced(QREncode_INCLUDE_DIR)
 # TODO: extract a version number.
 # For now qrencode does not provide an easy way to extract a version number.
 
-include(ExternalLibraryHelper)
-find_component(QREncode qrencode
-	NAMES qrencode
-	HINTS ${BREW_HINT}
-	PATHS ${PC_QREncode_LIBRARY_DIRS}
-	INCLUDE_DIRS ${QREncode_INCLUDE_DIRS}
-)
+if(QREncode_INCLUDE_DIR)
+	include(ExternalLibraryHelper)
+	find_component(QREncode qrencode
+		NAMES qrencode
+		HINTS ${BREW_HINT}
+		PATHS ${PC_QREncode_LIBRARY_DIRS}
+		INCLUDE_DIRS ${QREncode_INCLUDE_DIRS}
+	)
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(QREncode

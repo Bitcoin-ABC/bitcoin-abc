@@ -31,9 +31,9 @@ find_path(ZeroMQ_INCLUDE_DIR
 set(ZeroMQ_INCLUDE_DIRS "${ZeroMQ_INCLUDE_DIR}")
 mark_as_advanced(ZeroMQ_INCLUDE_DIR)
 
-if(NOT DEFINED ZeroMQ_VERSION)
+if(ZeroMQ_INCLUDE_DIR)
 	# Extract version information from the zmq.h header.
-	if(ZeroMQ_INCLUDE_DIR)
+	if(NOT DEFINED ZeroMQ_VERSION)
 		# Read the version from file zmq.h into a variable.
 		file(READ "${ZeroMQ_INCLUDE_DIR}/zmq.h" _ZMQ_HEADER)
 
@@ -54,46 +54,40 @@ if(NOT DEFINED ZeroMQ_VERSION)
 			ZeroMQ_VERSION_PATCH
 			"${_ZMQ_HEADER}"
 		)
-	else()
-		# Set some garbage values to the versions since we didn't find a file to
-		# read.
-		set(ZeroMQ_VERSION_MAJOR "0")
-		set(ZeroMQ_VERSION_MINOR "0")
-		set(ZeroMQ_VERSION_PATCH "0")
+
+		# Cache the result.
+		set(ZeroMQ_VERSION_MAJOR ${ZeroMQ_VERSION_MAJOR}
+			CACHE INTERNAL "ZeroMQ major version number"
+		)
+		set(ZeroMQ_VERSION_MINOR ${ZeroMQ_VERSION_MINOR}
+			CACHE INTERNAL "ZeroMQ minor version number"
+		)
+		set(ZeroMQ_VERSION_PATCH ${ZeroMQ_VERSION_PATCH}
+			CACHE INTERNAL "ZeroMQ patch version number"
+		)
+		# The actual returned/output version variable (the others can be used if
+		# needed).
+		set(ZeroMQ_VERSION
+			"${ZeroMQ_VERSION_MAJOR}.${ZeroMQ_VERSION_MINOR}.${ZeroMQ_VERSION_PATCH}"
+			CACHE INTERNAL "ZeroMQ full version"
+		)
 	endif()
 
-	# Cache the result.
-	set(ZeroMQ_VERSION_MAJOR ${ZeroMQ_VERSION_MAJOR}
-		CACHE INTERNAL "ZeroMQ major version number"
-	)
-	set(ZeroMQ_VERSION_MINOR ${ZeroMQ_VERSION_MINOR}
-		CACHE INTERNAL "ZeroMQ minor version number"
-	)
-	set(ZeroMQ_VERSION_PATCH ${ZeroMQ_VERSION_PATCH}
-		CACHE INTERNAL "ZeroMQ patch version number"
-	)
-	# The actual returned/output version variable (the others can be used if
-	# needed).
-	set(ZeroMQ_VERSION
-		"${ZeroMQ_VERSION_MAJOR}.${ZeroMQ_VERSION_MINOR}.${ZeroMQ_VERSION_PATCH}"
-		CACHE INTERNAL "ZeroMQ full version"
+	include(ExternalLibraryHelper)
+
+	# The dependency to iphlpapi starts from 4.2.0
+	if(ZeroMQ_VERSION VERSION_LESS 4.2.0)
+		set(_ZeroMQ_WINDOWS_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;rpcrt4>")
+	else()
+		set(_ZeroMQ_WINDOWS_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;rpcrt4;iphlpapi>")
+	endif()
+
+	find_component(ZeroMQ zmq
+		NAMES zmq
+		INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIRS}
+		INTERFACE_LINK_LIBRARIES "${_ZeroMQ_WINDOWS_LIBRARIES}"
 	)
 endif()
-
-include(ExternalLibraryHelper)
-
-# The dependency to iphlpapi starts from 4.2.0
-if(ZeroMQ_VERSION VERSION_LESS 4.2.0)
-	set(_ZeroMQ_WINDOWS_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;rpcrt4>")
-else()
-	set(_ZeroMQ_WINDOWS_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;rpcrt4;iphlpapi>")
-endif()
-
-find_component(ZeroMQ zmq
-	NAMES zmq
-	INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIRS}
-	INTERFACE_LINK_LIBRARIES "${_ZeroMQ_WINDOWS_LIBRARIES}"
-)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ZeroMQ

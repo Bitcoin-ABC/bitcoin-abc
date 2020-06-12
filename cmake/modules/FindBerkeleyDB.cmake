@@ -81,9 +81,9 @@ endif()
 set(BerkeleyDB_INCLUDE_DIRS "${BerkeleyDB_INCLUDE_DIR}")
 mark_as_advanced(BerkeleyDB_INCLUDE_DIR)
 
-if(NOT DEFINED BerkeleyDB_VERSION)
+if(BerkeleyDB_INCLUDE_DIR)
 	# Extract version information from the db.h header.
-	if(BerkeleyDB_INCLUDE_DIR)
+	if(NOT DEFINED BerkeleyDB_VERSION)
 		# Read the version from file db.h into a variable.
 		file(READ "${BerkeleyDB_INCLUDE_DIR}/db.h" _BerkeleyDB_DB_HEADER)
 
@@ -104,64 +104,58 @@ if(NOT DEFINED BerkeleyDB_VERSION)
 			BerkeleyDB_VERSION_PATCH
 			"${_BerkeleyDB_DB_HEADER}"
 		)
-	else()
-		# Set some garbage values to the versions since we didn't find a file to
-		# read.
-		set(BerkeleyDB_VERSION_MAJOR "0")
-		set(BerkeleyDB_VERSION_MINOR "0")
-		set(BerkeleyDB_VERSION_PATCH "0")
+
+		# Cache the result.
+		set(BerkeleyDB_VERSION_MAJOR ${BerkeleyDB_VERSION_MAJOR}
+			CACHE INTERNAL "BerekeleyDB major version number"
+		)
+		set(BerkeleyDB_VERSION_MINOR ${BerkeleyDB_VERSION_MINOR}
+			CACHE INTERNAL "BerekeleyDB minor version number"
+		)
+		set(BerkeleyDB_VERSION_PATCH ${BerkeleyDB_VERSION_PATCH}
+			CACHE INTERNAL "BerekeleyDB patch version number"
+		)
+		# The actual returned/output version variable (the others can be used if
+		# needed).
+		set(BerkeleyDB_VERSION
+			"${BerkeleyDB_VERSION_MAJOR}.${BerkeleyDB_VERSION_MINOR}.${BerkeleyDB_VERSION_PATCH}"
+			CACHE INTERNAL "BerekeleyDB full version"
+		)
 	endif()
 
-	# Cache the result.
-	set(BerkeleyDB_VERSION_MAJOR ${BerkeleyDB_VERSION_MAJOR}
-		CACHE INTERNAL "BerekeleyDB major version number"
+	include(ExternalLibraryHelper)
+
+	# Different systems sometimes have a version in the lib name...
+	# and some have a dash or underscore before the versions.
+	# Generate all combinations from the separators "" (none), ".", "-" and "_".
+	generate_versions_variants(
+		_db_variants
+		db
+		"${BerkeleyDB_VERSION_MAJOR}"
+		"${BerkeleyDB_VERSION_MINOR}"
 	)
-	set(BerkeleyDB_VERSION_MINOR ${BerkeleyDB_VERSION_MINOR}
-		CACHE INTERNAL "BerekeleyDB minor version number"
+
+	find_component(BerkeleyDB C
+		NAMES ${_db_variants}
+		HINTS ${BREW_HINT}
+		PATH_SUFFIXES ${_db_variants}
+		INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
 	)
-	set(BerkeleyDB_VERSION_PATCH ${BerkeleyDB_VERSION_PATCH}
-		CACHE INTERNAL "BerekeleyDB patch version number"
+
+	generate_versions_variants(
+		_db_cxx_variants
+		db_cxx
+		"${BerkeleyDB_VERSION_MAJOR}"
+		"${BerkeleyDB_VERSION_MINOR}"
 	)
-	# The actual returned/output version variable (the others can be used if
-	# needed).
-	set(BerkeleyDB_VERSION
-		"${BerkeleyDB_VERSION_MAJOR}.${BerkeleyDB_VERSION_MINOR}.${BerkeleyDB_VERSION_PATCH}"
-		CACHE INTERNAL "BerekeleyDB full version"
+
+	find_component(BerkeleyDB CXX
+		NAMES ${_db_cxx_variants}
+		HINTS ${BREW_HINT}
+		PATH_SUFFIXES ${_db_variants}
+		INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
 	)
 endif()
-
-include(ExternalLibraryHelper)
-
-# Different systems sometimes have a version in the lib name...
-# and some have a dash or underscore before the versions.
-# Generate all combinations from the separators "" (none), ".", "-" and "_".
-generate_versions_variants(
-	_db_variants
-	db
-	"${BerkeleyDB_VERSION_MAJOR}"
-	"${BerkeleyDB_VERSION_MINOR}"
-)
-
-find_component(BerkeleyDB C
-	NAMES ${_db_variants}
-	HINTS ${BREW_HINT}
-	PATH_SUFFIXES ${_db_variants}
-	INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
-)
-
-generate_versions_variants(
-	_db_cxx_variants
-	db_cxx
-	"${BerkeleyDB_VERSION_MAJOR}"
-	"${BerkeleyDB_VERSION_MINOR}"
-)
-
-find_component(BerkeleyDB CXX
-	NAMES ${_db_cxx_variants}
-	HINTS ${BREW_HINT}
-	PATH_SUFFIXES ${_db_variants}
-	INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
-)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(BerkeleyDB

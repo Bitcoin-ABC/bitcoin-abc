@@ -32,12 +32,14 @@ mark_as_advanced(Rapidcheck_INCLUDE_DIR)
 # For now rapidcheck does not provide such a version number, and has no release.
 # See https://github.com/emil-e/rapidcheck/issues/235 for reference.
 
-include(ExternalLibraryHelper)
-find_component(Rapidcheck rapidcheck
-	NAMES rapidcheck
-	PATH_SUFFIXES rapidcheck
-	INCLUDE_DIRS ${Rapidcheck_INCLUDE_DIRS}
-)
+if(Rapidcheck_INCLUDE_DIR)
+	include(ExternalLibraryHelper)
+	find_component(Rapidcheck rapidcheck
+		NAMES rapidcheck
+		PATH_SUFFIXES rapidcheck
+		INCLUDE_DIRS ${Rapidcheck_INCLUDE_DIRS}
+	)
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Rapidcheck

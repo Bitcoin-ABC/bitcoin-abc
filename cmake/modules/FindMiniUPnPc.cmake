@@ -37,9 +37,9 @@ find_path(MiniUPnPc_INCLUDE_DIR
 set(MiniUPnPc_INCLUDE_DIRS "${MiniUPnPc_INCLUDE_DIR}")
 mark_as_advanced(MiniUPnPc_INCLUDE_DIR)
 
-if(NOT DEFINED MiniUPnPc_VERSION)
+if(MiniUPnPc_INCLUDE_DIR)
 	# Extract version information from the miniupnpc.h header.
-	if(MiniUPnPc_INCLUDE_DIR)
+	if(NOT DEFINED MiniUPnPc_VERSION)
 		# Read the version from file miniupnpc.h into a variable.
 		file(READ "${MiniUPnPc_INCLUDE_DIR}/miniupnpc.h" _MiniUPnPc_HEADER)
 
@@ -49,26 +49,22 @@ if(NOT DEFINED MiniUPnPc_VERSION)
 			MiniUPnPc_VERSION
 			"${_MiniUPnPc_HEADER}"
 		)
-	else()
-		# Set some garbage values to the versions since we didn't find a file to
-		# read.
-		set(MiniUPnPc_VERSION "0.0.0")
+
+		set(MiniUPnPc_VERSION "${MiniUPnPc_VERSION}"
+			CACHE INTERNAL "MiniUPnPc full version"
+		)
 	endif()
 
-	set(MiniUPnPc_VERSION "${MiniUPnPc_VERSION}"
-		CACHE INTERNAL "MiniUPnPc full version"
+	include(ExternalLibraryHelper)
+	find_component(MiniUPnPc miniupnpc
+		NAMES miniupnpc
+		HINTS ${BREW_HINT}
+		PATHS ${PC_MiniUPnPc_LIBRARY_DIRS}
+		PATH_SUFFIXES miniupnpc
+		INCLUDE_DIRS ${MiniUPnPc_INCLUDE_DIRS}
+		INTERFACE_LINK_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;iphlpapi>"
 	)
 endif()
-
-include(ExternalLibraryHelper)
-find_component(MiniUPnPc miniupnpc
-	NAMES miniupnpc
-	HINTS ${BREW_HINT}
-	PATHS ${PC_MiniUPnPc_LIBRARY_DIRS}
-	PATH_SUFFIXES miniupnpc
-	INCLUDE_DIRS ${MiniUPnPc_INCLUDE_DIRS}
-	INTERFACE_LINK_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;iphlpapi>"
-)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MiniUPnPc

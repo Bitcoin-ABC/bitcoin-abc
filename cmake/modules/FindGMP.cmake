@@ -34,9 +34,9 @@ find_path(GMP_INCLUDE_DIR
 set(GMP_INCLUDE_DIRS "${GMP_INCLUDE_DIR}")
 mark_as_advanced(GMP_INCLUDE_DIR)
 
-if(NOT DEFINED GMP_VERSION)
+if(GMP_INCLUDE_DIR)
 	# Extract version information from the gmp.h header.
-	if(GMP_INCLUDE_DIR)
+	if(NOT DEFINED GMP_VERSION)
 		# Read the version from file gmp.h into a variable.
 		file(READ "${GMP_INCLUDE_DIR}/gmp.h" _GMP_HEADER)
 
@@ -56,38 +56,32 @@ if(NOT DEFINED GMP_VERSION)
 			GMP_VERSION_PATCH
 			"${_GMP_HEADER}"
 		)
-	else()
-		# Set some garbage values to the versions since we didn't find a file to
-		# read.
-		set(GMP_VERSION_MAJOR "0")
-		set(GMP_VERSION_MINOR "0")
-		set(GMP_VERSION_PATCH "0")
+
+		# Cache the result.
+		set(GMP_VERSION_MAJOR ${GMP_VERSION_MAJOR}
+			CACHE INTERNAL "GMP major version number"
+		)
+		set(GMP_VERSION_MINOR ${GMP_VERSION_MINOR}
+			CACHE INTERNAL "GMP minor version number"
+		)
+		set(GMP_VERSION_PATCH ${GMP_VERSION_PATCH}
+			CACHE INTERNAL "GMP patch version number"
+		)
+		# The actual returned/output version variable (the others can be used if
+		# needed).
+		set(GMP_VERSION
+			"${GMP_VERSION_MAJOR}.${GMP_VERSION_MINOR}.${GMP_VERSION_PATCH}"
+			CACHE INTERNAL "GMP full version"
+		)
 	endif()
 
-	# Cache the result.
-	set(GMP_VERSION_MAJOR ${GMP_VERSION_MAJOR}
-		CACHE INTERNAL "GMP major version number"
-	)
-	set(GMP_VERSION_MINOR ${GMP_VERSION_MINOR}
-		CACHE INTERNAL "GMP minor version number"
-	)
-	set(GMP_VERSION_PATCH ${GMP_VERSION_PATCH}
-		CACHE INTERNAL "GMP patch version number"
-	)
-	# The actual returned/output version variable (the others can be used if
-	# needed).
-	set(GMP_VERSION
-		"${GMP_VERSION_MAJOR}.${GMP_VERSION_MINOR}.${GMP_VERSION_PATCH}"
-		CACHE INTERNAL "GMP full version"
+	include(ExternalLibraryHelper)
+	find_component(GMP gmp
+		NAMES gmp
+		HINTS ${BREW_HINT}
+		INCLUDE_DIRS ${GMP_INCLUDE_DIRS}
 	)
 endif()
-
-include(ExternalLibraryHelper)
-find_component(GMP gmp
-	NAMES gmp
-	HINTS ${BREW_HINT}
-	INCLUDE_DIRS ${GMP_INCLUDE_DIRS}
-)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GMP
