@@ -599,7 +599,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         throw std::runtime_error("privatekeys register variable must be set.");
     }
 
-    CBasicKeyStore tempKeystore;
+    FillableSigningProvider tempKeystore;
     UniValue keysObj = registers["privatekeys"];
 
     for (unsigned int kidx = 0; kidx < keysObj.size(); kidx++) {
@@ -684,7 +684,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         }
     }
 
-    const CBasicKeyStore &keystore = tempKeystore;
+    const FillableSigningProvider &keystore = tempKeystore;
 
     // Sign what we can:
     for (size_t i = 0; i < mergedTx.vin.size(); i++) {

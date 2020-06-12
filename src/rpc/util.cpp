@@ -156,9 +156,9 @@ CPubKey HexToPubKey(const std::string &hex_in) {
     return vchPubKey;
 }
 
-// Retrieves a public key for an address from the given CBasicKeyStore
+// Retrieves a public key for an address from the given FillableSigningProvider
 CPubKey AddrToPubKey(const CChainParams &chainparams,
-                     CBasicKeyStore *const keystore,
+                     FillableSigningProvider *const keystore,
                      const std::string &addr_in) {
     CTxDestination dest = DecodeDestination(addr_in, chainparams);
     if (!IsValidDestination(dest)) {
@@ -188,7 +188,7 @@ CPubKey AddrToPubKey(const CChainParams &chainparams,
 CTxDestination AddAndGetMultisigDestination(const int required,
                                             const std::vector<CPubKey> &pubkeys,
                                             OutputType type,
-                                            CBasicKeyStore &keystore,
+                                            FillableSigningProvider &keystore,
                                             CScript &script_out) {
     // Gather public keys
     if (required < 1) {

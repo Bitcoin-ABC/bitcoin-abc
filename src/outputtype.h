@@ -42,7 +42,7 @@ std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key);
  * script. This function will automatically add the script (and any other
  * necessary scripts) to the keystore.
  */
-CTxDestination AddAndGetDestinationForScript(CBasicKeyStore &keystore,
+CTxDestination AddAndGetDestinationForScript(FillableSigningProvider &keystore,
                                              const CScript &script, OutputType);
 
 #endif // BITCOIN_OUTPUTTYPE_H

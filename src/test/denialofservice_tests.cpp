@@ -399,7 +399,7 @@ static CTransactionRef RandomOrphan() {
 BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     CKey key;
     key.MakeNewKey(true);
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
     keystore.AddKey(key);
 
     // 50 orphan transactions:

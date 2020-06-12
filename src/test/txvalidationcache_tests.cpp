@@ -204,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     CScript p2pkh_scriptPubKey =
         GetScriptForDestination(PKHash(coinbaseKey.GetPubKey()));
 
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
     keystore.AddKey(coinbaseKey);
     keystore.AddCScript(p2pk_scriptPubKey);
 

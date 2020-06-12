@@ -46,7 +46,7 @@ std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key) {
     return std::vector<CTxDestination>{std::move(keyid)};
 }
 
-CTxDestination AddAndGetDestinationForScript(CBasicKeyStore &keystore,
+CTxDestination AddAndGetDestinationForScript(FillableSigningProvider &keystore,
                                              const CScript &script,
                                              OutputType type) {
     // Add script to keystore

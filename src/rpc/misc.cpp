@@ -155,7 +155,7 @@ static UniValue createmultisig(const Config &config,
     OutputType output_type = OutputType::LEGACY;
 
     // Construct using pay-to-script-hash:
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
     CScript inner;
     const CTxDestination dest = AddAndGetMultisigDestination(
         required, pubkeys, output_type, keystore, inner);

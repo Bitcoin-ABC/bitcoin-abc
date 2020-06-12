@@ -7,7 +7,7 @@
 
 #include <map>
 
-class CBasicKeyStore;
+class FillableSigningProvider;
 class CChainParams;
 
 class CMutableTransaction;
@@ -29,7 +29,7 @@ class UniValue;
  * @returns JSON object with details of signed transaction
  */
 UniValue SignTransaction(CMutableTransaction &mtx, const UniValue &prevTxs,
-                         CBasicKeyStore *keystore,
+                         FillableSigningProvider *keystore,
                          std::map<COutPoint, Coin> &coins, bool tempKeystore,
                          const UniValue &hashType);
 
