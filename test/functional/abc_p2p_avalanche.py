@@ -67,14 +67,9 @@ class TestNode(P2PInterface):
         with mininode_lock:
             return self.avaresponses.pop(0)
 
-    def wait_for_avapoll(self, timeout=5):
-        wait_until(
-            lambda: len(self.avapolls) > 0,
-            timeout=timeout,
-            lock=mininode_lock)
-
+    def get_avapoll_if_available(self):
         with mininode_lock:
-            return self.avapolls.pop(0)
+            return self.avapolls.pop(0) if len(self.avapolls) > 0 else None
 
 
 class AvalancheTest(BitcoinTestFramework):
@@ -88,14 +83,20 @@ class AvalancheTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        # Create a fake node and connect it to our real node.
-        poll_node = TestNode()
-        node.add_p2p_connection(poll_node)
-        poll_node.wait_for_verack()
-        poll_node.sync_with_ping()
+        # Build a fake quorum of nodes.
+        quorum = []
+        for i in range(0, 8):
+            n = TestNode()
+            quorum.append(n)
 
-        # Get our own node id so we can use it later.
-        nodeid = node.getpeerinfo()[-1]['id']
+            node.add_p2p_connection(n)
+            n.wait_for_verack()
+
+            # Get our own node id so we can use it later.
+            n.nodeid = node.getpeerinfo()[-1]['id']
+
+        # Pick on node from the quorum for polling.
+        poll_node = quorum[0]
 
         # Generate many block and poll for them.
         address = node.get_deterministic_priv_key().address
@@ -180,7 +181,9 @@ class AvalancheTest(BitcoinTestFramework):
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747")
         pubkey = schnorr.getpubkey(privkey, compressed=True)
 
-        node.addavalanchepeer(nodeid, pubkey.hex())
+        # Activate the quorum.
+        for n in quorum:
+            node.addavalanchepeer(n.nodeid, pubkey.hex())
 
         # Make sure the fork node has synced the blocks
         self.sync_blocks([node, fork_node])
@@ -191,19 +194,25 @@ class AvalancheTest(BitcoinTestFramework):
         fork_node.generatetoaddress(2, fork_address)
 
         def can_find_block_in_poll(hash):
-            poll = poll_node.wait_for_avapoll()
-            invs = poll.invs
-
-            votes = []
             found_hash = False
-            for inv in invs:
-                # Look for what we expect
-                if inv.hash == hash:
-                    found_hash = True
-                # Vote yes to everything
-                votes.append(AvalancheVote(BLOCK_ACCEPTED, inv.hash))
+            for n in quorum:
+                poll = n.get_avapoll_if_available()
 
-            poll_node.send_avaresponse(poll.round, votes, privkey)
+                # That node has not received a poll
+                if poll is None:
+                    continue
+
+                # We got a poll, check for the hash and repond
+                votes = []
+                for inv in poll.invs:
+                    # Look for what we expect
+                    if inv.hash == hash:
+                        found_hash = True
+                    # Vote yes to everything
+                    votes.append(AvalancheVote(BLOCK_ACCEPTED, inv.hash))
+
+                n.send_avaresponse(poll.round, votes, privkey)
+
             return found_hash
 
         # Because the new tip is a deep reorg, the node should start to poll
