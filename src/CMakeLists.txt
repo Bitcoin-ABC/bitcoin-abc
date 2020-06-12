@@ -26,7 +26,16 @@ option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
 option(USE_LD_GOLD "Try to use gold as a linker if available" ON)
-option(USE_JEMALLOC "Use jemalloc as an allocation library" ON)
+
+set(OS_WITH_JEMALLOC_AS_SYSTEM_DEFAULT
+	"Android"
+	"FreeBSD"
+	"NetBSD"
+)
+if(NOT CMAKE_SYSTEM_NAME IN_LIST OS_WITH_JEMALLOC_AS_SYSTEM_DEFAULT)
+	set(USE_JEMALLOC_DEFAULT ON)
+endif()
+option(USE_JEMALLOC "Use jemalloc as an allocation library" ${USE_JEMALLOC_DEFAULT})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(DEFAULT_ENABLE_DBUS_NOTIFICATIONS ON)
