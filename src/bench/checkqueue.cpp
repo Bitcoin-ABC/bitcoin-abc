@@ -23,7 +23,7 @@ static const size_t QUEUE_BATCH_SIZE = 128;
 // This Benchmark tests the CheckQueue with a slightly realistic workload, where
 // checks all contain a prevector that is indirect 50% of the time and there is
 // a little bit of work done between calls to Add.
-static void CCheckQueueSpeedPrevectorJob(benchmark::State &state) {
+static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
     const ECCVerifyHandle verify_handle;
     ECC_Start();
 
@@ -41,24 +41,33 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::State &state) {
     for (auto x = 0; x < std::max(MIN_CORES, GetNumCores()); ++x) {
         tg.create_thread([&] { queue.Thread(); });
     }
-    while (state.KeepRunning()) {
-        // Make insecure_rand here so that each iteration is identical.
-        FastRandomContext insecure_rand(true);
-        CCheckQueueControl<PrevectorJob> control(&queue);
-        std::vector<std::vector<PrevectorJob>> vBatches(BATCHES);
-        for (auto &vChecks : vBatches) {
-            vChecks.reserve(BATCH_SIZE);
-            for (size_t x = 0; x < BATCH_SIZE; ++x) {
-                vChecks.emplace_back(insecure_rand);
-            }
-            control.Add(vChecks);
+
+    // create all the data once, then submit copies in the benchmark.
+    FastRandomContext insecure_rand(true);
+    std::vector<std::vector<PrevectorJob>> vBatches(BATCHES);
+    for (auto &vChecks : vBatches) {
+        vChecks.reserve(BATCH_SIZE);
+        for (size_t x = 0; x < BATCH_SIZE; ++x) {
+            vChecks.emplace_back(insecure_rand);
         }
-        // control waits for completion by RAII, but it is done explicitly here
-        // for clarity
-        control.Wait();
     }
+
+    bench.minEpochIterations(10)
+        .batch(BATCH_SIZE * BATCHES)
+        .unit("job")
+        .run([&] {
+            // Make insecure_rand here so that each iteration is identical.
+            CCheckQueueControl<PrevectorJob> control(&queue);
+            std::vector<std::vector<PrevectorJob>> vBatches(BATCHES);
+            for (auto &vChecks : vBatches) {
+                control.Add(vChecks);
+            }
+            // control waits for completion by RAII, but it is done explicitly
+            // here for clarity
+            control.Wait();
+        });
     tg.interrupt_all();
     tg.join_all();
     ECC_Stop();
 }
-BENCHMARK(CCheckQueueSpeedPrevectorJob, 1400);
+BENCHMARK(CCheckQueueSpeedPrevectorJob);

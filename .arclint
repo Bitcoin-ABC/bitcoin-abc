@@ -9,7 +9,8 @@
             "bin": ["clang-format-8", "clang-format"],
             "include": "(^src/.*\\.(h|c|cpp|mm)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)"
+                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "autopep8": {
@@ -44,6 +45,7 @@
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)",
                 "(^src/test/fuzz/strprintf.cpp$)"
             ]
         },
@@ -77,14 +79,16 @@
             "type": "lint-locale-dependence",
             "include": "(^src/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes/|leveldb/|secp256k1/|tinyformat.h|univalue/))"
+                "(^src/(crypto/ctaes/|leveldb/|secp256k1/|tinyformat.h|univalue/))",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-cheader": {
             "type": "lint-cheader",
             "include": "(^src/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
+                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "spelling": {
@@ -105,14 +109,16 @@
             "type": "lint-assert-with-side-effects",
             "include": "(^src/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)"
+                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-include-quotes": {
             "type": "lint-include-quotes",
             "include": "(^src/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)"
+                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-include-guard": {
@@ -120,6 +126,7 @@
             "include": "(^src/.*\\.h$)",
             "exclude": [
                 "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)",
                 "(^src/tinyformat.h$)"
             ]
         },
@@ -127,7 +134,8 @@
             "type": "lint-include-source",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)"
+                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-stdint": {
@@ -135,6 +143,7 @@
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)",
                 "(^src/compat/assumptions.h$)"
             ]
         },
@@ -142,7 +151,8 @@
             "type": "lint-source-filename",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)"
+                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-boost-dependencies": {
@@ -206,6 +216,7 @@
             "include": "(^src/.*\\.(h|cpp)$)",
             "exclude": [
                 "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)",
                 "(^src/compat/glibc_compat.cpp$)"
             ]
         },
@@ -224,7 +235,8 @@
             "type": "lint-doxygen",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
+                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-whitespace": {
@@ -232,14 +244,16 @@
             "include": "(\\.(ac|am|cmake|conf|in|include|json|m4|md|openrc|php|pl|sh|txt|yml)$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^src/(secp256k1|univalue|leveldb)/)"
+                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-cppcheck": {
             "type": "lint-cppcheck",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
+                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "yamllint": {

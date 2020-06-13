@@ -8,19 +8,19 @@
 #include <random.h>
 #include <uint256.h>
 
-static void MerkleRoot(benchmark::State &state) {
+static void MerkleRoot(benchmark::Bench &bench) {
     FastRandomContext rng(true);
     std::vector<uint256> leaves;
     leaves.resize(9001);
     for (auto &item : leaves) {
         item = rng.rand256();
     }
-    while (state.KeepRunning()) {
+    bench.batch(leaves.size()).unit("leaf").run([&] {
         bool mutation = false;
         uint256 hash =
             ComputeMerkleRoot(std::vector<uint256>(leaves), &mutation);
         leaves[mutation] = hash;
-    }
+    });
 }
 
-BENCHMARK(MerkleRoot, 800);
+BENCHMARK(MerkleRoot);

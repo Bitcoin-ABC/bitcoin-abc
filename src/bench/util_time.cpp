@@ -6,33 +6,25 @@
 
 #include <util/time.h>
 
-static void BenchTimeDeprecated(benchmark::State &state) {
-    while (state.KeepRunning()) {
-        (void)GetTime();
-    }
+static void BenchTimeDeprecated(benchmark::Bench &bench) {
+    bench.run([&] { (void)GetTime(); });
 }
 
-static void BenchTimeMock(benchmark::State &state) {
+static void BenchTimeMock(benchmark::Bench &bench) {
     SetMockTime(111);
-    while (state.KeepRunning()) {
-        (void)GetTime<std::chrono::seconds>();
-    }
+    bench.run([&] { (void)GetTime<std::chrono::seconds>(); });
     SetMockTime(0);
 }
 
-static void BenchTimeMillis(benchmark::State &state) {
-    while (state.KeepRunning()) {
-        (void)GetTime<std::chrono::milliseconds>();
-    }
+static void BenchTimeMillis(benchmark::Bench &bench) {
+    bench.run([&] { (void)GetTime<std::chrono::milliseconds>(); });
 }
 
-static void BenchTimeMillisSys(benchmark::State &state) {
-    while (state.KeepRunning()) {
-        (void)GetTimeMillis();
-    }
+static void BenchTimeMillisSys(benchmark::Bench &bench) {
+    bench.run([&] { (void)GetTimeMillis(); });
 }
 
-BENCHMARK(BenchTimeDeprecated, 100000000);
-BENCHMARK(BenchTimeMillis, 6000000);
-BENCHMARK(BenchTimeMillisSys, 6000000);
-BENCHMARK(BenchTimeMock, 300000000);
+BENCHMARK(BenchTimeDeprecated);
+BENCHMARK(BenchTimeMillis);
+BENCHMARK(BenchTimeMillisSys);
+BENCHMARK(BenchTimeMock);

@@ -31,7 +31,7 @@ static void addCoin(const Amount nValue, const CWallet &wallet,
 // same one over and over isn't too useful. Generating random isn't useful
 // either for measurements."
 // (https://github.com/bitcoin/bitcoin/issues/7883#issuecomment-224807484)
-static void CoinSelection(benchmark::State &state) {
+static void CoinSelection(benchmark::Bench &bench) {
     SelectParams(CBaseChainParams::REGTEST);
 
     NodeContext node;
@@ -60,7 +60,7 @@ static void CoinSelection(benchmark::State &state) {
     const CoinEligibilityFilter filter_standard(1, 6, 0);
     const CoinSelectionParams coin_selection_params(
         true, 34, 148, CFeeRate(Amount::zero()), 0);
-    while (state.KeepRunning()) {
+    bench.run([&] {
         std::set<CInputCoin> setCoinsRet;
         Amount nValueRet;
         bool bnb_used;
@@ -70,7 +70,7 @@ static void CoinSelection(benchmark::State &state) {
         assert(success);
         assert(nValueRet == 1003 * COIN);
         assert(setCoinsRet.size() == 2);
-    }
+    });
 }
 
 typedef std::set<CInputCoin> CoinSet;
@@ -105,7 +105,7 @@ static Amount make_hard_case(const CWallet &wallet, int utxos,
     return target;
 }
 
-static void BnBExhaustion(benchmark::State &state) {
+static void BnBExhaustion(benchmark::Bench &bench) {
     SelectParams(CBaseChainParams::REGTEST);
 
     NodeContext node;
@@ -122,7 +122,7 @@ static void BnBExhaustion(benchmark::State &state) {
     Amount value_ret = Amount::zero();
     Amount not_input_fees = Amount::zero();
 
-    while (state.KeepRunning()) {
+    bench.run([&] {
         // Benchmark
         Amount target = make_hard_case(wallet, 17, utxo_pool);
         // Should exhaust
@@ -132,8 +132,8 @@ static void BnBExhaustion(benchmark::State &state) {
         // Cleanup
         utxo_pool.clear();
         selection.clear();
-    }
+    });
 }
 
-BENCHMARK(CoinSelection, 650);
-BENCHMARK(BnBExhaustion, 650);
+BENCHMARK(CoinSelection);
+BENCHMARK(BnBExhaustion);

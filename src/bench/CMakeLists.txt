@@ -56,6 +56,7 @@ add_executable(bitcoin-bench
 	mempool_eviction.cpp
 	mempool_stress.cpp
 	merkle_root.cpp
+	nanobench.cpp
 	poly1305.cpp
 	prevector.cpp
 	rollingbloom.cpp
@@ -83,14 +84,10 @@ include(InstallationHelper)
 install_target(bitcoin-bench EXCLUDE_FROM_ALL)
 
 include(TestSuite)
-if(ENABLE_JUNIT_REPORT)
-	set(JUNIT_ARGS -printer=junit > "${JUNIT_REPORT_DIRECTORY}/bench-bitcoin.xml")
-endif()
 
 add_test_custom_target(bench-bitcoin
 	TEST_COMMAND
 		"$<TARGET_FILE:bitcoin-bench>"
-		${JUNIT_ARGS}
 	CUSTOM_TARGET_ARGS
 		DEPENDS bitcoin-bench
 		USES_TERMINAL

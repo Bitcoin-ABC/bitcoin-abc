@@ -21,6 +21,7 @@ EXCLUDE = [
     'src/chainparamsseeds.h',
     # other external copyrights:
     'src/tinyformat.h',
+    'src/bench/nanobench.h',
     'test/functional/test_framework/bignum.py',
     # python init:
     '*__init__.py',

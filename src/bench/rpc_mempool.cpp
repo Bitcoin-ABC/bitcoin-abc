@@ -17,7 +17,7 @@ static void AddTx(const CTransactionRef &tx, const Amount &fee,
                                       /* sigOpCount */ 1, lp));
 }
 
-static void RpcMempool(benchmark::State &state) {
+static void RpcMempool(benchmark::Bench &bench) {
     CTxMemPool pool;
     LOCK2(cs_main, pool.cs);
 
@@ -32,9 +32,7 @@ static void RpcMempool(benchmark::State &state) {
         AddTx(tx_r, /* fee */ i * COIN, pool);
     }
 
-    while (state.KeepRunning()) {
-        (void)MempoolToJSON(pool, /*verbose*/ true);
-    }
+    bench.run([&] { (void)MempoolToJSON(pool, /*verbose*/ true); });
 }
 
-BENCHMARK(RpcMempool, 40);
+BENCHMARK(RpcMempool);

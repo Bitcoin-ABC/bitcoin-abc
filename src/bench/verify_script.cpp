@@ -16,7 +16,7 @@
 
 #include <array>
 
-static void VerifyNestedIfScript(benchmark::State &state) {
+static void VerifyNestedIfScript(benchmark::Bench &bench) {
     std::vector<std::vector<uint8_t>> stack;
     CScript script;
     for (int i = 0; i < 100; ++i) {
@@ -28,14 +28,14 @@ static void VerifyNestedIfScript(benchmark::State &state) {
     for (int i = 0; i < 100; ++i) {
         script << OP_ENDIF;
     }
-    while (state.KeepRunning()) {
+    bench.run([&] {
         auto stack_copy = stack;
         ScriptExecutionMetrics metrics = {};
         ScriptError error;
         bool ret = EvalScript(stack_copy, script, 0, BaseSignatureChecker(),
                               metrics, &error);
         assert(ret);
-    }
+    });
 }
 
-BENCHMARK(VerifyNestedIfScript, 100);
+BENCHMARK(VerifyNestedIfScript);

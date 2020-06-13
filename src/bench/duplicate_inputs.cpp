@@ -15,7 +15,7 @@
 #include <txmempool.h>
 #include <validation.h>
 
-static void DuplicateInputs(benchmark::State &state) {
+static void DuplicateInputs(benchmark::Bench &bench) {
     TestingSetup test_setup{
         CBaseChainParams::REGTEST,
         /* extra_args */
@@ -65,14 +65,14 @@ static void DuplicateInputs(benchmark::State &state) {
 
     block.hashMerkleRoot = BlockMerkleRoot(block);
 
-    while (state.KeepRunning()) {
+    bench.run([&] {
         BlockValidationState cvstate{};
         assert(!CheckBlock(block, cvstate, consensusParams,
                            BlockValidationOptions(GetConfig())
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false)));
         assert(cvstate.GetRejectReason() == "bad-txns-inputs-duplicate");
-    }
+    });
 }
 
-BENCHMARK(DuplicateInputs, 10);
+BENCHMARK(DuplicateInputs);

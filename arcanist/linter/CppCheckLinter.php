@@ -25,6 +25,11 @@ final class CppCheckLinter extends ArcanistExternalLinter {
       "Class 'base_uint < 256 >' has a constructor with 1 argument that is not explicit.",
       "Class 'base_uint' has a constructor with 1 argument that is not explicit.",
     ),
+    "src/bench/mempool_stress.cpp" => array(
+      // Remove this once this false positive is fixed in cppcheck
+      // https://trac.cppcheck.net/ticket/9537
+      "Syntax Error: AST broken, 'for' doesn't have two operands.",
+    ),
     "src/bench/prevector.cpp" => array(
       // Remove this once this false positive is fixed in cppcheck
       "syntax error",

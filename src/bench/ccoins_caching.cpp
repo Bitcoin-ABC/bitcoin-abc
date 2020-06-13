@@ -16,7 +16,7 @@
 // characteristics than e.g. reindex timings. But that's not a requirement of
 // every benchmark."
 // (https://github.com/bitcoin/bitcoin/issues/7883#issuecomment-224807484)
-static void CCoinsCaching(benchmark::State &state) {
+static void CCoinsCaching(benchmark::Bench &bench) {
     const ECCVerifyHandle verify_handle;
     ECC_Start();
 
@@ -41,13 +41,13 @@ static void CCoinsCaching(benchmark::State &state) {
     t1.vout[0].scriptPubKey << OP_1;
 
     // Benchmark.
-    while (state.KeepRunning()) {
+    bench.run([&] {
         CTransaction t(t1);
         bool success =
             AreInputsStandard(t, coins, STANDARD_SCRIPT_VERIFY_FLAGS);
         assert(success);
-    }
+    });
     ECC_Stop();
 }
 
-BENCHMARK(CCoinsCaching, 170 * 1000);
+BENCHMARK(CCoinsCaching);

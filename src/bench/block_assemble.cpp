@@ -14,7 +14,7 @@
 
 #include <vector>
 
-static void AssembleBlock(benchmark::State &state) {
+static void AssembleBlock(benchmark::Bench &bench) {
     const Config &config = GetConfig();
     TestingSetup test_setup{
         CBaseChainParams::REGTEST,
@@ -61,9 +61,7 @@ static void AssembleBlock(benchmark::State &state) {
         }
     }
 
-    while (state.KeepRunning()) {
-        PrepareBlock(config, test_setup.m_node, SCRIPT_PUB);
-    }
+    bench.run([&] { PrepareBlock(config, test_setup.m_node, SCRIPT_PUB); });
 }
 
-BENCHMARK(AssembleBlock, 700);
+BENCHMARK(AssembleBlock);

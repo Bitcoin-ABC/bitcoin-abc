@@ -12,7 +12,7 @@
 #include <validationinterface.h>
 #include <wallet/wallet.h>
 
-static void WalletBalance(benchmark::State &state, const bool set_dirty,
+static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
                           const bool add_watchonly, const bool add_mine) {
     TestingSetup test_setup{
         CBaseChainParams::REGTEST,
@@ -58,7 +58,7 @@ static void WalletBalance(benchmark::State &state, const bool set_dirty,
     // Cache
     auto bal = wallet.GetBalance();
 
-    while (state.KeepRunning()) {
+    bench.run([&] {
         if (set_dirty) {
             wallet.MarkDirty();
         }
@@ -69,27 +69,27 @@ static void WalletBalance(benchmark::State &state, const bool set_dirty,
         if (add_watchonly) {
             assert(bal.m_watchonly_trusted > Amount::zero());
         }
-    }
+    });
 }
 
-static void WalletBalanceDirty(benchmark::State &state) {
-    WalletBalance(state, /* set_dirty */ true, /* add_watchonly */ true,
+static void WalletBalanceDirty(benchmark::Bench &bench) {
+    WalletBalance(bench, /* set_dirty */ true, /* add_watchonly */ true,
                   /* add_mine */ true);
 }
-static void WalletBalanceClean(benchmark::State &state) {
-    WalletBalance(state, /* set_dirty */ false, /* add_watchonly */ true,
+static void WalletBalanceClean(benchmark::Bench &bench) {
+    WalletBalance(bench, /* set_dirty */ false, /* add_watchonly */ true,
                   /* add_mine */ true);
 }
-static void WalletBalanceMine(benchmark::State &state) {
-    WalletBalance(state, /* set_dirty */ false, /* add_watchonly */ false,
+static void WalletBalanceMine(benchmark::Bench &bench) {
+    WalletBalance(bench, /* set_dirty */ false, /* add_watchonly */ false,
                   /* add_mine */ true);
 }
-static void WalletBalanceWatch(benchmark::State &state) {
-    WalletBalance(state, /* set_dirty */ false, /* add_watchonly */ true,
+static void WalletBalanceWatch(benchmark::Bench &bench) {
+    WalletBalance(bench, /* set_dirty */ false, /* add_watchonly */ true,
                   /* add_mine */ false);
 }
 
-BENCHMARK(WalletBalanceDirty, 2500);
-BENCHMARK(WalletBalanceClean, 8000);
-BENCHMARK(WalletBalanceMine, 16000);
-BENCHMARK(WalletBalanceWatch, 8000);
+BENCHMARK(WalletBalanceDirty);
+BENCHMARK(WalletBalanceClean);
+BENCHMARK(WalletBalanceMine);
+BENCHMARK(WalletBalanceWatch);
