@@ -170,8 +170,8 @@ bool CBlockTreeDB::WriteReindexing(bool fReindexing) {
     }
 }
 
-void CBlockTreeDB::ReadReindexing(bool &fReindexing) {
-    fReindexing = Exists(DB_REINDEX_FLAG);
+bool CBlockTreeDB::IsReindexing() const {
+    return Exists(DB_REINDEX_FLAG);
 }
 
 bool CBlockTreeDB::ReadLastBlockFile(int &nFile) {

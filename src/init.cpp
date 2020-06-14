@@ -2419,7 +2419,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     int64_t nStart = 0;
     bool fLoaded = false;
     while (!fLoaded && !ShutdownRequested()) {
-        bool fReset = fReindex;
+        const bool fReset = fReindex;
         std::string strLoadError;
 
         uiInterface.InitMessage(_("Loading block index...").translated);
