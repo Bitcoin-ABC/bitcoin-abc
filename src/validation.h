@@ -450,6 +450,14 @@ public:
         remaining = rhs.remaining.load();
         return *this;
     }
+
+    static TxSigCheckLimiter getDisabled() {
+        TxSigCheckLimiter txLimiter;
+        // Historically, there has not been a transaction with more than 20k sig
+        // checks on testnet or mainnet, so this effectively disable sigchecks.
+        txLimiter.remaining = 20000;
+        return txLimiter;
+    }
 };
 
 class ConnectTrace;

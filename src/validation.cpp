@@ -1471,7 +1471,7 @@ static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
     }
 
     if (IsPhononEnabled(params, pindex)) {
-        flags |= SCRIPT_REPORT_SIGCHECKS;
+        flags |= SCRIPT_ENFORCE_SIGCHECKS;
     }
 
     // We make sure this node will have replay protection during the next hard
@@ -1748,13 +1748,21 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         // consult the cache, though).
         bool fCacheResults = fJustCheck;
 
+        const bool fEnforceSigCheck = flags & SCRIPT_ENFORCE_SIGCHECKS;
+        if (!fEnforceSigCheck) {
+            // Historically, there has been transactions with a very high
+            // sigcheck count, so we need to disable this check for such
+            // transactions.
+            nSigChecksTxLimiters[txIndex] = TxSigCheckLimiter::getDisabled();
+        }
+
         std::vector<CScriptCheck> vChecks;
         // nSigChecksRet may be accurate (found in cache) or 0 (checks were
         // deferred into vChecks).
         int nSigChecksRet;
         if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults,
                          fCacheResults, PrecomputedTransactionData(tx),
-                         nSigChecksRet, nSigChecksTxLimiters.at(txIndex),
+                         nSigChecksRet, nSigChecksTxLimiters[txIndex],
                          &nSigChecksBlockLimiter, &vChecks)) {
             // Parallel CheckInputs shouldn't fail except for this reason, which
             // is banworthy. Use "blk-bad-inputs" to mimic the parallel script

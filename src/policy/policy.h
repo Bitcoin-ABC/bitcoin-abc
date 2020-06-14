@@ -71,11 +71,11 @@ static const Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
  * influences the decision of whether to drop them or to also ban the originator
  * (see CheckInputs).
  */
-static const uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
+static constexpr uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
     SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
     SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_LOW_S |
     SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_MINIMALDATA |
-    SCRIPT_ENABLE_SCHNORR_MULTISIG;
+    SCRIPT_ENABLE_SCHNORR_MULTISIG | SCRIPT_ENFORCE_SIGCHECKS;
 
 /**
  * Standard script verification flags that standard transactions will comply

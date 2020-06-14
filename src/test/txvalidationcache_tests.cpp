@@ -158,11 +158,7 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
         BOOST_CHECK_EQUAL(ret, expected_return_value);
 
         if (ret) {
-            if (test_flags & SCRIPT_REPORT_SIGCHECKS) {
-                BOOST_CHECK(nSigChecksDirect == expected_sigchecks);
-            } else {
-                BOOST_CHECK(nSigChecksDirect == 0);
-            }
+            BOOST_CHECK(nSigChecksDirect == expected_sigchecks);
         }
 
         // Test the caching
@@ -363,10 +359,9 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData txdata(transaction);
 
         int nSigChecksRet;
-        BOOST_CHECK(
-            CheckInputs(transaction, state, pcoinsTip.get(), true,
-                        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS,
-                        true, true, txdata, nSigChecksRet, nullptr));
+        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+                                STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
+                                txdata, nSigChecksRet, nullptr));
         BOOST_CHECK(nSigChecksRet == 1);
     }
 
@@ -403,10 +398,9 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         PrecomputedTransactionData txdata(transaction);
 
         int nSigChecksRet;
-        BOOST_CHECK(
-            CheckInputs(transaction, state, pcoinsTip.get(), true,
-                        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS,
-                        true, true, txdata, nSigChecksRet, nullptr));
+        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
+                                STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
+                                txdata, nSigChecksRet, nullptr));
         BOOST_CHECK(nSigChecksRet == 1);
     }
 
@@ -457,8 +451,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             CValidationState state;
             CTransaction transaction(tx);
             PrecomputedTransactionData txdata(transaction);
-            uint32_t flags =
-                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS;
+            const uint32_t flags =
+                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENFORCE_SIGCHECKS;
             int nSigChecksDummy;
 
             /**
@@ -553,17 +547,16 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // This transaction is now invalid because the second signature is
         // missing.
         int nSigChecksDummy;
-        BOOST_CHECK(
-            !CheckInputs(transaction, state, pcoinsTip.get(), true,
-                         STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS,
-                         true, true, txdata, nSigChecksDummy, nullptr));
+        BOOST_CHECK(!CheckInputs(transaction, state, pcoinsTip.get(), true,
+                                 STANDARD_SCRIPT_VERIFY_FLAGS, true, true,
+                                 txdata, nSigChecksDummy, nullptr));
 
         // Make sure this transaction was not cached (ie becausethe first input
         // was valid)
         std::vector<CScriptCheck> scriptchecks;
         BOOST_CHECK(
             CheckInputs(transaction, state, pcoinsTip.get(), true,
-                        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_REPORT_SIGCHECKS,
+                        STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENFORCE_SIGCHECKS,
                         true, true, txdata, nSigChecksDummy, &scriptchecks));
         // Should get 2 script checks back -- caching is on a whole-transaction
         // basis.

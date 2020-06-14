@@ -316,14 +316,8 @@ BOOST_AUTO_TEST_CASE(test_evalscript) {
 void CheckVerifyScript(CScript scriptSig, CScript scriptPubKey, uint32_t flags,
                        int expected_sigchecks) {
     ScriptExecutionMetrics metricsRet;
-    metricsRet.nSigChecks = 12345 ^ 0;
-    BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,
-                             flags & ~SCRIPT_REPORT_SIGCHECKS, dummysigchecker,
-                             metricsRet));
-    BOOST_CHECK_EQUAL(metricsRet.nSigChecks, 0);
     metricsRet.nSigChecks = 12345 ^ expected_sigchecks;
-    BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey,
-                             flags | SCRIPT_REPORT_SIGCHECKS, dummysigchecker,
+    BOOST_CHECK(VerifyScript(scriptSig, scriptPubKey, flags, dummysigchecker,
                              metricsRet));
     BOOST_CHECK_EQUAL(metricsRet.nSigChecks, expected_sigchecks);
 }

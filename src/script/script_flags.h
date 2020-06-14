@@ -107,11 +107,8 @@ enum {
     // VERIFY_INPUT_SIGCHECKS
     SCRIPT_VERIFY_INPUT_SIGCHECKS = (1U << 22),
 
-    // A utility flag to decide whether VerifyScript should output the correct
-    // sigchecks value or to report zero.
-    // This has no effect on script success / failure, and will be removed
-    // after cleanup of the SigChecks upgrade.
-    SCRIPT_REPORT_SIGCHECKS = (1U << 31),
+    // A utility flag to decide whether we must enforce sigcheck limits.
+    SCRIPT_ENFORCE_SIGCHECKS = (1U << 23),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPT_FLAGS_H
