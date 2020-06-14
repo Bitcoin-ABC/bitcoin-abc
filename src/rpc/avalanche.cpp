@@ -13,16 +13,14 @@
 
 static UniValue getavalanchekey(const Config &config,
                                 const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "getavalanchekey",
-            "\nReturns the key used to sign avalanche messages.\n",
-            {},
-            RPCResults{},
-            RPCExamples{HelpExampleRpc("getavalanchekey", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "getavalanchekey",
+        "\nReturns the key used to sign avalanche messages.\n",
+        {},
+        RPCResults{},
+        RPCExamples{HelpExampleRpc("getavalanchekey", "")},
     }
+        .Check(request);
 
     if (!g_avalanche) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
@@ -33,21 +31,19 @@ static UniValue getavalanchekey(const Config &config,
 
 static UniValue addavalanchepeer(const Config &config,
                                  const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 2) {
-        throw std::runtime_error(RPCHelpMan{
-            "addavalanchepeer",
-            "\nAdd a peer to the set of peer to poll for avalanche.\n",
-            {
-                {"nodeid", RPCArg::Type::NUM, RPCArg::Optional::NO,
-                 "Node to be added to avalanche."},
-                {"publickey", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
-                 "The public key of the node."},
-            },
-            RPCResults{},
-            RPCExamples{HelpExampleRpc("addavalanchepeer", "5")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "addavalanchepeer",
+        "\nAdd a peer to the set of peer to poll for avalanche.\n",
+        {
+            {"nodeid", RPCArg::Type::NUM, RPCArg::Optional::NO,
+             "Node to be added to avalanche."},
+            {"publickey", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The public key of the node."},
+        },
+        RPCResults{},
+        RPCExamples{HelpExampleRpc("addavalanchepeer", "5")},
     }
+        .Check(request);
 
     if (!g_avalanche) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
