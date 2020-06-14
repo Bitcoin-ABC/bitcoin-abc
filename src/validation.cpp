@@ -294,26 +294,6 @@ static bool IsReplayProtectionEnabled(const Consensus::Params &params,
     return IsReplayProtectionEnabled(params, pindexPrev->GetMedianTimePast());
 }
 
-// Returns the script flags which should be checked for mempool admission when
-// the tip is at the given block.
-static uint32_t GetStandardScriptFlags(const Consensus::Params &params,
-                                       const CBlockIndex *pindexTip) {
-    // Use the consensus flags for the next block as a basis, and mix in the
-    // declared-standard flags.
-    uint32_t flags = GetNextBlockScriptFlags(params, pindexTip) |
-                     STANDARD_SCRIPT_VERIFY_FLAGS;
-
-    // Disable input sigchecks limit for mempool admission, prior to its
-    // proper activation.
-    flags &= ~SCRIPT_VERIFY_INPUT_SIGCHECKS;
-
-    if (IsPhononEnabled(params, pindexTip)) {
-        flags |= SCRIPT_VERIFY_INPUT_SIGCHECKS;
-    }
-
-    return flags;
-}
-
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
 // were somehow broken and returning the wrong scriptPubKeys
 static bool CheckInputsFromMempoolAndCache(
@@ -528,7 +508,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
 
         // Validate input scripts against standard script flags.
         const uint32_t scriptVerifyFlags =
-            GetStandardScriptFlags(consensusParams, ::ChainActive().Tip());
+            nextBlockScriptVerifyFlags | STANDARD_SCRIPT_VERIFY_FLAGS;
         PrecomputedTransactionData txdata(tx);
         int nSigChecksStandard;
         if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
