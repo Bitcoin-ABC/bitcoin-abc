@@ -323,7 +323,6 @@ libbitcoin_server_a_SOURCES = \
   node/transaction.cpp \
   noui.cpp \
   policy/fees.cpp \
-  policy/mempool.cpp \
   policy/settings.cpp \
   pow.cpp \
   rest.cpp \
