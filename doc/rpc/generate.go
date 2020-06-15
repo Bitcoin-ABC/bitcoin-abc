@@ -127,7 +127,7 @@ func main() {
 		}
 		for _, command := range group.Commands {
 			name := command.Name
-			address := fmt.Sprintf("%s%s.html", dirname, name)
+			address := fmt.Sprintf("%s/%s.html", dirname, name)
 			permalink := fmt.Sprintf("en/doc/%s/rpc/%s/%s/", version, groupname, name)
 			err = tmpl.Execute(open(address), CommandData{
 				Version:     version,
