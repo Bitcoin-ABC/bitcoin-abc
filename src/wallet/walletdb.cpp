@@ -952,23 +952,13 @@ void MaybeCompactWalletDB() {
 
         if (dbh.nLastFlushed != nUpdateCounter &&
             GetTime() - dbh.nLastWalletUpdate >= 2) {
-            if (BerkeleyBatch::PeriodicFlush(dbh)) {
+            if (dbh.PeriodicFlush()) {
                 dbh.nLastFlushed = nUpdateCounter;
             }
         }
     }
 
     fOneThread = false;
-}
-
-bool WalletBatch::VerifyEnvironment(const fs::path &wallet_path,
-                                    bilingual_str &errorStr) {
-    return BerkeleyBatch::VerifyEnvironment(wallet_path, errorStr);
-}
-
-bool WalletBatch::VerifyDatabaseFile(const fs::path &wallet_path,
-                                     bilingual_str &errorStr) {
-    return BerkeleyBatch::VerifyDatabaseFile(wallet_path, errorStr);
 }
 
 bool WalletBatch::WriteDestData(const CTxDestination &address,

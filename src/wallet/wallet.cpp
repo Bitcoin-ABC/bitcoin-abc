@@ -4144,17 +4144,13 @@ bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
         WalletDatabase::Create(wallet_path);
 
     try {
-        if (!WalletBatch::VerifyEnvironment(wallet_path, error_string)) {
-            return false;
-        }
+        return database->Verify(error_string);
     } catch (const fs::filesystem_error &e) {
         error_string = Untranslated(
             strprintf("Error loading wallet %s. %s", location.GetName(),
                       fsbridge::get_filesystem_error_message(e)));
         return false;
     }
-
-    return WalletBatch::VerifyDatabaseFile(wallet_path, error_string);
 }
 
 std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
