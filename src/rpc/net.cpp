@@ -30,17 +30,15 @@
 
 static UniValue getconnectioncount(const Config &config,
                                    const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "getconnectioncount",
-            "\nReturns the number of connections to other nodes.\n",
-            {},
-            RPCResult{"n          (numeric) The connection count\n"},
-            RPCExamples{HelpExampleCli("getconnectioncount", "") +
-                        HelpExampleRpc("getconnectioncount", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "getconnectioncount",
+        "\nReturns the number of connections to other nodes.\n",
+        {},
+        RPCResult{"n          (numeric) The connection count\n"},
+        RPCExamples{HelpExampleCli("getconnectioncount", "") +
+                    HelpExampleRpc("getconnectioncount", "")},
     }
+        .Check(request);
 
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
@@ -52,22 +50,19 @@ static UniValue getconnectioncount(const Config &config,
 }
 
 static UniValue ping(const Config &config, const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "ping",
-            "\nRequests that a ping be sent to all other nodes, to measure "
-            "ping time.\n"
-            "Results provided in getpeerinfo, pingtime and pingwait fields "
-            "are decimal seconds.\n"
-            "Ping command is handled in queue with all other commands, so "
-            "it measures processing backlog, not just network ping.\n",
-            {},
-            RPCResults{},
-            RPCExamples{HelpExampleCli("ping", "") +
-                        HelpExampleRpc("ping", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "ping",
+        "\nRequests that a ping be sent to all other nodes, to measure ping "
+        "time.\n"
+        "Results provided in getpeerinfo, pingtime and pingwait fields are "
+        "decimal seconds.\n"
+        "Ping command is handled in queue with all other commands, so it "
+        "measures processing backlog, not just network ping.\n",
+        {},
+        RPCResults{},
+        RPCExamples{HelpExampleCli("ping", "") + HelpExampleRpc("ping", "")},
     }
+        .Check(request);
 
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
@@ -83,98 +78,95 @@ static UniValue ping(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue getpeerinfo(const Config &config,
                             const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "getpeerinfo",
-            "\nReturns data about each connected network node as a json array "
-            "of objects.\n",
-            {},
-            RPCResult{
-                "[\n"
-                "  {\n"
-                "    \"id\": n,                   (numeric) Peer index\n"
-                "    \"addr\":\"host:port\",      (string) The IP address and "
-                "port of the peer\n"
-                "    \"addrbind\":\"ip:port\",    (string) Bind address of the "
-                "connection to the peer\n"
-                "    \"addrlocal\":\"ip:port\",   (string) Local address as "
-                "reported by the peer\n"
-                "    \"services\":\"xxxxxxxxxxxxxxxx\",   (string) The "
-                "services offered\n"
-                "    \"relaytxes\":true|false,    (boolean) Whether peer has "
-                "asked us to relay transactions to it\n"
-                "    \"lastsend\": ttt,           (numeric) The time in "
-                "seconds since epoch (Jan 1 1970 GMT) of the last send\n"
-                "    \"lastrecv\": ttt,           (numeric) The time in "
-                "seconds since epoch (Jan 1 1970 GMT) of the last receive\n"
-                "    \"bytessent\": n,            (numeric) The total bytes "
-                "sent\n"
-                "    \"bytesrecv\": n,            (numeric) The total bytes "
-                "received\n"
-                "    \"conntime\": ttt,           (numeric) The connection "
-                "time in seconds since epoch (Jan 1 1970 GMT)\n"
-                "    \"timeoffset\": ttt,         (numeric) The time offset in "
-                "seconds\n"
-                "    \"pingtime\": n,             (numeric) ping time (if "
-                "available)\n"
-                "    \"minping\": n,              (numeric) minimum observed "
-                "ping time (if any at all)\n"
-                "    \"pingwait\": n,             (numeric) ping wait (if "
-                "non-zero)\n"
-                "    \"version\": v,              (numeric) The peer version, "
-                "such as 70001\n"
-                "    \"subver\": \"/Satoshi:0.8.5/\",  (string) The string "
-                "version\n"
-                "    \"inbound\": true|false,     (boolean) Inbound (true) or "
-                "Outbound (false)\n"
-                "    \"addnode\": true|false,     (boolean) Whether connection "
-                "was due to addnode/-connect or if it was an automatic/inbound "
-                "connection\n"
-                "    \"startingheight\": n,       (numeric) The starting "
-                "height (block) of the peer\n"
-                "    \"banscore\": n,             (numeric) The ban score\n"
-                "    \"synced_headers\": n,       (numeric) The last header we "
-                "have in common with this peer\n"
-                "    \"synced_blocks\": n,        (numeric) The last block we "
-                "have in common with this peer\n"
-                "    \"inflight\": [\n"
-                "       n,                        (numeric) The heights of "
-                "blocks we're currently asking from this peer\n"
-                "       ...\n"
-                "    ],\n"
-                "    \"whitelisted\": true|false, (boolean) Whether the peer "
-                "is whitelisted\n"
-                "    \"minfeefilter\": n,         (numeric) The minimum fee "
-                "rate for transactions this peer accepts\n"
-                "    \"bytessent_per_msg\": {\n"
-                "       \"msg\": n,               (numeric) The total bytes "
-                "sent aggregated by message type\n"
-                "                               When a message type is not "
-                "listed in this json object, the bytes sent are 0.\n"
-                "                               Only known message types can "
-                "appear as keys in the object.\n"
-                "       ...\n"
-                "    },\n"
-                "    \"bytesrecv_per_msg\": {\n"
-                "       \"msg\": n,               (numeric) The total bytes "
-                "received aggregated by message type\n"
-                "                               When a message type is not "
-                "listed in this json object, the bytes received are 0.\n"
-                "                               Only known message types can "
-                "appear as keys in the object and all bytes received of "
-                "unknown message types are listed under '" +
-                NET_MESSAGE_COMMAND_OTHER +
-                "'.\n"
-                "       ...\n"
-                "    }\n"
-                "  }\n"
-                "  ,...\n"
-                "]\n"},
-            RPCExamples{HelpExampleCli("getpeerinfo", "") +
-                        HelpExampleRpc("getpeerinfo", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "getpeerinfo",
+        "\nReturns data about each connected network node as a json array of "
+        "objects.\n",
+        {},
+        RPCResult{
+            "[\n"
+            "  {\n"
+            "    \"id\": n,                   (numeric) Peer index\n"
+            "    \"addr\":\"host:port\",      (string) The IP address and port "
+            "of the peer\n"
+            "    \"addrbind\":\"ip:port\",    (string) Bind address of the "
+            "connection to the peer\n"
+            "    \"addrlocal\":\"ip:port\",   (string) Local address as "
+            "reported by the peer\n"
+            "    \"services\":\"xxxxxxxxxxxxxxxx\",   (string) The services "
+            "offered\n"
+            "    \"relaytxes\":true|false,    (boolean) Whether peer has asked "
+            "us to relay transactions to it\n"
+            "    \"lastsend\": ttt,           (numeric) The time in seconds "
+            "since epoch (Jan 1 1970 GMT) of the last send\n"
+            "    \"lastrecv\": ttt,           (numeric) The time in seconds "
+            "since epoch (Jan 1 1970 GMT) of the last receive\n"
+            "    \"bytessent\": n,            (numeric) The total bytes sent\n"
+            "    \"bytesrecv\": n,            (numeric) The total bytes "
+            "received\n"
+            "    \"conntime\": ttt,           (numeric) The connection time in "
+            "seconds since epoch (Jan 1 1970 GMT)\n"
+            "    \"timeoffset\": ttt,         (numeric) The time offset in "
+            "seconds\n"
+            "    \"pingtime\": n,             (numeric) ping time (if "
+            "available)\n"
+            "    \"minping\": n,              (numeric) minimum observed ping "
+            "time (if any at all)\n"
+            "    \"pingwait\": n,             (numeric) ping wait (if "
+            "non-zero)\n"
+            "    \"version\": v,              (numeric) The peer version, such "
+            "as 70001\n"
+            "    \"subver\": \"/Satoshi:0.8.5/\",  (string) The string "
+            "version\n"
+            "    \"inbound\": true|false,     (boolean) Inbound (true) or "
+            "Outbound (false)\n"
+            "    \"addnode\": true|false,     (boolean) Whether connection was "
+            "due to addnode/-connect or if it was an automatic/inbound "
+            "connection\n"
+            "    \"startingheight\": n,       (numeric) The starting height "
+            "(block) of the peer\n"
+            "    \"banscore\": n,             (numeric) The ban score\n"
+            "    \"synced_headers\": n,       (numeric) The last header we "
+            "have in common with this peer\n"
+            "    \"synced_blocks\": n,        (numeric) The last block we have "
+            "in common with this peer\n"
+            "    \"inflight\": [\n"
+            "       n,                        (numeric) The heights of blocks "
+            "we're currently asking from this peer\n"
+            "       ...\n"
+            "    ],\n"
+            "    \"whitelisted\": true|false, (boolean) Whether the peer is "
+            "whitelisted\n"
+            "    \"minfeefilter\": n,         (numeric) The minimum fee rate "
+            "for transactions this peer accepts\n"
+            "    \"bytessent_per_msg\": {\n"
+            "       \"msg\": n,               (numeric) The total bytes sent "
+            "aggregated by message type\n"
+            "                               When a message type is not listed "
+            "in this json object, the bytes sent are 0.\n"
+            "                               Only known message types can "
+            "appear as keys in the object.\n"
+            "       ...\n"
+            "    },\n"
+            "    \"bytesrecv_per_msg\": {\n"
+            "       \"msg\": n,               (numeric) The total bytes "
+            "received aggregated by message type\n"
+            "                               When a message type is not listed "
+            "in this json object, the bytes received are 0.\n"
+            "                               Only known message types can "
+            "appear as keys in the object and all bytes received of unknown "
+            "message types are listed under '" +
+            NET_MESSAGE_COMMAND_OTHER +
+            "'.\n"
+            "       ...\n"
+            "    }\n"
+            "  }\n"
+            "  ,...\n"
+            "]\n"},
+        RPCExamples{HelpExampleCli("getpeerinfo", "") +
+                    HelpExampleRpc("getpeerinfo", "")},
     }
+        .Check(request);
 
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
@@ -327,32 +319,28 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue disconnectnode(const Config &config,
                                const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() == 0 ||
-        request.params.size() >= 3) {
-        throw std::runtime_error(RPCHelpMan{
-            "disconnectnode",
-            "\nImmediately disconnects from the specified peer node.\n"
-            "\nStrictly one out of 'address' and 'nodeid' can be provided "
-            "to identify the node.\n"
-            "\nTo disconnect by nodeid, either set 'address' to the empty "
-            "string, or call using the named 'nodeid' argument only.\n",
-            {
-                {"address", RPCArg::Type::STR,
-                 /* default */ "fallback to nodeid",
-                 "The IP address/port of the node"},
-                {"nodeid", RPCArg::Type::NUM,
-                 /* default */ "fallback to address",
-                 "The node ID (see getpeerinfo for node IDs)"},
-            },
-            RPCResults{},
-            RPCExamples{
-                HelpExampleCli("disconnectnode", "\"192.168.0.6:8333\"") +
-                HelpExampleCli("disconnectnode", "\"\" 1") +
-                HelpExampleRpc("disconnectnode", "\"192.168.0.6:8333\"") +
-                HelpExampleRpc("disconnectnode", "\"\", 1")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "disconnectnode",
+        "\nImmediately disconnects from the specified peer node.\n"
+        "\nStrictly one out of 'address' and 'nodeid' can be provided to "
+        "identify the node.\n"
+        "\nTo disconnect by nodeid, either set 'address' to the empty string, "
+        "or call using the named 'nodeid' argument only.\n",
+        {
+            {"address", RPCArg::Type::STR,
+             /* default */ "fallback to nodeid",
+             "The IP address/port of the node"},
+            {"nodeid", RPCArg::Type::NUM,
+             /* default */ "fallback to address",
+             "The node ID (see getpeerinfo for node IDs)"},
+        },
+        RPCResults{},
+        RPCExamples{HelpExampleCli("disconnectnode", "\"192.168.0.6:8333\"") +
+                    HelpExampleCli("disconnectnode", "\"\" 1") +
+                    HelpExampleRpc("disconnectnode", "\"192.168.0.6:8333\"") +
+                    HelpExampleRpc("disconnectnode", "\"\", 1")},
     }
+        .Check(request);
 
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
@@ -389,42 +377,37 @@ static UniValue disconnectnode(const Config &config,
 
 static UniValue getaddednodeinfo(const Config &config,
                                  const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() > 1) {
-        throw std::runtime_error(RPCHelpMan{
-            "getaddednodeinfo",
-            "\nReturns information about the given added node, or "
-            "all added nodes\n"
-            "(note that onetry addnodes are not listed here)\n",
-            {
-                {"node", RPCArg::Type::STR, /* default */ "all nodes",
-                 "If provided, return information about this specific node, "
-                 "otherwise all nodes are returned."},
-            },
-            RPCResult{
-                "[\n"
-                "  {\n"
-                "    \"addednode\" : \"192.168.0.201\",   (string) The node IP "
-                "address or name (as provided to addnode)\n"
-                "    \"connected\" : true|false,          (boolean) If "
-                "connected\n"
-                "    \"addresses\" : [                    (list of objects) "
-                "Only when connected = true\n"
-                "       {\n"
-                "         \"address\" : \"192.168.0.201:8333\",  (string) The "
-                "bitcoin server IP and port we're connected to\n"
-                "         \"connected\" : \"outbound\"           (string) "
-                "connection, inbound or outbound\n"
-                "       }\n"
-                "     ]\n"
-                "  }\n"
-                "  ,...\n"
-                "]\n"},
-            RPCExamples{
-                HelpExampleCli("getaddednodeinfo", "\"192.168.0.201\"") +
-                HelpExampleRpc("getaddednodeinfo", "\"192.168.0.201\"")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "getaddednodeinfo",
+        "\nReturns information about the given added node, or all added nodes\n"
+        "(note that onetry addnodes are not listed here)\n",
+        {
+            {"node", RPCArg::Type::STR, /* default */ "all nodes",
+             "If provided, return information about this specific node, "
+             "otherwise all nodes are returned."},
+        },
+        RPCResult{
+            "[\n"
+            "  {\n"
+            "    \"addednode\" : \"192.168.0.201\",   (string) The node IP "
+            "address or name (as provided to addnode)\n"
+            "    \"connected\" : true|false,          (boolean) If connected\n"
+            "    \"addresses\" : [                    (list of objects) Only "
+            "when connected = true\n"
+            "       {\n"
+            "         \"address\" : \"192.168.0.201:8333\",  (string) The "
+            "bitcoin server IP and port we're connected to\n"
+            "         \"connected\" : \"outbound\"           (string) "
+            "connection, inbound or outbound\n"
+            "       }\n"
+            "     ]\n"
+            "  }\n"
+            "  ,...\n"
+            "]\n"},
+        RPCExamples{HelpExampleCli("getaddednodeinfo", "\"192.168.0.201\"") +
+                    HelpExampleRpc("getaddednodeinfo", "\"192.168.0.201\"")},
     }
+        .Check(request);
 
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
@@ -471,40 +454,37 @@ static UniValue getaddednodeinfo(const Config &config,
 
 static UniValue getnettotals(const Config &config,
                              const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() > 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "getnettotals",
-            "\nReturns information about network traffic, including "
-            "bytes in, bytes out,\n"
-            "and current time.\n",
-            {},
-            RPCResult{
-                "{\n"
-                "  \"totalbytesrecv\": n,   (numeric) Total bytes received\n"
-                "  \"totalbytessent\": n,   (numeric) Total bytes sent\n"
-                "  \"timemillis\": t,       (numeric) Current UNIX time in "
-                "milliseconds\n"
-                "  \"uploadtarget\":\n"
-                "  {\n"
-                "    \"timeframe\": n,                         (numeric) "
-                "Length of the measuring timeframe in seconds\n"
-                "    \"target\": n,                            (numeric) "
-                "Target in bytes\n"
-                "    \"target_reached\": true|false,           (boolean) True "
-                "if target is reached\n"
-                "    \"serve_historical_blocks\": true|false,  (boolean) True "
-                "if serving historical blocks\n"
-                "    \"bytes_left_in_cycle\": t,               (numeric) Bytes "
-                "left in current time cycle\n"
-                "    \"time_left_in_cycle\": t                 (numeric) "
-                "Seconds left in current time cycle\n"
-                "  }\n"
-                "}\n"},
-            RPCExamples{HelpExampleCli("getnettotals", "") +
-                        HelpExampleRpc("getnettotals", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "getnettotals",
+        "\nReturns information about network traffic, including bytes in, "
+        "bytes out,\n"
+        "and current time.\n",
+        {},
+        RPCResult{"{\n"
+                  "  \"totalbytesrecv\": n,   (numeric) Total bytes received\n"
+                  "  \"totalbytessent\": n,   (numeric) Total bytes sent\n"
+                  "  \"timemillis\": t,       (numeric) Current UNIX time in "
+                  "milliseconds\n"
+                  "  \"uploadtarget\":\n"
+                  "  {\n"
+                  "    \"timeframe\": n,                         (numeric) "
+                  "Length of the measuring timeframe in seconds\n"
+                  "    \"target\": n,                            (numeric) "
+                  "Target in bytes\n"
+                  "    \"target_reached\": true|false,           (boolean) "
+                  "True if target is reached\n"
+                  "    \"serve_historical_blocks\": true|false,  (boolean) "
+                  "True if serving historical blocks\n"
+                  "    \"bytes_left_in_cycle\": t,               (numeric) "
+                  "Bytes left in current time cycle\n"
+                  "    \"time_left_in_cycle\": t                 (numeric) "
+                  "Seconds left in current time cycle\n"
+                  "  }\n"
+                  "}\n"},
+        RPCExamples{HelpExampleCli("getnettotals", "") +
+                    HelpExampleRpc("getnettotals", "")},
     }
+        .Check(request);
 
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
@@ -556,73 +536,71 @@ static UniValue GetNetworksInfo() {
 
 static UniValue getnetworkinfo(const Config &config,
                                const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "getnetworkinfo",
-            "Returns an object containing various state info "
-            "regarding P2P networking.\n",
-            {},
-            RPCResult{"{\n"
-                      "  \"version\": xxxxx,                      (numeric) "
-                      "the server version\n"
-                      "  \"subversion\": \"/Satoshi:x.x.x/\",     (string) the "
-                      "server subversion string\n"
-                      "  \"protocolversion\": xxxxx,              (numeric) "
-                      "the protocol version\n"
-                      "  \"localservices\": \"xxxxxxxxxxxxxxxx\", (string) the "
-                      "services we offer to the network\n"
-                      "  \"localrelay\": true|false,              (bool) true "
-                      "if transaction relay is requested from peers\n"
-                      "  \"timeoffset\": xxxxx,                   (numeric) "
-                      "the time offset\n"
-                      "  \"connections\": xxxxx,                  (numeric) "
-                      "the number of connections\n"
-                      "  \"networkactive\": true|false,           (bool) "
-                      "whether p2p networking is enabled\n"
-                      "  \"networks\": [                          (array) "
-                      "information per network\n"
-                      "  {\n"
-                      "    \"name\": \"xxx\",                     (string) "
-                      "network (ipv4, ipv6 or onion)\n"
-                      "    \"limited\": true|false,               (boolean) is "
-                      "the network limited using -onlynet?\n"
-                      "    \"reachable\": true|false,             (boolean) is "
-                      "the network reachable?\n"
-                      "    \"proxy\": \"host:port\"               (string) the "
-                      "proxy that is used for this network, or empty if none\n"
-                      "    \"proxy_randomize_credentials\": true|false,  "
-                      "(string) Whether randomized credentials are used\n"
-                      "  }\n"
-                      "  ,...\n"
-                      "  ],\n"
-                      "  \"relayfee\": x.xxxxxxxx,                (numeric) "
-                      "minimum relay fee for transactions in " +
-                      CURRENCY_UNIT +
-                      "/kB\n"
-                      "  \"excessutxocharge\": x.xxxxxxxx,        (numeric) "
-                      "minimum charge for excess utxos in " +
-                      CURRENCY_UNIT +
-                      "\n"
-                      "  \"localaddresses\": [                    (array) list "
-                      "of local addresses\n"
-                      "  {\n"
-                      "    \"address\": \"xxxx\",                 (string) "
-                      "network address\n"
-                      "    \"port\": xxx,                         (numeric) "
-                      "network port\n"
-                      "    \"score\": xxx                         (numeric) "
-                      "relative score\n"
-                      "  }\n"
-                      "  ,...\n"
-                      "  ]\n"
-                      "  \"warnings\": \"...\"                    (string) any "
-                      "network and blockchain warnings\n"
-                      "}\n"},
-            RPCExamples{HelpExampleCli("getnetworkinfo", "") +
-                        HelpExampleRpc("getnetworkinfo", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "getnetworkinfo",
+        "Returns an object containing various state info regarding P2P "
+        "networking.\n",
+        {},
+        RPCResult{"{\n"
+                  "  \"version\": xxxxx,                      (numeric) the "
+                  "server version\n"
+                  "  \"subversion\": \"/Satoshi:x.x.x/\",     (string) the "
+                  "server subversion string\n"
+                  "  \"protocolversion\": xxxxx,              (numeric) the "
+                  "protocol version\n"
+                  "  \"localservices\": \"xxxxxxxxxxxxxxxx\", (string) the "
+                  "services we offer to the network\n"
+                  "  \"localrelay\": true|false,              (bool) true if "
+                  "transaction relay is requested from peers\n"
+                  "  \"timeoffset\": xxxxx,                   (numeric) the "
+                  "time offset\n"
+                  "  \"connections\": xxxxx,                  (numeric) the "
+                  "number of connections\n"
+                  "  \"networkactive\": true|false,           (bool) whether "
+                  "p2p networking is enabled\n"
+                  "  \"networks\": [                          (array) "
+                  "information per network\n"
+                  "  {\n"
+                  "    \"name\": \"xxx\",                     (string) network "
+                  "(ipv4, ipv6 or onion)\n"
+                  "    \"limited\": true|false,               (boolean) is the "
+                  "network limited using -onlynet?\n"
+                  "    \"reachable\": true|false,             (boolean) is the "
+                  "network reachable?\n"
+                  "    \"proxy\": \"host:port\"               (string) the "
+                  "proxy that is used for this network, or empty if none\n"
+                  "    \"proxy_randomize_credentials\": true|false,  (string) "
+                  "Whether randomized credentials are used\n"
+                  "  }\n"
+                  "  ,...\n"
+                  "  ],\n"
+                  "  \"relayfee\": x.xxxxxxxx,                (numeric) "
+                  "minimum relay fee for transactions in " +
+                  CURRENCY_UNIT +
+                  "/kB\n"
+                  "  \"excessutxocharge\": x.xxxxxxxx,        (numeric) "
+                  "minimum charge for excess utxos in " +
+                  CURRENCY_UNIT +
+                  "\n"
+                  "  \"localaddresses\": [                    (array) list of "
+                  "local addresses\n"
+                  "  {\n"
+                  "    \"address\": \"xxxx\",                 (string) network "
+                  "address\n"
+                  "    \"port\": xxx,                         (numeric) "
+                  "network port\n"
+                  "    \"score\": xxx                         (numeric) "
+                  "relative score\n"
+                  "  }\n"
+                  "  ,...\n"
+                  "  ]\n"
+                  "  \"warnings\": \"...\"                    (string) any "
+                  "network and blockchain warnings\n"
+                  "}\n"},
+        RPCExamples{HelpExampleCli("getnetworkinfo", "") +
+                    HelpExampleRpc("getnetworkinfo", "")},
     }
+        .Check(request);
 
     LOCK(cs_main);
     UniValue obj(UniValue::VOBJ);
@@ -769,17 +747,15 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue listbanned(const Config &config,
                            const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "listbanned",
-            "\nList all manually banned IPs/Subnets.\n",
-            {},
-            RPCResults{},
-            RPCExamples{HelpExampleCli("listbanned", "") +
-                        HelpExampleRpc("listbanned", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "listbanned",
+        "\nList all manually banned IPs/Subnets.\n",
+        {},
+        RPCResults{},
+        RPCExamples{HelpExampleCli("listbanned", "") +
+                    HelpExampleRpc("listbanned", "")},
     }
+        .Check(request);
 
     if (!g_rpc_node->banman) {
         throw JSONRPCError(RPC_DATABASE_ERROR,
@@ -805,17 +781,16 @@ static UniValue listbanned(const Config &config,
 
 static UniValue clearbanned(const Config &config,
                             const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(RPCHelpMan{
-            "clearbanned",
-            "\nClear all banned IPs.\n",
-            {},
-            RPCResults{},
-            RPCExamples{HelpExampleCli("clearbanned", "") +
-                        HelpExampleRpc("clearbanned", "")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "clearbanned",
+        "\nClear all banned IPs.\n",
+        {},
+        RPCResults{},
+        RPCExamples{HelpExampleCli("clearbanned", "") +
+                    HelpExampleRpc("clearbanned", "")},
     }
+        .Check(request);
+
     if (!g_rpc_node->banman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
@@ -829,19 +804,17 @@ static UniValue clearbanned(const Config &config,
 
 static UniValue setnetworkactive(const Config &config,
                                  const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(RPCHelpMan{
-            "setnetworkactive",
-            "\nDisable/enable all p2p network activity.\n",
-            {
-                {"state", RPCArg::Type::BOOL, RPCArg::Optional::NO,
-                 "true to enable networking, false to disable"},
-            },
-            RPCResults{},
-            RPCExamples{""},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "setnetworkactive",
+        "\nDisable/enable all p2p network activity.\n",
+        {
+            {"state", RPCArg::Type::BOOL, RPCArg::Optional::NO,
+             "true to enable networking, false to disable"},
+        },
+        RPCResults{},
+        RPCExamples{""},
     }
+        .Check(request);
 
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
@@ -856,38 +829,35 @@ static UniValue setnetworkactive(const Config &config,
 
 static UniValue getnodeaddresses(const Config &config,
                                  const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() > 1) {
-        throw std::runtime_error(RPCHelpMan{
-            "getnodeaddresses",
-            "\nReturn known addresses which can potentially be used "
-            "to find new nodes in the network\n",
-            {
-                {"count", RPCArg::Type::NUM, /* default */ "1",
-                 "How many addresses to return. Limited to the "
-                 "smaller of " +
-                     std::to_string(ADDRMAN_GETADDR_MAX) + " or " +
-                     std::to_string(ADDRMAN_GETADDR_MAX_PCT) +
-                     "% of all known addresses."},
-            },
-            RPCResult{"[\n"
-                      "  {\n"
-                      "    \"time\": ttt,                (numeric) Timestamp "
-                      "in seconds since epoch (Jan 1 1970 GMT) keeping track "
-                      "of when the node was last seen\n"
-                      "    \"services\": n,              (numeric) The "
-                      "services offered\n"
-                      "    \"address\": \"host\",          (string) The "
-                      "address of the node\n"
-                      "    \"port\": n                   (numeric) The port of "
-                      "the node\n"
-                      "  }\n"
-                      "  ,....\n"
-                      "]\n"},
-            RPCExamples{HelpExampleCli("getnodeaddresses", "8") +
-                        HelpExampleRpc("getnodeaddresses", "8")},
-        }
-                                     .ToString());
+    RPCHelpMan{
+        "getnodeaddresses",
+        "\nReturn known addresses which can potentially be used to find new "
+        "nodes in the network\n",
+        {
+            {"count", RPCArg::Type::NUM, /* default */ "1",
+             "How many addresses to return. Limited to the smaller of " +
+                 std::to_string(ADDRMAN_GETADDR_MAX) + " or " +
+                 std::to_string(ADDRMAN_GETADDR_MAX_PCT) +
+                 "% of all known addresses."},
+        },
+        RPCResult{
+            "[\n"
+            "  {\n"
+            "    \"time\": ttt,                (numeric) Timestamp in seconds "
+            "since epoch (Jan 1 1970 GMT) keeping track of when the node was "
+            "last seen\n"
+            "    \"services\": n,              (numeric) The services offered\n"
+            "    \"address\": \"host\",        (string) The address of the "
+            "node\n"
+            "    \"port\": n                   (numeric) The port of the node\n"
+            "  }\n"
+            "  ,....\n"
+            "]\n"},
+        RPCExamples{HelpExampleCli("getnodeaddresses", "8") +
+                    HelpExampleRpc("getnodeaddresses", "8")},
     }
+        .Check(request);
+
     if (!g_rpc_node->connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
