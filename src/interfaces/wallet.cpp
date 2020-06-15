@@ -32,6 +32,7 @@ namespace {
 
     //! Construct wallet tx struct.
     WalletTx MakeWalletTx(CWallet &wallet, const CWalletTx &wtx) {
+        LOCK(wallet.cs_wallet);
         WalletTx result;
         result.tx = wtx.tx;
         result.txin_is_mine.reserve(wtx.tx->vin.size());
@@ -145,6 +146,7 @@ namespace {
             return m_wallet->SignMessage(message, pkhash, str_sig);
         }
         bool isSpendable(const CTxDestination &dest) override {
+            LOCK(m_wallet->cs_wallet);
             return m_wallet->IsMine(dest) & ISMINE_SPENDABLE;
         }
         bool haveWatchOnly() override {
