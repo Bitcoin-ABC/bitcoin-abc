@@ -27,9 +27,9 @@
 
 #include <memory>
 
-SplashScreen::SplashScreen(interfaces::Node &node, Qt::WindowFlags f,
+SplashScreen::SplashScreen(interfaces::Node &node,
                            const NetworkStyle *networkStyle)
-    : QWidget(nullptr, f), curAlignment(0), m_node(node) {
+    : QWidget(nullptr), curAlignment(0), m_node(node) {
     // set reference point, paddings
     int paddingRight = 50;
     int paddingTop = 50;

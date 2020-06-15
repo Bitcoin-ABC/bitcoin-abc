@@ -28,7 +28,7 @@ class SplashScreen : public QWidget {
     Q_OBJECT
 
 public:
-    explicit SplashScreen(interfaces::Node &node, Qt::WindowFlags f,
+    explicit SplashScreen(interfaces::Node &node,
                           const NetworkStyle *networkStyle);
     ~SplashScreen();
 
