@@ -94,8 +94,6 @@ class BerkeleyBatch;
  * For BerkeleyDB this is just a (env, strFile) tuple.
  */
 class BerkeleyDatabase : public WalletDatabase {
-    friend class BerkeleyBatch;
-
 public:
     /** Create dummy DB handle */
     BerkeleyDatabase() : WalletDatabase(), env(nullptr) {}
@@ -180,13 +178,13 @@ public:
      */
     std::unique_ptr<Db> m_db;
 
+    std::string strFile;
+
     /** Make a BerkeleyBatch connected to this database */
     std::unique_ptr<DatabaseBatch>
     MakeBatch(const char *mode = "r+", bool flush_on_close = true) override;
 
 private:
-    std::string strFile;
-
     /**
      * Return whether this database handle is a dummy for testing.
      * Only to be used at a low level, application should ideally not care
