@@ -317,7 +317,7 @@ const CChainParams &CWallet::GetChainParams() const {
 }
 
 const CWalletTx *CWallet::GetWalletTx(const TxId &txid) const {
-    LOCK(cs_wallet);
+    AssertLockHeld(cs_wallet);
     std::map<TxId, CWalletTx>::const_iterator it = mapWallet.find(txid);
     if (it == mapWallet.end()) {
         return nullptr;
@@ -2201,6 +2201,7 @@ bool CWalletTx::IsTrusted(std::set<TxId> &trusted_parents) const {
     }
 
     // Trusted if all inputs are from us and are in the mempool:
+    LOCK(pwallet->cs_wallet);
     for (const CTxIn &txin : tx->vin) {
         // Transactions not sent by us: not trusted
         const CWalletTx *parent = pwallet->GetWalletTx(txin.prevout.GetTxId());

@@ -895,7 +895,8 @@ public:
         return *m_chain;
     }
 
-    const CWalletTx *GetWalletTx(const TxId &txid) const;
+    const CWalletTx *GetWalletTx(const TxId &txid) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     //! check whether we are allowed to upgrade (or already support) to the
     //! named feature
