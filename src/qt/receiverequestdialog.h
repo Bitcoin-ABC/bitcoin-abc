@@ -29,6 +29,7 @@ class QRImageWidget : public QLabel {
 
 public:
     explicit QRImageWidget(QWidget *parent = nullptr);
+    bool hasPixmap() const;
     QImage exportImage();
 
 public Q_SLOTS:

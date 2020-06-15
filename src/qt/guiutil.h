@@ -243,6 +243,9 @@ QString formatBytes(uint64_t bytes);
 class ClickableLabel : public QLabel {
     Q_OBJECT
 
+public:
+    bool hasPixmap() const;
+
 Q_SIGNALS:
     /** Emitted when the label is clicked. The relative mouse coordinates of the
      * click are passed to the signal.

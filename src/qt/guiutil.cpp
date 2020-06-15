@@ -930,6 +930,14 @@ QString formatBytes(uint64_t bytes) {
     return QString(QObject::tr("%1 GB")).arg(bytes / 1024 / 1024 / 1024);
 }
 
+bool ClickableLabel::hasPixmap() const {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+    return !pixmap(Qt::ReturnByValue).isNull();
+#else
+    return pixmap() != nullptr;
+#endif
+}
+
 void ClickableLabel::mouseReleaseEvent(QMouseEvent *event) {
     Q_EMIT clicked(event->pos());
 }

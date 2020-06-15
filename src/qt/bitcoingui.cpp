@@ -1361,7 +1361,7 @@ void BitcoinGUI::updateProxyIcon() {
     bool proxy_enabled = clientModel->getProxyInfo(ip_port);
 
     if (proxy_enabled) {
-        if (labelProxyIcon->pixmap() == nullptr) {
+        if (!labelProxyIcon->hasPixmap()) {
             QString ip_port_q = QString::fromStdString(ip_port);
             labelProxyIcon->setPixmap(
                 platformStyle->SingleColorIcon(":/icons/proxy")
