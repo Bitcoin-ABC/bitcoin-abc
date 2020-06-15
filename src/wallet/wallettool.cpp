@@ -19,7 +19,7 @@ namespace WalletTool {
 // deleter here.
 static void WalletToolReleaseWallet(CWallet *wallet) {
     wallet->WalletLogPrintf("Releasing wallet\n");
-    wallet->Flush(true);
+    wallet->Close();
     delete wallet;
 }
 
@@ -132,7 +132,7 @@ bool ExecuteWalletToolFunc(const std::string &command,
         std::shared_ptr<CWallet> wallet_instance = CreateWallet(name, path);
         if (wallet_instance) {
             WalletShowInfo(wallet_instance.get());
-            wallet_instance->Flush(true);
+            wallet_instance->Close();
         }
     } else if (command == "info" || command == "salvage") {
         if (!fs::exists(path)) {
@@ -146,7 +146,7 @@ bool ExecuteWalletToolFunc(const std::string &command,
                 return false;
             }
             WalletShowInfo(wallet_instance.get());
-            wallet_instance->Flush(true);
+            wallet_instance->Close();
         } else if (command == "salvage") {
             bilingual_str error;
             std::vector<bilingual_str> warnings;

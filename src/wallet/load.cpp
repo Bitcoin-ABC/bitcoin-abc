@@ -124,13 +124,13 @@ void StartWallets(CScheduler &scheduler, const ArgsManager &args) {
 
 void FlushWallets() {
     for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
-        pwallet->Flush(false);
+        pwallet->Flush();
     }
 }
 
 void StopWallets() {
     for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
-        pwallet->Flush(true);
+        pwallet->Close();
     }
 }
 

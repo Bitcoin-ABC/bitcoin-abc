@@ -528,8 +528,12 @@ bool CWallet::HasWalletSpend(const TxId &txid) const {
     return (iter != mapTxSpends.end() && iter->first.GetTxId() == txid);
 }
 
-void CWallet::Flush(bool shutdown) {
-    database->Flush(shutdown);
+void CWallet::Flush() {
+    database->Flush();
+}
+
+void CWallet::Close() {
+    database->Close();
 }
 
 void CWallet::SyncMetaData(
