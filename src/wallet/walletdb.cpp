@@ -1125,7 +1125,7 @@ bool IsWalletLoaded(const fs::path &wallet_path) {
 }
 
 /** Return object for accessing database at specified path. */
-std::unique_ptr<BerkeleyDatabase> CreateWalletDatabase(const fs::path &path) {
+std::unique_ptr<WalletDatabase> CreateWalletDatabase(const fs::path &path) {
     std::string filename;
     return std::make_unique<BerkeleyDatabase>(GetWalletEnv(path, filename),
                                               std::move(filename));
@@ -1134,12 +1134,12 @@ std::unique_ptr<BerkeleyDatabase> CreateWalletDatabase(const fs::path &path) {
 /**
  * Return object for accessing dummy database with no read/write capabilities.
  */
-std::unique_ptr<BerkeleyDatabase> CreateDummyWalletDatabase() {
+std::unique_ptr<WalletDatabase> CreateDummyWalletDatabase() {
     return std::make_unique<BerkeleyDatabase>();
 }
 
 /** Return object for accessing temporary in-memory database. */
-std::unique_ptr<BerkeleyDatabase> CreateMockWalletDatabase() {
+std::unique_ptr<WalletDatabase> CreateMockWalletDatabase() {
     return std::make_unique<BerkeleyDatabase>(
         std::make_shared<BerkeleyEnvironment>(), "");
 }
