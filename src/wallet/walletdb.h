@@ -11,7 +11,7 @@
 #include <key.h>
 #include <script/sign.h>
 #include <script/standard.h> // for CTxDestination
-#include <wallet/db.h>
+#include <wallet/bdb.h>
 #include <wallet/walletutil.h>
 
 #include <cstdint>

@@ -23,6 +23,7 @@
 #include <util/system.h>
 
 #ifdef ENABLE_WALLET
+#include <wallet/bdb.h>
 #include <wallet/wallet.h>
 
 #include <db_cxx.h>

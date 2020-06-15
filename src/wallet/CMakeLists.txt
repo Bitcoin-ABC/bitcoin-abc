@@ -12,6 +12,7 @@ target_sources(server PRIVATE init.cpp)
 
 add_library(wallet
 	../interfaces/wallet.cpp
+	bdb.cpp
 	coincontrol.cpp
 	coinselection.cpp
 	context.cpp
