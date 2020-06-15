@@ -15,6 +15,8 @@ MYPID=$$
 
 # Setup
 : "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
+: "${BUILD_DIR:=${TOPLEVEL}/build}"
+: "${BITCOIND:=${BUILD_DIR}/src/bitcoind}"
 
 DATA_DIR="${TOPLEVEL}/ibd"
 mkdir -p "${DATA_DIR}"
@@ -39,4 +41,9 @@ callback() {
 }
 export -f callback
 
-LOG_FILE="${DEBUG_LOG}" "${TOPLEVEL}/contrib/devtools/bitcoind-exit-on-log.sh" --grep 'Leaving InitialBlockDownload (latching to false)' --params "-datadir=${DATA_DIR} $*" --callback callback
+BITCOIND="${BITCOIND}" \
+LOG_FILE="${DEBUG_LOG}" \
+"${TOPLEVEL}/contrib/devtools/bitcoind-exit-on-log.sh" \
+  --grep 'Leaving InitialBlockDownload (latching to false)' \
+  --params "-datadir=${DATA_DIR} $*" \
+  --callback callback
