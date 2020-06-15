@@ -917,3 +917,8 @@ bool BerkeleyBatch::HasKey(CDataStream &&key) {
     int ret = pdb->exists(activeTxn, datKey, 0);
     return ret == 0;
 }
+
+std::unique_ptr<BerkeleyBatch>
+BerkeleyDatabase::MakeBatch(const char *mode, bool flush_on_close) {
+    return std::make_unique<BerkeleyBatch>(*this, mode, flush_on_close);
+}
