@@ -129,7 +129,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     // Pointer for convenience.
-    pblock = &pblocktemplate->block;
+    CBlock *const pblock = &pblocktemplate->block;
 
     // Add dummy coinbase tx as first transaction.  It is updated at the end.
     pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, -1);
