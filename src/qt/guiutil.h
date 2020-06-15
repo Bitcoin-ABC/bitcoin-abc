@@ -152,6 +152,9 @@ void openDebugLogfile();
 // Open the config file
 bool openBitcoinConf();
 
+// Split a QString using given separator, skipping the empty parts
+QStringList splitSkipEmptyParts(const QString &s, const QString &separator);
+
 /** Qt event filter that intercepts ToolTipChange events, and replaces the
  * tooltip with a rich text representation if needed.  This assures that Qt can
  * word-wrap long tooltip messages. Tooltips longer than the provided size

@@ -412,6 +412,16 @@ bool openBitcoinConf() {
         QUrl::fromLocalFile(boostPathToQString(pathConfig)));
 }
 
+QStringList splitSkipEmptyParts(const QString &s, const QString &separator) {
+    return s.split(separator,
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+                   Qt::SkipEmptyParts
+#else
+                   QString::SkipEmptyParts
+#endif
+    );
+}
+
 ToolTipToRichTextFilter::ToolTipToRichTextFilter(int _size_threshold,
                                                  QObject *parent)
     : QObject(parent), size_threshold(_size_threshold) {}
