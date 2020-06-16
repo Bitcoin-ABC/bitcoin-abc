@@ -82,13 +82,14 @@ struct Peer {
      * There is no final sorting before sending, as they are always sent
      * immediately and in the order requested.
      */
-    std::vector<BlockHash> vInventoryBlockToSend GUARDED_BY(m_block_inv_mutex);
+    std::vector<BlockHash> m_blocks_for_inv_relay GUARDED_BY(m_block_inv_mutex);
     /**
      * Unfiltered list of blocks that we'd like to announce via a `headers`
      * message. If we can't announce via a `headers` message, we'll fall back to
      * announcing via `inv`.
      */
-    std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(m_block_inv_mutex);
+    std::vector<BlockHash>
+        m_blocks_for_headers_relay GUARDED_BY(m_block_inv_mutex);
 
     /** This peer's reported block height when we connected */
     std::atomic<int> m_starting_height{-1};

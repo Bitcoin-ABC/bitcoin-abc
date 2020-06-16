@@ -1728,7 +1728,7 @@ void PeerManager::UpdatedBlockTip(const CBlockIndex *pindexNew,
             Peer &peer = *it.second;
             LOCK(peer.m_block_inv_mutex);
             for (const BlockHash &hash : reverse_iterate(vHashes)) {
-                peer.vBlockHashesToAnnounce.push_back(hash);
+                peer.m_blocks_for_headers_relay.push_back(hash);
             }
         }
     }
@@ -3525,7 +3525,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             }
             WITH_LOCK(
                 peer->m_block_inv_mutex,
-                peer->vInventoryBlockToSend.push_back(pindex->GetBlockHash()));
+                peer->m_blocks_for_inv_relay.push_back(pindex->GetBlockHash()));
             if (--nLimit <= 0) {
                 // When this block is requested, we'll send an inv that'll
                 // trigger the peer to getblocks the next batch of inventory.
@@ -5392,8 +5392,9 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             bool fRevertToInv =
                 ((!state.fPreferHeaders &&
                   (!state.fPreferHeaderAndIDs ||
-                   peer->vBlockHashesToAnnounce.size() > 1)) ||
-                 peer->vBlockHashesToAnnounce.size() > MAX_BLOCKS_TO_ANNOUNCE);
+                   peer->m_blocks_for_headers_relay.size() > 1)) ||
+                 peer->m_blocks_for_headers_relay.size() >
+                     MAX_BLOCKS_TO_ANNOUNCE);
             // last header queued for delivery
             const CBlockIndex *pBestIndex = nullptr;
             // ensure pindexBestKnownBlock is up-to-date
@@ -5404,7 +5405,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                 // Try to find first header that our peer doesn't have, and then
                 // send all headers past that one. If we come across an headers
                 // that aren't on ::ChainActive(), give up.
-                for (const BlockHash &hash : peer->vBlockHashesToAnnounce) {
+                for (const BlockHash &hash : peer->m_blocks_for_headers_relay) {
                     const CBlockIndex *pindex = LookupBlockIndex(hash);
                     assert(pindex);
                     if (::ChainActive()[pindex->nHeight] != pindex) {
@@ -5421,8 +5422,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                         // prior check), but one way this could happen is by
                         // using invalidateblock / reconsiderblock repeatedly on
                         // the tip, causing it to be added multiple times to
-                        // vBlockHashesToAnnounce. Robustly deal with this rare
-                        // situation by reverting to an inv.
+                        // m_blocks_for_headers_relay. Robustly deal with this
+                        // rare situation by reverting to an inv.
                         fRevertToInv = true;
                         break;
                     }
@@ -5508,11 +5509,11 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             }
             if (fRevertToInv) {
                 // If falling back to using an inv, just try to inv the tip. The
-                // last entry in vBlockHashesToAnnounce was our tip at some
+                // last entry in m_blocks_for_headers_relay was our tip at some
                 // point in the past.
-                if (!peer->vBlockHashesToAnnounce.empty()) {
+                if (!peer->m_blocks_for_headers_relay.empty()) {
                     const BlockHash &hashToAnnounce =
-                        peer->vBlockHashesToAnnounce.back();
+                        peer->m_blocks_for_headers_relay.back();
                     const CBlockIndex *pindex =
                         LookupBlockIndex(hashToAnnounce);
                     assert(pindex);
@@ -5530,14 +5531,14 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
 
                     // If the peer's chain has this block, don't inv it back.
                     if (!PeerHasHeader(&state, pindex)) {
-                        peer->vInventoryBlockToSend.push_back(hashToAnnounce);
+                        peer->m_blocks_for_inv_relay.push_back(hashToAnnounce);
                         LogPrint(BCLog::NET,
                                  "%s: sending inv peer=%d hash=%s\n", __func__,
                                  pto->GetId(), hashToAnnounce.ToString());
                     }
                 }
             }
-            peer->vBlockHashesToAnnounce.clear();
+            peer->m_blocks_for_headers_relay.clear();
         }
     } // release cs_main
 
@@ -5557,15 +5558,15 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
     {
         LOCK2(cs_main, peer->m_block_inv_mutex);
 
-        vInv.reserve(std::max<size_t>(peer->vInventoryBlockToSend.size(),
+        vInv.reserve(std::max<size_t>(peer->m_blocks_for_inv_relay.size(),
                                       INVENTORY_BROADCAST_MAX_PER_MB *
                                           config.GetMaxBlockSize() / 1000000));
 
         // Add blocks
-        for (const BlockHash &hash : peer->vInventoryBlockToSend) {
+        for (const BlockHash &hash : peer->m_blocks_for_inv_relay) {
             addInvAndMaybeFlush(MSG_BLOCK, hash);
         }
-        peer->vInventoryBlockToSend.clear();
+        peer->m_blocks_for_inv_relay.clear();
 
         auto computeNextInvSendTime =
             [&](std::chrono::microseconds &next) -> bool {
