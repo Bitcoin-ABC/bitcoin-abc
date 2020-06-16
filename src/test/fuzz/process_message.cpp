@@ -113,11 +113,11 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     connman.AddTestNode(p2p_node);
     g_setup->m_node.peer_logic->InitializeNode(config, &p2p_node);
     try {
-        (void)ProcessMessage(
-            config, p2p_node, random_message_type, random_bytes_data_stream,
-            GetTimeMillis(), *g_setup->m_node.mempool,
-            *g_setup->m_node.chainman, *g_setup->m_node.connman.get(),
-            g_setup->m_node.banman.get(), std::atomic<bool>{false});
+        ProcessMessage(config, p2p_node, random_message_type,
+                       random_bytes_data_stream, GetTimeMillis(),
+                       *g_setup->m_node.mempool, *g_setup->m_node.chainman,
+                       *g_setup->m_node.connman.get(),
+                       g_setup->m_node.banman.get(), std::atomic<bool>{false});
     } catch (const std::ios_base::failure &e) {
         const std::string exception_message{e.what()};
         const auto p =

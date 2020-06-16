@@ -145,7 +145,7 @@ void Misbehaving(NodeId nodeid, int howmuch, const std::string &message = "")
 /** Relay transaction to every node */
 void RelayTransaction(const TxId &txid, const CConnman &connman);
 
-bool ProcessMessage(const Config &config, CNode &pfrom,
+void ProcessMessage(const Config &config, CNode &pfrom,
                     const std::string &msg_type, CDataStream &vRecv,
                     int64_t nTimeReceived, CTxMemPool &mempool,
                     ChainstateManager &chainman, CConnman &connman,
