@@ -333,6 +333,13 @@ case "$ABC_BUILD_NAME" in
       "-DENABLE_BRANCH_COVERAGE=ON"
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh coverage-check-extended
+
+    # Publish the coverage report in a format that Teamcity understands
+    pushd check-extended.coverage
+    # Run from the coverage directory to prevent tar from creating a top level
+    # folder in the generated archive.
+    tar -czf ../coverage.tar.gz -- *
+    popd
   ;;
 
   build-win64)

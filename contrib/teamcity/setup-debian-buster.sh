@@ -63,6 +63,7 @@ PACKAGES=(
   qttools5-dev-tools
   shellcheck
   software-properties-common
+  tar
   wget
   wine
 )
