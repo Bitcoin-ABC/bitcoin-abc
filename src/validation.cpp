@@ -20,6 +20,7 @@
 #include <consensus/tx_check.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <deploymentstatus.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
 #include <index/txindex.h>
@@ -1436,23 +1437,23 @@ static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex) {
     uint32_t flags = SCRIPT_VERIFY_NONE;
 
-    // Start enforcing P2SH (BIP16)
-    if ((pindex->nHeight + 1) >= params.BIP16Height) {
+    // Enforce P2SH (BIP16)
+    if (DeploymentActiveAfter(pindex, params, Consensus::DEPLOYMENT_P2SH)) {
         flags |= SCRIPT_VERIFY_P2SH;
     }
 
-    // Start enforcing the DERSIG (BIP66) rule.
-    if ((pindex->nHeight + 1) >= params.BIP66Height) {
+    // Enforce the DERSIG (BIP66) rule.
+    if (DeploymentActiveAfter(pindex, params, Consensus::DEPLOYMENT_DERSIG)) {
         flags |= SCRIPT_VERIFY_DERSIG;
     }
 
     // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule.
-    if ((pindex->nHeight + 1) >= params.BIP65Height) {
+    if (DeploymentActiveAfter(pindex, params, Consensus::DEPLOYMENT_CLTV)) {
         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
     }
 
     // Start enforcing CSV (BIP68, BIP112 and BIP113) rule.
-    if ((pindex->nHeight + 1) >= params.CSVHeight) {
+    if (DeploymentActiveAfter(pindex, params, Consensus::DEPLOYMENT_CSV)) {
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
     }
 
@@ -1722,9 +1723,10 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
         }
     }
 
-    // Start enforcing BIP68 (sequence locks).
+    // Enforce BIP68 (sequence locks).
     int nLockTimeFlags = 0;
-    if (pindex->nHeight >= consensusParams.CSVHeight) {
+    if (DeploymentActiveAt(*pindex, consensusParams,
+                           Consensus::DEPLOYMENT_CSV)) {
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
@@ -3776,13 +3778,17 @@ ContextualCheckBlockHeader(const CChainParams &params,
                              "block timestamp too far in the future");
     }
 
-    // Reject outdated version blocks when 95% (75% on testnet) of the network
-    // has upgraded:
-    // check for version 2, 3 and 4 upgrades
     const Consensus::Params &consensusParams = params.GetConsensus();
-    if ((block.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
-        (block.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
-        (block.nVersion < 4 && nHeight >= consensusParams.BIP65Height)) {
+    // Reject blocks with outdated version
+    if ((block.nVersion < 2 &&
+         DeploymentActiveAfter(pindexPrev, consensusParams,
+                               Consensus::DEPLOYMENT_HEIGHTINCB)) ||
+        (block.nVersion < 3 &&
+         DeploymentActiveAfter(pindexPrev, consensusParams,
+                               Consensus::DEPLOYMENT_DERSIG)) ||
+        (block.nVersion < 4 &&
+         DeploymentActiveAfter(pindexPrev, consensusParams,
+                               Consensus::DEPLOYMENT_CLTV))) {
         return state.Invalid(
             BlockValidationResult::BLOCK_INVALID_HEADER,
             strprintf("bad-version(0x%08x)", block.nVersion),
@@ -3842,9 +3848,9 @@ static bool ContextualCheckBlock(const CBlock &block,
                                  const CBlockIndex *pindexPrev) {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
 
-    // Start enforcing BIP113 (Median Time Past).
+    // Enforce BIP113 (Median Time Past).
     int nLockTimeFlags = 0;
-    if (nHeight >= params.CSVHeight) {
+    if (DeploymentActiveAfter(pindexPrev, params, Consensus::DEPLOYMENT_CSV)) {
         assert(pindexPrev != nullptr);
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
@@ -3900,7 +3906,8 @@ static bool ContextualCheckBlock(const CBlock &block,
     }
 
     // Enforce rule that the coinbase starts with serialized block height
-    if (nHeight >= params.BIP34Height) {
+    if (DeploymentActiveAfter(pindexPrev, params,
+                              Consensus::DEPLOYMENT_HEIGHTINCB)) {
         CScript expect = CScript() << nHeight;
         if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
             !std::equal(expect.begin(), expect.end(),

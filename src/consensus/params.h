@@ -13,6 +13,20 @@
 
 namespace Consensus {
 
+enum BuriedDeployment : int16_t {
+    // buried deployments get negative values to avoid overlap with
+    // DeploymentPos
+    DEPLOYMENT_P2SH = std::numeric_limits<int16_t>::min(),
+    DEPLOYMENT_HEIGHTINCB,
+    DEPLOYMENT_CLTV,
+    DEPLOYMENT_DERSIG,
+    DEPLOYMENT_CSV,
+};
+
+constexpr bool ValidDeployment(BuriedDeployment dep) {
+    return DEPLOYMENT_P2SH <= dep && dep <= DEPLOYMENT_CSV;
+}
+
 enum DeploymentPos {
     DEPLOYMENT_TESTDUMMY,
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in
@@ -112,7 +126,24 @@ struct Params {
     }
     uint256 nMinimumChainWork;
     BlockHash defaultAssumeValid;
+
+    int DeploymentHeight(BuriedDeployment dep) const {
+        switch (dep) {
+            case DEPLOYMENT_P2SH:
+                return BIP16Height;
+            case DEPLOYMENT_HEIGHTINCB:
+                return BIP34Height;
+            case DEPLOYMENT_CLTV:
+                return BIP65Height;
+            case DEPLOYMENT_DERSIG:
+                return BIP66Height;
+            case DEPLOYMENT_CSV:
+                return CSVHeight;
+        } // no default case, so the compiler can warn about missing cases
+        return std::numeric_limits<int>::max();
+    }
 };
+
 } // namespace Consensus
 
 #endif // BITCOIN_CONSENSUS_PARAMS_H
