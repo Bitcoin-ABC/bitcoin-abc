@@ -183,10 +183,15 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
     mapperThirdPartyTxUrls = new QSignalMapper(this);
 
     // Connect actions
-    connect(mapperThirdPartyTxUrls,
-            static_cast<void (QSignalMapper::*)(const QString &)>(
-                &QSignalMapper::mapped),
-            this, &TransactionView::openThirdPartyTxUrl);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+    const auto mappedStringEvent = &QSignalMapper::mappedString;
+#else
+    const auto mappedStringEvent =
+        static_cast<void (QSignalMapper::*)(const QString &)>(
+            &QSignalMapper::mapped);
+#endif
+    connect(mapperThirdPartyTxUrls, mappedStringEvent, this,
+            &TransactionView::openThirdPartyTxUrl);
 
     connect(dateWidget,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,

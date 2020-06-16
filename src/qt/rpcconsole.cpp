@@ -724,10 +724,14 @@ void RPCConsole::setClientModel(ClientModel *model) {
                 static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
         connect(banAction365d, &QAction::triggered, signalMapper,
                 static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-        connect(
-            signalMapper,
-            static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped),
-            this, &RPCConsole::banSelectedNode);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+        const auto mappedIntEvent = &QSignalMapper::mappedInt;
+#else
+        const auto mappedIntEvent =
+            static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped);
+#endif
+        connect(signalMapper, mappedIntEvent, this,
+                &RPCConsole::banSelectedNode);
 
         // peer table context menu signals
         connect(ui->peerWidget, &QTableView::customContextMenuRequested, this,
