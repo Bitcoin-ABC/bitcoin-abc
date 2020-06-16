@@ -190,18 +190,21 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         coinControlUpdateLabels();
 
         // fee section
-        connect(ui->groupFee,
-                static_cast<void (QButtonGroup::*)(int)>(
-                    &QButtonGroup::buttonClicked),
-                this, &SendCoinsDialog::updateFeeSectionControls);
-        connect(ui->groupFee,
-                static_cast<void (QButtonGroup::*)(int)>(
-                    &QButtonGroup::buttonClicked),
-                this, &SendCoinsDialog::coinControlUpdateLabels);
-        connect(ui->groupCustomFee,
-                static_cast<void (QButtonGroup::*)(int)>(
-                    &QButtonGroup::buttonClicked),
-                this, &SendCoinsDialog::coinControlUpdateLabels);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+        const auto buttonClickedEvent =
+            QOverload<int>::of(&QButtonGroup::idClicked);
+#else
+        /* QOverload in introduced from Qt 5.7, but we support down to 5.5.1 */
+        const auto buttonClickedEvent =
+            static_cast<void (QButtonGroup::*)(int)>(
+                &QButtonGroup::buttonClicked);
+#endif
+        connect(ui->groupFee, buttonClickedEvent, this,
+                &SendCoinsDialog::updateFeeSectionControls);
+        connect(ui->groupFee, buttonClickedEvent, this,
+                &SendCoinsDialog::coinControlUpdateLabels);
+        connect(ui->groupCustomFee, buttonClickedEvent, this,
+                &SendCoinsDialog::coinControlUpdateLabels);
         connect(ui->customFee, &BitcoinAmountField::valueChanged, this,
                 &SendCoinsDialog::coinControlUpdateLabels);
         connect(ui->checkBoxMinimumFee, &QCheckBox::stateChanged, this,
