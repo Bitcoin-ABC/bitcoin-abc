@@ -325,6 +325,16 @@ case "$ABC_BUILD_NAME" in
     make -j "${THREADS}" all check
     ;;
 
+  build-coverage)
+    CMAKE_FLAGS=(
+      "-DCMAKE_C_COMPILER=gcc"
+      "-DCMAKE_CXX_COMPILER=g++"
+      "-DENABLE_COVERAGE=ON"
+      "-DENABLE_BRANCH_COVERAGE=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh coverage-check-extended
+  ;;
+
   build-win64)
     "${DEVTOOLS_DIR}"/build_depends.sh
     CMAKE_FLAGS=(

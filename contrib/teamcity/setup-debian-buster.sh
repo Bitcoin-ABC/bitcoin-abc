@@ -10,6 +10,7 @@ PACKAGES=(
   arcanist
   automake
   autotools-dev
+  binutils
   bsdmainutils
   build-essential
   ccache
@@ -24,6 +25,7 @@ PACKAGES=(
   gperf
   imagemagick
   jq
+  lcov
   less
   lib32stdc++-8-dev
   libboost-all-dev
