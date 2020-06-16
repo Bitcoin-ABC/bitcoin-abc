@@ -2709,17 +2709,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         return;
     }
 
-    if (!(pfrom.GetLocalServices() & NODE_BLOOM) &&
-        (msg_type == NetMsgType::FILTERLOAD ||
-         msg_type == NetMsgType::FILTERADD)) {
-        if (pfrom.nVersion >= NO_BLOOM_VERSION) {
-            Misbehaving(pfrom, 100, "no-bloom-version");
-        } else {
-            pfrom.fDisconnect = true;
-        }
-        return;
-    }
-
     if (IsAvalancheMessageType(msg_type)) {
         if (!g_avalanche) {
             LogPrint(BCLog::NET,
@@ -4358,6 +4347,10 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     }
 
     if (msg_type == NetMsgType::FILTERLOAD) {
+        if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+            pfrom.fDisconnect = true;
+            return;
+        }
         CBloomFilter filter;
         vRecv >> filter;
 
@@ -4373,6 +4366,10 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     }
 
     if (msg_type == NetMsgType::FILTERADD) {
+        if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+            pfrom.fDisconnect = true;
+            return;
+        }
         std::vector<uint8_t> vData;
         vRecv >> vData;
 
@@ -4399,13 +4396,15 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     }
 
     if (msg_type == NetMsgType::FILTERCLEAR) {
+        if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+            pfrom.fDisconnect = true;
+            return;
+        }
         if (pfrom.m_tx_relay == nullptr) {
             return;
         }
         LOCK(pfrom.m_tx_relay->cs_filter);
-        if (pfrom.GetLocalServices() & NODE_BLOOM) {
-            pfrom.m_tx_relay->pfilter = nullptr;
-        }
+        pfrom.m_tx_relay->pfilter = nullptr;
         pfrom.m_tx_relay->fRelayTxes = true;
         return;
     }
