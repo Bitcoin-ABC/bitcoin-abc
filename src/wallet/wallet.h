@@ -14,11 +14,11 @@
 #include <primitives/blockhash.h>
 #include <psbt.h>
 #include <tinyformat.h>
-#include <ui_interface.h>
 #include <util/message.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/translation.h>
+#include <util/ui_change_type.h>
 #include <validationinterface.h>
 #include <wallet/coinselection.h>
 #include <wallet/crypter.h>

@@ -4,6 +4,7 @@
 
 #include <qt/transactionview.h>
 
+#include <node/ui_interface.h>
 #include <qt/addresstablemodel.h>
 #include <qt/bitcoinunits.h>
 #include <qt/csvmodelwriter.h>
@@ -15,7 +16,6 @@
 #include <qt/transactionrecord.h>
 #include <qt/transactiontablemodel.h>
 #include <qt/walletmodel.h>
-#include <ui_interface.h>
 
 #include <QComboBox>
 #include <QDateTimeEdit>

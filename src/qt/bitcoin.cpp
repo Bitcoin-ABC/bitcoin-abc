@@ -22,7 +22,6 @@
 #include <qt/splashscreen.h>
 #include <qt/utilitydialog.h>
 #include <qt/winshutdownmonitor.h>
-#include <ui_interface.h>
 #include <uint256.h>
 #include <util/ref.h>
 #include <util/system.h>

@@ -22,6 +22,7 @@
 #include <hash.h>
 #include <index/txindex.h>
 #include <minerfund.h>
+#include <node/ui_interface.h>
 #include <policy/fees.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
@@ -40,7 +41,6 @@
 #include <tinyformat.h>
 #include <txdb.h>
 #include <txmempool.h>
-#include <ui_interface.h>
 #include <undo.h>
 #include <util/check.h> // For NDEBUG compile time check
 #include <util/moneystr.h>
@@ -1287,8 +1287,6 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
 
     return true;
 }
-
-constexpr auto AbortError = InitError;
 
 /** Abort with a message */
 static bool AbortNode(const std::string &strMessage,

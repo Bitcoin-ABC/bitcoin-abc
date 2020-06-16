@@ -6,8 +6,8 @@
 
 #include <blockdb.h>
 #include <chain.h>
+#include <node/ui_interface.h>
 #include <shutdown.h>
-#include <ui_interface.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>

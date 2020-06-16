@@ -37,6 +37,7 @@
 #include <netbase.h>
 #include <network.h>
 #include <node/context.h>
+#include <node/ui_interface.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -53,7 +54,6 @@
 #include <torcontrol.h>
 #include <txdb.h>
 #include <txmempool.h>
-#include <ui_interface.h>
 #include <util/asmap.h>
 #include <util/check.h>
 #include <util/moneystr.h>

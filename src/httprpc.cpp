@@ -7,8 +7,8 @@
 #include <chainparams.h>
 #include <config.h>
 #include <crypto/hmac_sha256.h>
+#include <node/ui_interface.h>
 #include <rpc/protocol.h>
-#include <ui_interface.h>
 #include <util/ref.h>
 #include <util/strencodings.h>
 #include <util/system.h>

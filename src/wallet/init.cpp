@@ -10,7 +10,7 @@
 #include <net.h>
 #include <network.h>
 #include <node/context.h>
-#include <ui_interface.h>
+#include <node/ui_interface.h>
 #include <util/check.h>
 #include <util/moneystr.h>
 #include <util/system.h>

@@ -8,11 +8,11 @@
 #include <chainparams.h>
 #include <interfaces/node.h>
 #include <key_io.h>
+#include <node/ui_interface.h>
 #include <policy/policy.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
-#include <ui_interface.h>
 #include <util/system.h>
 #include <wallet/wallet.h>
 

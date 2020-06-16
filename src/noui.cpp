@@ -6,7 +6,7 @@
 #include <noui.h>
 
 #include <logging.h>
-#include <ui_interface.h>
+#include <node/ui_interface.h>
 #include <util/translation.h>
 
 #include <boost/signals2/connection.hpp>
@@ -23,20 +23,20 @@ bool noui_ThreadSafeMessageBox(const bilingual_str &message,
     style &= ~CClientUIInterface::SECURE;
 
     std::string strCaption;
-        switch (style) {
-            case CClientUIInterface::MSG_ERROR:
-                strCaption = "Error: ";
-                break;
-            case CClientUIInterface::MSG_WARNING:
-                strCaption = "Warning: ";
-                break;
-            case CClientUIInterface::MSG_INFORMATION:
-                strCaption = "Information: ";
-                break;
-            default:
-                // Use supplied caption (can be empty)
-                strCaption = caption + ": ";
-        }
+    switch (style) {
+        case CClientUIInterface::MSG_ERROR:
+            strCaption = "Error: ";
+            break;
+        case CClientUIInterface::MSG_WARNING:
+            strCaption = "Warning: ";
+            break;
+        case CClientUIInterface::MSG_INFORMATION:
+            strCaption = "Information: ";
+            break;
+        default:
+            // Use supplied caption (can be empty)
+            strCaption = caption + ": ";
+    }
 
     if (!fSecure) {
         LogPrintf("%s%s\n", strCaption, message.original);

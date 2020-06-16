@@ -12,6 +12,7 @@
 #include <chainparams.h>
 #include <interfaces/node.h>
 #include <key_io.h>
+#include <node/ui_interface.h>
 #include <qt/addresstablemodel.h>
 #include <qt/bitcoinunits.h>
 #include <qt/clientmodel.h>
@@ -21,7 +22,6 @@
 #include <qt/platformstyle.h>
 #include <qt/sendcoinsentry.h>
 #include <txmempool.h>
-#include <ui_interface.h>
 #include <wallet/coincontrol.h>
 #include <wallet/fees.h>
 #include <wallet/wallet.h>

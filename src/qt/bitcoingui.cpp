@@ -9,6 +9,7 @@
 #include <config.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <node/ui_interface.h>
 #include <qt/bitcoinunits.h>
 #include <qt/clientmodel.h>
 #include <qt/createwalletdialog.h>
@@ -31,7 +32,6 @@
 #include <qt/walletmodel.h>
 #include <qt/walletview.h>
 #endif // ENABLE_WALLET
-#include <ui_interface.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>

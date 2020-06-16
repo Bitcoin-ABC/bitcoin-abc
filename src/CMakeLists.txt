@@ -554,6 +554,7 @@ add_library(server
 	node/context.cpp
 	node/psbt.cpp
 	node/transaction.cpp
+	node/ui_interface.cpp
 	noui.cpp
 	policy/fees.cpp
 	policy/settings.cpp
@@ -579,7 +580,6 @@ add_library(server
 	torcontrol.cpp
 	txdb.cpp
 	txmempool.cpp
-	ui_interface.cpp
 	validation.cpp
 	validationinterface.cpp
 	versionbits.cpp
