@@ -1326,7 +1326,7 @@ void RPCConsole::updateDetailWidget() {
         }
 
         ui->peerHeight->setText(
-            QString::number(stats->nodeStateStats.nStartingHeight));
+            QString::number(stats->nodeStateStats.m_starting_height));
     }
 
     ui->detailWidget->show();

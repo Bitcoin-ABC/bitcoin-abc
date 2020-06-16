@@ -273,7 +273,7 @@ static RPCHelpMan getpeerinfo() {
                     obj.pushKV("addnode", stats.m_manual_connection);
                 }
                 if (fStateStats) {
-                    obj.pushKV("startingheight", statestats.nStartingHeight);
+                    obj.pushKV("startingheight", statestats.m_starting_height);
                     obj.pushKV("synced_headers", statestats.nSyncHeight);
                     obj.pushKV("synced_blocks", statestats.nCommonHeight);
                     UniValue heights(UniValue::VARR);
