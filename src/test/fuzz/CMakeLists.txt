@@ -95,7 +95,13 @@ add_regular_fuzz_targets(
 	checkqueue
 	coins_view
 	crypto
+	crypto_aes256
+	crypto_aes256cbc
+	crypto_chacha20
+	crypto_chacha20_poly1305_aead
 	crypto_common
+	crypto_hkdf_hmac_sha256_l32
+	crypto_poly1305
 	cuckoocache
 	descriptor_parse
 	eval_script
