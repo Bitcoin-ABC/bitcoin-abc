@@ -367,14 +367,14 @@ struct Peer {
     /**
      * A vector of addresses to send to the peer, limited to MAX_ADDR_TO_SEND.
      */
-    std::vector<CAddress> vAddrToSend;
+    std::vector<CAddress> m_addrs_to_send;
     /**
      * Probabilistic filter of addresses that this peer already knows.
      *  Used to avoid relaying addresses to this peer more than once.
      */
     const std::unique_ptr<CRollingBloomFilter> m_addr_known;
     /** Whether a getaddr request to this peer is outstanding. */
-    bool fGetAddr{false};
+    bool m_getaddr_sent{false};
     /** Guards address sending timers. */
     mutable Mutex m_addr_send_times_mutex;
     /** Time point to send the next ADDR message to this peer. */
@@ -389,7 +389,7 @@ struct Peer {
      */
     std::atomic_bool m_wants_addrv2{false};
     /** Whether this peer has already sent us a getaddr message. */
-    bool fSentAddr{false};
+    bool m_getaddr_recvd{false};
 
     /**
      * Set of txids to reconsider once their parent transactions have been
@@ -941,11 +941,11 @@ static void PushAddress(Peer &peer, const CAddress &addr,
     assert(peer.m_addr_known);
     if (addr.IsValid() && !peer.m_addr_known->contains(addr.GetKey()) &&
         IsAddrCompatible(peer, addr)) {
-        if (peer.vAddrToSend.size() >= GetMaxAddrToSend()) {
-            peer.vAddrToSend[insecure_rand.randrange(peer.vAddrToSend.size())] =
-                addr;
+        if (peer.m_addrs_to_send.size() >= GetMaxAddrToSend()) {
+            peer.m_addrs_to_send[insecure_rand.randrange(
+                peer.m_addrs_to_send.size())] = addr;
         } else {
-            peer.vAddrToSend.push_back(addr);
+            peer.m_addrs_to_send.push_back(addr);
         }
     }
 }
@@ -3485,7 +3485,7 @@ void PeerManagerImpl::ProcessMessage(
             // Get recent addresses
             m_connman.PushMessage(&pfrom, CNetMsgMaker(greatest_common_version)
                                               .Make(NetMsgType::GETADDR));
-            peer->fGetAddr = true;
+            peer->m_getaddr_sent = true;
         }
 
         if (!pfrom.IsInboundConn()) {
@@ -3672,8 +3672,8 @@ void PeerManagerImpl::ProcessMessage(
                 continue;
             }
             bool fReachable = IsReachable(addr);
-            if (addr.nTime > nSince && !peer->fGetAddr && vAddr.size() <= 10 &&
-                addr.IsRoutable()) {
+            if (addr.nTime > nSince && !peer->m_getaddr_sent &&
+                vAddr.size() <= 10 && addr.IsRoutable()) {
                 // Relay to a limited number of other nodes
                 RelayAddress(pfrom.GetId(), addr, fReachable);
             }
@@ -3685,7 +3685,7 @@ void PeerManagerImpl::ProcessMessage(
 
         m_connman.AddNewAddresses(vAddrOk, pfrom.addr, 2 * 60 * 60);
         if (vAddr.size() < 1000) {
-            peer->fGetAddr = false;
+            peer->m_getaddr_sent = false;
         }
 
         // AddrFetch: Require multiple addresses to avoid disconnecting on
@@ -4954,14 +4954,14 @@ void PeerManagerImpl::ProcessMessage(
 
         // Only send one GetAddr response per connection to reduce resource
         // waste and discourage addr stamping of INV announcements.
-        if (peer->fSentAddr) {
+        if (peer->m_getaddr_recvd) {
             LogPrint(BCLog::NET, "Ignoring repeated \"getaddr\". peer=%d\n",
                      pfrom.GetId());
             return;
         }
-        peer->fSentAddr = true;
+        peer->m_getaddr_recvd = true;
 
-        peer->vAddrToSend.clear();
+        peer->m_addrs_to_send.clear();
         std::vector<CAddress> vAddr;
         const size_t maxAddrToSend = GetMaxAddrToSend();
         if (pfrom.HasPermission(PF_ADDR)) {
@@ -5751,10 +5751,10 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
         PoissonNextSend(current_time, AVG_ADDRESS_BROADCAST_INTERVAL);
 
     const size_t max_addr_to_send = GetMaxAddrToSend();
-    if (!Assume(peer.vAddrToSend.size() <= max_addr_to_send)) {
+    if (!Assume(peer.m_addrs_to_send.size() <= max_addr_to_send)) {
         // Should be impossible since we always check size before adding to
-        // vAddrToSend. Recover by trimming the vector.
-        peer.vAddrToSend.resize(max_addr_to_send);
+        // m_addrs_to_send. Recover by trimming the vector.
+        peer.m_addrs_to_send.resize(max_addr_to_send);
     }
 
     // Remove addr records that the peer already knows about, and add new
@@ -5766,13 +5766,13 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
         }
         return ret;
     };
-    peer.vAddrToSend.erase(std::remove_if(peer.vAddrToSend.begin(),
-                                          peer.vAddrToSend.end(),
-                                          addr_already_known),
-                           peer.vAddrToSend.end());
+    peer.m_addrs_to_send.erase(std::remove_if(peer.m_addrs_to_send.begin(),
+                                              peer.m_addrs_to_send.end(),
+                                              addr_already_known),
+                               peer.m_addrs_to_send.end());
 
     // No addr messages to send
-    if (peer.vAddrToSend.empty()) {
+    if (peer.m_addrs_to_send.empty()) {
         return;
     }
 
@@ -5785,14 +5785,14 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
         msg_type = NetMsgType::ADDR;
         make_flags = 0;
     }
-    m_connman.PushMessage(&node,
-                          CNetMsgMaker(node.GetCommonVersion())
-                              .Make(make_flags, msg_type, peer.vAddrToSend));
-    peer.vAddrToSend.clear();
+    m_connman.PushMessage(
+        &node, CNetMsgMaker(node.GetCommonVersion())
+                   .Make(make_flags, msg_type, peer.m_addrs_to_send));
+    peer.m_addrs_to_send.clear();
 
     // we only send the big addr message once
-    if (peer.vAddrToSend.capacity() > 40) {
-        peer.vAddrToSend.shrink_to_fit();
+    if (peer.m_addrs_to_send.capacity() > 40) {
+        peer.m_addrs_to_send.shrink_to_fit();
     }
 }
 
