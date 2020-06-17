@@ -342,6 +342,32 @@ case "$ABC_BUILD_NAME" in
     popd
   ;;
 
+  build-clang-tidy)
+    CMAKE_FLAGS=(
+      "-DCMAKE_C_COMPILER=clang"
+      "-DCMAKE_CXX_COMPILER=clang++"
+      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    )
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+
+    # Set the default for debian but allow the user to override, as the name is
+    # not standard across distributions (and it's not always in the PATH).
+    : "${CLANG_TIDY_DIFF_SCRIPT:=clang-tidy-diff-8.py}"
+    CLANG_TIDY_WARNING_FILE="${BUILD_DIR}/clang-tidy-warnings.txt"
+
+    pushd "${TOPLEVEL}"
+    git diff -U0 HEAD^ | "${CLANG_TIDY_DIFF_SCRIPT}" \
+      -clang-tidy-binary "$(command -v clang-tidy-8)" \
+      -path "${BUILD_DIR}/compile_commands.json" \
+      -p1 > "${CLANG_TIDY_WARNING_FILE}"
+    if [ $(wc -l < "${CLANG_TIDY_WARNING_FILE}") -gt 1 ]; then
+      echo "clang-tidy found issues !"
+      cat "${CLANG_TIDY_WARNING_FILE}"
+      exit 1
+    fi
+    popd
+  ;;
+
   build-win64)
     "${DEVTOOLS_DIR}"/build_depends.sh
     CMAKE_FLAGS=(
