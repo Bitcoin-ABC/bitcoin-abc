@@ -23,7 +23,7 @@ import shlex
 
 from .authproxy import JSONRPCException
 from .descriptors import descsum_create
-from .messages import COIN, CTransaction, FromHex
+from .messages import COIN, CTransaction, FromHex, MY_SUBVERSION
 from .util import (
     MAX_NODES,
     append_config,
@@ -704,11 +704,17 @@ class TestNode():
         assert self.p2ps, self._node_msg("No p2p connection")
         return self.p2ps[0]
 
+    def num_connected_mininodes(self):
+        """Return number of test framework p2p connections to the node."""
+        return len([peer for peer in self.getpeerinfo()
+                   if peer['subver'] == MY_SUBVERSION])
+
     def disconnect_p2ps(self):
         """Close all p2p connections to the node."""
         for p in self.p2ps:
             p.peer_disconnect()
         del self.p2ps[:]
+        wait_until(lambda: self.num_connected_mininodes() == 0)
 
 
 class TestNodeCLIAttr:

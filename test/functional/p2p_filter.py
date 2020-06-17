@@ -143,12 +143,12 @@ class FilterTest(BitcoinTestFramework):
             "Check that a node with bloom filters enabled services p2p mempool messages")
         filter_peer = P2PBloomFilter()
 
-        self.log.info("Create a tx relevant to the peer before connecting")
+        self.log.debug("Create a tx relevant to the peer before connecting")
         filter_address = self.nodes[0].decodescript(
             filter_peer.watch_script_pubkey)['addresses'][0]
         txid = self.nodes[0].sendtoaddress(filter_address, 90)
 
-        self.log.info(
+        self.log.debug(
             "Send a mempool msg after connecting and check that the tx is received")
         self.nodes[0].add_p2p_connection(filter_peer)
         filter_peer.send_and_ping(filter_peer.watch_filter_init)
@@ -271,7 +271,6 @@ class FilterTest(BitcoinTestFramework):
         self.test_frelay_false(filter_peer_without_nrelay)
         self.test_filter(filter_peer_without_nrelay)
 
-        self.log.info('Test msg_mempool')
         self.test_msg_mempool()
 
 
