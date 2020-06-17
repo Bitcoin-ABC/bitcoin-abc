@@ -100,9 +100,13 @@ HandleLoadWallet(LoadWalletFn load_wallet) {
     });
 }
 
+static Mutex g_loading_wallet_mutex;
 static Mutex g_wallet_release_mutex;
 static std::condition_variable g_wallet_release_cv;
-static std::set<std::string> g_unloading_wallet_set;
+static std::set<std::string>
+    g_loading_wallet_set GUARDED_BY(g_loading_wallet_mutex);
+static std::set<std::string>
+    g_unloading_wallet_set GUARDED_BY(g_wallet_release_mutex);
 
 // Custom deleter for shared_ptr<CWallet>.
 static void ReleaseWallet(CWallet *wallet) {
@@ -146,11 +150,11 @@ void UnloadWallet(std::shared_ptr<CWallet> &&wallet) {
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
-std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
-                                    interfaces::Chain &chain,
-                                    const WalletLocation &location,
-                                    bilingual_str &error,
-                                    std::vector<bilingual_str> &warnings) {
+namespace {
+std::shared_ptr<CWallet>
+LoadWalletInternal(const CChainParams &chainParams, interfaces::Chain &chain,
+                   const WalletLocation &location, bilingual_str &error,
+                   std::vector<bilingual_str> &warnings) {
     try {
         if (!CWallet::Verify(chainParams, chain, location, error, warnings)) {
             error = Untranslated("Wallet file verification failed.") +
@@ -172,6 +176,25 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
         error = Untranslated(e.what());
         return nullptr;
     }
+}
+} // namespace
+
+std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
+                                    interfaces::Chain &chain,
+                                    const WalletLocation &location,
+                                    bilingual_str &error,
+                                    std::vector<bilingual_str> &warnings) {
+    auto result =
+        WITH_LOCK(g_loading_wallet_mutex,
+                  return g_loading_wallet_set.insert(location.GetName()));
+    if (!result.second) {
+        error = Untranslated("Wallet already being loading.");
+        return nullptr;
+    }
+    auto wallet =
+        LoadWalletInternal(chainParams, chain, location, error, warnings);
+    WITH_LOCK(g_loading_wallet_mutex, g_loading_wallet_set.erase(result.first));
+    return wallet;
 }
 
 std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
