@@ -85,7 +85,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Build a fake quorum of nodes.
         quorum = []
-        for i in range(0, 8):
+        for i in range(0, 16):
             n = TestNode()
             quorum.append(n)
 
