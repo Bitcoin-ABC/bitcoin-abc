@@ -79,14 +79,9 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}"
 
 TEAMCITY_DIR=$(dirname "$0")
 
-# Add the AdoptOpenJDK repo
-apt-key add "${TEAMCITY_DIR}"/adoptopenjdk.pub
-add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y adoptopenjdk-8-hotspot
-
-ln -s /usr/lib/jvm/adoptopenjdk-8-hotspot-amd64 /usr/lib/jvm/default-java
-echo 'JAVA_HOME="/usr/lib/jvm/default-java"' >> /etc/environment
+# FIXME this should no longer be needed starting with Teamcity 2020.1, which
+# supports Java 11.
+"${TEAMCITY_DIR}/install_openjdk8.sh"
 
 # Install llvm-8 and clang-10
 apt-key add "${TEAMCITY_DIR}"/llvm.pub
