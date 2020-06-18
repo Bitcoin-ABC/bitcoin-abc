@@ -241,7 +241,9 @@ const std::string &ListBlockFilterTypes() {
         std::stringstream ret;
         bool first = true;
         for (auto entry : g_filter_types) {
-            if (!first) ret << ", ";
+            if (!first) {
+                ret << ", ";
+            }
             ret << entry.second;
             first = false;
         }

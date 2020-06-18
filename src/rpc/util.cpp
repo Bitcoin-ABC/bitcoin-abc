@@ -702,10 +702,11 @@ static std::pair<int64_t, int64_t> ParseRange(const UniValue &value) {
         value[1].isNum()) {
         int64_t low = value[0].get_int64();
         int64_t high = value[1].get_int64();
-        if (low > high)
+        if (low > high) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
                 "Range specified as [begin,end] must not have begin after end");
+        }
         return {low, high};
     }
     throw JSONRPCError(RPC_INVALID_PARAMETER,
