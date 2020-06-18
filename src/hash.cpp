@@ -10,8 +10,7 @@ inline uint32_t ROTL32(uint32_t x, int8_t r) {
     return (x << r) | (x >> (32 - r));
 }
 
-uint32_t MurmurHash3(uint32_t nHashSeed,
-                     const std::vector<uint8_t> &vDataToHash) {
+uint32_t MurmurHash3(uint32_t nHashSeed, Span<const uint8_t> vDataToHash) {
     // The following is MurmurHash3 (x86_32), see
     // http://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp
     uint32_t h1 = nHashSeed;
