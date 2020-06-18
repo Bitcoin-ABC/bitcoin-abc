@@ -9,17 +9,18 @@
 
 template <unsigned int BITS>
 base_blob<BITS>::base_blob(const std::vector<uint8_t> &vch) {
-    assert(vch.size() == sizeof(data));
-    memcpy(data, vch.data(), sizeof(data));
+    assert(vch.size() == sizeof(m_data));
+    memcpy(m_data, vch.data(), sizeof(m_data));
 }
 
 template <unsigned int BITS> std::string base_blob<BITS>::GetHex() const {
-    return HexStr(std::reverse_iterator<const uint8_t *>(data + sizeof(data)),
-                  std::reverse_iterator<const uint8_t *>(data));
+    return HexStr(
+        std::reverse_iterator<const uint8_t *>(m_data + sizeof(m_data)),
+        std::reverse_iterator<const uint8_t *>(m_data));
 }
 
 template <unsigned int BITS> void base_blob<BITS>::SetHex(const char *psz) {
-    memset(data, 0, sizeof(data));
+    memset(m_data, 0, sizeof(m_data));
 
     // skip leading spaces
     while (IsSpace(*psz)) {
@@ -37,7 +38,7 @@ template <unsigned int BITS> void base_blob<BITS>::SetHex(const char *psz) {
         digits++;
     }
 
-    uint8_t *p1 = (uint8_t *)data;
+    uint8_t *p1 = (uint8_t *)m_data;
     uint8_t *pend = p1 + WIDTH;
     while (digits > 0 && p1 < pend) {
         *p1 = ::HexDigit(psz[--digits]);
