@@ -758,7 +758,7 @@ class WalletRescanReserver;
  * transactions.
  */
 class CWallet final : public FillableSigningProvider,
-                      private interfaces::Chain::Notifications {
+                      public interfaces::Chain::Notifications {
 private:
     CKeyingMaterial vMasterKey GUARDED_BY(cs_KeyStore);
 
@@ -1028,9 +1028,6 @@ public:
 
     /** Registered interfaces::Chain::Notifications handler. */
     std::unique_ptr<interfaces::Handler> m_chain_notifications_handler;
-
-    /** Register the wallet for chain notifications */
-    void handleNotifications();
 
     /** Interface for accessing chain state. */
     interfaces::Chain &chain() const {

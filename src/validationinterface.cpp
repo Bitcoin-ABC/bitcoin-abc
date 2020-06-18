@@ -86,9 +86,12 @@ CMainSignals &GetMainSignals() {
     return g_signals;
 }
 
-void RegisterValidationInterface(CValidationInterface *pwalletIn) {
+void RegisterSharedValidationInterface(
+    std::shared_ptr<CValidationInterface> pwalletIn) {
+    // Each connection captures pwalletIn to ensure that each callback is
+    // executed before pwalletIn is destroyed. For more details see #18338.
     ValidationInterfaceConnections &conns =
-        g_signals.m_internals->m_connMainSignals[pwalletIn];
+        g_signals.m_internals->m_connMainSignals[pwalletIn.get()];
     conns.UpdatedBlockTip = g_signals.m_internals->UpdatedBlockTip.connect(
         std::bind(&CValidationInterface::UpdatedBlockTip, pwalletIn,
                   std::placeholders::_1, std::placeholders::_2,
@@ -117,6 +120,18 @@ void RegisterValidationInterface(CValidationInterface *pwalletIn) {
     conns.NewPoWValidBlock = g_signals.m_internals->NewPoWValidBlock.connect(
         std::bind(&CValidationInterface::NewPoWValidBlock, pwalletIn,
                   std::placeholders::_1, std::placeholders::_2));
+}
+
+void RegisterValidationInterface(CValidationInterface *callbacks) {
+    // Create a shared_ptr with a no-op deleter - CValidationInterface lifecycle
+    // is managed by the caller.
+    RegisterSharedValidationInterface(
+        {callbacks, [](CValidationInterface *) {}});
+}
+
+void UnregisterSharedValidationInterface(
+    std::shared_ptr<CValidationInterface> callbacks) {
+    UnregisterValidationInterface(callbacks.get());
 }
 
 void UnregisterValidationInterface(CValidationInterface *pwalletIn) {
