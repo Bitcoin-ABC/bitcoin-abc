@@ -716,7 +716,7 @@ int V1TransportDeserializer::readData(const char *pch, uint32_t nBytes) {
         vRecv.resize(std::min(hdr.nMessageSize, nDataPos + nCopy + 256 * 1024));
     }
 
-    hasher.Write((const uint8_t *)pch, nCopy);
+    hasher.Write({(const uint8_t *)pch, nCopy});
     memcpy(&vRecv[nDataPos], pch, nCopy);
     nDataPos += nCopy;
 

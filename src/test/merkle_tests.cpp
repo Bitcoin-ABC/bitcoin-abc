@@ -79,10 +79,7 @@ static void MerkleComputation(const std::vector<uint256> &leaves,
                 }
             }
             mutated |= (inner[level] == h);
-            CHash256()
-                .Write(inner[level].begin(), 32)
-                .Write(h.begin(), 32)
-                .Finalize(h.begin());
+            CHash256().Write(inner[level]).Write(h).Finalize(h.begin());
         }
         // Store the resulting hash at inner position level.
         inner[level] = h;
@@ -108,10 +105,7 @@ static void MerkleComputation(const std::vector<uint256> &leaves,
         if (pbranch && matchh) {
             pbranch->push_back(h);
         }
-        CHash256()
-            .Write(h.begin(), 32)
-            .Write(h.begin(), 32)
-            .Finalize(h.begin());
+        CHash256().Write(h).Write(h).Finalize(h.begin());
         // Increment count to the value it would have if two entries at this
         // level had existed.
         count += (((uint32_t)1) << level);
@@ -126,10 +120,7 @@ static void MerkleComputation(const std::vector<uint256> &leaves,
                     matchh = true;
                 }
             }
-            CHash256()
-                .Write(inner[level].begin(), 32)
-                .Write(h.begin(), 32)
-                .Finalize(h.begin());
+            CHash256().Write(inner[level]).Write(h).Finalize(h.begin());
             level++;
         }
     }

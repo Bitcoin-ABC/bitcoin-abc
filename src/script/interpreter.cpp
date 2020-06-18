@@ -940,13 +940,9 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                 .Write(vch.data(), vch.size())
                                 .Finalize(vchHash.data());
                         } else if (opcode == OP_HASH160) {
-                            CHash160()
-                                .Write(vch.data(), vch.size())
-                                .Finalize(vchHash.data());
+                            CHash160().Write(vch).Finalize(vchHash.data());
                         } else if (opcode == OP_HASH256) {
-                            CHash256()
-                                .Write(vch.data(), vch.size())
-                                .Finalize(vchHash.data());
+                            CHash256().Write(vch).Finalize(vchHash.data());
                         }
                         popstack(stack);
                         stack.push_back(vchHash);

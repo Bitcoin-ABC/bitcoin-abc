@@ -96,7 +96,7 @@ static void HASH(benchmark::State &state, size_t buffersize) {
     uint8_t hash[CHash256::OUTPUT_SIZE];
     std::vector<uint8_t> in(buffersize, 0);
     while (state.KeepRunning()) {
-        CHash256().Write(in.data(), in.size()).Finalize(hash);
+        CHash256().Write(in).Finalize(hash);
     }
 }
 

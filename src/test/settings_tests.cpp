@@ -255,7 +255,7 @@ BOOST_FIXTURE_TEST_CASE(Merge, MergeTestingSetup) {
         }
         desc += "\n";
 
-        out_sha.Write((const uint8_t *)desc.data(), desc.size());
+        out_sha.Write(MakeUCharSpan(desc));
         if (out_file) {
             BOOST_REQUIRE(fwrite(desc.data(), 1, desc.size(), out_file) ==
                           desc.size());

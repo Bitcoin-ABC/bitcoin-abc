@@ -32,8 +32,8 @@ public:
         sha.Reset().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);
     }
 
-    CHash256 &Write(const uint8_t *data, size_t len) {
-        sha.Write(data, len);
+    CHash256 &Write(Span<const uint8_t> input) {
+        sha.Write(input.data(), input.size());
         return *this;
     }
 
@@ -57,8 +57,8 @@ public:
         CRIPEMD160().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);
     }
 
-    CHash160 &Write(const uint8_t *data, size_t len) {
-        sha.Write(data, len);
+    CHash160 &Write(Span<const uint8_t> input) {
+        sha.Write(input.data(), input.size());
         return *this;
     }
 
@@ -73,8 +73,8 @@ template <typename T1> inline uint256 Hash(const T1 pbegin, const T1 pend) {
     static const uint8_t pblank[1] = {};
     uint256 result;
     CHash256()
-        .Write(pbegin == pend ? pblank : (const uint8_t *)&pbegin[0],
-               (pend - pbegin) * sizeof(pbegin[0]))
+        .Write({pbegin == pend ? pblank : (const uint8_t *)&pbegin[0],
+                (pend - pbegin) * sizeof(pbegin[0])})
         .Finalize((uint8_t *)&result);
     return result;
 }
@@ -86,10 +86,10 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end, const T2 p2begin,
     static const uint8_t pblank[1] = {};
     uint256 result;
     CHash256()
-        .Write(p1begin == p1end ? pblank : (const uint8_t *)&p1begin[0],
-               (p1end - p1begin) * sizeof(p1begin[0]))
-        .Write(p2begin == p2end ? pblank : (const uint8_t *)&p2begin[0],
-               (p2end - p2begin) * sizeof(p2begin[0]))
+        .Write({p1begin == p1end ? pblank : (const uint8_t *)&p1begin[0],
+                (p1end - p1begin) * sizeof(p1begin[0])})
+        .Write({p2begin == p2end ? pblank : (const uint8_t *)&p2begin[0],
+                (p2end - p2begin) * sizeof(p2begin[0])})
         .Finalize((uint8_t *)&result);
     return result;
 }
@@ -99,8 +99,8 @@ template <typename T1> inline uint160 Hash160(const T1 pbegin, const T1 pend) {
     static uint8_t pblank[1] = {};
     uint160 result;
     CHash160()
-        .Write(pbegin == pend ? pblank : (const uint8_t *)&pbegin[0],
-               (pend - pbegin) * sizeof(pbegin[0]))
+        .Write({pbegin == pend ? pblank : (const uint8_t *)&pbegin[0],
+                (pend - pbegin) * sizeof(pbegin[0])})
         .Finalize((uint8_t *)&result);
     return result;
 }
@@ -132,7 +132,7 @@ public:
     int GetVersion() const { return nVersion; }
 
     void write(const char *pch, size_t size) {
-        ctx.Write((const uint8_t *)pch, size);
+        ctx.Write({(const uint8_t *)pch, size});
     }
 
     // invalidates the object
