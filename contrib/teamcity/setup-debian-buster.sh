@@ -66,7 +66,6 @@ PACKAGES=(
   software-properties-common
   tar
   wget
-  wine
 )
 
 function join_by() {
@@ -107,3 +106,13 @@ update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-10)
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
 update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32-gcc-posix)
+
+# Install wine from the winehq repo to get the latest version
+wget -qO - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
+apt-add-repository https://dl.winehq.org/wine-builds/debian/
+# This is needed to get libfaudio0 which is not packaged for debian 10
+wget -O- -q https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/Release.key | apt-key add -
+echo "deb http://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/ ./" | tee /etc/apt/sources.list.d/wine-obs.list
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt install -y --install-recommends winehq-devel

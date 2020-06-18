@@ -354,21 +354,14 @@ case "$ABC_BUILD_NAME" in
     # Build all the targets that are not built as part of the default target
     ninja test_bitcoin test_bitcoin-qt
 
-    ninja package
-
-    # Running the tests with wine and jemalloc is causing deadlocks, so disable
-    # jemalloc prior running the tests.
-    # FIXME figure out what is causing the deadlock. Example output:
-    #   01fe:err:ntdll:RtlpWaitForCriticalSection section 0x39e081b0 "?" wait
-    #   timed out in thread 01fe, blocked by 01cd, retrying (60 sec)
-    CMAKE_FLAGS+=(
-      "-DUSE_JEMALLOC=OFF"
-    )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh test_bitcoin
+    # Print the wine version, might be useful for debugging
+    wine --version
 
     # Run the tests. Not all will run with wine, so exclude them
     find src -name "libbitcoinconsensus*.dll" -exec cp {} src/test/ \;
     wine ./src/test/test_bitcoin.exe --run_test=\!radix_tests,rcu_tests
+
+    ninja package
     ;;
 
   build-osx)
