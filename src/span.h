@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <type_traits>
 
 #ifdef DEBUG
@@ -193,6 +194,35 @@ template <typename T> T &SpanPopBack(Span<T> &span) {
     T &back = span[size - 1];
     span = Span<T>(span.data(), size - 1);
     return back;
+}
+
+// Helper functions to safely cast to uint8_t pointers.
+inline uint8_t *UCharCast(char *c) {
+    return (uint8_t *)c;
+}
+inline uint8_t *UCharCast(uint8_t *c) {
+    return c;
+}
+inline const uint8_t *UCharCast(const char *c) {
+    return (uint8_t *)c;
+}
+inline const uint8_t *UCharCast(const uint8_t *c) {
+    return c;
+}
+
+// Helper function to safely convert a Span to a Span<[const] uint8_t>.
+template <typename T>
+constexpr auto UCharSpanCast(Span<T> s)
+    -> Span<typename std::remove_pointer<decltype(UCharCast(s.data()))>::type> {
+    return {UCharCast(s.data()), s.size()};
+}
+
+/** Like MakeSpan, but for (const) uint8_t member types only. Only works
+ * for (un)signed char containers. */
+template <typename V>
+constexpr auto MakeUCharSpan(V &&v)
+    -> decltype(UCharSpanCast(MakeSpan(std::forward<V>(v)))) {
+    return UCharSpanCast(MakeSpan(std::forward<V>(v)));
 }
 
 #endif // BITCOIN_SPAN_H
