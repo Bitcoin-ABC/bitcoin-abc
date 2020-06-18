@@ -15,6 +15,7 @@ from test_framework.messages import (
     msg_getdata,
     msg_headers,
     msg_inv,
+    msg_ping,
     MSG_TX,
     ser_string,
 )
@@ -23,7 +24,11 @@ from test_framework.mininode import (
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import hex_str_to_bytes
+from test_framework.util import (
+    hex_str_to_bytes,
+    assert_equal,
+    wait_until,
+)
 
 MSG_LIMIT = 2 * 1024 * 1024  # 2MB, per MAX_PROTOCOL_MESSAGE_LENGTH
 VALID_DATA_LIMIT = MSG_LIMIT - 5  # Account for the 5-byte length prefix
@@ -55,6 +60,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         self.setup_clean_chain = True
 
     def run_test(self):
+        self.test_buffer()
         self.test_magic_bytes()
         self.test_checksum()
         self.test_size()
@@ -66,6 +72,28 @@ class InvalidMessagesTest(BitcoinTestFramework):
         self.test_large_inv()
         self.test_unsolicited_ava_messages()
         self.test_resource_exhaustion()
+
+    def test_buffer(self):
+        self.log.info(
+            "Test message with header split across two buffers, should be received")
+        conn = self.nodes[0].add_p2p_connection(P2PDataStore())
+        # Create valid message
+        msg = conn.build_message(msg_ping(nonce=12345))
+        cut_pos = 12    # Chosen at an arbitrary position within the header
+        # Send message in two pieces
+        before = int(self.nodes[0].getnettotals()['totalbytesrecv'])
+        conn.send_raw_message(msg[:cut_pos])
+        # Wait until node has processed the first half of the message
+        wait_until(
+            lambda: int(
+                self.nodes[0].getnettotals()['totalbytesrecv']) != before)
+        middle = int(self.nodes[0].getnettotals()['totalbytesrecv'])
+        # If this assert fails, we've hit an unlikely race
+        # where the test framework sent a message in between the two halves
+        assert_equal(middle, before + cut_pos)
+        conn.send_raw_message(msg[cut_pos:])
+        conn.sync_with_ping(timeout=1)
+        self.nodes[0].disconnect_p2ps()
 
     def test_magic_bytes(self):
         conn = self.nodes[0].add_p2p_connection(P2PDataStore())
@@ -216,13 +244,13 @@ class InvalidMessagesTest(BitcoinTestFramework):
 
     def test_large_inv(self):
         conn = self.nodes[0].add_p2p_connection(P2PInterface())
-        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=8 (0 -> 20): oversized-inv: message inv size() = 50001']):
+        with self.nodes[0].assert_debug_log(['Misbehaving', '(0 -> 20): oversized-inv: message inv size() = 50001']):
             msg = msg_inv([CInv(MSG_TX, 1)] * 50001)
             conn.send_and_ping(msg)
-        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=8 (20 -> 40): too-many-inv: message getdata size() = 50001']):
+        with self.nodes[0].assert_debug_log(['Misbehaving', '(20 -> 40): too-many-inv: message getdata size() = 50001']):
             msg = msg_getdata([CInv(MSG_TX, 1)] * 50001)
             conn.send_and_ping(msg)
-        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=8 (40 -> 60): too-many-headers: headers message size = 2001']):
+        with self.nodes[0].assert_debug_log(['Misbehaving', '(40 -> 60): too-many-headers: headers message size = 2001']):
             msg = msg_headers([CBlockHeader()] * 2001)
             conn.send_and_ping(msg)
         self.nodes[0].disconnect_p2ps()
@@ -234,15 +262,15 @@ class InvalidMessagesTest(BitcoinTestFramework):
         """
         conn = self.nodes[0].add_p2p_connection(P2PInterface())
         with self.nodes[0].assert_debug_log(
-                ['Misbehaving', 'peer=9 (0 -> 20): unsolicited-avahello']):
+                ['Misbehaving', '(0 -> 20): unsolicited-avahello']):
             msg = msg_avahello()
             conn.send_and_ping(msg)
         with self.nodes[0].assert_debug_log(
-                ['Misbehaving', 'peer=9 (20 -> 40): unsolicited-avapoll']):
+                ['Misbehaving', '(20 -> 40): unsolicited-avapoll']):
             msg = msg_avapoll()
             conn.send_and_ping(msg)
         with self.nodes[0].assert_debug_log(
-                ['Misbehaving', 'peer=9 (40 -> 60): unsolicited-avaresponse']):
+                ['Misbehaving', '(40 -> 60): unsolicited-avaresponse']):
             msg = msg_avaresponse()
             conn.send_and_ping(msg)
         self.nodes[0].disconnect_p2ps()
