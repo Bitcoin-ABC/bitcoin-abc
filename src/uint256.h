@@ -73,6 +73,9 @@ public:
     void SetHex(const std::string &str);
     std::string ToString() const { return GetHex(); }
 
+    const uint8_t *data() const { return m_data; }
+    uint8_t *data() { return m_data; }
+
     uint8_t *begin() { return &m_data[0]; }
 
     uint8_t *end() { return &m_data[WIDTH]; }
