@@ -1748,8 +1748,8 @@ static bool AlreadyHave(const CInv &inv, const CTxMemPool &mempool)
 }
 
 void RelayTransaction(const TxId &txid, const CConnman &connman) {
-    CInv inv(MSG_TX, txid);
-    connman.ForEachNode([&inv](CNode *pnode) { pnode->PushInventory(inv); });
+    connman.ForEachNode(
+        [&txid](CNode *pnode) { pnode->PushTxInventory(txid); });
 }
 
 static void RelayAddress(const CAddress &addr, bool fReachable,
@@ -1959,9 +1959,9 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
         // Trigger the peer node to send a getblocks request for the next batch
         // of inventory.
         if (hash == pfrom.hashContinue) {
-            // Bypass PushInventory, this must send even if redundant, and we
-            // want it right after the last block so they don't wait for other
-            // stuff first.
+            // Bypass PushBlockInventory, this must send even if redundant, and
+            // we want it right after the last block so they don't wait for
+            // other stuff first.
             std::vector<CInv> vInv;
             vInv.push_back(
                 CInv(MSG_BLOCK, ::ChainActive().Tip()->GetBlockHash()));
@@ -3181,7 +3181,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     pindex->nHeight, pindex->GetBlockHash().ToString());
                 break;
             }
-            pfrom.PushInventory(CInv(MSG_BLOCK, pindex->GetBlockHash()));
+            pfrom.PushBlockInventory(pindex->GetBlockHash());
             if (--nLimit <= 0) {
                 // When this block is requested, we'll send an inv that'll
                 // trigger the peer to getblocks the next batch of inventory.
@@ -5079,7 +5079,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
 
                     // If the peer's chain has this block, don't inv it back.
                     if (!PeerHasHeader(&state, pindex)) {
-                        pto->PushInventory(CInv(MSG_BLOCK, hashToAnnounce));
+                        pto->PushBlockInventory(hashToAnnounce);
                         LogPrint(BCLog::NET,
                                  "%s: sending inv peer=%d hash=%s\n", __func__,
                                  pto->GetId(), hashToAnnounce.ToString());

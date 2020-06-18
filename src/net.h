@@ -1125,18 +1125,19 @@ public:
         }
     }
 
-    void PushInventory(const CInv &inv) {
-        if (inv.type == MSG_TX && m_tx_relay != nullptr) {
-            const TxId txid(inv.hash);
-            LOCK(m_tx_relay->cs_tx_inventory);
-            if (!m_tx_relay->filterInventoryKnown.contains(txid)) {
-                m_tx_relay->setInventoryTxToSend.insert(txid);
-            }
-        } else if (inv.type == MSG_BLOCK) {
-            const BlockHash hash(inv.hash);
-            LOCK(cs_inventory);
-            vInventoryBlockToSend.push_back(hash);
+    void PushTxInventory(const TxId &txid) {
+        if (m_tx_relay == nullptr) {
+            return;
         }
+        LOCK(m_tx_relay->cs_tx_inventory);
+        if (!m_tx_relay->filterInventoryKnown.contains(txid)) {
+            m_tx_relay->setInventoryTxToSend.insert(txid);
+        }
+    }
+
+    void PushBlockInventory(const BlockHash &blockhash) {
+        LOCK(cs_inventory);
+        vInventoryBlockToSend.push_back(blockhash);
     }
 
     void PushBlockHash(const BlockHash &hash) {
