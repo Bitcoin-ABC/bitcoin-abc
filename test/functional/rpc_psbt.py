@@ -328,7 +328,7 @@ class PSBTTest(BitcoinTestFramework):
 
         # Check fee and size things
         assert analyzed['fee'] == Decimal(
-            '0.00100000') and analyzed['estimated_vsize'] == 191 and analyzed['estimated_feerate'] == Decimal('0.00523560')
+            '0.001') and analyzed['estimated_vsize'] == 191 and analyzed['estimated_feerate'] == Decimal('0.00523560')
 
         # After signing and finalizing, needs extracting
         signed = self.nodes[1].walletprocesspsbt(updated)['psbt']
