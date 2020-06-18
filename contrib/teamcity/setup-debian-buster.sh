@@ -15,6 +15,7 @@ PACKAGES=(
   build-essential
   ccache
   cmake
+  cppcheck
   curl
   flake8
   g++-aarch64-linux-gnu
