@@ -19,6 +19,8 @@ FALSE_POSITIVES = [
     ("src/netbase.cpp", "LogConnectFailure(bool manual_connection, const char *fmt, const Args &... args)"),
     ("src/util/system.cpp",
      "strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION)"),
+    ("src/validationinterface.cpp",
+     "LogPrint(BCLog::VALIDATION, fmt \"\\n\", __VA_ARGS__)"),
     ("src/tinyformat.h", "printf(const char *fmt, const Args &... args)"),
     ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
     ("src/wallet/wallet.h",
