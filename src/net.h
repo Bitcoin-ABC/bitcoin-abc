@@ -1106,12 +1106,6 @@ public:
     std::chrono::microseconds
         m_next_local_addr_send GUARDED_BY(cs_sendProcessing){0};
 
-    // List of block ids we still have to announce.
-    // There is no final sorting before sending, as they are always sent
-    // immediately and in the order requested.
-    std::vector<BlockHash> vInventoryBlockToSend GUARDED_BY(cs_inventory);
-    Mutex cs_inventory;
-
     struct TxRelay {
         mutable RecursiveMutex cs_filter;
         // We use fRelayTxes for two purposes -
@@ -1211,9 +1205,6 @@ public:
 
     // m_avalanche_state == nullptr if we're not using avalanche with this peer
     std::unique_ptr<AvalancheState> m_avalanche_state;
-
-    // Used for headers announcements - unfiltered blocks to relay
-    std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
 
     /**
      * UNIX epoch time of the last block received from this peer that we had
