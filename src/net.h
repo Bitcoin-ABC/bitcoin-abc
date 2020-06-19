@@ -1097,7 +1097,6 @@ protected:
 
 public:
     BlockHash hashContinue;
-    std::atomic<int> nStartingHeight{-1};
 
     // flood relay
     std::vector<CAddress> vAddrToSend;

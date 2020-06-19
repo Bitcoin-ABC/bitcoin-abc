@@ -272,8 +272,8 @@ static RPCHelpMan getpeerinfo() {
                     // addnode is deprecated in v0.24.5 for removal in v0.25.x
                     obj.pushKV("addnode", stats.m_manual_connection);
                 }
-                obj.pushKV("startingheight", stats.nStartingHeight);
                 if (fStateStats) {
+                    obj.pushKV("startingheight", statestats.nStartingHeight);
                     obj.pushKV("synced_headers", statestats.nSyncHeight);
                     obj.pushKV("synced_blocks", statestats.nCommonHeight);
                     UniValue heights(UniValue::VARR);

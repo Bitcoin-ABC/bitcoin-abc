@@ -46,6 +46,7 @@ struct CNodeStateStats {
     int m_misbehavior_score = 0;
     int nSyncHeight = -1;
     int nCommonHeight = -1;
+    int nStartingHeight = -1;
     std::vector<int> vHeightInFlight;
 };
 
@@ -73,6 +74,9 @@ struct Peer {
     /** Whether this peer should be disconnected and marked as discouraged
      * (unless it has the noban permission). */
     bool m_should_discourage GUARDED_BY(m_misbehavior_mutex){false};
+
+    /** This peer's reported block height when we connected */
+    std::atomic<int> nStartingHeight{-1};
 
     /**
      * Set of txids to reconsider once their parent transactions have been
@@ -254,6 +258,7 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans);
     /** Process a single headers message from a peer. */
     void ProcessHeadersMessage(const Config &config, CNode &pfrom,
+                               const Peer &peer,
                                const std::vector<CBlockHeader> &headers,
                                bool via_compact_block);
 

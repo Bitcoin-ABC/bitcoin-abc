@@ -1211,7 +1211,13 @@ bool PeerManager::GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
         }
     }
 
-    return GetPeerRef(nodeid) != nullptr;
+    PeerRef peer = GetPeerRef(nodeid);
+    if (peer == nullptr) {
+        return false;
+    }
+    stats.nStartingHeight = peer->nStartingHeight;
+
+    return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2292,7 +2298,7 @@ void PeerManager::SendBlockTransactions(CNode &pfrom, const CBlock &block,
 }
 
 void PeerManager::ProcessHeadersMessage(
-    const Config &config, CNode &pfrom,
+    const Config &config, CNode &pfrom, const Peer &peer,
     const std::vector<CBlockHeader> &headers, bool via_compact_block) {
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
     size_t nCount = headers.size();
@@ -2404,7 +2410,7 @@ void PeerManager::ProcessHeadersMessage(
             LogPrint(
                 BCLog::NET,
                 "more getheaders (%d) to end to peer=%d (startheight:%d)\n",
-                pindexLast->nHeight, pfrom.GetId(), pfrom.nStartingHeight);
+                pindexLast->nHeight, pfrom.GetId(), peer.nStartingHeight);
             m_connman.PushMessage(
                 &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                       ::ChainActive().GetLocator(pindexLast),
@@ -3015,7 +3021,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             LOCK(pfrom.cs_SubVer);
             pfrom.cleanSubVer = cleanSubVer;
         }
-        pfrom.nStartingHeight = nStartingHeight;
+        peer->nStartingHeight = nStartingHeight;
 
         // set nodes not relaying blocks and tx and not serving (parts) of the
         // historical blockchain as "clients"
@@ -3104,7 +3110,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                  "receive version message: [%s] %s: version %d, blocks=%d, "
                  "us=%s, peer=%d%s\n",
                  pfrom.addr.ToString(), cleanSubVer, pfrom.nVersion,
-                 pfrom.nStartingHeight, addrMe.ToString(), pfrom.GetId(),
+                 peer->nStartingHeight, addrMe.ToString(), pfrom.GetId(),
                  remoteAddr);
 
         // Ignore time offsets that are improbable (before the Genesis block)
@@ -3144,7 +3150,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             LogPrintf(
                 "New outbound peer connected: version: %d, blocks=%d, "
                 "peer=%d%s (%s)\n",
-                pfrom.nVersion.load(), pfrom.nStartingHeight, pfrom.GetId(),
+                pfrom.nVersion.load(), peer->nStartingHeight, pfrom.GetId(),
                 (fLogIPs ? strprintf(", peeraddr=%s", pfrom.addr.ToString())
                          : ""),
                 pfrom.m_tx_relay == nullptr ? "block-relay" : "full-relay");
@@ -4061,7 +4067,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             // disconnect the peer if the header turns out to be for an invalid
             // block. Note that if a peer tries to build on an invalid chain,
             // that will be detected and the peer will be banned.
-            return ProcessHeadersMessage(config, pfrom, {cmpctblock.header},
+            return ProcessHeadersMessage(config, pfrom, *peer,
+                                         {cmpctblock.header},
                                          /*via_compact_block=*/true);
         }
 
@@ -4232,7 +4239,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             ReadCompactSize(vRecv);
         }
 
-        return ProcessHeadersMessage(config, pfrom, headers,
+        return ProcessHeadersMessage(config, pfrom, *peer, headers,
                                      /*via_compact_block=*/false);
     }
 
@@ -5193,6 +5200,7 @@ public:
 
 bool PeerManager::SendMessages(const Config &config, CNode *pto,
                                std::atomic<bool> &interruptMsgProc) {
+    PeerRef peer = GetPeerRef(pto->GetId());
     const Consensus::Params &consensusParams = m_chainparams.GetConsensus();
 
     // We must call MaybeDiscourageAndDisconnect first, to ensure that we'll
@@ -5355,7 +5363,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                 LogPrint(
                     BCLog::NET,
                     "initial getheaders (%d) to peer=%d (startheight:%d)\n",
-                    pindexStart->nHeight, pto->GetId(), pto->nStartingHeight);
+                    pindexStart->nHeight, pto->GetId(), peer->nStartingHeight);
                 m_connman.PushMessage(
                     pto, msgMaker.Make(NetMsgType::GETHEADERS,
                                        ::ChainActive().GetLocator(pindexStart),

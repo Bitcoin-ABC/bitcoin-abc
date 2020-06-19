@@ -612,7 +612,6 @@ void CNode::copyStats(CNodeStats &stats) {
     }
     stats.fInbound = IsInboundConn();
     stats.m_manual_connection = IsManualConn();
-    stats.nStartingHeight = nStartingHeight;
     {
         LOCK(cs_vSend);
         stats.mapSendBytesPerMsgCmd = mapSendBytesPerMsgCmd;
