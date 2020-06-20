@@ -124,6 +124,15 @@ public:
      */
     bool Rewrite(const char *pszSkip = nullptr);
 
+    /** Indicate the a new database user has began using the database. */
+    void AddRef();
+
+    /**
+     * Indicate that database user has stopped using the database and that it
+     * could be flushed or closed.
+     */
+    void RemoveRef();
+
     /**
      * Back up the entire database to a file.
      */
@@ -226,6 +235,7 @@ protected:
     bool fReadOnly;
     bool fFlushOnClose;
     BerkeleyEnvironment *env;
+    BerkeleyDatabase &m_database;
 
 public:
     explicit BerkeleyBatch(BerkeleyDatabase &database,
