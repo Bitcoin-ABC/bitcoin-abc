@@ -205,10 +205,11 @@ class BerkeleyBatch {
     };
 
 private:
-    bool ReadKey(CDataStream &key, CDataStream &value);
-    bool WriteKey(CDataStream &key, CDataStream &value, bool overwrite = true);
-    bool EraseKey(CDataStream &key);
-    bool HasKey(CDataStream &key);
+    bool ReadKey(CDataStream &&key, CDataStream &value);
+    bool WriteKey(CDataStream &&key, CDataStream &&value,
+                  bool overwrite = true);
+    bool EraseKey(CDataStream &&key);
+    bool HasKey(CDataStream &&key);
 
 protected:
     Db *pdb;
@@ -237,7 +238,7 @@ public:
         ssKey << key;
 
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-        if (!ReadKey(ssKey, ssValue)) {
+        if (!ReadKey(std::move(ssKey), ssValue)) {
             return false;
         }
         try {
@@ -258,7 +259,7 @@ public:
         ssValue.reserve(10000);
         ssValue << value;
 
-        return WriteKey(ssKey, ssValue, fOverwrite);
+        return WriteKey(std::move(ssKey), std::move(ssValue), fOverwrite);
     }
 
     template <typename K> bool Erase(const K &key) {
@@ -266,7 +267,7 @@ public:
         ssKey.reserve(1000);
         ssKey << key;
 
-        return EraseKey(ssKey);
+        return EraseKey(std::move(ssKey));
     }
 
     template <typename K> bool Exists(const K &key) {
@@ -274,7 +275,7 @@ public:
         ssKey.reserve(1000);
         ssKey << key;
 
-        return HasKey(ssKey);
+        return HasKey(std::move(ssKey));
     }
 
     bool StartCursor();
