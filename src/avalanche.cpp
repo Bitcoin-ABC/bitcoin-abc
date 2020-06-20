@@ -367,22 +367,26 @@ bool AvalancheProcessor::stopEventLoop() {
     return eventLoop.stopEventLoop();
 }
 
-std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) const {
+std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) {
     std::vector<CInv> invs;
+
+    // First remove all blocks that are not worth polling.
+    {
+        LOCK(cs_main);
+        auto w = vote_records.getWriteView();
+        for (auto it = w->begin(); it != w->end();) {
+            const CBlockIndex *pindex = it->first;
+            if (!IsWorthPolling(pindex)) {
+                w->erase(it++);
+            } else {
+                ++it;
+            }
+        }
+    }
 
     auto r = vote_records.getReadView();
     for (const std::pair<const CBlockIndex *const, VoteRecord> &p :
          reverse_iterate(r)) {
-        const CBlockIndex *pindex = p.first;
-
-        {
-            LOCK(cs_main);
-            if (!IsWorthPolling(pindex)) {
-                // Obviously do not poll if the block is not worth polling.
-                continue;
-            }
-        }
-
         // Check if we can run poll.
         const bool shouldPoll =
             forPoll ? p.second.registerPoll() : p.second.shouldPoll();
@@ -391,7 +395,7 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) const {
         }
 
         // We don't have a decision, we need more votes.
-        invs.emplace_back(MSG_BLOCK, pindex->GetBlockHash());
+        invs.emplace_back(MSG_BLOCK, p.first->GetBlockHash());
         if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
             // Make sure we do not produce more invs than specified by the
             // protocol.

@@ -15,7 +15,7 @@
 struct AvalancheTest {
     static void runEventLoop(AvalancheProcessor &p) { p.runEventLoop(); }
 
-    static std::vector<CInv> getInvsForNextPoll(const AvalancheProcessor &p) {
+    static std::vector<CInv> getInvsForNextPoll(AvalancheProcessor &p) {
         return p.getInvsForNextPoll(false);
     }
 

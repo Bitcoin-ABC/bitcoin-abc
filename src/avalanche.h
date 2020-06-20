@@ -358,7 +358,7 @@ public:
 private:
     void runEventLoop();
     void clearTimedoutRequests();
-    std::vector<CInv> getInvsForNextPoll(bool forPoll = true) const;
+    std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
     NodeId getSuitableNodeToQuery();
 
     friend struct AvalancheTest;
