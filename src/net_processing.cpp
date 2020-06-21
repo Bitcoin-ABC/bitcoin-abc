@@ -522,6 +522,9 @@ private:
     /** Send a version message to a peer */
     void PushNodeVersion(const Config &config, CNode &pnode, int64_t nTime);
 
+    /** Send a ping message every PING_INTERVAL or if requested via RPC. */
+    void MaybeSendPing(CNode &node_to);
+
     const CChainParams &m_chainparams;
     CConnman &m_connman;
     /**
@@ -5463,6 +5466,42 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
     m_stale_tip_check_time = time_in_seconds + STALE_CHECK_INTERVAL;
 }
 
+void PeerManagerImpl::MaybeSendPing(CNode &node_to) {
+    const CNetMsgMaker msgMaker(node_to.GetCommonVersion());
+    bool pingSend = false;
+
+    if (node_to.fPingQueued) {
+        // RPC ping request by user
+        pingSend = true;
+    }
+
+    if (node_to.nPingNonceSent == 0 &&
+        node_to.m_ping_start.load() + PING_INTERVAL <
+            GetTime<std::chrono::microseconds>()) {
+        // Ping automatically sent as a latency probe & keepalive.
+        pingSend = true;
+    }
+
+    if (pingSend) {
+        uint64_t nonce = 0;
+        while (nonce == 0) {
+            GetRandBytes((uint8_t *)&nonce, sizeof(nonce));
+        }
+        node_to.fPingQueued = false;
+        node_to.m_ping_start = GetTime<std::chrono::microseconds>();
+        if (node_to.GetCommonVersion() > BIP0031_VERSION) {
+            node_to.nPingNonceSent = nonce;
+            m_connman.PushMessage(&node_to,
+                                  msgMaker.Make(NetMsgType::PING, nonce));
+        } else {
+            // Peer is too old to support ping command with nonce, pong will
+            // never arrive.
+            node_to.nPingNonceSent = 0;
+            m_connman.PushMessage(&node_to, msgMaker.Make(NetMsgType::PING));
+        }
+    }
+}
+
 namespace {
 class CompareInvMempoolOrder {
     CTxMemPool *mp;
@@ -5503,36 +5542,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     // can't change.
     const CNetMsgMaker msgMaker(pto->GetCommonVersion());
 
-    //
-    // Message: ping
-    //
-    bool pingSend = false;
-    if (pto->fPingQueued) {
-        // RPC ping request by user
-        pingSend = true;
-    }
-    if (pto->nPingNonceSent == 0 && pto->m_ping_start.load() + PING_INTERVAL <
-                                        GetTime<std::chrono::microseconds>()) {
-        // Ping automatically sent as a latency probe & keepalive.
-        pingSend = true;
-    }
-    if (pingSend) {
-        uint64_t nonce = 0;
-        while (nonce == 0) {
-            GetRandBytes((uint8_t *)&nonce, sizeof(nonce));
-        }
-        pto->fPingQueued = false;
-        pto->m_ping_start = GetTime<std::chrono::microseconds>();
-        if (pto->GetCommonVersion() > BIP0031_VERSION) {
-            pto->nPingNonceSent = nonce;
-            m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::PING, nonce));
-        } else {
-            // Peer is too old to support ping command with nonce, pong will
-            // never arrive.
-            pto->nPingNonceSent = 0;
-            m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::PING));
-        }
-    }
+    MaybeSendPing(*pto);
 
     auto current_time = GetTime<std::chrono::microseconds>();
     bool fFetch;
