@@ -93,6 +93,13 @@ struct Peer {
 
     /** This peer's reported block height when we connected */
     std::atomic<int> m_starting_height{-1};
+    /**
+     * The final block hash that we sent in an `inv` message to this peer.
+     * When the peer requests this block, we send an `inv` message to trigger
+     * the peer to request the next sequence of block hashes.
+     * Most peers use headers-first syncing, which doesn't use this mechanism
+     */
+    BlockHash m_continuation_block{};
 
     /**
      * Set of txids to reconsider once their parent transactions have been

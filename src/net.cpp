@@ -3335,7 +3335,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
       m_inbound_onion(inbound_onion) {
     hSocket = hSocketIn;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
-    hashContinue = BlockHash();
     if (conn_type_in != ConnectionType::BLOCK_RELAY) {
         m_tx_relay = std::make_unique<TxRelay>();
     }

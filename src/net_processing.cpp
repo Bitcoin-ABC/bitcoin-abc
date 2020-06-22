@@ -1894,7 +1894,7 @@ static void RelayAddress(const CNode &originator, const CAddress &addr,
     connman.ForEachNodeThen(std::move(sortfunc), std::move(pushfunc));
 }
 
-static void ProcessGetBlockData(const Config &config, CNode &pfrom,
+static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
                                 const CInv &inv, CConnman &connman,
                                 const std::atomic<bool> &interruptMsgProc) {
     const Consensus::Params &consensusParams =
@@ -2057,7 +2057,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
 
         // Trigger the peer node to send a getblocks request for the next batch
         // of inventory.
-        if (hash == pfrom.hashContinue) {
+        if (hash == peer.m_continuation_block) {
             // Send immediately. This must send even if redundant, and
             // we want it right after the last block so they don't wait for
             // other stuff first.
@@ -2065,7 +2065,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
             vInv.push_back(
                 CInv(MSG_BLOCK, ::ChainActive().Tip()->GetBlockHash()));
             connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::INV, vInv));
-            pfrom.hashContinue = BlockHash();
+            peer.m_continuation_block = BlockHash();
         }
     }
 }
@@ -2257,7 +2257,8 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
     if (it != peer.m_getdata_requests.end() && !pfrom.fPauseSend) {
         const CInv &inv = *it++;
         if (inv.IsGenBlkMsg()) {
-            ProcessGetBlockData(config, pfrom, inv, connman, interruptMsgProc);
+            ProcessGetBlockData(config, pfrom, peer, inv, connman,
+                                interruptMsgProc);
         }
         // else: If the first item on the queue is an unknown type, we erase it
         // and continue processing the queue on the next call.
@@ -3531,7 +3532,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 // trigger the peer to getblocks the next batch of inventory.
                 LogPrint(BCLog::NET, "  getblocks stopping at limit %d %s\n",
                          pindex->nHeight, pindex->GetBlockHash().ToString());
-                pfrom.hashContinue = pindex->GetBlockHash();
+                peer->m_continuation_block = pindex->GetBlockHash();
                 break;
             }
         }
