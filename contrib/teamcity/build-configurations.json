@@ -1,0 +1,71 @@
+{
+    "build-asan": {
+        "script": "builds/build-asan.sh"
+    },
+    "build-autotools": {
+        "script": "builds/build-autotools.sh"
+    },
+    "build-bench": {
+        "script": "builds/build-bench.sh"
+    },
+    "build-clang-10": {
+        "script": "builds/build-clang-10.sh"
+    },
+    "build-clang-tidy": {
+        "script": "builds/build-clang-tidy.sh"
+    },
+    "build-coverage": {
+        "script": "builds/build-coverage.sh"
+    },
+    "build-diff": {
+        "script": "builds/build-diff.sh"
+    },
+    "build-ibd": {
+        "script": "builds/build-ibd.sh"
+    },
+    "build-ibd-no-assumevalid-checkpoint": {
+        "script": "builds/build-ibd-no-assumevalid-checkpoint.sh"
+    },
+    "build-linux64": {
+        "script": "builds/build-linux64.sh"
+    },
+    "build-linux-aarch64": {
+        "script": "builds/build-linux-aarch64.sh"
+    },
+    "build-linux-arm": {
+        "script": "builds/build-linux-arm.sh"
+    },
+    "build-make-generator": {
+        "script": "builds/build-make-generator.sh"
+    },
+    "build-master": {
+        "script": "builds/build-master.sh"
+    },
+    "build-osx": {
+        "script": "builds/build-osx.sh"
+    },
+    "build-secp256k1": {
+        "script": "builds/build-secp256k1.sh"
+    },
+    "build-tsan": {
+        "script": "builds/build-tsan.sh"
+    },
+    "build-ubsan": {
+        "script": "builds/build-ubsan.sh"
+    },
+    "build-win64": {
+        "script": "builds/build-win64.sh"
+    },
+    "build-without-cli": {
+        "script": "builds/build-without-cli.sh"
+    },
+    "build-without-wallet": {
+        "script": "builds/build-without-wallet.sh"
+    },
+    "build-without-zmq": {
+        "script": "builds/build-without-zmq.sh"
+    },
+    "check-seeds": {
+        "script": "builds/check-seeds.sh"
+    }
+}
