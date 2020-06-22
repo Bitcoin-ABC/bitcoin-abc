@@ -93,7 +93,7 @@ namespace {
         bool
         appInitMain(Config &config, RPCServer &rpcServer,
                     HTTPRPCRequestProcessor &httpRPCRequestProcessor) override {
-            m_context.chain = MakeChain(m_context);
+            m_context.chain = MakeChain(m_context, config.GetChainParams());
             return AppInitMain(config, rpcServer, httpRPCRequestProcessor,
                                m_context);
         }

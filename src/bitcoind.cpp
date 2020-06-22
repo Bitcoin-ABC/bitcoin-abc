@@ -68,8 +68,6 @@ static bool AppInit(int argc, char *argv[]) {
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
     NodeContext node;
-    node.chain = interfaces::MakeChain(node);
-
     bool fRet = false;
 
     util::ThreadSetInternalName("init");
@@ -118,6 +116,7 @@ static bool AppInit(int argc, char *argv[]) {
         // only valid after this clause)
         try {
             SelectParams(gArgs.GetChainName());
+            node.chain = interfaces::MakeChain(node, config.GetChainParams());
         } catch (const std::exception &e) {
             return InitError(strprintf("%s\n", e.what()));
         }

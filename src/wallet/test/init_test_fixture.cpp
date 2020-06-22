@@ -4,12 +4,14 @@
 
 #include <wallet/test/init_test_fixture.h>
 
+#include <chainparams.h>
 #include <fs.h>
 #include <util/system.h>
 
 InitWalletDirTestingSetup::InitWalletDirTestingSetup(
     const std::string &chainName)
     : BasicTestingSetup(chainName) {
+    m_chain = interfaces::MakeChain(m_node, Params());
     m_chain_client = MakeWalletClient(*m_chain, {});
 
     std::string sep;

@@ -22,7 +22,7 @@ struct WalletTestingSetup : public TestingSetup {
         const std::string &chainName = CBaseChainParams::MAIN);
 
     NodeContext m_node;
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
+    std::unique_ptr<interfaces::Chain> m_chain;
     std::unique_ptr<interfaces::ChainClient> m_chain_client =
         interfaces::MakeWalletClient(*m_chain, {});
     CWallet m_wallet;

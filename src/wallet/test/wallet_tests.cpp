@@ -41,7 +41,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     CBlockIndex *newTip = ::ChainActive().Tip();
 
     NodeContext node;
-    auto chain = interfaces::MakeChain(node);
+    auto chain = interfaces::MakeChain(node, Params());
     auto locked_chain = chain->lock();
     LockAssertion lock(::cs_main);
 
@@ -128,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
     CBlockIndex *newTip = ::ChainActive().Tip();
 
     NodeContext node;
-    auto chain = interfaces::MakeChain(node);
+    auto chain = interfaces::MakeChain(node, Params());
     auto locked_chain = chain->lock();
     LockAssertion lock(::cs_main);
 
@@ -214,7 +214,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
             .vtx[0]);
 
     NodeContext node;
-    auto chain = interfaces::MakeChain(node);
+    auto chain = interfaces::MakeChain(node, Params());
     auto locked_chain = chain->lock();
     LockAssertion lock(::cs_main);
 
@@ -271,7 +271,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 // debit functions.
 BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
     NodeContext node;
-    auto chain = interfaces::MakeChain(node);
+    auto chain = interfaces::MakeChain(node, Params());
     CWallet wallet(Params(), chain.get(), WalletLocation(),
                    WalletDatabase::CreateDummy());
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
@@ -421,7 +421,8 @@ public:
     }
 
     NodeContext m_node;
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
+    std::unique_ptr<interfaces::Chain> m_chain =
+        interfaces::MakeChain(m_node, Params());
     std::unique_ptr<CWallet> wallet;
 };
 
@@ -496,7 +497,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
 
 BOOST_FIXTURE_TEST_CASE(wallet_disableprivkeys, TestChain100Setup) {
     NodeContext node;
-    auto chain = interfaces::MakeChain(node);
+    auto chain = interfaces::MakeChain(node, Params());
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
         Params(), chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
     wallet->SetMinVersion(FEATURE_LATEST);

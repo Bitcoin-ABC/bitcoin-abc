@@ -35,7 +35,7 @@ static void CoinSelection(benchmark::State &state) {
     SelectParams(CBaseChainParams::REGTEST);
 
     NodeContext node;
-    auto chain = interfaces::MakeChain(node);
+    auto chain = interfaces::MakeChain(node, Params());
     const CWallet wallet(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
     std::vector<std::unique_ptr<CWalletTx>> wtxs;
@@ -108,7 +108,7 @@ static void BnBExhaustion(benchmark::State &state) {
     SelectParams(CBaseChainParams::REGTEST);
 
     NodeContext node;
-    auto chain = interfaces::MakeChain(node);
+    auto chain = interfaces::MakeChain(node, Params());
     const CWallet wallet(Params(), chain.get(), WalletLocation(),
                          WalletDatabase::CreateDummy());
 

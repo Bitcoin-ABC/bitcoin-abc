@@ -9,7 +9,7 @@
 #include <wallet/rpcdump.h>
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
-    : TestingSetup(chainName),
+    : TestingSetup(chainName), m_chain(interfaces::MakeChain(m_node, Params())),
       m_wallet(Params(), m_chain.get(), WalletLocation(),
                WalletDatabase::CreateMock()) {
     bool fFirstRun;

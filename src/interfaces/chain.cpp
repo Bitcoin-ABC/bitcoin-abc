@@ -246,7 +246,8 @@ namespace {
 
     class ChainImpl : public Chain {
     public:
-        explicit ChainImpl(NodeContext &node) : m_node(node) {}
+        explicit ChainImpl(NodeContext &node, const CChainParams &params)
+            : m_node(node), m_params(params) {}
         std::unique_ptr<Chain::Lock> lock(bool try_lock) override {
             auto lock = std::make_unique<LockImpl>(
                 ::cs_main, "cs_main", __FILE__, __LINE__, try_lock);
@@ -405,12 +406,14 @@ namespace {
             }
         }
         NodeContext &m_node;
+        const CChainParams &m_params;
     };
 
 } // namespace
 
-std::unique_ptr<Chain> MakeChain(NodeContext &node) {
-    return std::make_unique<ChainImpl>(node);
+std::unique_ptr<Chain> MakeChain(NodeContext &node,
+                                 const CChainParams &params) {
+    return std::make_unique<ChainImpl>(node, params);
 }
 
 } // namespace interfaces

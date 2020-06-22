@@ -18,7 +18,8 @@ static void WalletBalance(benchmark::State &state, const bool set_dirty,
     const Config &config = GetConfig();
 
     NodeContext node;
-    std::unique_ptr<interfaces::Chain> chain = interfaces::MakeChain(node);
+    std::unique_ptr<interfaces::Chain> chain =
+        interfaces::MakeChain(node, config.GetChainParams());
     CWallet wallet{config.GetChainParams(), chain.get(), WalletLocation(),
                    WalletDatabase::CreateMock()};
     {
