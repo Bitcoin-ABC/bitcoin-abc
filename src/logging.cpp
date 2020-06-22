@@ -9,8 +9,6 @@
 #include <util/threadnames.h>
 #include <util/time.h>
 
-#include <mutex>
-
 bool fLogIPs = DEFAULT_LOGIPS;
 const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
 

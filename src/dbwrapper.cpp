@@ -4,9 +4,7 @@
 
 #include <dbwrapper.h>
 
-#include <fs.h>
 #include <random.h>
-#include <util/system.h>
 
 #include <leveldb/cache.h>
 #include <leveldb/env.h>

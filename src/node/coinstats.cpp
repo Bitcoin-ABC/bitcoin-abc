@@ -8,7 +8,6 @@
 #include <coins.h>
 #include <hash.h>
 #include <serialize.h>
-#include <uint256.h>
 #include <util/system.h>
 #include <validation.h>
 

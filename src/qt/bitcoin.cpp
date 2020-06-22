@@ -2,10 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
-#endif
-
 #include <qt/bitcoin.h>
 
 #include <chainparams.h>
@@ -35,7 +31,6 @@
 #include <qt/walletcontroller.h>
 #endif
 
-#include <QApplication>
 #include <QDebug>
 #include <QLibraryInfo>
 #include <QLocale>
@@ -56,8 +51,6 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 #endif
-
-#include <memory>
 
 // Declare meta types used for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(bool *)

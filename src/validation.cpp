@@ -14,13 +14,10 @@
 #include <checkqueue.h>
 #include <config.h>
 #include <consensus/activation.h>
-#include <consensus/consensus.h>
 #include <consensus/merkle.h>
 #include <consensus/tx_check.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
-#include <flatfile.h>
-#include <fs.h>
 #include <hash.h>
 #include <index/txindex.h>
 #include <minerfund.h>
@@ -54,7 +51,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
 
-#include <atomic>
 #include <string>
 #include <thread>
 

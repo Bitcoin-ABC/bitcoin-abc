@@ -3,10 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include <test/gen/crypto_gen.h>
 
-#include <key.h>
-
-#include <rapidcheck/Gen.h>
-#include <rapidcheck/gen/Arbitrary.h>
 #include <rapidcheck/gen/Container.h>
 #include <rapidcheck/gen/Predicate.h>
 

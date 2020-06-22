@@ -5,10 +5,7 @@
 
 #include <script/keyorigin.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
 
-#include <key.h>
-#include <pubkey.h>
 #include <util/system.h>
 
 const SigningProvider &DUMMY_SIGNING_PROVIDER = SigningProvider();

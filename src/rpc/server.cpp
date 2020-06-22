@@ -11,9 +11,6 @@
 #include <shutdown.h>
 #include <sync.h>
 #include <util/strencodings.h>
-#include <util/system.h>
-
-#include <univalue.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>

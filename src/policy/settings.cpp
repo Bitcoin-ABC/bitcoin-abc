@@ -6,7 +6,6 @@
 #include <policy/settings.h>
 
 #include <feerate.h>
-#include <policy/policy.h>
 
 bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
 CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);

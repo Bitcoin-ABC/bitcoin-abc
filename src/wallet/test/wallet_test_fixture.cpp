@@ -7,7 +7,6 @@
 #include <chainparams.h>
 #include <validationinterface.h>
 #include <wallet/rpcdump.h>
-#include <wallet/wallet.h>
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     : TestingSetup(chainName),

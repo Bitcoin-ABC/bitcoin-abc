@@ -19,7 +19,6 @@
 #include <wallet/wallet.h>
 
 #include <atomic>
-#include <string>
 
 //
 // WalletBatch

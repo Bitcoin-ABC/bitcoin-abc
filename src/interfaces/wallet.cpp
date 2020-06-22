@@ -23,11 +23,6 @@
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
-
 namespace interfaces {
 namespace {
 

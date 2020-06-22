@@ -8,9 +8,7 @@
 #include <interfaces/node.h>
 
 #include <QApplication>
-#include <QMessageBox>
 #include <QMutexLocker>
-#include <QThread>
 #include <QWindow>
 
 #include <algorithm>

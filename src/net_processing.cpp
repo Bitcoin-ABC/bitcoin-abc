@@ -16,7 +16,6 @@
 #include <consensus/validation.h>
 #include <hash.h>
 #include <merkleblock.h>
-#include <net.h>
 #include <netbase.h>
 #include <netmessagemaker.h>
 #include <policy/fees.h>
@@ -32,7 +31,6 @@
 #include <util/system.h>
 #include <util/validation.h>
 #include <validation.h>
-#include <validationinterface.h>
 
 #include <memory>
 

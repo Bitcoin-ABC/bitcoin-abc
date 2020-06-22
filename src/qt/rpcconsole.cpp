@@ -15,7 +15,6 @@
 #include <qt/bantablemodel.h>
 #include <qt/clientmodel.h>
 #include <qt/forms/ui_debugwindow.h>
-#include <qt/guiutil.h>
 #include <qt/platformstyle.h>
 #include <qt/walletmodel.h>
 #include <rpc/client.h>
@@ -39,7 +38,6 @@
 #include <QSettings>
 #include <QSignalMapper>
 #include <QStringList>
-#include <QThread>
 #include <QTime>
 #include <QTimer>
 

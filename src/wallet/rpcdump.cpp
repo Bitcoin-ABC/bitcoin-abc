@@ -23,8 +23,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <univalue.h>
-
 #include <cstdint>
 #include <tuple>
 

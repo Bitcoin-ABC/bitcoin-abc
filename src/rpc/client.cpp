@@ -9,8 +9,6 @@
 #include <cstdint>
 #include <set>
 
-#include <univalue.h>
-
 class CRPCConvertParam {
 public:
     std::string methodName; //!< method whose params want conversion

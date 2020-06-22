@@ -5,9 +5,7 @@
 
 #include <wallet/db.h>
 
-#include <fs.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/translation.h>
 
 #include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)

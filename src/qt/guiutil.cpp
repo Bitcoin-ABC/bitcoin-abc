@@ -6,7 +6,6 @@
 
 #include <cashaddrenc.h>
 #include <chainparams.h>
-#include <fs.h>
 #include <interfaces/node.h>
 #include <key_io.h>
 #include <policy/policy.h>

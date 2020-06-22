@@ -29,9 +29,7 @@
 #include <QFlags>
 #include <QIcon>
 #include <QSettings>
-#include <QString>
 #include <QTreeWidget>
-#include <QTreeWidgetItem>
 
 QList<Amount> CoinControlDialog::payAmounts;
 bool CoinControlDialog::fSubtractFeeFromAmount = false;

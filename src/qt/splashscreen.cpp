@@ -24,8 +24,6 @@
 #include <QRadialGradient>
 #include <QScreen>
 
-#include <memory>
-
 SplashScreen::SplashScreen(interfaces::Node &node,
                            const NetworkStyle *networkStyle)
     : QWidget(nullptr), curAlignment(0), m_node(node) {

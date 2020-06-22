@@ -8,7 +8,6 @@
 #include <config.h>
 #include <key_io.h>
 #include <pubkey.h>
-#include <script/script.h>
 #include <script/standard.h>
 #include <span.h>
 #include <util/bip32.h>
@@ -17,7 +16,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace {
 

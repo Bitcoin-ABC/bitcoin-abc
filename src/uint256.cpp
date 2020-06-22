@@ -7,8 +7,6 @@
 
 #include <util/strencodings.h>
 
-#include <cstring>
-
 template <unsigned int BITS>
 base_blob<BITS>::base_blob(const std::vector<uint8_t> &vch) {
     assert(vch.size() == sizeof(data));

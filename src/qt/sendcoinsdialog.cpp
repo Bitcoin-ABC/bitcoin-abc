@@ -26,11 +26,9 @@
 #include <wallet/fees.h>
 #include <wallet/wallet.h>
 
-#include <QMessageBox>
 #include <QScrollBar>
 #include <QSettings>
 #include <QTextDocument>
-#include <QTimer>
 
 SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
                                  WalletModel *_model, QWidget *parent)

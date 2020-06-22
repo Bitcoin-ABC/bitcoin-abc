@@ -27,7 +27,6 @@
 #endif
 
 #include <algorithm>
-#include <memory>
 #ifdef ARENA_DEBUG
 #include <iomanip>
 #include <iostream>

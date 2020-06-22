@@ -6,7 +6,6 @@
 
 #include <cstdlib>
 #include <event2/http.h>
-#include <string>
 
 std::string urlDecode(const std::string &urlEncoded) {
     std::string res;

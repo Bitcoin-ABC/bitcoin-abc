@@ -3,12 +3,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifdef HAVE_CONFIG_H
-#include <config/bitcoin-config.h>
-#endif
+#include <netaddress.h>
 
 #include <hash.h>
-#include <netaddress.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
 

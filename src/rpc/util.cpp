@@ -11,8 +11,6 @@
 #include <util/strencodings.h>
 #include <util/string.h>
 
-#include <univalue.h>
-
 #include <tuple>
 
 #include <boost/variant/static_visitor.hpp>

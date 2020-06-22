@@ -7,9 +7,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <crypto/hmac_sha256.h>
-#include <httpserver.h>
 #include <rpc/protocol.h>
-#include <rpc/server.h>
 #include <ui_interface.h>
 #include <util/strencodings.h>
 #include <util/system.h>

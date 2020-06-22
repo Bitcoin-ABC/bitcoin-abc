@@ -5,8 +5,6 @@
 
 #include <threadinterrupt.h>
 
-#include <sync.h>
-
 CThreadInterrupt::CThreadInterrupt() : flag(false) {}
 
 CThreadInterrupt::operator bool() const {

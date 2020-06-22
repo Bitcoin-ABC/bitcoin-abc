@@ -18,7 +18,6 @@
 #include <policy/settings.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
-#include <primitives/transaction.h>
 #include <rpc/protocol.h>
 #include <rpc/server.h>
 #include <shutdown.h>
@@ -31,7 +30,6 @@
 #include <validation.h>
 #include <validationinterface.h>
 
-#include <memory>
 #include <utility>
 
 namespace interfaces {

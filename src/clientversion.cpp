@@ -6,8 +6,6 @@
 
 #include <tinyformat.h>
 
-#include <string>
-
 /**
  * Name of client reported in the 'version' message. Report the same name
  * for both bitcoind and bitcoin-qt, to make it harder for attackers to

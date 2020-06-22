@@ -8,11 +8,8 @@
 #include <pubkey.h>
 #include <script/script.h>
 #include <script/sign.h>
-#include <script/signingprovider.h>
-#include <script/standard.h>
 
 #include <cassert>
-#include <string>
 
 static const std::string OUTPUT_TYPE_STRING_LEGACY = "legacy";
 

@@ -15,7 +15,6 @@
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
-#include <qt/walletmodel.h>
 
 #include <QApplication>
 #include <QClipboard>

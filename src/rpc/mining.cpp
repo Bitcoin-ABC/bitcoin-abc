@@ -31,10 +31,7 @@
 #include <validationinterface.h>
 #include <warnings.h>
 
-#include <univalue.h>
-
 #include <cstdint>
-#include <memory>
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,

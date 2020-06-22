@@ -53,7 +53,6 @@
 #include <txmempool.h>
 #include <ui_interface.h>
 #include <util/moneystr.h>
-#include <util/system.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
 #include <util/validation.h>
@@ -80,7 +79,6 @@
 #endif
 #include <cstdint>
 #include <cstdio>
-#include <memory>
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;

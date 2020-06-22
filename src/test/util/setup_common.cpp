@@ -10,16 +10,12 @@
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
 #include <crypto/sha256.h>
-#include <fs.h>
 #include <init.h>
-#include <key.h>
 #include <logging.h>
 #include <miner.h>
 #include <net.h>
 #include <noui.h>
 #include <pow.h>
-#include <pubkey.h>
-#include <random.h>
 #include <rpc/blockchain.h>
 #include <rpc/register.h>
 #include <rpc/server.h>

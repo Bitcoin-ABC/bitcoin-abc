@@ -9,11 +9,9 @@
 #include <crypto/ripemd160.h>
 #include <crypto/sha1.h>
 #include <crypto/sha256.h>
-#include <primitives/transaction.h>
 #include <pubkey.h>
 #include <script/bitfield.h>
 #include <script/script.h>
-#include <script/script_flags.h>
 #include <script/sigencoding.h>
 #include <uint256.h>
 #include <util/bitmanip.h>

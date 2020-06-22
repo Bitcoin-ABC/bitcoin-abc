@@ -6,7 +6,6 @@
 
 #include <feerate.h>
 
-#include <amount.h>
 #include <tinyformat.h>
 
 CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {

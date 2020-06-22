@@ -7,8 +7,6 @@
 #include <qt/transactionrecord.h>
 #include <qt/transactiontablemodel.h>
 
-#include <QDateTime>
-
 #include <cstdlib>
 
 // Earliest date that can be represented (far in the past)

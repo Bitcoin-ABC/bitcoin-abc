@@ -11,7 +11,6 @@
 
 #include <clientversion.h>
 #include <compat/cpuid.h>
-#include <crypto/sha512.h>
 #include <support/cleanse.h>
 #include <util/time.h> // for GetTime()
 #ifdef WIN32

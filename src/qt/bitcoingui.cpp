@@ -2,10 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
-#endif
-
 #include <qt/bitcoingui.h>
 
 #include <chain.h>
@@ -24,7 +20,6 @@
 #include <qt/networkstyle.h>
 #include <qt/notificator.h>
 #include <qt/openuridialog.h>
-#include <qt/optionsdialog.h>
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
 #include <qt/rpcconsole.h>

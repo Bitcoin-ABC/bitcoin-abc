@@ -25,7 +25,6 @@
 #include <rpc/util.h>
 #include <script/descriptor.h>
 #include <streams.h>
-#include <sync.h>
 #include <txdb.h>
 #include <txmempool.h>
 #include <undo.h>

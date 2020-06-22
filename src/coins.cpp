@@ -6,11 +6,8 @@
 
 #include <consensus/consensus.h>
 #include <logging.h>
-#include <memusage.h>
 #include <random.h>
 #include <version.h>
-
-#include <cassert>
 
 bool CCoinsView::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     return false;

@@ -12,8 +12,6 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 
-#include <univalue.h>
-
 /**
  * JSON-RPC protocol.  Bitcoin speaks version 1.0 for maximum compatibility, but
  * uses JSON-RPC 1.1/2.0 standards for parts of the 1.0 standard that were

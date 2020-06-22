@@ -46,8 +46,6 @@
 #include <QtTest/QtTestGui>
 // clang-format on
 
-#include <string>
-
 namespace {
 //! Call getblockchaininfo RPC and check first field of JSON output.
 void TestRpcCommand(RPCConsole *console) {

@@ -22,7 +22,6 @@
 #include <pow.h>
 #include <primitives/transaction.h>
 #include <timedata.h>
-#include <txmempool.h>
 #include <util/moneystr.h>
 #include <util/system.h>
 #include <util/validation.h>

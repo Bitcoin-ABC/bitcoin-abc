@@ -12,7 +12,6 @@
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
 #include <fs.h>
-#include <interfaces/chain.h>
 #include <interfaces/wallet.h>
 #include <key.h>
 #include <key_io.h>
@@ -27,21 +26,17 @@
 #include <script/sighashtype.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
-#include <ui_interface.h>
 #include <util/bip32.h>
 #include <util/error.h>
 #include <util/moneystr.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <util/validation.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
-#include <wallet/coinselection.h>
 #include <wallet/fees.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include <algorithm>
 #include <cassert>
 
 const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{

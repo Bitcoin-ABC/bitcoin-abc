@@ -8,7 +8,6 @@
 
 #include <qt/optionsmodel.h>
 
-#include <amount.h>
 #include <interfaces/node.h>
 #include <net.h>
 #include <netbase.h>
