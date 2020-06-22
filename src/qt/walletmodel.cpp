@@ -72,7 +72,7 @@ void WalletModel::pollBalanceChanged() {
     // Avoid recomputing wallet balances unless a TransactionChanged or
     // BlockTip notification was received.
     if (!fForceCheckBalanceChanged &&
-        m_cached_last_update_tip == m_client_model->getBestBlockHash()) {
+        m_cached_last_update_tip == getLastBlockProcessed()) {
         return;
     }
 
@@ -530,4 +530,8 @@ bool WalletModel::isMultiwallet() {
 
 const CChainParams &WalletModel::getChainParams() const {
     return Params();
+}
+
+BlockHash WalletModel::getLastBlockProcessed() const {
+    return m_client_model ? m_client_model->getBestBlockHash() : BlockHash{};
 }
