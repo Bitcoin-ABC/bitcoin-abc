@@ -16,8 +16,7 @@
 
 #include <univalue.h>
 
-bool VerifyWallets(interfaces::Chain &chain,
-                   const std::vector<std::string> &wallet_files) {
+bool VerifyWallets(interfaces::Chain &chain) {
     if (gArgs.IsArgSet("-walletdir")) {
         fs::path wallet_dir = gArgs.GetArg("-walletdir", "");
         boost::system::error_code error;
@@ -49,10 +48,28 @@ bool VerifyWallets(interfaces::Chain &chain,
 
     chain.initMessage(_("Verifying wallet(s)...").translated);
 
+    // For backwards compatibility if an unnamed top level wallet exists in the
+    // wallets directory, include it in the default list of wallets to load.
+    if (!gArgs.IsArgSet("wallet")) {
+        DatabaseOptions options;
+        DatabaseStatus status;
+        bilingual_str error_string;
+        options.require_existing = true;
+        options.verify = false;
+        if (MakeWalletDatabase("", options, status, error_string)) {
+            gArgs.LockSettings([&](util::Settings &settings) {
+                util::SettingsValue wallets(util::SettingsValue::VARR);
+                // Default wallet name is ""
+                wallets.push_back("");
+                settings.rw_settings["wallet"] = wallets;
+            });
+        }
+    }
+
     // Keep track of each wallet absolute path to detect duplicates.
     std::set<fs::path> wallet_paths;
 
-    for (const auto &wallet_file : wallet_files) {
+    for (const auto &wallet_file : gArgs.GetArgs("-wallet")) {
         const fs::path path = fs::absolute(wallet_file, GetWalletDir());
 
         if (!wallet_paths.insert(path).second) {
@@ -75,10 +92,9 @@ bool VerifyWallets(interfaces::Chain &chain,
     return true;
 }
 
-bool LoadWallets(interfaces::Chain &chain,
-                 const std::vector<std::string> &wallet_files) {
+bool LoadWallets(interfaces::Chain &chain) {
     try {
-        for (const std::string &name : wallet_files) {
+        for (const std::string &name : gArgs.GetArgs("-wallet")) {
             DatabaseOptions options;
             DatabaseStatus status;
             // No need to verify, assuming verified earlier in VerifyWallets()

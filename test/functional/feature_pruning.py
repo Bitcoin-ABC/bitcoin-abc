@@ -88,18 +88,19 @@ class PruneTest(BitcoinTestFramework):
         # Create nodes 0 and 1 to mine.
         # Create node 2 to test pruning.
         self.full_node_default_args = ["-maxreceivebuffer=20000", "-blockmaxsize=999000",
-                                       "-checkblocks=5", "-noparkdeepreorg", "-maxreorgdepth=-1"]
+                                       "-checkblocks=5", "-noparkdeepreorg", "-maxreorgdepth=-1",
+                                       "-wallet="]
         # Create nodes 3 and 4 to test manual pruning (they will be re-started with manual pruning later)
         # Create nodes 5 to test wallet in prune mode, but do not connect
         self.extra_args = [self.full_node_default_args,
                            self.full_node_default_args,
-                           ["-maxreceivebuffer=20000", "-prune=550",
+                           ["-wallet=", "-maxreceivebuffer=20000", "-prune=550",
                                "-noparkdeepreorg", "-maxreorgdepth=-1"],
-                           ["-maxreceivebuffer=20000", "-blockmaxsize=999000",
+                           ["-wallet=", "-maxreceivebuffer=20000", "-blockmaxsize=999000",
                                "-noparkdeepreorg", "-maxreorgdepth=-1"],
-                           ["-maxreceivebuffer=20000", "-blockmaxsize=999000",
+                           ["-wallet=", "-maxreceivebuffer=20000", "-blockmaxsize=999000",
                                "-noparkdeepreorg", "-maxreorgdepth=-1"],
-                           ["-prune=550"]]
+                           ["-wallet=", "-prune=550"]]
         self.rpc_timeout = 120
 
     def skip_test_if_missing_module(self):
