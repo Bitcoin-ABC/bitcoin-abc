@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) 2019 The Bitcoin developers
+# Copyright (c) 2019-2020 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,7 +7,9 @@ export LC_ALL=C.UTF-8
 
 set -euxo pipefail
 
-DEFAULT_PATCH_ARGS="--skip-dependencies"
+# --force is necessary to skip the "sanity check" step, which conflicts with
+# stacked revisions that contain already-landed dependencies.
+DEFAULT_PATCH_ARGS="--skip-dependencies --force"
 DEFAULT_REMOTE="origin"
 DEFAULT_BRANCH="master"
 
