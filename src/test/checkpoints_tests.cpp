@@ -112,7 +112,6 @@ public:
 BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     MainnetConfigWithTestCheckpoints config;
 
-    CValidationState state;
     CBlockHeader invalid;
     const CBlockIndex *pindex = nullptr;
 
@@ -121,9 +120,13 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     BOOST_CHECK(headerG.GetHash() ==
                 uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f"
                          "1b60a8ce26f"));
-    BOOST_CHECK(
-        ProcessNewBlockHeaders(config, {headerG}, state, &pindex, &invalid));
-    pindex = nullptr;
+
+    {
+        CValidationState state;
+        BOOST_CHECK(ProcessNewBlockHeaders(config, {headerG}, state, &pindex,
+                                           &invalid));
+        pindex = nullptr;
+    }
 
     CBlockHeader headerA, headerB, headerAA, headerAB;
     CDataStream stream = CDataStream(
@@ -183,28 +186,37 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     BOOST_CHECK(headerAB.hashPrevBlock == headerA.GetHash());
 
     // Headers A and AA should be accepted
-    BOOST_CHECK(
-        ProcessNewBlockHeaders(config, {headerA}, state, &pindex, &invalid));
-    BOOST_CHECK(state.IsValid());
-    BOOST_CHECK(pindex != nullptr);
-    pindex = nullptr;
-    BOOST_CHECK(invalid.IsNull());
+    {
+        CValidationState state;
+        BOOST_CHECK(ProcessNewBlockHeaders(config, {headerA}, state, &pindex,
+                                           &invalid));
+        BOOST_CHECK(state.IsValid());
+        BOOST_CHECK(pindex != nullptr);
+        pindex = nullptr;
+        BOOST_CHECK(invalid.IsNull());
+    }
 
-    BOOST_CHECK(
-        ProcessNewBlockHeaders(config, {headerAA}, state, &pindex, &invalid));
-    BOOST_CHECK(state.IsValid());
-    BOOST_CHECK(pindex != nullptr);
-    pindex = nullptr;
-    BOOST_CHECK(invalid.IsNull());
+    {
+        CValidationState state;
+        BOOST_CHECK(ProcessNewBlockHeaders(config, {headerAA}, state, &pindex,
+                                           &invalid));
+        BOOST_CHECK(state.IsValid());
+        BOOST_CHECK(pindex != nullptr);
+        pindex = nullptr;
+        BOOST_CHECK(invalid.IsNull());
+    }
 
     // Header B should be rejected
-    BOOST_CHECK(
-        !ProcessNewBlockHeaders(config, {headerB}, state, &pindex, &invalid));
-    BOOST_CHECK(state.IsInvalid());
-    BOOST_CHECK(state.GetRejectCode() == REJECT_CHECKPOINT);
-    BOOST_CHECK(state.GetRejectReason() == "bad-fork-prior-to-checkpoint");
-    BOOST_CHECK(pindex == nullptr);
-    BOOST_CHECK(invalid.GetHash() == headerB.GetHash());
+    {
+        CValidationState state;
+        BOOST_CHECK(!ProcessNewBlockHeaders(config, {headerB}, state, &pindex,
+                                            &invalid));
+        BOOST_CHECK(state.IsInvalid());
+        BOOST_CHECK(state.GetRejectCode() == REJECT_CHECKPOINT);
+        BOOST_CHECK(state.GetRejectReason() == "bad-fork-prior-to-checkpoint");
+        BOOST_CHECK(pindex == nullptr);
+        BOOST_CHECK(invalid.GetHash() == headerB.GetHash());
+    }
 
     // Sanity check to ensure header was not saved in memory
     {
@@ -213,13 +225,16 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     }
 
     // Header AB should be rejected
-    BOOST_CHECK(
-        !ProcessNewBlockHeaders(config, {headerAB}, state, &pindex, &invalid));
-    BOOST_CHECK(state.IsInvalid());
-    BOOST_CHECK(state.GetRejectCode() == REJECT_CHECKPOINT);
-    BOOST_CHECK(state.GetRejectReason() == "checkpoint mismatch");
-    BOOST_CHECK(pindex == nullptr);
-    BOOST_CHECK(invalid.GetHash() == headerAB.GetHash());
+    {
+        CValidationState state;
+        BOOST_CHECK(!ProcessNewBlockHeaders(config, {headerAB}, state, &pindex,
+                                            &invalid));
+        BOOST_CHECK(state.IsInvalid());
+        BOOST_CHECK(state.GetRejectCode() == REJECT_CHECKPOINT);
+        BOOST_CHECK(state.GetRejectReason() == "checkpoint mismatch");
+        BOOST_CHECK(pindex == nullptr);
+        BOOST_CHECK(invalid.GetHash() == headerAB.GetHash());
+    }
 
     // Sanity check to ensure header was not saved in memory
     {
