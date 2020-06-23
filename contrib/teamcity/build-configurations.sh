@@ -100,10 +100,8 @@ case "$ABC_BUILD_NAME" in
       # Disabling the assembly works around the issue.
       "-DCRYPTO_USE_ASM=OFF"
       "-DENABLE_SANITIZERS=address"
-      "-DCMAKE_C_COMPILER=clang"
-      "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror --clang
 
     run_test_bitcoin "with address sanitizer"
 
@@ -121,10 +119,8 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DCMAKE_BUILD_TYPE=Debug"
       "-DENABLE_SANITIZERS=undefined"
-      "-DCMAKE_C_COMPILER=clang"
-      "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror --clang
 
     run_test_bitcoin "with undefined sanitizer"
 
@@ -141,10 +137,8 @@ case "$ABC_BUILD_NAME" in
     # Build with the thread sanitizer, then run unit tests and functional tests.
     CMAKE_FLAGS=(
       "-DENABLE_SANITIZERS=thread"
-      "-DCMAKE_C_COMPILER=clang"
-      "-DCMAKE_CXX_COMPILER=clang++"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror --clang
 
     run_test_bitcoin "with thread sanitizer"
 
@@ -335,12 +329,10 @@ case "$ABC_BUILD_NAME" in
 
   build-coverage)
     CMAKE_FLAGS=(
-      "-DCMAKE_C_COMPILER=gcc"
-      "-DCMAKE_CXX_COMPILER=g++"
       "-DENABLE_COVERAGE=ON"
       "-DENABLE_BRANCH_COVERAGE=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh coverage-check-extended
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh coverage-check-extended --gcc
 
     # Publish the coverage report in a format that Teamcity understands
     pushd check-extended.coverage
@@ -352,11 +344,9 @@ case "$ABC_BUILD_NAME" in
 
   build-clang-tidy)
     CMAKE_FLAGS=(
-      "-DCMAKE_C_COMPILER=clang"
-      "-DCMAKE_CXX_COMPILER=clang++"
       "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --clang
 
     # Set the default for debian but allow the user to override, as the name is
     # not standard across distributions (and it's not always in the PATH).

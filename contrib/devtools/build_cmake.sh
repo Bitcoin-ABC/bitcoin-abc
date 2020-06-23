@@ -13,6 +13,8 @@ function usage() {
   echo "If no target is provided the default (all) target is built."
   echo
   echo "Options:"
+  echo "  --clang: build with clang/clang++"
+  echo "  --gcc: build with gcc/g++"
   echo "  --Werror: add -Werror to the compiler flags"
   echo "Environment variables:"
   echo "  CMAKE_FLAGS: array of the CMAKE flags to use for the build"
@@ -32,6 +34,20 @@ read -a CMAKE_FLAGS <<< "${CMAKE_FLAGS}"
 TARGETS=()
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --clang)
+      CMAKE_FLAGS+=(
+        "-DCMAKE_C_COMPILER=clang"
+        "-DCMAKE_CXX_COMPILER=clang++"
+      )
+      shift
+      ;;
+    --gcc)
+      CMAKE_FLAGS+=(
+        "-DCMAKE_C_COMPILER=gcc"
+        "-DCMAKE_CXX_COMPILER=g++"
+      )
+      shift
+      ;;
     --Werror)
       CMAKE_FLAGS+=(
         "-DCMAKE_C_FLAGS=-Werror"
