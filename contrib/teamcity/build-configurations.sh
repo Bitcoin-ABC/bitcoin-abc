@@ -71,8 +71,10 @@ run_test_bitcoin() {
 print_sanitizers_log() {
   for log in "${SAN_LOG_DIR}"/*.log.*
   do
-    echo "*** Output of ${log} ***"
-    cat "${log}"
+    if [ -f "${log}" ]; then
+      echo "*** Output of ${log} ***"
+      cat "${log}"
+    fi
   done
 }
 trap "print_sanitizers_log" ERR
