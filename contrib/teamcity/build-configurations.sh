@@ -87,6 +87,11 @@ trap "print_sanitizers_log" ERR
 
 CI_SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
+
+build_with_cmake() {
+  CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh "$@"
+}
+
 setup
 
 case "$ABC_BUILD_NAME" in
@@ -101,7 +106,7 @@ case "$ABC_BUILD_NAME" in
       "-DCRYPTO_USE_ASM=OFF"
       "-DENABLE_SANITIZERS=address"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror --clang
+   build_with_cmake --Werror --clang
 
     run_test_bitcoin "with address sanitizer"
 
@@ -120,7 +125,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_BUILD_TYPE=Debug"
       "-DENABLE_SANITIZERS=undefined"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror --clang
+    build_with_cmake --Werror --clang
 
     run_test_bitcoin "with undefined sanitizer"
 
@@ -138,7 +143,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DENABLE_SANITIZERS=thread"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror --clang
+    build_with_cmake --Werror --clang
 
     run_test_bitcoin "with thread sanitizer"
 
@@ -153,7 +158,7 @@ case "$ABC_BUILD_NAME" in
 
   build-diff)
     # Build, run unit tests and functional tests.
-    "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    build_with_cmake --Werror
 
     # Unit tests
     run_test_bitcoin
@@ -180,7 +185,7 @@ case "$ABC_BUILD_NAME" in
 
   build-master)
     # Build, run unit tests and extended functional tests.
-    "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    build_with_cmake --Werror
 
     # Unit tests
     run_test_bitcoin
@@ -211,7 +216,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh secp256k1 --Werror
+    build_with_cmake --Werror secp256k1
 
     ninja check-secp256k1
 
@@ -219,7 +224,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS+=(
       "-DSECP256K1_ENABLE_ENDOMORPHISM=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh secp256k1 --Werror
+    build_with_cmake --Werror secp256k1
 
     ninja check-secp256k1
 
@@ -230,7 +235,7 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_JNI=ON"
       "-DUSE_JEMALLOC=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh secp256k1 --Werror
+    build_with_cmake --Werror secp256k1
 
     ninja check-secp256k1-java
     ;;
@@ -240,7 +245,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DBUILD_BITCOIN_CLI=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    build_with_cmake --Werror
 
     ninja check-functional
     ;;
@@ -250,7 +255,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DBUILD_BITCOIN_WALLET=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    build_with_cmake --Werror
 
     ninja check-bitcoin-qt
     ninja check-functional
@@ -263,7 +268,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DBUILD_BITCOIN_ZMQ=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    build_with_cmake --Werror
 
     ninja check-bitcoin-qt
     ninja check-functional
@@ -272,12 +277,14 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-ibd)
-    "${DEVTOOLS_DIR}"/build_cmake.sh
+    build_with_cmake
+
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -debug=net
     ;;
 
   build-ibd-no-assumevalid-checkpoint)
-    "${DEVTOOLS_DIR}"/build_cmake.sh
+    build_with_cmake
+
     "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     ;;
 
@@ -289,7 +296,8 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_C_COMPILER=clang-10"
       "-DCMAKE_CXX_COMPILER=clang++-10"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --Werror
+    build_with_cmake --Werror
+
     ninja \
       test_bitcoin \
       test_bitcoin-qt \
@@ -313,8 +321,10 @@ case "$ABC_BUILD_NAME" in
       "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
       "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh bitcoin-bench --Werror
+    build_with_cmake --Werror bitcoin-bench
+
     ./src/bench/bitcoin-bench -printer=junit > junit_results_bench.xml
+
     ninja bench-secp256k1
     ;;
 
@@ -332,7 +342,7 @@ case "$ABC_BUILD_NAME" in
       "-DENABLE_COVERAGE=ON"
       "-DENABLE_BRANCH_COVERAGE=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh coverage-check-extended --gcc
+    build_with_cmake --gcc coverage-check-extended
 
     # Publish the coverage report in a format that Teamcity understands
     pushd check-extended.coverage
@@ -346,7 +356,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh --clang
+    build_with_cmake --clang
 
     # Set the default for debian but allow the user to override, as the name is
     # not standard across distributions (and it's not always in the PATH).
@@ -373,7 +383,7 @@ case "$ABC_BUILD_NAME" in
       "-DBUILD_BITCOIN_SEEDER=OFF"
       "-DCPACK_STRIP_FILES=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    build_with_cmake
 
     # Build all the targets that are not built as part of the default target
     ninja test_bitcoin test_bitcoin-qt
@@ -388,7 +398,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS+=(
       "-DUSE_JEMALLOC=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh test_bitcoin
+    build_with_cmake test_bitcoin
 
     # Run the tests. Not all will run with wine, so exclude them
     find src -name "libbitcoinconsensus*.dll" -exec cp {} src/test/ \;
@@ -402,7 +412,7 @@ case "$ABC_BUILD_NAME" in
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/OSX.cmake"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    build_with_cmake
 
     # Build all the targets that are not built as part of the default target
     ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
@@ -435,7 +445,7 @@ case "$ABC_BUILD_NAME" in
       # or by filtering stderr at the framework level.
       "-DHAVE_DECL_GETIFADDRS=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    build_with_cmake
 
     # Let qemu know where to find the system libraries
     export QEMU_LD_PREFIX=/usr/arm-linux-gnueabihf
@@ -473,7 +483,7 @@ case "$ABC_BUILD_NAME" in
       # or by filtering stderr at the framework level.
       "-DHAVE_DECL_GETIFADDRS=OFF"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    build_with_cmake
 
     # Let qemu know where to find the system libraries
     export QEMU_LD_PREFIX=/usr/aarch64-linux-gnu
@@ -494,7 +504,7 @@ case "$ABC_BUILD_NAME" in
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Linux64.cmake"
       "-DENABLE_PROPERTY_BASED_TESTS=ON"
     )
-    CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh
+    build_with_cmake
 
     # Unit tests
     run_test_bitcoin "for Linux 64 bits"
@@ -510,7 +520,8 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   check-seeds)
-    "${DEVTOOLS_DIR}"/build_cmake.sh bitcoind bitcoin-cli
+    build_with_cmake bitcoind bitcoin-cli
+
     # Run on different ports to avoid a race where the rpc port used in the
     # first run may not be closed in time for the second to start.
     SEEDS_DIR="${TOPLEVEL}"/contrib/seeds
