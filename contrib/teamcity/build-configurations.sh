@@ -334,7 +334,6 @@ case "$ABC_BUILD_NAME" in
   build-make-generator)
     # Ensure that the build using cmake and the "Unix Makefiles" generator is
     # not broken.
-    cd ${BUILD_DIR}
     git clean -xffd
     cmake -G "Unix Makefiles" ..
     make -j "${THREADS}" all check
