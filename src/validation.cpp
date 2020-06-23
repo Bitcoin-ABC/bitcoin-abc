@@ -1038,8 +1038,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         if (!txLimitSigChecks.consume_and_check(nSigChecksOut) ||
             (pBlockLimitSigChecks &&
              !pBlockLimitSigChecks->consume_and_check(nSigChecksOut))) {
-            return state.Invalid(false, REJECT_NONSTANDARD,
-                                 strprintf("too-many-sigchecks"));
+            return state.DoS(100, false, REJECT_INVALID, "too-many-sigchecks");
         }
         return true;
     }

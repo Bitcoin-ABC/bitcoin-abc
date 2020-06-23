@@ -522,6 +522,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                                      flags, true, true, txdata, nSigChecksDummy,
                                      nullptr, &sigchecklimiter6));
             BOOST_CHECK_EQUAL(state6.GetRejectReason(), "too-many-sigchecks");
+            BOOST_CHECK_EQUAL(state6.GetDoS(), 100);
+            BOOST_CHECK_EQUAL(state6.GetRejectCode(), REJECT_INVALID);
             BOOST_CHECK(!sigchecklimiter6.check());
             // even in parallel validation, immediate fail from the cache.
             std::vector<CScriptCheck> scriptchecks7;
@@ -531,6 +533,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                                      flags, true, true, txdata, nSigChecksDummy,
                                      &scriptchecks7, &sigchecklimiter7));
             BOOST_CHECK_EQUAL(state7.GetRejectReason(), "too-many-sigchecks");
+            BOOST_CHECK_EQUAL(state7.GetDoS(), 100);
+            BOOST_CHECK_EQUAL(state7.GetRejectCode(), REJECT_INVALID);
             BOOST_CHECK(!sigchecklimiter7.check());
             BOOST_CHECK(scriptchecks7.empty());
         }
