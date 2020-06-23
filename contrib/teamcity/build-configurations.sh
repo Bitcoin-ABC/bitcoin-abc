@@ -32,7 +32,6 @@ cd "${BUILD_DIR}"
 THREADS=$(nproc || sysctl -n hw.ncpu)
 export THREADS
 
-CI_SCRIPTS_DIR="${TOPLEVEL}/contrib/teamcity"
 DEVTOOLS_DIR="${TOPLEVEL}/contrib/devtools"
 CMAKE_PLATFORMS_DIR="${TOPLEVEL}/cmake/platforms"
 
@@ -88,6 +87,14 @@ build_with_cmake() {
 
 build_with_autotools() {
   CONFIGURE_FLAGS="${CONFIGURE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_autotools.sh "$@"
+}
+
+run_ibd() {
+  "${TOPLEVEL}"/contrib/teamcity/ibd.sh "$@"
+}
+
+build_static_dependencies() {
+  "${DEVTOOLS_DIR}"/build_depends.sh
 }
 
 case "$ABC_BUILD_NAME" in
@@ -275,13 +282,13 @@ case "$ABC_BUILD_NAME" in
   build-ibd)
     build_with_cmake
 
-    "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -debug=net
+    run_ibd -disablewallet -debug=net
     ;;
 
   build-ibd-no-assumevalid-checkpoint)
     build_with_cmake
 
-    "${CI_SCRIPTS_DIR}"/ibd.sh -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
+    run_ibd -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     ;;
 
   build-clang-10)
@@ -371,7 +378,8 @@ case "$ABC_BUILD_NAME" in
   ;;
 
   build-win64)
-    "${DEVTOOLS_DIR}"/build_depends.sh
+    build_static_dependencies
+
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Win64.cmake"
       "-DBUILD_BITCOIN_SEEDER=OFF"
@@ -402,7 +410,8 @@ case "$ABC_BUILD_NAME" in
   build-osx)
     export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin16/native/lib/python3/dist-packages:${PYTHONPATH:-}"
 
-    "${DEVTOOLS_DIR}"/build_depends.sh
+    build_static_dependencies
+
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/OSX.cmake"
     )
@@ -415,7 +424,8 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-linux-arm)
-    "${DEVTOOLS_DIR}"/build_depends.sh
+    build_static_dependencies
+
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/LinuxARM.cmake"
       # This will prepend our executable commands with the given emulator call
@@ -453,7 +463,8 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-linux-aarch64)
-    "${DEVTOOLS_DIR}"/build_depends.sh
+    build_static_dependencies
+
     CMAKE_FLAGS=(
       "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/LinuxAArch64.cmake"
       # This will prepend our executable commands with the given emulator call
@@ -491,7 +502,7 @@ case "$ABC_BUILD_NAME" in
     ;;
 
   build-linux64)
-    "${DEVTOOLS_DIR}"/build_depends.sh
+    build_static_dependencies
 
     # Build, run unit tests and functional tests.
     CMAKE_FLAGS=(
