@@ -310,8 +310,7 @@ case "$ABC_BUILD_NAME" in
 
   build-autotools)
     # Ensure that the build using autotools is not broken
-    "${DEVTOOLS_DIR}"/build_autotools.sh
-    make -j "${THREADS}" check
+    "${DEVTOOLS_DIR}"/build_autotools.sh check
     ;;
 
   build-bench)
