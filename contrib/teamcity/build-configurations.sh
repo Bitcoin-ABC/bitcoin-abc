@@ -92,6 +92,10 @@ build_with_cmake() {
   CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh "$@"
 }
 
+build_with_autotools() {
+  CONFIGURE_FLAGS="${CONFIGURE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_autotools.sh "$@"
+}
+
 setup
 
 case "$ABC_BUILD_NAME" in
@@ -310,7 +314,7 @@ case "$ABC_BUILD_NAME" in
 
   build-autotools)
     # Ensure that the build using autotools is not broken
-    "${DEVTOOLS_DIR}"/build_autotools.sh check
+    build_with_autotools check
     ;;
 
   build-bench)
