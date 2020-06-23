@@ -121,14 +121,14 @@ std::pair<int, int64_t> CalculateSequenceLocks(const CTransaction &tx,
             nMinTime = std::max(
                 nMinTime,
                 nCoinTime +
-                    (int64_t)((txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_MASK)
-                              << CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) -
+                    int64_t((txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_MASK)
+                            << CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) -
                     1);
         } else {
             nMinHeight = std::max(
                 nMinHeight,
                 nCoinHeight +
-                    (int)(txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_MASK) - 1);
+                    int(txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_MASK) - 1);
         }
     }
 
@@ -170,14 +170,12 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         assert(!coin.IsSpent());
 
         // If prev is coinbase, check that it's matured
-        if (coin.IsCoinBase()) {
-            if (nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
-                return state.Invalid(
-                    false, REJECT_INVALID,
-                    "bad-txns-premature-spend-of-coinbase",
-                    strprintf("tried to spend coinbase at depth %d",
-                              nSpendHeight - coin.GetHeight()));
-            }
+        if (coin.IsCoinBase() &&
+            nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
+            return state.Invalid(
+                false, REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
+                strprintf("tried to spend coinbase at depth %d",
+                          nSpendHeight - coin.GetHeight()));
         }
 
         // Check for negative or overflow input values
