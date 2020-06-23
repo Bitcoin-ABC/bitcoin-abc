@@ -21,38 +21,34 @@ echo "Running build configuration '${ABC_BUILD_NAME}'..."
 TOPLEVEL=$(git rev-parse --show-toplevel)
 export TOPLEVEL
 
-setup() {
-  # Use separate build dirs to get the most out of ccache and prevent crosstalk
-  : "${BUILD_DIR:=${TOPLEVEL}/${ABC_BUILD_NAME}}"
-  mkdir -p "${BUILD_DIR}"
-  BUILD_DIR=$(cd "${BUILD_DIR}"; pwd)
-  export BUILD_DIR
+# Use separate build dirs to get the most out of ccache and prevent crosstalk
+: "${BUILD_DIR:=${TOPLEVEL}/${ABC_BUILD_NAME}}"
+mkdir -p "${BUILD_DIR}"
+BUILD_DIR=$(cd "${BUILD_DIR}"; pwd)
+export BUILD_DIR
+cd "${BUILD_DIR}"
 
-  cd "${BUILD_DIR}"
+# Determine the number of build threads
+THREADS=$(nproc || sysctl -n hw.ncpu)
+export THREADS
 
-  # Determine the number of build threads
-  THREADS=$(nproc || sysctl -n hw.ncpu)
-  export THREADS
+CI_SCRIPTS_DIR="${TOPLEVEL}/contrib/teamcity"
+DEVTOOLS_DIR="${TOPLEVEL}/contrib/devtools"
+CMAKE_PLATFORMS_DIR="${TOPLEVEL}/cmake/platforms"
 
-  CMAKE_PLATFORMS_DIR="${TOPLEVEL}/cmake/platforms"
+# Base directories for sanitizer related files
+SAN_SUPP_DIR="${TOPLEVEL}/test/sanitizer_suppressions"
+SAN_LOG_DIR="/tmp/sanitizer_logs"
 
-  # Base directories for sanitizer related files
-  SAN_SUPP_DIR="${TOPLEVEL}/test/sanitizer_suppressions"
-  SAN_LOG_DIR="/tmp/sanitizer_logs"
+# Create the log directory if it doesn't exist and clear it
+mkdir -p "${SAN_LOG_DIR}"
+rm -rf "${SAN_LOG_DIR:?}"/*
 
-  # Create the log directory if it doesn't exist and clear it
-  mkdir -p "${SAN_LOG_DIR}"
-  rm -rf "${SAN_LOG_DIR:?}"/*
-
-  # Needed options are set by the build system, add the log path to all runs
-  export ASAN_OPTIONS="log_path=${SAN_LOG_DIR}/asan.log"
-  export LSAN_OPTIONS="log_path=${SAN_LOG_DIR}/lsan.log"
-  export TSAN_OPTIONS="log_path=${SAN_LOG_DIR}/tsan.log"
-  export UBSAN_OPTIONS="log_path=${SAN_LOG_DIR}/ubsan.log"
-
-  # Unit test logger parameters
-  UNIT_TESTS_JUNIT_LOG_LEVEL=message
-}
+# Needed options are set by the build system, add the log path to all runs
+export ASAN_OPTIONS="log_path=${SAN_LOG_DIR}/asan.log"
+export LSAN_OPTIONS="log_path=${SAN_LOG_DIR}/lsan.log"
+export TSAN_OPTIONS="log_path=${SAN_LOG_DIR}/tsan.log"
+export UBSAN_OPTIONS="log_path=${SAN_LOG_DIR}/ubsan.log"
 
 run_test_bitcoin() {
   # Usage: run_test_bitcoin "Context as string" [arguments...]
@@ -67,7 +63,7 @@ run_test_bitcoin() {
   TSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/tsan:${TSAN_OPTIONS}" \
   UBSAN_OPTIONS="suppressions=${SAN_SUPP_DIR}/ubsan:print_stacktrace=1:halt_on_error=1:${UBSAN_OPTIONS}" \
   ./src/test/test_bitcoin \
-    --logger=HRF:JUNIT,${UNIT_TESTS_JUNIT_LOG_LEVEL},${TEST_BITCOIN_JUNIT} \
+    --logger=HRF:JUNIT,message,${TEST_BITCOIN_JUNIT} \
     -- \
     -testsuitename="${TEST_BITCOIN_SUITE_NAME}" \
     "${@:2}"
@@ -85,8 +81,6 @@ print_sanitizers_log() {
 }
 trap "print_sanitizers_log" ERR
 
-CI_SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 
 build_with_cmake() {
   CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh "$@"
@@ -95,8 +89,6 @@ build_with_cmake() {
 build_with_autotools() {
   CONFIGURE_FLAGS="${CONFIGURE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_autotools.sh "$@"
 }
-
-setup
 
 case "$ABC_BUILD_NAME" in
   build-asan)
