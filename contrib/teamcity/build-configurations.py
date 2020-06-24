@@ -111,7 +111,11 @@ def main():
             [str(script_path)] + unknown_args,
             check=True,
             cwd=build_directory,
-            env={**os.environ, **environment_variables},
+            env={
+                **os.environ,
+                **environment_variables,
+                **build.get("environment", {})
+            },
             timeout=build.get("timeout", DEFAULT_TIMEOUT),
         )
     except subprocess.TimeoutExpired as e:

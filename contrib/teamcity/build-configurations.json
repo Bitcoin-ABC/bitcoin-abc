@@ -41,11 +41,17 @@
     },
     "build-linux-aarch64": {
         "script": "builds/build-linux-aarch64.sh",
-        "timeout": 1800
+        "timeout": 1800,
+        "environment": {
+            "QEMU_LD_PREFIX": "/usr/aarch64-linux-gnu"
+        }
     },
     "build-linux-arm": {
         "script": "builds/build-linux-arm.sh",
-        "timeout": 1800
+        "timeout": 1800,
+        "environment": {
+            "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
+        }
     },
     "build-make-generator": {
         "script": "builds/build-make-generator.sh",

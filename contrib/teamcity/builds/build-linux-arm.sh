@@ -34,9 +34,6 @@ CMAKE_FLAGS=(
 )
 build_with_cmake
 
-# Let qemu know where to find the system libraries
-export QEMU_LD_PREFIX=/usr/arm-linux-gnueabihf
-
 # Unit tests
 ninja check
 ninja check-secp256k1
