@@ -95,8 +95,8 @@ def main():
     )
 
     # Create the build directory as needed
-    build_directory = Path(git_root.joinpath(args.build))
-    build_directory.mkdir(exist_ok=True)
+    build_directory = Path(git_root.joinpath('abc-ci-builds', args.build))
+    build_directory.mkdir(exist_ok=True, parents=True)
 
     # We will provide the required environment variables
     environment_variables = {
