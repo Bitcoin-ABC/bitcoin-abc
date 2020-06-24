@@ -386,7 +386,7 @@ static UniValue gettxoutproof(const Config &config,
     CDataStream ssMB(SER_NETWORK, PROTOCOL_VERSION);
     CMerkleBlock mb(block, setTxIds);
     ssMB << mb;
-    std::string strHex = HexStr(ssMB.begin(), ssMB.end());
+    std::string strHex = HexStr(ssMB);
     return strHex;
 }
 

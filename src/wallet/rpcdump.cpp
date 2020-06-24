@@ -1005,9 +1005,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             create_time = FormatISO8601DateTime(it->second.nCreateTime);
         }
         if (spk_man.GetCScript(scriptid, script)) {
-            file << strprintf("%s %s script=1",
-                              HexStr(script.begin(), script.end()),
-                              create_time);
+            file << strprintf("%s %s script=1", HexStr(script), create_time);
             file << strprintf(" # addr=%s\n", address);
         }
     }
@@ -1532,8 +1530,7 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                 throw JSONRPCError(RPC_WALLET_ERROR,
                                    "The wallet already contains the private "
                                    "key for this address or script (\"" +
-                                       HexStr(script.begin(), script.end()) +
-                                       "\")");
+                                       HexStr(script) + "\")");
             }
         }
 

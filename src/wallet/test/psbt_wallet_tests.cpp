@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
     // Get the final tx
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
-    std::string final_hex = HexStr(ssTx.begin(), ssTx.end());
+    std::string final_hex = HexStr(ssTx);
     BOOST_CHECK_EQUAL(
         final_hex,
         "70736274ff0100a0020000000258e87a21b56daf0c23be8e7070456c336f7cbaa5c875"

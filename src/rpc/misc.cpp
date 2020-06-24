@@ -71,8 +71,7 @@ static UniValue validateaddress(const Config &config,
             ret.pushKV("address", currentAddress);
 
             CScript scriptPubKey = GetScriptForDestination(dest);
-            ret.pushKV("scriptPubKey",
-                       HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+            ret.pushKV("scriptPubKey", HexStr(scriptPubKey));
 
             UniValue detail = DescribeAddress(dest);
             ret.pushKVs(detail);
@@ -164,7 +163,7 @@ static UniValue createmultisig(const Config &config,
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("address", EncodeDestination(dest, config));
-    result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
+    result.pushKV("redeemScript", HexStr(inner));
     result.pushKV("descriptor", descriptor->ToString());
 
     return result;

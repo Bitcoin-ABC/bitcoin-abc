@@ -1168,7 +1168,7 @@ static UniValue addmultisigaddress(const Config &config,
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("address", EncodeDestination(dest, config));
-    result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
+    result.pushKV("redeemScript", HexStr(inner));
     result.pushKV("descriptor", descriptor->ToString());
     return result;
 }
@@ -3677,16 +3677,13 @@ static UniValue listunspent(const Config &config,
                         CScriptID(boost::get<ScriptHash>(address));
                     CScript redeemScript;
                     if (provider->GetCScript(hash, redeemScript)) {
-                        entry.pushKV(
-                            "redeemScript",
-                            HexStr(redeemScript.begin(), redeemScript.end()));
+                        entry.pushKV("redeemScript", HexStr(redeemScript));
                     }
                 }
             }
         }
 
-        entry.pushKV("scriptPubKey",
-                     HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+        entry.pushKV("scriptPubKey", HexStr(scriptPubKey));
         entry.pushKV("amount", ValueFromAmount(out.tx->tx->vout[out.i].nValue));
         entry.pushKV("confirmations", out.nDepth);
         entry.pushKV("spendable", out.fSpendable);
@@ -4207,7 +4204,7 @@ public:
         std::vector<std::vector<uint8_t>> solutions_data;
         txnouttype which_type = Solver(subscript, solutions_data);
         obj.pushKV("script", GetTxnOutputType(which_type));
-        obj.pushKV("hex", HexStr(subscript.begin(), subscript.end()));
+        obj.pushKV("hex", HexStr(subscript));
 
         CTxDestination embedded;
         if (ExtractDestination(subscript, embedded)) {
@@ -4218,8 +4215,7 @@ public:
             UniValue wallet_detail = boost::apply_visitor(*this, embedded);
             subobj.pushKVs(wallet_detail);
             subobj.pushKV("address", EncodeDestination(embedded, GetConfig()));
-            subobj.pushKV("scriptPubKey",
-                          HexStr(subscript.begin(), subscript.end()));
+            subobj.pushKV("scriptPubKey", HexStr(subscript));
             // Always report the pubkey at the top level, so that
             // `getnewaddress()['pubkey']` always works.
             if (subobj.exists("pubkey")) {
@@ -4235,7 +4231,7 @@ public:
             UniValue pubkeys(UniValue::VARR);
             for (size_t i = 1; i < solutions_data.size() - 1; ++i) {
                 CPubKey key(solutions_data[i].begin(), solutions_data[i].end());
-                pubkeys.push_back(HexStr(key.begin(), key.end()));
+                pubkeys.push_back(HexStr(key));
             }
             obj.pushKV("pubkeys", std::move(pubkeys));
         }
@@ -4426,8 +4422,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     ret.pushKV("address", currentAddress);
 
     CScript scriptPubKey = GetScriptForDestination(dest);
-    ret.pushKV("scriptPubKey",
-               HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+    ret.pushKV("scriptPubKey", HexStr(scriptPubKey));
 
     std::unique_ptr<SigningProvider> provider =
         pwallet->GetSolvingProvider(scriptPubKey);
