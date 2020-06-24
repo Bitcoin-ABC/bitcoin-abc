@@ -7,8 +7,13 @@ import argparse
 import json
 import os
 from pathlib import Path, PurePath
+import signal
 import subprocess
 import sys
+
+# Default timeout value in seconds. Should be overridden by the
+# configuration file.
+DEFAULT_TIMEOUT = 1 * 60 * 60
 
 if sys.version_info < (3, 6):
     raise SystemError("This script requires python >= 3.6")
@@ -107,9 +112,23 @@ def main():
             check=True,
             cwd=build_directory,
             env={**os.environ, **environment_variables},
+            timeout=build.get("timeout", DEFAULT_TIMEOUT),
         )
+    except subprocess.TimeoutExpired as e:
+        print(
+            "Build {} timed out after {:.1f}s".format(
+                args.build, round(e.timeout, 1)
+            )
+        )
+        # Make sure to kill all the child processes, as subprocess only kills
+        # the one we started. It will also kill this python script !
+        # The return code is 128 + 9 (SIGKILL) = 137.
+        os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
     except subprocess.CalledProcessError as e:
-        print("Build failed with exit code {}".format(e.returncode))
+        print(
+            "Build {} failed with exit code {}".format(
+                args.build,
+                e.returncode))
         sys.exit(e.returncode)
 
 
