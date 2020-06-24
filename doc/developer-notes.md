@@ -685,6 +685,19 @@ class A
   - *Rationale*: Easier to understand what is happening, thus easier to spot mistakes, even for those
   that are not language lawyers
 
+- Use `Span` as function argument when it can operate on any range-like container.
+
+  - *Rationale*: Compared to `Foo(const vector<int>&)` this avoids the need for a (potentially expensive)
+    conversion to vector if the caller happens to have the input stored in another type of container.
+    However, be aware of the pitfalls documented in [span.h](../src/span.h).
+
+```cpp
+void Foo(Span<const int> data);
+
+std::vector<int> vec{1,2,3};
+Foo(vec);
+```
+
 Strings and formatting
 ------------------------
 
