@@ -229,9 +229,7 @@ class OriginPubkeyProvider final : public PubkeyProvider {
     std::unique_ptr<PubkeyProvider> m_provider;
 
     std::string OriginString() const {
-        return HexStr(std::begin(m_origin.fingerprint),
-                      std::end(m_origin.fingerprint)) +
-               FormatHDKeypath(m_origin.path);
+        return HexStr(m_origin.fingerprint) + FormatHDKeypath(m_origin.path);
     }
 
 public:

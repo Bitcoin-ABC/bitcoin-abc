@@ -14,9 +14,11 @@ base_blob<BITS>::base_blob(const std::vector<uint8_t> &vch) {
 }
 
 template <unsigned int BITS> std::string base_blob<BITS>::GetHex() const {
-    return HexStr(
-        std::reverse_iterator<const uint8_t *>(m_data + sizeof(m_data)),
-        std::reverse_iterator<const uint8_t *>(m_data));
+    uint8_t m_data_rev[WIDTH];
+    for (int i = 0; i < WIDTH; ++i) {
+        m_data_rev[i] = m_data[WIDTH - 1 - i];
+    }
+    return HexStr(m_data_rev);
 }
 
 template <unsigned int BITS> void base_blob<BITS>::SetHex(const char *psz) {

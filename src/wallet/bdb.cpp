@@ -43,10 +43,7 @@ void CheckUniqueFileid(const BerkeleyEnvironment &env,
             throw std::runtime_error(strprintf(
                 "BerkeleyBatch: Can't open database %s (duplicates fileid %s "
                 "from %s)",
-                filename,
-                HexStr(std::begin(item.second.value),
-                       std::end(item.second.value)),
-                item.first));
+                filename, HexStr(item.second.value), item.first));
         }
     }
 }

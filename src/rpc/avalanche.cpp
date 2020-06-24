@@ -200,7 +200,7 @@ static UniValue buildavalancheproof(const Config &config,
 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << proof;
-    return HexStr(ss.begin(), ss.end());
+    return HexStr(ss);
 }
 
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
