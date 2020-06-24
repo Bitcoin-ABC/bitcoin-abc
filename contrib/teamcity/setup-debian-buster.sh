@@ -62,7 +62,6 @@ PACKAGES=(
   qemu-user-static
   qttools5-dev
   qttools5-dev-tools
-  shellcheck
   software-properties-common
   tar
   wget
@@ -77,6 +76,14 @@ function join_by() {
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}")
+
+BACKPORTS=(
+  shellcheck
+)
+
+echo "deb http://deb.debian.org/debian buster-backports main" | tee -a /etc/apt/sources.list
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -t buster-backports install -y $(join_by ' ' "${BACKPORTS[@]}")
 
 TEAMCITY_DIR=$(dirname "$0")
 

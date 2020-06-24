@@ -131,7 +131,7 @@ will have to install the following:
 
 On Ubuntu (>= 18.04+updates) or Debian (>= 10):
 ```
-sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python-autopep8 flake8 php-codesniffer shellcheck
+sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python-autopep8 flake8 php-codesniffer
 ```
 
 If not available in the distribution, `clang-format-8` and `clang-tidy` can be
@@ -143,6 +143,19 @@ curl http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-apple-darwin.tar.xz 
 ln -s $PWD/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
 ln -s $PWD/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
 ```
+
+If you are modifying a shell script, you will need to install the `shellcheck` linter.
+A recent version is required and may not be packaged for your distribution.
+Standalone binaries are available for download on the project's github release page:
+https://github.com/koalaman/shellcheck/releases
+
+If you are running Debian 10, it is also available in the backports repository:
+```
+echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list
+sudo apt-get update
+sudo apt-get -t buster-backports install shellcheck
+```
+
 
 Working with The Bitcoin ABC Repository
 ---------------------------------------

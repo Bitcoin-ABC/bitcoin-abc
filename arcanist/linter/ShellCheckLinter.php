@@ -48,6 +48,17 @@ final class ShellCheckLinter extends ArcanistExternalLinter {
     return true;
   }
 
+  public function getVersion() {
+    list($stdout) = execx('%C --version', $this->getExecutableCommand());
+
+    $regex = '/^version: (?P<version>\d+\.\d+\.\d+)/m';
+    if (preg_match($regex, $stdout, $matches)) {
+      return $matches['version'];
+    }
+
+    return false;
+  }
+
   protected function getMandatoryFlags() {
     return array(
       '--format=gcc',

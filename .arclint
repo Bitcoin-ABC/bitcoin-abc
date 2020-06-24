@@ -155,6 +155,7 @@
         },
         "shellcheck": {
             "type": "shellcheck",
+            "version": ">=0.7.0",
             "flags": [
                 "--external-sources",
                 "--source-path=SCRIPTDIR"
