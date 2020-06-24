@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-cmake -GNinja .. "${CMAKE_FLAGS[@]}"
+cmake -GNinja "${TOPLEVEL}" "${CMAKE_FLAGS[@]}"
 
 # If valid targets are given, use them, otherwise default to "all".
 if [ ${#TARGETS[@]} -eq 0 ]; then
