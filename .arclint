@@ -155,6 +155,10 @@
         },
         "shellcheck": {
             "type": "shellcheck",
+            "flags": [
+                "--external-sources",
+                "--source-path=SCRIPTDIR"
+            ],
             "include": "(\\.sh$)",
             "exclude": [
                 "(^src/(secp256k1|univalue)/)"
