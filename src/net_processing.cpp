@@ -174,7 +174,7 @@ int nSyncStarted GUARDED_BY(cs_main) = 0;
  * Set mapBlockSource[hash].second to false if the node should not be punished
  * if the block is invalid.
  */
-std::map<uint256, std::pair<NodeId, bool>> mapBlockSource GUARDED_BY(cs_main);
+std::map<BlockHash, std::pair<NodeId, bool>> mapBlockSource GUARDED_BY(cs_main);
 
 /**
  * Filter for transactions that were recently rejected by AcceptToMemoryPool.
@@ -201,7 +201,7 @@ uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
  * Blocks that are in flight, and that are in the queue to be downloaded.
  */
 struct QueuedBlock {
-    uint256 hash;
+    BlockHash hash;
     //! Optional.
     const CBlockIndex *pindex;
     //! Whether this block has validated headers at the time of request.
@@ -209,7 +209,7 @@ struct QueuedBlock {
     //! Optional, used for CMPCTBLOCK downloads
     std::unique_ptr<PartiallyDownloadedBlock> partialBlock;
 };
-std::map<uint256, std::pair<NodeId, std::list<QueuedBlock>::iterator>>
+std::map<BlockHash, std::pair<NodeId, std::list<QueuedBlock>::iterator>>
     mapBlocksInFlight GUARDED_BY(cs_main);
 
 /** Stack of nodes which we have set to announce using compact blocks */
@@ -523,9 +523,9 @@ static void PushNodeVersion(const Config &config, CNode *pnode,
 // Returns a bool indicating whether we requested this block.
 // Also used if a block was /not/ received and timed out or started with another
 // peer.
-static bool MarkBlockAsReceived(const uint256 &hash)
+static bool MarkBlockAsReceived(const BlockHash &hash)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    std::map<uint256,
+    std::map<BlockHash,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
         itInFlight = mapBlocksInFlight.find(hash);
     if (itInFlight != mapBlocksInFlight.end()) {
@@ -558,7 +558,7 @@ static bool MarkBlockAsReceived(const uint256 &hash)
 // same peer
 // pit will only be valid as long as the same cs_main lock is being held.
 static bool
-MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
+MarkBlockAsInFlight(const Config &config, NodeId nodeid, const BlockHash &hash,
                     const Consensus::Params &consensusParams,
                     const CBlockIndex *pindex = nullptr,
                     std::list<QueuedBlock>::iterator **pit = nullptr)
@@ -567,7 +567,7 @@ MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
     assert(state != nullptr);
 
     // Short-circuit most stuff in case it is from the same node.
-    std::map<uint256,
+    std::map<BlockHash,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
         itInFlight = mapBlocksInFlight.find(hash);
     if (itInFlight != mapBlocksInFlight.end() &&
@@ -1464,8 +1464,8 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
                                        const CValidationState &state) {
     LOCK(cs_main);
 
-    const uint256 hash(block.GetHash());
-    std::map<uint256, std::pair<NodeId, bool>>::iterator it =
+    const BlockHash hash = block.GetHash();
+    std::map<BlockHash, std::pair<NodeId, bool>>::iterator it =
         mapBlockSource.find(hash);
 
     if (state.IsInvalid()) {
@@ -3209,7 +3209,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 nodestate->m_last_block_announcement = GetTime();
             }
 
-            std::map<uint256,
+            std::map<BlockHash,
                      std::pair<NodeId, std::list<QueuedBlock>::iterator>>::
                 iterator blockInFlightIt =
                     mapBlocksInFlight.find(pindex->GetBlockHash());
@@ -3421,7 +3421,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         {
             LOCK(cs_main);
 
-            std::map<uint256,
+            std::map<BlockHash,
                      std::pair<NodeId, std::list<QueuedBlock>::iterator>>::
                 iterator it = mapBlocksInFlight.find(resp.blockhash);
             if (it == mapBlocksInFlight.end() ||
@@ -3559,7 +3559,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // AcceptBlock().
         bool forceProcessing = pfrom->HasPermission(PF_NOBAN) &&
                                !::ChainstateActive().IsInitialBlockDownload();
-        const uint256 hash(pblock->GetHash());
+        const BlockHash hash = pblock->GetHash();
         {
             LOCK(cs_main);
             // Also always process if we requested the block explicitly, as we
@@ -3576,7 +3576,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             pfrom->nLastBlockTime = GetTime();
         } else {
             LOCK(cs_main);
-            mapBlockSource.erase(pblock->GetHash());
+            mapBlockSource.erase(hash);
         }
         return true;
     }
