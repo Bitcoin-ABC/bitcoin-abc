@@ -53,7 +53,8 @@ print_sanitizers_log() {
 }
 trap "print_sanitizers_log" ERR
 
-
+# It is valid to call the function with no argument, so ignore SC2120
+# shellcheck disable=SC2120
 build_with_cmake() {
   CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh "$@"
 }
