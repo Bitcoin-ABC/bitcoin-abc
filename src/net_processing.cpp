@@ -290,7 +290,12 @@ struct COrphanTx {
     size_t list_pos;
 };
 
+/** Guards orphan transactions and extra txs for compact blocks */
 RecursiveMutex g_cs_orphans;
+/**
+ * Map from txid to orphan transaction record. Limited by
+ * -maxorphantx/DEFAULT_MAX_ORPHAN_TRANSACTIONS
+ */
 std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
 
 void EraseOrphansFor(NodeId peer);
@@ -397,17 +402,29 @@ struct IteratorComparator {
         return &(*a) < &(*b);
     }
 };
+
+/**
+ * Index from the parents' COutPoint into the mapOrphanTransactions. Used
+ * to remove orphan transactions from the mapOrphanTransactions
+ */
 std::map<COutPoint,
          std::set<std::map<TxId, COrphanTx>::iterator, IteratorComparator>>
     mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
 
-//! For random eviction
+/** Orphan transactions in vector for quick random eviction */
 std::vector<std::map<TxId, COrphanTx>::iterator>
     g_orphan_list GUARDED_BY(g_cs_orphans);
 
-static size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
+/**
+ * Orphan/conflicted/etc transactions that are kept for compact block
+ * reconstruction.
+ * The last -blockreconstructionextratxn/DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN
+ * of these are kept in a ring buffer
+ */
 static std::vector<std::pair<TxHash, CTransactionRef>>
     vExtraTxnForCompact GUARDED_BY(g_cs_orphans);
+/** Offset into vExtraTxnForCompact to insert the next tx */
+static size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
 } // namespace
 
 namespace {
@@ -2509,6 +2526,15 @@ void PeerManager::ProcessHeadersMessage(
     }
 }
 
+/**
+ * Reconsider orphan transactions after a parent has been accepted to the
+ * mempool.
+ *
+ * @param[in/out]  orphan_work_set  The set of orphan transactions to
+ *    reconsider. Generally only one orphan will be reconsidered on each call of
+ *    this function. This set may be added to if accepting an orphan causes its
+ *    children to be reconsidered.
+ */
 void PeerManager::ProcessOrphanTx(const Config &config,
                                   std::set<TxId> &orphan_work_set)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans) {
