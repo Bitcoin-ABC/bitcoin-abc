@@ -18,7 +18,7 @@ MYPID=$$
 : "${BUILD_DIR:=${TOPLEVEL}/build}"
 : "${BITCOIND:=${BUILD_DIR}/src/bitcoind}"
 
-DATA_DIR="${TOPLEVEL}/ibd"
+DATA_DIR="${BUILD_DIR}/ibd"
 mkdir -p "${DATA_DIR}"
 DEBUG_LOG="${DATA_DIR}/debug.log"
 

@@ -9,8 +9,10 @@ import json
 import os
 from pathlib import Path, PurePath
 import signal
+import shutil
 import subprocess
 import sys
+from teamcity import is_running_under_teamcity
 from teamcity.messages import TeamcityServiceMessages
 
 # Default timeout value in seconds. Should be overridden by the
@@ -19,6 +21,59 @@ DEFAULT_TIMEOUT = 1 * 60 * 60
 
 if sys.version_info < (3, 6):
     raise SystemError("This script requires python >= 3.6")
+
+
+def copy_artifacts(teamcity_messages, build_dir, artifacts):
+    # This accounts for the volume mapping from the container.
+    # Our local /result is mapped to some relative ./results on the host, so we
+    # use /results/artifacts to copy our files but results/artifacts as an
+    # artifact path for teamcity.
+    # TODO abstract out the volume mapping
+    if is_running_under_teamcity():
+        artifact_dir = Path("/results/artifacts")
+    else:
+        artifact_dir = build_dir.joinpath("artifacts")
+
+    if artifact_dir.is_dir():
+        shutil.rmtree(artifact_dir)
+    artifact_dir.mkdir(exist_ok=True)
+
+    # Find and copy artifacts.
+    # The source is relative to the build tree, the destination relative to the
+    # artifact directory.
+    # The artifact directory is located in the build directory tree, results
+    # from it needs to be excluded from the glob matches to prevent infinite
+    # recursion.
+    for pattern, dest in artifacts.items():
+        matches = [m for m in sorted(build_dir.glob(
+            pattern)) if artifact_dir not in m.parents and artifact_dir != m]
+        dest = artifact_dir.joinpath(dest)
+
+        # Pattern did not match
+        if not matches:
+            continue
+
+        # If there is a single file, destination is the new file path
+        if len(matches) == 1 and matches[0].is_file():
+            # Create the parent directories as needed
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(matches[0], dest)
+            continue
+
+        # If there are multiple files or a single directory, destination is a
+        # directory.
+        dest.mkdir(parents=True, exist_ok=True)
+        for match in matches:
+            if match.is_file():
+                shutil.copy2(match, dest)
+            else:
+                shutil.copytree(match, dest.joinpath(match.name))
+
+    # Instruct teamcity to upload our artifact directory
+    artifact_path_pattern = "+:{}=>artifacts.tar.gz".format(
+        str(artifact_dir.relative_to("/"))
+    )
+    teamcity_messages.publishArtifacts(artifact_path_pattern)
 
 
 def main():
@@ -144,6 +199,9 @@ def main():
         status="NORMAL"
     )
 
+    # Flag to indicate that the process and its children should be killed
+    kill_em_all = False
+
     try:
         subprocess.run(
             [str(script_path)] + unknown_args,
@@ -165,13 +223,23 @@ def main():
         # Make sure to kill all the child processes, as subprocess only kills
         # the one we started. It will also kill this python script !
         # The return code is 128 + 9 (SIGKILL) = 137.
-        os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
+        kill_em_all = True
     except subprocess.CalledProcessError as e:
         print(
             "Build {} failed with exit code {}".format(
                 args.build,
                 e.returncode))
         sys.exit(e.returncode)
+    finally:
+        copy_artifacts(
+            teamcity_messages,
+            build_directory,
+            build.get("artifacts", {})
+        )
+
+        # Seek and destroy
+        if kill_em_all:
+            os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
 
 
 if __name__ == '__main__':

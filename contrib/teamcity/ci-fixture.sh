@@ -5,12 +5,13 @@ export LC_ALL=C.UTF-8
 set -euxo pipefail
 
 : "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
+: "${BUILD_DIR:=${TOPLEVEL}/build}"
 
 DEVTOOLS_DIR="${TOPLEVEL}/contrib/devtools"
 
 # Base directories for sanitizer related files
 SAN_SUPP_DIR="${TOPLEVEL}/test/sanitizer_suppressions"
-SAN_LOG_DIR="/tmp/sanitizer_logs"
+SAN_LOG_DIR="${BUILD_DIR}/sanitizer_logs"
 
 # Create the log directory if it doesn't exist and clear it
 mkdir -p "${SAN_LOG_DIR}"
