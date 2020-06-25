@@ -57,6 +57,7 @@ PACKAGES=(
   protobuf-compiler
   python3
   python3-autopep8
+  python3-pip
   python3-setuptools
   python3-zmq
   qemu-user-static
@@ -114,3 +115,6 @@ update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-10)
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
 update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32-gcc-posix)
+
+# Python library for interacting with teamcity
+pip3 install teamcity-messages

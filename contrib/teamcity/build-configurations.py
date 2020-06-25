@@ -10,6 +10,7 @@ from pathlib import Path, PurePath
 import signal
 import subprocess
 import sys
+from teamcity.messages import TeamcityServiceMessages
 
 # Default timeout value in seconds. Should be overridden by the
 # configuration file.
@@ -105,6 +106,14 @@ def main():
         "THREADS": str(os.cpu_count() or 1),
         "TOPLEVEL": str(git_root),
     }
+
+    # Let the user know what build is being run.
+    # This makes it easier to retrieve the info from the logs.
+    teamcity_messages = TeamcityServiceMessages()
+    teamcity_messages.customMessage(
+        "Starting build {}".format(args.build),
+        status="NORMAL"
+    )
 
     try:
         subprocess.run(
