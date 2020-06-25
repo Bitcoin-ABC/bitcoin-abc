@@ -2541,8 +2541,7 @@ void PeerManager::ProcessOrphanTx(const Config &config,
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
     std::unordered_map<NodeId, uint32_t> rejectCountPerNode;
-    bool done = false;
-    while (!done && !orphan_work_set.empty()) {
+    while (!orphan_work_set.empty()) {
         const TxId orphanTxId = *orphan_work_set.begin();
         orphan_work_set.erase(orphan_work_set.begin());
 
@@ -2582,7 +2581,7 @@ void PeerManager::ProcessOrphanTx(const Config &config,
                 }
             }
             EraseOrphanTx(orphanTxId);
-            done = true;
+            break;
         } else if (orphan_state.GetResult() !=
                    TxValidationResult::TX_MISSING_INPUTS) {
             if (orphan_state.IsInvalid()) {
@@ -2602,10 +2601,10 @@ void PeerManager::ProcessOrphanTx(const Config &config,
             recentRejects->insert(orphanTxId);
 
             EraseOrphanTx(orphanTxId);
-            done = true;
+            break;
         }
-        m_mempool.check(&::ChainstateActive().CoinsTip());
     }
+    m_mempool.check(&::ChainstateActive().CoinsTip());
 }
 
 /**
