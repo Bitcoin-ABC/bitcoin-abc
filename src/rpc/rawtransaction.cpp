@@ -923,7 +923,7 @@ static UniValue sendrawtransaction(const Config &config,
                            "Second argument must be numeric (maxfeerate) and "
                            "no longer supports a boolean. To allow a "
                            "transaction with high fees, set maxfeerate to 0.");
-    } else if (request.params[1].isNum()) {
+    } else if (request.params[1].isNum() || request.params[1].isStr()) {
         size_t sz = tx->GetTotalSize();
         CFeeRate fr(AmountFromValue(request.params[1]));
         max_raw_tx_fee = fr.GetFee(sz);
