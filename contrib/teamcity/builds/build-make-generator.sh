@@ -10,5 +10,5 @@ source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 # Ensure that the build using cmake and the "Unix Makefiles" generator is not
 # broken.
 git clean -xffd
-cmake -G "Unix Makefiles" ..
+cmake -G "Unix Makefiles" "${TOPLEVEL}"
 make -j "${THREADS}" all check
