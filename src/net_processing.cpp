@@ -2549,13 +2549,9 @@ void PeerManager::ProcessOrphanTx(const Config &config,
         const CTransactionRef porphanTx = orphan_it->second.tx;
         const CTransaction &orphanTx = *porphanTx;
         NodeId fromPeer = orphan_it->second.fromPeer;
-        // Use a new TxValidationState because orphans come from different peers
-        // (and we call MaybePunishNodeForTx based on the source peer from the
-        // orphan map, not based on the peer that relayed the previous
-        // transaction).
-        TxValidationState orphan_state;
+        TxValidationState state;
 
-        if (AcceptToMemoryPool(config, m_mempool, orphan_state, porphanTx,
+        if (AcceptToMemoryPool(config, m_mempool, state, porphanTx,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
@@ -2572,15 +2568,13 @@ void PeerManager::ProcessOrphanTx(const Config &config,
             }
             EraseOrphanTx(orphanTxId);
             break;
-        } else if (orphan_state.GetResult() !=
-                   TxValidationResult::TX_MISSING_INPUTS) {
-            if (orphan_state.IsInvalid()) {
+        } else if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS) {
+            if (state.IsInvalid()) {
                 LogPrint(BCLog::MEMPOOL,
                          "   invalid orphan tx %s from peer=%d. %s\n",
-                         orphanTxId.ToString(), fromPeer,
-                         orphan_state.ToString());
+                         orphanTxId.ToString(), fromPeer, state.ToString());
                 // Punish peer that gave us an invalid orphan tx
-                MaybePunishNodeForTx(fromPeer, orphan_state);
+                MaybePunishNodeForTx(fromPeer, state);
             }
             // Has inputs but not accepted to mempool
             // Probably non-standard or insufficient fee
