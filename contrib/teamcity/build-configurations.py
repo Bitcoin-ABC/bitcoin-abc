@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import argparse
+from deepmerge import always_merger
 import json
 import os
 from pathlib import Path, PurePath
@@ -57,14 +58,42 @@ def main():
     with open(config_path, encoding="utf-8") as f:
         config = json.load(f)
 
+    # The configuration root should contain a mandatory element "builds", and it
+    # should not be empty.
+    if not config.get("builds", None):
+        raise AssertionError(
+            "Invalid configuration file {}: the \"builds\" element is missing or empty".format(
+                str(config_path)
+            )
+        )
+
     # Check the target build has an entry in the configuration file
-    build = config.get(args.build, None)
+    build = config["builds"].get(args.build, None)
     if not build:
         raise AssertionError(
             "{} is not a valid build identifier. Valid identifiers are {}".format(
                 args.build, list(config.keys())
             )
         )
+
+    # Get a list of the templates, if any
+    templates = config.get("templates", {})
+
+    # If the build references a template, merge the configurations
+    template_name = build.get("template", None)
+    if template_name:
+        # Raise an error if the template does not exist
+        if template_name not in templates:
+            raise AssertionError(
+                "Build {} configuration inherits from template {}, but the template does not exist.".format(
+                    args.build,
+                    template_name
+                )
+            )
+
+        # The template exists, apply the build configuration on top of the
+        # template
+        build = always_merger.merge(templates.get(template_name, {}), build)
 
     # Make sure there is a script file associated with the build...
     script = build.get("script", None)

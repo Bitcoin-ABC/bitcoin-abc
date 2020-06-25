@@ -118,3 +118,5 @@ update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32
 
 # Python library for interacting with teamcity
 pip3 install teamcity-messages
+# Python library for merging nested structures
+pip3 install deepmerge

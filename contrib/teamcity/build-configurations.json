@@ -1,100 +1,104 @@
 {
-    "build-asan": {
-        "script": "builds/build-asan.sh",
-        "timeout": 1800
+    "templates": {
     },
-    "build-autotools": {
-        "script": "builds/build-autotools.sh",
-        "timeout": 1200
-    },
-    "build-bench": {
-        "script": "builds/build-bench.sh",
-        "timeout": 1200
-    },
-    "build-clang-10": {
-        "script": "builds/build-clang-10.sh",
-        "timeout": 1200
-    },
-    "build-clang-tidy": {
-        "script": "builds/build-clang-tidy.sh",
-        "timeout": 600
-    },
-    "build-coverage": {
-        "script": "builds/build-coverage.sh",
-        "timeout": 3600
-    },
-    "build-diff": {
-        "script": "builds/build-diff.sh",
-        "timeout": 1200
-    },
-    "build-ibd": {
-        "script": "builds/build-ibd.sh",
-        "timeout": 14400
-    },
-    "build-ibd-no-assumevalid-checkpoint": {
-        "script": "builds/build-ibd-no-assumevalid-checkpoint.sh",
-        "timeout": 21600
-    },
-    "build-linux64": {
-        "script": "builds/build-linux64.sh",
-        "timeout": 1200
-    },
-    "build-linux-aarch64": {
-        "script": "builds/build-linux-aarch64.sh",
-        "timeout": 1800,
-        "environment": {
-            "QEMU_LD_PREFIX": "/usr/aarch64-linux-gnu"
+    "builds": {
+        "build-asan": {
+            "script": "builds/build-asan.sh",
+            "timeout": 1800
+        },
+        "build-autotools": {
+            "script": "builds/build-autotools.sh",
+            "timeout": 1200
+        },
+        "build-bench": {
+            "script": "builds/build-bench.sh",
+            "timeout": 1200
+        },
+        "build-clang-10": {
+            "script": "builds/build-clang-10.sh",
+            "timeout": 1200
+        },
+        "build-clang-tidy": {
+            "script": "builds/build-clang-tidy.sh",
+            "timeout": 600
+        },
+        "build-coverage": {
+            "script": "builds/build-coverage.sh",
+            "timeout": 3600
+        },
+        "build-diff": {
+            "script": "builds/build-diff.sh",
+            "timeout": 1200
+        },
+        "build-ibd": {
+            "script": "builds/build-ibd.sh",
+            "timeout": 14400
+        },
+        "build-ibd-no-assumevalid-checkpoint": {
+            "script": "builds/build-ibd-no-assumevalid-checkpoint.sh",
+            "timeout": 21600
+        },
+        "build-linux64": {
+            "script": "builds/build-linux64.sh",
+            "timeout": 1200
+        },
+        "build-linux-aarch64": {
+            "script": "builds/build-linux-aarch64.sh",
+            "timeout": 1800,
+            "environment": {
+                "QEMU_LD_PREFIX": "/usr/aarch64-linux-gnu"
+            }
+        },
+        "build-linux-arm": {
+            "script": "builds/build-linux-arm.sh",
+            "timeout": 1800,
+            "environment": {
+                "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
+            }
+        },
+        "build-make-generator": {
+            "script": "builds/build-make-generator.sh",
+            "timeout": 1200
+        },
+        "build-master": {
+            "script": "builds/build-master.sh",
+            "timeout": 4800
+        },
+        "build-osx": {
+            "script": "builds/build-osx.sh",
+            "timeout": 600
+        },
+        "build-secp256k1": {
+            "script": "builds/build-secp256k1.sh",
+            "timeout": 900
+        },
+        "build-tsan": {
+            "script": "builds/build-tsan.sh",
+            "timeout": 1800
+        },
+        "build-ubsan": {
+            "script": "builds/build-ubsan.sh",
+            "timeout": 1800
+        },
+        "build-win64": {
+            "script": "builds/build-win64.sh",
+            "timeout": 1200
+        },
+        "build-without-cli": {
+            "script": "builds/build-without-cli.sh",
+            "timeout": 1200
+        },
+        "build-without-wallet": {
+            "script": "builds/build-without-wallet.sh",
+            "timeout": 1200
+        },
+        "build-without-zmq": {
+            "script": "builds/build-without-zmq.sh",
+            "timeout": 1800
+        },
+        "check-seeds": {
+            "script": "builds/check-seeds.sh",
+            "timeout": 600
         }
-    },
-    "build-linux-arm": {
-        "script": "builds/build-linux-arm.sh",
-        "timeout": 1800,
-        "environment": {
-            "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
-        }
-    },
-    "build-make-generator": {
-        "script": "builds/build-make-generator.sh",
-        "timeout": 1200
-    },
-    "build-master": {
-        "script": "builds/build-master.sh",
-        "timeout": 4800
-    },
-    "build-osx": {
-        "script": "builds/build-osx.sh",
-        "timeout": 600
-    },
-    "build-secp256k1": {
-        "script": "builds/build-secp256k1.sh",
-        "timeout": 900
-    },
-    "build-tsan": {
-        "script": "builds/build-tsan.sh",
-        "timeout": 1800
-    },
-    "build-ubsan": {
-        "script": "builds/build-ubsan.sh",
-        "timeout": 1800
-    },
-    "build-win64": {
-        "script": "builds/build-win64.sh",
-        "timeout": 1200
-    },
-    "build-without-cli": {
-        "script": "builds/build-without-cli.sh",
-        "timeout": 1200
-    },
-    "build-without-wallet": {
-        "script": "builds/build-without-wallet.sh",
-        "timeout": 1200
-    },
-    "build-without-zmq": {
-        "script": "builds/build-without-zmq.sh",
-        "timeout": 1800
-    },
-    "check-seeds": {
-        "script": "builds/check-seeds.sh",
-        "timeout": 600
     }
 }
