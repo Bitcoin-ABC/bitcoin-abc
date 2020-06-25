@@ -108,9 +108,11 @@ LLVM_PACKAGES=(
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${LLVM_PACKAGES[@]}")
 update-alternatives --install /usr/bin/clang clang "$(command -v clang-8)" 100
 update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-8)" 100
+update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-8)" 100
 # Use a lower priority to keep clang-8 the default
 update-alternatives --install /usr/bin/clang clang "$(command -v clang-10)" 50
 update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-10)" 50
+update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-10)" 50
 
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
