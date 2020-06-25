@@ -10,6 +10,10 @@ final class IncludeGuardLinter extends ArcanistLinter {
 
   const INCLUDE_GUARD_INVALID = 1;
 
+  const EXCEPTIONS = array(
+    // none yet
+  );
+
   public function getInfoName() {
     return 'lint-include-guard';
   }
@@ -40,6 +44,11 @@ final class IncludeGuardLinter extends ArcanistLinter {
   }
 
   public function lintPath($path) {
+    // If file is in list of exceptions, let it go
+    if (in_array($path, self::EXCEPTIONS)) {
+      return;
+    }
+
     $abspath = Filesystem::resolvePath($path, $this->getProjectRoot());
     $fileContent = Filesystem::readFile($abspath);
 

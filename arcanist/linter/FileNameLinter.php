@@ -7,6 +7,10 @@ final class FileNameLinter extends ArcanistLinter {
 
   const INVALID_FILENAME_FOUND = 1;
 
+  const EXCEPTIONS = array(
+    // None so far
+  );
+
   public function getInfoName() {
     return 'lint-source-filename';
   }
@@ -38,6 +42,11 @@ final class FileNameLinter extends ArcanistLinter {
   }
 
   public function lintPath($path) {
+    // If file is in the exception list, let it go
+    if (in_array($path, self::EXCEPTIONS)) {
+      return;
+    }
+
     $abspath = Filesystem::resolvePath($path, $this->getProjectRoot());
     $fileContent = Filesystem::readFile($abspath);
 
