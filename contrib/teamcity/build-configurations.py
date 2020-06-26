@@ -23,6 +23,91 @@ if sys.version_info < (3, 6):
     raise SystemError("This script requires python >= 3.6")
 
 
+class BuildConfiguration:
+    def __init__(self, script_root, config_file, build_name=None):
+        self.script_root = script_root
+        self.config_file = config_file
+        self.name = None
+        self.config = {}
+        self.script_path = Path()
+
+        if not config_file.is_file():
+            raise FileNotFoundError(
+                "The configuration file does not exist {}".format(
+                    str(config_file)
+                )
+            )
+
+        if build_name is not None:
+            self.load(build_name)
+
+    def load(self, build_name):
+        self.name = build_name
+
+        # Read the configuration
+        with open(self.config_file, encoding="utf-8") as f:
+            config = json.load(f)
+
+        # The configuration root should contain a mandatory element "builds", and it
+        # should not be empty.
+        if not config.get("builds", None):
+            raise AssertionError(
+                "Invalid configuration file {}: the \"builds\" element is missing or empty".format(
+                    str(self.config_file)
+                )
+            )
+
+        # Check the target build has an entry in the configuration file
+        build = config["builds"].get(self.name, None)
+        if not build:
+            raise AssertionError(
+                "{} is not a valid build identifier. Valid identifiers are {}".format(
+                    self.name, list(config.keys())
+                )
+            )
+
+        # Get a list of the templates, if any
+        templates = config.get("templates", {})
+
+        # If the build references a template, merge the configurations
+        template_name = build.get("template", None)
+        if template_name:
+            # Raise an error if the template does not exist
+            if template_name not in templates:
+                raise AssertionError(
+                    "Build {} configuration inherits from template {}, but the template does not exist.".format(
+                        self.name,
+                        template_name
+                    )
+                )
+
+            # The template exists, apply the build configuration on top of the
+            # template
+            self.config = always_merger.merge(
+                templates.get(template_name, {}), build)
+
+        # Make sure there is a script file associated with the build...
+        script = build.get("script", None)
+        if script is None:
+            raise AssertionError(
+                "No script provided for the build {}".format(
+                    self.name
+                )
+            )
+
+        # ... and that the script file can be executed
+        self.script_path = Path(self.script_root.joinpath(script))
+        if not self.script_path.is_file() or not os.access(self.script_path, os.X_OK):
+            raise FileNotFoundError(
+                "The script file {} does not exist or does not have execution permission".format(
+                    str(self.script_path)
+                )
+            )
+
+    def get(self, key, default):
+        return self.config.get(key, default)
+
+
 def copy_artifacts(teamcity_messages, build_dir, artifacts):
     # This accounts for the volume mapping from the container.
     # Our local /results is mapped to some relative ./results on the host, so we
@@ -102,71 +187,8 @@ def main():
 
     # Check the configuration file exists
     config_path = Path(args.config) if args.config else default_config_path
-    if not config_path.is_file():
-        raise FileNotFoundError(
-            "The configuration file does not exist {}".format(
-                str(config_path)
-            )
-        )
-
-    # Read the configuration
-    with open(config_path, encoding="utf-8") as f:
-        config = json.load(f)
-
-    # The configuration root should contain a mandatory element "builds", and it
-    # should not be empty.
-    if not config.get("builds", None):
-        raise AssertionError(
-            "Invalid configuration file {}: the \"builds\" element is missing or empty".format(
-                str(config_path)
-            )
-        )
-
-    # Check the target build has an entry in the configuration file
-    build = config["builds"].get(args.build, None)
-    if not build:
-        raise AssertionError(
-            "{} is not a valid build identifier. Valid identifiers are {}".format(
-                args.build, list(config.keys())
-            )
-        )
-
-    # Get a list of the templates, if any
-    templates = config.get("templates", {})
-
-    # If the build references a template, merge the configurations
-    template_name = build.get("template", None)
-    if template_name:
-        # Raise an error if the template does not exist
-        if template_name not in templates:
-            raise AssertionError(
-                "Build {} configuration inherits from template {}, but the template does not exist.".format(
-                    args.build,
-                    template_name
-                )
-            )
-
-        # The template exists, apply the build configuration on top of the
-        # template
-        build = always_merger.merge(templates.get(template_name, {}), build)
-
-    # Make sure there is a script file associated with the build...
-    script = build.get("script", None)
-    if script is None:
-        raise AssertionError(
-            "No script provided for the build {}".format(
-                args.build
-            )
-        )
-
-    # ... and that the script file can be executed
-    script_path = Path(script_dir.joinpath(script))
-    if not script_path.is_file() or not os.access(script_path, os.X_OK):
-        raise FileNotFoundError(
-            "The script file {} does not exist or does not have execution permission".format(
-                str(script_path)
-            )
-        )
+    build_configuration = BuildConfiguration(
+        script_dir, config_path, args.build)
 
     # Find the git root directory
     git_root = PurePath(
@@ -180,7 +202,10 @@ def main():
     )
 
     # Create the build directory as needed
-    build_directory = Path(git_root.joinpath('abc-ci-builds', args.build))
+    build_directory = Path(
+        git_root.joinpath(
+            'abc-ci-builds',
+            build_configuration.name))
     build_directory.mkdir(exist_ok=True, parents=True)
 
     # We will provide the required environment variables
@@ -195,7 +220,7 @@ def main():
     # This makes it easier to retrieve the info from the logs.
     teamcity_messages = TeamcityServiceMessages()
     teamcity_messages.customMessage(
-        "Starting build {}".format(args.build),
+        "Starting build {}".format(build_configuration.name),
         status="NORMAL"
     )
 
@@ -234,14 +259,14 @@ def main():
 
     async def run_build():
         proc = await asyncio.create_subprocess_exec(
-            *([str(script_path)] + unknown_args),
+            *([str(build_configuration.script_path)] + unknown_args),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             cwd=build_directory,
             env={
                 **os.environ,
                 **environment_variables,
-                **build.get("environment", {})
+                **build_configuration.get("environment", {})
             },
         )
 
@@ -257,14 +282,14 @@ def main():
             if return_code != 0:
                 print_line_to_logs(
                     "Build {} failed with exit code {}".format(
-                        args.build,
+                        build_configuration.name,
                         return_code
                     )
                 )
         except asyncio.TimeoutError:
             print_line_to_logs(
                 "Build {} timed out after {:.1f}s".format(
-                    args.build, round(timeout, 1)
+                    build_configuration.name, round(timeout, 1)
                 )
             )
             # The process is killed, set return code to 128 + 9 (SIGKILL) = 137
@@ -272,7 +297,7 @@ def main():
         finally:
             # Always add the build logs to the root of the artifacts
             artifacts = {
-                **build.get("artifacts", {}),
+                **build_configuration.get("artifacts", {}),
                 str(full_log.relative_to(build_directory)): "",
                 str(clean_log.relative_to(build_directory)): "",
             }
@@ -286,7 +311,7 @@ def main():
             return return_code
 
     return_code = asyncio.run(
-        wait_for_build(build.get("timeout", DEFAULT_TIMEOUT))
+        wait_for_build(build_configuration.get("timeout", DEFAULT_TIMEOUT))
     )
 
     sys.exit(return_code)
