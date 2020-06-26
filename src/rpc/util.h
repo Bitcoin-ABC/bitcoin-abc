@@ -343,6 +343,7 @@ public:
 
     std::string ToString() const;
     UniValue HandleRequest(Config &config, const JSONRPCRequest &request) {
+        Check(request);
         return m_fun(*this, config, request);
     }
     /** If the supplied number of args is neither too small nor too high */
