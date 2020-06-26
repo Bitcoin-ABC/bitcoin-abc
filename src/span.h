@@ -19,6 +19,16 @@
 #define ASSERT_IF_DEBUG(x)
 #endif
 
+#if defined(__clang__)
+#if __has_attribute(lifetimebound)
+#define SPAN_ATTR_LIFETIMEBOUND [[clang::lifetimebound]]
+#else
+#define SPAN_ATTR_LIFETIMEBOUND
+#endif
+#else
+#define SPAN_ATTR_LIFETIMEBOUND
+#endif
+
 /**
  * A Span is an object that can refer to a contiguous sequence of objects.
  *
@@ -83,6 +93,11 @@
 template <typename C> class Span {
     C *m_data;
     std::size_t m_size;
+
+    template <class T> struct is_Span_int : public std::false_type {};
+    template <class T> struct is_Span_int<Span<T>> : public std::true_type {};
+    template <class T>
+    struct is_Span : public is_Span_int<typename std::remove_cv<T>::type> {};
 
 public:
     constexpr Span() noexcept : m_data(nullptr), m_size(0) {}
@@ -152,18 +167,33 @@ public:
      * when passing in temporaries. Note that this restriction does not exist
      * when converting arrays or other Spans (see above).
      */
-    template <
-        typename V,
+    template <typename V>
+    constexpr Span(
+        V &other SPAN_ATTR_LIFETIMEBOUND,
         typename std::enable_if<
-            (std::is_const<C>::value || std::is_lvalue_reference<V>::value) &&
+            !is_Span<V>::value &&
                 std::is_convertible<
                     typename std::remove_pointer<
                         decltype(std::declval<V &>().data())>::type (*)[],
                     C (*)[]>::value &&
                 std::is_convertible<decltype(std::declval<V &>().size()),
                                     std::size_t>::value,
-            int>::type = 0>
-    constexpr Span(V &&v) noexcept : m_data(v.data()), m_size(v.size()) {}
+            std::nullptr_t>::type = nullptr)
+        : m_data(other.data()), m_size(other.size()) {}
+
+    template <typename V>
+    constexpr Span(
+        const V &other SPAN_ATTR_LIFETIMEBOUND,
+        typename std::enable_if<
+            !is_Span<V>::value &&
+                std::is_convertible<
+                    typename std::remove_pointer<
+                        decltype(std::declval<const V &>().data())>::type (*)[],
+                    C (*)[]>::value &&
+                std::is_convertible<decltype(std::declval<const V &>().size()),
+                                    std::size_t>::value,
+            std::nullptr_t>::type = nullptr)
+        : m_data(other.data()), m_size(other.size()) {}
 
     constexpr C *data() const noexcept { return m_data; }
     constexpr C *begin() const noexcept { return m_data; }
@@ -232,14 +262,15 @@ template <typename A, int N> Span<A> constexpr MakeSpan(A (&a)[N]) {
 /** MakeSpan for temporaries / rvalue references, only supporting const output.
  */
 template <typename V>
-constexpr auto MakeSpan(V &&v) -> typename std::enable_if<
+constexpr auto
+MakeSpan(V &&v SPAN_ATTR_LIFETIMEBOUND) -> typename std::enable_if<
     !std::is_lvalue_reference<V>::value,
     Span<const typename std::remove_pointer<decltype(v.data())>::type>>::type {
     return std::forward<V>(v);
 }
 /** MakeSpan for (lvalue) references, supporting mutable output. */
 template <typename V>
-constexpr auto MakeSpan(V &v)
+constexpr auto MakeSpan(V &v SPAN_ATTR_LIFETIMEBOUND)
     -> Span<typename std::remove_pointer<decltype(v.data())>::type> {
     return v;
 }
