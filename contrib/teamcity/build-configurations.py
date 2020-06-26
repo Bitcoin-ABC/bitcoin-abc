@@ -205,6 +205,8 @@ class UserBuild():
     async def run_build(self, args=[]):
         proc = await asyncio.create_subprocess_exec(
             *([str(self.configuration.script_path)] + args),
+            # Buffer limit is 64KB by default, but we need a larger buffer:
+            limit=1024 * 128,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             cwd=self.build_directory,
