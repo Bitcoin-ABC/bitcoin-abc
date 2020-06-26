@@ -10,6 +10,7 @@
 #include <amount.h>
 #include <rpc/command.h>
 #include <rpc/request.h>
+#include <rpc/util.h>
 #include <rwcollection.h>
 #include <util/system.h>
 
@@ -145,6 +146,7 @@ using rpcfn_type = UniValue (*)(Config &config,
                                 const JSONRPCRequest &jsonRequest);
 using const_rpcfn_type = UniValue (*)(const Config &config,
                                       const JSONRPCRequest &jsonRequest);
+using RpcMethodFnType = RPCHelpMan (*)();
 
 class CRPCCommand {
 public:
@@ -161,6 +163,18 @@ public:
         : category(std::move(_category)), name(std::move(_name)),
           actor(std::move(_actor)), argNames(std::move(_args)),
           unique_id(_unique_id) {}
+
+    //! Simplified constructor taking plain RpcMethodFnType function pointer.
+    CRPCCommand(std::string _category, std::string name_in, RpcMethodFnType _fn,
+                std::vector<std::string> args_in)
+        : CRPCCommand(
+              _category, _fn().m_name,
+              [_fn](Config &config, const JSONRPCRequest &request,
+                    UniValue &result, bool) {
+                  result = _fn().HandleRequest(config, request);
+                  return true;
+              },
+              _fn().GetArgNames(), intptr_t(_fn)) {}
 
     //! Simplified constructor taking plain rpcfn_type function pointer.
     CRPCCommand(const char *_category, const char *_name, rpcfn_type _fn,
@@ -194,7 +208,7 @@ public:
 };
 
 /**
- * Bitcoin RPC command dispatcher.
+ * RPC command dispatcher.
  */
 class CRPCTable {
 private:

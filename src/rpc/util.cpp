@@ -459,9 +459,15 @@ struct Sections {
 RPCHelpMan::RPCHelpMan(std::string name_, std::string description,
                        std::vector<RPCArg> args, RPCResults results,
                        RPCExamples examples)
-    : m_name{std::move(name_)}, m_description{std::move(description)},
-      m_args{std::move(args)}, m_results{std::move(results)},
-      m_examples{std::move(examples)} {
+    : RPCHelpMan{std::move(name_),   std::move(description), std::move(args),
+                 std::move(results), std::move(examples),    nullptr} {}
+
+RPCHelpMan::RPCHelpMan(std::string name_, std::string description,
+                       std::vector<RPCArg> args, RPCResults results,
+                       RPCExamples examples, RPCMethodImpl fun)
+    : m_name{std::move(name_)}, m_fun{std::move(fun)},
+      m_description{std::move(description)}, m_args{std::move(args)},
+      m_results{std::move(results)}, m_examples{std::move(examples)} {
     std::set<std::string> named_args;
     for (const auto &arg : m_args) {
         std::vector<std::string> names;
@@ -502,6 +508,15 @@ bool RPCHelpMan::IsValidNumArgs(size_t num_args) const {
     }
     return num_required_args <= num_args && num_args <= m_args.size();
 }
+
+std::vector<std::string> RPCHelpMan::GetArgNames() const {
+    std::vector<std::string> ret;
+    for (const auto &arg : m_args) {
+        ret.emplace_back(arg.m_names);
+    }
+    return ret;
+}
+
 std::string RPCHelpMan::ToString() const {
     std::string ret;
 
