@@ -86,7 +86,6 @@ $ curl localhost:18332/rest/getutxos/checkmempool/b2cdfd7b89def827ff8af7cd9bff76
          },
          "value" : 8.8687,
          "height" : 2147483647,
-         "txvers" : 1
       }
    ],
    "bitmap" : "1"
