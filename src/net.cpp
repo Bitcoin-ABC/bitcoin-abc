@@ -780,7 +780,7 @@ void V1TransportSerializer::prepareForTransport(const Config &config,
                                                 CSerializedNetMsg &msg,
                                                 std::vector<uint8_t> &header) {
     // create dbl-sha256 checksum
-    uint256 hash = Hash(msg.data.begin(), msg.data.end());
+    uint256 hash = Hash(msg.data);
 
     // create header
     CMessageHeader hdr(config.GetChainParams().NetMagic(), msg.m_type.c_str(),

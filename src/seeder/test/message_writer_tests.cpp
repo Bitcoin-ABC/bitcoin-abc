@@ -44,8 +44,7 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
 
     CMessageHeader versionhdr(Params().NetMagic(), NetMsgType::VERSION,
                               versionPayload.size());
-    uint256 hash = Hash(versionPayload.data(),
-                        versionPayload.data() + versionPayload.size());
+    uint256 hash = Hash(versionPayload);
     memcpy(versionhdr.pchChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
 
     CDataStream expectedVersion(SER_NETWORK, PROTOCOL_VERSION);
@@ -63,7 +62,7 @@ BOOST_AUTO_TEST_CASE(header_empty_payload_message_writer_test) {
     CDataStream expectedVerack(SER_NETWORK, PROTOCOL_VERSION);
     // This is an empty payload, but is still necessary for the checksum
     std::vector<uint8_t> payload;
-    uint256 hash = Hash(payload.data(), payload.data() + payload.size());
+    uint256 hash = Hash(payload);
     memcpy(verackHeader.pchChecksum, hash.begin(),
            CMessageHeader::CHECKSUM_SIZE);
     expectedVerack << verackHeader;
@@ -79,7 +78,7 @@ BOOST_AUTO_TEST_CASE(write_getheaders_message_test) {
     std::vector<BlockHash> vlocator(1, bhash);
     CBlockLocator locatorhash(vlocator);
     payload << locatorhash << uint256();
-    uint256 hash = Hash(payload.data(), payload.data() + payload.size());
+    uint256 hash = Hash(payload);
 
     CMessageHeader msgHeader(Params().NetMagic(), NetMsgType::GETHEADERS,
                              payload.size());

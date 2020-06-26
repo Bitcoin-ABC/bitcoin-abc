@@ -14,13 +14,11 @@ typedef std::vector<uint8_t> valtype;
 
 bool fAcceptDatacarrier = DEFAULT_ACCEPT_DATACARRIER;
 
-CScriptID::CScriptID(const CScript &in)
-    : BaseHash(Hash160(in.begin(), in.end())) {}
+CScriptID::CScriptID(const CScript &in) : BaseHash(Hash160(in)) {}
 CScriptID::CScriptID(const ScriptHash &in)
     : BaseHash(static_cast<uint160>(in)) {}
 
-ScriptHash::ScriptHash(const CScript &in)
-    : BaseHash(Hash160(in.begin(), in.end())) {}
+ScriptHash::ScriptHash(const CScript &in) : BaseHash(Hash160(in)) {}
 ScriptHash::ScriptHash(const CScriptID &in)
     : BaseHash(static_cast<uint160>(in)) {}
 

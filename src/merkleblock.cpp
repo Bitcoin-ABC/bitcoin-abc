@@ -66,7 +66,7 @@ uint256 CPartialMerkleTree::CalcHash(int height, size_t pos,
     }
 
     // Combine subhashes.
-    return Hash(left.begin(), left.end(), right.begin(), right.end());
+    return Hash(left, right);
 }
 
 void CPartialMerkleTree::TraverseAndBuild(int height, size_t pos,
@@ -139,7 +139,7 @@ uint256 CPartialMerkleTree::TraverseAndExtract(int height, size_t pos,
     }
 
     // and combine them before returning.
-    return Hash(left.begin(), left.end(), right.begin(), right.end());
+    return Hash(left, right);
 }
 
 CPartialMerkleTree::CPartialMerkleTree(const std::vector<uint256> &vTxid,

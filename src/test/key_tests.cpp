@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(key_test1) {
 
     for (int n = 0; n < 16; n++) {
         std::string strMsg = strprintf("Very secret message %i: 11", n);
-        uint256 hashMsg = Hash(strMsg.begin(), strMsg.end());
+        uint256 hashMsg = Hash(strMsg);
 
         // normal ECDSA signatures
 
@@ -282,7 +282,7 @@ BOOST_AUTO_TEST_CASE(key_test1) {
 
     std::vector<uint8_t> detsig, detsigc;
     std::string strMsg = "Very deterministic message";
-    uint256 hashMsg = Hash(strMsg.begin(), strMsg.end());
+    uint256 hashMsg = Hash(strMsg);
     // ECDSA
     BOOST_CHECK(key1.SignECDSA(hashMsg, detsig));
     BOOST_CHECK(key1C.SignECDSA(hashMsg, detsigc));
@@ -341,7 +341,7 @@ BOOST_AUTO_TEST_CASE(key_signature_tests) {
     // within 20 signatures
     CKey key = DecodeSecret(strSecret1);
     std::string msg = "A message to be signed";
-    uint256 msg_hash = Hash(msg.begin(), msg.end());
+    uint256 msg_hash = Hash(msg);
     std::vector<uint8_t> sig;
     bool found = false;
 
@@ -363,7 +363,7 @@ BOOST_AUTO_TEST_CASE(key_signature_tests) {
     for (int i = 0; i < 256; ++i) {
         sig.clear();
         msg = "A message to be signed" + ToString(i);
-        msg_hash = Hash(msg.begin(), msg.end());
+        msg_hash = Hash(msg);
         BOOST_CHECK(key.SignECDSA(msg_hash, sig));
         found = sig[3] == 0x20;
         BOOST_CHECK(sig.size() <= 70);

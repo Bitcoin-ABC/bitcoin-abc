@@ -2515,9 +2515,8 @@ BOOST_AUTO_TEST_CASE(message_hash) {
         std::string(1, (char)MESSAGE_MAGIC.length()) + MESSAGE_MAGIC +
         std::string(1, (char)unsigned_tx.length()) + unsigned_tx;
 
-    const uint256 signature_hash = Hash(unsigned_tx.begin(), unsigned_tx.end());
-    const uint256 message_hash1 =
-        Hash(prefixed_message.begin(), prefixed_message.end());
+    const uint256 signature_hash = Hash(unsigned_tx);
+    const uint256 message_hash1 = Hash(prefixed_message);
     const uint256 message_hash2 = MessageHash(unsigned_tx);
 
     BOOST_CHECK_EQUAL(message_hash1, message_hash2);
