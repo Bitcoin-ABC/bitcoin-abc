@@ -48,8 +48,8 @@ class BuildConfiguration:
         with open(self.config_file, encoding="utf-8") as f:
             config = json.load(f)
 
-        # The configuration root should contain a mandatory element "builds", and it
-        # should not be empty.
+        # The configuration root should contain a mandatory element "builds", and
+        # it should not be empty.
         if not config.get("builds", None):
             raise AssertionError(
                 "Invalid configuration file {}: the \"builds\" element is missing or empty".format(
@@ -108,57 +108,187 @@ class BuildConfiguration:
         return self.config.get(key, default)
 
 
-def copy_artifacts(teamcity_messages, build_dir, artifacts):
-    # This accounts for the volume mapping from the container.
-    # Our local /results is mapped to some relative ./results on the host, so we
-    # use /results/artifacts to copy our files but results/artifacts as an
-    # artifact path for teamcity.
-    # TODO abstract out the volume mapping
-    if is_running_under_teamcity():
-        artifact_dir = Path("/results/artifacts")
-    else:
-        artifact_dir = build_dir.joinpath("artifacts")
+class UserBuild():
+    def __init__(self, configuration, project_root):
+        self.configuration = configuration
+        self.project_root = project_root
 
-    if artifact_dir.is_dir():
-        shutil.rmtree(artifact_dir)
-    artifact_dir.mkdir(exist_ok=True)
+        # Create the build directory as needed
+        self.build_directory = Path(
+            self.project_root.joinpath(
+                'abc-ci-builds',
+                self.configuration.name))
+        self.build_directory.mkdir(exist_ok=True, parents=True)
 
-    # Find and copy artifacts.
-    # The source is relative to the build tree, the destination relative to the
-    # artifact directory.
-    # The artifact directory is located in the build directory tree, results
-    # from it needs to be excluded from the glob matches to prevent infinite
-    # recursion.
-    for pattern, dest in artifacts.items():
-        matches = [m for m in sorted(build_dir.glob(
-            pattern)) if artifact_dir not in m.parents and artifact_dir != m]
-        dest = artifact_dir.joinpath(dest)
+        self.artifact_dir = self.build_directory.joinpath("artifacts")
 
-        # Pattern did not match
-        if not matches:
-            continue
+        # We will provide the required environment variables
+        self.environment_variables = {
+            "BUILD_DIR": str(self.build_directory),
+            "CMAKE_PLATFORMS_DIR": self.project_root.joinpath("cmake", "platforms"),
+            "THREADS": str(os.cpu_count() or 1),
+            "TOPLEVEL": str(self.project_root),
+        }
 
-        # If there is a single file, destination is the new file path
-        if len(matches) == 1 and matches[0].is_file():
-            # Create the parent directories as needed
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(matches[0], dest)
-            continue
+        # Build 2 log files:
+        #  - the full log will contain all unfiltered content
+        #  - the clean log will contain the same filtered content as what is
+        #    printed to stdout. This filter is done in print_line_to_logs().
+        self.logs = {}
+        self.logs["clean_log"] = self.build_directory.joinpath(
+            "build.clean.log")
+        if self.logs["clean_log"].is_file():
+            self.logs["clean_log"].unlink()
 
-        # If there are multiple files or a single directory, destination is a
-        # directory.
-        dest.mkdir(parents=True, exist_ok=True)
-        for match in matches:
-            if match.is_file():
-                shutil.copy2(match, dest)
-            else:
-                shutil.copytree(match, dest.joinpath(match.name))
+        self.logs["full_log"] = self.build_directory.joinpath("build.full.log")
+        if self.logs["full_log"].is_file():
+            self.logs["full_log"].unlink()
 
-    # Instruct teamcity to upload our artifact directory
-    artifact_path_pattern = "+:{}=>artifacts.tar.gz".format(
-        str(artifact_dir.relative_to("/"))
-    )
-    teamcity_messages.publishArtifacts(artifact_path_pattern)
+    def copy_artifacts(self, artifacts):
+        if self.artifact_dir.is_dir():
+            shutil.rmtree(self.artifact_dir)
+        self.artifact_dir.mkdir(exist_ok=True)
+
+        # Find and copy artifacts.
+        # The source is relative to the build tree, the destination relative to
+        # the artifact directory.
+        # The artifact directory is located in the build directory tree, results
+        # from it needs to be excluded from the glob matches to prevent infinite
+        # recursion.
+        for pattern, dest in artifacts.items():
+            matches = [m for m in sorted(self.build_directory.glob(
+                pattern)) if self.artifact_dir not in m.parents and self.artifact_dir != m]
+            dest = self.artifact_dir.joinpath(dest)
+
+            # Pattern did not match
+            if not matches:
+                continue
+
+            # If there is a single file, destination is the new file path
+            if len(matches) == 1 and matches[0].is_file():
+                # Create the parent directories as needed
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(matches[0], dest)
+                continue
+
+            # If there are multiple files or a single directory, destination is a
+            # directory.
+            dest.mkdir(parents=True, exist_ok=True)
+            for match in matches:
+                if match.is_file():
+                    shutil.copy2(match, dest)
+                else:
+                    shutil.copytree(match, dest.joinpath(match.name))
+
+    def print_line_to_logs(self, line):
+        # Always print to the full log
+        with open(self.logs["full_log"], 'a', encoding='utf-8') as log:
+            log.write(line)
+
+        # Discard the set -x bash output for stdout and the clean log
+        if not line.startswith("+"):
+            with open(self.logs["clean_log"], 'a', encoding='utf-8') as log:
+                log.write(line)
+            print(line.rstrip())
+
+    async def process_stdout(self, stdout):
+        while True:
+            line = await stdout.readline()
+            line = line.decode('utf-8')
+
+            if not line:
+                break
+
+            self.print_line_to_logs(line)
+
+    async def run_build(self, args=[]):
+        proc = await asyncio.create_subprocess_exec(
+            *([str(self.configuration.script_path)] + args),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+            cwd=self.build_directory,
+            env={
+                **os.environ,
+                **self.environment_variables,
+                **self.configuration.get("environment", {})
+            },
+        )
+
+        await asyncio.wait([
+            self.process_stdout(proc.stdout)
+        ])
+
+        return await proc.wait()
+
+    async def wait_for_build(self, timeout, args=[]):
+        try:
+            return_code = await asyncio.wait_for(self.run_build(args), timeout)
+            if return_code != 0:
+                self.print_line_to_logs(
+                    "Build {} failed with exit code {}".format(
+                        self.configuration.name,
+                        return_code
+                    )
+                )
+        except asyncio.TimeoutError:
+            self.print_line_to_logs(
+                "Build {} timed out after {:.1f}s".format(
+                    self.configuration.name, round(timeout, 1)
+                )
+            )
+            # The process is killed, set return code to 128 + 9 (SIGKILL) = 137
+            return_code = 137
+        finally:
+            # Always add the build logs to the root of the artifacts
+            artifacts = {
+                **self.configuration.get("artifacts", {}),
+                str(self.logs["full_log"].relative_to(self.build_directory)): "",
+                str(self.logs["clean_log"].relative_to(self.build_directory)): "",
+            }
+
+            self.copy_artifacts(artifacts)
+
+            return return_code
+
+    def run(self, args=[]):
+        return asyncio.run(
+            self.wait_for_build(
+                self.configuration.get(
+                    "timeout", DEFAULT_TIMEOUT))
+        )
+
+
+class TeamcityBuild(UserBuild):
+    def __init__(self, configuration, project_root):
+        super().__init__(configuration, project_root)
+
+        # This accounts for the volume mapping from the container.
+        # Our local /results is mapped to some relative ./results on the host,
+        # so we use /results/artifacts to copy our files but results/artifacts as
+        # an artifact path for teamcity.
+        # TODO abstract out the volume mapping
+        self.artifact_dir = Path("/results/artifacts")
+
+        self.teamcity_messages = TeamcityServiceMessages()
+
+    def copy_artifacts(self, artifacts):
+        super().copy_artifacts(artifacts)
+
+        # Instruct teamcity to upload our artifact directory
+        artifact_path_pattern = "+:{}=>artifacts.tar.gz".format(
+            str(self.artifact_dir.relative_to("/"))
+        )
+        self.teamcity_messages.publishArtifacts(artifact_path_pattern)
+
+    def run(self, args=[]):
+        # Let the user know what build is being run.
+        # This makes it easier to retrieve the info from the logs.
+        self.teamcity_messages.customMessage(
+            "Starting build {}".format(self.configuration.name),
+            status="NORMAL"
+        )
+
+        return super().run()
 
 
 def main():
@@ -190,7 +320,6 @@ def main():
     build_configuration = BuildConfiguration(
         script_dir, config_path, args.build)
 
-    # Find the git root directory
     git_root = PurePath(
         subprocess.run(
             ['git', 'rev-parse', '--show-toplevel'],
@@ -201,120 +330,12 @@ def main():
         ).stdout.strip()
     )
 
-    # Create the build directory as needed
-    build_directory = Path(
-        git_root.joinpath(
-            'abc-ci-builds',
-            build_configuration.name))
-    build_directory.mkdir(exist_ok=True, parents=True)
+    if is_running_under_teamcity():
+        build = TeamcityBuild(build_configuration, git_root)
+    else:
+        build = UserBuild(build_configuration, git_root)
 
-    # We will provide the required environment variables
-    environment_variables = {
-        "BUILD_DIR": str(build_directory),
-        "CMAKE_PLATFORMS_DIR": git_root.joinpath("cmake", "platforms"),
-        "THREADS": str(os.cpu_count() or 1),
-        "TOPLEVEL": str(git_root),
-    }
-
-    # Let the user know what build is being run.
-    # This makes it easier to retrieve the info from the logs.
-    teamcity_messages = TeamcityServiceMessages()
-    teamcity_messages.customMessage(
-        "Starting build {}".format(build_configuration.name),
-        status="NORMAL"
-    )
-
-    # Build 2 log files:
-    #  - the full log will contain all unfiltered content
-    #  - the clean log will contain the same filtered content as what is printed
-    #    to stdout. This filter is done in print_line_to_logs().
-    clean_log = build_directory.joinpath("build.clean.log")
-    if clean_log.is_file():
-        clean_log.unlink()
-
-    full_log = build_directory.joinpath("build.full.log")
-    if full_log.is_file():
-        full_log.unlink()
-
-    def print_line_to_logs(line):
-        # Always print to the full log
-        with open(full_log, 'a', encoding='utf-8') as log:
-            log.write(line)
-
-        # Discard the set -x bash output for stdout and the clean log
-        if not line.startswith("+"):
-            with open(clean_log, 'a', encoding='utf-8') as log:
-                log.write(line)
-            print(line.rstrip())
-
-    async def process_stdout(stdout):
-        while True:
-            line = await stdout.readline()
-            line = line.decode('utf-8')
-
-            if not line:
-                break
-
-            print_line_to_logs(line)
-
-    async def run_build():
-        proc = await asyncio.create_subprocess_exec(
-            *([str(build_configuration.script_path)] + unknown_args),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-            cwd=build_directory,
-            env={
-                **os.environ,
-                **environment_variables,
-                **build_configuration.get("environment", {})
-            },
-        )
-
-        await asyncio.wait([
-            process_stdout(proc.stdout)
-        ])
-
-        return await proc.wait()
-
-    async def wait_for_build(timeout):
-        try:
-            return_code = await asyncio.wait_for(run_build(), timeout)
-            if return_code != 0:
-                print_line_to_logs(
-                    "Build {} failed with exit code {}".format(
-                        build_configuration.name,
-                        return_code
-                    )
-                )
-        except asyncio.TimeoutError:
-            print_line_to_logs(
-                "Build {} timed out after {:.1f}s".format(
-                    build_configuration.name, round(timeout, 1)
-                )
-            )
-            # The process is killed, set return code to 128 + 9 (SIGKILL) = 137
-            return_code = 137
-        finally:
-            # Always add the build logs to the root of the artifacts
-            artifacts = {
-                **build_configuration.get("artifacts", {}),
-                str(full_log.relative_to(build_directory)): "",
-                str(clean_log.relative_to(build_directory)): "",
-            }
-
-            copy_artifacts(
-                teamcity_messages,
-                build_directory,
-                artifacts
-            )
-
-            return return_code
-
-    return_code = asyncio.run(
-        wait_for_build(build_configuration.get("timeout", DEFAULT_TIMEOUT))
-    )
-
-    sys.exit(return_code)
+    sys.exit(build.run(unknown_args))
 
 
 if __name__ == '__main__':
