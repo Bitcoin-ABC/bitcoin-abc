@@ -4,11 +4,11 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import argparse
+import asyncio
 from deepmerge import always_merger
 import json
 import os
 from pathlib import Path, PurePath
-import signal
 import shutil
 import subprocess
 import sys
@@ -25,7 +25,7 @@ if sys.version_info < (3, 6):
 
 def copy_artifacts(teamcity_messages, build_dir, artifacts):
     # This accounts for the volume mapping from the container.
-    # Our local /result is mapped to some relative ./results on the host, so we
+    # Our local /results is mapped to some relative ./results on the host, so we
     # use /results/artifacts to copy our files but results/artifacts as an
     # artifact path for teamcity.
     # TODO abstract out the volume mapping
@@ -199,47 +199,97 @@ def main():
         status="NORMAL"
     )
 
-    # Flag to indicate that the process and its children should be killed
-    kill_em_all = False
+    # Build 2 log files:
+    #  - the full log will contain all unfiltered content
+    #  - the clean log will contain the same filtered content as what is printed
+    #    to stdout. This filter is done in print_line_to_logs().
+    clean_log = build_directory.joinpath("build.clean.log")
+    if clean_log.is_file():
+        clean_log.unlink()
 
-    try:
-        subprocess.run(
-            [str(script_path)] + unknown_args,
-            check=True,
+    full_log = build_directory.joinpath("build.full.log")
+    if full_log.is_file():
+        full_log.unlink()
+
+    def print_line_to_logs(line):
+        # Always print to the full log
+        with open(full_log, 'a', encoding='utf-8') as log:
+            log.write(line)
+
+        # Discard the set -x bash output for stdout and the clean log
+        if not line.startswith("+"):
+            with open(clean_log, 'a', encoding='utf-8') as log:
+                log.write(line)
+            print(line.rstrip())
+
+    async def process_stdout(stdout):
+        while True:
+            line = await stdout.readline()
+            line = line.decode('utf-8')
+
+            if not line:
+                break
+
+            print_line_to_logs(line)
+
+    async def run_build():
+        proc = await asyncio.create_subprocess_exec(
+            *([str(script_path)] + unknown_args),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
             cwd=build_directory,
             env={
                 **os.environ,
                 **environment_variables,
                 **build.get("environment", {})
             },
-            timeout=build.get("timeout", DEFAULT_TIMEOUT),
-        )
-    except subprocess.TimeoutExpired as e:
-        print(
-            "Build {} timed out after {:.1f}s".format(
-                args.build, round(e.timeout, 1)
-            )
-        )
-        # Make sure to kill all the child processes, as subprocess only kills
-        # the one we started. It will also kill this python script !
-        # The return code is 128 + 9 (SIGKILL) = 137.
-        kill_em_all = True
-    except subprocess.CalledProcessError as e:
-        print(
-            "Build {} failed with exit code {}".format(
-                args.build,
-                e.returncode))
-        sys.exit(e.returncode)
-    finally:
-        copy_artifacts(
-            teamcity_messages,
-            build_directory,
-            build.get("artifacts", {})
         )
 
-        # Seek and destroy
-        if kill_em_all:
-            os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
+        await asyncio.wait([
+            process_stdout(proc.stdout)
+        ])
+
+        return await proc.wait()
+
+    async def wait_for_build(timeout):
+        try:
+            return_code = await asyncio.wait_for(run_build(), timeout)
+            if return_code != 0:
+                print_line_to_logs(
+                    "Build {} failed with exit code {}".format(
+                        args.build,
+                        return_code
+                    )
+                )
+        except asyncio.TimeoutError:
+            print_line_to_logs(
+                "Build {} timed out after {:.1f}s".format(
+                    args.build, round(timeout, 1)
+                )
+            )
+            # The process is killed, set return code to 128 + 9 (SIGKILL) = 137
+            return_code = 137
+        finally:
+            # Always add the build logs to the root of the artifacts
+            artifacts = {
+                **build.get("artifacts", {}),
+                str(full_log.relative_to(build_directory)): "",
+                str(clean_log.relative_to(build_directory)): "",
+            }
+
+            copy_artifacts(
+                teamcity_messages,
+                build_directory,
+                artifacts
+            )
+
+            return return_code
+
+    return_code = asyncio.run(
+        wait_for_build(build.get("timeout", DEFAULT_TIMEOUT))
+    )
+
+    sys.exit(return_code)
 
 
 if __name__ == '__main__':
