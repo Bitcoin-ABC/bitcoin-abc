@@ -56,6 +56,9 @@ public:
     }
 
     size_t size() const { return m_hash.size(); }
+
+    uint8_t *data() { return m_hash.data(); }
+    const uint8_t *data() const { return m_hash.data(); }
 };
 
 /** A reference to a CScript: the Hash160 of its serialization (see script.h) */
