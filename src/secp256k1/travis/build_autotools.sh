@@ -64,6 +64,7 @@ if [ -n "$BENCH" ]; then
   if [ "$MULTISET" == "yes" ]; then
     $EXEC ./bench_multiset &>> bench.log
   fi
+fi
 if [ -n "$CTIMETEST" ]; then
   libtool --mode=execute valgrind  ./valgrind_ctime_test &> valgrind_ctime_test.log
 fi
