@@ -45,36 +45,6 @@ BOOST_AUTO_TEST_CASE(sanity) {
     BOOST_CHECK(Checkpoints::CheckBlock(checkpoints, 134444 + 1, p11111));
 }
 
-BOOST_AUTO_TEST_CASE(ban_fork_at_genesis_block) {
-    DummyConfig config;
-
-    // Sanity check that a checkpoint exists at the genesis block
-    auto &checkpoints = config.GetChainParams().Checkpoints().mapCheckpoints;
-    assert(checkpoints.find(0) != checkpoints.end());
-
-    // Another precomputed genesis block (with differing nTime) should conflict
-    // with the regnet genesis block checkpoint and not be accepted or stored
-    // in memory.
-    CBlockHeader header =
-        CreateGenesisBlock(1296688603, 2, 0x207fffff, 1, 50 * COIN);
-
-    // Header should not be accepted
-    CValidationState state;
-    CBlockHeader invalid;
-    const CBlockIndex *pindex = nullptr;
-    BOOST_CHECK(
-        !ProcessNewBlockHeaders(config, {header}, state, &pindex, &invalid));
-    BOOST_CHECK(state.IsInvalid());
-    BOOST_CHECK(pindex == nullptr);
-    BOOST_CHECK(invalid.GetHash() == header.GetHash());
-
-    // Sanity check to ensure header was not saved in memory
-    {
-        LOCK(cs_main);
-        BOOST_CHECK(LookupBlockIndex(header.GetHash()) == nullptr);
-    }
-}
-
 class ChainParamsWithCheckpoints : public CChainParams {
 public:
     ChainParamsWithCheckpoints(const CChainParams &chainParams,
