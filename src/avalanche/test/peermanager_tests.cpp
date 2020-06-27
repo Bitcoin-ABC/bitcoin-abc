@@ -177,4 +177,101 @@ BOOST_AUTO_TEST_CASE(add_peer) {
     BOOST_CHECK(abs(results[0] - results[1] + results[2]) < 500);
 }
 
+BOOST_AUTO_TEST_CASE(remove_peer) {
+    // No peers.
+    PeerManager pm;
+    BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
+
+    // Add 4 peers.
+    for (int i = 0; i < 4; i++) {
+        pm.addPeer(100);
+    }
+
+    for (int i = 0; i < 100; i++) {
+        size_t p = pm.selectPeer();
+        BOOST_CHECK(p <= 4);
+    }
+
+    // Remove one peer, it nevers show up now.
+    pm.removePeer(3);
+    for (int i = 0; i < 100; i++) {
+        size_t p = pm.selectPeer();
+        BOOST_CHECK(p < 4);
+        BOOST_CHECK(p != 3);
+    }
+
+    // Add 4 more peers.
+    for (int i = 0; i < 4; i++) {
+        pm.addPeer(100);
+    }
+
+    pm.removePeer(0);
+    pm.removePeer(7);
+    for (int i = 0; i < 100; i++) {
+        size_t p = pm.selectPeer();
+        BOOST_CHECK(p < 8);
+        BOOST_CHECK(p != 0);
+        BOOST_CHECK(p != 3);
+        BOOST_CHECK(p != 7);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
+    // No peers.
+    PeerManager pm;
+    BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
+
+    // Add 4 peers.
+    for (int i = 0; i < 4; i++) {
+        pm.addPeer(100);
+    }
+
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+
+    for (int i = 0; i < 100; i++) {
+        size_t p = pm.selectPeer();
+        BOOST_CHECK(p <= 4);
+    }
+
+    // Set one peer's score to 0, it nevers show up now.
+    pm.rescorePeer(1, 0);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+
+    for (int i = 0; i < 100; i++) {
+        size_t p = pm.selectPeer();
+        BOOST_CHECK(p < 4);
+        BOOST_CHECK(p != 1);
+    }
+
+    // "resurrect" the peer.
+    pm.rescorePeer(1, 100);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+
+    while (true) {
+        size_t p = pm.selectPeer();
+        if (p == 1) {
+            break;
+        }
+    }
+
+    // Grow the peer to a point where it needs to be reallocated.
+    pm.rescorePeer(1, 200);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 600);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+
+    for (int i = 0; i < 25; i++) {
+        while (true) {
+            size_t p = pm.selectPeer();
+            BOOST_CHECK(p < 5);
+            BOOST_CHECK(p != 1);
+            if (p == 4) {
+                break;
+            }
+        }
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

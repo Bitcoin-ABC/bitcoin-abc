@@ -21,11 +21,18 @@ struct Slot {
 class PeerManager {
     std::vector<Slot> slots;
     uint64_t slotCount = 0;
+    uint64_t fragmentation = 0;
 
 public:
     void addPeer(uint64_t score);
+    void rescorePeer(size_t i, uint64_t score);
+    void removePeer(size_t i) { rescorePeer(i, 0); }
 
     size_t selectPeer() const;
+
+    // Accssors.
+    uint64_t getSlotCount() const { return slotCount; }
+    uint64_t getFragmentation() const { return fragmentation; }
 };
 
 /**

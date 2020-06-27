@@ -13,6 +13,33 @@ void PeerManager::addPeer(uint64_t score) {
     slotCount = stop;
 }
 
+void PeerManager::rescorePeer(size_t i, uint64_t score) {
+    assert(i < slots.size());
+
+    const uint64_t start = slots[i].start;
+    const uint64_t stop = start + score;
+
+    // If this is the last element, we can extend/shrink easily.
+    if (i + 1 == slots.size()) {
+        slots[i].stop = stop;
+        slotCount = stop;
+        return;
+    }
+
+    const uint64_t nextStart = slots[i + 1].start;
+
+    // We can extend in place.
+    if (stop <= nextStart) {
+        fragmentation += (slots[i].stop - stop);
+        slots[i].stop = stop;
+        return;
+    }
+
+    // So we remove and insert a new entry.
+    addPeer(score);
+    removePeer(i);
+}
+
 size_t PeerManager::selectPeer() const {
     if (slots.empty()) {
         return NO_PEER;
