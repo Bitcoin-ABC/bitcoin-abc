@@ -10,7 +10,7 @@ Only testing Version 1 compact blocks (txids)
 
 import random
 
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import create_block
 from test_framework.messages import (
     MSG_BLOCK,
     MSG_CMPCT_BLOCK,
@@ -138,12 +138,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         self.skip_if_no_wallet()
 
     def build_block_on_tip(self, node):
-        height = node.getblockcount()
-        tip = node.getbestblockhash()
-        mtp = node.getblockheader(tip)['mediantime']
-        block = create_block(
-            int(tip, 16), create_coinbase(height + 1), mtp + 1)
-        block.nVersion = 4
+        block = create_block(tmpl=node.getblocktemplate())
         block.solve()
         return block
 
@@ -814,6 +809,9 @@ class CompactBlocksTest(BitcoinTestFramework):
         assert_equal(int(node.getbestblockhash(), 16), block.sha256)
 
     def run_test(self):
+        # Get the nodes out of IBD
+        self.nodes[0].generate(1)
+
         # Setup the p2p connections
         self.test_node = self.nodes[0].add_p2p_connection(TestP2PConn())
         self.ex_softfork_node = self.nodes[1].add_p2p_connection(
