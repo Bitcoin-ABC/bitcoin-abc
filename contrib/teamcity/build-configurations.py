@@ -81,10 +81,11 @@ class BuildConfiguration:
                     )
                 )
 
-            # The template exists, apply the build configuration on top of the
-            # template
-            self.config = always_merger.merge(
-                templates.get(template_name, {}), build)
+        # If the template exists, apply the build configuration on top of the
+        # template. Otherwise it is equivalent to the build configuration
+        # alone.
+        self.config = always_merger.merge(
+            templates.get(template_name, {}), build)
 
         # Make sure there is a script file associated with the build...
         script = build.get("script", None)

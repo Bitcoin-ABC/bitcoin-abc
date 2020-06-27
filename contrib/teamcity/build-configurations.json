@@ -80,6 +80,7 @@
         },
         "build-ibd-no-assumevalid-checkpoint": {
             "script": "builds/build-ibd-no-assumevalid-checkpoint.sh",
+            "template": "common_unix_artifacts",
             "timeout": 21600,
             "artifacts": {
                 "ibd/debug.log": "log/debug.log"
