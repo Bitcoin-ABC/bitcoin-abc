@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_AVALANCHE_H
-#define BITCOIN_AVALANCHE_H
+#ifndef BITCOIN_AVALANCHE_AVALANCHE_H
+#define BITCOIN_AVALANCHE_AVALANCHE_H
 
 #include <blockindexworkcomparator.h>
 #include <eventloop.h>
@@ -369,4 +369,4 @@ private:
  */
 extern std::unique_ptr<AvalancheProcessor> g_avalanche;
 
-#endif // BITCOIN_AVALANCHE_H
+#endif // BITCOIN_AVALANCHE_AVALANCHE_H

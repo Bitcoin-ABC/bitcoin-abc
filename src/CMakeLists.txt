@@ -494,7 +494,7 @@ endif()
 add_library(server
 	addrdb.cpp
 	addrman.cpp
-	avalanche.cpp
+	avalanche/avalanche.cpp
 	banman.cpp
 	blockencodings.cpp
 	blockfilter.cpp
@@ -579,8 +579,9 @@ if(ENABLE_UPNP)
 	endif()
 endif()
 
-# Test suite.
+# Test suites.
 add_subdirectory(test)
+add_subdirectory(avalanche/test)
 
 # Benchmark suite.
 add_subdirectory(bench)

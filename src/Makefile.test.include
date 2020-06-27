@@ -79,13 +79,13 @@ FUZZ_SUITE_LD_COMMON = \
 
 # test_bitcoin binary #
 BITCOIN_TESTS =\
+  avalanche/test/avalanche_tests.cpp \
   test/scriptnum10.h \
   test/activation_tests.cpp \
   test/addrman_tests.cpp \
   test/allocator_tests.cpp \
   test/amount_tests.cpp \
   test/arith_uint256_tests.cpp \
-  test/avalanche_tests.cpp \
   test/base32_tests.cpp \
   test/base58_tests.cpp \
   test/base64_tests.cpp \

@@ -104,7 +104,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		allocator_tests.cpp
 		amount_tests.cpp
 		arith_uint256_tests.cpp
-		avalanche_tests.cpp
 		base32_tests.cpp
 		base58_tests.cpp
 		base64_tests.cpp
