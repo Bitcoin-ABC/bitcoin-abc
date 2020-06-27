@@ -115,6 +115,7 @@ BITCOIN_CORE_H = \
   addrman.h \
   attributes.h \
   avalanche/avalanche.h \
+  avalanche/peermanager.h \
   banman.h \
   base58.h \
   bloom.h \
@@ -294,6 +295,7 @@ libbitcoin_server_a_SOURCES = \
   addrdb.cpp \
   addrman.cpp \
   avalanche/avalanche.cpp \
+  avalanche/peermanager.cpp \
   banman.cpp \
   blockencodings.cpp \
   blockfilter.cpp \

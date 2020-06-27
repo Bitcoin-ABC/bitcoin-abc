@@ -495,6 +495,7 @@ add_library(server
 	addrdb.cpp
 	addrman.cpp
 	avalanche/avalanche.cpp
+	avalanche/peermanager.cpp
 	banman.cpp
 	blockencodings.cpp
 	blockfilter.cpp
