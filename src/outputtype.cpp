@@ -28,18 +28,16 @@ const std::string &FormatOutputType(OutputType type) {
     switch (type) {
         case OutputType::LEGACY:
             return OUTPUT_TYPE_STRING_LEGACY;
-        default:
-            assert(false);
-    }
+    } // no default case, so the compiler can warn about missing cases
+    assert(false);
 }
 
 CTxDestination GetDestinationForKey(const CPubKey &key, OutputType type) {
     switch (type) {
         case OutputType::LEGACY:
             return PKHash(key);
-        default:
-            assert(false);
-    }
+    } // no default case, so the compiler can warn about missing cases
+    assert(false);
 }
 
 std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key) {
@@ -57,7 +55,6 @@ CTxDestination AddAndGetDestinationForScript(FillableSigningProvider &keystore,
     switch (type) {
         case OutputType::LEGACY:
             return ScriptHash(script);
-        default:
-            assert(false);
-    }
+    } // no default case, so the compiler can warn about missing cases
+    assert(false);
 }

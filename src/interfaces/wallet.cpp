@@ -404,9 +404,6 @@ namespace {
         bool privateKeysDisabled() override {
             return m_wallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
         }
-        OutputType getDefaultChangeType() override {
-            return m_wallet->m_default_change_type;
-        }
         Amount getDefaultMaxTxFee() override {
             return m_wallet->m_default_max_tx_fee;
         }

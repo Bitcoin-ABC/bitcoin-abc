@@ -14,15 +14,7 @@
 #include <string>
 #include <vector>
 
-enum class OutputType {
-    LEGACY,
-
-    /**
-     * Special output type for change outputs only. Automatically choose type
-     * based on address type setting and the types other of non-change outputs.
-     */
-    CHANGE_AUTO,
-};
+enum class OutputType { LEGACY };
 
 extern const std::array<OutputType, 1> OUTPUT_TYPES;
 

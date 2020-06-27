@@ -3000,11 +3000,11 @@ static uint32_t GetLocktimeForNewTransaction(interfaces::Chain &chain,
 }
 
 OutputType
-CWallet::TransactionChangeType(OutputType change_type,
+CWallet::TransactionChangeType(const std::optional<OutputType> &change_type,
                                const std::vector<CRecipient> &vecSend) {
     // If -changetype is specified, always use that change type.
-    if (change_type != OutputType::CHANGE_AUTO) {
-        return change_type;
+    if (change_type) {
+        return *change_type;
     }
 
     // if m_default_address_type is legacy, use legacy address as change.
@@ -4408,7 +4408,6 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
 
     walletInstance->m_default_address_type = DEFAULT_ADDRESS_TYPE;
-    walletInstance->m_default_change_type = DEFAULT_CHANGE_TYPE;
 
     walletInstance->WalletLogPrintf("Wallet completed loading in %15dms\n",
                                     GetTimeMillis() - nStart);

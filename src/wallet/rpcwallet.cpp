@@ -290,10 +290,8 @@ static UniValue getrawchangeaddress(const Config &config,
                            "Error: This wallet has no available keys");
     }
 
-    OutputType output_type =
-        pwallet->m_default_change_type != OutputType::CHANGE_AUTO
-            ? pwallet->m_default_change_type
-            : pwallet->m_default_address_type;
+    OutputType output_type = pwallet->m_default_change_type.value_or(
+        pwallet->m_default_address_type);
     if (!request.params[0].isNull()) {
         if (!ParseOutputType(request.params[0].get_str(), output_type)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
