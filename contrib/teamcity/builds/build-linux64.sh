@@ -21,7 +21,7 @@ run_test_bitcoin "for Linux 64 bits"
 
 ninja \
   check-bitcoin-qt \
-  check-bitcoin-seeder \
+  check-seeder \
   check-bitcoin-util \
   check-secp256k1
 

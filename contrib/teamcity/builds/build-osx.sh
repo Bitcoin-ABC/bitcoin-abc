@@ -17,6 +17,6 @@ CMAKE_FLAGS=(
 build_with_cmake
 
 # Build all the targets that are not built as part of the default target
-ninja test_bitcoin test_bitcoin-qt test_bitcoin-seeder
+ninja test_bitcoin test_bitcoin-qt test-seeder
 
 ninja osx-dmg

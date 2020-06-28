@@ -18,7 +18,7 @@ run_test_bitcoin "with thread sanitizer"
 # Libs and utils tests
 ninja \
   check-bitcoin-qt \
-  check-bitcoin-seeder \
+  check-seeder \
   check-bitcoin-util \
 
 ninja check-functional

@@ -5,11 +5,11 @@
 project(bitcoin-seeder-test)
 
 include(TestSuite)
-create_test_suite(bitcoin-seeder)
-add_dependencies(check check-bitcoin-seeder)
+create_test_suite(seeder)
+add_dependencies(check check-seeder)
 
-add_boost_unit_tests_to_suite(bitcoin-seeder test_bitcoin-seeder
-	translate_support.cpp
+add_boost_unit_tests_to_suite(seeder test-seeder
+	fixture.cpp
 
 	TESTS
 		p2p_messaging_tests.cpp
@@ -17,8 +17,9 @@ add_boost_unit_tests_to_suite(bitcoin-seeder test_bitcoin-seeder
 		write_name_tests.cpp
 )
 
-target_link_libraries(test_bitcoin-seeder
-	common
-	bitcoinconsensus
+target_link_libraries(test-seeder
 	seeder
+	# The seeder has some bizare linking problems makign util necessary here.
+	util
+	testutil
 )

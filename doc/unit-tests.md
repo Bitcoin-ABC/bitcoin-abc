@@ -27,11 +27,11 @@ the `src/qt/test/test_main.cpp` file.
 
 #### bitcoin-seeder unit tests
 
-The `bitcoin-seeder` unit tests can be built with `ninja test_bitcoin-seeder` or
-built and run in a single command with `ninja check-bitcoin-seeder`.
+The `bitcoin-seeder` unit tests can be built with `ninja test-seeder` or
+built and run in a single command with `ninja check-seeder`.
 
 To run the `bitcoin-seeder` tests manually, launch
-`src/seeder/test/test_bitcoin-seeder`.
+`src/seeder/test/test-seeder`.
 
 To add more `bitcoin-seeder` tests, add `BOOST_AUTO_TEST_CASE` functions to the
 existing .cpp files in the `src/seeder/test/` directory or add new .cpp files

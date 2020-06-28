@@ -21,7 +21,7 @@ run_test_bitcoin "with next upgrade activated" -phononactivationtime=1575158400
 ninja check-leveldb
 ninja \
   check-bitcoin-qt \
-  check-bitcoin-seeder \
+  check-seeder \
   check-bitcoin-util \
   check-devtools \
   check-rpcauth \

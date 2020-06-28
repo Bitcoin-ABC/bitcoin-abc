@@ -11,7 +11,7 @@
                 "src/libbitcoinconsensus.*": "lib",
                 "src/test/test_bitcoin": "bin/test_bitcoin",
                 "src/qt/test/test_bitcoin-qt": "bin/test_bitcoin-qt",
-                "src/seeder/test/test_bitcoin-seeder": "bin/test_bitcoin-seeder",
+                "src/seeder/test/test-seeder": "bin/test-seeder",
                 "src/qt/test/test_bitcoin-qt.log": "log/qt/test_bitcoin-qt.log",
                 "src/seeder/test/*.log": "log/seeder",
                 "test/tmp/*": "functional"
@@ -36,7 +36,7 @@
                 "config.log": "log/config.log",
                 "src/test-suite.log": "log/test-suite.log",
                 "src/test/*.log": "log",
-                "src/seeder/test/test_bitcoin-seeder.log": "log/test_bitcoin-seeder.log"
+                "src/seeder/test/test-seeder.log": "log/test-seeder.log"
             }
         },
         "build-bench": {

@@ -19,7 +19,7 @@ build_with_cmake --Werror
 ninja \
   test_bitcoin \
   test_bitcoin-qt \
-  test_bitcoin-seeder \
+  test-seeder \
   secp256k1-tests \
   secp256k1-exhaustive_tests
 
