@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
     BOOST_CHECK_EQUAL(selectPeerImpl(slots, max, max), NO_PEER);
 
     // Update the slots to be heavily skewed toward the last element.
-    slots.rbegin()->stop = 300;
+    slots[99] = Slot(slots[99].getStart(), 300);
     max = 300;
 
     for (int i = 0; i < 100; i++) {
@@ -98,12 +98,11 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
 
     // Update the slots to be heavily skewed toward the first element.
     for (int i = 0; i < 100; i++) {
-        slots[i].start += 100;
-        slots[i].stop += 100;
+        slots[i] = Slot(slots[i].getStart() + 100, slots[i].getStop() + 100);
     }
 
-    slots.begin()->start = 1;
-    slots.rbegin()->stop = 300;
+    slots[0] = Slot(1, slots[0].getStop());
+    slots[99] = Slot(slots[99].getStart(), 300);
 
     BOOST_CHECK_EQUAL(selectPeerImpl(slots, 0, max), NO_PEER);
     BOOST_CHECK_EQUAL(selectPeerImpl(slots, 1, max), 0);

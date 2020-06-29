@@ -12,10 +12,17 @@
 static constexpr size_t NO_PEER = ~size_t(0);
 
 struct Slot {
+private:
     uint64_t start;
     uint64_t stop;
 
+public:
     Slot(uint64_t startIn, uint64_t stopIn) : start(startIn), stop(stopIn) {}
+
+    Slot withScore(uint64_t score) { return Slot(start, start + score); }
+
+    uint64_t getStart() const { return start; }
+    uint64_t getStop() const { return stop; }
 
     bool contains(uint64_t slot) const { return start <= slot && slot < stop; }
     bool precedes(uint64_t slot) const { return slot >= stop; }

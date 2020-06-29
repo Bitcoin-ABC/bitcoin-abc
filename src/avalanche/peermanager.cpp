@@ -16,22 +16,22 @@ void PeerManager::addPeer(uint64_t score) {
 void PeerManager::rescorePeer(size_t i, uint64_t score) {
     assert(i < slots.size());
 
-    const uint64_t start = slots[i].start;
-    const uint64_t stop = start + score;
+    const uint64_t start = slots[i].getStart();
 
     // If this is the last element, we can extend/shrink easily.
     if (i + 1 == slots.size()) {
-        slots[i].stop = stop;
-        slotCount = stop;
+        slots[i] = slots[i].withScore(score);
+        slotCount = slots[i].getStop();
         return;
     }
 
-    const uint64_t nextStart = slots[i + 1].start;
+    const uint64_t stop = start + score;
+    const uint64_t nextStart = slots[i + 1].getStart();
 
     // We can extend in place.
     if (stop <= nextStart) {
-        fragmentation += (slots[i].stop - stop);
-        slots[i].stop = stop;
+        fragmentation += (slots[i].getStop() - stop);
+        slots[i] = slots[i].withScore(score);
         return;
     }
 
@@ -79,14 +79,14 @@ size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
         // We undershooted.
         if (slots[i].precedes(slot)) {
             begin = i + 1;
-            bottom = slots[begin].start;
+            bottom = slots[begin].getStart();
             continue;
         }
 
         // We overshooted.
         if (slots[i].follows(slot)) {
             end = i;
-            top = slots[end].start;
+            top = slots[end].getStart();
             continue;
         }
 
