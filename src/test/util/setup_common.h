@@ -79,6 +79,7 @@ static constexpr Amount CENT(COIN / 100);
  */
 struct BasicTestingSetup {
     ECCVerifyHandle globalVerifyHandle;
+    NodeContext m_node;
 
     explicit BasicTestingSetup(
         const std::string &chainName = CBaseChainParams::MAIN);
@@ -93,7 +94,6 @@ private:
  * Included are coins database, script check threads setup.
  */
 struct TestingSetup : public BasicTestingSetup {
-    NodeContext m_node;
     boost::thread_group threadGroup;
 
     explicit TestingSetup(
