@@ -106,7 +106,7 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		)
 	endforeach()
 
-	find_package(Boost 1.58 REQUIRED unit_test_framework)
+	find_package(Boost 1.59 REQUIRED unit_test_framework)
 	target_link_libraries(${NAME} Boost::unit_test_framework)
 
 	# We need to detect if the BOOST_TEST_DYN_LINK flag is required

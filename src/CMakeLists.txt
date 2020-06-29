@@ -401,7 +401,7 @@ endfunction(prepend)
 
 prepend(BOOST_LIBRARIES "Boost::" ${BOOST_PACKAGES_REQUIRED})
 
-find_package(Boost 1.58 REQUIRED ${BOOST_PACKAGES_REQUIRED})
+find_package(Boost 1.59 REQUIRED ${BOOST_PACKAGES_REQUIRED})
 
 # This require libevent
 set(EVENT_MIN_VERSION 2.0.22)
