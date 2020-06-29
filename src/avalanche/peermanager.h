@@ -17,13 +17,13 @@ private:
     uint64_t score;
 
 public:
-    Slot(uint64_t startIn, uint64_t stop)
-        : start(startIn), score(stop - start) {}
+    Slot(uint64_t startIn, uint64_t scoreIn) : start(startIn), score(scoreIn) {}
 
-    Slot withScore(uint64_t scoreIn) { return Slot(start, start + scoreIn); }
+    Slot withScore(uint64_t scoreIn) { return Slot(start, scoreIn); }
 
     uint64_t getStart() const { return start; }
     uint64_t getStop() const { return start + score; }
+    uint64_t getScore() const { return score; }
 
     bool contains(uint64_t slot) const {
         return getStart() <= slot && slot < getStop();

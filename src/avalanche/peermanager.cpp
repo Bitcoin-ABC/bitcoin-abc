@@ -8,9 +8,8 @@
 
 void PeerManager::addPeer(uint64_t score) {
     const uint64_t start = slotCount;
-    const uint64_t stop = start + score;
-    slots.emplace_back(start, stop);
-    slotCount = stop;
+    slots.emplace_back(start, score);
+    slotCount = start + score;
 }
 
 void PeerManager::rescorePeer(size_t i, uint64_t score) {

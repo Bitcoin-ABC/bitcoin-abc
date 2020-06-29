@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl({}, 1, 3), NO_PEER);
 
     // One peer
-    const std::vector<Slot> oneslot = {{100, 200}};
+    const std::vector<Slot> oneslot = {{100, 100}};
 
     // Undershoot
     BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 0, 300), NO_PEER);
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 299, 300), NO_PEER);
 
     // Two peers
-    const std::vector<Slot> twoslots = {{100, 200}, {300, 400}};
+    const std::vector<Slot> twoslots = {{100, 100}, {300, 100}};
 
     // Undershoot
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 0, 500), NO_PEER);
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
     // 100 peers of size 1 with 1 empty element apart.
     uint64_t max = 1;
     for (int i = 0; i < 100; i++) {
-        slots.emplace_back(max, max + 1);
+        slots.emplace_back(max, 1);
         max += 2;
     }
 
@@ -99,11 +99,13 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
 
     // Update the slots to be heavily skewed toward the first element.
     for (int i = 0; i < 100; i++) {
-        slots[i] = Slot(slots[i].getStart() + 100, slots[i].getStop() + 100);
+        slots[i] = Slot(slots[i].getStart() + 100, slots[i].getScore());
     }
 
-    slots[0] = Slot(1, slots[0].getStop());
-    slots[99] = Slot(slots[99].getStart(), 300);
+    slots[0] = Slot(1, slots[0].getStop() - 1);
+    slots[99] = slots[99].withScore(1);
+    max = slots[99].getStop();
+    BOOST_CHECK_EQUAL(max, 300);
 
     BOOST_CHECK_EQUAL(selectPeerImpl(slots, 0, max), NO_PEER);
     BOOST_CHECK_EQUAL(selectPeerImpl(slots, 1, max), 0);
@@ -129,9 +131,10 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
         };
 
         for (size_t i = 0; i < size; i++) {
-            uint64_t start = next();
-            uint64_t stop = next();
-            slots.emplace_back(start, stop);
+            const uint64_t start = next();
+            const uint32_t score = InsecureRandBits(3);
+            max += score;
+            slots.emplace_back(start, score);
         }
 
         for (int k = 0; k < 100; k++) {
