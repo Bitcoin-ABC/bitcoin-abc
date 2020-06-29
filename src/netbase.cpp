@@ -42,6 +42,52 @@ bool fNameLookup = DEFAULT_NAME_LOOKUP;
 static const int SOCKS5_RECV_TIMEOUT = 20 * 1000;
 static std::atomic<bool> interruptSocks5Recv(false);
 
+std::vector<CNetAddr> WrappedGetAddrInfo(const std::string &name,
+                                         bool allow_lookup) {
+    addrinfo ai_hint{};
+    // We want a TCP port, which is a streaming socket type
+    ai_hint.ai_socktype = SOCK_STREAM;
+    ai_hint.ai_protocol = IPPROTO_TCP;
+    // We don't care which address family (IPv4 or IPv6) is returned
+    ai_hint.ai_family = AF_UNSPEC;
+    // If we allow lookups of hostnames, use the AI_ADDRCONFIG flag to only
+    // return addresses whose family we have an address configured for.
+    //
+    // If we don't allow lookups, then use the AI_NUMERICHOST flag for
+    // getaddrinfo to only decode numerical network addresses and suppress
+    // hostname lookups.
+    ai_hint.ai_flags = allow_lookup ? AI_ADDRCONFIG : AI_NUMERICHOST;
+
+    addrinfo *ai_res{nullptr};
+    const int n_err{getaddrinfo(name.c_str(), nullptr, &ai_hint, &ai_res)};
+    if (n_err != 0) {
+        return {};
+    }
+
+    // Traverse the linked list starting with ai_trav.
+    addrinfo *ai_trav{ai_res};
+    std::vector<CNetAddr> resolved_addresses;
+    while (ai_trav != nullptr) {
+        if (ai_trav->ai_family == AF_INET) {
+            assert(ai_trav->ai_addrlen >= sizeof(sockaddr_in));
+            resolved_addresses.emplace_back(
+                reinterpret_cast<sockaddr_in *>(ai_trav->ai_addr)->sin_addr);
+        }
+        if (ai_trav->ai_family == AF_INET6) {
+            assert(ai_trav->ai_addrlen >= sizeof(sockaddr_in6));
+            const sockaddr_in6 *s6{
+                reinterpret_cast<sockaddr_in6 *>(ai_trav->ai_addr)};
+            resolved_addresses.emplace_back(s6->sin6_addr, s6->sin6_scope_id);
+        }
+        ai_trav = ai_trav->ai_next;
+    }
+    freeaddrinfo(ai_res);
+
+    return resolved_addresses;
+}
+
+DNSLookupFn g_dns_lookup{WrappedGetAddrInfo};
+
 enum Network ParseNetwork(const std::string &net_in) {
     std::string net = ToLower(net_in);
     if (net == "ipv4") {
@@ -104,7 +150,8 @@ std::vector<std::string> GetNetworkNames(bool append_unroutable) {
 }
 
 static bool LookupIntern(const std::string &name, std::vector<CNetAddr> &vIP,
-                         unsigned int nMaxSolutions, bool fAllowLookup) {
+                         unsigned int nMaxSolutions, bool fAllowLookup,
+                         DNSLookupFn dns_lookup_function) {
     vIP.clear();
 
     if (!ValidAsCString(name)) {
@@ -125,45 +172,9 @@ static bool LookupIntern(const std::string &name, std::vector<CNetAddr> &vIP,
         }
     }
 
-    struct addrinfo aiHint;
-    memset(&aiHint, 0, sizeof(struct addrinfo));
-
-    // We want a TCP port, which is a streaming socket type
-    aiHint.ai_socktype = SOCK_STREAM;
-    aiHint.ai_protocol = IPPROTO_TCP;
-    // We don't care which address family (IPv4 or IPv6) is returned
-    aiHint.ai_family = AF_UNSPEC;
-    // If we allow lookups of hostnames, use the AI_ADDRCONFIG flag to only
-    // return addresses whose family we have an address configured for.
-    //
-    // If we don't allow lookups, then use the AI_NUMERICHOST flag for
-    // getaddrinfo to only decode numerical network addresses and suppress
-    // hostname lookups.
-    aiHint.ai_flags = fAllowLookup ? AI_ADDRCONFIG : AI_NUMERICHOST;
-    struct addrinfo *aiRes = nullptr;
-    int nErr = getaddrinfo(name.c_str(), nullptr, &aiHint, &aiRes);
-    if (nErr) {
-        return false;
-    }
-
-    // Traverse the linked list starting with aiTrav, add all non-internal
-    // IPv4,v6 addresses to vIP while respecting nMaxSolutions.
-    struct addrinfo *aiTrav = aiRes;
-    while (aiTrav != nullptr &&
-           (nMaxSolutions == 0 || vIP.size() < nMaxSolutions)) {
-        CNetAddr resolved;
-        if (aiTrav->ai_family == AF_INET) {
-            assert(aiTrav->ai_addrlen >= sizeof(sockaddr_in));
-            resolved =
-                CNetAddr(reinterpret_cast<struct sockaddr_in *>(aiTrav->ai_addr)
-                             ->sin_addr);
-        }
-
-        if (aiTrav->ai_family == AF_INET6) {
-            assert(aiTrav->ai_addrlen >= sizeof(sockaddr_in6));
-            struct sockaddr_in6 *s6 =
-                reinterpret_cast<struct sockaddr_in6 *>(aiTrav->ai_addr);
-            resolved = CNetAddr(s6->sin6_addr, s6->sin6_scope_id);
+    for (const CNetAddr &resolved : dns_lookup_function(name, fAllowLookup)) {
+        if (nMaxSolutions > 0 && vIP.size() >= nMaxSolutions) {
+            break;
         }
 
         // Never allow resolving to an internal address. Consider any such
@@ -171,11 +182,7 @@ static bool LookupIntern(const std::string &name, std::vector<CNetAddr> &vIP,
         if (!resolved.IsInternal()) {
             vIP.push_back(resolved);
         }
-
-        aiTrav = aiTrav->ai_next;
     }
-
-    freeaddrinfo(aiRes);
 
     return (vIP.size() > 0);
 }
@@ -196,7 +203,8 @@ static bool LookupIntern(const std::string &name, std::vector<CNetAddr> &vIP,
  *      for additional parameter descriptions.
  */
 bool LookupHost(const std::string &name, std::vector<CNetAddr> &vIP,
-                unsigned int nMaxSolutions, bool fAllowLookup) {
+                unsigned int nMaxSolutions, bool fAllowLookup,
+                DNSLookupFn dns_lookup_function) {
     if (!ValidAsCString(name)) {
         return false;
     }
@@ -208,7 +216,8 @@ bool LookupHost(const std::string &name, std::vector<CNetAddr> &vIP,
         strHost = strHost.substr(1, strHost.size() - 2);
     }
 
-    return LookupIntern(strHost, vIP, nMaxSolutions, fAllowLookup);
+    return LookupIntern(strHost, vIP, nMaxSolutions, fAllowLookup,
+                        dns_lookup_function);
 }
 
 /**
@@ -217,12 +226,13 @@ bool LookupHost(const std::string &name, std::vector<CNetAddr> &vIP,
  * @see LookupHost(const std::string&, std::vector<CNetAddr>&, unsigned int,
  * bool) for additional parameter descriptions.
  */
-bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup) {
+bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
+                DNSLookupFn dns_lookup_function) {
     if (!ValidAsCString(name)) {
         return false;
     }
     std::vector<CNetAddr> vIP;
-    LookupHost(name, vIP, 1, fAllowLookup);
+    LookupHost(name, vIP, 1, fAllowLookup, dns_lookup_function);
     if (vIP.empty()) {
         return false;
     }
@@ -251,7 +261,8 @@ bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup) {
  *          resulting services.
  */
 bool Lookup(const std::string &name, std::vector<CService> &vAddr,
-            int portDefault, bool fAllowLookup, unsigned int nMaxSolutions) {
+            int portDefault, bool fAllowLookup, unsigned int nMaxSolutions,
+            DNSLookupFn dns_lookup_function) {
     if (name.empty() || !ValidAsCString(name)) {
         return false;
     }
@@ -260,7 +271,8 @@ bool Lookup(const std::string &name, std::vector<CService> &vAddr,
     SplitHostPort(name, port, hostname);
 
     std::vector<CNetAddr> vIP;
-    bool fRet = LookupIntern(hostname, vIP, nMaxSolutions, fAllowLookup);
+    bool fRet = LookupIntern(hostname, vIP, nMaxSolutions, fAllowLookup,
+                             dns_lookup_function);
     if (!fRet) {
         return false;
     }
@@ -278,12 +290,13 @@ bool Lookup(const std::string &name, std::vector<CService> &vAddr,
  *      for additional parameter descriptions.
  */
 bool Lookup(const std::string &name, CService &addr, int portDefault,
-            bool fAllowLookup) {
+            bool fAllowLookup, DNSLookupFn dns_lookup_function) {
     if (!ValidAsCString(name)) {
         return false;
     }
     std::vector<CService> vService;
-    bool fRet = Lookup(name, vService, portDefault, fAllowLookup, 1);
+    bool fRet = Lookup(name, vService, portDefault, fAllowLookup, 1,
+                       dns_lookup_function);
     if (!fRet) {
         return false;
     }
@@ -301,14 +314,15 @@ bool Lookup(const std::string &name, CService &addr, int portDefault,
  * @see Lookup(const char *, CService&, int, bool) for additional parameter
  *      descriptions.
  */
-CService LookupNumeric(const std::string &name, int portDefault) {
+CService LookupNumeric(const std::string &name, int portDefault,
+                       DNSLookupFn dns_lookup_function) {
     if (!ValidAsCString(name)) {
         return {};
     }
     CService addr;
     // "1.2:345" will fail to resolve the ip, but will still set the port.
     // If the ip fails to resolve, re-init the result.
-    if (!Lookup(name, addr, portDefault, false)) {
+    if (!Lookup(name, addr, portDefault, false, dns_lookup_function)) {
         addr = CService();
     }
     return addr;
@@ -880,7 +894,8 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
  *
  * @returns Whether the operation succeeded or not.
  */
-bool LookupSubNet(const std::string &strSubnet, CSubNet &ret) {
+bool LookupSubNet(const std::string &strSubnet, CSubNet &ret,
+                  DNSLookupFn dns_lookup_function) {
     if (!ValidAsCString(strSubnet)) {
         return false;
     }
@@ -889,8 +904,7 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &ret) {
 
     std::string strAddress = strSubnet.substr(0, slash);
     // TODO: Use LookupHost(const std::string&, CNetAddr&, bool) instead to just
-    // get one CNetAddr.
-    if (LookupHost(strAddress, vIP, 1, false)) {
+    if (LookupHost(strAddress, vIP, 1, false, dns_lookup_function)) {
         CNetAddr network = vIP[0];
         if (slash != strSubnet.npos) {
             std::string strNetmask = strSubnet.substr(slash + 1);
@@ -902,7 +916,8 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &ret) {
             } else {
                 // If not a valid number, try full netmask syntax
                 // Never allow lookup for netmask
-                if (LookupHost(strNetmask, vIP, 1, false)) {
+                if (LookupHost(strNetmask, vIP, 1, false,
+                               dns_lookup_function)) {
                     ret = CSubNet(network, vIP[0]);
                     return ret.IsValid();
                 }
