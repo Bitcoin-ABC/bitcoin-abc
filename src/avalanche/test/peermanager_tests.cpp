@@ -137,8 +137,7 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
         for (int k = 0; k < 100; k++) {
             uint64_t s = InsecureRandRange(max);
             auto i = selectPeerImpl(slots, s, max);
-            BOOST_CHECK(i == NO_PEER ||
-                        (slots[i].start <= s && s < slots[i].stop));
+            BOOST_CHECK(i == NO_PEER || slots[i].contains(s));
         }
     }
 }

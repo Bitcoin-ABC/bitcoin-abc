@@ -16,6 +16,10 @@ struct Slot {
     uint64_t stop;
 
     Slot(uint64_t startIn, uint64_t stopIn) : start(startIn), stop(stopIn) {}
+
+    bool contains(uint64_t slot) const { return start <= slot && slot < stop; }
+    bool precedes(uint64_t slot) const { return slot >= stop; }
+    bool follows(uint64_t slot) const { return start > slot; }
 };
 
 class PeerManager {

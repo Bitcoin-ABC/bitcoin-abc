@@ -72,19 +72,19 @@ size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
         size_t i = begin + ((slot - bottom) * (end - begin) / (top - bottom));
 
         // We have a match.
-        if (slots[i].start <= slot && slot < slots[i].stop) {
+        if (slots[i].contains(slot)) {
             return i;
         }
 
         // We undershooted.
-        if (slot >= slots[i].stop) {
+        if (slots[i].precedes(slot)) {
             begin = i + 1;
             bottom = slots[begin].start;
             continue;
         }
 
         // We overshooted.
-        if (slots[i].start > slot) {
+        if (slots[i].follows(slot)) {
             end = i;
             top = slots[end].start;
             continue;
@@ -97,7 +97,7 @@ size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
     // Enough of that nonsense, let fallback to linear search.
     for (size_t i = begin; i < end; i++) {
         // We have a match.
-        if (slots[i].start <= slot && slot < slots[i].stop) {
+        if (slots[i].contains(slot)) {
             return i;
         }
     }
