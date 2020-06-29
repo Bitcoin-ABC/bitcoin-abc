@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <avalanche/avalanche.h>
+#include <avalanche/processor.h>
 
 #include <config.h>
 #include <net_processing.h> // For PeerLogicValidation
@@ -41,7 +41,7 @@ struct CConnmanTest : public CConnman {
     }
 };
 
-BOOST_FIXTURE_TEST_SUITE(avalanche_tests, TestChain100Setup)
+BOOST_FIXTURE_TEST_SUITE(processor_tests, TestChain100Setup)
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, confidence)        \
     vr.registerVote(NO_NODE, vote);                                            \

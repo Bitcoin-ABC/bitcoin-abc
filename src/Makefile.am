@@ -114,8 +114,9 @@ BITCOIN_CORE_H = \
   addrdb.h \
   addrman.h \
   attributes.h \
-  avalanche/avalanche.h \
   avalanche/peermanager.h \
+  avalanche/processor.h \
+  avalanche/protocol.h \
   banman.h \
   base58.h \
   bloom.h \
@@ -294,8 +295,8 @@ libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
   addrdb.cpp \
   addrman.cpp \
-  avalanche/avalanche.cpp \
   avalanche/peermanager.cpp \
+  avalanche/processor.cpp \
   banman.cpp \
   blockencodings.cpp \
   blockfilter.cpp \

@@ -32,7 +32,7 @@ unsigned-integer-overflow:util/strencodings.cpp
 unsigned-integer-overflow:validation.cpp
 vptr:fs.cpp
 # Only occurs with the cmake build and clang-7
-vptr:avalanche_tests.cpp
+vptr:avalanche/test/processor_tests.cpp
 # The vptr suppressions are only necessary for clang < 9
 vptr:boost/test/tree/observer.hpp
 vptr:boost/system/error_code.hpp

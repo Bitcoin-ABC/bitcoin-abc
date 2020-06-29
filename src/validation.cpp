@@ -7,7 +7,7 @@
 #include <validation.h>
 
 #include <arith_uint256.h>
-#include <avalanche/avalanche.h>
+#include <avalanche/processor.h>
 #include <blockvalidity.h>
 #include <chainparams.h>
 #include <checkpoints.h>

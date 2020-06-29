@@ -12,8 +12,8 @@ add_boost_unit_tests_to_suite(avalanche test-avalanche
 	fixture.cpp
 
 	TESTS
-		avalanche_tests.cpp
 		peermanager_tests.cpp
+		processor_tests.cpp
 )
 
 target_link_libraries(test-avalanche server testutil)

@@ -6,7 +6,7 @@
 #include <net_processing.h>
 
 #include <addrman.h>
-#include <avalanche/avalanche.h>
+#include <avalanche/processor.h>
 #include <banman.h>
 #include <blockencodings.h>
 #include <blockvalidity.h>

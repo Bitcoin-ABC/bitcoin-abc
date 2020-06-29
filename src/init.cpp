@@ -11,7 +11,7 @@
 
 #include <addrman.h>
 #include <amount.h>
-#include <avalanche/avalanche.h>
+#include <avalanche/processor.h>
 #include <banman.h>
 #include <blockfilter.h>
 #include <chain.h>
