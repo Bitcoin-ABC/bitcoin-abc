@@ -7994,15 +7994,6 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
                                       std::atomic<bool> &interruptMsgProc) {
     AssertLockHeld(g_msgproc_mutex);
 
-    //
-    // Message format
-    //  (4) message start
-    //  (12) command
-    //  (4) size
-    //  (4) checksum
-    //  (x) data
-    //
-
     PeerRef peer = GetPeerRef(pfrom->GetId());
     if (peer == nullptr) {
         return false;
@@ -8057,44 +8048,8 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
                        /*is_incoming=*/true);
     }
 
-    // Check network magic
-    if (!msg.m_valid_netmagic) {
-        LogPrint(BCLog::NET,
-                 "PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n",
-                 SanitizeString(msg.m_type), pfrom->GetId());
-
-        // Make sure we discourage where that come from for some time.
-        if (m_banman) {
-            m_banman->Discourage(pfrom->addr);
-        }
-        m_connman.DisconnectNode(pfrom->addr);
-
-        pfrom->fDisconnect = true;
-        return false;
-    }
-
-    // Check header
-    if (!msg.m_valid_header) {
-        LogPrint(BCLog::NET, "PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n",
-                 SanitizeString(msg.m_type), pfrom->GetId());
-        return fMoreWork;
-    }
-
-    // Checksum
-    DataStream &vRecv = msg.m_recv;
-    if (!msg.m_valid_checksum) {
-        LogPrint(BCLog::NET, "%s(%s, %u bytes): CHECKSUM ERROR peer=%d\n",
-                 __func__, SanitizeString(msg.m_type), msg.m_message_size,
-                 pfrom->GetId());
-        if (m_banman) {
-            m_banman->Discourage(pfrom->addr);
-        }
-        m_connman.DisconnectNode(pfrom->addr);
-        return fMoreWork;
-    }
-
     try {
-        ProcessMessage(config, *pfrom, msg.m_type, vRecv, msg.m_time,
+        ProcessMessage(config, *pfrom, msg.m_type, msg.m_recv, msg.m_time,
                        interruptMsgProc);
         if (interruptMsgProc) {
             return false;

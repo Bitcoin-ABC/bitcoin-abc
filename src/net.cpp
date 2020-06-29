@@ -704,26 +704,37 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
         // Absorb network data.
         int handled = m_deserializer->Read(config, msg_bytes);
         if (handled < 0) {
+            // Serious header problem, disconnect from the peer.
             return false;
         }
 
         if (m_deserializer->Complete()) {
             // decompose a transport agnostic CNetMessage from the deserializer
-            CNetMessage msg = m_deserializer->GetMessage(config, time);
+            uint32_t out_err_raw_size{0};
+            std::optional<CNetMessage> result{
+                m_deserializer->GetMessage(time, out_err_raw_size)};
+            if (!result) {
+                // Message deserialization failed.
+                // Drop the message and disconnect the peer.
+                // store the size of the corrupt message
+                mapRecvBytesPerMsgType.find(NET_MESSAGE_TYPE_OTHER)->second +=
+                    out_err_raw_size;
+                return false;
+            }
 
             // Store received bytes per message type.
             // To prevent a memory DOS, only allow known message types.
             mapMsgTypeSize::iterator i =
-                mapRecvBytesPerMsgType.find(msg.m_type);
+                mapRecvBytesPerMsgType.find(result->m_type);
             if (i == mapRecvBytesPerMsgType.end()) {
                 i = mapRecvBytesPerMsgType.find(NET_MESSAGE_TYPE_OTHER);
             }
 
             assert(i != mapRecvBytesPerMsgType.end());
-            i->second += msg.m_raw_message_size;
+            i->second += result->m_raw_message_size;
 
             // push the message to the process queue,
-            vRecvMsg.push_back(std::move(msg));
+            vRecvMsg.push_back(std::move(*result));
 
             complete = true;
         }
@@ -750,12 +761,27 @@ int V1TransportDeserializer::readHeader(const Config &config,
     try {
         hdrbuf >> hdr;
     } catch (const std::exception &) {
+        LogPrint(BCLog::NET, "Header error: Unable to deserialize, peer=%d\n",
+                 m_node_id);
+        return -1;
+    }
+
+    // Check start string, network magic
+    if (memcmp(std::begin(hdr.pchMessageStart),
+               std::begin(m_config.GetChainParams().NetMagic()),
+               CMessageHeader::MESSAGE_START_SIZE) != 0) {
+        LogPrint(BCLog::NET,
+                 "Header error: Wrong MessageStart %s received, peer=%d\n",
+                 HexStr(hdr.pchMessageStart), m_node_id);
         return -1;
     }
 
     // Reject oversized messages
     if (hdr.IsOversized(config)) {
-        LogPrint(BCLog::NET, "Oversized header detected\n");
+        LogPrint(BCLog::NET,
+                 "Header error: Size too large (%s, %u bytes), peer=%d\n",
+                 SanitizeString(hdr.GetMessageType()), hdr.nMessageSize,
+                 m_node_id);
         return -1;
     }
 
@@ -790,46 +816,47 @@ const uint256 &V1TransportDeserializer::GetMessageHash() const {
     return data_hash;
 }
 
-CNetMessage
-V1TransportDeserializer::GetMessage(const Config &config,
-                                    const std::chrono::microseconds time) {
+std::optional<CNetMessage>
+V1TransportDeserializer::GetMessage(const std::chrono::microseconds time,
+                                    uint32_t &out_err_raw_size) {
     // decompose a single CNetMessage from the TransportDeserializer
-    CNetMessage msg(std::move(vRecv));
+    std::optional<CNetMessage> msg(std::move(vRecv));
 
-    // store state about valid header, netmagic and checksum
-    msg.m_valid_header = hdr.IsValid(config);
-    // FIXME Split CheckHeaderMagicAndCommand() into CheckHeaderMagic() and
-    // CheckCommand() to prevent the net magic check code duplication.
-    msg.m_valid_netmagic =
-        (memcmp(std::begin(hdr.pchMessageStart),
-                std::begin(config.GetChainParams().NetMagic()),
-                CMessageHeader::MESSAGE_START_SIZE) == 0);
+    // store message type string, time and sizes
+    msg->m_type = hdr.GetMessageType();
+    msg->m_time = time;
+    msg->m_message_size = hdr.nMessageSize;
+    msg->m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
+
     uint256 hash = GetMessageHash();
-
-    // store message type string, payload size
-    msg.m_type = hdr.GetMessageType();
-    msg.m_message_size = hdr.nMessageSize;
-    msg.m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
 
     // We just received a message off the wire, harvest entropy from the time
     // (and the message checksum)
     RandAddEvent(ReadLE32(hash.begin()));
 
-    msg.m_valid_checksum = (memcmp(hash.begin(), hdr.pchChecksum,
-                                   CMessageHeader::CHECKSUM_SIZE) == 0);
-
-    if (!msg.m_valid_checksum) {
+    // Check checksum and header command string
+    if (memcmp(hash.begin(), hdr.pchChecksum, CMessageHeader::CHECKSUM_SIZE) !=
+        0) {
+        LogPrint(
+            BCLog::NET,
+            "Header error: Wrong checksum (%s, %u bytes), expected %s was %s, "
+            "peer=%d\n",
+            SanitizeString(msg->m_type), msg->m_message_size,
+            HexStr(Span<uint8_t>(hash.begin(),
+                                 hash.begin() + CMessageHeader::CHECKSUM_SIZE)),
+            HexStr(hdr.pchChecksum), m_node_id);
+        out_err_raw_size = msg->m_raw_message_size;
+        msg = std::nullopt;
+    } else if (!hdr.IsMessageTypeValid()) {
         LogPrint(BCLog::NET,
-                 "CHECKSUM ERROR (%s, %u bytes), expected %s was %s\n",
-                 SanitizeString(msg.m_type), msg.m_message_size,
-                 HexStr(Span{hash}.first(CMessageHeader::CHECKSUM_SIZE)),
-                 HexStr(hdr.pchChecksum));
+                 "Header error: Invalid message type (%s, %u bytes), peer=%d\n",
+                 SanitizeString(hdr.GetMessageType()), msg->m_message_size,
+                 m_node_id);
+        out_err_raw_size = msg->m_raw_message_size;
+        msg = std::nullopt;
     }
 
-    // store receive time
-    msg.m_time = time;
-
-    // reset the network deserializer (prepare for the next message)
+    // Always reset the network deserializer (prepare for the next message)
     Reset();
     return msg;
 }
@@ -2982,7 +3009,7 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
              const std::string &addrNameIn, ConnectionType conn_type_in,
              bool inbound_onion, CNodeOptions &&node_opts)
     : m_deserializer{std::make_unique<V1TransportDeserializer>(
-          V1TransportDeserializer(GetConfig().GetChainParams().NetMagic()))},
+          V1TransportDeserializer(GetConfig(), GetId()))},
       m_serializer{
           std::make_unique<V1TransportSerializer>(V1TransportSerializer())},
       m_permission_flags{node_opts.permission_flags}, m_sock{sock},

@@ -99,16 +99,15 @@ BOOST_FIXTURE_TEST_CASE(process_verack_msg, MainNetSeederTestingSetup) {
                                  PeerMessagingState::AwaitingMessages);
 
     // Seeder should respond with an ADDR message
-    const CMessageHeader::MessageMagic netMagic = Params().NetMagic();
-    CMessageHeader header(netMagic);
+    CMessageHeader header;
     DataStream sendBuffer = testNode->getSendBuffer();
     sendBuffer >> header;
-    BOOST_CHECK(header.IsValidWithoutConfig(netMagic));
+    BOOST_CHECK(header.IsMessageTypeValid());
     BOOST_CHECK_EQUAL(header.GetMessageType(), NetMsgType::GETADDR);
 
     // Next message should be GETHEADERS
     sendBuffer >> header;
-    BOOST_CHECK(header.IsValidWithoutConfig(netMagic));
+    BOOST_CHECK(header.IsMessageTypeValid());
     BOOST_CHECK_EQUAL(header.GetMessageType(), NetMsgType::GETHEADERS);
 
     CBlockLocator locator;

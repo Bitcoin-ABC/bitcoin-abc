@@ -264,12 +264,10 @@ FUZZ_TARGET(service_deserialize) {
         assert(s.IsAddrV1Compatible());
     }
 }
-static const CMessageHeader::MessageMagic pchMessageStart = {
-    {0x00, 0x00, 0x00, 0x00}};
 FUZZ_TARGET_DESERIALIZE(messageheader_deserialize, {
-    CMessageHeader mh(pchMessageStart);
+    CMessageHeader mh;
     DeserializeFromFuzzingInput(buffer, mh);
-    (void)mh.IsValidWithoutConfig(pchMessageStart);
+    (void)mh.IsMessageTypeValid();
 })
 FUZZ_TARGET(address_deserialize) {
     FuzzedDataProvider fdp{buffer.data(), buffer.size()};

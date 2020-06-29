@@ -46,7 +46,7 @@ public:
                                           MESSAGE_SIZE_SIZE + CHECKSUM_SIZE;
     typedef std::array<uint8_t, MESSAGE_START_SIZE> MessageMagic;
 
-    explicit CMessageHeader(const MessageMagic &pchMessageStartIn);
+    explicit CMessageHeader();
 
     /**
      * Construct a P2P message header from message-start characters, a message
@@ -58,8 +58,7 @@ public:
                    unsigned int nMessageSizeIn);
 
     std::string GetMessageType() const;
-    bool IsValid(const Config &config) const;
-    bool IsValidWithoutConfig(const MessageMagic &magic) const;
+    bool IsMessageTypeValid() const;
     bool IsOversized(const Config &config) const;
 
     SERIALIZE_METHODS(CMessageHeader, obj) {

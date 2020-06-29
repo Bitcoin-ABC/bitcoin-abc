@@ -88,9 +88,8 @@ static const std::vector<std::string>
     allNetMessageTypesVec(std::begin(allNetMessageTypes),
                           std::end(allNetMessageTypes));
 
-CMessageHeader::CMessageHeader(const MessageMagic &pchMessageStartIn) {
-    memcpy(std::begin(pchMessageStart), std::begin(pchMessageStartIn),
-           MESSAGE_START_SIZE);
+CMessageHeader::CMessageHeader() {
+    memset(std::begin(pchMessageStart), 0, MESSAGE_START_SIZE);
     memset(m_msg_type.data(), 0, sizeof(m_msg_type));
     nMessageSize = -1;
     memset(pchChecksum, 0, CHECKSUM_SIZE);
@@ -123,24 +122,13 @@ std::string CMessageHeader::GetMessageType() const {
                            strnlen(m_msg_type.data(), MESSAGE_TYPE_SIZE));
 }
 
-static bool
-CheckHeaderMagicAndCommand(const CMessageHeader &header,
-                           const CMessageHeader::MessageMagic &magic) {
-    // Check start string
-    if (memcmp(std::begin(header.pchMessageStart), std::begin(magic),
-               CMessageHeader::MESSAGE_START_SIZE) != 0) {
-        return false;
-    }
-
+bool CMessageHeader::IsMessageTypeValid() const {
     // Check the message type string for errors
-    for (const char *p1 = header.m_msg_type.data();
-         p1 < header.m_msg_type.data() + CMessageHeader::MESSAGE_TYPE_SIZE;
-         p1++) {
+    for (const char *p1 = m_msg_type.data();
+         p1 < m_msg_type.data() + MESSAGE_TYPE_SIZE; p1++) {
         if (*p1 == 0) {
             // Must be all zeros after the first zero
-            for (; p1 <
-                   header.m_msg_type.data() + CMessageHeader::MESSAGE_TYPE_SIZE;
-                 p1++) {
+            for (; p1 < m_msg_type.data() + MESSAGE_TYPE_SIZE; ++p1) {
                 if (*p1 != 0) {
                     return false;
                 }
@@ -148,47 +136,6 @@ CheckHeaderMagicAndCommand(const CMessageHeader &header,
         } else if (*p1 < ' ' || *p1 > 0x7E) {
             return false;
         }
-    }
-
-    return true;
-}
-
-bool CMessageHeader::IsValid(const Config &config) const {
-    // Check start string
-    if (!CheckHeaderMagicAndCommand(*this,
-                                    config.GetChainParams().NetMagic())) {
-        return false;
-    }
-
-    // Message size
-    if (IsOversized(config)) {
-        LogPrintf("CMessageHeader::IsValid(): (%s, %u bytes) is oversized\n",
-                  GetMessageType(), nMessageSize);
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * This is a transition method in order to stay compatible with older code that
- * do not use the config. It assumes message will not get too large. This cannot
- * be used for any piece of code that will download blocks as blocks may be
- * bigger than the permitted size. Idealy, code that uses this function should
- * be migrated toward using the config.
- */
-bool CMessageHeader::IsValidWithoutConfig(const MessageMagic &magic) const {
-    // Check start string
-    if (!CheckHeaderMagicAndCommand(*this, magic)) {
-        return false;
-    }
-
-    // Message size
-    if (nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
-        LogPrintf(
-            "CMessageHeader::IsValidForSeeder(): (%s, %u bytes) is oversized\n",
-            GetMessageType(), nMessageSize);
-        return false;
     }
 
     return true;

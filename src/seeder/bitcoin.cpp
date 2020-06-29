@@ -192,7 +192,7 @@ bool CSeederNode::ProcessMessages() {
     do {
         DataStream::iterator pstart = std::search(
             vRecv.begin(), vRecv.end(), BEGIN(netMagic), END(netMagic));
-        uint32_t nHeaderSize = GetSerializeSize(CMessageHeader(netMagic));
+        uint32_t nHeaderSize = GetSerializeSize(CMessageHeader());
         if (vRecv.end() - pstart < nHeaderSize) {
             if (vRecv.size() > nHeaderSize) {
                 vRecv.erase(vRecv.begin(), vRecv.end() - nHeaderSize);
@@ -202,9 +202,9 @@ bool CSeederNode::ProcessMessages() {
         vRecv.erase(vRecv.begin(), pstart);
         std::vector<std::byte> vHeaderSave(vRecv.begin(),
                                            vRecv.begin() + nHeaderSize);
-        CMessageHeader hdr(netMagic);
+        CMessageHeader hdr;
         vRecv >> hdr;
-        if (!hdr.IsValidWithoutConfig(netMagic)) {
+        if (!hdr.IsMessageTypeValid()) {
             // tfm::format(std::cout, "%s: BAD (invalid header)\n",
             // ToString(you));
             ban = 100000;

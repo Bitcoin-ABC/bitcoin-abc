@@ -22,7 +22,7 @@ void initialize_p2p_transport_deserializer() {
 FUZZ_TARGET_INIT(p2p_transport_deserializer,
                  initialize_p2p_transport_deserializer) {
     const Config &config = GetConfig();
-    V1TransportDeserializer deserializer{config.GetChainParams().NetMagic()};
+    V1TransportDeserializer deserializer{config, NodeId(0)};
     Span<const uint8_t> msg_bytes{buffer};
     while (msg_bytes.size() > 0) {
         const int handled = deserializer.Read(config, msg_bytes);
@@ -32,17 +32,16 @@ FUZZ_TARGET_INIT(p2p_transport_deserializer,
         if (deserializer.Complete()) {
             const std::chrono::microseconds m_time{
                 std::numeric_limits<int64_t>::max()};
-            const CNetMessage msg = deserializer.GetMessage(config, m_time);
-            assert(msg.m_type.size() <= CMessageHeader::MESSAGE_TYPE_SIZE);
-            assert(msg.m_raw_message_size <= buffer.size());
-            assert(msg.m_raw_message_size ==
-                   CMessageHeader::HEADER_SIZE + msg.m_message_size);
-            assert(msg.m_time == m_time);
-            if (msg.m_valid_header) {
-                assert(msg.m_valid_netmagic);
-            }
-            if (!msg.m_valid_netmagic) {
-                assert(!msg.m_valid_header);
+            uint32_t out_err_raw_size{0};
+            std::optional<CNetMessage> result{
+                deserializer.GetMessage(m_time, out_err_raw_size)};
+            if (result) {
+                assert(result->m_type.size() <=
+                       CMessageHeader::MESSAGE_TYPE_SIZE);
+                assert(result->m_raw_message_size <= buffer.size());
+                assert(result->m_raw_message_size ==
+                       CMessageHeader::HEADER_SIZE + result->m_message_size);
+                assert(result->m_time == m_time);
             }
         }
     }

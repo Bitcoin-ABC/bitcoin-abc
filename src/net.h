@@ -262,9 +262,6 @@ public:
     DataStream m_recv;
     //! time of message receipt
     std::chrono::microseconds m_time{0};
-    bool m_valid_netmagic = false;
-    bool m_valid_header = false;
-    bool m_valid_checksum = false;
     //! size of the payload
     uint32_t m_message_size{0};
     //! used wire size of the message (including header/checksum)
@@ -294,13 +291,16 @@ public:
     /** read and deserialize data, advances msg_bytes data pointer */
     virtual int Read(const Config &config, Span<const uint8_t> &msg_bytes) = 0;
     // decomposes a message from the context
-    virtual CNetMessage GetMessage(const Config &config,
-                                   std::chrono::microseconds time) = 0;
+    virtual std::optional<CNetMessage>
+    GetMessage(std::chrono::microseconds time, uint32_t &out_err) = 0;
     virtual ~TransportDeserializer() {}
 };
 
 class V1TransportDeserializer final : public TransportDeserializer {
 private:
+    const Config &m_config;
+    // Only for logging
+    const NodeId m_node_id;
     mutable CHash256 hasher;
     mutable uint256 data_hash;
 
@@ -331,9 +331,8 @@ private:
     }
 
 public:
-    explicit V1TransportDeserializer(
-        const CMessageHeader::MessageMagic &pchMessageStartIn)
-        : hdr(pchMessageStartIn) {
+    explicit V1TransportDeserializer(const Config &config, const NodeId node_id)
+        : m_config(config), m_node_id(node_id) {
         Reset();
     }
 
@@ -355,8 +354,8 @@ public:
         return ret;
     }
 
-    CNetMessage GetMessage(const Config &config,
-                           std::chrono::microseconds time) override;
+    std::optional<CNetMessage> GetMessage(std::chrono::microseconds time,
+                                          uint32_t &out_err_raw_size) override;
 };
 
 /**
