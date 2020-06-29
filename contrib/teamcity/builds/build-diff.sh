@@ -19,14 +19,7 @@ run_test_bitcoin "with next upgrade activated" -phononactivationtime=1575158400
 # garbage output, see:
 # https://build.bitcoinabc.org/viewLog.html?buildId=29713&guest=1
 ninja check-leveldb
-ninja \
-  check-bitcoin-qt \
-  check-seeder \
-  check-bitcoin-util \
-  check-devtools \
-  check-rpcauth \
-  check-secp256k1 \
-  check-univalue \
+ninja check check-secp256k1 check-univalue
 
 # Functional tests
 ninja check-functional

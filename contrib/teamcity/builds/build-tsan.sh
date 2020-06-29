@@ -16,9 +16,6 @@ build_with_cmake --Werror --clang
 run_test_bitcoin "with thread sanitizer"
 
 # Libs and utils tests
-ninja \
-  check-bitcoin-qt \
-  check-seeder \
-  check-bitcoin-util \
+ninja check
 
 ninja check-functional

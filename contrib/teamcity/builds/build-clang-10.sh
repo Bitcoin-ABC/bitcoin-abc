@@ -16,11 +16,6 @@ CMAKE_FLAGS=(
 )
 build_with_cmake --Werror
 
-ninja \
-  test_bitcoin \
-  test_bitcoin-qt \
-  test-seeder \
-  secp256k1-tests \
-  secp256k1-exhaustive_tests
+ninja check check-secp256k1
 
 # TODO do the same with the latest GCC

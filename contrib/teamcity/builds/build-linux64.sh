@@ -19,11 +19,7 @@ build_with_cmake
 # Unit tests
 run_test_bitcoin "for Linux 64 bits"
 
-ninja \
-  check-bitcoin-qt \
-  check-seeder \
-  check-bitcoin-util \
-  check-secp256k1
+ninja check check-secp256k1
 
 # Functional tests
 ninja check-functional

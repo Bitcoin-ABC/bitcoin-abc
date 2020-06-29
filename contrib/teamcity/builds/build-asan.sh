@@ -21,10 +21,6 @@ build_with_cmake --Werror --clang
 
 run_test_bitcoin "with address sanitizer"
 
-# Libs and utils tests
-ninja \
-  check-bitcoin-qt \
-  check-seeder \
-  check-bitcoin-util \
+ninja check check-secp256k1
 
 ninja check-functional
