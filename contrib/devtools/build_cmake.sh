@@ -27,7 +27,7 @@ function usage() {
 
 mkdir -p "${BUILD_DIR}"
 cd ${BUILD_DIR}
-git clean -xffd
+git clean -xffd || true
 
 read -a CMAKE_FLAGS <<< "${CMAKE_FLAGS}"
 
