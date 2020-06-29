@@ -6,13 +6,46 @@
 
 #include <random.h>
 
-void PeerManager::addPeer(uint32_t score) {
+#include <cassert>
+
+PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
+    auto inserted = peerIndices.emplace(p, slots.size());
+    assert(inserted.second);
+
     const uint64_t start = slotCount;
-    slots.emplace_back(start, score);
+    slots.emplace_back(start, score, p);
     slotCount = start + score;
+    return p;
 }
 
-void PeerManager::rescorePeer(size_t i, uint32_t score) {
+bool PeerManager::removePeer(PeerId p) {
+    auto it = peerIndices.find(p);
+    if (it == peerIndices.end()) {
+        return false;
+    }
+
+    size_t i = it->second;
+    assert(i < slots.size());
+
+    if (i + 1 == slots.size()) {
+        slots.pop_back();
+        slotCount = slots.empty() ? 0 : slots.rbegin()->getStop();
+    } else {
+        fragmentation += slots[i].getScore();
+        slots[i] = slots[i].withPeerId(NO_PEER);
+    }
+
+    peerIndices.erase(it);
+    return true;
+}
+
+bool PeerManager::rescorePeer(PeerId p, uint32_t score) {
+    auto it = peerIndices.find(p);
+    if (it == peerIndices.end()) {
+        return false;
+    }
+
+    size_t i = it->second;
     assert(i < slots.size());
 
     const uint64_t start = slots[i].getStart();
@@ -21,7 +54,7 @@ void PeerManager::rescorePeer(size_t i, uint32_t score) {
     if (i + 1 == slots.size()) {
         slots[i] = slots[i].withScore(score);
         slotCount = slots[i].getStop();
-        return;
+        return true;
     }
 
     const uint64_t stop = start + score;
@@ -31,15 +64,21 @@ void PeerManager::rescorePeer(size_t i, uint32_t score) {
     if (stop <= nextStart) {
         fragmentation += (slots[i].getStop() - stop);
         slots[i] = slots[i].withScore(score);
-        return;
+        return true;
     }
 
-    // So we remove and insert a new entry.
-    addPeer(score);
-    removePeer(i);
+    // So we need to insert a new entry.
+    fragmentation += slots[i].getScore();
+    slots[i] = slots[i].withPeerId(NO_PEER);
+    it->second = slots.size();
+    const uint64_t newStart = slotCount;
+    slots.emplace_back(newStart, score, p);
+    slotCount = newStart + score;
+
+    return true;
 }
 
-size_t PeerManager::selectPeer() const {
+PeerId PeerManager::selectPeer() const {
     if (slots.empty()) {
         return NO_PEER;
     }
@@ -53,7 +92,7 @@ size_t PeerManager::selectPeer() const {
     }
 }
 
-size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
+PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
                       const uint64_t max) {
     assert(slot <= max);
 
@@ -73,7 +112,7 @@ size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
 
         // We have a match.
         if (slots[i].contains(slot)) {
-            return i;
+            return slots[i].getPeerId();
         }
 
         // We undershooted.
@@ -102,7 +141,7 @@ size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
     for (size_t i = begin; i < end; i++) {
         // We have a match.
         if (slots[i].contains(slot)) {
-            return i;
+            return slots[i].getPeerId();
         }
     }
 

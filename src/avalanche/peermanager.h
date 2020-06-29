@@ -5,25 +5,34 @@
 #ifndef BITCOIN_AVALANCHE_PEERMANAGER_H
 #define BITCOIN_AVALANCHE_PEERMANAGER_H
 
-#include <atomic>
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
-static constexpr size_t NO_PEER = ~size_t(0);
+using PeerId = uint32_t;
+static constexpr PeerId NO_PEER = ~uint32_t(0);
 
 struct Slot {
 private:
     uint64_t start;
     uint32_t score;
+    PeerId peerid;
 
 public:
-    Slot(uint64_t startIn, uint32_t scoreIn) : start(startIn), score(scoreIn) {}
+    Slot(uint64_t startIn, uint32_t scoreIn, PeerId peeridIn)
+        : start(startIn), score(scoreIn), peerid(peeridIn) {}
 
-    Slot withScore(uint64_t scoreIn) { return Slot(start, scoreIn); }
+    Slot withScore(uint64_t scoreIn) const {
+        return Slot(start, scoreIn, peerid);
+    }
+    Slot withPeerId(PeerId peeridIn) const {
+        return Slot(start, score, peeridIn);
+    }
 
     uint64_t getStart() const { return start; }
     uint64_t getStop() const { return start + score; }
     uint32_t getScore() const { return score; }
+    uint32_t getPeerId() const { return peerid; }
 
     bool contains(uint64_t slot) const {
         return getStart() <= slot && slot < getStop();
@@ -37,22 +46,28 @@ class PeerManager {
     uint64_t slotCount = 0;
     uint64_t fragmentation = 0;
 
-public:
-    void addPeer(uint32_t score);
-    void rescorePeer(size_t i, uint32_t score);
-    void removePeer(size_t i) { rescorePeer(i, 0); }
+    PeerId nextPeerId = 0;
+    std::unordered_map<PeerId, uint32_t> peerIndices;
 
-    size_t selectPeer() const;
+public:
+    PeerId addPeer(uint32_t score) { return addPeer(nextPeerId++, score); }
+    bool removePeer(PeerId p);
+    bool rescorePeer(PeerId p, uint32_t score);
+
+    PeerId selectPeer() const;
 
     // Accssors.
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
+
+private:
+    PeerId addPeer(PeerId peerid, uint32_t score);
 };
 
 /**
  * This is an internal method that is exposed for testing purposes.
  */
-size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
+PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
                       const uint64_t max);
 
 #endif // BITCOIN_AVALANCHE_PEERMANAGER_H

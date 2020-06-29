@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl({}, 1, 3), NO_PEER);
 
     // One peer
-    const std::vector<Slot> oneslot = {{100, 100}};
+    const std::vector<Slot> oneslot = {{100, 100, 23}};
 
     // Undershoot
     BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 0, 300), NO_PEER);
@@ -24,9 +24,9 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 99, 300), NO_PEER);
 
     // Nailed it
-    BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 100, 300), 0);
-    BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 142, 300), 0);
-    BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 199, 300), 0);
+    BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 100, 300), 23);
+    BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 142, 300), 23);
+    BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 199, 300), 23);
 
     // Overshoot
     BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 200, 300), NO_PEER);
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl(oneslot, 299, 300), NO_PEER);
 
     // Two peers
-    const std::vector<Slot> twoslots = {{100, 100}, {300, 100}};
+    const std::vector<Slot> twoslots = {{100, 100, 69}, {300, 100, 42}};
 
     // Undershoot
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 0, 500), NO_PEER);
@@ -42,9 +42,9 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 99, 500), NO_PEER);
 
     // First entry
-    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 100, 500), 0);
-    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 142, 500), 0);
-    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 199, 500), 0);
+    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 100, 500), 69);
+    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 142, 500), 69);
+    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 199, 500), 69);
 
     // In betwenn
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 200, 500), NO_PEER);
@@ -52,9 +52,9 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 299, 500), NO_PEER);
 
     // Second entry
-    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 300, 500), 1);
-    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 342, 500), 1);
-    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 399, 500), 1);
+    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 300, 500), 42);
+    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 342, 500), 42);
+    BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 399, 500), 42);
 
     // Overshoot
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 400, 500), NO_PEER);
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
     // 100 peers of size 1 with 1 empty element apart.
     uint64_t max = 1;
     for (int i = 0; i < 100; i++) {
-        slots.emplace_back(max, 1);
+        slots.emplace_back(max, 1, i);
         max += 2;
     }
 
@@ -99,10 +99,11 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
 
     // Update the slots to be heavily skewed toward the first element.
     for (int i = 0; i < 100; i++) {
-        slots[i] = Slot(slots[i].getStart() + 100, slots[i].getScore());
+        slots[i] = Slot(slots[i].getStart() + 100, slots[i].getScore(),
+                        slots[i].getPeerId());
     }
 
-    slots[0] = Slot(1, slots[0].getStop() - 1);
+    slots[0] = Slot(1, slots[0].getStop() - 1, slots[0].getPeerId());
     slots[99] = slots[99].withScore(1);
     max = slots[99].getStop();
     BOOST_CHECK_EQUAL(max, 300);
@@ -134,12 +135,14 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
             const uint64_t start = next();
             const uint32_t score = InsecureRandBits(3);
             max += score;
-            slots.emplace_back(start, score);
+            slots.emplace_back(start, score, i);
         }
 
         for (int k = 0; k < 100; k++) {
             uint64_t s = InsecureRandRange(max);
             auto i = selectPeerImpl(slots, s, max);
+            // /!\ Because of the way we construct the vector, the peer id is
+            // always the index. This might not be the case in practice.
             BOOST_CHECK(i == NO_PEER || slots[i].contains(s));
         }
     }
@@ -151,28 +154,28 @@ BOOST_AUTO_TEST_CASE(add_peer) {
     BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
 
     // One peer, we always return it.
-    pm.addPeer(100);
-    BOOST_CHECK_EQUAL(pm.selectPeer(), 0);
+    PeerId peer0 = pm.addPeer(100);
+    BOOST_CHECK_EQUAL(pm.selectPeer(), peer0);
 
     // Two peers, verify ratio.
-    pm.addPeer(200);
+    PeerId peer1 = pm.addPeer(200);
 
-    std::array<int, 3> results = {};
+    std::unordered_map<PeerId, int> results = {};
     for (int i = 0; i < 10000; i++) {
         size_t p = pm.selectPeer();
-        BOOST_CHECK(p <= 1);
+        BOOST_CHECK(p == peer0 || p == peer1);
         results[p]++;
     }
 
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    pm.addPeer(100);
+    PeerId peer2 = pm.addPeer(100);
 
-    results = {};
+    results.clear();
     for (int i = 0; i < 10000; i++) {
         size_t p = pm.selectPeer();
-        BOOST_CHECK(p <= 2);
+        BOOST_CHECK(p == peer0 || p == peer1 || p == peer2);
         results[p]++;
     }
 
@@ -185,37 +188,58 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
 
     // Add 4 peers.
+    std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        pm.addPeer(100);
+        peerids[i] = pm.addPeer(100);
     }
 
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+
     for (int i = 0; i < 100; i++) {
-        size_t p = pm.selectPeer();
-        BOOST_CHECK(p <= 4);
+        PeerId p = pm.selectPeer();
+        BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
+                    p == peerids[3]);
     }
 
     // Remove one peer, it nevers show up now.
-    pm.removePeer(3);
+    BOOST_CHECK(pm.removePeer(peerids[2]));
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+
     for (int i = 0; i < 100; i++) {
-        size_t p = pm.selectPeer();
-        BOOST_CHECK(p < 4);
-        BOOST_CHECK(p != 3);
+        PeerId p = pm.selectPeer();
+        BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[3]);
     }
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        pm.addPeer(100);
+        peerids[i + 4] = pm.addPeer(100);
     }
 
-    pm.removePeer(0);
-    pm.removePeer(7);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 800);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+
+    BOOST_CHECK(pm.removePeer(peerids[0]));
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 800);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 200);
+
+    // Removing the last entry do not increase fragmentation.
+    BOOST_CHECK(pm.removePeer(peerids[7]));
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 200);
+
     for (int i = 0; i < 100; i++) {
-        size_t p = pm.selectPeer();
-        BOOST_CHECK(p < 8);
-        BOOST_CHECK(p != 0);
-        BOOST_CHECK(p != 3);
-        BOOST_CHECK(p != 7);
+        PeerId p = pm.selectPeer();
+        BOOST_CHECK(p == peerids[1] || p == peerids[3] || p == peerids[4] ||
+                    p == peerids[5] || p == peerids[6]);
     }
+
+    // Removing non existent peers fails.
+    BOOST_CHECK(!pm.removePeer(peerids[0]));
+    BOOST_CHECK(!pm.removePeer(peerids[2]));
+    BOOST_CHECK(!pm.removePeer(peerids[7]));
+    BOOST_CHECK(!pm.removePeer(NO_PEER));
 }
 
 BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
@@ -224,52 +248,57 @@ BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
     BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
 
     // Add 4 peers.
+    std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        pm.addPeer(100);
+        peerids[i] = pm.addPeer(100);
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     for (int i = 0; i < 100; i++) {
-        size_t p = pm.selectPeer();
-        BOOST_CHECK(p <= 4);
+        PeerId p = pm.selectPeer();
+        BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
+                    p == peerids[3]);
     }
 
     // Set one peer's score to 0, it nevers show up now.
-    pm.rescorePeer(1, 0);
+    BOOST_CHECK(pm.rescorePeer(peerids[1], 0));
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
 
     for (int i = 0; i < 100; i++) {
-        size_t p = pm.selectPeer();
-        BOOST_CHECK(p < 4);
-        BOOST_CHECK(p != 1);
+        PeerId p = pm.selectPeer();
+        BOOST_CHECK(p == peerids[0] || p == peerids[2] || p == peerids[3]);
     }
 
     // "resurrect" the peer.
-    pm.rescorePeer(1, 100);
+    BOOST_CHECK(pm.rescorePeer(peerids[1], 100));
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     while (true) {
-        size_t p = pm.selectPeer();
-        if (p == 1) {
+        PeerId p = pm.selectPeer();
+        BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
+                    p == peerids[3]);
+        // Make sure peer 1 reappeared.
+        if (p == peerids[1]) {
             break;
         }
     }
 
     // Grow the peer to a point where it needs to be reallocated.
-    pm.rescorePeer(1, 200);
+    BOOST_CHECK(pm.rescorePeer(peerids[1], 200));
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 600);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
 
     for (int i = 0; i < 25; i++) {
         while (true) {
-            size_t p = pm.selectPeer();
-            BOOST_CHECK(p < 5);
-            BOOST_CHECK(p != 1);
-            if (p == 4) {
+            PeerId p = pm.selectPeer();
+            BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
+                        p == peerids[3]);
+            // Make sure peer 1 reappeared.
+            if (p == peerids[1]) {
                 break;
             }
         }
