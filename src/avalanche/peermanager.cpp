@@ -6,13 +6,13 @@
 
 #include <random.h>
 
-void PeerManager::addPeer(uint64_t score) {
+void PeerManager::addPeer(uint32_t score) {
     const uint64_t start = slotCount;
     slots.emplace_back(start, score);
     slotCount = start + score;
 }
 
-void PeerManager::rescorePeer(size_t i, uint64_t score) {
+void PeerManager::rescorePeer(size_t i, uint32_t score) {
     assert(i < slots.size());
 
     const uint64_t start = slots[i].getStart();
