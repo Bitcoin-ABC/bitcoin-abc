@@ -14,19 +14,22 @@ static constexpr size_t NO_PEER = ~size_t(0);
 struct Slot {
 private:
     uint64_t start;
-    uint64_t stop;
+    uint64_t score;
 
 public:
-    Slot(uint64_t startIn, uint64_t stopIn) : start(startIn), stop(stopIn) {}
+    Slot(uint64_t startIn, uint64_t stop)
+        : start(startIn), score(stop - start) {}
 
-    Slot withScore(uint64_t score) { return Slot(start, start + score); }
+    Slot withScore(uint64_t scoreIn) { return Slot(start, start + scoreIn); }
 
     uint64_t getStart() const { return start; }
-    uint64_t getStop() const { return stop; }
+    uint64_t getStop() const { return start + score; }
 
-    bool contains(uint64_t slot) const { return start <= slot && slot < stop; }
-    bool precedes(uint64_t slot) const { return slot >= stop; }
-    bool follows(uint64_t slot) const { return start > slot; }
+    bool contains(uint64_t slot) const {
+        return getStart() <= slot && slot < getStop();
+    }
+    bool precedes(uint64_t slot) const { return slot >= getStop(); }
+    bool follows(uint64_t slot) const { return getStart() > slot; }
 };
 
 class PeerManager {
