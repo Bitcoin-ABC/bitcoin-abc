@@ -147,11 +147,22 @@ EOTEXT
     }
     unset($token);
 
+    // Get the configured committer name and email similar to how
+    // ArcanistGitAPI::getAuthor() does. Arcanist provides no API for this.
+    list($gitIdent) = $repositoryApi->execxLocal('var GIT_COMMITTER_IDENT');
+    $committerName = preg_replace('/\s+<.*/', '',
+      rtrim($gitIdent, "\n"));
+    preg_match('/<(.*)>/', rtrim($gitIdent, "\n"),
+      $gitAuthorEmailMatches);
+    $committerEmail = $gitAuthorEmailMatches[1];
+
     // Prepare cURL request to land bot
     $ch = curl_init('https://buildbot.bitcoinabc.org/land');
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
       'Content-Type:application/json', 'Accept:application/json'));
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(array(
+      "committerName" => $committerName,
+      "committerEmail" => $committerEmail,
       "revision" => $revision,
       "conduitToken" => $encryptedToken)));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
