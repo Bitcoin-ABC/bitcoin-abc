@@ -1635,24 +1635,25 @@ static UniValue getchaintips(const Config &config,
     }
         .Check(request);
 
+    ChainstateManager &chainman = EnsureChainman(request.context);
     LOCK(cs_main);
 
     /**
-     * Idea:  the set of chain tips is ::ChainActive().tip, plus orphan blocks
+     * Idea: The set of chain tips is the active chain tip, plus orphan blocks
      * which do not have another orphan building off of them. Algorithm:
      *  - Make one pass through BlockIndex(), picking out the orphan
      * blocks, and also storing a set of the orphan block's pprev pointers.
      *  - Iterate through the orphan blocks. If the block isn't pointed to by
      * another orphan, it is a chain tip.
-     *  - add ::ChainActive().Tip()
+     *  - Add the active chain tip
      */
     std::set<const CBlockIndex *, CompareBlocksByHeight> setTips;
     std::set<const CBlockIndex *> setOrphans;
     std::set<const CBlockIndex *> setPrevs;
 
     for (const std::pair<const BlockHash, CBlockIndex *> &item :
-         ::BlockIndex()) {
-        if (!::ChainActive().Contains(item.second)) {
+         chainman.BlockIndex()) {
+        if (!chainman.ActiveChain().Contains(item.second)) {
             setOrphans.insert(item.second);
             setPrevs.insert(item.second->pprev);
         }
@@ -1666,7 +1667,7 @@ static UniValue getchaintips(const Config &config,
     }
 
     // Always report the currently active tip.
-    setTips.insert(::ChainActive().Tip());
+    setTips.insert(chainman.ActiveChain().Tip());
 
     /* Construct the output array.  */
     UniValue res(UniValue::VARR);
@@ -1676,11 +1677,11 @@ static UniValue getchaintips(const Config &config,
         obj.pushKV("hash", block->phashBlock->GetHex());
 
         const int branchLen =
-            block->nHeight - ::ChainActive().FindFork(block)->nHeight;
+            block->nHeight - chainman.ActiveChain().FindFork(block)->nHeight;
         obj.pushKV("branchlen", branchLen);
 
         std::string status;
-        if (::ChainActive().Contains(block)) {
+        if (chainman.ActiveChain().Contains(block)) {
             // This block is part of the currently active chain.
             status = "active";
         } else if (block->nStatus.isInvalid()) {
