@@ -17,7 +17,6 @@
 #include <key_io.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
-#include <policy/settings.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <random.h>
@@ -2904,10 +2903,10 @@ bool CWallet::SelectCoinsMinConf(
         CFeeRate long_term_feerate = GetMinimumFeeRate(*this, temp);
 
         // Calculate cost of change
-        Amount cost_of_change =
-            dustRelayFee.GetFee(coin_selection_params.change_spend_size) +
-            coin_selection_params.effective_fee.GetFee(
-                coin_selection_params.change_output_size);
+        Amount cost_of_change = chain().relayDustFee().GetFee(
+                                    coin_selection_params.change_spend_size) +
+                                coin_selection_params.effective_fee.GetFee(
+                                    coin_selection_params.change_output_size);
 
         // Filter by the min conf specs and add to utxo_pool and calculate
         // effective value
@@ -3473,7 +3472,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                 // Never create dust outputs; if we would, just add the dust to
                 // the fee.
                 // The nChange when BnB is used is always going to go to fees.
-                if (IsDust(newTxOut, dustRelayFee) || bnb_used) {
+                if (IsDust(newTxOut, chain().relayDustFee()) || bnb_used) {
                     nChangePosInOut = -1;
                     nFeeRet += nChange;
                 } else {
@@ -3530,8 +3529,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                         nBytes + coin_selection_params.change_output_size + 2;
                     Amount fee_needed_with_change =
                         GetMinimumFee(*this, tx_size_with_change, coinControl);
-                    Amount minimum_value_for_change =
-                        GetDustThreshold(change_prototype_txout, dustRelayFee);
+                    Amount minimum_value_for_change = GetDustThreshold(
+                        change_prototype_txout, chain().relayDustFee());
                     if (nFeeRet >=
                         fee_needed_with_change + minimum_value_for_change) {
                         pick_new_inputs = false;
