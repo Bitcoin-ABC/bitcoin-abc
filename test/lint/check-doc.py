@@ -48,6 +48,8 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-dbcrashratio',
                                        '-automaticunparking',
                                        # Remove after May 2020 upgrade
                                        '-phononactivationtime',
+                                       # Remove after November 2020 upgrade
+                                       '-axionactivationtime',
                                        '-replayprotectionactivationtime',
                                        ])
 

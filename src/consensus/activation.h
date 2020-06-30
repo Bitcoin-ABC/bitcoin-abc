@@ -35,4 +35,8 @@ bool IsGravitonEnabled(const Consensus::Params &params,
 bool IsPhononEnabled(const Consensus::Params &params,
                      const CBlockIndex *pindexPrev);
 
+/** Check if November 15th, 2020 protocol upgrade has activated. */
+bool IsAxionEnabled(const Consensus::Params &params,
+                    const CBlockIndex *pindexPrev);
+
 #endif // BITCOIN_CONSENSUS_ACTIVATION_H
