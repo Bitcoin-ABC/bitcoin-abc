@@ -12,7 +12,7 @@ build_with_cmake --Werror
 
 # Unit tests
 run_test_bitcoin
-run_test_bitcoin "with next upgrade activated" -phononactivationtime=1575158400
+run_test_bitcoin "with next upgrade activated" -axionactivationtime=1575158400
 
 # Libs and tools tests
 # The leveldb tests need to run alone or they will sometimes fail with
