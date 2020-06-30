@@ -472,6 +472,7 @@ add_library(bitcoinconsensus
 	pubkey.cpp
 	uint256.cpp
 	util/strencodings.cpp
+	consensus/tx_check.cpp
 )
 
 target_link_libraries(bitcoinconsensus script)
@@ -504,7 +505,6 @@ add_library(server
 	config.cpp
 	consensus/activation.cpp
 	consensus/tx_verify.cpp
-	consensus/tx_check.cpp
 	dbwrapper.cpp
 	flatfile.cpp
 	httprpc.cpp
