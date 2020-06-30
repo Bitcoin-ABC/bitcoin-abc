@@ -14,3 +14,7 @@ deadlock:src/qt/test/*
 # External libraries
 deadlock:libdb
 race:libzmq
+
+# Reverselock tests is triggering lock-order-inversion errors when run as part
+# of test_bitcoin.
+deadlock:reverselock_tests::reverselock_errors
