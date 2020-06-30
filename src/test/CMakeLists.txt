@@ -237,7 +237,7 @@ function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
 			"${_test_name}"
 			${EXECUTABLE} -t "${_test_name}"
 			# Dec. 1st, 2019 at 00:00:00
-			-- -phononactivationtime=1575158400
+			-- -axionactivationtime=1575158400
 		)
 	endforeach()
 endfunction()
