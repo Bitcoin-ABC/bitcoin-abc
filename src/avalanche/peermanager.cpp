@@ -70,6 +70,7 @@ size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
 
         // Guesstimate the position of the slot.
         size_t i = begin + ((slot - bottom) * (end - begin) / (top - bottom));
+        assert(begin <= i && i < end);
 
         // We have a match.
         if (slots[i].contains(slot)) {
@@ -79,6 +80,10 @@ size_t selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
         // We undershooted.
         if (slots[i].precedes(slot)) {
             begin = i + 1;
+            if (begin >= end) {
+                return NO_PEER;
+            }
+
             bottom = slots[begin].getStart();
             continue;
         }
