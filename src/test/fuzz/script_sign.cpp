@@ -132,7 +132,7 @@ FUZZ_TARGET_INIT(script_sign, initialize_script_sign) {
                     SigHashType(
                         fuzzed_data_provider.ConsumeIntegral<uint32_t>()));
                 MutableTransactionSignatureCreator signature_creator{
-                    &tx_to, n_in, ConsumeMoney(fuzzed_data_provider),
+                    tx_to, n_in, ConsumeMoney(fuzzed_data_provider),
                     SigHashType(
                         fuzzed_data_provider.ConsumeIntegral<uint32_t>())};
                 std::vector<uint8_t> vch_sig;

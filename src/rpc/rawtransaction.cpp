@@ -519,7 +519,7 @@ static RPCHelpMan combinerawtransaction() {
                 }
                 ProduceSignature(DUMMY_SIGNING_PROVIDER,
                                  MutableTransactionSignatureCreator(
-                                     &mergedTx, i, txout.nValue),
+                                     mergedTx, i, txout.nValue),
                                  txout.scriptPubKey, sigdata);
 
                 UpdateInput(txin, sigdata);

@@ -2715,7 +2715,7 @@ SignatureData CombineSignatures(const CTxOut &txout,
     data.MergeSignatureData(scriptSig1);
     data.MergeSignatureData(scriptSig2);
     ProduceSignature(DUMMY_SIGNING_PROVIDER,
-                     MutableTransactionSignatureCreator(&tx, 0, txout.nValue),
+                     MutableTransactionSignatureCreator(tx, 0, txout.nValue),
                      txout.scriptPubKey, data);
     return data;
 }

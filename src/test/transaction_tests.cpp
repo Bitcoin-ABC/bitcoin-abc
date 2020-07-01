@@ -464,7 +464,7 @@ SignatureData CombineSignatures(const CMutableTransaction &input1,
     sigdata.MergeSignatureData(DataFromTransaction(input2, 0, tx->vout[0]));
     ProduceSignature(
         DUMMY_SIGNING_PROVIDER,
-        MutableTransactionSignatureCreator(&input1, 0, tx->vout[0].nValue),
+        MutableTransactionSignatureCreator(input1, 0, tx->vout[0].nValue),
         tx->vout[0].scriptPubKey, sigdata);
     return sigdata;
 }

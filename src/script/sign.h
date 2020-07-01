@@ -6,6 +6,7 @@
 #ifndef BITCOIN_SCRIPT_SIGN_H
 #define BITCOIN_SCRIPT_SIGN_H
 
+#include <attributes.h>
 #include <coins.h>
 #include <hash.h>
 #include <pubkey.h>
@@ -36,7 +37,7 @@ public:
 
 /** A signature creator for transactions. */
 class MutableTransactionSignatureCreator : public BaseSignatureCreator {
-    const CMutableTransaction *txTo;
+    const CMutableTransaction &m_txto;
     unsigned int nIn;
     Amount amount;
     SigHashType sigHashType;
@@ -44,7 +45,7 @@ class MutableTransactionSignatureCreator : public BaseSignatureCreator {
 
 public:
     MutableTransactionSignatureCreator(
-        const CMutableTransaction *tx, unsigned int input_idx,
+        const CMutableTransaction &tx LIFETIMEBOUND, unsigned int input_idx,
         const Amount &amount, SigHashType sig_hash_type = SigHashType());
     const BaseSignatureChecker &Checker() const override { return checker; }
     bool CreateSig(const SigningProvider &provider,
