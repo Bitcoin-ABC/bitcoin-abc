@@ -29,7 +29,7 @@ bool PeerManager::removePeer(PeerId p) {
 
     if (i + 1 == slots.size()) {
         slots.pop_back();
-        slotCount = slots.empty() ? 0 : slots.rbegin()->getStop();
+        slotCount = slots.empty() ? 0 : slots.back().getStop();
     } else {
         fragmentation += slots[i].getScore();
         slots[i] = slots[i].withPeerId(NO_PEER);
@@ -90,6 +90,80 @@ PeerId PeerManager::selectPeer() const {
             return i;
         }
     }
+}
+
+uint64_t PeerManager::compact() {
+    auto clearLastElements = [this] {
+        while (!slots.empty() && slots.back().getPeerId() == NO_PEER) {
+            slots.pop_back();
+        }
+    };
+
+    // Always make sure that the last element is not dead.
+    clearLastElements();
+
+    uint64_t prevStop = 0;
+    for (size_t i = 0; i < slots.size(); i++) {
+        if (slots[i].getPeerId() != NO_PEER) {
+            // This element is good, just slide it to the right position.
+            slots[i] = slots[i].withStart(prevStop);
+            prevStop = slots[i].getStop();
+            continue;
+        }
+
+        // This element is dead, put the last one it its place.
+        slots[i] = slots.back().withStart(prevStop);
+        prevStop = slots[i].getStop();
+
+        assert(slots[i].getPeerId() != NO_PEER);
+        peerIndices[slots[i].getPeerId()] = i;
+
+        slots.pop_back();
+        clearLastElements();
+    }
+
+    const uint64_t saved = slotCount - prevStop;
+    slotCount = prevStop;
+    fragmentation = 0;
+
+    return saved;
+}
+
+bool PeerManager::verify() const {
+    uint64_t prevStop = 0;
+    for (size_t i = 0; i < slots.size(); i++) {
+        const Slot &s = slots[i];
+
+        // Slots must be in correct order.
+        if (s.getStart() < prevStop) {
+            return false;
+        }
+
+        prevStop = s.getStop();
+
+        // If this is a dead slot, then nothing more needs to be checked.
+        if (s.getPeerId() == NO_PEER) {
+            continue;
+        }
+
+        // We have a live slot, verify index.
+        auto it = peerIndices.find(s.getPeerId());
+        if (it == peerIndices.end() || it->second != i) {
+            return false;
+        }
+    }
+
+    for (const auto &pair : peerIndices) {
+        auto p = pair.first;
+        auto i = pair.second;
+
+        // The index must point to a slot refering to this peer.
+        if (i >= slots.size() || slots[i].getPeerId() != p) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,

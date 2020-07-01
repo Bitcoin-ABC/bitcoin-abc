@@ -22,6 +22,9 @@ public:
     Slot(uint64_t startIn, uint32_t scoreIn, PeerId peeridIn)
         : start(startIn), score(scoreIn), peerid(peeridIn) {}
 
+    Slot withStart(uint64_t startIn) const {
+        return Slot(startIn, score, peerid);
+    }
     Slot withScore(uint64_t scoreIn) const {
         return Slot(start, scoreIn, peerid);
     }
@@ -55,6 +58,18 @@ public:
     bool rescorePeer(PeerId p, uint32_t score);
 
     PeerId selectPeer() const;
+
+    /**
+     * Trigger maintenance of internal datastructures.
+     * Returns how much slot space was saved after compaction.
+     */
+    uint64_t compact();
+
+    /**
+     * Perform consistency check on internal data structures.
+     * Mostly useful for tests.
+     */
+    bool verify() const;
 
     // Accssors.
     uint64_t getSlotCount() const { return slotCount; }

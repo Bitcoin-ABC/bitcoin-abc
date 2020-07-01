@@ -99,8 +99,7 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
 
     // Update the slots to be heavily skewed toward the first element.
     for (int i = 0; i < 100; i++) {
-        slots[i] = Slot(slots[i].getStart() + 100, slots[i].getScore(),
-                        slots[i].getPeerId());
+        slots[i] = slots[i].withStart(slots[i].getStart() + 100);
     }
 
     slots[0] = Slot(1, slots[0].getStop() - 1, slots[0].getPeerId());
@@ -240,6 +239,12 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     BOOST_CHECK(!pm.removePeer(peerids[2]));
     BOOST_CHECK(!pm.removePeer(peerids[7]));
     BOOST_CHECK(!pm.removePeer(NO_PEER));
+
+    // Compact the peer manager.
+    BOOST_CHECK_EQUAL(pm.compact(), 200);
+    BOOST_CHECK(pm.verify());
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 500);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
@@ -303,6 +308,34 @@ BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
             }
         }
     }
+
+    // Compact the peer manager.
+    BOOST_CHECK_EQUAL(pm.compact(), 100);
+    BOOST_CHECK(pm.verify());
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 500);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(compact_slots) {
+    PeerManager pm;
+
+    // Add 4 peers.
+    std::array<PeerId, 4> peerids;
+    for (int i = 0; i < 4; i++) {
+        peerids[i] = pm.addPeer(100);
+    }
+
+    // Remove all peers.
+    for (auto p : peerids) {
+        pm.removePeer(p);
+    }
+
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 300);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 300);
+    BOOST_CHECK_EQUAL(pm.compact(), 300);
+    BOOST_CHECK(pm.verify());
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 0);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
