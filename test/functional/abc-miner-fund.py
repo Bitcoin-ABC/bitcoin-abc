@@ -32,8 +32,7 @@ class MinerFundTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [
-            ['-enableminerfund', "-phononactivationtime={}".format(PHONON_ACTIVATION_TIME)]]
+        self.extra_args = [['-enableminerfund']]
 
     def check_bip9_state(self, name, status):
         miner_fund_info = self.nodes[0].getblockchaininfo()['softforks'][name]
@@ -110,8 +109,8 @@ class MinerFundTest(BitcoinTestFramework):
         version = VERSION_BASE | (1 << bit)
 
         self.stop_node(0)
-        self.start_node(0,
-                        ['-enableminerfund', "-blockversion={}".format(version), "-phononactivationtime={}".format(PHONON_ACTIVATION_TIME)])
+        self.start_node(
+            0, ['-enableminerfund', "-blockversion={}".format(version)])
 
         node = self.nodes[0]
         node.setmocktime(1580000000)
