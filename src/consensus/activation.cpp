@@ -68,8 +68,7 @@ bool IsPhononEnabled(const Consensus::Params &params,
         return false;
     }
 
-    return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetArg("-phononactivationtime", params.phononActivationTime);
+    return pindexPrev->GetMedianTimePast() >= params.phononActivationTime;
 }
 
 bool IsAxionEnabled(const Consensus::Params &params,

@@ -42,11 +42,8 @@ BOOST_AUTO_TEST_CASE(isgravitonenabled) {
 }
 
 BOOST_AUTO_TEST_CASE(isphononenabled) {
-    CBlockIndex prev;
-
     const Consensus::Params &params = Params().GetConsensus();
-    const auto activation =
-        gArgs.GetArg("-phononactivationtime", params.phononActivationTime);
+    const auto activation = params.phononActivationTime;
     SetMockTime(activation - 1000000);
 
     BOOST_CHECK(!IsPhononEnabled(params, nullptr));
@@ -68,8 +65,6 @@ BOOST_AUTO_TEST_CASE(isphononenabled) {
 }
 
 BOOST_AUTO_TEST_CASE(isaxionenabled) {
-    CBlockIndex prev;
-
     const Consensus::Params &params = Params().GetConsensus();
     const auto activation =
         gArgs.GetArg("-axionactivationtime", params.axionActivationTime);

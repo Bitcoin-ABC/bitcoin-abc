@@ -22,7 +22,6 @@ struct CustomArgumentsFixture {
 
         const std::set<std::string> testArgs = {
             testsuitename,
-            "-phononactivationtime",
             "-axionactivationtime",
         };
 

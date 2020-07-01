@@ -362,8 +362,6 @@ void SetupServerArgs() {
         "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>",
         "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",
         "-uiplatform",
-        // TODO remove after the May 2020 upgrade
-        "-phononactivationtime",
         // TODO remove after the November 2020 upgrade
         "-axionactivationtime"};
 
