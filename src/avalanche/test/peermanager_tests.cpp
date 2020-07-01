@@ -206,6 +206,12 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
 
+    // Make sure we compact to never get NO_PEER.
+    BOOST_CHECK_EQUAL(pm.compact(), 100);
+    BOOST_CHECK(pm.verify());
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 300);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+
     for (int i = 0; i < 100; i++) {
         PeerId p = pm.selectPeer();
         BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[3]);
@@ -216,17 +222,23 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
         peerids[i + 4] = pm.addPeer(100);
     }
 
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 800);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     BOOST_CHECK(pm.removePeer(peerids[0]));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 800);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 200);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
 
     // Removing the last entry do not increase fragmentation.
     BOOST_CHECK(pm.removePeer(peerids[7]));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 200);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 600);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+
+    // Make sure we compact to never get NO_PEER.
+    BOOST_CHECK_EQUAL(pm.compact(), 100);
+    BOOST_CHECK(pm.verify());
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 500);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     for (int i = 0; i < 100; i++) {
         PeerId p = pm.selectPeer();
@@ -239,12 +251,6 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     BOOST_CHECK(!pm.removePeer(peerids[2]));
     BOOST_CHECK(!pm.removePeer(peerids[7]));
     BOOST_CHECK(!pm.removePeer(NO_PEER));
-
-    // Compact the peer manager.
-    BOOST_CHECK_EQUAL(pm.compact(), 200);
-    BOOST_CHECK(pm.verify());
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 500);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
@@ -274,7 +280,8 @@ BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
 
     for (int i = 0; i < 100; i++) {
         PeerId p = pm.selectPeer();
-        BOOST_CHECK(p == peerids[0] || p == peerids[2] || p == peerids[3]);
+        BOOST_CHECK(p == peerids[0] || p == peerids[2] || p == peerids[3] ||
+                    p == NO_PEER);
     }
 
     // "resurrect" the peer.
@@ -301,7 +308,7 @@ BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
         while (true) {
             PeerId p = pm.selectPeer();
             BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
-                        p == peerids[3]);
+                        p == peerids[3] || p == NO_PEER);
             // Make sure peer 1 reappeared.
             if (p == peerids[1]) {
                 break;
@@ -332,6 +339,11 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 300);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 300);
+
+    for (int i = 0; i < 100; i++) {
+        BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
+    }
+
     BOOST_CHECK_EQUAL(pm.compact(), 300);
     BOOST_CHECK(pm.verify());
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 0);

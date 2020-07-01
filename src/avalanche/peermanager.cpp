@@ -79,17 +79,19 @@ bool PeerManager::rescorePeer(PeerId p, uint32_t score) {
 }
 
 PeerId PeerManager::selectPeer() const {
-    if (slots.empty()) {
+    if (slots.empty() || slotCount == 0) {
         return NO_PEER;
     }
 
     const uint64_t max = slotCount;
-    while (true) {
+    for (int retry = 0; retry < SELECT_PEER_MAX_RETRY; retry++) {
         size_t i = selectPeerImpl(slots, GetRand(max), max);
         if (i != NO_PEER) {
             return i;
         }
     }
+
+    return NO_PEER;
 }
 
 uint64_t PeerManager::compact() {

@@ -52,6 +52,8 @@ class PeerManager {
     PeerId nextPeerId = 0;
     std::unordered_map<PeerId, uint32_t> peerIndices;
 
+    static constexpr int SELECT_PEER_MAX_RETRY = 3;
+
 public:
     PeerId addPeer(uint32_t score) { return addPeer(nextPeerId++, score); }
     bool removePeer(PeerId p);
