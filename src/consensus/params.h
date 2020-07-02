@@ -27,12 +27,15 @@ constexpr bool ValidDeployment(BuriedDeployment dep) {
     return DEPLOYMENT_P2SH <= dep && dep <= DEPLOYMENT_CSV;
 }
 
-enum DeploymentPos {
+enum DeploymentPos : uint16_t {
     DEPLOYMENT_TESTDUMMY,
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in
     // versionbitsinfo.cpp
     MAX_VERSION_BITS_DEPLOYMENTS,
 };
+constexpr bool ValidDeployment(DeploymentPos dep) {
+    return DEPLOYMENT_TESTDUMMY <= dep && dep < MAX_VERSION_BITS_DEPLOYMENTS;
+}
 
 /**
  * Struct for each individual consensus rule change using BIP9.

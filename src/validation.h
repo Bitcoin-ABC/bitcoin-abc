@@ -14,6 +14,7 @@
 #include <attributes.h>
 #include <blockfileinfo.h>
 #include <blockindexworkcomparator.h>
+#include <chain.h>
 #include <coins.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
@@ -32,7 +33,6 @@
 #include <util/check.h>
 #include <util/hasher.h>
 #include <util/translation.h>
-#include <versionbits.h>
 
 #include <atomic>
 #include <cstdint>
@@ -50,7 +50,6 @@ class CBlockIndex;
 class CBlockTreeDB;
 class CBlockUndo;
 class CChainParams;
-class CChain;
 class CChainState;
 class CConnman;
 class CInv;
@@ -1405,8 +1404,6 @@ public:
  * Global variable that points to the active block tree (protected by cs_main)
  */
 extern std::unique_ptr<CBlockTreeDB> pblocktree;
-
-extern VersionBitsCache versionbitscache;
 
 /**
  * Determine what nVersion a new block should use.

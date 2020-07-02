@@ -5,6 +5,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <consensus/params.h>
+#include <deploymentstatus.h>
 #include <validation.h>
 #include <versionbits.h>
 

@@ -13,6 +13,7 @@
 #include <consensus/amount.h>
 #include <consensus/validation.h>
 #include <core_io.h>
+#include <deploymentstatus.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
 #include <index/coinstatsindex.h>

@@ -1410,8 +1410,6 @@ void StopScriptCheckWorkerThreads() {
     scriptcheckqueue.StopWorkerThreads();
 }
 
-VersionBitsCache versionbitscache;
-
 int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
                             const Consensus::Params &params) {
     int32_t nVersion = VERSIONBITS_TOP_BITS;
