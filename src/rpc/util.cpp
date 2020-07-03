@@ -405,9 +405,7 @@ struct Sections {
                     {indent + "]" + (outer_type != OuterType::NONE ? "," : ""),
                      ""});
                 break;
-            }
-
-                // no default case, so the compiler can warn about missing cases
+            } // no default case, so the compiler can warn about missing cases
         }
     }
 
@@ -524,6 +522,9 @@ std::string RPCHelpMan::ToString() const {
     ret += m_name;
     bool was_optional{false};
     for (const auto &arg : m_args) {
+        if (arg.m_hidden) {
+            continue;
+        }
         const bool optional = arg.IsOptional();
         ret += " ";
         if (optional) {
@@ -551,6 +552,9 @@ std::string RPCHelpMan::ToString() const {
     Sections sections;
     for (size_t i{0}; i < m_args.size(); ++i) {
         const auto &arg = m_args.at(i);
+        if (arg.m_hidden) {
+            continue;
+        }
 
         if (i == 0) {
             ret += "\nArguments:\n";
@@ -630,9 +634,7 @@ std::string RPCArg::ToDescriptionString() const {
             case Type::ARR: {
                 ret += "json array";
                 break;
-            }
-
-                // no default case, so the compiler can warn about missing cases
+            } // no default case, so the compiler can warn about missing cases
         }
     }
     if (m_fallback.which() == 1) {
@@ -651,9 +653,7 @@ std::string RPCArg::ToDescriptionString() const {
             case RPCArg::Optional::NO: {
                 ret += ", required";
                 break;
-            }
-
-                // no default case, so the compiler can warn about missing cases
+            } // no default case, so the compiler can warn about missing cases
         }
     }
     ret += ")";
@@ -762,11 +762,8 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
             }
             sections.PushSection({indent + "}" + maybe_separator, ""});
             return;
-        }
-
-            // no default case, so the compiler can warn about missing cases
+        } // no default case, so the compiler can warn about missing cases
     }
-
     CHECK_NONFATAL(false);
 }
 
@@ -841,9 +838,7 @@ std::string RPCArg::ToString(const bool oneline) const {
                 res += i.ToString(oneline) + ",";
             }
             return "[" + res + "...]";
-        }
-
-            // no default case, so the compiler can warn about missing cases
+        } // no default case, so the compiler can warn about missing cases
     }
     CHECK_NONFATAL(false);
 }
