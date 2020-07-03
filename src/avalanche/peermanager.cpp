@@ -9,7 +9,7 @@
 #include <cassert>
 
 PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
-    auto inserted = peerIndices.emplace(p, slots.size());
+    auto inserted = peers.emplace(p, Peer(score, uint32_t(slots.size())));
     assert(inserted.second);
 
     const uint64_t start = slotCount;
@@ -19,12 +19,12 @@ PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
 }
 
 bool PeerManager::removePeer(PeerId p) {
-    auto it = peerIndices.find(p);
-    if (it == peerIndices.end()) {
+    auto it = peers.find(p);
+    if (it == peers.end()) {
         return false;
     }
 
-    size_t i = it->second;
+    size_t i = it->second.index;
     assert(i < slots.size());
 
     if (i + 1 == slots.size()) {
@@ -35,19 +35,23 @@ bool PeerManager::removePeer(PeerId p) {
         slots[i] = slots[i].withPeerId(NO_PEER);
     }
 
-    peerIndices.erase(it);
+    peers.erase(it);
     return true;
 }
 
 bool PeerManager::rescorePeer(PeerId p, uint32_t score) {
-    auto it = peerIndices.find(p);
-    if (it == peerIndices.end()) {
+    auto it = peers.find(p);
+    if (it == peers.end()) {
         return false;
     }
 
-    size_t i = it->second;
+    size_t i = it->second.index;
     assert(i < slots.size());
 
+    // Update the peer's score.
+    it->second.score = score;
+
+    // Update the slot allocation to reflect the new score.
     const uint64_t start = slots[i].getStart();
 
     // If this is the last element, we can extend/shrink easily.
@@ -70,7 +74,7 @@ bool PeerManager::rescorePeer(PeerId p, uint32_t score) {
     // So we need to insert a new entry.
     fragmentation += slots[i].getScore();
     slots[i] = slots[i].withPeerId(NO_PEER);
-    it->second = slots.size();
+    it->second.index = uint32_t(slots.size());
     const uint64_t newStart = slotCount;
     slots.emplace_back(newStart, score, p);
     slotCount = newStart + score;
@@ -95,33 +99,21 @@ PeerId PeerManager::selectPeer() const {
 }
 
 uint64_t PeerManager::compact() {
-    auto clearLastElements = [this] {
-        while (!slots.empty() && slots.back().getPeerId() == NO_PEER) {
-            slots.pop_back();
-        }
-    };
-
-    // Always make sure that the last element is not dead.
-    clearLastElements();
+    // Shrink the vector to the expected size.
+    while (slots.size() > peers.size()) {
+        slots.pop_back();
+    }
 
     uint64_t prevStop = 0;
-    for (size_t i = 0; i < slots.size(); i++) {
-        if (slots[i].getPeerId() != NO_PEER) {
-            // This element is good, just slide it to the right position.
-            slots[i] = slots[i].withStart(prevStop);
-            prevStop = slots[i].getStop();
-            continue;
-        }
+    uint32_t i = 0;
+    for (auto &pair : peers) {
+        PeerId pid = pair.first;
+        Peer &p = pair.second;
 
-        // This element is dead, put the last one it its place.
-        slots[i] = slots.back().withStart(prevStop);
+        slots[i] = Slot(prevStop, p.score, pid);
         prevStop = slots[i].getStop();
 
-        assert(slots[i].getPeerId() != NO_PEER);
-        peerIndices[slots[i].getPeerId()] = i;
-
-        slots.pop_back();
-        clearLastElements();
+        p.index = i++;
     }
 
     const uint64_t saved = slotCount - prevStop;
@@ -149,18 +141,24 @@ bool PeerManager::verify() const {
         }
 
         // We have a live slot, verify index.
-        auto it = peerIndices.find(s.getPeerId());
-        if (it == peerIndices.end() || it->second != i) {
+        auto it = peers.find(s.getPeerId());
+        if (it == peers.end() || it->second.index != i) {
             return false;
         }
     }
 
-    for (const auto &pair : peerIndices) {
+    for (const auto &pair : peers) {
         auto p = pair.first;
-        auto i = pair.second;
+        auto i = pair.second.index;
+        auto s = pair.second.score;
 
         // The index must point to a slot refering to this peer.
         if (i >= slots.size() || slots[i].getPeerId() != p) {
+            return false;
+        }
+
+        // If the score do not match, same thing.
+        if (slots[i].getScore() != s) {
             return false;
         }
     }

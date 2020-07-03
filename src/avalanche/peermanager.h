@@ -49,8 +49,19 @@ class PeerManager {
     uint64_t slotCount = 0;
     uint64_t fragmentation = 0;
 
+    /**
+     * Several nodes can make an avalanche peer. In this case, all nodes are
+     * considered interchangeable parts of the same peer.
+     */
+    struct Peer {
+        uint32_t score;
+        uint32_t index;
+
+        Peer(uint32_t score_, uint32_t index_) : score(score_), index(index_) {}
+    };
+
     PeerId nextPeerId = 0;
-    std::unordered_map<PeerId, uint32_t> peerIndices;
+    std::unordered_map<PeerId, Peer> peers;
 
     static constexpr int SELECT_PEER_MAX_RETRY = 3;
 
