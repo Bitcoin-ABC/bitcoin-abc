@@ -174,7 +174,10 @@ public:
                   result = _fn().HandleRequest(config, request);
                   return true;
               },
-              _fn().GetArgNames(), intptr_t(_fn)) {}
+              _fn().GetArgNames(), intptr_t(_fn)) {
+        CHECK_NONFATAL(_fn().m_name == name_in);
+        CHECK_NONFATAL(_fn().GetArgNames() == args_in);
+    }
 
     //! Simplified constructor taking plain rpcfn_type function pointer.
     CRPCCommand(const char *_category, const char *_name, rpcfn_type _fn,
