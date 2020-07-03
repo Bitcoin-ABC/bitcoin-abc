@@ -350,4 +350,22 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 }
 
+BOOST_AUTO_TEST_CASE(add_and_get_node) {
+    PeerManager pm;
+
+    // Create one peer.
+    PeerId peerid = pm.addPeer(100);
+    BOOST_CHECK_EQUAL(pm.getSuitableNodeToQuery(), NO_NODE);
+
+    // Add 4 nodes.
+    for (int i = 0; i < 4; i++) {
+        BOOST_CHECK(pm.addNodeToPeer(peerid, i, CPubKey()));
+    }
+
+    for (int i = 0; i < 100; i++) {
+        NodeId n = pm.getSuitableNodeToQuery();
+        BOOST_CHECK((n >= 0 && n < 4) || n == NO_PEER);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

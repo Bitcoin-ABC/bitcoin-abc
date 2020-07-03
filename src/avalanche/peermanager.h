@@ -5,12 +5,22 @@
 #ifndef BITCOIN_AVALANCHE_PEERMANAGER_H
 #define BITCOIN_AVALANCHE_PEERMANAGER_H
 
+#include <net.h>
+#include <pubkey.h>
+
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
+
+#include <chrono>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
 
 using PeerId = uint32_t;
-static constexpr PeerId NO_PEER = ~uint32_t(0);
+static constexpr PeerId NO_PEER = -1;
 
 struct Slot {
 private:
@@ -35,7 +45,7 @@ public:
     uint64_t getStart() const { return start; }
     uint64_t getStop() const { return start + score; }
     uint32_t getScore() const { return score; }
-    uint32_t getPeerId() const { return peerid; }
+    PeerId getPeerId() const { return peerid; }
 
     bool contains(uint64_t slot) const {
         return getStart() <= slot && slot < getStop();
@@ -43,6 +53,8 @@ public:
     bool precedes(uint64_t slot) const { return slot >= getStop(); }
     bool follows(uint64_t slot) const { return getStart() > slot; }
 };
+
+struct next_request_time {};
 
 class PeerManager {
     std::vector<Slot> slots;
@@ -63,13 +75,57 @@ class PeerManager {
     PeerId nextPeerId = 0;
     std::unordered_map<PeerId, Peer> peers;
 
+    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+
+    struct Node {
+        NodeId nodeid;
+        PeerId peerid;
+        TimePoint nextRequestTime;
+        CPubKey pubkey;
+
+        Node(NodeId nodeid_, PeerId peerid_, CPubKey pubkey_)
+            : nodeid(nodeid_), peerid(peerid_),
+              nextRequestTime(std::chrono::steady_clock::now()),
+              pubkey(std::move(pubkey_)) {}
+    };
+
+    using NodeSet = boost::multi_index_container<
+        Node,
+        boost::multi_index::indexed_by<
+            // index by nodeid
+            boost::multi_index::hashed_unique<
+                boost::multi_index::member<Node, NodeId, &Node::nodeid>>,
+            // sorted by peerid/nextRequestTime
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<next_request_time>,
+                boost::multi_index::composite_key<
+                    Node,
+                    boost::multi_index::member<Node, PeerId, &Node::peerid>,
+                    boost::multi_index::member<Node, TimePoint,
+                                               &Node::nextRequestTime>>>>>;
+
+    NodeSet nodes;
+
     static constexpr int SELECT_PEER_MAX_RETRY = 3;
+    static constexpr int SELECT_NODE_MAX_RETRY = 3;
 
 public:
+    /**
+     * Peer API.
+     */
     PeerId addPeer(uint32_t score) { return addPeer(nextPeerId++, score); }
     bool removePeer(PeerId p);
     bool rescorePeer(PeerId p, uint32_t score);
 
+    /**
+     * Node API.
+     */
+    bool addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey);
+    NodeId getSuitableNodeToQuery();
+
+    /**
+     * Exposed for tests.
+     */
     PeerId selectPeer() const;
 
     /**

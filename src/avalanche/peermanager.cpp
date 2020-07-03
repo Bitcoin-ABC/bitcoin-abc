@@ -82,6 +82,47 @@ bool PeerManager::rescorePeer(PeerId p, uint32_t score) {
     return true;
 }
 
+bool PeerManager::addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey) {
+    auto pit = peers.find(peerid);
+    if (pit == peers.end()) {
+        return false;
+    }
+
+    auto nit = nodes.find(nodeid);
+    if (nit == nodes.end()) {
+        return nodes.emplace(nodeid, peerid, std::move(pubkey)).second;
+    }
+
+    // We actually have this node already, we need to update it.
+    return nodes.modify(nit, [&](Node &n) {
+        n.peerid = peerid;
+        n.pubkey = std::move(pubkey);
+    });
+}
+
+NodeId PeerManager::getSuitableNodeToQuery() {
+    for (int retry = 0; retry < SELECT_NODE_MAX_RETRY; retry++) {
+        const PeerId p = selectPeer();
+
+        // If we cannot find a peer, it may be due to the fact that it is
+        // unlikely due to high fragmentation, so compact and retry.
+        if (p == NO_PEER) {
+            compact();
+            continue;
+        }
+
+        // See if that peer has an available node.
+        auto it = nodes.get<next_request_time>().lower_bound(
+            boost::make_tuple(p, TimePoint()));
+        if (it != nodes.get<next_request_time>().end() && it->peerid == p &&
+            it->nextRequestTime <= std::chrono::steady_clock::now()) {
+            return it->nodeid;
+        }
+    }
+
+    return NO_NODE;
+}
+
 PeerId PeerManager::selectPeer() const {
     if (slots.empty() || slotCount == 0) {
         return NO_PEER;
@@ -99,6 +140,11 @@ PeerId PeerManager::selectPeer() const {
 }
 
 uint64_t PeerManager::compact() {
+    // There is nothing to compact.
+    if (fragmentation == 0) {
+        return 0;
+    }
+
     // Shrink the vector to the expected size.
     while (slots.size() > peers.size()) {
         slots.pop_back();
