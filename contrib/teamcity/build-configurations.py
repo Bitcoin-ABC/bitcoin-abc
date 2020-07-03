@@ -224,24 +224,25 @@ class UserBuild():
         return await proc.wait()
 
     async def wait_for_build(self, timeout, args=[]):
+        message = "Build {} completed successfully".format(
+            self.configuration.name
+        )
         try:
             return_code = await asyncio.wait_for(self.run_build(args), timeout)
             if return_code != 0:
-                self.print_line_to_logs(
-                    "Build {} failed with exit code {}".format(
-                        self.configuration.name,
-                        return_code
-                    )
+                message = "Build {} failed with exit code {}".format(
+                    self.configuration.name,
+                    return_code
                 )
         except asyncio.TimeoutError:
-            self.print_line_to_logs(
-                "Build {} timed out after {:.1f}s".format(
-                    self.configuration.name, round(timeout, 1)
-                )
+            message = "Build {} timed out after {:.1f}s".format(
+                self.configuration.name, round(timeout, 1)
             )
             # The process is killed, set return code to 128 + 9 (SIGKILL) = 137
             return_code = 137
         finally:
+            self.print_line_to_logs(message)
+
             # Always add the build logs to the root of the artifacts
             artifacts = {
                 **self.configuration.get("artifacts", {}),
@@ -251,14 +252,16 @@ class UserBuild():
 
             self.copy_artifacts(artifacts)
 
-            return return_code
+            return (return_code, message)
 
     def run(self, args=[]):
-        return asyncio.run(
+        return_code, message = asyncio.run(
             self.wait_for_build(
                 self.configuration.get(
                     "timeout", DEFAULT_TIMEOUT))
         )
+
+        return (return_code, message)
 
 
 class TeamcityBuild(UserBuild):
@@ -291,7 +294,33 @@ class TeamcityBuild(UserBuild):
             status="NORMAL"
         )
 
-        return super().run()
+        return_code, message = super().run()
+
+        # Since we are aborting the build, make sure to flush everything first
+        os.sync()
+
+        if return_code != 0:
+            # Add a build problem to the report
+            self.teamcity_messages.buildProblem(
+                message,
+                # Let Teamcity calculate an ID from our message
+                None
+            )
+            # Change the final build message
+            self.teamcity_messages.buildStatus(
+                # Don't change the status, let Teamcity set it to failure
+                None,
+                message
+            )
+        else:
+            # Change the final build message but keep the original one as well
+            self.teamcity_messages.buildStatus(
+                # Don't change the status, let Teamcity set it to success
+                None,
+                "{} ({{build.status.text}})".format(message)
+            )
+
+        return (return_code, message)
 
 
 def main():
@@ -338,7 +367,7 @@ def main():
     else:
         build = UserBuild(build_configuration, git_root)
 
-    sys.exit(build.run(unknown_args))
+    sys.exit(build.run(unknown_args)[0])
 
 
 if __name__ == '__main__':
