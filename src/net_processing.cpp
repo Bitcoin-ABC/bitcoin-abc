@@ -4475,12 +4475,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         std::vector<CAddress> vAddr = m_connman.GetAddresses();
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {
-            bool banned_or_discouraged =
-                m_banman &&
-                (m_banman->IsDiscouraged(addr) || m_banman->IsBanned(addr));
-            if (!banned_or_discouraged) {
-                pfrom.PushAddress(addr, insecure_rand);
-            }
+            pfrom.PushAddress(addr, insecure_rand);
         }
         return;
     }

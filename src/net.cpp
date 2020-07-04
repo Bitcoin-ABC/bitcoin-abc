@@ -2865,7 +2865,17 @@ void CConnman::AddNewAddresses(const std::vector<CAddress> &vAddr,
 }
 
 std::vector<CAddress> CConnman::GetAddresses() {
-    return addrman.GetAddr();
+    std::vector<CAddress> addresses = addrman.GetAddr();
+    if (m_banman) {
+        addresses.erase(std::remove_if(addresses.begin(), addresses.end(),
+                                       [this](const CAddress &addr) {
+                                           return m_banman->IsDiscouraged(
+                                                      addr) ||
+                                                  m_banman->IsBanned(addr);
+                                       }),
+                        addresses.end());
+    }
+    return addresses;
 }
 
 bool CConnman::AddNode(const std::string &strNode) {
