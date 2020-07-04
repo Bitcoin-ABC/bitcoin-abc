@@ -48,8 +48,8 @@ static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
 /**
  * How long before we consider that a query timed out.
  */
-static constexpr int AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS =
-    10000;
+static constexpr std::chrono::milliseconds AVALANCHE_DEFAULT_QUERY_TIMEOUT{
+    10000};
 
 /**
  * How many inflight requests can exist for one item.

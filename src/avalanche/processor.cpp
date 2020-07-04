@@ -17,7 +17,7 @@
 /**
  * Run the avalanche event loop every 10ms.
  */
-static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP_MILLISECONDS{10};
+static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 
 // Unfortunately, the bitcoind codebase is full of global and we are kinda
 // forced into it here.
@@ -130,9 +130,7 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
 }
 
 AvalancheProcessor::AvalancheProcessor(CConnman *connmanIn)
-    : connman(connmanIn),
-      queryTimeoutDuration(
-          AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS),
+    : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
       round(0) {
     // Pick a random key for the session.
     sessionKey.MakeNewKey(true);
@@ -360,8 +358,7 @@ CPubKey AvalancheProcessor::getPubKey(NodeId nodeid) const {
 
 bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
     return eventLoop.startEventLoop(
-        scheduler, [this]() { this->runEventLoop(); },
-        AVALANCHE_TIME_STEP_MILLISECONDS);
+        scheduler, [this]() { this->runEventLoop(); }, AVALANCHE_TIME_STEP);
 }
 
 bool AvalancheProcessor::stopEventLoop() {
