@@ -27,40 +27,39 @@ class Config;
 class CBlockIndex;
 class CScheduler;
 
-namespace {
 /**
  * Is avalanche enabled by default.
  */
-static const bool AVALANCHE_DEFAULT_ENABLED = false;
+static constexpr bool AVALANCHE_DEFAULT_ENABLED = false;
 
 /**
  * Finalization score.
  */
-static const int AVALANCHE_FINALIZATION_SCORE = 128;
+static constexpr int AVALANCHE_FINALIZATION_SCORE = 128;
 
 /**
  * Maximum item that can be polled at once.
  */
-static const size_t AVALANCHE_MAX_ELEMENT_POLL = 16;
+static constexpr size_t AVALANCHE_MAX_ELEMENT_POLL = 16;
 /**
  * Avalanche default cooldown in milliseconds.
  */
-static const size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
+static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
 /**
  * How long before we consider that a query timed out.
  */
-static const int AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS = 10000;
+static constexpr int AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS =
+    10000;
 
 /**
  * How many inflight requests can exist for one item.
  */
-static const int AVALANCHE_MAX_INFLIGHT_POLL = 10;
+static constexpr int AVALANCHE_MAX_INFLIGHT_POLL = 10;
 
 /**
  * Special NodeId that represent no node.
  */
-static const NodeId NO_NODE = -1;
-} // namespace
+static constexpr NodeId NO_NODE = -1;
 
 /**
  * Vote history.
