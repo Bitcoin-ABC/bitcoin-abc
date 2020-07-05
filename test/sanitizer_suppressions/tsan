@@ -20,6 +20,7 @@ race:fHaveGenesis
 race:ProcessNewBlock
 race:ThreadImport
 race:CZMQAbstractPublishNotifier::SendMessage
+race:BerkeleyBatch
 race:bitcoin-qt
 # deadlock (TODO fix)
 deadlock:CConnman::ForNode
