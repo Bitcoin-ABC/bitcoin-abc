@@ -57,11 +57,6 @@ static constexpr std::chrono::milliseconds AVALANCHE_DEFAULT_QUERY_TIMEOUT{
 static constexpr int AVALANCHE_MAX_INFLIGHT_POLL = 10;
 
 /**
- * Special NodeId that represent no node.
- */
-static constexpr NodeId NO_NODE = -1;
-
-/**
  * Vote history.
  */
 struct VoteRecord {

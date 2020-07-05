@@ -103,6 +103,11 @@ static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
 
 typedef int64_t NodeId;
 
+/**
+ * Special NodeId that represent no node.
+ */
+static constexpr NodeId NO_NODE = -1;
+
 struct AddedNodeInfo {
     std::string strAddedNode;
     CService resolvedAddress;
