@@ -121,6 +121,8 @@ public:
      * Node API.
      */
     bool addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey);
+    bool removeNode(NodeId nodeid);
+
     NodeId getSuitableNodeToQuery();
 
     /**

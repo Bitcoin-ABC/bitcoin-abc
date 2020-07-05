@@ -35,6 +35,14 @@ bool PeerManager::removePeer(PeerId p) {
         slots[i] = slots[i].withPeerId(NO_PEER);
     }
 
+    // Remove nodes associated with this peer, unless their timeout is still
+    // active. This ensure that we don't overquery them in case their are
+    // subsequently added to another peer.
+    auto &nview = nodes.get<next_request_time>();
+    nview.erase(nview.lower_bound(boost::make_tuple(p, TimePoint())),
+                nview.upper_bound(
+                    boost::make_tuple(p, std::chrono::steady_clock::now())));
+
     peers.erase(it);
     return true;
 }
@@ -100,6 +108,10 @@ bool PeerManager::addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey) {
     });
 }
 
+bool PeerManager::removeNode(NodeId nodeid) {
+    return nodes.erase(nodeid) > 0;
+}
+
 NodeId PeerManager::getSuitableNodeToQuery() {
     for (int retry = 0; retry < SELECT_NODE_MAX_RETRY; retry++) {
         const PeerId p = selectPeer();
@@ -112,9 +124,9 @@ NodeId PeerManager::getSuitableNodeToQuery() {
         }
 
         // See if that peer has an available node.
-        auto it = nodes.get<next_request_time>().lower_bound(
-            boost::make_tuple(p, TimePoint()));
-        if (it != nodes.get<next_request_time>().end() && it->peerid == p &&
+        auto &nview = nodes.get<next_request_time>();
+        auto it = nview.lower_bound(boost::make_tuple(p, TimePoint()));
+        if (it != nview.end() && it->peerid == p &&
             it->nextRequestTime <= std::chrono::steady_clock::now()) {
             return it->nodeid;
         }

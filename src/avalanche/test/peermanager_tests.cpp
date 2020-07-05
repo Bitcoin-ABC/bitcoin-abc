@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(add_and_get_node) {
+BOOST_AUTO_TEST_CASE(node_crud) {
     PeerManager pm;
 
     // Create one peer.
@@ -364,7 +364,15 @@ BOOST_AUTO_TEST_CASE(add_and_get_node) {
 
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.getSuitableNodeToQuery();
-        BOOST_CHECK((n >= 0 && n < 4) || n == NO_PEER);
+        BOOST_CHECK(n >= 0 && n < 4);
+    }
+
+    // Remove a node, check that it doesn't show up.
+    BOOST_CHECK(pm.removeNode(2));
+
+    for (int i = 0; i < 100; i++) {
+        NodeId n = pm.getSuitableNodeToQuery();
+        BOOST_CHECK(n == 0 || n == 1 || n == 3);
     }
 }
 
