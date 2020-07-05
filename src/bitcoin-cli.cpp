@@ -930,10 +930,9 @@ static void ParseError(const UniValue &error, std::string &strPrint,
  *                pushed to.
  */
 static void GetWalletBalances(UniValue &result) {
-    std::unique_ptr<BaseRequestHandler> rh{
-        std::make_unique<DefaultRequestHandler>()};
+    DefaultRequestHandler rh;
     const UniValue listwallets =
-        ConnectAndCallRPC(rh.get(), "listwallets", /* args=*/{});
+        ConnectAndCallRPC(&rh, "listwallets", /* args=*/{});
     if (!find_value(listwallets, "error").isNull()) {
         return;
     }
@@ -945,8 +944,8 @@ static void GetWalletBalances(UniValue &result) {
     UniValue balances(UniValue::VOBJ);
     for (const UniValue &wallet : wallets.getValues()) {
         const std::string wallet_name = wallet.get_str();
-        const UniValue getbalances = ConnectAndCallRPC(
-            rh.get(), "getbalances", /* args=*/{}, wallet_name);
+        const UniValue getbalances =
+            ConnectAndCallRPC(&rh, "getbalances", /* args=*/{}, wallet_name);
         const UniValue &balance =
             find_value(getbalances, "result")["mine"]["trusted"];
         balances.pushKV(wallet_name, balance);
@@ -963,10 +962,8 @@ static UniValue GetNewAddress() {
     if (gArgs.IsArgSet("-rpcwallet")) {
         wallet_name = gArgs.GetArg("-rpcwallet", "");
     }
-    std::unique_ptr<BaseRequestHandler> rh{
-        std::make_unique<DefaultRequestHandler>()};
-    return ConnectAndCallRPC(rh.get(), "getnewaddress", /* args=*/{},
-                             wallet_name);
+    DefaultRequestHandler rh;
+    return ConnectAndCallRPC(&rh, "getnewaddress", /* args=*/{}, wallet_name);
 }
 
 /**
