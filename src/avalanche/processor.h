@@ -234,12 +234,10 @@ private:
         Query,
         boost::multi_index::indexed_by<
             // index by nodeid/round
-            boost::multi_index::ordered_unique<
-                boost::multi_index::composite_key<
-                    Query,
-                    boost::multi_index::member<Query, NodeId, &Query::nodeid>,
-                    boost::multi_index::member<Query, uint64_t,
-                                               &Query::round>>>,
+            boost::multi_index::hashed_unique<boost::multi_index::composite_key<
+                Query,
+                boost::multi_index::member<Query, NodeId, &Query::nodeid>,
+                boost::multi_index::member<Query, uint64_t, &Query::round>>>,
             // sorted by timeout
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<query_timeout>,
