@@ -123,6 +123,8 @@ public:
     bool addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey);
     bool removeNode(NodeId nodeid);
 
+    bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
+
     NodeId getSuitableNodeToQuery();
 
     /**

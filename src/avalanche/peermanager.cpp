@@ -112,6 +112,15 @@ bool PeerManager::removeNode(NodeId nodeid) {
     return nodes.erase(nodeid) > 0;
 }
 
+bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
+    auto it = nodes.find(nodeid);
+    if (it == nodes.end()) {
+        return false;
+    }
+
+    return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
+}
+
 NodeId PeerManager::getSuitableNodeToQuery() {
     for (int retry = 0; retry < SELECT_NODE_MAX_RETRY; retry++) {
         const PeerId p = selectPeer();

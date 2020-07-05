@@ -365,6 +365,8 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.getSuitableNodeToQuery();
         BOOST_CHECK(n >= 0 && n < 4);
+        BOOST_CHECK(
+            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
     }
 
     // Remove a node, check that it doesn't show up.
@@ -373,6 +375,42 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.getSuitableNodeToQuery();
         BOOST_CHECK(n == 0 || n == 1 || n == 3);
+        BOOST_CHECK(
+            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
+    }
+
+    // Push a node's timeout in the future, so that it doesn't show up.
+    BOOST_CHECK(pm.updateNextRequestTime(1, std::chrono::steady_clock::now() +
+                                                std::chrono::hours(24)));
+
+    for (int i = 0; i < 100; i++) {
+        NodeId n = pm.getSuitableNodeToQuery();
+        BOOST_CHECK(n == 0 || n == 3);
+        BOOST_CHECK(
+            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
+    }
+
+    // Move a node from a peer to another.
+    PeerId altpeer = pm.addPeer(0);
+    BOOST_CHECK(pm.addNodeToPeer(altpeer, 3, CPubKey()));
+
+    for (int i = 0; i < 100; i++) {
+        NodeId n = pm.getSuitableNodeToQuery();
+        BOOST_CHECK(n == 0);
+        BOOST_CHECK(
+            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
+    }
+
+    // Rescore peers and cheks node selection is affected as expected.
+    BOOST_CHECK(pm.rescorePeer(peerid, 0));
+    BOOST_CHECK(pm.rescorePeer(altpeer, 100));
+    BOOST_CHECK_EQUAL(pm.compact(), 100);
+
+    for (int i = 0; i < 100; i++) {
+        NodeId n = pm.getSuitableNodeToQuery();
+        BOOST_CHECK(n == 3);
+        BOOST_CHECK(
+            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
     }
 }
 
