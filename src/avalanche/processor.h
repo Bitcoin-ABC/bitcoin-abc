@@ -179,6 +179,17 @@ struct next_request_time {};
 struct query_timeout {};
 
 class AvalancheProcessor {
+public:
+    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+
+    struct Node {
+        NodeId nodeid;
+        int64_t score;
+
+        TimePoint nextRequestTime;
+        CPubKey pubkey;
+    };
+
 private:
     CConnman *connman;
     std::chrono::milliseconds queryTimeoutDuration;
@@ -193,26 +204,16 @@ private:
      */
     std::atomic<uint64_t> round;
 
-    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
-
-    struct Peer {
-        NodeId nodeid;
-        int64_t score;
-
-        TimePoint nextRequestTime;
-        CPubKey pubkey;
-    };
-
     using PeerSet = boost::multi_index_container<
-        Peer, boost::multi_index::indexed_by<
+        Node, boost::multi_index::indexed_by<
                   // index by nodeid
                   boost::multi_index::hashed_unique<
-                      boost::multi_index::member<Peer, NodeId, &Peer::nodeid>>,
+                      boost::multi_index::member<Node, NodeId, &Node::nodeid>>,
                   // sorted by nextRequestTime
                   boost::multi_index::ordered_non_unique<
                       boost::multi_index::tag<next_request_time>,
-                      boost::multi_index::member<Peer, TimePoint,
-                                                 &Peer::nextRequestTime>>>>;
+                      boost::multi_index::member<Node, TimePoint,
+                                                 &Node::nextRequestTime>>>>;
 
     RWCollection<PeerSet> peerSet;
 
@@ -270,7 +271,7 @@ public:
                        std::vector<AvalancheBlockUpdate> &updates);
 
     bool addPeer(NodeId nodeid, int64_t score, CPubKey pubkey);
-    CPubKey getPubKey(NodeId nodeid) const;
+    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }
 
