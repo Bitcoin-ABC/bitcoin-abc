@@ -152,9 +152,13 @@ void SplashScreen::setNode(interfaces::Node &node) {
     assert(!m_node);
     m_node = &node;
     subscribeToCoreSignals();
+    if (m_shutdown) {
+        m_node->startShutdown();
+    }
 }
 
 void SplashScreen::shutdown() {
+    m_shutdown = true;
     if (m_node) {
         m_node->startShutdown();
     }

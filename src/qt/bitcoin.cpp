@@ -231,7 +231,6 @@ void BitcoinApplication::createPaymentServer() {
 
 void BitcoinApplication::createOptionsModel(bool resetSettings) {
     optionsModel = new OptionsModel(nullptr, resetSettings);
-    optionsModel->setNode(node());
 }
 
 void BitcoinApplication::createWindow(const Config *config,
@@ -247,7 +246,6 @@ void BitcoinApplication::createWindow(const Config *config,
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
     assert(!m_splash);
     m_splash = new SplashScreen(networkStyle);
-    m_splash->setNode(node());
     // We don't hold a direct pointer to the splash screen after creation, but
     // the splash screen will take care of deleting itself when finish()
     // happens.
@@ -261,6 +259,12 @@ void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
 void BitcoinApplication::setNode(interfaces::Node &node) {
     assert(!m_node);
     m_node = &node;
+    if (optionsModel) {
+        optionsModel->setNode(*m_node);
+    }
+    if (m_splash) {
+        m_splash->setNode(*m_node);
+    }
 }
 
 bool BitcoinApplication::baseInitialize(Config &config) {
@@ -553,7 +557,6 @@ int GuiMain(int argc, char *argv[]) {
 #endif
 
     BitcoinApplication app;
-    app.setNode(*node);
 
     // Register meta types used for QMetaObject::invokeMethod and
     // Qt::QueuedConnection
@@ -758,6 +761,8 @@ int GuiMain(int argc, char *argv[]) {
         !gArgs.GetBoolArg("-min", false)) {
         app.createSplashScreen(networkStyle.data());
     }
+
+    app.setNode(*node);
 
     RPCServer rpcServer;
     util::Ref context{node_context};
