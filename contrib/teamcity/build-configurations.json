@@ -46,11 +46,13 @@
             "timeout": 1200
         },
         "build-clang-10": {
+            "runOnDiff": true,
             "script": "builds/build-clang-10.sh",
             "template": "common_unix_artifacts",
             "timeout": 1200
         },
         "build-clang-tidy": {
+            "runOnDiff": true,
             "script": "builds/build-clang-tidy.sh",
             "template": "common_unix_artifacts",
             "timeout": 600,
@@ -67,6 +69,7 @@
             }
         },
         "build-diff": {
+            "runOnDiff": true,
             "script": "builds/build-diff.sh",
             "template": "common_unix_artifacts",
             "timeout": 1200
@@ -173,6 +176,7 @@
             "timeout": 1200
         },
         "build-without-wallet": {
+            "runOnDiff": true,
             "script": "builds/build-without-wallet.sh",
             "template": "common_unix_artifacts",
             "timeout": 1200
