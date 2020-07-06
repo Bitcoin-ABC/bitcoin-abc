@@ -4,6 +4,7 @@
 
 #include <avalanche/processor.h>
 
+#include <avalanche/peermanager.h>
 #include <chain.h>
 #include <netmessagemaker.h>
 #include <reverse_iterator.h>
@@ -131,7 +132,7 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
 
 AvalancheProcessor::AvalancheProcessor(CConnman *connmanIn)
     : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
-      round(0) {
+      round(0), peerManager(std::make_unique<PeerManager>()) {
     // Pick a random key for the session.
     sessionKey.MakeNewKey(true);
 }
@@ -230,18 +231,14 @@ bool AvalancheProcessor::registerVotes(
     std::vector<AvalancheBlockUpdate> &updates) {
     {
         // Save the time at which we can query again.
-        auto w = peerSet.getWriteView();
-        auto it = w->find(nodeid);
-        if (it != w->end()) {
-            w->modify(it, [&response](AvalancheNode &n) {
-                // FIXME: This will override the time even when we received an
-                // old stale message. This should check that the message is
-                // indeed the most up to date one before updating the time.
-                n.nextRequestTime =
-                    std::chrono::steady_clock::now() +
-                    std::chrono::milliseconds(response.getCooldown());
-            });
-        }
+        LOCK(cs_peerManager);
+
+        // FIXME: This will override the time even when we received an old stale
+        // message. This should check that the message is indeed the most up to
+        // date one before updating the time.
+        peerManager->updateNextRequestTime(
+            nodeid, std::chrono::steady_clock::now() +
+                        std::chrono::milliseconds(response.getCooldown()));
     }
 
     std::vector<CInv> invs;
@@ -340,16 +337,21 @@ bool AvalancheProcessor::registerVotes(
 }
 
 bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
-    return peerSet.getWriteView()
-        ->insert({nodeid, /* peerid is unused here */ 0, std::move(pubkey)})
-        .second;
+    LOCK(cs_peerManager);
+
+    PeerId p = peerManager->addPeer(score);
+    bool inserted = peerManager->addNodeToPeer(p, nodeid, std::move(pubkey));
+    if (!inserted) {
+        peerManager->removePeer(p);
+    }
+
+    return inserted;
 }
 
 bool AvalancheProcessor::forNode(
     NodeId nodeid, std::function<bool(const AvalancheNode &n)> func) const {
-    auto r = peerSet.getReadView();
-    auto it = r->find(nodeid);
-    return it != r->end() && func(*it);
+    LOCK(cs_peerManager);
+    return peerManager->forNode(nodeid, std::move(func));
 }
 
 bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
@@ -401,17 +403,8 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) {
 }
 
 NodeId AvalancheProcessor::getSuitableNodeToQuery() {
-    auto r = peerSet.getReadView();
-    auto it = r->get<next_request_time>().begin();
-    if (it == r->get<next_request_time>().end()) {
-        return NO_NODE;
-    }
-
-    if (it->nextRequestTime <= std::chrono::steady_clock::now()) {
-        return it->nodeid;
-    }
-
-    return NO_NODE;
+    LOCK(cs_peerManager);
+    return peerManager->getSuitableNodeToQuery();
 }
 
 void AvalancheProcessor::clearTimedoutRequests() {
@@ -495,13 +488,8 @@ void AvalancheProcessor::runEventLoop() {
                 queries.getWriteView()->insert(
                     {pnode->GetId(), current_round, timeout, invs});
                 // Set the timeout.
-                auto w = peerSet.getWriteView();
-                auto it = w->find(pnode->GetId());
-                if (it != w->end()) {
-                    w->modify(it, [&timeout](AvalancheNode &n) {
-                        n.nextRequestTime = timeout;
-                    });
-                }
+                LOCK(cs_peerManager);
+                peerManager->updateNextRequestTime(pnode->GetId(), timeout);
             }
 
             // Send the query to the node.
@@ -518,8 +506,11 @@ void AvalancheProcessor::runEventLoop() {
             return;
         }
 
-        // This node is obsolete, delete it.
-        peerSet.getWriteView()->erase(nodeid);
+        {
+            // This node is obsolete, delete it.
+            LOCK(cs_peerManager);
+            peerManager->removeNode(nodeid);
+        }
 
         // Get next suitable node to try again
         nodeid = getSuitableNodeToQuery();

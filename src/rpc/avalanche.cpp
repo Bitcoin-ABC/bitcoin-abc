@@ -69,7 +69,7 @@ static UniValue addavalanchepeer(const Config &config,
 
     CPubKey pubkey{HexToPubKey(keyHex)};
 
-    g_avalanche->addPeer(nodeid, 0, pubkey);
+    g_avalanche->addPeer(nodeid, 100, pubkey);
     return {};
 }
 

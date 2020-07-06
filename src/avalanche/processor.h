@@ -25,6 +25,7 @@
 
 class Config;
 class CBlockIndex;
+class PeerManager;
 class CScheduler;
 
 /**
@@ -175,7 +176,6 @@ public:
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
 
-struct next_request_time {};
 struct query_timeout {};
 
 class AvalancheProcessor {
@@ -192,19 +192,11 @@ class AvalancheProcessor {
      */
     std::atomic<uint64_t> round;
 
-    using PeerSet = boost::multi_index_container<
-        AvalancheNode,
-        boost::multi_index::indexed_by<
-            // index by nodeid
-            boost::multi_index::hashed_unique<boost::multi_index::member<
-                AvalancheNode, NodeId, &AvalancheNode::nodeid>>,
-            // sorted by nextRequestTime
-            boost::multi_index::ordered_non_unique<
-                boost::multi_index::tag<next_request_time>,
-                boost::multi_index::member<AvalancheNode, TimePoint,
-                                           &AvalancheNode::nextRequestTime>>>>;
-
-    RWCollection<PeerSet> peerSet;
+    /**
+     * Keep track of the peers and associated infos.
+     */
+    mutable Mutex cs_peerManager;
+    std::unique_ptr<PeerManager> peerManager GUARDED_BY(cs_peerManager);
 
     struct Query {
         NodeId nodeid;

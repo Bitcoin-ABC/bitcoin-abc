@@ -112,6 +112,12 @@ bool PeerManager::removeNode(NodeId nodeid) {
     return nodes.erase(nodeid) > 0;
 }
 
+bool PeerManager::forNode(
+    NodeId nodeid, std::function<bool(const AvalancheNode &n)> func) const {
+    auto it = nodes.find(nodeid);
+    return it != nodes.end() && func(*it);
+}
+
 bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
     auto it = nodes.find(nodeid);
     if (it == nodes.end()) {
