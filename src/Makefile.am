@@ -114,6 +114,7 @@ BITCOIN_CORE_H = \
   addrdb.h \
   addrman.h \
   attributes.h \
+  avalanche/node.h \
   avalanche/peermanager.h \
   avalanche/processor.h \
   avalanche/protocol.h \

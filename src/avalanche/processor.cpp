@@ -233,7 +233,7 @@ bool AvalancheProcessor::registerVotes(
         auto w = peerSet.getWriteView();
         auto it = w->find(nodeid);
         if (it != w->end()) {
-            w->modify(it, [&response](Node &n) {
+            w->modify(it, [&response](AvalancheNode &n) {
                 // FIXME: This will override the time even when we received an
                 // old stale message. This should check that the message is
                 // indeed the most up to date one before updating the time.
@@ -347,7 +347,7 @@ bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
 }
 
 bool AvalancheProcessor::forNode(
-    NodeId nodeid, std::function<bool(const Node &n)> func) const {
+    NodeId nodeid, std::function<bool(const AvalancheNode &n)> func) const {
     auto r = peerSet.getReadView();
     auto it = r->find(nodeid);
     return it != r->end() && func(*it);
@@ -499,7 +499,7 @@ void AvalancheProcessor::runEventLoop() {
                 auto w = peerSet.getWriteView();
                 auto it = w->find(pnode->GetId());
                 if (it != w->end()) {
-                    w->modify(it, [&timeout](Node &n) {
+                    w->modify(it, [&timeout](AvalancheNode &n) {
                         n.nextRequestTime = timeout;
                     });
                 }

@@ -5,11 +5,11 @@
 #ifndef BITCOIN_AVALANCHE_PROCESSOR_H
 #define BITCOIN_AVALANCHE_PROCESSOR_H
 
+#include <avalanche/node.h>
 #include <avalanche/protocol.h>
 #include <blockindexworkcomparator.h>
 #include <eventloop.h>
 #include <key.h>
-#include <net.h>
 #include <rwcollection.h>
 
 #include <boost/multi_index/composite_key.hpp>
@@ -179,18 +179,6 @@ struct next_request_time {};
 struct query_timeout {};
 
 class AvalancheProcessor {
-public:
-    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
-
-    struct Node {
-        NodeId nodeid;
-        int64_t score;
-
-        TimePoint nextRequestTime;
-        CPubKey pubkey;
-    };
-
-private:
     CConnman *connman;
     std::chrono::milliseconds queryTimeoutDuration;
 
@@ -205,15 +193,16 @@ private:
     std::atomic<uint64_t> round;
 
     using PeerSet = boost::multi_index_container<
-        Node, boost::multi_index::indexed_by<
-                  // index by nodeid
-                  boost::multi_index::hashed_unique<
-                      boost::multi_index::member<Node, NodeId, &Node::nodeid>>,
-                  // sorted by nextRequestTime
-                  boost::multi_index::ordered_non_unique<
-                      boost::multi_index::tag<next_request_time>,
-                      boost::multi_index::member<Node, TimePoint,
-                                                 &Node::nextRequestTime>>>>;
+        AvalancheNode,
+        boost::multi_index::indexed_by<
+            // index by nodeid
+            boost::multi_index::hashed_unique<boost::multi_index::member<
+                AvalancheNode, NodeId, &AvalancheNode::nodeid>>,
+            // sorted by nextRequestTime
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<next_request_time>,
+                boost::multi_index::member<AvalancheNode, TimePoint,
+                                           &AvalancheNode::nextRequestTime>>>>;
 
     RWCollection<PeerSet> peerSet;
 
@@ -271,7 +260,8 @@ public:
                        std::vector<AvalancheBlockUpdate> &updates);
 
     bool addPeer(NodeId nodeid, int64_t score, CPubKey pubkey);
-    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
+    bool forNode(NodeId nodeid,
+                 std::function<bool(const AvalancheNode &n)> func) const;
 
     CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }
 
