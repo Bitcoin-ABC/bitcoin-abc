@@ -102,7 +102,7 @@ bool PeerManager::addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey) {
     }
 
     // We actually have this node already, we need to update it.
-    return nodes.modify(nit, [&](Node &n) {
+    return nodes.modify(nit, [&](AvalancheNode &n) {
         n.peerid = peerid;
         n.pubkey = std::move(pubkey);
     });
@@ -118,7 +118,8 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
         return false;
     }
 
-    return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
+    return nodes.modify(it,
+                        [&](AvalancheNode &n) { n.nextRequestTime = timeout; });
 }
 
 NodeId PeerManager::getSuitableNodeToQuery() {

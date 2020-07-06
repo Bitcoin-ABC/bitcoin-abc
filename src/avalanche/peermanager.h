@@ -5,6 +5,7 @@
 #ifndef BITCOIN_AVALANCHE_PEERMANAGER_H
 #define BITCOIN_AVALANCHE_PEERMANAGER_H
 
+#include <avalanche/node.h>
 #include <net.h>
 #include <pubkey.h>
 
@@ -18,9 +19,6 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
-
-using PeerId = uint32_t;
-static constexpr PeerId NO_PEER = -1;
 
 struct Slot {
 private:
@@ -75,34 +73,22 @@ class PeerManager {
     PeerId nextPeerId = 0;
     std::unordered_map<PeerId, Peer> peers;
 
-    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
-
-    struct Node {
-        NodeId nodeid;
-        PeerId peerid;
-        TimePoint nextRequestTime;
-        CPubKey pubkey;
-
-        Node(NodeId nodeid_, PeerId peerid_, CPubKey pubkey_)
-            : nodeid(nodeid_), peerid(peerid_),
-              nextRequestTime(std::chrono::steady_clock::now()),
-              pubkey(std::move(pubkey_)) {}
-    };
-
     using NodeSet = boost::multi_index_container<
-        Node,
+        AvalancheNode,
         boost::multi_index::indexed_by<
             // index by nodeid
-            boost::multi_index::hashed_unique<
-                boost::multi_index::member<Node, NodeId, &Node::nodeid>>,
+            boost::multi_index::hashed_unique<boost::multi_index::member<
+                AvalancheNode, NodeId, &AvalancheNode::nodeid>>,
             // sorted by peerid/nextRequestTime
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<next_request_time>,
                 boost::multi_index::composite_key<
-                    Node,
-                    boost::multi_index::member<Node, PeerId, &Node::peerid>,
-                    boost::multi_index::member<Node, TimePoint,
-                                               &Node::nextRequestTime>>>>>;
+                    AvalancheNode,
+                    boost::multi_index::member<AvalancheNode, PeerId,
+                                               &AvalancheNode::peerid>,
+                    boost::multi_index::member<
+                        AvalancheNode, TimePoint,
+                        &AvalancheNode::nextRequestTime>>>>>;
 
     NodeSet nodes;
 

@@ -341,8 +341,7 @@ bool AvalancheProcessor::registerVotes(
 
 bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
     return peerSet.getWriteView()
-        ->insert({nodeid, score, std::chrono::steady_clock::now(),
-                  std::move(pubkey)})
+        ->insert({nodeid, /* peerid is unused here */ 0, std::move(pubkey)})
         .second;
 }
 
