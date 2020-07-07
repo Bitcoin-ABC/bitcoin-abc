@@ -210,12 +210,12 @@ std::array<CNode *, 8> ConnectNodes(const Config &config, Processor &p,
                                     PeerLogicValidation &peerLogic,
                                     CConnmanTest *connman) {
     PeerManager &pm = AvalancheTest::getPeerManager(p);
-    PeerId pid = pm.addPeer(100);
+    Proof proof(100);
 
     std::array<CNode *, 8> nodes;
     for (CNode *&n : nodes) {
         n = ConnectNode(config, nServices, peerLogic, connman);
-        BOOST_CHECK(pm.addNodeToPeer(pid, n->GetId(), CPubKey()));
+        BOOST_CHECK(pm.addNode(proof, n->GetId(), CPubKey()));
     }
 
     return nodes;
@@ -725,12 +725,12 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
 
     // Create enough nodes so that we run into the inflight request limit.
     PeerManager &pm = AvalancheTest::getPeerManager(p);
-    PeerId pid = pm.addPeer(100);
+    Proof proof(100);
 
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {
         n = ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
-        BOOST_CHECK(pm.addNodeToPeer(pid, n->GetId(), CPubKey()));
+        BOOST_CHECK(pm.addNode(proof, n->GetId(), CPubKey()));
     }
 
     // Add a block to poll

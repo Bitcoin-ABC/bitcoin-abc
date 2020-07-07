@@ -333,16 +333,9 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     return true;
 }
 
-bool Processor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
+bool Processor::addPeer(NodeId nodeid, int64_t score, const CPubKey &pubkey) {
     LOCK(cs_peerManager);
-
-    PeerId p = peerManager->addPeer(score);
-    bool inserted = peerManager->addNodeToPeer(p, nodeid, std::move(pubkey));
-    if (!inserted) {
-        peerManager->removePeer(p);
-    }
-
-    return inserted;
+    return peerManager->addNode(Proof(score), nodeid, pubkey);
 }
 
 bool Processor::forNode(NodeId nodeid,

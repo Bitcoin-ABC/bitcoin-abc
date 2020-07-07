@@ -129,13 +129,18 @@ public:
      * Peer API.
      */
     PeerId addPeer(uint32_t score) { return addPeer(nextPeerId++, score); }
+
+    // Provide the peer associated toa proof. If the peer does not exists, then
+    // it is created.
+    PeerId getPeer(const Proof &proof);
+
     bool removePeer(const PeerId peerid);
     bool rescorePeer(const PeerId peerid, uint32_t score);
 
     /**
      * Node API.
      */
-    bool addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey);
+    bool addNode(const Proof &proof, NodeId nodeid, const CPubKey &pubkey);
     bool removeNode(NodeId nodeid);
 
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;

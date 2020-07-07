@@ -20,6 +20,25 @@ PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
     return p;
 }
 
+PeerId PeerManager::getPeer(const Proof &proof) {
+    auto &pview = peers.get<proof_index>();
+    auto it = pview.find(proof.getId());
+    if (it != pview.end()) {
+        return it->peerid;
+    }
+
+    // We have no peer for this proof, time to create it.
+    const PeerId peerid = nextPeerId++;
+    auto inserted = peers.emplace(peerid, uint32_t(slots.size()), proof);
+    assert(inserted.second);
+
+    const uint32_t score = proof.getScore();
+    const uint64_t start = slotCount;
+    slots.emplace_back(start, score, peerid);
+    slotCount = start + score;
+    return peerid;
+}
+
 bool PeerManager::removePeer(const PeerId peerid) {
     auto it = peers.find(peerid);
     if (it == peers.end()) {
@@ -92,7 +111,10 @@ bool PeerManager::rescorePeer(const PeerId peerid, uint32_t score) {
     return true;
 }
 
-bool PeerManager::addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey) {
+bool PeerManager::addNode(const Proof &proof, NodeId nodeid,
+                          const CPubKey &pubkey) {
+    const PeerId peerid = getPeer(proof);
+
     auto pit = peers.find(peerid);
     if (pit == peers.end()) {
         return false;
@@ -100,13 +122,13 @@ bool PeerManager::addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey) {
 
     auto nit = nodes.find(nodeid);
     if (nit == nodes.end()) {
-        return nodes.emplace(nodeid, peerid, std::move(pubkey)).second;
+        return nodes.emplace(nodeid, peerid, pubkey).second;
     }
 
     // We actually have this node already, we need to update it.
     return nodes.modify(nit, [&](Node &n) {
         n.peerid = peerid;
-        n.pubkey = std::move(pubkey);
+        n.pubkey = pubkey;
     });
 }
 

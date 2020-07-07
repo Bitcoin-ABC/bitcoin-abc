@@ -356,12 +356,13 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     PeerManager pm;
 
     // Create one peer.
-    PeerId peerid = pm.addPeer(100);
+    Proof proof(100);
+    PeerId peerid = pm.getPeer(proof);
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
     for (int i = 0; i < 4; i++) {
-        BOOST_CHECK(pm.addNodeToPeer(peerid, i, CPubKey()));
+        BOOST_CHECK(pm.addNode(proof, i, CPubKey()));
     }
 
     for (int i = 0; i < 100; i++) {
@@ -393,8 +394,9 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     }
 
     // Move a node from a peer to another.
-    PeerId altpeer = pm.addPeer(0);
-    BOOST_CHECK(pm.addNodeToPeer(altpeer, 3, CPubKey()));
+    Proof altproof(0);
+    PeerId altpeer = pm.getPeer(altproof);
+    BOOST_CHECK(pm.addNode(altproof, 3, CPubKey()));
 
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
