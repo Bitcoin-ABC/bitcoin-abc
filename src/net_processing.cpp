@@ -3587,7 +3587,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             return error("poll message size = %u", nCount);
         }
 
-        std::vector<AvalancheVote> votes;
+        std::vector<avalanche::Vote> votes;
         votes.reserve(nCount);
 
         LogPrint(BCLog::NET, "received avalanche poll from peer=%d\n",
@@ -3615,7 +3615,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         // Send the query to the node.
         g_avalanche->sendResponse(
-            pfrom, AvalancheResponse(round, cooldown, std::move(votes)));
+            pfrom, avalanche::Response(round, cooldown, std::move(votes)));
         return true;
     }
 
@@ -3627,7 +3627,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // verify response's signatures in order to avoid any manipulation of
         // messages at the transport level.
         CHashVerifier<CDataStream> verifier(&vRecv);
-        AvalancheResponse response;
+        avalanche::Response response;
         verifier >> response;
 
         if (!g_avalanche->forNode(

@@ -259,12 +259,12 @@ extern const char *GETBLOCKTXN;
  */
 extern const char *BLOCKTXN;
 /**
- * Contains an AvalanchePoll.
+ * Contains an avalanche::Poll.
  * Peer should respond with "avaresponse" message.
  */
 extern const char *AVAPOLL;
 /**
- * Contains an AvalancheResponse.
+ * Contains an avalanche::Response.
  * Sent in response to a "avapoll" message.
  */
 extern const char *AVARESPONSE;

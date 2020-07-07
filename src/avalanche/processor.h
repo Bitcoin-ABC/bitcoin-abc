@@ -253,8 +253,8 @@ public:
     int getConfidence(const CBlockIndex *pindex) const;
 
     // TDOD: Refactor the API to remove the dependency on avalanche/protocol.h
-    void sendResponse(CNode *pfrom, AvalancheResponse response) const;
-    bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
+    void sendResponse(CNode *pfrom, Response response) const;
+    bool registerVotes(NodeId nodeid, const Response &response,
                        std::vector<BlockUpdate> &updates);
 
     bool addPeer(NodeId nodeid, int64_t score, CPubKey pubkey);

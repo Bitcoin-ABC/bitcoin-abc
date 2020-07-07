@@ -186,12 +186,12 @@ namespace {
      * When using TCP, we need to sign all messages as the transport layer is
      * not secure.
      */
-    class TCPAvalancheResponse {
-        AvalancheResponse response;
+    class TCPResponse {
+        Response response;
         std::array<uint8_t, 64> sig;
 
     public:
-        TCPAvalancheResponse(AvalancheResponse responseIn, const CKey &key)
+        TCPResponse(Response responseIn, const CKey &key)
             : response(std::move(responseIn)) {
             CHashWriter hasher(SER_GETHASH, 0);
             hasher << response;
@@ -219,15 +219,14 @@ namespace {
     };
 } // namespace
 
-void Processor::sendResponse(CNode *pfrom, AvalancheResponse response) const {
+void Processor::sendResponse(CNode *pfrom, Response response) const {
     connman->PushMessage(
-        pfrom,
-        CNetMsgMaker(pfrom->GetSendVersion())
-            .Make(NetMsgType::AVARESPONSE,
-                  TCPAvalancheResponse(std::move(response), sessionKey)));
+        pfrom, CNetMsgMaker(pfrom->GetSendVersion())
+                   .Make(NetMsgType::AVARESPONSE,
+                         TCPResponse(std::move(response), sessionKey)));
 }
 
-bool Processor::registerVotes(NodeId nodeid, const AvalancheResponse &response,
+bool Processor::registerVotes(NodeId nodeid, const Response &response,
                               std::vector<BlockUpdate> &updates) {
     {
         // Save the time at which we can query again.
@@ -257,7 +256,7 @@ bool Processor::registerVotes(NodeId nodeid, const AvalancheResponse &response,
     }
 
     // Verify that the request and the vote are consistent.
-    const std::vector<AvalancheVote> &votes = response.GetVotes();
+    const std::vector<Vote> &votes = response.GetVotes();
     size_t size = invs.size();
     if (votes.size() != size) {
         // TODO: increase banscore for inconsistent response.
@@ -273,7 +272,7 @@ bool Processor::registerVotes(NodeId nodeid, const AvalancheResponse &response,
         }
     }
 
-    std::map<CBlockIndex *, AvalancheVote> responseIndex;
+    std::map<CBlockIndex *, Vote> responseIndex;
 
     {
         LOCK(cs_main);
@@ -299,7 +298,7 @@ bool Processor::registerVotes(NodeId nodeid, const AvalancheResponse &response,
         auto w = vote_records.getWriteView();
         for (const auto &p : responseIndex) {
             CBlockIndex *pindex = p.first;
-            const AvalancheVote &v = p.second;
+            const Vote &v = p.second;
 
             auto it = w->find(pindex);
             if (it == w.end()) {
@@ -492,10 +491,9 @@ void Processor::runEventLoop() {
 
             // Send the query to the node.
             connman->PushMessage(
-                pnode,
-                CNetMsgMaker(pnode->GetSendVersion())
-                    .Make(NetMsgType::AVAPOLL,
-                          AvalanchePoll(current_round, std::move(invs))));
+                pnode, CNetMsgMaker(pnode->GetSendVersion())
+                           .Make(NetMsgType::AVAPOLL,
+                                 Poll(current_round, std::move(invs))));
             return true;
         });
 
