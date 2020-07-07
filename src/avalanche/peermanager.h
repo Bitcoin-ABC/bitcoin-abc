@@ -128,8 +128,6 @@ public:
     /**
      * Peer API.
      */
-    PeerId addPeer(uint32_t score) { return addPeer(nextPeerId++, score); }
-
     // Provide the peer associated toa proof. If the peer does not exists, then
     // it is created.
     PeerId getPeer(const Proof &proof);

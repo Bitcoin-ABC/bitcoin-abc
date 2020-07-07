@@ -10,16 +10,6 @@
 
 namespace avalanche {
 
-PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
-    auto inserted = peers.emplace(p, uint32_t(slots.size()), Proof(score));
-    assert(inserted.second);
-
-    const uint64_t start = slotCount;
-    slots.emplace_back(start, score, p);
-    slotCount = start + score;
-    return p;
-}
-
 PeerId PeerManager::getPeer(const Proof &proof) {
     auto &pview = peers.get<proof_index>();
     auto it = pview.find(proof.getId());

@@ -149,35 +149,38 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(add_peer) {
+BOOST_AUTO_TEST_CASE(peer_probabilities) {
     // No peers.
     PeerManager pm;
-    BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
+    BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
+
+    const NodeId node0 = 42, node1 = 69, node2 = 37;
 
     // One peer, we always return it.
-    PeerId peer0 = pm.addPeer(100);
-    BOOST_CHECK_EQUAL(pm.selectPeer(), peer0);
+    Proof proof0(100);
+    pm.addNode(Proof(100), node0, CPubKey());
+    BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    PeerId peer1 = pm.addPeer(200);
+    pm.addNode(Proof(200), node1, CPubKey());
 
     std::unordered_map<PeerId, int> results = {};
     for (int i = 0; i < 10000; i++) {
-        size_t p = pm.selectPeer();
-        BOOST_CHECK(p == peer0 || p == peer1);
-        results[p]++;
+        size_t n = pm.selectNode();
+        BOOST_CHECK(n == node0 || n == node1);
+        results[n]++;
     }
 
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    PeerId peer2 = pm.addPeer(100);
+    pm.addNode(Proof(100), node2, CPubKey());
 
     results.clear();
     for (int i = 0; i < 10000; i++) {
-        size_t p = pm.selectPeer();
-        BOOST_CHECK(p == peer0 || p == peer1 || p == peer2);
-        results[p]++;
+        size_t n = pm.selectNode();
+        BOOST_CHECK(n == node0 || n == node1 || n == node2);
+        results[n]++;
     }
 
     BOOST_CHECK(abs(results[0] - results[1] + results[2]) < 500);
@@ -191,7 +194,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.addPeer(100);
+        peerids[i] = pm.getPeer(Proof(100));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
@@ -221,7 +224,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        peerids[i + 4] = pm.addPeer(100);
+        peerids[i + 4] = pm.getPeer(Proof(100));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
@@ -263,7 +266,7 @@ BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.addPeer(100);
+        peerids[i] = pm.getPeer(Proof(100));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
@@ -331,7 +334,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.addPeer(100);
+        peerids[i] = pm.getPeer(Proof(100));
     }
 
     // Remove all peers.
