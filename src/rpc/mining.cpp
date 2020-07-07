@@ -281,6 +281,18 @@ static UniValue generatetodescriptor(const Config &config,
                           num_blocks, max_tries);
 }
 
+static UniValue generate(const Config &config, const JSONRPCRequest &request) {
+    const std::string help_str{
+        "generate ( nblocks maxtries ) has been replaced by the -generate cli "
+        "option. Refer to -help for more information."};
+
+    if (request.fHelp) {
+        throw std::runtime_error(help_str);
+    } else {
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, help_str);
+    }
+}
+
 static UniValue generatetoaddress(const Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
@@ -1165,6 +1177,8 @@ void RegisterMiningRPCCommands(CRPCTable &t) {
         {"generating", "generateblock",         generateblock,         {"output","transactions"}},
 
         {"util",       "estimatefee",           estimatefee,           {}},
+
+        {"hidden",     "generate",              generate,              {}},
     };
     // clang-format on
     for (const auto &c : commands) {
