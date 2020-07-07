@@ -11,8 +11,7 @@
 namespace avalanche {
 
 PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
-    auto inserted =
-        peers.emplace(p, score, uint32_t(slots.size()), ProofId(GetRandHash()));
+    auto inserted = peers.emplace(p, uint32_t(slots.size()), Proof(score));
     assert(inserted.second);
 
     const uint64_t start = slotCount;

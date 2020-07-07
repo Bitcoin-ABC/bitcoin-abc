@@ -55,8 +55,23 @@ public:
     bool follows(uint64_t slot) const { return getStart() > slot; }
 };
 
-struct proof_index {};
-struct next_request_time {};
+struct Peer {
+    PeerId peerid;
+
+    uint32_t score;
+    uint32_t index;
+
+    Proof proof;
+
+    Peer(PeerId peerid_, uint32_t index_, Proof proof_)
+        : peerid(peerid_), score(proof_.getScore()), index(index_),
+          proof(std::move(proof_)) {}
+};
+
+struct proof_index {
+    using result_type = ProofId;
+    result_type operator()(const Peer &p) const { return p.proof.getId(); }
+};
 
 class SaltedProofIdHasher : private SaltedUint256Hasher {
 public:
@@ -64,6 +79,8 @@ public:
 
     size_t operator()(const ProofId &proofid) const { return hash(proofid); }
 };
+
+struct next_request_time {};
 
 class PeerManager {
     std::vector<Slot> slots;
@@ -74,19 +91,6 @@ class PeerManager {
      * Several nodes can make an avalanche peer. In this case, all nodes are
      * considered interchangeable parts of the same peer.
      */
-    struct Peer {
-        PeerId peerid;
-
-        uint32_t score;
-        uint32_t index;
-
-        ProofId proofid;
-
-        Peer(PeerId peerid_, uint32_t score_, uint32_t index_, ProofId proofid_)
-            : peerid(peerid_), score(score_), index(index_),
-              proofid(std::move(proofid_)) {}
-    };
-
     using PeerSet = boost::multi_index_container<
         Peer, boost::multi_index::indexed_by<
                   // index by peerid
@@ -94,8 +98,7 @@ class PeerManager {
                       boost::multi_index::member<Peer, PeerId, &Peer::peerid>>,
                   // index by proof
                   boost::multi_index::hashed_unique<
-                      boost::multi_index::tag<proof_index>,
-                      boost::multi_index::member<Peer, ProofId, &Peer::proofid>,
+                      boost::multi_index::tag<proof_index>, proof_index,
                       SaltedProofIdHasher>>>;
 
     PeerId nextPeerId = 0;

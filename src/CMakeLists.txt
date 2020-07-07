@@ -498,6 +498,7 @@ add_library(server
 	addrman.cpp
 	avalanche/peermanager.cpp
 	avalanche/processor.cpp
+	avalanche/proof.cpp
 	banman.cpp
 	blockencodings.cpp
 	blockfilter.cpp
