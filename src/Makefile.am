@@ -214,6 +214,7 @@ BITCOIN_CORE_H = \
   rpc/server.h \
   rpc/util.h \
   rwcollection.h \
+  salteduint256hasher.h \
   scheduler.h \
   script/descriptor.h \
   script/keyorigin.h \
@@ -517,6 +518,7 @@ libbitcoin_common_a_SOURCES = \
   psbt.cpp \
   rpc/rawtransaction_util.cpp \
   rpc/util.cpp \
+  salteduint256hasher.cpp \
   scheduler.cpp \
   script/descriptor.cpp \
   script/sign.cpp \

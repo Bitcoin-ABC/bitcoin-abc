@@ -443,6 +443,7 @@ add_library(common
 	rpc/rawtransaction_util.cpp
 	rpc/util.cpp
 	scheduler.cpp
+	salteduint256hasher.cpp
 	versionbitsinfo.cpp
 	warnings.cpp
 )

@@ -9,10 +9,10 @@
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
 #include <pow.h>
+#include <random.h>
 #include <script/scriptcache.h>
 #include <txmempool.h>
 #include <validation.h>
-
 
 static void DuplicateInputs(benchmark::State &state) {
     const CScript SCRIPT_PUB{CScript(OP_TRUE)};

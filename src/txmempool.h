@@ -9,10 +9,9 @@
 #include <amount.h>
 #include <coins.h>
 #include <core_memusage.h>
-#include <crypto/siphash.h>
 #include <indirectmap.h>
 #include <primitives/transaction.h>
-#include <random.h>
+#include <salteduint256hasher.h>
 #include <sync.h>
 
 #include <boost/multi_index/hashed_index.hpp>
@@ -383,17 +382,11 @@ enum class MemPoolRemovalReason {
     REPLACED
 };
 
-class SaltedTxidHasher {
-private:
-    /** Salt */
-    const uint64_t k0, k1;
-
+class SaltedTxIdHasher : private SaltedUint256Hasher {
 public:
-    SaltedTxidHasher();
+    SaltedTxIdHasher() : SaltedUint256Hasher() {}
 
-    size_t operator()(const TxId &txid) const {
-        return SipHashUint256(k0, k1, txid);
-    }
+    size_t operator()(const TxId &txid) const { return hash(txid); }
 };
 
 /**
@@ -499,7 +492,7 @@ public:
         CTxMemPoolEntry, boost::multi_index::indexed_by<
                              // sorted by txid
                              boost::multi_index::hashed_unique<
-                                 mempoolentry_txid, SaltedTxidHasher>,
+                                 mempoolentry_txid, SaltedTxIdHasher>,
                              // sorted by fee rate
                              boost::multi_index::ordered_non_unique<
                                  boost::multi_index::tag<descendant_score>,
@@ -886,7 +879,7 @@ private:
                              // sorted by txid
                              boost::multi_index::hashed_unique<
                                  boost::multi_index::tag<txid_index>,
-                                 mempoolentry_txid, SaltedTxidHasher>,
+                                 mempoolentry_txid, SaltedTxIdHasher>,
                              // sorted by order in the blockchain
                              boost::multi_index::sequenced<
                                  boost::multi_index::tag<insertion_order>>>>
