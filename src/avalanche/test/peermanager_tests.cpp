@@ -357,7 +357,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Create one peer.
     PeerId peerid = pm.addPeer(100);
-    BOOST_CHECK_EQUAL(pm.getSuitableNodeToQuery(), NO_NODE);
+    BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
     for (int i = 0; i < 4; i++) {
@@ -365,7 +365,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     }
 
     for (int i = 0; i < 100; i++) {
-        NodeId n = pm.getSuitableNodeToQuery();
+        NodeId n = pm.selectNode();
         BOOST_CHECK(n >= 0 && n < 4);
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
@@ -375,7 +375,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     BOOST_CHECK(pm.removeNode(2));
 
     for (int i = 0; i < 100; i++) {
-        NodeId n = pm.getSuitableNodeToQuery();
+        NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0 || n == 1 || n == 3);
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
@@ -386,7 +386,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
                                                 std::chrono::hours(24)));
 
     for (int i = 0; i < 100; i++) {
-        NodeId n = pm.getSuitableNodeToQuery();
+        NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0 || n == 3);
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
@@ -397,7 +397,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     BOOST_CHECK(pm.addNodeToPeer(altpeer, 3, CPubKey()));
 
     for (int i = 0; i < 100; i++) {
-        NodeId n = pm.getSuitableNodeToQuery();
+        NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0);
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
@@ -409,7 +409,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     BOOST_CHECK_EQUAL(pm.compact(), 100);
 
     for (int i = 0; i < 100; i++) {
-        NodeId n = pm.getSuitableNodeToQuery();
+        NodeId n = pm.selectNode();
         BOOST_CHECK(n == 3);
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));

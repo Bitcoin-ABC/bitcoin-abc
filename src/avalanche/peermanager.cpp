@@ -129,7 +129,7 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
     return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
 }
 
-NodeId PeerManager::getSuitableNodeToQuery() {
+NodeId PeerManager::selectNode() {
     for (int retry = 0; retry < SELECT_NODE_MAX_RETRY; retry++) {
         const PeerId p = selectPeer();
 

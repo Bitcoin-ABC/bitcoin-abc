@@ -401,7 +401,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
 
 NodeId Processor::getSuitableNodeToQuery() {
     LOCK(cs_peerManager);
-    return peerManager->getSuitableNodeToQuery();
+    return peerManager->selectNode();
 }
 
 void Processor::clearTimedoutRequests() {

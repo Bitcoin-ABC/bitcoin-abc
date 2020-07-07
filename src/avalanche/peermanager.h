@@ -113,7 +113,7 @@ public:
 
     bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
 
-    NodeId getSuitableNodeToQuery();
+    NodeId selectNode();
 
     /**
      * Exposed for tests.
