@@ -130,6 +130,10 @@ struct CSerializedNetMsg {
     std::string command;
 };
 
+namespace {
+struct CConnmanTest;
+}
+
 class NetEventsInterface;
 class CConnman {
 public:
@@ -498,7 +502,7 @@ private:
 
     std::atomic<int64_t> m_next_send_inv_to_incoming{0};
 
-    friend struct CConnmanTest;
+    friend struct ::CConnmanTest;
 };
 
 void Discover();

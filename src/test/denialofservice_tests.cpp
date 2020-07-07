@@ -24,6 +24,7 @@
 
 #include <cstdint>
 
+namespace {
 struct CConnmanTest : public CConnman {
     using CConnman::CConnman;
     void AddNode(CNode &node) {
@@ -38,6 +39,7 @@ struct CConnmanTest : public CConnman {
         vNodes.clear();
     }
 };
+} // namespace
 
 // Tests these internal-to-net_processing.cpp methods:
 extern bool AddOrphanTx(const CTransactionRef &tx, NodeId peer);

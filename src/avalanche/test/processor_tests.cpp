@@ -38,6 +38,7 @@ namespace {
 } // namespace
 } // namespace avalanche
 
+namespace {
 struct CConnmanTest : public CConnman {
     using CConnman::CConnman;
     void AddNode(CNode &node) {
@@ -52,6 +53,7 @@ struct CConnmanTest : public CConnman {
         vNodes.clear();
     }
 };
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(processor_tests, TestChain100Setup)
 
