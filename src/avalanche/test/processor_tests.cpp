@@ -13,24 +13,30 @@
 
 #include <boost/test/unit_test.hpp>
 
-struct AvalancheTest {
-    static void runEventLoop(AvalancheProcessor &p) { p.runEventLoop(); }
+using namespace avalanche;
 
-    static std::vector<CInv> getInvsForNextPoll(AvalancheProcessor &p) {
-        return p.getInvsForNextPoll(false);
-    }
+namespace avalanche {
+namespace {
+    struct AvalancheTest {
+        static void runEventLoop(avalanche::Processor &p) { p.runEventLoop(); }
 
-    static NodeId getSuitableNodeToQuery(AvalancheProcessor &p) {
-        return p.getSuitableNodeToQuery();
-    }
+        static std::vector<CInv> getInvsForNextPoll(Processor &p) {
+            return p.getInvsForNextPoll(false);
+        }
 
-    static PeerManager &getPeerManager(AvalancheProcessor &p) {
-        LOCK(p.cs_peerManager);
-        return *p.peerManager;
-    }
+        static NodeId getSuitableNodeToQuery(Processor &p) {
+            return p.getSuitableNodeToQuery();
+        }
 
-    static uint64_t getRound(const AvalancheProcessor &p) { return p.round; }
-};
+        static PeerManager &getPeerManager(Processor &p) {
+            LOCK(p.cs_peerManager);
+            return *p.peerManager;
+        }
+
+        static uint64_t getRound(const Processor &p) { return p.round; }
+    };
+} // namespace
+} // namespace avalanche
 
 struct CConnmanTest : public CConnman {
     using CConnman::CConnman;
@@ -159,15 +165,15 @@ BOOST_AUTO_TEST_CASE(block_update) {
     CBlockIndex index;
     CBlockIndex *pindex = &index;
 
-    std::set<AvalancheBlockUpdate::Status> status{
-        AvalancheBlockUpdate::Status::Invalid,
-        AvalancheBlockUpdate::Status::Rejected,
-        AvalancheBlockUpdate::Status::Accepted,
-        AvalancheBlockUpdate::Status::Finalized,
+    std::set<BlockUpdate::Status> status{
+        BlockUpdate::Status::Invalid,
+        BlockUpdate::Status::Rejected,
+        BlockUpdate::Status::Accepted,
+        BlockUpdate::Status::Finalized,
     };
 
     for (auto s : status) {
-        AvalancheBlockUpdate abu(pindex, s);
+        BlockUpdate abu(pindex, s);
         BOOST_CHECK(abu.getBlockIndex() == pindex);
         BOOST_CHECK_EQUAL(abu.getStatus(), s);
     }
@@ -197,7 +203,7 @@ CNode *ConnectNode(const Config &config, ServiceFlags nServices,
     return node;
 }
 
-std::array<CNode *, 8> ConnectNodes(const Config &config, AvalancheProcessor &p,
+std::array<CNode *, 8> ConnectNodes(const Config &config, Processor &p,
                                     ServiceFlags nServices,
                                     PeerLogicValidation &peerLogic,
                                     CConnmanTest *connman) {
@@ -226,8 +232,8 @@ BOOST_AUTO_TEST_CASE(block_register) {
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), nullptr, *m_node.scheduler, false);
 
-    AvalancheProcessor p(connman.get());
-    std::vector<AvalancheBlockUpdate> updates;
+    Processor p(connman.get());
+    std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
     const BlockHash blockHash = block.GetHash();
@@ -322,8 +328,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     registerNewVote(next(resp));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Finalized);
+    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
     updates = {};
 
     // Once the decision is finalized, there is no poll for it.
@@ -349,8 +354,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Rejected);
+    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Rejected);
     updates = {};
 
     // Now it is rejected, but we can vote for it numerous times.
@@ -371,8 +375,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Invalid);
+    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Invalid);
     updates = {};
 
     // Once the decision is finalized, there is no poll for it.
@@ -394,10 +397,10 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), nullptr, *m_node.scheduler, false);
 
-    AvalancheProcessor p(connman.get());
+    Processor p(connman.get());
     CBlockIndex indexA, indexB;
 
-    std::vector<AvalancheBlockUpdate> updates;
+    std::vector<BlockUpdate> updates;
 
     // Create several nodes that support avalanche.
     auto avanodes =
@@ -479,8 +482,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(p.registerVotes(firstNodeid, next(resp), updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexA);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Finalized);
+    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
     updates = {};
 
     // We do not vote on A anymore.
@@ -493,8 +495,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(p.registerVotes(secondNodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexB);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Finalized);
+    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
     updates = {};
 
     // There is nothing left to vote on.
@@ -511,9 +512,9 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), nullptr, *m_node.scheduler, false);
 
-    AvalancheProcessor p(connman.get());
+    Processor p(connman.get());
 
-    std::vector<AvalancheBlockUpdate> updates;
+    std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
     const BlockHash blockHash = block.GetHash();
@@ -660,9 +661,9 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), nullptr, *m_node.scheduler, false);
 
-    AvalancheProcessor p(connman.get());
+    Processor p(connman.get());
 
-    std::vector<AvalancheBlockUpdate> updates;
+    std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
     const BlockHash blockHash = block.GetHash();
@@ -724,7 +725,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), nullptr, *m_node.scheduler, false);
 
-    AvalancheProcessor p(connman.get());
+    Processor p(connman.get());
 
     // Create enough nodes so that we run into the inflight request limit.
     PeerManager &pm = AvalancheTest::getPeerManager(p);
@@ -767,7 +768,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), suitablenodeid);
 
-    std::vector<AvalancheBlockUpdate> updates;
+    std::vector<BlockUpdate> updates;
 
     // Send one response, now we can poll again.
     auto it = node_round_map.begin();
@@ -790,8 +791,8 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), nullptr, *m_node.scheduler, false);
 
-    AvalancheProcessor p(connman.get());
-    std::vector<AvalancheBlockUpdate> updates;
+    Processor p(connman.get());
+    std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
     const BlockHash blockHash = block.GetHash();
@@ -866,7 +867,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), nullptr, *m_node.scheduler, false);
 
-    AvalancheProcessor p(connman.get());
+    Processor p(connman.get());
     CScheduler s;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
@@ -920,7 +921,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     auto queryTime =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
 
-    std::vector<AvalancheBlockUpdate> updates;
+    std::vector<BlockUpdate> updates;
     p.registerVotes(nodeid, {queryRound, 100, {AvalancheVote(0, blockHash)}},
                     updates);
     for (int i = 0; i < 10000; i++) {
@@ -959,7 +960,7 @@ BOOST_AUTO_TEST_CASE(destructor) {
     std::thread schedulerThread(std::bind(&CScheduler::serviceQueue, &s));
 
     {
-        AvalancheProcessor p(m_node.connman.get());
+        Processor p(m_node.connman.get());
         BOOST_CHECK(p.startEventLoop(s));
         BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 1);
     }

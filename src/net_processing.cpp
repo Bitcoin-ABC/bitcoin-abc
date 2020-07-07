@@ -3630,20 +3630,21 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         AvalancheResponse response;
         verifier >> response;
 
-        if (!g_avalanche->forNode(pfrom->GetId(), [&](const AvalancheNode &n) {
-                std::array<uint8_t, 64> sig;
-                vRecv >> sig;
+        if (!g_avalanche->forNode(
+                pfrom->GetId(), [&](const avalanche::Node &n) {
+                    std::array<uint8_t, 64> sig;
+                    vRecv >> sig;
 
-                // Unfortunately, the verify API require a vector.
-                std::vector<uint8_t> vchSig{sig.begin(), sig.end()};
-                return n.pubkey.VerifySchnorr(verifier.GetHash(), vchSig);
-            })) {
+                    // Unfortunately, the verify API require a vector.
+                    std::vector<uint8_t> vchSig{sig.begin(), sig.end()};
+                    return n.pubkey.VerifySchnorr(verifier.GetHash(), vchSig);
+                })) {
             LOCK(cs_main);
             Misbehaving(pfrom, 100, "invalid-ava-response-signature");
             return true;
         }
 
-        std::vector<AvalancheBlockUpdate> updates;
+        std::vector<avalanche::BlockUpdate> updates;
         if (!g_avalanche->registerVotes(pfrom->GetId(), response, updates)) {
             LOCK(cs_main);
             Misbehaving(pfrom, 100, "invalid-ava-response-content");
@@ -3651,11 +3652,11 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         if (updates.size()) {
-            for (AvalancheBlockUpdate &u : updates) {
+            for (avalanche::BlockUpdate &u : updates) {
                 CBlockIndex *pindex = u.getBlockIndex();
                 switch (u.getStatus()) {
-                    case AvalancheBlockUpdate::Status::Invalid:
-                    case AvalancheBlockUpdate::Status::Rejected: {
+                    case avalanche::BlockUpdate::Status::Invalid:
+                    case avalanche::BlockUpdate::Status::Rejected: {
                         CValidationState state;
                         ParkBlock(config, state, pindex);
                         if (!state.IsValid()) {
@@ -3663,8 +3664,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                                          state.GetRejectReason());
                         }
                     } break;
-                    case AvalancheBlockUpdate::Status::Accepted:
-                    case AvalancheBlockUpdate::Status::Finalized: {
+                    case avalanche::BlockUpdate::Status::Accepted:
+                    case avalanche::BlockUpdate::Status::Finalized: {
                         LOCK(cs_main);
                         UnparkBlock(pindex);
                     } break;

@@ -8,6 +8,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+using namespace avalanche;
+
 BOOST_FIXTURE_TEST_SUITE(peermanager_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(select_peer_linear) {

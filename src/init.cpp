@@ -194,7 +194,7 @@ void Shutdown(NodeContext &node) {
     // to shut them down in this order:
     // 1. Stop avalanche event loop.
     // 2. Shutdown network processing.
-    // 3. Destroy AvalancheProcessor.
+    // 3. Destroy avalanche::Processor.
     // 4. Destroy CConnman
     if (g_avalanche) {
         g_avalanche->stopEventLoop();
@@ -2325,7 +2325,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 6.5 (I guess ?): Initialize Avalanche.
-    g_avalanche = std::make_unique<AvalancheProcessor>(node.connman.get());
+    g_avalanche = std::make_unique<avalanche::Processor>(node.connman.get());
 
     // Step 7: load block chain
 

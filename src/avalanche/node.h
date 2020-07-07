@@ -16,16 +16,20 @@ static constexpr PeerId NO_PEER = -1;
 
 using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
-struct AvalancheNode {
+namespace avalanche {
+
+struct Node {
     NodeId nodeid;
     PeerId peerid;
     TimePoint nextRequestTime;
     CPubKey pubkey;
 
-    AvalancheNode(NodeId nodeid_, PeerId peerid_, CPubKey pubkey_)
+    Node(NodeId nodeid_, PeerId peerid_, CPubKey pubkey_)
         : nodeid(nodeid_), peerid(peerid_),
           nextRequestTime(std::chrono::steady_clock::now()),
           pubkey(std::move(pubkey_)) {}
 };
+
+} // namespace avalanche
 
 #endif // BITCOIN_AVALANCHE_NODE_H

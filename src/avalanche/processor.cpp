@@ -22,7 +22,9 @@ static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 
 // Unfortunately, the bitcoind codebase is full of global and we are kinda
 // forced into it here.
-std::unique_ptr<AvalancheProcessor> g_avalanche;
+std::unique_ptr<avalanche::Processor> g_avalanche;
+
+namespace avalanche {
 
 bool VoteRecord::registerVote(NodeId nodeid, uint32_t error) {
     // We just got a new vote, so there is one less inflight request.
@@ -130,18 +132,18 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
     return true;
 }
 
-AvalancheProcessor::AvalancheProcessor(CConnman *connmanIn)
+Processor::Processor(CConnman *connmanIn)
     : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
       round(0), peerManager(std::make_unique<PeerManager>()) {
     // Pick a random key for the session.
     sessionKey.MakeNewKey(true);
 }
 
-AvalancheProcessor::~AvalancheProcessor() {
+Processor::~Processor() {
     stopEventLoop();
 }
 
-bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
+bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
     bool isAccepted;
 
     {
@@ -159,7 +161,7 @@ bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
         .second;
 }
 
-bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
+bool Processor::isAccepted(const CBlockIndex *pindex) const {
     auto r = vote_records.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
@@ -169,7 +171,7 @@ bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
     return it->second.isAccepted();
 }
 
-int AvalancheProcessor::getConfidence(const CBlockIndex *pindex) const {
+int Processor::getConfidence(const CBlockIndex *pindex) const {
     auto r = vote_records.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
@@ -180,45 +182,44 @@ int AvalancheProcessor::getConfidence(const CBlockIndex *pindex) const {
 }
 
 namespace {
-/**
- * When using TCP, we need to sign all messages as the transport layer is not
- * secure.
- */
-class TCPAvalancheResponse {
-    AvalancheResponse response;
-    std::array<uint8_t, 64> sig;
+    /**
+     * When using TCP, we need to sign all messages as the transport layer is
+     * not secure.
+     */
+    class TCPAvalancheResponse {
+        AvalancheResponse response;
+        std::array<uint8_t, 64> sig;
 
-public:
-    TCPAvalancheResponse(AvalancheResponse responseIn, const CKey &key)
-        : response(std::move(responseIn)) {
-        CHashWriter hasher(SER_GETHASH, 0);
-        hasher << response;
-        const uint256 hash = hasher.GetHash();
+    public:
+        TCPAvalancheResponse(AvalancheResponse responseIn, const CKey &key)
+            : response(std::move(responseIn)) {
+            CHashWriter hasher(SER_GETHASH, 0);
+            hasher << response;
+            const uint256 hash = hasher.GetHash();
 
-        // Now let's sign!
-        std::vector<uint8_t> vchSig;
-        if (key.SignSchnorr(hash, vchSig)) {
-            // Schnorr sigs are 64 bytes in size.
-            assert(vchSig.size() == 64);
-            std::copy(vchSig.begin(), vchSig.end(), sig.begin());
-        } else {
-            sig.fill(0);
+            // Now let's sign!
+            std::vector<uint8_t> vchSig;
+            if (key.SignSchnorr(hash, vchSig)) {
+                // Schnorr sigs are 64 bytes in size.
+                assert(vchSig.size() == 64);
+                std::copy(vchSig.begin(), vchSig.end(), sig.begin());
+            } else {
+                sig.fill(0);
+            }
         }
-    }
 
-    // serialization support
-    ADD_SERIALIZE_METHODS;
+        // serialization support
+        ADD_SERIALIZE_METHODS;
 
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(response);
-        READWRITE(sig);
-    }
-};
+        template <typename Stream, typename Operation>
+        inline void SerializationOp(Stream &s, Operation ser_action) {
+            READWRITE(response);
+            READWRITE(sig);
+        }
+    };
 } // namespace
 
-void AvalancheProcessor::sendResponse(CNode *pfrom,
-                                      AvalancheResponse response) const {
+void Processor::sendResponse(CNode *pfrom, AvalancheResponse response) const {
     connman->PushMessage(
         pfrom,
         CNetMsgMaker(pfrom->GetSendVersion())
@@ -226,9 +227,8 @@ void AvalancheProcessor::sendResponse(CNode *pfrom,
                   TCPAvalancheResponse(std::move(response), sessionKey)));
 }
 
-bool AvalancheProcessor::registerVotes(
-    NodeId nodeid, const AvalancheResponse &response,
-    std::vector<AvalancheBlockUpdate> &updates) {
+bool Processor::registerVotes(NodeId nodeid, const AvalancheResponse &response,
+                              std::vector<BlockUpdate> &updates) {
     {
         // Save the time at which we can query again.
         LOCK(cs_peerManager);
@@ -317,18 +317,16 @@ bool AvalancheProcessor::registerVotes(
                 // This item has note been finalized, so we have nothing more to
                 // do.
                 updates.emplace_back(
-                    pindex, vr.isAccepted()
-                                ? AvalancheBlockUpdate::Status::Accepted
-                                : AvalancheBlockUpdate::Status::Rejected);
+                    pindex, vr.isAccepted() ? BlockUpdate::Status::Accepted
+                                            : BlockUpdate::Status::Rejected);
                 continue;
             }
 
             // We just finalized a vote. If it is valid, then let the caller
             // know. Either way, remove the item from the map.
-            updates.emplace_back(pindex,
-                                 vr.isAccepted()
-                                     ? AvalancheBlockUpdate::Status::Finalized
-                                     : AvalancheBlockUpdate::Status::Invalid);
+            updates.emplace_back(pindex, vr.isAccepted()
+                                             ? BlockUpdate::Status::Finalized
+                                             : BlockUpdate::Status::Invalid);
             w->erase(it);
         }
     }
@@ -336,7 +334,7 @@ bool AvalancheProcessor::registerVotes(
     return true;
 }
 
-bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
+bool Processor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
     LOCK(cs_peerManager);
 
     PeerId p = peerManager->addPeer(score);
@@ -348,22 +346,22 @@ bool AvalancheProcessor::addPeer(NodeId nodeid, int64_t score, CPubKey pubkey) {
     return inserted;
 }
 
-bool AvalancheProcessor::forNode(
-    NodeId nodeid, std::function<bool(const AvalancheNode &n)> func) const {
+bool Processor::forNode(NodeId nodeid,
+                        std::function<bool(const Node &n)> func) const {
     LOCK(cs_peerManager);
     return peerManager->forNode(nodeid, std::move(func));
 }
 
-bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
+bool Processor::startEventLoop(CScheduler &scheduler) {
     return eventLoop.startEventLoop(
         scheduler, [this]() { this->runEventLoop(); }, AVALANCHE_TIME_STEP);
 }
 
-bool AvalancheProcessor::stopEventLoop() {
+bool Processor::stopEventLoop() {
     return eventLoop.stopEventLoop();
 }
 
-std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) {
+std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     std::vector<CInv> invs;
 
     // First remove all blocks that are not worth polling.
@@ -402,12 +400,12 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll(bool forPoll) {
     return invs;
 }
 
-NodeId AvalancheProcessor::getSuitableNodeToQuery() {
+NodeId Processor::getSuitableNodeToQuery() {
     LOCK(cs_peerManager);
     return peerManager->getSuitableNodeToQuery();
 }
 
-void AvalancheProcessor::clearTimedoutRequests() {
+void Processor::clearTimedoutRequests() {
     auto now = std::chrono::steady_clock::now();
     std::map<CInv, uint8_t> timedout_items{};
 
@@ -455,7 +453,7 @@ void AvalancheProcessor::clearTimedoutRequests() {
     }
 }
 
-void AvalancheProcessor::runEventLoop() {
+void Processor::runEventLoop() {
     // First things first, check if we have requests that timed out and clear
     // them.
     clearTimedoutRequests();
@@ -516,3 +514,5 @@ void AvalancheProcessor::runEventLoop() {
         nodeid = getSuitableNodeToQuery();
     } while (nodeid != NO_NODE);
 }
+
+} // namespace avalanche

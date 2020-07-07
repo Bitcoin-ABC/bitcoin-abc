@@ -25,7 +25,6 @@
 
 class Config;
 class CBlockIndex;
-class PeerManager;
 class CScheduler;
 
 /**
@@ -56,6 +55,10 @@ static constexpr std::chrono::milliseconds AVALANCHE_DEFAULT_QUERY_TIMEOUT{
  * How many inflight requests can exist for one item.
  */
 static constexpr int AVALANCHE_MAX_INFLIGHT_POLL = 10;
+
+namespace avalanche {
+
+class PeerManager;
 
 /**
  * Vote history.
@@ -136,7 +139,7 @@ private:
     bool addNodeToQuorum(NodeId nodeid);
 };
 
-class AvalancheBlockUpdate {
+class BlockUpdate {
     union {
         CBlockIndex *pindex;
         uintptr_t raw;
@@ -157,8 +160,7 @@ public:
         Finalized,
     };
 
-    AvalancheBlockUpdate(CBlockIndex *pindexIn, Status statusIn)
-        : pindex(pindexIn) {
+    BlockUpdate(CBlockIndex *pindexIn, Status statusIn) : pindex(pindexIn) {
         raw |= statusIn;
     }
 
@@ -169,7 +171,7 @@ public:
     }
 
     const CBlockIndex *getBlockIndex() const {
-        return const_cast<AvalancheBlockUpdate *>(this)->getBlockIndex();
+        return const_cast<BlockUpdate *>(this)->getBlockIndex();
     }
 };
 
@@ -178,7 +180,11 @@ using BlockVoteMap =
 
 struct query_timeout {};
 
-class AvalancheProcessor {
+namespace {
+    struct AvalancheTest;
+}
+
+class Processor {
     CConnman *connman;
     std::chrono::milliseconds queryTimeoutDuration;
 
@@ -235,8 +241,8 @@ class AvalancheProcessor {
     EventLoop eventLoop;
 
 public:
-    explicit AvalancheProcessor(CConnman *connmanIn);
-    ~AvalancheProcessor();
+    explicit Processor(CConnman *connmanIn);
+    ~Processor();
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {
         queryTimeoutDuration = d;
@@ -249,11 +255,10 @@ public:
     // TDOD: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, AvalancheResponse response) const;
     bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
-                       std::vector<AvalancheBlockUpdate> &updates);
+                       std::vector<BlockUpdate> &updates);
 
     bool addPeer(NodeId nodeid, int64_t score, CPubKey pubkey);
-    bool forNode(NodeId nodeid,
-                 std::function<bool(const AvalancheNode &n)> func) const;
+    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }
 
@@ -266,12 +271,14 @@ private:
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
     NodeId getSuitableNodeToQuery();
 
-    friend struct AvalancheTest;
+    friend struct ::avalanche::AvalancheTest;
 };
+
+} // namespace avalanche
 
 /**
  * Global avalanche instance.
  */
-extern std::unique_ptr<AvalancheProcessor> g_avalanche;
+extern std::unique_ptr<avalanche::Processor> g_avalanche;
 
 #endif // BITCOIN_AVALANCHE_PROCESSOR_H

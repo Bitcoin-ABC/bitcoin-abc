@@ -8,6 +8,8 @@
 
 #include <cassert>
 
+namespace avalanche {
+
 PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
     auto inserted = peers.emplace(p, Peer(score, uint32_t(slots.size())));
     assert(inserted.second);
@@ -102,7 +104,7 @@ bool PeerManager::addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey) {
     }
 
     // We actually have this node already, we need to update it.
-    return nodes.modify(nit, [&](AvalancheNode &n) {
+    return nodes.modify(nit, [&](Node &n) {
         n.peerid = peerid;
         n.pubkey = std::move(pubkey);
     });
@@ -112,8 +114,8 @@ bool PeerManager::removeNode(NodeId nodeid) {
     return nodes.erase(nodeid) > 0;
 }
 
-bool PeerManager::forNode(
-    NodeId nodeid, std::function<bool(const AvalancheNode &n)> func) const {
+bool PeerManager::forNode(NodeId nodeid,
+                          std::function<bool(const Node &n)> func) const {
     auto it = nodes.find(nodeid);
     return it != nodes.end() && func(*it);
 }
@@ -124,8 +126,7 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
         return false;
     }
 
-    return nodes.modify(it,
-                        [&](AvalancheNode &n) { n.nextRequestTime = timeout; });
+    return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
 }
 
 NodeId PeerManager::getSuitableNodeToQuery() {
@@ -296,3 +297,5 @@ PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
     // We failed to find a slot, retry.
     return NO_PEER;
 }
+
+} // namespace avalanche

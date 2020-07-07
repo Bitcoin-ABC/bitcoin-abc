@@ -20,6 +20,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace avalanche {
+
 struct Slot {
 private:
     uint64_t start;
@@ -74,21 +76,19 @@ class PeerManager {
     std::unordered_map<PeerId, Peer> peers;
 
     using NodeSet = boost::multi_index_container<
-        AvalancheNode,
+        Node,
         boost::multi_index::indexed_by<
             // index by nodeid
-            boost::multi_index::hashed_unique<boost::multi_index::member<
-                AvalancheNode, NodeId, &AvalancheNode::nodeid>>,
+            boost::multi_index::hashed_unique<
+                boost::multi_index::member<Node, NodeId, &Node::nodeid>>,
             // sorted by peerid/nextRequestTime
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<next_request_time>,
                 boost::multi_index::composite_key<
-                    AvalancheNode,
-                    boost::multi_index::member<AvalancheNode, PeerId,
-                                               &AvalancheNode::peerid>,
-                    boost::multi_index::member<
-                        AvalancheNode, TimePoint,
-                        &AvalancheNode::nextRequestTime>>>>>;
+                    Node,
+                    boost::multi_index::member<Node, PeerId, &Node::peerid>,
+                    boost::multi_index::member<Node, TimePoint,
+                                               &Node::nextRequestTime>>>>>;
 
     NodeSet nodes;
 
@@ -109,8 +109,7 @@ public:
     bool addNodeToPeer(PeerId peerid, NodeId nodeid, CPubKey pubkey);
     bool removeNode(NodeId nodeid);
 
-    bool forNode(NodeId nodeid,
-                 std::function<bool(const AvalancheNode &n)> func) const;
+    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
 
@@ -146,5 +145,7 @@ private:
  */
 PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
                       const uint64_t max);
+
+} // namespace avalanche
 
 #endif // BITCOIN_AVALANCHE_PEERMANAGER_H
