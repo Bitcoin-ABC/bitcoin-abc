@@ -19,7 +19,6 @@ struct InitWalletDirTestingSetup : public BasicTestingSetup {
     fs::path m_datadir;
     fs::path m_cwd;
     std::map<std::string, fs::path> m_walletdir_path_cases;
-    NodeContext m_node;
     std::unique_ptr<interfaces::Chain> m_chain;
     std::unique_ptr<interfaces::ChainClient> m_chain_client;
 };

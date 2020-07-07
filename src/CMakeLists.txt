@@ -201,6 +201,7 @@ add_compiler_flags(
 	-Wmissing-braces
 	-Wthread-safety-analysis
 	-Wshadow
+	-Wshadow-field
 	-Wrange-loop-analysis
 	-Wredundant-decls
 )
