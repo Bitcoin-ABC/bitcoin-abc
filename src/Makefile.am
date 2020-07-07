@@ -117,6 +117,7 @@ BITCOIN_CORE_H = \
   avalanche/node.h \
   avalanche/peermanager.h \
   avalanche/processor.h \
+  avalanche/proof.h \
   avalanche/protocol.h \
   banman.h \
   base58.h \

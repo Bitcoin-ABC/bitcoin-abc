@@ -6,8 +6,10 @@
 #define BITCOIN_AVALANCHE_PEERMANAGER_H
 
 #include <avalanche/node.h>
+#include <avalanche/proof.h>
 #include <net.h>
 #include <pubkey.h>
+#include <salteduint256hasher.h>
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -17,7 +19,6 @@
 
 #include <chrono>
 #include <cstdint>
-#include <unordered_map>
 #include <vector>
 
 namespace avalanche {
@@ -54,7 +55,15 @@ public:
     bool follows(uint64_t slot) const { return getStart() > slot; }
 };
 
+struct proof_index {};
 struct next_request_time {};
+
+class SaltedProofIdHasher : private SaltedUint256Hasher {
+public:
+    SaltedProofIdHasher() : SaltedUint256Hasher() {}
+
+    size_t operator()(const ProofId &proofid) const { return hash(proofid); }
+};
 
 class PeerManager {
     std::vector<Slot> slots;
@@ -66,14 +75,31 @@ class PeerManager {
      * considered interchangeable parts of the same peer.
      */
     struct Peer {
+        PeerId peerid;
+
         uint32_t score;
         uint32_t index;
 
-        Peer(uint32_t score_, uint32_t index_) : score(score_), index(index_) {}
+        ProofId proofid;
+
+        Peer(PeerId peerid_, uint32_t score_, uint32_t index_, ProofId proofid_)
+            : peerid(peerid_), score(score_), index(index_),
+              proofid(std::move(proofid_)) {}
     };
 
+    using PeerSet = boost::multi_index_container<
+        Peer, boost::multi_index::indexed_by<
+                  // index by peerid
+                  boost::multi_index::hashed_unique<
+                      boost::multi_index::member<Peer, PeerId, &Peer::peerid>>,
+                  // index by proof
+                  boost::multi_index::hashed_unique<
+                      boost::multi_index::tag<proof_index>,
+                      boost::multi_index::member<Peer, ProofId, &Peer::proofid>,
+                      SaltedProofIdHasher>>>;
+
     PeerId nextPeerId = 0;
-    std::unordered_map<PeerId, Peer> peers;
+    PeerSet peers;
 
     using NodeSet = boost::multi_index_container<
         Node,
@@ -100,8 +126,8 @@ public:
      * Peer API.
      */
     PeerId addPeer(uint32_t score) { return addPeer(nextPeerId++, score); }
-    bool removePeer(PeerId p);
-    bool rescorePeer(PeerId p, uint32_t score);
+    bool removePeer(const PeerId peerid);
+    bool rescorePeer(const PeerId peerid, uint32_t score);
 
     /**
      * Node API.

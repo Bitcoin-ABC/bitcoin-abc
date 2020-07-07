@@ -11,7 +11,8 @@
 namespace avalanche {
 
 PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
-    auto inserted = peers.emplace(p, Peer(score, uint32_t(slots.size())));
+    auto inserted =
+        peers.emplace(p, score, uint32_t(slots.size()), ProofId(GetRandHash()));
     assert(inserted.second);
 
     const uint64_t start = slotCount;
@@ -20,13 +21,13 @@ PeerId PeerManager::addPeer(PeerId p, uint32_t score) {
     return p;
 }
 
-bool PeerManager::removePeer(PeerId p) {
-    auto it = peers.find(p);
+bool PeerManager::removePeer(const PeerId peerid) {
+    auto it = peers.find(peerid);
     if (it == peers.end()) {
         return false;
     }
 
-    size_t i = it->second.index;
+    size_t i = it->index;
     assert(i < slots.size());
 
     if (i + 1 == slots.size()) {
@@ -41,25 +42,25 @@ bool PeerManager::removePeer(PeerId p) {
     // active. This ensure that we don't overquery them in case their are
     // subsequently added to another peer.
     auto &nview = nodes.get<next_request_time>();
-    nview.erase(nview.lower_bound(boost::make_tuple(p, TimePoint())),
-                nview.upper_bound(
-                    boost::make_tuple(p, std::chrono::steady_clock::now())));
+    nview.erase(nview.lower_bound(boost::make_tuple(peerid, TimePoint())),
+                nview.upper_bound(boost::make_tuple(
+                    peerid, std::chrono::steady_clock::now())));
 
     peers.erase(it);
     return true;
 }
 
-bool PeerManager::rescorePeer(PeerId p, uint32_t score) {
-    auto it = peers.find(p);
+bool PeerManager::rescorePeer(const PeerId peerid, uint32_t score) {
+    auto it = peers.find(peerid);
     if (it == peers.end()) {
         return false;
     }
 
-    size_t i = it->second.index;
-    assert(i < slots.size());
-
     // Update the peer's score.
-    it->second.score = score;
+    peers.modify(it, [&](Peer &p) { p.score = score; });
+
+    const size_t i = it->index;
+    assert(i < slots.size());
 
     // Update the slot allocation to reflect the new score.
     const uint64_t start = slots[i].getStart();
@@ -84,9 +85,9 @@ bool PeerManager::rescorePeer(PeerId p, uint32_t score) {
     // So we need to insert a new entry.
     fragmentation += slots[i].getScore();
     slots[i] = slots[i].withPeerId(NO_PEER);
-    it->second.index = uint32_t(slots.size());
+    peers.modify(it, [this](Peer &p) { p.index = uint32_t(slots.size()); });
     const uint64_t newStart = slotCount;
-    slots.emplace_back(newStart, score, p);
+    slots.emplace_back(newStart, score, peerid);
     slotCount = newStart + score;
 
     return true;
@@ -181,14 +182,11 @@ uint64_t PeerManager::compact() {
 
     uint64_t prevStop = 0;
     uint32_t i = 0;
-    for (auto &pair : peers) {
-        PeerId pid = pair.first;
-        Peer &p = pair.second;
-
-        slots[i] = Slot(prevStop, p.score, pid);
+    for (auto it = peers.begin(); it != peers.end(); it++) {
+        slots[i] = Slot(prevStop, it->score, it->peerid);
         prevStop = slots[i].getStop();
 
-        p.index = i++;
+        peers.modify(it, [&](Peer &p) { p.index = i++; });
     }
 
     const uint64_t saved = slotCount - prevStop;
@@ -217,23 +215,19 @@ bool PeerManager::verify() const {
 
         // We have a live slot, verify index.
         auto it = peers.find(s.getPeerId());
-        if (it == peers.end() || it->second.index != i) {
+        if (it == peers.end() || it->index != i) {
             return false;
         }
     }
 
-    for (const auto &pair : peers) {
-        auto p = pair.first;
-        auto i = pair.second.index;
-        auto s = pair.second.score;
-
+    for (const auto &p : peers) {
         // The index must point to a slot refering to this peer.
-        if (i >= slots.size() || slots[i].getPeerId() != p) {
+        if (p.index >= slots.size() || slots[p.index].getPeerId() != p.peerid) {
             return false;
         }
 
         // If the score do not match, same thing.
-        if (slots[i].getScore() != s) {
+        if (slots[p.index].getScore() != p.score) {
             return false;
         }
     }
