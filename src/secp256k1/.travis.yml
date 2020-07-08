@@ -79,13 +79,13 @@ jobs:
         - VALGRIND=yes
         - BIGNUM=no  ENDOMORPHISM=yes  ASM=x86_64  EXPERIMENTAL=yes  ECDH=yes  RECOVERY=yes  OPENSSL_TESTS=no  MULTISET=yes
         - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND  AUTOTOOLS_TARGET=
-        - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="tests exhaustive_tests"
+        - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="secp256k1-tests secp256k1-exhaustive_tests"
     - compiler: gcc
       env: # The same as above but without endomorphism.
         - VALGRIND=yes
         - BIGNUM=no  ENDOMORPHISM=no  ASM=x86_64  EXPERIMENTAL=yes  ECDH=yes  RECOVERY=yes  OPENSSL_TESTS=no  MULTISET=yes
         - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND  AUTOTOOLS_TARGET=
-        - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="tests exhaustive_tests"
+        - CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND  CMAKE_TARGET="secp256k1-tests secp256k1-exhaustive_tests"
 
 script:
  - ./travis/build_autotools.sh
@@ -97,6 +97,6 @@ script:
    travis_wait 30 valgrind --error-exitcode=42 ./buildautotools/exhaustive_tests;
    fi
  - if [ -n "$VALGRIND" ]; then
-   travis_wait 30 valgrind --error-exitcode=42 ./buildcmake/tests 16 &&
-   travis_wait 30 valgrind --error-exitcode=42 ./buildcmake/exhaustive_tests;
+   travis_wait 30 valgrind --error-exitcode=42 ./buildcmake/secp256k1-tests 16 &&
+   travis_wait 30 valgrind --error-exitcode=42 ./buildcmake/secp256k1-exhaustive_tests;
    fi
