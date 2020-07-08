@@ -83,6 +83,7 @@ FUZZ_SUITE_LD_COMMON = \
 BITCOIN_TESTS =\
   avalanche/test/peermanager_tests.cpp \
   avalanche/test/processor_tests.cpp \
+  avalanche/test/proof_tests.cpp \
   test/scriptnum10.h \
   test/activation_tests.cpp \
   test/addrman_tests.cpp \

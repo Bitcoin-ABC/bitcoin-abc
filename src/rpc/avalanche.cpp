@@ -70,7 +70,7 @@ static UniValue addavalanchepeer(const Config &config,
 
     CPubKey pubkey{HexToPubKey(keyHex)};
 
-    g_avalanche->addPeer(nodeid, avalanche::Proof(100), pubkey);
+    g_avalanche->addPeer(nodeid, avalanche::Proof::makeRandom(100), pubkey);
     return {};
 }
 

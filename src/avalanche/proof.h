@@ -5,26 +5,116 @@
 #ifndef BITCOIN_AVALANCHE_PROOF_H
 #define BITCOIN_AVALANCHE_PROOF_H
 
+#include <amount.h>
+#include <primitives/transaction.h>
+#include <pubkey.h>
+#include <serialize.h>
 #include <uint256.h>
 
+#include <array>
 #include <cstdint>
+#include <vector>
 
 namespace avalanche {
 
 struct ProofId : public uint256 {
     explicit ProofId() : uint256() {}
     explicit ProofId(const uint256 &b) : uint256(b) {}
+
+    static ProofId fromHex(const std::string &str) {
+        ProofId r;
+        r.SetHex(str);
+        return r;
+    }
+};
+
+class Stake {
+    COutPoint utxo;
+
+    Amount amount;
+    uint32_t height;
+    CPubKey pubkey;
+
+public:
+    explicit Stake() = default;
+    Stake(COutPoint utxo_, Amount amount_, uint32_t height_, CPubKey pubkey_)
+        : utxo(utxo_), amount(amount_), height(height_),
+          pubkey(std::move(pubkey_)) {}
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(utxo);
+        READWRITE(amount);
+        READWRITE(height);
+        READWRITE(pubkey);
+    }
+
+    const COutPoint &getUTXO() const { return utxo; }
+    Amount getAmount() const { return amount; }
+    uint32_t getHeight() const { return height >> 1; }
+    bool isCoinbase() const { return height & 1; }
+    const CPubKey &getPubkey() const { return pubkey; }
+};
+
+class SignedStake {
+    Stake stake;
+    std::array<uint8_t, 64> sig;
+
+public:
+    explicit SignedStake() = default;
+    SignedStake(Stake stake_, std::array<uint8_t, 64> sig_)
+        : stake(std::move(stake_)), sig(std::move(sig_)) {}
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(stake);
+        READWRITE(sig);
+    }
+
+    const Stake &getStake() const { return stake; }
+    const std::array<uint8_t, 64> &getSignature() const { return sig; }
 };
 
 class Proof {
+    uint64_t sequence;
+    int64_t expirationTime;
+    CPubKey master;
+    std::vector<SignedStake> stakes;
+
     ProofId proofid;
-    uint32_t score;
+    ProofId computeProofId() const;
 
 public:
-    explicit Proof(uint32_t score_);
+    Proof() : sequence(0), expirationTime(0), master(), stakes(), proofid() {}
+    Proof(uint64_t sequence_, int64_t expirationTime_, CPubKey master_,
+          std::vector<SignedStake> stakes_);
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(sequence);
+        READWRITE(expirationTime);
+        READWRITE(master);
+        READWRITE(stakes);
+
+        if (ser_action.ForRead()) {
+            proofid = computeProofId();
+        }
+    }
 
     const ProofId &getId() const { return proofid; }
-    uint32_t getScore() const { return score; }
+    uint32_t getScore() const;
+
+    /**
+     * Builds a randomized (and therefore invalid) Proof.
+     * Useful for tests.
+     */
+    static Proof makeRandom(uint32_t score);
 };
 
 } // namespace avalanche
