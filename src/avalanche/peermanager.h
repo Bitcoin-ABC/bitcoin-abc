@@ -57,15 +57,15 @@ public:
 
 struct Peer {
     PeerId peerid;
-
-    uint32_t score;
     uint32_t index;
 
     Proof proof;
 
     Peer(PeerId peerid_, uint32_t index_, Proof proof_)
-        : peerid(peerid_), score(proof_.getScore()), index(index_),
-          proof(std::move(proof_)) {}
+        : peerid(peerid_), index(index_), proof(std::move(proof_)) {}
+
+    const ProofId &getProofId() const { return proof.getId(); }
+    uint32_t getScore() const { return proof.getScore(); }
 };
 
 struct proof_index {

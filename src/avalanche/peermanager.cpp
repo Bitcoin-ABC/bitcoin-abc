@@ -151,7 +151,7 @@ uint64_t PeerManager::compact() {
     uint64_t prevStop = 0;
     uint32_t i = 0;
     for (auto it = peers.begin(); it != peers.end(); it++) {
-        slots[i] = Slot(prevStop, it->score, it->peerid);
+        slots[i] = Slot(prevStop, it->getScore(), it->peerid);
         prevStop = slots[i].getStop();
 
         peers.modify(it, [&](Peer &p) { p.index = i++; });
@@ -195,7 +195,7 @@ bool PeerManager::verify() const {
         }
 
         // If the score do not match, same thing.
-        if (slots[p.index].getScore() != p.score) {
+        if (slots[p.index].getScore() != p.getScore()) {
             return false;
         }
     }
