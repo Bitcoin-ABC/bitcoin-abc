@@ -833,6 +833,12 @@ public:
     // Manual block validity manipulation:
     bool PreciousBlock(const Config &config, CValidationState &state,
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
+    /**
+     * Finalize a block.
+     * A finalized block can not be reorged in any way.
+     */
+    bool FinalizeBlock(const Config &config, CValidationState &state,
+                       CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool UnwindBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex, bool invalidate);
     void ResetBlockFailureFlags(CBlockIndex *pindex)
@@ -876,6 +882,10 @@ private:
 
     CBlockIndex *AddToBlockIndex(const CBlockHeader &block)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool MarkBlockAsFinal(const Config &config, CValidationState &state,
+                          const CBlockIndex *pindex)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     /** Create a new block index entry for a given block hash */
     CBlockIndex *InsertBlockIndex(const BlockHash &hash)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -906,14 +916,6 @@ private:
  */
 bool PreciousBlock(const Config &config, CValidationState &state,
                    CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
-
-/**
- * Mark a block as finalized.
- * A finalized block can not be reorged in any way.
- */
-bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
-                                CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,

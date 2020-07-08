@@ -2232,9 +2232,9 @@ public:
     }
 };
 
-static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
-                                  const CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool CChainState::MarkBlockAsFinal(const Config &config,
+                                   CValidationState &state,
+                                   const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
     if (pindex->nStatus.isInvalid()) {
         // We try to finalize an invalid block.
@@ -2371,8 +2371,8 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
         const CBlockIndex *pindexToFinalize =
             FindBlockToFinalize(config, pindexNew);
         if (pindexToFinalize &&
-            !FinalizeBlockInternal(config, state, pindexToFinalize)) {
-            return error("ConnectTip(): FinalizeBlock %s failed (%s)",
+            !MarkBlockAsFinal(config, state, pindexToFinalize)) {
+            return error("ConnectTip(): MarkBlockAsFinal %s failed (%s)",
                          pindexNew->GetBlockHash().ToString(),
                          FormatStateMessage(state));
         }
@@ -2907,6 +2907,31 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
                                                   std::move(pblock));
 }
 
+bool CChainState::FinalizeBlock(const Config &config, CValidationState &state,
+                                CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+    if (!MarkBlockAsFinal(config, state, pindex)) {
+        // state is set by MarkBlockAsFinal.
+        return false;
+    }
+
+    // We have a valid candidate, make sure it is not parked.
+    if (pindex->nStatus.isOnParkedChain()) {
+        UnparkBlock(pindex);
+    }
+
+    // If the finalized block is not on the active chain, we may need to rewind.
+    if (!::ChainActive().Contains(pindex)) {
+        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
+        CBlockIndex *pindexToInvalidate = ::ChainActive().Next(pindexFork);
+        if (pindexToInvalidate) {
+            return InvalidateBlock(config, state, pindexToInvalidate);
+        }
+    }
+
+    return true;
+}
+
 bool CChainState::PreciousBlock(const Config &config, CValidationState &state,
                                 CBlockIndex *pindex) {
     {
@@ -3068,31 +3093,6 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
         uiInterface.NotifyBlockTip(IsInitialBlockDownload(),
                                    to_mark_failed_or_parked->pprev);
     }
-    return true;
-}
-
-bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
-                                CBlockIndex *pindex) {
-    AssertLockHeld(cs_main);
-    if (!FinalizeBlockInternal(config, state, pindex)) {
-        // state is set by FinalizeBlockInternal.
-        return false;
-    }
-
-    // We have a valid candidate, make sure it is not parked.
-    if (pindex->nStatus.isOnParkedChain()) {
-        UnparkBlock(pindex);
-    }
-
-    // If the finalized block is not on the active chain, we may need to rewind.
-    if (!::ChainActive().Contains(pindex)) {
-        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
-        CBlockIndex *pindexToInvalidate = ::ChainActive().Next(pindexFork);
-        if (pindexToInvalidate) {
-            return InvalidateBlock(config, state, pindexToInvalidate);
-        }
-    }
-
     return true;
 }
 
