@@ -333,9 +333,10 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     return true;
 }
 
-bool Processor::addPeer(NodeId nodeid, int64_t score, const CPubKey &pubkey) {
+bool Processor::addPeer(NodeId nodeid, const Proof &proof,
+                        const CPubKey &pubkey) {
     LOCK(cs_peerManager);
-    return peerManager->addNode(Proof(score), nodeid, pubkey);
+    return peerManager->addNode(nodeid, proof, pubkey);
 }
 
 bool Processor::forNode(NodeId nodeid,

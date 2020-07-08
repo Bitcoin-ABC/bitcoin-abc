@@ -158,11 +158,11 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
 
     // One peer, we always return it.
     Proof proof0(100);
-    pm.addNode(Proof(100), node0, CPubKey());
+    pm.addNode(node0, Proof(100), CPubKey());
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    pm.addNode(Proof(200), node1, CPubKey());
+    pm.addNode(node1, Proof(200), CPubKey());
 
     std::unordered_map<PeerId, int> results = {};
     for (int i = 0; i < 10000; i++) {
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    pm.addNode(Proof(100), node2, CPubKey());
+    pm.addNode(node2, Proof(100), CPubKey());
 
     results.clear();
     for (int i = 0; i < 10000; i++) {
@@ -365,7 +365,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Add 4 nodes.
     for (int i = 0; i < 4; i++) {
-        BOOST_CHECK(pm.addNode(proof, i, CPubKey()));
+        BOOST_CHECK(pm.addNode(i, proof, CPubKey()));
     }
 
     for (int i = 0; i < 100; i++) {
@@ -399,7 +399,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     // Move a node from a peer to another.
     Proof altproof(0);
     PeerId altpeer = pm.getPeer(altproof);
-    BOOST_CHECK(pm.addNode(altproof, 3, CPubKey()));
+    BOOST_CHECK(pm.addNode(3, altproof, CPubKey()));
 
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();

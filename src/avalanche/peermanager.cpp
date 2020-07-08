@@ -101,7 +101,7 @@ bool PeerManager::rescorePeer(const PeerId peerid, uint32_t score) {
     return true;
 }
 
-bool PeerManager::addNode(const Proof &proof, NodeId nodeid,
+bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
                           const CPubKey &pubkey) {
     const PeerId peerid = getPeer(proof);
 

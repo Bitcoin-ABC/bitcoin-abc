@@ -59,6 +59,7 @@ static constexpr int AVALANCHE_MAX_INFLIGHT_POLL = 10;
 namespace avalanche {
 
 class PeerManager;
+class Proof;
 
 /**
  * Vote history.
@@ -257,7 +258,7 @@ public:
     bool registerVotes(NodeId nodeid, const Response &response,
                        std::vector<BlockUpdate> &updates);
 
-    bool addPeer(NodeId nodeid, int64_t score, const CPubKey &pubkey);
+    bool addPeer(NodeId nodeid, const Proof &proof, const CPubKey &pubkey);
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }

@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <avalanche/processor.h>
+#include <avalanche/proof.h>
 #include <config.h>
 #include <key_io.h>
 #include <rpc/server.h>
@@ -69,7 +70,7 @@ static UniValue addavalanchepeer(const Config &config,
 
     CPubKey pubkey{HexToPubKey(keyHex)};
 
-    g_avalanche->addPeer(nodeid, 100, pubkey);
+    g_avalanche->addPeer(nodeid, avalanche::Proof(100), pubkey);
     return {};
 }
 

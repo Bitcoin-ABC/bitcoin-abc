@@ -138,7 +138,7 @@ public:
     /**
      * Node API.
      */
-    bool addNode(const Proof &proof, NodeId nodeid, const CPubKey &pubkey);
+    bool addNode(NodeId nodeid, const Proof &proof, const CPubKey &pubkey);
     bool removeNode(NodeId nodeid);
 
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
@@ -167,9 +167,6 @@ public:
     // Accssors.
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
-
-private:
-    PeerId addPeer(PeerId peerid, uint32_t score);
 };
 
 /**
