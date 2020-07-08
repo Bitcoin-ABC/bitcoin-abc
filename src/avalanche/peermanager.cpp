@@ -58,49 +58,6 @@ bool PeerManager::removePeer(const PeerId peerid) {
     return true;
 }
 
-bool PeerManager::rescorePeer(const PeerId peerid, uint32_t score) {
-    auto it = peers.find(peerid);
-    if (it == peers.end()) {
-        return false;
-    }
-
-    // Update the peer's score.
-    peers.modify(it, [&](Peer &p) { p.score = score; });
-
-    const size_t i = it->index;
-    assert(i < slots.size());
-
-    // Update the slot allocation to reflect the new score.
-    const uint64_t start = slots[i].getStart();
-
-    // If this is the last element, we can extend/shrink easily.
-    if (i + 1 == slots.size()) {
-        slots[i] = slots[i].withScore(score);
-        slotCount = slots[i].getStop();
-        return true;
-    }
-
-    const uint64_t stop = start + score;
-    const uint64_t nextStart = slots[i + 1].getStart();
-
-    // We can extend in place.
-    if (stop <= nextStart) {
-        fragmentation += (slots[i].getStop() - stop);
-        slots[i] = slots[i].withScore(score);
-        return true;
-    }
-
-    // So we need to insert a new entry.
-    fragmentation += slots[i].getScore();
-    slots[i] = slots[i].withPeerId(NO_PEER);
-    peers.modify(it, [this](Peer &p) { p.index = uint32_t(slots.size()); });
-    const uint64_t newStart = slotCount;
-    slots.emplace_back(newStart, score, peerid);
-    slotCount = newStart + score;
-
-    return true;
-}
-
 bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
                           const CPubKey &pubkey) {
     const PeerId peerid = getPeer(proof);

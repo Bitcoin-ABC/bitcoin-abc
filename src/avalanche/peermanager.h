@@ -126,14 +126,16 @@ class PeerManager {
 
 public:
     /**
-     * Peer API.
+     * Provide the peer associated with the given proof. If the peer does not
+     * exists, then it is created.
      */
-    // Provide the peer associated toa proof. If the peer does not exists, then
-    // it is created.
     PeerId getPeer(const Proof &proof);
 
+    /**
+     * Remove an existing peer.
+     * This is not meant for public consumption.
+     */
     bool removePeer(const PeerId peerid);
-    bool rescorePeer(const PeerId peerid, uint32_t score);
 
     /**
      * Node API.
@@ -141,11 +143,10 @@ public:
     bool addNode(NodeId nodeid, const Proof &proof, const CPubKey &pubkey);
     bool removeNode(NodeId nodeid);
 
-    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
-
-    bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
-
     NodeId selectNode();
+
+    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
+    bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
 
     /**
      * Exposed for tests.

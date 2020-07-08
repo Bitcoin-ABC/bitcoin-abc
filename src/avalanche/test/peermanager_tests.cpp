@@ -258,76 +258,6 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     BOOST_CHECK(!pm.removePeer(NO_PEER));
 }
 
-BOOST_AUTO_TEST_CASE(rescore_peer, *boost::unit_test::timeout(5)) {
-    // No peers.
-    PeerManager pm;
-    BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
-
-    // Add 4 peers.
-    std::array<PeerId, 4> peerids;
-    for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.getPeer(Proof(100));
-    }
-
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
-
-    for (int i = 0; i < 100; i++) {
-        PeerId p = pm.selectPeer();
-        BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
-                    p == peerids[3]);
-    }
-
-    // Set one peer's score to 0, it nevers show up now.
-    BOOST_CHECK(pm.rescorePeer(peerids[1], 0));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
-
-    for (int i = 0; i < 100; i++) {
-        PeerId p = pm.selectPeer();
-        BOOST_CHECK(p == peerids[0] || p == peerids[2] || p == peerids[3] ||
-                    p == NO_PEER);
-    }
-
-    // "resurrect" the peer.
-    BOOST_CHECK(pm.rescorePeer(peerids[1], 100));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
-
-    while (true) {
-        PeerId p = pm.selectPeer();
-        BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
-                    p == peerids[3]);
-        // Make sure peer 1 reappeared.
-        if (p == peerids[1]) {
-            break;
-        }
-    }
-
-    // Grow the peer to a point where it needs to be reallocated.
-    BOOST_CHECK(pm.rescorePeer(peerids[1], 200));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 600);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
-
-    for (int i = 0; i < 25; i++) {
-        while (true) {
-            PeerId p = pm.selectPeer();
-            BOOST_CHECK(p == peerids[0] || p == peerids[1] || p == peerids[2] ||
-                        p == peerids[3] || p == NO_PEER);
-            // Make sure peer 1 reappeared.
-            if (p == peerids[1]) {
-                break;
-            }
-        }
-    }
-
-    // Compact the peer manager.
-    BOOST_CHECK_EQUAL(pm.compact(), 100);
-    BOOST_CHECK(pm.verify());
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 500);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
-}
-
 BOOST_AUTO_TEST_CASE(compact_slots) {
     PeerManager pm;
 
@@ -360,7 +290,6 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Create one peer.
     Proof proof(100);
-    PeerId peerid = pm.getPeer(proof);
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
@@ -398,24 +327,11 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Move a node from a peer to another.
     Proof altproof(0);
-    PeerId altpeer = pm.getPeer(altproof);
     BOOST_CHECK(pm.addNode(3, altproof, CPubKey()));
 
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0);
-        BOOST_CHECK(
-            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
-    }
-
-    // Rescore peers and cheks node selection is affected as expected.
-    BOOST_CHECK(pm.rescorePeer(peerid, 0));
-    BOOST_CHECK(pm.rescorePeer(altpeer, 100));
-    BOOST_CHECK_EQUAL(pm.compact(), 100);
-
-    for (int i = 0; i < 100; i++) {
-        NodeId n = pm.selectNode();
-        BOOST_CHECK(n == 3);
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
     }
