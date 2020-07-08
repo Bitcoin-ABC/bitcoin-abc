@@ -3133,7 +3133,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         if (!pfrom.RelayAddrsWithConn()) {
             return;
         }
-        if (vAddr.size() > 1000) {
+        if (vAddr.size() > MAX_ADDR_TO_SEND) {
             Misbehaving(
                 pfrom, 20,
                 strprintf("%s message size = %u", msg_type, vAddr.size()));
@@ -5193,8 +5193,9 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                 if (!pto->m_addr_known->contains(addr.GetKey())) {
                     pto->m_addr_known->insert(addr.GetKey());
                     vAddr.push_back(addr);
-                    // receiver rejects addr messages larger than 1000
-                    if (vAddr.size() >= 1000) {
+                    // receiver rejects addr messages larger than
+                    // MAX_ADDR_TO_SEND
+                    if (vAddr.size() >= MAX_ADDR_TO_SEND) {
                         m_connman.PushMessage(
                             pto, msgMaker.Make(make_flags, msg_type, vAddr));
                         vAddr.clear();
