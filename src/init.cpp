@@ -750,6 +750,10 @@ void SetupServerArgs(NodeContext &node) {
         "-seednode=<ip>",
         "Connect to a node to retrieve peer addresses, and disconnect",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-networkactive",
+                 "Enable all P2P network activity (default: 1). Can be changed "
+                 "by the setnetworkactive RPC command",
+                 ArgsManager::ALLOW_BOOL, OptionsCategory::CONNECTION);
     argsman.AddArg("-timeout=<n>",
                    strprintf("Specify connection timeout in milliseconds "
                              "(minimum: 1, default: %d)",
@@ -2278,7 +2282,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
-        GetRand(std::numeric_limits<uint64_t>::max()));
+        GetRand(std::numeric_limits<uint64_t>::max()),
+        gArgs.GetBoolArg("-networkactive", true));
 
     // Make mempool generally available in the node context. For example the
     // connection manager, wallet, or RPC threads, which are all started after

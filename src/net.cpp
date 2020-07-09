@@ -2522,7 +2522,7 @@ void Discover() {
 }
 
 void CConnman::SetNetworkActive(bool active) {
-    LogPrint(BCLog::NET, "SetNetworkActive: %s\n", active);
+    LogPrintf("%s: %s\n", __func__, active);
 
     if (fNetworkActive == active) {
         return;
@@ -2532,12 +2532,14 @@ void CConnman::SetNetworkActive(bool active) {
     uiInterface.NotifyNetworkActiveChanged(fNetworkActive);
 }
 
-CConnman::CConnman(const Config &configIn, uint64_t nSeed0In, uint64_t nSeed1In)
+CConnman::CConnman(const Config &configIn, uint64_t nSeed0In, uint64_t nSeed1In,
+                   bool network_active)
     : config(&configIn), nSeed0(nSeed0In), nSeed1(nSeed1In) {
     SetTryNewOutboundPeer(false);
 
     Options connOptions;
     Init(connOptions);
+    SetNetworkActive(network_active);
 }
 
 NodeId CConnman::GetNewNodeId() {

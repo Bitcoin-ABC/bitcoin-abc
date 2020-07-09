@@ -5,3 +5,6 @@ Bitcoin ABC version 0.23.8 is now available from:
   <https://download.bitcoinabc.org/0.23.8/>
 
 This release includes the following features and fixes:
+ - Add a new option `-networkactive` to enable all P2P network activity
+   (default 1). To start a node offline, you can provide
+   `-networkactive=0` or `-nonetworkactive`.

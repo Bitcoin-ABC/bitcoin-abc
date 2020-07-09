@@ -236,7 +236,8 @@ public:
         }
     }
 
-    CConnman(const Config &configIn, uint64_t seed0, uint64_t seed1);
+    CConnman(const Config &configIn, uint64_t seed0, uint64_t seed1,
+             bool network_active = true);
     ~CConnman();
 
     bool Start(CScheduler &scheduler, const Options &options);
