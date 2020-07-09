@@ -1643,10 +1643,11 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         for (const auto &tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
                 if (view.HaveCoin(COutPoint(tx->GetId(), o))) {
-                    return state.Invalid(
-                        ValidationInvalidReason::CONSENSUS,
-                        error("ConnectBlock(): tried to overwrite transaction"),
-                        REJECT_INVALID, "bad-txns-BIP30");
+                    LogPrintf("ERROR: ConnectBlock(): tried to overwrite "
+                              "transaction\n");
+                    return state.Invalid(ValidationInvalidReason::CONSENSUS,
+                                         false, REJECT_INVALID,
+                                         "bad-txns-BIP30");
                 }
             }
         }
@@ -1702,10 +1703,9 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         // disk, and older versions may have saved a weird block.
         // - its checks are not applied to pre-CTOR chains, which we might visit
         // with checkpointing off.
-        return state.Invalid(
-            ValidationInvalidReason::CONSENSUS,
-            error("ConnectBlock(): tried to overwrite transaction"),
-            REJECT_INVALID, "tx-duplicate");
+        LogPrintf("ERROR: ConnectBlock(): tried to overwrite transaction\n");
+        return state.Invalid(ValidationInvalidReason::CONSENSUS, false,
+                             REJECT_INVALID, "tx-duplicate");
     }
 
     size_t txIndex = 0;
@@ -1731,11 +1731,11 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         }
         nFees += txfee;
         if (!MoneyRange(nFees)) {
-            return state.Invalid(
-                ValidationInvalidReason::CONSENSUS,
-                error("%s: accumulated fee in the block out of range.",
-                      __func__),
-                REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
+            LogPrintf("ERROR: %s: accumulated fee in the block out of range.\n",
+                      __func__);
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, false,
+                                 REJECT_INVALID,
+                                 "bad-txns-accumulated-fee-outofrange");
         }
 
         // The following checks do not apply to the coinbase.
@@ -1752,10 +1752,10 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         }
 
         if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
-            return state.Invalid(
-                ValidationInvalidReason::CONSENSUS,
-                error("%s: contains a non-BIP68-final transaction", __func__),
-                REJECT_INVALID, "bad-txns-nonfinal");
+            LogPrintf("ERROR: %s: contains a non-BIP68-final transaction\n",
+                      __func__);
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, false,
+                                 REJECT_INVALID, "bad-txns-nonfinal");
         }
 
         // Don't cache results if we're actually connecting blocks (still
@@ -1817,10 +1817,10 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
     Amount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
     if (block.vtx[0]->GetValueOut() > blockReward) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS,
-                             error("ConnectBlock(): coinbase pays too much "
-                                   "(actual=%d vs limit=%d)",
-                                   block.vtx[0]->GetValueOut(), blockReward),
+        LogPrintf("ERROR: ConnectBlock(): coinbase pays too much (actual=%d vs "
+                  "limit=%d)\n",
+                  block.vtx[0]->GetValueOut(), blockReward);
+        return state.Invalid(ValidationInvalidReason::CONSENSUS, false,
                              REJECT_INVALID, "bad-cb-amount");
     }
 
@@ -2253,20 +2253,20 @@ static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
     AssertLockHeld(cs_main);
     if (pindex->nStatus.isInvalid()) {
         // We try to finalize an invalid block.
-        return state.Invalid(ValidationInvalidReason::CACHED_INVALID,
-                             error("%s: Trying to finalize invalid block %s",
-                                   __func__, pindex->GetBlockHash().ToString()),
+        LogPrintf("ERROR: %s: Trying to finalize invalid block %s\n", __func__,
+                  pindex->GetBlockHash().ToString());
+        return state.Invalid(ValidationInvalidReason::CACHED_INVALID, false,
                              REJECT_INVALID, "finalize-invalid-block");
     }
 
     // Check that the request is consistent with current finalization.
     if (pindexFinalized && !AreOnTheSameFork(pindex, pindexFinalized)) {
-        return state.Invalid(
-            ValidationInvalidReason::BLOCK_FINALIZATION,
-            error("%s: Trying to finalize block %s which conflicts "
-                  "with already finalized block",
-                  __func__, pindex->GetBlockHash().ToString()),
-            REJECT_AGAINST_FINALIZED, "bad-fork-prior-finalized");
+        LogPrintf("ERROR: %s: Trying to finalize block %s which conflicts with "
+                  "already finalized block\n",
+                  __func__, pindex->GetBlockHash().ToString());
+        return state.Invalid(ValidationInvalidReason::BLOCK_FINALIZATION, false,
+                             REJECT_AGAINST_FINALIZED,
+                             "bad-fork-prior-finalized");
     }
 
     if (IsBlockFinalized(pindex)) {
@@ -3568,11 +3568,11 @@ ContextualCheckBlockHeader(const CChainParams &params,
         // Check that the block chain matches the known block chain up to a
         // checkpoint.
         if (!Checkpoints::CheckBlock(checkpoints, nHeight, block.GetHash())) {
-            return state.Invalid(
-                ValidationInvalidReason::BLOCK_CHECKPOINT,
-                error("%s: rejected by checkpoint lock-in at %d", __func__,
-                      nHeight),
-                REJECT_CHECKPOINT, "checkpoint mismatch");
+            LogPrintf("ERROR: %s: rejected by checkpoint lock-in at %d\n",
+                      __func__, nHeight);
+            return state.Invalid(ValidationInvalidReason::BLOCK_CHECKPOINT,
+                                 false, REJECT_CHECKPOINT,
+                                 "checkpoint mismatch");
         }
 
         // Don't accept any forks from the main chain prior to last checkpoint.
@@ -3580,11 +3580,12 @@ ContextualCheckBlockHeader(const CChainParams &params,
         // in our MapBlockIndex.
         CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
-            return state.Invalid(
-                ValidationInvalidReason::BLOCK_CHECKPOINT,
-                error("%s: forked chain older than last checkpoint (height %d)",
-                      __func__, nHeight),
-                REJECT_CHECKPOINT, "bad-fork-prior-to-checkpoint");
+            LogPrintf("ERROR: %s: forked chain older than last checkpoint "
+                      "(height %d)\n",
+                      __func__, nHeight);
+            return state.Invalid(ValidationInvalidReason::BLOCK_CHECKPOINT,
+                                 false, REJECT_CHECKPOINT,
+                                 "bad-fork-prior-to-checkpoint");
         }
     }
 
@@ -3763,10 +3764,10 @@ bool CChainState::AcceptBlockHeader(const Config &config,
             }
 
             if (pindex->nStatus.isInvalid()) {
+                LogPrintf("ERROR: %s: block %s is marked invalid\n", __func__,
+                          hash.ToString());
                 return state.Invalid(ValidationInvalidReason::CACHED_INVALID,
-                                     error("%s: block %s is marked invalid",
-                                           __func__, hash.ToString()),
-                                     0, "duplicate");
+                                     false, 0, "duplicate");
             }
 
             return true;
@@ -3781,17 +3782,17 @@ bool CChainState::AcceptBlockHeader(const Config &config,
         // Get prev block index
         BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
         if (mi == mapBlockIndex.end()) {
+            LogPrintf("ERROR: %s: prev block not found\n", __func__);
             return state.Invalid(ValidationInvalidReason::BLOCK_MISSING_PREV,
-                                 error("%s: prev block not found", __func__), 0,
-                                 "prev-blk-not-found");
+                                 false, 0, "prev-blk-not-found");
         }
 
         CBlockIndex *pindexPrev = (*mi).second;
         assert(pindexPrev);
         if (pindexPrev->nStatus.isInvalid()) {
+            LogPrintf("ERROR: %s: prev block invalid\n", __func__);
             return state.Invalid(ValidationInvalidReason::BLOCK_INVALID_PREV,
-                                 error("%s: prev block invalid", __func__),
-                                 REJECT_INVALID, "bad-prevblk");
+                                 false, REJECT_INVALID, "bad-prevblk");
         }
 
         if (!ContextualCheckBlockHeader(chainparams, block, state, pindexPrev,
@@ -3835,9 +3836,9 @@ bool CChainState::AcceptBlockHeader(const Config &config,
                         setDirtyBlockIndex.insert(invalid_walk);
                         invalid_walk = invalid_walk->pprev;
                     }
+                    LogPrintf("ERROR: %s: prev block invalid\n", __func__);
                     return state.Invalid(
-                        ValidationInvalidReason::BLOCK_INVALID_PREV,
-                        error("%s: prev block invalid", __func__),
+                        ValidationInvalidReason::BLOCK_INVALID_PREV, false,
                         REJECT_INVALID, "bad-prevblk");
                 }
             }
