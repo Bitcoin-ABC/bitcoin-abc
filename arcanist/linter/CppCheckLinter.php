@@ -36,6 +36,9 @@ final class CppCheckLinter extends ArcanistExternalLinter {
     "src/net.h" => array(
       "Class 'CNetMessage' has a constructor with 1 argument that is not explicit.",
     ),
+    "src/net_processing.cpp" => array(
+      "Same iterator is used with different containers 'mapOrphanTransactions' and 'itPrev.second'.",
+    ),
     "src/policy/feerate.h" => array(
       "Class 'CFeeRate' has a constructor with 1 argument that is not explicit.",
     ),
