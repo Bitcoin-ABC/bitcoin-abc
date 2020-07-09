@@ -56,6 +56,8 @@ public:
     uint32_t getHeight() const { return height >> 1; }
     bool isCoinbase() const { return height & 1; }
     const CPubKey &getPubkey() const { return pubkey; }
+
+    uint256 getHash(const ProofId &proofid) const;
 };
 
 class SignedStake {
@@ -77,6 +79,8 @@ public:
 
     const Stake &getStake() const { return stake; }
     const std::array<uint8_t, 64> &getSignature() const { return sig; }
+
+    bool verify(const ProofId &proofid) const;
 };
 
 class Proof {
@@ -91,7 +95,10 @@ class Proof {
 public:
     Proof() : sequence(0), expirationTime(0), master(), stakes(), proofid() {}
     Proof(uint64_t sequence_, int64_t expirationTime_, CPubKey master_,
-          std::vector<SignedStake> stakes_);
+          std::vector<SignedStake> stakes_)
+        : sequence(sequence_), expirationTime(expirationTime_),
+          master(std::move(master_)), stakes(std::move(stakes_)),
+          proofid(computeProofId()) {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -107,8 +114,14 @@ public:
         }
     }
 
+    uint64_t getSequence() const { return sequence; }
+    int64_t getExpirationTime() const { return expirationTime; }
+    const CPubKey &getMaster() const { return master; }
+
     const ProofId &getId() const { return proofid; }
     uint32_t getScore() const;
+
+    bool verify() const;
 
     /**
      * Builds a randomized (and therefore invalid) Proof.

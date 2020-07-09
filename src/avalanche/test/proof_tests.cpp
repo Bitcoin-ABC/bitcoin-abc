@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <avalanche/proof.h>
+#include <avalanche/proofbuilder.h>
 
 #include <streams.h>
 #include <util/strencodings.h>
@@ -15,11 +16,39 @@ using namespace avalanche;
 
 BOOST_FIXTURE_TEST_SUITE(proof_tests, BasicTestingSetup)
 
+BOOST_AUTO_TEST_CASE(proofbuilder) {
+    CKey key;
+
+    // Master key.
+    key.MakeNewKey(true);
+    const CPubKey master = key.GetPubKey();
+
+    const uint64_t sequence = InsecureRandBits(64);
+    const int64_t expiration = InsecureRandBits(64);
+
+    ProofBuilder pb(sequence, expiration, master);
+
+    for (int i = 0; i < 3; i++) {
+        key.MakeNewKey(true);
+        pb.addUTXO(COutPoint(TxId(GetRandHash()), InsecureRand32()),
+                   int64_t(InsecureRand32()) * COIN / 100, InsecureRand32(),
+                   key);
+    }
+
+    Proof p = pb.build();
+    BOOST_CHECK(p.verify());
+
+    BOOST_CHECK_EQUAL(p.getSequence(), sequence);
+    BOOST_CHECK_EQUAL(p.getExpirationTime(), expiration);
+    BOOST_CHECK(p.getMaster() == master);
+}
+
 struct TestVector {
     std::string name;
     std::string hex;
     ProofId proofid;
     uint32_t score;
+    bool valid;
 };
 
 BOOST_AUTO_TEST_CASE(deserialization) {
@@ -29,7 +58,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "3e95b02cacfd357b64e4fb6c92e92dd00",
          ProofId::fromHex("df721b6e2a857ce8abac63d8d5eca35f3bdb0293b6e8295942c7"
                           "6274c5418c0c"),
-         0},
+         0, false},
         {"1 utxo staked",
          "a6d66db9fe9378fdd37a0ad2c01c2acd2103648144bb6a0c1d09b0f04d0df6d55f914"
          "fd81efc65f23a718b68b7c9e42bd5430145a4d07798547464daa53acefb7c97c0c415"
@@ -40,7 +69,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "77d8fcf68c54ebfadf08b9a446c251a0088301c50d53",
          ProofId::fromHex("048235ee870030f11c287d898dd3ec184f9b38cf4fb274334966"
                           "c6aad83b769d"),
-         7584312},
+         7584312, false},
         {"2 utxo staked",
          "872379ab64f55b4166ca0e79639999ec4104a66861de557a54eefc0375264cc17c3a3"
          "50ccabca6fd9c91883e899ab55bb140517aa56c5b4041908e7027a786b99f66488a04"
@@ -55,7 +84,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "91c965cba4dbc11c210979217f1ac3ece7a748f5b2fcf5cced40a5d4c40e",
          ProofId::fromHex("7319126f0d4efc188440dd50105ea30d792687b65e9cdde6c4d6"
                           "08ed226cba00"),
-         15610172},
+         15610172, false},
         {"3 utxo staked",
          "525e2aa04af0e2457c66ac9e7f66257f210252db8e3ceea6fca44a7696e82f7b77e5a"
          "4025e60ac60271b174e91ffbb6ce01f039ce8d3b77938e49ce3bc9824e90b72c65542"
@@ -75,7 +104,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "91b185e",
          ProofId::fromHex("3b3204993240ab338324310ecadc5f234da1dac0627029cef63e"
                           "1169a049d18f"),
-         29026903},
+         29026903, false},
         {"4 utxo staked",
          "eef33172651f752ac255c85a4e1374992102c12b37ff6139157865fc4c3a9d7ad999b"
          "686ade45d453545d04e76f6e14793b404295de5ebf9fbbbb65fc1d9a71587c5284cff"
@@ -99,7 +128,163 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "14a348c80ca1833d68b3d7b",
          ProofId::fromHex("62f256d73411fe69bf0db6083248e4efb75be9788850851468ac"
                           "c913c5c14360"),
-         44059793},
+         44059793, false},
+        {"Properly signed 1 UTXO proof",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("17717dbf1cee175925be12321bb04eda7bc861a28b04d764c2d5"
+                          "5eabf01cabd0"),
+         444638638, true},
+        {"Duplicated UTXO",
+         "60f8332a3ff3430a4f3c9010160cc63e2102f2df6361a5744521d16753f9efb5ace68"
+         "d43121e90ff67290540b54341cbab0e02d1e26c2287948bc6ab2b55945c591b8ba3ff"
+         "a237f5d9164d30a4f10145a61f788e639b1480731e2aead30500bf84628721029ed70"
+         "5bdc5adf0444c57c5ec2ea929c1adc0cd5b9cef4647d85dcb7fc400dc3afd21b29571"
+         "9c45b90fda493bbc74c8ae1baf28e124cc23bb1987f9932d2df5a0b3455e6c815767c"
+         "be8ccdd04e0e2d33d5f2f092667ef081acdaafde869d58daed1e26c2287948bc6ab2b"
+         "55945c591b8ba3ffa237f5d9164d30a4f10145a61f788e639b1480731e2aead30500b"
+         "f84628721029ed705bdc5adf0444c57c5ec2ea929c1adc0cd5b9cef4647d85dcb7fc4"
+         "00dc3afd21b295719c45b90fda493bbc74c8ae1baf28e124cc23bb1987f9932d2df5a"
+         "0b3455e6c815767cbe8ccdd04e0e2d33d5f2f092667ef081acdaafde869d58dae",
+         ProofId::fromHex("b0c2c07cbc766df0a934bcb252063ad5d7d5167b080369f6feca"
+                          "a3aabae29785"),
+         3280755132, false},
+        {"Properly signed 3 UTXO proof",
+         "c96492f9e27a25d7e8404581c7be874e210282eb68a587dc586673f439fe317fa0b76"
+         "aceefa9f99820eadaa70d3b19c0cfe10305d427b706705a5d4b6a368a231d6db62aba"
+         "cf8c29bc32b61e7f65a0a6976aa8b86b687bc0260e821e4f0200b9d3bf6d2102914b1"
+         "aade61c7b5d38b18fb8c02ec4a9411858a43969927e5a2bf371e83ea20aa2a8ac89e9"
+         "fb52edcb227de3c3bd51519c0afcd5c3c134f09e53a9dd4315d4cde560c54b5700c2e"
+         "7b4f15c18461a3c093b790e93ef54640c051fff6798f18e2c18f54247f6390791706a"
+         "f36fac782302479898b5273f9e51a92cb1fb5af43deeb6c8c269403dbd48c9530a001"
+         "34398c441040a9c4426531e19916a0250536684073fbedce86d73e883ee1107e7984e"
+         "7c721b2be965c63bcbdbd23dcabba6de7ae6715872c803a257e53b686ea69217228c0"
+         "6ee1b88c4c7aa55adb1804a13e9d222b8d327c4de466fcd9e71ec20582f8d0760830a"
+         "67e020688e73c91519bd4b74358e65e9ddc95065bcf1bee0d11767e10f30f0d4ce48c"
+         "4ca9d0714b1fa51920270f8575e0af610f07b4e602a018ecdbb649b64fff614c0026e"
+         "9fc8e0030092533d424104973b212564dfb8ff1aa4bab13389ed170ea6cbb06fd9a5b"
+         "5b3e8c00d1a7d4bca7d237748ad793fc043b12f73a28caabb00927c5aea81e323d3ba"
+         "047a9661adbb0728ccfb41ab345299d7469ff5ec259b98fc946c730b5100cc97284ea"
+         "6101f7e43337987bbfe655754939709c72c7ba69a9dc08558733781ee9da34e3de7bd"
+         "a7",
+         ProofId::fromHex("5948d32ee26882a2d9f96c18e9e51ad13a79234b627a020ee7db"
+                          "733684cb05a7"),
+         353426051, true},
+        {"Changing sequence affect ProofId",
+         "d87587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("3fdcb56110cfe2f394689be3dd28dedee674f79a567c8391dbd9"
+                          "3900c9845ca8"),
+         444638638, false},
+        {"Changing expiration affect ProofId",
+         "d97587e6c882615797011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("a9ffbb2b37526e05a1f72b43314f872c381281ce8d3d96a5bf56"
+                          "47db057a64dc"),
+         444638638, false},
+        {"Changing the master key affect ProofId",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba897297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b19587 "
+         "0169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("c237e5436f2d21e4ae990422bfb8ec97df52a9f6db5c20c40f54"
+                          "64e590dcda39"),
+         444638638, false},
+        {"Changing the TxId affect the ProofId",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870179a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("9d372d7580917985824c632c919ce8bf89fc6f45c07ee60b2564"
+                          "6aea23390ec6"),
+         444638638, false},
+        {"Changing the outpoint index change the ProofId",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91df00cf21804712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("1a98c5f7684508665fbc946c64c9486e3f7c91b2f42d299320c5"
+                          "56e68e4028fe"),
+         444638638, false},
+        {"Changing the amount changes the ProofId",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21814712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("528fa9654e845dfe30ed03966240ab615a8d374d86256e1e4892"
+                          "83eb0a0be44b"),
+         444638638, false},
+        {"Changing the height changes the ProofId",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010028e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("a932294f46f106b2b38e57a4b1e4b5849730aba2124662f680a6"
+                          "1c8cc429adb0"),
+         444638638, false},
+        {"Changing the pubkey changes the ProofId",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d8d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23e",
+         ProofId::fromHex("336c9a502b22ba2edcd78298c1ce6cc5e8b5e94cdc60b1047d1f"
+                          "96810d5d17a3"),
+         444638638, false},
+        {"Changing the signatue does NOT change the ProofId",
+         "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
+         "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
+         "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
+         "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d9d84ebf65"
+         "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
+         "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
+         "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
+         "7c0276a293ee5b3f5a130fc5f9b217585cae23f",
+         ProofId::fromHex("17717dbf1cee175925be12321bb04eda7bc861a28b04d764c2d5"
+                          "5eabf01cabd0"),
+         444638638, false},
     };
 
     for (auto &c : testcases) {
@@ -108,6 +293,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
         stream >> p;
         BOOST_CHECK_EQUAL(p.getId(), c.proofid);
         BOOST_CHECK_EQUAL(p.getScore(), c.score);
+        BOOST_CHECK_EQUAL(p.verify(), c.valid);
     }
 }
 

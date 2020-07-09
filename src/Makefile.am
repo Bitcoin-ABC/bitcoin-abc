@@ -118,6 +118,7 @@ BITCOIN_CORE_H = \
   avalanche/peermanager.h \
   avalanche/processor.h \
   avalanche/proof.h \
+  avalanche/proofbuilder.h \
   avalanche/protocol.h \
   banman.h \
   base58.h \
@@ -300,6 +301,7 @@ libbitcoin_server_a_SOURCES = \
   avalanche/peermanager.cpp \
   avalanche/processor.cpp \
   avalanche/proof.cpp \
+  avalanche/proofbuilder.cpp \
   banman.cpp \
   blockencodings.cpp \
   blockfilter.cpp \

@@ -4,18 +4,27 @@
 
 #include <avalanche/proof.h>
 
+#include <coins.h> // For SaltedOutpointHasher
 #include <hash.h>
 #include <random.h>
 
 #include <limits>
+#include <unordered_set>
 
 namespace avalanche {
 
-Proof::Proof(uint64_t sequence_, int64_t expirationTime_, CPubKey master_,
-             std::vector<SignedStake> stakes_)
-    : sequence(sequence_), expirationTime(expirationTime_),
-      master(std::move(master_)), stakes(std::move(stakes_)),
-      proofid(computeProofId()) {}
+uint256 Stake::getHash(const ProofId &proofid) const {
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << proofid;
+    ss << *this;
+    return ss.GetHash();
+}
+
+bool SignedStake::verify(const ProofId &proofid) const {
+    // Unfortunately, the verify API require a vector.
+    std::vector<uint8_t> vchSig{sig.begin(), sig.end()};
+    return stake.getPubkey().VerifySchnorr(stake.getHash(proofid), vchSig);
+}
 
 ProofId Proof::computeProofId() const {
     CHashWriter ss(SER_GETHASH, 0);
@@ -38,6 +47,28 @@ uint32_t Proof::getScore() const {
     }
 
     return uint32_t((100 * total) / COIN);
+}
+
+bool Proof::verify() const {
+    if (getScore() == 0) {
+        // No stake.
+        return false;
+    }
+
+    std::unordered_set<COutPoint, SaltedOutpointHasher> utxos;
+    for (auto &s : stakes) {
+        if (!utxos.insert(s.getStake().getUTXO()).second) {
+            // Duplicated stake.
+            return false;
+        }
+
+        if (!s.verify(proofid)) {
+            // Improperly signed stake.
+            return false;
+        }
+    }
+
+    return true;
 }
 
 Proof Proof::makeRandom(uint32_t score) {
