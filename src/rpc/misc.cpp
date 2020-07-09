@@ -254,7 +254,8 @@ UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
 
     FlatSigningProvider key_provider;
     std::string error;
-    auto desc = Parse(desc_str, key_provider, error, /* require_checksum = */ true);
+    auto desc =
+        Parse(desc_str, key_provider, error, /* require_checksum = */ true);
     if (!desc) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
     }

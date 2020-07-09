@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <immintrin.h>
 
-
 namespace {
 
 alignas(__m128i) const uint8_t MASK[16] = {0x03, 0x02, 0x01, 0x00, 0x07, 0x06,

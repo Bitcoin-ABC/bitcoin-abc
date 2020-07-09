@@ -8,7 +8,6 @@
 
 #include <univalue.h>
 
-
 static void AddTx(const CTransactionRef &tx, const Amount &fee,
                   CTxMemPool &pool) EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs) {
     LockPoints lp;

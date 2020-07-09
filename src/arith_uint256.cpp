@@ -8,7 +8,6 @@
 #include <crypto/common.h>
 #include <uint256.h>
 
-
 template <unsigned int BITS>
 base_uint<BITS>::base_uint(const std::string &str) {
     static_assert(BITS / 32 > 0 && BITS % 32 == 0,

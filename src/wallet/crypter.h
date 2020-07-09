@@ -9,7 +9,6 @@
 #include <serialize.h>
 #include <support/allocators/secure.h>
 
-
 const unsigned int WALLET_CRYPTO_KEY_SIZE = 32;
 const unsigned int WALLET_CRYPTO_SALT_SIZE = 8;
 const unsigned int WALLET_CRYPTO_IV_SIZE = 16;
