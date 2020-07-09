@@ -12,14 +12,16 @@
 
 namespace spanparsing {
 
-/** Parse a constant.
+/**
+ * Parse a constant.
  *
  * If sp's initial part matches str, sp is updated to skip that part, and true
  * is returned. Otherwise sp is unmodified and false is returned.
  */
 bool Const(const std::string &str, Span<const char> &sp);
 
-/** Parse a function call.
+/**
+ * Parse a function call.
  *
  * If sp's initial part matches str + "(", and sp ends with ")", sp is updated
  * to be the section between the braces, and true is returned. Otherwise sp is
@@ -27,7 +29,8 @@ bool Const(const std::string &str, Span<const char> &sp);
  */
 bool Func(const std::string &str, Span<const char> &sp);
 
-/** Extract the expression that sp begins with.
+/**
+ * Extract the expression that sp begins with.
  *
  * This function will return the initial part of sp, up to (but not including)
  * the first comma or closing brace, skipping ones that are surrounded by
@@ -37,7 +40,8 @@ bool Func(const std::string &str, Span<const char> &sp);
  */
 Span<const char> Expr(Span<const char> &sp);
 
-/** Split a string on every instance of sep, returning a vector.
+/**
+ * Split a string on every instance of sep, returning a vector.
  *
  * If sep does not occur in sp, a singleton with the entirety of sp is returned.
  *
