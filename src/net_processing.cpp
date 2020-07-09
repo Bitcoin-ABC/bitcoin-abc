@@ -5624,7 +5624,7 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node,
 
     LOCK(node.m_addr_send_times_mutex);
 
-    if (!::ChainstateActive().IsInitialBlockDownload() &&
+    if (fListen && !::ChainstateActive().IsInitialBlockDownload() &&
         node.m_next_local_addr_send < current_time) {
         // If we've sent before, clear the bloom filter for the peer, so
         // that our self-announcement will actually go out. This might
@@ -5635,7 +5635,10 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node,
         if (node.m_next_local_addr_send != 0us) {
             node.m_addr_known->reset();
         }
-        AdvertiseLocal(&node);
+        if (std::optional<CAddress> local_addr = GetLocalAddrForPeer(&node)) {
+            FastRandomContext insecure_rand;
+            node.PushAddress(*local_addr, insecure_rand);
+        }
         node.m_next_local_addr_send =
             PoissonNextSend(current_time, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
     }
