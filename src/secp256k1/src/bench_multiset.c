@@ -26,13 +26,11 @@ void bench_multiset(void* arg, int iters) {
 
     for (m = 0; m < iters; m++) {
         unsigned char buf[BUFSIZE];
-        secp256k1_multiset x;
-
         for (n = 0; n < BUFSIZE; n++) {
             buf[n] = it++;
         }
 
-        secp256k1_multiset_add(ctx, &x, buf, sizeof(buf));
+        secp256k1_multiset_add(ctx, &multiset, buf, sizeof(buf));
     }
 
     secp256k1_multiset_finalize(ctx, result, &multiset);
