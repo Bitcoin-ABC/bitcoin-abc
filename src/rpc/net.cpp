@@ -641,8 +641,7 @@ static UniValue getnetworkinfo(const Config &config,
 static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     const RPCHelpMan help{
         "setban",
-        "\nAttempts to add or remove an IP/Subnet from the banned list.\n"
-        "Peers that are automatically banned cannot be unbanned.\n",
+        "\nAttempts to add or remove an IP/Subnet from the banned list.\n",
         {
             {"subnet", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The IP/Subnet (see getpeerinfo for nodes IP) with an optional "
