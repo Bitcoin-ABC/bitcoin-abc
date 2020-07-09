@@ -951,9 +951,8 @@ static CBlock GetBlockChecked(const Config &config,
     if (!ReadBlockFromDisk(block, pblockindex,
                            config.GetChainParams().GetConsensus())) {
         // Block not found on disk. This could be because we have the block
-        // header in our index but don't have the block (for example if a
-        // non-whitelisted node sends us an unrequested long chain of valid
-        // blocks, we add the headers to our index, but don't accept the block).
+        // header in our index but not yet have the block or did not accept the
+        // block.
         throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
     }
 

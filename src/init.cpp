@@ -462,9 +462,8 @@ void SetupServerArgs(NodeContext &node) {
         "-blocksonly",
         strprintf("Whether to reject transactions from network peers.  "
                   "Automatic broadcast and rebroadcast of any transactions "
-                  "from inbound peers is disabled, unless "
-                  "'-whitelistforcerelay' is '1', in which case whitelisted "
-                  "peers' transactions will be relayed. RPC transactions are"
+                  "from inbound peers is disabled, unless the peer has the "
+                  "'forcerelay' permission. RPC transactions are"
                   " not affected. (default: %u)",
                   DEFAULT_BLOCKSONLY),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);

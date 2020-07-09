@@ -133,10 +133,10 @@ class P2PPermissionsTests(BitcoinTestFramework):
         self.sync_all()
 
         self.log.debug(
-            "Create a connection from a whitelisted wallet that rebroadcasts raw txs")
+            "Create a connection from a forcerelay peer that rebroadcasts raw txs")
         # A python mininode is needed to send the raw transaction directly.
         # If a full node was used, it could only rebroadcast via the inv-getdata
-        # mechanism. However, even for whitelisted connections, a full node would
+        # mechanism. However, even for forcerelay connections, a full node would
         # currently not request a txid that is already in the mempool.
         self.restart_node(1, extra_args=["-whitelist=forcerelay@127.0.0.1"])
         p2p_rebroadcast_wallet = self.nodes[1].add_p2p_connection(
@@ -160,7 +160,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
             " is already in the mempool")
         connect_nodes(self.nodes[1], self.nodes[0])
         with self.nodes[1].assert_debug_log(
-                ["Force relaying tx {} from whitelisted peer=0".format(txid)]):
+                ["Force relaying tx {} from peer=0".format(txid)]):
             p2p_rebroadcast_wallet.send_txs_and_test([tx], self.nodes[1])
             wait_until(lambda: txid in self.nodes[0].getrawmempool())
 
@@ -173,7 +173,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
             self.nodes[1],
             success=False,
             reject_reason='Not relaying non-mempool transaction '
-                          '{} from whitelisted peer=0'.format(txid),
+                          '{} from forcerelay peer=0'.format(txid),
         )
 
     def checkpermission(self, args, expectedPermissions, whitelisted):

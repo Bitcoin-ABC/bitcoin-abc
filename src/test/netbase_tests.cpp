@@ -464,7 +464,7 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
     BOOST_CHECK(error.original.find("Invalid P2P permission") !=
                 std::string::npos);
 
-    // Check whitelist error
+    // Check netmask error
     BOOST_CHECK(!NetWhitelistPermissions::TryParse(
         "bloom,forcerelay,noban@1.2.3.4:32", whitelistPermissions, error));
     BOOST_CHECK(
