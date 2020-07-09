@@ -93,12 +93,12 @@
         "build-linux64": {
             "script": "builds/build-linux64.sh",
             "template": "common_unix_artifacts",
-            "timeout": 1200
+            "timeout": 3600
         },
         "build-linux-aarch64": {
             "script": "builds/build-linux-aarch64.sh",
             "template": "common_unix_artifacts",
-            "timeout": 1800,
+            "timeout": 3600,
             "environment": {
                 "QEMU_LD_PREFIX": "/usr/aarch64-linux-gnu"
             }
@@ -106,7 +106,7 @@
         "build-linux-arm": {
             "script": "builds/build-linux-arm.sh",
             "template": "common_unix_artifacts",
-            "timeout": 1800,
+            "timeout": 3600,
             "environment": {
                 "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
             }
@@ -124,7 +124,7 @@
         "build-osx": {
             "script": "builds/build-osx.sh",
             "template": "common_unix_artifacts",
-            "timeout": 600,
+            "timeout": 3600,
             "artifacts": {
                 "src/qt/BitcoinABC-Qt.app": "bin",
                 "Bitcoin-ABC.dmg": "Bitcoin-ABC.dmg"
@@ -156,7 +156,7 @@
         },
         "build-win64": {
             "script": "builds/build-win64.sh",
-            "timeout": 1200,
+            "timeout": 3600,
             "artifacts": {
                 "CMakeCache.txt": "CMakeCache.txt",
                 "src/bitcoind.exe": "bin/bitcoind.exe",
