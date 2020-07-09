@@ -5,7 +5,15 @@
  */
 final class CppCheckLinter extends ArcanistExternalLinter {
   const CPPCHECK_ENABLED_CHECKS = array(
-    "noExplicitConstructor",
+    // None so far.
+  );
+
+  const CPPCHECK_DISABLED_CHECKS = array(
+    "unknownMacro",
+    "preprocessorErrorDirective",
+    // These would be worth enabling going forward.
+    "danglingTemporaryLifetime",
+    "invalidContainer",
   );
 
   // phpcs:disable Generic.Files.LineLength.TooLong
@@ -176,9 +184,16 @@ final class CppCheckLinter extends ArcanistExternalLinter {
   }
 
   private function isWhitelisted($path, $errorId, $errorDescription) {
-    return !in_array($errorId, self::CPPCHECK_ENABLED_CHECKS) ||
-    (array_key_exists($path, self::CPPCHECK_IGNORED_WARNINGS) &&
-    in_array($errorDescription, self::CPPCHECK_IGNORED_WARNINGS[$path]));
+    return array_key_exists($path, self::CPPCHECK_IGNORED_WARNINGS) &&
+    in_array($errorDescription, self::CPPCHECK_IGNORED_WARNINGS[$path]);
+  }
+
+  private function isCheckEnabled($errorId) {
+    return in_array($errorId, self::CPPCHECK_ENABLED_CHECKS);
+  }
+
+  private function isCheckDisabled($errorId) {
+    return in_array($errorId, self::CPPCHECK_DISABLED_CHECKS);
   }
 
   protected function parseLinterOutput($path, $err, $stdout, $stderr) {
@@ -207,6 +222,15 @@ final class CppCheckLinter extends ArcanistExternalLinter {
           continue;
         }
 
+        // For errors, we work on a blacklist basis.
+        // For advices and warnings, we work on a whitelist basis.
+        $is_error = $error->getAttribute('severity') == 'error';
+        if ($is_error && $this->isCheckDisabled($errorId)) {
+          continue;
+        } else if (!$is_error && !$this->isCheckEnabled($errorId)) {
+          continue;
+        }
+
         $message = new ArcanistLintMessage();
         $message->setPath($errorPath);
         $message->setLine($location->getAttribute('line'));
@@ -214,18 +238,12 @@ final class CppCheckLinter extends ArcanistExternalLinter {
         $message->setName($errorId);
         $message->setDescription($errorDescription);
 
-        switch ($error->getAttribute('severity')) {
-          case 'error':
-            $message->setSeverity(ArcanistLintSeverity::SEVERITY_ERROR);
-            break;
-
-          default:
-            if ($error->getAttribute('inconclusive')) {
-              $message->setSeverity(ArcanistLintSeverity::SEVERITY_ADVICE);
-            } else {
-              $message->setSeverity(ArcanistLintSeverity::SEVERITY_WARNING);
-            }
-            break;
+        if ($is_error) {
+          $message->setSeverity(ArcanistLintSeverity::SEVERITY_ERROR);
+        } elseif ($error->getAttribute('inconclusive')) {
+          $message->setSeverity(ArcanistLintSeverity::SEVERITY_ADVICE);
+        } else {
+          $message->setSeverity(ArcanistLintSeverity::SEVERITY_WARNING);
         }
 
         $messages[] = $message;
