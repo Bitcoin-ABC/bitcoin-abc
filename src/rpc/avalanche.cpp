@@ -30,19 +30,22 @@ static UniValue getavalanchekey(const Config &config,
     return HexStr(g_avalanche->getSessionPubKey());
 }
 
-static UniValue addavalanchepeer(const Config &config,
+static UniValue addavalanchenode(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
-        "addavalanchepeer",
-        "\nAdd a peer to the set of peer to poll for avalanche.\n",
+        "addavalanchenode",
+        "\nAdd a node in the set of peers to poll for avalanche.\n",
         {
             {"nodeid", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "Node to be added to avalanche."},
             {"publickey", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The public key of the node."},
+            {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "Proof that the node is not a sybil."},
         },
         RPCResults{},
-        RPCExamples{HelpExampleRpc("addavalanchepeer", "5")},
+        RPCExamples{
+            HelpExampleRpc("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"")},
     }
         .Check(request);
 
@@ -57,7 +60,7 @@ static UniValue addavalanchepeer(const Config &config,
             std::string("Invalid parameter, nodeid must be an integer"));
     }
 
-    NodeId nodeid = request.params[0].get_int64();
+    const NodeId nodeid = request.params[0].get_int64();
 
     // Parse the pubkey
     const std::string keyHex = request.params[1].get_str();
@@ -68,9 +71,12 @@ static UniValue addavalanchepeer(const Config &config,
                            strprintf("Invalid public key: %s\n", keyHex));
     }
 
-    CPubKey pubkey{HexToPubKey(keyHex)};
+    CDataStream ss(ParseHexV(request.params[2], "proof"), SER_NETWORK,
+                   PROTOCOL_VERSION);
+    avalanche::Proof proof;
+    ss >> proof;
 
-    g_avalanche->addPeer(nodeid, avalanche::Proof::makeRandom(100), pubkey);
+    g_avalanche->addPeer(nodeid, proof, {HexToPubKey(keyHex)});
     return {};
 }
 
@@ -79,7 +85,7 @@ static const CRPCCommand commands[] = {
     //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
     { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
-    { "avalanche",          "addavalanchepeer",       addavalanchepeer,       {"nodeid"}},
+    { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
 };
 // clang-format on
 

@@ -156,7 +156,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"getnodeaddresses", 0, "count"},
     {"stop", 0, "wait"},
     // Avalanche
-    {"addavalanchepeer", 0, "nodeid"},
+    {"addavalanchenode", 0, "nodeid"},
     // ABC specific RPC
     {"setexcessiveblock", 0, "blockSize"},
 };
