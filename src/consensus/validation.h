@@ -114,7 +114,7 @@ public:
     CValidationState()
         : mode(MODE_VALID), m_reason(ValidationInvalidReason::NONE),
           chRejectCode(0) {}
-    bool Invalid(ValidationInvalidReason reasonIn, bool ret = false,
+    bool Invalid(ValidationInvalidReason reasonIn,
                  unsigned int chRejectCodeIn = 0,
                  const std::string &strRejectReasonIn = "",
                  const std::string &strDebugMessageIn = "") {
@@ -123,10 +123,10 @@ public:
         strRejectReason = strRejectReasonIn;
         strDebugMessage = strDebugMessageIn;
         if (mode == MODE_ERROR) {
-            return ret;
+            return false;
         }
         mode = MODE_INVALID;
-        return ret;
+        return false;
     }
     bool Error(const std::string &strRejectReasonIn) {
         if (mode == MODE_VALID) {
