@@ -60,7 +60,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         fuzzed_data_provider.ConsumeBool()};
     node.SetCommonVersion(fuzzed_data_provider.ConsumeIntegral<int>());
     while (fuzzed_data_provider.ConsumeBool()) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 8)) {
+        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 6)) {
             case 0: {
                 node.CloseSocketDisconnect();
                 break;
@@ -82,21 +82,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 break;
             }
             case 4: {
-                const std::optional<CInv> inv_opt =
-                    ConsumeDeserializable<CInv>(fuzzed_data_provider);
-                if (!inv_opt) {
-                    break;
-                }
-                const TxId &txid = TxId(inv_opt->hash);
-                node.AddKnownTx(txid);
-                break;
-            }
-            case 5: {
-                const TxId &txid = TxId(ConsumeUInt256(fuzzed_data_provider));
-                node.PushTxInventory(txid);
-                break;
-            }
-            case 6: {
                 const std::optional<CService> service_opt =
                     ConsumeDeserializable<CService>(fuzzed_data_provider);
                 if (!service_opt) {
@@ -105,7 +90,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 node.SetAddrLocal(*service_opt);
                 break;
             }
-            case 7: {
+            case 5: {
                 const std::vector<uint8_t> b =
                     ConsumeRandomLengthByteVector(fuzzed_data_provider);
                 bool complete;

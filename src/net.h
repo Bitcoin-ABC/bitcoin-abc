@@ -284,7 +284,6 @@ typedef std::map<std::string, uint64_t> mapMsgCmdSize;
 struct CNodeStats {
     NodeId nodeid;
     ServiceFlags nServices;
-    bool fRelayTxes;
     std::chrono::seconds m_last_send;
     std::chrono::seconds m_last_recv;
     std::chrono::seconds m_last_tx_time;
@@ -306,7 +305,6 @@ struct CNodeStats {
     NetPermissionFlags m_permissionFlags;
     std::chrono::microseconds m_last_ping_time;
     std::chrono::microseconds m_min_ping_time;
-    Amount minFeeFilter;
     // Our address, as reported by the peer
     std::string addrLocal;
     // Address of this peer
@@ -598,39 +596,6 @@ public:
     // Peer selected us as (compact blocks) high-bandwidth peer (BIP152)
     std::atomic<bool> m_bip152_highbandwidth_from{false};
 
-    struct TxRelay {
-        mutable RecursiveMutex cs_filter;
-        // We use fRelayTxes for two purposes -
-        // a) it allows us to not relay tx invs before receiving the peer's
-        //    version message.
-        // b) the peer may tell us in its version message that we should not
-        //    relay tx invs unless it loads a bloom filter.
-        bool fRelayTxes GUARDED_BY(cs_filter){false};
-        std::unique_ptr<CBloomFilter> pfilter PT_GUARDED_BY(cs_filter)
-            GUARDED_BY(cs_filter){nullptr};
-
-        mutable RecursiveMutex cs_tx_inventory;
-        CRollingBloomFilter filterInventoryKnown GUARDED_BY(cs_tx_inventory){
-            50000, 0.000001};
-        // Set of transaction ids we still have to announce.
-        // They are sorted by the mempool before relay, so the order is not
-        // important.
-        std::set<TxId> setInventoryTxToSend GUARDED_BY(cs_tx_inventory);
-        // Used for BIP35 mempool sending
-        bool fSendMempool GUARDED_BY(cs_tx_inventory){false};
-        // Last time a "MEMPOOL" request was serviced.
-        std::atomic<std::chrono::seconds> m_last_mempool_req{0s};
-        std::chrono::microseconds nNextInvSend{0};
-
-        /** Minimum fee rate with which to filter inv's to this node */
-        std::atomic<Amount> minFeeFilter{Amount::zero()};
-        Amount lastSentFeeFilter{Amount::zero()};
-        std::chrono::microseconds m_next_send_feefilter{0};
-    };
-
-    // m_tx_relay == nullptr if we're not relaying transactions with this peer
-    const std::unique_ptr<TxRelay> m_tx_relay;
-
     /**
      * Whether we should relay transactions to this peer (their version
      * message did not include fRelay=false and this is not a block-relay-only
@@ -644,24 +609,6 @@ public:
      * eviction logic.
      */
     std::atomic_bool m_bloom_filter_loaded{false};
-
-    struct ProofRelay {
-        mutable RecursiveMutex cs_proof_inventory;
-        std::set<avalanche::ProofId>
-            setInventoryProofToSend GUARDED_BY(cs_proof_inventory);
-        // Prevent sending proof invs if the peer already knows about them
-        CRollingBloomFilter filterProofKnown GUARDED_BY(cs_proof_inventory){
-            10000, 0.000001};
-        std::chrono::microseconds nextInvSend{0};
-
-        RadixTree<const avalanche::Proof, avalanche::ProofRadixTreeAdapter>
-            sharedProofs;
-        std::atomic<std::chrono::seconds> lastSharedProofsUpdate{0s};
-        std::atomic<bool> compactproofs_requested{false};
-    };
-
-    // m_proof_relay == nullptr if we're not relaying proofs with this peer
-    const std::unique_ptr<ProofRelay> m_proof_relay;
 
     // True if we know this peer is using Avalanche (at least polling)
     std::atomic<bool> m_avalanche_enabled{false};
@@ -796,41 +743,6 @@ public:
     }
 
     void Release() { nRefCount--; }
-
-    void AddKnownTx(const TxId &txid) {
-        if (m_tx_relay != nullptr) {
-            LOCK(m_tx_relay->cs_tx_inventory);
-            m_tx_relay->filterInventoryKnown.insert(txid);
-        }
-    }
-
-    void PushTxInventory(const TxId &txid) {
-        if (m_tx_relay == nullptr) {
-            return;
-        }
-        LOCK(m_tx_relay->cs_tx_inventory);
-        if (!m_tx_relay->filterInventoryKnown.contains(txid)) {
-            m_tx_relay->setInventoryTxToSend.insert(txid);
-        }
-    }
-
-    void AddKnownProof(const avalanche::ProofId &proofid) {
-        if (m_proof_relay != nullptr) {
-            LOCK(m_proof_relay->cs_proof_inventory);
-            m_proof_relay->filterProofKnown.insert(proofid);
-        }
-    }
-
-    void PushProofInventory(const avalanche::ProofId &proofid) {
-        if (m_proof_relay == nullptr) {
-            return;
-        }
-
-        LOCK(m_proof_relay->cs_proof_inventory);
-        if (!m_proof_relay->filterProofKnown.contains(proofid)) {
-            m_proof_relay->setInventoryProofToSend.insert(proofid);
-        }
-    }
 
     void CloseSocketDisconnect();
 

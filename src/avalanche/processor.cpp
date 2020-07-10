@@ -642,7 +642,6 @@ bool Processor::sendHelloInternal(CNode *pfrom) {
             }
         } else {
             delegation = peerData->delegation;
-            pfrom->AddKnownProof(delegation.getProofId());
         }
     }
 

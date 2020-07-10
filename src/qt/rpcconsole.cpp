@@ -1271,7 +1271,6 @@ void RPCConsole::updateDetailWidget() {
     ui->peerHeading->setText(peerAddrDetails);
     ui->peerServices->setText(
         GUIUtil::formatServicesStr(stats->nodeStats.nServices));
-    ui->peerRelayTxes->setText(stats->nodeStats.fRelayTxes ? "Yes" : "No");
     QString bip152_hb_settings;
     if (stats->nodeStats.m_bip152_highbandwidth_to) {
         bip152_hb_settings += "To";
@@ -1349,6 +1348,8 @@ void RPCConsole::updateDetailWidget() {
             QString::number(stats->nodeStateStats.m_starting_height));
         ui->peerPingWait->setText(
             GUIUtil::formatPingTime(stats->nodeStateStats.m_ping_wait));
+        ui->peerRelayTxes->setText(stats->nodeStateStats.fRelayTxes ? "Yes"
+                                                                    : "No");
     }
 
     ui->detailWidget->show();

@@ -626,12 +626,6 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.addr = addr;
     stats.addrBind = addrBind;
     stats.m_network = ConnectedThroughNetwork();
-    if (m_tx_relay != nullptr) {
-        LOCK(m_tx_relay->cs_filter);
-        stats.fRelayTxes = m_tx_relay->fRelayTxes;
-    } else {
-        stats.fRelayTxes = false;
-    }
     stats.m_last_send = m_last_send;
     stats.m_last_recv = m_last_recv;
     stats.m_last_tx_time = m_last_tx_time;
@@ -659,11 +653,6 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.nRecvBytes = nRecvBytes;
     }
     stats.m_permissionFlags = m_permissionFlags;
-    if (m_tx_relay != nullptr) {
-        stats.minFeeFilter = m_tx_relay->minFeeFilter;
-    } else {
-        stats.minFeeFilter = Amount::zero();
-    }
 
     stats.m_last_ping_time = m_last_ping_time;
     stats.m_min_ping_time = m_min_ping_time;
@@ -3473,11 +3462,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
                                             ? addr.ToStringIPPort()
                                             : addrNameIn},
       m_inbound_onion(inbound_onion), nKeyedNetGroup(nKeyedNetGroupIn),
-      m_tx_relay(conn_type_in != ConnectionType::BLOCK_RELAY
-                     ? std::make_unique<TxRelay>()
-                     : nullptr),
-      m_proof_relay(isAvalancheEnabled(gArgs) ? std::make_unique<ProofRelay>()
-                                              : nullptr),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
