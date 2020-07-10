@@ -1170,7 +1170,8 @@ void RPCConsole::on_sldGraphRange_valueChanged(int value) {
 
 void RPCConsole::setTrafficGraphRange(int mins) {
     ui->trafficGraph->setGraphRangeMins(mins);
-    ui->lblGraphRange->setText(GUIUtil::formatDurationStr(mins * 60));
+    ui->lblGraphRange->setText(
+        GUIUtil::formatDurationStr(std::chrono::minutes{mins}));
 }
 
 void RPCConsole::updateTrafficStats(quint64 totalBytesIn,
@@ -1283,13 +1284,13 @@ void RPCConsole::updateDetailWidget() {
         bip152_hb_settings = "No";
     }
     ui->peerHighBandwidth->setText(bip152_hb_settings);
-    const int64_t time_now{GetTimeSeconds()};
-    ui->peerConnTime->setText(
-        GUIUtil::formatDurationStr(time_now - stats->nodeStats.nTimeConnected));
-    ui->peerLastBlock->setText(
-        TimeDurationField(time_now, stats->nodeStats.nLastBlockTime));
-    ui->peerLastTx->setText(
-        TimeDurationField(time_now, stats->nodeStats.nLastTXTime));
+    const auto time_now{GetTime<std::chrono::seconds>()};
+    ui->peerConnTime->setText(GUIUtil::formatDurationStr(
+        time_now - std::chrono::seconds{stats->nodeStats.nTimeConnected}));
+    ui->peerLastBlock->setText(TimeDurationField(
+        time_now, std::chrono::seconds{stats->nodeStats.nLastBlockTime}));
+    ui->peerLastTx->setText(TimeDurationField(
+        time_now, std::chrono::seconds{stats->nodeStats.nLastTXTime}));
     ui->peerLastSend->setText(
         TimeDurationField(time_now, stats->nodeStats.m_last_send));
     ui->peerLastRecv->setText(

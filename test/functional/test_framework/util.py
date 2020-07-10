@@ -380,10 +380,10 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
         f.write("listenonion=0\n")
         f.write("usecashaddr=1\n")
         # Increase peertimeout to avoid disconnects while using mocktime.
-        # peertimeout is measured in wall clock time, so setting it to the
-        # duration of the longest test is sufficient. It can be overridden in
-        # tests.
-        f.write("peertimeout=999999\n")
+        # peertimeout is measured in mock time, so setting it large enough to
+        # cover any duration in mock time is sufficient. It can be overridden
+        # in tests.
+        f.write("peertimeout=999999999\n")
         f.write("shrinkdebugfile=0\n")
         if disable_autoconnect:
             f.write("connect=0\n")

@@ -19,6 +19,7 @@
 #include <script/standard.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/time.h>
 
 #ifdef WIN32
 #ifndef NOMINMAX
@@ -800,7 +801,8 @@ QString NetworkToQString(Network net) {
     assert(false);
 }
 
-QString formatDurationStr(int secs) {
+QString formatDurationStr(std::chrono::seconds dur) {
+    const auto secs = count_seconds(dur);
     QStringList strList;
     int days = secs / 86400;
     int hours = (secs % 86400) / 3600;
