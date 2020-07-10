@@ -3394,10 +3394,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
         m_tx_relay = std::make_unique<TxRelay>();
     }
 
-    if (RelayAddrsWithConn()) {
-        m_addr_known = std::make_unique<CRollingBloomFilter>(5000, 0.001);
-    }
-
     // Don't relay proofs if avalanche is disabled
     if (isAvalancheEnabled(gArgs)) {
         m_proof_relay = std::make_unique<ProofRelay>();
