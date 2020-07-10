@@ -22,16 +22,6 @@ from test_framework.util import (
 from test_framework import schnorr
 
 
-AVA_HEX_PROOF = (
-    "d97587e6c882615796011ec8f9a7b1c64104e556ba887297fd6a655bc2579d26814e8"
-    "54c902448ec3ce3c6fe965e3420aa3f0e9611d3c0b8a73b6329741e2e726fd17f5e8a"
-    "bd546a614b0e05433528b195870169a79ff23e1d58c64afad42ad81cffe53967e16be"
-    "b692fc5776bb442c79c5d91de00cf21804712806594010038e168a34104d9d84ebf65"
-    "22cf24c6fd4addedd068632a4db06c3cd6e40031c72d416e9eefbd90037383d8da9e9"
-    "213a4818a02f108ac1656141ecfbfdde0aeb8620eb210c08b2ce587d9fec0799f9725"
-    "5d2bc5a077c7b4e8ca8a68d6a0377abf0aa2473f97b37779431062dad50ef5fd21cf1"
-    "7c0276a293ee5b3f5a130fc5f9b217585cae23e")
-
 BLOCK_ACCEPTED = 0
 BLOCK_REJECTED = 1
 BLOCK_UNKNOWN = -1
@@ -191,10 +181,18 @@ class AvalancheTest(BitcoinTestFramework):
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747")
         pubkey = schnorr.getpubkey(privkey, compressed=True)
 
+        privatekey = node.get_deterministic_priv_key().key
+        proof = node.buildavalancheproof(11, 12, pubkey.hex(), [{
+            'txid': "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747",
+            'vout': 0,
+            'amount': 10,
+            'height': 100,
+            'privatekey': privatekey,
+        }])
+
         # Activate the quorum.
         for n in quorum:
-            success = node.addavalanchenode(
-                n.nodeid, pubkey.hex(), AVA_HEX_PROOF)
+            success = node.addavalanchenode(n.nodeid, pubkey.hex(), proof)
             assert success is True
 
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):

@@ -117,6 +117,7 @@ public:
     uint64_t getSequence() const { return sequence; }
     int64_t getExpirationTime() const { return expirationTime; }
     const CPubKey &getMaster() const { return master; }
+    const std::vector<SignedStake> &getStakes() const { return stakes; }
 
     const ProofId &getId() const { return proofid; }
     uint32_t getScore() const;
