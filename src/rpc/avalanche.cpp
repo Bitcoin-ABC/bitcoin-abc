@@ -49,15 +49,11 @@ static UniValue addavalanchenode(const Config &config,
     }
         .Check(request);
 
+    RPCTypeCheck(request.params,
+                 {UniValue::VNUM, UniValue::VSTR, UniValue::VSTR});
+
     if (!g_avalanche) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
-
-    // Parse nodeid
-    if (!request.params[0].isNum()) {
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            std::string("Invalid parameter, nodeid must be an integer"));
     }
 
     const NodeId nodeid = request.params[0].get_int64();
