@@ -12,6 +12,7 @@
 #include <test/util/logging.h>
 #include <test/util/str.h>
 #include <uint256.h>
+#include <util/check.h>
 #include <util/message.h> // For MessageSign(), MessageVerify(), MESSAGE_MAGIC
 #include <util/moneystr.h>
 #include <util/spanparsing.h>
@@ -44,6 +45,15 @@ std::string LogEscapeMessage(const std::string &str);
 }
 
 BOOST_FIXTURE_TEST_SUITE(util_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(util_check) {
+    // Check that Assert can forward
+    const std::unique_ptr<int> p_two = Assert(std::make_unique<int>(2));
+    // Check that Assert works on lvalues and rvalues
+    const int two = *Assert(p_two);
+    Assert(two == 2);
+    Assert(true);
+}
 
 BOOST_AUTO_TEST_CASE(util_criticalsection) {
     RecursiveMutex cs;

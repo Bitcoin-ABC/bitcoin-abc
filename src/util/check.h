@@ -55,10 +55,10 @@ template <typename T> T get_pure_r_value(T &&val) {
 
 /** Identity function. Abort if the value compares equal to zero */
 #define Assert(val)                                                            \
-    [&]() -> decltype(get_pure_r_value(val)) & {                               \
-        auto &check = (val);                                                   \
+    [&]() -> decltype(get_pure_r_value(val)) {                                 \
+        auto &&check = (val);                                                  \
         assert(#val &&check);                                                  \
-        return check;                                                          \
+        return std::forward<decltype(get_pure_r_value(val))>(check);           \
     }()
 
 #endif // BITCOIN_UTIL_CHECK_H
