@@ -190,6 +190,8 @@ void ModalOverlay::showHide(bool hide, bool userRequested) {
         return;
     }
 
+    Q_EMIT triggered(hide);
+
     if (!isVisible() && !hide) {
         setVisible(true);
     }

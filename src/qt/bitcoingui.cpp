@@ -110,6 +110,8 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
         Q_EMIT consoleShown(rpcConsole);
     }
 
+    modalOverlay = new ModalOverlay(enableWallet, this->centralWidget());
+
     // Accept D&D of URIs
     setAcceptDrops(true);
 
@@ -203,7 +205,6 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
     connect(labelProxyIcon, &GUIUtil::ClickableLabel::clicked,
             [this] { openOptionsDialogWithTab(OptionsDialog::TAB_NETWORK); });
 
-    modalOverlay = new ModalOverlay(enableWallet, this->centralWidget());
     connect(labelBlocksIcon, &GUIUtil::ClickableLabel::clicked, this,
             &BitcoinGUI::showModalOverlay);
     connect(progressBar, &GUIUtil::ClickableProgressBar::clicked, this,
@@ -243,6 +244,8 @@ BitcoinGUI::~BitcoinGUI() {
 
 void BitcoinGUI::createActions() {
     QActionGroup *tabGroup = new QActionGroup(this);
+    connect(modalOverlay, &ModalOverlay::triggered, tabGroup,
+            &QActionGroup::setEnabled);
 
     overviewAction =
         new QAction(platformStyle->SingleColorIcon(":/icons/overview"),
