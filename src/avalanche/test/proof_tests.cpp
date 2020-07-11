@@ -21,6 +21,7 @@ BOOST_AUTO_TEST_CASE(proof_random) {
     for (int i = 0; i < 1000; i++) {
         const uint32_t score = InsecureRand32();
         const Proof p = buildRandomProof(score);
+        BOOST_CHECK(p.verify());
         BOOST_CHECK_EQUAL(p.getScore(), score);
     }
 }
