@@ -630,8 +630,8 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.minFeeFilter = Amount::zero();
     }
 
-    stats.m_ping_usec = nPingUsecTime;
-    stats.m_min_ping_usec = nMinPingUsecTime;
+    stats.m_ping_usec = m_last_ping_time;
+    stats.m_min_ping_usec = m_min_ping_time;
 
     // Leave string empty if addrLocal invalid (not filled in yet)
     CService addrLocalUnlocked = GetAddrLocal();
@@ -865,7 +865,7 @@ size_t CConnman::SocketSendData(CNode &node) const {
 
 static bool ReverseCompareNodeMinPingTime(const NodeEvictionCandidate &a,
                                           const NodeEvictionCandidate &b) {
-    return a.nMinPingUsecTime > b.nMinPingUsecTime;
+    return a.m_min_ping_time > b.m_min_ping_time;
 }
 
 static bool ReverseCompareNodeTimeConnected(const NodeEvictionCandidate &a,
@@ -1122,7 +1122,7 @@ bool CConnman::AttemptToEvictConnection() {
             NodeEvictionCandidate candidate = {
                 node->GetId(),
                 node->nTimeConnected,
-                node->nMinPingUsecTime,
+                node->m_min_ping_time,
                 node->nLastBlockTime,
                 node->nLastProofTime,
                 node->nLastTXTime,

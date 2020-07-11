@@ -733,13 +733,13 @@ public:
     std::atomic<int64_t> nLastProofTime{0};
 
     /** Last measured round-trip time. Used only for RPC/GUI stats/debugging.*/
-    std::atomic<int64_t> nPingUsecTime{0};
+    std::atomic<int64_t> m_last_ping_time{0};
 
     /**
      * Lowest measured round-trip time. Used as an inbound peer eviction
      * criterium in CConnman::AttemptToEvictConnection.
      */
-    std::atomic<int64_t> nMinPingUsecTime{std::numeric_limits<int64_t>::max()};
+    std::atomic<int64_t> m_min_ping_time{std::numeric_limits<int64_t>::max()};
 
     CNode(NodeId id, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
           const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
@@ -755,9 +755,9 @@ public:
      * minimum ping times.
      */
     void PongReceived(std::chrono::microseconds ping_time) {
-        nPingUsecTime = count_microseconds(ping_time);
-        nMinPingUsecTime =
-            std::min(nMinPingUsecTime.load(), count_microseconds(ping_time));
+        m_last_ping_time = count_microseconds(ping_time);
+        m_min_ping_time =
+            std::min(m_min_ping_time.load(), count_microseconds(ping_time));
     }
 
 private:
@@ -1451,7 +1451,7 @@ std::string userAgent(const Config &config);
 struct NodeEvictionCandidate {
     NodeId id;
     int64_t nTimeConnected;
-    int64_t nMinPingUsecTime;
+    int64_t m_min_ping_time;
     int64_t nLastBlockTime;
     int64_t nLastProofTime;
     int64_t nLastTXTime;
