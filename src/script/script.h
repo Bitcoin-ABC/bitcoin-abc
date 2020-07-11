@@ -452,7 +452,7 @@ public:
     CScript(const uint8_t *pbegin, const uint8_t *pend)
         : CScriptBase(pbegin, pend) {}
 
-    SERIALIZE_METHODS(CScript, obj) { READWRITEAS(CScriptBase, obj); }
+    SERIALIZE_METHODS(CScript, obj) { READWRITE(AsBase<CScriptBase>(obj)); }
 
     explicit CScript(int64_t b) { operator<<(b); }
     explicit CScript(opcodetype b) { operator<<(b); }

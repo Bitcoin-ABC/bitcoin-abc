@@ -12,8 +12,7 @@ struct CDiskTxPos : public FlatFilePos {
     unsigned int nTxOffset; // after header
 
     SERIALIZE_METHODS(CDiskTxPos, obj) {
-        READWRITEAS(FlatFilePos, obj);
-        READWRITE(VARINT(obj.nTxOffset));
+        READWRITE(AsBase<FlatFilePos>(obj), VARINT(obj.nTxOffset));
     }
 
     CDiskTxPos(const FlatFilePos &blockIn, unsigned int nTxOffsetIn)

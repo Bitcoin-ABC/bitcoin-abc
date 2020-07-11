@@ -74,8 +74,7 @@ public:
     mutable int nRandomPos{-1};
 
     SERIALIZE_METHODS(AddrInfo, obj) {
-        READWRITEAS(CAddress, obj);
-        READWRITE(obj.source,
+        READWRITE(AsBase<CAddress>(obj), obj.source,
                   Using<ChronoFormatter<int64_t>>(obj.m_last_success),
                   obj.nAttempts);
     }

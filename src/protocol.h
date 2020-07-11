@@ -537,7 +537,7 @@ public:
         }
         // Invoke V1/V2 serializer for CService parent object.
         OverrideStream<Stream> os(&s, s.GetType(), use_v2 ? ADDRV2_FORMAT : 0);
-        SerReadWriteMany(os, ser_action, ReadWriteAsHelper<CService>(obj));
+        SerReadWriteMany(os, ser_action, AsBase<CService>(obj));
     }
 
     //! Always included in serialization, except in the network format on

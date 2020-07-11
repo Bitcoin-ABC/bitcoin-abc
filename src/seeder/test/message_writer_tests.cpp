@@ -40,6 +40,10 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
     int start_height = 1;
 
     CDataStream versionPayload(SER_NETWORK, PROTOCOL_VERSION);
+    // The following .reserve() call is a workaround for a spurious
+    // [-Werror=stringop-overflow=] warning in gcc <= 12.2.
+    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366#c20
+    versionPayload.reserve(200);
     versionPayload << PROTOCOL_VERSION << serviceFlags << now << addrTo
                    << addrFrom << nonce << user_agent << start_height;
 
