@@ -43,7 +43,8 @@ static UniValue addavalanchenode(const Config &config,
             {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "Proof that the node is not a sybil."},
         },
-        RPCResults{},
+        RPCResult{"\"success\"    (boolean) Whether the addition succeeded or "
+                  "not.\n"},
         RPCExamples{
             HelpExampleRpc("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"")},
     }
@@ -72,8 +73,7 @@ static UniValue addavalanchenode(const Config &config,
     avalanche::Proof proof;
     ss >> proof;
 
-    g_avalanche->addPeer(nodeid, proof, {HexToPubKey(keyHex)});
-    return {};
+    return g_avalanche->addNode(nodeid, proof, {HexToPubKey(keyHex)});
 }
 
 // clang-format off

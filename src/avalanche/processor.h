@@ -258,7 +258,7 @@ public:
     bool registerVotes(NodeId nodeid, const Response &response,
                        std::vector<BlockUpdate> &updates);
 
-    bool addPeer(NodeId nodeid, const Proof &proof, const CPubKey &pubkey);
+    bool addNode(NodeId nodeid, const Proof &proof, const CPubKey &pubkey);
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }

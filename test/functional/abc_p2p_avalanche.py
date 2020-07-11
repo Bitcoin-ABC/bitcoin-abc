@@ -193,7 +193,9 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Activate the quorum.
         for n in quorum:
-            node.addavalanchenode(n.nodeid, pubkey.hex(), AVA_HEX_PROOF)
+            success = node.addavalanchenode(
+                n.nodeid, pubkey.hex(), AVA_HEX_PROOF)
+            assert success is True
 
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):
             found_hash = False

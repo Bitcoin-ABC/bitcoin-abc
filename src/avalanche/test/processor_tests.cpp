@@ -530,7 +530,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     auto avanode =
         ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(p.addPeer(avanodeid, Proof::makeRandom(100), CPubKey()));
+    BOOST_CHECK(p.addNode(avanodeid, Proof::makeRandom(100), CPubKey()));
 
     // It returns the avalanche peer.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
@@ -677,7 +677,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
     auto avanode =
         ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(p.addPeer(avanodeid, Proof::makeRandom(100), CPubKey()));
+    BOOST_CHECK(p.addNode(avanodeid, Proof::makeRandom(100), CPubKey()));
 
     // Expire requests after some time.
     auto queryTimeDuration = std::chrono::milliseconds(10);
@@ -891,7 +891,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     auto avanode =
         ConnectNode(config, NODE_AVALANCHE, *peerLogic, connman.get());
     NodeId nodeid = avanode->GetId();
-    BOOST_CHECK(p.addPeer(nodeid, Proof::makeRandom(100), CPubKey()));
+    BOOST_CHECK(p.addNode(nodeid, Proof::makeRandom(100), CPubKey()));
 
     // There is no query in flight at the moment.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), nodeid);
