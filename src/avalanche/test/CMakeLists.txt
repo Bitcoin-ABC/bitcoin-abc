@@ -10,6 +10,7 @@ add_dependencies(check check-avalanche)
 
 add_boost_unit_tests_to_suite(avalanche test-avalanche
 	fixture.cpp
+	util.cpp
 
 	TESTS
 		peermanager_tests.cpp

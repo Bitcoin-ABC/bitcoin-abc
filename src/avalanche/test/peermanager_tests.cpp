@@ -4,6 +4,8 @@
 
 #include <avalanche/peermanager.h>
 
+#include <avalanche/test/util.h>
+
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -157,12 +159,12 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     const NodeId node0 = 42, node1 = 69, node2 = 37;
 
     // One peer, we always return it.
-    Proof proof0 = Proof::makeRandom(100);
-    pm.addNode(node0, Proof::makeRandom(100), CPubKey());
+    Proof proof0 = buildRandomProof(100);
+    pm.addNode(node0, buildRandomProof(100), CPubKey());
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    pm.addNode(node1, Proof::makeRandom(200), CPubKey());
+    pm.addNode(node1, buildRandomProof(200), CPubKey());
 
     std::unordered_map<PeerId, int> results = {};
     for (int i = 0; i < 10000; i++) {
@@ -174,7 +176,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    pm.addNode(node2, Proof::makeRandom(100), CPubKey());
+    pm.addNode(node2, buildRandomProof(100), CPubKey());
 
     results.clear();
     for (int i = 0; i < 10000; i++) {
@@ -194,7 +196,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.getPeer(Proof::makeRandom(100));
+        peerids[i] = pm.getPeer(buildRandomProof(100));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
@@ -224,7 +226,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        peerids[i + 4] = pm.getPeer(Proof::makeRandom(100));
+        peerids[i + 4] = pm.getPeer(buildRandomProof(100));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
@@ -264,7 +266,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.getPeer(Proof::makeRandom(100));
+        peerids[i] = pm.getPeer(buildRandomProof(100));
     }
 
     // Remove all peers.
@@ -289,7 +291,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     PeerManager pm;
 
     // Create one peer.
-    Proof proof = Proof::makeRandom(100);
+    Proof proof = buildRandomProof(100);
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
@@ -326,7 +328,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     }
 
     // Move a node from a peer to another.
-    Proof altproof = Proof::makeRandom(0);
+    Proof altproof = buildRandomProof(0);
     BOOST_CHECK(pm.addNode(3, altproof, CPubKey()));
 
     for (int i = 0; i < 100; i++) {

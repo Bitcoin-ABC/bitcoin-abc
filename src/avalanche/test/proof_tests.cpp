@@ -5,6 +5,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
 
+#include <avalanche/test/util.h>
 #include <streams.h>
 #include <util/strencodings.h>
 
@@ -15,6 +16,14 @@
 using namespace avalanche;
 
 BOOST_FIXTURE_TEST_SUITE(proof_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(proof_random) {
+    for (int i = 0; i < 1000; i++) {
+        const uint32_t score = InsecureRand32();
+        const Proof p = buildRandomProof(score);
+        BOOST_CHECK_EQUAL(p.getScore(), score);
+    }
+}
 
 BOOST_AUTO_TEST_CASE(proofbuilder) {
     CKey key;
@@ -294,14 +303,6 @@ BOOST_AUTO_TEST_CASE(deserialization) {
         BOOST_CHECK_EQUAL(p.getId(), c.proofid);
         BOOST_CHECK_EQUAL(p.getScore(), c.score);
         BOOST_CHECK_EQUAL(p.verify(), c.valid);
-    }
-}
-
-BOOST_AUTO_TEST_CASE(proof_random) {
-    for (int i = 0; i < 1000; i++) {
-        const uint32_t score = InsecureRand32();
-        const Proof p = Proof::makeRandom(score);
-        BOOST_CHECK_EQUAL(p.getScore(), score);
     }
 }
 

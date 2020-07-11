@@ -6,9 +6,7 @@
 
 #include <coins.h> // For SaltedOutpointHasher
 #include <hash.h>
-#include <random.h>
 
-#include <limits>
 #include <unordered_set>
 
 namespace avalanche {
@@ -69,13 +67,6 @@ bool Proof::verify() const {
     }
 
     return true;
-}
-
-Proof Proof::makeRandom(uint32_t score) {
-    return Proof(0, std::numeric_limits<uint32_t>::max(), CPubKey(),
-                 {{{COutPoint(TxId(GetRandHash()), 0),
-                    (int64_t(score) * COIN) / 100, 0, CPubKey()},
-                   {}}});
 }
 
 } // namespace avalanche

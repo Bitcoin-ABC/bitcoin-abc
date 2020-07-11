@@ -122,12 +122,6 @@ public:
     uint32_t getScore() const;
 
     bool verify() const;
-
-    /**
-     * Builds a randomized (and therefore invalid) Proof.
-     * Useful for tests.
-     */
-    static Proof makeRandom(uint32_t score);
 };
 
 } // namespace avalanche
