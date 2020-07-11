@@ -17,6 +17,11 @@ PeerId PeerManager::getPeer(const Proof &proof) {
         return it->peerid;
     }
 
+    // Reject invalid proof.
+    if (!proof.verify()) {
+        return NO_PEER;
+    }
+
     // We have no peer for this proof, time to create it.
     const PeerId peerid = nextPeerId++;
     auto inserted = peers.emplace(peerid, uint32_t(slots.size()), proof);
@@ -61,9 +66,7 @@ bool PeerManager::removePeer(const PeerId peerid) {
 bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
                           const CPubKey &pubkey) {
     const PeerId peerid = getPeer(proof);
-
-    auto pit = peers.find(peerid);
-    if (pit == peers.end()) {
+    if (peerid == NO_PEER) {
         return false;
     }
 

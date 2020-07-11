@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     PeerManager pm;
 
     // Create one peer.
-    Proof proof = buildRandomProof(100);
+    Proof proof = buildRandomProof(100000000);
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
@@ -327,13 +327,20 @@ BOOST_AUTO_TEST_CASE(node_crud) {
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
     }
 
-    // Move a node from a peer to another.
-    Proof altproof = buildRandomProof(0);
+    // Move a node from a peer to another. This peer has a very low score such
+    // as chances of being picked are 1 in a billion.
+    Proof altproof = buildRandomProof(1);
     BOOST_CHECK(pm.addNode(3, altproof, CPubKey()));
 
+    int node3selected = 0;
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
-        BOOST_CHECK(n == 0);
+        if (n == 3) {
+            // Selecting this node should be exceedingly unlikely.
+            BOOST_CHECK(node3selected++ < 1);
+        } else {
+            BOOST_CHECK_EQUAL(n, 0);
+        }
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
     }
