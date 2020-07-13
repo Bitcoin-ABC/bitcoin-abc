@@ -831,6 +831,8 @@ class BlockTransactions:
 
 
 class AvalancheStake:
+    __slots__ = ("utxo", "amount", "height", "pubkey", "is_coinbase")
+
     def __init__(self, utxo=None, amount=0, height=0,
                  pubkey=b"", is_coinbase=False):
         self.utxo: COutPoint = utxo or COutPoint()
@@ -868,6 +870,8 @@ class AvalancheStake:
 
 
 class AvalancheSignedStake:
+    __slots__ = ("stake", "sig")
+
     def __init__(self, stake=None, sig=b""):
         self.stake: AvalancheStake = stake or AvalancheStake()
         self.sig: bytes = sig
@@ -1460,7 +1464,7 @@ class msg_block:
 # for cases where a user needs tighter control over what is sent over the wire
 # note that the user must supply the name of the msgtype, and the data
 class msg_generic:
-    __slots__ = ("msgtype", "data")
+    __slots__ = ("data")
 
     def __init__(self, msgtype, data=None):
         self.msgtype = msgtype

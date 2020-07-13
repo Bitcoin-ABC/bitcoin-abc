@@ -1041,7 +1041,9 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-addrmantest", "Allows to test address relay on localhost",
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
-
+    argsman.AddArg("-capturemessages", "Capture all P2P messages to disk",
+                   ArgsManager::ALLOW_BOOL | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-debug=<category>",
                    strprintf("Output debugging information (default: %u, "
                              "supplying <category> is optional)",
@@ -1866,19 +1868,19 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     // Trim requested connection counts, to fit into system limitations
     // <int> in std::min<int>(...) to work around FreeBSD compilation issue
     // described in #2695
-    nFD = RaiseFileDescriptorLimit(nMaxConnections + nBind +
-                                   MIN_CORE_FILEDESCRIPTORS +
-                                   MAX_ADDNODE_CONNECTIONS);
+    nFD = RaiseFileDescriptorLimit(
+        nMaxConnections + nBind + MIN_CORE_FILEDESCRIPTORS +
+        MAX_ADDNODE_CONNECTIONS + NUM_FDS_MESSAGE_CAPTURE);
 #ifdef USE_POLL
     int fd_max = nFD;
 #else
     int fd_max = FD_SETSIZE;
 #endif
-    nMaxConnections =
-        std::max(std::min<int>(nMaxConnections, fd_max - nBind -
-                                                    MIN_CORE_FILEDESCRIPTORS -
-                                                    MAX_ADDNODE_CONNECTIONS),
-                 0);
+    nMaxConnections = std::max(
+        std::min<int>(nMaxConnections,
+                      fd_max - nBind - MIN_CORE_FILEDESCRIPTORS -
+                          MAX_ADDNODE_CONNECTIONS - NUM_FDS_MESSAGE_CAPTURE),
+        0);
     if (nFD < MIN_CORE_FILEDESCRIPTORS) {
         return InitError(_("Not enough file descriptors available."));
     }

@@ -3503,6 +3503,9 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     size_t nMessageSize = msg.data.size();
     LogPrint(BCLog::NET, "sending %s (%d bytes) peer=%d\n",
              SanitizeString(msg.m_type), nMessageSize, pnode->GetId());
+    if (gArgs.GetBoolArg("-capturemessages", false)) {
+        CaptureMessage(pnode->addr, msg.m_type, msg.data, /*incoming=*/false);
+    }
 
     // make sure we use the appropriate network transport format
     std::vector<uint8_t> serializedHeader;
@@ -3628,4 +3631,33 @@ std::string userAgent(const Config &config) {
 
     // Size compliance is checked at startup, it is safe to not check it again
     return FormatUserAgent(client_name, client_version, uacomments);
+}
+
+void CaptureMessage(const CAddress &addr, const std::string &msg_type,
+                    const Span<const uint8_t> &data, bool is_incoming) {
+    // Note: This function captures the message at the time of processing,
+    // not at socket receive/send time.
+    // This ensures that the messages are always in order from an application
+    // layer (processing) perspective.
+    auto now = GetTime<std::chrono::microseconds>();
+
+    // Windows folder names can not include a colon
+    std::string clean_addr = addr.ToString();
+    std::replace(clean_addr.begin(), clean_addr.end(), ':', '_');
+
+    fs::path base_path = gArgs.GetDataDirNet() / "message_capture" / clean_addr;
+    fs::create_directories(base_path);
+
+    fs::path path =
+        base_path / (is_incoming ? "msgs_recv.dat" : "msgs_sent.dat");
+    CAutoFile f(fsbridge::fopen(path, "ab"), SER_DISK, CLIENT_VERSION);
+
+    ser_writedata64(f, now.count());
+    f.write(msg_type.data(), msg_type.length());
+    for (auto i = msg_type.length(); i < CMessageHeader::COMMAND_SIZE; ++i) {
+        f << '\0';
+    }
+    uint32_t size = data.size();
+    ser_writedata32(f, size);
+    f.write((const char *)data.data(), data.size());
 }

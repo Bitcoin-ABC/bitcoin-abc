@@ -5866,6 +5866,11 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     }
     CNetMessage &msg(msgs.front());
 
+    if (gArgs.GetBoolArg("-capturemessages", false)) {
+        CaptureMessage(pfrom->addr, msg.m_command, MakeUCharSpan(msg.m_recv),
+                       /*incoming=*/true);
+    }
+
     msg.SetVersion(pfrom->GetCommonVersion());
 
     // Check network magic

@@ -25,6 +25,7 @@
 #include <pubkey.h>
 #include <radix.h>
 #include <random.h>
+#include <span.h>
 #include <streams.h>
 #include <sync.h>
 #include <threadinterrupt.h>
@@ -94,6 +95,8 @@ static constexpr uint64_t DEFAULT_MAX_UPLOAD_TARGET = 0;
 static const bool DEFAULT_BLOCKSONLY = false;
 /** -peertimeout default */
 static const int64_t DEFAULT_PEER_CONNECT_TIMEOUT = 60;
+/** Number of file descriptors required for message capture **/
+static const int NUM_FDS_MESSAGE_CAPTURE = 1;
 
 static const bool DEFAULT_FORCEDNSSEED = false;
 static const bool DEFAULT_DNSSEED = true;
@@ -1437,6 +1440,10 @@ PoissonNextSend(std::chrono::microseconds now,
 
 std::string getSubVersionEB(uint64_t MaxBlockSize);
 std::string userAgent(const Config &config);
+
+/** Dump binary message to file, with timestamp */
+void CaptureMessage(const CAddress &addr, const std::string &msg_type,
+                    const Span<const uint8_t> &data, bool is_incoming);
 
 struct NodeEvictionCandidate {
     NodeId id;
