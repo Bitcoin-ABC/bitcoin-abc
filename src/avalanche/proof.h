@@ -15,6 +15,8 @@
 #include <cstdint>
 #include <vector>
 
+class CCoinsView;
+
 namespace avalanche {
 
 class ProofValidationState;
@@ -126,6 +128,7 @@ public:
     uint32_t getScore() const;
 
     bool verify(ProofValidationState &state) const;
+    bool verify(ProofValidationState &state, const CCoinsView &view) const;
 };
 
 } // namespace avalanche

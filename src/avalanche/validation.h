@@ -15,6 +15,13 @@ enum class ProofValidationResult {
     DUST_THRESOLD,
     DUPLICATE_STAKE,
     INVALID_SIGNATURE,
+
+    // UTXO based errors.
+    MISSING_UTXO,
+    AMOUNT_MISMATCH,
+    NON_STANDARD_DESTINATION,
+    DESTINATION_NOT_SUPPORTED,
+    DESTINATION_MISMACTCH,
 };
 
 class ProofValidationState : public ValidationState<ProofValidationResult> {};

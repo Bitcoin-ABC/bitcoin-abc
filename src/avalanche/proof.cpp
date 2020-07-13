@@ -5,8 +5,9 @@
 #include <avalanche/proof.h>
 
 #include <avalanche/validation.h>
-#include <coins.h> // For SaltedOutpointHasher
+#include <coins.h>
 #include <hash.h>
+#include <script/standard.h>
 
 #include <unordered_set>
 
@@ -68,6 +69,52 @@ bool Proof::verify(ProofValidationState &state) const {
 
         if (!ss.verify(proofid)) {
             return state.Invalid(ProofValidationResult::INVALID_SIGNATURE);
+        }
+    }
+
+    return true;
+}
+
+bool Proof::verify(ProofValidationState &state, const CCoinsView &view) const {
+    if (!verify(state)) {
+        // state is set by verify.
+        return false;
+    }
+
+    for (const SignedStake &ss : stakes) {
+        const Stake &s = ss.getStake();
+        const COutPoint &utxo = s.getUTXO();
+
+        Coin coin;
+        if (!view.GetCoin(utxo, coin)) {
+            // The coins are not in the UTXO set.
+            return state.Invalid(ProofValidationResult::MISSING_UTXO);
+        }
+
+        const CTxOut &out = coin.GetTxOut();
+        if (s.getAmount() != out.nValue) {
+            // Wrong amount.
+            return state.Invalid(ProofValidationResult::AMOUNT_MISMATCH);
+        }
+
+        CTxDestination dest;
+        if (!ExtractDestination(out.scriptPubKey, dest)) {
+            // Can't extract destination.
+            return state.Invalid(
+                ProofValidationResult::NON_STANDARD_DESTINATION);
+        }
+
+        PKHash *pkhash = boost::get<PKHash>(&dest);
+        if (!pkhash) {
+            // Only PKHash are supported.
+            return state.Invalid(
+                ProofValidationResult::DESTINATION_NOT_SUPPORTED);
+        }
+
+        const CPubKey &pubkey = s.getPubkey();
+        if (*pkhash != PKHash(pubkey)) {
+            // Wrong pubkey.
+            return state.Invalid(ProofValidationResult::DESTINATION_MISMACTCH);
         }
     }
 

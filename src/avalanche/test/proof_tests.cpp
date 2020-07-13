@@ -7,6 +7,8 @@
 #include <avalanche/proofbuilder.h>
 #include <avalanche/test/util.h>
 #include <avalanche/validation.h>
+#include <coins.h>
+#include <script/standard.h>
 #include <streams.h>
 #include <util/strencodings.h>
 
@@ -327,6 +329,112 @@ BOOST_AUTO_TEST_CASE(deserialization) {
         BOOST_CHECK_EQUAL(p.verify(state),
                           c.result == ProofValidationResult::NONE);
         BOOST_CHECK(state.GetResult() == c.result);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(verify) {
+    CCoinsView coinsDummy;
+    CCoinsViewCache coins(&coinsDummy);
+
+    CKey key;
+    key.MakeNewKey(true);
+    const CPubKey pubkey = key.GetPubKey();
+
+    const Amount value = 12345 * SATOSHI;
+    const uint32_t height = 10;
+
+    COutPoint pkh_outpoint(TxId(InsecureRand256()), InsecureRand32());
+    CTxOut pkh_output(value, GetScriptForRawPubKey(pubkey));
+    coins.AddCoin(pkh_outpoint, Coin(pkh_output, height, false), false);
+
+    COutPoint nonstd_outpoint(TxId(InsecureRand256()), InsecureRand32());
+    CTxOut nonstd_output(value, CScript() << OP_TRUE);
+    coins.AddCoin(nonstd_outpoint, Coin(nonstd_output, height, false), false);
+
+    COutPoint p2sh_outpoint(TxId(InsecureRand256()), InsecureRand32());
+    CTxOut p2sh_output(value,
+                       GetScriptForDestination(ScriptHash(InsecureRand160())));
+    coins.AddCoin(p2sh_outpoint, Coin(p2sh_output, height, false), false);
+
+    const auto runCheck = [&](const ProofValidationResult result,
+                              const COutPoint &o, const Amount v,
+                              const uint32_t h, const bool is_coinbase,
+                              const CKey &k) {
+        // Generate a proof that match the UTXO.
+        ProofBuilder pb(0, 0, pubkey);
+        pb.addUTXO(o, v, h, is_coinbase, k);
+        Proof p = pb.build();
+
+        ProofValidationState state;
+        BOOST_CHECK(p.verify(state));
+        BOOST_CHECK(p.verify(state, coins) ==
+                    (result == ProofValidationResult::NONE));
+        BOOST_CHECK(state.GetResult() == result);
+    };
+
+    // Valid proof
+    runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
+             key);
+
+    // Amount mismatch
+    runCheck(ProofValidationResult::AMOUNT_MISMATCH, pkh_outpoint,
+             value + 1 * SATOSHI, height, false, key);
+
+    // Invalid outpoints
+    runCheck(ProofValidationResult::MISSING_UTXO,
+             COutPoint(pkh_outpoint.GetTxId(), pkh_outpoint.GetN() + 1), value,
+             height, false, key);
+    runCheck(ProofValidationResult::MISSING_UTXO,
+             COutPoint(TxId(InsecureRand256()), pkh_outpoint.GetN()), value,
+             height, false, key);
+
+    // Non standard script
+    runCheck(ProofValidationResult::NON_STANDARD_DESTINATION, nonstd_outpoint,
+             value, height, false, key);
+
+    // Non PKHhash destination
+    runCheck(ProofValidationResult::DESTINATION_NOT_SUPPORTED, p2sh_outpoint,
+             value, height, false, key);
+
+    // Mismatching key
+    {
+        CKey altkey;
+        altkey.MakeNewKey(true);
+        runCheck(ProofValidationResult::DESTINATION_MISMACTCH, pkh_outpoint,
+                 value, height, false, altkey);
+    }
+
+    // No stake
+    {
+        Proof p = ProofBuilder(0, 0, pubkey).build();
+
+        ProofValidationState state;
+        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(state.GetResult() == ProofValidationResult::NO_STAKE);
+    }
+
+    // Dust thresold
+    {
+        ProofBuilder pb(0, 0, pubkey);
+        pb.addUTXO(pkh_outpoint, Amount::zero(), height, false, key);
+        Proof p = pb.build();
+
+        ProofValidationState state;
+        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESOLD);
+    }
+
+    // Duplicated input
+    {
+        ProofBuilder pb(0, 0, pubkey);
+        pb.addUTXO(pkh_outpoint, value, height, false, key);
+        pb.addUTXO(pkh_outpoint, value, height, false, key);
+        Proof p = pb.build();
+
+        ProofValidationState state;
+        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(state.GetResult() ==
+                    ProofValidationResult::DUPLICATE_STAKE);
     }
 }
 
