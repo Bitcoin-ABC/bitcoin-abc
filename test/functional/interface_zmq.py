@@ -130,6 +130,13 @@ class ZMQTest (BitcoinTestFramework):
             hex = rawtx.receive()
             assert_equal(payment_txid, hash256_reversed(hex).hex())
 
+            # Mining the block with this tx should result in second notification
+            # after coinbase tx notification
+            self.nodes[0].generatetoaddress(1, ADDRESS_BCHREG_UNSPENDABLE)
+            hashtx.receive()
+            txid = hashtx.receive()
+            assert_equal(payment_txid, txid.hex())
+
         self.log.info("Test the getzmqnotifications RPC")
         assert_equal(self.nodes[0].getzmqnotifications(), [
             {"type": "pubhashblock", "address": address, "hwm": 1000},
