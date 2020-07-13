@@ -223,6 +223,8 @@ public:
         vSeeds.emplace_back("seed.deadalnix.me");
         // BCHD
         vSeeds.emplace_back("seed.bchd.cash");
+	// electroncash.de seeder
+	vSeeds.emplace_back("dnsseed.electroncash.de");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
