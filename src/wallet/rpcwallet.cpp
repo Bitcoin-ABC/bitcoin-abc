@@ -1690,28 +1690,11 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
         nCount = ret.size() - nFrom;
     }
 
-    std::vector<UniValue> arrTmp = ret.getValues();
-
-    std::vector<UniValue>::iterator first = arrTmp.begin();
-    std::advance(first, nFrom);
-    std::vector<UniValue>::iterator last = arrTmp.begin();
-    std::advance(last, nFrom + nCount);
-
-    if (last != arrTmp.end()) {
-        arrTmp.erase(last, arrTmp.end());
-    }
-    if (first != arrTmp.begin()) {
-        arrTmp.erase(arrTmp.begin(), first);
-    }
-
+    const std::vector<UniValue> &txs = ret.getValues();
+    UniValue result{UniValue::VARR};
     // Return oldest to newest
-    std::reverse(arrTmp.begin(), arrTmp.end());
-
-    ret.clear();
-    ret.setArray();
-    ret.push_backV(arrTmp);
-
-    return ret;
+    result.push_backV({txs.rend() - nFrom - nCount, txs.rend() - nFrom});
+    return result;
 }
 
 static UniValue listsinceblock(const Config &config,
