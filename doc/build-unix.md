@@ -226,14 +226,15 @@ From the build subdirectory (see above), run `cmake -LH ..`.
 
 Setup and Build Example: Arch Linux
 -----------------------------------
-This example lists the steps necessary to setup and build a command line only, non-wallet distribution of the latest changes on Arch Linux:
+This example lists the steps necessary to setup and build a command line only,
+non-wallet distribution of the latest changes on Arch Linux:
 
     pacman -S boost cmake git libevent ninja python
     git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
     cd bitcoin-abc/
     mkdir build
     cd build
-    cmake -GNinja .. -DBUILD_BITCOIN_WALLET=OFF -DBUILD_BITCOIN_QT=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF
+    cmake -GNinja .. -DBUILD_BITCOIN_WALLET=OFF -DBUILD_BITCOIN_QT=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF -DUSE_JEMALLOC=OFF
     ninja
 
 
