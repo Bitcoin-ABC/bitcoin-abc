@@ -4,6 +4,14 @@ export LC_ALL=C
 
 set -euo pipefail
 
+DEFAULT_DISTROS=()
+# Bionic: Ubuntu 18.04 LTS
+DEFAULT_DISTROS+=("bionic")
+# Eoan: Ubuntu 19.10
+DEFAULT_DISTROS+=("eoan")
+# Focal: Ubuntu 20.04 LTS
+DEFAULT_DISTROS+=("focal")
+
 DEFAULT_PPA="bitcoin-abc"
 DPUT_CONFIG_FILE=~/".dput.cf"
 TOPLEVEL="$(git rev-parse --show-toplevel)"
@@ -23,6 +31,8 @@ signer will be used to fetch the signing key fingerprint from '${KEYS_TXT}'
 Note: This script will prompt you to sign with your PGP key.
 
 -d, --dry-run             Build and sign the packages, but do not push them to the PPA.
+-D, --distro <name>       Name of the distribution to package for. Can be supplied multiple times.
+                            If supplied at least once, the defaults are ignored. Defaults to: '${DEFAULT_DISTROS[@]}'
 -h, --help                Display this help message.
 -p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}
                             then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than
@@ -34,6 +44,7 @@ Note: This script will prompt you to sign with your PGP key.
 EOF
 }
 
+DISTROS=()
 DRY_RUN="false"
 NUM_EXPECTED_ARGUMENTS=1
 PACKAGE_VERSION=""
@@ -45,6 +56,11 @@ case $1 in
   -d|--dry-run)
     DRY_RUN="true"
     shift # shift past argument
+    ;;
+  -D|--distro)
+    DISTROS+=("$2")
+    shift # shift past argument
+    shift # shift past value
     ;;
   -h|--help)
     help_message
@@ -92,6 +108,11 @@ if [ "$#" -ne "${NUM_EXPECTED_ARGUMENTS}" ]; then
   echo
   help_message
   exit 20
+fi
+
+# If no distributions are explicitly set, use the defaults
+if [ "${#DISTROS[@]}" == 0 ]; then
+  DISTROS=("${DEFAULT_DISTROS[@]}")
 fi
 
 SIGNER_FINGERPRINT=$(grep "$1" "${KEYS_TXT}" | cut -d' ' -f 1) || {
@@ -184,11 +205,7 @@ EOF
   fi
 }
 
-# Bionic: Ubuntu 18.04 LTS
-package "bionic"
-# Eoan: Ubuntu 19.10
-package "eoan"
-# Focal: Ubuntu 20.04 LTS
-package "focal"
-
+for DISTRO in "${DISTROS[@]}"; do
+  package "${DISTRO}"
+done
 popd
