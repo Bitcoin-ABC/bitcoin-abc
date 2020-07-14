@@ -25,7 +25,7 @@ from test_framework.mininode import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import wait_until
 
-banscore = 10
+DISCOURAGEMENT_THRESHOLD = 100
 
 
 class CLazyNode(P2PInterface):
@@ -94,7 +94,7 @@ class CNodeNoVersionBan(CLazyNode):
     # behavior changes
     def on_open(self):
         super().on_open()
-        for i in range(banscore):
+        for _ in range(DISCOURAGEMENT_THRESHOLD):
             self.send_message(msg_verack())
 
     def on_reject(self, message): pass
@@ -131,7 +131,6 @@ class CNodeNoVerackIdle(CLazyNode):
 class P2PLeakTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [['-banscore=' + str(banscore)]]
 
     def run_test(self):
         no_version_bannode = self.nodes[0].add_p2p_connection(

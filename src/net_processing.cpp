@@ -1167,7 +1167,9 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
 }
 
 /**
- * Mark a misbehaving peer to be banned depending upon the value of `-banscore`.
+ * Increment peer's misbehavior score. If the new value >=
+ * DISCOURAGEMENT_THRESHOLD, mark the node to be discouraged, meaning the peer
+ * might be disconnected and added to the discouragement filter.
  */
 void Misbehaving(NodeId pnode, int howmuch, const std::string &message) {
     AssertLockHeld(cs_main);
@@ -1181,10 +1183,9 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string &message) {
     }
 
     state->nMisbehavior += howmuch;
-    int banscore = gArgs.GetArg("-banscore", DEFAULT_BANSCORE_THRESHOLD);
     std::string message_prefixed = message.empty() ? "" : (": " + message);
-    if (state->nMisbehavior >= banscore &&
-        state->nMisbehavior - howmuch < banscore) {
+    if (state->nMisbehavior >= DISCOURAGEMENT_THRESHOLD &&
+        state->nMisbehavior - howmuch < DISCOURAGEMENT_THRESHOLD) {
         LogPrint(BCLog::NET,
                  "%s: %s peer=%d (%d -> %d) BAN THRESHOLD EXCEEDED%s\n",
                  __func__, state->name, pnode, state->nMisbehavior - howmuch,

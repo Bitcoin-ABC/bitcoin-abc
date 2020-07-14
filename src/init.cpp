@@ -617,11 +617,6 @@ void SetupServerArgs(NodeContext &node) {
                              "prefixed by the net-specific datadir location.",
                              DEFAULT_ASMAP_FILENAME),
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    argsman.AddArg("-banscore=<n>",
-                   strprintf("Threshold for disconnecting and discouraging "
-                             "misbehaving peers (default: %u)",
-                             DEFAULT_BANSCORE_THRESHOLD),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg("-bantime=<n>",
                    strprintf("Default duration (in seconds) of manually "
                              "configured bans (default: %u)",

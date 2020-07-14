@@ -29,6 +29,9 @@ static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
  */
 static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
 static const bool DEFAULT_PEERBLOCKFILTERS = false;
+/** Threshold for marking a node to be discouraged, e.g. disconnected and added
+ * to the discouragement filter. */
+static const int DISCOURAGEMENT_THRESHOLD{100};
 
 class PeerLogicValidation final : public CValidationInterface,
                                   public NetEventsInterface {
@@ -131,7 +134,11 @@ struct CNodeStateStats {
 
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
-/** Increase a node's misbehavior score. */
+/**
+ * Increment peer's misbehavior score. If the new value >=
+ * DISCOURAGEMENT_THRESHOLD, mark the node to be discouraged, meaning the peer
+ * might be disconnected and added to the discouragement filter.
+ */
 void Misbehaving(NodeId nodeid, int howmuch, const std::string &message = "")
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
