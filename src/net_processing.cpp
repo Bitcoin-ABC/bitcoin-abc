@@ -2856,12 +2856,10 @@ void PeerLogicValidation::ProcessMessage(
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
             }
             pfrom.AddAddressKnown(addr);
-            // Do not process banned/discouraged addresses beyond remembering we
-            // received them
-            if (m_banman->IsDiscouraged(addr)) {
-                continue;
-            }
-            if (m_banman->IsBanned(addr)) {
+            if (m_banman &&
+                (m_banman->IsDiscouraged(addr) || m_banman->IsBanned(addr))) {
+                // Do not process banned/discouraged addresses beyond
+                // remembering we received them
                 continue;
             }
             bool fReachable = IsReachable(addr);
@@ -4032,7 +4030,10 @@ void PeerLogicValidation::ProcessMessage(
         std::vector<CAddress> vAddr = m_connman.GetAddresses();
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {
-            if (!m_banman->IsDiscouraged(addr) && !m_banman->IsBanned(addr)) {
+            bool banned_or_discouraged =
+                m_banman &&
+                (m_banman->IsDiscouraged(addr) || m_banman->IsBanned(addr));
+            if (!banned_or_discouraged) {
                 pfrom.PushAddress(addr, insecure_rand);
             }
         }

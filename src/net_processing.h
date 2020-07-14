@@ -37,6 +37,10 @@ class PeerLogicValidation final : public CValidationInterface,
                                   public NetEventsInterface {
 private:
     CConnman &m_connman;
+    /**
+     * Pointer to this node's banman. May be nullptr - check existence before
+     * dereferencing.
+     */
     BanMan *const m_banman;
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
