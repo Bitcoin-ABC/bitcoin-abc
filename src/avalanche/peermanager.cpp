@@ -4,6 +4,7 @@
 
 #include <avalanche/peermanager.h>
 
+#include <avalanche/validation.h>
 #include <random.h>
 
 #include <cassert>
@@ -18,7 +19,8 @@ PeerId PeerManager::getPeer(const Proof &proof) {
     }
 
     // Reject invalid proof.
-    if (!proof.verify()) {
+    ProofValidationState state;
+    if (!proof.verify(state)) {
         return NO_PEER;
     }
 

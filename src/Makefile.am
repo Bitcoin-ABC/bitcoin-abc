@@ -120,6 +120,7 @@ BITCOIN_CORE_H = \
   avalanche/proof.h \
   avalanche/proofbuilder.h \
   avalanche/protocol.h \
+  avalanche/validation.h \
   banman.h \
   base58.h \
   bloom.h \

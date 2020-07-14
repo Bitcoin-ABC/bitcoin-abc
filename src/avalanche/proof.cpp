@@ -4,6 +4,7 @@
 
 #include <avalanche/proof.h>
 
+#include <avalanche/validation.h>
 #include <coins.h> // For SaltedOutpointHasher
 #include <hash.h>
 
@@ -47,22 +48,26 @@ uint32_t Proof::getScore() const {
     return uint32_t((100 * total) / COIN);
 }
 
-bool Proof::verify() const {
-    if (getScore() == 0) {
-        // No stake.
-        return false;
+static constexpr Amount PROOF_DUST_THRESOLD = 1 * SATOSHI;
+
+bool Proof::verify(ProofValidationState &state) const {
+    if (stakes.empty()) {
+        return state.Invalid(ProofValidationResult::NO_STAKE);
     }
 
     std::unordered_set<COutPoint, SaltedOutpointHasher> utxos;
-    for (auto &s : stakes) {
-        if (!utxos.insert(s.getStake().getUTXO()).second) {
-            // Duplicated stake.
-            return false;
+    for (const SignedStake &ss : stakes) {
+        const Stake &s = ss.getStake();
+        if (s.getAmount() < PROOF_DUST_THRESOLD) {
+            return state.Invalid(ProofValidationResult::DUST_THRESOLD);
         }
 
-        if (!s.verify(proofid)) {
-            // Improperly signed stake.
-            return false;
+        if (!utxos.insert(s.getUTXO()).second) {
+            return state.Invalid(ProofValidationResult::DUPLICATE_STAKE);
+        }
+
+        if (!ss.verify(proofid)) {
+            return state.Invalid(ProofValidationResult::INVALID_SIGNATURE);
         }
     }
 

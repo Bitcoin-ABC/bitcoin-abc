@@ -17,6 +17,8 @@
 
 namespace avalanche {
 
+class ProofValidationState;
+
 struct ProofId : public uint256 {
     explicit ProofId() : uint256() {}
     explicit ProofId(const uint256 &b) : uint256(b) {}
@@ -122,7 +124,7 @@ public:
     const ProofId &getId() const { return proofid; }
     uint32_t getScore() const;
 
-    bool verify() const;
+    bool verify(ProofValidationState &state) const;
 };
 
 } // namespace avalanche
