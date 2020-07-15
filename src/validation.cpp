@@ -4079,8 +4079,10 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
 
         if (!CheckBlockHeader(block, state, chainparams.GetConsensus(),
                               BlockValidationOptions(config))) {
-            return error("%s: Consensus::CheckBlockHeader: %s, %s", __func__,
-                         hash.ToString(), state.ToString());
+            LogPrint(BCLog::VALIDATION,
+                     "%s: Consensus::CheckBlockHeader: %s, %s\n", __func__,
+                     hash.ToString(), state.ToString());
+            return false;
         }
 
         // Get prev block index
