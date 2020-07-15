@@ -1298,8 +1298,16 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
     ui->peerDirection->setText(stats->nodeStats.fInbound ? tr("Inbound")
                                                          : tr("Outbound"));
     ui->peerHeight->setText(QString::number(stats->nodeStats.nStartingHeight));
-    ui->peerWhitelisted->setText(
-        stats->nodeStats.m_legacyWhitelisted ? tr("Yes") : tr("No"));
+    if (stats->nodeStats.m_permissionFlags == PF_NONE) {
+        ui->peerPermissions->setText(tr("N/A"));
+    } else {
+        QStringList permissions;
+        for (const auto &permission :
+             NetPermissions::ToStrings(stats->nodeStats.m_permissionFlags)) {
+            permissions.append(QString::fromStdString(permission));
+        }
+        ui->peerPermissions->setText(permissions.join(" & "));
+    }
     ui->peerMappedAS->setText(
         stats->nodeStats.m_mapped_as != 0
             ? QString::number(stats->nodeStats.m_mapped_as)
