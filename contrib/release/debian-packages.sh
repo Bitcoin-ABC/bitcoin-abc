@@ -10,26 +10,28 @@ TOPLEVEL="$(git rev-parse --show-toplevel)"
 KEYS_TXT="${TOPLEVEL}"/contrib/gitian-signing/keys.txt
 
 help_message() {
-  echo "Build and sign Debian packages and push to a PPA."
-  echo "Usage: $0 <options> signer"
-  echo
-  echo "Example usage: $0 jasonbcox"
-  echo
-  echo "signer will be used to fetch the signing key fingerprint from '${KEYS_TXT}'"
-  echo "  That matching fingerprint will be used to fetch the correctly formatted name and email from GPG."
-  echo "  signer must at least partially match the fingerprint or email in keys.txt"
-  echo
-  echo "Note: This script will prompt you to sign with your PGP key."
-  echo
-  echo "-d, --dry-run             Build and sign the packages, but do not push them to the PPA."
-  echo "-h, --help                Display this help message."
-  echo "-p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}"
-  echo "                            then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than"
-  echo "                            the default will require that you add the necessary settings to the config file."
-  echo "-v, --version <version>   Set the package version. Defaults to the version returned by 'bitcoind --version'."
-  echo "                            If set, version must be of the form: MAJOR.MINOR.REVISION[.OPTIONALPATCH]"
-  echo "                            OPTIONALPATCH may be necessary when source files have changed but the version revision has not,"
-  echo "                            as the PPA will reject source archives of the same name."
+cat <<EOF
+Build and sign Debian packages and push to a PPA.
+Usage: $0 <options> signer
+
+Example usage: $0 jasonbcox
+
+signer will be used to fetch the signing key fingerprint from '${KEYS_TXT}'
+  That matching fingerprint will be used to fetch the correctly formatted name and email from GPG.
+  signer must at least partially match the fingerprint or email in keys.txt
+
+Note: This script will prompt you to sign with your PGP key.
+
+-d, --dry-run             Build and sign the packages, but do not push them to the PPA.
+-h, --help                Display this help message.
+-p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}
+                            then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than
+                            the default will require that you add the necessary settings to the config file.
+-v, --version <version>   Set the package version. Defaults to the version returned by 'bitcoind --version'.
+                            If set, version must be of the form: MAJOR.MINOR.REVISION[.OPTIONALPATCH]
+                            OPTIONALPATCH may be necessary when source files have changed but the version revision has not,
+                            as the PPA will reject source archives of the same name.
+EOF
 }
 
 DRY_RUN="false"
