@@ -797,8 +797,7 @@ void RegisterMiscRPCCommands(CRPCTable &t) {
         { "hidden",             "echojson",               echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     };
     // clang-format on
-
-    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
-        t.appendCommand(commands[vcidx].name, &commands[vcidx]);
+    for (const auto &c : commands) {
+        t.appendCommand(c.name, &c);
     }
 }
