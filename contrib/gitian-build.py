@@ -33,7 +33,7 @@ def setup():
             ['git', 'clone', 'https://github.com/Bitcoin-ABC/bitcoin-abc.git'])
     os.chdir('gitian-builder')
     make_image_prog = ['bin/make-base-vm',
-                       '--suite', 'bionic', '--arch', 'amd64']
+                       '--distro', 'debian', '--suite', 'buster', '--arch', 'amd64']
     if args.docker:
         make_image_prog += ['--docker']
     elif not args.kvm:
