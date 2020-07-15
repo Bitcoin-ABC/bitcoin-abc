@@ -523,7 +523,8 @@ std::string RPCHelpMan::ToString() const {
     bool was_optional{false};
     for (const auto &arg : m_args) {
         if (arg.m_hidden) {
-            continue;
+            // Any arg that follows is also hidden
+            break;
         }
         const bool optional = arg.IsOptional();
         ret += " ";
@@ -553,7 +554,8 @@ std::string RPCHelpMan::ToString() const {
     for (size_t i{0}; i < m_args.size(); ++i) {
         const auto &arg = m_args.at(i);
         if (arg.m_hidden) {
-            continue;
+            // Any arg that follows is also hidden
+            break;
         }
 
         if (i == 0) {
