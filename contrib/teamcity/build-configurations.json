@@ -119,7 +119,10 @@
         "build-master": {
             "script": "builds/build-master.sh",
             "template": "common_unix_artifacts",
-            "timeout": 4800
+            "timeout": 4800,
+            "artifacts": {
+                "doc/Doxyfile": "doc/Doxyfile"
+            }
         },
         "build-osx": {
             "script": "builds/build-osx.sh",
