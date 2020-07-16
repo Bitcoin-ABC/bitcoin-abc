@@ -841,7 +841,7 @@ public:
      * A finalized block can not be reorged in any way.
      */
     bool FinalizeBlock(const Config &config, BlockValidationState &state,
-                       CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+                       CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F>

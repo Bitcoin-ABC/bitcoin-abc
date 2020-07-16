@@ -3098,28 +3098,40 @@ bool CChainState::ParkBlock(const Config &config, BlockValidationState &state,
 bool CChainState::FinalizeBlock(const Config &config,
                                 BlockValidationState &state,
                                 CBlockIndex *pindex) {
-    AssertLockHeld(cs_main);
-    if (!MarkBlockAsFinal(config, state, pindex)) {
-        // state is set by MarkBlockAsFinal.
-        return false;
-    }
-
-    // We have a valid candidate, make sure it is not parked.
-    if (pindex->nStatus.isOnParkedChain()) {
-        UnparkBlock(pindex);
-    }
-
-    // If the finalized block is not on the active chain, we may need to rewind.
-    if (!::ChainActive().Contains(pindex)) {
-        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
-        CBlockIndex *pindexToInvalidate = ::ChainActive().Next(pindexFork);
-        if (pindexToInvalidate) {
-            return UnwindBlock(config, state, pindexToInvalidate,
-                               true /* invalidating */);
+    AssertLockNotHeld(cs_main);
+    CBlockIndex *pindexToInvalidate = nullptr;
+    {
+        LOCK(cs_main);
+        if (!MarkBlockAsFinal(config, state, pindex)) {
+            // state is set by MarkBlockAsFinal.
+            return false;
         }
-    }
 
-    return true;
+        // We have a valid candidate, make sure it is not parked.
+        if (pindex->nStatus.isOnParkedChain()) {
+            UnparkBlock(pindex);
+        }
+
+        // If the finalized block is on the active chain, there is no need to
+        // rewind.
+        if (::ChainActive().Contains(pindex)) {
+            return true;
+        }
+
+        // If the finalized block is not on the active chain, that chain is
+        // invalid
+        // ...
+        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
+        pindexToInvalidate = ::ChainActive().Next(pindexFork);
+        if (!pindexToInvalidate) {
+            return false;
+        }
+    } // end of locked cs_main scope
+
+    // ... therefore, we invalidate the block on the active chain that comes
+    // immediately after it
+    return UnwindBlock(config, state, pindexToInvalidate,
+                       true /* invalidating */);
 }
 
 template <typename F>

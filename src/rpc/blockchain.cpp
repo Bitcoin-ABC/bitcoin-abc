@@ -1688,16 +1688,16 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
     BlockHash hash(uint256S(strHash));
     BlockValidationState state;
 
+    CBlockIndex *pblockindex = nullptr;
     {
         LOCK(cs_main);
-        CBlockIndex *pblockindex = LookupBlockIndex(hash);
-
+        pblockindex = LookupBlockIndex(hash);
         if (!pblockindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         }
+    } // end of locked cs_main scope
 
-        ::ChainstateActive().FinalizeBlock(config, state, pblockindex);
-    }
+    ::ChainstateActive().FinalizeBlock(config, state, pblockindex);
 
     if (state.IsValid()) {
         ActivateBestChain(config, state);
