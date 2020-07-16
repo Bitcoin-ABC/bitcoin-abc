@@ -30,7 +30,7 @@
             "script": "builds/build-asan.sh",
             "template": "common_unix_artifacts",
             "timeout": 1800,
-            "environment": {
+            "env": {
                 "ASAN_OPTIONS": "log_path=stdout",
                 "LSAN_OPTIONS": "log_path=stdout"
             }
@@ -106,7 +106,7 @@
             "script": "builds/build-linux-aarch64.sh",
             "template": "common_unix_artifacts",
             "timeout": 3600,
-            "environment": {
+            "env": {
                 "QEMU_LD_PREFIX": "/usr/aarch64-linux-gnu"
             }
         },
@@ -114,7 +114,7 @@
             "script": "builds/build-linux-arm.sh",
             "template": "common_unix_artifacts",
             "timeout": 3600,
-            "environment": {
+            "env": {
                 "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
             }
         },
@@ -152,7 +152,7 @@
             "script": "builds/build-tsan.sh",
             "template": "common_unix_artifacts",
             "timeout": 1800,
-            "environment": {
+            "env": {
                 "TSAN_OPTIONS": "log_path=stdout"
             }
         },
@@ -160,7 +160,7 @@
             "script": "builds/build-ubsan.sh",
             "template": "common_unix_artifacts",
             "timeout": 1800,
-            "environment": {
+            "env": {
                 "UBSAN_OPTIONS": "log_path=stdout"
             }
         },
@@ -203,19 +203,19 @@
         },
         "gitian-linux": {
             "template": "gitian_builds",
-            "environment": {
+            "env": {
                 "OS_NAME": "linux"
             }
         },
         "gitian-osx": {
             "template": "gitian_builds",
-            "environment": {
+            "env": {
                 "OS_NAME": "osx"
             }
         },
         "gitian-win": {
             "template": "gitian_builds",
-            "environment": {
+            "env": {
                 "OS_NAME": "win"
             }
         }

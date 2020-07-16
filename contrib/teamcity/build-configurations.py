@@ -213,7 +213,7 @@ class UserBuild():
             env={
                 **os.environ,
                 **self.environment_variables,
-                **self.configuration.get("environment", {})
+                **self.configuration.get("env", {})
             },
         )
 
