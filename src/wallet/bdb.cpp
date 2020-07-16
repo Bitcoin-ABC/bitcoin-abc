@@ -33,17 +33,19 @@ void CheckUniqueFileid(const BerkeleyEnvironment &env,
 
     int ret = db.get_mpf()->get_fileid(fileid.value);
     if (ret != 0) {
-        throw std::runtime_error(strprintf(
-            "BerkeleyBatch: Can't open database %s (get_fileid failed with %d)",
-            filename, ret));
+        throw std::runtime_error(
+            strprintf("BerkeleyDatabase: Can't open database %s (get_fileid "
+                      "failed with %d)",
+                      filename, ret));
     }
 
     for (const auto &item : env.m_fileids) {
         if (fileid == item.second && &fileid != &item.second) {
-            throw std::runtime_error(strprintf(
-                "BerkeleyBatch: Can't open database %s (duplicates fileid %s "
-                "from %s)",
-                filename, HexStr(item.second.value), item.first));
+            throw std::runtime_error(
+                strprintf("BerkeleyDatabase: Can't open database %s "
+                          "(duplicates fileid %s "
+                          "from %s)",
+                          filename, HexStr(item.second.value), item.first));
         }
     }
 }
@@ -331,6 +333,8 @@ void BerkeleyEnvironment::CheckpointLSN(const std::string &strFile) {
 BerkeleyDatabase::~BerkeleyDatabase() {
     if (env) {
         LOCK(cs_db);
+        env->CloseDb(strFile);
+        assert(!m_db);
         size_t erased = env->m_databases.erase(strFile);
         assert(erased == 1);
         env->m_fileids.erase(strFile);
@@ -406,26 +410,13 @@ void BerkeleyDatabase::Open(const char *pszMode) {
                     "BerkeleyDatabase: Error %d, can't open database %s", ret,
                     strFile));
             }
+            m_file_path = (env->Directory() / strFile).string();
 
             // Call CheckUniqueFileid on the containing BDB environment to
             // avoid BDB data consistency bugs that happen when different data
             // files in the same environment have the same fileid.
-            //
-            // Also call CheckUniqueFileid on all the other g_dbenvs to prevent
-            // bitcoin from opening the same data file through another
-            // environment when the file is referenced through equivalent but
-            // not obviously identical symlinked or hard linked or bind mounted
-            // paths. In the future a more relaxed check for equal inode and
-            // device ids could be done instead, which would allow opening
-            // different backup copies of a wallet at the same time. Maybe even
-            // more ideally, an exclusive lock for accessing the database could
-            // be implemented, so no equality checks are needed at all. (Newer
-            // versions of BDB have an set_lk_exclusive method for this
-            // purpose, but the older version we use does not.)
-            for (const auto &dbenv : g_dbenvs) {
-                CheckUniqueFileid(*dbenv.second.lock().get(), strFile,
-                                  *pdb_temp, this->env->m_fileids[strFile]);
-            }
+            CheckUniqueFileid(*env, strFile, *pdb_temp,
+                              this->env->m_fileids[strFile]);
 
             m_db.reset(pdb_temp.release());
         }

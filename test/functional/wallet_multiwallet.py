@@ -138,7 +138,7 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # should not initialize if one wallet is a copy of another
         shutil.copyfile(wallet_dir('w8'), wallet_dir('w8_copy'))
-        exp_stderr = r"BerkeleyBatch: Can't open database w8_copy \(duplicates fileid \w+ from w8\)"
+        exp_stderr = r"BerkeleyDatabase: Can't open database w8_copy \(duplicates fileid \w+ from w8\)"
         self.nodes[0].assert_start_raises_init_error(
             ['-wallet=w8', '-wallet=w8_copy'], exp_stderr, match=ErrorMatch.PARTIAL_REGEX)
 
@@ -317,13 +317,13 @@ class MultiWalletTest(BitcoinTestFramework):
             'wallet.dat')
 
         # Fail to load if one wallet is a copy of another
-        assert_raises_rpc_error(-4, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
+        assert_raises_rpc_error(-4, "BerkeleyDatabase: Can't open database w8_copy (duplicates fileid",
                                 self.nodes[0].loadwallet, 'w8_copy')
 
         # Fail to load if one wallet is a copy of another.
         # Test this twice to make sure that we don't re-introduce
         # https://github.com/bitcoin/bitcoin/issues/14304
-        assert_raises_rpc_error(-4, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
+        assert_raises_rpc_error(-4, "BerkeleyDatabase: Can't open database w8_copy (duplicates fileid",
                                 self.nodes[0].loadwallet, 'w8_copy')
 
         # Fail to load if wallet file is a symlink
