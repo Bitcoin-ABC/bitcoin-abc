@@ -90,6 +90,8 @@ BITCOIN_TESTS =\
   avalanche/test/peermanager_tests.cpp \
   avalanche/test/processor_tests.cpp \
   avalanche/test/proof_tests.cpp \
+  pow/test/daa_tests.cpp \
+  pow/test/eda_tests.cpp \
   test/scriptnum10.h \
   test/activation_tests.cpp \
   test/addrman_tests.cpp \
@@ -150,7 +152,6 @@ BITCOIN_TESTS =\
   test/op_reversebytes_tests.cpp \
   test/pmt_tests.cpp \
   test/policyestimator_tests.cpp \
-  test/pow_tests.cpp \
   test/prevector_tests.cpp \
   test/radix_tests.cpp \
   test/raii_event_tests.cpp \

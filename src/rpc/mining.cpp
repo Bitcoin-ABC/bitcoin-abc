@@ -17,7 +17,7 @@
 #include <net.h>
 #include <node/context.h>
 #include <policy/policy.h>
-#include <pow.h>
+#include <pow/pow.h>
 #include <rpc/blockchain.h>
 #include <rpc/server.h>
 #include <rpc/util.h>

@@ -10,7 +10,7 @@
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
 #include <miner.h>
-#include <pow.h>
+#include <pow/pow.h>
 #include <random.h>
 #include <test/util/setup_common.h>
 #include <util/time.h>

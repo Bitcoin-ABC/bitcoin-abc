@@ -19,7 +19,7 @@
 #include <net.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
-#include <pow.h>
+#include <pow/pow.h>
 #include <primitives/transaction.h>
 #include <timedata.h>
 #include <util/moneystr.h>

@@ -8,7 +8,7 @@
 #include <config.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
-#include <pow.h>
+#include <pow/pow.h>
 #include <random.h>
 #include <script/scriptcache.h>
 #include <txmempool.h>

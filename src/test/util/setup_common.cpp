@@ -15,7 +15,7 @@
 #include <miner.h>
 #include <net.h>
 #include <noui.h>
-#include <pow.h>
+#include <pow/pow.h>
 #include <rpc/blockchain.h>
 #include <rpc/register.h>
 #include <rpc/server.h>

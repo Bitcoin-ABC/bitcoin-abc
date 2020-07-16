@@ -532,7 +532,9 @@ add_library(server
 	noui.cpp
 	policy/fees.cpp
 	policy/settings.cpp
-	pow.cpp
+	pow/daa.cpp
+	pow/eda.cpp
+	pow/pow.cpp
 	rest.cpp
 	rpc/abc.cpp
 	rpc/avalanche.cpp
@@ -588,6 +590,7 @@ endif()
 # Test suites.
 add_subdirectory(test)
 add_subdirectory(avalanche/test)
+add_subdirectory(pow/test)
 
 # Benchmark suite.
 add_subdirectory(bench)

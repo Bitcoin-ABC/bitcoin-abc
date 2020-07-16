@@ -198,7 +198,9 @@ BITCOIN_CORE_H = \
   policy/mempool.h \
   policy/policy.h \
   policy/settings.h \
-  pow.h \
+  pow/daa.h \
+  pow/eda.h \
+  pow/pow.h \
   protocol.h \
   psbt.h \
   radix.h \
@@ -333,7 +335,9 @@ libbitcoin_server_a_SOURCES = \
   noui.cpp \
   policy/fees.cpp \
   policy/settings.cpp \
-  pow.cpp \
+  pow/daa.cpp \
+  pow/eda.cpp \
+  pow/pow.cpp \
   rest.cpp \
   rpc/abc.cpp \
   rpc/avalanche.cpp \

@@ -9,7 +9,7 @@
 #include <consensus/merkle.h>
 #include <key_io.h>
 #include <miner.h>
-#include <pow.h>
+#include <pow/pow.h>
 #include <validation.h>
 
 #ifdef ENABLE_WALLET
