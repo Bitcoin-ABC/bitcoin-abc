@@ -69,9 +69,12 @@ class BuildConfiguration:
         # Get a list of the templates, if any
         templates = config.get("templates", {})
 
-        # If the build references a template, merge the configurations
-        template_name = build.get("template", None)
-        if template_name:
+        # If the build references some templates, merge all the configurations.
+        # The merge is applied in the same order as the templates are declared
+        # in the template list.
+        template_config = {}
+        template_names = build.get("templates", [])
+        for template_name in template_names:
             # Raise an error if the template does not exist
             if template_name not in templates:
                 raise AssertionError(
@@ -80,12 +83,9 @@ class BuildConfiguration:
                         template_name
                     )
                 )
+            always_merger.merge(template_config, templates.get(template_name))
 
-        # If the template exists, apply the build configuration on top of the
-        # template. Otherwise it is equivalent to the build configuration
-        # alone.
-        self.config = always_merger.merge(
-            templates.get(template_name, {}), build)
+        self.config = always_merger.merge(template_config, build)
 
         # Make sure there is a script file associated with the build...
         script = self.config.get("script", None)

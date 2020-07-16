@@ -28,7 +28,9 @@
     "builds": {
         "build-asan": {
             "script": "builds/build-asan.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1800,
             "env": {
                 "ASAN_OPTIONS": "log_path=stdout",
@@ -37,7 +39,9 @@
         },
         "build-autotools": {
             "script": "builds/build-autotools.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1200,
             "artifacts": {
                 "src/bench/bench_bitcoin": "bin/bench_bitcoin",
@@ -49,19 +53,25 @@
         },
         "build-bench": {
             "script": "builds/build-bench.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1200
         },
         "build-clang-10": {
             "runOnDiff": true,
             "script": "builds/build-clang-10.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1200
         },
         "build-clang-tidy": {
             "runOnDiff": true,
             "script": "builds/build-clang-tidy.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 600,
             "artifacts": {
                 "clang-tidy-warnings.txt": "clang-tidy-warnings.txt"
@@ -69,7 +79,9 @@
         },
         "build-coverage": {
             "script": "builds/build-coverage.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 3600,
             "artifacts": {
                 "coverage.tar.gz": "coverage.tar.gz"
@@ -78,12 +90,16 @@
         "build-diff": {
             "runOnDiff": true,
             "script": "builds/build-diff.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1200
         },
         "build-ibd": {
             "script": "builds/build-ibd.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 14400,
             "artifacts": {
                 "ibd/debug.log": "log/debug.log"
@@ -91,7 +107,9 @@
         },
         "build-ibd-no-assumevalid-checkpoint": {
             "script": "builds/build-ibd-no-assumevalid-checkpoint.sh",
-            "template": "common_unix_artifacts",
+            "template": [
+                "common_unix_artifacts"
+            ],
             "timeout": 21600,
             "artifacts": {
                 "ibd/debug.log": "log/debug.log"
@@ -99,12 +117,16 @@
         },
         "build-linux64": {
             "script": "builds/build-linux64.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 3600
         },
         "build-linux-aarch64": {
             "script": "builds/build-linux-aarch64.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 3600,
             "env": {
                 "QEMU_LD_PREFIX": "/usr/aarch64-linux-gnu"
@@ -112,7 +134,9 @@
         },
         "build-linux-arm": {
             "script": "builds/build-linux-arm.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 3600,
             "env": {
                 "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
@@ -120,12 +144,16 @@
         },
         "build-make-generator": {
             "script": "builds/build-make-generator.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1200
         },
         "build-master": {
             "script": "builds/build-master.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 4800,
             "artifacts": {
                 "doc/Doxyfile": "doc/Doxyfile"
@@ -133,7 +161,9 @@
         },
         "build-osx": {
             "script": "builds/build-osx.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 3600,
             "artifacts": {
                 "src/qt/BitcoinABC-Qt.app": "bin",
@@ -142,7 +172,9 @@
         },
         "build-secp256k1": {
             "script": "builds/build-secp256k1.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 900,
             "artifacts": {
                 "src/secp256k1/libsecp256k1*": "lib"
@@ -150,7 +182,9 @@
         },
         "build-tsan": {
             "script": "builds/build-tsan.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1800,
             "env": {
                 "TSAN_OPTIONS": "log_path=stdout"
@@ -158,7 +192,9 @@
         },
         "build-ubsan": {
             "script": "builds/build-ubsan.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1800,
             "env": {
                 "UBSAN_OPTIONS": "log_path=stdout"
@@ -182,39 +218,53 @@
         },
         "build-without-cli": {
             "script": "builds/build-without-cli.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1200
         },
         "build-without-wallet": {
             "runOnDiff": true,
             "script": "builds/build-without-wallet.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1200
         },
         "build-without-zmq": {
             "script": "builds/build-without-zmq.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 1800
         },
         "check-seeds": {
             "script": "builds/check-seeds.sh",
-            "template": "common_unix_artifacts",
+            "templates": [
+                "common_unix_artifacts"
+            ],
             "timeout": 600
         },
         "gitian-linux": {
-            "template": "gitian_builds",
+            "templates": [
+                "gitian_builds"
+            ],
             "env": {
                 "OS_NAME": "linux"
             }
         },
         "gitian-osx": {
-            "template": "gitian_builds",
+            "templates": [
+                "gitian_builds"
+            ],
             "env": {
                 "OS_NAME": "osx"
             }
         },
         "gitian-win": {
-            "template": "gitian_builds",
+            "templates": [
+                "gitian_builds"
+            ],
             "env": {
                 "OS_NAME": "win"
             }
