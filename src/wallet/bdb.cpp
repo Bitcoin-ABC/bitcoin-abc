@@ -261,15 +261,6 @@ BerkeleyEnvironment::BerkeleyEnvironment() {
     fMockDb = true;
 }
 
-bool BerkeleyEnvironment::Verify(const std::string &strFile) {
-    LOCK(cs_db);
-    assert(mapFileUseCount.count(strFile) == 0);
-
-    Db db(dbenv.get(), 0);
-    int result = db.verify(strFile.c_str(), nullptr, nullptr, 0);
-    return result == 0;
-}
-
 BerkeleyBatch::SafeDbt::SafeDbt() {
     m_dbt.set_flags(DB_DBT_MALLOC);
 }
@@ -314,7 +305,12 @@ bool BerkeleyDatabase::Verify(bilingual_str &errorStr) {
     }
 
     if (fs::exists(file_path)) {
-        if (!env->Verify(strFile)) {
+        LOCK(cs_db);
+        assert(env->mapFileUseCount.count(strFile) == 0);
+
+        Db db(env->dbenv.get(), 0);
+        int result = db.verify(strFile.c_str(), nullptr, nullptr, 0);
+        if (result != 0) {
             errorStr =
                 strprintf(_("%s corrupt. Try using the wallet tool "
                             "bitcoin-wallet to salvage or restoring a backup."),

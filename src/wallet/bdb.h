@@ -63,8 +63,6 @@ public:
     }
     fs::path Directory() const { return strPath; }
 
-    bool Verify(const std::string &strFile);
-
     bool Open(bilingual_str &error);
     void Close();
     void Flush(bool fShutdown);
