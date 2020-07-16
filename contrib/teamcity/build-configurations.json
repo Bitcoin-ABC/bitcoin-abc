@@ -23,7 +23,7 @@
             "script": "builds/build-asan.sh",
             "template": "common_unix_artifacts",
             "timeout": 1800,
-            "env": {
+            "environment": {
                 "ASAN_OPTIONS": "log_path=stdout",
                 "LSAN_OPTIONS": "log_path=stdout"
             }
@@ -145,7 +145,7 @@
             "script": "builds/build-tsan.sh",
             "template": "common_unix_artifacts",
             "timeout": 1800,
-            "env": {
+            "environment": {
                 "TSAN_OPTIONS": "log_path=stdout"
             }
         },
@@ -153,7 +153,7 @@
             "script": "builds/build-ubsan.sh",
             "template": "common_unix_artifacts",
             "timeout": 1800,
-            "env": {
+            "environment": {
                 "UBSAN_OPTIONS": "log_path=stdout"
             }
         },
