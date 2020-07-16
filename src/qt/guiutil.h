@@ -32,6 +32,7 @@ class QAbstractItemView;
 class QDateTime;
 class QFont;
 class QLineEdit;
+class QProgressDialog;
 class QUrl;
 class QWidget;
 QT_END_NAMESPACE
@@ -295,6 +296,9 @@ private:
  * introduced.
  */
 int TextWidth(const QFontMetrics &fm, const QString &text);
+
+// Fix known bugs in QProgressDialog class.
+void PolishProgressDialog(QProgressDialog *dialog);
 } // namespace GUIUtil
 
 #endif // BITCOIN_QT_GUIUTIL_H
