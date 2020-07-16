@@ -88,7 +88,7 @@ class BuildConfiguration:
             templates.get(template_name, {}), build)
 
         # Make sure there is a script file associated with the build...
-        script = build.get("script", None)
+        script = self.config.get("script", None)
         if script is None:
             raise AssertionError(
                 "No script provided for the build {}".format(

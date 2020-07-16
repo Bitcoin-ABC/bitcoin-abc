@@ -16,6 +16,13 @@
                 "src/seeder/test/*.log": "log/seeder",
                 "test/tmp/*": "functional"
             }
+        },
+        "gitian_builds": {
+            "script": "gitian.sh",
+            "timeout": 7200,
+            "artifacts": {
+                "gitian-results": ""
+            }
         }
     },
     "builds": {
@@ -193,6 +200,24 @@
             "script": "builds/check-seeds.sh",
             "template": "common_unix_artifacts",
             "timeout": 600
+        },
+        "gitian-linux": {
+            "template": "gitian_builds",
+            "environment": {
+                "OS_NAME": "linux"
+            }
+        },
+        "gitian-osx": {
+            "template": "gitian_builds",
+            "environment": {
+                "OS_NAME": "osx"
+            }
+        },
+        "gitian-win": {
+            "template": "gitian_builds",
+            "environment": {
+                "OS_NAME": "win"
+            }
         }
     }
 }

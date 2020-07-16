@@ -4,12 +4,12 @@ export LC_ALL=C
 
 set -euxo pipefail
 
-cd "$(dirname "$0")"
+: "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
+: "${BUILD_DIR:=${TOPLEVEL}/build}"
+: "${THREADS:=$(nproc || sysctl -n hw.ncpu)}"
 
-COMMIT=$(git rev-parse HEAD)
+COMMIT=$(git -C "${TOPLEVEL}" rev-parse HEAD)
 export COMMIT
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
-export PROJECT_ROOT
 export USE_LXC=1
 export GITIAN_HOST_IP=10.0.3.1
 export LXC_BRIDGE=lxcbr0
@@ -30,10 +30,7 @@ if [[ "${OS_NAME}" == "osx" ]]; then
   popd
 fi
 
-## Determine the number of build threads
-THREADS=$(nproc || sysctl -n hw.ncpu)
-
-RESULT_DIR="${PROJECT_ROOT}/gitian-results"
+RESULT_DIR="${BUILD_DIR}/gitian-results"
 OS_DIR="${RESULT_DIR}/${OS_NAME}"
 mkdir -p "${OS_DIR}"
 
@@ -43,7 +40,7 @@ move_log() {
 }
 trap "move_log" ERR
 
-./bin/gbuild -j${THREADS} -m3500 --commit bitcoin=${COMMIT} --url bitcoin="${PROJECT_ROOT}" "${PROJECT_ROOT}/contrib/gitian-descriptors/gitian-${OS_NAME}.yml"
+./bin/gbuild -j${THREADS} -m3500 --commit bitcoin=${COMMIT} --url bitcoin="${TOPLEVEL}" "${TOPLEVEL}/contrib/gitian-descriptors/gitian-${OS_NAME}.yml"
 
 move_log
 mv result/*.yml "${OS_DIR}/"
