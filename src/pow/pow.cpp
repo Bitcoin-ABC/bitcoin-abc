@@ -14,6 +14,7 @@
 #include <pow/aserti32d.h>
 #include <pow/daa.h>
 #include <pow/eda.h>
+#include <pow/grasberg.h>
 #include <primitives/blockhash.h>
 #include <util/system.h>
 
