@@ -108,8 +108,8 @@ EOTEXT
     }
 
     $branch = $this->getArgument('branch');
-    if ($branch) {
-      array_push($landArgs, $branch);
+    if (!empty($branch)) {
+      array_push($landArgs, $branch[0]);
     }
 
     $landWorkflow = $this->buildChildWorkflow('land', $landArgs);
