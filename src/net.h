@@ -231,7 +231,7 @@ public:
     void OpenNetworkConnection(const CAddress &addrConnect, bool fCountFailure,
                                CSemaphoreGrant *grantOutbound = nullptr,
                                const char *strDest = nullptr,
-                               bool fOneShot = false, bool fFeeler = false,
+                               bool m_addr_fetch = false, bool fFeeler = false,
                                bool manual_connection = false,
                                bool block_relay_only = false);
     bool CheckIncomingNonce(uint64_t nonce);
@@ -385,8 +385,8 @@ private:
     bool InitBinds(const std::vector<CService> &binds,
                    const std::vector<NetWhitebindPermissions> &whiteBinds);
     void ThreadOpenAddedConnections();
-    void AddOneShot(const std::string &strDest);
-    void ProcessOneShot();
+    void AddAddrFetch(const std::string &strDest);
+    void ProcessAddrFetch();
     void ThreadOpenConnections(std::vector<std::string> connect);
     void ThreadMessageHandler();
     void AcceptConnection(const ListenSocket &hListenSocket);
@@ -458,8 +458,8 @@ private:
     std::atomic<bool> fNetworkActive{true};
     bool fAddressesInitialized{false};
     CAddrMan addrman;
-    std::deque<std::string> vOneShots GUARDED_BY(cs_vOneShots);
-    RecursiveMutex cs_vOneShots;
+    std::deque<std::string> m_addr_fetches GUARDED_BY(m_addr_fetches_mutex);
+    RecursiveMutex m_addr_fetches_mutex;
     std::vector<std::string> vAddedNodes GUARDED_BY(cs_vAddedNodes);
     RecursiveMutex cs_vAddedNodes;
     std::vector<CNode *> vNodes GUARDED_BY(cs_vNodes);
@@ -836,7 +836,7 @@ public:
     bool m_legacyWhitelisted{false};
     // If true this node is being used as a short lived feeler.
     bool fFeeler{false};
-    bool fOneShot{false};
+    bool m_addr_fetch{false};
     bool m_manual_connection{false};
     // set by version message
     bool fClient{false};

@@ -111,9 +111,9 @@ RecursiveMutex cs_mapLocalHost;
 std::map<CNetAddr, LocalServiceInfo> mapLocalHost GUARDED_BY(cs_mapLocalHost);
 static bool vfLimited[NET_MAX] GUARDED_BY(cs_mapLocalHost) = {};
 
-void CConnman::AddOneShot(const std::string &strDest) {
-    LOCK(cs_vOneShots);
-    vOneShots.push_back(strDest);
+void CConnman::AddAddrFetch(const std::string &strDest) {
+    LOCK(m_addr_fetches_mutex);
+    m_addr_fetches.push_back(strDest);
 }
 
 unsigned short GetListenPort() {
@@ -1786,10 +1786,10 @@ void CConnman::ThreadDNSAddressSeed() {
                     {
                         LOCK(cs_vNodes);
                         for (const CNode *pnode : vNodes) {
-                            nRelevant += pnode->fSuccessfullyConnected &&
-                                         !pnode->fFeeler && !pnode->fOneShot &&
-                                         !pnode->m_manual_connection &&
-                                         !pnode->fInbound;
+                            nRelevant +=
+                                pnode->fSuccessfullyConnected &&
+                                !pnode->fFeeler && !pnode->m_addr_fetch &&
+                                !pnode->m_manual_connection && !pnode->fInbound;
                         }
                     }
                     if (nRelevant >= 2) {
@@ -1825,7 +1825,7 @@ void CConnman::ThreadDNSAddressSeed() {
 
         LogPrintf("Loading addresses from DNS seed %s\n", seed);
         if (HaveNameProxy()) {
-            AddOneShot(seed);
+            AddAddrFetch(seed);
         } else {
             std::vector<CNetAddr> vIPs;
             std::vector<CAddress> vAdd;
@@ -1855,8 +1855,8 @@ void CConnman::ThreadDNSAddressSeed() {
             } else {
                 // We now avoid directly using results from DNS Seeds which do
                 // not support service bit filtering, instead using them as a
-                // oneshot to get nodes with our desired service bits.
-                AddOneShot(seed);
+                // addrfetch to get nodes with our desired service bits.
+                AddAddrFetch(seed);
             }
         }
         --seeds_right_now;
@@ -1874,15 +1874,15 @@ void CConnman::DumpAddresses() {
              addrman.size(), GetTimeMillis() - nStart);
 }
 
-void CConnman::ProcessOneShot() {
+void CConnman::ProcessAddrFetch() {
     std::string strDest;
     {
-        LOCK(cs_vOneShots);
-        if (vOneShots.empty()) {
+        LOCK(m_addr_fetches_mutex);
+        if (m_addr_fetches.empty()) {
             return;
         }
-        strDest = vOneShots.front();
-        vOneShots.pop_front();
+        strDest = m_addr_fetches.front();
+        m_addr_fetches.pop_front();
     }
     CAddress addr;
     CSemaphoreGrant grant(*semOutbound, true);
@@ -1913,8 +1913,8 @@ int CConnman::GetExtraOutboundCount() {
         LOCK(cs_vNodes);
         for (const CNode *pnode : vNodes) {
             if (!pnode->fInbound && !pnode->m_manual_connection &&
-                !pnode->fFeeler && !pnode->fDisconnect && !pnode->fOneShot &&
-                pnode->fSuccessfullyConnected) {
+                !pnode->fFeeler && !pnode->fDisconnect &&
+                !pnode->m_addr_fetch && pnode->fSuccessfullyConnected) {
                 ++nOutbound;
             }
         }
@@ -1927,7 +1927,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
     // Connect to specific addresses
     if (!connect.empty()) {
         for (int64_t nLoop = 0;; nLoop++) {
-            ProcessOneShot();
+            ProcessAddrFetch();
             for (const std::string &strAddr : connect) {
                 CAddress addr(CService(), NODE_NONE);
                 OpenNetworkConnection(addr, false, nullptr, strAddr.c_str(),
@@ -1952,7 +1952,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
     int64_t nNextFeeler =
         PoissonNextSend(nStart * 1000 * 1000, FEELER_INTERVAL);
     while (!interruptNet) {
-        ProcessOneShot();
+        ProcessAddrFetch();
 
         if (!interruptNet.sleep_for(std::chrono::milliseconds(500))) {
             return;
@@ -2223,7 +2223,7 @@ void CConnman::ThreadOpenAddedConnections() {
 void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
                                      bool fCountFailure,
                                      CSemaphoreGrant *grantOutbound,
-                                     const char *pszDest, bool fOneShot,
+                                     const char *pszDest, bool m_addr_fetch,
                                      bool fFeeler, bool manual_connection,
                                      bool block_relay_only) {
     //
@@ -2257,8 +2257,8 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
     if (grantOutbound) {
         grantOutbound->MoveTo(pnode->grantOutbound);
     }
-    if (fOneShot) {
-        pnode->fOneShot = true;
+    if (m_addr_fetch) {
+        pnode->m_addr_fetch = true;
     }
     if (fFeeler) {
         pnode->fFeeler = true;
@@ -2554,7 +2554,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     }
 
     for (const auto &strDest : connOptions.vSeedNodes) {
-        AddOneShot(strDest);
+        AddAddrFetch(strDest);
     }
 
     if (clientInterface) {
