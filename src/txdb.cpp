@@ -334,7 +334,7 @@ public:
     template <typename Stream> void Unserialize(Stream &s) {
         uint32_t nCode = 0;
         // version
-        unsigned int nVersionDummy;
+        unsigned int nVersionDummy = 0;
         ::Unserialize(s, VARINT(nVersionDummy));
         // header code
         ::Unserialize(s, VARINT(nCode));
