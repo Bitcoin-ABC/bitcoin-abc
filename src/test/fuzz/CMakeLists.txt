@@ -56,10 +56,14 @@ add_regular_fuzz_targets(
 )
 
 add_deserialize_fuzz_targets(
+	addr_info_deserialize
 	address_deserialize
 	addrman_deserialize
 	banentry_deserialize
 	block_deserialize
+	block_file_info_deserialize
+	block_filter_deserialize
+	block_header_and_short_txids_deserialize
 	blockheader_deserialize
 	blocklocator_deserialize
 	blockmerkleroot
@@ -69,10 +73,24 @@ add_deserialize_fuzz_targets(
 	bloomfilter_deserialize
 	coins_deserialize
 	diskblockindex_deserialize
+	fee_rate_deserialize
+	flat_file_pos_deserialize
 	inv_deserialize
+	key_origin_info_deserialize
+	merkle_block_deserialize
 	messageheader_deserialize
 	netaddr_deserialize
+	out_point_deserialize
+	partial_merkle_tree_deserialize
+	partially_signed_transaction_deserialize
+	prefilled_transaction_deserialize
+	psbt_input_deserialize
+	psbt_output_deserialize
+	pub_key_deserialize
+	script_deserialize
 	service_deserialize
+	sub_net_deserialize
+	tx_in_deserialize
 	txoutcompressor_deserialize
 	txundo_deserialize
 )
