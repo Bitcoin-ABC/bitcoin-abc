@@ -3622,10 +3622,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
                 uint32_t error = -1;
                 if (inv.type == MSG_BLOCK) {
-                    BlockMap::iterator mi =
-                        mapBlockIndex.find(BlockHash(inv.hash));
-                    if (mi != mapBlockIndex.end()) {
-                        error = ::ChainActive().Contains(mi->second) ? 0 : 1;
+                    auto blockIndex = LookupBlockIndex(BlockHash(inv.hash));
+                    if (blockIndex) {
+                        error = ::ChainActive().Contains(blockIndex) ? 0 : 1;
                     }
                 }
 

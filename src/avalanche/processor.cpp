@@ -277,13 +277,12 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     {
         LOCK(cs_main);
         for (const auto &v : votes) {
-            BlockMap::iterator mi = mapBlockIndex.find(BlockHash(v.GetHash()));
-            if (mi == mapBlockIndex.end()) {
+            auto pindex = LookupBlockIndex(BlockHash(v.GetHash()));
+            if (!pindex) {
                 // This should not happen, but just in case...
                 continue;
             }
 
-            CBlockIndex *pindex = mi->second;
             if (!IsWorthPolling(pindex)) {
                 // There is no point polling this block.
                 continue;
@@ -428,12 +427,10 @@ void Processor::clearTimedoutRequests() {
 
         {
             LOCK(cs_main);
-            BlockMap::iterator mi = mapBlockIndex.find(BlockHash(inv.hash));
-            if (mi == mapBlockIndex.end()) {
+            pindex = LookupBlockIndex(BlockHash(inv.hash));
+            if (!pindex) {
                 continue;
             }
-
-            pindex = mi->second;
         }
 
         auto w = vote_records.getWriteView();
