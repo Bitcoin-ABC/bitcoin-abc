@@ -95,6 +95,16 @@
             ],
             "timeout": 1200
         },
+        "build-docs": {
+            "script": "builds/build-docs.sh",
+            "templates": [
+                "common_unix_artifacts"
+            ],
+            "timeout": 600,
+            "artifacts": {
+                "doc/*": "doc"
+            }
+        },
         "build-ibd": {
             "script": "builds/build-ibd.sh",
             "templates": [
@@ -154,10 +164,7 @@
             "templates": [
                 "common_unix_artifacts"
             ],
-            "timeout": 4800,
-            "artifacts": {
-                "doc/Doxyfile": "doc/Doxyfile"
-            }
+            "timeout": 4800
         },
         "build-osx": {
             "script": "builds/build-osx.sh",
