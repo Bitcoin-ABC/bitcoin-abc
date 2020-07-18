@@ -179,8 +179,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         DeserializeFromFuzzingInput(buffer, s);
         AssertEqualAfterSerializeDeserialize(s);
 #elif MESSAGEHEADER_DESERIALIZE
-        const CMessageHeader::MessageMagic pchMessageStart = {0x00, 0x00, 0x00,
-                                                              0x00};
+        const CMessageHeader::MessageMagic pchMessageStart = {
+            {0x00, 0x00, 0x00, 0x00}};
         CMessageHeader mh(pchMessageStart);
         DeserializeFromFuzzingInput(buffer, mh);
         (void)mh.IsValidWithoutConfig(pchMessageStart);

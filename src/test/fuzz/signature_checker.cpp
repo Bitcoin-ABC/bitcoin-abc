@@ -25,17 +25,17 @@ public:
     FuzzedSignatureChecker(FuzzedDataProvider &fuzzed_data_provider)
         : m_fuzzed_data_provider(fuzzed_data_provider) {}
 
-    virtual bool CheckSig(const std::vector<uint8_t> &scriptSig,
-                          const std::vector<uint8_t> &vchPubKey,
-                          const CScript &scriptCode, uint32_t flags) const {
+    bool CheckSig(const std::vector<uint8_t> &scriptSig,
+                  const std::vector<uint8_t> &vchPubKey,
+                  const CScript &scriptCode, uint32_t flags) const override {
         return m_fuzzed_data_provider.ConsumeBool();
     }
 
-    virtual bool CheckLockTime(const CScriptNum &nLockTime) const {
+    bool CheckLockTime(const CScriptNum &nLockTime) const override {
         return m_fuzzed_data_provider.ConsumeBool();
     }
 
-    virtual bool CheckSequence(const CScriptNum &nSequence) const {
+    bool CheckSequence(const CScriptNum &nSequence) const override {
         return m_fuzzed_data_provider.ConsumeBool();
     }
 
