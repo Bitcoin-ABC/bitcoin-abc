@@ -3,7 +3,7 @@
 if(BUILD_BITCOIN_CLI)
 	add_custom_target(doc-rpc
 		COMMENT "Generating RPC documentation"
-		COMMAND go run "${CMAKE_CURRENT_SOURCE_DIR}/generate.go"
+		COMMAND go run "${CMAKE_CURRENT_SOURCE_DIR}/generate.go" -regtest
 		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
 		DEPENDS bitcoin-cli
 	)

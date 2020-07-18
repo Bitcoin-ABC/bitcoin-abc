@@ -187,6 +187,7 @@ func runCommand(command string, args ...string) string {
 }
 
 func run(args ...string) string {
+	additionalArgs := os.Args[1:]
+	args = append(additionalArgs, args...)
 	return runCommand(bitcoin_cli_path, args...)
 }
-
