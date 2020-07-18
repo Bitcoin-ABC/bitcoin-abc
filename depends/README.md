@@ -44,7 +44,7 @@ No other options are needed, the paths are automatically configured.
 
 #### For macOS cross compilation
 
-    sudo apt-get install imagemagick libbz2-dev libcap-dev librsvg2-bin libtiff-tools python3-setuptools
+    sudo apt-get install imagemagick libbz2-dev libcap-dev librsvg2-bin libtiff-tools libtinfo5 python3-setuptools
 
 #### For Win64 cross compilation
 
