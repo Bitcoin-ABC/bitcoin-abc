@@ -5193,7 +5193,7 @@ void CChainState::UnloadBlockIndex() {
 // May NOT be used after any connections are up as much
 // of the peer-processing logic assumes a consistent
 // block index state
-void UnloadBlockIndex() {
+void UnloadBlockIndex(CTxMemPool *mempool) {
     LOCK(cs_main);
     g_chainman.Unload();
     pindexBestInvalid = nullptr;
@@ -5202,7 +5202,9 @@ void UnloadBlockIndex() {
     pindexBestForkTip = nullptr;
     pindexBestForkBase = nullptr;
     ResetASERTAnchorBlockCache();
-    g_mempool.clear();
+    if (mempool) {
+        mempool->clear();
+    }
     vinfoBlockFile.clear();
     nLastBlockFile = 0;
     setDirtyBlockIndex.clear();
