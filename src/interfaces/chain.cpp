@@ -320,8 +320,11 @@ namespace {
             return false;
         }
         bool hasDescendantsInMempool(const TxId &txid) override {
-            LOCK(::g_mempool.cs);
-            auto it = ::g_mempool.GetIter(txid);
+            if (!m_node.mempool) {
+                return false;
+            }
+            LOCK(m_node.mempool->cs);
+            auto it = m_node.mempool->GetIter(txid);
             return it && (*it)->GetCountWithDescendants() > 1;
         }
         bool broadcastTransaction(const Config &config,
@@ -340,7 +343,12 @@ namespace {
         }
         void getTransactionAncestry(const TxId &txid, size_t &ancestors,
                                     size_t &descendants) override {
-            ::g_mempool.GetTransactionAncestry(txid, ancestors, descendants);
+            ancestors = descendants = 0;
+            if (!m_node.mempool) {
+                return;
+            }
+            m_node.mempool->GetTransactionAncestry(txid, ancestors,
+                                                   descendants);
         }
         void getPackageLimits(size_t &limit_ancestor_count,
                               size_t &limit_descendant_count) override {
@@ -352,6 +360,9 @@ namespace {
                                                   DEFAULT_DESCENDANT_LIMIT)));
         }
         bool checkChainLimits(const CTransactionRef &tx) override {
+            if (!m_node.mempool) {
+                return true;
+            }
             LockPoints lp;
             CTxMemPoolEntry entry(tx, Amount(), 0, 0, false, 0, lp);
             CTxMemPool::setEntries ancestors;
@@ -368,14 +379,17 @@ namespace {
                              DEFAULT_DESCENDANT_SIZE_LIMIT) *
                 1000;
             std::string unused_error_string;
-            LOCK(::g_mempool.cs);
-            return ::g_mempool.CalculateMemPoolAncestors(
+            LOCK(m_node.mempool->cs);
+            return m_node.mempool->CalculateMemPoolAncestors(
                 entry, ancestors, limit_ancestor_count, limit_ancestor_size,
                 limit_descendant_count, limit_descendant_size,
                 unused_error_string);
         }
         CFeeRate estimateFee() const override {
-            return ::g_mempool.estimateFee();
+            if (!m_node.mempool) {
+                return {};
+            }
+            return m_node.mempool->estimateFee();
         }
         CFeeRate relayMinFee() override { return ::minRelayTxFee; }
         CFeeRate relayDustFee() override { return ::dustRelayFee; }
@@ -433,8 +447,11 @@ namespace {
         }
         int rpcSerializationFlags() override { return RPCSerializationFlags(); }
         void requestMempoolTransactions(Notifications &notifications) override {
-            LOCK2(::cs_main, ::g_mempool.cs);
-            for (const CTxMemPoolEntry &entry : ::g_mempool.mapTx) {
+            if (!m_node.mempool) {
+                return;
+            }
+            LOCK2(::cs_main, m_node.mempool->cs);
+            for (const CTxMemPoolEntry &entry : m_node.mempool->mapTx) {
                 notifications.transactionAddedToMempool(entry.GetSharedTx());
             }
         }
