@@ -433,39 +433,40 @@ WId BitcoinApplication::getMainWinId() const {
     return window->winId();
 }
 
-static void SetupUIArgs() {
+static void SetupUIArgs(ArgsManager &argsman) {
 #if defined(ENABLE_WALLET) && defined(ENABLE_BIP70)
-    gArgs.AddArg("-allowselfsignedrootcertificates",
-                 strprintf("Allow self signed root certificates (default: %d)",
-                           DEFAULT_SELFSIGNED_ROOTCERTS),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::GUI);
+    argsman.AddArg(
+        "-allowselfsignedrootcertificates",
+        strprintf("Allow self signed root certificates (default: %d)",
+                  DEFAULT_SELFSIGNED_ROOTCERTS),
+        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::GUI);
 #endif
-    gArgs.AddArg("-choosedatadir",
-                 strprintf("Choose data directory on startup (default: %d)",
-                           DEFAULT_CHOOSE_DATADIR),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-lang=<lang>",
-                 "Set language, for example \"de_DE\" (default: system locale)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-min", "Start minimized", ArgsManager::ALLOW_ANY,
-                 OptionsCategory::GUI);
-    gArgs.AddArg(
+    argsman.AddArg("-choosedatadir",
+                   strprintf("Choose data directory on startup (default: %d)",
+                             DEFAULT_CHOOSE_DATADIR),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg(
+        "-lang=<lang>",
+        "Set language, for example \"de_DE\" (default: system locale)",
+        ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-min", "Start minimized", ArgsManager::ALLOW_ANY,
+                   OptionsCategory::GUI);
+    argsman.AddArg(
         "-rootcertificates=<file>",
         "Set SSL root certificates for payment request (default: -system-)",
         ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-splash",
-                 strprintf("Show splash screen on startup (default: %d)",
-                           DEFAULT_SPLASHSCREEN),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-resetguisettings", "Reset all settings changed in the GUI",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-uiplatform",
-                 strprintf("Select platform to customize UI for (one of "
-                           "windows, macosx, other; default: %s)",
-                           BitcoinGUI::DEFAULT_UIPLATFORM),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::GUI);
+    argsman.AddArg("-splash",
+                   strprintf("Show splash screen on startup (default: %d)",
+                             DEFAULT_SPLASHSCREEN),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-resetguisettings", "Reset all settings changed in the GUI",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-uiplatform",
+                   strprintf("Select platform to customize UI for (one of "
+                             "windows, macosx, other; default: %s)",
+                             BitcoinGUI::DEFAULT_UIPLATFORM),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::GUI);
 }
 
 static void MigrateSettings() {
@@ -571,7 +572,7 @@ int GuiMain(int argc, char *argv[]) {
     /// error if there are problems parsing these
     // Command-line options take precedence:
     node->setupServerArgs();
-    SetupUIArgs();
+    SetupUIArgs(gArgs);
     std::string error;
     if (!node->parseParameters(argc, argv, error)) {
         node->initError(

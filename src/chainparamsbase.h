@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 
+class ArgsManager;
+
 /**
  * CBaseChainParams defines the base parameters
  * (shared between bitcoin-cli and bitcoind)
@@ -43,7 +45,7 @@ CreateBaseChainParams(const std::string &chain);
 /**
  * Set the arguments for chainparams.
  */
-void SetupChainParamsBaseOptions();
+void SetupChainParamsBaseOptions(ArgsManager &argsman);
 
 /**
  * Return the currently selected parameters. This won't change after app

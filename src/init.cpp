@@ -370,12 +370,13 @@ static void OnRPCStopped() {
 void SetupServerArgs(NodeContext &node) {
     assert(!node.args);
     node.args = &gArgs;
+    ArgsManager &argsman = *node.args;
 
     SetupHelpOptions(gArgs);
     // server-only for now
-    gArgs.AddArg("-help-debug",
-                 "Print help message with debugging options and exit", false,
-                 OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-help-debug",
+                   "Print help message with debugging options and exit", false,
+                   OptionsCategory::DEBUG_TEST);
 
     const auto defaultBaseParams =
         CreateBaseChainParams(CBaseChainParams::MAIN);
@@ -406,15 +407,16 @@ void SetupServerArgs(NodeContext &node) {
     // alphabetical ordering. Do not translate _(...) -help-debug options, Many
     // technical terms, and only a very small audience, so is unnecessary stress
     // to translators.
-    gArgs.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
-                 OptionsCategory::OPTIONS);
+    argsman.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
+                   OptionsCategory::OPTIONS);
 #if defined(HAVE_SYSTEM)
-    gArgs.AddArg("-alertnotify=<cmd>",
-                 "Execute command when a relevant alert is received or we see "
-                 "a really long fork (%s in cmd is replaced by message)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-alertnotify=<cmd>",
+        "Execute command when a relevant alert is received or we see "
+        "a really long fork (%s in cmd is replaced by message)",
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #endif
-    gArgs.AddArg(
+    argsman.AddArg(
         "-assumevalid=<hex>",
         strprintf(
             "If this block is in the chain assume that it and its ancestors "
@@ -423,22 +425,22 @@ void SetupServerArgs(NodeContext &node) {
             defaultChainParams->GetConsensus().defaultAssumeValid.GetHex(),
             testnetChainParams->GetConsensus().defaultAssumeValid.GetHex()),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-blocksdir=<dir>",
-                 "Specify directory to hold blocks subdirectory for *.dat "
-                 "files (default: <datadir>)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-blocksdir=<dir>",
+                   "Specify directory to hold blocks subdirectory for *.dat "
+                   "files (default: <datadir>)",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #if defined(HAVE_SYSTEM)
-    gArgs.AddArg("-blocknotify=<cmd>",
-                 "Execute command when the best block changes (%s in cmd is "
-                 "replaced by block hash)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-blocknotify=<cmd>",
+                   "Execute command when the best block changes (%s in cmd is "
+                   "replaced by block hash)",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #endif
-    gArgs.AddArg("-blockreconstructionextratxn=<n>",
-                 strprintf("Extra transactions to keep in memory for compact "
-                           "block reconstructions (default: %u)",
-                           DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg("-blockreconstructionextratxn=<n>",
+                   strprintf("Extra transactions to keep in memory for compact "
+                             "block reconstructions (default: %u)",
+                             DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
         "-blocksonly",
         strprintf(
             "Whether to reject transactions from network peers. Transactions "
@@ -446,72 +448,74 @@ void SetupServerArgs(NodeContext &node) {
             " not affected. (default: %u)",
             DEFAULT_BLOCKSONLY),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-conf=<file>",
         strprintf("Specify path to read-only configuration file. Relative "
                   "paths will be prefixed by datadir location. (default: %s)",
                   BITCOIN_CONF_FILENAME),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-datadir=<dir>", "Specify data directory",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg("-datadir=<dir>", "Specify data directory",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
         "-dbbatchsize",
         strprintf("Maximum database write batch size in bytes (default: %u)",
                   DEFAULT_DB_BATCH_SIZE),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-dbcache=<n>",
         strprintf("Set database cache size in MiB (%d to %d, default: %d)",
                   MIN_DB_CACHE_MB, MAX_DB_CACHE_MB, DEFAULT_DB_CACHE_MB),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-debuglogfile=<file>",
-                 strprintf("Specify location of debug log file. Relative paths "
-                           "will be prefixed by a net-specific datadir "
-                           "location. (0 to disable; default: %s)",
-                           DEFAULT_DEBUGLOGFILE),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-feefilter",
-                 strprintf("Tell other nodes to filter invs to us by our "
-                           "mempool min fee (default: %d)",
-                           DEFAULT_FEEFILTER),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::OPTIONS);
-    gArgs.AddArg("-finalizationdelay=<n>",
-                 strprintf("Set the minimum amount of time to wait between a "
-                           "block header reception and the block finalization. "
-                           "Unit is seconds (default: %d)",
-                           DEFAULT_MIN_FINALIZATION_DELAY),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg(
+        "-debuglogfile=<file>",
+        strprintf("Specify location of debug log file. Relative paths "
+                  "will be prefixed by a net-specific datadir "
+                  "location. (0 to disable; default: %s)",
+                  DEFAULT_DEBUGLOGFILE),
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-feefilter",
+                   strprintf("Tell other nodes to filter invs to us by our "
+                             "mempool min fee (default: %d)",
+                             DEFAULT_FEEFILTER),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-finalizationdelay=<n>",
+        strprintf("Set the minimum amount of time to wait between a "
+                  "block header reception and the block finalization. "
+                  "Unit is seconds (default: %d)",
+                  DEFAULT_MIN_FINALIZATION_DELAY),
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
         "-includeconf=<file>",
         "Specify additional configuration file, relative to the -datadir path "
         "(only useable from configuration file, not command line)",
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-maxreorgdepth=<n>",
-                 strprintf("Configure at what depth blocks are considered "
-                           "final (default: %d). Use -1 to disable.",
-                           DEFAULT_MAX_REORG_DEPTH),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-loadblock=<file>",
-                 "Imports blocks from external file on startup",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-maxmempool=<n>",
-                 strprintf("Keep the transaction memory pool below <n> "
-                           "megabytes (default: %u)",
-                           DEFAULT_MAX_MEMPOOL_SIZE),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-maxorphantx=<n>",
-                 strprintf("Keep at most <n> unconnectable transactions in "
-                           "memory (default: %u)",
-                           DEFAULT_MAX_ORPHAN_TRANSACTIONS),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-mempoolexpiry=<n>",
-                 strprintf("Do not keep transactions in the mempool longer "
-                           "than <n> hours (default: %u)",
-                           DEFAULT_MEMPOOL_EXPIRY),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg("-maxreorgdepth=<n>",
+                   strprintf("Configure at what depth blocks are considered "
+                             "final (default: %d). Use -1 to disable.",
+                             DEFAULT_MAX_REORG_DEPTH),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-loadblock=<file>",
+                   "Imports blocks from external file on startup",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-maxmempool=<n>",
+                   strprintf("Keep the transaction memory pool below <n> "
+                             "megabytes (default: %u)",
+                             DEFAULT_MAX_MEMPOOL_SIZE),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-maxorphantx=<n>",
+                   strprintf("Keep at most <n> unconnectable transactions in "
+                             "memory (default: %u)",
+                             DEFAULT_MAX_ORPHAN_TRANSACTIONS),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-mempoolexpiry=<n>",
+                   strprintf("Do not keep transactions in the mempool longer "
+                             "than <n> hours (default: %u)",
+                             DEFAULT_MEMPOOL_EXPIRY),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
         "-minimumchainwork=<hex>",
         strprintf(
             "Minimum work assumed to exist on a valid chain in hex "
@@ -520,24 +524,25 @@ void SetupServerArgs(NodeContext &node) {
             testnetChainParams->GetConsensus().nMinimumChainWork.GetHex()),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-par=<n>",
         strprintf("Set the number of script verification threads (%u to %d, 0 "
                   "= auto, <0 = leave that many cores free, default: %d)",
                   -GetNumCores(), MAX_SCRIPTCHECK_THREADS,
                   DEFAULT_SCRIPTCHECK_THREADS),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-persistmempool",
-                 strprintf("Whether to save the mempool on shutdown and load "
-                           "on restart (default: %u)",
-                           DEFAULT_PERSIST_MEMPOOL),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-pid=<file>",
-                 strprintf("Specify pid file. Relative paths will be prefixed "
-                           "by a net-specific datadir location. (default: %s)",
-                           BITCOIN_PID_FILENAME),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg("-persistmempool",
+                   strprintf("Whether to save the mempool on shutdown and load "
+                             "on restart (default: %u)",
+                             DEFAULT_PERSIST_MEMPOOL),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-pid=<file>",
+        strprintf("Specify pid file. Relative paths will be prefixed "
+                  "by a net-specific datadir location. (default: %s)",
+                  BITCOIN_PID_FILENAME),
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
         "-prune=<n>",
         strprintf("Reduce storage requirements by enabling pruning (deleting) "
                   "of old blocks. This allows the pruneblockchain RPC to be "
@@ -550,16 +555,17 @@ void SetupServerArgs(NodeContext &node) {
                   "block files to stay under the specified target size in MiB)",
                   MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-reindex-chainstate",
-                 "Rebuild chain state from the currently indexed blocks. When "
-                 "in pruning mode or if blocks on disk might be corrupted, use "
-                 "full -reindex instead.",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg(
+        "-reindex-chainstate",
+        "Rebuild chain state from the currently indexed blocks. When "
+        "in pruning mode or if blocks on disk might be corrupted, use "
+        "full -reindex instead.",
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
         "-reindex",
         "Rebuild chain state and block index from the blk*.dat files on disk",
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-settings=<file>",
         strprintf(
             "Specify path to dynamic settings data file. Can be disabled with "
@@ -569,7 +575,7 @@ void SetupServerArgs(NodeContext &node) {
             BITCOIN_CONF_FILENAME, BITCOIN_SETTINGS_FILENAME),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #ifndef WIN32
-    gArgs.AddArg(
+    argsman.AddArg(
         "-sysperms",
         "Create new files with system default permissions, instead of umask "
         "077 (only effective with disabled wallet functionality)",
@@ -577,185 +583,192 @@ void SetupServerArgs(NodeContext &node) {
 #else
     hidden_args.emplace_back("-sysperms");
 #endif
-    gArgs.AddArg("-txindex",
-                 strprintf("Maintain a full transaction index, used by the "
-                           "getrawtransaction rpc call (default: %d)",
-                           DEFAULT_TXINDEX),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-blockfilterindex=<type>",
-                 strprintf("Maintain an index of compact filters by block "
-                           "(default: %s, values: %s).",
-                           DEFAULT_BLOCKFILTERINDEX, ListBlockFilterTypes()) +
-                     " If <type> is not supplied or if <type> = 1, indexes for "
-                     "all known types are enabled.",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-usecashaddr",
-                 "Use Cash Address for destination encoding instead of base58 "
-                 "(activate by default on Jan, 14)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-txindex",
+                   strprintf("Maintain a full transaction index, used by the "
+                             "getrawtransaction rpc call (default: %d)",
+                             DEFAULT_TXINDEX),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-blockfilterindex=<type>",
+        strprintf("Maintain an index of compact filters by block "
+                  "(default: %s, values: %s).",
+                  DEFAULT_BLOCKFILTERINDEX, ListBlockFilterTypes()) +
+            " If <type> is not supplied or if <type> = 1, indexes for "
+            "all known types are enabled.",
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-usecashaddr",
+        "Use Cash Address for destination encoding instead of base58 "
+        "(activate by default on Jan, 14)",
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 
-    gArgs.AddArg("-addnode=<ip>",
-                 "Add a node to connect to and attempt to keep the connection "
-                 "open (see the `addnode` RPC command help for more info)",
-                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
-                 OptionsCategory::CONNECTION);
-    gArgs.AddArg("-asmap=<file>",
-                 strprintf("Specify asn mapping used for bucketing of the "
-                           "peers (default: %s). Relative paths will be "
-                           "prefixed by the net-specific datadir location.",
-                           DEFAULT_ASMAP_FILENAME),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-banscore=<n>",
-                 strprintf("Threshold for disconnecting and discouraging "
-                           "misbehaving peers (default: %u)",
-                           DEFAULT_BANSCORE_THRESHOLD),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-bantime=<n>",
-                 strprintf("Default duration (in seconds) of manually "
-                           "configured bans (default: %u)",
-                           DEFAULT_MISBEHAVING_BANTIME),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-bind=<addr>",
-                 "Bind to given address and always listen on it. Use "
-                 "[host]:port notation for IPv6",
-                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
-                 OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg(
+        "-addnode=<ip>",
+        "Add a node to connect to and attempt to keep the connection "
+        "open (see the `addnode` RPC command help for more info)",
+        ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::CONNECTION);
+    argsman.AddArg("-asmap=<file>",
+                   strprintf("Specify asn mapping used for bucketing of the "
+                             "peers (default: %s). Relative paths will be "
+                             "prefixed by the net-specific datadir location.",
+                             DEFAULT_ASMAP_FILENAME),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-banscore=<n>",
+                   strprintf("Threshold for disconnecting and discouraging "
+                             "misbehaving peers (default: %u)",
+                             DEFAULT_BANSCORE_THRESHOLD),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-bantime=<n>",
+                   strprintf("Default duration (in seconds) of manually "
+                             "configured bans (default: %u)",
+                             DEFAULT_MISBEHAVING_BANTIME),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-bind=<addr>",
+                   "Bind to given address and always listen on it. Use "
+                   "[host]:port notation for IPv6",
+                   ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                   OptionsCategory::CONNECTION);
+    argsman.AddArg(
         "-connect=<ip>",
         "Connect only to the specified node(s); -connect=0 disables automatic "
         "connections (the rules for this peer are the same as for -addnode)",
         ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
         OptionsCategory::CONNECTION);
-    gArgs.AddArg("-discover",
-                 "Discover own IP addresses (default: 1 when listening and no "
-                 "-externalip or -proxy)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-dns",
-                 strprintf("Allow DNS lookups for -addnode, -seednode and "
-                           "-connect (default: %d)",
-                           DEFAULT_NAME_LOOKUP),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-dnsseed",
-                 "Query for peer addresses via DNS lookup, if low on addresses "
-                 "(default: 1 unless -connect used)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-discover",
+        "Discover own IP addresses (default: 1 when listening and no "
+        "-externalip or -proxy)",
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-dns",
+                   strprintf("Allow DNS lookups for -addnode, -seednode and "
+                             "-connect (default: %d)",
+                             DEFAULT_NAME_LOOKUP),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-dnsseed",
+        "Query for peer addresses via DNS lookup, if low on addresses "
+        "(default: 1 unless -connect used)",
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
-    gArgs.AddArg("-externalip=<ip>", "Specify your own public address",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg("-externalip=<ip>", "Specify your own public address",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
         "-forcednsseed",
         strprintf(
             "Always query for peer addresses via DNS lookup (default: %d)",
             DEFAULT_FORCEDNSSEED),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-listen",
         "Accept connections from outside (default: 1 if no -proxy or -connect)",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-listenonion",
         strprintf("Automatically create Tor hidden service (default: %d)",
                   DEFAULT_LISTEN_ONION),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-maxconnections=<n>",
         strprintf("Maintain at most <n> connections to peers. The effective "
                   "limit depends on system limitations and might be lower than "
                   "the specified value (default: %u)",
                   DEFAULT_MAX_PEER_CONNECTIONS),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-maxreceivebuffer=<n>",
-                 strprintf("Maximum per-connection receive buffer, <n>*1000 "
-                           "bytes (default: %u)",
-                           DEFAULT_MAXRECEIVEBUFFER),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg("-maxreceivebuffer=<n>",
+                   strprintf("Maximum per-connection receive buffer, <n>*1000 "
+                             "bytes (default: %u)",
+                             DEFAULT_MAXRECEIVEBUFFER),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
         "-maxsendbuffer=<n>",
         strprintf(
             "Maximum per-connection send buffer, <n>*1000 bytes (default: %u)",
             DEFAULT_MAXSENDBUFFER),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-maxtimeadjustment",
         strprintf("Maximum allowed median peer time offset adjustment. Local "
                   "perspective of time may be influenced by peers forward or "
                   "backward by this amount. (default: %u seconds)",
                   DEFAULT_MAX_TIME_ADJUSTMENT),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-onion=<ip:port>",
-                 strprintf("Use separate SOCKS5 proxy to reach peers via Tor "
-                           "hidden services (default: %s)",
-                           "-proxy"),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg("-onion=<ip:port>",
+                   strprintf("Use separate SOCKS5 proxy to reach peers via Tor "
+                             "hidden services (default: %s)",
+                             "-proxy"),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
         "-onlynet=<net>",
         "Make outgoing connections only through network <net> (ipv4, ipv6 or "
         "onion). Incoming connections are not affected by this option. This "
         "option can be specified multiple times to allow multiple networks.",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-peerbloomfilters",
-                 strprintf("Support filtering of blocks and transaction with "
-                           "bloom filters (default: %d)",
-                           DEFAULT_PEERBLOOMFILTERS),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg("-peerbloomfilters",
+                   strprintf("Support filtering of blocks and transaction with "
+                             "bloom filters (default: %d)",
+                             DEFAULT_PEERBLOOMFILTERS),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
         "-peerblockfilters",
         strprintf(
             "Serve compact block filters to peers per BIP 157 (default: %u)",
             DEFAULT_PEERBLOCKFILTERS),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-permitbaremultisig",
-                 strprintf("Relay non-P2SH multisig (default: %d)",
-                           DEFAULT_PERMIT_BAREMULTISIG),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-port=<port>",
-                 strprintf("Listen for connections on <port> (default: %u, "
-                           "testnet: %u, regtest: %u)",
-                           defaultChainParams->GetDefaultPort(),
-                           testnetChainParams->GetDefaultPort(),
-                           regtestChainParams->GetDefaultPort()),
-                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
-                 OptionsCategory::CONNECTION);
-    gArgs.AddArg("-proxy=<ip:port>", "Connect through SOCKS5 proxy",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-proxyrandomize",
-                 strprintf("Randomize credentials for every proxy connection. "
-                           "This enables Tor stream isolation (default: %d)",
-                           DEFAULT_PROXYRANDOMIZE),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-seednode=<ip>",
-                 "Connect to a node to retrieve peer addresses, and disconnect",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-timeout=<n>",
-                 strprintf("Specify connection timeout in milliseconds "
-                           "(minimum: 1, default: %d)",
-                           DEFAULT_CONNECT_TIMEOUT),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg("-permitbaremultisig",
+                   strprintf("Relay non-P2SH multisig (default: %d)",
+                             DEFAULT_PERMIT_BAREMULTISIG),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-port=<port>",
+                   strprintf("Listen for connections on <port> (default: %u, "
+                             "testnet: %u, regtest: %u)",
+                             defaultChainParams->GetDefaultPort(),
+                             testnetChainParams->GetDefaultPort(),
+                             regtestChainParams->GetDefaultPort()),
+                   ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                   OptionsCategory::CONNECTION);
+    argsman.AddArg("-proxy=<ip:port>", "Connect through SOCKS5 proxy",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-proxyrandomize",
+        strprintf("Randomize credentials for every proxy connection. "
+                  "This enables Tor stream isolation (default: %d)",
+                  DEFAULT_PROXYRANDOMIZE),
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-seednode=<ip>",
+        "Connect to a node to retrieve peer addresses, and disconnect",
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-timeout=<n>",
+                   strprintf("Specify connection timeout in milliseconds "
+                             "(minimum: 1, default: %d)",
+                             DEFAULT_CONNECT_TIMEOUT),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
         "-peertimeout=<n>",
         strprintf("Specify p2p connection timeout in seconds. This option "
                   "determines the amount of time a peer may be inactive before "
                   "the connection to it is dropped. (minimum: 1, default: %d)",
                   DEFAULT_PEER_CONNECT_TIMEOUT),
         true, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-torcontrol=<ip>:<port>",
         strprintf(
             "Tor control port to use if onion listening enabled (default: %s)",
             DEFAULT_TOR_CONTROL),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-torpassword=<pass>",
-                 "Tor control port password (default: empty)",
-                 ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
-                 OptionsCategory::CONNECTION);
+    argsman.AddArg("-torpassword=<pass>",
+                   "Tor control port password (default: empty)",
+                   ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                   OptionsCategory::CONNECTION);
 #ifdef USE_UPNP
 #if USE_UPNP
-    gArgs.AddArg("-upnp",
-                 "Use UPnP to map the listening port (default: 1 when "
-                 "listening and no -proxy)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-upnp",
+                   "Use UPnP to map the listening port (default: 1 when "
+                   "listening and no -proxy)",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 #else
-    gArgs.AddArg(
+    argsman.AddArg(
         "-upnp",
         strprintf("Use UPnP to map the listening port (default: %u)", 0),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
@@ -763,66 +776,71 @@ void SetupServerArgs(NodeContext &node) {
 #else
     hidden_args.emplace_back("-upnp");
 #endif
-    gArgs.AddArg("-whitebind=<[permissions@]addr>",
-                 "Bind to given address and whitelist peers connecting to it."
-                 " Use [host]:port notation for IPv6. Allowed permissions are "
-                 "bloomfilter (allow requesting BIP37 filtered blocks and "
-                 "transactions), noban (do not ban for misbehavior), "
-                 "forcerelay (relay even non-standard transactions), "
-                 "relay (relay even in -blocksonly mode), "
-                 "and mempool (allow requesting BIP35 mempool contents). "
-                 "Specify multiple permissions separated by commas (default: "
-                 "noban,mempool,relay). Can be specified multiple times.",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-whitebind=<[permissions@]addr>",
+        "Bind to given address and whitelist peers connecting to it."
+        " Use [host]:port notation for IPv6. Allowed permissions are "
+        "bloomfilter (allow requesting BIP37 filtered blocks and "
+        "transactions), noban (do not ban for misbehavior), "
+        "forcerelay (relay even non-standard transactions), "
+        "relay (relay even in -blocksonly mode), "
+        "and mempool (allow requesting BIP35 mempool contents). "
+        "Specify multiple permissions separated by commas (default: "
+        "noban,mempool,relay). Can be specified multiple times.",
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
-    gArgs.AddArg("-whitelist=<[permissions@]IP address or network>",
-                 "Whitelist peers connecting from the given IP address "
-                 "(e.g. 1.2.3.4) or CIDR notated network(e.g. 1.2.3.0/24). "
-                 "Uses same permissions as -whitebind. Can be specified "
-                 "multiple times.",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
+    argsman.AddArg("-whitelist=<[permissions@]IP address or network>",
+                   "Whitelist peers connecting from the given IP address "
+                   "(e.g. 1.2.3.4) or CIDR notated network(e.g. 1.2.3.0/24). "
+                   "Uses same permissions as -whitebind. Can be specified "
+                   "multiple times.",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
         "-maxuploadtarget=<n>",
         strprintf("Tries to keep outbound traffic under the given target (in "
                   "MiB per 24h), 0 = no limit (default: %d)",
                   DEFAULT_MAX_UPLOAD_TARGET),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
-    g_wallet_init_interface.AddWalletOptions();
+    g_wallet_init_interface.AddWalletOptions(argsman);
 
 #if ENABLE_ZMQ
-    gArgs.AddArg("-zmqpubhashblock=<address>",
-                 "Enable publish hash block in <address>",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
-    gArgs.AddArg("-zmqpubhashtx=<address>",
-                 "Enable publish hash transaction in <address>",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
-    gArgs.AddArg("-zmqpubrawblock=<address>",
-                 "Enable publish raw block in <address>",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
-    gArgs.AddArg("-zmqpubrawtx=<address>",
-                 "Enable publish raw transaction in <address>",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
-    gArgs.AddArg("-zmqpubhashblockhwm=<n>",
-                 strprintf("Set publish hash block outbound message high water "
-                           "mark (default: %d)",
-                           CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
-                 false, OptionsCategory::ZMQ);
-    gArgs.AddArg("-zmqpubhashtxhwm=<n>",
-                 strprintf("Set publish hash transaction outbound message high "
-                           "water mark (default: %d)",
-                           CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
-                 false, OptionsCategory::ZMQ);
-    gArgs.AddArg("-zmqpubrawblockhwm=<n>",
-                 strprintf("Set publish raw block outbound message high water "
-                           "mark (default: %d)",
-                           CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
-                 false, OptionsCategory::ZMQ);
-    gArgs.AddArg("-zmqpubrawtxhwm=<n>",
-                 strprintf("Set publish raw transaction outbound message high "
-                           "water mark (default: %d)",
-                           CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
-                 false, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubhashblock=<address>",
+                   "Enable publish hash block in <address>",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubhashtx=<address>",
+                   "Enable publish hash transaction in <address>",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubrawblock=<address>",
+                   "Enable publish raw block in <address>",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubrawtx=<address>",
+                   "Enable publish raw transaction in <address>",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg(
+        "-zmqpubhashblockhwm=<n>",
+        strprintf("Set publish hash block outbound message high water "
+                  "mark (default: %d)",
+                  CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
+        false, OptionsCategory::ZMQ);
+    argsman.AddArg(
+        "-zmqpubhashtxhwm=<n>",
+        strprintf("Set publish hash transaction outbound message high "
+                  "water mark (default: %d)",
+                  CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
+        false, OptionsCategory::ZMQ);
+    argsman.AddArg(
+        "-zmqpubrawblockhwm=<n>",
+        strprintf("Set publish raw block outbound message high water "
+                  "mark (default: %d)",
+                  CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
+        false, OptionsCategory::ZMQ);
+    argsman.AddArg(
+        "-zmqpubrawtxhwm=<n>",
+        strprintf("Set publish raw transaction outbound message high "
+                  "water mark (default: %d)",
+                  CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
+        false, OptionsCategory::ZMQ);
 #else
     hidden_args.emplace_back("-zmqpubhashblock=<address>");
     hidden_args.emplace_back("-zmqpubhashtx=<address>");
@@ -834,13 +852,13 @@ void SetupServerArgs(NodeContext &node) {
     hidden_args.emplace_back("-zmqpubrawtxhwm=<n>");
 #endif
 
-    gArgs.AddArg(
+    argsman.AddArg(
         "-checkblocks=<n>",
         strprintf("How many blocks to check at startup (default: %u, 0 = all)",
                   DEFAULT_CHECKBLOCKS),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-checklevel=<n>",
         strprintf("How thorough the block verification of "
                   "-checkblocks is: "
@@ -854,15 +872,15 @@ void SetupServerArgs(NodeContext &node) {
                   DEFAULT_CHECKLEVEL),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-checkblockindex",
-                 strprintf("Do a consistency check for the block tree, "
-                           "chainstate, and other validation data structures "
-                           "occasionally. (default: %u, regtest: %u)",
-                           defaultChainParams->DefaultConsistencyChecks(),
-                           regtestChainParams->DefaultConsistencyChecks()),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg("-checkblockindex",
+                   strprintf("Do a consistency check for the block tree, "
+                             "chainstate, and other validation data structures "
+                             "occasionally. (default: %u, regtest: %u)",
+                             defaultChainParams->DefaultConsistencyChecks(),
+                             regtestChainParams->DefaultConsistencyChecks()),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-checkmempool=<n>",
         strprintf(
             "Run checks every <n> transactions (default: %u, regtest: %u)",
@@ -870,159 +888,163 @@ void SetupServerArgs(NodeContext &node) {
             regtestChainParams->DefaultConsistencyChecks()),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-checkpoints",
-                 strprintf("Only accept block chain matching built-in "
-                           "checkpoints (default: %d)",
-                           DEFAULT_CHECKPOINTS_ENABLED),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-deprecatedrpc=<method>",
-                 "Allows deprecated RPC method(s) to be used",
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-dropmessagestest=<n>",
-                 "Randomly drop 1 of every <n> network messages",
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg("-checkpoints",
+                   strprintf("Only accept block chain matching built-in "
+                             "checkpoints (default: %d)",
+                             DEFAULT_CHECKPOINTS_ENABLED),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-deprecatedrpc=<method>",
+                   "Allows deprecated RPC method(s) to be used",
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-dropmessagestest=<n>",
+                   "Randomly drop 1 of every <n> network messages",
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-stopafterblockimport",
         strprintf("Stop running after importing blocks from disk (default: %d)",
                   DEFAULT_STOPAFTERBLOCKIMPORT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-stopatheight",
-                 strprintf("Stop running after reaching the given height in "
-                           "the main chain (default: %u)",
-                           DEFAULT_STOPATHEIGHT),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-limitancestorcount=<n>",
-                 strprintf("Do not accept transactions if number of in-mempool "
-                           "ancestors is <n> or more (default: %u)",
-                           DEFAULT_ANCESTOR_LIMIT),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg("-stopatheight",
+                   strprintf("Stop running after reaching the given height in "
+                             "the main chain (default: %u)",
+                             DEFAULT_STOPATHEIGHT),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
+        "-limitancestorcount=<n>",
+        strprintf("Do not accept transactions if number of in-mempool "
+                  "ancestors is <n> or more (default: %u)",
+                  DEFAULT_ANCESTOR_LIMIT),
+        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+        OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-limitancestorsize=<n>",
         strprintf("Do not accept transactions whose size with all in-mempool "
                   "ancestors exceeds <n> kilobytes (default: %u)",
                   DEFAULT_ANCESTOR_SIZE_LIMIT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-limitdescendantcount=<n>",
         strprintf("Do not accept transactions if any ancestor would have <n> "
                   "or more in-mempool descendants (default: %u)",
                   DEFAULT_DESCENDANT_LIMIT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-limitdescendantsize=<n>",
         strprintf("Do not accept transactions if any ancestor would have more "
                   "than <n> kilobytes of in-mempool descendants (default: %u).",
                   DEFAULT_DESCENDANT_SIZE_LIMIT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-addrmantest", "Allows to test address relay on localhost",
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-addrmantest", "Allows to test address relay on localhost",
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
 
-    gArgs.AddArg("-debug=<category>",
-                 strprintf("Output debugging information (default: %u, "
-                           "supplying <category> is optional)",
-                           0) +
-                     ". " +
-                     "If <category> is not supplied or if <category> = 1, "
-                     "output all debugging information."
-                     "<category> can be: " +
-                     ListLogCategories() + ".",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg("-debug=<category>",
+                   strprintf("Output debugging information (default: %u, "
+                             "supplying <category> is optional)",
+                             0) +
+                       ". " +
+                       "If <category> is not supplied or if <category> = 1, "
+                       "output all debugging information."
+                       "<category> can be: " +
+                       ListLogCategories() + ".",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-debugexclude=<category>",
         strprintf("Exclude debugging information for a category. Can be used "
                   "in conjunction with -debug=1 to output debug logs for all "
                   "categories except one or more specified categories."),
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-logips",
-                 strprintf("Include IP addresses in debug output (default: %d)",
-                           DEFAULT_LOGIPS),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-logtimestamps",
-                 strprintf("Prepend debug output with timestamp (default: %d)",
-                           DEFAULT_LOGTIMESTAMPS),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg(
+        "-logips",
+        strprintf("Include IP addresses in debug output (default: %d)",
+                  DEFAULT_LOGIPS),
+        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
+        "-logtimestamps",
+        strprintf("Prepend debug output with timestamp (default: %d)",
+                  DEFAULT_LOGTIMESTAMPS),
+        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-logthreadnames",
         strprintf(
             "Prepend debug output with name of the originating thread (only "
             "available on platforms supporting thread_local) (default: %u)",
             DEFAULT_LOGTHREADNAMES),
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-logtimemicros",
         strprintf("Add microsecond precision to debug timestamps (default: %d)",
                   DEFAULT_LOGTIMEMICROS),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-mocktime=<n>",
-                 "Replace actual time with " + UNIX_EPOCH_TIME +
-                     " (default: 0)",
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg("-mocktime=<n>",
+                   "Replace actual time with " + UNIX_EPOCH_TIME +
+                       " (default: 0)",
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-maxsigcachesize=<n>",
         strprintf("Limit size of signature cache to <n> MiB (default: %u)",
                   DEFAULT_MAX_SIG_CACHE_SIZE),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-maxscriptcachesize=<n>",
         strprintf("Limit size of script cache to <n> MiB (default: %u)",
                   DEFAULT_MAX_SCRIPT_CACHE_SIZE),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-maxtipage=<n>",
-                 strprintf("Maximum tip age in seconds to consider node in "
-                           "initial block download (default: %u)",
-                           DEFAULT_MAX_TIP_AGE),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-maxtipage=<n>",
+                   strprintf("Maximum tip age in seconds to consider node in "
+                             "initial block download (default: %u)",
+                             DEFAULT_MAX_TIP_AGE),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
 
-    gArgs.AddArg(
+    argsman.AddArg(
         "-printtoconsole",
         "Send trace/debug info to console instead of debug.log file (default: "
         "1 when no -daemon. To disable logging to file, set debuglogfile=0)",
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-printpriority",
-                 strprintf("Log transaction priority and fee per kB when "
-                           "mining blocks (default: %d)",
-                           DEFAULT_PRINTPRIORITY),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
+    argsman.AddArg("-printpriority",
+                   strprintf("Log transaction priority and fee per kB when "
+                             "mining blocks (default: %d)",
+                             DEFAULT_PRINTPRIORITY),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-shrinkdebugfile",
         "Shrink debug.log file on client startup (default: 1 when no -debug)",
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
 
-    gArgs.AddArg("-uacomment=<cmt>", "Append comment to the user agent string",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-uacomment=<cmt>",
+                   "Append comment to the user agent string",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
 
-    SetupChainParamsBaseOptions();
+    SetupChainParamsBaseOptions(argsman);
 
-    gArgs.AddArg(
+    argsman.AddArg(
         "-acceptnonstdtxn",
         strprintf(
             "Relay and mine \"non-standard\" transactions (%sdefault: %u)",
             "testnet/regtest only; ", defaultChainParams->RequireStandard()),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::NODE_RELAY);
-    gArgs.AddArg("-excessiveblocksize=<n>",
-                 strprintf("Do not accept blocks larger than this limit, in "
-                           "bytes (default: %d)",
-                           DEFAULT_MAX_BLOCK_SIZE),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::NODE_RELAY);
-    gArgs.AddArg(
+    argsman.AddArg("-excessiveblocksize=<n>",
+                   strprintf("Do not accept blocks larger than this limit, in "
+                             "bytes (default: %d)",
+                             DEFAULT_MAX_BLOCK_SIZE),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::NODE_RELAY);
+    argsman.AddArg(
         "-dustrelayfee=<amt>",
         strprintf("Fee rate (in %s/kB) used to define dust, the value of an "
                   "output such that it will cost about 1/3 of its value in "
@@ -1031,28 +1053,29 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::NODE_RELAY);
 
-    gArgs.AddArg("-bytespersigop",
-                 strprintf("Equivalent bytes per sigop in transactions for "
-                           "relay and mining (default: %u)",
-                           DEFAULT_BYTES_PER_SIGOP),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
-    gArgs.AddArg(
+    argsman.AddArg("-bytespersigop",
+                   strprintf("Equivalent bytes per sigop in transactions for "
+                             "relay and mining (default: %u)",
+                             DEFAULT_BYTES_PER_SIGOP),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
+    argsman.AddArg(
         "-datacarrier",
         strprintf("Relay and mine data carrier transactions (default: %d)",
                   DEFAULT_ACCEPT_DATACARRIER),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
-    gArgs.AddArg("-datacarriersize",
-                 strprintf("Maximum size of data in data carrier transactions "
-                           "we relay and mine (default: %u)",
-                           MAX_OP_RETURN_RELAY),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
-    gArgs.AddArg(
+    argsman.AddArg(
+        "-datacarriersize",
+        strprintf("Maximum size of data in data carrier transactions "
+                  "we relay and mine (default: %u)",
+                  MAX_OP_RETURN_RELAY),
+        ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
+    argsman.AddArg(
         "-minrelaytxfee=<amt>",
         strprintf("Fees (in %s/kB) smaller than this are rejected for "
                   "relaying, mining and transaction creation (default: %s)",
                   CURRENCY_UNIT, FormatMoney(DEFAULT_MIN_RELAY_TX_FEE_PER_KB)),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-whitelistrelay",
         strprintf("Add 'relay' permission to whitelisted inbound peers "
                   "with default permissions. This will accept relayed "
@@ -1060,7 +1083,7 @@ void SetupServerArgs(NodeContext &node) {
                   "(default: %d)",
                   DEFAULT_WHITELISTRELAY),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-whitelistforcerelay",
         strprintf("Add 'forcerelay' permission to whitelisted inbound peers"
                   " with default permissions. This will relay transactions "
@@ -1071,36 +1094,36 @@ void SetupServerArgs(NodeContext &node) {
 
     // Not sure this really belongs here, but it will do for now.
     // FIXME: This doesn't work anyways.
-    gArgs.AddArg("-excessutxocharge=<amt>",
-                 strprintf("Fees (in %s/kB) to charge per utxo created for "
-                           "relaying, and mining (default: %s)",
-                           CURRENCY_UNIT, FormatMoney(DEFAULT_UTXO_FEE)),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::NODE_RELAY);
+    argsman.AddArg("-excessutxocharge=<amt>",
+                   strprintf("Fees (in %s/kB) to charge per utxo created for "
+                             "relaying, and mining (default: %s)",
+                             CURRENCY_UNIT, FormatMoney(DEFAULT_UTXO_FEE)),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::NODE_RELAY);
 
-    gArgs.AddArg("-blockmaxsize=<n>",
-                 strprintf("Set maximum block size in bytes (default: %d)",
-                           DEFAULT_MAX_GENERATED_BLOCK_SIZE),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
-    gArgs.AddArg("-blockmintxfee=<amt>",
-                 strprintf("Set lowest fee rate (in %s/kB) for transactions to "
-                           "be included in block creation. (default: %s)",
-                           CURRENCY_UNIT,
-                           FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-blockmaxsize=<n>",
+                   strprintf("Set maximum block size in bytes (default: %d)",
+                             DEFAULT_MAX_GENERATED_BLOCK_SIZE),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg(
+        "-blockmintxfee=<amt>",
+        strprintf("Set lowest fee rate (in %s/kB) for transactions to "
+                  "be included in block creation. (default: %s)",
+                  CURRENCY_UNIT, FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)),
+        ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
 
-    gArgs.AddArg("-blockversion=<n>",
-                 "Override block version to test forking scenarios",
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-blockversion=<n>",
+                   "Override block version to test forking scenarios",
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::BLOCK_CREATION);
 
-    gArgs.AddArg("-server", "Accept command line and JSON-RPC commands",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-rest",
-                 strprintf("Accept public REST requests (default: %d)",
-                           DEFAULT_REST_ENABLE),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg(
+    argsman.AddArg("-server", "Accept command line and JSON-RPC commands",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    argsman.AddArg("-rest",
+                   strprintf("Accept public REST requests (default: %d)",
+                             DEFAULT_REST_ENABLE),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    argsman.AddArg(
         "-rpcbind=<addr>[:port]",
         "Bind to given address to listen for JSON-RPC connections. Do not "
         "expose the RPC server to untrusted networks such as the public "
@@ -1111,17 +1134,18 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY |
             ArgsManager::SENSITIVE,
         OptionsCategory::RPC);
-    gArgs.AddArg("-rpccookiefile=<loc>",
-                 "Location of the auth cookie. Relative paths will be prefixed "
-                 "by a net-specific datadir location. (default: data dir)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections",
-                 ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
-                 OptionsCategory::RPC);
-    gArgs.AddArg("-rpcpassword=<pw>", "Password for JSON-RPC connections",
-                 ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
-                 OptionsCategory::RPC);
-    gArgs.AddArg(
+    argsman.AddArg(
+        "-rpccookiefile=<loc>",
+        "Location of the auth cookie. Relative paths will be prefixed "
+        "by a net-specific datadir location. (default: data dir)",
+        ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    argsman.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections",
+                   ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                   OptionsCategory::RPC);
+    argsman.AddArg("-rpcpassword=<pw>", "Password for JSON-RPC connections",
+                   ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                   OptionsCategory::RPC);
+    argsman.AddArg(
         "-rpcwhitelist=<whitelist>",
         "Set a whitelist to filter incoming RPC calls for a specific user. The "
         "field <whitelist> comes in the format: <USERNAME>:<rpc 1>,<rpc "
@@ -1129,7 +1153,7 @@ void SetupServerArgs(NodeContext &node) {
         "are set-intersected. See -rpcwhitelistdefault documentation for "
         "information on default whitelist behavior.",
         ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-rpcwhitelistdefault",
         "Sets default behavior for rpc whitelisting. Unless "
         "rpcwhitelistdefault is set to 0, if any -rpcwhitelist is set, the rpc "
@@ -1138,7 +1162,7 @@ void SetupServerArgs(NodeContext &node) {
         "is set to 1 and no -rpcwhitelist is set, rpc server acts as if all "
         "rpc users are subject to empty whitelists.",
         ArgsManager::ALLOW_BOOL, OptionsCategory::RPC);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-rpcauth=<userpw>",
         "Username and HMAC-SHA-256 hashed password for JSON-RPC connections. "
         "The field <userpw> comes in the format: <USERNAME>:<SALT>$<HASH>. A "
@@ -1146,73 +1170,74 @@ void SetupServerArgs(NodeContext &node) {
         "connects normally using the rpcuser=<USERNAME>/rpcpassword=<PASSWORD> "
         "pair of arguments. This option can be specified multiple times",
         ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE, OptionsCategory::RPC);
-    gArgs.AddArg("-rpcport=<port>",
-                 strprintf("Listen for JSON-RPC connections on <port> "
-                           "(default: %u, testnet: %u, regtest: %u)",
-                           defaultBaseParams->RPCPort(),
-                           testnetBaseParams->RPCPort(),
-                           regtestBaseParams->RPCPort()),
-                 ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
-                 OptionsCategory::RPC);
-    gArgs.AddArg("-rpcallowip=<ip>",
-                 "Allow JSON-RPC connections from specified source. Valid for "
-                 "<ip> are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. "
-                 "1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). "
-                 "This option can be specified multiple times",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg(
+    argsman.AddArg("-rpcport=<port>",
+                   strprintf("Listen for JSON-RPC connections on <port> "
+                             "(default: %u, testnet: %u, regtest: %u)",
+                             defaultBaseParams->RPCPort(),
+                             testnetBaseParams->RPCPort(),
+                             regtestBaseParams->RPCPort()),
+                   ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+                   OptionsCategory::RPC);
+    argsman.AddArg(
+        "-rpcallowip=<ip>",
+        "Allow JSON-RPC connections from specified source. Valid for "
+        "<ip> are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. "
+        "1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). "
+        "This option can be specified multiple times",
+        ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    argsman.AddArg(
         "-rpcthreads=<n>",
         strprintf(
             "Set the number of threads to service RPC calls (default: %d)",
             DEFAULT_HTTP_THREADS),
         ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-rpccorsdomain=value",
         "Domain from which to accept cross origin requests (browser enforced)",
         ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
-    gArgs.AddArg("-rpcworkqueue=<n>",
-                 strprintf("Set the depth of the work queue to service RPC "
-                           "calls (default: %d)",
-                           DEFAULT_HTTP_WORKQUEUE),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::RPC);
-    gArgs.AddArg("-rpcservertimeout=<n>",
-                 strprintf("Timeout during HTTP requests (default: %d)",
-                           DEFAULT_HTTP_SERVER_TIMEOUT),
-                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                 OptionsCategory::RPC);
+    argsman.AddArg("-rpcworkqueue=<n>",
+                   strprintf("Set the depth of the work queue to service RPC "
+                             "calls (default: %d)",
+                             DEFAULT_HTTP_WORKQUEUE),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::RPC);
+    argsman.AddArg("-rpcservertimeout=<n>",
+                   strprintf("Timeout during HTTP requests (default: %d)",
+                             DEFAULT_HTTP_SERVER_TIMEOUT),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::RPC);
 
 #if HAVE_DECL_DAEMON
-    gArgs.AddArg("-daemon",
-                 "Run in the background as a daemon and accept commands",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-daemon",
+                   "Run in the background as a daemon and accept commands",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #else
     hidden_args.emplace_back("-daemon");
 #endif
 
     // Avalanche options.
-    gArgs.AddArg(
+    argsman.AddArg(
         "-enableavalanche",
         strprintf("Enable avalanche (default: %u)", AVALANCHE_DEFAULT_ENABLED),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
-    gArgs.AddArg(
+    argsman.AddArg(
         "-avacooldown",
         strprintf("Mandatory cooldown between two avapoll (default: %u)",
                   AVALANCHE_DEFAULT_COOLDOWN),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
-    gArgs.AddArg("-avaproof",
-                 "Avalanche proof to be used by this node (default: none)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
-    gArgs.AddArg("-avamasterkey",
-                 "Master key associated with the proof. If a proof is "
-                 "required, this is mandatory.",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
-    gArgs.AddArg("-avasessionkey", "Avalanche session key (default: random)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avaproof",
+                   "Avalanche proof to be used by this node (default: none)",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avamasterkey",
+                   "Master key associated with the proof. If a proof is "
+                   "required, this is mandatory.",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avasessionkey", "Avalanche session key (default: random)",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
 
     // Add the hidden options
-    gArgs.AddHiddenArgs(hidden_args);
+    argsman.AddHiddenArgs(hidden_args);
 }
 
 std::string LicenseInfo() {

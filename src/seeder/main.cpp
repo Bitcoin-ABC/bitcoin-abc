@@ -63,7 +63,7 @@ public:
           ipv4_proxy(DEFAULT_IPV4_PROXY), ipv6_proxy(DEFAULT_IPV6_PROXY) {}
 
     int ParseCommandLine(int argc, char **argv) {
-        SetupSeederArgs();
+        SetupSeederArgs(gArgs);
         std::string error;
         if (!gArgs.ParseParameters(argc, argv, error)) {
             tfm::format(std::cerr, "Error parsing command line arguments: %s\n",
@@ -122,43 +122,43 @@ public:
     }
 
 private:
-    void SetupSeederArgs() {
-        SetupHelpOptions(gArgs);
-        gArgs.AddArg("-help-debug",
-                     "Show all debugging options (usage: --help -help-debug)",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    void SetupSeederArgs(ArgsManager &argsman) {
+        SetupHelpOptions(argsman);
+        argsman.AddArg("-help-debug",
+                       "Show all debugging options (usage: --help -help-debug)",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
 
-        SetupChainParamsBaseOptions();
+        SetupChainParamsBaseOptions(argsman);
 
-        gArgs.AddArg("-version", "Print version and exit",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-host=<host>", "Hostname of the DNS seed",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-ns=<ns>", "Hostname of the nameserver",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-mbox=<mbox>", "E-Mail address reported in SOA records",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-threads=<threads>",
-                     "Number of crawlers to run in parallel (default 96)",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-dnsthreads=<threads>",
-                     "Number of DNS server threads (default 4)",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-port=<port>", "UDP port to listen on (default 53)",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-onion=<ip:port>", "Tor proxy IP/Port",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-proxyipv4=<ip:port>", "IPV4 SOCKS5 proxy IP/Port",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-proxyipv6=<ip:port>", "IPV6 SOCKS5 proxy IP/Port",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-filter=<f1,f2,...>",
-                     "Allow these flag combinations as filters",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        gArgs.AddArg("-wipeban", "Wipe list of banned nodes",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-        gArgs.AddArg("-wipeignore", "Wipe list of ignored nodes",
-                     ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg("-version", "Print version and exit",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-host=<host>", "Hostname of the DNS seed",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-ns=<ns>", "Hostname of the nameserver",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-mbox=<mbox>", "E-Mail address reported in SOA records",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-threads=<threads>",
+                       "Number of crawlers to run in parallel (default 96)",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-dnsthreads=<threads>",
+                       "Number of DNS server threads (default 4)",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-port=<port>", "UDP port to listen on (default 53)",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg("-onion=<ip:port>", "Tor proxy IP/Port",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg("-proxyipv4=<ip:port>", "IPV4 SOCKS5 proxy IP/Port",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg("-proxyipv6=<ip:port>", "IPV6 SOCKS5 proxy IP/Port",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg("-filter=<f1,f2,...>",
+                       "Allow these flag combinations as filters",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-wipeban", "Wipe list of banned nodes",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg("-wipeignore", "Wipe list of ignored nodes",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     }
 };
 

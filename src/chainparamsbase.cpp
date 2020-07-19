@@ -14,20 +14,21 @@ const std::string CBaseChainParams::MAIN = "main";
 const std::string CBaseChainParams::TESTNET = "test";
 const std::string CBaseChainParams::REGTEST = "regtest";
 
-void SetupChainParamsBaseOptions() {
-    gArgs.AddArg("-chain=<chain>",
-                 "Use the chain <chain> (default: main). Allowed values: main, "
-                 "test, regtest",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CHAINPARAMS);
-    gArgs.AddArg(
+void SetupChainParamsBaseOptions(ArgsManager &argsman) {
+    argsman.AddArg(
+        "-chain=<chain>",
+        "Use the chain <chain> (default: main). Allowed values: main, "
+        "test, regtest",
+        ArgsManager::ALLOW_ANY, OptionsCategory::CHAINPARAMS);
+    argsman.AddArg(
         "-regtest",
         "Enter regression test mode, which uses a special chain in which "
         "blocks can be solved instantly. This is intended for regression "
         "testing tools and app development. Equivalent to -chain=regtest.",
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::CHAINPARAMS);
-    gArgs.AddArg("-testnet", "Use the test chain. Equivalent to -chain=test.",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CHAINPARAMS);
+    argsman.AddArg("-testnet", "Use the test chain. Equivalent to -chain=test.",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CHAINPARAMS);
 }
 
 static std::unique_ptr<CBaseChainParams> globalChainBaseParams;
