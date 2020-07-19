@@ -2039,11 +2039,12 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
 
 //! Determine whether or not a peer can request a transaction, and return it (or
 //! nullptr if not found or not allowed).
-CTransactionRef static FindTxForGetData(const CNode &peer, const TxId &txid,
+static CTransactionRef FindTxForGetData(const CTxMemPool &mempool,
+                                        const CNode &peer, const TxId &txid,
                                         const std::chrono::seconds mempool_req,
                                         const std::chrono::seconds now)
     LOCKS_EXCLUDED(cs_main) {
-    auto txinfo = g_mempool.info(txid);
+    auto txinfo = mempool.info(txid);
     if (txinfo.tx) {
         // If a TX could have been INVed in reply to a MEMPOOL request,
         // or is older than UNCONDITIONAL_RELAY_DELAY, permit the request
@@ -2169,7 +2170,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
 
             const TxId txid(inv.hash);
             CTransactionRef tx =
-                FindTxForGetData(pfrom, txid, mempool_req, now);
+                FindTxForGetData(mempool, pfrom, txid, mempool_req, now);
             if (tx) {
                 int nSendFlags = 0;
                 connman.PushMessage(
