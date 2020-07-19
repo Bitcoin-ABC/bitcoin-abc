@@ -32,6 +32,7 @@
 #include <script/standard.h>
 #include <txmempool.h>
 #include <uint256.h>
+#include <util/bip32.h>
 #include <util/error.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
@@ -1146,24 +1147,6 @@ static UniValue testmempoolaccept(const Config &config,
 
     result.push_back(std::move(result_0));
     return result;
-}
-
-static std::string WriteHDKeypath(std::vector<uint32_t> &keypath) {
-    std::string keypath_str = "m";
-    for (uint32_t num : keypath) {
-        keypath_str += "/";
-        bool hardened = false;
-        if (num & 0x80000000) {
-            hardened = true;
-            num &= ~0x80000000;
-        }
-
-        keypath_str += ToString(num);
-        if (hardened) {
-            keypath_str += "'";
-        }
-    }
-    return keypath_str;
 }
 
 static UniValue decodepsbt(const Config &config,
