@@ -193,7 +193,9 @@ void Shutdown(NodeContext &node) {
     /// be locked. Be sure that anything that writes files or flushes caches
     /// only does this if the respective module was initialized.
     util::ThreadRename("shutoff");
-    g_mempool.AddTransactionsUpdated(1);
+    if (node.mempool) {
+        node.mempool->AddTransactionsUpdated(1);
+    }
 
     StopHTTPRPC();
     StopREST();
@@ -254,9 +256,9 @@ void Shutdown(NodeContext &node) {
     node.connman.reset();
     node.banman.reset();
 
-    if (::g_mempool.IsLoaded() &&
+    if (node.mempool && node.mempool->IsLoaded() &&
         node.args->GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
-        DumpMempool(::g_mempool);
+        DumpMempool(*node.mempool);
     }
 
     // FlushStateToDisk generates a ChainStateFlushed callback, which we should
@@ -1458,10 +1460,7 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
             return;
         }
     } // End scope of CImportingNow
-    if (args.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
-        LoadMempool(config, ::g_mempool);
-    }
-    ::g_mempool.SetIsLoaded(!ShutdownRequested());
+    chainman.ActiveChainstate().LoadMempool(config, args);
 }
 
 /** Sanity checks
@@ -1866,16 +1865,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         }
     }
 
-    // Checkmempool and checkblockindex default to true in regtest mode
-    int ratio = std::min<int>(
-        std::max<int>(
-            args.GetArg("-checkmempool",
-                        chainparams.DefaultConsistencyChecks() ? 1 : 0),
-            0),
-        1000000);
-    if (ratio != 0) {
-        g_mempool.setSanityCheck(1.0 / ratio);
-    }
     fCheckBlockIndex = args.GetBoolArg("-checkblockindex",
                                        chainparams.DefaultConsistencyChecks());
     fCheckpointsEnabled =
@@ -2296,6 +2285,17 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // this, may use it from the node context.
     assert(!node.mempool);
     node.mempool = &::g_mempool;
+    if (node.mempool) {
+        int ratio = std::min<int>(
+            std::max<int>(
+                args.GetArg("-checkmempool",
+                            chainparams.DefaultConsistencyChecks() ? 1 : 0),
+                0),
+            1000000);
+        if (ratio != 0) {
+            node.mempool->setSanityCheck(1.0 / ratio);
+        }
+    }
 
     assert(!node.chainman);
     node.chainman = &g_chainman;

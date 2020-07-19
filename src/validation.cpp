@@ -4851,6 +4851,13 @@ static bool LoadBlockIndexDB(ChainstateManager &chainman,
     return true;
 }
 
+void CChainState::LoadMempool(const Config &config, const ArgsManager &args) {
+    if (args.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
+        ::LoadMempool(config, m_mempool);
+    }
+    m_mempool.SetIsLoaded(!ShutdownRequested());
+}
+
 bool CChainState::LoadChainTip(const CChainParams &chainparams) {
     AssertLockHeld(cs_main);
     const CCoinsViewCache &coins_cache = CoinsTip();
