@@ -1290,18 +1290,18 @@ static bool isPreferredDownloadPeer(const CNode &pfrom) {
     const CNodeState *state = State(pfrom.GetId());
     return state && state->fPreferredDownload;
 }
+/** Whether this peer can serve us blocks. */
+static bool CanServeBlocks(const Peer &peer) {
+    return peer.m_their_services & (NODE_NETWORK | NODE_NETWORK_LIMITED);
+}
 
-static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    nPreferredDownload -= state->fPreferredDownload;
-
-    // Whether this node should be marked as a preferred download node.
-    state->fPreferredDownload =
-        (!node.IsInboundConn() ||
-         node.HasPermission(NetPermissionFlags::NoBan)) &&
-        !node.IsAddrFetchConn() && !node.fClient;
-
-    nPreferredDownload += state->fPreferredDownload;
+/**
+ * Whether this peer can only serve limited recent blocks (e.g. because
+ * it prunes old blocks)
+ */
+static bool IsLimitedPeer(const Peer &peer) {
+    return (!(peer.m_their_services & NODE_NETWORK) &&
+            (peer.m_their_services & NODE_NETWORK_LIMITED));
 }
 
 bool PeerManagerImpl::IsBlockRequested(const BlockHash &hash) {
@@ -3806,16 +3806,6 @@ void PeerManagerImpl::ProcessMessage(
         }
         peer->m_starting_height = starting_height;
 
-        // set nodes not relaying blocks and tx and not serving (parts) of the
-        // historical blockchain as "clients"
-        pfrom.fClient = (!(nServices & NODE_NETWORK) &&
-                         !(nServices & NODE_NETWORK_LIMITED));
-
-        // set nodes not capable of serving the complete blockchain history as
-        // "limited nodes"
-        pfrom.m_limited_node =
-            (!(nServices & NODE_NETWORK) && (nServices & NODE_NETWORK_LIMITED));
-
         // We only initialize the m_tx_relay data structure if:
         // - this isn't an outbound block-relay-only connection; and
         // - fRelay=true or we're offering NODE_BLOOM to this peer
@@ -3839,7 +3829,12 @@ void PeerManagerImpl::ProcessMessage(
         // Potentially mark this peer as a preferred download peer.
         {
             LOCK(cs_main);
-            UpdatePreferredDownload(pfrom, State(pfrom.GetId()));
+            CNodeState *state = State(pfrom.GetId());
+            state->fPreferredDownload =
+                (!pfrom.IsInboundConn() ||
+                 pfrom.HasPermission(NetPermissionFlags::NoBan)) &&
+                !pfrom.IsAddrFetchConn() && CanServeBlocks(*peer);
+            nPreferredDownload += state->fPreferredDownload;
         }
 
         // Self advertisement & GETADDR logic
@@ -6802,10 +6797,11 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         // Download if this is a nice peer, or we have no nice peers and this
         // one might do.
         fFetch = state.fPreferredDownload ||
-                 (nPreferredDownload == 0 && !pto->fClient &&
+                 (nPreferredDownload == 0 && CanServeBlocks(*peer) &&
                   !pto->IsAddrFetchConn());
 
-        if (!state.fSyncStarted && !pto->fClient && !fImporting && !fReindex) {
+        if (!state.fSyncStarted && CanServeBlocks(*peer) && !fImporting &&
+            !fReindex) {
             // Only actively request headers from a single peer, unless we're
             // close to today.
             if ((nSyncStarted == 0 && fFetch) ||
@@ -7328,8 +7324,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
         CNodeState &state = *State(pto->GetId());
 
-        if (!pto->fClient &&
-            ((fFetch && !pto->m_limited_node) ||
+        if (CanServeBlocks(*peer) &&
+            ((fFetch && !IsLimitedPeer(*peer)) ||
              !m_chainman.ActiveChainstate().IsInitialBlockDownload()) &&
             state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             std::vector<const CBlockIndex *> vToDownload;
