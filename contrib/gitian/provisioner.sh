@@ -47,10 +47,6 @@ cd vm-builder-0.12.4+bzr494
 sudo python setup.py install
 cd ..
 
-## Install Gitian
-git clone https://github.com/devrandom/gitian-builder.git
-cd gitian-builder
-
 git config --global user.email "vagrant@vagrant.com"
 git config --global user.name "vagrant"
 
@@ -63,6 +59,6 @@ echo
 echo "As the user ${BUILDUSER} run the following commands to produce a linux build:"
 echo "export COMMIT=v0.18.3"
 echo "export URL=https://github.com/Bitcoin-ABC/bitcoin-abc.git"
-echo "cd gitian-builder"
+echo "cd contrib/gitian-builder"
 echo "./bin/make-base-vm --lxc --distro debian --suite stretch --arch amd64"
 echo "./bin/gbuild --commit bitcoin=\${COMMIT} --url bitcoin=\${URL} /vagrant/contrib/gitian-descriptors/gitian-linux.yml"

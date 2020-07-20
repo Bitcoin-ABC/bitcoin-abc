@@ -79,10 +79,9 @@ cd ..
 
 **Note**: When sudo asks for a password, enter the password for the user `gitianuser` not for `root`.
 
-Clone the git repositories for bitcoin and Gitian.
+Clone the git repository for Bitcoin ABC which contains the Gitian sources.
 
 ```bash
-git clone https://github.com/devrandom/gitian-builder.git
 git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
 ```
 
@@ -98,7 +97,7 @@ Creating the image will take a while, but only has to be done once.
 Execute the following as user `gitianuser`:
 
 ```bash
-cd gitian-builder
+cd bitcoin-abc/contrib/gitian-builder
 bin/make-base-vm --lxc --arch amd64 --distro debian --suite buster
 ```
 
@@ -116,6 +115,6 @@ of time.
 Execute the following as user `gitianuser`:
 
 ```bash
-cd gitian-builder
-make -C ../bitcoin-abc/depends download SOURCES_PATH=`pwd`/cache/common
+cd bitcoin-abc/contrib/gitian-builder
+make -C ../../depends download SOURCES_PATH=`pwd`/cache/common
 ```

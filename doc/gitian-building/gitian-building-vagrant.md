@@ -60,7 +60,7 @@ the image will take a while, but only has to be done once.
 Execute the following as user `vagrant`:
 
 ```bash
-cd gitian-builder
+cd bitcoin-abc/contrib/gitian-builder
 ./bin/make-base-vm --lxc --distro debian --suite buster --arch amd64
 ```
 

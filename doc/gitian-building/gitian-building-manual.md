@@ -28,7 +28,7 @@ tail -f var/build.log
 
 Output from `gbuild` will look something like
 
-    Initialized empty Git repository in /home/gitianuser/gitian-builder/inputs/bitcoin/.git/
+    Initialized empty Git repository in /home/gitianuser/bitcoin-abc/contrib/gitian-builder/inputs/bitcoin/.git/
     remote: Counting objects: 57959, done.
     remote: Total 57959 (delta 0), reused 0 (delta 0), pack-reused 57958
     Receiving objects: 100% (57959/57959), 53.76 MiB | 484.00 KiB/s, done.
@@ -81,16 +81,16 @@ plain archive.ubuntu.com: us.archive.ubuntu.com works.
 So, if you use LXC:
 
 ```bash
-export PATH="$PATH":${HOME}/gitian-builder/libexec
+export PATH="$PATH":${HOME}/bitcoin-abc/contrib/gitian-builder/libexec
 export USE_LXC=1
-cd ~/gitian-builder
+cd ~/bitcoin-abc/contrib/gitian-builder
 ./libexec/make-clean-vm --suite buster --arch amd64
 
 LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root dpkg --add-architecture i386
 LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root apt-get update
 LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root \
   -e DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install \
-  $( sed -ne '/^packages:/,/^[^-]/ {/^- .*/{s/"//g;s/- //;p}}' ../bitcoin-abc/contrib/gitian-descriptors/*|sort|uniq )
+  $( sed -ne '/^packages:/,/^[^-]/ {/^- .*/{s/"//g;s/- //;p}}' ../gitian-descriptors/*|sort|uniq )
 LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root apt-get -q -y purge grub
 LXC_ARCH=amd64 LXC_SUITE=buster on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
 ```

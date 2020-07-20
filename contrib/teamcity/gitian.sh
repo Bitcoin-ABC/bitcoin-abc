@@ -15,7 +15,12 @@ export GITIAN_HOST_IP=10.0.3.1
 export LXC_BRIDGE=lxcbr0
 export LXC_GUEST_IP=10.0.3.5
 
-cd ~/gitian-builder
+cd "${TOPLEVEL}/contrib/gitian-builder"
+
+# Build the base image if it doesn't already exist
+if [ ! -f "base-buster-amd64" ]; then
+  ./bin/make-base-vm --lxc --arch amd64 --distro debian --suite buster
+fi
 
 if [[ "${OS_NAME}" == "osx" ]]; then
   OSX_SDK="MacOSX10.14.sdk.tar.gz"
