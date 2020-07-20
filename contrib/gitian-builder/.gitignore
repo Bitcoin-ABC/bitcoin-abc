@@ -15,3 +15,4 @@ docker
 *.Dockerfile
 cache
 target-*
+!target-bin/
