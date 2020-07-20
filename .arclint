@@ -16,6 +16,9 @@
             "type": "autopep8",
             "version": ">=1.3.4",
             "include": "(\\.py$)",
+            "exclude": [
+                "(^contrib/gitian-builder/)"
+            ],
             "flags": [
                 "--aggressive",
                 "--ignore=W503,W504"
@@ -25,6 +28,9 @@
             "type": "flake8",
             "version": ">=3.0",
             "include": "(\\.py$)",
+            "exclude": [
+                "(^contrib/gitian-builder/)"
+            ],
             "flags": [
                 "--ignore=E501,E704,W503,W504"
             ]
@@ -48,7 +54,8 @@
             "type": "lint-python-format",
             "include": "(\\.py$)",
             "exclude": [
-                "(^test/lint/lint-python-format\\.py$)"
+                "(^test/lint/lint-python-format\\.py$)",
+                "(^contrib/gitian-builder/)"
             ]
         },
         "phpcs": {
@@ -79,6 +86,7 @@
                 "(^build-aux/m4/)",
                 "(^depends/)",
                 "(^doc/release-notes/)",
+                "(^contrib/gitian-builder/)",
                 "(^src/(qt/locale|secp256k1|univalue|leveldb)/)",
                 "(^test/lint/dictionary/)"
             ],
@@ -140,18 +148,25 @@
         },
         "lint-python-encoding": {
             "type": "lint-python-encoding",
-            "include": "(\\.py$)"
+            "include": "(\\.py$)",
+            "exclude": [
+                "(^contrib/gitian-builder/)"
+            ]
         },
         "lint-python-shebang": {
             "type": "lint-python-shebang",
             "include": "(\\.py$)",
             "exclude": [
-                "(__init__\\.py$)"
+                "(__init__\\.py$)",
+                "(^contrib/gitian-builder/)"
             ]
         },
         "lint-bash-shebang": {
             "type": "lint-bash-shebang",
-            "include": "(\\.sh$)"
+            "include": "(\\.sh$)",
+            "exclude": [
+                "(^contrib/gitian-builder/)"
+            ]
         },
         "shellcheck": {
             "type": "shellcheck",
@@ -162,6 +177,7 @@
             ],
             "include": "(\\.sh$)",
             "exclude": [
+                "(^contrib/gitian-builder/)",
                 "(^src/(secp256k1|univalue)/)"
             ]
         },
@@ -169,6 +185,7 @@
             "type": "lint-shell-locale",
             "include": "(\\.sh$)",
             "exclude": [
+                "(^contrib/gitian-builder/)",
                 "(^src/(secp256k1|univalue)/)"
             ]
         },
@@ -202,6 +219,7 @@
             "type": "lint-whitespace",
             "include": "(\\.(ac|am|cmake|conf|in|include|json|m4|md|openrc|php|pl|sh|txt|yml)$)",
             "exclude": [
+                "(^contrib/gitian-builder/)",
                 "(^src/(secp256k1|univalue|leveldb)/)"
             ]
         },
