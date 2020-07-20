@@ -67,10 +67,10 @@ It is possible to download the resulting archive directly for users that desire 
 
 ```bash
 cd bitcoin-abc/contrib/gitian-builder
-curl -LO https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/MacOSX10.11.sdk.tar.gz
-echo "4732b52b5ebe300c8c91cbeed6d19d59c1ff9c56c7a1dd6cfa518b9c2c72abde MacOSX10.11.sdk.tar.gz" | sha256sum -c
+curl -LO https://storage.googleapis.com/27cd7b2a42a430926cc621acdc3bda72a8ed2b0efc080e3/MacOSX10.14.sdk.tar.gz
+echo "2322086a96349db832abbcadea493b79db843553a2e604163238d99fa058a286 MacOSX10.14.sdk.tar.gz" | sha256sum -c
 mkdir -p inputs
-mv MacOSX10.11.sdk.tar.gz inputs
+mv MacOSX10.14.sdk.tar.gz inputs
 ```
 
 Alternatively, you can skip the macOS build by adding `--os=lw` below.
