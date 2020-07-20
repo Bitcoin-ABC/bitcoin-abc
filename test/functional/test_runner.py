@@ -154,7 +154,7 @@ class TestCase():
             status = "Failed"
 
         return TestResult(self.test_num, self.test_case, testdir, status,
-                          int(time.time() - time0), stdout, stderr)
+                          time.time() - time0, stdout, stderr)
 
 
 def on_ci():
@@ -397,7 +397,7 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
     time0 = time.time()
     test_results = execute_test_processes(
         num_jobs, test_list, tests_dir, tmpdir, flags, failfast)
-    runtime = int(time.time() - time0)
+    runtime = time.time() - time0
 
     max_len_name = len(max(test_list, key=len))
     print_results(test_results, tests_dir, max_len_name,
@@ -458,13 +458,13 @@ def execute_test_processes(
 
             if test_result.status == "Passed":
                 print("{}{}{} passed, Duration: {} s".format(
-                    BOLD[1], test_result.name, BOLD[0], test_result.time))
+                    BOLD[1], test_result.name, BOLD[0], TimeResolution.seconds(test_result.time)))
             elif test_result.status == "Skipped":
                 print("{}{}{} skipped".format(
                     BOLD[1], test_result.name, BOLD[0]))
             else:
                 print("{}{}{} failed, Duration: {} s\n".format(
-                    BOLD[1], test_result.name, BOLD[0], test_result.time))
+                    BOLD[1], test_result.name, BOLD[0], TimeResolution.seconds(test_result.time)))
                 print(BOLD[1] + 'stdout:' + BOLD[0])
                 print(test_result.stdout)
                 print(BOLD[1] + 'stderr:' + BOLD[0])
@@ -598,10 +598,10 @@ def print_results(test_results, tests_dir, max_len_name,
     if not all_passed:
         results += RED[1]
     results += BOLD[1] + "\n{} | {} | {} s (accumulated) \n".format(
-        "ALL".ljust(max_len_name), status.ljust(9), time_sum) + BOLD[0]
+        "ALL".ljust(max_len_name), status.ljust(9), TimeResolution.seconds(time_sum)) + BOLD[0]
     if not all_passed:
         results += RED[0]
-    results += "Runtime: {} s\n".format(runtime)
+    results += "Runtime: {} s\n".format(TimeResolution.seconds(runtime))
     print(results)
 
 
@@ -640,7 +640,7 @@ class TestResult():
             glyph = CIRCLE
 
         return color[1] + "{} | {}{} | {} s\n".format(
-            self.name.ljust(self.padding), glyph, self.status.ljust(7), self.time) + color[0]
+            self.name.ljust(self.padding), glyph, self.status.ljust(7), TimeResolution.seconds(self.time)) + color[0]
 
     @property
     def was_successful(self):
@@ -797,7 +797,7 @@ def save_results_as_junit(test_results, file_name, time, test_suite_name):
                                "failures": str(len([t for t in test_results if t.status == "Failed"])),
                                "id": "0",
                                "skipped": str(len([t for t in test_results if t.status == "Skipped"])),
-                               "time": str(time),
+                               "time": str(TimeResolution.milliseconds(time)),
                                "timestamp": datetime.datetime.now().isoformat('T')
                                })
 
@@ -805,7 +805,7 @@ def save_results_as_junit(test_results, file_name, time, test_suite_name):
         e_test_case = ET.SubElement(e_test_suite, "testcase",
                                     {"name": test_result.name,
                                      "classname": test_result.name,
-                                     "time": str(test_result.time)
+                                     "time": str(TimeResolution.milliseconds(test_result.time))
                                      }
                                     )
         if test_result.status == "Skipped":
@@ -860,12 +860,22 @@ class Timings():
         # we only save test that have passed - timings for failed test might be
         # wrong (timeouts or early fails)
         passed_results = [t for t in test_results if t.status == 'Passed']
-        new_timings = list(map(lambda t: {'name': t.name, 'time': t.time},
+        new_timings = list(map(lambda t: {'name': t.name, 'time': TimeResolution.seconds(t.time)},
                                passed_results))
         merged_timings = self.get_merged_timings(new_timings)
 
         with open(self.timing_file, 'w', encoding="utf8") as f:
             json.dump(merged_timings, f, indent=True)
+
+
+class TimeResolution:
+    @staticmethod
+    def seconds(time_fractional_second):
+        return round(time_fractional_second)
+
+    @staticmethod
+    def milliseconds(time_fractional_second):
+        return round(time_fractional_second, 3)
 
 
 if __name__ == '__main__':
