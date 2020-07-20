@@ -1788,11 +1788,10 @@ void CConnman::ThreadDNSAddressSeed() {
                     {
                         LOCK(cs_vNodes);
                         for (const CNode *pnode : vNodes) {
-                            nRelevant += pnode->fSuccessfullyConnected &&
-                                         !pnode->IsFeelerConn() &&
-                                         !pnode->IsAddrFetchConn() &&
-                                         !pnode->IsManualConn() &&
-                                         !pnode->IsInboundConn();
+                            if (pnode->fSuccessfullyConnected &&
+                                pnode->IsOutboundOrBlockRelayConn()) {
+                                ++nRelevant;
+                            }
                         }
                     }
                     if (nRelevant >= 2) {
@@ -1916,9 +1915,8 @@ int CConnman::GetExtraOutboundCount() {
     {
         LOCK(cs_vNodes);
         for (const CNode *pnode : vNodes) {
-            if (!pnode->IsInboundConn() && !pnode->IsManualConn() &&
-                !pnode->IsFeelerConn() && !pnode->fDisconnect &&
-                !pnode->IsAddrFetchConn() && pnode->fSuccessfullyConnected) {
+            if (pnode->fSuccessfullyConnected && !pnode->fDisconnect &&
+                pnode->IsOutboundOrBlockRelayConn()) {
                 ++nOutbound;
             }
         }
