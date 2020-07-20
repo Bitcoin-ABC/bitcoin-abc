@@ -10,6 +10,7 @@ exclude_from_source_package(
 	# Subdirectories
 	"debian/"
 	"gitian/"
+	"gitian-builder/"
 	"gitian-descriptors/"
 	"qos/"
 	"seeds/"
