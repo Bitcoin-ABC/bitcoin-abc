@@ -17,7 +17,8 @@
 static void DuplicateInputs(benchmark::State &state) {
     const CScript SCRIPT_PUB{CScript(OP_TRUE)};
 
-    const CChainParams &chainparams = Params();
+    const CChainParams &chainParams = Params();
+    const Consensus::Params &consensusParams = chainParams.GetConsensus();
 
     CBlock block{};
     CMutableTransaction coinbaseTx{};
@@ -26,8 +27,7 @@ static void DuplicateInputs(benchmark::State &state) {
     LOCK(cs_main);
     CBlockIndex *pindexPrev = ::ChainActive().Tip();
     assert(pindexPrev != nullptr);
-    block.nBits =
-        GetNextWorkRequired(pindexPrev, &block, chainparams.GetConsensus());
+    block.nBits = GetNextWorkRequired(pindexPrev, &block, chainParams);
     block.nNonce = 0;
     auto nHeight = pindexPrev->nHeight + 1;
 
@@ -36,8 +36,7 @@ static void DuplicateInputs(benchmark::State &state) {
     coinbaseTx.vin[0].prevout = COutPoint();
     coinbaseTx.vout.resize(1);
     coinbaseTx.vout[0].scriptPubKey = SCRIPT_PUB;
-    coinbaseTx.vout[0].nValue =
-        GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    coinbaseTx.vout[0].nValue = GetBlockSubsidy(nHeight, consensusParams);
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
     naughtyTx.vout.resize(1);
@@ -58,7 +57,7 @@ static void DuplicateInputs(benchmark::State &state) {
 
     while (state.KeepRunning()) {
         BlockValidationState cvstate{};
-        assert(!CheckBlock(block, cvstate, chainparams.GetConsensus(),
+        assert(!CheckBlock(block, cvstate, consensusParams,
                            BlockValidationOptions(GetConfig())
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false)));

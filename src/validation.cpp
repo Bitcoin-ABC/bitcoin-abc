@@ -3541,9 +3541,7 @@ static bool ContextualCheckBlockHeader(const CChainParams &params,
     const int nHeight = pindexPrev->nHeight + 1;
 
     // Check proof of work
-    const Consensus::Params &consensusParams = params.GetConsensus();
-    if (block.nBits !=
-        GetNextWorkRequired(pindexPrev, &block, consensusParams)) {
+    if (block.nBits != GetNextWorkRequired(pindexPrev, &block, params)) {
         LogPrintf("bad bits after height: %d\n", pindexPrev->nHeight);
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER,
                              REJECT_INVALID, "bad-diffbits",
@@ -3594,6 +3592,7 @@ static bool ContextualCheckBlockHeader(const CChainParams &params,
     // Reject outdated version blocks when 95% (75% on testnet) of the network
     // has upgraded:
     // check for version 2, 3 and 4 upgrades
+    const Consensus::Params &consensusParams = params.GetConsensus();
     if ((block.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
         (block.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
         (block.nVersion < 4 && nHeight >= consensusParams.BIP65Height)) {

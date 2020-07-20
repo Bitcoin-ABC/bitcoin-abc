@@ -30,7 +30,7 @@
 #include <algorithm>
 #include <utility>
 
-int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,
+int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
                    const CBlockIndex *pindexPrev) {
     int64_t nOldTime = pblock->nTime;
     int64_t nNewTime =
@@ -41,8 +41,8 @@ int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,
     }
 
     // Updating time can change work required on testnet:
-    if (params.fPowAllowMinDifficultyBlocks) {
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, params);
+    if (chainParams.GetConsensus().fPowAllowMinDifficultyBlocks) {
+        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainParams);
     }
 
     return nNewTime - nOldTime;
@@ -61,7 +61,7 @@ BlockAssembler::Options::Options()
 BlockAssembler::BlockAssembler(const CChainParams &params,
                                const CTxMemPool &_mempool,
                                const Options &options)
-    : chainparams(params), mempool(&_mempool) {
+    : chainParams(params), mempool(&_mempool) {
     blockMinFeeRate = options.blockMinFeeRate;
     // Limit size to between 1K and options.nExcessiveBlockSize -1K for sanity:
     nMaxGeneratedBlockSize = std::max<uint64_t>(
@@ -141,12 +141,12 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
 
-    const Consensus::Params &consensusParams = chainparams.GetConsensus();
+    const Consensus::Params &consensusParams = chainParams.GetConsensus();
 
     pblock->nVersion = ComputeBlockVersion(pindexPrev, consensusParams);
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
-    if (chainparams.MineBlocksOnDemand()) {
+    if (chainParams.MineBlocksOnDemand()) {
         pblock->nVersion = gArgs.GetArg("-blockversion", pblock->nVersion);
     }
 
@@ -218,13 +218,13 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     // Fill in header.
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
-    UpdateTime(pblock, consensusParams, pindexPrev);
-    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams);
+    UpdateTime(pblock, chainParams, pindexPrev);
+    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainParams);
     pblock->nNonce = 0;
     pblocktemplate->entries[0].sigOpCount = 0;
 
     BlockValidationState state;
-    if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev,
+    if (!TestBlockValidity(state, chainParams, *pblock, pindexPrev,
                            BlockValidationOptions(nMaxGeneratedBlockSize)
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false))) {
@@ -280,7 +280,7 @@ bool BlockAssembler::TestPackageTransactions(
     uint64_t nPotentialBlockSize = nBlockSize;
     for (CTxMemPool::txiter it : package) {
         TxValidationState state;
-        if (!ContextualCheckTransaction(chainparams.GetConsensus(), it->GetTx(),
+        if (!ContextualCheckTransaction(chainParams.GetConsensus(), it->GetTx(),
                                         state, nHeight, nLockTimeCutoff,
                                         nMedianTimePast)) {
             return false;

@@ -8,6 +8,7 @@
 
 #include <arith_uint256.h>
 #include <chain.h>
+#include <chainparams.h>
 #include <consensus/activation.h>
 #include <consensus/params.h>
 #include <pow/daa.h>
@@ -17,9 +18,11 @@
 
 uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
                              const CBlockHeader *pblock,
-                             const Consensus::Params &params) {
+                             const CChainParams &chainParams) {
     // GetNextWorkRequired should never be called on the genesis block
     assert(pindexPrev != nullptr);
+
+    const Consensus::Params &params = chainParams.GetConsensus();
 
     // Special rule for regtest: we never retarget.
     if (params.fPowNoRetargeting) {

@@ -153,7 +153,7 @@ private:
     int nHeight;
     int64_t nLockTimeCutoff;
     int64_t nMedianTimePast;
-    const CChainParams &chainparams;
+    const CChainParams &chainParams;
 
     const CTxMemPool *mempool;
 
@@ -231,6 +231,6 @@ private:
 void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
                          uint64_t nExcessiveBlockSize,
                          unsigned int &nExtraNonce);
-int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,
+int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
                    const CBlockIndex *pindexPrev);
 #endif // BITCOIN_MINER_H

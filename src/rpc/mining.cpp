@@ -614,7 +614,7 @@ static UniValue getblocktemplate(const Config &config,
     CBlock *pblock = &pblocktemplate->block;
 
     // Update nTime
-    UpdateTime(pblock, config.GetChainParams().GetConsensus(), pindexPrev);
+    UpdateTime(pblock, config.GetChainParams(), pindexPrev);
     pblock->nNonce = 0;
 
     UniValue aCaps(UniValue::VARR);
