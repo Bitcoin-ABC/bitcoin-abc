@@ -49,7 +49,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
              ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH});
         peers.push_back(
             std::make_unique<CNode>(
-                i, service_flags, INVALID_SOCKET,
+                i, INVALID_SOCKET,
                 CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0,
                 0, 0, CAddress{}, std::string{}, conn_type,
                 conn_type == ConnectionType::INBOUND
@@ -63,7 +63,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         p2p_node.nVersion = PROTOCOL_VERSION;
         p2p_node.SetCommonVersion(PROTOCOL_VERSION);
         g_setup->m_node.peerman->InitializeNode(config, p2p_node,
-                                                p2p_node.GetLocalServices());
+                                                service_flags);
 
         connman.AddTestNode(p2p_node);
     }

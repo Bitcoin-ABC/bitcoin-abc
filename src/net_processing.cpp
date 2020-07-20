@@ -354,8 +354,6 @@ struct Peer {
      * fulfill this role after IBD completes. P2P code is written in such a
      * way that it can gracefully handle peers who don't make good on their
      * service advertisements.
-     *
-     * TODO: remove redundant CNode::nLocalServices
      */
     const ServiceFlags m_our_services;
 
@@ -1021,6 +1019,7 @@ private:
      *
      * May disconnect from the peer in the case of a bad request.
      *
+     * @param[in]   node            The node that we received the request from
      * @param[in]   peer            The peer that we received the request from
      * @param[in]   filter_type     The filter type the request is for. Must be
      *                              basic filters.
@@ -1034,7 +1033,8 @@ private:
      *                              serviced.
      * @return                      True if the request can be serviced.
      */
-    bool PrepareBlockFilterRequest(CNode &peer, BlockFilterType filter_type,
+    bool PrepareBlockFilterRequest(CNode &node, Peer &peer,
+                                   BlockFilterType filter_type,
                                    uint32_t start_height,
                                    const BlockHash &stop_hash,
                                    uint32_t max_height_diff,
@@ -1046,29 +1046,31 @@ private:
      *
      * May disconnect from the peer in the case of a bad request.
      *
+     * @param[in]   node            The node that we received the request from
      * @param[in]   peer            The peer that we received the request from
      * @param[in]   vRecv           The raw message received
      */
-    void ProcessGetCFilters(CNode &peer, CDataStream &vRecv);
+    void ProcessGetCFilters(CNode &node, Peer &peer, CDataStream &vRecv);
     /**
      * Handle a cfheaders request.
      *
      * May disconnect from the peer in the case of a bad request.
      *
+     * @param[in]   node            The node that we received the request from
      * @param[in]   peer            The peer that we received the request from
      * @param[in]   vRecv           The raw message received
      */
-    void ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv);
-
+    void ProcessGetCFHeaders(CNode &node, Peer &peer, CDataStream &vRecv);
     /**
      * Handle a getcfcheckpt request.
      *
      * May disconnect from the peer in the case of a bad request.
      *
+     * @param[in]   node            The node that we received the request from
      * @param[in]   peer            The peer that we received the request from
      * @param[in]   vRecv           The raw message received
      */
-    void ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv);
+    void ProcessGetCFCheckPt(CNode &node, Peer &peer, CDataStream &vRecv);
 
     /**
      * Decide a response for an Avalanche poll about the given block.
@@ -1667,10 +1669,7 @@ ComputeRequestTime(const CNode &node,
 
 void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
                                       const Peer &peer) {
-    // Note that pnode.GetLocalServices() is a reflection of the local
-    // services we were offering when the CNode object was created for this
-    // peer.
-    uint64_t my_services{pnode.GetLocalServices()};
+    uint64_t my_services{peer.m_our_services};
     const int64_t nTime{count_seconds(GetTime<std::chrono::seconds>())};
     uint64_t nonce = pnode.GetLocalNonce();
     const int nNodeStartingHeight{m_best_height};
@@ -2716,9 +2715,9 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
     // NODE_NETWORK_LIMITED threshold.
     // Add two blocks buffer extension for possible races
     if (!pfrom.HasPermission(NetPermissionFlags::NoBan) &&
-        ((((pfrom.GetLocalServices() & NODE_NETWORK_LIMITED) ==
+        ((((peer.m_our_services & NODE_NETWORK_LIMITED) ==
            NODE_NETWORK_LIMITED) &&
-          ((pfrom.GetLocalServices() & NODE_NETWORK) != NODE_NETWORK) &&
+          ((peer.m_our_services & NODE_NETWORK) != NODE_NETWORK) &&
           (m_chainman.ActiveChain().Tip()->nHeight - pindex->nHeight >
            (int)NODE_NETWORK_LIMITED_MIN_BLOCKS + 2)))) {
         LogPrint(BCLog::NET,
@@ -3342,17 +3341,17 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
 }
 
 bool PeerManagerImpl::PrepareBlockFilterRequest(
-    CNode &peer, BlockFilterType filter_type, uint32_t start_height,
+    CNode &node, Peer &peer, BlockFilterType filter_type, uint32_t start_height,
     const BlockHash &stop_hash, uint32_t max_height_diff,
     const CBlockIndex *&stop_index, BlockFilterIndex *&filter_index) {
     const bool supported_filter_type =
         (filter_type == BlockFilterType::BASIC &&
-         (peer.GetLocalServices() & NODE_COMPACT_FILTERS));
+         (peer.m_our_services & NODE_COMPACT_FILTERS));
     if (!supported_filter_type) {
         LogPrint(BCLog::NET,
                  "peer %d requested unsupported block filter type: %d\n",
-                 peer.GetId(), static_cast<uint8_t>(filter_type));
-        peer.fDisconnect = true;
+                 node.GetId(), static_cast<uint8_t>(filter_type));
+        node.fDisconnect = true;
         return false;
     }
 
@@ -3364,8 +3363,8 @@ bool PeerManagerImpl::PrepareBlockFilterRequest(
         // fetch it.
         if (!stop_index || !BlockRequestAllowed(stop_index)) {
             LogPrint(BCLog::NET, "peer %d requested invalid block hash: %s\n",
-                     peer.GetId(), stop_hash.ToString());
-            peer.fDisconnect = true;
+                     node.GetId(), stop_hash.ToString());
+            node.fDisconnect = true;
             return false;
         }
     }
@@ -3377,15 +3376,15 @@ bool PeerManagerImpl::PrepareBlockFilterRequest(
             "peer %d sent invalid getcfilters/getcfheaders with " /* Continued
                                                                    */
             "start height %d and stop height %d\n",
-            peer.GetId(), start_height, stop_height);
-        peer.fDisconnect = true;
+            node.GetId(), start_height, stop_height);
+        node.fDisconnect = true;
         return false;
     }
     if (stop_height - start_height >= max_height_diff) {
         LogPrint(BCLog::NET,
                  "peer %d requested too many cfilters/cfheaders: %d / %d\n",
-                 peer.GetId(), stop_height - start_height + 1, max_height_diff);
-        peer.fDisconnect = true;
+                 node.GetId(), stop_height - start_height + 1, max_height_diff);
+        node.fDisconnect = true;
         return false;
     }
 
@@ -3399,7 +3398,8 @@ bool PeerManagerImpl::PrepareBlockFilterRequest(
     return true;
 }
 
-void PeerManagerImpl::ProcessGetCFilters(CNode &peer, CDataStream &vRecv) {
+void PeerManagerImpl::ProcessGetCFilters(CNode &node, Peer &peer,
+                                         CDataStream &vRecv) {
     uint8_t filter_type_ser;
     uint32_t start_height;
     BlockHash stop_hash;
@@ -3411,8 +3411,8 @@ void PeerManagerImpl::ProcessGetCFilters(CNode &peer, CDataStream &vRecv) {
 
     const CBlockIndex *stop_index;
     BlockFilterIndex *filter_index;
-    if (!PrepareBlockFilterRequest(peer, filter_type, start_height, stop_hash,
-                                   MAX_GETCFILTERS_SIZE, stop_index,
+    if (!PrepareBlockFilterRequest(node, peer, filter_type, start_height,
+                                   stop_hash, MAX_GETCFILTERS_SIZE, stop_index,
                                    filter_index)) {
         return;
     }
@@ -3428,13 +3428,14 @@ void PeerManagerImpl::ProcessGetCFilters(CNode &peer, CDataStream &vRecv) {
     }
 
     for (const auto &filter : filters) {
-        CSerializedNetMsg msg = CNetMsgMaker(peer.GetCommonVersion())
+        CSerializedNetMsg msg = CNetMsgMaker(node.GetCommonVersion())
                                     .Make(NetMsgType::CFILTER, filter);
-        m_connman.PushMessage(&peer, std::move(msg));
+        m_connman.PushMessage(&node, std::move(msg));
     }
 }
 
-void PeerManagerImpl::ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv) {
+void PeerManagerImpl::ProcessGetCFHeaders(CNode &node, Peer &peer,
+                                          CDataStream &vRecv) {
     uint8_t filter_type_ser;
     uint32_t start_height;
     BlockHash stop_hash;
@@ -3446,8 +3447,8 @@ void PeerManagerImpl::ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv) {
 
     const CBlockIndex *stop_index;
     BlockFilterIndex *filter_index;
-    if (!PrepareBlockFilterRequest(peer, filter_type, start_height, stop_hash,
-                                   MAX_GETCFHEADERS_SIZE, stop_index,
+    if (!PrepareBlockFilterRequest(node, peer, filter_type, start_height,
+                                   stop_hash, MAX_GETCFHEADERS_SIZE, stop_index,
                                    filter_index)) {
         return;
     }
@@ -3478,13 +3479,14 @@ void PeerManagerImpl::ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv) {
     }
 
     CSerializedNetMsg msg =
-        CNetMsgMaker(peer.GetCommonVersion())
+        CNetMsgMaker(node.GetCommonVersion())
             .Make(NetMsgType::CFHEADERS, filter_type_ser,
                   stop_index->GetBlockHash(), prev_header, filter_hashes);
-    m_connman.PushMessage(&peer, std::move(msg));
+    m_connman.PushMessage(&node, std::move(msg));
 }
 
-void PeerManagerImpl::ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv) {
+void PeerManagerImpl::ProcessGetCFCheckPt(CNode &node, Peer &peer,
+                                          CDataStream &vRecv) {
     uint8_t filter_type_ser;
     BlockHash stop_hash;
 
@@ -3496,7 +3498,7 @@ void PeerManagerImpl::ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv) {
     const CBlockIndex *stop_index;
     BlockFilterIndex *filter_index;
     if (!PrepareBlockFilterRequest(
-            peer, filter_type, /*start_height=*/0, stop_hash,
+            node, peer, filter_type, /*start_height=*/0, stop_hash,
             /*max_height_diff=*/std::numeric_limits<uint32_t>::max(),
             stop_index, filter_index)) {
         return;
@@ -3520,10 +3522,10 @@ void PeerManagerImpl::ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv) {
         }
     }
 
-    CSerializedNetMsg msg = CNetMsgMaker(peer.GetCommonVersion())
+    CSerializedNetMsg msg = CNetMsgMaker(node.GetCommonVersion())
                                 .Make(NetMsgType::CFCHECKPT, filter_type_ser,
                                       stop_index->GetBlockHash(), headers);
-    m_connman.PushMessage(&peer, std::move(msg));
+    m_connman.PushMessage(&node, std::move(msg));
 }
 
 bool IsAvalancheMessageType(const std::string &msg_type) {
@@ -3810,7 +3812,7 @@ void PeerManagerImpl::ProcessMessage(
         // - fRelay=true or we're offering NODE_BLOOM to this peer
         //   (NODE_BLOOM means that the peer may turn on tx relay later)
         if (!pfrom.IsBlockOnlyConn() &&
-            (fRelay || (pfrom.GetLocalServices() & NODE_BLOOM))) {
+            (fRelay || (peer->m_our_services & NODE_BLOOM))) {
             auto *const tx_relay = peer->SetTxRelay();
             {
                 LOCK(tx_relay->m_bloom_filter_mutex);
@@ -5803,7 +5805,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::MEMPOOL) {
-        if (!(pfrom.GetLocalServices() & NODE_BLOOM) &&
+        if (!(peer->m_our_services & NODE_BLOOM) &&
             !pfrom.HasPermission(NetPermissionFlags::Mempool)) {
             if (!pfrom.HasPermission(NetPermissionFlags::NoBan)) {
                 LogPrint(BCLog::NET,
@@ -5916,7 +5918,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::FILTERLOAD) {
-        if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+        if (!(peer->m_our_services & NODE_BLOOM)) {
             LogPrint(BCLog::NET,
                      "filterload received despite not offering bloom services "
                      "from peer=%d; disconnecting\n",
@@ -5942,7 +5944,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::FILTERADD) {
-        if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+        if (!(peer->m_our_services & NODE_BLOOM)) {
             LogPrint(BCLog::NET,
                      "filteradd received despite not offering bloom services "
                      "from peer=%d; disconnecting\n",
@@ -5976,7 +5978,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::FILTERCLEAR) {
-        if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+        if (!(peer->m_our_services & NODE_BLOOM)) {
             LogPrint(BCLog::NET,
                      "filterclear received despite not offering bloom services "
                      "from peer=%d; disconnecting\n",
@@ -6013,17 +6015,17 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::GETCFILTERS) {
-        ProcessGetCFilters(pfrom, vRecv);
+        ProcessGetCFilters(pfrom, *peer, vRecv);
         return;
     }
 
     if (msg_type == NetMsgType::GETCFHEADERS) {
-        ProcessGetCFHeaders(pfrom, vRecv);
+        ProcessGetCFHeaders(pfrom, *peer, vRecv);
         return;
     }
 
     if (msg_type == NetMsgType::GETCFCHECKPT) {
-        ProcessGetCFCheckPt(pfrom, vRecv);
+        ProcessGetCFCheckPt(pfrom, *peer, vRecv);
         return;
     }
 

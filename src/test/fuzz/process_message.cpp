@@ -71,7 +71,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         PROTOCOL_VERSION};
     CNode &p2p_node =
         *std::make_unique<CNode>(
-             0, ServiceFlags(NODE_NETWORK | NODE_BLOOM), INVALID_SOCKET,
+             0, INVALID_SOCKET,
              CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0, 0,
              0, CAddress{}, std::string{}, ConnectionType::OUTBOUND_FULL_RELAY,
              false)
@@ -80,8 +80,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     p2p_node.nVersion = PROTOCOL_VERSION;
     p2p_node.SetCommonVersion(PROTOCOL_VERSION);
     connman.AddTestNode(p2p_node);
-    g_setup->m_node.peerman->InitializeNode(config, p2p_node,
-                                            p2p_node.GetLocalServices());
+    g_setup->m_node.peerman->InitializeNode(
+        config, p2p_node, ServiceFlags(NODE_NETWORK | NODE_BLOOM));
     try {
         g_setup->m_node.peerman->ProcessMessage(
             config, p2p_node, random_message_type, random_bytes_data_stream,

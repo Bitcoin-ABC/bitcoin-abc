@@ -15,6 +15,7 @@
 
 void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
                                ServiceFlags remote_services,
+                               ServiceFlags local_services,
                                NetPermissionFlags permission_flags,
                                int32_t version, bool relay_txs) {
     // This assumes that peerman is the first element in m_msgproc (see D11302)
@@ -22,7 +23,7 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
     auto &connman{*this};
     const CNetMsgMaker mm{0};
 
-    peerman.InitializeNode(::GetConfig(), node, node.GetLocalServices());
+    peerman.InitializeNode(::GetConfig(), node, local_services);
 
     CSerializedNetMsg msg_version{
         mm.Make(NetMsgType::VERSION, version,

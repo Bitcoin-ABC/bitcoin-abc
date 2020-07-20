@@ -686,11 +686,11 @@ public:
     std::atomic<std::chrono::microseconds> m_min_ping_time{
         std::chrono::microseconds::max()};
 
-    CNode(NodeId id, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
-          const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
-          uint64_t nLocalHostNonceIn, uint64_t nLocalExtraEntropyIn,
-          const CAddress &addrBindIn, const std::string &addrNameIn,
-          ConnectionType conn_type_in, bool inbound_onion);
+    CNode(NodeId id, SOCKET hSocketIn, const CAddress &addrIn,
+          uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
+          uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
+          const std::string &addrNameIn, ConnectionType conn_type_in,
+          bool inbound_onion);
     ~CNode();
     CNode(const CNode &) = delete;
     CNode &operator=(const CNode &) = delete;
@@ -748,8 +748,6 @@ public:
 
     void copyStats(CNodeStats &stats);
 
-    ServiceFlags GetLocalServices() const { return nLocalServices; }
-
     std::string ConnectionTypeAsString() const {
         return ::ConnectionTypeAsString(m_conn_type);
     }
@@ -760,9 +758,6 @@ private:
     const uint64_t nLocalExtraEntropy;
     const ConnectionType m_conn_type;
     std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
-
-    //! Services offered to this peer.
-    const ServiceFlags nLocalServices;
 
     NetPermissionFlags m_permissionFlags{NetPermissionFlags::None};
     // Used only by SocketHandler thread
@@ -1235,16 +1230,14 @@ private:
     std::map<uint64_t, CachedAddrResponse> m_addr_response_caches;
 
     /**
-     * Services this instance offers.
+     * Services this node offers.
      *
-     * This data is replicated in each CNode instance we create during peer
-     * connection (in ConnectNode()) under a member also called
-     * nLocalServices.
+     * This data is replicated in each Peer instance we create.
      *
      * This data is not marked const, but after being set it should not
-     * change. See the note in CNode::nLocalServices documentation.
+     * change.
      *
-     * \sa CNode::nLocalServices
+     * \sa Peer::m_our_services
      */
     ServiceFlags nLocalServices;
 

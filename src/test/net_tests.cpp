@@ -69,12 +69,7 @@ struct CConnmanTest : public CConnman {
     }
 
     void AddNode(const CAddress &addr, ConnectionType type) {
-        ServiceFlags services = NODE_NETWORK;
-        if (type == ConnectionType::AVALANCHE_OUTBOUND) {
-            services = ServiceFlags(services | NODE_AVALANCHE);
-        }
-
-        CNode *pnode = new CNode(nodeid++, services, INVALID_SOCKET, addr,
+        CNode *pnode = new CNode(nodeid++, INVALID_SOCKET, addr,
                                  CalculateKeyedNetGroup(addr),
                                  /* nLocalHostNonceIn */ 0,
                                  /* nLocalExtraEntropyIn */ 0, addr,
@@ -276,7 +271,7 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test) {
     std::string pszDest;
 
     auto pnode1 =
-        std::make_unique<CNode>(id++, NODE_NETWORK, hSocket, addr,
+        std::make_unique<CNode>(id++, hSocket, addr,
                                 /* nKeyedNetGroupIn = */ 0,
                                 /* nLocalHostNonceIn = */ 0,
                                 /* nLocalExtraEntropyIn */ 0, CAddress(),
@@ -291,9 +286,9 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test) {
     BOOST_CHECK(pnode1->m_inbound_onion == false);
     BOOST_CHECK_EQUAL(pnode1->ConnectedThroughNetwork(), Network::NET_IPV4);
 
-    auto pnode2 = std::make_unique<CNode>(id++, NODE_NETWORK, hSocket, addr, 1,
-                                          1, 1, CAddress(), pszDest,
-                                          ConnectionType::INBOUND, false);
+    auto pnode2 =
+        std::make_unique<CNode>(id++, hSocket, addr, 1, 1, 1, CAddress(),
+                                pszDest, ConnectionType::INBOUND, false);
     BOOST_CHECK(pnode2->IsFullOutboundConn() == false);
     BOOST_CHECK(pnode2->IsManualConn() == false);
     BOOST_CHECK(pnode2->IsBlockOnlyConn() == false);
@@ -304,7 +299,7 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test) {
     BOOST_CHECK_EQUAL(pnode2->ConnectedThroughNetwork(), Network::NET_IPV4);
 
     auto pnode3 = std::make_unique<CNode>(
-        id++, NODE_NETWORK, hSocket, addr, 0, 0, 0, CAddress(), pszDest,
+        id++, hSocket, addr, 0, 0, 0, CAddress(), pszDest,
         ConnectionType::OUTBOUND_FULL_RELAY, false);
     BOOST_CHECK(pnode3->IsFullOutboundConn() == true);
     BOOST_CHECK(pnode3->IsManualConn() == false);
@@ -315,9 +310,9 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test) {
     BOOST_CHECK(pnode3->m_inbound_onion == false);
     BOOST_CHECK_EQUAL(pnode3->ConnectedThroughNetwork(), Network::NET_IPV4);
 
-    auto pnode4 = std::make_unique<CNode>(id++, NODE_NETWORK, hSocket, addr, 1,
-                                          1, 1, CAddress(), pszDest,
-                                          ConnectionType::INBOUND, true);
+    auto pnode4 =
+        std::make_unique<CNode>(id++, hSocket, addr, 1, 1, 1, CAddress(),
+                                pszDest, ConnectionType::INBOUND, true);
     BOOST_CHECK(pnode4->IsFullOutboundConn() == false);
     BOOST_CHECK(pnode4->IsManualConn() == false);
     BOOST_CHECK(pnode4->IsBlockOnlyConn() == false);
@@ -905,7 +900,7 @@ BOOST_AUTO_TEST_CASE(ipv4_peer_with_ipv6_addrMe_test) {
     ipv4AddrPeer.s_addr = 0xa0b0c001;
     CAddress addr = CAddress(CService(ipv4AddrPeer, 7777), NODE_NETWORK);
     std::unique_ptr<CNode> pnode = std::make_unique<CNode>(
-        0, NODE_NETWORK, INVALID_SOCKET, addr, /* nKeyedNetGroupIn */ 0,
+        0, INVALID_SOCKET, addr, /* nKeyedNetGroupIn */ 0,
         /* nLocalHostNonceIn */ 0, /* nLocalExtraEntropyIn */ 0, CAddress{},
         /* pszDest */ std::string{}, ConnectionType::OUTBOUND_FULL_RELAY,
         /* inbound_onion = */ false);
@@ -961,7 +956,6 @@ BOOST_AUTO_TEST_CASE(get_local_addr_for_peer_port) {
     peer_out_in_addr.s_addr = htonl(0x01020304);
     CNode peer_out{
         /*id=*/0,
-        /*nLocalServicesIn=*/NODE_NETWORK,
         /*hSocketIn=*/INVALID_SOCKET,
         /*addrIn=*/CAddress{CService{peer_out_in_addr, 8333}, NODE_NETWORK},
         /*nKeyedNetGroupIn=*/0,
@@ -986,7 +980,6 @@ BOOST_AUTO_TEST_CASE(get_local_addr_for_peer_port) {
     peer_in_in_addr.s_addr = htonl(0x05060708);
     CNode peer_in{
         /*id=*/0,
-        /*nLocalServicesIn=*/NODE_NETWORK,
         /*hSocketIn=*/INVALID_SOCKET,
         /*addrIn=*/CAddress{CService{peer_in_in_addr, 8333}, NODE_NETWORK},
         /*nKeyedNetGroupIn=*/0,
@@ -1022,8 +1015,8 @@ BOOST_AUTO_TEST_CASE(avalanche_statistics) {
         ipv4Addr.s_addr = 0xa0b0c001;
         CAddress addr = CAddress(CService(ipv4Addr, 7777), NODE_NETWORK);
         std::unique_ptr<CNode> pnode = std::make_unique<CNode>(
-            0, NODE_NETWORK, INVALID_SOCKET, addr, 0, 0, 0, CAddress(),
-            std::string{}, ConnectionType::OUTBOUND_FULL_RELAY, false);
+            0, INVALID_SOCKET, addr, 0, 0, 0, CAddress(), std::string{},
+            ConnectionType::OUTBOUND_FULL_RELAY, false);
         pnode->m_avalanche_enabled = true;
 
         double previousScore = pnode->getAvailabilityScore();
@@ -1289,7 +1282,6 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
     in_addr peer_in_addr;
     peer_in_addr.s_addr = htonl(0x01020304);
     CNode peer{/*id=*/0,
-               /*nLocalServicesIn=*/NODE_NETWORK,
                /*hSocketIn=*/INVALID_SOCKET,
                /*addrIn=*/CAddress{CService{peer_in_addr, 8333}, NODE_NETWORK},
                /*nKeyedNetGroupIn=*/0,
@@ -1312,7 +1304,7 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
 
     const Config &config = GetConfig();
 
-    m_node.peerman->InitializeNode(config, peer, peer.GetLocalServices());
+    m_node.peerman->InitializeNode(config, peer, NODE_NETWORK);
 
     std::atomic<bool> interrupt_dummy{false};
     std::chrono::microseconds time_received_dummy{0};

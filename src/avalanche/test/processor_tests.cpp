@@ -172,7 +172,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
         CAddress addr(ip(GetRandInt(0xffffffff)), NODE_NONE);
         auto node =
-            new CNode(id++, ServiceFlags(NODE_NETWORK), INVALID_SOCKET, addr,
+            new CNode(id++, INVALID_SOCKET, addr,
                       /* nKeyedNetGroupIn */ 0,
                       /* nLocalHostNonceIn */ 0,
                       /* nLocalExtraEntropyIn */ 0, CAddress(),
@@ -181,7 +181,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         node->SetCommonVersion(PROTOCOL_VERSION);
         node->m_has_all_wanted_services =
             HasAllDesirableServiceFlags(nServices);
-        m_node.peerman->InitializeNode(config, *node, node->GetLocalServices());
+        m_node.peerman->InitializeNode(config, *node, NODE_NETWORK);
         node->nVersion = 1;
         node->fSuccessfullyConnected = true;
 

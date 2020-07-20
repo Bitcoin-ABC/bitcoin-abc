@@ -542,11 +542,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     if (!addr_bind.IsValid()) {
         addr_bind = GetBindAddress(sock->Get());
     }
-    CNode *pnode =
-        new CNode(id, nLocalServices, sock->Release(), addrConnect,
-                  CalculateKeyedNetGroup(addrConnect), nonce, extra_entropy,
-                  addr_bind, pszDest ? pszDest : "", conn_type,
-                  /* inbound_onion */ false);
+    CNode *pnode = new CNode(
+        id, sock->Release(), addrConnect, CalculateKeyedNetGroup(addrConnect),
+        nonce, extra_entropy, addr_bind, pszDest ? pszDest : "", conn_type,
+        /* inbound_onion */ false);
     pnode->AddRef();
 
     // We're making a new connection, harvest entropy from the time (and our
@@ -1393,9 +1392,9 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
     const bool inbound_onion =
         std::find(m_onion_binds.begin(), m_onion_binds.end(), addr_bind) !=
         m_onion_binds.end();
-    CNode *pnode = new CNode(
-        id, nodeServices, hSocket, addr, CalculateKeyedNetGroup(addr), nonce,
-        extra_entropy, addr_bind, "", ConnectionType::INBOUND, inbound_onion);
+    CNode *pnode = new CNode(id, hSocket, addr, CalculateKeyedNetGroup(addr),
+                             nonce, extra_entropy, addr_bind, "",
+                             ConnectionType::INBOUND, inbound_onion);
     pnode->AddRef();
     pnode->m_permissionFlags = permissionFlags;
     pnode->m_prefer_evict = discouraged;
@@ -3448,11 +3447,11 @@ double CNode::getAvailabilityScore() const {
     return availabilityScore;
 }
 
-CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
-             const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
-             uint64_t nLocalHostNonceIn, uint64_t nLocalExtraEntropyIn,
-             const CAddress &addrBindIn, const std::string &addrNameIn,
-             ConnectionType conn_type_in, bool inbound_onion)
+CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
+             uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
+             uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
+             const std::string &addrNameIn, ConnectionType conn_type_in,
+             bool inbound_onion)
     : m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
       addrBind(addrBindIn), m_addr_name{addrNameIn.empty()
                                             ? addr.ToStringIPPort()
@@ -3462,8 +3461,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
       id(idIn), nLocalHostNonce(nLocalHostNonceIn),
-      nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in),
-      nLocalServices(nLocalServicesIn) {
+      nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in) {
     if (inbound_onion) {
         assert(conn_type_in == ConnectionType::INBOUND);
     }

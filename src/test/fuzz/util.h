@@ -271,8 +271,6 @@ CAddress ConsumeAddress(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 
 CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     const NodeId node_id = fuzzed_data_provider.ConsumeIntegral<NodeId>();
-    const ServiceFlags local_services = static_cast<ServiceFlags>(
-        fuzzed_data_provider.ConsumeIntegral<uint64_t>());
     const SOCKET socket = INVALID_SOCKET;
     const CAddress address = ConsumeAddress(fuzzed_data_provider);
     const uint64_t keyed_net_group =
@@ -290,7 +288,6 @@ CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
          ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH});
     const bool inbound_onion = fuzzed_data_provider.ConsumeBool();
     return {node_id,
-            local_services,
             socket,
             address,
             keyed_net_group,
