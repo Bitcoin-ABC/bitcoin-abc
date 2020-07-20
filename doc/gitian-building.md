@@ -17,17 +17,6 @@ More independent Gitian builders are needed, which is why this guide exists.
 It is preferred you follow these steps yourself instead of using someone else's
 VM image to avoid 'contaminating' the build.
 
-Table of Contents
------------------
-
-- [Preparing the Gitian builder host](#preparing-the-gitian-builder-host)
-- [Getting and building the inputs](#getting-and-building-the-inputs)
-- [Building Bitcoin Core](#building-bitcoin-core)
-- [Building an alternative repository](#building-an-alternative-repository)
-- [Signing externally](#signing-externally)
-- [Uploading signatures](#uploading-signatures)
-
-
 Preparing the Gitian builder host
 ---------------------------------
 
@@ -37,8 +26,6 @@ This guide explains how to set up the environment, and how to start the builds.
 Gitian builds are known to be working on recent versions of Debian, Ubuntu and Fedora.
 If your machine is already running one of those operating systems, you can perform Gitian builds on the actual hardware.
 Alternatively, you can install one of the supported operating systems in a virtual machine.
-
-You can create the virtual machine using [vagrant](./gitian-building/gitian-building-vagrant.md) or chose to setup the VM manually.
 
 Any kind of virtualization can be used, for example:
 - [VirtualBox](https://www.virtualbox.org/) (covered by this guide)
