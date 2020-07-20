@@ -1312,7 +1312,7 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
 
     const Config &config = GetConfig();
 
-    m_node.peerman->InitializeNode(config, &peer);
+    m_node.peerman->InitializeNode(config, peer, peer.GetLocalServices());
 
     std::atomic<bool> interrupt_dummy{false};
     std::chrono::microseconds time_received_dummy{0};

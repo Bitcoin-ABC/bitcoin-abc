@@ -62,7 +62,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         p2p_node.fPauseSend = false;
         p2p_node.nVersion = PROTOCOL_VERSION;
         p2p_node.SetCommonVersion(PROTOCOL_VERSION);
-        g_setup->m_node.peerman->InitializeNode(config, &p2p_node);
+        g_setup->m_node.peerman->InitializeNode(config, p2p_node,
+                                                p2p_node.GetLocalServices());
 
         connman.AddTestNode(p2p_node);
     }

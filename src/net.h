@@ -763,20 +763,6 @@ private:
     std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
 
     //! Services offered to this peer.
-    //!
-    //! This is supplied by the parent CConnman during peer connection
-    //! (CConnman::ConnectNode()) from its attribute of the same name.
-    //!
-    //! This is const because there is no protocol defined for renegotiating
-    //! services initially offered to a peer. The set of local services we
-    //! offer should not change after initialization.
-    //!
-    //! An interesting example of this is NODE_NETWORK and initial block
-    //! download: a node which starts up from scratch doesn't have any blocks
-    //! to serve, but still advertises NODE_NETWORK because it will eventually
-    //! fulfill this role after IBD completes. P2P code is written in such a
-    //! way that it can gracefully handle peers who don't make good on their
-    //! service advertisements.
     const ServiceFlags nLocalServices;
 
     NetPermissionFlags m_permissionFlags{NetPermissionFlags::None};
@@ -807,7 +793,8 @@ private:
 class NetEventsInterface {
 public:
     /** Initialize a peer (setup state, queue any initial messages) */
-    virtual void InitializeNode(const Config &config, CNode *pnode) = 0;
+    virtual void InitializeNode(const Config &config, CNode &node,
+                                ServiceFlags our_services) = 0;
 
     /** Handle removal of a peer (clear state) */
     virtual void FinalizeNode(const Config &config, const CNode &node) = 0;

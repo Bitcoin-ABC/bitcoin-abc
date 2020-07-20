@@ -355,7 +355,8 @@ public:
                                 const CScript &winner);
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
-    void InitializeNode(const ::Config &config, CNode *pnode) override {}
+    void InitializeNode(const ::Config &config, CNode &pnode,
+                        ServiceFlags our_services) override {}
     bool ProcessMessages(const ::Config &config, CNode *pnode,
                          std::atomic<bool> &interrupt) override {
         return false;

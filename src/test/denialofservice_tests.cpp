@@ -82,7 +82,8 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
                      /* inbound_onion */ false);
     dummyNode1.SetCommonVersion(PROTOCOL_VERSION);
 
-    peerLogic->InitializeNode(config, &dummyNode1);
+    peerLogic->InitializeNode(config, dummyNode1,
+                              dummyNode1.GetLocalServices());
     dummyNode1.fSuccessfullyConnected = true;
 
     // This test requires that we have a chain with non-zero work.
@@ -144,7 +145,7 @@ static void AddRandomOutboundPeer(const Config &config,
     CNode &node = *vNodes.back();
     node.SetCommonVersion(PROTOCOL_VERSION);
 
-    peerLogic.InitializeNode(config, &node);
+    peerLogic.InitializeNode(config, node, node.GetLocalServices());
     node.fSuccessfullyConnected = true;
 
     connman->AddNode(node);
@@ -252,7 +253,8 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
                      /* nLocalExtraEntropyIn */ 0, CAddress(), /* pszDest */ "",
                      ConnectionType::INBOUND, /* inbound_onion */ false);
     dummyNode1.SetCommonVersion(PROTOCOL_VERSION);
-    peerLogic->InitializeNode(config, &dummyNode1);
+    peerLogic->InitializeNode(config, dummyNode1,
+                              dummyNode1.GetLocalServices());
     dummyNode1.fSuccessfullyConnected = true;
     // Should be discouraged
     peerLogic->Misbehaving(dummyNode1.GetId(), DISCOURAGEMENT_THRESHOLD,
@@ -272,7 +274,8 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
                      /* pszDest */ "", ConnectionType::INBOUND,
                      /* inbound_onion */ false);
     dummyNode2.SetCommonVersion(PROTOCOL_VERSION);
-    peerLogic->InitializeNode(config, &dummyNode2);
+    peerLogic->InitializeNode(config, dummyNode2,
+                              dummyNode2.GetLocalServices());
     dummyNode2.fSuccessfullyConnected = true;
     peerLogic->Misbehaving(dummyNode2.GetId(), DISCOURAGEMENT_THRESHOLD - 1,
                            /* message */ "");
@@ -320,7 +323,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
                     /* nLocalExtraEntropyIn */ 4, CAddress(), /* pszDest */ "",
                     ConnectionType::INBOUND, /* inbound_onion */ false);
     dummyNode.SetCommonVersion(PROTOCOL_VERSION);
-    peerLogic->InitializeNode(config, &dummyNode);
+    peerLogic->InitializeNode(config, dummyNode, dummyNode.GetLocalServices());
     dummyNode.fSuccessfullyConnected = true;
 
     peerLogic->Misbehaving(dummyNode.GetId(), DISCOURAGEMENT_THRESHOLD,

@@ -1406,7 +1406,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
     pnode->m_permissionFlags = permissionFlags;
     pnode->m_prefer_evict = discouraged;
     for (auto interface : m_msgproc) {
-        interface->InitializeNode(*config, pnode);
+        interface->InitializeNode(*config, *pnode, nodeServices);
     }
 
     LogPrint(BCLog::NET, "connection from %s accepted\n", addr.ToString());
@@ -2607,7 +2607,7 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
     }
 
     for (auto interface : m_msgproc) {
-        interface->InitializeNode(*config, pnode);
+        interface->InitializeNode(*config, *pnode, nLocalServices);
     }
 
     {

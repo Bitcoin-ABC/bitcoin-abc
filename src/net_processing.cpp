@@ -340,6 +340,31 @@ struct Peer {
     /** Same id as the CNode object for this peer */
     const NodeId m_id{0};
 
+    /**
+     * Services we offered to this peer.
+     *
+     * This is supplied by CConnman during peer initialization. It's const
+     * because there is no protocol defined for renegotiating services
+     * initially offered to a peer. The set of local services we offer should
+     * not change after initialization.
+     *
+     * An interesting example of this is NODE_NETWORK and initial block
+     * download: a node which starts up from scratch doesn't have any blocks
+     * to serve, but still advertises NODE_NETWORK because it will eventually
+     * fulfill this role after IBD completes. P2P code is written in such a
+     * way that it can gracefully handle peers who don't make good on their
+     * service advertisements.
+     *
+     * TODO: remove redundant CNode::nLocalServices
+     */
+    const ServiceFlags m_our_services;
+    /**
+     * Services this peer offered to us.
+     *
+     * TODO: remove redundant CNode::nServices
+     */
+    std::atomic<ServiceFlags> m_their_services{NODE_NONE};
+
     /** Protects misbehavior data members */
     Mutex m_misbehavior_mutex;
     /** Accumulated misbehavior score for this peer */
@@ -559,10 +584,11 @@ struct Peer {
     /** Work queue of items requested by this peer **/
     std::deque<CInv> m_getdata_requests GUARDED_BY(m_getdata_requests_mutex);
 
-    explicit Peer(NodeId id)
-        : m_id(id), m_proof_relay(isAvalancheEnabled(gArgs)
-                                      ? std::make_unique<ProofRelay>()
-                                      : nullptr) {}
+    explicit Peer(NodeId id, ServiceFlags our_services)
+        : m_id(id), m_our_services{our_services},
+          m_proof_relay(isAvalancheEnabled(gArgs)
+                            ? std::make_unique<ProofRelay>()
+                            : nullptr) {}
 
 private:
     Mutex m_tx_relay_mutex;
@@ -597,7 +623,8 @@ public:
                           const std::shared_ptr<const CBlock> &pblock) override;
 
     /** Implement NetEventsInterface */
-    void InitializeNode(const Config &config, CNode *pnode) override;
+    void InitializeNode(const Config &config, CNode &node,
+                        ServiceFlags our_services) override;
     void FinalizeNode(const Config &config, const CNode &node) override;
     bool ProcessMessages(const Config &config, CNode *pfrom,
                          std::atomic<bool> &interrupt) override;
@@ -1730,23 +1757,23 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
     }
 }
 
-void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
-    NodeId nodeid = pnode->GetId();
+void PeerManagerImpl::InitializeNode(const Config &config, CNode &node,
+                                     ServiceFlags our_services) {
+    NodeId nodeid = node.GetId();
     {
         LOCK(cs_main);
-        mapNodeState.emplace_hint(
-            mapNodeState.end(), std::piecewise_construct,
-            std::forward_as_tuple(nodeid),
-            std::forward_as_tuple(pnode->IsInboundConn()));
+        mapNodeState.emplace_hint(mapNodeState.end(), std::piecewise_construct,
+                                  std::forward_as_tuple(nodeid),
+                                  std::forward_as_tuple(node.IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
-    PeerRef peer = std::make_shared<Peer>(nodeid);
+    PeerRef peer = std::make_shared<Peer>(nodeid, our_services);
     {
         LOCK(m_peer_mutex);
         m_peer_map.emplace_hint(m_peer_map.end(), nodeid, peer);
     }
-    if (!pnode->IsInboundConn()) {
-        PushNodeVersion(config, *pnode, *peer);
+    if (!node.IsInboundConn()) {
+        PushNodeVersion(config, node, *peer);
     }
 }
 
@@ -3771,6 +3798,7 @@ void PeerManagerImpl::ProcessMessage(
         m_connman.PushMessage(&pfrom, msg_maker.Make(NetMsgType::SENDADDRV2));
 
         pfrom.nServices = nServices;
+        peer->m_their_services = nServices;
         pfrom.SetAddrLocal(addrMe);
         {
             LOCK(pfrom.m_subver_mutex);

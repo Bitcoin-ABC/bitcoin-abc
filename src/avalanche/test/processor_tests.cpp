@@ -180,7 +180,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
                       /* inbound_onion */ false);
         node->SetCommonVersion(PROTOCOL_VERSION);
         node->nServices = nServices;
-        m_node.peerman->InitializeNode(config, node);
+        m_node.peerman->InitializeNode(config, *node, node->GetLocalServices());
         node->nVersion = 1;
         node->fSuccessfullyConnected = true;
 
