@@ -127,6 +127,7 @@ BITCOIN_CORE_H = \
   blockencodings.h \
   blockfileinfo.h \
   blockfilter.h \
+  blockindex.h \
   blockindexworkcomparator.h \
   blockstatus.h \
   blockvalidity.h \
@@ -309,6 +310,7 @@ libbitcoin_server_a_SOURCES = \
   banman.cpp \
   blockencodings.cpp \
   blockfilter.cpp \
+  blockindex.cpp \
   chain.cpp \
   checkpoints.cpp \
   config.cpp \

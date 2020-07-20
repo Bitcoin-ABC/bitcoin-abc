@@ -6,6 +6,7 @@
 
 #include <avalanche/peermanager.h>
 #include <avalanche/test/util.h>
+#include <chain.h>
 #include <config.h>
 #include <net_processing.h> // For PeerLogicValidation
 #include <util/time.h>

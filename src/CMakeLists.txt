@@ -505,6 +505,7 @@ add_library(server
 	banman.cpp
 	blockencodings.cpp
 	blockfilter.cpp
+	blockindex.cpp
 	chain.cpp
 	checkpoints.cpp
 	config.cpp
