@@ -179,7 +179,8 @@ struct AvalancheTestingSetup : public TestChain100Setup {
                       /* pszDest */ "", ConnectionType::OUTBOUND_FULL_RELAY,
                       /* inbound_onion */ false);
         node->SetCommonVersion(PROTOCOL_VERSION);
-        node->nServices = nServices;
+        node->m_has_all_wanted_services =
+            HasAllDesirableServiceFlags(nServices);
         m_node.peerman->InitializeNode(config, *node, node->GetLocalServices());
         node->nVersion = 1;
         node->fSuccessfullyConnected = true;

@@ -61,9 +61,9 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
     }
     assert(node.nVersion == version);
     assert(node.GetCommonVersion() == std::min(version, PROTOCOL_VERSION));
-    assert(node.nServices == remote_services);
     CNodeStateStats statestats;
     assert(peerman.GetNodeStateStats(node.GetId(), statestats));
+    assert(statestats.their_services == remote_services);
     node.m_permissionFlags = permission_flags;
     if (successfully_connected) {
         CSerializedNetMsg msg_verack{mm.Make(NetMsgType::VERACK)};

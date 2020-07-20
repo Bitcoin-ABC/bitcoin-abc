@@ -283,7 +283,6 @@ typedef std::map<std::string, uint64_t> mapMsgCmdSize;
  */
 struct CNodeStats {
     NodeId nodeid;
-    ServiceFlags nServices;
     std::chrono::seconds m_last_send;
     std::chrono::seconds m_last_recv;
     std::chrono::seconds m_last_tx_time;
@@ -457,7 +456,6 @@ public:
     std::unique_ptr<TransportSerializer> m_serializer;
 
     // socket
-    std::atomic<ServiceFlags> nServices{NODE_NONE};
     SOCKET hSocket GUARDED_BY(cs_hSocket);
     /** Total size of all vSendMsg entries. */
     size_t nSendSize GUARDED_BY(cs_vSend){0};
@@ -591,6 +589,12 @@ public:
     std::atomic<bool> m_bip152_highbandwidth_to{false};
     // Peer selected us as (compact blocks) high-bandwidth peer (BIP152)
     std::atomic<bool> m_bip152_highbandwidth_from{false};
+
+    /**
+     * Whether this peer provides all services that we want.
+     * Used for eviction decisions
+     */
+    std::atomic_bool m_has_all_wanted_services{false};
 
     /**
      * Whether we should relay transactions to this peer (their version

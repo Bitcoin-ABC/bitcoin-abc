@@ -624,7 +624,6 @@ Network CNode::ConnectedThroughNetwork() const {
 
 void CNode::copyStats(CNodeStats &stats) {
     stats.nodeid = this->GetId();
-    stats.nServices = nServices;
     stats.addr = addr;
     stats.addrBind = addrBind;
     stats.m_network = ConnectedThroughNetwork();
@@ -1238,7 +1237,7 @@ bool CConnman::AttemptToEvictConnection() {
                 node->m_last_block_time,
                 node->m_last_proof_time,
                 node->m_last_tx_time,
-                HasAllDesirableServiceFlags(node->nServices),
+                node->m_has_all_wanted_services,
                 node->m_relays_txs.load(),
                 node->m_bloom_filter_loaded.load(),
                 node->nKeyedNetGroup,

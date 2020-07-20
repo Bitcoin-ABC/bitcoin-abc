@@ -358,11 +358,8 @@ struct Peer {
      * TODO: remove redundant CNode::nLocalServices
      */
     const ServiceFlags m_our_services;
-    /**
-     * Services this peer offered to us.
-     *
-     * TODO: remove redundant CNode::nServices
-     */
+
+    /** Services this peer offered to us. */
     std::atomic<ServiceFlags> m_their_services{NODE_NONE};
 
     /** Protects misbehavior data members */
@@ -2061,6 +2058,7 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
     if (peer == nullptr) {
         return false;
     }
+    stats.their_services = peer->m_their_services;
     stats.m_starting_height = peer->m_starting_height;
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer.
@@ -3797,7 +3795,8 @@ void PeerManagerImpl::ProcessMessage(
         // Signal ADDRv2 support (BIP155).
         m_connman.PushMessage(&pfrom, msg_maker.Make(NetMsgType::SENDADDRV2));
 
-        pfrom.nServices = nServices;
+        pfrom.m_has_all_wanted_services =
+            HasAllDesirableServiceFlags(nServices);
         peer->m_their_services = nServices;
         pfrom.SetAddrLocal(addrMe);
         {
