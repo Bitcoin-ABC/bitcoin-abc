@@ -1766,17 +1766,16 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
 
     const std::string strHash = request.params[0].get_str();
     const BlockHash hash(uint256S(strHash));
+    BlockValidationState state;
 
-    CBlockIndex *pblockindex;
+    CBlockIndex *pblockindex = nullptr;
     {
         LOCK(cs_main);
-        if (mapBlockIndex.count(hash) == 0) {
+        pblockindex = LookupBlockIndex(hash);
+        if (!pblockindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         }
-
-        pblockindex = mapBlockIndex[hash];
     }
-    BlockValidationState state;
     ParkBlock(config, state, pblockindex);
 
     if (state.IsValid()) {
