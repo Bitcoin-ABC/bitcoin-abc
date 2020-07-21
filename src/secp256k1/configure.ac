@@ -539,8 +539,6 @@ if test x"$enable_module_schnorr" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_SCHNORR, 1, [Define this symbol to enable the Schnorr signature module])
 fi
 
-AC_C_BIGENDIAN()
-
 if test x"$use_external_asm" = x"yes"; then
   AC_DEFINE(USE_EXTERNAL_ASM, 1, [Define this symbol if an external (non-inline) assembly implementation is used])
 fi
