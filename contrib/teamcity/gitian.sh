@@ -10,17 +10,11 @@ set -euxo pipefail
 
 COMMIT=$(git -C "${TOPLEVEL}" rev-parse HEAD)
 export COMMIT
-export USE_LXC=1
-export GITIAN_HOST_IP=10.0.3.1
-export LXC_BRIDGE=lxcbr0
-export LXC_GUEST_IP=10.0.3.5
+export USE_DOCKER=1
 
 cd "${TOPLEVEL}/contrib/gitian-builder"
 
-# Build the base image if it doesn't already exist
-if [ ! -f "base-buster-amd64" ]; then
-  ./bin/make-base-vm --lxc --arch amd64 --distro debian --suite buster
-fi
+./bin/make-base-vm --docker --arch amd64 --distro debian --suite buster
 
 if [[ "${OS_NAME}" == "osx" ]]; then
   OSX_SDK="MacOSX10.14.sdk.tar.gz"
