@@ -934,10 +934,6 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
     }
 }
 
-static bool IsOutboundDisconnectionCandidate(const CNode &node) {
-    return node.IsOutboundOrBlockRelayConn();
-}
-
 void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
     CAddress addr = pnode->addr;
     std::string addrName = pnode->GetAddrName();
@@ -2137,7 +2133,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
                 // until we have a headers chain that has at least
                 // nMinimumChainWork, even if a peer has a chain past our tip,
                 // as an anti-DoS measure.
-                if (IsOutboundDisconnectionCandidate(pfrom)) {
+                if (pfrom.IsOutboundOrBlockRelayConn()) {
                     LogPrintf("Disconnecting outbound peer %d -- headers "
                               "chain has insufficient work\n",
                               pfrom.GetId());
@@ -2146,7 +2142,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
             }
         }
 
-        if (!pfrom.fDisconnect && IsOutboundDisconnectionCandidate(pfrom) &&
+        if (!pfrom.fDisconnect && pfrom.IsOutboundOrBlockRelayConn() &&
             nodestate->pindexBestKnownBlock != nullptr &&
             pfrom.m_tx_relay != nullptr) {
             // If this is an outbound full-relay peer, check to see if we should
@@ -4357,8 +4353,8 @@ void PeerLogicValidation::ConsiderEviction(CNode &pto,
     CNodeState &state = *State(pto.GetId());
     const CNetMsgMaker msgMaker(pto.GetSendVersion());
 
-    if (!state.m_chain_sync.m_protect &&
-        IsOutboundDisconnectionCandidate(pto) && state.fSyncStarted) {
+    if (!state.m_chain_sync.m_protect && pto.IsOutboundOrBlockRelayConn() &&
+        state.fSyncStarted) {
         // This is an outbound peer subject to disconnection if they don't
         // announce a block with as much work as the current tip within
         // CHAIN_SYNC_TIMEOUT + HEADERS_RESPONSE_TIME seconds (note: if their
@@ -4453,7 +4449,7 @@ void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
         AssertLockHeld(cs_main);
 
         // Ignore non-outbound peers, or nodes marked for disconnect already
-        if (!IsOutboundDisconnectionCandidate(*pnode) || pnode->fDisconnect) {
+        if (!pnode->IsOutboundOrBlockRelayConn() || pnode->fDisconnect) {
             return;
         }
         CNodeState *state = State(pnode->GetId());
