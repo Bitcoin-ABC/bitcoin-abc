@@ -169,7 +169,7 @@ final class CppCheckLinter extends ArcanistExternalLinter {
   protected function getDefaultFlags() {
     return array_merge(
       self::CPPCHECK_OPTIONS,
-      self::CPPCHECK_DEFINITIONS,
+      self::CPPCHECK_DEFINITIONS
     );
   }
 
