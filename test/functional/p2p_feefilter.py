@@ -5,7 +5,6 @@
 """Test processing of feefilter messages."""
 
 from decimal import Decimal
-import time
 
 from test_framework.messages import MSG_TX, msg_feefilter
 from test_framework.p2p import (
@@ -18,17 +17,6 @@ from test_framework.util import assert_equal
 
 def hashToHex(hash):
     return format(hash, '064x')
-
-# Wait up to 60 secs to see if the testnode has received all the expected invs
-
-
-def allInvsMatch(invsExpected, testnode):
-    for _ in range(60):
-        with p2p_lock:
-            if (sorted(invsExpected) == sorted(testnode.txinvs)):
-                return True
-        time.sleep(1)
-    return False
 
 
 class FeefilterConn(P2PInterface):
@@ -52,6 +40,11 @@ class TestP2PConn(P2PInterface):
             if (i.type == MSG_TX):
                 self.txinvs.append(hashToHex(i.hash))
 
+    def wait_for_invs_to_match(self, invs_expected):
+        invs_expected.sort()
+        self.wait_until(lambda: invs_expected == sorted(self.txinvs),
+                        timeout=60)
+
     def clear_invs(self):
         with p2p_lock:
             self.txinvs = []
@@ -65,8 +58,13 @@ class FeeFilterTest(BitcoinTestFramework):
         # mempool and wallet feerate calculation based on GetFee
         # rounding down 3 places, leading to stranded transactions.
         # See issue #16499
-        self.extra_args = [["-minrelaytxfee=1",
-                            "-mintxfee=1"]] * self.num_nodes
+        # grant noban permission to all peers to speed up tx relay / mempool
+        # sync
+        self.extra_args = [[
+            "-minrelaytxfee=1",
+            "-mintxfee=1",
+            "-whitelist=noban@127.0.0.1",
+        ]] * self.num_nodes
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -97,27 +95,27 @@ class FeeFilterTest(BitcoinTestFramework):
 
         conn = self.nodes[0].add_p2p_connection(TestP2PConn())
 
-        # Test that invs are received by test connection for all txs at
-        # feerate of .2 sat/byte
+        self.log.info(
+            "Test txs paying 0.2 sat/byte are received by test connection")
         node1.settxfee(Decimal("2"))
         txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
                  for _ in range(3)]
-        assert allInvsMatch(txids, conn)
+        conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
 
-        # Set a filter of .15 sat/byte on test connection
+        # Set a fee filter of 0.15 sat/byte on test connection
         conn.send_and_ping(msg_feefilter(150))
 
-        # Test that txs are still being received by test connection
-        # (paying .15 sat/byte)
+        self.log.info(
+            "Test txs paying 0.15 sat/byte are received by test connection")
         node1.settxfee(Decimal("1.5"))
         txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
                  for _ in range(3)]
-        assert allInvsMatch(txids, conn)
+        conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
 
-        # Change tx fee rate to .1 sat/byte and test they are no longer received
-        # by the test connection
+        self.log.info(
+            "Test txs paying 0.1 sat/byte are no longer received by test connection")
         node1.settxfee(Decimal("1"))
         [node1.sendtoaddress(node1.getnewaddress(), 1000000) for _ in range(3)]
         self.sync_mempools()  # must be sure node 0 has received all txs
@@ -131,14 +129,14 @@ class FeeFilterTest(BitcoinTestFramework):
         # as well.
         node0.settxfee(Decimal("200.00"))
         txids = [node0.sendtoaddress(node0.getnewaddress(), 1000000)]
-        assert allInvsMatch(txids, conn)
+        conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
 
-        # Remove fee filter and check that txs are received again
+        self.log.info("Remove fee filter and check txs are received again")
         conn.send_and_ping(msg_feefilter(0))
         txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
                  for _ in range(3)]
-        assert allInvsMatch(txids, conn)
+        conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
 
 
