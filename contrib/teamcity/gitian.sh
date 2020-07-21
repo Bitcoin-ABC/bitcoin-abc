@@ -19,14 +19,18 @@ cd "${TOPLEVEL}/contrib/gitian-builder"
 if [[ "${OS_NAME}" == "osx" ]]; then
   OSX_SDK="MacOSX10.14.sdk.tar.gz"
   OSX_SDK_SHA256="2322086a96349db832abbcadea493b79db843553a2e604163238d99fa058a286"
-  mkdir -p inputs
-  pushd inputs
+  OSX_SDK_DIR=~/.abc-build-cache/osx-sdk
+  mkdir -p "${OSX_SDK_DIR}"
+  pushd "${OSX_SDK_DIR}"
   if ! echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c; then
     rm -f "${OSX_SDK}"
     wget https://storage.googleapis.com/27cd7b2a42a430926cc621acdc3bda72a8ed2b0efc080e3/"${OSX_SDK}"
     echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum -c
   fi
   popd
+
+  mkdir -p inputs
+  cp "${OSX_SDK_DIR}/${OSX_SDK}" inputs/"${OSX_SDK}"
 fi
 
 RESULT_DIR="${BUILD_DIR}/gitian-results"
