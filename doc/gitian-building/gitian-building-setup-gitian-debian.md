@@ -2,7 +2,6 @@ Table of Contents
 -----------------
 
 - [Setting up Debian for Gitian building](#setting-up-debian-for-gitian-building)
-- [Installing Gitian](#installing-gitian)
 - [Setting up the Gitian image](#setting-up-the-gitian-image)
 
 
@@ -11,6 +10,12 @@ Setting up Debian for Gitian building
 
 In this section we will be setting up the Debian installation for Gitian building.
 We assume that a user `gitianuser` was previously added.
+
+There are various options for running the Gitian builds. Building with LXC or
+Docker containers are documented below, but other options exist.
+
+
+**Using a LXC container:**
 
 First we need to set up dependencies. Type/paste the following in the terminal:
 
@@ -54,36 +59,40 @@ echo 'export LXC_GUEST_IP=10.0.3.5' >> /home/gitianuser/.profile
 reboot
 ```
 
+
+**Using a Docker container:**
+
+First we need to set up dependencies. Type/paste the following in the terminal:
+
+```bash
+sudo apt-get install apt-cacher-ng curl docker.io firewalld git make ruby wget
+```
+
+Then a few steps are required to complete the configuration:
+
+```bash
+# Make sure the apt-cacher-ng, docker and firewalld services are enabled
+sudo systemctl enable apt-cacher-ng
+sudo systemctl enable docker
+sudo systemctl enable firewalld
+
+# Add the gitianuser to the docker group (required to connect to the daemon)
+sudo usermod -aG docker gitianuser
+
+# Add a firewall rule to allow docker access to apt-cacher-ng
+sudo firewall-cmd --permanent --zone=trusted --add-interface=docker0
+
+# Make sure that USE_DOCKER is always set when logging in as gitianuser
+echo 'export USE_DOCKER=1' >> /home/gitianuser/.profile
+
+# Reboot to apply the changes
+reboot
+```
+
 At the end Debian is rebooted to make sure that the changes take effect. The steps in this
 section only need to be performed once.
 
 **Note**: When sudo asks for a password, enter the password for the user `gitianuser` not for `root`.
-
-Installing Gitian
------------------
-
-Re-login as the user `gitianuser` that was created during installation.
-The rest of the steps in this guide will be performed as that user.
-
-There is no `python-vm-builder` package in Debian, so we need to install it from source ourselves,
-
-```bash
-wget http://archive.ubuntu.com/ubuntu/pool/universe/v/vm-builder/vm-builder_0.12.4+bzr494.orig.tar.gz
-echo "76cbf8c52c391160b2641e7120dbade5afded713afaa6032f733a261f13e6a8e  vm-builder_0.12.4+bzr494.orig.tar.gz" | sha256sum -c
-# (verification -- must return OK)
-tar -zxvf vm-builder_0.12.4+bzr494.orig.tar.gz
-cd vm-builder-0.12.4+bzr494
-sudo python setup.py install
-cd ..
-```
-
-**Note**: When sudo asks for a password, enter the password for the user `gitianuser` not for `root`.
-
-Clone the git repository for Bitcoin ABC which contains the Gitian sources.
-
-```bash
-git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
-```
 
 Setting up the Gitian image
 ---------------------------
@@ -97,13 +106,27 @@ Creating the image will take a while, but only has to be done once.
 Execute the following as user `gitianuser`:
 
 ```bash
+git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
 cd bitcoin-abc/contrib/gitian-builder
+```
+
+
+**For LXC:**
+
+```bash
 bin/make-base-vm --lxc --arch amd64 --distro debian --suite buster
 ```
 
 There will be a lot of warnings printed during the build of the image. These can be ignored.
 
 **Note**: When sudo asks for a password, enter the password for the user `gitianuser` not for `root`.
+
+
+**For Docker:**
+
+```bash
+bin/make-base-vm --docker --arch amd64 --distro debian --suite buster
+```
 
 Downloading dependencies
 ------------------------
