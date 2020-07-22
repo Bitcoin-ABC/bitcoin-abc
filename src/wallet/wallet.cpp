@@ -2830,24 +2830,7 @@ bool CWallet::SignTransaction(CMutableTransaction &tx,
     }
 
     // At this point, one input was not fully signed otherwise we would have
-    // exited already Find that input and figure out what went wrong.
-    for (size_t i = 0; i < tx.vin.size(); i++) {
-        // Get the prevout
-        CTxIn &txin = tx.vin[i];
-        auto coin = coins.find(txin.prevout);
-        if (coin == coins.end() || coin->second.IsSpent()) {
-            input_errors[i] = "Input not found or already spent";
-            continue;
-        }
-
-        // Check if this input is complete
-        SignatureData sigdata =
-            DataFromTransaction(tx, i, coin->second.GetTxOut());
-        if (!sigdata.complete) {
-            input_errors[i] = "Unable to sign input, missing keys";
-            continue;
-        }
-    }
+    // exited already
 
     // When there are no available providers for the remaining inputs, use the
     // legacy provider so we can get proper error messages.
