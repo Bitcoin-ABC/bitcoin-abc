@@ -108,46 +108,6 @@ public:
             // December 31, 2008
             .nTimeout = 1230767999,
         };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND] = {
-            .bit = 0,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_ABC] = {
-            .bit = 1,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_BCHD] = {
-            .bit = 2,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus
-            .vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_ELECTRON_CASH] = {
-            .bit = 3,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-
-        // The miner fund is enabled by default on mainnet.
-        consensus.enableMinerFund = true;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
@@ -343,46 +303,6 @@ public:
             // December 31, 2008
             .nTimeout = 1230767999,
         };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND] = {
-            .bit = 0,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_ABC] = {
-            .bit = 1,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_BCHD] = {
-            .bit = 2,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus
-            .vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_ELECTRON_CASH] = {
-            .bit = 3,
-            // 66% of 2016
-            .nActivationThreshold = 1344,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-
-        // The miner fund is disabled by default on testnet.
-        consensus.enableMinerFund = false;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
@@ -529,46 +449,6 @@ public:
             // 75% of 144
             .nActivationThreshold = 108,
         };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND] = {
-            .bit = 0,
-            // 66% of 144
-            .nActivationThreshold = 96,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_ABC] = {
-            .bit = 1,
-            // 66% of 144
-            .nActivationThreshold = 96,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus.vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_BCHD] = {
-            .bit = 2,
-            // 66% of 144
-            .nActivationThreshold = 96,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-        consensus
-            .vDeployments[Consensus::DEPLOYEMENT_MINER_FUND_ELECTRON_CASH] = {
-            .bit = 3,
-            // 66% of 144
-            .nActivationThreshold = 96,
-            // Nov 15, 2019 12:00:00 UTC
-            .nStartTime = 1573819200,
-            // May 15, 2020 12:00:00 UTC
-            .nTimeout = 1589544000,
-        };
-
-        // The miner fund is disabled by default on regnet.
-        consensus.enableMinerFund = false;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");

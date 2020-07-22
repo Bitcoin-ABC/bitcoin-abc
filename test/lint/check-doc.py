@@ -42,7 +42,6 @@ SET_FALSE_POSITIVE_UNKNOWNS = set([
 
 # list false positive undocumented arguments
 SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-dbcrashratio',
-                                       '-enableminerfund',
                                        '-forcecompactdb',
                                        '-parkdeepreorg',
                                        '-automaticunparking',

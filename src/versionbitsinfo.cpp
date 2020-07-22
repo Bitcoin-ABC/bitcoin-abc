@@ -12,20 +12,4 @@ const struct VBDeploymentInfo
             /*.name =*/"testdummy",
             /*.gbt_force =*/true,
         },
-        {
-            /*.name =*/"minerfund",
-            /*.gbt_force =*/true,
-        },
-        {
-            /*.name =*/"minerfundabc",
-            /*.gbt_force =*/true,
-        },
-        {
-            /*.name =*/"minerfundbchd",
-            /*.gbt_force =*/true,
-        },
-        {
-            /*.name =*/"minerfundelectroncash",
-            /*.gbt_force =*/true,
-        },
 };

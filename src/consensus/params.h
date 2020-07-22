@@ -15,10 +15,6 @@ namespace Consensus {
 
 enum DeploymentPos {
     DEPLOYMENT_TESTDUMMY,
-    DEPLOYEMENT_MINER_FUND,
-    DEPLOYEMENT_MINER_FUND_ABC,
-    DEPLOYEMENT_MINER_FUND_BCHD,
-    DEPLOYEMENT_MINER_FUND_ELECTRON_CASH,
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in
     // versionbitsinfo.cpp
     MAX_VERSION_BITS_DEPLOYMENTS,
@@ -94,9 +90,6 @@ struct Params {
     int MinBIP9WarningHeight;
     uint32_t nMinerConfirmationWindow;
     BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
-
-    /** Enable or disable te miner fund by default */
-    bool enableMinerFund;
 
     /** Proof of work parameters */
     uint256 powLimit;
