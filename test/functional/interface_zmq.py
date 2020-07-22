@@ -7,7 +7,10 @@ import struct
 from io import BytesIO
 from time import sleep
 
-from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
+from test_framework.address import (
+    ADDRESS_ECREG_P2SH_OP_TRUE,
+    ADDRESS_ECREG_UNSPENDABLE,
+)
 from test_framework.messages import CTransaction, hash256
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, connect_nodes
@@ -186,9 +189,9 @@ class ZMQTest (BitcoinTestFramework):
         assert_equal(hashtx.receive().hex(), payment_txid)
         assert_equal(hashtx.receive().hex(), disconnect_cb)
 
-        # Generate 2 blocks in nodes[1]
+        # Generate 2 blocks in nodes[1] to a different address to ensure split
         connect_blocks = self.nodes[1].generatetoaddress(
-            2, ADDRESS_ECREG_UNSPENDABLE)
+            2, ADDRESS_ECREG_P2SH_OP_TRUE)
 
         # nodes[0] will reorg chain after connecting back nodes[1]
         connect_nodes(self.nodes[0], self.nodes[1])
