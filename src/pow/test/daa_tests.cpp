@@ -199,6 +199,48 @@ BOOST_AUTO_TEST_CASE(daa_test) {
         BOOST_CHECK_EQUAL(nextBits, powLimitBits);
         nBits = nextBits;
     }
+
+    // We will now mine blocks much faster. For a while, the difficulty will
+    // continue to go down.
+    for (size_t j = 0; j < 130; i++, j++) {
+        blocks[i] = GetBlockIndex(&blocks[i - 1], 10, nBits);
+        const uint32_t nextBits =
+            GetNextDAAWorkRequired(&blocks[i], &blkHeaderDummy, params);
+
+        arith_uint256 currentTarget;
+        currentTarget.SetCompact(nBits);
+        arith_uint256 nextTarget;
+        nextTarget.SetCompact(nextBits);
+
+        // Check the difficulty decreases.
+        BOOST_CHECK(nextTarget <= powLimit);
+        BOOST_CHECK(nextTarget >= currentTarget);
+        BOOST_CHECK((nextTarget - currentTarget) < (currentTarget >> 3));
+
+        nBits = nextBits;
+    }
+
+    // Now the difficulty will go back up, and evetually we will trigger the
+    // cliff code.
+    for (size_t j = 0; j < 70; i++, j++) {
+        blocks[i] = GetBlockIndex(&blocks[i - 1], 10, nBits);
+        const uint32_t nextBits =
+            GetNextDAAWorkRequired(&blocks[i], &blkHeaderDummy, params);
+
+        arith_uint256 currentTarget;
+        currentTarget.SetCompact(nBits);
+        arith_uint256 nextTarget;
+        nextTarget.SetCompact(nextBits);
+
+        // Check the difficulty decreases.
+        BOOST_CHECK(nextTarget < currentTarget);
+        BOOST_CHECK((currentTarget - nextTarget) < (currentTarget >> 3));
+
+        nBits = nextBits;
+    }
+
+    // Check the actual value.
+    BOOST_CHECK_EQUAL(nBits, 0x1c4c068c);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
