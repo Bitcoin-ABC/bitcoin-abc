@@ -14,10 +14,6 @@
 uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,
                                    int64_t nFirstBlockTime,
                                    const Consensus::Params &params) {
-    if (params.fPowNoRetargeting) {
-        return pindexPrev->nBits;
-    }
-
     // Limit adjustment step
     int64_t nActualTimespan = pindexPrev->GetBlockTime() - nFirstBlockTime;
     if (nActualTimespan < params.nPowTargetTimespan / 4) {
