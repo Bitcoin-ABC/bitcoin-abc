@@ -158,6 +158,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"createwallet", 4, "avoid_reuse"},
     {"createwallet", 5, "descriptors"},
     {"getnodeaddresses", 0, "count"},
+    {"addpeeraddress", 1, "port"},
     {"stop", 0, "wait"},
     // Avalanche
     {"addavalanchenode", 0, "nodeid"},
