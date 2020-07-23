@@ -568,10 +568,14 @@ int CAddrMan::Check_() {
 }
 #endif
 
-void CAddrMan::GetAddr_(std::vector<CAddress> &vAddr) {
-    unsigned int nNodes = ADDRMAN_GETADDR_MAX_PCT * vRandom.size() / 100;
-    if (nNodes > ADDRMAN_GETADDR_MAX) {
-        nNodes = ADDRMAN_GETADDR_MAX;
+void CAddrMan::GetAddr_(std::vector<CAddress> &vAddr, size_t max_addresses,
+                        size_t max_pct) {
+    size_t nNodes = vRandom.size();
+    if (max_pct != 0) {
+        nNodes = max_pct * nNodes / 100;
+    }
+    if (max_addresses != 0) {
+        nNodes = std::min(nNodes, max_addresses);
     }
 
     // gather a list of random nodes, skipping those of low quality

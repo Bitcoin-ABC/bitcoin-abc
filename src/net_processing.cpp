@@ -273,6 +273,11 @@ static constexpr uint32_t MAX_GETCFILTERS_SIZE = 1000;
  * BIP 157.
  */
 static constexpr uint32_t MAX_GETCFHEADERS_SIZE = 2000;
+/**
+ * the maximum percentage of addresses from our addrman to return in response
+ * to a getaddr message.
+ */
+static constexpr size_t MAX_PCT_ADDR_TO_SEND = 23;
 
 /// How many non standard orphan do we consider from a node before ignoring it.
 static constexpr uint32_t MAX_NON_STANDARD_ORPHAN_PER_NODE = 5;
@@ -4496,9 +4501,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         pfrom.vAddrToSend.clear();
         std::vector<CAddress> vAddr;
         if (pfrom.HasPermission(PF_ADDR)) {
-            vAddr = m_connman.GetAddresses();
+            vAddr =
+                m_connman.GetAddresses(MAX_ADDR_TO_SEND, MAX_PCT_ADDR_TO_SEND);
         } else {
-            vAddr = m_connman.GetAddresses(pfrom.addr.GetNetwork());
+            vAddr =
+                m_connman.GetAddresses(pfrom.addr.GetNetwork(),
+                                       MAX_ADDR_TO_SEND, MAX_PCT_ADDR_TO_SEND);
         }
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {

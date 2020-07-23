@@ -59,13 +59,11 @@ static const bool DEFAULT_WHITELISTFORCERELAY = false;
 static const int TIMEOUT_INTERVAL = 20 * 60;
 /** Run the feeler connection loop once every 2 minutes or 120 seconds. **/
 static const int FEELER_INTERVAL = 120;
-/** The maximum number of new addresses to accumulate before announcing. */
-static const unsigned int MAX_ADDR_TO_SEND = 1000;
-// TODO: remove ADDRMAN_GETADDR_MAX and let the caller specify this limit with
-// MAX_ADDR_TO_SEND.
-static_assert(MAX_ADDR_TO_SEND == ADDRMAN_GETADDR_MAX,
-              "Max allowed ADDR message size should be equal to the max number "
-              "of records returned from AddrMan.");
+/**
+ * The maximum number of addresses from our addrman to return in response to
+ * a getaddr message.
+ */
+static constexpr size_t MAX_ADDR_TO_SEND = 1000;
 /** Maximum length of the user agent string in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 /**
@@ -342,14 +340,15 @@ public:
     void MarkAddressGood(const CAddress &addr);
     void AddNewAddresses(const std::vector<CAddress> &vAddr,
                          const CAddress &addrFrom, int64_t nTimePenalty = 0);
-    std::vector<CAddress> GetAddresses();
+    std::vector<CAddress> GetAddresses(size_t max_addresses, size_t max_pct);
     /**
      * Cache is used to minimize topology leaks, so it should
      * be used for all non-trusted calls, for example, p2p.
      * A non-malicious call (from RPC or a peer with addr permission) should
      * call the function without a parameter to avoid using the cache.
      */
-    std::vector<CAddress> GetAddresses(Network requestor_network);
+    std::vector<CAddress> GetAddresses(Network requestor_network,
+                                       size_t max_addresses, size_t max_pct);
 
     // This allows temporarily exceeding m_max_outbound_full_relay, with the
     // goal of finding a peer that is better than all our current peers.
