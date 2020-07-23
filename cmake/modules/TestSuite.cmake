@@ -59,7 +59,7 @@ function(add_test_runner SUITE NAME EXECUTABLE)
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
 			"${CMAKE_SOURCE_DIR}/cmake/utils/test_wrapper.sh"
-			"${NAME}.log"
+			"${SUITE}-${NAME}.log"
 			${CMAKE_CROSSCOMPILING_EMULATOR} "$<TARGET_FILE:${EXECUTABLE}>" ${ARGN}
 		CUSTOM_TARGET_ARGS
 			COMMENT "${SUITE}: testing ${NAME}"
