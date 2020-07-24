@@ -1171,30 +1171,31 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
  * DISCOURAGEMENT_THRESHOLD, mark the node to be discouraged, meaning the peer
  * might be disconnected and added to the discouragement filter.
  */
-void Misbehaving(NodeId pnode, int howmuch, const std::string &message) {
+void Misbehaving(const NodeId pnode, const int howmuch,
+                 const std::string &message) {
     AssertLockHeld(cs_main);
-    if (howmuch == 0) {
-        return;
-    }
 
-    CNodeState *state = State(pnode);
+    assert(howmuch > 0);
+
+    CNodeState *const state = State(pnode);
     if (state == nullptr) {
         return;
     }
 
     state->nMisbehavior += howmuch;
-    std::string message_prefixed = message.empty() ? "" : (": " + message);
+    const std::string message_prefixed =
+        message.empty() ? "" : (": " + message);
     if (state->nMisbehavior >= DISCOURAGEMENT_THRESHOLD &&
         state->nMisbehavior - howmuch < DISCOURAGEMENT_THRESHOLD) {
         LogPrint(BCLog::NET,
-                 "%s: %s peer=%d (%d -> %d) BAN THRESHOLD EXCEEDED%s\n",
-                 __func__, state->name, pnode, state->nMisbehavior - howmuch,
-                 state->nMisbehavior, message_prefixed);
+                 "Misbehaving: peer=%d (%d -> %d) BAN THRESHOLD EXCEEDED%s\n",
+                 pnode, state->nMisbehavior - howmuch, state->nMisbehavior,
+                 message_prefixed);
         state->m_should_discourage = true;
     } else {
-        LogPrint(BCLog::NET, "%s: %s peer=%d (%d -> %d)%s\n", __func__,
-                 state->name, pnode, state->nMisbehavior - howmuch,
-                 state->nMisbehavior, message_prefixed);
+        LogPrint(BCLog::NET, "Misbehaving: peer=%d (%d -> %d)%s\n", pnode,
+                 state->nMisbehavior - howmuch, state->nMisbehavior,
+                 message_prefixed);
     }
 }
 
@@ -1963,8 +1964,7 @@ inline static void SendBlockTransactions(const CBlock &block,
         if (req.indices[i] >= block.vtx.size()) {
             LOCK(cs_main);
             Misbehaving(pfrom, 100,
-                        strprintf("Peer sent us a getblocktxn with "
-                                  "out-of-bounds tx indices"));
+                        "getblocktxn with out-of-bounds tx indices");
             return;
         }
         resp.txn[i] = block.vtx[req.indices[i]];
@@ -2027,7 +2027,9 @@ static void ProcessHeadersMessage(const Config &config, CNode &pfrom,
             if (nodestate->nUnconnectingHeaders % MAX_UNCONNECTING_HEADERS ==
                 0) {
                 // The peer is sending us many headers we can't connect.
-                Misbehaving(pfrom, 20, "too-many-unconnected-headers");
+                Misbehaving(pfrom, 20,
+                            strprintf("%d non-connecting headers",
+                                      nodestate->nUnconnectingHeaders));
             }
             return;
         }
@@ -2548,7 +2550,7 @@ void PeerLogicValidation::ProcessMessage(
         // Each connection can only send one version message
         if (pfrom.nVersion != 0) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 1, "multiple-version");
+            Misbehaving(pfrom, 1, "redundant version message");
             return;
         }
 
@@ -2720,7 +2722,7 @@ void PeerLogicValidation::ProcessMessage(
     if (pfrom.nVersion == 0) {
         // Must have a version message before anything else
         LOCK(cs_main);
-        Misbehaving(pfrom, 10, "missing-version");
+        Misbehaving(pfrom, 10, "non-version message before version handshake");
         return;
     }
 
@@ -2771,7 +2773,7 @@ void PeerLogicValidation::ProcessMessage(
     if (!pfrom.fSuccessfullyConnected) {
         // Must have a verack message before anything else
         LOCK(cs_main);
-        Misbehaving(pfrom, 10, "missing-verack");
+        Misbehaving(pfrom, 10, "non-verack message before version handshake");
         return;
     }
 
@@ -3487,9 +3489,7 @@ void PeerLogicValidation::ProcessMessage(
                     if (status == READ_STATUS_INVALID) {
                         // Reset in-flight state in case of whitelist
                         MarkBlockAsReceived(pindex->GetBlockHash());
-                        Misbehaving(pfrom, 100,
-                                    strprintf("invalid-cmpctblk: Peer sent us "
-                                              "invalid compact block"));
+                        Misbehaving(pfrom, 100, "invalid compact block");
                         return;
                     } else if (status == READ_STATUS_FAILED) {
                         // Duplicate txindices, the block is now in-flight, so
@@ -3650,8 +3650,7 @@ void PeerLogicValidation::ProcessMessage(
                 MarkBlockAsReceived(resp.blockhash);
                 Misbehaving(
                     pfrom, 100,
-                    strprintf("invalid-cmpctblk-txns: Peer sent us invalid "
-                              "compact block/non-matching block transactions"));
+                    "invalid compact block/non-matching block transactions");
                 return;
             } else if (status == READ_STATUS_FAILED) {
                 // Might have collided, fall back to getdata now :(
@@ -4124,7 +4123,7 @@ void PeerLogicValidation::ProcessMessage(
         if (!filter.IsWithinSizeConstraints()) {
             // There is no excuse for sending a too-large filter
             LOCK(cs_main);
-            Misbehaving(pfrom, 100, "oversized-bloom-filter");
+            Misbehaving(pfrom, 100, "too-large bloom filter");
         } else if (pfrom.m_tx_relay != nullptr) {
             LOCK(pfrom.m_tx_relay->cs_filter);
             pfrom.m_tx_relay->pfilter.reset(new CBloomFilter(filter));
@@ -4156,7 +4155,7 @@ void PeerLogicValidation::ProcessMessage(
             LOCK(cs_main);
             // The structure of this code doesn't really allow for a good error
             // code. We'll go generic.
-            Misbehaving(pfrom, 100, "invalid-filteradd");
+            Misbehaving(pfrom, 100, "bad filteradd message");
         }
         return;
     }
@@ -4245,7 +4244,7 @@ void PeerLogicValidation::ProcessMessage(
  * function
  */
 bool PeerLogicValidation::MaybeDiscourageAndDisconnect(CNode &pnode) {
-    NodeId peer_id{pnode.GetId()};
+    const NodeId peer_id{pnode.GetId()};
     {
         LOCK(cs_main);
         CNodeState &state = *State(peer_id);
@@ -4255,26 +4254,26 @@ bool PeerLogicValidation::MaybeDiscourageAndDisconnect(CNode &pnode) {
             return false;
         }
 
-        // Reset m_should_discourage
         state.m_should_discourage = false;
     } // cs_main
 
     if (pnode.HasPermission(PF_NOBAN)) {
-        // Peer has the NOBAN permission flag - log but don't disconnect
+        // We never disconnect or discourage peers for bad behavior if they have
+        // the NOBAN permission flag
         LogPrintf("Warning: not punishing noban peer %d!\n", peer_id);
         return false;
     }
 
     if (pnode.IsManualConn()) {
-        // Peer is a manual connection - log but don't disconnect
+        // We never disconnect or discourage manual peers for bad behavior
         LogPrintf("Warning: not punishing manually connected peer %d!\n",
                   peer_id);
         return false;
     }
 
     if (pnode.addr.IsLocal()) {
-        // Peer is on a local address. Disconnect this peer, but don't
-        // discourage the local address
+        // We disconnect local peers for bad behavior but don't discourage
+        // (since that would discourage all peers on the same local address)
         LogPrintf(
             "Warning: disconnecting but not discouraging local peer %d!\n",
             peer_id);

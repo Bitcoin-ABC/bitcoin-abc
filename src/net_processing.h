@@ -145,7 +145,8 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
  * DISCOURAGEMENT_THRESHOLD, mark the node to be discouraged, meaning the peer
  * might be disconnected and added to the discouragement filter.
  */
-void Misbehaving(NodeId nodeid, int howmuch, const std::string &message = "")
+void Misbehaving(const NodeId nodeid, const int howmuch,
+                 const std::string &message = "")
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Relay transaction to every node */
