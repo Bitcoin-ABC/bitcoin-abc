@@ -188,6 +188,8 @@ struct CExtKey {
         s.read((char *)&code[0], len);
         Decode(code);
     }
+
+    CExtKey() = default;
 };
 
 /**

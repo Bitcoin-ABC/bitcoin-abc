@@ -262,6 +262,7 @@ public:
     bool TxnCommit();
     //! Abort current transaction
     bool TxnAbort();
+
 private:
     BerkeleyBatch m_batch;
     WalletDatabase &m_database;

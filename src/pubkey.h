@@ -228,6 +228,8 @@ struct CExtPubKey {
         s.read((char *)&code[0], len);
         Decode(code);
     }
+
+    CExtPubKey() = default;
 };
 
 /**
