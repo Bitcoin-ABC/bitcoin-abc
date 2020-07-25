@@ -596,9 +596,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     }
 
     if (nAbsurdFee != Amount::zero() && nFees > nAbsurdFee) {
-        return state.Invalid(TxValidationResult::TX_NOT_STANDARD,
-                             "absurdly-high-fee",
-                             strprintf("%d > %d", nFees, nAbsurdFee));
+        LogPrintf("Ignoring Absurdfee\n");
     }
 
     // Validate input scripts against standard script flags.

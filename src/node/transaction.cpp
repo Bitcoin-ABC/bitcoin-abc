@@ -17,6 +17,19 @@
 
 #include <future>
 
+static TransactionError HandleATMPError(const TxValidationState &state,
+                                        std::string &err_string_out) {
+    err_string_out = state.ToString();
+    if (state.IsInvalid()) {
+        if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
+            return TransactionError::MISSING_INPUTS;
+        }
+        return TransactionError::MEMPOOL_REJECTED;
+    } else {
+        return TransactionError::MEMPOOL_ERROR;
+    }
+}
+
 TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                                       const CTransactionRef tx,
                                       std::string &err_string,
@@ -48,19 +61,26 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
         }
 
         if (!node.mempool->exists(txid)) {
-            // Transaction is not already in the mempool. Submit it.
+            // Transaction is not already in the mempool.
             TxValidationState state;
+            if (max_tx_fee > Amount::zero()) {
+                // First, call ATMP with test_accept and check the fee. If ATMP
+                // fails here, return error immediately.
+                Amount fee = Amount::zero();
+                if (!AcceptToMemoryPool(
+                        config, *node.mempool, state, tx,
+                        false /* bypass_limits */,
+                        /* absurdfee */ Amount::zero(), /* test_accept */
+                        true, &fee)) {
+                    return HandleATMPError(state, err_string);
+                } else if (fee > max_tx_fee) {
+                    return TransactionError::MAX_FEE_EXCEEDED;
+                }
+            }
+            // Try to submit the transaction to the mempool.
             if (!AcceptToMemoryPool(config, *node.mempool, state, tx,
                                     false /* bypass_limits */, max_tx_fee)) {
-                err_string = state.ToString();
-                if (state.IsInvalid()) {
-                    if (state.GetResult() ==
-                        TxValidationResult::TX_MISSING_INPUTS) {
-                        return TransactionError::MISSING_INPUTS;
-                    }
-                    return TransactionError::MEMPOOL_REJECTED;
-                }
-                return TransactionError::MEMPOOL_ERROR;
+                return HandleATMPError(state, err_string);
             }
 
             // Transaction was accepted to the mempool.

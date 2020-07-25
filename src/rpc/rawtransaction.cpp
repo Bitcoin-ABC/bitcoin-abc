@@ -1147,13 +1147,22 @@ static RPCHelpMan testmempoolaccept() {
 
             TxValidationState state;
             bool test_accept_res;
-            Amount fee;
+            Amount fee = Amount::zero();
             {
                 LOCK(cs_main);
                 test_accept_res = AcceptToMemoryPool(
                     config, mempool, state, std::move(tx),
                     false /* bypass_limits */, max_raw_tx_fee,
                     true /* test_accept */, &fee);
+            }
+
+            // Check that fee does not exceed maximum fee
+            if (test_accept_res && max_raw_tx_fee != Amount::zero() &&
+                fee > max_raw_tx_fee) {
+                result_0.pushKV("allowed", false);
+                result_0.pushKV("reject-reason", "max-fee-exceeded");
+                result.push_back(std::move(result_0));
+                return result;
             }
             result_0.pushKV("allowed", test_accept_res);
 
