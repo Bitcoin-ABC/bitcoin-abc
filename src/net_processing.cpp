@@ -2056,7 +2056,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
     // Process as many TX items from the front of the getdata queue as
     // possible, since they're common and it's efficient to batch process
     // them.
-    while (it != pfrom.vRecvGetData.end() && it->type == MSG_TX) {
+    while (it != pfrom.vRecvGetData.end() && it->IsMsgTx()) {
         if (interruptMsgProc) {
             return;
         }
@@ -4445,7 +4445,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         if (vInv.size() <=
             MAX_PEER_TX_IN_FLIGHT + MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             for (CInv &inv : vInv) {
-                if (inv.type == MSG_TX) {
+                if (inv.IsMsgTx()) {
                     const TxId txid(inv.hash);
                     // If we receive a NOTFOUND message for a txid we requested,
                     // erase it from our data structures for this peer.

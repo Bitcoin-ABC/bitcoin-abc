@@ -528,7 +528,7 @@ public:
 
     uint32_t GetKind() const { return type & MSG_TYPE_MASK; }
 
-    bool IsTx() const {
+    bool IsMsgTx() const {
         auto k = GetKind();
         return k == MSG_TX;
     }

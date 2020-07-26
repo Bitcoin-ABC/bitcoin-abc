@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_SUITE(inv_tests)
 static void CheckType(int type, int expected, bool IsTx, bool IsBlock) {
     CInv inv(type, uint256());
     BOOST_CHECK_EQUAL(inv.GetKind(), expected);
-    BOOST_CHECK_EQUAL(inv.IsTx(), IsTx);
+    BOOST_CHECK_EQUAL(inv.IsMsgTx(), IsTx);
     BOOST_CHECK_EQUAL(inv.IsSomeBlock(), IsBlock);
 }
 
