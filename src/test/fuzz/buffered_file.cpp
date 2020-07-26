@@ -35,7 +35,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     if (opt_buffered_file && fuzzed_file != nullptr) {
         bool setpos_fail = false;
         while (fuzzed_data_provider.ConsumeBool()) {
-            switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 5)) {
+            switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 4)) {
                 case 0: {
                     std::array<uint8_t, 4096> arr{};
                     try {
@@ -48,18 +48,12 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                     break;
                 }
                 case 1: {
-                    opt_buffered_file->Seek(
-                        fuzzed_data_provider.ConsumeIntegralInRange<uint64_t>(
-                            0, 4096));
-                    break;
-                }
-                case 2: {
                     opt_buffered_file->SetLimit(
                         fuzzed_data_provider.ConsumeIntegralInRange<uint64_t>(
                             0, 4096));
                     break;
                 }
-                case 3: {
+                case 2: {
                     if (!opt_buffered_file->SetPos(
                             fuzzed_data_provider
                                 .ConsumeIntegralInRange<uint64_t>(0, 4096))) {
@@ -67,7 +61,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                     }
                     break;
                 }
-                case 4: {
+                case 3: {
                     if (setpos_fail) {
                         // Calling FindByte(...) after a failed SetPos(...) call
                         // may result in an infinite loop.
@@ -80,7 +74,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                     }
                     break;
                 }
-                case 5: {
+                case 4: {
                     ReadFromStream(fuzzed_data_provider, *opt_buffered_file);
                     break;
                 }
