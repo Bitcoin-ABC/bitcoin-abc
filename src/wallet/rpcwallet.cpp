@@ -350,8 +350,8 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
 
     LOCK(pwallet->cs_wallet);
 
-    CTxDestination dest =
-        DecodeDestination(request.params[0].get_str(), wallet->chainParams);
+    CTxDestination dest = DecodeDestination(request.params[0].get_str(),
+                                            wallet->GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");
@@ -473,8 +473,8 @@ static UniValue sendtoaddress(const Config &config,
 
     LOCK(pwallet->cs_wallet);
 
-    CTxDestination dest =
-        DecodeDestination(request.params[0].get_str(), wallet->chainParams);
+    CTxDestination dest = DecodeDestination(request.params[0].get_str(),
+                                            wallet->GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
@@ -629,7 +629,8 @@ static UniValue signmessage(const Config &config,
     std::string strAddress = request.params[0].get_str();
     std::string strMessage = request.params[1].get_str();
 
-    CTxDestination dest = DecodeDestination(strAddress, wallet->chainParams);
+    CTxDestination dest =
+        DecodeDestination(strAddress, wallet->GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     }
@@ -663,7 +664,7 @@ static Amount GetReceived(const CWallet &wallet, const UniValue &params,
     } else {
         // Get the address
         CTxDestination dest =
-            DecodeDestination(params[0].get_str(), wallet.chainParams);
+            DecodeDestination(params[0].get_str(), wallet.GetChainParams());
         if (!IsValidDestination(dest)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Invalid Bitcoin address");
@@ -1020,7 +1021,8 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     std::vector<std::string> keys = sendTo.getKeys();
     for (const std::string &name_ : keys) {
-        CTxDestination dest = DecodeDestination(name_, wallet->chainParams);
+        CTxDestination dest =
+            DecodeDestination(name_, wallet->GetChainParams());
         if (!IsValidDestination(dest)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                std::string("Invalid Bitcoin address: ") +
@@ -1152,7 +1154,7 @@ static UniValue addmultisigaddress(const Config &config,
              keys_or_addrs[i].get_str().length() == 130)) {
             pubkeys.push_back(HexToPubKey(keys_or_addrs[i].get_str()));
         } else {
-            pubkeys.push_back(AddrToPubKey(wallet->chainParams, spk_man,
+            pubkeys.push_back(AddrToPubKey(wallet->GetChainParams(), spk_man,
                                            keys_or_addrs[i].get_str()));
         }
     }
@@ -1208,12 +1210,12 @@ static UniValue ListReceived(const Config &config, const CWallet *const pwallet,
     CTxDestination filtered_address = CNoDestination();
     if (!by_label && params.size() > 3) {
         if (!IsValidDestinationString(params[3].get_str(),
-                                      pwallet->chainParams)) {
+                                      pwallet->GetChainParams())) {
             throw JSONRPCError(RPC_WALLET_ERROR,
                                "address_filter parameter was invalid");
         }
         filtered_address =
-            DecodeDestination(params[3].get_str(), pwallet->chainParams);
+            DecodeDestination(params[3].get_str(), pwallet->GetChainParams());
         has_filtered_address = true;
     }
 
@@ -3565,7 +3567,7 @@ static UniValue listunspent(const Config &config,
         for (size_t idx = 0; idx < inputs.size(); idx++) {
             const UniValue &input = inputs[idx];
             CTxDestination dest =
-                DecodeDestination(input.get_str(), wallet->chainParams);
+                DecodeDestination(input.get_str(), wallet->GetChainParams());
             if (!IsValidDestination(dest)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    std::string("Invalid Bitcoin address: ") +
@@ -3729,8 +3731,9 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
                 true, true);
 
             if (options.exists("changeAddress")) {
-                CTxDestination dest = DecodeDestination(
-                    options["changeAddress"].get_str(), pwallet->chainParams);
+                CTxDestination dest =
+                    DecodeDestination(options["changeAddress"].get_str(),
+                                      pwallet->GetChainParams());
 
                 if (!IsValidDestination(dest)) {
                     throw JSONRPCError(
@@ -4390,8 +4393,8 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     LOCK(pwallet->cs_wallet);
 
     UniValue ret(UniValue::VOBJ);
-    CTxDestination dest =
-        DecodeDestination(request.params[0].get_str(), wallet->chainParams);
+    CTxDestination dest = DecodeDestination(request.params[0].get_str(),
+                                            wallet->GetChainParams());
     // Make sure the destination is valid
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
@@ -4937,7 +4940,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
     Amount fee;
     int change_position;
     CMutableTransaction rawTx =
-        ConstructTransaction(wallet->chainParams, request.params[0],
+        ConstructTransaction(wallet->GetChainParams(), request.params[0],
                              request.params[1], request.params[2]);
     FundTransaction(pwallet, rawTx, fee, change_position, request.params[3]);
 

@@ -328,8 +328,8 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     {
         LOCK(pwallet->cs_wallet);
 
-        CTxDestination dest =
-            DecodeDestination(request.params[0].get_str(), wallet->chainParams);
+        CTxDestination dest = DecodeDestination(request.params[0].get_str(),
+                                                wallet->GetChainParams());
         if (IsValidDestination(dest)) {
             if (fP2SH) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -840,7 +840,8 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     EnsureWalletIsUnlocked(pwallet);
 
     std::string strAddress = request.params[0].get_str();
-    CTxDestination dest = DecodeDestination(strAddress, wallet->chainParams);
+    CTxDestination dest =
+        DecodeDestination(strAddress, wallet->GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");
@@ -1138,7 +1139,8 @@ static UniValue ProcessImportLegacy(
     // Generate the script and destination for the scriptPubKey provided
     CScript script;
     if (!isScript) {
-        CTxDestination dest = DecodeDestination(output, pwallet->chainParams);
+        CTxDestination dest =
+            DecodeDestination(output, pwallet->GetChainParams());
         if (!IsValidDestination(dest)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Invalid address \"" + output + "\"");

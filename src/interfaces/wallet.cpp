@@ -128,7 +128,7 @@ namespace {
             return m_wallet->GetNewDestination(type, label, dest, error);
         }
         const CChainParams &getChainParams() override {
-            return m_wallet->chainParams;
+            return m_wallet->GetChainParams();
         }
         bool getPubKey(const CScript &script, const CKeyID &address,
                        CPubKey &pub_key) override {

@@ -114,9 +114,9 @@ void TestGUI(interfaces::Node &node) {
             {}, GetScriptForRawPubKey(test.coinbaseKey.GetPubKey()));
     }
     node.setContext(&test.m_node);
-    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-        Params(), node.context()->chain.get(), WalletLocation(),
-        WalletDatabase::CreateMock());
+    std::shared_ptr<CWallet> wallet =
+        std::make_shared<CWallet>(node.context()->chain.get(), WalletLocation(),
+                                  WalletDatabase::CreateMock());
 
     bool firstRun;
     wallet->LoadWallet(firstRun);

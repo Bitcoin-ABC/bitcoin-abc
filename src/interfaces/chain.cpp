@@ -439,6 +439,7 @@ namespace {
                 notifications.transactionAddedToMempool(entry.GetSharedTx());
             }
         }
+        const CChainParams &params() const override { return m_params; }
         NodeContext &m_node;
         const CChainParams &m_params;
     };

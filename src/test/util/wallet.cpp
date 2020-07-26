@@ -29,7 +29,7 @@ std::string getnewaddress(const Config &config, CWallet &w) {
 void importaddress(CWallet &wallet, const std::string &address) {
     auto spk_man = wallet.GetLegacyScriptPubKeyMan();
     LOCK2(wallet.cs_wallet, spk_man->cs_KeyStore);
-    const auto dest = DecodeDestination(address, wallet.chainParams);
+    const auto dest = DecodeDestination(address, wallet.GetChainParams());
     assert(IsValidDestination(dest));
     const auto script = GetScriptForDestination(dest);
     wallet.MarkDirty();

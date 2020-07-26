@@ -815,7 +815,6 @@ private:
     std::map<uint256, std::unique_ptr<ScriptPubKeyMan>> m_spk_managers;
 
 public:
-    const CChainParams &chainParams;
     /*
      * Main wallet lock.
      * This lock protects all the fields added by CWallet.
@@ -853,11 +852,10 @@ public:
     unsigned int nMasterKeyMaxID = 0;
 
     /** Construct wallet with specified name and database implementation. */
-    CWallet(const CChainParams &chainParamsIn, interfaces::Chain *chain,
-            const WalletLocation &location,
+    CWallet(interfaces::Chain *chain, const WalletLocation &location,
             std::unique_ptr<WalletDatabase> _database)
-        : m_chain(chain), m_location(location), database(std::move(_database)),
-          chainParams(chainParamsIn) {}
+        : m_chain(chain), m_location(location), database(std::move(_database)) {
+    }
 
     ~CWallet() {
         // Should not have slots connected at this point.
@@ -865,7 +863,7 @@ public:
     }
 
     /* Returns the chain params used by this wallet. */
-    const CChainParams &GetChainParams() const override { return chainParams; }
+    const CChainParams &GetChainParams() const override;
 
     bool IsCrypted() const;
     bool IsLocked() const override;

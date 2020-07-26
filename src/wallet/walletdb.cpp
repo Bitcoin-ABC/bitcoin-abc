@@ -298,14 +298,14 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             ssValue >> label;
             pwallet
                 ->m_address_book[DecodeDestination(strAddress,
-                                                   pwallet->chainParams)]
+                                                   pwallet->GetChainParams())]
                 .SetLabel(label);
         } else if (strType == DBKeys::PURPOSE) {
             std::string strAddress;
             ssKey >> strAddress;
             ssValue >> pwallet
                            ->m_address_book[DecodeDestination(
-                               strAddress, pwallet->chainParams)]
+                               strAddress, pwallet->GetChainParams())]
                            .purpose;
         } else if (strType == DBKeys::TX) {
             TxId txid;
@@ -493,8 +493,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             ssKey >> strKey;
             ssValue >> strValue;
             pwallet->LoadDestData(
-                DecodeDestination(strAddress, pwallet->chainParams), strKey,
-                strValue);
+                DecodeDestination(strAddress, pwallet->GetChainParams()),
+                strKey, strValue);
         } else if (strType == DBKeys::HDCHAIN) {
             CHDChain chain;
             ssValue >> chain;

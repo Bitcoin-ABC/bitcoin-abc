@@ -288,6 +288,12 @@ std::string COutput::ToString() const {
                      nDepth, FormatMoney(tx->tx->vout[i].nValue));
 }
 
+const CChainParams &CWallet::GetChainParams() const {
+    // Get CChainParams from interfaces::Chain, unless wallet doesn't have a
+    // chain (i.e. bitcoin-wallet), in which case return global Params()
+    return m_chain ? m_chain->params() : Params();
+}
+
 const CWalletTx *CWallet::GetWalletTx(const TxId &txid) const {
     LOCK(cs_wallet);
     std::map<TxId, CWalletTx>::const_iterator it = mapWallet.find(txid);
@@ -4168,8 +4174,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
             _("Zapping all transactions from wallet...").translated);
 
         std::unique_ptr<CWallet> tempWallet = std::make_unique<CWallet>(
-            chainParams, &chain, location,
-            WalletDatabase::Create(location.GetPath()));
+            &chain, location, WalletDatabase::Create(location.GetPath()));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DBErrors::LOAD_OK) {
             error =
@@ -4185,7 +4190,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(
-        new CWallet(chainParams, &chain, location,
+        new CWallet(&chain, location,
                     WalletDatabase::Create(location.GetPath())),
         ReleaseWallet);
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
