@@ -59,6 +59,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cassert>
 #include <deque>
 #include <numeric>
 #include <optional>
@@ -5084,12 +5085,14 @@ bool Chainstate::LoadGenesisBlock() {
     return true;
 }
 
-void Chainstate::LoadExternalBlockFile(const Config &config, FILE *fileIn,
-                                       FlatFilePos *dbp) {
+void Chainstate::LoadExternalBlockFile(
+    const Config &config, FILE *fileIn, FlatFilePos *dbp,
+    std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent) {
     AssertLockNotHeld(m_chainstate_mutex);
-    // Map of disk positions for blocks with unknown parent (only used for
-    // reindex)
-    static std::multimap<uint256, FlatFilePos> mapBlocksUnknownParent;
+
+    // Either both should be specified (-reindex), or neither (-loadblock).
+    assert(!dbp == !blocks_with_unknown_parent);
+
     int64_t nStart = GetTimeMillis();
 
     int nLoaded = 0;
@@ -5155,9 +5158,9 @@ void Chainstate::LoadExternalBlockFile(const Config &config, FILE *fileIn,
                             "%s: Out of order block %s, parent %s not known\n",
                             __func__, hash.ToString(),
                             block.hashPrevBlock.ToString());
-                        if (dbp) {
-                            mapBlocksUnknownParent.insert(
-                                std::make_pair(block.hashPrevBlock, *dbp));
+                        if (dbp && blocks_with_unknown_parent) {
+                            blocks_with_unknown_parent->emplace(
+                                block.hashPrevBlock, *dbp);
                         }
                         continue;
                     }
@@ -5195,18 +5198,20 @@ void Chainstate::LoadExternalBlockFile(const Config &config, FILE *fileIn,
 
                 NotifyHeaderTip(*this);
 
+                if (!blocks_with_unknown_parent) {
+                    continue;
+                }
+
                 // Recursively process earlier encountered successors of this
                 // block
-                std::deque<uint256> queue;
+                std::deque<BlockHash> queue;
                 queue.push_back(hash);
                 while (!queue.empty()) {
-                    uint256 head = queue.front();
+                    BlockHash head = queue.front();
                     queue.pop_front();
-                    std::pair<std::multimap<uint256, FlatFilePos>::iterator,
-                              std::multimap<uint256, FlatFilePos>::iterator>
-                        range = mapBlocksUnknownParent.equal_range(head);
+                    auto range = blocks_with_unknown_parent->equal_range(head);
                     while (range.first != range.second) {
-                        std::multimap<uint256, FlatFilePos>::iterator it =
+                        std::multimap<BlockHash, FlatFilePos>::iterator it =
                             range.first;
                         std::shared_ptr<CBlock> pblockrecursive =
                             std::make_shared<CBlock>();
@@ -5226,7 +5231,7 @@ void Chainstate::LoadExternalBlockFile(const Config &config, FILE *fileIn,
                             }
                         }
                         range.first++;
-                        mapBlocksUnknownParent.erase(it);
+                        blocks_with_unknown_parent->erase(it);
                         NotifyHeaderTip(*this);
                     }
                 }
