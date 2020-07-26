@@ -233,12 +233,25 @@ void UnloadBlockIndex(CTxMemPool *mempool);
 void ThreadScriptCheck(int worker_num);
 
 /**
- * Retrieve a transaction (from memory pool, or from disk, if possible).
+ * Return transaction from the block at block_index.
+ * If block_index is not provided, fall back to mempool.
+ * If mempool is not provided or the tx couldn't be found in mempool, fall back
+ * to g_txindex.
+ *
+ * @param[in]  block_index     The block to read from disk, or nullptr
+ * @param[in]  mempool         If block_index is not provided, look in the
+ *                             mempool, if provided
+ * @param[in]  txid            The txid
+ * @param[in]  consensusParams The params
+ * @param[out] hashBlock       The hash of block_index, if the tx was found via
+ *                             block_index
+ * @returns                    The tx if found, otherwise nullptr
  */
-bool GetTransaction(const TxId &txid, CTransactionRef &txOut,
-                    const Consensus::Params &params, BlockHash &hashBlock,
-                    const CBlockIndex *const blockIndex = nullptr);
-
+CTransactionRef GetTransaction(const CBlockIndex *const block_index,
+                               const CTxMemPool *const mempool,
+                               const TxId &txid,
+                               const Consensus::Params &consensusParams,
+                               BlockHash &hashBlock);
 /**
  * Find the best known block, and make it the tip of the block chain
  *

@@ -192,6 +192,8 @@ static UniValue getrawtransaction(const Config &config,
     }
         .Check(request);
 
+    const NodeContext &node = EnsureNodeContext(request.context);
+
     bool in_active_chain = true;
     TxId txid = TxId(ParseHashV(request.params[0], "parameter 1"));
     CBlockIndex *blockindex = nullptr;
@@ -229,10 +231,10 @@ static UniValue getrawtransaction(const Config &config,
         f_txindex_ready = g_txindex->BlockUntilSyncedToCurrentChain();
     }
 
-    CTransactionRef tx;
     BlockHash hash_block;
-    if (!GetTransaction(txid, tx, params.GetConsensus(), hash_block,
-                        blockindex)) {
+    const CTransactionRef tx = GetTransaction(
+        blockindex, node.mempool, txid, params.GetConsensus(), hash_block);
+    if (!tx) {
         std::string errmsg;
         if (blockindex) {
             if (!blockindex->nStatus.hasData()) {
@@ -352,9 +354,10 @@ static UniValue gettxoutproof(const Config &config,
     LOCK(cs_main);
 
     if (pblockindex == nullptr) {
-        CTransactionRef tx;
-        if (!GetTransaction(oneTxId, tx, params, hashBlock) ||
-            hashBlock.IsNull()) {
+        const CTransactionRef tx = GetTransaction(
+            /* block_index */ nullptr,
+            /* mempool */ nullptr, oneTxId, Params().GetConsensus(), hashBlock);
+        if (!tx || hashBlock.IsNull()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Transaction not yet in block");
         }
