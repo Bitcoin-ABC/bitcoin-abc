@@ -3643,8 +3643,21 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             // It may be the case that the orphans parents have all been
             // rejected.
             bool fRejectedParents = false;
+
+            // Deduplicate parent txids, so that we don't have to loop over
+            // the same parent txid more than once down below.
+            std::vector<TxId> unique_parents;
+            unique_parents.reserve(tx.vin.size());
             for (const CTxIn &txin : tx.vin) {
-                if (recentRejects->contains(txin.prevout.GetTxId())) {
+                // We start with all parents, and then remove duplicates below.
+                unique_parents.push_back(txin.prevout.GetTxId());
+            }
+            std::sort(unique_parents.begin(), unique_parents.end());
+            unique_parents.erase(
+                std::unique(unique_parents.begin(), unique_parents.end()),
+                unique_parents.end());
+            for (const TxId &parent_txid : unique_parents) {
+                if (recentRejects->contains(parent_txid)) {
                     fRejectedParents = true;
                     break;
                 }
@@ -3652,12 +3665,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             if (!fRejectedParents) {
                 const auto current_time = GetTime<std::chrono::microseconds>();
 
-                for (const CTxIn &txin : tx.vin) {
+                for (const TxId &parent_txid : unique_parents) {
                     // FIXME: MSG_TX should use a TxHash, not a TxId.
-                    const TxId _txid = txin.prevout.GetTxId();
-                    pfrom.AddKnownTx(_txid);
-                    if (!AlreadyHaveTx(_txid, m_mempool)) {
-                        AddTxAnnouncement(pfrom, _txid, current_time);
+                    pfrom.AddKnownTx(parent_txid);
+                    if (!AlreadyHaveTx(parent_txid, m_mempool)) {
+                        AddTxAnnouncement(pfrom, parent_txid, current_time);
                     }
                 }
                 AddOrphanTx(ptx, pfrom.GetId());
