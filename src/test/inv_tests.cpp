@@ -12,7 +12,7 @@ static void CheckType(int type, int expected, bool IsTx, bool IsBlock) {
     CInv inv(type, uint256());
     BOOST_CHECK_EQUAL(inv.GetKind(), expected);
     BOOST_CHECK_EQUAL(inv.IsMsgTx(), IsTx);
-    BOOST_CHECK_EQUAL(inv.IsSomeBlock(), IsBlock);
+    BOOST_CHECK_EQUAL(inv.IsGenBlkMsg(), IsBlock);
 }
 
 /* Validate various inv facilities. */

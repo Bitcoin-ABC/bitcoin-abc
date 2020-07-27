@@ -532,8 +532,20 @@ public:
         auto k = GetKind();
         return k == MSG_TX;
     }
+    bool IsMsgBlk() const {
+        auto k = GetKind();
+        return k == MSG_BLOCK;
+    }
+    bool IsMsgFilteredBlk() const {
+        auto k = GetKind();
+        return k == MSG_FILTERED_BLOCK;
+    }
+    bool IsMsgCmpctBlk() const {
+        auto k = GetKind();
+        return k == MSG_CMPCT_BLOCK;
+    }
 
-    bool IsSomeBlock() const {
+    bool IsGenBlkMsg() const {
         auto k = GetKind();
         return k == MSG_BLOCK || k == MSG_FILTERED_BLOCK ||
                k == MSG_CMPCT_BLOCK;

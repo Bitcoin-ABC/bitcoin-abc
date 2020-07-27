@@ -25,7 +25,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     } catch (const std::out_of_range &) {
     }
     (void)inv->GetKind();
-    (void)inv->IsSomeBlock();
+    (void)inv->IsGenBlkMsg();
     (void)inv->IsMsgTx();
     (void)inv->ToString();
     const std::optional<CInv> another_inv =
