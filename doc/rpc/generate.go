@@ -115,7 +115,7 @@ func main() {
 	}
 	groups = append(groups, g)
 
-	tmpl := template.Must(template.ParseFiles(path.Join(srcdir, "doc", "rpc", "command-template.html")))
+	tmpl := template.Must(template.ParseFiles(path.Join(srcdir, "doc", "rpc", "command-template.md")))
 
 	for _, group := range groups {
 		groupname := group.Name
@@ -127,7 +127,7 @@ func main() {
 		}
 		for _, command := range group.Commands {
 			name := command.Name
-			address := fmt.Sprintf("%s/%s.html", dirname, name)
+			address := fmt.Sprintf("%s/%s.md", dirname, name)
 			permalink := fmt.Sprintf("en/doc/%s/rpc/%s/%s/", version, groupname, name)
 			err = tmpl.Execute(open(address), CommandData{
 				Version:     version,
@@ -140,7 +140,7 @@ func main() {
 				log.Fatalf("Cannot make command file %s: %s", name, err.Error())
 			}
 		}
-		address := path.Join(rpcdocdir, version, "rpc", "index.html")
+		address := path.Join(rpcdocdir, version, "rpc", "index.md")
 		permalink := fmt.Sprintf("en/doc/%s/rpc/", version)
 		err = tmpl.Execute(open(address), CommandData{
 			Version:     version,
@@ -153,7 +153,7 @@ func main() {
 			log.Fatalf("Cannot make index file: %s", err.Error())
 		}
 
-		address = path.Join(rpcdocdir, version, "index.html")
+		address = path.Join(rpcdocdir, version, "index.md")
 		permalink = fmt.Sprintf("en/doc/%s/", version)
 		err = tmpl.Execute(open(address), CommandData{
 			Version:     version,
