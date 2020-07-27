@@ -21,6 +21,7 @@ PACKAGES=(
   g++-aarch64-linux-gnu
   g++-arm-linux-gnueabihf
   git
+  golang
   g++-mingw-w64
   gnupg
   gperf
