@@ -188,12 +188,12 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test) {
     auto pnode1 =
         std::make_unique<CNode>(id++, NODE_NETWORK, height, hSocket, addr, 0, 0,
                                 CAddress(), pszDest, ConnectionType::OUTBOUND);
-    BOOST_CHECK(pnode1->fInbound == false);
+    BOOST_CHECK(pnode1->IsInboundConn() == false);
 
     auto pnode2 =
         std::make_unique<CNode>(id++, NODE_NETWORK, height, hSocket, addr, 1, 1,
                                 CAddress(), pszDest, ConnectionType::INBOUND);
-    BOOST_CHECK(pnode2->fInbound == true);
+    BOOST_CHECK(pnode2->IsInboundConn() == true);
 }
 
 BOOST_AUTO_TEST_CASE(test_getSubVersionEB) {

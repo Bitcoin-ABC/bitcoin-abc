@@ -487,7 +487,7 @@ static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
 
     // Whether this node should be marked as a preferred download node.
     state->fPreferredDownload =
-        (!node.fInbound || node.HasPermission(PF_NOBAN)) &&
+        (!node.IsInboundConn() || node.HasPermission(PF_NOBAN)) &&
         !node.IsAddrFetchConn() && !node.fClient;
 
     nPreferredDownload += state->fPreferredDownload;
@@ -935,8 +935,8 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
 }
 
 static bool IsOutboundDisconnectionCandidate(const CNode &node) {
-    return !(node.fInbound || node.IsManualConn() || node.IsFeelerConn() ||
-             node.IsAddrFetchConn());
+    return !(node.IsInboundConn() || node.IsManualConn() ||
+             node.IsFeelerConn() || node.IsAddrFetchConn());
 }
 
 void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
@@ -945,13 +945,14 @@ void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
     NodeId nodeid = pnode->GetId();
     {
         LOCK(cs_main);
-        mapNodeState.emplace_hint(
-            mapNodeState.end(), std::piecewise_construct,
-            std::forward_as_tuple(nodeid),
-            std::forward_as_tuple(addr, std::move(addrName), pnode->fInbound,
-                                  pnode->IsManualConn()));
+        mapNodeState.emplace_hint(mapNodeState.end(), std::piecewise_construct,
+                                  std::forward_as_tuple(nodeid),
+                                  std::forward_as_tuple(addr,
+                                                        std::move(addrName),
+                                                        pnode->IsInboundConn(),
+                                                        pnode->IsManualConn()));
     }
-    if (!pnode->fInbound) {
+    if (!pnode->IsInboundConn()) {
         PushNodeVersion(config, *pnode, *connman, GetTime());
     }
 }
@@ -2534,11 +2535,11 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
         nSendVersion = std::min(nVersion, PROTOCOL_VERSION);
         nServices = ServiceFlags(nServiceInt);
-        if (!pfrom.fInbound) {
+        if (!pfrom.IsInboundConn()) {
             connman.SetServices(pfrom.addr, nServices);
         }
-        if (!pfrom.fInbound && !pfrom.IsFeelerConn() && !pfrom.IsManualConn() &&
-            !HasAllDesirableServiceFlags(nServices)) {
+        if (!pfrom.IsInboundConn() && !pfrom.IsFeelerConn() &&
+            !pfrom.IsManualConn() && !HasAllDesirableServiceFlags(nServices)) {
             LogPrint(BCLog::NET,
                      "peer=%d does not offer the expected services "
                      "(%08x offered, %08x expected); disconnecting\n",
@@ -2572,19 +2573,19 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             vRecv >> fRelay;
         }
         // Disconnect if we connected to ourself
-        if (pfrom.fInbound && !connman.CheckIncomingNonce(nNonce)) {
+        if (pfrom.IsInboundConn() && !connman.CheckIncomingNonce(nNonce)) {
             LogPrintf("connected to self at %s, disconnecting\n",
                       pfrom.addr.ToString());
             pfrom.fDisconnect = true;
             return true;
         }
 
-        if (pfrom.fInbound && addrMe.IsRoutable()) {
+        if (pfrom.IsInboundConn() && addrMe.IsRoutable()) {
             SeenLocal(addrMe);
         }
 
         // Be shy and don't send version until we hear
-        if (pfrom.fInbound) {
+        if (pfrom.IsInboundConn()) {
             PushNodeVersion(config, pfrom, connman, GetAdjustedTime());
         }
 
@@ -2625,7 +2626,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             UpdatePreferredDownload(pfrom, State(pfrom.GetId()));
         }
 
-        if (!pfrom.fInbound && pfrom.IsAddrRelayPeer()) {
+        if (!pfrom.IsInboundConn() && pfrom.IsAddrRelayPeer()) {
             // Advertise our address
             if (fListen && !::ChainstateActive().IsInitialBlockDownload()) {
                 CAddress addr =
@@ -2697,7 +2698,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
     if (msg_type == NetMsgType::VERACK) {
         pfrom.SetRecvVersion(std::min(pfrom.nVersion.load(), PROTOCOL_VERSION));
 
-        if (!pfrom.fInbound) {
+        if (!pfrom.IsInboundConn()) {
             // Mark this node as currently connected, so we update its timestamp
             // later.
             LOCK(cs_main);
@@ -3921,7 +3922,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         // sending getaddr messages. Making nodes which are behind NAT and can
         // only make outgoing connections ignore the getaddr message mitigates
         // the attack.
-        if (!pfrom.fInbound) {
+        if (!pfrom.IsInboundConn()) {
             LogPrint(BCLog::NET,
                      "Ignoring \"getaddr\" from outbound connection. peer=%d\n",
                      pfrom.GetId());
@@ -4892,7 +4893,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             bool fSendTrickle = pto->HasPermission(PF_NOBAN);
             if (pto->m_tx_relay->nNextInvSend < current_time) {
                 fSendTrickle = true;
-                if (pto->fInbound) {
+                if (pto->IsInboundConn()) {
                     pto->m_tx_relay->nNextInvSend = std::chrono::microseconds{
                         connman->PoissonNextSendInbound(
                             nNow, INVENTORY_BROADCAST_INTERVAL)};
