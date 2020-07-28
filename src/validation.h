@@ -719,6 +719,9 @@ private:
     //! easily as opposed to referencing a global.
     BlockManager &m_blockman;
 
+    //! mempool that is kept in sync with the chain
+    CTxMemPool &m_mempool;
+
     //! Manages the UTXO set, which is a reflection of the contents of
     //! `m_chain`.
     std::unique_ptr<CoinsViews> m_coins_views;
@@ -730,7 +733,7 @@ private:
     const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
 
 public:
-    explicit CChainState(BlockManager &blockman,
+    explicit CChainState(CTxMemPool &mempool, BlockManager &blockman,
                          BlockHash from_snapshot_blockhash = BlockHash());
 
     /**
@@ -864,7 +867,7 @@ public:
     // Block disconnection on our pcoinsTip:
     bool DisconnectTip(const CChainParams &params, BlockValidationState &state,
                        DisconnectedBlockTransactions *disconnectpool)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
 
     // Manual block validity manipulation:
     bool PreciousBlock(const Config &config, BlockValidationState &state,
@@ -952,13 +955,13 @@ private:
                                CBlockIndex *pindexMostWork,
                                const std::shared_ptr<const CBlock> &pblock,
                                bool &fInvalidFound, ConnectTrace &connectTrace)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
     bool ConnectTip(const Config &config, BlockValidationState &state,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
                     ConnectTrace &connectTrace,
                     DisconnectedBlockTransactions &disconnectpool)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
     void InvalidBlockFound(CBlockIndex *pindex,
                            const BlockValidationState &state)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -1105,10 +1108,13 @@ public:
     //! Instantiate a new chainstate and assign it based upon whether it is
     //! from a snapshot.
     //!
+    //! @param[in] mempool              The mempool to pass to the chainstate
+    //                                  constructor
     //! @param[in] snapshot_blockhash   If given, signify that this chainstate
     //!                                 is based on a snapshot.
     CChainState &
-    InitializeChainstate(const BlockHash &snapshot_blockhash = BlockHash())
+    InitializeChainstate(CTxMemPool &mempool,
+                         const BlockHash &snapshot_blockhash = BlockHash())
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     //! Get all chainstates currently being used.

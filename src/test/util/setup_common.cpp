@@ -177,8 +177,11 @@ TestingSetup::TestingSetup(const std::string &chainName,
 
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
 
+    m_node.mempool = &::g_mempool;
+    m_node.mempool->setSanityCheck(1.0);
+
     m_node.chainman = &::g_chainman;
-    m_node.chainman->InitializeChainstate();
+    m_node.chainman->InitializeChainstate(*m_node.mempool);
     ::ChainstateActive().InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
         /* should_wipe */ false);
@@ -200,8 +203,6 @@ TestingSetup::TestingSetup(const std::string &chainName,
         threadGroup.create_thread([i]() { return ThreadScriptCheck(i); });
     }
 
-    m_node.mempool = &::g_mempool;
-    m_node.mempool->setSanityCheck(1.0);
     m_node.banman =
         std::make_unique<BanMan>(GetDataDir() / "banlist.dat", chainparams,
                                  nullptr, DEFAULT_MISBEHAVING_BANTIME);
