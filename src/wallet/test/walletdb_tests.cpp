@@ -20,8 +20,8 @@ namespace {
 static std::unique_ptr<CWallet> LoadWallet(WalletBatch &batch) {
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    std::unique_ptr<CWallet> wallet = std::make_unique<CWallet>(
-        chain.get(), WalletLocation(), CreateDummyWalletDatabase());
+    std::unique_ptr<CWallet> wallet =
+        std::make_unique<CWallet>(chain.get(), "", CreateDummyWalletDatabase());
     DBErrors res = batch.LoadWallet(wallet.get());
     BOOST_CHECK(res == DBErrors::LOAD_OK);
     return wallet;

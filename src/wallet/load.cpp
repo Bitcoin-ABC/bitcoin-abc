@@ -5,6 +5,7 @@
 
 #include <wallet/load.h>
 
+#include <fs.h>
 #include <interfaces/chain.h>
 #include <scheduler.h>
 #include <util/string.h>
@@ -52,9 +53,9 @@ bool VerifyWallets(interfaces::Chain &chain,
     std::set<fs::path> wallet_paths;
 
     for (const auto &wallet_file : wallet_files) {
-        WalletLocation location(wallet_file);
+        const fs::path path = fs::absolute(wallet_file, GetWalletDir());
 
-        if (!wallet_paths.insert(location.GetPath()).second) {
+        if (!wallet_paths.insert(path).second) {
             chain.initError(strprintf(_("Error loading wallet %s. Duplicate "
                                         "-wallet filename specified."),
                                       wallet_file));
@@ -64,7 +65,7 @@ bool VerifyWallets(interfaces::Chain &chain,
         bilingual_str error_string;
         std::vector<bilingual_str> warnings;
         bool verify_success =
-            CWallet::Verify(chain, location, error_string, warnings);
+            CWallet::Verify(chain, wallet_file, error_string, warnings);
         if (!warnings.empty()) {
             chain.initWarning(Join(warnings, Untranslated("\n")));
         }
@@ -84,7 +85,7 @@ bool LoadWallets(interfaces::Chain &chain,
             bilingual_str error;
             std::vector<bilingual_str> warnings;
             std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
-                chain, WalletLocation(walletFile), error, warnings);
+                chain, walletFile, error, warnings);
             if (!warnings.empty()) {
                 chain.initWarning(Join(warnings, Untranslated("\n")));
             }

@@ -521,7 +521,7 @@ namespace {
         std::unique_ptr<Wallet>
         loadWallet(const std::string &name, bilingual_str &error,
                    std::vector<bilingual_str> &warnings) override {
-            return MakeWallet(LoadWallet(*m_context.chain, WalletLocation(name),
+            return MakeWallet(LoadWallet(*m_context.chain, name,
                                          true /* load_on_start */, error,
                                          warnings));
         }

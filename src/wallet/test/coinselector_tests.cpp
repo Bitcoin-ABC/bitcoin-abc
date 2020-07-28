@@ -325,7 +325,7 @@ BOOST_AUTO_TEST_CASE(bnb_search_test) {
     // Make sure that can use BnB when there are preset inputs
     empty_wallet();
     {
-        auto wallet = std::make_unique<CWallet>(m_chain.get(), WalletLocation(),
+        auto wallet = std::make_unique<CWallet>(m_chain.get(), "",
                                                 CreateMockWalletDatabase());
         bool firstRun;
         wallet->LoadWallet(firstRun);
@@ -349,8 +349,7 @@ BOOST_AUTO_TEST_CASE(bnb_search_test) {
 
 BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
     auto testChain = interfaces::MakeChain(testNode, Params());
-    CWallet testWallet(testChain.get(), WalletLocation(),
-                       CreateDummyWalletDatabase());
+    CWallet testWallet(testChain.get(), "", CreateDummyWalletDatabase());
 
     CoinSet setCoinsRet, setCoinsRet2;
     Amount nValueRet;
@@ -780,8 +779,7 @@ BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
 // to find a solution that can pay the target value
 BOOST_AUTO_TEST_CASE(SelectCoins_test) {
     auto testChain = interfaces::MakeChain(testNode, Params());
-    CWallet testWallet(testChain.get(), WalletLocation(),
-                       CreateDummyWalletDatabase());
+    CWallet testWallet(testChain.get(), "", CreateDummyWalletDatabase());
     testWallet.SetupLegacyScriptPubKeyMan();
 
     // Random generator stuff
