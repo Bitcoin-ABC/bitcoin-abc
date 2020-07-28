@@ -1790,7 +1790,7 @@ void CConnman::ThreadDNSAddressSeed() {
                         for (const CNode *pnode : vNodes) {
                             nRelevant += pnode->fSuccessfullyConnected &&
                                          !pnode->IsFeelerConn() &&
-                                         !pnode->m_addr_fetch &&
+                                         !pnode->IsAddrFetchConn() &&
                                          !pnode->IsManualConn() &&
                                          !pnode->fInbound;
                         }
@@ -1918,7 +1918,7 @@ int CConnman::GetExtraOutboundCount() {
         for (const CNode *pnode : vNodes) {
             if (!pnode->fInbound && !pnode->IsManualConn() &&
                 !pnode->IsFeelerConn() && !pnode->fDisconnect &&
-                !pnode->m_addr_fetch && pnode->fSuccessfullyConnected) {
+                !pnode->IsAddrFetchConn() && pnode->fSuccessfullyConnected) {
                 ++nOutbound;
             }
         }
@@ -2989,9 +2989,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
              ConnectionType conn_type_in)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
-      addrBind(addrBindIn),
-      m_addr_fetch(conn_type_in == ConnectionType::ADDR_FETCH),
-      fInbound(conn_type_in == ConnectionType::INBOUND),
+      addrBind(addrBindIn), fInbound(conn_type_in == ConnectionType::INBOUND),
       nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these

@@ -488,7 +488,7 @@ static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
     // Whether this node should be marked as a preferred download node.
     state->fPreferredDownload =
         (!node.fInbound || node.HasPermission(PF_NOBAN)) &&
-        !node.m_addr_fetch && !node.fClient;
+        !node.IsAddrFetchConn() && !node.fClient;
 
     nPreferredDownload += state->fPreferredDownload;
 }
@@ -936,7 +936,7 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
 
 static bool IsOutboundDisconnectionCandidate(const CNode &node) {
     return !(node.fInbound || node.IsManualConn() || node.IsFeelerConn() ||
-             node.m_addr_fetch);
+             node.IsAddrFetchConn());
 }
 
 void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
@@ -2798,7 +2798,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         if (vAddr.size() < 1000) {
             pfrom.fGetAddr = false;
         }
-        if (pfrom.m_addr_fetch) {
+        if (pfrom.IsAddrFetchConn()) {
             pfrom.fDisconnect = true;
         }
         return true;
@@ -4673,7 +4673,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     // might do.
     bool fFetch =
         state.fPreferredDownload ||
-        (nPreferredDownload == 0 && !pto->fClient && !pto->m_addr_fetch);
+        (nPreferredDownload == 0 && !pto->fClient && !pto->IsAddrFetchConn());
 
     if (!state.fSyncStarted && !pto->fClient && !fImporting && !fReindex) {
         // Only actively request headers from a single peer, unless we're close

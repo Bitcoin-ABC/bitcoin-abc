@@ -864,7 +864,6 @@ public:
     // This boolean is unusued in actual processing, only present for backward
     // compatibility at RPC/QT level
     bool m_legacyWhitelisted{false};
-    bool m_addr_fetch{false};
     // set by version message
     bool fClient{false};
     // after BIP159, set by version message
@@ -885,6 +884,10 @@ public:
     bool IsManualConn() const { return m_conn_type == ConnectionType::MANUAL; }
 
     bool IsFeelerConn() const { return m_conn_type == ConnectionType::FEELER; }
+
+    bool IsAddrFetchConn() const {
+        return m_conn_type == ConnectionType::ADDR_FETCH;
+    }
 
 protected:
     mapMsgCmdSize mapSendBytesPerMsgCmd;
