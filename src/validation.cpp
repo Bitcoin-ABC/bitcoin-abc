@@ -2077,17 +2077,17 @@ MinerFundSuccess:
 }
 
 CoinsCacheSizeState
-CChainState::GetCoinsCacheSizeState(const CTxMemPool &tx_pool) {
+CChainState::GetCoinsCacheSizeState(const CTxMemPool *tx_pool) {
     return this->GetCoinsCacheSizeState(
         tx_pool, m_coinstip_cache_size_bytes,
         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);
 }
 
 CoinsCacheSizeState
-CChainState::GetCoinsCacheSizeState(const CTxMemPool &tx_pool,
+CChainState::GetCoinsCacheSizeState(const CTxMemPool *tx_pool,
                                     size_t max_coins_cache_size_bytes,
                                     size_t max_mempool_size_bytes) {
-    int64_t nMempoolUsage = tx_pool.DynamicMemoryUsage();
+    int64_t nMempoolUsage = tx_pool->DynamicMemoryUsage();
     int64_t cacheSize = CoinsTip().DynamicMemoryUsage();
     int64_t nTotalSpace =
         max_coins_cache_size_bytes +
@@ -2128,7 +2128,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
             bool fFlushForPrune = false;
             bool fDoFullFlush = false;
             CoinsCacheSizeState cache_state =
-                GetCoinsCacheSizeState(::g_mempool);
+                GetCoinsCacheSizeState(&::g_mempool);
             LOCK(cs_LastBlockFile);
             if (fPruneMode && (fCheckForPruning || nManualPruneHeight > 0) &&
                 !fReindex) {
