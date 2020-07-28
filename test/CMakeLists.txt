@@ -49,14 +49,21 @@ if(BUILD_BITCOIN_WALLET)
 	list(APPEND _TEST_TARGET_DEPENDS bitcoin-wallet)
 endif()
 
-macro(add_functional_test_check TARGET COMMENT)
+function(add_functional_test_check TARGET DESCRIPTION)
+	if(ENABLE_JUNIT_REPORT)
+		string(REGEX REPLACE " " "_" JUNIT_FILE "${DESCRIPTION}.xml")
+		set(JUNIT_OUTPUT "--junitoutput=${JUNIT_REPORT_DIRECTORY}/${JUNIT_FILE}")
+	endif()
+
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
 			"${Python_EXECUTABLE}"
 			./functional/test_runner.py
+			"--testsuitename=Bitcoin ABC ${DESCRIPTION}"
+			${JUNIT_OUTPUT}
 			${ARGN}
 		CUSTOM_TARGET_ARGS
-			COMMENT "${COMMENT}"
+			COMMENT "Running ${DESCRIPTION}"
 			DEPENDS
 				bitcoind
 				${_TEST_TARGET_DEPENDS}
@@ -66,33 +73,29 @@ macro(add_functional_test_check TARGET COMMENT)
 	)
 
 	add_custom_target_coverage(${TARGET})
-endmacro()
+endfunction()
 
 add_functional_test_check(check-functional
-	"Run the functional tests"
+	"functional tests"
 )
 add_dependencies(check-all check-functional)
 
 add_functional_test_check(check-functional-extended
-	"Run the extended functional tests"
+	"extended functional tests"
 	--extended
 )
 add_dependencies(check-extended check-functional-extended)
 
-set(TEST_SUITE_NAME_UPGRADE_ACTIVATED "Bitcoin ABC functional tests with the next upgrade activated")
-
 add_functional_test_check(check-functional-upgrade-activated
-	"Run the functional tests with the upgrade activated"
+	"functional tests with the next upgrade activated"
 	--with-axionactivation
-	-n "${TEST_SUITE_NAME_UPGRADE_ACTIVATED}"
 )
 add_dependencies(check-upgrade-activated check-functional-upgrade-activated)
 
 add_functional_test_check(check-functional-upgrade-activated-extended
-	"Run the extended functional tests with the upgrade activated"
+	"extended functional tests with the next upgrade activated"
 	--extended
 	--with-axionactivation
-	-n "${TEST_SUITE_NAME_UPGRADE_ACTIVATED}"
 )
 add_dependencies(check-upgrade-activated-extended check-functional-upgrade-activated-extended)
 

@@ -2,10 +2,11 @@
 
 option(ENABLE_JUNIT_REPORT "Enable Junit report generation for targets that support it" OFF)
 
+set(JUNIT_REPORT_DIRECTORY "${CMAKE_BINARY_DIR}/test/junit")
 set_property(
 	DIRECTORY "${CMAKE_SOURCE_DIR}"
 	APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-		"${CMAKE_BINARY_DIR}/test/junit"
+		"${JUNIT_REPORT_DIRECTORY}"
 		"${CMAKE_BINARY_DIR}/test/tmp"
 )
 
@@ -20,6 +21,7 @@ function(add_test_custom_target TARGET)
 
 	add_custom_target(${TARGET}
 		${ARG_CUSTOM_TARGET_ARGS}
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${JUNIT_REPORT_DIRECTORY}"
 		COMMAND ${CMAKE_COMMAND} -E env ${TEST_ENVIRONMENT} ${ARG_TEST_COMMAND}
 	)
 endfunction()
@@ -85,7 +87,7 @@ function(add_test_runner SUITE NAME EXECUTABLE)
 			COMMAND_EXPAND_LISTS
 			COMMAND
 				"${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/cmake/utils/junit-reports-merge.py"
-				"${CMAKE_BINARY_DIR}/test/junit"
+				"${JUNIT_REPORT_DIRECTORY}"
 				"${CMAKE_BINARY_DIR}/test/tmp"
 				"${SUITE}"
 				"${NAME}"
