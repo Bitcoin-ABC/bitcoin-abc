@@ -117,9 +117,9 @@ func main() {
 
 	tmpl := template.Must(template.ParseFiles(path.Join(srcdir, "doc", "rpc", "command-template.md")))
 
+	rpcdocdir := path.Join("doc", "rpc", "en")
 	for _, group := range groups {
 		groupname := group.Name
-		rpcdocdir := path.Join("doc", "rpc", "en")
 		dirname := path.Join(rpcdocdir, version, "rpc", groupname)
 		err := os.MkdirAll(dirname, 0777)
 		if err != nil {
@@ -140,31 +140,32 @@ func main() {
 				log.Fatalf("Cannot make command file %s: %s", name, err.Error())
 			}
 		}
-		address := path.Join(rpcdocdir, version, "rpc", "index.md")
-		permalink := fmt.Sprintf("en/doc/%s/rpc/", version)
-		err = tmpl.Execute(open(address), CommandData{
-			Version:     version,
-			Name:        "rpcindex",
-			Description: "",
-			Group:       "index",
-			Permalink:   permalink,
-		})
-		if err != nil {
-			log.Fatalf("Cannot make index file: %s", err.Error())
-		}
+	}
 
-		address = path.Join(rpcdocdir, version, "index.md")
-		permalink = fmt.Sprintf("en/doc/%s/", version)
-		err = tmpl.Execute(open(address), CommandData{
-			Version:     version,
-			Name:        "index",
-			Description: "",
-			Group:       "index",
-			Permalink:   permalink,
-		})
-		if err != nil {
-			log.Fatalf("Cannot make index file: %s", err.Error())
-		}
+	address := path.Join(rpcdocdir, version, "rpc", "index.md")
+	permalink := fmt.Sprintf("en/doc/%s/rpc/", version)
+	err := tmpl.Execute(open(address), CommandData{
+		Version:     version,
+		Name:        "rpcindex",
+		Description: "",
+		Group:       "index",
+		Permalink:   permalink,
+	})
+	if err != nil {
+		log.Fatalf("Cannot make index file: %s", err.Error())
+	}
+
+	address = path.Join(rpcdocdir, version, "index.md")
+	permalink = fmt.Sprintf("en/doc/%s/", version)
+	err = tmpl.Execute(open(address), CommandData{
+		Version:     version,
+		Name:        "index",
+		Description: "",
+		Group:       "index",
+		Permalink:   permalink,
+	})
+	if err != nil {
+		log.Fatalf("Cannot make index file: %s", err.Error())
 	}
 }
 
