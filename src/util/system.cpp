@@ -1141,7 +1141,7 @@ bool FileCommit(FILE *file) {
         return false;
     }
 #else
-#if defined(__linux__) || defined(__NetBSD__)
+#if defined(HAVE_FDATASYNC)
     // Ignore EINVAL for filesystems that don't support sync
     if (fdatasync(fileno(file)) != 0 && errno != EINVAL) {
         LogPrintf("%s: fdatasync failed: %d\n", __func__, errno);
