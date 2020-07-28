@@ -231,13 +231,26 @@ function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
 	get_target_from_suite(${SUITE} SUITE_TARGET)
 	get_target_property(BOOST_TESTS ${SUITE_TARGET} UNIT_TESTS)
 
+	get_target_from_suite(${SUITE_UPGRADE_ACTIVATED} SUITE_UPGRADE_ACTIVATED_TARGET)
+
+	set(HRF_LOGGER "HRF,test_suite")
+
 	foreach(_test_name ${BOOST_TESTS})
+		if(ENABLE_JUNIT_REPORT)
+			set(JUNIT_LOGGER ":JUNIT,message,${SUITE_UPGRADE_ACTIVATED}-${_test_name}.xml")
+		endif()
+
 		add_test_runner(
 			${SUITE_UPGRADE_ACTIVATED}
 			"${_test_name}"
-			${EXECUTABLE} -t "${_test_name}"
+			${EXECUTABLE}
+			JUNIT
+			"--run_test=${_test_name}"
+			"--logger=${HRF_LOGGER}${JUNIT_LOGGER}"
 			# Dec. 1st, 2019 at 00:00:00
-			-- -axionactivationtime=1575158400
+			--
+			"-testsuitename=Bitcoin ABC unit tests with next upgrade activated"
+			-axionactivationtime=1575158400
 		)
 	endforeach()
 endfunction()

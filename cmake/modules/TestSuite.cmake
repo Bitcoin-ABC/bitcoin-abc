@@ -1,5 +1,14 @@
 # Allow to easily build test suites
 
+option(ENABLE_JUNIT_REPORT "Enable Junit report generation for targets that support it" OFF)
+
+set_property(
+	DIRECTORY "${CMAKE_SOURCE_DIR}"
+	APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+		"${CMAKE_BINARY_DIR}/test/junit"
+		"${CMAKE_BINARY_DIR}/test/tmp"
+)
+
 macro(add_test_environment VARIABLE VALUE)
 	set_property(GLOBAL APPEND PROPERTY TEST_ENVIRONMENT "${VARIABLE}=${VALUE}")
 endmacro()
@@ -53,6 +62,8 @@ endmacro()
 
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
 function(add_test_runner SUITE NAME EXECUTABLE)
+	cmake_parse_arguments(ARG "JUNIT" "" "" ${ARGN})
+
 	get_target_from_suite(${SUITE} SUITE_TARGET)
 	set(TARGET "${SUITE_TARGET}-${NAME}")
 
@@ -60,13 +71,26 @@ function(add_test_runner SUITE NAME EXECUTABLE)
 		TEST_COMMAND
 			"${CMAKE_SOURCE_DIR}/cmake/utils/test_wrapper.sh"
 			"${SUITE}-${NAME}.log"
-			${CMAKE_CROSSCOMPILING_EMULATOR} "$<TARGET_FILE:${EXECUTABLE}>" ${ARGN}
+			${CMAKE_CROSSCOMPILING_EMULATOR} "$<TARGET_FILE:${EXECUTABLE}>" ${ARG_UNPARSED_ARGUMENTS}
 		CUSTOM_TARGET_ARGS
 			COMMENT "${SUITE}: testing ${NAME}"
 			DEPENDS ${EXECUTABLE}
 			VERBATIM
 	)
 	add_dependencies(${SUITE_TARGET} ${TARGET})
+
+	if(ENABLE_JUNIT_REPORT AND ARG_JUNIT)
+		add_custom_command(TARGET ${TARGET} POST_BUILD
+			COMMENT "Processing junit report for test ${NAME} from suite ${SUITE}"
+			COMMAND_EXPAND_LISTS
+			COMMAND
+				"${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/cmake/utils/junit-reports-merge.py"
+				"${CMAKE_BINARY_DIR}/test/junit"
+				"${CMAKE_BINARY_DIR}/test/tmp"
+				"${SUITE}"
+				"${NAME}"
+		)
+	endif()
 endfunction()
 
 function(add_test_to_suite SUITE NAME)
@@ -92,13 +116,23 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARG_UNPARSED_ARGUMENTS})
 	add_dependencies("${SUITE_TARGET}" ${NAME})
 
+	set(HRF_LOGGER "HRF,test_suite")
+
 	foreach(_test_source ${ARG_TESTS})
 		target_sources(${NAME} PRIVATE "${_test_source}")
 		get_filename_component(_test_name "${_test_source}" NAME_WE)
+
+		if(ENABLE_JUNIT_REPORT)
+			set(JUNIT_LOGGER ":JUNIT,message,${SUITE}-${_test_name}.xml")
+		endif()
+
 		add_test_runner(
 			${SUITE}
 			${_test_name}
-			${NAME} -t "${_test_name}" -l test_suite
+			${NAME}
+			JUNIT
+			"--run_test=${_test_name}"
+			"--logger=${HRF_LOGGER}${JUNIT_LOGGER}"
 		)
 		set_property(
 			TARGET ${SUITE_TARGET}
