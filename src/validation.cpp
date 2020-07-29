@@ -114,7 +114,7 @@ CBlockIndex *&pindexBestParked = ::ChainstateActive().pindexBestParked;
 
 /**
  * The best finalized block.
- * This block cannot be reorged in any way, shape or form.
+ * This block cannot be reorged in any way except by explicit user action.
  */
 CBlockIndex const *&pindexFinalized = ::ChainstateActive().pindexFinalized;
 
