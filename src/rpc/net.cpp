@@ -245,7 +245,7 @@ static UniValue getpeerinfo(const Config &config,
         if (fStateStats) {
             if (IsDeprecatedRPCEnabled(gArgs, "banscore")) {
                 // banscore is deprecated in v0.22.11 for removal in v0.23
-                obj.pushKV("banscore", statestats.nMisbehavior);
+                obj.pushKV("banscore", statestats.m_misbehavior_score);
             }
             obj.pushKV("synced_headers", statestats.nSyncHeight);
             obj.pushKV("synced_blocks", statestats.nCommonHeight);

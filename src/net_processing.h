@@ -132,7 +132,7 @@ private:
 };
 
 struct CNodeStateStats {
-    int nMisbehavior = 0;
+    int m_misbehavior_score = 0;
     int nSyncHeight = -1;
     int nCommonHeight = -1;
     std::vector<int> vHeightInFlight;
@@ -146,8 +146,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
  * might be disconnected and added to the discouragement filter.
  */
 void Misbehaving(const NodeId nodeid, const int howmuch,
-                 const std::string &message = "")
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+                 const std::string &message = "");
 
 /** Relay transaction to every node */
 void RelayTransaction(const TxId &txid, const CConnman &connman);

@@ -295,7 +295,6 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         auto w = queries.getWriteView();
         auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
-            LOCK(cs_main);
             Misbehaving(nodeid, 2, "unexpcted-ava-response");
             return false;
         }
@@ -308,14 +307,12 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     const std::vector<Vote> &votes = response.GetVotes();
     size_t size = invs.size();
     if (votes.size() != size) {
-        LOCK(cs_main);
         Misbehaving(nodeid, 100, "invalid-ava-response-size");
         return false;
     }
 
     for (size_t i = 0; i < size; i++) {
         if (invs[i].hash != votes[i].GetHash()) {
-            LOCK(cs_main);
             Misbehaving(nodeid, 100, "invalid-ava-response-content");
             return false;
         }
