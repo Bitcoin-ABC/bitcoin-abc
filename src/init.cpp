@@ -2474,7 +2474,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     nCoinDBCache = std::min(nCoinDBCache, MAX_COINS_DB_CACHE_MB << 20);
     nTotalCache -= nCoinDBCache;
     // the rest goes to in-memory cache
-    nCoinCacheUsage = nTotalCache;
+    int64_t nCoinCacheUsage = nTotalCache;
     int64_t nMempoolSizeMax =
         args.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     LogPrintf("Cache configuration:\n");
@@ -2513,6 +2513,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             try {
                 LOCK(cs_main);
                 chainman.InitializeChainstate();
+                chainman.m_total_coinstip_cache = nCoinCacheUsage;
+                chainman.m_total_coinsdb_cache = nCoinDBCache;
+
                 UnloadBlockIndex();
 
                 // new CBlockTreeDB tries to delete the existing file, which
@@ -2629,7 +2632,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                     // The on-disk coinsdb is now in a good state, create the
                     // cache
-                    chainstate->InitCoinsCache();
+                    chainstate->InitCoinsCache(nCoinCacheUsage);
                     assert(chainstate->CanFlushToDisk());
 
                     if (!is_coinsview_empty(chainstate)) {

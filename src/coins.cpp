@@ -301,6 +301,13 @@ bool CCoinsViewCache::HaveInputs(const CTransaction &tx) const {
     return true;
 }
 
+void CCoinsViewCache::ReallocateCache() {
+    // Cache should be empty when we're calling this.
+    assert(cacheCoins.size() == 0);
+    cacheCoins.~CCoinsMap();
+    ::new (&cacheCoins) CCoinsMap();
+}
+
 // TODO: merge with similar definition in undo.h.
 static const size_t MAX_OUTPUTS_PER_TX =
     MAX_TX_SIZE / ::GetSerializeSize(CTxOut(), PROTOCOL_VERSION);
