@@ -130,9 +130,17 @@ enforce Bitcoin ABC code formatting standards, and often suggests changes.
 If code formatting tools do not install automatically on your system, you
 will have to install the following:
 
-On Ubuntu (>= 18.04+updates) or Debian (>= 10):
+On Ubuntu (>= 18.04+updates):
 ```
 sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python-autopep8 flake8 php-codesniffer
+```
+
+On Debian (>= 10), the clang-8 family of tools is available from the `buster-backports` repository:
+```
+echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list
+sudo apt-get update
+sudo apt-get install cppcheck python-autopep8 flake8 php-codesniffer
+sudo apt-get -t buster-backports install clang-format-8 clang-tidy-8 clang-tools-8
 ```
 
 If not available in the distribution, `clang-format-8` and `clang-tidy` can be
@@ -152,8 +160,6 @@ https://github.com/koalaman/shellcheck/releases
 
 If you are running Debian 10, it is also available in the backports repository:
 ```
-echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list
-sudo apt-get update
 sudo apt-get -t buster-backports install shellcheck
 ```
 
