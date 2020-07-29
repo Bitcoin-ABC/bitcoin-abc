@@ -112,9 +112,9 @@ The following can be set when running make: `make FOO=bar`
 <dt>JOBS</dt>
 <dd>Number of jobs to use for each package build</dd>
 <dt>FORCE_USE_SYSTEM_CLANG</dt>
-<dd>(EXPERTS ONLY) When cross-compiling for macOS, use clang found in the
- system's <code>$PATH</code> rather than the default prebuilt release of clang
- from llvm.org</dd>
+<dd>(EXPERTS ONLY) When cross-compiling for macOS, use Clang found in the
+ system's <code>$PATH</code> rather than the default prebuilt release of Clang
+ from llvm.org. Clang 8 or later is required.</dd>
 </dl>
 
 If some packages are not built, for example by building the depends with
