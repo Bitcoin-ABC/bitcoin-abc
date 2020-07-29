@@ -11,6 +11,6 @@ source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 CMAKE_FLAGS=(
   "-DBUILD_BITCOIN_CLI=OFF"
 )
-build_with_cmake --Werror
+build_with_cmake --Werror --junit
 
 ninja check-functional

@@ -11,9 +11,6 @@ source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 CMAKE_FLAGS=(
   "-DBUILD_BITCOIN_WALLET=OFF"
 )
-build_with_cmake --Werror
+build_with_cmake --Werror --junit
 
-ninja check-bitcoin-qt
-ninja check-functional
-
-run_test_bitcoin "without wallet"
+ninja -k0 check check-functional

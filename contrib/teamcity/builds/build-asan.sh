@@ -17,10 +17,6 @@ CMAKE_FLAGS=(
   "-DCRYPTO_USE_ASM=OFF"
   "-DENABLE_SANITIZERS=address"
 )
-build_with_cmake --Werror --clang
+build_with_cmake --Werror --clang --junit
 
-run_test_bitcoin "with address sanitizer"
-
-ninja check check-secp256k1
-
-ninja check-functional
+ninja -k0 check check-secp256k1 check-functional

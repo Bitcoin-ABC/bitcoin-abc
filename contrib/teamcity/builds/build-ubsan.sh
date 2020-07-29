@@ -12,11 +12,7 @@ CMAKE_FLAGS=(
   "-DCMAKE_BUILD_TYPE=Debug"
   "-DENABLE_SANITIZERS=undefined"
 )
-build_with_cmake --Werror --clang
-
-run_test_bitcoin "with undefined sanitizer"
+build_with_cmake --Werror --clang --junit
 
 # Libs and utils tests
-ninja check check-secp256k1
-
-ninja check-functional
+ninja -k0 check check-secp256k1 check-functional

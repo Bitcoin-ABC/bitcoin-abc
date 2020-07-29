@@ -14,12 +14,6 @@ CMAKE_FLAGS=(
   "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Linux64.cmake"
   "-DENABLE_PROPERTY_BASED_TESTS=ON"
 )
-build_with_cmake
+build_with_cmake --junit
 
-# Unit tests
-run_test_bitcoin "for Linux 64 bits"
-
-ninja check check-secp256k1
-
-# Functional tests
-ninja check-functional
+ninja -k0 check check-secp256k1 check-functional

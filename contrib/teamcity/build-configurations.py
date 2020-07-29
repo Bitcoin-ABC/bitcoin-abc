@@ -122,6 +122,7 @@ class UserBuild():
         self.build_directory.mkdir(exist_ok=True, parents=True)
 
         self.artifact_dir = self.build_directory.joinpath("artifacts")
+        self.junit_reports_dir = self.build_directory.joinpath("test/junit")
 
         # We will provide the required environment variables
         self.environment_variables = {
@@ -248,6 +249,7 @@ class UserBuild():
                 **self.configuration.get("artifacts", {}),
                 str(self.logs["full_log"].relative_to(self.build_directory)): "",
                 str(self.logs["clean_log"].relative_to(self.build_directory)): "",
+                str(self.junit_reports_dir.relative_to(self.build_directory)): "",
             }
 
             self.copy_artifacts(artifacts)
@@ -279,6 +281,12 @@ class TeamcityBuild(UserBuild):
 
     def copy_artifacts(self, artifacts):
         super().copy_artifacts(artifacts)
+
+        # Start loading the junit reports.
+        junit_reports_pattern = "{}/junit/*.xml".format(
+            str(self.artifact_dir.relative_to("/"))
+        )
+        self.teamcity_messages.importData("junit", junit_reports_pattern)
 
         # Instruct teamcity to upload our artifact directory
         artifact_path_pattern = "+:{}=>artifacts.tar.gz".format(

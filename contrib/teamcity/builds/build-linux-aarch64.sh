@@ -32,11 +32,6 @@ CMAKE_FLAGS=(
   # or by filtering stderr at the framework level.
   "-DHAVE_DECL_GETIFADDRS=OFF"
 )
-build_with_cmake
+build_with_cmake --junit
 
-# Unit tests
-ninja check
-ninja check-secp256k1
-
-# Functional tests
-ninja check-functional
+ninja -k0 check check-secp256k1 check-functional

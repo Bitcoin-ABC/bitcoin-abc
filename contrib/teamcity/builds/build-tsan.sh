@@ -11,11 +11,7 @@ source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 CMAKE_FLAGS=(
   "-DENABLE_SANITIZERS=thread"
 )
-build_with_cmake --Werror --clang
-
-run_test_bitcoin "with thread sanitizer"
+build_with_cmake --Werror --clang --junit
 
 # Libs and utils tests
-ninja check
-
-ninja check-functional
+ninja -k0 check check-functional

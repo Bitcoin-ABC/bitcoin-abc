@@ -11,9 +11,6 @@ source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 CMAKE_FLAGS=(
   "-DBUILD_BITCOIN_ZMQ=OFF"
 )
-build_with_cmake --Werror
+build_with_cmake --Werror --junit
 
-ninja check-bitcoin-qt
-ninja check-functional
-
-run_test_bitcoin "without zmq"
+ninja -k0 check check-functional

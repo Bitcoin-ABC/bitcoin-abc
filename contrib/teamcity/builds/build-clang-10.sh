@@ -14,8 +14,8 @@ CMAKE_FLAGS=(
   "-DCMAKE_C_COMPILER=clang-10"
   "-DCMAKE_CXX_COMPILER=clang++-10"
 )
-build_with_cmake --Werror
+build_with_cmake --Werror --junit
 
-ninja check check-secp256k1
+ninja -k0 check check-secp256k1
 
 # TODO do the same with the latest GCC

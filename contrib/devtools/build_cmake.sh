@@ -15,6 +15,7 @@ function usage() {
   echo "Options:"
   echo "  --clang: build with clang/clang++"
   echo "  --gcc: build with gcc/g++"
+  echo "  --junit: enable Junit reports generation"
   echo "  --Werror: add -Werror to the compiler flags"
   echo "Environment variables:"
   echo "  CMAKE_FLAGS: array of the CMAKE flags to use for the build"
@@ -45,6 +46,12 @@ while [[ $# -gt 0 ]]; do
       CMAKE_FLAGS+=(
         "-DCMAKE_C_COMPILER=gcc"
         "-DCMAKE_CXX_COMPILER=g++"
+      )
+      shift
+      ;;
+    --junit)
+      CMAKE_FLAGS+=(
+        "-DENABLE_JUNIT_REPORT=ON"
       )
       shift
       ;;
