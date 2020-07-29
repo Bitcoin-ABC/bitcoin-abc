@@ -25,7 +25,7 @@ addons:
       - valgrind
     update: true
 install:
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then ./travis/install_cmake.sh; fi
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${TRAVIS_CPU_ARCH}" = "amd64" ]; then ./travis/install_cmake.sh; fi
 cache:
   directories:
     - /opt/cmake
@@ -100,6 +100,18 @@ jobs:
     - compiler: gcc
       os: linux
       env: HOST=i686-linux-gnu OPENSSL_TESTS=no
+    # S390x build (big endian system)
+    - dist: focal
+      compiler: gcc
+      env: HOST=s390x-unknown-linux-gnu OPENSSL_TESTS=no ECDH=yes RECOVERY=yes EXPERIMENTAL=yes MULTISET=yes CTIMETEST=
+      arch: s390x
+      addons:
+        apt:
+          packages:
+            - cmake
+            - libgmp-dev
+            - libtool-bin
+            - ninja-build
 
 before_script:
   # This limits the iterations in the benchmarks below to ITER iterations.
