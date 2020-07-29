@@ -1672,15 +1672,15 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
         "finalizeblock",
         "\nTreats a block as final. It cannot be reorged. Any chain\n"
         "that does not contain this block is invalid. Used on a less\n"
-        "work chain, it can effectively PUTS YOU OUT OF CONSENSUS.\n"
+        "work chain, it can effectively PUT YOU OUT OF CONSENSUS.\n"
         "USE WITH CAUTION!\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to mark as invalid"},
         },
         RPCResults{},
-        RPCExamples{HelpExampleCli("invalidateblock", "\"blockhash\"") +
-                    HelpExampleRpc("invalidateblock", "\"blockhash\"")},
+        RPCExamples{HelpExampleCli("finalizeblock", "\"blockhash\"") +
+                    HelpExampleRpc("finalizeblock", "\"blockhash\"")},
     }
         .Check(request);
 
