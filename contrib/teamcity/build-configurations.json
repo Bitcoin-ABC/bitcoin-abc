@@ -14,7 +14,7 @@
                 "src/seeder/test/test-seeder": "bin/test-seeder",
                 "src/qt/test/test_bitcoin-qt.log": "log/qt/test_bitcoin-qt.log",
                 "src/seeder/test/*.log": "log/seeder",
-                "test/tmp/*": "functional"
+                "test/tmp/test_runner_*": "functional"
             }
         },
         "gitian_builds": {
