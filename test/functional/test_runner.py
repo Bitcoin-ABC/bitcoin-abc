@@ -206,7 +206,7 @@ def main():
         '--failfast',
         action='store_true',
         help='stop execution after the first test failure')
-    parser.add_argument('--junitoutput', '-J', default='junit_results.xml',
+    parser.add_argument('--junitoutput', '-J',
                         help="File that will store JUnit formatted test results. If no absolute path is given it is treated as relative to the temporary directory.")
     parser.add_argument('--testsuitename', '-n', default='Bitcoin ABC functional tests',
                         help="Name of the test suite, as it will appear in the logs and in the JUnit report.")
@@ -237,7 +237,7 @@ def main():
 
     logging.debug("Temporary test directory at {}".format(tmpdir))
 
-    if not os.path.isabs(args.junitoutput):
+    if args.junitoutput and not os.path.isabs(args.junitoutput):
         args.junitoutput = os.path.join(tmpdir, args.junitoutput)
 
     enable_bitcoind = config["components"].getboolean("ENABLE_BITCOIND")
@@ -402,7 +402,13 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
     max_len_name = len(max(test_list, key=len))
     print_results(test_results, tests_dir, max_len_name,
                   runtime, combined_logs_len)
-    save_results_as_junit(test_results, junitoutput, runtime, test_suite_name)
+
+    if junitoutput is not None:
+        save_results_as_junit(
+            test_results,
+            junitoutput,
+            runtime,
+            test_suite_name)
 
     if (build_timings is not None):
         build_timings.save_timings(test_results)
