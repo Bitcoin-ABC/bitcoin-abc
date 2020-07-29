@@ -23,7 +23,9 @@ enum class TxValidationResult {
      * Currently unused as there are no such consensus rule changes.
      */
     TX_RECENT_CONSENSUS_CHANGE,
-    //! didn't meet our local policy rules
+    //! inputs failed policy rules
+    TX_INPUTS_NOT_STANDARD,
+    //! otherwise didn't meet our local policy rules
     TX_NOT_STANDARD,
     //! transaction was missing some of its inputs
     TX_MISSING_INPUTS,
