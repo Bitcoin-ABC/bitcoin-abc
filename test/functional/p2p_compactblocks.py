@@ -340,13 +340,12 @@ class CompactBlocksTest(BitcoinTestFramework):
         block.rehash()
 
         # Wait until the block was announced (via compact blocks)
-        wait_until(test_node.received_block_announcement,
+        wait_until(lambda: "cmpctblock" in test_node.last_message,
                    timeout=30, lock=p2p_lock)
 
         # Now fetch and check the compact block
         header_and_shortids = None
         with p2p_lock:
-            assert "cmpctblock" in test_node.last_message
             # Convert the on-the-wire representation to absolute indexes
             header_and_shortids = HeaderAndShortIDs(
                 test_node.last_message["cmpctblock"].header_and_shortids)
@@ -358,13 +357,12 @@ class CompactBlocksTest(BitcoinTestFramework):
         inv = CInv(MSG_CMPCT_BLOCK, block_hash)
         test_node.send_message(msg_getdata([inv]))
 
-        wait_until(test_node.received_block_announcement,
+        wait_until(lambda: "cmpctblock" in test_node.last_message,
                    timeout=30, lock=p2p_lock)
 
         # Now fetch and check the compact block
         header_and_shortids = None
         with p2p_lock:
-            assert "cmpctblock" in test_node.last_message
             # Convert the on-the-wire representation to absolute indexes
             header_and_shortids = HeaderAndShortIDs(
                 test_node.last_message["cmpctblock"].header_and_shortids)
@@ -746,11 +744,10 @@ class CompactBlocksTest(BitcoinTestFramework):
         node.submitblock(ToHex(block))
 
         for listener in listeners:
-            wait_until(lambda: listener.received_block_announcement(),
+            wait_until(lambda: "cmpctblock" in listener.last_message,
                        timeout=30, lock=p2p_lock)
         with p2p_lock:
             for listener in listeners:
-                assert "cmpctblock" in listener.last_message
                 listener.last_message["cmpctblock"].header_and_shortids.header.calc_sha256(
                 )
                 assert_equal(
