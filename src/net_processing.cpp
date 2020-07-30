@@ -1765,7 +1765,7 @@ static bool AlreadyHaveTx(const CInv &inv, const CTxMemPool &mempool)
     return recentRejects->contains(txid) || mempool.exists(txid);
 }
 
-static bool AlreadyHaveBlock(const CInv &inv, const CTxMemPool &mempool)
+static bool AlreadyHaveBlock(const CInv &inv)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     return LookupBlockIndex(BlockHash(inv.hash)) != nullptr;
 }
@@ -3118,7 +3118,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             }
 
             if (inv.type == MSG_BLOCK) {
-                bool fAlreadyHave = AlreadyHaveBlock(inv, m_mempool);
+                bool fAlreadyHave = AlreadyHaveBlock(inv);
                 LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
                          inv.ToString(), fAlreadyHave ? "have" : "new",
                          pfrom.GetId());
