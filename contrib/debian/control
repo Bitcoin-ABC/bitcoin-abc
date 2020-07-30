@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Bitcoin ABC Package Maintainers <package-maintainers@bitcoinabc.org>
 Uploaders: Jason B. Cox <jasonbcox@bitcoinabc.org>
-Build-Depends: cmake (>= 3.13),
+Build-Depends: cmake (>= 3.16),
  debhelper (>=12.1),
  devscripts,
  git,

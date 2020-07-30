@@ -14,7 +14,6 @@ PACKAGES=(
   bsdmainutils
   build-essential
   ccache
-  cmake
   cppcheck
   curl
   flake8
@@ -80,6 +79,7 @@ apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}")
 
 BACKPORTS=(
+  cmake
   shellcheck
 )
 

@@ -1,6 +1,6 @@
 # Copyright (c) 2017 The Bitcoin developers
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 project(secp256k1 LANGUAGES C VERSION 0.1.0)
 
 # Add path for custom modules when building as a standalone project

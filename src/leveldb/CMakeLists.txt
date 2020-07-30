@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 project(Leveldb VERSION 0.1.0 LANGUAGES C CXX)
 
 # This project can take advantage of C++11.
@@ -89,16 +89,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	)
 
 	find_package(SHLWAPI REQUIRED)
-	# We cannot use the imported target here, because cmake will introduce an
-	# -isystem compilation directive and cause the build to fail with MinGw.
-	# This comes from a couple cmake bugs:
-	#  - https://gitlab.kitware.com/cmake/cmake/issues/16291
-	#  - https://gitlab.kitware.com/cmake/cmake/issues/19095
-	# These issues are solved from cmake 3.14.1. Once this version is enforced,
-	# the following can be used:
-	# target_link_libraries(leveldb SHLWAPI::shlwapi)
-	target_link_libraries(leveldb ${SHLWAPI_LIBRARIES})
-	target_include_directories(leveldb PUBLIC ${SHLWAPI_INCLUDE_DIRS})
+	target_link_libraries(leveldb SHLWAPI::shlwapi)
 else()
 	set(LEVELDB_PLATFORM POSIX)
 	target_sources(leveldb PRIVATE port/port_posix.cc)

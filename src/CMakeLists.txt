@@ -153,19 +153,9 @@ if(ENABLE_HARDENING)
 	add_linker_flags(-Wl,-z,relro -Wl,-z,now)
 
 	# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
-	# Unfortunately setting the -pie linker flag this way require CMake >= 3.14,
-	# which is not widely distributed at the time of writing.
-	# FIXME: remove the fallback case when cmake >= 3.14 get enforced.
-	if(POLICY CMP0083)
-		cmake_policy(SET CMP0083 NEW)
-		include(CheckPIESupported)
-		check_pie_supported()
-	elseif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		check_linker_flag(PIE_IS_SUPPORTED -pie)
-		if(${PIE_IS_SUPPORTED})
-			add_link_options($<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-pie>)
-		endif()
-	endif()
+	cmake_policy(SET CMP0083 NEW)
+	include(CheckPIESupported)
+	check_pie_supported()
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		# MinGw provides its own libssp for stack smashing protection
@@ -373,16 +363,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Boost_THREADAPI win32)
 
 	find_package(SHLWAPI REQUIRED)
-	# We cannot use the imported target here, because cmake will introduce an
-	# -isystem compilation directive and cause the build to fail with MinGw.
-	# This comes from a couple cmake bugs:
-	#  - https://gitlab.kitware.com/cmake/cmake/issues/16291
-	#  - https://gitlab.kitware.com/cmake/cmake/issues/19095
-	# These issues are solved from cmake 3.14.1. Once this version is enforced,
-	# the following can be used:
-	# target_link_libraries(util SHLWAPI::shlwapi)
-	target_link_libraries(util ${SHLWAPI_LIBRARIES})
-	target_include_directories(util PUBLIC ${SHLWAPI_INCLUDE_DIRS})
+	target_link_libraries(util SHLWAPI::shlwapi)
 
 	find_library(WS2_32_LIBRARY NAMES ws2_32)
 	target_link_libraries(util ${WS2_32_LIBRARY})

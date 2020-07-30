@@ -62,7 +62,15 @@ Build requirements:
 
     sudo apt-get install bsdmainutils build-essential libssl-dev libevent-dev ninja-build python3
 
-On Debian Buster (10) or Ubuntu 19.04 and later:
+**Installing cmake:**
+
+On Debian Buster (10), `cmake` should be installed from the backports repository:
+
+    echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list
+    sudo apt-get update
+    sudo apt-get -t buster-backports install cmake
+
+On Ubuntu 20.04 and later:
 
     sudo apt-get install cmake
 
