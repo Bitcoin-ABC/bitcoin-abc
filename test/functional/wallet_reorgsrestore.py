@@ -28,6 +28,7 @@ from test_framework.util import (
 class ReorgsRestoreTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 3
+        self.extra_args = [["-noparkdeepreorg"]] * self.num_nodes
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
