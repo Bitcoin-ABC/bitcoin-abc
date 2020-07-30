@@ -158,6 +158,11 @@ A recent version is required and may not be packaged for your distribution.
 Standalone binaries are available for download on the project's github release page:
 https://github.com/koalaman/shellcheck/releases
 
+**Note**: In order for arcanist to detect the `shellcheck` executable, you need to make it available in your `PATH`;
+if another version is already installed, make sure the recent one is found first.
+Arcanist will tell you what version is expected and what is found when running `arc lint` against a shell script.
+
+
 If you are running Debian 10, it is also available in the backports repository:
 ```
 sudo apt-get -t buster-backports install shellcheck
