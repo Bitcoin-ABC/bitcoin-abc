@@ -1735,44 +1735,39 @@ void PeerManager::BlockChecked(const CBlock &block,
 // Messages
 //
 
-static bool AlreadyHave(const CInv &inv, const CTxMemPool &mempool)
+static bool AlreadyHaveTx(const CInv &inv, const CTxMemPool &mempool)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    switch (inv.type) {
-        case MSG_TX: {
-            assert(recentRejects);
-            if (::ChainActive().Tip()->GetBlockHash() !=
-                hashRecentRejectsChainTip) {
-                // If the chain tip has changed previously rejected transactions
-                // might be now valid, e.g. due to a nLockTime'd tx becoming
-                // valid, or a double-spend. Reset the rejects filter and give
-                // those txs a second chance.
-                hashRecentRejectsChainTip =
-                    ::ChainActive().Tip()->GetBlockHash();
-                recentRejects->reset();
-            }
-
-            const TxId txid(inv.hash);
-            {
-                LOCK(g_cs_orphans);
-                if (mapOrphanTransactions.count(txid)) {
-                    return true;
-                }
-            }
-
-            {
-                LOCK(g_cs_recent_confirmed_transactions);
-                if (g_recent_confirmed_transactions->contains(txid)) {
-                    return true;
-                }
-            }
-
-            return recentRejects->contains(txid) || mempool.exists(txid);
-        }
-        case MSG_BLOCK:
-            return LookupBlockIndex(BlockHash(inv.hash)) != nullptr;
+    assert(recentRejects);
+    if (::ChainActive().Tip()->GetBlockHash() != hashRecentRejectsChainTip) {
+        // If the chain tip has changed previously rejected transactions
+        // might be now valid, e.g. due to a nLockTime'd tx becoming
+        // valid, or a double-spend. Reset the rejects filter and give
+        // those txs a second chance.
+        hashRecentRejectsChainTip = ::ChainActive().Tip()->GetBlockHash();
+        recentRejects->reset();
     }
-    // Don't know what it is, just say we already got one
-    return true;
+
+    const TxId txid(inv.hash);
+    {
+        LOCK(g_cs_orphans);
+        if (mapOrphanTransactions.count(txid)) {
+            return true;
+        }
+    }
+
+    {
+        LOCK(g_cs_recent_confirmed_transactions);
+        if (g_recent_confirmed_transactions->contains(txid)) {
+            return true;
+        }
+    }
+
+    return recentRejects->contains(txid) || mempool.exists(txid);
+}
+
+static bool AlreadyHaveBlock(const CInv &inv, const CTxMemPool &mempool)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    return LookupBlockIndex(BlockHash(inv.hash)) != nullptr;
 }
 
 void RelayTransaction(const TxId &txid, const CConnman &connman) {
@@ -3122,11 +3117,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 return;
             }
 
-            bool fAlreadyHave = AlreadyHave(inv, m_mempool);
-            LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n", inv.ToString(),
-                     fAlreadyHave ? "have" : "new", pfrom.GetId());
-
             if (inv.type == MSG_BLOCK) {
+                bool fAlreadyHave = AlreadyHaveBlock(inv, m_mempool);
+                LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
+                         inv.ToString(), fAlreadyHave ? "have" : "new",
+                         pfrom.GetId());
+
                 const BlockHash hash{inv.hash};
                 UpdateBlockAvailability(pfrom.GetId(), hash);
                 if (!fAlreadyHave && !fImporting && !fReindex &&
@@ -3139,6 +3135,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     best_block = std::move(hash);
                 }
             } else {
+                bool fAlreadyHave = AlreadyHaveTx(inv, m_mempool);
+                LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
+                         inv.ToString(), fAlreadyHave ? "have" : "new",
+                         pfrom.GetId());
+
                 const TxId txid(inv.hash);
                 pfrom.AddKnownTx(txid);
                 if (fBlocksOnly) {
@@ -3442,7 +3443,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         nodestate->m_tx_download.m_tx_in_flight.erase(txid);
         EraseTxRequest(txid);
 
-        if (!AlreadyHave(CInv(MSG_TX, txid), m_mempool) &&
+        if (!AlreadyHaveTx(CInv(MSG_TX, txid), m_mempool) &&
             AcceptToMemoryPool(config, m_mempool, state, ptx,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
@@ -3486,7 +3487,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     // FIXME: MSG_TX should use a TxHash, not a TxId.
                     const TxId _txid = txin.prevout.GetTxId();
                     pfrom.AddKnownTx(_txid);
-                    if (!AlreadyHave(CInv(MSG_TX, _txid), m_mempool)) {
+                    if (!AlreadyHaveTx(CInv(MSG_TX, _txid), m_mempool)) {
                         RequestTx(State(pfrom.GetId()), _txid, current_time);
                     }
                 }
@@ -5509,7 +5510,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             // processing at a later time, see below)
             tx_process_time.erase(tx_process_time.begin());
             CInv inv(MSG_TX, txid);
-            if (!AlreadyHave(inv, m_mempool)) {
+            if (!AlreadyHaveTx(inv, m_mempool)) {
                 // If this transaction was last requested more than 1 minute
                 // ago, then request.
                 const auto last_request_time = GetTxRequestTime(txid);
