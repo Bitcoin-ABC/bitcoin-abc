@@ -68,10 +68,10 @@ env:
     - BIGNUM=no
     - BIGNUM=no       ENDOMORPHISM=yes  RECOVERY=yes  EXPERIMENTAL=yes  MULTISET=yes
     - BIGNUM=no       STATICPRECOMPUTATION=no
-    - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install    CTIMETEST= BENCH=
+    - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install    CTIMETEST=no BENCH=no
     - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DDETERMINISTIC CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DDETERMINISTIC
-    - AUTOTOOLS_EXTRA_FLAGS=CFLAGS=-O0               CMAKE_EXTRA_FLAGS=-DCMAKE_BUILD_TYPE=Debug CTIMETEST=
-    - AUTOTOOLS_TARGET=check-java      CMAKE_TARGET=check-secp256k1-java JNI=yes ECDH=yes EXPERIMENTAL=yes CTIMETEST= BENCH=
+    - AUTOTOOLS_EXTRA_FLAGS=CFLAGS=-O0               CMAKE_EXTRA_FLAGS=-DCMAKE_BUILD_TYPE=Debug CTIMETEST=no
+    - AUTOTOOLS_TARGET=check-java      CMAKE_TARGET=check-secp256k1-java JNI=yes ECDH=yes EXPERIMENTAL=yes CTIMETEST=no BENCH=no
     - ECMULTGENPRECISION=2
     - ECMULTGENPRECISION=8
     - VALGRIND=yes
@@ -102,7 +102,7 @@ jobs:
     # S390x build (big endian system)
     - dist: focal
       compiler: gcc
-      env: HOST=s390x-unknown-linux-gnu OPENSSL_TESTS=no ECDH=yes RECOVERY=yes EXPERIMENTAL=yes MULTISET=yes CTIMETEST=
+      env: HOST=s390x-unknown-linux-gnu OPENSSL_TESTS=no ECDH=yes RECOVERY=yes EXPERIMENTAL=yes MULTISET=yes CTIMETEST=no
       arch: s390x
       addons:
         apt:

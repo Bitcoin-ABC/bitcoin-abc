@@ -49,7 +49,7 @@ ${CMAKE_COMMAND} -GNinja .. \
 
 ninja $CMAKE_TARGET
 
-if [ -n "$VALGRIND" ]; then
+if [ "$VALGRIND" = "yes" ]; then
   # the `--error-exitcode` is required to make the test fail if valgrind found
   # errors, otherwise it'll return 0
   # (http://valgrind.org/docs/manual/manual-core.html)

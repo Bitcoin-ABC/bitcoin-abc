@@ -61,7 +61,7 @@ trap 'print_logs' ERR
 
 make -j2 $AUTOTOOLS_TARGET
 
-if [ -n "$VALGRIND" ]; then
+if [ "$VALGRIND" = "yes" ]; then
   # the `--error-exitcode` is required to make the test fail if valgrind found
   # errors, otherwise it'll return 0
   # (http://valgrind.org/docs/manual/manual-core.html)
@@ -69,8 +69,8 @@ if [ -n "$VALGRIND" ]; then
   valgrind --error-exitcode=42 ./exhaustive_tests
 fi
 
-if [ -n "$BENCH" ]; then
-  if [ -n "$VALGRIND" ]; then
+if [ "$BENCH" = "yes" ]; then
+  if [ "$VALGRIND" = "yes" ]; then
     # Using the local `libtool` because on macOS the system's libtool has
     # nothing to do with GNU libtool
     EXEC='./libtool --mode=execute valgrind --error-exitcode=42';
@@ -91,7 +91,7 @@ if [ -n "$BENCH" ]; then
     $EXEC ./bench_multiset >> bench.log 2>&1
   fi
 fi
-if [ -n "$CTIMETEST" ]; then
+if [ "$CTIMETEST" = "yes" ]; then
   ./libtool --mode=execute valgrind --error-exitcode=42 ./valgrind_ctime_test > valgrind_ctime_test.log 2>&1
 fi
 
