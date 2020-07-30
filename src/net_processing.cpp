@@ -1735,7 +1735,7 @@ void PeerManager::BlockChecked(const CBlock &block,
 // Messages
 //
 
-static bool AlreadyHaveTx(const CInv &inv, const CTxMemPool &mempool)
+static bool AlreadyHaveTx(const TxId &txid, const CTxMemPool &mempool)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     assert(recentRejects);
     if (::ChainActive().Tip()->GetBlockHash() != hashRecentRejectsChainTip) {
@@ -1747,7 +1747,6 @@ static bool AlreadyHaveTx(const CInv &inv, const CTxMemPool &mempool)
         recentRejects->reset();
     }
 
-    const TxId txid(inv.hash);
     {
         LOCK(g_cs_orphans);
         if (mapOrphanTransactions.count(txid)) {
@@ -3135,12 +3134,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     best_block = std::move(hash);
                 }
             } else {
-                bool fAlreadyHave = AlreadyHaveTx(inv, m_mempool);
+                const TxId txid(inv.hash);
+                bool fAlreadyHave = AlreadyHaveTx(txid, m_mempool);
                 LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
                          inv.ToString(), fAlreadyHave ? "have" : "new",
                          pfrom.GetId());
 
-                const TxId txid(inv.hash);
                 pfrom.AddKnownTx(txid);
                 if (fBlocksOnly) {
                     LogPrint(BCLog::NET,
@@ -3443,7 +3442,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         nodestate->m_tx_download.m_tx_in_flight.erase(txid);
         EraseTxRequest(txid);
 
-        if (!AlreadyHaveTx(CInv(MSG_TX, txid), m_mempool) &&
+        if (!AlreadyHaveTx(txid, m_mempool) &&
             AcceptToMemoryPool(config, m_mempool, state, ptx,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
@@ -3487,7 +3486,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     // FIXME: MSG_TX should use a TxHash, not a TxId.
                     const TxId _txid = txin.prevout.GetTxId();
                     pfrom.AddKnownTx(_txid);
-                    if (!AlreadyHaveTx(CInv(MSG_TX, _txid), m_mempool)) {
+                    if (!AlreadyHaveTx(_txid, m_mempool)) {
                         RequestTx(State(pfrom.GetId()), _txid, current_time);
                     }
                 }
@@ -5510,7 +5509,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             // processing at a later time, see below)
             tx_process_time.erase(tx_process_time.begin());
             CInv inv(MSG_TX, txid);
-            if (!AlreadyHaveTx(inv, m_mempool)) {
+            if (!AlreadyHaveTx(txid, m_mempool)) {
                 // If this transaction was last requested more than 1 minute
                 // ago, then request.
                 const auto last_request_time = GetTxRequestTime(txid);
