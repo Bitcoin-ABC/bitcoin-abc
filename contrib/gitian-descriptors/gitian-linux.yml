@@ -17,7 +17,6 @@ packages:
 - "bsdmainutils"
 - "build-essential"
 - "ca-certificates"
-- "cmake"
 - "curl"
 - "faketime"
 - "g++-aarch64-linux-gnu"
@@ -38,6 +37,11 @@ packages:
 - "libboost-all-dev"
 - "libevent-dev"
 - "libssl-dev"
+repositories:
+- "distribution": "buster-backports"
+  "source": "deb http://deb.debian.org/debian/ buster-backports main"
+  packages:
+  - "cmake"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"

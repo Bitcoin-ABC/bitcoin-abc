@@ -104,11 +104,27 @@ EOF" if build_desc["sudo"] and @options[:allow_sudo]
     end
   end
 
+  if build_desc["repositories"]
+    info "Adding repositories to the sources list (log in var/install.log)"
+    for r in build_desc["repositories"]
+      system! "on-target -u root tee -a /etc/apt/sources.list >> var/install.log 2>&1 << EOF
+#{r["source"]}
+EOF"
+    end
+  end
+
   info "Updating apt-get repository (log in var/install.log)"
   system! "on-target -u root apt-get update >> var/install.log 2>&1"
 
   info "Installing additional packages (log in var/install.log)"
   system! "on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install #{build_desc["packages"].join(" ")} >> var/install.log 2>&1"
+
+  if build_desc["repositories"]
+    for r in build_desc["repositories"]
+      info "Installing additional packages from repository #{r["distribution"]} (log in var/install.log)"
+      system! "on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get -t #{r["distribution"]} --no-install-recommends -y install #{r["packages"].join(" ")} >> var/install.log 2>&1"
+    end
+  end
 
   if build_desc["alternatives"]
     info "Set alternatives (log in var/install.log)"
