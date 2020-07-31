@@ -39,6 +39,10 @@ macro(get_target_from_suite SUITE TARGET)
 	set(${TARGET} "check-${SUITE}")
 endmacro()
 
+macro(get_pool_from_suite SUITE POOL)
+	set(${POOL} "${SUITE}-pool")
+endmacro()
+
 include(Coverage)
 
 function(create_test_suite_with_parent_targets NAME)
@@ -62,12 +66,28 @@ macro(create_test_suite NAME)
 	create_test_suite_with_parent_targets(${NAME} check-all check-extended)
 endmacro()
 
+# After this call, all the tests added to the suite will also be added to the
+# pool. Works only with the Ninja generators.
+function(test_suite_create_pool SUITE JOBS)
+	# Create a pool for the test suite
+	get_pool_from_suite(${SUITE} POOL)
+	set_property(GLOBAL APPEND PROPERTY JOB_POOLS ${POOL}=${JOBS})
+endfunction()
+
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
 function(add_test_runner SUITE NAME EXECUTABLE)
 	cmake_parse_arguments(ARG "JUNIT" "" "" ${ARGN})
 
 	get_target_from_suite(${SUITE} SUITE_TARGET)
 	set(TARGET "${SUITE_TARGET}-${NAME}")
+
+	# If there is a pool associated to the test suite, then add the test to the
+	# pool.
+	get_property(JOB_POOLS GLOBAL PROPERTY JOB_POOLS)
+	get_pool_from_suite(${SUITE} POOL)
+	if(JOB_POOLS MATCHES ${POOL})
+		set(JOB_POOL_ARG JOB_POOL ${POOL})
+	endif()
 
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
@@ -78,6 +98,7 @@ function(add_test_runner SUITE NAME EXECUTABLE)
 			COMMENT "${SUITE}: testing ${NAME}"
 			DEPENDS ${EXECUTABLE}
 			VERBATIM
+			${JOB_POOL_ARG}
 	)
 	add_dependencies(${SUITE_TARGET} ${TARGET})
 

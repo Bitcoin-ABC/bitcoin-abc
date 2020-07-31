@@ -179,6 +179,9 @@ option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 if(LEVELDB_BUILD_TESTS)
 	include(TestSuite)
 	create_test_suite(leveldb)
+	# Create a single job pool for the test suite in order to make the tests run
+	# serially.
+	test_suite_create_pool(leveldb 1)
 
 	add_library(leveldb_test_base
 		EXCLUDE_FROM_ALL
