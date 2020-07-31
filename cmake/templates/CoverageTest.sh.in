@@ -28,3 +28,16 @@ set -e
   --demangle-cpp \
   -s "${TARGET}_combined.info" \
   -o "${CMAKE_BINARY_DIR}/${TARGET}.coverage"
+
+# Generate a textual coverage report and summary from the coverage data.
+# Depending on the version of lcov, the following commands can output to stdout,
+# stderr or both, and not necessarily the same way for both options. This forces
+# us to redirect both to be sure to catch all the output. There is the -o option
+# to set the output file but obviously it doesn't work for these cases.
+"${LCOV_EXECUTABLE}" ${LCOV_OPTIONS} \
+  --list "${TARGET}_combined.info" \
+  > "${CMAKE_BINARY_DIR}/${TARGET}.coverage/coverage.txt" 2>&1
+
+"${LCOV_EXECUTABLE}" ${LCOV_OPTIONS} \
+  --summary "${TARGET}_combined.info" \
+  > "${CMAKE_BINARY_DIR}/${TARGET}.coverage/coverage-summary.txt" 2>&1
