@@ -2926,9 +2926,11 @@ static UniValue getwalletinfo(const Config &config,
                  "for change outputs, only appears if the wallet is using this "
                  "feature, otherwise external keys are used)"},
                 {RPCResult::Type::NUM_TIME, "unlocked_until",
+                 /* optional */ true,
                  "the " + UNIX_EPOCH_TIME +
                      " until which the wallet is unlocked for transfers, or 0 "
-                     "if the wallet is locked"},
+                     "if the wallet is locked (only present for "
+                     "passphrase-encrypted wallets)"},
                 {RPCResult::Type::STR_AMOUNT, "paytxfee",
                  "the transaction fee configuration, set in " +
                      Currency::get().ticker + "/kB"},
