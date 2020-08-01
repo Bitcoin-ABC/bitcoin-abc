@@ -683,7 +683,7 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-listenonion",
-        strprintf("Automatically create Tor hidden service (default: %d)",
+        strprintf("Automatically create Tor onion service (default: %d)",
                   DEFAULT_LISTEN_ONION),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg(
@@ -713,7 +713,7 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg("-onion=<ip:port>",
                    strprintf("Use separate SOCKS5 proxy to reach peers via Tor "
-                             "hidden services (default: %s)",
+                             "onion services (default: %s)",
                              "-proxy"),
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg(

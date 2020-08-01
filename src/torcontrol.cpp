@@ -457,7 +457,7 @@ static bool WriteBinaryFile(const fs::path &filename, const std::string &data) {
 
 /**
  * Controller that connects to Tor control socket, authenticate, then create
- * and maintain an ephemeral hidden service.
+ * and maintain an ephemeral onion service.
  */
 class TorController {
 public:
@@ -603,7 +603,7 @@ void TorController::auth_cb(TorControlConnection &_conn,
             // Explicitly request key type - see issue #9214
             private_key = "NEW:ED25519-V3";
         }
-        // Request hidden service, redirect port.
+        // Request onion service, redirect port.
         // Note that the 'virtual' port doesn't have to be the same as our
         // internal port, but this is just a convenient choice. TODO; refactor
         // the shutdown sequence some day.
