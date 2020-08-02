@@ -534,7 +534,7 @@ class WalletTest(BitcoinTestFramework):
         # original output
         sending_addr = self.nodes[1].getnewaddress()
         txid_list = []
-        for i in range(chainlimit * 2):
+        for _ in range(chainlimit * 2):
             txid_list.append(self.nodes[0].sendtoaddress(
                 sending_addr, Decimal('10000')))
         assert_equal(self.nodes[0].getmempoolinfo()['size'], chainlimit * 2)

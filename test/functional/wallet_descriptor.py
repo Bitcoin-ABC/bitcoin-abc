@@ -116,7 +116,7 @@ class WalletDescriptorTest(BitcoinTestFramework):
 
         self.log.info(
             "Test that getnewaddress still works after keypool is exhausted in an encrypted wallet")
-        for i in range(0, 500):
+        for _ in range(500):
             send_wrpc.getnewaddress()
 
         self.log.info(
@@ -130,7 +130,7 @@ class WalletDescriptorTest(BitcoinTestFramework):
         }])
         send_wrpc.walletlock()
         # Exhaust keypool of 100
-        for i in range(0, 100):
+        for _ in range(100):
             send_wrpc.getnewaddress()
         # This should now error
         assert_raises_rpc_error(-12,

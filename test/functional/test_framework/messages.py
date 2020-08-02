@@ -130,7 +130,7 @@ def deser_uint256(f):
 
 def ser_uint256(u):
     rs = b""
-    for i in range(8):
+    for _ in range(8):
         rs += struct.pack("<I", u & 0xFFFFFFFF)
         u >>= 32
     return rs
@@ -155,7 +155,7 @@ def uint256_from_compact(c):
 def deser_vector(f, c, deser_function_name=None):
     nit = deser_compact_size(f)
     r = []
-    for i in range(nit):
+    for _ in range(nit):
         t = c()
         if deser_function_name:
             getattr(t, deser_function_name)(f)
@@ -180,7 +180,7 @@ def ser_vector(v, ser_function_name=None):
 def deser_uint256_vector(f):
     nit = deser_compact_size(f)
     r = []
-    for i in range(nit):
+    for _ in range(nit):
         t = deser_uint256(f)
         r.append(t)
     return r
@@ -196,7 +196,7 @@ def ser_uint256_vector(v):
 def deser_string_vector(f):
     nit = deser_compact_size(f)
     r = []
-    for i in range(nit):
+    for _ in range(nit):
         t = deser_string(f)
         r.append(t)
     return r
@@ -677,7 +677,7 @@ class P2PHeaderAndShortIDs:
         self.header.deserialize(f)
         self.nonce = struct.unpack("<Q", f.read(8))[0]
         self.shortids_length = deser_compact_size(f)
-        for i in range(self.shortids_length):
+        for _ in range(self.shortids_length):
             # shortids are defined to be 6 bytes in the spec, so append
             # two zero bytes and read it in as an 8-byte number
             self.shortids.append(
@@ -786,7 +786,7 @@ class BlockTransactionsRequest:
     def deserialize(self, f):
         self.blockhash = deser_uint256(f)
         indexes_length = deser_compact_size(f)
-        for i in range(indexes_length):
+        for _ in range(indexes_length):
             self.indexes.append(deser_compact_size(f))
 
     def serialize(self):

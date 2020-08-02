@@ -41,7 +41,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         send_value = satoshi_round((value - fee) / num_outputs)
         inputs = [{'txid': parent_txid, 'vout': vout}]
         outputs = {}
-        for i in range(num_outputs):
+        for _ in range(num_outputs):
             outputs[node.getnewaddress()] = send_value
         rawtx = node.createrawtransaction(inputs, outputs)
         signedtx = node.signrawtransactionwithwallet(rawtx)
@@ -64,7 +64,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         fee = Decimal("100")
         # MAX_ANCESTORS transactions off a confirmed tx should be fine
         chain = []
-        for i in range(MAX_ANCESTORS):
+        for _ in range(MAX_ANCESTORS):
             (txid, sent_value) = self.chain_transaction(
                 self.nodes[0], txid, 0, value, fee, 1)
             value = sent_value
@@ -260,7 +260,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
 
         # Sign and send up to MAX_DESCENDANT transactions chained off the
         # parent tx
-        for i in range(MAX_DESCENDANTS - 1):
+        for _ in range(MAX_DESCENDANTS - 1):
             utxo = transaction_package.pop(0)
             (txid, sent_value) = self.chain_transaction(
                 self.nodes[0], utxo['txid'], utxo['vout'], utxo['amount'], fee, 10)
@@ -317,7 +317,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         send_value = satoshi_round((value - fee) / 2)
         inputs = [{'txid': txid, 'vout': vout}]
         outputs = {}
-        for i in range(2):
+        for _ in range(2):
             outputs[self.nodes[0].getnewaddress()] = send_value
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
         signedtx = self.nodes[0].signrawtransactionwithwallet(rawtx)
@@ -332,7 +332,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         # Create tx2-7
         vout = 1
         txid = tx0_id
-        for i in range(6):
+        for _ in range(6):
             (txid, sent_value) = self.chain_transaction(
                 self.nodes[0], txid, vout, value, fee, 1)
             vout = 0

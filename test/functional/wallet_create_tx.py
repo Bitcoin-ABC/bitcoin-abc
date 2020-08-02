@@ -52,7 +52,7 @@ class CreateTxWalletTest(BitcoinTestFramework):
     def test_tx_size_too_large(self):
         # More than 10kB of outputs, so that we hit -maxtxfee with a high
         # feerate
-        outputs = {self.nodes[0].getnewaddress(): 25 for i in range(400)}
+        outputs = {self.nodes[0].getnewaddress(): 25 for _ in range(400)}
         raw_tx = self.nodes[0].createrawtransaction(inputs=[], outputs=outputs)
 
         for fee_setting in ['-minrelaytxfee=10000',

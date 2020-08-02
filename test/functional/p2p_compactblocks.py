@@ -167,7 +167,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         out_value = total_value // 10
         tx = CTransaction()
         tx.vin.append(CTxIn(COutPoint(block.vtx[0].sha256, 0), b''))
-        for i in range(10):
+        for _ in range(10):
             tx.vout.append(CTxOut(out_value, CScript([OP_TRUE])))
         tx.rehash()
 
@@ -316,7 +316,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         num_transactions = 25
         address = node.getnewaddress()
 
-        for i in range(num_transactions):
+        for _ in range(num_transactions):
             txid = node.sendtoaddress(address, 100000)
             hex_tx = node.gettransaction(txid)["hex"]
             tx = FromHex(CTransaction(), hex_tx)
@@ -456,7 +456,7 @@ class CompactBlocksTest(BitcoinTestFramework):
     def build_block_with_transactions(self, node, utxo, num_transactions):
         block = self.build_block_on_tip(node)
 
-        for i in range(num_transactions):
+        for _ in range(num_transactions):
             tx = CTransaction()
             tx.vin.append(CTxIn(COutPoint(utxo[0], utxo[1]), b''))
             tx.vout.append(CTxOut(utxo[2] - 1000, CScript([OP_TRUE])))
@@ -676,7 +676,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # Test that requesting old compactblocks doesn't work.
         MAX_CMPCTBLOCK_DEPTH = 5
         new_blocks = []
-        for i in range(MAX_CMPCTBLOCK_DEPTH + 1):
+        for _ in range(MAX_CMPCTBLOCK_DEPTH + 1):
             test_node.clear_block_announcement()
             new_blocks.append(node.generate(1)[0])
             wait_until(test_node.received_block_announcement,

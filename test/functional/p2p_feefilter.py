@@ -23,7 +23,7 @@ def hashToHex(hash):
 
 
 def allInvsMatch(invsExpected, testnode):
-    for x in range(60):
+    for _ in range(60):
         with p2p_lock:
             if (sorted(invsExpected) == sorted(testnode.txinvs)):
                 return True
@@ -101,7 +101,7 @@ class FeeFilterTest(BitcoinTestFramework):
         # feerate of .2 sat/byte
         node1.settxfee(Decimal("2"))
         txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
-                 for x in range(3)]
+                 for _ in range(3)]
         assert allInvsMatch(txids, conn)
         conn.clear_invs()
 
@@ -112,14 +112,14 @@ class FeeFilterTest(BitcoinTestFramework):
         # (paying .15 sat/byte)
         node1.settxfee(Decimal("1.5"))
         txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
-                 for x in range(3)]
+                 for _ in range(3)]
         assert allInvsMatch(txids, conn)
         conn.clear_invs()
 
         # Change tx fee rate to .1 sat/byte and test they are no longer received
         # by the test connection
         node1.settxfee(Decimal("1"))
-        [node1.sendtoaddress(node1.getnewaddress(), 1000000) for x in range(3)]
+        [node1.sendtoaddress(node1.getnewaddress(), 1000000) for _ in range(3)]
         self.sync_mempools()  # must be sure node 0 has received all txs
 
         # Send one transaction from node0 that should be received, so that we
@@ -137,7 +137,7 @@ class FeeFilterTest(BitcoinTestFramework):
         # Remove fee filter and check that txs are received again
         conn.send_and_ping(msg_feefilter(0))
         txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
-                 for x in range(3)]
+                 for _ in range(3)]
         assert allInvsMatch(txids, conn)
         conn.clear_invs()
 

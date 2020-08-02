@@ -552,7 +552,7 @@ def gen_return_txouts():
     # So we have big transactions (and therefore can't fit very many into each block)
     # create one script_pubkey
     script_pubkey = "6a4d0200"  # OP_RETURN OP_PUSH2 512 bytes
-    for i in range(512):
+    for _ in range(512):
         script_pubkey = script_pubkey + "01"
     # concatenate 128 txouts of above script_pubkey which we'll insert before
     # the txout for change
@@ -561,7 +561,7 @@ def gen_return_txouts():
     txout = CTxOut()
     txout.nValue = 0
     txout.scriptPubKey = hex_str_to_bytes(script_pubkey)
-    for k in range(128):
+    for _ in range(128):
         txouts.append(txout)
     return txouts
 
