@@ -1805,11 +1805,12 @@ static UniValue listsinceblock(const Config &config,
                  }},
                 {RPCResult::Type::STR_HEX, "lastblock",
                  "The hash of the block (target_confirmations-1) from the best "
-                 "block on the main chain. This is typically used to feed back "
-                 "into listsinceblock the next time you call it. So you would "
-                 "generally use a target_confirmations of say 6, so you will "
-                 "be continually re-notified of transactions until they've "
-                 "reached 6 confirmations plus any new ones"},
+                 "block on the main chain, or the genesis hash if the "
+                 "referenced block does not exist yet. This is typically used "
+                 "to feed back into listsinceblock the next time you call it. "
+                 "So you would generally use a target_confirmations of say 6, "
+                 "so you will be continually re-notified of transactions until "
+                 "they've reached 6 confirmations plus any new ones"},
             }},
         RPCExamples{HelpExampleCli("listsinceblock", "") +
                     HelpExampleCli("listsinceblock",
@@ -1910,6 +1911,8 @@ static UniValue listsinceblock(const Config &config,
     }
 
     BlockHash lastblock;
+    target_confirms =
+        std::min(target_confirms, wallet.GetLastBlockHeight() + 1);
     CHECK_NONFATAL(wallet.chain().findAncestorByHeight(
         wallet.GetLastBlockHash(),
         wallet.GetLastBlockHeight() + 1 - target_confirms,
