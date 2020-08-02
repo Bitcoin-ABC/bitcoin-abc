@@ -3942,6 +3942,7 @@ UniValue signrawtransactionwithwallet(const Config &config,
                  "If the transaction has a complete set of signatures"},
                 {RPCResult::Type::ARR,
                  "errors",
+                 /* optional */ true,
                  "Script verification errors (if there are any)",
                  {
                      {RPCResult::Type::OBJ,
