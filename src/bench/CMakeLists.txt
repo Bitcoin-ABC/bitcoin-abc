@@ -78,4 +78,16 @@ endif()
 include(InstallationHelper)
 install_target(bitcoin-bench EXCLUDE_FROM_ALL)
 
-add_custom_target(bench-bitcoin COMMAND bitcoin-bench USES_TERMINAL)
+include(TestSuite)
+if(ENABLE_JUNIT_REPORT)
+	set(JUNIT_ARGS -printer=junit > "${JUNIT_REPORT_DIRECTORY}/bench-bitcoin.xml")
+endif()
+
+add_test_custom_target(bench-bitcoin
+	TEST_COMMAND
+		"$<TARGET_FILE:bitcoin-bench>"
+		${JUNIT_ARGS}
+	CUSTOM_TARGET_ARGS
+		DEPENDS bitcoin-bench
+		USES_TERMINAL
+)

@@ -13,8 +13,7 @@ CMAKE_FLAGS=(
   "-DSECP256K1_ENABLE_MODULE_ECDH=ON"
   "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
 )
-build_with_cmake --Werror bitcoin-bench
+build_with_cmake --Werror --junit
 
-./src/bench/bitcoin-bench -printer=junit > junit_results_bench.xml
-
+ninja bench-bitcoin
 ninja bench-secp256k1
