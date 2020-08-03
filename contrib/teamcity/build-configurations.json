@@ -82,7 +82,7 @@
             "templates": [
                 "common_unix_artifacts"
             ],
-            "timeout": 3600,
+            "timeout": 4800,
             "artifacts": {
                 "coverage.tar.gz": "coverage.tar.gz"
             }
