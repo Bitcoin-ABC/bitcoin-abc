@@ -9,9 +9,8 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | Boost | [1.70.0](https://www.boost.org/users/download/) | 1.59.0 | No |  |  |
 | Clang |  | [5](https://releases.llvm.org/download.html) (C++17 support) |  |  |  |
 | CMake |  | [3.16](https://cmake.org/download/) |  |  |  |
-| Expat | [2.2.7](https://libexpat.github.io/) |  | No | Yes |  |
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
-| FreeType | [2.7.1](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
+| FreeType | [2.11.0](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
 | GCC |  | [8.3](https://gcc.gnu.org/) |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
 | jemalloc | [5.2.1](https://github.com/jemalloc/jemalloc/releases) | 3.6.0 |  |  |  |
@@ -26,7 +25,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | protobuf | [21.12](https://github.com/protocolbuffers/protobuf/releases/tag/v21.12) |  | No |  |  |
 | Python (tests) |  | [3.6](https://www.python.org/downloads) |  |  |  |
 | qrencode | [3.4.4](https://fukuchi.org/works/qrencode) |  | No |  |  |
-| Qt | [5.12.11](https://download.qt.io/official_releases/qt/) | 5.9.5 | No |  |  |
+| Qt | [5.15.2](https://download.qt.io/official_releases/qt/) | 5.9.5 | No |  |  |
 | SQLite | [3.32.1](https://sqlite.org/download.html) | 3.7.17 |  |  |  |
 | systemtap ([tracing](tracing.md))| | | | | |
 | XCB |  |  |  |  | Yes (Linux only) |

@@ -95,7 +95,21 @@ ELF_ALLOWED_LIBRARIES = {
     "libfontconfig.so.1",  # font support
     "libfreetype.so.6",  # font parsing
     "libdl.so.2",  # programming interface to dynamic linker
+    "libdl.so.2",  # programming interface to dynamic linker
+    "libxcb-icccm.so.4",
+    "libxcb-image.so.0",
+    "libxcb-shm.so.0",
+    "libxcb-keysyms.so.1",
+    "libxcb-randr.so.0",
+    "libxcb-render-util.so.0",
+    "libxcb-render.so.0",
+    "libxcb-shape.so.0",
+    "libxcb-sync.so.1",
+    "libxcb-xfixes.so.0",
+    "libxcb-xinerama.so.0",
+    "libxcb-xkb.so.1",
 }
+
 ARCH_MIN_GLIBC_VER = {
     pixie.EM_386: (2, 1),
     pixie.EM_X86_64: (2, 2, 5),
@@ -111,6 +125,7 @@ MACHO_ALLOWED_LIBRARIES = {
     "AppKit",  # user interface
     "ApplicationServices",  # common application tasks.
     "Carbon",  # deprecated c back-compat API
+    "ColorSync",
     "CFNetwork",  # network services and changes in network configurations
     "CoreFoundation",  # low level func, data types
     "CoreGraphics",  # 2D rendering
@@ -126,6 +141,7 @@ MACHO_ALLOWED_LIBRARIES = {
     "Security",  # access control and authentication
     "QuartzCore",  # animation
     "SystemConfiguration",  # access network configuration settings
+    "GSS",
 }
 
 PE_ALLOWED_LIBRARIES = {
