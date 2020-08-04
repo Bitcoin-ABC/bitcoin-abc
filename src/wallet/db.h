@@ -220,4 +220,29 @@ public:
     }
 };
 
+enum class DatabaseFormat {
+    BERKELEY,
+};
+
+struct DatabaseOptions {
+    bool require_existing = false;
+    bool require_create = false;
+    bool verify = true;
+};
+
+enum class DatabaseStatus {
+    SUCCESS,
+    FAILED_BAD_PATH,
+    FAILED_BAD_FORMAT,
+    FAILED_ALREADY_LOADED,
+    FAILED_ALREADY_EXISTS,
+    FAILED_NOT_FOUND,
+    FAILED_VERIFY,
+};
+
+std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,
+                                             const DatabaseOptions &options,
+                                             DatabaseStatus &status,
+                                             bilingual_str &error);
+
 #endif // BITCOIN_WALLET_DB_H
