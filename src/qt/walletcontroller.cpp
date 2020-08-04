@@ -252,13 +252,11 @@ void CreateWalletActivity::createWallet() {
     }
 
     QTimer::singleShot(500, worker(), [this, name, flags] {
-        WalletCreationStatus status;
         std::unique_ptr<interfaces::Wallet> wallet =
-            node().walletClient().createWallet(name, m_passphrase, flags,
-                                               status, m_error_message,
-                                               m_warning_message);
+            node().walletClient().createWallet(
+                name, m_passphrase, flags, m_error_message, m_warning_message);
 
-        if (status == WalletCreationStatus::SUCCESS) {
+        if (wallet) {
             m_wallet_model =
                 m_wallet_controller->getOrCreateWallet(std::move(wallet));
         }

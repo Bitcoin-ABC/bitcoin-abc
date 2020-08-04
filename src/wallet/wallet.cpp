@@ -223,8 +223,9 @@ static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 namespace {
 std::shared_ptr<CWallet>
 LoadWalletInternal(interfaces::Chain &chain, const std::string &name,
-                   std::optional<bool> load_on_start, bilingual_str &error,
-                   std::vector<bilingual_str> &warnings) {
+                   std::optional<bool> load_on_start,
+                   const DatabaseOptions &options, DatabaseStatus &status,
+                   bilingual_str &error, std::vector<bilingual_str> &warnings) {
     try {
         if (!CWallet::Verify(chain, name, error, warnings)) {
             error = Untranslated("Wallet file verification failed.") +
@@ -253,29 +254,31 @@ LoadWalletInternal(interfaces::Chain &chain, const std::string &name,
 }
 } // namespace
 
-std::shared_ptr<CWallet> LoadWallet(interfaces::Chain &chain,
-                                    const std::string &name,
-                                    std::optional<bool> load_on_start,
-                                    bilingual_str &error,
-                                    std::vector<bilingual_str> &warnings) {
+std::shared_ptr<CWallet>
+LoadWallet(interfaces::Chain &chain, const std::string &name,
+           std::optional<bool> load_on_start, const DatabaseOptions &options,
+           DatabaseStatus &status, bilingual_str &error,
+           std::vector<bilingual_str> &warnings) {
     auto result = WITH_LOCK(g_loading_wallet_mutex,
                             return g_loading_wallet_set.insert(name));
     if (!result.second) {
         error = Untranslated("Wallet already being loading.");
         return nullptr;
     }
-    auto wallet =
-        LoadWalletInternal(chain, name, load_on_start, error, warnings);
+    auto wallet = LoadWalletInternal(chain, name, load_on_start, options,
+                                     status, error, warnings);
     WITH_LOCK(g_loading_wallet_mutex, g_loading_wallet_set.erase(result.first));
     return wallet;
 }
 
-WalletCreationStatus
-CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
-             uint64_t wallet_creation_flags, const std::string &name,
-             std::optional<bool> load_on_start, bilingual_str &error,
-             std::vector<bilingual_str> &warnings,
-             std::shared_ptr<CWallet> &result) {
+std::shared_ptr<CWallet>
+CreateWallet(interfaces::Chain &chain, const std::string &name,
+             std::optional<bool> load_on_start, const DatabaseOptions &options,
+             DatabaseStatus &status, bilingual_str &error,
+             std::vector<bilingual_str> &warnings) {
+    uint64_t wallet_creation_flags = options.create_flags;
+    const SecureString &passphrase = options.create_passphrase;
+
     // Indicate that the wallet is actually supposed to be blank and not just
     // blank to make it encrypted
     bool create_blank = (wallet_creation_flags & WALLET_FLAG_BLANK_WALLET);
@@ -290,7 +293,8 @@ CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
             fs::absolute(name.empty() ? "wallet.dat" : name, GetWalletDir()))
             .type() != fs::file_not_found) {
         error = strprintf(Untranslated("Wallet %s already exists."), name);
-        return WalletCreationStatus::CREATION_FAILED;
+        status = DatabaseStatus::FAILED_CREATE;
+        return nullptr;
     }
 
     // Wallet::Verify will check if we're trying to create a wallet with a
@@ -298,7 +302,8 @@ CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
     if (!CWallet::Verify(chain, name, error, warnings)) {
         error = Untranslated("Wallet file verification failed.") +
                 Untranslated(" ") + error;
-        return WalletCreationStatus::CREATION_FAILED;
+        status = DatabaseStatus::FAILED_VERIFY;
+        return nullptr;
     }
 
     // Do not allow a passphrase when private keys are disabled
@@ -308,7 +313,8 @@ CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
             "Passphrase provided but private keys are disabled. A passphrase "
             "is only used to encrypt private keys, so cannot be used for "
             "wallets with private keys disabled.");
-        return WalletCreationStatus::CREATION_FAILED;
+        status = DatabaseStatus::FAILED_CREATE;
+        return nullptr;
     }
 
     // Make the wallet
@@ -317,7 +323,8 @@ CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
     if (!wallet) {
         error =
             Untranslated("Wallet creation failed.") + Untranslated(" ") + error;
-        return WalletCreationStatus::CREATION_FAILED;
+        status = DatabaseStatus::FAILED_CREATE;
+        return nullptr;
     }
 
     // Encrypt the wallet
@@ -326,14 +333,16 @@ CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
         if (!wallet->EncryptWallet(passphrase)) {
             error =
                 Untranslated("Error: Wallet created but failed to encrypt.");
-            return WalletCreationStatus::ENCRYPTION_FAILED;
+            status = DatabaseStatus::FAILED_ENCRYPT;
+            return nullptr;
         }
         if (!create_blank) {
             // Unlock the wallet
             if (!wallet->Unlock(passphrase)) {
                 error = Untranslated(
                     "Error: Wallet was encrypted but could not be unlocked");
-                return WalletCreationStatus::ENCRYPTION_FAILED;
+                status = DatabaseStatus::FAILED_ENCRYPT;
+                return nullptr;
             }
 
             // Set a seed for the wallet
@@ -344,9 +353,10 @@ CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
                 } else {
                     for (auto spk_man : wallet->GetActiveScriptPubKeyMans()) {
                         if (!spk_man->SetupGeneration()) {
-                            error =
-                                Untranslated("Unable to generate initial keys");
-                            return WalletCreationStatus::CREATION_FAILED;
+                            error = Untranslated(
+                                "Unable to generate initial keys");
+                            status = DatabaseStatus::FAILED_CREATE;
+                            return nullptr;
                         }
                     }
                 }
@@ -358,12 +368,12 @@ CreateWallet(interfaces::Chain &chain, const SecureString &passphrase,
     }
     AddWallet(wallet);
     wallet->postInitProcess();
-    result = wallet;
 
     // Write the wallet settings
     UpdateWalletSetting(chain, name, load_on_start, warnings);
 
-    return WalletCreationStatus::SUCCESS;
+    status = DatabaseStatus::SUCCESS;
+    return wallet;
 }
 
 /** @defgroup mapWallet
