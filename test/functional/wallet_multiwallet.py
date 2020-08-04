@@ -282,17 +282,32 @@ class MultiWalletTest(BitcoinTestFramework):
                                 self.nodes[0].loadwallet, 'wallets')
 
         # Fail to load duplicate wallets
+        path = os.path.join(
+            self.options.tmpdir,
+            "node0",
+            "regtest",
+            "wallets",
+            "w1",
+            "wallet.dat")
         assert_raises_rpc_error(
             -4,
-            'Wallet file verification failed. Error loading wallet w1. Duplicate -wallet filename specified.',
+            "Wallet file verification failed. Refusing to load database. Data file '{}' is already loaded.".format(
+                path),
             self.nodes[0].loadwallet,
             wallet_names[0])
 
         # Fail to load duplicate wallets by different ways (directory and
         # filepath)
+        path = os.path.join(
+            self.options.tmpdir,
+            "node0",
+            "regtest",
+            "wallets",
+            "wallet.dat")
         assert_raises_rpc_error(
             -4,
-            "Wallet file verification failed. Error loading wallet wallet.dat. Duplicate -wallet filename specified.",
+            "Wallet file verification failed. Refusing to load database. Data file '{}' is already loaded.".format(
+                path),
             self.nodes[0].loadwallet,
             'wallet.dat')
 

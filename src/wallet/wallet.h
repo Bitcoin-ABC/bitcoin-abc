@@ -73,6 +73,9 @@ CreateWallet(interfaces::Chain &chain, const std::string &name,
              DatabaseStatus &status, bilingual_str &error,
              std::vector<bilingual_str> &warnings);
 std::unique_ptr<interfaces::Handler> HandleLoadWallet(LoadWalletFn load_wallet);
+std::unique_ptr<WalletDatabase>
+MakeWalletDatabase(const std::string &name, const DatabaseOptions &options,
+                   DatabaseStatus &status, bilingual_str &error);
 
 //! -paytxfee default
 constexpr Amount DEFAULT_PAY_TX_FEE = Amount::zero();
@@ -1377,11 +1380,6 @@ public:
      * inputs may be respent.
      */
     bool AbandonTransaction(const TxId &txid);
-
-    //! Verify wallet naming and perform salvage on the wallet if required
-    static bool Verify(interfaces::Chain &chain, const std::string &name,
-                       bilingual_str &error_string,
-                       std::vector<bilingual_str> &warnings);
 
     /**
      * Initializes the wallet, returns a new CWallet instance or a null pointer

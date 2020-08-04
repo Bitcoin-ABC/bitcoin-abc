@@ -301,9 +301,6 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                   std::string &strType, std::string &strErr,
                   const KeyFilterFn &filter_fn = nullptr);
 
-/** Return whether a wallet database is currently loaded. */
-bool IsWalletLoaded(const fs::path &wallet_path);
-
 /** Return object for accessing database at specified path. */
 std::unique_ptr<WalletDatabase> CreateWalletDatabase(const fs::path &path);
 

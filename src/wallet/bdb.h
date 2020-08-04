@@ -57,9 +57,6 @@ public:
     void MakeMock();
     bool IsMock() const { return fMockDb; }
     bool IsInitialized() const { return fDbEnvInit; }
-    bool IsDatabaseLoaded(const std::string &db_filename) const {
-        return m_databases.find(db_filename) != m_databases.end();
-    }
     fs::path Directory() const { return strPath; }
 
     bool Open(bilingual_str &error);
@@ -83,9 +80,6 @@ public:
 /** Get BerkeleyEnvironment and database filename given a wallet path. */
 std::shared_ptr<BerkeleyEnvironment>
 GetWalletEnv(const fs::path &wallet_path, std::string &database_filename);
-
-/** Return whether a BDB wallet database is currently loaded. */
-bool IsBDBWalletLoaded(const fs::path &wallet_path);
 
 /** Check format of database file */
 bool IsBerkeleyBtree(const fs::path &path);
@@ -161,7 +155,7 @@ public:
     void ReloadDbEnv() override;
 
     /** Verifies the environment and database file */
-    bool Verify(bilingual_str &error) override;
+    bool Verify(bilingual_str &error);
 
     /**
      * Pointer to shared database environment.

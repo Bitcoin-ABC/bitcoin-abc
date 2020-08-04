@@ -1158,10 +1158,6 @@ std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,
     return MakeBerkeleyDatabase(path, options, status, error);
 }
 
-bool IsWalletLoaded(const fs::path &wallet_path) {
-    return IsBDBWalletLoaded(wallet_path);
-}
-
 /** Return object for accessing database at specified path. */
 std::unique_ptr<WalletDatabase> CreateWalletDatabase(const fs::path &path) {
     std::string filename;
