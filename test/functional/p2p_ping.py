@@ -7,13 +7,8 @@
 
 import time
 
-from test_framework.messages import (
-    msg_pong,
-)
-from test_framework.mininode import (
-    P2PInterface,
-    wait_until,
-)
+from test_framework.messages import msg_pong
+from test_framework.mininode import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -79,7 +74,8 @@ class PingPongTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(['pong peer=0: Nonce mismatch']):
             # mock time PING_INTERVAL ahead to trigger node into sending a ping
             self.mock_forward(PING_INTERVAL + 1)
-            wait_until(lambda: 'ping' in no_pong_node.last_message)
+            no_pong_node.wait_until(
+                lambda: 'ping' in no_pong_node.last_message)
             self.mock_forward(9)
             # Send the wrong pong
             no_pong_node.send_and_ping(
@@ -95,10 +91,10 @@ class PingPongTest(BitcoinTestFramework):
         assert 'ping' not in no_pong_node.last_message
         # mock time PING_INTERVAL ahead to trigger node into sending a ping
         self.mock_forward(PING_INTERVAL + 1)
-        wait_until(lambda: 'ping' in no_pong_node.last_message)
+        no_pong_node.wait_until(lambda: 'ping' in no_pong_node.last_message)
         ping_delay = 29
         self.mock_forward(ping_delay)
-        wait_until(lambda: 'ping' in no_pong_node.last_message)
+        no_pong_node.wait_until(lambda: 'ping' in no_pong_node.last_message)
         no_pong_node.send_and_ping(
             msg_pong(no_pong_node.last_message.pop('ping').nonce))
         self.check_peer_info(
@@ -109,10 +105,10 @@ class PingPongTest(BitcoinTestFramework):
         self.log.info('Check that minping is decreased after a fast roundtrip')
         # mock time PING_INTERVAL ahead to trigger node into sending a ping
         self.mock_forward(PING_INTERVAL + 1)
-        wait_until(lambda: 'ping' in no_pong_node.last_message)
+        no_pong_node.wait_until(lambda: 'ping' in no_pong_node.last_message)
         ping_delay = 9
         self.mock_forward(ping_delay)
-        wait_until(lambda: 'ping' in no_pong_node.last_message)
+        no_pong_node.wait_until(lambda: 'ping' in no_pong_node.last_message)
         no_pong_node.send_and_ping(
             msg_pong(no_pong_node.last_message.pop('ping').nonce))
         self.check_peer_info(
@@ -123,7 +119,7 @@ class PingPongTest(BitcoinTestFramework):
         self.log.info('Check that peer is disconnected after ping timeout')
         assert 'ping' not in no_pong_node.last_message
         self.nodes[0].ping()
-        wait_until(lambda: 'ping' in no_pong_node.last_message)
+        no_pong_node.wait_until(lambda: 'ping' in no_pong_node.last_message)
         with self.nodes[0].assert_debug_log(['ping timeout: 1201.000000s']):
             self.mock_forward(20 * 60 + 1)
             # peertimeout + 1
