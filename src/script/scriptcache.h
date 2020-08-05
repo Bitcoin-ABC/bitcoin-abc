@@ -8,6 +8,12 @@
 #include <array>
 #include <cstdint>
 
+#include <sync.h>
+
+// Actually declared in validation.cpp; can't include because of circular
+// dependency.
+extern RecursiveMutex cs_main;
+
 class CTransaction;
 
 /**
@@ -48,11 +54,13 @@ void InitScriptExecutionCache();
  * Check if a given key is in the cache, and if so, return its values.
  * (if not found, nSigChecks may or may not be set to an arbitrary value)
  */
-bool IsKeyInScriptCache(ScriptCacheKey key, bool erase, int &nSigChecksOut);
+bool IsKeyInScriptCache(ScriptCacheKey key, bool erase, int &nSigChecksOut)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Add an entry in the cache.
  */
-void AddKeyInScriptCache(ScriptCacheKey key, int nSigChecks);
+void AddKeyInScriptCache(ScriptCacheKey key, int nSigChecks)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 #endif // BITCOIN_SCRIPT_SCRIPTCACHE_H

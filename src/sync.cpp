@@ -243,8 +243,9 @@ template void AssertLockHeldInternal(const char *, const char *, int, Mutex *);
 template void AssertLockHeldInternal(const char *, const char *, int,
                                      RecursiveMutex *);
 
+template <typename MutexType>
 void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
-                               int nLine, void *cs) {
+                               int nLine, MutexType *cs) {
     if (!LockHeld(cs)) {
         return;
     }
@@ -253,6 +254,10 @@ void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
                 pszName, pszFile, nLine, LocksHeld());
     abort();
 }
+template void AssertLockNotHeldInternal(const char *, const char *, int,
+                                        Mutex *);
+template void AssertLockNotHeldInternal(const char *, const char *, int,
+                                        RecursiveMutex *);
 
 void DeleteLock(void *cs) {
     LockData &lockdata = GetLockData();

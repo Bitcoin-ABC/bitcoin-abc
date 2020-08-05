@@ -1425,7 +1425,7 @@ public:
      * deadlock
      */
     void BlockUntilSyncedToCurrentChain() const
-        LOCKS_EXCLUDED(cs_main, cs_wallet);
+        EXCLUSIVE_LOCKS_REQUIRED(!::cs_main, !cs_wallet);
 
     /**
      * Set a single wallet flag.

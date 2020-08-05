@@ -448,7 +448,7 @@ bool TestLockPointValidity(const LockPoints *lp)
 bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
                         int flags, LockPoints *lp = nullptr,
                         bool useExistingLockPoints = false)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main, pool.cs);
 
 /**
  * Closure representing one script verification.
@@ -529,7 +529,8 @@ bool CheckBlock(const CBlock &block, BlockValidationState &state,
 bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
                                                const CTransaction &tx,
                                                TxValidationState &state,
-                                               int flags = -1);
+                                               int flags = -1)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Check a block is completely valid from start to finish (only works on top of
@@ -929,11 +930,11 @@ public:
     /** Mark a block as invalid. */
     bool InvalidateBlock(const Config &config, BlockValidationState &state,
                          CBlockIndex *pindex)
-        LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, !m_cs_chainstate);
     /** Park a block. */
     bool ParkBlock(const Config &config, BlockValidationState &state,
                    CBlockIndex *pindex)
-        LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, !m_cs_chainstate);
 
     /**
      * Finalize a block.
@@ -941,7 +942,7 @@ public:
      */
     bool FinalizeBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex)
-        LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, !m_cs_chainstate);
     /** Return the currently finalized block index. */
     const CBlockIndex *GetFinalizedBlock() const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
