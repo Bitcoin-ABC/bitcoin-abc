@@ -31,7 +31,8 @@ static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 std::unique_ptr<avalanche::Processor> g_avalanche;
 
 namespace avalanche {
-static bool IsWorthPolling(const CBlockIndex *pindex) {
+static bool IsWorthPolling(const CBlockIndex *pindex)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     if (pindex->nStatus.isInvalid()) {
