@@ -1386,10 +1386,10 @@ public:
      * in case of an error.
      */
     static std::shared_ptr<CWallet>
-    CreateWalletFromFile(interfaces::Chain &chain, const std::string &name,
-                         bilingual_str &error,
-                         std::vector<bilingual_str> &warnings,
-                         uint64_t wallet_creation_flags = 0);
+    Create(interfaces::Chain &chain, const std::string &name,
+           std::unique_ptr<WalletDatabase> database,
+           uint64_t wallet_creation_flags, bilingual_str &error,
+           std::vector<bilingual_str> &warnings);
 
     /**
      * Wallet post-init setup

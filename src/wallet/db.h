@@ -17,11 +17,6 @@
 
 struct bilingual_str;
 
-/**
- * Given a wallet directory path or legacy file path, return path to main data
- * file in the wallet database.
- */
-fs::path WalletDataFilePath(const fs::path &wallet_path);
 void SplitWalletPath(const fs::path &wallet_path, fs::path &env_directory,
                      std::string &database_filename);
 
@@ -155,12 +150,13 @@ public:
 
     virtual void ReloadDbEnv() = 0;
 
+    /** Return path to main database file for logs and error messages. */
+    virtual std::string Filename() = 0;
+
     std::atomic<unsigned int> nUpdateCounter;
     unsigned int nLastSeen;
     unsigned int nLastFlushed;
     int64_t nLastWalletUpdate;
-
-    std::string m_file_path;
 
     /** Make a DatabaseBatch connected to this database */
     virtual std::unique_ptr<DatabaseBatch>
@@ -211,6 +207,7 @@ public:
     bool PeriodicFlush() override { return true; }
     void IncrementUpdateCounter() override { ++nUpdateCounter; }
     void ReloadDbEnv() override {}
+    std::string Filename() override { return "dummy"; }
     std::unique_ptr<DatabaseBatch>
     MakeBatch(const char *mode = "r+", bool flush_on_close = true) override {
         return std::make_unique<DummyBatch>();
