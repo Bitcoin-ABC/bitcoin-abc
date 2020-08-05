@@ -1877,7 +1877,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
         (((pindexBestHeader != nullptr) &&
           (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() >
            HISTORICAL_BLOCK_AGE)) ||
-         inv.type == MSG_FILTERED_BLOCK) &&
+         inv.IsMsgFilteredBlk()) &&
         // nodes with the download permission may exceed target
         !pfrom.HasPermission(PF_DOWNLOAD)) {
         LogPrint(BCLog::NET,
@@ -1922,10 +1922,10 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
             }
             pblock = pblockRead;
         }
-        if (inv.type == MSG_BLOCK) {
+        if (inv.IsMsgBlk()) {
             connman.PushMessage(&pfrom,
                                 msgMaker.Make(NetMsgType::BLOCK, *pblock));
-        } else if (inv.type == MSG_FILTERED_BLOCK) {
+        } else if (inv.IsMsgFilteredBlk()) {
             bool sendMerkleBlock = false;
             CMerkleBlock merkleBlock;
             if (pfrom.m_tx_relay != nullptr) {
@@ -1958,7 +1958,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
             }
             // else
             // no response
-        } else if (inv.type == MSG_CMPCT_BLOCK) {
+        } else if (inv.IsMsgCmpctBlk()) {
             // If a peer is asking for old blocks, we're almost guaranteed they
             // won't have a useful mempool to match against a compact block, and
             // we don't feel like constructing the object for them, so instead
@@ -2103,8 +2103,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
     // expensive to process.
     if (it != pfrom.vRecvGetData.end() && !pfrom.fPauseSend) {
         const CInv &inv = *it++;
-        if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK ||
-            inv.type == MSG_CMPCT_BLOCK) {
+        if (inv.IsGenBlkMsg()) {
             ProcessGetBlockData(config, pfrom, inv, connman, interruptMsgProc);
         }
         // else: If the first item on the queue is an unknown type, we erase it
@@ -3116,7 +3115,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 return;
             }
 
-            if (inv.type == MSG_BLOCK) {
+            if (inv.IsMsgBlk()) {
                 bool fAlreadyHave = AlreadyHaveBlock(BlockHash(inv.hash));
                 LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
                          inv.ToString(), fAlreadyHave ? "have" : "new",
