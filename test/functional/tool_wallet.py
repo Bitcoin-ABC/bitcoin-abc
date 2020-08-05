@@ -84,15 +84,18 @@ class ToolWalletTest(BitcoinTestFramework):
             'create')
         self.assert_raises_tool_error(
             'Error parsing command line arguments: Invalid parameter -foo', '-foo')
+        locked_dir = os.path.join(self.options.tmpdir, "node0", "regtest",
+                                  "wallets")
         self.assert_raises_tool_error(
-            'Error loading wallet.dat. Is wallet being used by another process?',
+            f'Error initializing wallet database environment "{locked_dir}"!',
             '-wallet=wallet.dat',
             'info',
         )
+        path = os.path.join(self.options.tmpdir, "node0", "regtest",
+                            "wallets", "nonexistent.dat")
         self.assert_raises_tool_error(
-            'Error: no wallet file at nonexistent.dat',
-            '-wallet=nonexistent.dat',
-            'info')
+            f"Failed to load database path '{path}'. Path does not exist.",
+            '-wallet=nonexistent.dat', 'info')
 
     def test_tool_wallet_info(self):
         # Stop the node to close the wallet to call the info command.

@@ -1158,13 +1158,6 @@ std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,
     return MakeBerkeleyDatabase(path, options, status, error);
 }
 
-/** Return object for accessing database at specified path. */
-std::unique_ptr<WalletDatabase> CreateWalletDatabase(const fs::path &path) {
-    std::string filename;
-    return std::make_unique<BerkeleyDatabase>(GetWalletEnv(path, filename),
-                                              std::move(filename));
-}
-
 /**
  * Return object for accessing dummy database with no read/write capabilities.
  */
