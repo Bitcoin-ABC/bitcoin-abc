@@ -1032,24 +1032,6 @@ DBErrors WalletBatch::ZapSelectTx(std::vector<TxId> &txIdsIn,
     return DBErrors::LOAD_OK;
 }
 
-DBErrors WalletBatch::ZapWalletTx(std::list<CWalletTx> &vWtx) {
-    // Build list of wallet TXs.
-    std::vector<TxId> txIds;
-    DBErrors err = FindWalletTx(txIds, vWtx);
-    if (err != DBErrors::LOAD_OK) {
-        return err;
-    }
-
-    // Erase each wallet TX.
-    for (const TxId &txid : txIds) {
-        if (!EraseTx(txid)) {
-            return DBErrors::CORRUPT;
-        }
-    }
-
-    return DBErrors::LOAD_OK;
-}
-
 void MaybeCompactWalletDB() {
     static std::atomic<bool> fOneThread;
     if (fOneThread.exchange(true)) {

@@ -267,7 +267,6 @@ public:
 
     DBErrors LoadWallet(CWallet *pwallet);
     DBErrors FindWalletTx(std::vector<TxId> &txIds, std::list<CWalletTx> &vWtx);
-    DBErrors ZapWalletTx(std::list<CWalletTx> &vWtx);
     DBErrors ZapSelectTx(std::vector<TxId> &txIdsIn,
                          std::vector<TxId> &txIdsOut);
     /* Function to determine if a certain KV/key-type is a key (cryptographical

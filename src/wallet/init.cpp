@@ -136,13 +136,6 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
 #endif
     argsman.AddArg(
-        "-zapwallettxes=<mode>",
-        "Delete all wallet transactions and only recover those parts of the "
-        "blockchain through -rescan on startup (1 = keep tx meta data e.g. "
-        "payment request information, 2 = drop tx meta data)",
-        ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
-
-    argsman.AddArg(
         "-dblogsize=<n>",
         strprintf("Flush wallet database activity from memory to disk "
                   "log every <n> megabytes (default: %u)",
@@ -167,6 +160,8 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
                              DEFAULT_WALLET_REJECT_LONG_CHAINS),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::WALLET_DEBUG_TEST);
+
+    argsman.AddHiddenArgs({"-zapwallettxes"});
 }
 
 bool WalletInit::ParameterInteraction() const {
@@ -180,8 +175,6 @@ bool WalletInit::ParameterInteraction() const {
         return true;
     }
 
-    const bool is_multiwallet = gArgs.GetArgs("-wallet").size() > 1;
-
     if (gArgs.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY) &&
         gArgs.SoftSetBoolArg("-walletbroadcast", false)) {
         LogPrintf("%s: parameter interaction: -blocksonly=1 -> setting "
@@ -189,26 +182,11 @@ bool WalletInit::ParameterInteraction() const {
                   __func__);
     }
 
-    bool zapwallettxes = gArgs.GetBoolArg("-zapwallettxes", false);
-    // -zapwallettxes implies dropping the mempool on startup
-    if (zapwallettxes && gArgs.SoftSetBoolArg("-persistmempool", false)) {
-        LogPrintf("%s: parameter interaction: -zapwallettxes enabled -> "
-                  "setting -persistmempool=0\n",
-                  __func__);
-    }
-
-    // -zapwallettxes implies a rescan
-    if (zapwallettxes) {
-        if (is_multiwallet) {
-            return InitError(strprintf(
-                Untranslated("%s is only allowed with a single wallet file"),
-                "-zapwallettxes"));
-        }
-        if (gArgs.SoftSetBoolArg("-rescan", true)) {
-            LogPrintf("%s: parameter interaction: -zapwallettxes enabled -> "
-                      "setting -rescan=1\n",
-                      __func__);
-        }
+    if (gArgs.IsArgSet("-zapwallettxes")) {
+        return InitError(
+            Untranslated("-zapwallettxes has been removed. If you are "
+                         "attempting to remove a stuck transaction from your "
+                         "wallet, please use abandontransaction instead."));
     }
 
     if (gArgs.GetBoolArg("-sysperms", false)) {

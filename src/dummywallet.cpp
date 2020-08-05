@@ -31,7 +31,7 @@ void DummyWalletInit::AddWalletOptions(ArgsManager &argsman) const {
         "-keypool=<n>", "-maxapsfee=<n>", "-maxtxfee=<amt>", "-mintxfee=<amt>",
         "-paytxfee=<amt>", "-rescan", "-salvagewallet", "-spendzeroconfchange",
         "-upgradewallet", "-wallet=<path>", "-walletbroadcast",
-        "-walletdir=<dir>", "-walletnotify=<cmd>", "-zapwallettxes=<mode>",
+        "-walletdir=<dir>", "-walletnotify=<cmd>",
         // Wallet debug options
         "-dblogsize=<n>", "-flushwallet", "-privdb", "-walletrejectlongchains"};
     argsman.AddHiddenArgs(opts);
