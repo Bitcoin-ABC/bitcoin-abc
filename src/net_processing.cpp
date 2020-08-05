@@ -821,7 +821,7 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
         }
     }
     connman.ForNode(nodeid, [&connman](CNode *pfrom) {
-        AssertLockHeld(cs_main);
+        LockAssertion lock(::cs_main);
         uint64_t nCMPCTBLOCKVersion = 1;
         if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
             // As per BIP152, we only get 3 of our peers to announce
@@ -829,7 +829,6 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
             connman.ForNode(
                 lNodesAnnouncingHeaderAndIDs.front(),
                 [&connman, nCMPCTBLOCKVersion](CNode *pnodeStop) {
-                    AssertLockHeld(cs_main);
                     connman.PushMessage(
                         pnodeStop, CNetMsgMaker(pnodeStop->GetCommonVersion())
                                        .Make(NetMsgType::SENDCMPCT,
@@ -1668,7 +1667,7 @@ void PeerManager::NewPoWValidBlock(
 
     m_connman.ForEachNode([this, &pcmpctblock, pindex, &msgMaker,
                            &hashBlock](CNode *pnode) {
-        AssertLockHeld(cs_main);
+        LockAssertion lock(::cs_main);
 
         // TODO: Avoid the repeated-serialization here
         if (pnode->GetCommonVersion() < INVALID_CB_NO_BAN_VERSION ||
@@ -5025,7 +5024,7 @@ void PeerManager::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     int64_t oldest_block_announcement = std::numeric_limits<int64_t>::max();
 
     m_connman.ForEachNode([&](CNode *pnode) {
-        AssertLockHeld(cs_main);
+        LockAssertion lock(::cs_main);
 
         // Ignore non-outbound peers, or nodes marked for disconnect already
         if (!pnode->IsOutboundOrBlockRelayConn() || pnode->fDisconnect) {
@@ -5058,7 +5057,7 @@ void PeerManager::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     }
 
     bool disconnected = m_connman.ForNode(worst_peer, [&](CNode *pnode) {
-        AssertLockHeld(cs_main);
+        LockAssertion lock(::cs_main);
 
         // Only disconnect a peer that has been connected to us for some
         // reasonable fraction of our check-frequency, to give it time for new
