@@ -3314,6 +3314,7 @@ static UniValue createwallet(const Config &config,
 
     DatabaseOptions options;
     DatabaseStatus status;
+    options.require_create = true;
     options.create_flags = flags;
     options.create_passphrase = passphrase;
     bilingual_str error;

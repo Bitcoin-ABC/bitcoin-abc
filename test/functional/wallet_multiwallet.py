@@ -348,8 +348,12 @@ class MultiWalletTest(BitcoinTestFramework):
         self.log.info("Test dynamic wallet creation.")
 
         # Fail to create a wallet if it already exists.
-        assert_raises_rpc_error(-4, "Wallet w2 already exists.",
-                                self.nodes[0].createwallet, 'w2')
+        path = os.path.join(self.options.tmpdir, "node0", "regtest",
+                            "wallets", "w2")
+        assert_raises_rpc_error(
+            -4,
+            f"Failed to create database path '{path}'. Database already exists.",
+            self.nodes[0].createwallet, 'w2')
 
         # Successfully create a wallet with a new name
         loadwallet_name = self.nodes[0].createwallet('w9')
