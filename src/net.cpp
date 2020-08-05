@@ -848,6 +848,7 @@ struct NodeEvictionCandidate {
     CAddress addr;
     uint64_t nKeyedNetGroup;
     bool prefer_evict;
+    bool m_is_local;
 };
 
 static bool ReverseCompareNodeMinPingTime(const NodeEvictionCandidate &a,
@@ -857,6 +858,15 @@ static bool ReverseCompareNodeMinPingTime(const NodeEvictionCandidate &a,
 
 static bool ReverseCompareNodeTimeConnected(const NodeEvictionCandidate &a,
                                             const NodeEvictionCandidate &b) {
+    return a.nTimeConnected > b.nTimeConnected;
+}
+
+static bool CompareLocalHostTimeConnected(const NodeEvictionCandidate &a,
+                                          const NodeEvictionCandidate &b) {
+    if (a.m_is_local != b.m_is_local) {
+        return b.m_is_local;
+    }
+
     return a.nTimeConnected > b.nTimeConnected;
 }
 
@@ -894,6 +904,25 @@ static bool CompareNodeTXTime(const NodeEvictionCandidate &a,
 
     if (a.fBloomFilter != b.fBloomFilter) {
         return a.fBloomFilter;
+    }
+
+    return a.nTimeConnected > b.nTimeConnected;
+}
+
+// Pick out the potential block-relay only peers, and sort them by last block
+// time.
+static bool CompareNodeBlockRelayOnlyTime(const NodeEvictionCandidate &a,
+                                          const NodeEvictionCandidate &b) {
+    if (a.fRelayTxes != b.fRelayTxes) {
+        return a.fRelayTxes;
+    }
+
+    if (a.nLastBlockTime != b.nLastBlockTime) {
+        return a.nLastBlockTime < b.nLastBlockTime;
+    }
+
+    if (a.fRelevantServices != b.fRelevantServices) {
+        return b.fRelevantServices;
     }
 
     return a.nTimeConnected > b.nTimeConnected;
@@ -950,7 +979,8 @@ bool CConnman::AttemptToEvictConnection() {
                 peer_filter_not_null,
                 node->addr,
                 node->nKeyedNetGroup,
-                node->m_prefer_evict};
+                node->m_prefer_evict,
+                node->addr.IsLocal()};
             vEvictionCandidates.push_back(candidate);
         }
     }
@@ -968,14 +998,46 @@ bool CConnman::AttemptToEvictConnection() {
     // into our mempool. An attacker cannot manipulate this metric without
     // performing useful work.
     EraseLastKElements(vEvictionCandidates, CompareNodeTXTime, 4);
+    // Protect up to 8 non-tx-relay peers that have sent us novel blocks.
+    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
+              CompareNodeBlockRelayOnlyTime);
+    size_t erase_size = std::min(size_t(8), vEvictionCandidates.size());
+    vEvictionCandidates.erase(
+        std::remove_if(vEvictionCandidates.end() - erase_size,
+                       vEvictionCandidates.end(),
+                       [](NodeEvictionCandidate const &n) {
+                           return !n.fRelayTxes && n.fRelevantServices;
+                       }),
+        vEvictionCandidates.end());
+
     // Protect 4 nodes that most recently sent us novel blocks.
     // An attacker cannot manipulate this metric without performing useful work.
     EraseLastKElements(vEvictionCandidates, CompareNodeBlockTime, 4);
+
     // Protect the half of the remaining nodes which have been connected the
     // longest. This replicates the non-eviction implicit behavior, and
     // precludes attacks that start later.
+    // Reserve half of these protected spots for localhost peers, even if
+    // they're not longest-uptime overall. This helps protect tor peers, which
+    // tend to be otherwise disadvantaged under our eviction criteria.
+    size_t initial_size = vEvictionCandidates.size();
+    size_t total_protect_size = initial_size / 2;
+
+    // Pick out up to 1/4 peers that are localhost, sorted by longest uptime.
+    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
+              CompareLocalHostTimeConnected);
+    size_t local_erase_size = total_protect_size / 2;
+    vEvictionCandidates.erase(
+        std::remove_if(
+            vEvictionCandidates.end() - local_erase_size,
+            vEvictionCandidates.end(),
+            [](NodeEvictionCandidate const &n) { return n.m_is_local; }),
+        vEvictionCandidates.end());
+    // Calculate how many we removed, and update our total number of peers that
+    // we want to protect based on uptime accordingly.
+    total_protect_size -= initial_size - vEvictionCandidates.size();
     EraseLastKElements(vEvictionCandidates, ReverseCompareNodeTimeConnected,
-                       vEvictionCandidates.size() / 2);
+                       total_protect_size);
 
     if (vEvictionCandidates.empty()) {
         return false;
