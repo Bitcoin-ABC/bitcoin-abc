@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(op_reversebytes_random_and_palindrome) {
         MANDATORY_SCRIPT_VERIFY_FLAGS,
     });
     for (uint32_t flagindex = 0; flagindex < 32; ++flagindex) {
-        uint32_t flags = 1 << flagindex;
+        uint32_t flags = 1u << flagindex;
         flaglist.push_back(flags);
     }
 
