@@ -290,6 +290,11 @@ class MiningTest(BitcoinTestFramework):
         assert_equal(node.submitblock(
             hexdata=block.serialize().hex()), 'duplicate')
 
+        # Sanity check that maxtries supports large integers
+        node.generatetoaddress(
+            1, node.get_deterministic_priv_key().address, pow(
+                2, 32))
+
 
 if __name__ == '__main__':
     MiningTest().main()

@@ -202,7 +202,7 @@ static UniValue generatetoaddress(const Config &config,
     int nGenerate = request.params[0].get_int();
     uint64_t nMaxTries = 1000000;
     if (!request.params[2].isNull()) {
-        nMaxTries = request.params[2].get_int();
+        nMaxTries = request.params[2].get_int64();
     }
 
     CTxDestination destination =
