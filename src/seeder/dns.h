@@ -26,6 +26,7 @@ struct dns_opt_t {
     int datattl;
     int nsttl;
     const char *host;
+    const char *addr;
     const char *ns;
     const char *mbox;
     uint32_t (*cb)(void *opt, char *requested_hostname, addr_t *addr,

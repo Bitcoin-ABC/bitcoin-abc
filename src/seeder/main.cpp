@@ -38,6 +38,7 @@ static const std::string DEFAULT_EMAIL = "";
 static const std::string DEFAULT_NAMESERVER = "";
 static const std::string DEFAULT_HOST = "";
 static const std::string DEFAULT_TOR_PROXY = "";
+static const std::string DEFAULT_LISTEN_ADDRESS = "::";
 static const std::string DEFAULT_IPV4_PROXY = "";
 static const std::string DEFAULT_IPV6_PROXY = "";
 
@@ -52,6 +53,7 @@ public:
     std::string ns;
     std::string host;
     std::string tor;
+    std::string ip_addr;
     std::string ipv4_proxy;
     std::string ipv6_proxy;
     std::set<uint64_t> filter_whitelist;
@@ -61,7 +63,8 @@ public:
           nDnsThreads(DEFAULT_NUM_DNS_THREADS), fWipeBan(DEFAULT_WIPE_BAN),
           fWipeIgnore(DEFAULT_WIPE_IGNORE), mbox(DEFAULT_EMAIL),
           ns(DEFAULT_NAMESERVER), host(DEFAULT_HOST), tor(DEFAULT_TOR_PROXY),
-          ipv4_proxy(DEFAULT_IPV4_PROXY), ipv6_proxy(DEFAULT_IPV6_PROXY) {}
+          ip_addr(DEFAULT_LISTEN_ADDRESS), ipv4_proxy(DEFAULT_IPV4_PROXY),
+          ipv6_proxy(DEFAULT_IPV6_PROXY) {}
 
     int ParseCommandLine(int argc, char **argv) {
         SetupSeederArgs(gArgs);
@@ -94,9 +97,16 @@ public:
         ns = gArgs.GetArg("-ns", DEFAULT_NAMESERVER);
         host = gArgs.GetArg("-host", DEFAULT_HOST);
         tor = gArgs.GetArg("-onion", DEFAULT_TOR_PROXY);
+        ip_addr = gArgs.GetArg("-address", DEFAULT_LISTEN_ADDRESS);
         ipv4_proxy = gArgs.GetArg("-proxyipv4", DEFAULT_IPV4_PROXY);
         ipv6_proxy = gArgs.GetArg("-proxyipv6", DEFAULT_IPV6_PROXY);
         SelectParams(gArgs.GetChainName());
+
+        // Both IPv4 and IPv6 addresses are valid, but the listening address is
+        // treated as IPv6 internally
+        if (ip_addr.find(':') == std::string::npos) {
+            ip_addr.insert(0, "::FFFF:");
+        }
 
         if (gArgs.IsArgSet("-filter")) {
             // Parse whitelist additions
@@ -142,6 +152,10 @@ private:
                        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         argsman.AddArg("-dnsthreads=<threads>",
                        "Number of DNS server threads (default 4)",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg("-address=<address>",
+                       strprintf("Address to listen on (default: '%s')",
+                                 DEFAULT_LISTEN_ADDRESS),
                        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         argsman.AddArg("-port=<port>", "UDP port to listen on (default 53)",
                        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
@@ -290,6 +304,7 @@ public:
         dns_opt.datattl = 3600;
         dns_opt.nsttl = 40000;
         dns_opt.cb = GetIPList;
+        dns_opt.addr = opts->ip_addr.c_str();
         dns_opt.port = opts->nPort;
         dns_opt.nRequests = 0;
         dbQueries = 0;

@@ -619,7 +619,7 @@ int dnsserver(dns_opt_t *opt) {
         memset((char *)&si_me, 0, sizeof(si_me));
         si_me.sin6_family = AF_INET6;
         si_me.sin6_port = htons(opt->port);
-        si_me.sin6_addr = in6addr_any;
+        inet_pton(AF_INET6, opt->addr, &si_me.sin6_addr);
         if (bind(listenSocket, (struct sockaddr *)&si_me, sizeof(si_me)) ==
             -1) {
             return -2;
