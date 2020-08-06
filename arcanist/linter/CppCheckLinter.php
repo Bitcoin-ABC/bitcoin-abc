@@ -25,6 +25,10 @@ final class CppCheckLinter extends ArcanistExternalLinter {
       "Class 'base_uint < 256 >' has a constructor with 1 argument that is not explicit.",
       "Class 'base_uint' has a constructor with 1 argument that is not explicit.",
     ),
+    "src/bench/prevector.cpp" => array(
+      // Remove this once this false positive is fixed in cppcheck
+      "syntax error",
+    ),
     "src/coins.h" => array(
       "Class 'CCoinsViewBacked' has a constructor with 1 argument that is not explicit.",
       "Class 'CCoinsViewCache' has a constructor with 1 argument that is not explicit.",
@@ -97,6 +101,10 @@ final class CppCheckLinter extends ArcanistExternalLinter {
     "src/test/cuckoocache_tests.cpp" => array(
       "Struct 'KeyType' has a constructor with 1 argument that is not explicit.",
       "Struct 'TestMapElement' has a constructor with 1 argument that is not explicit."
+    ),
+    "src/test/prevector_tests.cpp" => array(
+      // Remove this once this false positive is fixed in cppcheck
+      "syntax error",
     ),
     "src/wallet/db.h" => array(
       "Class 'BerkeleyEnvironment' has a constructor with 1 argument that is not explicit.",
