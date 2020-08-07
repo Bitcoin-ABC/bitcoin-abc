@@ -61,7 +61,7 @@ bool MessageSign(const CKey &privkey, const std::string &message,
         return false;
     }
 
-    signature = EncodeBase64(signature_bytes.data(), signature_bytes.size());
+    signature = EncodeBase64(signature_bytes);
 
     return true;
 }

@@ -1550,7 +1550,7 @@ static UniValue combinepsbt(const Config &config,
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << merged_psbt;
-    return EncodeBase64((uint8_t *)ssTx.data(), ssTx.size());
+    return EncodeBase64(MakeUCharSpan(ssTx));
 }
 
 static UniValue finalizepsbt(const Config &config,
@@ -1730,7 +1730,7 @@ static UniValue createpsbt(const Config &config,
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
 
-    return EncodeBase64((uint8_t *)ssTx.data(), ssTx.size());
+    return EncodeBase64(MakeUCharSpan(ssTx));
 }
 
 static UniValue converttopsbt(const Config &config,
@@ -1796,7 +1796,7 @@ static UniValue converttopsbt(const Config &config,
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
 
-    return EncodeBase64((uint8_t *)ssTx.data(), ssTx.size());
+    return EncodeBase64(MakeUCharSpan(ssTx));
 }
 
 UniValue utxoupdatepsbt(const Config &config, const JSONRPCRequest &request) {
@@ -1898,7 +1898,7 @@ UniValue utxoupdatepsbt(const Config &config, const JSONRPCRequest &request) {
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
-    return EncodeBase64((uint8_t *)ssTx.data(), ssTx.size());
+    return EncodeBase64(MakeUCharSpan(ssTx));
 }
 
 UniValue joinpsbts(const Config &config, const JSONRPCRequest &request) {
@@ -2000,7 +2000,7 @@ UniValue joinpsbts(const Config &config, const JSONRPCRequest &request) {
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << shuffled_psbt;
-    return EncodeBase64((uint8_t *)ssTx.data(), ssTx.size());
+    return EncodeBase64(MakeUCharSpan(ssTx));
 }
 
 UniValue analyzepsbt(const Config &config, const JSONRPCRequest &request) {
