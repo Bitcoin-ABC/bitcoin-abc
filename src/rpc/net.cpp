@@ -701,9 +701,8 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (strCommand == "add") {
-        if ((isSubnet && g_rpc_node->banman->IsBanned(subNet)) ||
-            (!isSubnet && g_rpc_node->banman->IsBannedLevel(netAddr) ==
-                              BanReasonManuallyAdded)) {
+        if (isSubnet ? g_rpc_node->banman->IsBanned(subNet)
+                     : g_rpc_node->banman->IsBanned(netAddr)) {
             throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED,
                                "Error: IP/Subnet already banned");
         }
@@ -720,14 +719,12 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
         }
 
         if (isSubnet) {
-            g_rpc_node->banman->Ban(subNet, BanReasonManuallyAdded, banTime,
-                                    absolute);
+            g_rpc_node->banman->Ban(subNet, banTime, absolute);
             if (g_rpc_node->connman) {
                 g_rpc_node->connman->DisconnectNode(subNet);
             }
         } else {
-            g_rpc_node->banman->Ban(netAddr, BanReasonManuallyAdded, banTime,
-                                    absolute);
+            g_rpc_node->banman->Ban(netAddr, banTime, absolute);
             if (g_rpc_node->connman) {
                 g_rpc_node->connman->DisconnectNode(netAddr);
             }

@@ -263,9 +263,9 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
-    BOOST_CHECK(banman->IsBanned(addr1));
-    // Different IP, not banned.
-    BOOST_CHECK(!banman->IsBanned(ip(0xa0b0c001 | 0x0000ff00)));
+    BOOST_CHECK(banman->IsDiscouraged(addr1));
+    // Different IP, not banned
+    BOOST_CHECK(!banman->IsDiscouraged(ip(0xa0b0c001 | 0x0000ff00)));
 
     CAddress addr2(ip(0xa0b0c002), NODE_NONE);
     CNode dummyNode2(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr2, 1, 1,
@@ -284,9 +284,9 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
             peerLogic->SendMessages(config, &dummyNode2, interruptDummy));
     }
     // 2 not banned yet...
-    BOOST_CHECK(!banman->IsBanned(addr2));
-    // ... but 1 still should be.
-    BOOST_CHECK(banman->IsBanned(addr1));
+    BOOST_CHECK(!banman->IsDiscouraged(addr2));
+    // ... but 1 still should be
+    BOOST_CHECK(banman->IsDiscouraged(addr1));
     {
         LOCK(cs_main);
         Misbehaving(dummyNode2.GetId(), 50, "");
@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode2, interruptDummy));
     }
-    BOOST_CHECK(banman->IsBanned(addr2));
+    BOOST_CHECK(banman->IsDiscouraged(addr2));
 
     bool dummy;
     peerLogic->FinalizeNode(config, dummyNode1.GetId(), dummy);
@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
-    BOOST_CHECK(!banman->IsBanned(addr1));
+    BOOST_CHECK(!banman->IsDiscouraged(addr1));
     {
         LOCK(cs_main);
         Misbehaving(dummyNode1.GetId(), 10, "");
@@ -343,7 +343,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
-    BOOST_CHECK(!banman->IsBanned(addr1));
+    BOOST_CHECK(!banman->IsDiscouraged(addr1));
     {
         LOCK(cs_main);
         Misbehaving(dummyNode1.GetId(), 1, "");
@@ -353,7 +353,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
-    BOOST_CHECK(banman->IsBanned(addr1));
+    BOOST_CHECK(banman->IsDiscouraged(addr1));
     gArgs.ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
 
     bool dummy;
@@ -393,7 +393,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
         BOOST_CHECK(
             peerLogic->SendMessages(config, &dummyNode, interruptDummy));
     }
-    BOOST_CHECK(banman->IsBanned(addr));
+    BOOST_CHECK(banman->IsDiscouraged(addr));
 
     bool dummy;
     peerLogic->FinalizeNode(config, dummyNode.GetId(), dummy);

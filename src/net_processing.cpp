@@ -275,9 +275,9 @@ struct CNodeState {
     bool fCurrentlyConnected;
     //! Accumulated misbehaviour score for this peer.
     int nMisbehavior;
-    //! Whether this peer should be disconnected and banned (unless
-    //! whitelisted).
-    bool fShouldBan;
+    //! Whether this peer should be disconnected and marked as discouraged
+    //! (unless whitelisted with noban).
+    bool m_should_discourage;
     //! String name of this peer (debugging/logging purposes).
     const std::string name;
     //! List of asynchronously-determined block rejections to notify this peer
@@ -442,7 +442,7 @@ struct CNodeState {
           m_is_inbound(is_inbound), m_is_manual_connection(is_manual) {
         fCurrentlyConnected = false;
         nMisbehavior = 0;
-        fShouldBan = false;
+        m_should_discourage = false;
         pindexBestKnownBlock = nullptr;
         hashLastUnknownBlock = BlockHash();
         pindexLastCommonBlock = nullptr;
@@ -1182,7 +1182,7 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string &reason)
             "%s: %s peer=%d (%d -> %d) reason: %s BAN THRESHOLD EXCEEDED\n",
             __func__, state->name, pnode, state->nMisbehavior - howmuch,
             state->nMisbehavior, reason);
-        state->fShouldBan = true;
+        state->m_should_discourage = true;
     } else {
         LogPrintf("%s: %s peer=%d (%d -> %d) reason: %s\n", __func__,
                   state->name, pnode, state->nMisbehavior - howmuch,
@@ -2598,9 +2598,12 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
             }
             pfrom->AddAddressKnown(addr);
+            // Do not process banned/discouraged addresses beyond remembering we
+            // received them
+            if (banman->IsDiscouraged(addr)) {
+                continue;
+            }
             if (banman->IsBanned(addr)) {
-                // Do not process banned addresses beyond remembering
-                // we received them
                 continue;
             }
             bool fReachable = IsReachable(addr);
@@ -3735,7 +3738,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         std::vector<CAddress> vAddr = connman->GetAddresses();
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {
-            if (!banman->IsBanned(addr)) {
+            if (!banman->IsDiscouraged(addr) && !banman->IsBanned(addr)) {
                 pfrom->PushAddress(addr, insecure_rand);
             }
         }
@@ -3979,8 +3982,8 @@ bool PeerLogicValidation::SendRejectsAndCheckIfBanned(CNode *pnode,
     }
     state.rejects.clear();
 
-    if (state.fShouldBan) {
-        state.fShouldBan = false;
+    if (state.m_should_discourage) {
+        state.m_should_discourage = false;
         if (pnode->HasPermission(PF_NOBAN)) {
             LogPrintf("Warning: not punishing whitelisted peer %s!\n",
                       pnode->addr.ToString());
@@ -3988,17 +3991,17 @@ bool PeerLogicValidation::SendRejectsAndCheckIfBanned(CNode *pnode,
             LogPrintf("Warning: not punishing manually-connected peer %s!\n",
                       pnode->addr.ToString());
         } else if (pnode->addr.IsLocal()) {
-            // Disconnect but don't ban _this_ local node
+            // Disconnect but don't discourage this local node
             LogPrintf(
                 "Warning: disconnecting but not discouraging local peer %s!\n",
                 pnode->addr.ToString());
             pnode->fDisconnect = true;
         } else {
-            // Disconnect and ban all nodes sharing the address
+            // Disconnect and discourage all nodes sharing the address
             LogPrintf("Disconnecting and discouraging peer %s!\n",
                       pnode->addr.ToString());
             if (m_banman) {
-                m_banman->Ban(pnode->addr, BanReasonNodeMisbehaving);
+                m_banman->Discourage(pnode->addr);
             }
             connman->DisconnectNode(pnode->addr);
         }
@@ -4074,9 +4077,9 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
                  "PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n",
                  SanitizeString(msg.hdr.GetCommand()), pfrom->GetId());
 
-        // Make sure we ban where that come from for some time.
+        // Make sure we discourage where that come from for some time.
         if (m_banman) {
-            m_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving);
+            m_banman->Discourage(pfrom->addr);
         }
         connman->DisconnectNode(pfrom->addr);
 
@@ -4111,7 +4114,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
                    hdr.pchChecksum + CMessageHeader::CHECKSUM_SIZE),
             pfrom->GetId());
         if (m_banman) {
-            m_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving);
+            m_banman->Discourage(pfrom->addr);
         }
         connman->DisconnectNode(pfrom->addr);
         return fMoreWork;
