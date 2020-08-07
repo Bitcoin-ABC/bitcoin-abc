@@ -12,3 +12,6 @@ This release includes the following features and fixes:
   will still be loaded. Users without an unnamed `""` wallet and without any other wallets
   to be loaded on startup  will be prompted to either choose a wallet to load, or to
   create a new wallet.
+- A new `send` RPC with similar syntax to `walletcreatefundedpsbt`, including
+  support for coin selection and a custom fee rate. Using the new `send` method
+  is encouraged: `sendmany` and `sendtoaddress` may be deprecated in a future release.
