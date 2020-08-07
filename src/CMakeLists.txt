@@ -513,6 +513,7 @@ add_library(server
 	noui.cpp
 	policy/fees.cpp
 	policy/settings.cpp
+	pow/aserti32d.cpp
 	pow/daa.cpp
 	pow/eda.cpp
 	pow/pow.cpp

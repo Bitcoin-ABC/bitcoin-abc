@@ -97,6 +97,9 @@ public:
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
 
+        // two days
+        consensus.nDAAHalfLife = 2 * 24 * 60 * 60;
+
         // nPowTargetTimespan / nPowTargetSpacing
         consensus.nMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY] = {
@@ -295,6 +298,9 @@ public:
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
 
+        // two days
+        consensus.nDAAHalfLife = 2 * 24 * 60 * 60;
+
         // nPowTargetTimespan / nPowTargetSpacing
         consensus.nMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY] = {
@@ -447,6 +453,9 @@ public:
         consensus.nPowTargetSpacing = 10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
+
+        // two days
+        consensus.nDAAHalfLife = 2 * 24 * 60 * 60;
 
         // Faster than normal for regtest (144 instead of 2016)
         consensus.nMinerConfirmationWindow = 144;

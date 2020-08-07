@@ -123,6 +123,7 @@ BITCOIN_TESTS =\
   avalanche/test/peermanager_tests.cpp \
   avalanche/test/processor_tests.cpp \
   avalanche/test/proof_tests.cpp \
+  pow/test/aserti32d_tests.cpp \
   pow/test/daa_tests.cpp \
   pow/test/eda_tests.cpp \
   test/scriptnum10.h \
