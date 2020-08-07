@@ -2923,10 +2923,9 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     for (const CTxIn &txin : tx_new->vin) {
         if (!coinControl.IsSelected(txin.prevout)) {
             tx.vin.push_back(txin);
-
-            if (lockUnspents) {
-                LockCoin(txin.prevout);
-            }
+        }
+        if (lockUnspents) {
+            LockCoin(txin.prevout);
         }
     }
 

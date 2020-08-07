@@ -10,3 +10,7 @@ This release includes the following features and fixes:
  - A new `getindexinfo` RPC returns the actively running indices of the node,
    including their current sync status and height. It also accepts an `index_name`
    to specify returning only the status of that index.
+ - `fundrawtransaction` and `walletcreatefundedpsbt` when used with the `lockUnspents`
+   argument now lock manually selected coins, in addition to automatically selected
+   coins. Note that locked coins are never used in automatic coin selection, but
+   can still be manually selected.

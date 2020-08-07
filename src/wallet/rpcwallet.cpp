@@ -2536,6 +2536,7 @@ static UniValue lockunspent(const Config &config,
         "current locked transaction outputs are unlocked.\n"
         "A locked transaction output will not be chosen by automatic coin "
         "selection, when spending bitcoins.\n"
+        "Manually selected coins are automatically unlocked.\n"
         "Locks are stored in memory only. Nodes start with zero locked "
         "outputs, and the locked output list\n"
         "is always cleared (by virtue of process exit) when a node stops or "

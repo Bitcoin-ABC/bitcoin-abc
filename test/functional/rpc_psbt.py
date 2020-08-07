@@ -58,6 +58,20 @@ class PSBTTest(BitcoinTestFramework):
         final_tx = self.nodes[0].finalizepsbt(signed_tx)['hex']
         self.nodes[0].sendrawtransaction(final_tx)
 
+        # Manually selected inputs can be locked:
+        assert_equal(len(self.nodes[0].listlockunspent()), 0)
+        utxo1 = self.nodes[0].listunspent()[0]
+        psbtx1 = self.nodes[0].walletcreatefundedpsbt(
+            [{"txid": utxo1['txid'], "vout": utxo1['vout']}],
+            {self.nodes[2].getnewaddress(): 1_000_000}, 0,
+            {"lockUnspents": True})["psbt"]
+        assert_equal(len(self.nodes[0].listlockunspent()), 1)
+
+        # Locks are ignored for manually selected inputs
+        self.nodes[0].walletcreatefundedpsbt(
+            [{"txid": utxo1['txid'], "vout": utxo1['vout']}],
+            {self.nodes[2].getnewaddress(): 1_000_000}, 0)
+
         # Create p2sh, p2pkh addresses
         pubkey0 = self.nodes[0].getaddressinfo(
             self.nodes[0].getnewaddress())['pubkey']
