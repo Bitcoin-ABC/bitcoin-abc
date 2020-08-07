@@ -5133,6 +5133,8 @@ void Chainstate::LoadExternalBlockFile(
         // so any transaction can fit in the buffer.
         CBufferedFile blkdat(fileIn, 2 * MAX_TX_SIZE, MAX_TX_SIZE + 8, SER_DISK,
                              CLIENT_VERSION);
+        // nRewind indicates where to resume scanning in case something goes
+        // wrong, such as a block fails to deserialize.
         uint64_t nRewind = blkdat.GetPos();
         while (!blkdat.eof()) {
             if (ShutdownRequested()) {
@@ -5163,35 +5165,44 @@ void Chainstate::LoadExternalBlockFile(
                 }
             } catch (const std::exception &) {
                 // No valid block header found; don't complain.
+                // (this happens at the end of every blk.dat file)
                 break;
             }
 
             try {
-                // read block
-                uint64_t nBlockPos = blkdat.GetPos();
+                // read block header
+                const uint64_t nBlockPos{blkdat.GetPos()};
                 if (dbp) {
                     dbp->nPos = nBlockPos;
                 }
                 blkdat.SetLimit(nBlockPos + nSize);
-                std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
-                CBlock &block = *pblock;
-                blkdat >> block;
-                nRewind = blkdat.GetPos();
+                CBlockHeader header;
+                blkdat >> header;
+                const BlockHash hash{header.GetHash()};
+                // Skip the rest of this block (this may read from disk
+                // into memory); position to the marker before the next block,
+                // but it's still possible to rewind to the start of the
+                // current block (without a disk read).
+                nRewind = nBlockPos + nSize;
+                blkdat.SkipTo(nRewind);
 
-                const BlockHash hash = block.GetHash();
+                // needs to remain available after the cs_main lock is released
+                // to avoid duplicate reads from disk
+                std::shared_ptr<CBlock> pblock{};
+
                 {
                     LOCK(cs_main);
                     // detect out of order blocks, and store them for later
                     if (hash != params.GetConsensus().hashGenesisBlock &&
-                        !m_blockman.LookupBlockIndex(block.hashPrevBlock)) {
+                        !m_blockman.LookupBlockIndex(header.hashPrevBlock)) {
                         LogPrint(
                             BCLog::REINDEX,
                             "%s: Out of order block %s, parent %s not known\n",
                             __func__, hash.ToString(),
-                            block.hashPrevBlock.ToString());
+                            header.hashPrevBlock.ToString());
                         if (dbp && blocks_with_unknown_parent) {
                             blocks_with_unknown_parent->emplace(
-                                block.hashPrevBlock, *dbp);
+                                header.hashPrevBlock, *dbp);
                         }
                         continue;
                     }
@@ -5200,6 +5211,13 @@ void Chainstate::LoadExternalBlockFile(
                     const CBlockIndex *pindex =
                         m_blockman.LookupBlockIndex(hash);
                     if (!pindex || !pindex->nStatus.hasData()) {
+                        // This block can be processed immediately; rewind to
+                        // its start, read and deserialize it.
+                        blkdat.SetPos(nBlockPos);
+                        pblock = std::make_shared<CBlock>();
+                        blkdat >> *pblock;
+                        nRewind = blkdat.GetPos();
+
                         BlockValidationState state;
                         if (AcceptBlock(pblock, state, true, dbp, nullptr,
                                         true)) {

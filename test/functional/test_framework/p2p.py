@@ -132,10 +132,16 @@ MESSAGEMAP = {
     b"version": msg_version,
 }
 
-MAGIC_BYTES = {
+NET_MAGIC_BYTES = {
     "mainnet": b"\xe3\xe1\xf3\xe8",
     "testnet3": b"\xf4\xe5\xf3\xf4",
     "regtest": b"\xda\xb5\xbf\xfa",
+}
+
+DISK_MAGIC_BYTES = {
+    "mainnet": b"\xf9\xbe\xb4\xd9",
+    "testnet3": b"\x0b\x11\x09\x07",
+    "regtest": b"\xfa\xbf\xb5\xda",
 }
 
 
@@ -171,7 +177,7 @@ class P2PConnection(asyncio.Protocol):
         self.on_connection_send_msg = None
         self.on_connection_send_msg_is_raw = False
         self.recvbuf = b""
-        self.magic_bytes = MAGIC_BYTES[net]
+        self.magic_bytes = NET_MAGIC_BYTES[net]
 
     def peer_connect(self, dstaddr, dstport, *, net, timeout_factor):
         self.peer_connect_helper(dstaddr, dstport, net, timeout_factor)
