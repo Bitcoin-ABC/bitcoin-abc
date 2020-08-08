@@ -1297,7 +1297,7 @@ public:
     /**
      * Set a single wallet flag.
      */
-    void SetWalletFlag(uint64_t flags) override;
+    void SetWalletFlag(uint64_t flags);
 
     /**
      * Unsets a single wallet flag.

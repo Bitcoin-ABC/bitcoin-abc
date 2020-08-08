@@ -29,7 +29,6 @@ public:
     virtual const std::string GetDisplayName() const = 0;
     virtual WalletDatabase &GetDatabase() = 0;
     virtual bool IsWalletFlagSet(uint64_t) const = 0;
-    virtual void SetWalletFlag(uint64_t) = 0;
     virtual void UnsetWalletFlagWithDB(WalletBatch &, uint64_t) = 0;
     virtual bool CanSupportFeature(enum WalletFeature) const = 0;
     virtual void SetMinVersion(enum WalletFeature, WalletBatch * = nullptr,
