@@ -273,10 +273,6 @@ void LegacyScriptPubKeyMan::UpgradeKeyMetadata() {
             }
         }
     }
-
-    // write before setting the flag
-    batch.reset();
-    m_storage.SetWalletFlag(WALLET_FLAG_KEY_ORIGIN_METADATA);
 }
 
 bool LegacyScriptPubKeyMan::IsHDEnabled() const {
