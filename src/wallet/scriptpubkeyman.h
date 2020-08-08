@@ -380,10 +380,9 @@ public:
         const std::map<CKeyID, std::pair<CPubKey, KeyOriginInfo>> &key_origins,
         const bool add_keypool, const bool internal, const int64_t timestamp)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    bool ImportScriptPubKeys(const std::string &label,
-                             const std::set<CScript> &script_pub_keys,
+    bool ImportScriptPubKeys(const std::set<CScript> &script_pub_keys,
                              const bool have_solving_data,
-                             const bool apply_label, const int64_t timestamp)
+                             const int64_t timestamp)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /* Returns true if the wallet can generate new keys */
