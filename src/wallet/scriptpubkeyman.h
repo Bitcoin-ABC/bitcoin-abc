@@ -155,6 +155,10 @@ protected:
 public:
     ScriptPubKeyMan(WalletStorage &storage) : m_storage(storage) {}
     virtual ~ScriptPubKeyMan(){};
+    virtual bool GetNewDestination(const OutputType type, CTxDestination &dest,
+                                   std::string &error) {
+        return false;
+    }
     virtual isminetype IsMine(const CScript &script) const { return ISMINE_NO; }
 
     virtual bool GetReservedDestination(const OutputType type, bool internal,
@@ -271,8 +275,8 @@ private:
     void ReturnKey(int64_t nIndex, bool fInternal, const CPubKey &pubkey);
 
 public:
-    bool GetNewDestination(const OutputType type, const std::string label,
-                           CTxDestination &dest, std::string &error);
+    bool GetNewDestination(const OutputType type, CTxDestination &dest,
+                           std::string &error) override;
     isminetype IsMine(const CScript &script) const override;
 
     //! will encrypt previously unencrypted keys
