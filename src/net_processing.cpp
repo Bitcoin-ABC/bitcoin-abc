@@ -3116,7 +3116,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             }
 
             if (inv.IsMsgBlk()) {
-                bool fAlreadyHave = AlreadyHaveBlock(BlockHash(inv.hash));
+                const bool fAlreadyHave = AlreadyHaveBlock(BlockHash(inv.hash));
                 LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
                          inv.ToString(), fAlreadyHave ? "have" : "new",
                          pfrom.GetId());
@@ -3134,7 +3134,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 }
             } else {
                 const TxId txid(inv.hash);
-                bool fAlreadyHave = AlreadyHaveTx(txid, m_mempool);
+                const bool fAlreadyHave = AlreadyHaveTx(txid, m_mempool);
                 LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
                          inv.ToString(), fAlreadyHave ? "have" : "new",
                          pfrom.GetId());
