@@ -730,7 +730,10 @@ private:
                               const std::string &strPurpose);
 
     //! Unsets a wallet flag and saves it to disk
-    void UnsetWalletFlagWithDB(WalletBatch &batch, uint64_t flag) override;
+    void UnsetWalletFlagWithDB(WalletBatch &batch, uint64_t flag);
+
+    //! Unset the blank wallet flag and saves it to disk
+    void UnsetBlankWalletFlag(WalletBatch &batch) override;
 
     /** Interface for accessing chain state. */
     interfaces::Chain *m_chain;

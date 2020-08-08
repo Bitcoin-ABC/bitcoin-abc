@@ -400,8 +400,7 @@ bool LegacyScriptPubKeyMan::AddKeyPubKeyWithDB(WalletBatch &batch,
         return batch.WriteKey(pubkey, secret.GetPrivKey(),
                               mapKeyMetadata[pubkey.GetID()]);
     }
-
-    m_storage.UnsetWalletFlagWithDB(batch, WALLET_FLAG_BLANK_WALLET);
+    m_storage.UnsetBlankWalletFlag(batch);
     return true;
 }
 
@@ -554,7 +553,7 @@ bool LegacyScriptPubKeyMan::AddWatchOnlyWithDB(WalletBatch &batch,
     UpdateTimeFirstKey(meta.nCreateTime);
     NotifyWatchonlyChanged(true);
     if (batch.WriteWatchOnly(dest, meta)) {
-        m_storage.UnsetWalletFlagWithDB(batch, WALLET_FLAG_BLANK_WALLET);
+        m_storage.UnsetBlankWalletFlag(batch);
         return true;
     }
     return false;
@@ -858,7 +857,7 @@ void LegacyScriptPubKeyMan::SetHDSeed(const CPubKey &seed) {
     SetHDChain(newHdChain, false);
     NotifyCanGetAddressesChanged();
     WalletBatch batch(m_storage.GetDatabase());
-    m_storage.UnsetWalletFlagWithDB(batch, WALLET_FLAG_BLANK_WALLET);
+    m_storage.UnsetBlankWalletFlag(batch);
 }
 
 /**
@@ -1162,7 +1161,7 @@ bool LegacyScriptPubKeyMan::AddCScriptWithDB(WalletBatch &batch,
         return false;
     }
     if (batch.WriteCScript(Hash160(redeemScript), redeemScript)) {
-        m_storage.UnsetWalletFlagWithDB(batch, WALLET_FLAG_BLANK_WALLET);
+        m_storage.UnsetBlankWalletFlag(batch);
         return true;
     }
     return false;
