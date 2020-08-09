@@ -73,8 +73,13 @@ static_assert(std::is_same<uint8_t, unsigned char>::value,
  * practice, we should see all platforms converge toward that behavior if
  * they haven't already.
  */
-static_assert(
-    (int64_t(-1) >> 1) == int64_t(-1),
-    "deterministicExp2 require a compiler using arithmetic right shift.");
+static_assert((int64_t(-1) >> 1) == int64_t(-1),
+              "Arithmetic right shift assumed");
+
+/**
+ * /!\ C++ Does not guarantee 2-complement, but it implementation defined. All
+ *         the platform we support use 2-complement.
+ */
+static_assert((int64_t(-10) & 0xffff) == 0xfff6, "2-complement assumed");
 
 #endif // BITCOIN_COMPAT_ASSUMPTIONS_H
