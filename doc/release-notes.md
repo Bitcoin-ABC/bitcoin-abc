@@ -9,3 +9,6 @@ This release includes the following features and fixes:
    compatibility, `noban` implies the `download` permission, but this may change
    in future releases. Refer to the help of the affected settings `-whitebind`
    and `-whitelist` for more details.
+ - The `getpeerinfo` RPC now has additional `last_block` and `last_transaction`
+   fields that return the UNIX epoch time of the last block and the last valid
+   transaction received from each peer.

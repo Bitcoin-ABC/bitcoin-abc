@@ -550,6 +550,8 @@ void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
     }
     stats.nLastSend = nLastSend;
     stats.nLastRecv = nLastRecv;
+    stats.nLastTXTime = nLastTXTime;
+    stats.nLastBlockTime = nLastBlockTime;
     stats.nTimeConnected = nTimeConnected;
     stats.nTimeOffset = nTimeOffset;
     stats.addrName = GetAddrName();
