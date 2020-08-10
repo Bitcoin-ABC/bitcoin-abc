@@ -498,7 +498,7 @@ BOOST_AUTO_TEST_CASE(streams_buffered_file_rand) {
                     if (find >= fileSize) {
                         find = fileSize - 1;
                     }
-                    bf.FindByte(static_cast<char>(find));
+                    bf.FindByte(std::byte(find));
                     // The value at each offset is the offset.
                     BOOST_CHECK_EQUAL(bf.GetPos(), find);
                     currentPos = find;

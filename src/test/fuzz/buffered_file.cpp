@@ -66,8 +66,8 @@ FUZZ_TARGET(buffered_file) {
                         return;
                     }
                     try {
-                        opt_buffered_file->FindByte(
-                            fuzzed_data_provider.ConsumeIntegral<uint8_t>());
+                        opt_buffered_file->FindByte(std::byte(
+                            fuzzed_data_provider.ConsumeIntegral<uint8_t>()));
                     } catch (const std::ios_base::failure &) {
                     }
                 },

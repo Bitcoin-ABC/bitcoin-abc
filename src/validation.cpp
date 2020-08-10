@@ -5226,7 +5226,7 @@ void Chainstate::LoadExternalBlockFile(
             try {
                 // Locate a header.
                 uint8_t buf[CMessageHeader::MESSAGE_START_SIZE];
-                blkdat.FindByte(params.DiskMagic()[0]);
+                blkdat.FindByte(std::byte(params.DiskMagic()[0]));
                 nRewind = blkdat.GetPos() + 1;
                 blkdat >> buf;
                 if (memcmp(buf, params.DiskMagic().data(),
