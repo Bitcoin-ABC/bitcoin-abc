@@ -37,10 +37,9 @@ pushd buildautotools
 ../configure \
   --enable-experimental=$EXPERIMENTAL \
   --enable-endomorphism=$ENDOMORPHISM \
-  --with-field=$FIELD \
+  --with-test-override-wide-multiply=$WIDEMUL \
   --with-bignum=$BIGNUM \
   --with-asm=$ASM \
-  --with-scalar=$SCALAR \
   --enable-ecmult-static-precomputation=$STATICPRECOMPUTATION \
   --with-ecmult-gen-precision=$ECMULTGENPRECISION \
   --enable-module-ecdh=$ECDH \

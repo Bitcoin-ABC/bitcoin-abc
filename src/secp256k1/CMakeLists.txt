@@ -134,64 +134,13 @@ if(SECP256K1_USE_ASM)
 	endif()
 endif()
 
-# We make sure __int128 is defined
-include(CheckTypeSize)
-check_type_size(__int128 SIZEOF___INT128)
-if(SIZEOF___INT128 EQUAL 16)
-	set(HAVE___INT128 1)
-else()
-	# If we do not support __int128, we should be falling back
-	# on 32bits implementations for field and scalar.
-endif()
-
-# Select the finite field implementation to use.
-# This can be autodetected or forced by setting USE_FIELD to 32bit or 64bit.
-# See the truth table below:
-# +----------------------------------------------------------------------------------------------------------------------+
-# | USE_FIELD=64bit | USE_FIELD=32bit | HAVE___INT128 | USE_ASM_X86_64 | USE_FIELD_5X52 | USE_FIELD_10x26 | Config error |
-# +----------------------------------------------------------------------------------------------------------------------+
-# |        0        |        0        |       0       |       0        |       0        |        1        |      0       |
-# |        0        |        0        |       0       |       1        |       1        |        0        |      0       |
-# |        0        |        0        |       1       |       0        |       1        |        0        |      0       |
-# |        0        |        0        |       1       |       1        |       1        |        0        |      0       |
-# |        0        |        1        |       0       |       0        |       0        |        1        |      0       |
-# |        0        |        1        |       0       |       1        |       0        |        1        |      0       |
-# |        0        |        1        |       1       |       0        |       0        |        1        |      0       |
-# |        0        |        1        |       1       |       1        |       0        |        1        |      0       |
-# |        1        |        0        |       0       |       0        |       0        |        0        |      1       |
-# |        1        |        0        |       0       |       1        |       1        |        0        |      0       |
-# |        1        |        0        |       1       |       0        |       1        |        0        |      0       |
-# |        1        |        0        |       1       |       1        |       1        |        0        |      0       |
-# +----------------------------------------------------------------------------------------------------------------------+
-set(USE_FIELD "" CACHE STRING "Force the finite field implementation to use (can be 32bit or 64bit)")
-if(USE_FIELD STREQUAL "64bit" AND NOT (HAVE___INT128 OR USE_ASM_X86_64))
-	message(SEND_ERROR "64 finite field requested but the compiler does not support __int128 or inline assembly")
-elseif(NOT USE_FIELD STREQUAL "32bit" AND (HAVE___INT128 OR USE_ASM_X86_64))
-	set(USE_FIELD_5X52 1)
-else()
-	set(USE_FIELD_10X26 1)
-endif()
-
-# Select the scalar implementation to use.
-# This can be autodetected or forced by setting USE_SCALAR to 32bit or 64bit.
-# See the truth table below:
-# +--------------------------------------------------------------------------------------------------------+
-# | USE_SCALAR=64bit | USE_SCALAR=32bit | HAVE___INT128 | USE_SCALAR_4X64 | USE_SCALAR_8X32 | Config error |
-# +--------------------------------------------------------------------------------------------------------+
-# |        0         |        0         |       0       |        0        |        1        |      0       |
-# |        0         |        0         |       1       |        1        |        0        |      0       |
-# |        0         |        1         |       0       |        0        |        1        |      0       |
-# |        0         |        1         |       1       |        0        |        1        |      0       |
-# |        1         |        0         |       0       |        0        |        0        |      1       |
-# |        1         |        0         |       1       |        1        |        0        |      0       |
-# +--------------------------------------------------------------------------------------------------------+
-set(USE_SCALAR "" CACHE STRING "Force the scalar implementation to use (can be 32bit or 64bit)")
-if(USE_SCALAR STREQUAL "64bit" AND NOT HAVE___INT128)
-	message(SEND_ERROR "64 scalar requested but the compiler does not support __int128")
-elseif(NOT USE_SCALAR STREQUAL "32bit" AND HAVE___INT128)
-	set(USE_SCALAR_4X64 1)
-else()
-	set(USE_SCALAR_8X32 1)
+set(SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY "" CACHE STRING "Test-only override of the (autodetected by the C code) \"widemul\" setting (can be int64 or int128)")
+if(SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY STREQUAL "int128")
+	message(STATUS "Force the use of the (unsigned) __int128 based wide multiplication implementation")
+	target_compile_definitions(secp256k1 PUBLIC USE_FORCE_WIDEMUL_INT128=1)
+elseif(SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY STREQUAL "int64")
+	message(STATUS "Force the use of the (u)int64_t based wide multiplication implementation")
+	target_compile_definitions(secp256k1 PUBLIC USE_FORCE_WIDEMUL_INT64=1)
 endif()
 
 option(SECP256K1_BUILD_TEST "Build secp256k1's unit tests" ON)
@@ -311,6 +260,7 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 		"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
 		"-DSECP256K1_ECMULT_GEN_PRECISION=${SECP256K1_ECMULT_GEN_PRECISION}"
 		"-DSECP256K1_USE_ASM=OFF"
+		"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
 	)
 	add_native_executable(gen_context src/gen_context.c)
 

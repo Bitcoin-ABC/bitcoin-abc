@@ -34,9 +34,8 @@ compiler:
   - gcc
 env:
   global:
-    - FIELD=auto
+    - WIDEMUL=auto
     - BIGNUM=gmp
-    - SCALAR=auto
     - ENDOMORPHISM=no
     - STATICPRECOMPUTATION=yes
     - ECMULTGENPRECISION=auto
@@ -57,15 +56,15 @@ env:
     - BENCH=yes
     - ITERS=2
   jobs:
-    - SCALAR=32bit    RECOVERY=yes
-    - SCALAR=32bit    FIELD=32bit       ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes
-    - SCALAR=64bit
-    - FIELD=64bit     RECOVERY=yes
-    - FIELD=64bit     ENDOMORPHISM=yes
-    - FIELD=64bit     ENDOMORPHISM=yes  ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes
-    - FIELD=64bit                       ASM=x86_64
-    - FIELD=64bit     ENDOMORPHISM=yes  ASM=x86_64
-    - FIELD=32bit     ENDOMORPHISM=yes
+    - WIDEMUL=int64   RECOVERY=yes
+    - WIDEMUL=int64   ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes
+    - WIDEMUL=int64   ENDOMORPHISM=yes
+    - WIDEMUL=int128
+    - WIDEMUL=int128  RECOVERY=yes
+    - WIDEMUL=int128  ENDOMORPHISM=yes
+    - WIDEMUL=int128  ENDOMORPHISM=yes  ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes
+    - WIDEMUL=int128                    ASM=x86_64
+    - WIDEMUL=int128  ENDOMORPHISM=yes  ASM=x86_64
     - BIGNUM=no
     - BIGNUM=no       ENDOMORPHISM=yes  RECOVERY=yes  EXPERIMENTAL=yes  MULTISET=yes
     - BIGNUM=no       STATICPRECOMPUTATION=no
