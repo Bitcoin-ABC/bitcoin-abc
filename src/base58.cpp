@@ -97,21 +97,21 @@ bool DecodeBase58(const char *psz, std::vector<uint8_t> &vch, int max_ret_len) {
     return true;
 }
 
-std::string EncodeBase58(const uint8_t *pbegin, const uint8_t *pend) {
+std::string EncodeBase58(Span<const uint8_t> input) {
     // Skip & count leading zeroes.
     int zeroes = 0;
     int length = 0;
-    while (pbegin != pend && *pbegin == 0) {
-        pbegin++;
+    while (input.size() > 0 && input[0] == 0) {
+        input = input.subspan(1);
         zeroes++;
     }
     // Allocate enough space in big-endian base58 representation.
     // log(256) / log(58), rounded up.
-    int size = (pend - pbegin) * 138 / 100 + 1;
+    int size = input.size() * 138 / 100 + 1;
     std::vector<uint8_t> b58(size);
     // Process the bytes.
-    while (pbegin != pend) {
-        int carry = *pbegin;
+    while (input.size() > 0) {
+        int carry = input[0];
         int i = 0;
         // Apply "b58 = b58 * 256 + ch".
         for (std::vector<uint8_t>::reverse_iterator it = b58.rbegin();
@@ -123,7 +123,7 @@ std::string EncodeBase58(const uint8_t *pbegin, const uint8_t *pend) {
 
         assert(carry == 0);
         length = i;
-        pbegin++;
+        input = input.subspan(1);
     }
     // Skip leading zeroes in base58 result.
     std::vector<uint8_t>::iterator it = b58.begin() + (size - length);
@@ -140,10 +140,6 @@ std::string EncodeBase58(const uint8_t *pbegin, const uint8_t *pend) {
     return str;
 }
 
-std::string EncodeBase58(const std::vector<uint8_t> &vch) {
-    return EncodeBase58(vch.data(), vch.data() + vch.size());
-}
-
 bool DecodeBase58(const std::string &str, std::vector<uint8_t> &vchRet,
                   int max_ret_len) {
     if (!ValidAsCString(str)) {
@@ -152,9 +148,9 @@ bool DecodeBase58(const std::string &str, std::vector<uint8_t> &vchRet,
     return DecodeBase58(str.c_str(), vchRet, max_ret_len);
 }
 
-std::string EncodeBase58Check(const std::vector<uint8_t> &vchIn) {
+std::string EncodeBase58Check(Span<const uint8_t> input) {
     // add 4-byte hash check to the end
-    std::vector<uint8_t> vch(vchIn);
+    std::vector<uint8_t> vch(input.begin(), input.end());
     uint256 hash = Hash(vch);
     vch.insert(vch.end(), (uint8_t *)&hash, (uint8_t *)&hash + 4);
     return EncodeBase58(vch);
