@@ -922,6 +922,11 @@ public:
         return m_conn_type == ConnectionType::INBOUND;
     }
 
+    /* Whether we send addr messages over this connection */
+    bool RelayAddrsWithConn() const {
+        return m_conn_type != ConnectionType::BLOCK_RELAY;
+    }
+
     bool ExpectServicesFromConn() const {
         switch (m_conn_type) {
             case ConnectionType::INBOUND:
@@ -952,8 +957,6 @@ public:
     std::chrono::microseconds m_next_addr_send GUARDED_BY(cs_sendProcessing){0};
     std::chrono::microseconds
         m_next_local_addr_send GUARDED_BY(cs_sendProcessing){0};
-
-    bool IsAddrRelayPeer() const { return m_addr_known != nullptr; }
 
     // List of block ids we still have to announce.
     // There is no final sorting before sending, as they are always sent

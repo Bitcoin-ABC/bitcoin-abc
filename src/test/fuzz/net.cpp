@@ -160,7 +160,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     const int ref_count = node.GetRefCount();
     assert(ref_count >= 0);
     (void)node.GetCommonVersion();
-    (void)node.IsAddrRelayPeer();
+    (void)node.RelayAddrsWithConn();
 
     const NetPermissionFlags net_permission_flags =
         fuzzed_data_provider.ConsumeBool()

@@ -1838,7 +1838,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
     assert(nRelayNodes <= best.size());
 
     auto sortfunc = [&best, &hasher, nRelayNodes](CNode *pnode) {
-        if (pnode->IsAddrRelayPeer()) {
+        if (pnode->RelayAddrsWithConn()) {
             uint64_t hashKey =
                 CSipHasher(hasher).Write(pnode->GetId()).Finalize();
             for (unsigned int i = 0; i < nRelayNodes; i++) {
@@ -2956,8 +2956,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             UpdatePreferredDownload(pfrom, State(pfrom.GetId()));
         }
 
-        if (!pfrom.IsInboundConn() && pfrom.IsAddrRelayPeer()) {
-            // Advertise our address
+        if (!pfrom.IsInboundConn() && !pfrom.IsBlockOnlyConn()) {
             if (fListen && !::ChainstateActive().IsInitialBlockDownload()) {
                 CAddress addr =
                     GetLocalAddress(&pfrom.addr, pfrom.GetLocalServices());
@@ -2980,6 +2979,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             m_connman.PushMessage(&pfrom, CNetMsgMaker(greatest_common_version)
                                               .Make(NetMsgType::GETADDR));
             pfrom.fGetAddr = true;
+
             m_connman.MarkAddressGood(pfrom.addr);
         }
 
@@ -3103,7 +3103,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         s >> vAddr;
 
-        if (!pfrom.IsAddrRelayPeer()) {
+        if (!pfrom.RelayAddrsWithConn()) {
             return;
         }
         if (vAddr.size() > 1000) {
@@ -4412,7 +4412,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                      pfrom.GetId());
             return;
         }
-        if (!pfrom.IsAddrRelayPeer()) {
+        if (!pfrom.RelayAddrsWithConn()) {
             LogPrint(BCLog::NET,
                      "Ignoring \"getaddr\" from block-relay-only connection. "
                      "peer=%d\n",
@@ -5124,7 +5124,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         CNodeState &state = *State(pto->GetId());
 
         // Address refresh broadcast
-        if (pto->IsAddrRelayPeer() &&
+        if (pto->RelayAddrsWithConn() &&
             !::ChainstateActive().IsInitialBlockDownload() &&
             pto->m_next_local_addr_send < current_time) {
             AdvertiseLocal(pto);
@@ -5135,7 +5135,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         //
         // Message: addr
         //
-        if (pto->IsAddrRelayPeer() && pto->m_next_addr_send < current_time) {
+        if (pto->RelayAddrsWithConn() && pto->m_next_addr_send < current_time) {
             pto->m_next_addr_send =
                 PoissonNextSend(current_time, AVG_ADDRESS_BROADCAST_INTERVAL);
             std::vector<CAddress> vAddr;
