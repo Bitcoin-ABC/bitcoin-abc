@@ -65,6 +65,7 @@ add_executable(bitcoin-bench
 	rollingbloom.cpp
 	rpc_blockchain.cpp
 	rpc_mempool.cpp
+	streams_findbyte.cpp
 	util_time.cpp
 	verify_script.cpp
 
