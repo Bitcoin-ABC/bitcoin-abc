@@ -4479,15 +4479,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         // the attack.
         if (!pfrom.IsInboundConn()) {
             LogPrint(BCLog::NET,
-                     "Ignoring \"getaddr\" from outbound connection. peer=%d\n",
-                     pfrom.GetId());
-            return;
-        }
-        if (!pfrom.RelayAddrsWithConn()) {
-            LogPrint(BCLog::NET,
-                     "Ignoring \"getaddr\" from block-relay-only connection. "
-                     "peer=%d\n",
-                     pfrom.GetId());
+                     "Ignoring \"getaddr\" from %s connection. peer=%d\n",
+                     pfrom.ConnectionTypeAsString(), pfrom.GetId());
             return;
         }
 
