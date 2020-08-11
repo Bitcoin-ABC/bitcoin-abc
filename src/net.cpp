@@ -2892,12 +2892,12 @@ CConnman::GetAddresses(CNode &requestor, size_t max_addresses, size_t max_pct) {
             .Write(local_socket_bytes.data(), local_socket_bytes.size())
             .Finalize();
     const auto current_time = GetTime<std::chrono::microseconds>();
-    if (m_addr_response_caches.find(cache_id) == m_addr_response_caches.end() ||
-        m_addr_response_caches[cache_id].m_update_addr_response <
-            current_time) {
-        m_addr_response_caches[cache_id].m_addrs_response_cache =
+    auto r = m_addr_response_caches.emplace(cache_id, CachedAddrResponse{});
+    CachedAddrResponse &cache_entry = r.first->second;
+    // New CachedAddrResponse have expiration 0.
+    if (cache_entry.m_cache_entry_expiration < current_time) {
+        cache_entry.m_addrs_response_cache =
             GetAddresses(max_addresses, max_pct);
-
         // Choosing a proper cache lifetime is a trade-off between the privacy
         // leak minimization and the usefulness of ADDR responses to honest
         // users.
@@ -2926,11 +2926,11 @@ CConnman::GetAddresses(CNode &requestor, size_t max_addresses, size_t max_pct) {
         // are older than 30 days, max. 24 hours of "penalty" due to cache
         // shouldn't make any meaningful difference in terms of the freshness of
         // the response.
-        m_addr_response_caches[cache_id].m_update_addr_response =
+        cache_entry.m_cache_entry_expiration =
             current_time + std::chrono::hours(21) +
             GetRandMillis(std::chrono::hours(6));
     }
-    return m_addr_response_caches[cache_id].m_addrs_response_cache;
+    return cache_entry.m_addrs_response_cache;
 }
 
 bool CConnman::AddNode(const std::string &strNode) {
