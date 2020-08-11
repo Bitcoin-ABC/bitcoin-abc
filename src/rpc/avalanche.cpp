@@ -124,7 +124,7 @@ static UniValue buildavalancheproof(const Config &config,
                 },
             },
         },
-        RPCResult{"\"poof\"    (string) A string that is a serialized, "
+        RPCResult{"\"proof\"    (string) A string that is a serialized, "
                   "hex-encoded proof data.\n"},
         RPCExamples{HelpExampleRpc("buildavalancheproof",
                                    "0 1234567800 \"<master>\" []")},
