@@ -109,6 +109,8 @@ static const uint64_t RANDOMIZER_ID_NETGROUP = 0x6c0edd8036ef4036ULL;
 static const uint64_t RANDOMIZER_ID_LOCALHOSTNONCE = 0xd93e69e2bbfa5735ULL;
 // SHA256("localhostnonce")[8:16]
 static const uint64_t RANDOMIZER_ID_EXTRAENTROPY = 0x94b05d41679a4ff7ULL;
+// SHA256("addrcache")[0:8]
+static const uint64_t RANDOMIZER_ID_ADDRCACHE = 0x1cf2e4ddd306dda9ULL;
 //
 // Global state variables
 //
@@ -2879,15 +2881,21 @@ std::vector<CAddress> CConnman::GetAddresses(size_t max_addresses,
     return addresses;
 }
 
-std::vector<CAddress> CConnman::GetAddresses(Network requestor_network,
-                                             size_t max_addresses,
-                                             size_t max_pct) {
+std::vector<CAddress>
+CConnman::GetAddresses(CNode &requestor, size_t max_addresses, size_t max_pct) {
+    SOCKET socket;
+    WITH_LOCK(requestor.cs_hSocket, socket = requestor.hSocket);
+    auto local_socket_bytes = GetBindAddress(socket).GetAddrBytes();
+    uint64_t cache_id =
+        GetDeterministicRandomizer(RANDOMIZER_ID_ADDRCACHE)
+            .Write(requestor.addr.GetNetwork())
+            .Write(local_socket_bytes.data(), local_socket_bytes.size())
+            .Finalize();
     const auto current_time = GetTime<std::chrono::microseconds>();
-    if (m_addr_response_caches.find(requestor_network) ==
-            m_addr_response_caches.end() ||
-        m_addr_response_caches[requestor_network].m_update_addr_response <
+    if (m_addr_response_caches.find(cache_id) == m_addr_response_caches.end() ||
+        m_addr_response_caches[cache_id].m_update_addr_response <
             current_time) {
-        m_addr_response_caches[requestor_network].m_addrs_response_cache =
+        m_addr_response_caches[cache_id].m_addrs_response_cache =
             GetAddresses(max_addresses, max_pct);
 
         // Choosing a proper cache lifetime is a trade-off between the privacy
@@ -2918,11 +2926,11 @@ std::vector<CAddress> CConnman::GetAddresses(Network requestor_network,
         // are older than 30 days, max. 24 hours of "penalty" due to cache
         // shouldn't make any meaningful difference in terms of the freshness of
         // the response.
-        m_addr_response_caches[requestor_network].m_update_addr_response =
+        m_addr_response_caches[cache_id].m_update_addr_response =
             current_time + std::chrono::hours(21) +
             GetRandMillis(std::chrono::hours(6));
     }
-    return m_addr_response_caches[requestor_network].m_addrs_response_cache;
+    return m_addr_response_caches[cache_id].m_addrs_response_cache;
 }
 
 bool CConnman::AddNode(const std::string &strNode) {

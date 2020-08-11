@@ -4507,9 +4507,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             vAddr =
                 m_connman.GetAddresses(MAX_ADDR_TO_SEND, MAX_PCT_ADDR_TO_SEND);
         } else {
-            vAddr =
-                m_connman.GetAddresses(pfrom.addr.GetNetwork(),
-                                       MAX_ADDR_TO_SEND, MAX_PCT_ADDR_TO_SEND);
+            vAddr = m_connman.GetAddresses(pfrom, MAX_ADDR_TO_SEND,
+                                           MAX_PCT_ADDR_TO_SEND);
         }
         FastRandomContext insecure_rand;
         for (const CAddress &addr : vAddr) {
