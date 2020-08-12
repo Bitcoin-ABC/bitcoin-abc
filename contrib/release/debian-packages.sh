@@ -7,8 +7,6 @@ set -euo pipefail
 DEFAULT_DISTROS=()
 # Bionic: Ubuntu 18.04 LTS
 DEFAULT_DISTROS+=("bionic")
-# Eoan: Ubuntu 19.10
-DEFAULT_DISTROS+=("eoan")
 # Focal: Ubuntu 20.04 LTS
 DEFAULT_DISTROS+=("focal")
 
