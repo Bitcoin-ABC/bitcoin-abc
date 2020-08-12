@@ -151,7 +151,9 @@ static RPCHelpMan getpeerinfo() {
                      "Inbound (true) or Outbound (false)"},
                     {RPCResult::Type::BOOL, "addnode",
                      "Whether connection was due to addnode/-connect or if it "
-                     "was an automatic/inbound connection"},
+                     "was an automatic/inbound connection\n(DEPRECATED, "
+                     "returned only if the config option "
+                     "-deprecatedrpc=getpeerinfo_addnode is passed)"},
                     {RPCResult::Type::STR, "connection_type",
                      "Type of connection: \n" +
                          Join(CONNECTION_TYPE_DOC, ",\n") + "."},
@@ -261,7 +263,10 @@ static RPCHelpMan getpeerinfo() {
                 // putting special characters in their ver message.
                 obj.pushKV("subver", stats.cleanSubVer);
                 obj.pushKV("inbound", stats.fInbound);
-                obj.pushKV("addnode", stats.m_manual_connection);
+                if (IsDeprecatedRPCEnabled(gArgs, "getpeerinfo_addnode")) {
+                    // addnode is deprecated in v0.24.5 for removal in v0.25.x
+                    obj.pushKV("addnode", stats.m_manual_connection);
+                }
                 obj.pushKV("startingheight", stats.nStartingHeight);
                 if (fStateStats) {
                     if (IsDeprecatedRPCEnabled(gArgs, "banscore")) {
