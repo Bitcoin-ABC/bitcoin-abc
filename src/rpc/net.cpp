@@ -31,7 +31,7 @@ static UniValue getconnectioncount(const Config &config,
                                    const JSONRPCRequest &request) {
     RPCHelpMan{
         "getconnectioncount",
-        "\nReturns the number of connections to other nodes.\n",
+        "Returns the number of connections to other nodes.\n",
         {},
         RPCResult{"n          (numeric) The connection count\n"},
         RPCExamples{HelpExampleCli("getconnectioncount", "") +
@@ -51,7 +51,7 @@ static UniValue getconnectioncount(const Config &config,
 static UniValue ping(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "ping",
-        "\nRequests that a ping be sent to all other nodes, to measure ping "
+        "Requests that a ping be sent to all other nodes, to measure ping "
         "time.\n"
         "Results provided in getpeerinfo, pingtime and pingwait fields are "
         "decimal seconds.\n"
@@ -79,7 +79,7 @@ static UniValue getpeerinfo(const Config &config,
                             const JSONRPCRequest &request) {
     RPCHelpMan{
         "getpeerinfo",
-        "\nReturns data about each connected network node as a json array of "
+        "Returns data about each connected network node as a json array of "
         "objects.\n",
         {},
         RPCResult{
@@ -267,7 +267,7 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
          strCommand != "remove")) {
         throw std::runtime_error(RPCHelpMan{
             "addnode",
-            "\nAttempts to add or remove a node from the addnode list.\n"
+            "Attempts to add or remove a node from the addnode list.\n"
             "Or try a connection to a node once.\n"
             "Nodes added using addnode (or -connect) are protected from "
             "DoS disconnection and are not required to be\n"
@@ -320,7 +320,7 @@ static UniValue disconnectnode(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "disconnectnode",
-        "\nImmediately disconnects from the specified peer node.\n"
+        "Immediately disconnects from the specified peer node.\n"
         "\nStrictly one out of 'address' and 'nodeid' can be provided to "
         "identify the node.\n"
         "\nTo disconnect by nodeid, either set 'address' to the empty string, "
@@ -378,7 +378,7 @@ static UniValue getaddednodeinfo(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "getaddednodeinfo",
-        "\nReturns information about the given added node, or all added nodes\n"
+        "Returns information about the given added node, or all added nodes\n"
         "(note that onetry addnodes are not listed here)\n",
         {
             {"node", RPCArg::Type::STR, /* default */ "all nodes",
@@ -455,7 +455,7 @@ static UniValue getnettotals(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "getnettotals",
-        "\nReturns information about network traffic, including bytes in, "
+        "Returns information about network traffic, including bytes in, "
         "bytes out,\n"
         "and current time.\n",
         {},
@@ -641,7 +641,7 @@ static UniValue getnetworkinfo(const Config &config,
 static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     const RPCHelpMan help{
         "setban",
-        "\nAttempts to add or remove an IP/Subnet from the banned list.\n",
+        "Attempts to add or remove an IP/Subnet from the banned list.\n",
         {
             {"subnet", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The IP/Subnet (see getpeerinfo for nodes IP) with an optional "
@@ -744,7 +744,7 @@ static UniValue listbanned(const Config &config,
                            const JSONRPCRequest &request) {
     RPCHelpMan{
         "listbanned",
-        "\nList all manually banned IPs/Subnets.\n",
+        "List all manually banned IPs/Subnets.\n",
         {},
         RPCResults{},
         RPCExamples{HelpExampleCli("listbanned", "") +
@@ -778,7 +778,7 @@ static UniValue clearbanned(const Config &config,
                             const JSONRPCRequest &request) {
     RPCHelpMan{
         "clearbanned",
-        "\nClear all banned IPs.\n",
+        "Clear all banned IPs.\n",
         {},
         RPCResults{},
         RPCExamples{HelpExampleCli("clearbanned", "") +
@@ -801,7 +801,7 @@ static UniValue setnetworkactive(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "setnetworkactive",
-        "\nDisable/enable all p2p network activity.\n",
+        "Disable/enable all p2p network activity.\n",
         {
             {"state", RPCArg::Type::BOOL, RPCArg::Optional::NO,
              "true to enable networking, false to disable"},
@@ -826,7 +826,7 @@ static UniValue getnodeaddresses(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "getnodeaddresses",
-        "\nReturn known addresses which can potentially be used to find new "
+        "Return known addresses which can potentially be used to find new "
         "nodes in the network\n",
         {
             {"count", RPCArg::Type::NUM, /* default */ "1",

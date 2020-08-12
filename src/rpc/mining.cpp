@@ -88,7 +88,7 @@ static UniValue getnetworkhashps(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "getnetworkhashps",
-        "\nReturns the estimated network hashes per second based on the last n "
+        "Returns the estimated network hashes per second based on the last n "
         "blocks.\n"
         "Pass in [blocks] to override # of blocks, -1 specifies since last "
         "difficulty change.\n"
@@ -179,7 +179,7 @@ static UniValue generatetoaddress(const Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
         "generatetoaddress",
-        "\nMine blocks immediately to a specified address before the "
+        "Mine blocks immediately to a specified address before the "
         "RPC call returns)\n",
         {
             {"nblocks", RPCArg::Type::NUM, RPCArg::Optional::NO,
@@ -221,7 +221,7 @@ static UniValue getmininginfo(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "getmininginfo",
-        "\nReturns a json object containing mining-related "
+        "Returns a json object containing mining-related "
         "information.",
         {},
         RPCResult{
@@ -338,7 +338,7 @@ static UniValue getblocktemplate(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblocktemplate",
-        "\nIf the request parameters include a 'mode' key, that is used to "
+        "If the request parameters include a 'mode' key, that is used to "
         "explicitly select between the default 'template' request or a "
         "'proposal'.\n"
         "It returns data needed to construct a block to work on.\n"
@@ -709,7 +709,7 @@ static UniValue submitblock(const Config &config,
     // We allow 2 arguments for compliance with BIP22. Argument 2 is ignored.
     RPCHelpMan{
         "submitblock",
-        "\nAttempts to submit new block to network.\n"
+        "Attempts to submit new block to network.\n"
         "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.\n",
         {
             {"hexdata", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
@@ -776,7 +776,7 @@ static UniValue submitheader(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "submitheader",
-        "\nDecode the given hexdata as a header and submit it as a candidate "
+        "Decode the given hexdata as a header and submit it as a candidate "
         "chain tip if valid."
         "\nThrows when the header is invalid.\n",
         {
@@ -818,7 +818,7 @@ static UniValue estimatefee(const Config &config,
                             const JSONRPCRequest &request) {
     RPCHelpMan{
         "estimatefee",
-        "\nEstimates the approximate fee per kilobyte needed for a "
+        "Estimates the approximate fee per kilobyte needed for a "
         "transaction\n",
         {},
         RPCResult{"n              (numeric) estimated fee-per-kilobyte\n"},

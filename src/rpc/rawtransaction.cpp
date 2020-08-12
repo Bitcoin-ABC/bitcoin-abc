@@ -78,7 +78,7 @@ static UniValue getrawtransaction(const Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
         "getrawtransaction",
-        "\nBy default this function only works for mempool transactions. When "
+        "By default this function only works for mempool transactions. When "
         "called with a blockhash\n"
         "argument, getrawtransaction will return the transaction if the "
         "specified block is available and\n"
@@ -253,7 +253,7 @@ static UniValue gettxoutproof(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "gettxoutproof",
-        "\nReturns a hex-encoded proof that \"txid\" was included in a block.\n"
+        "Returns a hex-encoded proof that \"txid\" was included in a block.\n"
         "\nNOTE: By default this function only works sometimes. "
         "This is when there is an\n"
         "unspent output in the utxo for this transaction. To make it always "
@@ -376,7 +376,7 @@ static UniValue verifytxoutproof(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "verifytxoutproof",
-        "\nVerifies that a proof points to a transaction in a block, returning "
+        "Verifies that a proof points to a transaction in a block, returning "
         "the transaction it commits to\n"
         "and throwing an RPC error if the block is not in our best chain\n",
         {
@@ -426,7 +426,7 @@ static UniValue createrawtransaction(const Config &config,
                                      const JSONRPCRequest &request) {
     RPCHelpMan{
         "createrawtransaction",
-        "\nCreate a transaction spending the given inputs and creating new "
+        "Create a transaction spending the given inputs and creating new "
         "outputs.\n"
         "Outputs can be addresses or data.\n"
         "Returns hex-encoded raw transaction.\n"
@@ -531,7 +531,7 @@ static UniValue decoderawtransaction(const Config &config,
                                      const JSONRPCRequest &request) {
     RPCHelpMan{
         "decoderawtransaction",
-        "\nReturn a JSON object representing the serialized, hex-encoded "
+        "Return a JSON object representing the serialized, hex-encoded "
         "transaction.\n",
         {
             {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
@@ -602,7 +602,7 @@ static UniValue decodescript(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "decodescript",
-        "\nDecode a hex-encoded script.\n",
+        "Decode a hex-encoded script.\n",
         {
             {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hex-encoded script"},
@@ -655,7 +655,7 @@ static UniValue combinerawtransaction(const Config &config,
                                       const JSONRPCRequest &request) {
     RPCHelpMan{
         "combinerawtransaction",
-        "\nCombine multiple partially signed transactions into one "
+        "Combine multiple partially signed transactions into one "
         "transaction.\n"
         "The combined transaction may be another partially signed transaction "
         "or a \n"
@@ -754,7 +754,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
                                           const JSONRPCRequest &request) {
     RPCHelpMan{
         "signrawtransactionwithkey",
-        "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
+        "Sign inputs for raw transaction (serialized, hex-encoded).\n"
         "The second argument is an array of base58-encoded private\n"
         "keys that will be the only keys used to sign the transaction.\n"
         "The third optional argument (may be null) is an array of previous "
@@ -875,7 +875,7 @@ static UniValue sendrawtransaction(const Config &config,
                                    const JSONRPCRequest &request) {
     RPCHelpMan{
         "sendrawtransaction",
-        "\nSubmits raw transaction (serialized, hex-encoded) to local node and "
+        "Submits raw transaction (serialized, hex-encoded) to local node and "
         "network.\n"
         "\nAlso see createrawtransaction and "
         "signrawtransactionwithkey calls.\n",
@@ -949,7 +949,7 @@ static UniValue testmempoolaccept(const Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
         "testmempoolaccept",
-        "\nReturns if raw transaction (serialized, hex-encoded) would be "
+        "Returns if raw transaction (serialized, hex-encoded) would be "
         "accepted by mempool.\n"
         "\nThis checks if the transaction violates the consensus or policy "
         "rules.\n"
@@ -1087,7 +1087,7 @@ static UniValue decodepsbt(const Config &config,
                            const JSONRPCRequest &request) {
     RPCHelpMan{
         "decodepsbt",
-        "\nReturn a JSON object representing the serialized, base64-encoded "
+        "Return a JSON object representing the serialized, base64-encoded "
         "partially signed Bitcoin transaction.\n",
         {
             {"psbt", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -1362,7 +1362,7 @@ static UniValue combinepsbt(const Config &config,
                             const JSONRPCRequest &request) {
     RPCHelpMan{
         "combinepsbt",
-        "\nCombine multiple partially signed Bitcoin transactions into one "
+        "Combine multiple partially signed Bitcoin transactions into one "
         "transaction.\n"
         "Implements the Combiner role.\n",
         {
@@ -1488,7 +1488,7 @@ static UniValue createpsbt(const Config &config,
                            const JSONRPCRequest &request) {
     RPCHelpMan{
         "createpsbt",
-        "\nCreates a transaction in the Partially Signed Transaction format.\n"
+        "Creates a transaction in the Partially Signed Transaction format.\n"
         "Implements the Creator role.\n",
         {
             {
@@ -1595,7 +1595,7 @@ static UniValue converttopsbt(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "converttopsbt",
-        "\nConverts a network serialized transaction to a PSBT. "
+        "Converts a network serialized transaction to a PSBT. "
         "This should be used only with createrawtransaction and "
         "fundrawtransaction\n"
         "createpsbt and walletcreatefundedpsbt should be used for new "
@@ -1660,7 +1660,7 @@ static UniValue converttopsbt(const Config &config,
 UniValue utxoupdatepsbt(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "utxoupdatepsbt",
-        "\nUpdates all inputs and outputs in a PSBT with data from output "
+        "Updates all inputs and outputs in a PSBT with data from output "
         "descriptors, the UTXO set or the mempool.\n",
         {
             {"psbt", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -1760,7 +1760,7 @@ UniValue utxoupdatepsbt(const Config &config, const JSONRPCRequest &request) {
 UniValue joinpsbts(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "joinpsbts",
-        "\nJoins multiple distinct PSBTs with different inputs and outputs "
+        "Joins multiple distinct PSBTs with different inputs and outputs "
         "into one PSBT with inputs and outputs from all of the PSBTs\n"
         "No input in any of the PSBTs can be in more than one of the PSBTs.\n",
         {{"txs",
@@ -1862,7 +1862,7 @@ UniValue joinpsbts(const Config &config, const JSONRPCRequest &request) {
 UniValue analyzepsbt(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "analyzepsbt",
-        "\nAnalyzes and provides information about the current status of a "
+        "Analyzes and provides information about the current status of a "
         "PSBT and its inputs\n",
         {{"psbt", RPCArg::Type::STR, RPCArg::Optional::NO,
           "A base64 string of a PSBT"}},

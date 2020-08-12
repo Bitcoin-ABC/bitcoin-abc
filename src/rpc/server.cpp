@@ -174,7 +174,7 @@ static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1) {
         throw std::runtime_error(RPCHelpMan{
             "help",
-            "\nList all commands, or get help for a specified command.\n",
+            "List all commands, or get help for a specified command.\n",
             {
                 {"command", RPCArg::Type::STR, /* default */ "all commands",
                  "The command to get help on"},
@@ -201,7 +201,7 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1) {
         throw std::runtime_error(RPCHelpMan{
             "stop",
-            "\nStop Bitcoin server.",
+            "Stop Bitcoin server.",
             {},
             RPCResults{},
             RPCExamples{""},
@@ -222,7 +222,7 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
 static UniValue uptime(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "uptime",
-        "\nReturns the total uptime of the server.\n",
+        "Returns the total uptime of the server.\n",
         {},
         RPCResult{"ttt        (numeric) The number of seconds that the server "
                   "has been running\n"},
@@ -238,7 +238,7 @@ static UniValue getrpcinfo(const Config &config,
                            const JSONRPCRequest &request) {
     RPCHelpMan{
         "getrpcinfo",
-        "\nReturns details of the RPC server.\n",
+        "Returns details of the RPC server.\n",
         {},
         RPCResults{},
         RPCExamples{""},

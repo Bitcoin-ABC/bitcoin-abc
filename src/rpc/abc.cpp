@@ -16,7 +16,7 @@ static UniValue getexcessiveblock(const Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
         "getexcessiveblock",
-        "\nReturn the excessive block size.",
+        "Return the excessive block size.",
         {},
         RPCResult{"  excessiveBlockSize (integer) block size in bytes\n"},
         RPCExamples{HelpExampleCli("getexcessiveblock", "") +
@@ -33,7 +33,7 @@ static UniValue setexcessiveblock(Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
         "setexcessiveblock",
-        "\nSet the excessive block size. Excessive blocks will not be used in "
+        "Set the excessive block size. Excessive blocks will not be used in "
         "the active chain or relayed. This discourages the propagation of "
         "blocks that you consider excessively large.",
         {

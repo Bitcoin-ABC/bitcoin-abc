@@ -17,7 +17,7 @@ static UniValue getavalanchekey(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "getavalanchekey",
-        "\nReturns the key used to sign avalanche messages.\n",
+        "Returns the key used to sign avalanche messages.\n",
         {},
         RPCResults{},
         RPCExamples{HelpExampleRpc("getavalanchekey", "")},
@@ -47,7 +47,7 @@ static UniValue addavalanchenode(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "addavalanchenode",
-        "\nAdd a node in the set of peers to poll for avalanche.\n",
+        "Add a node in the set of peers to poll for avalanche.\n",
         {
             {"nodeid", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "Node to be added to avalanche."},
@@ -85,7 +85,7 @@ static UniValue buildavalancheproof(const Config &config,
                                     const JSONRPCRequest &request) {
     RPCHelpMan{
         "buildavalancheproof",
-        "\nBuild a proof for avalanche's sybil resistance.\n",
+        "Build a proof for avalanche's sybil resistance.\n",
         {
             {"sequence", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The proof's sequence"},

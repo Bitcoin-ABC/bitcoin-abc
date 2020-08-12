@@ -17,7 +17,7 @@ UniValue getzmqnotifications(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "getzmqnotifications",
-        "\nReturns information about the active ZeroMQ notifications.\n",
+        "Returns information about the active ZeroMQ notifications.\n",
         {},
         RPCResult{
             "[\n"

@@ -196,7 +196,7 @@ static UniValue getnewaddress(const Config &config,
 
     RPCHelpMan{
         "getnewaddress",
-        "\nReturns a new Bitcoin address for receiving payments.\n"
+        "Returns a new Bitcoin address for receiving payments.\n"
         "If 'label' is specified, it is added to the address book \n"
         "so payments received with the address will be associated with "
         "'label'.\n",
@@ -259,7 +259,7 @@ static UniValue getrawchangeaddress(const Config &config,
 
     RPCHelpMan{
         "getrawchangeaddress",
-        "\nReturns a new Bitcoin address, for receiving change.\n"
+        "Returns a new Bitcoin address, for receiving change.\n"
         "This is for use with raw transactions, NOT normal use.\n",
         {},
         RPCResult{"\"address\"    (string) The address\n"},
@@ -305,7 +305,7 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "setlabel",
-        "\nSets the label associated with the given address.\n",
+        "Sets the label associated with the given address.\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to be associated with a label."},
@@ -405,7 +405,7 @@ static UniValue sendtoaddress(const Config &config,
 
     RPCHelpMan{
         "sendtoaddress",
-        "\nSend an amount to a given address.\n" +
+        "Send an amount to a given address.\n" +
             HelpRequiringPassphrase(pwallet) + "\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -508,7 +508,7 @@ static UniValue listaddressgroupings(const Config &config,
 
     RPCHelpMan{
         "listaddressgroupings",
-        "\nLists groups of addresses which have had their common ownership\n"
+        "Lists groups of addresses which have had their common ownership\n"
         "made public by common use as inputs or as the resulting change\n"
         "in past transactions\n",
         {},
@@ -572,7 +572,7 @@ static UniValue signmessage(const Config &config,
 
     RPCHelpMan{
         "signmessage",
-        "\nSign a message with the private key of an address" +
+        "Sign a message with the private key of an address" +
             HelpRequiringPassphrase(pwallet) + "\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -650,7 +650,7 @@ static UniValue getreceivedbyaddress(const Config &config,
 
     RPCHelpMan{
         "getreceivedbyaddress",
-        "\nReturns the total amount received by the given address in "
+        "Returns the total amount received by the given address in "
         "transactions with at least minconf confirmations.\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -737,7 +737,7 @@ static UniValue getreceivedbylabel(const Config &config,
 
     RPCHelpMan{
         "getreceivedbylabel",
-        "\nReturns the total amount received by addresses with <label> in "
+        "Returns the total amount received by addresses with <label> in "
         "transactions with at least [minconf] confirmations.\n",
         {
             {"label", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -813,7 +813,7 @@ static UniValue getbalance(const Config &config,
 
     RPCHelpMan{
         "getbalance",
-        "\nReturns the total available balance.\n"
+        "Returns the total available balance.\n"
         "The available balance is what the wallet considers currently "
         "spendable, and is\n"
         "thus affected by options which limit spendability such as "
@@ -913,7 +913,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "sendmany",
-        "\nSend multiple times. Amounts are double-precision "
+        "Send multiple times. Amounts are double-precision "
         "floating point numbers." +
             HelpRequiringPassphrase(pwallet) + "\n",
         {
@@ -1086,7 +1086,7 @@ static UniValue addmultisigaddress(const Config &config,
 
     RPCHelpMan{
         "addmultisigaddress",
-        "\nAdd a nrequired-to-sign multisignature address to the wallet. "
+        "Add a nrequired-to-sign multisignature address to the wallet. "
         "Requires a new wallet backup.\n"
         "Each key is a Bitcoin address or hex-encoded public key.\n"
         "If 'label' is specified (DEPRECATED), assign address to that label.\n",
@@ -1345,7 +1345,7 @@ static UniValue listreceivedbyaddress(const Config &config,
 
     RPCHelpMan{
         "listreceivedbyaddress",
-        "\nList balances by receiving address.\n",
+        "List balances by receiving address.\n",
         {
             {"minconf", RPCArg::Type::NUM, /* default */ "1",
              "The minimum number of confirmations before payments are "
@@ -1414,7 +1414,7 @@ static UniValue listreceivedbylabel(const Config &config,
 
     RPCHelpMan{
         "listreceivedbylabel",
-        "\nList received transactions by label.\n",
+        "List received transactions by label.\n",
         {
             {"minconf", RPCArg::Type::NUM, /* default */ "1",
              "The minimum number of confirmations before payments are "
@@ -1562,7 +1562,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "listtransactions",
-        "\nIf a label name is provided, this will return only incoming "
+        "If a label name is provided, this will return only incoming "
         "transactions paying to addresses with the specified label.\n"
         "\nReturns up to 'count' most recent transactions skipping the first "
         "'from' transactions.\n",
@@ -1718,7 +1718,7 @@ static UniValue listsinceblock(const Config &config,
 
     RPCHelpMan{
         "listsinceblock",
-        "\nGet all transactions in blocks since block [blockhash], or all "
+        "Get all transactions in blocks since block [blockhash], or all "
         "transactions if omitted.\n"
         "If \"blockhash\" is no longer a part of the main chain, transactions "
         "from the fork point onward are included.\n"
@@ -1925,7 +1925,7 @@ static UniValue gettransaction(const Config &config,
 
     RPCHelpMan{
         "gettransaction",
-        "\nGet detailed information about in-wallet transaction <txid>\n",
+        "Get detailed information about in-wallet transaction <txid>\n",
         {
             {"txid", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The transaction id"},
@@ -2056,7 +2056,7 @@ static UniValue abandontransaction(const Config &config,
 
     RPCHelpMan{
         "abandontransaction",
-        "\nMark in-wallet transaction <txid> as abandoned\n"
+        "Mark in-wallet transaction <txid> as abandoned\n"
         "This will mark this transaction and all its in-wallet descendants as "
         "abandoned which will allow\n"
         "for their inputs to be respent.  It can be used to replace \"stuck\" "
@@ -2111,7 +2111,7 @@ static UniValue backupwallet(const Config &config,
 
     RPCHelpMan{
         "backupwallet",
-        "\nSafely copies current wallet file to destination, which can be a "
+        "Safely copies current wallet file to destination, which can be a "
         "directory or a path with filename.\n",
         {
             {"destination", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -2149,7 +2149,7 @@ static UniValue keypoolrefill(const Config &config,
 
     RPCHelpMan{
         "keypoolrefill",
-        "\nFills the keypool." + HelpRequiringPassphrase(pwallet) + "\n",
+        "Fills the keypool." + HelpRequiringPassphrase(pwallet) + "\n",
         {
             {"newsize", RPCArg::Type::NUM, /* default */ "100",
              "The new keypool size"},
@@ -2200,7 +2200,7 @@ static UniValue walletpassphrase(const Config &config,
 
     RPCHelpMan{
         "walletpassphrase",
-        "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
+        "Stores the wallet decryption key in memory for 'timeout' seconds.\n"
         "This is needed prior to performing transactions related to private "
         "keys such as sending bitcoins\n"
         "\nNote:\n"
@@ -2301,7 +2301,7 @@ static UniValue walletpassphrasechange(const Config &config,
 
     RPCHelpMan{
         "walletpassphrasechange",
-        "\nChanges the wallet passphrase from 'oldpassphrase' to "
+        "Changes the wallet passphrase from 'oldpassphrase' to "
         "'newpassphrase'.\n",
         {
             {"oldpassphrase", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -2363,7 +2363,7 @@ static UniValue walletlock(const Config &config,
 
     RPCHelpMan{
         "walletlock",
-        "\nRemoves the wallet encryption key from memory, locking the wallet.\n"
+        "Removes the wallet encryption key from memory, locking the wallet.\n"
         "After calling this method, you will need to call walletpassphrase "
         "again\n"
         "before being able to call any methods which require the wallet to be "
@@ -2409,7 +2409,7 @@ static UniValue encryptwallet(const Config &config,
 
     RPCHelpMan{
         "encryptwallet",
-        "\nEncrypts the wallet with 'passphrase'. This is for first time "
+        "Encrypts the wallet with 'passphrase'. This is for first time "
         "encryption.\n"
         "After this, any calls that interact with private keys such as sending "
         "or signing \n"
@@ -2480,7 +2480,7 @@ static UniValue lockunspent(const Config &config,
 
     RPCHelpMan{
         "lockunspent",
-        "\nUpdates list of temporarily unspendable outputs.\n"
+        "Updates list of temporarily unspendable outputs.\n"
         "Temporarily lock (unlock=false) or unlock (unlock=true) specified "
         "transaction outputs.\n"
         "If no transaction outputs are specified when unlocking then all "
@@ -2643,7 +2643,7 @@ static UniValue listlockunspent(const Config &config,
 
     RPCHelpMan{
         "listlockunspent",
-        "\nReturns list of temporarily unspendable outputs.\n"
+        "Returns list of temporarily unspendable outputs.\n"
         "See the lockunspent call to lock and unlock transactions for "
         "spending.\n",
         {},
@@ -2706,7 +2706,7 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "settxfee",
-        "\nSet the transaction fee per kB for this wallet. Overrides the "
+        "Set the transaction fee per kB for this wallet. Overrides the "
         "global -paytxfee command line parameter.\n",
         {
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
@@ -3012,7 +3012,7 @@ static UniValue loadwallet(const Config &config,
                            const JSONRPCRequest &request) {
     RPCHelpMan{
         "loadwallet",
-        "\nLoads a wallet from a wallet file or directory."
+        "Loads a wallet from a wallet file or directory."
         "\nNote that all wallet command-line options used when starting "
         "bitcoind will be"
         "\napplied to the new wallet (eg -zapwallettxes, upgradewallet, "
@@ -3082,7 +3082,7 @@ static UniValue setwalletflag(const Config &config,
     }
     RPCHelpMan{
         "setwalletflag",
-        "\nChange the state of the given wallet flag for a wallet.\n",
+        "Change the state of the given wallet flag for a wallet.\n",
         {
             {"flag", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The name of the flag to change. Current available flags: " +
@@ -3146,7 +3146,7 @@ static UniValue createwallet(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "createwallet",
-        "\nCreates and loads a new wallet.\n",
+        "Creates and loads a new wallet.\n",
         {
             {"wallet_name", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The name for the new wallet. If this is a path, the wallet will "
@@ -3279,7 +3279,7 @@ static UniValue listunspent(const Config &config,
 
     RPCHelpMan{
         "listunspent",
-        "\nReturns array of unspent transaction outputs\n"
+        "Returns array of unspent transaction outputs\n"
         "with between minconf and maxconf (inclusive) confirmations.\n"
         "Optionally filter to only include txouts paid to specified "
         "addresses.\n",
@@ -3640,7 +3640,7 @@ static UniValue fundrawtransaction(const Config &config,
 
     RPCHelpMan{
         "fundrawtransaction",
-        "\nAdd inputs to a transaction until it has enough in value to meet "
+        "Add inputs to a transaction until it has enough in value to meet "
         "its out value.\n"
         "This will not modify existing inputs, and will add at most one change "
         "output to the outputs.\n"
@@ -3758,7 +3758,7 @@ UniValue signrawtransactionwithwallet(const Config &config,
 
     RPCHelpMan{
         "signrawtransactionwithwallet",
-        "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
+        "Sign inputs for raw transaction (serialized, hex-encoded).\n"
         "The second optional argument (may be null) is an array of previous "
         "transaction outputs that\n"
         "this transaction depends on but may not yet be in the block chain.\n" +
@@ -3867,7 +3867,7 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "rescanblockchain",
-        "\nRescan the local blockchain for wallet related transactions.\n",
+        "Rescan the local blockchain for wallet related transactions.\n",
         {
             {"start_height", RPCArg::Type::NUM, /* default */ "0",
              "block height where the rescan should start"},
@@ -4072,7 +4072,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "getaddressinfo",
-        "\nReturn information about the given bitcoin address. Some "
+        "Return information about the given bitcoin address. Some "
         "information requires the address\n"
         "to be in the wallet.\n",
         {
@@ -4235,7 +4235,7 @@ UniValue getaddressesbylabel(const Config &config,
 
     RPCHelpMan{
         "getaddressesbylabel",
-        "\nReturns the list of addresses assigned the specified label.\n",
+        "Returns the list of addresses assigned the specified label.\n",
         {
             {"label", RPCArg::Type::STR, RPCArg::Optional::NO, "The label."},
         },
@@ -4293,7 +4293,7 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "listlabels",
-        "\nReturns the list of all labels, or labels that are assigned to "
+        "Returns the list of all labels, or labels that are assigned to "
         "addresses with a specific purpose.\n",
         {
             {"purpose", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
@@ -4348,7 +4348,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "sethdseed",
-        "\nSet or generate a new HD wallet seed. Non-HD wallets will not be "
+        "Set or generate a new HD wallet seed. Non-HD wallets will not be "
         "upgraded to being a HD wallet. Wallets that are already\n"
         "HD will have a new HD seed set so that new keys added to the keypool "
         "will be derived from this new seed.\n"
@@ -4455,7 +4455,7 @@ static UniValue walletprocesspsbt(const Config &config,
 
     RPCHelpMan{
         "walletprocesspsbt",
-        "\nUpdate a PSBT with input information from our wallet and then sign "
+        "Update a PSBT with input information from our wallet and then sign "
         "inputs that we can sign for." +
             HelpRequiringPassphrase(pwallet) + "\n",
         {
@@ -4537,7 +4537,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
 
     RPCHelpMan{
         "walletcreatefundedpsbt",
-        "\nCreates and funds a transaction in the Partially Signed Transaction "
+        "Creates and funds a transaction in the Partially Signed Transaction "
         "format. Inputs will be added if supplied inputs are not enough\n"
         "Implements the Creator and Updater roles.\n",
         {

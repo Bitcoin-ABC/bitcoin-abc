@@ -177,7 +177,7 @@ static UniValue getblockcount(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockcount",
-        "\nReturns the number of blocks in the longest blockchain.\n",
+        "Returns the number of blocks in the longest blockchain.\n",
         {},
         RPCResult{"n    (numeric) The current block count\n"},
         RPCExamples{HelpExampleCli("getblockcount", "") +
@@ -193,7 +193,7 @@ static UniValue getbestblockhash(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "getbestblockhash",
-        "\nReturns the hash of the best (tip) block in the longest "
+        "Returns the hash of the best (tip) block in the longest "
         "blockchain.\n",
         {},
         RPCResult{"\"hex\"      (string) the block hash, hex-encoded\n"},
@@ -210,7 +210,7 @@ UniValue getfinalizedblockhash(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "getfinalizedblockhash",
-        "\nReturns the hash of the currently finalized block\n",
+        "Returns the hash of the currently finalized block\n",
         {},
         RPCResult{"\"hex\"      (string) the block hash hex-encoded\n"},
         RPCExamples{HelpExampleCli("getfinalizedblockhash", "") +
@@ -239,7 +239,7 @@ static UniValue waitfornewblock(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "waitfornewblock",
-        "\nWaits for a specific new block and returns useful info about it.\n"
+        "Waits for a specific new block and returns useful info about it.\n"
         "\nReturns the current block on timeout or exit.\n",
         {
             {"timeout", RPCArg::Type::NUM, /* default */ "0",
@@ -288,7 +288,7 @@ static UniValue waitforblock(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "waitforblock",
-        "\nWaits for a specific new block and returns useful info about it.\n"
+        "Waits for a specific new block and returns useful info about it.\n"
         "\nReturns the current block on timeout or exit.\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
@@ -344,7 +344,7 @@ static UniValue waitforblockheight(const Config &config,
                                    const JSONRPCRequest &request) {
     RPCHelpMan{
         "waitforblockheight",
-        "\nWaits for (at least) block height and returns the height and "
+        "Waits for (at least) block height and returns the height and "
         "hash\nof the current tip.\n"
         "\nReturns the current block on timeout or exit.\n",
         {
@@ -397,7 +397,7 @@ syncwithvalidationinterfacequeue(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
         "syncwithvalidationinterfacequeue",
-        "\nWaits for the validation interface queue to catch up on everything "
+        "Waits for the validation interface queue to catch up on everything "
         "that was there when we entered this function.\n",
         {},
         RPCResults{},
@@ -414,7 +414,7 @@ static UniValue getdifficulty(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "getdifficulty",
-        "\nReturns the proof-of-work difficulty as a multiple of the minimum "
+        "Returns the proof-of-work difficulty as a multiple of the minimum "
         "difficulty.\n",
         {},
         RPCResult{"n.nnn       (numeric) the proof-of-work difficulty as a "
@@ -557,7 +557,7 @@ static UniValue getrawmempool(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "getrawmempool",
-        "\nReturns all transaction ids in memory pool as a json array of "
+        "Returns all transaction ids in memory pool as a json array of "
         "string transaction ids.\n"
         "\nHint: use getmempoolentry to fetch a specific transaction from the "
         "mempool.\n",
@@ -593,7 +593,7 @@ static UniValue getmempoolancestors(const Config &config,
                                     const JSONRPCRequest &request) {
     RPCHelpMan{
         "getmempoolancestors",
-        "\nIf txid is in the mempool, returns all in-mempool ancestors.\n",
+        "If txid is in the mempool, returns all in-mempool ancestors.\n",
         {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id (must be in mempool)"},
@@ -664,7 +664,7 @@ static UniValue getmempooldescendants(const Config &config,
                                       const JSONRPCRequest &request) {
     RPCHelpMan{
         "getmempooldescendants",
-        "\nIf txid is in the mempool, returns all in-mempool descendants.\n",
+        "If txid is in the mempool, returns all in-mempool descendants.\n",
         {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id (must be in mempool)"},
@@ -734,7 +734,7 @@ static UniValue getmempoolentry(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "getmempoolentry",
-        "\nReturns mempool data for given transaction\n",
+        "Returns mempool data for given transaction\n",
         {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id (must be in mempool)"},
@@ -766,7 +766,7 @@ static UniValue getblockhash(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockhash",
-        "\nReturns hash of block in best-block-chain at height provided.\n",
+        "Returns hash of block in best-block-chain at height provided.\n",
         {
             {"height", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The height index"},
@@ -792,7 +792,7 @@ static UniValue getblockheader(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockheader",
-        "\nIf verbose is false, returns a string that is serialized, "
+        "If verbose is false, returns a string that is serialized, "
         "hex-encoded data for blockheader 'hash'.\n"
         "If verbose is true, returns an Object with information about "
         "blockheader <hash>.\n",
@@ -910,7 +910,7 @@ static CBlockUndo GetUndoChecked(const CBlockIndex *pblockindex) {
 static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblock",
-        "\nIf verbosity is 0 or false, returns a string that is serialized, "
+        "If verbosity is 0 or false, returns a string that is serialized, "
         "hex-encoded data for block 'hash'.\n"
         "If verbosity is 1 or true, returns an Object with information about "
         "block <hash>.\n"
@@ -1089,7 +1089,7 @@ static UniValue gettxoutsetinfo(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "gettxoutsetinfo",
-        "\nReturns statistics about the unspent transaction output set.\n"
+        "Returns statistics about the unspent transaction output set.\n"
         "Note this call may take some time.\n",
         {},
         RPCResult{
@@ -1133,7 +1133,7 @@ static UniValue gettxoutsetinfo(const Config &config,
 UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "gettxout",
-        "\nReturns details about an unspent transaction output.\n",
+        "Returns details about an unspent transaction output.\n",
         {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id"},
@@ -1221,7 +1221,7 @@ static UniValue verifychain(const Config &config,
     int nCheckDepth = gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS);
     RPCHelpMan{
         "verifychain",
-        "\nVerifies blockchain database.\n",
+        "Verifies blockchain database.\n",
         {
             {"checklevel", RPCArg::Type::NUM,
              /* default */ strprintf("%d, range=0-4", nCheckLevel),
@@ -1600,7 +1600,7 @@ static UniValue getmempoolinfo(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "getmempoolinfo",
-        "\nReturns details on the active state of the TX memory pool.\n",
+        "Returns details on the active state of the TX memory pool.\n",
         {},
         RPCResult{
             "{\n"
@@ -1631,7 +1631,7 @@ static UniValue preciousblock(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "preciousblock",
-        "\nTreats a block as if it were received before others with the same "
+        "Treats a block as if it were received before others with the same "
         "work.\n"
         "\nA later preciousblock call can override the effect of an earlier "
         "one.\n"
@@ -1670,7 +1670,7 @@ static UniValue preciousblock(const Config &config,
 UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "finalizeblock",
-        "\nTreats a block as final. It cannot be reorged. Any chain\n"
+        "Treats a block as final. It cannot be reorged. Any chain\n"
         "that does not contain this block is invalid. Used on a less\n"
         "work chain, it can effectively PUT YOU OUT OF CONSENSUS.\n"
         "USE WITH CAUTION!\n",
@@ -1714,7 +1714,7 @@ static UniValue invalidateblock(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "invalidateblock",
-        "\nPermanently marks a block as invalid, as if it violated a consensus "
+        "Permanently marks a block as invalid, as if it violated a consensus "
         "rule.\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
@@ -1753,7 +1753,7 @@ static UniValue invalidateblock(const Config &config,
 UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "parkblock",
-        "\nMarks a block as parked.\n",
+        "Marks a block as parked.\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to park"},
@@ -1793,7 +1793,7 @@ static UniValue reconsiderblock(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "reconsiderblock",
-        "\nRemoves invalidity status of a block and its descendants, "
+        "Removes invalidity status of a block and its descendants, "
         "reconsider them for activation.\n"
         "This can be used to undo the effects of invalidateblock.\n",
         {
@@ -1831,7 +1831,7 @@ static UniValue reconsiderblock(const Config &config,
 UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "unparkblock",
-        "\nRemoves parked status of a block and its descendants, reconsider "
+        "Removes parked status of a block and its descendants, reconsider "
         "them for activation.\n"
         "This can be used to undo the effects of parkblock.\n",
         {
@@ -1872,7 +1872,7 @@ static UniValue getchaintxstats(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "getchaintxstats",
-        "\nCompute statistics about the total number and rate of transactions "
+        "Compute statistics about the total number and rate of transactions "
         "in the chain.\n",
         {
             {"nblocks", RPCArg::Type::NUM, /* default */ "one month",
@@ -1996,7 +1996,7 @@ static UniValue getblockstats(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockstats",
-        "\nCompute per block statistics for a given window. All amounts are "
+        "Compute per block statistics for a given window. All amounts are "
         "in " +
             CURRENCY_UNIT +
             ".\n"
@@ -2276,7 +2276,7 @@ static UniValue savemempool(const Config &config,
                             const JSONRPCRequest &request) {
     RPCHelpMan{
         "savemempool",
-        "\nDumps the mempool to disk. It will fail until the previous dump is "
+        "Dumps the mempool to disk. It will fail until the previous dump is "
         "fully loaded.\n",
         {},
         RPCResults{},
@@ -2367,7 +2367,7 @@ static UniValue scantxoutset(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "scantxoutset",
-        "\nEXPERIMENTAL warning: this call may be removed or changed in future "
+        "EXPERIMENTAL warning: this call may be removed or changed in future "
         "releases.\n"
         "\nScans the unspent transaction output set for entries that match "
         "certain output descriptors.\n"
@@ -2544,7 +2544,7 @@ static UniValue getblockfilter(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockfilter",
-        "\nRetrieve a BIP 157 content filter for a particular block.\n",
+        "Retrieve a BIP 157 content filter for a particular block.\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The hash of the block"},

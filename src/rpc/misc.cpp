@@ -32,7 +32,7 @@ static UniValue validateaddress(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "validateaddress",
-        "\nReturn information about the given bitcoin address.\n",
+        "Return information about the given bitcoin address.\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to validate"},
@@ -82,7 +82,7 @@ static UniValue createmultisig(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "createmultisig",
-        "\nCreates a multi-signature address with n signature of m keys "
+        "Creates a multi-signature address with n signature of m keys "
         "required.\n"
         "It returns a json object with the address and redeemScript.\n",
         {
@@ -161,7 +161,7 @@ UniValue getdescriptorinfo(const Config &config,
                            const JSONRPCRequest &request) {
     RPCHelpMan{
         "getdescriptorinfo",
-        {"\nAnalyses a descriptor.\n"},
+        {"Analyses a descriptor.\n"},
         {
             {"descriptor", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The descriptor."},
@@ -208,7 +208,7 @@ UniValue getdescriptorinfo(const Config &config,
 UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "deriveaddresses",
-        {"\nDerives one or more addresses corresponding to an output "
+        {"Derives one or more addresses corresponding to an output "
          "descriptor.\n"
          "Examples of output descriptors are:\n"
          "    pkh(<pubkey>)                        P2PKH outputs for the given "
@@ -307,7 +307,7 @@ static UniValue verifymessage(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "verifymessage",
-        "\nVerify a signed message\n",
+        "Verify a signed message\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to use for the signature."},
@@ -378,7 +378,7 @@ static UniValue signmessagewithprivkey(const Config &config,
                                        const JSONRPCRequest &request) {
     RPCHelpMan{
         "signmessagewithprivkey",
-        "\nSign a message with the private key of an address\n",
+        "Sign a message with the private key of an address\n",
         {
             {"privkey", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The private key to sign the message with."},
@@ -424,7 +424,7 @@ static UniValue setmocktime(const Config &config,
                             const JSONRPCRequest &request) {
     RPCHelpMan{
         "setmocktime",
-        "\nSet the local time to given timestamp (-regtest only)\n",
+        "Set the local time to given timestamp (-regtest only)\n",
         {
             {"timestamp", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "Unix seconds-since-epoch timestamp\n"
@@ -462,7 +462,7 @@ static UniValue mockscheduler(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "mockscheduler",
-        "\nBump the scheduler into the future (-regtest only)\n",
+        "Bump the scheduler into the future (-regtest only)\n",
         {
             {"delta_time", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "Number of seconds to forward the scheduler into the future."},
@@ -698,7 +698,7 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp) {
         throw std::runtime_error(RPCHelpMan{
             "echo|echojson ...",
-            "\nSimply echo back the input arguments. This command is for "
+            "Simply echo back the input arguments. This command is for "
             "testing.\n"
             "\nThe difference between echo and echojson is that echojson has "
             "argument conversion enabled in the client-side table in "

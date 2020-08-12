@@ -112,7 +112,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "importprivkey",
-        "\nAdds a private key (as returned by dumpprivkey) to your wallet. "
+        "Adds a private key (as returned by dumpprivkey) to your wallet. "
         "Requires a new wallet backup.\n"
         "Hint: use importmulti to import more than one private key.\n"
         "\nNote: This call can take minutes to complete if rescan is true, "
@@ -230,7 +230,7 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "abortrescan",
-        "\nStops current wallet rescan triggered by an RPC call, e.g. by an "
+        "Stops current wallet rescan triggered by an RPC call, e.g. by an "
         "importprivkey call.\n",
         {},
         RPCResults{},
@@ -259,7 +259,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "importaddress",
-        "\nAdds an address or script (in hex) that can be watched as if it "
+        "Adds an address or script (in hex) that can be watched as if it "
         "were in your wallet but cannot be used to spend. Requires a new "
         "wallet backup.\n"
         "\nNote: This call can take minutes to complete if rescan is true, "
@@ -389,7 +389,7 @@ UniValue importprunedfunds(const Config &config,
 
     RPCHelpMan{
         "importprunedfunds",
-        "\nImports funds without rescan. Corresponding address or script must "
+        "Imports funds without rescan. Corresponding address or script must "
         "previously be included in wallet. Aimed towards pruned wallets. The "
         "end-user is responsible to import additional transactions that "
         "subsequently spend the imported outputs or rescan after the point in "
@@ -471,7 +471,7 @@ UniValue removeprunedfunds(const Config &config,
 
     RPCHelpMan{
         "removeprunedfunds",
-        "\nDeletes the specified transaction from the wallet. Meant for use "
+        "Deletes the specified transaction from the wallet. Meant for use "
         "with pruned wallets and as a companion to importprunedfunds. This "
         "will affect wallet balances.\n",
         {
@@ -519,7 +519,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "importpubkey",
-        "\nAdds a public key (in hex) that can be watched as if it were in "
+        "Adds a public key (in hex) that can be watched as if it were in "
         "your wallet but cannot be used to spend. Requires a new wallet "
         "backup.\n"
         "\nNote: This call can take minutes to complete if rescan is true, "
@@ -625,7 +625,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "importwallet",
-        "\nImports keys from a wallet dump file (see dumpwallet). Requires a "
+        "Imports keys from a wallet dump file (see dumpwallet). Requires a "
         "new wallet backup to include imported keys.\n",
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -828,7 +828,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "dumpprivkey",
-        "\nReveals the private key corresponding to 'address'.\n"
+        "Reveals the private key corresponding to 'address'.\n"
         "Then the importprivkey can be used with this output\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
@@ -876,7 +876,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
 
     RPCHelpMan{
         "dumpwallet",
-        "\nDumps all wallet keys in a human-readable format to a server-side "
+        "Dumps all wallet keys in a human-readable format to a server-side "
         "file. This does not allow overwriting existing files.\n"
         "Imported scripts are included in the dumpsfile, but corresponding "
         "addresses may not be added automatically by importwallet.\n"
@@ -1536,7 +1536,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 
     RPCHelpMan{
         "importmulti",
-        "\nImport addresses/scripts (with private or public keys, redeem "
+        "Import addresses/scripts (with private or public keys, redeem "
         "script (P2SH)), rescanning all addresses in one-shot-only (rescan can "
         "be disabled via options). Requires a new wallet backup.\n",
         {

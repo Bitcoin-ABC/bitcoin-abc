@@ -505,7 +505,7 @@ std::string RPCHelpMan::ToString() const {
     if (was_optional) {
         ret += " )";
     }
-    ret += "\n";
+    ret += "\n\n";
 
     // Description
     ret += m_description;
