@@ -120,6 +120,12 @@ public:
     void EvictExtraOutboundPeers(int64_t time_in_seconds)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+    /** Process a single message from a peer. Public for fuzz testing */
+    void ProcessMessage(const Config &config, CNode &pfrom,
+                        const std::string &msg_type, CDataStream &vRecv,
+                        int64_t nTimeReceived,
+                        const std::atomic<bool> &interruptMsgProc);
+
 private:
     //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;
@@ -144,11 +150,5 @@ void Misbehaving(NodeId nodeid, int howmuch, const std::string &message = "")
 
 /** Relay transaction to every node */
 void RelayTransaction(const TxId &txid, const CConnman &connman);
-
-void ProcessMessage(const Config &config, CNode &pfrom,
-                    const std::string &msg_type, CDataStream &vRecv,
-                    int64_t nTimeReceived, CTxMemPool &mempool,
-                    ChainstateManager &chainman, CConnman &connman,
-                    BanMan *banman, const std::atomic<bool> &interruptMsgProc);
 
 #endif // BITCOIN_NET_PROCESSING_H
