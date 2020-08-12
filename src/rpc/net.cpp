@@ -152,6 +152,9 @@ static RPCHelpMan getpeerinfo() {
                     {RPCResult::Type::BOOL, "addnode",
                      "Whether connection was due to addnode/-connect or if it "
                      "was an automatic/inbound connection"},
+                    {RPCResult::Type::STR, "connection_type",
+                     "Type of connection: \n" +
+                         Join(CONNECTION_TYPE_DOC, ",\n") + "."},
                     {RPCResult::Type::NUM, "startingheight",
                      "The starting height (block) of the peer"},
                     {RPCResult::Type::NUM, "banscore",
@@ -298,6 +301,7 @@ static RPCHelpMan getpeerinfo() {
                     }
                 }
                 obj.pushKV("bytesrecv_per_msg", recvPerMsgCmd);
+                obj.pushKV("connection_type", stats.m_conn_type_string);
 
                 ret.push_back(obj);
             }

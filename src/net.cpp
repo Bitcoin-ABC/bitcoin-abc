@@ -631,6 +631,8 @@ void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
     CService addrLocalUnlocked = GetAddrLocal();
     stats.addrLocal =
         addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToString() : "";
+
+    stats.m_conn_type_string = ConnectionTypeAsString();
 }
 
 bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
