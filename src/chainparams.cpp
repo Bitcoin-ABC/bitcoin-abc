@@ -177,7 +177,7 @@ public:
         // Bitcoin ABC seeder
         vSeeds.emplace_back("seed.bitcoinabc.org");
         // bitcoinforks seeders
-        vSeeds.emplace_back("seed-abc.bitcoinforks.org");
+        vSeeds.emplace_back("seed-bch.bitcoinforks.org");
         // BU backed seeder
         vSeeds.emplace_back("btccash-seeder.bitcoinunlimited.info");
         // Jason B. Cox
@@ -368,7 +368,7 @@ public:
         // Bitcoin ABC seeder
         vSeeds.emplace_back("testnet-seed.bitcoinabc.org");
         // bitcoinforks seeders
-        vSeeds.emplace_back("testnet-seed-abc.bitcoinforks.org");
+        vSeeds.emplace_back("testnet-seed-bch.bitcoinforks.org");
         // Amaury SÉCHET
         vSeeds.emplace_back("testnet-seed.deadalnix.me");
         // BCHD
