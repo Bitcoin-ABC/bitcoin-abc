@@ -957,7 +957,7 @@ void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
                                                         pnode->IsManualConn()));
     }
     if (!pnode->IsInboundConn()) {
-        PushNodeVersion(config, *pnode, *connman, GetTime());
+        PushNodeVersion(config, *pnode, m_connman, GetTime());
     }
 }
 
@@ -1347,11 +1347,11 @@ static bool BlockRequestAllowed(const CBlockIndex *pindex,
             STALE_RELAY_AGE_LIMIT);
 }
 
-PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn, BanMan *banman,
+PeerLogicValidation::PeerLogicValidation(CConnman &connman, BanMan *banman,
                                          CScheduler &scheduler,
                                          ChainstateManager &chainman,
                                          CTxMemPool &pool)
-    : connman(connmanIn), m_banman(banman), m_chainman(chainman),
+    : m_connman(connman), m_banman(banman), m_chainman(chainman),
       m_mempool(pool), m_stale_tip_check_time(0) {
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
@@ -1485,8 +1485,8 @@ void PeerLogicValidation::NewPoWValidBlock(
         most_recent_compact_block = pcmpctblock;
     }
 
-    connman->ForEachNode([this, &pcmpctblock, pindex, &msgMaker,
-                          &hashBlock](CNode *pnode) {
+    m_connman.ForEachNode([this, &pcmpctblock, pindex, &msgMaker,
+                           &hashBlock](CNode *pnode) {
         AssertLockHeld(cs_main);
 
         // TODO: Avoid the repeated-serialization here
@@ -1502,7 +1502,7 @@ void PeerLogicValidation::NewPoWValidBlock(
             LogPrint(BCLog::NET, "%s sending header-and-ids %s to peer=%d\n",
                      "PeerLogicValidation::NewPoWValidBlock",
                      hashBlock.ToString(), pnode->GetId());
-            connman->PushMessage(
+            m_connman.PushMessage(
                 pnode, msgMaker.Make(NetMsgType::CMPCTBLOCK, *pcmpctblock));
             state.pindexBestHeaderSent = pindex;
         }
@@ -1517,7 +1517,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
                                           const CBlockIndex *pindexFork,
                                           bool fInitialDownload) {
     const int nNewHeight = pindexNew->nHeight;
-    connman->SetBestHeight(nNewHeight);
+    m_connman.SetBestHeight(nNewHeight);
 
     SetServiceFlagsIBDCache(!fInitialDownload);
     if (!fInitialDownload) {
@@ -1536,7 +1536,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
         }
         // Relay inventory, but don't relay old inventory during initial block
         // download.
-        connman->ForEachNode([nNewHeight, &vHashes](CNode *pnode) {
+        m_connman.ForEachNode([nNewHeight, &vHashes](CNode *pnode) {
             if (nNewHeight > (pnode->nStartingHeight != -1
                                   ? pnode->nStartingHeight - 2000
                                   : 0)) {
@@ -1545,7 +1545,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
                 }
             }
         });
-        connman->WakeMessageHandler();
+        m_connman.WakeMessageHandler();
     }
 }
 
@@ -1578,7 +1578,7 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
              !::ChainstateActive().IsInitialBlockDownload() &&
              mapBlocksInFlight.count(hash) == mapBlocksInFlight.size()) {
         if (it != mapBlockSource.end()) {
-            MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first, *connman);
+            MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first, m_connman);
         }
     }
 
@@ -4260,7 +4260,7 @@ bool PeerLogicValidation::CheckIfBanned(CNode &pnode) {
             if (m_banman) {
                 m_banman->Discourage(pnode.addr);
             }
-            connman->DisconnectNode(pnode.addr);
+            m_connman.DisconnectNode(pnode.addr);
         }
         return true;
     }
@@ -4280,12 +4280,12 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     bool fMoreWork = false;
 
     if (!pfrom->vRecvGetData.empty()) {
-        ProcessGetData(config, *pfrom, *connman, m_mempool, interruptMsgProc);
+        ProcessGetData(config, *pfrom, m_connman, m_mempool, interruptMsgProc);
     }
 
     if (!pfrom->orphan_work_set.empty()) {
         LOCK2(cs_main, g_cs_orphans);
-        ProcessOrphanTx(config, *connman, m_mempool, pfrom->orphan_work_set);
+        ProcessOrphanTx(config, m_connman, m_mempool, pfrom->orphan_work_set);
     }
 
     if (pfrom->fDisconnect) {
@@ -4317,7 +4317,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
                     pfrom->vProcessMsg.begin());
         pfrom->nProcessQueueSize -= msgs.front().m_raw_message_size;
         pfrom->fPauseRecv =
-            pfrom->nProcessQueueSize > connman->GetReceiveFloodSize();
+            pfrom->nProcessQueueSize > m_connman.GetReceiveFloodSize();
         fMoreWork = !pfrom->vProcessMsg.empty();
     }
     CNetMessage &msg(msgs.front());
@@ -4334,7 +4334,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
         if (m_banman) {
             m_banman->Discourage(pfrom->addr);
         }
-        connman->DisconnectNode(pfrom->addr);
+        m_connman.DisconnectNode(pfrom->addr);
 
         pfrom->fDisconnect = true;
         return false;
@@ -4360,13 +4360,13 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
         if (m_banman) {
             m_banman->Discourage(pfrom->addr);
         }
-        connman->DisconnectNode(pfrom->addr);
+        m_connman.DisconnectNode(pfrom->addr);
         return fMoreWork;
     }
 
     try {
         ProcessMessage(config, *pfrom, msg_type, vRecv, msg.m_time, m_mempool,
-                       m_chainman, *connman, m_banman, interruptMsgProc);
+                       m_chainman, m_connman, m_banman, interruptMsgProc);
         if (interruptMsgProc) {
             return false;
         }
@@ -4453,7 +4453,7 @@ void PeerLogicValidation::ConsiderEviction(CNode &pto,
                         : "<none>",
                     state.m_chain_sync.m_work_header->GetBlockHash()
                         .ToString());
-                connman->PushMessage(
+                m_connman.PushMessage(
                     &pto,
                     msgMaker.Make(NetMsgType::GETHEADERS,
                                   ::ChainActive().GetLocator(
@@ -4477,7 +4477,7 @@ void PeerLogicValidation::ConsiderEviction(CNode &pto,
 
 void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     // Check whether we have too many outbound peers
-    int extra_peers = connman->GetExtraOutboundCount();
+    int extra_peers = m_connman.GetExtraOutboundCount();
     if (extra_peers <= 0) {
         return;
     }
@@ -4488,7 +4488,7 @@ void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     NodeId worst_peer = -1;
     int64_t oldest_block_announcement = std::numeric_limits<int64_t>::max();
 
-    connman->ForEachNode([&](CNode *pnode) {
+    m_connman.ForEachNode([&](CNode *pnode) {
         AssertLockHeld(cs_main);
 
         // Ignore non-outbound peers, or nodes marked for disconnect already
@@ -4521,7 +4521,7 @@ void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
         return;
     }
 
-    bool disconnected = connman->ForNode(worst_peer, [&](CNode *pnode) {
+    bool disconnected = m_connman.ForNode(worst_peer, [&](CNode *pnode) {
         AssertLockHeld(cs_main);
 
         // Only disconnect a peer that has been connected to us for some
@@ -4553,17 +4553,13 @@ void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
         // stale tip. Don't try any more extra peers until we next detect a
         // stale tip, to limit the load we put on the network from these extra
         // connections.
-        connman->SetTryNewOutboundPeer(false);
+        m_connman.SetTryNewOutboundPeer(false);
     }
 }
 
 void PeerLogicValidation::CheckForStaleTipAndEvictPeers(
     const Consensus::Params &consensusParams) {
     LOCK(cs_main);
-
-    if (connman == nullptr) {
-        return;
-    }
 
     int64_t time_in_seconds = GetTime();
 
@@ -4575,14 +4571,14 @@ void PeerLogicValidation::CheckForStaleTipAndEvictPeers(
 
     // Check whether our tip is stale, and if so, allow using an extra outbound
     // peer.
-    if (!fImporting && !fReindex && connman->GetNetworkActive() &&
-        connman->GetUseAddrmanOutgoing() && TipMayBeStale(consensusParams)) {
+    if (!fImporting && !fReindex && m_connman.GetNetworkActive() &&
+        m_connman.GetUseAddrmanOutgoing() && TipMayBeStale(consensusParams)) {
         LogPrintf("Potential stale tip detected, will try using extra outbound "
                   "peer (last tip update: %d seconds ago)\n",
                   time_in_seconds - g_last_tip_update);
-        connman->SetTryNewOutboundPeer(true);
-    } else if (connman->GetTryNewOutboundPeer()) {
-        connman->SetTryNewOutboundPeer(false);
+        m_connman.SetTryNewOutboundPeer(true);
+    } else if (m_connman.GetTryNewOutboundPeer()) {
+        m_connman.SetTryNewOutboundPeer(false);
     }
     m_stale_tip_check_time = time_in_seconds + STALE_CHECK_INTERVAL;
 }
@@ -4640,12 +4636,12 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         pto->nPingUsecStart = GetTimeMicros();
         if (pto->nVersion > BIP0031_VERSION) {
             pto->nPingNonceSent = nonce;
-            connman->PushMessage(pto, msgMaker.Make(NetMsgType::PING, nonce));
+            m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::PING, nonce));
         } else {
             // Peer is too old to support ping command with nonce, pong will
             // never arrive.
             pto->nPingNonceSent = 0;
-            connman->PushMessage(pto, msgMaker.Make(NetMsgType::PING));
+            m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::PING));
         }
     }
 
@@ -4686,7 +4682,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                 vAddr.push_back(addr);
                 // receiver rejects addr messages larger than 1000
                 if (vAddr.size() >= 1000) {
-                    connman->PushMessage(
+                    m_connman.PushMessage(
                         pto, msgMaker.Make(NetMsgType::ADDR, vAddr));
                     vAddr.clear();
                 }
@@ -4694,7 +4690,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         }
         pto->vAddrToSend.clear();
         if (!vAddr.empty()) {
-            connman->PushMessage(pto, msgMaker.Make(NetMsgType::ADDR, vAddr));
+            m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::ADDR, vAddr));
         }
 
         // we only send the big addr message once
@@ -4743,7 +4739,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             LogPrint(BCLog::NET,
                      "initial getheaders (%d) to peer=%d (startheight:%d)\n",
                      pindexStart->nHeight, pto->GetId(), pto->nStartingHeight);
-            connman->PushMessage(
+            m_connman.PushMessage(
                 pto, msgMaker.Make(NetMsgType::GETHEADERS,
                                    ::ChainActive().GetLocator(pindexStart),
                                    uint256()));
@@ -4836,7 +4832,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                     if (most_recent_block_hash == pBestIndex->GetBlockHash()) {
                         CBlockHeaderAndShortTxIDs cmpctblock(
                             *most_recent_block);
-                        connman->PushMessage(
+                        m_connman.PushMessage(
                             pto,
                             msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK,
                                           cmpctblock));
@@ -4849,7 +4845,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                         ReadBlockFromDisk(block, pBestIndex, consensusParams);
                     assert(ret);
                     CBlockHeaderAndShortTxIDs cmpctblock(block);
-                    connman->PushMessage(
+                    m_connman.PushMessage(
                         pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK,
                                            cmpctblock));
                 }
@@ -4867,7 +4863,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                              __func__, vHeaders.front().GetHash().ToString(),
                              pto->GetId());
                 }
-                connman->PushMessage(
+                m_connman.PushMessage(
                     pto, msgMaker.Make(NetMsgType::HEADERS, vHeaders));
                 state.pindexBestHeaderSent = pBestIndex;
             } else {
@@ -4919,7 +4915,8 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         for (const BlockHash &hash : pto->vInventoryBlockToSend) {
             vInv.push_back(CInv(MSG_BLOCK, hash));
             if (vInv.size() == MAX_INV_SZ) {
-                connman->PushMessage(pto, msgMaker.Make(NetMsgType::INV, vInv));
+                m_connman.PushMessage(pto,
+                                      msgMaker.Make(NetMsgType::INV, vInv));
                 vInv.clear();
             }
         }
@@ -4933,7 +4930,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                 fSendTrickle = true;
                 if (pto->IsInboundConn()) {
                     pto->m_tx_relay->nNextInvSend = std::chrono::microseconds{
-                        connman->PoissonNextSendInbound(
+                        m_connman.PoissonNextSendInbound(
                             nNow, INVENTORY_BROADCAST_INTERVAL)};
                 } else {
                     // Skip delay for outbound peers, as there is less
@@ -4980,7 +4977,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                     pto->m_tx_relay->filterInventoryKnown.insert(txid);
                     vInv.push_back(inv);
                     if (vInv.size() == MAX_INV_SZ) {
-                        connman->PushMessage(
+                        m_connman.PushMessage(
                             pto, msgMaker.Make(NetMsgType::INV, vInv));
                         vInv.clear();
                     }
@@ -5069,7 +5066,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                         }
                     }
                     if (vInv.size() == MAX_INV_SZ) {
-                        connman->PushMessage(
+                        m_connman.PushMessage(
                             pto, msgMaker.Make(NetMsgType::INV, vInv));
                         vInv.clear();
                     }
@@ -5079,7 +5076,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         }
     }
     if (!vInv.empty()) {
-        connman->PushMessage(pto, msgMaker.Make(NetMsgType::INV, vInv));
+        m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::INV, vInv));
     }
 
     // Detect whether we're stalling
@@ -5242,7 +5239,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                          pto->GetId());
                 vGetData.push_back(inv);
                 if (vGetData.size() >= MAX_GETDATA_SZ) {
-                    connman->PushMessage(
+                    m_connman.PushMessage(
                         pto, msgMaker.Make(NetMsgType::GETDATA, vGetData));
                     vGetData.clear();
                 }
@@ -5265,7 +5262,8 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     }
 
     if (!vGetData.empty()) {
-        connman->PushMessage(pto, msgMaker.Make(NetMsgType::GETDATA, vGetData));
+        m_connman.PushMessage(pto,
+                              msgMaker.Make(NetMsgType::GETDATA, vGetData));
     }
 
     //
@@ -5291,7 +5289,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             filterToSend = std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
 
             if (filterToSend != pto->m_tx_relay->lastSentFeeFilter) {
-                connman->PushMessage(
+                m_connman.PushMessage(
                     pto, msgMaker.Make(NetMsgType::FEEFILTER, filterToSend));
                 pto->m_tx_relay->lastSentFeeFilter = filterToSend;
             }

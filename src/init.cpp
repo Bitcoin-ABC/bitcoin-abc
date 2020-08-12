@@ -2267,7 +2267,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     ChainstateManager &chainman = *Assert(node.chainman);
 
     node.peer_logic.reset(
-        new PeerLogicValidation(node.connman.get(), node.banman.get(),
+        new PeerLogicValidation(*node.connman, node.banman.get(),
                                 *node.scheduler, chainman, *node.mempool));
     RegisterValidationInterface(node.peer_logic.get());
 

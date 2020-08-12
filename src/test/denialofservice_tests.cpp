@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, *m_node.chainman,
+        *connman, nullptr, *m_node.scheduler, *m_node.chainman,
         *m_node.mempool);
 
     // Mock an outbound peer
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, *m_node.chainman,
+        *connman, nullptr, *m_node.scheduler, *m_node.chainman,
         *m_node.mempool);
 
     const Consensus::Params &consensusParams =
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
                                            DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), banman.get(), *m_node.scheduler, *m_node.chainman,
+        *connman, banman.get(), *m_node.scheduler, *m_node.chainman,
         *m_node.mempool);
 
     banman->ClearBanned();
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
                                            DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), banman.get(), *m_node.scheduler, *m_node.chainman,
+        *connman, banman.get(), *m_node.scheduler, *m_node.chainman,
         *m_node.mempool);
 
     banman->ClearBanned();

@@ -36,7 +36,7 @@ static const int DISCOURAGEMENT_THRESHOLD{100};
 class PeerLogicValidation final : public CValidationInterface,
                                   public NetEventsInterface {
 private:
-    CConnman *const connman;
+    CConnman &m_connman;
     BanMan *const m_banman;
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
@@ -44,7 +44,7 @@ private:
     bool CheckIfBanned(CNode &pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 public:
-    PeerLogicValidation(CConnman *connman, BanMan *banman,
+    PeerLogicValidation(CConnman &connman, BanMan *banman,
                         CScheduler &scheduler, ChainstateManager &chainman,
                         CTxMemPool &pool);
 
