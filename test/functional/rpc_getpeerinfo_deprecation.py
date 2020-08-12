@@ -2,17 +2,20 @@
 # Copyright (c) 2020 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test deprecation of getpeerinfo RPC banscore field."""
+"""Test deprecation of getpeerinfo RPC fields."""
 
 from test_framework.test_framework import BitcoinTestFramework
 
 
-class GetpeerinfoBanscoreDeprecationTest(BitcoinTestFramework):
+class GetpeerinfoDeprecationTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.extra_args = [[], ["-deprecatedrpc=banscore"]]
 
     def run_test(self):
+        self.test_banscore_deprecation()
+
+    def test_banscore_deprecation(self):
         self.log.info(
             "Test getpeerinfo by default no longer returns a banscore field")
         assert "banscore" not in self.nodes[0].getpeerinfo()[0].keys()
@@ -23,4 +26,4 @@ class GetpeerinfoBanscoreDeprecationTest(BitcoinTestFramework):
 
 
 if __name__ == "__main__":
-    GetpeerinfoBanscoreDeprecationTest().main()
+    GetpeerinfoDeprecationTest().main()
