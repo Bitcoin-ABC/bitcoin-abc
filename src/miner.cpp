@@ -15,6 +15,7 @@
 #include <consensus/merkle.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <minerfund.h>
 #include <net.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -189,6 +190,16 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     coinbaseTx.vout[0].nValue =
         nFees + GetBlockSubsidy(nHeight, consensusParams);
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+
+    const std::vector<CTxDestination> whitelisted =
+        GetMinerFundWhitelist(consensusParams, pindexPrev);
+    if (!whitelisted.empty()) {
+        const Amount fund =
+            (MINER_FUND_RATIO * coinbaseTx.vout[0].nValue) / 100;
+        coinbaseTx.vout[0].nValue -= fund;
+        coinbaseTx.vout.emplace_back(fund,
+                                     GetScriptForDestination(whitelisted[0]));
+    }
 
     // Make sure the coinbase is big enough.
     uint64_t coinbaseSize = ::GetSerializeSize(coinbaseTx, PROTOCOL_VERSION);

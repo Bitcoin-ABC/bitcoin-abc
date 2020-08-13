@@ -357,6 +357,7 @@ void SetupServerArgs() {
     std::vector<std::string> hidden_args = {
         "-h", "-help", "-dbcrashratio", "-forcecompactdb", "-parkdeepreorg",
         "-automaticunparking", "-replayprotectionactivationtime",
+        "-enableminerfund",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
         "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>",
         "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",

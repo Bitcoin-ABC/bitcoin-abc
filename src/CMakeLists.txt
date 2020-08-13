@@ -503,6 +503,7 @@ add_library(server
 	interfaces/chain.cpp
 	interfaces/node.cpp
 	miner.cpp
+	minerfund.cpp
 	net.cpp
 	net_processing.cpp
 	node/coin.cpp

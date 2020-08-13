@@ -112,6 +112,9 @@ public:
             .nTimeout = 1230767999,
         };
 
+        // The miner fund is enabled by default on mainnet.
+        consensus.enableMinerFund = true;
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
             ChainParamsConstants::MAINNET_MINIMUM_CHAIN_WORK;
@@ -313,6 +316,9 @@ public:
             .nTimeout = 1230767999,
         };
 
+        // The miner fund is disabled by default on testnet.
+        consensus.enableMinerFund = false;
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
             ChainParamsConstants::TESTNET_MINIMUM_CHAIN_WORK;
@@ -464,6 +470,9 @@ public:
             // 75% of 144
             .nActivationThreshold = 108,
         };
+
+        // The miner fund is disabled by default on regnet.
+        consensus.enableMinerFund = false;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");

@@ -20,6 +20,7 @@
 #include <consensus/validation.h>
 #include <hash.h>
 #include <index/txindex.h>
+#include <minerfund.h>
 #include <policy/fees.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
@@ -1815,6 +1816,36 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                              REJECT_INVALID, "bad-cb-amount");
     }
+
+    const std::vector<CTxDestination> whitelist =
+        GetMinerFundWhitelist(consensusParams, pindex->pprev);
+    if (!whitelist.empty()) {
+        const Amount required = (MINER_FUND_RATIO * blockReward) / 100;
+
+        for (auto &o : block.vtx[0]->vout) {
+            if (o.nValue < required) {
+                // This output doesn't qualify because its amount is too low.
+                continue;
+            }
+
+            CTxDestination address;
+            if (!ExtractDestination(o.scriptPubKey, address)) {
+                // Cannot decode address.
+                continue;
+            }
+
+            if (std::find(whitelist.begin(), whitelist.end(), address) !=
+                whitelist.end()) {
+                goto MinerFundSuccess;
+            }
+        }
+
+        // We did not find an output that match the miner fund requirements.
+        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                             REJECT_INVALID, "bad-cb-minerfund");
+    }
+
+MinerFundSuccess:
 
     if (!control.Wait()) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
