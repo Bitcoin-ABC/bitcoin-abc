@@ -315,14 +315,12 @@ CRPCTable::CRPCTable() {
     }
 }
 
-bool CRPCTable::appendCommand(const std::string &name,
+void CRPCTable::appendCommand(const std::string &name,
                               const CRPCCommand *pcmd) {
-    if (IsRPCRunning()) {
-        return false;
-    }
+    // Only add commands before rpc is running
+    CHECK_NONFATAL(!IsRPCRunning());
 
     mapCommands[name].push_back(pcmd);
-    return true;
 }
 
 bool CRPCTable::removeCommand(const std::string &name,
