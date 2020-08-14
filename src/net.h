@@ -134,28 +134,51 @@ struct CSerializedNetMsg {
  * connection. Aside from INBOUND, all types are initiated by us.
  */
 enum class ConnectionType {
-    /** Peer initiated connections. */
-    INBOUND,
     /**
-     * Full relay connections (blocks, addrs, txns) made automatically.
-     * Addresses selected from AddrMan.
+     * Inbound connections are those initiated by a peer. This is the only
+     * property we know at the time of connection, until P2P messages are
+     * exchanged.
+     */
+    INBOUND,
+
+    /**
+     * These are the default connections that we use to connect with the
+     * network. There is no restriction on what is relayed- by default we relay
+     * blocks, addresses & transactions. We automatically attempt to open
+     * MAX_OUTBOUND_FULL_RELAY_CONNECTIONS using addresses from our AddrMan.
      */
     OUTBOUND_FULL_RELAY,
+
     /**
-     * Connections to addresses added via addnode or the connect command line
-     * argument.
+     * We open manual connections to addresses that users explicitly inputted
+     * via the addnode RPC, or the -connect command line argument. Even if a
+     * manual connection is misbehaving, we do not automatically disconnect or
+     * add it to our discouragement filter.
      */
     MANUAL,
-    /** Short lived connections used to test address validity. */
-    FEELER,
+
     /**
-     * Only relay blocks to these automatic outbound connections.
-     * Addresses selected from AddrMan.
+     * Feeler connections are short lived connections used to increase the
+     * number of connectable addresses in our AddrMan. Approximately every
+     * FEELER_INTERVAL, we attempt to connect to a random address from the new
+     * table. If successful, we add it to the tried table.
+     */
+    FEELER,
+
+    /**
+     * We use block-relay-only connections to help prevent against partition
+     * attacks. By not relaying transactions or addresses, these connections
+     * are harder to detect by a third party, thus helping obfuscate the
+     * network topology. We automatically attempt to open
+     * MAX_BLOCK_RELAY_ONLY_CONNECTIONS using addresses from our AddrMan.
      */
     BLOCK_RELAY,
+
     /**
-     * Short lived connections used to solicit addrs when starting the node
-     * without a populated AddrMan.
+     * AddrFetch connections are short lived connections used to solicit
+     * addresses from peers. These are initiated to addresses submitted via the
+     * -seednode command line argument, or under certain conditions when the
+     * AddrMan is empty.
      */
     ADDR_FETCH,
 };
