@@ -17,8 +17,9 @@ class RPCGenerateTest(BitcoinTestFramework):
 
     def run_test(self):
         message = (
-            "generate ( nblocks maxtries ) has been replaced by the -generate "
-            "cli option. Refer to -help for more information."
+            "generate\n\n"
+            "has been replaced by the -generate cli option. Refer to -help "
+            "for more information."
         )
 
         self.log.info(
