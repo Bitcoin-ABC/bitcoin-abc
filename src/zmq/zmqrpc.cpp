@@ -13,9 +13,8 @@
 
 namespace {
 
-UniValue getzmqnotifications(const Config &config,
-                             const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan getzmqnotifications() {
+    return RPCHelpMan{
         "getzmqnotifications",
         "Returns information about the active ZeroMQ notifications.\n",
         {},
@@ -37,22 +36,23 @@ UniValue getzmqnotifications(const Config &config,
             }},
         RPCExamples{HelpExampleCli("getzmqnotifications", "") +
                     HelpExampleRpc("getzmqnotifications", "")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            UniValue result(UniValue::VARR);
+            if (g_zmq_notification_interface != nullptr) {
+                for (const auto *n :
+                     g_zmq_notification_interface->GetActiveNotifiers()) {
+                    UniValue obj(UniValue::VOBJ);
+                    obj.pushKV("type", n->GetType());
+                    obj.pushKV("address", n->GetAddress());
+                    obj.pushKV("hwm", n->GetOutboundMessageHighWaterMark());
+                    result.push_back(obj);
+                }
+            }
 
-    UniValue result(UniValue::VARR);
-    if (g_zmq_notification_interface != nullptr) {
-        for (const auto *n :
-             g_zmq_notification_interface->GetActiveNotifiers()) {
-            UniValue obj(UniValue::VOBJ);
-            obj.pushKV("type", n->GetType());
-            obj.pushKV("address", n->GetAddress());
-            obj.pushKV("hwm", n->GetOutboundMessageHighWaterMark());
-            result.push_back(obj);
-        }
-    }
-
-    return result;
+            return result;
+        },
+    };
 }
 
 // clang-format off
