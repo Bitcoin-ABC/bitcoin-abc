@@ -1836,9 +1836,6 @@ void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman) {
 
 static void RelayAddress(const CAddress &addr, bool fReachable,
                          const CConnman &connman) {
-    // Limited relaying of addresses outside our network(s)
-    unsigned int nRelayNodes = fReachable ? 2 : 1;
-
     // Relay to a limited number of other nodes.
     // Use deterministic randomness to send to the same nodes for 24 hours at a
     // time so the m_addr_knowns of the chosen nodes prevent repeats
@@ -1849,6 +1846,9 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
             .Write((GetTime() + hashAddr) / (24 * 60 * 60));
     FastRandomContext insecure_rand;
 
+    // Relay reachable addresses to 2 peers. Unreachable addresses are relayed
+    // randomly to 1 or 2 peers.
+    unsigned int nRelayNodes = (fReachable || (hasher.Finalize() & 1)) ? 2 : 1;
     std::array<std::pair<uint64_t, CNode *>, 2> best{
         {{0, nullptr}, {0, nullptr}}};
     assert(nRelayNodes <= best.size());
