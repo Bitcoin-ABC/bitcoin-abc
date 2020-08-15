@@ -93,7 +93,7 @@ struct Params {
     uint32_t nMinerConfirmationWindow;
     BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
 
-    /** Enable or disable te miner fund by default */
+    /** Enable or disable the miner fund by default */
     bool enableMinerFund;
 
     /** Proof of work parameters */
