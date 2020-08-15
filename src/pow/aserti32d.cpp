@@ -16,6 +16,10 @@ void ResetASERTAnchorBlockCache() noexcept {
     cachedAnchor = nullptr;
 }
 
+const CBlockIndex *GetASERTAnchorBlockCache() noexcept {
+    return cachedAnchor.load();
+}
+
 /**
  * Returns a pointer to the anchor block used for ASERT.
  * As anchor we use the first block for which IsAxionEnabled() returns true.

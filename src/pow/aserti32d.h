@@ -39,4 +39,6 @@ GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
  */
 void ResetASERTAnchorBlockCache() noexcept;
 
+const CBlockIndex *GetASERTAnchorBlockCache() noexcept;
+
 #endif // BITCOIN_POW_ASERTI32D_H
