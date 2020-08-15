@@ -620,15 +620,22 @@ static UniValue getblocktemplate(const Config &config,
     UniValue aCaps(UniValue::VARR);
     aCaps.push_back("proposal");
 
+    Amount coinbasevalue = Amount::zero();
+
     UniValue transactions(UniValue::VARR);
     transactions.reserve(pblock->vtx.size());
     int index_in_template = 0;
     for (const auto &it : pblock->vtx) {
         const CTransaction &tx = *it;
-        uint256 txId = tx.GetId();
+        const TxId txId = tx.GetId();
 
         if (tx.IsCoinBase()) {
             index_in_template++;
+
+            for (const auto &o : pblock->vtx[0]->vout) {
+                coinbasevalue += o.nValue;
+            }
+
             continue;
         }
 
@@ -665,8 +672,7 @@ static UniValue getblocktemplate(const Config &config,
     result.pushKV("previousblockhash", pblock->hashPrevBlock.GetHex());
     result.pushKV("transactions", transactions);
     result.pushKV("coinbaseaux", aux);
-    result.pushKV("coinbasevalue",
-                  int64_t(pblock->vtx[0]->vout[0].nValue / SATOSHI));
+    result.pushKV("coinbasevalue", int64_t(coinbasevalue / SATOSHI));
     result.pushKV("longpollid", ::ChainActive().Tip()->GetBlockHash().GetHex() +
                                     i64tostr(nTransactionsUpdatedLast));
     result.pushKV("target", hashTarget.GetHex());
