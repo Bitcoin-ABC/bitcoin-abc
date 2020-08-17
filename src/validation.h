@@ -830,14 +830,18 @@ public:
     // Manual block validity manipulation:
     bool PreciousBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
+    /** Mark a block as invalid. */
+    bool InvalidateBlock(const Config &config, BlockValidationState &state,
+                         CBlockIndex *pindex);
+    /** Park a block. */
+    bool ParkBlock(const Config &config, BlockValidationState &state,
+                   CBlockIndex *pindex);
     /**
      * Finalize a block.
      * A finalized block can not be reorged in any way.
      */
     bool FinalizeBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool UnwindBlock(const Config &config, BlockValidationState &state,
-                     CBlockIndex *pindex, bool invalidate);
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F>
@@ -906,6 +910,8 @@ private:
     bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
                           const Consensus::Params &params)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool UnwindBlock(const Config &config, BlockValidationState &state,
+                     CBlockIndex *pindex, bool invalidate);
 };
 
 /**
@@ -915,14 +921,6 @@ private:
  */
 bool PreciousBlock(const Config &config, BlockValidationState &state,
                    CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
-
-/** Mark a block as invalid. */
-bool InvalidateBlock(const Config &config, BlockValidationState &state,
-                     CBlockIndex *pindex);
-
-/** Park a block. */
-bool ParkBlock(const Config &config, BlockValidationState &state,
-               CBlockIndex *pindex);
 
 /** Remove invalidity status from a block and its descendants. */
 void ResetBlockFailureFlags(CBlockIndex *pindex)

@@ -1737,7 +1737,7 @@ static UniValue invalidateblock(const Config &config,
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         }
     }
-    InvalidateBlock(config, state, pblockindex);
+    ::ChainstateActive().InvalidateBlock(config, state, pblockindex);
 
     if (state.IsValid()) {
         ActivateBestChain(config, state);
@@ -1776,7 +1776,7 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         }
     }
-    ParkBlock(config, state, pblockindex);
+    ::ChainstateActive().ParkBlock(config, state, pblockindex);
 
     if (state.IsValid()) {
         ActivateBestChain(config, state);

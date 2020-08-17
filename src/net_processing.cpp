@@ -3680,7 +3680,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     case avalanche::BlockUpdate::Status::Invalid:
                     case avalanche::BlockUpdate::Status::Rejected: {
                         BlockValidationState state;
-                        ParkBlock(config, state, pindex);
+                        ::ChainstateActive().ParkBlock(config, state, pindex);
                         if (!state.IsValid()) {
                             return error("Database error: %s",
                                          state.GetRejectReason());

@@ -2919,32 +2919,6 @@ bool ActivateBestChain(const Config &config, BlockValidationState &state,
                                                   std::move(pblock));
 }
 
-bool CChainState::FinalizeBlock(const Config &config,
-                                BlockValidationState &state,
-                                CBlockIndex *pindex) {
-    AssertLockHeld(cs_main);
-    if (!MarkBlockAsFinal(config, state, pindex)) {
-        // state is set by MarkBlockAsFinal.
-        return false;
-    }
-
-    // We have a valid candidate, make sure it is not parked.
-    if (pindex->nStatus.isOnParkedChain()) {
-        UnparkBlock(pindex);
-    }
-
-    // If the finalized block is not on the active chain, we may need to rewind.
-    if (!::ChainActive().Contains(pindex)) {
-        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
-        CBlockIndex *pindexToInvalidate = ::ChainActive().Next(pindexFork);
-        if (pindexToInvalidate) {
-            return InvalidateBlock(config, state, pindexToInvalidate);
-        }
-    }
-
-    return true;
-}
-
 bool CChainState::PreciousBlock(const Config &config,
                                 BlockValidationState &state,
                                 CBlockIndex *pindex) {
@@ -3110,14 +3084,42 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
     return true;
 }
 
-bool InvalidateBlock(const Config &config, BlockValidationState &state,
-                     CBlockIndex *pindex) {
-    return ::ChainstateActive().UnwindBlock(config, state, pindex, true);
+bool CChainState::InvalidateBlock(const Config &config,
+                                  BlockValidationState &state,
+                                  CBlockIndex *pindex) {
+    return UnwindBlock(config, state, pindex, true);
 }
 
-bool ParkBlock(const Config &config, BlockValidationState &state,
-               CBlockIndex *pindex) {
-    return ::ChainstateActive().UnwindBlock(config, state, pindex, false);
+bool CChainState::ParkBlock(const Config &config, BlockValidationState &state,
+                            CBlockIndex *pindex) {
+    return UnwindBlock(config, state, pindex, false);
+}
+
+bool CChainState::FinalizeBlock(const Config &config,
+                                BlockValidationState &state,
+                                CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+    if (!MarkBlockAsFinal(config, state, pindex)) {
+        // state is set by MarkBlockAsFinal.
+        return false;
+    }
+
+    // We have a valid candidate, make sure it is not parked.
+    if (pindex->nStatus.isOnParkedChain()) {
+        UnparkBlock(pindex);
+    }
+
+    // If the finalized block is not on the active chain, we may need to rewind.
+    if (!::ChainActive().Contains(pindex)) {
+        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
+        CBlockIndex *pindexToInvalidate = ::ChainActive().Next(pindexFork);
+        if (pindexToInvalidate) {
+            return UnwindBlock(config, state, pindexToInvalidate,
+                               true /* invalidating */);
+        }
+    }
+
+    return true;
 }
 
 template <typename F>
