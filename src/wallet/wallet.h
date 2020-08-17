@@ -232,7 +232,7 @@ static inline void ReadOrderPos(int64_t &nOrderPos, mapValue_t &mapValue) {
         return;
     }
 
-    nOrderPos = atoi64(mapValue["n"].c_str());
+    nOrderPos = atoi64(mapValue["n"]);
 }
 
 static inline void WriteOrderPos(const int64_t &nOrderPos,
