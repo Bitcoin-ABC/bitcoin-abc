@@ -30,7 +30,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     hex_str_to_bytes,
     assert_equal,
-    wait_until,
 )
 
 # Account for the 5-byte length prefix
@@ -89,9 +88,8 @@ class InvalidMessagesTest(BitcoinTestFramework):
         before = int(self.nodes[0].getnettotals()['totalbytesrecv'])
         conn.send_raw_message(msg[:cut_pos])
         # Wait until node has processed the first half of the message
-        wait_until(
-            lambda: int(
-                self.nodes[0].getnettotals()['totalbytesrecv']) != before)
+        self.wait_until(
+            lambda: int(self.nodes[0].getnettotals()['totalbytesrecv']) != before)
         middle = int(self.nodes[0].getnettotals()['totalbytesrecv'])
         # If this assert fails, we've hit an unlikely race
         # where the test framework sent a message in between the two halves

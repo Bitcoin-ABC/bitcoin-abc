@@ -21,7 +21,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, wait_until
+from test_framework.util import assert_equal
 
 
 class P2PFingerprintTest(BitcoinTestFramework):
@@ -103,13 +103,13 @@ class P2PFingerprintTest(BitcoinTestFramework):
         self.send_block_request(stale_hash, node0)
 
         def test_function(): return self.last_block_equals(stale_hash, node0)
-        wait_until(test_function, timeout=3)
+        self.wait_until(test_function, timeout=3)
 
         # Check that getheader request for stale block header succeeds
         self.send_header_request(stale_hash, node0)
 
         def test_function(): return self.last_header_equals(stale_hash, node0)
-        wait_until(test_function, timeout=3)
+        self.wait_until(test_function, timeout=3)
 
         # Longest chain is extended so stale is much older than chain tip
         self.nodes[0].setmocktime(0)
@@ -142,12 +142,12 @@ class P2PFingerprintTest(BitcoinTestFramework):
         self.send_block_request(block_hash, node0)
 
         def test_function(): return self.last_block_equals(block_hash, node0)
-        wait_until(test_function, timeout=3)
+        self.wait_until(test_function, timeout=3)
 
         self.send_header_request(block_hash, node0)
 
         def test_function(): return self.last_header_equals(block_hash, node0)
-        wait_until(test_function, timeout=3)
+        self.wait_until(test_function, timeout=3)
 
 
 if __name__ == '__main__':

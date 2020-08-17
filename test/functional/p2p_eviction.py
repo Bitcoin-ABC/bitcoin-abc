@@ -28,7 +28,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PDataStore, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, wait_until
+from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -148,7 +148,8 @@ class P2PEvict(BitcoinTestFramework):
         for _ in range(8):
             fastpeer = node.add_p2p_connection(P2PInterface())
             current_peer += 1
-            wait_until(lambda: "ping" in fastpeer.last_message, timeout=10)
+            self.wait_until(lambda: "ping" in fastpeer.last_message,
+                            timeout=10)
 
         self.log.info(
             "Create 128 peers and protect them from eviction by sending an avahello message")

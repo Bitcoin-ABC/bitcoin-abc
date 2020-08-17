@@ -68,10 +68,8 @@ class NotificationsTest(BitcoinTestFramework):
 
         # wait at most 10 seconds for expected number of files before reading
         # the content
-        wait_until(
-            lambda: len(
-                os.listdir(
-                    self.blocknotify_dir)) == block_count,
+        self.wait_until(
+            lambda: len(os.listdir(self.blocknotify_dir)) == block_count,
             timeout=10)
 
         # directory content should equal the generated blocks hashes
@@ -79,12 +77,10 @@ class NotificationsTest(BitcoinTestFramework):
 
         if self.is_wallet_compiled():
             self.log.info("test -walletnotify")
-            # wait at most 10 seconds for expected number of files before reading
-            # the content
-            wait_until(
-                lambda: len(
-                    os.listdir(
-                        self.walletnotify_dir)) == block_count,
+            # wait at most 10 seconds for expected number of files before
+            # reading the content
+            self.wait_until(
+                lambda: len(os.listdir(self.walletnotify_dir)) == block_count,
                 timeout=10)
 
             # directory content should equal the generated transaction hashes
@@ -103,10 +99,8 @@ class NotificationsTest(BitcoinTestFramework):
             self.start_node(1)
             connect_nodes(self.nodes[0], self.nodes[1])
 
-            wait_until(
-                lambda: len(
-                    os.listdir(
-                        self.walletnotify_dir)) == block_count,
+            self.wait_until(
+                lambda: len(os.listdir(self.walletnotify_dir)) == block_count,
                 timeout=10)
 
             # directory content should equal the generated transaction hashes
@@ -197,7 +191,7 @@ class NotificationsTest(BitcoinTestFramework):
             os.remove(os.path.join(self.alertnotify_dir, notify_file))
 
     def expect_wallet_notify(self, tx_ids):
-        wait_until(
+        self.wait_until(
             lambda: len(os.listdir(self.walletnotify_dir)) >= len(tx_ids),
             timeout=10)
         assert_equal(

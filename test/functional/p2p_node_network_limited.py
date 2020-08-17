@@ -16,16 +16,12 @@ from test_framework.messages import (
     NODE_BLOOM,
     NODE_NETWORK_LIMITED,
 )
-from test_framework.p2p import (
-    p2p_lock,
-    P2PInterface,
-)
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     connect_nodes,
     disconnect_nodes,
-    wait_until,
 )
 
 
@@ -41,7 +37,7 @@ class P2PIgnoreInv(P2PInterface):
 
     def wait_for_addr(self, timeout=5):
         def test_function(): return self.last_message.get("addr")
-        wait_until(test_function, timeout=timeout, lock=p2p_lock)
+        self.wait_until(test_function, timeout=timeout)
 
     def send_getdata_for_block(self, blockhash):
         getdata_request = msg_getdata()

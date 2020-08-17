@@ -47,7 +47,6 @@ from test_framework.util import (
     assert_raises_rpc_error,
     connect_nodes,
     disconnect_nodes,
-    wait_until,
 )
 
 
@@ -197,7 +196,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         conn = node0.add_p2p_connection(P2PTxInvStore())
         # 15 min + 1 for buffer
         node0.mockscheduler(16 * 60)
-        wait_until(lambda: len(conn.get_invs()) == 1)
+        self.wait_until(lambda: len(conn.get_invs()) == 1)
 
 
 if __name__ == '__main__':

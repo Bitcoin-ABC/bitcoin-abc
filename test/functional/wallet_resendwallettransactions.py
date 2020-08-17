@@ -7,9 +7,9 @@ import time
 
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import ToHex
-from test_framework.p2p import P2PTxInvStore, p2p_lock
+from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, wait_until
+from test_framework.util import assert_equal
 
 
 class ResendWalletTransactionsTest(BitcoinTestFramework):
@@ -25,7 +25,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         node.add_p2p_connection(P2PTxInvStore())
 
         self.log.info("Create a new transaction and wait until it's broadcast")
-        txid = int(node.sendtoaddress(node.getnewaddress(), 1000000), 16)
+        txid = node.sendtoaddress(node.getnewaddress(), 1_000_000)
 
         # Wallet rebroadcast is first scheduled 1 sec after startup (see
         # nNextResend in ResendWalletTransactions()). Tell scheduler to call
@@ -34,9 +34,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         node.mockscheduler(1)
 
         # Can take a few seconds due to transaction trickling
-        wait_until(
-            lambda: node.p2p.tx_invs_received[txid] >= 1,
-            lock=p2p_lock)
+        node.p2p.wait_for_broadcast([txid])
 
         # Add a second peer since txs aren't rebroadcast to the same peer (see
         # filterInventoryKnown)
@@ -65,7 +63,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         node.setmocktime(now + twelve_hrs - two_min)
         # Tell scheduler to call MaybeResendWalletTxn now
         node.mockscheduler(1)
-        assert_equal(txid in node.p2ps[1].get_invs(), False)
+        assert_equal(int(txid, 16) in node.p2ps[1].get_invs(), False)
 
         self.log.info("Bump time & check that transaction is rebroadcast")
         # Transaction should be rebroadcast approximately 24 hours in the future,
@@ -76,9 +74,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
             node.mockscheduler(1)
         # Give some time for trickle to occur
         node.setmocktime(now + 36 * 60 * 60 + 600)
-        wait_until(
-            lambda: node.p2ps[1].tx_invs_received[txid] >= 1,
-            lock=p2p_lock)
+        node.p2p.wait_for_broadcast([txid])
 
 
 if __name__ == '__main__':
