@@ -4,6 +4,8 @@ $(package)_download_path=https://download.oracle.com/berkeley-db
 $(package)_file_name=db-$($(package)_version).NC.tar.gz
 $(package)_sha256_hash=76a25560d9e52a198d37a31440fd07632b5f1f8f9f2b6d5438f4bc3e7c9013ef
 $(package)_build_subdir=build_unix
+$(package)_patches=clang_cxx_11.patch
+$(package)_patches+=winioctl.patch
 
 define $(package)_set_vars
 $(package)_config_opts=--disable-shared --enable-cxx --disable-replication --enable-option-checking
@@ -15,9 +17,8 @@ endef
 
 define $(package)_preprocess_cmds
   cd src &&\
-  sed -i.old 's/__atomic_compare_exchange/__atomic_compare_exchange_db/' dbinc/atomic.h && \
-  sed -i.old 's/atomic_init/atomic_init_db/' dbinc/atomic.h mp/mp_region.c mp/mp_mvcc.c mp/mp_fget.c mutex/mut_method.c mutex/mut_tas.c && \
-  sed -i.old 's/WinIoCtl.h/winioctl.h/' dbinc/win_db.h &&\
+  patch -p1 < $($(package)_patch_dir)/clang_cxx_11.patch && \
+  patch -p1 < $($(package)_patch_dir)/winioctl.patch && \
   cd .. &&\
   cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub dist
 endef

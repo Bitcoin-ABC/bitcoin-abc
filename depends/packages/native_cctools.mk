@@ -4,6 +4,8 @@ $(package)_download_path=https://github.com/tpoechtrager/cctools-port/archive
 $(package)_file_name=$($(package)_version).tar.gz
 $(package)_sha256_hash=a2d491c0981cef72fee2b833598f20f42a6c44a7614a61c439bda93d56446fec
 $(package)_build_subdir=cctools
+$(package)_patches=ld64_disable_threading.patch
+
 $(package)_clang_version=8.0.0
 $(package)_clang_download_path=https://releases.llvm.org/$($(package)_clang_version)
 $(package)_clang_download_file=clang+llvm-$($(package)_clang_version)-x86_64-linux-gnu-ubuntu-16.04.tar.xz
@@ -49,7 +51,7 @@ endef
 define $(package)_preprocess_cmds
   CC=$($(package)_cc) CXX=$($(package)_cxx) INSTALLPREFIX=$($(package)_extract_dir) ./libtapi/build.sh && \
   CC=$($(package)_cc) CXX=$($(package)_cxx) INSTALLPREFIX=$($(package)_extract_dir) ./libtapi/install.sh && \
-  sed -i.old "/define HAVE_PTHREADS/d" $($(package)_build_subdir)/ld64/src/ld/InputFiles.h
+  patch -p1 < $($(package)_patch_dir)/ld64_disable_threading.patch
 endef
 
 define $(package)_config_cmds

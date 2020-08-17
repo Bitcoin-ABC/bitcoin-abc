@@ -1,0 +1,19 @@
+commit b2c9b538fed1aa1d65b85b372f7a49f1878e9e3b
+Author: Fabien <fabcien@gmail.com>
+Date:   Mon Oct 5 11:45:28 2020 +0200
+
+    Fix winioctl.h case for MinGw
+
+diff --git a/dbinc/win_db.h b/dbinc/win_db.h
+index 6544558..6cb6878 100644
+--- a/dbinc/win_db.h
++++ b/dbinc/win_db.h
+@@ -46,7 +46,7 @@
+ #include <windows.h>
+ #include <winsock2.h>
+ #ifndef DB_WINCE
+-#include <WinIoCtl.h>
++#include <winioctl.h>
+ #endif
+ 
+ #ifdef HAVE_GETADDRINFO
