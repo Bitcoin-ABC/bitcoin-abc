@@ -409,7 +409,9 @@ namespace {
         Amount getDefaultMaxTxFee() override {
             return m_wallet->m_default_max_tx_fee;
         }
-        void remove() override { RemoveWallet(m_wallet); }
+        void remove() override {
+            RemoveWallet(m_wallet, false /* load_on_start */);
+        }
         bool isLegacy() override { return m_wallet->IsLegacy(); }
         std::unique_ptr<Handler> handleUnload(UnloadFn fn) override {
             return MakeHandler(m_wallet->NotifyUnload.connect(fn));
@@ -511,16 +513,17 @@ namespace {
                      WalletCreationStatus &status, bilingual_str &error,
                      std::vector<bilingual_str> &warnings) override {
             std::shared_ptr<CWallet> wallet;
-            status = CreateWallet(*m_context.chain, passphrase,
-                                  wallet_creation_flags, name, error, warnings,
-                                  wallet);
+            status = CreateWallet(
+                *m_context.chain, passphrase, wallet_creation_flags, name,
+                true /* load_on_start */, error, warnings, wallet);
             return MakeWallet(std::move(wallet));
         }
         std::unique_ptr<Wallet>
         loadWallet(const std::string &name, bilingual_str &error,
                    std::vector<bilingual_str> &warnings) override {
             return MakeWallet(LoadWallet(*m_context.chain, WalletLocation(name),
-                                         error, warnings));
+                                         true /* load_on_start */, error,
+                                         warnings));
         }
         std::string getWalletDir() override { return GetWalletDir().string(); }
         std::vector<std::string> listWalletDir() override {
