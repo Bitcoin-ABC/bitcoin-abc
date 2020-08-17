@@ -362,8 +362,8 @@ Base class for functional tests.
 #### [test_framework/util.py](/test/functional/test_framework/util.py)
 Generally useful functions.
 
-#### [test_framework/mininode.py](/test/functional/test_framework/mininode.py)
-Basic code to support P2P connectivity to a bitcoind.
+#### [test_framework/p2p.py](/test/functional/test_framework/p2p.py)
+Test objects for interacting with a bitcoind node over the p2p interface.
 
 #### [test_framework/script.py](/test/functional/test_framework/script.py)
 Utilities for manipulating transaction scripts (originally from python-bitcoinlib)
