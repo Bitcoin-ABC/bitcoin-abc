@@ -9,8 +9,8 @@ import time
 
 from test_framework.messages import MSG_TX, msg_feefilter
 from test_framework.p2p import (
-    p2p_lock,
     P2PInterface,
+    p2p_lock,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal

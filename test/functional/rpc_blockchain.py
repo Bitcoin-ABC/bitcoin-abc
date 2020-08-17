@@ -23,16 +23,6 @@ from decimal import Decimal
 import http.client
 import subprocess
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_greater_than,
-    assert_greater_than_or_equal,
-    assert_raises,
-    assert_raises_rpc_error,
-    assert_is_hash_string,
-    assert_is_hex_string,
-)
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
@@ -41,8 +31,16 @@ from test_framework.blocktools import (
 from test_framework.messages import (
     msg_block,
 )
-from test_framework.p2p import (
-    P2PInterface,
+from test_framework.p2p import P2PInterface
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than,
+    assert_greater_than_or_equal,
+    assert_raises,
+    assert_raises_rpc_error,
+    assert_is_hex_string,
+    assert_is_hash_string,
 )
 
 

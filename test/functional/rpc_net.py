@@ -11,6 +11,13 @@ from decimal import Decimal
 from itertools import product
 import time
 
+from test_framework.p2p import P2PInterface
+import test_framework.messages
+from test_framework.messages import (
+    CAddress,
+    msg_addr,
+    NODE_NETWORK,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_approx,
@@ -21,13 +28,6 @@ from test_framework.util import (
     connect_nodes,
     p2p_port,
     wait_until,
-)
-from test_framework.p2p import P2PInterface
-import test_framework.messages
-from test_framework.messages import (
-    CAddress,
-    msg_addr,
-    NODE_NETWORK,
 )
 
 
