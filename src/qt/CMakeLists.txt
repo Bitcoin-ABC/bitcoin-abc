@@ -2,9 +2,6 @@
 
 project(bitcoin-qt)
 
-# This ensure that AUTOMOC doesn't run on generated files.
-cmake_policy(SET CMP0071 OLD)
-
 include(BrewHelper)
 find_brew_prefix(QT5_PREFIX qt5)
 
