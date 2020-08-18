@@ -50,7 +50,7 @@ function(create_test_suite_with_parent_targets NAME)
 
 	add_custom_target(${TARGET}
 		COMMENT "Running ${NAME} test suite"
-		COMMAND cmake -E echo "PASSED: ${NAME} test suite"
+		COMMAND "${CMAKE_COMMAND}" -E echo "PASSED: ${NAME} test suite"
 	)
 
 	foreach(PARENT_TARGET ${ARGN})
@@ -72,6 +72,36 @@ function(test_suite_create_pool SUITE JOBS)
 	# Create a pool for the test suite
 	get_pool_from_suite(${SUITE} POOL)
 	set_property(GLOBAL APPEND PROPERTY JOB_POOLS ${POOL}=${JOBS})
+endfunction()
+
+include(InstallationHelper)
+function(install_test SUITE NAME)
+	# Allow for installing all tests ...
+	if(NOT TARGET install-tests)
+		add_custom_target(install-tests)
+	endif()
+
+	# ... a complete test suite ...
+	if(NOT TARGET install-test-suite-${SUITE})
+		add_custom_target(install-test-suite-${SUITE})
+	endif()
+
+	if(NOT TARGET install-${SUITE}-${NAME})
+		install_target(${NAME} COMPONENT ${SUITE}-${NAME} EXCLUDE_FROM_ALL)
+
+		# ... or a single test
+		add_custom_target(install-${SUITE}-${NAME}
+			COMMENT "Installing ${NAME} from test suite ${SUITE}"
+			COMMAND
+				"${CMAKE_COMMAND}"
+				-DCOMPONENT="${SUITE}-${NAME}"
+				-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
+				-P cmake_install.cmake
+			DEPENDS ${NAME}
+		)
+		add_dependencies(install-test-suite-${SUITE} install-${SUITE}-${NAME})
+		add_dependencies(install-tests install-${SUITE}-${NAME})
+	endif()
 endfunction()
 
 set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
@@ -114,6 +144,8 @@ function(add_test_runner SUITE NAME EXECUTABLE)
 				"${NAME}"
 		)
 	endif()
+
+	install_test(${SUITE} ${EXECUTABLE})
 endfunction()
 
 function(add_test_to_suite SUITE NAME)
