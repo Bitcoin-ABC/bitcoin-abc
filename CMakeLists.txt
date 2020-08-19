@@ -45,6 +45,9 @@ add_custom_target(check-extended)
 add_custom_target(check-upgrade-activated)
 add_custom_target(check-upgrade-activated-extended)
 
+# Add the global install target
+add_custom_target(install-all)
+
 include(PackageHelper)
 exclude_git_ignored_files_from_source_package()
 

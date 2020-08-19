@@ -90,18 +90,12 @@ function(install_test SUITE NAME)
 	endif()
 
 	if(NOT TARGET install-${SUITE}-${NAME})
-		install_target(${NAME} COMPONENT ${SUITE}-${NAME} EXCLUDE_FROM_ALL)
-
 		# ... or a single test
-		add_custom_target(install-${SUITE}-${NAME}
-			COMMENT "Installing ${NAME} from test suite ${SUITE}"
-			COMMAND
-				"${CMAKE_COMMAND}"
-				-DCOMPONENT="${SUITE}-${NAME}"
-				-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
-				-P cmake_install.cmake
-			DEPENDS ${NAME}
+		install_target(${NAME}
+			COMPONENT ${SUITE}-${NAME}
+			EXCLUDE_FROM_ALL
 		)
+
 		add_dependencies(install-test-suite-${SUITE} install-${SUITE}-${NAME})
 		add_dependencies(install-tests install-${SUITE}-${NAME})
 	endif()

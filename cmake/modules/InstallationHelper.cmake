@@ -1,6 +1,32 @@
 # This file contains facilities for installing the files.
 
 include(GNUInstallDirs)
+include(SanitizeHelper)
+
+function(_add_install_target COMPONENT)
+	sanitize_target_name("install-" "${COMPONENT}" INSTALL_TARGET)
+
+	if(NOT TARGET ${INSTALL_TARGET})
+		add_custom_target(${INSTALL_TARGET}
+			COMMENT "Installing component ${COMPONENT}"
+			COMMAND
+				"${CMAKE_COMMAND}"
+				-DCOMPONENT="${COMPONENT}"
+				-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
+				-P cmake_install.cmake
+			WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+		)
+
+		if(TARGET install-all)
+			add_dependencies(install-all ${INSTALL_TARGET})
+		endif()
+	endif()
+
+	# Other arguments are additional dependencies
+	if(ARGN)
+		add_dependencies(${INSTALL_TARGET} ${ARGN})
+	endif()
+endfunction()
 
 function(install_target _target)
 	cmake_parse_arguments(ARG
@@ -33,6 +59,8 @@ function(install_target _target)
 			COMPONENT ${ARG_COMPONENT}
 			${ARG_UNPARSED_ARGUMENTS}
 	)
+
+	_add_install_target("${ARG_COMPONENT}" ${_target})
 endfunction()
 
 function(install_shared_library NAME)
@@ -88,12 +116,14 @@ function(install_shared_library NAME)
 	install_target(${_shared_name})
 endfunction()
 
-function(install_manpages COMPONENT)
+function(install_manpages)
 	set(MAN_DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
 
 	install(
 		FILES ${ARGN}
 		DESTINATION "${MAN_DESTINATION}"
-		COMPONENT "${COMPONENT}"
+		COMPONENT manpages
 	)
+
+	_add_install_target(manpages)
 endfunction()
