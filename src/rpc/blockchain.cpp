@@ -668,8 +668,14 @@ static UniValue getmempoolancestors(const Config &config,
                 "",
                 {{RPCResult::Type::STR_HEX, "",
                   "The transaction id of an in-mempool ancestor transaction"}}},
-            RPCResult{"for verbose = true", RPCResult::Type::OBJ,
-                      "transactionid", "", MempoolEntryDescription()},
+            RPCResult{"for verbose = true",
+                      RPCResult::Type::OBJ_DYN,
+                      "",
+                      "",
+                      {
+                          {RPCResult::Type::OBJ, "transactionid", "",
+                           MempoolEntryDescription()},
+                      }},
         },
         RPCExamples{HelpExampleCli("getmempoolancestors", "\"mytxid\"") +
                     HelpExampleRpc("getmempoolancestors", "\"mytxid\"")},
@@ -703,7 +709,6 @@ static UniValue getmempoolancestors(const Config &config,
         for (CTxMemPool::txiter ancestorIt : setAncestors) {
             o.push_back(ancestorIt->GetTx().GetId().ToString());
         }
-
         return o;
     } else {
         UniValue o(UniValue::VOBJ);
