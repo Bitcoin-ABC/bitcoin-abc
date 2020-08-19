@@ -87,3 +87,13 @@ function(install_shared_library NAME)
 
 	install_target(${_shared_name})
 endfunction()
+
+function(install_manpages COMPONENT)
+	set(MAN_DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+
+	install(
+		FILES ${ARGN}
+		DESTINATION "${MAN_DESTINATION}"
+		COMPONENT "${COMPONENT}"
+	)
+endfunction()

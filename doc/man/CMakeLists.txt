@@ -1,41 +1,20 @@
 # Copyright (c) 2019 The Bitcoin developers
-include(GNUInstallDirs)
-set(MAN_DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+include(InstallationHelper)
 
-install(
-	FILES bitcoind.1
-	DESTINATION "${MAN_DESTINATION}"
-	COMPONENT bitcoind
-)
+install_manpages(bitcoind bitcoind.1)
 
 if(BUILD_BITCOIN_CLI)
-	install(
-		FILES bitcoin-cli.1
-		DESTINATION "${MAN_DESTINATION}"
-		COMPONENT bitcoind
-	)
+	install_manpages(bitcoind bitcoin-cli.1)
 endif()
 
 if(BUILD_BITCOIN_TX)
-	install(
-		FILES bitcoin-tx.1
-		DESTINATION "${MAN_DESTINATION}"
-		COMPONENT bitcoind
-	)
+	install_manpages(bitcoind bitcoin-tx.1)
 endif()
 
 if(BUILD_BITCOIN_QT)
-	install(
-		FILES bitcoin-qt.1
-		DESTINATION "${MAN_DESTINATION}"
-		COMPONENT bitcoin-qt
-	)
+	install_manpages(bitcoin-qt bitcoin-qt.1)
 endif()
 
 if(BUILD_BITCOIN_WALLET)
-	install(
-		FILES bitcoin-wallet.1
-		DESTINATION "${MAN_DESTINATION}"
-		COMPONENT bitcoin-wallet
-	)
+	install_manpages(bitcoin-wallet bitcoin-wallet.1)
 endif()
