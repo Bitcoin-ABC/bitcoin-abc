@@ -137,7 +137,7 @@ public:
         consensus.gravitonHeight = 609135;
 
         // May 15, 2020 12:00:00 UTC protocol upgrade
-        consensus.phononActivationTime = 1589544000;
+        consensus.phononHeight = 635258;
 
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionActivationTime = 1605441600;
@@ -341,7 +341,7 @@ public:
         consensus.gravitonHeight = 1341711;
 
         // May 15, 2020 12:00:00 UTC protocol upgrade
-        consensus.phononActivationTime = 1589544000;
+        consensus.phononHeight = 1378460;
 
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionActivationTime = 1605441600;
@@ -494,7 +494,7 @@ public:
         consensus.gravitonHeight = 0;
 
         // May 15, 2020 12:00:00 UTC protocol upgrade
-        consensus.phononActivationTime = 1589544000;
+        consensus.phononHeight = 0;
 
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionActivationTime = 1605441600;

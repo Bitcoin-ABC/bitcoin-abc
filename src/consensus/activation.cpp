@@ -62,13 +62,17 @@ bool IsGravitonEnabled(const Consensus::Params &params,
     return IsGravitonEnabled(params, pindexPrev->nHeight);
 }
 
+static bool IsPhononEnabled(const Consensus::Params &params, int32_t nHeight) {
+    return nHeight >= params.phononHeight;
+}
+
 bool IsPhononEnabled(const Consensus::Params &params,
                      const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return pindexPrev->GetMedianTimePast() >= params.phononActivationTime;
+    return IsPhononEnabled(params, pindexPrev->nHeight);
 }
 
 bool IsAxionEnabled(const Consensus::Params &params,

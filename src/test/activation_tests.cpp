@@ -42,26 +42,19 @@ BOOST_AUTO_TEST_CASE(isgravitonenabled) {
 }
 
 BOOST_AUTO_TEST_CASE(isphononenabled) {
-    const Consensus::Params &params = Params().GetConsensus();
-    const auto activation = params.phononActivationTime;
-    SetMockTime(activation - 1000000);
+    const Consensus::Params &consensus = Params().GetConsensus();
+    BOOST_CHECK(!IsPhononEnabled(consensus, nullptr));
 
-    BOOST_CHECK(!IsPhononEnabled(params, nullptr));
-
-    std::array<CBlockIndex, 12> blocks;
+    std::array<CBlockIndex, 4> blocks;
+    blocks[0].nHeight = consensus.phononHeight - 2;
     for (size_t i = 1; i < blocks.size(); ++i) {
         blocks[i].pprev = &blocks[i - 1];
+        blocks[i].nHeight = blocks[i - 1].nHeight + 1;
     }
-    BOOST_CHECK(!IsPhononEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation - 1);
-    BOOST_CHECK(!IsPhononEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation);
-    BOOST_CHECK(IsPhononEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation + 1);
-    BOOST_CHECK(IsPhononEnabled(params, &blocks.back()));
+    BOOST_CHECK(!IsPhononEnabled(consensus, &blocks[0]));
+    BOOST_CHECK(!IsPhononEnabled(consensus, &blocks[1]));
+    BOOST_CHECK(IsPhononEnabled(consensus, &blocks[2]));
+    BOOST_CHECK(IsPhononEnabled(consensus, &blocks[3]));
 }
 
 BOOST_AUTO_TEST_CASE(isaxionenabled) {
