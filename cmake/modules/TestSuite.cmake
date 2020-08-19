@@ -3,11 +3,13 @@
 option(ENABLE_JUNIT_REPORT "Enable Junit report generation for targets that support it" OFF)
 
 set(JUNIT_REPORT_DIRECTORY "${CMAKE_BINARY_DIR}/test/junit")
+set(TEST_LOG_DIRECTORY "${CMAKE_BINARY_DIR}/test/log")
 set_property(
 	DIRECTORY "${CMAKE_SOURCE_DIR}"
 	APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-		"${JUNIT_REPORT_DIRECTORY}"
 		"${CMAKE_BINARY_DIR}/test/tmp"
+		"${JUNIT_REPORT_DIRECTORY}"
+		"${TEST_LOG_DIRECTORY}"
 )
 
 macro(add_test_environment VARIABLE VALUE)
@@ -22,6 +24,7 @@ function(add_test_custom_target TARGET)
 	add_custom_target(${TARGET}
 		${ARG_CUSTOM_TARGET_ARGS}
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${JUNIT_REPORT_DIRECTORY}"
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${TEST_LOG_DIRECTORY}"
 		COMMAND ${CMAKE_COMMAND} -E env ${TEST_ENVIRONMENT} ${ARG_TEST_COMMAND}
 	)
 endfunction()
@@ -122,7 +125,7 @@ function(add_test_runner SUITE NAME EXECUTABLE)
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
 			"${CMAKE_SOURCE_DIR}/cmake/utils/test_wrapper.sh"
-			"${SUITE}-${NAME}.log"
+			"${TEST_LOG_DIRECTORY}/${SUITE}-${NAME}.log"
 			${CMAKE_CROSSCOMPILING_EMULATOR} "$<TARGET_FILE:${EXECUTABLE}>" ${ARG_UNPARSED_ARGUMENTS}
 		CUSTOM_TARGET_ARGS
 			COMMENT "${SUITE}: testing ${NAME}"

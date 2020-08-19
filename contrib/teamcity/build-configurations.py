@@ -123,6 +123,7 @@ class UserBuild():
 
         self.artifact_dir = self.build_directory.joinpath("artifacts")
         self.junit_reports_dir = self.build_directory.joinpath("test/junit")
+        self.test_logs_dir = self.build_directory.joinpath("test/log")
 
         # We will provide the required environment variables
         self.environment_variables = {
@@ -250,6 +251,7 @@ class UserBuild():
                 str(self.logs["full_log"].relative_to(self.build_directory)): "",
                 str(self.logs["clean_log"].relative_to(self.build_directory)): "",
                 str(self.junit_reports_dir.relative_to(self.build_directory)): "",
+                str(self.test_logs_dir.relative_to(self.build_directory)): "",
             }
 
             self.copy_artifacts(artifacts)
