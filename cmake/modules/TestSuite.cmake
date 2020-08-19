@@ -181,7 +181,13 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		get_filename_component(_test_name "${_test_source}" NAME_WE)
 
 		if(ENABLE_JUNIT_REPORT)
-			set(JUNIT_LOGGER ":JUNIT,message,${SUITE}-${_test_name}.xml")
+			set(JUNIT_REPORT_FILE "${SUITE}-${_test_name}.xml")
+			set(JUNIT_LOGGER ":JUNIT,message,${JUNIT_REPORT_FILE}")
+			set_property(
+				DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+				APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+					"${JUNIT_REPORT_FILE}"
+			)
 		endif()
 
 		add_test_runner(
