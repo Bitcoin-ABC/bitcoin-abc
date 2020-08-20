@@ -62,6 +62,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             # since we are not crossing a halving boundary and there are no
             # transactions in the mempool.
             'coinbasevalue': block_reward * COIN,
+            'mintime': AXION_ACTIVATION_TIME + 1,
         })
 
         # First block with the new rules
@@ -78,6 +79,15 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         assert_getblocktemplate({
             # Again, we assume the coinbase value is the same as prior blocks.
             'coinbasevalue': block_reward * COIN,
+            'mintime': AXION_ACTIVATION_TIME + 1,
+        })
+
+        # Move MTP forward
+        node.setmocktime(AXION_ACTIVATION_TIME + 1)
+        node.generatetoaddress(6, address)
+        assert_getblocktemplate({
+            'coinbasevalue': block_reward * COIN,
+            'mintime': AXION_ACTIVATION_TIME + 2,
         })
 
 
