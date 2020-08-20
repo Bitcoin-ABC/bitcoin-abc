@@ -6,8 +6,6 @@ suites:
 - "buster"
 architectures:
 - "amd64"
-multiarch:
-- "i386"
 packages:
 - "autoconf"
 - "automake"
@@ -25,8 +23,6 @@ packages:
 - "gcc-arm-linux-gnueabihf"
 - "git"
 - "gperf"
-- "lib32stdc++-8-dev"
-- "libc6-dev:i386"
 - "libtool"
 - "ninja-build"
 - "pkg-config"
@@ -49,11 +45,10 @@ files: []
 script: |
 
   WRAP_DIR=$HOME/wrapped
-  HOSTS="i686-pc-linux-gnu x86_64-linux-gnu arm-linux-gnueabihf aarch64-linux-gnu"
+  HOSTS="x86_64-linux-gnu arm-linux-gnueabihf aarch64-linux-gnu"
 
   # CMake toolchain file name differ from host name
   declare -A CMAKE_TOOLCHAIN_FILE
-  CMAKE_TOOLCHAIN_FILE[i686-pc-linux-gnu]=Linux32.cmake
   CMAKE_TOOLCHAIN_FILE[x86_64-linux-gnu]=Linux64.cmake
   CMAKE_TOOLCHAIN_FILE[arm-linux-gnueabihf]=LinuxARM.cmake
   CMAKE_TOOLCHAIN_FILE[aarch64-linux-gnu]=LinuxAArch64.cmake
