@@ -57,10 +57,14 @@
  },
  {
   "name": "abc-transaction-ordering.py",
-  "time": 4
+  "time": 3
  },
  {
   "name": "abc-version-message.py",
+  "time": 1
+ },
+ {
+  "name": "abc_feature_minerfund.py",
   "time": 1
  },
  {
@@ -69,11 +73,11 @@
  },
  {
   "name": "abc_p2p_compactblocks.py",
-  "time": 390
+  "time": 429
  },
  {
   "name": "abc_p2p_fullblocktest.py",
-  "time": 93
+  "time": 90
  },
  {
   "name": "abc_rpc_excessiveblock.py",
@@ -101,7 +105,7 @@
  },
  {
   "name": "feature_bip68_sequence.py",
-  "time": 14
+  "time": 20
  },
  {
   "name": "feature_block.py",
@@ -125,7 +129,7 @@
  },
  {
   "name": "feature_dbcrash.py",
-  "time": 1005
+  "time": 684
  },
  {
   "name": "feature_dersig.py",
@@ -149,7 +153,7 @@
  },
  {
   "name": "feature_logging.py",
-  "time": 5
+  "time": 4
  },
  {
   "name": "feature_maxuploadtarget.py",
@@ -169,7 +173,7 @@
  },
  {
   "name": "feature_pruning.py",
-  "time": 165
+  "time": 169
  },
  {
   "name": "feature_reindex.py",
@@ -185,7 +189,7 @@
  },
  {
   "name": "interface_bitcoin_cli.py",
-  "time": 2
+  "time": 1
  },
  {
   "name": "interface_http.py",
@@ -193,7 +197,7 @@
  },
  {
   "name": "interface_rest.py",
-  "time": 12
+  "time": 8
  },
  {
   "name": "interface_rpc.py",
@@ -201,7 +205,7 @@
  },
  {
   "name": "interface_zmq.py",
-  "time": 5
+  "time": 8
  },
  {
   "name": "mempool_accept.py",
@@ -213,15 +217,15 @@
  },
  {
   "name": "mempool_packages.py",
-  "time": 9
- },
- {
-  "name": "mempool_persist.py",
   "time": 12
  },
  {
+  "name": "mempool_persist.py",
+  "time": 19
+ },
+ {
   "name": "mempool_reorg.py",
-  "time": 10
+  "time": 12
  },
  {
   "name": "mempool_resurrect.py",
@@ -245,7 +249,7 @@
  },
  {
   "name": "p2p_blocksonly.py",
-  "time": 4
+  "time": 3
  },
  {
   "name": "p2p_compactblocks.py",
@@ -261,7 +265,7 @@
  },
  {
   "name": "p2p_feefilter.py",
-  "time": 28
+  "time": 40
  },
  {
   "name": "p2p_fingerprint.py",
@@ -305,7 +309,7 @@
  },
  {
   "name": "p2p_sendheaders.py",
-  "time": 13
+  "time": 12
  },
  {
   "name": "p2p_timeouts.py",
@@ -313,7 +317,7 @@
  },
  {
   "name": "p2p_tx_download.py",
-  "time": 72
+  "time": 70
  },
  {
   "name": "p2p_unrequested_blocks.py",
@@ -353,7 +357,7 @@
  },
  {
   "name": "rpc_fundrawtransaction.py",
-  "time": 55
+  "time": 47
  },
  {
   "name": "rpc_getblockfilter.py",
@@ -365,7 +369,7 @@
  },
  {
   "name": "rpc_getchaintips.py",
-  "time": 2
+  "time": 3
  },
  {
   "name": "rpc_help.py",
@@ -393,11 +397,11 @@
  },
  {
   "name": "rpc_psbt.py",
-  "time": 33
+  "time": 28
  },
  {
   "name": "rpc_rawtransaction.py",
-  "time": 51
+  "time": 38
  },
  {
   "name": "rpc_scantxoutset.py",
@@ -437,7 +441,7 @@
  },
  {
   "name": "wallet_abandonconflict.py",
-  "time": 16
+  "time": 6
  },
  {
   "name": "wallet_address_types.py",
@@ -445,19 +449,19 @@
  },
  {
   "name": "wallet_avoidreuse.py",
-  "time": 5
+  "time": 4
  },
  {
   "name": "wallet_backup.py",
-  "time": 45
+  "time": 35
  },
  {
   "name": "wallet_balance.py",
-  "time": 19
+  "time": 10
  },
  {
   "name": "wallet_basic.py",
-  "time": 33
+  "time": 24
  },
  {
   "name": "wallet_create_tx.py",
@@ -485,7 +489,7 @@
  },
  {
   "name": "wallet_groups.py",
-  "time": 33
+  "time": 14
  },
  {
   "name": "wallet_hd.py",
@@ -493,7 +497,7 @@
  },
  {
   "name": "wallet_import_rescan.py",
-  "time": 4
+  "time": 5
  },
  {
   "name": "wallet_import_with_label.py",
@@ -521,7 +525,7 @@
  },
  {
   "name": "wallet_listreceivedby.py",
-  "time": 32
+  "time": 21
  },
  {
   "name": "wallet_listsinceblock.py",
@@ -529,7 +533,7 @@
  },
  {
   "name": "wallet_listtransactions.py",
-  "time": 9
+  "time": 10
  },
  {
   "name": "wallet_multiwallet.py",
@@ -545,7 +549,7 @@
  },
  {
   "name": "wallet_resendwallettransactions.py",
-  "time": 5
+  "time": 8
  },
  {
   "name": "wallet_txn_clone.py",
@@ -557,7 +561,7 @@
  },
  {
   "name": "wallet_txn_doublespend.py",
-  "time": 2
+  "time": 1
  },
  {
   "name": "wallet_txn_doublespend.py --mineblock",
@@ -573,6 +577,6 @@
  },
  {
   "name": "wallet_zapwallettxes.py",
-  "time": 5
+  "time": 4
  }
 ]
