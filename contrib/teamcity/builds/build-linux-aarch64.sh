@@ -7,7 +7,7 @@ set -euxo pipefail
 # shellcheck source=../ci-fixture.sh
 source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 
-build_static_dependencies
+build_static_dependencies linux-aarch64
 
 CMAKE_FLAGS=(
   "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/LinuxAArch64.cmake"

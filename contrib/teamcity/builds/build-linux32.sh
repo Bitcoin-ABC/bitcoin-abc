@@ -7,7 +7,7 @@ set -euxo pipefail
 # shellcheck source=../ci-fixture.sh
 source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 
-build_static_dependencies
+build_static_dependencies linux32
 
 # Build, run unit tests and functional tests.
 CMAKE_FLAGS=(

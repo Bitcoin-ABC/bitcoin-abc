@@ -9,7 +9,7 @@ source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
 
 export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin16/native/lib/python3/dist-packages:${PYTHONPATH:-}"
 
-build_static_dependencies
+build_static_dependencies osx
 
 CMAKE_FLAGS=(
   "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/OSX.cmake"

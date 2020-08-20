@@ -24,5 +24,5 @@ run_ibd() {
 }
 
 build_static_dependencies() {
-  "${DEVTOOLS_DIR}"/build_depends.sh
+  "${DEVTOOLS_DIR}"/build_depends.sh "$@"
 }
