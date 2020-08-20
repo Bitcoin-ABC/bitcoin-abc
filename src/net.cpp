@@ -2063,7 +2063,8 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
                     case ConnectionType::FEELER:
                         setConnected.insert(
                             pnode->addr.GetGroup(addrman.m_asmap));
-                }
+                } // no default case, so the compiler can warn about missing
+                  // cases
             }
         }
 
