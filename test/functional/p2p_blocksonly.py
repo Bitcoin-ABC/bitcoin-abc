@@ -71,7 +71,8 @@ class P2PBlocksOnly(BitcoinTestFramework):
         self.restart_node(0,
                           ["-persistmempool=0",
                            "-whitelist=relay@127.0.0.1",
-                           "-blocksonly"])
+                           "-blocksonly",
+                           '-deprecatedrpc=whitelisted'])
         assert_equal(self.nodes[0].getrawmempool(), [])
         first_peer = self.nodes[0].add_p2p_connection(P2PInterface())
         second_peer = self.nodes[0].add_p2p_connection(P2PInterface())

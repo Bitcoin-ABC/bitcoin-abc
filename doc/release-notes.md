@@ -14,3 +14,7 @@ This release includes the following features and fixes:
 - To make wallet and rawtransaction RPCs more consistent, the error message for
   exceeding maximum feerate has been changed to "Fee exceeds maximum configured by user
   (e.g. -maxtxfee, maxfeerate)."
+- The getpeerinfo RPC no longer returns the whitelisted field by default. This field will
+  be fully removed in a future release. It can be accessed with the configuration option
+  -deprecatedrpc=getpeerinfo_whitelisted. However, it is recommended to instead use the
+  permissions field to understand if specific privileges have been granted to the peer.
