@@ -31,6 +31,6 @@ tar -xzf "${OSX_SDK}"
 
 popd
 
-RAPIDCHECK=1 make build-all
+make build-all
 
 popd

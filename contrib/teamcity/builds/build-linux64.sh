@@ -12,7 +12,6 @@ build_static_dependencies
 # Build, run unit tests and functional tests.
 CMAKE_FLAGS=(
   "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_PLATFORMS_DIR}/Linux64.cmake"
-  "-DENABLE_PROPERTY_BASED_TESTS=ON"
 )
 build_with_cmake --junit
 

@@ -11,7 +11,6 @@ SDK_PATH ?= $(BASEDIR)/SDKs
 NO_QT ?=
 NO_PROTOBUF ?=
 NO_QR ?=
-RAPIDCHECK ?=
 NO_WALLET ?=
 NO_ZMQ ?=
 NO_UPNP ?=
@@ -109,7 +108,6 @@ upnp_packages_$(NO_UPNP) = $(upnp_packages)
 zmq_packages_$(NO_ZMQ) = $(zmq_packages)
 
 protobuf_packages_$(NO_PROTOBUF) = $(protobuf_packages)
-rapidcheck_packages_$(RAPIDCHECK) = $(rapidcheck_packages)
 
 jemalloc_packages_$(NO_JEMALLOC) = $(jemalloc_packages)
 
@@ -123,10 +121,6 @@ endif
 
 ifneq ($(zmq_packages_),)
 packages += $(zmq_packages)
-endif
-
-ifeq ($(rapidcheck_packages_),)
-packages += $(rapidcheck_packages)
 endif
 
 ifneq ($(jemalloc_packages_),)
