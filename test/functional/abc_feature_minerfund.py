@@ -43,7 +43,7 @@ class MinerFundTest(BitcoinTestFramework):
         node = self.nodes[0]
         address = node.get_deterministic_priv_key().address
 
-        # Move MTP forward to phonon activation
+        # Move MTP forward to axion activation
         node.setmocktime(AXION_ACTIVATION_TIME)
         node.generatetoaddress(6, address)
         assert_equal(
