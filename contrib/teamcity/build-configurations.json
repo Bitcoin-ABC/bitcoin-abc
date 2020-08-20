@@ -123,6 +123,13 @@
                 "ibd/debug.log": "log/debug.log"
             }
         },
+        "build-linux32": {
+            "script": "builds/build-linux32.sh",
+            "templates": [
+                "common_unix_artifacts"
+            ],
+            "timeout": 3600
+        },
         "build-linux64": {
             "script": "builds/build-linux64.sh",
             "templates": [
