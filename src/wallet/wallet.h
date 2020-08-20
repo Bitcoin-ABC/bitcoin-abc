@@ -1269,9 +1269,12 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     ;
     Amount GetCredit(const CTxOut &txout, const isminefilter &filter) const;
-    bool IsChange(const CTxOut &txout) const;
-    bool IsChange(const CScript &script) const;
-    Amount GetChange(const CTxOut &txout) const;
+    bool IsChange(const CTxOut &txout) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool IsChange(const CScript &script) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    Amount GetChange(const CTxOut &txout) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool IsMine(const CTransaction &tx) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     /** should probably be renamed to IsRelevantToMe */

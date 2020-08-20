@@ -1390,7 +1390,7 @@ bool CWallet::IsChange(const CScript &script) const {
     // outputs are 'the send' and which are 'the change' will need to be
     // implemented (maybe extend CWalletTx to remember which output, if any, was
     // change).
-    LOCK(cs_wallet);
+    AssertLockHeld(cs_wallet);
     if (IsMine(script)) {
         CTxDestination address;
         if (!ExtractDestination(script, address)) {
@@ -1405,6 +1405,7 @@ bool CWallet::IsChange(const CScript &script) const {
 }
 
 Amount CWallet::GetChange(const CTxOut &txout) const {
+    AssertLockHeld(cs_wallet);
     if (!MoneyRange(txout.nValue)) {
         throw std::runtime_error(std::string(__func__) +
                                  ": value out of range");
@@ -1483,6 +1484,7 @@ Amount CWallet::GetCredit(const CTransaction &tx,
 }
 
 Amount CWallet::GetChange(const CTransaction &tx) const {
+    LOCK(cs_wallet);
     Amount nChange = Amount::zero();
     for (const CTxOut &txout : tx.vout) {
         nChange += GetChange(txout);
