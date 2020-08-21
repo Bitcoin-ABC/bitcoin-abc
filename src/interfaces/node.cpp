@@ -100,11 +100,14 @@ namespace {
             return Params().AssumedChainStateSize();
         }
         std::string getNetwork() override { return Params().NetworkIDString(); }
-        void initLogging() override { InitLogging(); }
-        void initParameterInteraction() override { InitParameterInteraction(); }
+        void initLogging() override { InitLogging(gArgs); }
+        void initParameterInteraction() override {
+            InitParameterInteraction(gArgs);
+        }
         std::string getWarnings() override { return GetWarnings(true); }
         bool baseInitialize(Config &config) override {
-            return AppInitBasicSetup() && AppInitParameterInteraction(config) &&
+            return AppInitBasicSetup(gArgs) &&
+                   AppInitParameterInteraction(config, gArgs) &&
                    AppInitSanityChecks() && AppInitLockDataDirectory();
         }
         bool

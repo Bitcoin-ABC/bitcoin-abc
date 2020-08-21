@@ -116,8 +116,8 @@ BasicTestingSetup::BasicTestingSetup(
     }
     SelectParams(chainName);
     SeedInsecureRand();
-    InitLogging();
-    AppInitParameterInteraction(config);
+    InitLogging(*m_node.args);
+    AppInitParameterInteraction(config, *m_node.args);
     LogInstance().StartLogging();
     SHA256AutoDetect();
     ECC_Start();
