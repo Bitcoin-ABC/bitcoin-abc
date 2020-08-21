@@ -276,7 +276,7 @@ int CalculateMaximumSignedInputSize(const CTxOut &txout, const CWallet *pwallet,
  */
 class CWalletTx {
 private:
-    const CWallet *pwallet;
+    const CWallet *const pwallet;
 
     /**
      * Constant used in hashBlock to indicate tx has been abandoned, only used
