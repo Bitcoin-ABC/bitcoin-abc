@@ -523,7 +523,6 @@ public:
 
     bool InMempool() const;
     bool IsTrusted() const;
-    bool IsTrusted(std::set<TxId> &trusted_parents) const;
 
     int64_t GetTxTime() const;
 
@@ -896,6 +895,8 @@ public:
     }
 
     const CWalletTx *GetWalletTx(const TxId &txid) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool IsTrusted(const CWalletTx &wtx, std::set<TxId> &trusted_parents) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     //! check whether we are allowed to upgrade (or already support) to the
