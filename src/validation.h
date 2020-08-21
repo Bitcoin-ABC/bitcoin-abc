@@ -228,9 +228,14 @@ bool LoadGenesisBlock(const CChainParams &chainparams);
 void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman);
 
 /**
- * Run an instance of the script checking thread.
+ * Run instances of script checking worker threads
  */
-void ThreadScriptCheck(int worker_num);
+void StartScriptCheckWorkerThreads(int threads_num);
+
+/**
+ * Stop all of the script checking worker threads
+ */
+void StopScriptCheckWorkerThreads();
 
 /**
  * Return transaction from the block at block_index.
