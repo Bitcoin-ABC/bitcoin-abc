@@ -249,19 +249,14 @@ TestChain100Setup::TestChain100Setup() {
     }
 }
 
-//
-// Create a new block with just given transactions, coinbase paying to
-// scriptPubKey, and try to add it to the current chain.
-//
 CBlock TestChain100Setup::CreateAndProcessBlock(
     const std::vector<CMutableTransaction> &txns, const CScript &scriptPubKey) {
     const Config &config = GetConfig();
-    std::unique_ptr<CBlockTemplate> pblocktemplate =
-        BlockAssembler(config, *m_node.mempool).CreateNewBlock(scriptPubKey);
-    CBlock &block = pblocktemplate->block;
+    CTxMemPool empty_pool;
+    CBlock block =
+        BlockAssembler(config, empty_pool).CreateNewBlock(scriptPubKey)->block;
 
-    // Replace mempool-selected txns with just coinbase plus passed-in txns:
-    block.vtx.resize(1);
+    Assert(block.vtx.size() == 1);
     for (const CMutableTransaction &tx : txns) {
         block.vtx.push_back(MakeTransactionRef(tx));
     }
@@ -291,8 +286,7 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
     Assert(m_node.chainman)
         ->ProcessNewBlock(config, shared_pblock, true, nullptr);
 
-    CBlock result = block;
-    return result;
+    return block;
 }
 
 TestChain100Setup::~TestChain100Setup() {}
