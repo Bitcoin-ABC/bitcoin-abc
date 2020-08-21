@@ -1186,6 +1186,9 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
                                        .Make(NetMsgType::SENDCMPCT,
                                              /*fAnnounceUsingCMPCTBLOCK=*/false,
                                              nCMPCTBLOCKVersion));
+                    // save BIP152 bandwidth state: we select peer to be
+                    // low-bandwidth
+                    pnodeStop->m_bip152_highbandwidth_to = false;
                     return true;
                 });
             lNodesAnnouncingHeaderAndIDs.pop_front();
@@ -1194,6 +1197,8 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
                                        .Make(NetMsgType::SENDCMPCT,
                                              /*fAnnounceUsingCMPCTBLOCK=*/true,
                                              nCMPCTBLOCKVersion));
+        // save BIP152 bandwidth state: we select peer to be high-bandwidth
+        pfrom->m_bip152_highbandwidth_to = true;
         lNodesAnnouncingHeaderAndIDs.push_back(pfrom->GetId());
         return true;
     });
@@ -3809,6 +3814,10 @@ void PeerManagerImpl::ProcessMessage(
 
             State(pfrom.GetId())->fPreferHeaderAndIDs =
                 fAnnounceUsingCMPCTBLOCK;
+            // save whether peer selects us as BIP152 high-bandwidth peer
+            // (receiving sendcmpct(1) signals high-bandwidth,
+            // sendcmpct(0) low-bandwidth)
+            pfrom.m_bip152_highbandwidth_from = fAnnounceUsingCMPCTBLOCK;
             if (!State(pfrom.GetId())->fSupportsDesiredCmpctVersion) {
                 State(pfrom.GetId())->fSupportsDesiredCmpctVersion = true;
             }

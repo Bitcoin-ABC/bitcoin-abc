@@ -160,6 +160,12 @@ static RPCHelpMan getpeerinfo() {
                     {RPCResult::Type::STR, "subver", "The string version"},
                     {RPCResult::Type::BOOL, "inbound",
                      "Inbound (true) or Outbound (false)"},
+                    {RPCResult::Type::BOOL, "bip152_hb_to",
+                     "Whether we selected peer as (compact blocks) "
+                     "high-bandwidth peer"},
+                    {RPCResult::Type::BOOL, "bip152_hb_from",
+                     "Whether peer selected us as (compact blocks) "
+                     "high-bandwidth peer"},
                     {RPCResult::Type::BOOL, "addnode",
                      "Whether connection was due to addnode/-connect or if it "
                      "was an automatic/inbound connection\n(DEPRECATED, "
@@ -278,6 +284,8 @@ static RPCHelpMan getpeerinfo() {
                 // putting special characters in their ver message.
                 obj.pushKV("subver", stats.cleanSubVer);
                 obj.pushKV("inbound", stats.fInbound);
+                obj.pushKV("bip152_hb_to", stats.m_bip152_highbandwidth_to);
+                obj.pushKV("bip152_hb_from", stats.m_bip152_highbandwidth_from);
                 if (IsDeprecatedRPCEnabled(gArgs, "getpeerinfo_addnode")) {
                     // addnode is deprecated in v0.24.5 for removal in v0.25.x
                     obj.pushKV("addnode", stats.m_manual_connection);

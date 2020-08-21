@@ -612,6 +612,8 @@ void CNode::copyStats(CNodeStats &stats) {
     }
     stats.fInbound = IsInboundConn();
     stats.m_manual_connection = IsManualConn();
+    stats.m_bip152_highbandwidth_to = m_bip152_highbandwidth_to;
+    stats.m_bip152_highbandwidth_from = m_bip152_highbandwidth_from;
     {
         LOCK(cs_vSend);
         stats.mapSendBytesPerMsgCmd = mapSendBytesPerMsgCmd;
