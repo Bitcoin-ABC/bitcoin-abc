@@ -3132,7 +3132,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     // then fetch the blocks we need to catch up.
                     best_block = std::move(hash);
                 }
-            } else {
+            } else if (inv.IsMsgTx()) {
                 const TxId txid(inv.hash);
                 const bool fAlreadyHave = AlreadyHaveTx(txid, m_mempool);
                 LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
@@ -3151,6 +3151,10 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                                                  .IsInitialBlockDownload()) {
                     RequestTx(State(pfrom.GetId()), txid, current_time);
                 }
+            } else {
+                LogPrint(BCLog::NET,
+                         "Unknown inv type \"%s\" received from peer=%d\n",
+                         inv.ToString(), pfrom.GetId());
             }
         }
 
