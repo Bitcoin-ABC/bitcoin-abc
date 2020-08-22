@@ -10,7 +10,6 @@ import unittest
 from typing import Optional
 
 from .messages import (
-    COIN,
     XEC,
     CBlock,
     COutPoint,
@@ -81,7 +80,8 @@ def script_BIP34_coinbase_height(height: int) -> CScript:
 
 
 def create_coinbase(
-        height: int, pubkey: Optional[bytes] = None) -> CTransaction:
+        height: int, pubkey: Optional[bytes] = None,
+        nValue: int = 50_000_000) -> CTransaction:
     """Create a coinbase transaction, assuming no miner fees.
 
     If pubkey is passed in, the coinbase output will be a P2PK output;
@@ -91,9 +91,10 @@ def create_coinbase(
                               script_BIP34_coinbase_height(height),
                               0xffffffff))
     coinbaseoutput = CTxOut()
-    coinbaseoutput.nValue = 50 * COIN
-    halvings = int(height / 150)  # regtest
-    coinbaseoutput.nValue >>= halvings
+    coinbaseoutput.nValue = nValue * XEC
+    if nValue == 50_000_000:
+        halvings = int(height / 150)  # regtest
+        coinbaseoutput.nValue >>= halvings
     if pubkey is not None:
         coinbaseoutput.scriptPubKey = CScript([pubkey, OP_CHECKSIG])
     else:
