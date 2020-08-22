@@ -41,6 +41,17 @@ struct CCoinsStats {
 
     bool from_index{false};
 
+    // Following values are only available from coinstats index
+    Amount total_subsidy{Amount::zero()};
+    Amount total_unspendable_amount{Amount::zero()};
+    Amount total_prevout_spent_amount{Amount::zero()};
+    Amount total_new_outputs_ex_coinbase_amount{Amount::zero()};
+    Amount total_coinbase_amount{Amount::zero()};
+    Amount total_unspendables_genesis_block{Amount::zero()};
+    Amount total_unspendables_bip30{Amount::zero()};
+    Amount total_unspendables_scripts{Amount::zero()};
+    Amount total_unspendables_unclaimed_rewards{Amount::zero()};
+
     CCoinsStats(CoinStatsHashType hash_type) : m_hash_type(hash_type) {}
 };
 

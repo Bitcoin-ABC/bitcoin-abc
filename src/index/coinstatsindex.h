@@ -25,6 +25,15 @@ private:
     uint64_t m_transaction_output_count{0};
     uint64_t m_bogo_size{0};
     Amount m_total_amount{Amount::zero()};
+    Amount m_total_subsidy{Amount::zero()};
+    Amount m_total_unspendable_amount{Amount::zero()};
+    Amount m_total_prevout_spent_amount{Amount::zero()};
+    Amount m_total_new_outputs_ex_coinbase_amount{Amount::zero()};
+    Amount m_total_coinbase_amount{Amount::zero()};
+    Amount m_total_unspendables_genesis_block{Amount::zero()};
+    Amount m_total_unspendables_bip30{Amount::zero()};
+    Amount m_total_unspendables_scripts{Amount::zero()};
+    Amount m_total_unspendables_unclaimed_rewards{Amount::zero()};
 
     bool ReverseBlock(const CBlock &block, const CBlockIndex *pindex);
 

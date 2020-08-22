@@ -12,3 +12,5 @@ This release includes the following features and fixes:
 - Users can specify a height or block hash when calling `gettxoutsetinfo` to
   see coin statistics at a specific block height when they use the `-coinstatsindex`
   option.
+- Additional amount tracking information has been added to the output of
+  `gettxoutsetinfo` when the `-coinstatsindex` option is set.
