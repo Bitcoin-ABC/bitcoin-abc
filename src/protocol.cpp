@@ -10,9 +10,6 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 
-#ifndef WIN32
-#include <arpa/inet.h>
-#endif
 #include <atomic>
 
 static std::atomic<bool> g_initial_block_download_completed(false);
