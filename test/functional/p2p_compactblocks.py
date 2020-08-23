@@ -223,10 +223,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         test_node.request_headers_and_sync(locator=[tip])
 
         # Now try a SENDCMPCT message with too-high version
-        sendcmpct = msg_sendcmpct()
-        sendcmpct.version = 999  # was: preferred_version+1
-        sendcmpct.announce = True
-        test_node.send_and_ping(sendcmpct)
+        test_node.send_and_ping(msg_sendcmpct(announce=True, version=999))
         check_announcement_of_new_block(
             node, test_node, lambda p: "cmpctblock" not in p.last_message)
 
@@ -234,9 +231,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         test_node.request_headers_and_sync(locator=[tip])
 
         # Now try a SENDCMPCT message with valid version, but announce=False
-        sendcmpct.version = preferred_version
-        sendcmpct.announce = False
-        test_node.send_and_ping(sendcmpct)
+        test_node.send_and_ping(msg_sendcmpct(announce=False,
+                                              version=preferred_version))
         check_announcement_of_new_block(
             node, test_node, lambda p: "cmpctblock" not in p.last_message)
 
@@ -244,9 +240,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         test_node.request_headers_and_sync(locator=[tip])
 
         # Finally, try a SENDCMPCT message with announce=True
-        sendcmpct.version = preferred_version
-        sendcmpct.announce = True
-        test_node.send_and_ping(sendcmpct)
+        test_node.send_and_ping(msg_sendcmpct(announce=True,
+                                              version=preferred_version))
         check_announcement_of_new_block(
             node, test_node, lambda p: "cmpctblock" in p.last_message)
 
@@ -260,25 +255,21 @@ class CompactBlocksTest(BitcoinTestFramework):
             node, test_node, lambda p: "cmpctblock" in p.last_message)
 
         # Try one more time, after sending a version-1, announce=false message.
-        sendcmpct.version = preferred_version - 1
-        sendcmpct.announce = False
-        test_node.send_and_ping(sendcmpct)
+        test_node.send_and_ping(msg_sendcmpct(announce=False,
+                                              version=preferred_version - 1))
         check_announcement_of_new_block(
             node, test_node, lambda p: "cmpctblock" in p.last_message)
 
         # Now turn off announcements
-        sendcmpct.version = preferred_version
-        sendcmpct.announce = False
-        test_node.send_and_ping(sendcmpct)
+        test_node.send_and_ping(msg_sendcmpct(announce=False,
+                                              version=preferred_version))
         check_announcement_of_new_block(
             node, test_node, lambda p: "cmpctblock" not in p.last_message and "headers" in p.last_message)
 
         if old_node is not None:
             # Verify that a peer using an older protocol version can receive
             # announcements from this node.
-            sendcmpct.version = 1  # preferred_version-1
-            sendcmpct.announce = True
-            old_node.send_and_ping(sendcmpct)
+            old_node.send_and_ping(msg_sendcmpct(announce=True, version=1))
             # Header sync
             old_node.request_headers_and_sync(locator=[tip])
             check_announcement_of_new_block(
@@ -772,11 +763,7 @@ class CompactBlocksTest(BitcoinTestFramework):
     def request_cb_announcements(self, peer, node, version=1):
         tip = node.getbestblockhash()
         peer.get_headers(locator=[int(tip, 16)], hashstop=0)
-
-        msg = msg_sendcmpct()
-        msg.version = version
-        msg.announce = True
-        peer.send_and_ping(msg)
+        peer.send_and_ping(msg_sendcmpct(announce=True, version=version))
 
     def test_compactblock_reconstruction_multiple_peers(
             self, node, stalling_peer, delivery_peer):

@@ -269,10 +269,7 @@ class FullBlockTest(BitcoinTestFramework):
             return (test_p2p.last_sendcmpct is not None)
         self.wait_until(received_sendcmpct, timeout=30)
 
-        sendcmpct = msg_sendcmpct()
-        sendcmpct.version = 1
-        sendcmpct.announce = True
-        test_p2p.send_and_ping(sendcmpct)
+        test_p2p.send_and_ping(msg_sendcmpct(announce=True, version=1))
 
         # Exchange headers
         def received_getheaders():
