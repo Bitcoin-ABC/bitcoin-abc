@@ -4315,13 +4315,6 @@ void PeerLogicValidation::ProcessMessage(
     return;
 }
 
-/**
- * Maybe disconnect a peer and discourage future connections from its address.
- *
- * @param[in]   pnode     The node to check.
- * @return                True if the peer was marked for disconnection in this
- * function
- */
 bool PeerLogicValidation::MaybeDiscourageAndDisconnect(CNode &pnode) {
     const NodeId peer_id{pnode.GetId()};
     PeerRef peer = GetPeerRef(peer_id);
