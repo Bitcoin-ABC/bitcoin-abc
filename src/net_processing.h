@@ -19,6 +19,7 @@ class CBlockHeader;
 class CTxMemPool;
 class ChainstateManager;
 class Config;
+class TxValidationState;
 
 /**
  * Default for -maxorphantx, maximum number of orphan transactions kept in
@@ -141,6 +142,15 @@ private:
                                  const BlockValidationState &state,
                                  bool via_compact_block,
                                  const std::string &message = "");
+
+    /**
+     * Potentially disconnect and discourage a node based on the contents of a
+     * TxValidationState object
+     *
+     * @return Returns true if the peer was punished (probably disconnected)
+     */
+    bool MaybePunishNodeForTx(NodeId nodeid, const TxValidationState &state,
+                              const std::string &message = "");
 
     /**
      * Maybe disconnect a peer and discourage future connections from its

@@ -1420,15 +1420,9 @@ bool PeerManager::MaybePunishNodeForBlock(NodeId nodeid,
     return false;
 }
 
-/**
- * Potentially ban a node based on the contents of a TxValidationState object
- *
- * @return Returns true if the peer was punished (probably disconnected)
- *
- * Changes here may need to be reflected in TxRelayMayResultInDisconnect().
- */
-static bool MaybePunishNodeForTx(NodeId nodeid, const TxValidationState &state,
-                                 const std::string &message = "") {
+bool PeerManager::MaybePunishNodeForTx(NodeId nodeid,
+                                       const TxValidationState &state,
+                                       const std::string &message) {
     switch (state.GetResult()) {
         case TxValidationResult::TX_RESULT_UNSET:
             break;
