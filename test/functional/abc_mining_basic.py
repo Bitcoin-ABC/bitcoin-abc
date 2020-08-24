@@ -6,6 +6,10 @@
 Tests for Bitcoin ABC mining RPCs
 """
 
+from test_framework.cdefs import (
+    BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO,
+    DEFAULT_MAX_BLOCK_SIZE,
+)
 from test_framework.messages import (
     COIN,
 )
@@ -42,6 +46,11 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         # Assert the results of getblocktemplate have expected values. Keys not
         # in 'expected' are not checked.
         def assert_getblocktemplate(expected):
+            # Always test these values in addition to those passed in
+            expected = {**expected, **{
+                'sigoplimit': DEFAULT_MAX_BLOCK_SIZE // BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO,
+            }}
+
             blockTemplate = node.getblocktemplate()
             for key, value in expected.items():
                 assert_equal(blockTemplate[key], value)
