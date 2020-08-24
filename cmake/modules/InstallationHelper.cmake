@@ -11,6 +11,8 @@ function(_add_install_target COMPONENT)
 			COMMENT "Installing component ${COMPONENT}"
 			COMMAND
 				"${CMAKE_COMMAND}"
+				-E env CMAKE_INSTALL_ALWAYS=ON
+				"${CMAKE_COMMAND}"
 				-DCOMPONENT="${COMPONENT}"
 				-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
 				-P cmake_install.cmake
@@ -25,6 +27,25 @@ function(_add_install_target COMPONENT)
 	# Other arguments are additional dependencies
 	if(ARGN)
 		add_dependencies(${INSTALL_TARGET} ${ARGN})
+	endif()
+
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		if(NOT TARGET "install-${COMPONENT}-debug")
+			add_custom_target("install-${COMPONENT}-debug"
+				COMMENT "Splitting out the debug symbols for component ${COMPONENT}"
+				COMMAND
+					"${CMAKE_SOURCE_DIR}/cmake/utils/split-installed-component.sh"
+					"${CMAKE_BINARY_DIR}/contrib/devtools/split-debug.sh"
+					"${CMAKE_BINARY_DIR}/install_manifest_${COMPONENT}.txt"
+				DEPENDS
+					"${INSTALL_TARGET}"
+					"${CMAKE_BINARY_DIR}/contrib/devtools/split-debug.sh"
+			)
+		endif()
+
+		if(TARGET install-debug)
+			add_dependencies(install-debug "install-${COMPONENT}-debug")
+		endif()
 	endif()
 endfunction()
 
