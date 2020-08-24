@@ -65,24 +65,14 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
                                        const CScript &script,
                                        const stacktype &expected) {
     for (uint32_t flags : flagset) {
-        // The script executes as expected regardless of whether or not
-        // SCRIPT_VERIFY_CHECKDATASIG_SIGOPS flag is passed.
-        CheckPass(flags & ~SCRIPT_VERIFY_CHECKDATASIG_SIGOPS, original_stack,
-                  script, expected);
-        CheckPass(flags | SCRIPT_VERIFY_CHECKDATASIG_SIGOPS, original_stack,
-                  script, expected);
+        CheckPass(flags, original_stack, script, expected);
     }
 }
 
 static void CheckErrorForAllFlags(const stacktype &original_stack,
                                   const CScript &script, ScriptError expected) {
     for (uint32_t flags : flagset) {
-        // The script generates the proper error regardless of whether or not
-        // SCRIPT_VERIFY_CHECKDATASIG_SIGOPS flag is passed.
-        CheckError(flags & ~SCRIPT_VERIFY_CHECKDATASIG_SIGOPS, original_stack,
-                   script, expected);
-        CheckError(flags | SCRIPT_VERIFY_CHECKDATASIG_SIGOPS, original_stack,
-                   script, expected);
+        CheckError(flags, original_stack, script, expected);
     }
 }
 
@@ -233,11 +223,6 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
                        ScriptError::CHECKDATASIGVERIFY);
         }
     }
-}
-
-BOOST_AUTO_TEST_CASE(checkdatasig_sigops_inclusion_in_standard_flags) {
-    BOOST_CHECK(STANDARD_SCRIPT_VERIFY_FLAGS &
-                SCRIPT_VERIFY_CHECKDATASIG_SIGOPS);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

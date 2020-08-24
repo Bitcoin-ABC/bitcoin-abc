@@ -1574,7 +1574,6 @@ static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
     // alternative. We also start enforcing push only signatures and
     // clean stack.
     if (IsMagneticAnomalyEnabled(params, pindex)) {
-        flags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
         flags |= SCRIPT_VERIFY_SIGPUSHONLY;
         flags |= SCRIPT_VERIFY_CLEANSTACK;
     }
