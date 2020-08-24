@@ -121,12 +121,27 @@ public:
                         const std::atomic<bool> &interruptMsgProc);
 
     /**
+     * Increment peer's misbehavior score. If the new value >=
+     * DISCOURAGEMENT_THRESHOLD, mark the node to be discouraged, meaning the
+     * peer might be disconnected and added to the discouragement filter. Public
+     * for unit testing.
+     */
+    void Misbehaving(const NodeId pnode, const int howmuch,
+                     const std::string &message);
+
+    /**
      * Retrieve unbroadcast transactions from the mempool and reattempt
      * sending to peers
      */
     void ReattemptInitialBroadcast(CScheduler &scheduler) const;
 
 private:
+    // overloaded variant of above to operate on CNode*s
+    void Misbehaving(const CNode &node, int howmuch,
+                     const std::string &message) {
+        Misbehaving(node.GetId(), howmuch, message);
+    }
+
     /**
      * Potentially mark a node discouraged based on the contents of a
      * BlockValidationState object
@@ -196,13 +211,6 @@ struct CNodeStateStats {
 
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
-/**
- * Increment peer's misbehavior score. If the new value >=
- * DISCOURAGEMENT_THRESHOLD, mark the node to be discouraged, meaning the peer
- * might be disconnected and added to the discouragement filter.
- */
-void Misbehaving(const NodeId nodeid, const int howmuch,
-                 const std::string &message = "");
 
 /** Relay transaction to every node */
 void RelayTransaction(const TxId &txid, const CConnman &connman);

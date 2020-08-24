@@ -86,8 +86,8 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // Get the processor ready.
-        m_processor =
-            std::make_unique<Processor>(*m_node.chain, m_node.connman.get());
+        m_processor = std::make_unique<Processor>(
+            *m_node.chain, m_node.connman.get(), m_node.peerman.get());
 
         // The master private key we delegate to.
         masterpriv.MakeNewKey(true);

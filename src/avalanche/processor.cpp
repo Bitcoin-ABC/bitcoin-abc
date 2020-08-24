@@ -8,7 +8,7 @@
 #include <avalanche/peermanager.h>
 #include <chain.h>
 #include <key_io.h>         // For DecodeSecret
-#include <net_processing.h> // For Misbehaving
+#include <net_processing.h> // For ::PeerManager
 #include <netmessagemaker.h>
 #include <reverse_iterator.h>
 #include <scheduler.h>
@@ -153,9 +153,11 @@ public:
     }
 };
 
-Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn)
-    : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
-      round(0), peerManager(std::make_unique<PeerManager>()) {
+Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn,
+                     NodePeerManager *nodePeerManagerIn)
+    : connman(connmanIn), nodePeerManager(nodePeerManagerIn),
+      queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT), round(0),
+      peerManager(std::make_unique<PeerManager>()) {
     if (gArgs.IsArgSet("-avasessionkey")) {
         sessionKey = DecodeSecret(gArgs.GetArg("-avasessionkey", ""));
     } else {
@@ -299,7 +301,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         auto w = queries.getWriteView();
         auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
-            Misbehaving(nodeid, 2, "unexpcted-ava-response");
+            nodePeerManager->Misbehaving(nodeid, 2, "unexpcted-ava-response");
             return false;
         }
 
@@ -311,13 +313,14 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     const std::vector<Vote> &votes = response.GetVotes();
     size_t size = invs.size();
     if (votes.size() != size) {
-        Misbehaving(nodeid, 100, "invalid-ava-response-size");
+        nodePeerManager->Misbehaving(nodeid, 100, "invalid-ava-response-size");
         return false;
     }
 
     for (size_t i = 0; i < size; i++) {
         if (invs[i].hash != votes[i].GetHash()) {
-            Misbehaving(nodeid, 100, "invalid-ava-response-content");
+            nodePeerManager->Misbehaving(nodeid, 100,
+                                         "invalid-ava-response-content");
             return false;
         }
     }

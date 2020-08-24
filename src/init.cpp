@@ -2429,8 +2429,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 6.5 (I guess ?): Initialize Avalanche.
-    g_avalanche =
-        std::make_unique<avalanche::Processor>(*node.chain, node.connman.get());
+    g_avalanche = std::make_unique<avalanche::Processor>(
+        *node.chain, node.connman.get(), node.peerman.get());
 
     // Step 7: load block chain
 

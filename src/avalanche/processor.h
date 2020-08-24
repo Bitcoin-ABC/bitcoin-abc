@@ -29,6 +29,9 @@
 class Config;
 class CBlockIndex;
 class CScheduler;
+class PeerManager;
+
+using NodePeerManager = PeerManager;
 
 /**
  * Is avalanche enabled by default.
@@ -191,6 +194,7 @@ namespace {
 
 class Processor {
     CConnman *connman;
+    NodePeerManager *nodePeerManager;
     std::chrono::milliseconds queryTimeoutDuration;
 
     /**
@@ -252,7 +256,8 @@ class Processor {
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
 public:
-    Processor(interfaces::Chain &chain, CConnman *connmanIn);
+    Processor(interfaces::Chain &chain, CConnman *connmanIn,
+              NodePeerManager *nodePeerManagerIn);
     ~Processor();
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {
