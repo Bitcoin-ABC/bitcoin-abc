@@ -2123,12 +2123,9 @@ inline static void SendBlockTransactions(const CBlock &block,
                         msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
-static void ProcessHeadersMessage(const Config &config, CNode &pfrom,
-                                  CConnman &connman, CTxMemPool &mempool,
-                                  ChainstateManager &chainman,
-                                  const std::vector<CBlockHeader> &headers,
-                                  bool via_compact_block) {
-    const CChainParams &chainparams = config.GetChainParams();
+void PeerManager::ProcessHeadersMessage(
+    const Config &config, CNode &pfrom,
+    const std::vector<CBlockHeader> &headers, bool via_compact_block) {
     const CNetMsgMaker msgMaker(pfrom.GetSendVersion());
     size_t nCount = headers.size();
 
@@ -2154,7 +2151,7 @@ static void ProcessHeadersMessage(const Config &config, CNode &pfrom,
         if (!LookupBlockIndex(headers[0].hashPrevBlock) &&
             nCount < MAX_BLOCKS_TO_ANNOUNCE) {
             nodestate->nUnconnectingHeaders++;
-            connman.PushMessage(
+            m_connman.PushMessage(
                 &pfrom,
                 msgMaker.Make(NetMsgType::GETHEADERS,
                               ::ChainActive().GetLocator(pindexBestHeader),
@@ -2199,7 +2196,8 @@ static void ProcessHeadersMessage(const Config &config, CNode &pfrom,
     }
 
     BlockValidationState state;
-    if (!chainman.ProcessNewBlockHeaders(config, headers, state, &pindexLast)) {
+    if (!m_chainman.ProcessNewBlockHeaders(config, headers, state,
+                                           &pindexLast)) {
         if (state.IsInvalid()) {
             MaybePunishNodeForBlock(pfrom.GetId(), state, via_compact_block,
                                     "invalid header received");
@@ -2239,13 +2237,13 @@ static void ProcessHeadersMessage(const Config &config, CNode &pfrom,
                 BCLog::NET,
                 "more getheaders (%d) to end to peer=%d (startheight:%d)\n",
                 pindexLast->nHeight, pfrom.GetId(), pfrom.nStartingHeight);
-            connman.PushMessage(
+            m_connman.PushMessage(
                 &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                       ::ChainActive().GetLocator(pindexLast),
                                       uint256()));
         }
 
-        bool fCanDirectFetch = CanDirectFetch(chainparams.GetConsensus());
+        bool fCanDirectFetch = CanDirectFetch(m_chainparams.GetConsensus());
         // If this set of headers is valid and ends in a block with at least as
         // much work as our tip, download as much as possible.
         if (fCanDirectFetch && pindexLast->IsValid(BlockValidity::TREE) &&
@@ -2281,9 +2279,9 @@ static void ProcessHeadersMessage(const Config &config, CNode &pfrom,
                         break;
                     }
                     vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                    MarkBlockAsInFlight(config, mempool, pfrom.GetId(),
+                    MarkBlockAsInFlight(config, m_mempool, pfrom.GetId(),
                                         pindex->GetBlockHash(),
-                                        chainparams.GetConsensus(), pindex);
+                                        m_chainparams.GetConsensus(), pindex);
                     LogPrint(BCLog::NET, "Requesting block %s from  peer=%d\n",
                              pindex->GetBlockHash().ToString(), pfrom.GetId());
                 }
@@ -2302,7 +2300,7 @@ static void ProcessHeadersMessage(const Config &config, CNode &pfrom,
                         // block, not a regular one.
                         vGetData[0] = CInv(MSG_CMPCT_BLOCK, vGetData[0].hash);
                     }
-                    connman.PushMessage(
+                    m_connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::GETDATA, vGetData));
                 }
             }
@@ -3720,8 +3718,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             // disconnect the peer if the header turns out to be for an invalid
             // block. Note that if a peer tries to build on an invalid chain,
             // that will be detected and the peer will be banned.
-            return ProcessHeadersMessage(config, pfrom, m_connman, m_mempool,
-                                         m_chainman, {cmpctblock.header},
+            return ProcessHeadersMessage(config, pfrom, {cmpctblock.header},
                                          /*via_compact_block=*/true);
         }
 
@@ -3891,8 +3888,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             ReadCompactSize(vRecv);
         }
 
-        return ProcessHeadersMessage(config, pfrom, m_connman, m_mempool,
-                                     m_chainman, headers,
+        return ProcessHeadersMessage(config, pfrom, headers,
                                      /*via_compact_block=*/false);
     }
 

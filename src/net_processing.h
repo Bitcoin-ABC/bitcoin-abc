@@ -14,6 +14,7 @@
 extern RecursiveMutex cs_main;
 extern RecursiveMutex g_cs_orphans;
 
+class CBlockHeader;
 class CTxMemPool;
 class ChainstateManager;
 class Config;
@@ -132,6 +133,11 @@ private:
      * this function
      */
     bool MaybeDiscourageAndDisconnect(CNode &pnode);
+
+    /** Process a single headers message from a peer. */
+    void ProcessHeadersMessage(const Config &config, CNode &pfrom,
+                               const std::vector<CBlockHeader> &headers,
+                               bool via_compact_block);
 
     const CChainParams &m_chainparams;
     CConnman &m_connman;
