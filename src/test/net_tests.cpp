@@ -12,7 +12,9 @@
 #include <netbase.h>
 #include <serialize.h>
 #include <streams.h>
+#include <util/strencodings.h>
 #include <util/string.h>
+#include <version.h>
 
 #include <test/util/setup_common.h>
 
@@ -294,6 +296,79 @@ BOOST_AUTO_TEST_CASE(LocalAddress_BasicLifecycle) {
 
     RemoveLocal(addr);
     BOOST_CHECK_EQUAL(IsLocal(addr), false);
+}
+
+BOOST_AUTO_TEST_CASE(cnetaddr_basic) {
+    CNetAddr addr;
+
+    // IPv4, INADDR_ANY
+    BOOST_REQUIRE(LookupHost("0.0.0.0", addr, false));
+    BOOST_REQUIRE(!addr.IsValid());
+    BOOST_REQUIRE(addr.IsIPv4());
+
+    BOOST_CHECK(addr.IsBindAny());
+    BOOST_CHECK_EQUAL(addr.ToString(), "0.0.0.0");
+
+    // IPv4, INADDR_NONE
+    BOOST_REQUIRE(LookupHost("255.255.255.255", addr, false));
+    BOOST_REQUIRE(!addr.IsValid());
+    BOOST_REQUIRE(addr.IsIPv4());
+
+    BOOST_CHECK(!addr.IsBindAny());
+    BOOST_CHECK_EQUAL(addr.ToString(), "255.255.255.255");
+
+    // IPv4, casual
+    BOOST_REQUIRE(LookupHost("12.34.56.78", addr, false));
+    BOOST_REQUIRE(addr.IsValid());
+    BOOST_REQUIRE(addr.IsIPv4());
+
+    BOOST_CHECK(!addr.IsBindAny());
+    BOOST_CHECK_EQUAL(addr.ToString(), "12.34.56.78");
+
+    // IPv6, in6addr_any
+    BOOST_REQUIRE(LookupHost("::", addr, false));
+    BOOST_REQUIRE(!addr.IsValid());
+    BOOST_REQUIRE(addr.IsIPv6());
+
+    BOOST_CHECK(addr.IsBindAny());
+    BOOST_CHECK_EQUAL(addr.ToString(), "::");
+
+    // IPv6, casual
+    BOOST_REQUIRE(
+        LookupHost("1122:3344:5566:7788:9900:aabb:ccdd:eeff", addr, false));
+    BOOST_REQUIRE(addr.IsValid());
+    BOOST_REQUIRE(addr.IsIPv6());
+
+    BOOST_CHECK(!addr.IsBindAny());
+    BOOST_CHECK_EQUAL(addr.ToString(),
+                      "1122:3344:5566:7788:9900:aabb:ccdd:eeff");
+
+    // TORv2
+    addr.SetSpecial("6hzph5hv6337r6p2.onion");
+    BOOST_REQUIRE(addr.IsValid());
+    BOOST_REQUIRE(addr.IsTor());
+
+    BOOST_CHECK(!addr.IsBindAny());
+    BOOST_CHECK_EQUAL(addr.ToString(), "6hzph5hv6337r6p2.onion");
+
+    // Internal
+    addr.SetInternal("esffpp");
+    // "internal" is considered invalid
+    BOOST_REQUIRE(!addr.IsValid());
+    BOOST_REQUIRE(addr.IsInternal());
+
+    BOOST_CHECK(!addr.IsBindAny());
+    BOOST_CHECK_EQUAL(addr.ToString(), "esffpvrt3wpeaygy.internal");
+}
+
+BOOST_AUTO_TEST_CASE(cnetaddr_serialize) {
+    CNetAddr addr;
+    CDataStream s(SER_NETWORK, PROTOCOL_VERSION);
+
+    addr.SetInternal("a");
+    s << addr;
+    BOOST_CHECK_EQUAL(HexStr(s), "fd6b88c08724ca978112ca1bbdcafac2");
+    s.clear();
 }
 
 // prior to PR #14728, this test triggers an undefined behavior

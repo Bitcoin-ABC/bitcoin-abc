@@ -49,7 +49,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     }
     int asmap_size = 3 + (buffer[0] & 127);
     bool ipv6 = buffer[0] & 128;
-    int addr_size = ipv6 ? 16 : 4;
+    const size_t addr_size = ipv6 ? ADDR_IPV6_SIZE : ADDR_IPV4_SIZE;
     if (buffer.size() < size_t(1 + asmap_size + addr_size)) {
         return;
     }
@@ -63,7 +63,17 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     if (!SanityCheckASMap(asmap)) {
         return;
     }
+
+    const uint8_t *addr_data = buffer.data() + 1 + asmap_size;
     CNetAddr net_addr;
-    net_addr.SetRaw(ipv6 ? NET_IPV6 : NET_IPV4, buffer.data() + 1 + asmap_size);
+    if (ipv6) {
+        assert(addr_size == ADDR_IPV6_SIZE);
+        net_addr.SetLegacyIPv6(Span<const uint8_t>(addr_data, addr_size));
+    } else {
+        assert(addr_size == ADDR_IPV4_SIZE);
+        in_addr ipv4;
+        memcpy(&ipv4, addr_data, addr_size);
+        net_addr.SetIP(CNetAddr{ipv4});
+    }
     (void)net_addr.GetMappedAS(asmap);
 }

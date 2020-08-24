@@ -901,8 +901,8 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &ret) {
         CNetAddr network = vIP[0];
         if (slash != strSubnet.npos) {
             std::string strNetmask = strSubnet.substr(slash + 1);
-            int32_t n;
-            if (ParseInt32(strNetmask, &n)) {
+            uint8_t n;
+            if (ParseUInt8(strNetmask, &n)) {
                 // If valid number, assume CIDR variable-length subnet masking
                 ret = CSubNet(network, n);
                 return ret.IsValid();
