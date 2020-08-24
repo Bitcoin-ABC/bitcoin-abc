@@ -2088,9 +2088,8 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
     }
 }
 
-inline static void SendBlockTransactions(const CBlock &block,
-                                         const BlockTransactionsRequest &req,
-                                         CNode &pfrom, CConnman &connman) {
+void PeerManager::SendBlockTransactions(CNode &pfrom, const CBlock &block,
+                                        const BlockTransactionsRequest &req) {
     BlockTransactions resp(req);
     for (size_t i = 0; i < req.indices.size(); i++) {
         if (req.indices[i] >= block.vtx.size()) {
@@ -2103,8 +2102,8 @@ inline static void SendBlockTransactions(const CBlock &block,
     LOCK(cs_main);
     const CNetMsgMaker msgMaker(pfrom.GetSendVersion());
     int nSendFlags = 0;
-    connman.PushMessage(&pfrom,
-                        msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
+    m_connman.PushMessage(
+        &pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
 void PeerManager::ProcessHeadersMessage(
@@ -3198,7 +3197,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             // Unlock cs_most_recent_block to avoid cs_main lock inversion
         }
         if (recent_block) {
-            SendBlockTransactions(*recent_block, req, pfrom, m_connman);
+            SendBlockTransactions(pfrom, *recent_block, req);
             return;
         }
 
@@ -3238,7 +3237,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             ReadBlockFromDisk(block, pindex, m_chainparams.GetConsensus());
         assert(ret);
 
-        SendBlockTransactions(block, req, pfrom, m_connman);
+        SendBlockTransactions(pfrom, block, req);
         return;
     }
 

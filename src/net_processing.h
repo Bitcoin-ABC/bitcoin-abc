@@ -14,6 +14,7 @@
 extern RecursiveMutex cs_main;
 extern RecursiveMutex g_cs_orphans;
 
+class BlockTransactionsRequest;
 class BlockValidationState;
 class CBlockHeader;
 class CTxMemPool;
@@ -168,6 +169,9 @@ private:
     void ProcessHeadersMessage(const Config &config, CNode &pfrom,
                                const std::vector<CBlockHeader> &headers,
                                bool via_compact_block);
+
+    void SendBlockTransactions(CNode &pfrom, const CBlock &block,
+                               const BlockTransactionsRequest &req);
 
     const CChainParams &m_chainparams;
     CConnman &m_connman;
