@@ -7,10 +7,12 @@
 Test that permissions are correctly calculated and applied
 """
 
-from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE
+from test_framework.address import (
+    ADDRESS_ECREG_P2SH_OP_TRUE,
+    SCRIPTSIG_OP_TRUE,
+)
 from test_framework.messages import CTransaction, FromHex
 from test_framework.p2p import P2PDataStore
-from test_framework.script import OP_TRUE, CScript, CScriptOp
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.txtools import pad_tx
@@ -139,7 +141,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
                          inputs=[{'txid': block_op_true['tx'][0], 'vout': 0}],
                          outputs=[{ADDRESS_ECREG_P2SH_OP_TRUE: 50}]))
         # push the one byte script to the stack
-        tx.vin[0].scriptSig = CScriptOp.encode_op_pushdata(CScript([OP_TRUE]))
+        tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx)
         txid = tx.rehash()
 

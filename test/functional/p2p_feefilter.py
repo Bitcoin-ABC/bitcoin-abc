@@ -10,10 +10,7 @@ from test_framework.messages import MSG_TX, msg_feefilter
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
-
-
-def hashToHex(hash):
-    return format(hash, '064x')
+from test_framework.wallet import MiniWallet
 
 
 class FeefilterConn(P2PInterface):
@@ -35,7 +32,7 @@ class TestP2PConn(P2PInterface):
     def on_inv(self, message):
         for i in message.inv:
             if (i.type == MSG_TX):
-                self.txinvs.append(hashToHex(i.hash))
+                self.txinvs.append('{:064x}'.format(i.hash))
 
     def wait_for_invs_to_match(self, invs_expected):
         invs_expected.sort()
@@ -62,9 +59,6 @@ class FeeFilterTest(BitcoinTestFramework):
             "-whitelist=noban@127.0.0.1",
         ]] * self.num_nodes
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def run_test(self):
         self.test_feefilter_forcerelay()
         self.test_feefilter()
@@ -88,13 +82,18 @@ class FeeFilterTest(BitcoinTestFramework):
     def test_feefilter(self):
         node1 = self.nodes[1]
         node0 = self.nodes[0]
+        miniwallet = MiniWallet(node1)
+        # Add enough mature utxos to the wallet, so that all txs spend
+        # confirmed coins
+        miniwallet.generate(5)
+        node1.generate(100)
 
         conn = self.nodes[0].add_p2p_connection(TestP2PConn())
 
         self.log.info(
             "Test txs paying 0.2 sat/byte are received by test connection")
-        node1.settxfee(Decimal("2"))
-        txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
+        txids = [miniwallet.send_self_transfer(fee_rate=Decimal('2.00'),
+                                               from_node=node1)['txid']
                  for _ in range(3)]
         conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
@@ -104,16 +103,17 @@ class FeeFilterTest(BitcoinTestFramework):
 
         self.log.info(
             "Test txs paying 0.15 sat/byte are received by test connection")
-        node1.settxfee(Decimal("1.5"))
-        txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
+        txids = [miniwallet.send_self_transfer(fee_rate=Decimal('1.50'),
+                                               from_node=node1)['txid']
                  for _ in range(3)]
         conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
 
         self.log.info(
             "Test txs paying 0.1 sat/byte are no longer received by test connection")
-        node1.settxfee(Decimal("1"))
-        [node1.sendtoaddress(node1.getnewaddress(), 1000000) for _ in range(3)]
+        txids = [miniwallet.send_self_transfer(fee_rate=Decimal('1.00'),
+                                               from_node=node1)['txid']
+                 for _ in range(3)]
         self.sync_mempools()  # must be sure node 0 has received all txs
 
         # Send one transaction from node0 that should be received, so that we
@@ -123,14 +123,16 @@ class FeeFilterTest(BitcoinTestFramework):
         # to 35 entries in an inv, which means that when this next transaction
         # is eligible for relay, the prior transactions from node1 are eligible
         # as well.
-        node0.settxfee(Decimal("200.00"))
-        txids = [node0.sendtoaddress(node0.getnewaddress(), 1000000)]
+        txids = [miniwallet.send_self_transfer(fee_rate=Decimal('200.00'),
+                                               from_node=node0)['txid']
+                 for _ in range(3)]
         conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
 
         self.log.info("Remove fee filter and check txs are received again")
         conn.send_and_ping(msg_feefilter(0))
-        txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
+        txids = [miniwallet.send_self_transfer(fee_rate=Decimal('200.00'),
+                                               from_node=node1)['txid']
                  for _ in range(3)]
         conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
