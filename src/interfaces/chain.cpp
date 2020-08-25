@@ -221,8 +221,8 @@ namespace {
         std::optional<int>
         findLocatorFork(const CBlockLocator &locator) override {
             LOCK(cs_main);
-            if (CBlockIndex *fork =
-                    FindForkInGlobalIndex(::ChainActive(), locator)) {
+            if (CBlockIndex *fork = g_chainman.m_blockman.FindForkInGlobalIndex(
+                    ::ChainActive(), locator)) {
                 return fork->nHeight;
             }
             return std::nullopt;
