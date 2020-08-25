@@ -3844,6 +3844,21 @@ bool CheckBlock(const CBlock &block, BlockValidationState &state,
     return true;
 }
 
+CBlockIndex *BlockManager::GetLastCheckpoint(const CCheckpointData &data) {
+    const MapCheckpoints &checkpoints = data.mapCheckpoints;
+
+    for (const MapCheckpoints::value_type &i : reverse_iterate(checkpoints)) {
+        const BlockHash &hash = i.second;
+        assert(std::addressof(g_chainman.m_blockman) == std::addressof(*this));
+        CBlockIndex *pindex = LookupBlockIndex(hash);
+        if (pindex) {
+            return pindex;
+        }
+    }
+
+    return nullptr;
+}
+
 /**
  * Context-dependent validity checks.
  * By "context", we mean only the previous block headers, but not the UTXO
@@ -3886,7 +3901,8 @@ static bool ContextualCheckBlockHeader(const CChainParams &params,
         // Don't accept any forks from the main chain prior to last checkpoint.
         // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's
         // in our BlockIndex().
-        CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(checkpoints);
+        CBlockIndex *pcheckpoint =
+            g_chainman.m_blockman.GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
             LogPrintf("ERROR: %s: forked chain older than last checkpoint "
                       "(height %d)\n",

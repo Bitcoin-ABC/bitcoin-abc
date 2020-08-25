@@ -29,7 +29,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "script/scriptcache -> validation -> script/scriptcache"
     "seeder/bitcoin -> seeder/db -> seeder/bitcoin"
     "chainparams -> protocol -> config -> chainparams"
-    "checkpoints -> validation -> checkpoints"
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
 )
 

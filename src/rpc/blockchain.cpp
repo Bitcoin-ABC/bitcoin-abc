@@ -10,7 +10,6 @@
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
-#include <checkpoints.h>
 #include <coins.h>
 #include <config.h>
 #include <consensus/validation.h>

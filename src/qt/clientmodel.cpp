@@ -4,7 +4,6 @@
 
 #include <qt/clientmodel.h>
 
-#include <checkpoints.h>
 #include <clientversion.h>
 #include <config.h>
 #include <interfaces/handler.h>

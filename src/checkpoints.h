@@ -5,7 +5,6 @@
 #ifndef BITCOIN_CHECKPOINTS_H
 #define BITCOIN_CHECKPOINTS_H
 
-class CBlockIndex;
 struct BlockHash;
 struct CCheckpointData;
 
@@ -18,9 +17,6 @@ namespace Checkpoints {
 //! Returns true if block passes checkpoint checks
 bool CheckBlock(const CCheckpointData &data, int nHeight,
                 const BlockHash &hash);
-
-//! Returns last CBlockIndex* that is a checkpoint
-CBlockIndex *GetLastCheckpoint(const CCheckpointData &data);
 
 } // namespace Checkpoints
 
