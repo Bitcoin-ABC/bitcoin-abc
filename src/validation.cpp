@@ -4506,11 +4506,11 @@ uint64_t CalculateCurrentUsage() {
     return retval;
 }
 
-void ChainstateManager::PruneOneBlockFile(const int fileNumber) {
+void BlockManager::PruneOneBlockFile(const int fileNumber) {
     AssertLockHeld(cs_main);
     LOCK(cs_LastBlockFile);
 
-    for (const auto &entry : m_blockman.m_block_index) {
+    for (const auto &entry : m_block_index) {
         CBlockIndex *pindex = entry.second;
         if (pindex->nFile == fileNumber) {
             pindex->nStatus = pindex->nStatus.withData(false).withUndo(false);
@@ -4523,14 +4523,13 @@ void ChainstateManager::PruneOneBlockFile(const int fileNumber) {
             // to be downloaded again in order to consider its chain, at which
             // point it would be considered as a candidate for
             // m_blocks_unlinked or setBlockIndexCandidates.
-            auto range =
-                m_blockman.m_blocks_unlinked.equal_range(pindex->pprev);
+            auto range = m_blocks_unlinked.equal_range(pindex->pprev);
             while (range.first != range.second) {
                 std::multimap<CBlockIndex *, CBlockIndex *>::iterator _it =
                     range.first;
                 range.first++;
                 if (_it->second == pindex) {
-                    m_blockman.m_blocks_unlinked.erase(_it);
+                    m_blocks_unlinked.erase(_it);
                 }
             }
         }
@@ -4574,7 +4573,7 @@ static void FindFilesToPruneManual(ChainstateManager &chainman,
             vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune) {
             continue;
         }
-        chainman.PruneOneBlockFile(fileNumber);
+        chainman.m_blockman.PruneOneBlockFile(fileNumber);
         setFilesToPrune.insert(fileNumber);
         count++;
     }
@@ -4665,7 +4664,7 @@ static void FindFilesToPrune(ChainstateManager &chainman,
                 continue;
             }
 
-            chainman.PruneOneBlockFile(fileNumber);
+            chainman.m_blockman.PruneOneBlockFile(fileNumber);
             // Queue up the files for removal
             setFilesToPrune.insert(fileNumber);
             nCurrentUsage -= nBytesToPrune;

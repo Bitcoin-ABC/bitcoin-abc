@@ -628,6 +628,10 @@ public:
     CBlockIndex *InsertBlockIndex(const BlockHash &hash)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+    //! Mark one block file as pruned (modify associated database entries)
+    void PruneOneBlockFile(const int fileNumber)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     /**
      * If a block header hasn't already been seen, call CheckBlockHeader on it,
      * ensure that it doesn't descend from an invalid block, and then add it to
@@ -1214,10 +1218,6 @@ public:
                                 BlockValidationState &state,
                                 const CBlockIndex **ppindex = nullptr)
         LOCKS_EXCLUDED(cs_main);
-
-    //! Mark one block file as pruned (modify associated database entries)
-    void PruneOneBlockFile(const int fileNumber)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     //! Load the block tree and coins database from disk, initializing state if
     //! we're running with -reindex
