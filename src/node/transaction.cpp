@@ -50,7 +50,7 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
         if (!node.mempool->exists(txid)) {
             // Transaction is not already in the mempool. Submit it.
             TxValidationState state;
-            if (!AcceptToMemoryPool(config, *node.mempool, state, std::move(tx),
+            if (!AcceptToMemoryPool(config, *node.mempool, state, tx,
                                     false /* bypass_limits */, max_tx_fee)) {
                 err_string = state.ToString();
                 if (state.IsInvalid()) {
