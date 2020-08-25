@@ -550,7 +550,8 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     }
 
     Amount nFees = Amount::zero();
-    if (!Consensus::CheckTxInputs(tx, state, m_view, GetSpendHeight(m_view),
+    if (!Consensus::CheckTxInputs(tx, state, m_view,
+                                  g_chainman.m_blockman.GetSpendHeight(m_view),
                                   nFees)) {
         // state filled in by CheckTxInputs
         return false;
@@ -1125,10 +1126,10 @@ bool CScriptCheck::operator()() {
     return true;
 }
 
-int GetSpendHeight(const CCoinsViewCache &inputs) {
-    LOCK(cs_main);
-    CBlockIndex *pindexPrev =
-        g_chainman.m_blockman.LookupBlockIndex(inputs.GetBestBlock());
+int BlockManager::GetSpendHeight(const CCoinsViewCache &inputs) {
+    AssertLockHeld(cs_main);
+    assert(std::addressof(g_chainman.m_blockman) == std::addressof(*this));
+    CBlockIndex *pindexPrev = LookupBlockIndex(inputs.GetBestBlock());
     return pindexPrev->nHeight + 1;
 }
 
