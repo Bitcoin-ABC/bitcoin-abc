@@ -316,11 +316,21 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 endif()
 
 include(InstallationHelper)
+
+# If this project is not the top level project, then don't install by default
+get_directory_property(SECP256K1_PARENT_DIRECTORY PARENT_DIRECTORY)
+if(SECP256K1_PARENT_DIRECTORY)
+  set(SECP256K1_INSTALL_EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
+endif()
+
 if(BUILD_SHARED_LIBS)
-	install_shared_library(secp256k1 PUBLIC_HEADER ${SECP256K1_PUBLIC_HEADERS})
+	install_shared_library(secp256k1
+		PUBLIC_HEADER ${SECP256K1_PUBLIC_HEADERS}
+		${SECP256K1_INSTALL_EXCLUDE_FROM_ALL}
+	)
 else()
 	set_property(TARGET secp256k1 PROPERTY PUBLIC_HEADER ${SECP256K1_PUBLIC_HEADERS})
-	install_target(secp256k1)
+	install_target(secp256k1 ${SECP256K1_INSTALL_EXCLUDE_FROM_ALL})
 endif()
 
 # Generate the config
@@ -343,7 +353,7 @@ if(SECP256K1_ENABLE_JNI)
 		src/java/org_bitcoin_Secp256k1Context.c
 	)
 
-	install_shared_library(secp256k1_jni)
+	install_shared_library(secp256k1_jni ${SECP256K1_INSTALL_EXCLUDE_FROM_ALL})
 
 	target_include_directories(secp256k1_jni PUBLIC ${JNI_INCLUDE_DIRS})
 	# As per CMake documentation: the POSITION_INDEPENDENT_CODE property is set

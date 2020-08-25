@@ -86,7 +86,7 @@ endfunction()
 
 function(install_shared_library NAME)
 	cmake_parse_arguments(ARG
-		""
+		"EXCLUDE_FROM_ALL"
 		""
 		"PUBLIC_HEADER"
 		${ARGN}
@@ -134,7 +134,12 @@ function(install_shared_library NAME)
 
 	set_target_properties(${_shared_name} PROPERTIES ${_properties})
 
-	install_target(${_shared_name})
+	# Forward EXCLUDE_FROM_ALL if set
+	if(ARG_EXCLUDE_FROM_ALL)
+		set(FORWARD_EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
+	endif()
+
+	install_target(${_shared_name} ${FORWARD_EXCLUDE_FROM_ALL})
 endfunction()
 
 function(install_manpages)
