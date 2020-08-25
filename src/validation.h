@@ -224,7 +224,7 @@ bool LoadGenesisBlock(const CChainParams &chainparams);
 /**
  * Unload database information.
  */
-void UnloadBlockIndex(CTxMemPool *mempool);
+void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman);
 
 /**
  * Run an instance of the script checking thread.
