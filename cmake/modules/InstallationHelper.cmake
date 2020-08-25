@@ -4,6 +4,13 @@ include(GNUInstallDirs)
 include(SanitizeHelper)
 
 function(_add_install_target COMPONENT)
+	cmake_parse_arguments(ARG
+		"EXCLUDE_FROM_ALL"
+		""
+		"DEPENDS"
+		${ARGN}
+	)
+
 	sanitize_target_name("install-" "${COMPONENT}" INSTALL_TARGET)
 
 	if(NOT TARGET ${INSTALL_TARGET})
@@ -25,8 +32,8 @@ function(_add_install_target COMPONENT)
 	endif()
 
 	# Other arguments are additional dependencies
-	if(ARGN)
-		add_dependencies(${INSTALL_TARGET} ${ARGN})
+	if(ARG_DEPENDS)
+		add_dependencies(${INSTALL_TARGET} ${ARG_DEPENDS})
 	endif()
 
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -45,15 +52,19 @@ function(_add_install_target COMPONENT)
 			)
 		endif()
 
-		if(TARGET install-debug)
+		if(NOT ARG_EXCLUDE_FROM_ALL AND TARGET install-debug)
 			add_dependencies(install-debug "install-${COMPONENT}-debug")
+		endif()
+
+		if(TARGET install-all-debug)
+			add_dependencies(install-all-debug "install-${COMPONENT}-debug")
 		endif()
 	endif()
 endfunction()
 
 function(install_target _target)
 	cmake_parse_arguments(ARG
-		""
+		"EXCLUDE_FROM_ALL"
 		"COMPONENT"
 		""
 		${ARGN}
@@ -63,27 +74,36 @@ function(install_target _target)
 		set(ARG_COMPONENT ${PROJECT_NAME})
 	endif()
 
+	if(ARG_EXCLUDE_FROM_ALL)
+		set(INSTALL_EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
+	endif()
+
+	set(COMMON_INSTALL_ARGUMENTS
+		COMPONENT ${ARG_COMPONENT}
+		${INSTALL_EXCLUDE_FROM_ALL}
+		${ARG_UNPARSED_ARGUMENTS}
+	)
+
 	install(
 		TARGETS ${_target}
 		RUNTIME
 			DESTINATION "${CMAKE_INSTALL_BINDIR}"
-			COMPONENT ${ARG_COMPONENT}
-			${ARG_UNPARSED_ARGUMENTS}
+			${COMMON_INSTALL_ARGUMENTS}
 		ARCHIVE
 			DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-			COMPONENT ${ARG_COMPONENT}
-			${ARG_UNPARSED_ARGUMENTS}
+			${COMMON_INSTALL_ARGUMENTS}
 		LIBRARY
 			DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-			COMPONENT ${ARG_COMPONENT}
-			${ARG_UNPARSED_ARGUMENTS}
+			${COMMON_INSTALL_ARGUMENTS}
 		PUBLIC_HEADER
 			DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-			COMPONENT ${ARG_COMPONENT}
-			${ARG_UNPARSED_ARGUMENTS}
+			${COMMON_INSTALL_ARGUMENTS}
 	)
 
-	_add_install_target("${ARG_COMPONENT}" ${_target})
+	_add_install_target("${ARG_COMPONENT}"
+		${INSTALL_EXCLUDE_FROM_ALL}
+		DEPENDS ${_target}
+	)
 endfunction()
 
 function(install_shared_library NAME)
