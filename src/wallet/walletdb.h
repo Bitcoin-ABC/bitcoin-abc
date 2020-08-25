@@ -293,9 +293,13 @@ private:
 //! changes)
 void MaybeCompactWalletDB();
 
+//! Callback for filtering key types to deserialize in ReadKeyValue
+using KeyFilterFn = std::function<bool(const std::string &)>;
+
 //! Unserialize a given Key-Value pair and load it into the wallet
 bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
-                  std::string &strType, std::string &strErr);
+                  std::string &strType, std::string &strErr,
+                  const KeyFilterFn &filter_fn = nullptr);
 
 /** Return whether a wallet database is currently loaded. */
 bool IsWalletLoaded(const fs::path &wallet_path);
