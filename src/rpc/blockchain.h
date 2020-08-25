@@ -5,12 +5,14 @@
 #ifndef BITCOIN_RPC_BLOCKCHAIN_H
 #define BITCOIN_RPC_BLOCKCHAIN_H
 
+#include <streams.h>
 #include <sync.h>
 
 #include <univalue.h>
 
 class CBlock;
 class CBlockIndex;
+class CChainState;
 class ChainstateManager;
 class CTxMemPool;
 class RPCHelpMan;
@@ -54,5 +56,12 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
 NodeContext &EnsureNodeContext(const util::Ref &context);
 CTxMemPool &EnsureMemPool(const util::Ref &context);
 ChainstateManager &EnsureChainman(const util::Ref &context);
+
+/**
+ * Helper to create UTXO snapshots given a chainstate and a file handle.
+ * @return a UniValue map containing metadata about the snapshot.
+ */
+UniValue CreateUTXOSnapshot(NodeContext &node, CChainState &chainstate,
+                            CAutoFile &afile);
 
 #endif // BITCOIN_RPC_BLOCKCHAIN_H

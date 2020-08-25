@@ -3012,75 +3012,81 @@ static RPCHelpMan dumptxoutset() {
 
             FILE *file{fsbridge::fopen(temppath, "wb")};
             CAutoFile afile{file, SER_DISK, CLIENT_VERSION};
-            std::unique_ptr<CCoinsViewCursor> pcursor;
-            CCoinsStats stats;
-            CBlockIndex *tip;
             NodeContext &node = EnsureNodeContext(request.context);
-
-            {
-                // We need to lock cs_main to ensure that the coinsdb isn't
-                // written to between (i) flushing coins cache to disk
-                // (coinsdb), (ii) getting stats based upon the coinsdb, and
-                // (iii) constructing a cursor to the coinsdb for use below this
-                // block.
-                //
-                // Cursors returned by leveldb iterate over snapshots, so the
-                // contents of the pcursor will not be affected by simultaneous
-                // writes during use below this block.
-                //
-                // See discussion here:
-                //   https://github.com/bitcoin/bitcoin/pull/15606#discussion_r274479369
-                //
-                LOCK(::cs_main);
-
-                ::ChainstateActive().ForceFlushStateToDisk();
-
-                if (!GetUTXOStats(&::ChainstateActive().CoinsDB(), stats,
-                                  CoinStatsHashType::NONE,
-                                  node.rpc_interruption_point)) {
-                    throw JSONRPCError(RPC_INTERNAL_ERROR,
-                                       "Unable to read UTXO set");
-                }
-
-                pcursor = std::unique_ptr<CCoinsViewCursor>(
-                    ::ChainstateActive().CoinsDB().Cursor());
-                tip = g_chainman.m_blockman.LookupBlockIndex(stats.hashBlock);
-                CHECK_NONFATAL(tip);
-            }
-
-            SnapshotMetadata metadata{tip->GetBlockHash(), stats.coins_count,
-                                      uint64_t(tip->GetChainTxCount())};
-
-            afile << metadata;
-
-            COutPoint key;
-            Coin coin;
-            unsigned int iter{0};
-
-            while (pcursor->Valid()) {
-                if (iter % 5000 == 0) {
-                    node.rpc_interruption_point();
-                }
-                ++iter;
-                if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
-                    afile << key;
-                    afile << coin;
-                }
-
-                pcursor->Next();
-            }
-
-            afile.fclose();
+            UniValue result = CreateUTXOSnapshot(
+                node, node.chainman->ActiveChainstate(), afile);
             fs::rename(temppath, path);
 
-            UniValue result(UniValue::VOBJ);
-            result.pushKV("coins_written", stats.coins_count);
-            result.pushKV("base_hash", tip->GetBlockHash().ToString());
-            result.pushKV("base_height", tip->nHeight);
             result.pushKV("path", path.u8string());
             return result;
         },
     };
+}
+
+UniValue CreateUTXOSnapshot(NodeContext &node, CChainState &chainstate,
+                            CAutoFile &afile) {
+    std::unique_ptr<CCoinsViewCursor> pcursor;
+    CCoinsStats stats;
+    CBlockIndex *tip;
+
+    {
+        // We need to lock cs_main to ensure that the coinsdb isn't
+        // written to between (i) flushing coins cache to disk
+        // (coinsdb), (ii) getting stats based upon the coinsdb, and
+        // (iii) constructing a cursor to the coinsdb for use below this
+        // block.
+        //
+        // Cursors returned by leveldb iterate over snapshots, so the
+        // contents of the pcursor will not be affected by simultaneous
+        // writes during use below this block.
+        //
+        // See discussion here:
+        //   https://github.com/bitcoin/bitcoin/pull/15606#discussion_r274479369
+        //
+        LOCK(::cs_main);
+
+        chainstate.ForceFlushStateToDisk();
+
+        if (!GetUTXOStats(&chainstate.CoinsDB(), stats, CoinStatsHashType::NONE,
+                          node.rpc_interruption_point)) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
+        }
+
+        pcursor =
+            std::unique_ptr<CCoinsViewCursor>(chainstate.CoinsDB().Cursor());
+        tip = g_chainman.m_blockman.LookupBlockIndex(stats.hashBlock);
+        CHECK_NONFATAL(tip);
+    }
+
+    SnapshotMetadata metadata{tip->GetBlockHash(), stats.coins_count,
+                              uint64_t(tip->GetChainTxCount())};
+
+    afile << metadata;
+
+    COutPoint key;
+    Coin coin;
+    unsigned int iter{0};
+
+    while (pcursor->Valid()) {
+        if (iter % 5000 == 0) {
+            node.rpc_interruption_point();
+        }
+        ++iter;
+        if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
+            afile << key;
+            afile << coin;
+        }
+
+        pcursor->Next();
+    }
+
+    afile.fclose();
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("coins_written", stats.coins_count);
+    result.pushKV("base_hash", tip->GetBlockHash().ToString());
+    result.pushKV("base_height", tip->nHeight);
+    return result;
 }
 
 void RegisterBlockchainRPCCommands(CRPCTable &t) {
