@@ -35,20 +35,6 @@
                 "LSAN_OPTIONS": "log_path=stdout"
             }
         },
-        "build-autotools": {
-            "script": "builds/build-autotools.sh",
-            "templates": [
-                "common_unix_artifacts"
-            ],
-            "timeout": 1200,
-            "artifacts": {
-                "src/bench/bench_bitcoin": "bin/bench_bitcoin",
-                "config.log": "log/config.log",
-                "src/test-suite.log": "log/test-suite.log",
-                "src/test/*.log": "log",
-                "src/seeder/test/test-seeder.log": "log/test-seeder.log"
-            }
-        },
         "build-bench": {
             "script": "builds/build-bench.sh",
             "templates": [

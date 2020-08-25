@@ -15,10 +15,6 @@ build_with_cmake() {
   CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_cmake.sh "$@"
 }
 
-build_with_autotools() {
-  CONFIGURE_FLAGS="${CONFIGURE_FLAGS[*]}" "${DEVTOOLS_DIR}"/build_autotools.sh "$@"
-}
-
 run_ibd() {
   "${TOPLEVEL}"/contrib/teamcity/ibd.sh "$@"
 }
