@@ -37,6 +37,8 @@ function(_add_install_target COMPONENT)
 					"${CMAKE_SOURCE_DIR}/cmake/utils/split-installed-component.sh"
 					"${CMAKE_BINARY_DIR}/contrib/devtools/split-debug.sh"
 					"${CMAKE_BINARY_DIR}/install_manifest_${COMPONENT}.txt"
+					"${CMAKE_INSTALL_BINDIR}"
+					"${CMAKE_INSTALL_LIBDIR}"
 				DEPENDS
 					"${INSTALL_TARGET}"
 					"${CMAKE_BINARY_DIR}/contrib/devtools/split-debug.sh"
