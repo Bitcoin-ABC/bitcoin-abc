@@ -31,20 +31,8 @@
 #include <QTest>
 #include <QTextEdit>
 #include <QtGlobal>
-/*
- * FIXME: <QtTest/QtTestGui> requires QT_WIDGETS_LIB to be defined prior
- * inclusion to export the QtTest::keyClicks symbol.
- * On some older Qt versions the definition end up being set by the inclusion of
- * <QtTest/QtTestWidgets>.
- * This only occurs when building with autotools, as QMake and CMake define
- * QT_WIDGETS_LIB on the command line. As a workaround for autotools,
- * <QtTest/QtTestWidgets> should be included before <QtTest/QtTestGui>.
- * Also prevent the linter from sorting the includes.
- */
-// clang-format off
-#include <QtTest/QtTestWidgets>
 #include <QtTest/QtTestGui>
-// clang-format on
+#include <QtTest/QtTestWidgets>
 
 namespace {
 //! Call getblockchaininfo RPC and check first field of JSON output.
