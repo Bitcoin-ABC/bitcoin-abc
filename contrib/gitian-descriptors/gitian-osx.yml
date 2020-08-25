@@ -53,8 +53,6 @@ script: |
   declare -A CMAKE_TOOLCHAIN_FILE
   CMAKE_TOOLCHAIN_FILE[x86_64-apple-darwin16]=OSX.cmake
 
-  INSTALL_COMPONENTS="bitcoind bitcoin-qt bitcoin-seeder"
-
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="ar ranlib date dmg genisoimage"
 
@@ -171,9 +169,7 @@ script: |
 
     ninja
 
-    for _component in ${INSTALL_COMPONENTS}; do
-       cmake -DCOMPONENT=${_component} -P cmake_install.cmake
-    done
+    ninja install/strip
 
     export PYTHONPATH="${BASEPREFIX}/${i}/native/lib/python3/dist-packages:${PYTHONPATH}"
     ninja osx-deploydir
@@ -195,14 +191,7 @@ script: |
     ${WRAP_DIR}/dmg dmg "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
 
     cd installed
-    # The install/strip target should do exactly that. However there is a bug in
-    # in the Buster CMake version that causes strip to be called with the wrong
-    # parameters when an Apple strip tool is used. This is fixed starting with
-    # CMake versions >= 3.14, see:
-    # https://gitlab.kitware.com/cmake/cmake/merge_requests/2892
     find -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;
-    find ${DISTNAME}/bin -type f -executable -exec ${i}-strip -u -r {} \;
-    find ${DISTNAME}/lib -type f -executable -exec ${i}-strip -x {} \;
     find ${DISTNAME} -not -path "*.app*" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
     cd ../../
   done

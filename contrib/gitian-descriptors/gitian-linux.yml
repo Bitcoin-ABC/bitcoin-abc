@@ -58,8 +58,6 @@ script: |
   # ARM assembly is supported but experimental, disable it for the release
   CMAKE_EXTRA_OPTIONS[arm-linux-gnueabihf]="-DSECP256K1_USE_ASM=OFF"
 
-  INSTALL_COMPONENTS="bitcoind bitcoin-qt bitcoin-seeder"
-
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="date ar ranlib nm"
   HOST_CFLAGS="-O2 -g"
@@ -176,13 +174,9 @@ script: |
     ninja security-check
     ninja symbol-check
 
-    for _component in ${INSTALL_COMPONENTS}; do
-       cmake -DCOMPONENT=${_component} -P cmake_install.cmake
-    done
+    ninja install-debug
 
     cd installed
-    find ${DISTNAME}/bin -type f -executable -exec ../contrib/devtools/split-debug.sh {} {} {}.dbg \;
-    find ${DISTNAME}/lib -type f -exec ../contrib/devtools/split-debug.sh {} {} {}.dbg \;
     find ${DISTNAME} -not -name "*.dbg" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
     find ${DISTNAME} -name "*.dbg" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}-debug.tar.gz
     cd ../../
