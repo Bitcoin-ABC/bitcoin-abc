@@ -212,12 +212,6 @@ public:
 };
 
 /**
- * Import blocks from an external file.
- */
-void LoadExternalBlockFile(const Config &config, FILE *fileIn,
-                           FlatFilePos *dbp = nullptr);
-
-/**
  * Ensures we have a genesis block in the block tree, possibly writing one to
  * disk.
  */
@@ -872,6 +866,10 @@ public:
     //! @returns true unless an error occurred during the flush.
     bool ResizeCoinsCaches(size_t coinstip_size, size_t coinsdb_size)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    /** Import blocks from an external file */
+    void LoadExternalBlockFile(const Config &config, FILE *fileIn,
+                               FlatFilePos *dbp = nullptr);
 
     /**
      * Update the on-disk chain state.

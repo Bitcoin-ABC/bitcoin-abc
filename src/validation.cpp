@@ -5265,8 +5265,8 @@ bool LoadGenesisBlock(const CChainParams &chainparams) {
     return ::ChainstateActive().LoadGenesisBlock(chainparams);
 }
 
-void LoadExternalBlockFile(const Config &config, FILE *fileIn,
-                           FlatFilePos *dbp) {
+void CChainState::LoadExternalBlockFile(const Config &config, FILE *fileIn,
+                                        FlatFilePos *dbp) {
     // Map of disk positions for blocks with unknown parent (only used for
     // reindex)
     static std::multimap<uint256, FlatFilePos> mapBlocksUnknownParent;
@@ -5330,9 +5330,10 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                 {
                     LOCK(cs_main);
                     // detect out of order blocks, and store them for later
+                    assert(std::addressof(g_chainman.m_blockman) ==
+                           std::addressof(m_blockman));
                     if (hash != chainparams.GetConsensus().hashGenesisBlock &&
-                        !g_chainman.m_blockman.LookupBlockIndex(
-                            block.hashPrevBlock)) {
+                        !m_blockman.LookupBlockIndex(block.hashPrevBlock)) {
                         LogPrint(
                             BCLog::REINDEX,
                             "%s: Out of order block %s, parent %s not known\n",
@@ -5346,12 +5347,15 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     }
 
                     // process in case the block isn't known yet
-                    CBlockIndex *pindex =
-                        g_chainman.m_blockman.LookupBlockIndex(hash);
+                    assert(std::addressof(g_chainman.m_blockman) ==
+                           std::addressof(m_blockman));
+                    CBlockIndex *pindex = m_blockman.LookupBlockIndex(hash);
                     if (!pindex || !pindex->nStatus.hasData()) {
                         BlockValidationState state;
-                        if (::ChainstateActive().AcceptBlock(
-                                config, pblock, state, true, dbp, nullptr)) {
+                        assert(std::addressof(::ChainstateActive()) ==
+                               std::addressof(*this));
+                        if (AcceptBlock(config, pblock, state, true, dbp,
+                                        nullptr)) {
                             nLoaded++;
                         }
                         if (state.IsError()) {
@@ -5371,13 +5375,16 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                 // continue
                 if (hash == chainparams.GetConsensus().hashGenesisBlock) {
                     BlockValidationState state;
-                    if (!::ChainstateActive().ActivateBestChain(config, state,
-                                                                nullptr)) {
+                    assert(std::addressof(::ChainstateActive()) ==
+                           std::addressof(*this));
+                    if (!ActivateBestChain(config, state, nullptr)) {
                         break;
                     }
                 }
 
-                NotifyHeaderTip(::ChainstateActive());
+                assert(std::addressof(::ChainstateActive()) ==
+                       std::addressof(*this));
+                NotifyHeaderTip(*this);
 
                 // Recursively process earlier encountered successors of this
                 // block
@@ -5403,16 +5410,19 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                                 head.ToString());
                             LOCK(cs_main);
                             BlockValidationState dummy;
-                            if (::ChainstateActive().AcceptBlock(
-                                    config, pblockrecursive, dummy, true,
-                                    &it->second, nullptr)) {
+                            assert(std::addressof(::ChainstateActive()) ==
+                                   std::addressof(*this));
+                            if (AcceptBlock(config, pblockrecursive, dummy,
+                                            true, &it->second, nullptr)) {
                                 nLoaded++;
                                 queue.push_back(pblockrecursive->GetHash());
                             }
                         }
                         range.first++;
                         mapBlocksUnknownParent.erase(it);
-                        NotifyHeaderTip(::ChainstateActive());
+                        assert(std::addressof(::ChainstateActive()) ==
+                               std::addressof(*this));
+                        NotifyHeaderTip(*this);
                     }
                 }
             } catch (const std::exception &e) {

@@ -1494,7 +1494,7 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
                 }
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
-                LoadExternalBlockFile(config, file, &pos);
+                ::ChainstateActive().LoadExternalBlockFile(config, file, &pos);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
@@ -1515,7 +1515,7 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
             if (file) {
                 LogPrintf("Importing blocks file %s...\n",
                           fs::PathToString(path));
-                LoadExternalBlockFile(config, file);
+                ::ChainstateActive().LoadExternalBlockFile(config, file);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
