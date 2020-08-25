@@ -1022,6 +1022,13 @@ void SetupServerArgs(NodeContext &node) {
     hidden_args.emplace_back("-logthreadnames");
 #endif
     argsman.AddArg(
+        "-logsourcelocations",
+        strprintf(
+            "Prepend debug output with name of the originating source location "
+            "(source file, line number and function name) (default: %u)",
+            DEFAULT_LOGSOURCELOCATIONS),
+        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
         "-logtimemicros",
         strprintf("Add microsecond precision to debug timestamps (default: %d)",
                   DEFAULT_LOGTIMEMICROS),
@@ -1689,6 +1696,8 @@ void InitLogging(const ArgsManager &args) {
     LogInstance().m_log_threadnames =
         args.GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
 #endif
+    LogInstance().m_log_sourcelocations =
+        args.GetBoolArg("-logsourcelocations", DEFAULT_LOGSOURCELOCATIONS);
 
     fLogIPs = args.GetBoolArg("-logips", DEFAULT_LOGIPS);
 

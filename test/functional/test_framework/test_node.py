@@ -107,6 +107,7 @@ class TestNode():
             "-datadir=" + self.datadir,
             "-logtimemicros",
             "-logthreadnames",
+            "-logsourcelocations",
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",

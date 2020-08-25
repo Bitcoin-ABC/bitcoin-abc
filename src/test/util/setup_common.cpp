@@ -97,6 +97,7 @@ BasicTestingSetup::BasicTestingSetup(
         {
             "dummy",
             "-printtoconsole=0",
+            "-logsourcelocations",
             "-logtimemicros",
             "-debug",
             "-debugexclude=libevent",

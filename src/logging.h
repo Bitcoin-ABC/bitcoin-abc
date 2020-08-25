@@ -22,6 +22,7 @@ static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS = false;
 static const bool DEFAULT_LOGTIMESTAMPS = true;
 static const bool DEFAULT_LOGTHREADNAMES = false;
+static const bool DEFAULT_LOGSOURCELOCATIONS = false;
 
 extern bool fLogIPs;
 extern const char *const DEFAULT_DEBUGLOGFILE;
@@ -96,6 +97,7 @@ public:
     bool m_log_timestamps = DEFAULT_LOGTIMESTAMPS;
     bool m_log_time_micros = DEFAULT_LOGTIMEMICROS;
     bool m_log_threadnames = DEFAULT_LOGTHREADNAMES;
+    bool m_log_sourcelocations = DEFAULT_LOGSOURCELOCATIONS;
 
     fs::path m_file_path;
     std::atomic<bool> m_reopen_file{false};
@@ -103,7 +105,9 @@ public:
     ~Logger();
 
     /** Send a string to the log output */
-    void LogPrintStr(const std::string &str);
+    void LogPrintStr(const std::string &str,
+                     const std::string &logging_function,
+                     const std::string &source_file, const int source_line);
 
     /** Returns whether logs will be written to any output */
     bool Enabled() const {
@@ -172,7 +176,9 @@ bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);
 // unconditionally log to debug.log! It should not be the case that an inbound
 // peer can fill up a user's disk with debug.log entries.
 template <typename... Args>
-static inline void LogPrintf(const char *fmt, const Args &... args) {
+static inline void
+LogPrintf_(const std::string &logging_function, const std::string &source_file,
+           const int source_line, const char *fmt, const Args &... args) {
     if (LogInstance().Enabled()) {
         std::string log_msg;
         try {
@@ -184,9 +190,12 @@ static inline void LogPrintf(const char *fmt, const Args &... args) {
             log_msg = "Error \"" + std::string(fmterr.what()) +
                       "\" while formatting log message: " + fmt;
         }
-        LogInstance().LogPrintStr(log_msg);
+        LogInstance().LogPrintStr(log_msg, logging_function, source_file,
+                                  source_line);
     }
 }
+
+#define LogPrintf(...) LogPrintf_(__func__, __FILE__, __LINE__, __VA_ARGS__)
 
 // Use a macro instead of a function for conditional logging to prevent
 // evaluating arguments when logging for the category is not enabled.
