@@ -43,6 +43,7 @@ class CBlockTreeDB;
 class CBlockUndo;
 class CChainParams;
 class CChain;
+class CChainState;
 class CConnman;
 class CInv;
 class ChainstateManager;
@@ -574,6 +575,16 @@ extern std::unique_ptr<CCoinsViewCache> pcoinsTip;
  * candidate tips is not maintained here.
  */
 class BlockManager {
+    friend CChainState;
+
+private:
+    // See definition for documentation
+    void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
+                                int nManualPruneHeight, int chain_tip_height);
+    void FindFilesToPrune(std::set<int> &setFilesToPrune,
+                          uint64_t nPruneAfterHeight, int chain_tip_height,
+                          bool is_ibd);
+
 public:
     BlockMap m_block_index GUARDED_BY(cs_main);
 

@@ -175,13 +175,6 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
 
 std::unique_ptr<CBlockTreeDB> pblocktree;
 
-// See definition for documentation
-static void FindFilesToPruneManual(ChainstateManager &chainman,
-                                   std::set<int> &setFilesToPrune,
-                                   int nManualPruneHeight);
-static void FindFilesToPrune(ChainstateManager &chainman,
-                             std::set<int> &setFilesToPrune,
-                             uint64_t nPruneAfterHeight);
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex);
 
@@ -2128,16 +2121,60 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
             LOCK(cs_LastBlockFile);
             if (fPruneMode && (fCheckForPruning || nManualPruneHeight > 0) &&
                 !fReindex) {
+                // Previously, we called the global function ::ChainActive() in
+                // FindFilesToPrune{,Manual} to get the tip height and to
+                // determine whether or not a tip even exists. Now, we are
+                // simply passing in m_chain.Height() (which returns -1 if the
+                // tip doesn't exist). To make sure we're not changing
+                // behaviour, let's check that
+                // ::ChainActive() is the same object as m_chain (not just
+                // identical).
+                //
+                // This comment and the following assert will be removed in a
+                // subsequent commit, as they're just meant to demonstrate
+                // correctness (you can run tests against it and see that
+                // nothing exit unexpectedly).
+                assert(std::addressof(::ChainActive()) ==
+                       std::addressof(m_chain));
                 if (nManualPruneHeight > 0) {
                     LOG_TIME_MILLIS_WITH_CATEGORY(
                         "find files to prune (manual)", BCLog::BENCH);
-                    FindFilesToPruneManual(g_chainman, setFilesToPrune,
-                                           nManualPruneHeight);
+                    m_blockman.FindFilesToPruneManual(
+                        setFilesToPrune, nManualPruneHeight, m_chain.Height());
                 } else {
                     LOG_TIME_MILLIS_WITH_CATEGORY("find files to prune",
                                                   BCLog::BENCH);
-                    FindFilesToPrune(g_chainman, setFilesToPrune,
-                                     chainparams.PruneAfterHeight());
+                    // Previously, we called the global function
+                    // ::ChainstateActive() in FindFilesToPrune{,Manual} to get
+                    // the IBD status. Now, we are simply passing in
+                    // IsInitialBlockDownload(). To make sure we're not changing
+                    // behaviour, let's check that ::ChainstateActive() is the
+                    // same object as *this (not just identical).
+                    //
+                    // This comment and the following assert will be removed in
+                    // a subsequent commit, as they're just meant to demonstrate
+                    // correctness (you can run tests against it and see that
+                    // nothing exit unexpectedly).
+                    assert(std::addressof(::ChainstateActive()) ==
+                           std::addressof(*this));
+
+                    // Previously, we called PruneOneBlockFile on g_chainman's
+                    // m_blockman in FindFilesToPrune{,Manual}. Now, we are
+                    // instead calling PruneOneBlockFile on _our_ m_blockman. To
+                    // make sure we're not changing behaviour, let's check that
+                    // g_chainman.m_blockman is the same object as _our_
+                    // m_blockman (not just identical).
+                    //
+                    // This comment and the following assert will be removed in
+                    // a subsequent commit, as they're just meant to demonstrate
+                    // correctness (you can run tests against it and see that
+                    // nothing exit unexpectedly).
+                    assert(std::addressof(g_chainman.m_blockman) ==
+                           std::addressof(m_blockman));
+
+                    m_blockman.FindFilesToPrune(
+                        setFilesToPrune, chainparams.PruneAfterHeight(),
+                        m_chain.Height(), IsInitialBlockDownload());
                     fCheckForPruning = false;
                 }
                 if (!setFilesToPrune.empty()) {
@@ -4552,28 +4589,27 @@ void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) {
  * Calculate the block/rev files to delete based on height specified by user
  * with RPC command pruneblockchain
  */
-static void FindFilesToPruneManual(ChainstateManager &chainman,
-                                   std::set<int> &setFilesToPrune,
-                                   int nManualPruneHeight) {
+void BlockManager::FindFilesToPruneManual(std::set<int> &setFilesToPrune,
+                                          int nManualPruneHeight,
+                                          int chain_tip_height) {
     assert(fPruneMode && nManualPruneHeight > 0);
 
     LOCK2(cs_main, cs_LastBlockFile);
-    if (::ChainActive().Tip() == nullptr) {
+    if (chain_tip_height < 0) {
         return;
     }
 
     // last block to prune is the lesser of (user-specified height,
     // MIN_BLOCKS_TO_KEEP from the tip)
-    unsigned int nLastBlockWeCanPrune =
-        std::min((unsigned)nManualPruneHeight,
-                 ::ChainActive().Tip()->nHeight - MIN_BLOCKS_TO_KEEP);
+    unsigned int nLastBlockWeCanPrune = std::min(
+        (unsigned)nManualPruneHeight, chain_tip_height - MIN_BLOCKS_TO_KEEP);
     int count = 0;
     for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
         if (vinfoBlockFile[fileNumber].nSize == 0 ||
             vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune) {
             continue;
         }
-        chainman.m_blockman.PruneOneBlockFile(fileNumber);
+        PruneOneBlockFile(fileNumber);
         setFilesToPrune.insert(fileNumber);
         count++;
     }
@@ -4613,19 +4649,18 @@ void PruneBlockFilesManual(int nManualPruneHeight) {
  * @param[out]   setFilesToPrune   The set of file indices that can be unlinked
  * will be returned
  */
-static void FindFilesToPrune(ChainstateManager &chainman,
-                             std::set<int> &setFilesToPrune,
-                             uint64_t nPruneAfterHeight) {
+void BlockManager::FindFilesToPrune(std::set<int> &setFilesToPrune,
+                                    uint64_t nPruneAfterHeight,
+                                    int chain_tip_height, bool is_ibd) {
     LOCK2(cs_main, cs_LastBlockFile);
-    if (::ChainActive().Tip() == nullptr || nPruneTarget == 0) {
+    if (chain_tip_height < 0 || nPruneTarget == 0) {
         return;
     }
-    if (uint64_t(::ChainActive().Tip()->nHeight) <= nPruneAfterHeight) {
+    if (uint64_t(chain_tip_height) <= nPruneAfterHeight) {
         return;
     }
 
-    unsigned int nLastBlockWeCanPrune =
-        ::ChainActive().Tip()->nHeight - MIN_BLOCKS_TO_KEEP;
+    unsigned int nLastBlockWeCanPrune = chain_tip_height - MIN_BLOCKS_TO_KEEP;
     uint64_t nCurrentUsage = CalculateCurrentUsage();
     // We don't check to prune until after we've allocated new space for files,
     // so we should leave a buffer under our target to account for another
@@ -4640,7 +4675,7 @@ static void FindFilesToPrune(ChainstateManager &chainman,
         // values, we should not prune too rapidly.
         // So when pruning in IBD, increase the buffer a bit to avoid a re-prune
         // too soon.
-        if (::ChainstateActive().IsInitialBlockDownload()) {
+        if (is_ibd) {
             // Since this is only relevant during IBD, we use a fixed 10%
             nBuffer += nPruneTarget / 10;
         }
@@ -4664,7 +4699,7 @@ static void FindFilesToPrune(ChainstateManager &chainman,
                 continue;
             }
 
-            chainman.m_blockman.PruneOneBlockFile(fileNumber);
+            PruneOneBlockFile(fileNumber);
             // Queue up the files for removal
             setFilesToPrune.insert(fileNumber);
             nCurrentUsage -= nBytesToPrune;
