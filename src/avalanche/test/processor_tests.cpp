@@ -203,7 +203,7 @@ struct BlockProvider {
         const BlockHash blockHash = block.GetHash();
 
         LOCK(cs_main);
-        return LookupBlockIndex(blockHash);
+        return g_chainman.m_blockman.LookupBlockIndex(blockHash);
     }
 
     uint256 getVoteItemId(const CBlockIndex *pindex) const {
@@ -437,7 +437,7 @@ BOOST_AUTO_TEST_CASE(block_reconcile_twice) {
     CBlockIndex *pindex;
     {
         LOCK(cs_main);
-        pindex = LookupBlockIndex(blockHash);
+        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
     }
 
     // Adding the block twice does nothing.
@@ -823,8 +823,8 @@ BOOST_AUTO_TEST_CASE(dont_poll_invalid_block) {
     CBlockIndex *pindexB;
     {
         LOCK(cs_main);
-        pindexA = LookupBlockIndex(blockHashA);
-        pindexB = LookupBlockIndex(blockHashB);
+        pindexA = g_chainman.m_blockman.LookupBlockIndex(blockHashA);
+        pindexB = g_chainman.m_blockman.LookupBlockIndex(blockHashB);
     }
 
     auto avanodes = ConnectNodes();
@@ -957,7 +957,7 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
     const CBlockIndex *pindex;
     {
         LOCK(cs_main);
-        pindex = LookupBlockIndex(blockHash);
+        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
     }
 
     // Create nodes that supports avalanche.
@@ -1020,7 +1020,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     const CBlockIndex *pindex;
     {
         LOCK(cs_main);
-        pindex = LookupBlockIndex(blockHash);
+        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
     }
 
     // Starting the event loop.

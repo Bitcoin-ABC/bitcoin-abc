@@ -146,10 +146,12 @@ BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
       checkMerkleRoot(true) {}
 
-CBlockIndex *LookupBlockIndex(const BlockHash &hash) {
+CBlockIndex *BlockManager::LookupBlockIndex(const BlockHash &hash) {
     AssertLockHeld(cs_main);
-    BlockMap::const_iterator it = g_chainman.BlockIndex().find(hash);
-    return it == g_chainman.BlockIndex().end() ? nullptr : it->second;
+    assert(std::addressof(g_chainman.BlockIndex()) ==
+           std::addressof(m_block_index));
+    BlockMap::const_iterator it = m_block_index.find(hash);
+    return it == m_block_index.end() ? nullptr : it->second;
 }
 
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
@@ -159,7 +161,7 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
     // Find the latest block common to locator and chain - we expect that
     // locator.vHave is sorted descending by height.
     for (const BlockHash &hash : locator.vHave) {
-        CBlockIndex *pindex = LookupBlockIndex(hash);
+        CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
         if (pindex) {
             if (chain.Contains(pindex)) {
                 return pindex;
@@ -1124,7 +1126,8 @@ bool CScriptCheck::operator()() {
 
 int GetSpendHeight(const CCoinsViewCache &inputs) {
     LOCK(cs_main);
-    CBlockIndex *pindexPrev = LookupBlockIndex(inputs.GetBestBlock());
+    CBlockIndex *pindexPrev =
+        g_chainman.m_blockman.LookupBlockIndex(inputs.GetBestBlock());
     return pindexPrev->nHeight + 1;
 }
 
@@ -4836,7 +4839,8 @@ bool CChainState::LoadChainTip(const CChainParams &chainparams) {
     }
 
     // Load pointer to end of best chain
-    CBlockIndex *pindex = LookupBlockIndex(coins_cache.GetBestBlock());
+    CBlockIndex *pindex =
+        m_blockman.LookupBlockIndex(coins_cache.GetBestBlock());
     if (!pindex) {
         return false;
     }
@@ -5308,7 +5312,8 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     LOCK(cs_main);
                     // detect out of order blocks, and store them for later
                     if (hash != chainparams.GetConsensus().hashGenesisBlock &&
-                        !LookupBlockIndex(block.hashPrevBlock)) {
+                        !g_chainman.m_blockman.LookupBlockIndex(
+                            block.hashPrevBlock)) {
                         LogPrint(
                             BCLog::REINDEX,
                             "%s: Out of order block %s, parent %s not known\n",
@@ -5322,7 +5327,8 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     }
 
                     // process in case the block isn't known yet
-                    CBlockIndex *pindex = LookupBlockIndex(hash);
+                    CBlockIndex *pindex =
+                        g_chainman.m_blockman.LookupBlockIndex(hash);
                     if (!pindex || !pindex->nStatus.hasData()) {
                         BlockValidationState state;
                         if (::ChainstateActive().AcceptBlock(

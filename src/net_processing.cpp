@@ -1124,7 +1124,7 @@ static void ProcessBlockAvailability(NodeId nodeid)
 
     if (!state->hashLastUnknownBlock.IsNull()) {
         const CBlockIndex *pindex =
-            LookupBlockIndex(state->hashLastUnknownBlock);
+            g_chainman.m_blockman.LookupBlockIndex(state->hashLastUnknownBlock);
         if (pindex && pindex->nChainWork > 0) {
             if (state->pindexBestKnownBlock == nullptr ||
                 pindex->nChainWork >= state->pindexBestKnownBlock->nChainWork) {
@@ -1143,7 +1143,7 @@ static void UpdateBlockAvailability(NodeId nodeid, const BlockHash &hash)
 
     ProcessBlockAvailability(nodeid);
 
-    const CBlockIndex *pindex = LookupBlockIndex(hash);
+    const CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
     if (pindex && pindex->nChainWork > 0) {
         // An actually better block was announced.
         if (state->pindexBestKnownBlock == nullptr ||
@@ -2334,7 +2334,7 @@ static bool AlreadyHaveTx(const TxId &txid, const CTxMemPool &mempool)
 
 static bool AlreadyHaveBlock(const BlockHash &block_hash)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    return LookupBlockIndex(block_hash) != nullptr;
+    return g_chainman.m_blockman.LookupBlockIndex(block_hash) != nullptr;
 }
 
 static bool AlreadyHaveProof(const avalanche::ProofId &proofid) {
@@ -2434,7 +2434,8 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
     bool need_activate_chain = false;
     {
         LOCK(cs_main);
-        const CBlockIndex *pindex = LookupBlockIndex(hash);
+        const CBlockIndex *pindex =
+            g_chainman.m_blockman.LookupBlockIndex(hash);
         if (pindex) {
             if (pindex->HaveTxsDownloaded() &&
                 !pindex->IsValid(BlockValidity::SCRIPTS) &&
@@ -2457,7 +2458,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
     }
 
     LOCK(cs_main);
-    const CBlockIndex *pindex = LookupBlockIndex(hash);
+    const CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
     if (pindex) {
         send = BlockRequestAllowed(pindex, consensusParams);
         if (!send) {
@@ -2850,7 +2851,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
         // don't connect before giving DoS points
         // - Once a headers message is received that is valid and does connect,
         // nUnconnectingHeaders gets reset back to 0.
-        if (!LookupBlockIndex(headers[0].hashPrevBlock) &&
+        if (!g_chainman.m_blockman.LookupBlockIndex(headers[0].hashPrevBlock) &&
             nCount < MAX_BLOCKS_TO_ANNOUNCE) {
             nodestate->nUnconnectingHeaders++;
             m_connman.PushMessage(
@@ -2892,7 +2893,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
 
         // If we don't have the last header, then they'll have given us
         // something new (if these headers are valid).
-        if (!LookupBlockIndex(hashLastBlock)) {
+        if (!g_chainman.m_blockman.LookupBlockIndex(hashLastBlock)) {
             received_new_header = true;
         }
     }
@@ -3158,7 +3159,7 @@ static bool PrepareBlockFilterRequest(
 
     {
         LOCK(cs_main);
-        stop_index = LookupBlockIndex(stop_hash);
+        stop_index = g_chainman.m_blockman.LookupBlockIndex(stop_hash);
 
         // Check that the stop block exists and the peer would be allowed to
         // fetch it.
@@ -3381,7 +3382,7 @@ static uint32_t getAvalancheVoteForBlock(const BlockHash &hash)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
-    const CBlockIndex *pindex = LookupBlockIndex(hash);
+    const CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
 
     // Unknown block.
     if (!pindex) {
@@ -4210,7 +4211,8 @@ void PeerManagerImpl::ProcessMessage(
         {
             LOCK(cs_main);
 
-            const CBlockIndex *pindex = LookupBlockIndex(req.blockhash);
+            const CBlockIndex *pindex =
+                g_chainman.m_blockman.LookupBlockIndex(req.blockhash);
             if (!pindex || !pindex->nStatus.hasData()) {
                 LogPrint(
                     BCLog::NET,
@@ -4278,7 +4280,7 @@ void PeerManagerImpl::ProcessMessage(
         const CBlockIndex *pindex = nullptr;
         if (locator.IsNull()) {
             // If locator is null, return the hashStop block
-            pindex = LookupBlockIndex(hashStop);
+            pindex = g_chainman.m_blockman.LookupBlockIndex(hashStop);
             if (!pindex) {
                 return;
             }
@@ -4514,7 +4516,8 @@ void PeerManagerImpl::ProcessMessage(
         {
             LOCK(cs_main);
 
-            if (!LookupBlockIndex(cmpctblock.header.hashPrevBlock)) {
+            if (!g_chainman.m_blockman.LookupBlockIndex(
+                    cmpctblock.header.hashPrevBlock)) {
                 // Doesn't connect (or is genesis), instead of DoSing in
                 // AcceptBlockHeader, request deeper headers
                 if (!::ChainstateActive().IsInitialBlockDownload()) {
@@ -4527,7 +4530,8 @@ void PeerManagerImpl::ProcessMessage(
                 return;
             }
 
-            if (!LookupBlockIndex(cmpctblock.header.GetHash())) {
+            if (!g_chainman.m_blockman.LookupBlockIndex(
+                    cmpctblock.header.GetHash())) {
                 received_new_header = true;
             }
         }
@@ -6323,7 +6327,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 // send all headers past that one. If we come across an headers
                 // that aren't on ::ChainActive(), give up.
                 for (const BlockHash &hash : peer->m_blocks_for_headers_relay) {
-                    const CBlockIndex *pindex = LookupBlockIndex(hash);
+                    const CBlockIndex *pindex =
+                        g_chainman.m_blockman.LookupBlockIndex(hash);
                     assert(pindex);
                     if (::ChainActive()[pindex->nHeight] != pindex) {
                         // Bail out if we reorged away from this block
@@ -6432,7 +6437,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     const BlockHash &hashToAnnounce =
                         peer->m_blocks_for_headers_relay.back();
                     const CBlockIndex *pindex =
-                        LookupBlockIndex(hashToAnnounce);
+                        g_chainman.m_blockman.LookupBlockIndex(hashToAnnounce);
                     assert(pindex);
 
                     // Warn if we're announcing a block that is not on the main

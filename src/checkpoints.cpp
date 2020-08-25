@@ -31,7 +31,7 @@ CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
 
     for (const MapCheckpoints::value_type &i : reverse_iterate(checkpoints)) {
         const BlockHash &hash = i.second;
-        CBlockIndex *pindex = LookupBlockIndex(hash);
+        CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
         if (pindex) {
             return pindex;
         }

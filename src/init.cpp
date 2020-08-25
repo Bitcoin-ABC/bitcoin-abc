@@ -1536,7 +1536,8 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
             const BlockHash &hash = i.second;
 
             LOCK(cs_main);
-            CBlockIndex *pblockindex = LookupBlockIndex(hash);
+            CBlockIndex *pblockindex =
+                g_chainman.m_blockman.LookupBlockIndex(hash);
             if (pblockindex && !pblockindex->nStatus.isValid()) {
                 LogPrintf("Reconsidering checkpointed block %s ...\n",
                           hash.GetHex());
@@ -2720,7 +2721,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // (we're likely using a testnet datadir, or the other way
                 // around).
                 if (!chainman.BlockIndex().empty() &&
-                    !LookupBlockIndex(params.hashGenesisBlock)) {
+                    !g_chainman.m_blockman.LookupBlockIndex(
+                        params.hashGenesisBlock)) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?"));
                 }

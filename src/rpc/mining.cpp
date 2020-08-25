@@ -457,7 +457,8 @@ static RPCHelpMan generateblock() {
 
                 BlockValidationState state;
                 if (!TestBlockValidity(state, chainparams, block,
-                                       LookupBlockIndex(block.hashPrevBlock),
+                                       g_chainman.m_blockman.LookupBlockIndex(
+                                           block.hashPrevBlock),
                                        BlockValidationOptions(config)
                                            .withCheckPoW(false)
                                            .withCheckMerkleRoot(false))) {
@@ -797,7 +798,8 @@ static RPCHelpMan getblocktemplate() {
                     }
 
                     const BlockHash hash = block.GetHash();
-                    const CBlockIndex *pindex = LookupBlockIndex(hash);
+                    const CBlockIndex *pindex =
+                        g_chainman.m_blockman.LookupBlockIndex(hash);
                     if (pindex) {
                         if (pindex->IsValid(BlockValidity::SCRIPTS)) {
                             return "duplicate";
@@ -1093,7 +1095,8 @@ static RPCHelpMan submitblock() {
             const BlockHash hash = block.GetHash();
             {
                 LOCK(cs_main);
-                const CBlockIndex *pindex = LookupBlockIndex(hash);
+                const CBlockIndex *pindex =
+                    g_chainman.m_blockman.LookupBlockIndex(hash);
                 if (pindex) {
                     if (pindex->IsValid(BlockValidity::SCRIPTS)) {
                         return "duplicate";
@@ -1148,7 +1151,7 @@ static RPCHelpMan submitheader() {
             }
             {
                 LOCK(cs_main);
-                if (!LookupBlockIndex(h.hashPrevBlock)) {
+                if (!g_chainman.m_blockman.LookupBlockIndex(h.hashPrevBlock)) {
                     throw JSONRPCError(RPC_VERIFY_ERROR,
                                        "Must submit previous header (" +
                                            h.hashPrevBlock.GetHex() +

@@ -177,7 +177,7 @@ namespace {
         }
         std::optional<int> getBlockHeight(const BlockHash &hash) override {
             LOCK(::cs_main);
-            CBlockIndex *block = LookupBlockIndex(hash);
+            CBlockIndex *block = g_chainman.m_blockman.LookupBlockIndex(hash);
             if (block && ::ChainActive().Contains(block)) {
                 return block->nHeight;
             }
@@ -230,7 +230,8 @@ namespace {
         bool findBlock(const BlockHash &hash,
                        const FoundBlock &block) override {
             WAIT_LOCK(cs_main, lock);
-            return FillBlock(LookupBlockIndex(hash), block, lock);
+            return FillBlock(g_chainman.m_blockman.LookupBlockIndex(hash),
+                             block, lock);
         }
         bool findFirstBlockWithTimeAndHeight(int64_t min_time, int min_height,
                                              const FoundBlock &block) override {
@@ -256,7 +257,8 @@ namespace {
                                   int ancestor_height,
                                   const FoundBlock &ancestor_out) override {
             WAIT_LOCK(cs_main, lock);
-            if (const CBlockIndex *block = LookupBlockIndex(block_hash)) {
+            if (const CBlockIndex *block =
+                    g_chainman.m_blockman.LookupBlockIndex(block_hash)) {
                 if (const CBlockIndex *ancestor =
                         block->GetAncestor(ancestor_height)) {
                     return FillBlock(ancestor, ancestor_out, lock);
@@ -268,8 +270,10 @@ namespace {
                                 const BlockHash &ancestor_hash,
                                 const FoundBlock &ancestor_out) override {
             WAIT_LOCK(cs_main, lock);
-            const CBlockIndex *block = LookupBlockIndex(block_hash);
-            const CBlockIndex *ancestor = LookupBlockIndex(ancestor_hash);
+            const CBlockIndex *block =
+                g_chainman.m_blockman.LookupBlockIndex(block_hash);
+            const CBlockIndex *ancestor =
+                g_chainman.m_blockman.LookupBlockIndex(ancestor_hash);
             if (block && ancestor &&
                 block->GetAncestor(ancestor->nHeight) != ancestor) {
                 ancestor = nullptr;
@@ -282,8 +286,10 @@ namespace {
                                 const FoundBlock &block1_out,
                                 const FoundBlock &block2_out) override {
             WAIT_LOCK(cs_main, lock);
-            const CBlockIndex *block1 = LookupBlockIndex(block_hash1);
-            const CBlockIndex *block2 = LookupBlockIndex(block_hash2);
+            const CBlockIndex *block1 =
+                g_chainman.m_blockman.LookupBlockIndex(block_hash1);
+            const CBlockIndex *block2 =
+                g_chainman.m_blockman.LookupBlockIndex(block_hash2);
             const CBlockIndex *ancestor =
                 block1 && block2 ? LastCommonAncestor(block1, block2) : nullptr;
             // Using & instead of && below to avoid short circuiting and leaving
@@ -298,8 +304,9 @@ namespace {
         }
         double guessVerificationProgress(const BlockHash &block_hash) override {
             LOCK(cs_main);
-            return GuessVerificationProgress(Params().TxData(),
-                                             LookupBlockIndex(block_hash));
+            return GuessVerificationProgress(
+                Params().TxData(),
+                g_chainman.m_blockman.LookupBlockIndex(block_hash));
         }
         bool hasBlocks(const BlockHash &block_hash, int min_height,
                        std::optional<int> max_height) override {
@@ -311,7 +318,8 @@ namespace {
             // used to limit the range, and passing min_height that's too low or
             // max_height that's too high will not crash or change the result.
             LOCK(::cs_main);
-            if (CBlockIndex *block = LookupBlockIndex(block_hash)) {
+            if (CBlockIndex *block =
+                    g_chainman.m_blockman.LookupBlockIndex(block_hash)) {
                 if (max_height && block->nHeight >= *max_height) {
                     block = block->GetAncestor(*max_height);
                 }

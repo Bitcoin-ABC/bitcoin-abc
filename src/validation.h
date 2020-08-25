@@ -559,9 +559,6 @@ public:
                   int nCheckDepth);
 };
 
-CBlockIndex *LookupBlockIndex(const BlockHash &hash)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
 /** Find the last common block between the parameter chain and a locator. */
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator)
@@ -682,6 +679,9 @@ public:
      */
     bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
                            BlockValidationState &state, CBlockIndex **ppindex)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    CBlockIndex *LookupBlockIndex(const BlockHash &hash)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     ~BlockManager() { Unload(); }

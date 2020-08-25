@@ -410,7 +410,8 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
             CBlockIndex *pindex;
             {
                 LOCK(cs_main);
-                pindex = LookupBlockIndex(BlockHash(votes[i].GetHash()));
+                pindex = g_chainman.m_blockman.LookupBlockIndex(
+                    BlockHash(votes[i].GetHash()));
                 if (!pindex) {
                     // This should not happen, but just in case...
                     continue;
@@ -640,7 +641,8 @@ void Processor::clearTimedoutRequests() {
         const CInv &inv = p.first;
         if (inv.IsMsgBlk()) {
             const CBlockIndex *pindex = WITH_LOCK(
-                cs_main, return LookupBlockIndex(BlockHash(inv.hash)));
+                cs_main, return g_chainman.m_blockman.LookupBlockIndex(
+                             BlockHash(inv.hash)));
 
             if (!clearInflightRequest(blockVoteRecords, pindex, p.second)) {
                 continue;

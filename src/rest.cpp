@@ -192,7 +192,8 @@ static bool rest_headers(Config &config, const util::Ref &context,
     {
         LOCK(cs_main);
         tip = ::ChainActive().Tip();
-        const CBlockIndex *pindex = LookupBlockIndex(hash);
+        const CBlockIndex *pindex =
+            g_chainman.m_blockman.LookupBlockIndex(hash);
         while (pindex != nullptr && ::ChainActive().Contains(pindex)) {
             headers.push_back(pindex);
             if (headers.size() == size_t(count)) {
@@ -266,7 +267,7 @@ static bool rest_block(const Config &config, HTTPRequest *req,
     {
         LOCK(cs_main);
         tip = ::ChainActive().Tip();
-        pblockindex = LookupBlockIndex(hash);
+        pblockindex = g_chainman.m_blockman.LookupBlockIndex(hash);
         if (!pblockindex) {
             return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
         }

@@ -58,7 +58,7 @@ static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
         LOCK(cs_main);
 
         entry.pushKV("blockhash", hashBlock.GetHex());
-        CBlockIndex *pindex = LookupBlockIndex(hashBlock);
+        CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hashBlock);
         if (pindex) {
             if (::ChainActive().Contains(pindex)) {
                 entry.pushKV("confirmations",
@@ -220,7 +220,7 @@ static RPCHelpMan getrawtransaction() {
 
                 BlockHash blockhash(
                     ParseHashV(request.params[2], "parameter 3"));
-                blockindex = LookupBlockIndex(blockhash);
+                blockindex = g_chainman.m_blockman.LookupBlockIndex(blockhash);
                 if (!blockindex) {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                        "Block hash not found");
@@ -332,7 +332,7 @@ static RPCHelpMan gettxoutproof() {
                 LOCK(cs_main);
                 hashBlock =
                     BlockHash(ParseHashV(request.params[1], "blockhash"));
-                pblockindex = LookupBlockIndex(hashBlock);
+                pblockindex = g_chainman.m_blockman.LookupBlockIndex(hashBlock);
                 if (!pblockindex) {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                        "Block not found");
@@ -372,7 +372,7 @@ static RPCHelpMan gettxoutproof() {
                                        "Transaction not yet in block");
                 }
 
-                pblockindex = LookupBlockIndex(hashBlock);
+                pblockindex = g_chainman.m_blockman.LookupBlockIndex(hashBlock);
                 if (!pblockindex) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
                                        "Transaction index corrupt");
@@ -444,8 +444,8 @@ static RPCHelpMan verifytxoutproof() {
 
             LOCK(cs_main);
 
-            const CBlockIndex *pindex =
-                LookupBlockIndex(merkleBlock.header.GetHash());
+            const CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(
+                merkleBlock.header.GetHash());
             if (!pindex || !::ChainActive().Contains(pindex) ||
                 pindex->nTx == 0) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
