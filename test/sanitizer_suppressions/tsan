@@ -28,6 +28,7 @@ race:CZMQAbstractPublishNotifier::SendMessage
 race:BerkeleyBatch
 race:BerkeleyDatabase
 race:leveldb::DBImpl::DeleteObsoleteFiles
+race:validation_chainstatemanager_tests
 race:bitcoin-qt
 
 # deadlock (TODO fix)
