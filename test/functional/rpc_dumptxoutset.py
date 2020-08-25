@@ -42,7 +42,7 @@ class DumptxoutsetTest(BitcoinTestFramework):
             # UTXO snapshot hash should be deterministic based on mocked time.
             assert_equal(
                 digest,
-                '05957e146e38153d84e9294999cc24f0dcdb9902c4834b32c79ae8e8985babea')
+                'a92dc32a15975b3c84bb1e6ac5218ff94194b4ea7d1b9372fb80184a7533a89f')
 
         # Specifying a path to an existing file will fail.
         assert_raises_rpc_error(

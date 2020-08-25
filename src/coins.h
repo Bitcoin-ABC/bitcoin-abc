@@ -146,6 +146,8 @@ struct CCoinsCacheEntry {
     CCoinsCacheEntry() : flags(0) {}
     explicit CCoinsCacheEntry(Coin coinIn)
         : coin(std::move(coinIn)), flags(0) {}
+    CCoinsCacheEntry(Coin &&coin_, uint8_t flag)
+        : coin(std::move(coin_)), flags(flag) {}
 };
 
 typedef std::unordered_map<COutPoint, CCoinsCacheEntry, SaltedOutpointHasher>
@@ -284,6 +286,15 @@ public:
      * already exist in the cache.
      */
     void AddCoin(const COutPoint &outpoint, Coin coin, bool possible_overwrite);
+
+    /**
+     * Emplace a coin into cacheCoins without performing any checks, marking
+     * the emplaced coin as dirty.
+     *
+     * NOT FOR GENERAL USE. Used only when loading coins from a UTXO snapshot.
+     * @sa ChainstateManager::PopulateAndValidateSnapshot()
+     */
+    void EmplaceCoinInternalDANGER(COutPoint &&outpoint, Coin &&coin);
 
     /**
      * Spend a coin. Pass moveto in order to get the deleted data.
