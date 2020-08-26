@@ -1041,6 +1041,9 @@ private:
     void InvalidChainFound(CBlockIndex *pindexNew)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+    bool LoadBlockIndexDB(const Consensus::Params &params)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     friend ChainstateManager;
 };
 

@@ -4817,12 +4817,10 @@ void BlockManager::Unload() {
     m_block_index.clear();
 }
 
-static bool LoadBlockIndexDB(ChainstateManager &chainman,
-                             const Consensus::Params &params)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    if (!chainman.m_blockman.LoadBlockIndex(
-            params, *pblocktree,
-            ::ChainstateActive().setBlockIndexCandidates)) {
+bool CChainState::LoadBlockIndexDB(const Consensus::Params &params) {
+    assert(std::addressof(::ChainstateActive()) == std::addressof(*this));
+    if (!m_blockman.LoadBlockIndex(params, *pblocktree,
+                                   setBlockIndexCandidates)) {
         return false;
     }
 
@@ -4848,7 +4846,7 @@ static bool LoadBlockIndexDB(ChainstateManager &chainman,
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
     for (const std::pair<const BlockHash, CBlockIndex *> &item :
-         chainman.BlockIndex()) {
+         m_blockman.m_block_index) {
         CBlockIndex *pindex = item.second;
         if (pindex->nStatus.hasData()) {
             setBlkDataFiles.insert(pindex->nFile);
@@ -5260,7 +5258,7 @@ bool ChainstateManager::LoadBlockIndex(const Consensus::Params &params) {
     // Load block index from databases
     bool needs_init = fReindex;
     if (!fReindex) {
-        bool ret = LoadBlockIndexDB(*this, params);
+        bool ret = ActiveChainstate().LoadBlockIndexDB(params);
         if (!ret) {
             return false;
         }
