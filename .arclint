@@ -186,7 +186,8 @@
             "include": "(\\.sh$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^src/(secp256k1|univalue)/)"
+                "(^src/(secp256k1|univalue)/)",
+                "(^cmake/utils/test_wrapper.sh)"
             ]
         },
         "lint-cpp-void-parameters": {
