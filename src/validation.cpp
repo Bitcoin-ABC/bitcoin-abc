@@ -4184,6 +4184,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
 bool ChainstateManager::ProcessNewBlockHeaders(
     const Config &config, const std::vector<CBlockHeader> &headers,
     BlockValidationState &state, const CBlockIndex **ppindex) {
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(ActiveChainstate()));
     AssertLockNotHeld(cs_main);
     {
         LOCK(cs_main);
@@ -4192,7 +4194,7 @@ bool ChainstateManager::ProcessNewBlockHeaders(
             CBlockIndex *pindex = nullptr;
             bool accepted =
                 m_blockman.AcceptBlockHeader(config, header, state, &pindex);
-            ::ChainstateActive().CheckBlockIndex(
+            ActiveChainstate().CheckBlockIndex(
                 config.GetChainParams().GetConsensus());
 
             if (!accepted) {
@@ -4205,8 +4207,8 @@ bool ChainstateManager::ProcessNewBlockHeaders(
         }
     }
 
-    if (NotifyHeaderTip(::ChainstateActive())) {
-        if (::ChainstateActive().IsInitialBlockDownload() && ppindex &&
+    if (NotifyHeaderTip(ActiveChainstate())) {
+        if (ActiveChainstate().IsInitialBlockDownload() && ppindex &&
             *ppindex) {
             LogPrintf("Synchronizing blockheaders, height: %d (~%.2f%%)\n",
                       (*ppindex)->nHeight,
@@ -4419,6 +4421,8 @@ bool ChainstateManager::ProcessNewBlock(
     const Config &config, const std::shared_ptr<const CBlock> pblock,
     bool fForceProcessing, bool *fNewBlock) {
     AssertLockNotHeld(cs_main);
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(ActiveChainstate()));
 
     {
         if (fNewBlock) {
@@ -4440,7 +4444,7 @@ bool ChainstateManager::ProcessNewBlock(
                        BlockValidationOptions(config));
         if (ret) {
             // Store to disk
-            ret = ::ChainstateActive().AcceptBlock(
+            ret = ActiveChainstate().AcceptBlock(
                 config, pblock, state, fForceProcessing, nullptr, fNewBlock);
         }
 
@@ -4451,11 +4455,11 @@ bool ChainstateManager::ProcessNewBlock(
         }
     }
 
-    NotifyHeaderTip(::ChainstateActive());
+    NotifyHeaderTip(ActiveChainstate());
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
-    if (!::ChainstateActive().ActivateBestChain(config, state, pblock)) {
+    if (!ActiveChainstate().ActivateBestChain(config, state, pblock)) {
         return error("%s: ActivateBestChain failed (%s)", __func__,
                      state.ToString());
     }
