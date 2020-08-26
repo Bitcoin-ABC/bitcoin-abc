@@ -174,4 +174,23 @@ function(install_manpages)
 	)
 
 	_add_install_target(manpages)
+
+	if(NOT TARGET install-manpages-html)
+		set(INPUT_DIR "${CMAKE_INSTALL_PREFIX}/${MAN_DESTINATION}")
+		set(OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_MANDIR}/html")
+		configure_file(
+			"${CMAKE_SOURCE_DIR}/cmake/templates/man2html.sh.in"
+			"${CMAKE_BINARY_DIR}/man2html.sh"
+			@ONLY
+		)
+
+		add_custom_target(install-manpages-html
+			COMMENT "Generating man pages for web rendering"
+			COMMAND
+				"${CMAKE_BINARY_DIR}/man2html.sh"
+			DEPENDS
+				install-manpages
+				"${CMAKE_BINARY_DIR}/man2html.sh"
+		)
+	endif()
 endfunction()

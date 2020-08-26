@@ -1,0 +1,34 @@
+#!/bin/sh
+
+export LC_ALL=C.UTF-8
+
+if ! command -v pandoc > /dev/null
+then
+  echo "pandoc is required for converting the man pages, please install it"
+  exit 1
+fi
+
+if ! pandoc --list-input-formats | grep -x man > /dev/null
+then
+  echo "pandoc >= 2.4 is required for converting the man pages, please upgrade"
+  exit 2
+fi
+
+mkdir -p "@OUTPUT_DIR@"
+
+MAN_FILES="$(find "@INPUT_DIR@" -name '*.1' -type f)"
+
+for MAN_FILE in ${MAN_FILES}
+do
+  BINARY_NAME="$(basename "${MAN_FILE}" | cut -d'.' -f1)"
+  HTML_FILE="@OUTPUT_DIR@/${BINARY_NAME}.html"
+
+  echo "---" > "${HTML_FILE}"
+  echo "category: man" >> "${HTML_FILE}"
+  echo "group: @PACKAGE_NAME@ " >> "${HTML_FILE}"
+  echo "name: ${BINARY_NAME}" >> "${HTML_FILE}"
+  echo "version: @PROJECT_VERSION@" >> "${HTML_FILE}"
+  echo "---" >> "${HTML_FILE}"
+
+  pandoc --from=man --to=html "${MAN_FILE}" >> "${HTML_FILE}"
+done
