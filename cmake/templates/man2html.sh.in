@@ -29,6 +29,7 @@ do
   echo "name: ${BINARY_NAME}" >> "${HTML_FILE}"
   echo "version: @PROJECT_VERSION@" >> "${HTML_FILE}"
   echo "---" >> "${HTML_FILE}"
+  echo "<!-- @generated -->" >> "${HTML_FILE}"
 
   pandoc --from=man --to=html "${MAN_FILE}" >> "${HTML_FILE}"
 done
