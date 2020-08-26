@@ -1506,7 +1506,7 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
-            LoadGenesisBlock(chainParams);
+            ::ChainstateActive().LoadGenesisBlock(chainParams);
         }
 
         // -loadblock=
@@ -2743,7 +2743,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // disk).
                 // This is called again in ThreadImport after the reindex
                 // completes.
-                if (!fReindex && !LoadGenesisBlock(chainparams)) {
+                if (!fReindex &&
+                    !::ChainstateActive().LoadGenesisBlock(chainparams)) {
                     strLoadError = _("Error initializing block database");
                     break;
                 }

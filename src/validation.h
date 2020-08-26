@@ -212,12 +212,6 @@ public:
 };
 
 /**
- * Ensures we have a genesis block in the block tree, possibly writing one to
- * disk.
- */
-bool LoadGenesisBlock(const CChainParams &chainparams);
-
-/**
  * Unload database information.
  */
 void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman);
@@ -976,6 +970,11 @@ public:
 
     /** Replay blocks that aren't fully applied to the database. */
     bool ReplayBlocks(const Consensus::Params &params);
+
+    /**
+     * Ensures we have a genesis block in the block tree, possibly writing one
+     * to disk.
+     */
     bool LoadGenesisBlock(const CChainParams &chainparams);
 
     void PruneBlockIndexCandidates();
