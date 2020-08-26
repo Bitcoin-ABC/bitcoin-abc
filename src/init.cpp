@@ -2679,8 +2679,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way
                 // around).
+                assert(std::addressof(g_chainman.m_blockman) ==
+                       std::addressof(chainman.m_blockman));
                 if (!chainman.BlockIndex().empty() &&
-                    !g_chainman.m_blockman.LookupBlockIndex(
+                    !chainman.m_blockman.LookupBlockIndex(
                         params.hashGenesisBlock)) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?"));
@@ -2703,8 +2705,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // disk).
                 // This is called again in ThreadImport after the reindex
                 // completes.
-                if (!fReindex &&
-                    !::ChainstateActive().LoadGenesisBlock(chainparams)) {
+                if (!fReindex && !chainman.ActiveChainstate().LoadGenesisBlock(
+                                     chainparams)) {
                     strLoadError = _("Error initializing block database");
                     break;
                 }
@@ -2865,18 +2867,18 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Step 8: load indexers
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
         g_txindex = std::make_unique<TxIndex>(nTxIndexCache, false, fReindex);
-        g_txindex->Start(::ChainstateActive());
+        g_txindex->Start(chainman.ActiveChainstate());
     }
 
     for (const auto &filter_type : g_enabled_filter_types) {
         InitBlockFilterIndex(filter_type, filter_index_cache, false, fReindex);
-        GetBlockFilterIndex(filter_type)->Start(::ChainstateActive());
+        GetBlockFilterIndex(filter_type)->Start(chainman.ActiveChainstate());
     }
 
     if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
         g_coin_stats_index = std::make_unique<CoinStatsIndex>(
             /* cache size */ 0, false, fReindex);
-        g_coin_stats_index->Start(::ChainstateActive());
+        g_coin_stats_index->Start(chainman.ActiveChainstate());
     }
     // Step 9: load wallet
     for (const auto &client : node.chain_clients) {
@@ -2918,7 +2920,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // fHaveGenesis directly.
     // No locking, as this happens before any background thread is started.
     boost::signals2::connection block_notify_genesis_wait_connection;
-    if (::ChainActive().Tip() == nullptr) {
+    assert(std::addressof(::ChainActive()) ==
+           std::addressof(chainman.ActiveChain()));
+    if (chainman.ActiveTip() == nullptr) {
         block_notify_genesis_wait_connection =
             uiInterface.NotifyBlockTip_connect(
                 std::bind(BlockNotifyGenesisWait, std::placeholders::_2));
