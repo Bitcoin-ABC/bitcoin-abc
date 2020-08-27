@@ -18,10 +18,7 @@ from test_framework.messages import (
     msg_ping,
     msg_version,
 )
-from test_framework.p2p import (
-    p2p_lock,
-    P2PInterface,
-)
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -142,14 +139,13 @@ class P2PLeakTest(BitcoinTestFramework):
         # verack, since we never sent one
         no_verack_idle_peer.wait_for_verack()
 
-        self.wait_until(
+        no_version_disconnect_peer.wait_until(
             lambda: no_version_disconnect_peer.ever_connected,
-            timeout=10,
-            lock=p2p_lock)
-        self.wait_until(lambda: no_version_idle_peer.ever_connected,
-                        timeout=10, lock=p2p_lock)
-        self.wait_until(lambda: no_verack_idle_peer.version_received,
-                        timeout=10, lock=p2p_lock)
+            check_connected=False)
+        no_version_idle_peer.wait_until(
+            lambda: no_version_idle_peer.ever_connected)
+        no_verack_idle_peer.wait_until(
+            lambda: no_verack_idle_peer.version_received)
 
         # Mine a block and make sure that it's not sent to the connected peers
         self.nodes[0].generate(nblocks=1)
