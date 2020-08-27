@@ -29,7 +29,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
-    wait_until,
 )
 from test_framework.wallet_util import bytes_to_wif
 
@@ -156,8 +155,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
         while outstanding_peer_index:
             node_0_mocktime += context.constants.max_getdata_inbound_wait
             self.nodes[0].setmocktime(node_0_mocktime)
-            wait_until(lambda: any(getdata_found(i)
-                                   for i in outstanding_peer_index))
+            self.wait_until(lambda: any(getdata_found(i)
+                                        for i in outstanding_peer_index))
             for i in outstanding_peer_index:
                 if getdata_found(i):
                     outstanding_peer_index.remove(i)

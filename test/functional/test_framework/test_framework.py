@@ -33,7 +33,7 @@ from .util import (
     p2p_port,
     PortSeed,
     rpc_port,
-    wait_until,
+    wait_until_helper,
 )
 
 
@@ -610,8 +610,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.sync_mempools(nodes)
 
     def wait_until(self, test_function, timeout=60, lock=None):
-        return wait_until(test_function, timeout=timeout, lock=lock,
-                          timeout_factor=self.options.timeout_factor)
+        return wait_until_helper(test_function, timeout=timeout, lock=lock,
+                                 timeout_factor=self.options.timeout_factor)
 
     # Private helper methods. These should not be accessed by the subclass
     # test scripts.

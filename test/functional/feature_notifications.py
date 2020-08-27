@@ -13,7 +13,6 @@ from test_framework.util import (
     connect_nodes,
     disconnect_nodes,
     hex_str_to_bytes,
-    wait_until,
 )
 
 FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {}"
@@ -179,7 +178,8 @@ class NotificationsTest(BitcoinTestFramework):
         self.nodes[0].invalidateblock(invalid_block)
 
         # Give bitcoind 10 seconds to write the alert notification
-        wait_until(lambda: len(os.listdir(self.alertnotify_dir)), timeout=10)
+        self.wait_until(lambda: len(os.listdir(self.alertnotify_dir)),
+                        timeout=10)
 
         # The notification command is unable to properly handle the spaces on
         # windows. Skip the content check in this case.
