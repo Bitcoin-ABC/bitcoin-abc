@@ -5,6 +5,7 @@
 #ifndef BITCOIN_MINERFUND_H
 #define BITCOIN_MINERFUND_H
 
+#include <amount.h>
 #include <script/standard.h>
 
 #include <vector>
@@ -15,10 +16,7 @@ namespace Consensus {
 struct Params;
 }
 
-/**
- * Percentage of the block reward to be sent to the fund.
- */
-static constexpr int MINER_FUND_RATIO = 8;
+Amount GetMinerFundAmount(const Amount &coinbaseValue);
 
 std::vector<CTxDestination>
 GetMinerFundWhitelist(const Consensus::Params &params,

@@ -10,6 +10,15 @@
 #include <util/system.h>
 #include <validation.h> // For VersionBitsBlockState
 
+/**
+ * Percentage of the block reward to be sent to the fund.
+ */
+static constexpr int MINER_FUND_RATIO = 8;
+
+Amount GetMinerFundAmount(const Amount &coinbaseValue) {
+    return MINER_FUND_RATIO * coinbaseValue / 100;
+}
+
 static CTxDestination BuildDestination(const std::string &dest) {
     const auto mainNetParams = CreateChainParams(CBaseChainParams::MAIN);
     return DecodeDestination(dest, *mainNetParams);

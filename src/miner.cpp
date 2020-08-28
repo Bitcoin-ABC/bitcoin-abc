@@ -194,8 +194,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     const std::vector<CTxDestination> whitelisted =
         GetMinerFundWhitelist(consensusParams, pindexPrev);
     if (!whitelisted.empty()) {
-        const Amount fund =
-            (MINER_FUND_RATIO * coinbaseTx.vout[0].nValue) / 100;
+        const Amount fund = GetMinerFundAmount(coinbaseTx.vout[0].nValue);
         coinbaseTx.vout[0].nValue -= fund;
         coinbaseTx.vout.emplace_back(fund,
                                      GetScriptForDestination(whitelisted[0]));

@@ -1820,7 +1820,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
     const std::vector<CTxDestination> whitelist =
         GetMinerFundWhitelist(consensusParams, pindex->pprev);
     if (!whitelist.empty()) {
-        const Amount required = (MINER_FUND_RATIO * blockReward) / 100;
+        const Amount required = GetMinerFundAmount(blockReward);
 
         for (auto &o : block.vtx[0]->vout) {
             if (o.nValue < required) {
