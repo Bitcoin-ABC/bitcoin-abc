@@ -133,6 +133,13 @@ case "${COMMIT_TYPE}" in
       exit 13
     }
 
+    # If there is no change, we're done.
+    if [ -z "$(git status --porcelain)" ]
+    then
+      echo "No update to perform on the man pages"
+      exit 0
+    fi
+
     git add "${MANPAGES_DIR}"/*\.1
 
     git commit -m "${BOT_PREFIX} Update manpages"

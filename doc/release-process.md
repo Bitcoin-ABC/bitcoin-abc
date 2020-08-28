@@ -15,8 +15,6 @@ Bitcoin ABC Release Process
     - Verify the following were updated by automation since the last release:
         - Seeds (see [README](contrib/seeds/README.md))
         - Chainparams were updated, such as assume-valid, chainwork, and disk size expectations.
-    - Regenerate manpages (run `contrib/devtools/gen-manpages.sh`, or for out-of-tree builds run
-      `BUILDDIR=$PWD/build contrib/devtools/gen-manpages.sh`).
 
 3. Verify tests passed
     - Run `arc lint --everything` and check there is no linter error
