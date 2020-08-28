@@ -7,7 +7,7 @@ pkgdesc="Bitcoin ABC with bitcoind, bitcoin-tx, bitcoin-seeder and bitcoin-cli"
 arch=('i686' 'x86_64')
 url="https://bitcoinabc.org"
 depends=('boost-libs' 'libevent' 'openssl' 'zeromq' 'miniupnpc' 'jemalloc')
-makedepends=('cmake' 'ninja' 'boost')
+makedepends=('cmake' 'ninja' 'boost' 'python')
 license=('MIT')
 source=(https://github.com/Bitcoin-ABC/bitcoin-abc/archive/v$pkgver.tar.gz
         bitcoin.conf
@@ -15,12 +15,6 @@ source=(https://github.com/Bitcoin-ABC/bitcoin-abc/archive/v$pkgver.tar.gz
         bitcoin.service
         bitcoin-reindex.service
         bitcoin.install)
-sha256sums=('feaffb2129f49813692ec17ba5675a3ac44e6d0560af55bb4d1d2f160c5b4a0b'
-            'c30e5c7e0e97b001fdeac5f4510d5ebc0e0499ec086325e845db609a24f2e22f'
-            '8f05207b586916d489b7d25a68eaacf6e678d7cbb5bfbac551903506b32f904f'
-            'f2fd9d8331238727333cf2412ba3759cb194a65b2060eff36808b24c06382104'
-            '497dbeefb9cd9792757a9b6e1fbfd92710d19990ee2959add6c30533ae40b6f6'
-            '16ea5b19d554e0cb748ba14cbeee6015ed456b66f981fb8769f1403720b2d0a9')
 backup=('etc/bitcoin/bitcoin.conf'
         'etc/logrotate.d/bitcoin')
 provides=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-seeder')
