@@ -72,7 +72,7 @@ echo "Building automated commit '${COMMIT_TYPE}'..."
 BOT_PREFIX="[Automated]"
 TOPLEVEL=$(git rev-parse --show-toplevel)
 
-BUILD_DIR="${TOPLEVEL}"/build
+BUILD_DIR="${TOPLEVEL}/abc-ci-builds/automated-commit-${COMMIT_TYPE}"
 mkdir -p "${BUILD_DIR}"
 export BUILD_DIR
 
