@@ -34,7 +34,8 @@ static const int8_t mapBase58[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1,
 };
 
-bool DecodeBase58(const char *psz, std::vector<uint8_t> &vch, int max_ret_len) {
+[[nodiscard]] static bool
+DecodeBase58(const char *psz, std::vector<uint8_t> &vch, int max_ret_len) {
     // Skip leading spaces.
     while (*psz && IsSpace(*psz)) {
         psz++;
@@ -156,8 +157,9 @@ std::string EncodeBase58Check(Span<const uint8_t> input) {
     return EncodeBase58(vch);
 }
 
-bool DecodeBase58Check(const char *psz, std::vector<uint8_t> &vchRet,
-                       int max_ret_len) {
+[[nodiscard]] static bool DecodeBase58Check(const char *psz,
+                                            std::vector<uint8_t> &vchRet,
+                                            int max_ret_len) {
     if (!DecodeBase58(psz, vchRet,
                       max_ret_len > std::numeric_limits<int>::max() - 4
                           ? std::numeric_limits<int>::max()
