@@ -23,6 +23,7 @@ race:ThreadImport
 race:WalletBatch::WriteHDChain
 race:CZMQAbstractPublishNotifier::SendMessage
 race:BerkeleyBatch
+race:leveldb::DBImpl::DeleteObsoleteFiles
 race:bitcoin-qt
 # deadlock (TODO fix)
 deadlock:CConnman::ForNode
