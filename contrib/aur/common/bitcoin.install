@@ -1,0 +1,59 @@
+_bc_user=bitcoin
+_bc_group=bitcoin
+
+post_install() {
+  _mkuser
+  chown -R $_bc_user:$_bc_group /etc/bitcoin /srv/bitcoin /run/bitcoin
+  printf "%b\n" "$bitcoin"
+}
+
+post_upgrade() {
+  _mkuser
+  chown -R $_bc_user:$_bc_group /etc/bitcoin /srv/bitcoin /run/bitcoin
+  printf "%b\n" "$bitcoin"
+}
+
+post_remove() {
+  _rmuser
+  rm -rf /srv/bitcoin /run/bitcoin
+}
+
+_mkuser() {
+  getent passwd $_bc_user &>/dev/null || {
+    echo -n "Creating bitcoin user... "
+    grep -E "^$_bc_group:" /etc/group >/dev/null || groupadd $_bc_group
+    useradd -m -d /etc/bitcoin -g $_bc_group -s /usr/bin/nologin $_bc_user 2>/dev/null
+    echo "done"
+  }
+}
+
+_rmuser() {
+  echo -n "Removing bitcoin user... "
+  userdel -rf $_bc_user 2>/dev/null
+  echo "done"
+}
+
+read -d '' bitcoin <<'EOI'
+
+Bitcoin ABC
+___________
+
+To start bitcoin-abc:
+
+$ systemctl start bitcoin
+
+To communicate with bitcoin-abc as a normal user:
+
+$ mkdir -p ~/.bitcoin
+$ cat > ~/.bitcoin/bitcoin.conf <<'EOF'
+rpcport=8332
+rpcuser=bitcoin
+rpcpassword=secret
+EOF
+
+$ bitcoin-cli getmininginfo
+
+Config:        /etc/bitcoin/bitcoin.conf
+Blockchain:    /srv/bitcoin
+Documentation: /usr/share/doc/bitcoin
+EOI
