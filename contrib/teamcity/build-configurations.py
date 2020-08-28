@@ -196,19 +196,26 @@ class UserBuild():
 
     async def process_stdout(self, stdout):
         while True:
-            line = await stdout.readline()
-            line = line.decode('utf-8')
+            try:
+                line = await stdout.readline()
+                line = line.decode('utf-8')
 
-            if not line:
-                break
+                if not line:
+                    break
 
-            self.print_line_to_logs(line)
+                self.print_line_to_logs(line)
+
+            except ValueError:
+                self.print_line_to_logs(
+                    "--- Line discarded due to StreamReader overflow ---"
+                )
+                continue
 
     async def run_build(self, args=[]):
         proc = await asyncio.create_subprocess_exec(
             *([str(self.configuration.script_path)] + args),
             # Buffer limit is 64KB by default, but we need a larger buffer:
-            limit=1024 * 128,
+            limit=1024 * 256,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             cwd=self.build_directory,
