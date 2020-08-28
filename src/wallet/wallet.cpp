@@ -3756,10 +3756,6 @@ std::map<CTxDestination, Amount> CWallet::GetAddressBalances() const {
             Amount n = IsSpent(COutPoint(walletEntry.first, i))
                            ? Amount::zero()
                            : wtx.tx->vout[i].nValue;
-
-            if (!balances.count(addr)) {
-                balances[addr] = Amount::zero();
-            }
             balances[addr] += n;
         }
     }
