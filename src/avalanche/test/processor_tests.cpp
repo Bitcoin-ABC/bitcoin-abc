@@ -9,7 +9,7 @@
 #include <avalanche/proofbuilder.h>
 #include <chain.h>
 #include <config.h>
-#include <net_processing.h> // For PeerLogicValidation
+#include <net_processing.h> // For ::PeerManager
 #include <util/time.h>
 // D6970 moved LookupBlockIndex from chain.h to validation.h TODO: remove this
 // when LookupBlockIndex is refactored out of validation
@@ -34,7 +34,7 @@ namespace {
             return p.getSuitableNodeToQuery();
         }
 
-        static PeerManager &getPeerManager(Processor &p) {
+        static avalanche::PeerManager &getPeerManager(Processor &p) {
             LOCK(p.cs_peerManager);
             return *p.peerManager;
         }
@@ -80,7 +80,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
         m_connman = connman.get();
         m_node.connman = std::move(connman);
-        m_node.peer_logic = std::make_unique<PeerLogicValidation>(
+        m_node.peerman = std::make_unique<::PeerManager>(
             config.GetChainParams(), *m_connman, m_node.banman.get(),
             *m_node.scheduler, *m_node.chainman, *m_node.mempool);
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
@@ -104,7 +104,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
                       0, 0, 0, CAddress(), "", ConnectionType::OUTBOUND);
         node->SetSendVersion(PROTOCOL_VERSION);
         node->nServices = nServices;
-        m_node.peer_logic->InitializeNode(config, node);
+        m_node.peerman->InitializeNode(config, node);
         node->nVersion = 1;
         node->fSuccessfullyConnected = true;
 
@@ -130,7 +130,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     }
 
     std::array<CNode *, 8> ConnectNodes() {
-        PeerManager &pm = getPeerManager();
+        avalanche::PeerManager &pm = getPeerManager();
         Proof proof = GetProof();
         Delegation dg = DelegationBuilder(proof).build();
 
@@ -153,7 +153,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         return AvalancheTest::getInvsForNextPoll(*m_processor);
     }
 
-    PeerManager &getPeerManager() {
+    avalanche::PeerManager &getPeerManager() {
         return AvalancheTest::getPeerManager(*m_processor);
     }
 
@@ -739,7 +739,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
 
 BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     // Create enough nodes so that we run into the inflight request limit.
-    PeerManager &pm = getPeerManager();
+    avalanche::PeerManager &pm = getPeerManager();
     Proof proof = GetProof();
     Delegation dg = DelegationBuilder(proof).build();
 

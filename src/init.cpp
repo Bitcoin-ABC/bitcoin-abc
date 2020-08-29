@@ -212,8 +212,8 @@ void Shutdown(NodeContext &node) {
 
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.
-    if (node.peer_logic) {
-        UnregisterValidationInterface(node.peer_logic.get());
+    if (node.peerman) {
+        UnregisterValidationInterface(node.peerman.get());
     }
     // Follow the lock order requirements:
     // * CheckForStaleTipAndEvictPeers locks cs_main before indirectly calling
@@ -243,7 +243,7 @@ void Shutdown(NodeContext &node) {
 
     // After the threads that potentially access these pointers have been
     // stopped, destruct and reset all to nullptr.
-    node.peer_logic.reset();
+    node.peerman.reset();
 
     // Destroy various global instances
     g_avalanche.reset();
@@ -2270,10 +2270,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.chainman = &g_chainman;
     ChainstateManager &chainman = *Assert(node.chainman);
 
-    node.peer_logic.reset(
-        new PeerLogicValidation(chainparams, *node.connman, node.banman.get(),
-                                *node.scheduler, chainman, *node.mempool));
-    RegisterValidationInterface(node.peer_logic.get());
+    node.peerman.reset(new PeerManager(chainparams, *node.connman,
+                                       node.banman.get(), *node.scheduler,
+                                       chainman, *node.mempool));
+    RegisterValidationInterface(node.peerman.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size
     std::vector<std::string> uacomments;
@@ -2882,7 +2882,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nBestHeight = chain_active_height;
     connOptions.uiInterface = &uiInterface;
     connOptions.m_banman = node.banman.get();
-    connOptions.m_msgproc = node.peer_logic.get();
+    connOptions.m_msgproc = node.peerman.get();
     connOptions.nSendBufferMaxSize =
         1000 * args.GetArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
     connOptions.nReceiveFloodSize =

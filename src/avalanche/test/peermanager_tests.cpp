@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
 
 BOOST_AUTO_TEST_CASE(peer_probabilities) {
     // No peers.
-    PeerManager pm;
+    avalanche::PeerManager pm;
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     const NodeId node0 = 42, node1 = 69, node2 = 37;
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
 
 BOOST_AUTO_TEST_CASE(remove_peer) {
     // No peers.
-    PeerManager pm;
+    avalanche::PeerManager pm;
     BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
 
     // Add 4 peers.
@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 }
 
 BOOST_AUTO_TEST_CASE(compact_slots) {
-    PeerManager pm;
+    avalanche::PeerManager pm;
 
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
@@ -305,7 +305,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
 }
 
 BOOST_AUTO_TEST_CASE(node_crud) {
-    PeerManager pm;
+    avalanche::PeerManager pm;
 
     // Create one peer.
     Proof proof = buildRandomProof(100000000);
@@ -389,7 +389,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
         }
     }
 
-    PeerManager pm;
+    avalanche::PeerManager pm;
     const auto getPeerId = [&](const std::vector<COutPoint> &outpoints) {
         ProofBuilder pb(0, 0, CPubKey());
         for (const auto &o : outpoints) {

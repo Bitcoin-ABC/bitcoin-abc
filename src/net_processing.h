@@ -33,12 +33,12 @@ static const bool DEFAULT_PEERBLOCKFILTERS = false;
  * to the discouragement filter. */
 static const int DISCOURAGEMENT_THRESHOLD{100};
 
-class PeerLogicValidation final : public CValidationInterface,
-                                  public NetEventsInterface {
+class PeerManager final : public CValidationInterface,
+                          public NetEventsInterface {
 public:
-    PeerLogicValidation(const CChainParams &chainparams, CConnman &connman,
-                        BanMan *banman, CScheduler &scheduler,
-                        ChainstateManager &chainman, CTxMemPool &pool);
+    PeerManager(const CChainParams &chainparams, CConnman &connman,
+                BanMan *banman, CScheduler &scheduler,
+                ChainstateManager &chainman, CTxMemPool &pool);
 
     /**
      * Overridden from CValidationInterface.

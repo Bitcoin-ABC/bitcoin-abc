@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     std::atomic<bool> interruptDummy(false);
 
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerLogicValidation>(
+    auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, nullptr, *m_node.scheduler,
         *m_node.chainman, *m_node.mempool);
 
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 
 static void AddRandomOutboundPeer(const Config &config,
                                   std::vector<CNode *> &vNodes,
-                                  PeerLogicValidation &peerLogic,
+                                  PeerManager &peerLogic,
                                   CConnmanTest *connman) {
     CAddress addr(ip(g_insecure_rand_ctx.randbits(32)), NODE_NONE);
     vNodes.emplace_back(new CNode(id++, ServiceFlags(NODE_NETWORK), 0,
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     const Config &config = GetConfig();
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerLogicValidation>(
+    auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, nullptr, *m_node.scheduler,
         *m_node.chainman, *m_node.mempool);
 
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
                                            config.GetChainParams(), nullptr,
                                            DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerLogicValidation>(
+    auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, banman.get(), *m_node.scheduler,
         *m_node.chainman, *m_node.mempool);
 
@@ -305,7 +305,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
                                            config.GetChainParams(), nullptr,
                                            DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerLogicValidation>(
+    auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, banman.get(), *m_node.scheduler,
         *m_node.chainman, *m_node.mempool);
 
