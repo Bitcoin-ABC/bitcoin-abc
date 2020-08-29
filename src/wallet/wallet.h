@@ -754,7 +754,8 @@ public:
 
     int64_t GetOldestKeyPoolTime() const;
 
-    std::set<CTxDestination> GetLabelAddresses(const std::string &label) const;
+    std::set<CTxDestination> GetLabelAddresses(const std::string &label) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**
      * Marks all outputs in each one of the destinations dirty, so their cache
@@ -1082,7 +1083,8 @@ public:
     ScriptPubKeyMan *
     AddWalletDescriptor(WalletDescriptor &desc,
                         const FlatSigningProvider &signing_provider,
-                        const std::string &label, bool internal);
+                        const std::string &label, bool internal)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 };
 
 /**

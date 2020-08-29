@@ -135,10 +135,6 @@ namespace {
             return m_wallet->BackupWallet(filename);
         }
         std::string getWalletName() override { return m_wallet->GetName(); }
-        std::set<CTxDestination>
-        getLabelAddresses(const std::string &label) override {
-            return m_wallet->GetLabelAddresses(label);
-        };
         bool getNewDestination(const OutputType type, const std::string label,
                                CTxDestination &dest) override {
             LOCK(m_wallet->cs_wallet);

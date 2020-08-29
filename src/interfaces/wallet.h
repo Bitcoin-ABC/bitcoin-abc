@@ -92,10 +92,6 @@ public:
     //! Get chainparams.
     virtual const CChainParams &getChainParams() = 0;
 
-    //! Get set of addresses corresponding to a given label.
-    virtual std::set<CTxDestination>
-    getLabelAddresses(const std::string &label) = 0;
-
     // Get a new address.
     virtual bool getNewDestination(const OutputType type,
                                    const std::string label,
