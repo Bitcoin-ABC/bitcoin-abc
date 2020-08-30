@@ -2873,25 +2873,21 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
 #if defined(HAVE_SYSTEM)
-    if (args.IsArgSet("-blocknotify")) {
-        const std::string block_notify = args.GetArg("-blocknotify", "");
-        const auto BlockNotifyCallback = [block_notify](
-                                             SynchronizationState sync_state,
-                                             const CBlockIndex *pBlockIndex) {
+    const std::string block_notify = args.GetArg("-blocknotify", "");
+    if (!block_notify.empty()) {
+        uiInterface.NotifyBlockTip_connect([block_notify](
+                                               SynchronizationState sync_state,
+                                               const CBlockIndex *pBlockIndex) {
             if (sync_state != SynchronizationState::POST_INIT || !pBlockIndex) {
                 return;
             }
-
-            std::string strCmd = block_notify;
-            if (!strCmd.empty()) {
-                boost::replace_all(strCmd, "%s",
-                                   pBlockIndex->GetBlockHash().GetHex());
-                std::thread t(runCommand, strCmd);
-                // thread runs free
-                t.detach();
-            }
-        };
-        uiInterface.NotifyBlockTip_connect(BlockNotifyCallback);
+            std::string command = block_notify;
+            boost::replace_all(command, "%s",
+                               pBlockIndex->GetBlockHash().GetHex());
+            std::thread t(runCommand, command);
+            // thread runs free
+            t.detach();
+        });
     }
 #endif
 
