@@ -98,7 +98,6 @@ class CTORMiningTest(BitcoinTestFramework):
 
         tmpl = mining_node.getblocktemplate()
         assert 'proposal' in tmpl['capabilities']
-        assert 'coinbasetxn' not in tmpl
 
         # Check the template transaction metadata and ordering
         last_txid = 0

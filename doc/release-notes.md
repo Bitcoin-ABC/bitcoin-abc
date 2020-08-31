@@ -3,3 +3,5 @@ Bitcoin ABC version 0.22.2 is now available from:
   <https://download.bitcoinabc.org/0.22.2/>
 
 This release includes the following features and fixes:
+ - New `minerfund` subfield of `coinbasetxn` in `getblocktemplate` to enable
+   easy fetching of valid addresses for infrastructure funding.

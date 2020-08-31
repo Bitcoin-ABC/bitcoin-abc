@@ -90,7 +90,6 @@ class MiningTest(BitcoinTestFramework):
         tmpl = node.getblocktemplate()
         self.log.info("getblocktemplate: Test capability advertised")
         assert 'proposal' in tmpl['capabilities']
-        assert 'coinbasetxn' not in tmpl
 
         next_height = int(tmpl["height"])
         coinbase_tx = create_coinbase(height=next_height)

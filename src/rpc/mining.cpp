@@ -5,15 +5,18 @@
 
 #include <amount.h>
 #include <blockvalidity.h>
+#include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <consensus/activation.h>
 #include <consensus/consensus.h>
 #include <consensus/params.h>
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <key_io.h>
 #include <miner.h>
+#include <minerfund.h>
 #include <net.h>
 #include <node/context.h>
 #include <policy/policy.h>
@@ -424,9 +427,17 @@ static UniValue getblocktemplate(const Config &config,
             "  \"coinbasevalue\" : n,              (numeric) maximum allowable "
             "input to coinbase transaction, including the generation award and "
             "transaction fees (in satoshis)\n"
-            "  \"coinbasetxn\" : { ... },          (json object) information "
+            "  \"coinbasetxn\" : {                 (json object) information "
             "for coinbase transaction\n"
-            "  \"target\" : \"xxxx\",                (string) The hash target\n"
+            "    \"minerfund\" : {                   (json object) information "
+            "related to the coinbase miner fund\n"
+            "      \"addresses\" : [ ... ],            (array) List of valid "
+            "addresses for the miner fund output\n"
+            "      \"minimumvalue\" : n,               (numeric) The minimum "
+            "value the miner fund output must pay\n"
+            "    },\n"
+            "  },\n"
+            "  \"target\" : \"xxxx\",              (string) The hash target\n"
             "  \"mintime\" : xxx,                  (numeric) The minimum "
             "timestamp appropriate for next block time in seconds since epoch "
             "(Jan 1 1970 GMT)\n"
@@ -456,6 +467,7 @@ static UniValue getblocktemplate(const Config &config,
         .Check(request);
 
     LOCK(cs_main);
+    const CChainParams &chainparams = config.GetChainParams();
 
     std::string strMode = "template";
     UniValue lpval = NullUniValue;
@@ -503,7 +515,7 @@ static UniValue getblocktemplate(const Config &config,
                 return "inconclusive-not-best-prevblk";
             }
             BlockValidationState state;
-            TestBlockValidity(state, config.GetChainParams(), block, pindexPrev,
+            TestBlockValidity(state, chainparams, block, pindexPrev,
                               BlockValidationOptions(config)
                                   .withCheckPoW(false)
                                   .withCheckMerkleRoot(true));
@@ -614,7 +626,7 @@ static UniValue getblocktemplate(const Config &config,
     CBlock *pblock = &pblocktemplate->block;
 
     // Update nTime
-    UpdateTime(pblock, config.GetChainParams(), pindexPrev);
+    UpdateTime(pblock, chainparams, pindexPrev);
     pblock->nNonce = 0;
 
     UniValue aCaps(UniValue::VARR);
@@ -657,6 +669,26 @@ static UniValue getblocktemplate(const Config &config,
     UniValue aux(UniValue::VOBJ);
     aux.pushKV("flags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end()));
 
+    UniValue minerFundList(UniValue::VARR);
+    const Consensus::Params &consensusParams = chainparams.GetConsensus();
+    for (auto fundDestination :
+         GetMinerFundWhitelist(consensusParams, pindexPrev)) {
+        minerFundList.push_back(EncodeCashAddr(fundDestination, chainparams));
+    }
+
+    int64_t minerFundMinValue = 0;
+    if (IsAxionEnabled(consensusParams, pindexPrev)) {
+        minerFundMinValue =
+            int64_t(GetMinerFundAmount(coinbasevalue) / SATOSHI);
+    }
+
+    UniValue minerFund(UniValue::VOBJ);
+    minerFund.pushKV("addresses", minerFundList);
+    minerFund.pushKV("minimumvalue", minerFundMinValue);
+
+    UniValue coinbasetxn(UniValue::VOBJ);
+    coinbasetxn.pushKV("minerfund", minerFund);
+
     arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 
     UniValue aMutable(UniValue::VARR);
@@ -672,6 +704,7 @@ static UniValue getblocktemplate(const Config &config,
     result.pushKV("previousblockhash", pblock->hashPrevBlock.GetHex());
     result.pushKV("transactions", transactions);
     result.pushKV("coinbaseaux", aux);
+    result.pushKV("coinbasetxn", coinbasetxn);
     result.pushKV("coinbasevalue", int64_t(coinbasevalue / SATOSHI));
     result.pushKV("longpollid", ::ChainActive().Tip()->GetBlockHash().GetHex() +
                                     i64tostr(nTransactionsUpdatedLast));

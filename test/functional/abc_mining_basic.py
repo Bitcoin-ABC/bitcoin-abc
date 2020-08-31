@@ -22,6 +22,7 @@ from test_framework.util import (
 from decimal import Decimal
 
 AXION_ACTIVATION_TIME = 2000000600
+MINER_FUND_ADDR = 'bchreg:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgd35g0pkl'
 
 
 class AbcMiningRPCTest(BitcoinTestFramework):
@@ -36,13 +37,6 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         node = self.nodes[0]
         address = node.get_deterministic_priv_key().address
 
-        # Move MTP forward to axion activation
-        node.setmocktime(AXION_ACTIVATION_TIME)
-        node.generatetoaddress(6, address)
-        assert_equal(
-            node.getblockchaininfo()['mediantime'],
-            AXION_ACTIVATION_TIME)
-
         # Assert the results of getblocktemplate have expected values. Keys not
         # in 'expected' are not checked.
         def assert_getblocktemplate(expected):
@@ -55,6 +49,26 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             for key, value in expected.items():
                 assert_equal(blockTemplate[key], value)
 
+        # Move block time to just before axion activation
+        node.setmocktime(AXION_ACTIVATION_TIME)
+        node.generatetoaddress(5, address)
+
+        # Before axion activation, the miner fund list is empty
+        assert_getblocktemplate({
+            'coinbasetxn': {
+                'minerfund': {
+                    'addresses': [],
+                    'minimumvalue': 0,
+                },
+            },
+        })
+
+        # Move MTP forward to axion activation
+        node.generatetoaddress(1, address)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            AXION_ACTIVATION_TIME)
+
         def get_best_coinbase():
             return node.getblock(node.getbestblockhash(), 2)['tx'][0]
 
@@ -66,6 +80,14 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         # them are covered in mining_basic.py
         assert_equal(node.getmempoolinfo()['size'], 0)
         assert_getblocktemplate({
+            'coinbasetxn': {
+                # We expect to start seeing the miner fund addresses since the
+                # next block will start enforcing them.
+                'minerfund': {
+                    'addresses': [MINER_FUND_ADDR],
+                    'minimumvalue': block_reward * 8 // 100 * COIN,
+                },
+            },
             # Although the coinbase value need not necessarily be the same as
             # the last block due to halvings and fees, we know this to be true
             # since we are not crossing a halving boundary and there are no
@@ -86,6 +108,12 @@ class AbcMiningRPCTest(BitcoinTestFramework):
 
         assert_equal(total, block_reward)
         assert_getblocktemplate({
+            'coinbasetxn': {
+                'minerfund': {
+                    'addresses': [MINER_FUND_ADDR],
+                    'minimumvalue': block_reward * 8 // 100 * COIN,
+                },
+            },
             # Again, we assume the coinbase value is the same as prior blocks.
             'coinbasevalue': block_reward * COIN,
             'mintime': AXION_ACTIVATION_TIME + 1,
@@ -95,6 +123,12 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         node.setmocktime(AXION_ACTIVATION_TIME + 1)
         node.generatetoaddress(6, address)
         assert_getblocktemplate({
+            'coinbasetxn': {
+                'minerfund': {
+                    'addresses': [MINER_FUND_ADDR],
+                    'minimumvalue': block_reward * 8 // 100 * COIN,
+                },
+            },
             'coinbasevalue': block_reward * COIN,
             'mintime': AXION_ACTIVATION_TIME + 2,
         })
