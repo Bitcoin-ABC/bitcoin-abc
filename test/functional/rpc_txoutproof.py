@@ -118,6 +118,9 @@ class MerkleBlockTest(BitcoinTestFramework):
         # Test empty list
         assert_raises_rpc_error(-5, "Transaction not yet in block",
                                 self.nodes[0].gettxoutproof, [])
+        # Test duplicate txid
+        assert_raises_rpc_error(-8, 'Invalid parameter, duplicated txid',
+                                self.nodes[0].gettxoutproof, [txid1, txid1])
 
         # Now we'll try tweaking a proof.
         proof = self.nodes[1].gettxoutproof([txid1, txid2])
