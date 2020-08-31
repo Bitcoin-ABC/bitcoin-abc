@@ -140,11 +140,9 @@ std::string ScriptToAsmStr(const CScript &script,
                     if (CheckTransactionSignatureEncoding(vch, flags,
                                                           nullptr)) {
                         const uint8_t chSigHashType = vch.back();
-                        if (mapSigHashTypes.count(chSigHashType)) {
-                            strSigHashDecode =
-                                "[" +
-                                mapSigHashTypes.find(chSigHashType)->second +
-                                "]";
+                        const auto it = mapSigHashTypes.find(chSigHashType);
+                        if (it != mapSigHashTypes.end()) {
+                            strSigHashDecode = "[" + it->second + "]";
                             // remove the sighash type byte. it will be replaced
                             // by the decode.
                             vch.pop_back();
