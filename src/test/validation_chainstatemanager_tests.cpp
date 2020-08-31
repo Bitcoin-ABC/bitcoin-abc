@@ -166,4 +166,12 @@ BOOST_AUTO_TEST_CASE(chainstatemanager_rebalance_caches) {
     BOOST_CHECK_CLOSE(c2.m_coinsdb_cache_size_bytes, max_cache * 0.95, 1);
 }
 
+BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot,
+                        TestChain100DeterministicSetup) {
+    // This placeholder test suite is here to ensure the assertion in
+    // TestChain100Setup(deterministic=true) is correct. The test will be
+    // implemented in a following commit.
+    BOOST_CHECK(true);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
