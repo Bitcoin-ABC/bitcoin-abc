@@ -51,25 +51,23 @@ static void CoinSelection(benchmark::Bench &bench) {
     }
     addCoin(3 * COIN, wallet, wtxs);
 
-    // Create groups
-    std::vector<OutputGroup> groups;
+    // Create coins
+    std::vector<COutput> coins;
     for (const auto &wtx : wtxs) {
-        COutput output(wallet, *wtx, 0 /* iIn */, 6 * 24 /* nDepthIn */,
-                       true /* spendable */, true /* solvable */,
-                       true /* safe */);
-        groups.emplace_back();
-        groups.back().Insert(output.GetInputCoin(), 6, false, 0, 0);
+        coins.emplace_back(wallet, *wtx, 0 /* iIn */, 6 * 24 /* nDepthIn */,
+                           true /* spendable */, true /* solvable */,
+                           true /* safe */);
     }
 
     const CoinEligibilityFilter filter_standard(1, 6, 0);
     const CoinSelectionParams coin_selection_params(
-        true, 34, 148, CFeeRate(Amount::zero()), 0);
+        true, 34, 148, CFeeRate(Amount::zero()), 0, false);
     bench.run([&] {
         std::set<CInputCoin> setCoinsRet;
         Amount nValueRet;
         bool bnb_used;
         bool success = SelectCoinsMinConf(wallet, 1003 * COIN, filter_standard,
-                                          groups, setCoinsRet, nValueRet,
+                                          coins, setCoinsRet, nValueRet,
                                           coin_selection_params, bnb_used);
         assert(success);
         assert(nValueRet == 1003 * COIN);

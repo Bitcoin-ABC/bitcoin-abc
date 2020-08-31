@@ -230,13 +230,15 @@ struct CoinSelectionParams {
     size_t tx_noinputs_size = 0;
     //! Indicate that we are subtracting the fee from outputs
     bool m_subtract_fee_outputs = false;
+    bool m_avoid_partial_spends = false;
 
     CoinSelectionParams(bool use_bnb_, size_t change_output_size_,
                         size_t change_spend_size_, CFeeRate effective_fee_,
-                        size_t tx_noinputs_size_)
+                        size_t tx_noinputs_size_, bool avoid_partial)
         : use_bnb(use_bnb_), change_output_size(change_output_size_),
           change_spend_size(change_spend_size_), effective_fee(effective_fee_),
-          tx_noinputs_size(tx_noinputs_size_) {}
+          tx_noinputs_size(tx_noinputs_size_),
+          m_avoid_partial_spends(avoid_partial) {}
     CoinSelectionParams() {}
 };
 

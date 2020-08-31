@@ -368,7 +368,7 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
 
 bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
                         const CoinEligibilityFilter &eligibility_filter,
-                        std::vector<OutputGroup> groups,
+                        std::vector<COutput> coins,
                         std::set<CInputCoin> &setCoinsRet, Amount &nValueRet,
                         const CoinSelectionParams &coin_selection_params,
                         bool &bnb_used) {
@@ -387,6 +387,10 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
                                     coin_selection_params.change_spend_size) +
                                 coin_selection_params.effective_fee.GetFee(
                                     coin_selection_params.change_output_size);
+
+        std::vector<OutputGroup> groups = GroupOutputs(
+            wallet, coins, !coin_selection_params.m_avoid_partial_spends,
+            eligibility_filter.max_ancestors);
 
         // Filter by the min conf specs and add to utxo_pool and calculate
         // effective value
@@ -418,6 +422,10 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
         return SelectCoinsBnB(utxo_pool, nTargetValue, cost_of_change,
                               setCoinsRet, nValueRet, not_input_fees);
     } else {
+        std::vector<OutputGroup> groups = GroupOutputs(
+            wallet, coins, !coin_selection_params.m_avoid_partial_spends,
+            eligibility_filter.max_ancestors);
+
         // Filter by the min conf specs and add to utxo_pool
         for (const OutputGroup &group : groups) {
             if (!group.EligibleForSpending(eligibility_filter)) {
@@ -521,45 +529,42 @@ bool SelectCoins(const CWallet &wallet,
         Shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
     }
 
-    std::vector<OutputGroup> groups = GroupOutputs(
-        wallet, vCoins, !coin_control.m_avoid_partial_spends, max_ancestors);
-
     bool res =
         value_to_select <= Amount::zero() ||
         SelectCoinsMinConf(wallet, value_to_select,
-                           CoinEligibilityFilter(1, 6, 0), groups, setCoinsRet,
+                           CoinEligibilityFilter(1, 6, 0), vCoins, setCoinsRet,
                            nValueRet, coin_selection_params, bnb_used) ||
         SelectCoinsMinConf(wallet, value_to_select,
-                           CoinEligibilityFilter(1, 1, 0), groups, setCoinsRet,
+                           CoinEligibilityFilter(1, 1, 0), vCoins, setCoinsRet,
                            nValueRet, coin_selection_params, bnb_used) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(wallet, value_to_select,
-                            CoinEligibilityFilter(0, 1, 2), groups, setCoinsRet,
+                            CoinEligibilityFilter(0, 1, 2), vCoins, setCoinsRet,
                             nValueRet, coin_selection_params, bnb_used)) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(
              wallet, value_to_select,
              CoinEligibilityFilter(0, 1, std::min((size_t)4, max_ancestors / 3),
                                    std::min((size_t)4, max_descendants / 3)),
-             groups, setCoinsRet, nValueRet, coin_selection_params,
+             vCoins, setCoinsRet, nValueRet, coin_selection_params,
              bnb_used)) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(wallet, value_to_select,
                             CoinEligibilityFilter(0, 1, max_ancestors / 2,
                                                   max_descendants / 2),
-                            groups, setCoinsRet, nValueRet,
+                            vCoins, setCoinsRet, nValueRet,
                             coin_selection_params, bnb_used)) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(wallet, value_to_select,
                             CoinEligibilityFilter(0, 1, max_ancestors - 1,
                                                   max_descendants - 1),
-                            groups, setCoinsRet, nValueRet,
+                            vCoins, setCoinsRet, nValueRet,
                             coin_selection_params, bnb_used)) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(
              wallet, value_to_select,
              CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max()),
-             groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used));
+             vCoins, setCoinsRet, nValueRet, coin_selection_params, bnb_used));
 
     // Because SelectCoinsMinConf clears the setCoinsRet, we now add the
     // possible inputs to the coinset.
@@ -621,6 +626,8 @@ static bool CreateTransactionInternal(
         AvailableCoins(wallet, vAvailableCoins, true, &coin_control);
         // Parameters for coin selection, init with dummy
         CoinSelectionParams coin_selection_params;
+        coin_selection_params.m_avoid_partial_spends =
+            coin_control.m_avoid_partial_spends;
 
         // Create change script that will be used if we need change
         // TODO: pass in scriptChange instead of reservedest so

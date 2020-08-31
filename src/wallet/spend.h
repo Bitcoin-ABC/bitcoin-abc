@@ -140,7 +140,7 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
  */
 bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
                         const CoinEligibilityFilter &eligibility_filter,
-                        std::vector<OutputGroup> groups,
+                        std::vector<COutput> coins,
                         std::set<CInputCoin> &setCoinsRet, Amount &nValueRet,
                         const CoinSelectionParams &coin_selection_params,
                         bool &bnb_used);
