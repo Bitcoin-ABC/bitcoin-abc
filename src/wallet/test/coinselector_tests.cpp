@@ -120,7 +120,8 @@ GroupCoins(const std::vector<CInputCoin> &coins) {
     static std::vector<OutputGroup> static_groups;
     static_groups.clear();
     for (auto &coin : coins) {
-        static_groups.emplace_back(coin, 0, true, 0, 0);
+        static_groups.emplace_back();
+        static_groups.back().Insert(coin, 0, true, 0, 0);
     }
     return static_groups;
 }
@@ -135,8 +136,9 @@ inline std::vector<OutputGroup> &GroupCoins(const std::vector<COutput> &coins) {
             coin.tx->m_amounts[CWalletTx::DEBIT].m_cached[ISMINE_SPENDABLE] &&
             coin.tx->m_amounts[CWalletTx::DEBIT].m_value[ISMINE_SPENDABLE] ==
                 SATOSHI;
-        static_groups.emplace_back(coin.GetInputCoin(), coin.nDepth, is_me, 0,
-                                   0);
+        static_groups.emplace_back();
+        static_groups.back().Insert(coin.GetInputCoin(), coin.nDepth, is_me, 0,
+                                    0);
     }
     return static_groups;
 }

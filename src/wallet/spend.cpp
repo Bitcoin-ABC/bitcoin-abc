@@ -344,7 +344,8 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                         ancestors, descendants);
                 }
             } else {
-                groups.emplace_back(
+                groups.emplace_back();
+                groups.back().Insert(
                     input_coin, output.nDepth,
                     CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL), ancestors,
                     descendants);
