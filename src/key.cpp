@@ -37,8 +37,8 @@ static secp256k1_context *secp256k1_context_sign = nullptr;
  *
  * out32 must point to an output buffer of length at least 32 bytes.
  */
-static int ec_privkey_import_der(const secp256k1_context *ctx, uint8_t *out32,
-                                 const uint8_t *privkey, size_t privkeylen) {
+int ec_privkey_import_der(const secp256k1_context *ctx, uint8_t *out32,
+                          const uint8_t *privkey, size_t privkeylen) {
     const uint8_t *end = privkey + privkeylen;
     memset(out32, 0, 32);
     /* sequence header */
@@ -98,9 +98,9 @@ static int ec_privkey_import_der(const secp256k1_context *ctx, uint8_t *out32,
  * the privkey buffer. Upon return it will be set to the number of bytes used in
  * the buffer. key32 must point to a 32-byte raw private key.
  */
-static int ec_privkey_export_der(const secp256k1_context *ctx, uint8_t *privkey,
-                                 size_t *privkeylen, const uint8_t *key32,
-                                 bool compressed) {
+int ec_privkey_export_der(const secp256k1_context *ctx, uint8_t *privkey,
+                          size_t *privkeylen, const uint8_t *key32,
+                          bool compressed) {
     assert(*privkeylen >= CKey::SIZE);
     secp256k1_pubkey pubkey;
     size_t pubkeylen = 0;
@@ -224,7 +224,7 @@ CPubKey CKey::GetPubKey() const {
 }
 
 // Check that the sig has a low R value and will be less than 71 bytes
-static bool SigHasLowR(const secp256k1_ecdsa_signature *sig) {
+bool SigHasLowR(const secp256k1_ecdsa_signature *sig) {
     uint8_t compact_sig[64];
     secp256k1_ecdsa_signature_serialize_compact(secp256k1_context_sign,
                                                 compact_sig, sig);

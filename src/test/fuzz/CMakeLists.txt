@@ -151,6 +151,8 @@ add_regular_fuzz_targets(
 	script_sigcache
 	script_sign
 	scriptnum_ops
+	secp256k1_ecdsa_signature_parse_der_lax
+	secp256k1_ec_seckey_import_export_der
 	signature_checker
 	span
 	spanparsing
