@@ -301,7 +301,9 @@ ListCoins(const CWallet &wallet) {
 std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                                       const std::vector<COutput> &outputs,
                                       bool single_coin,
-                                      const size_t max_ancestors) {
+                                      const size_t max_ancestors,
+                                      const CFeeRate &effective_feerate,
+                                      const CFeeRate &long_term_feerate) {
     std::vector<OutputGroup> groups;
     std::map<CTxDestination, OutputGroup> gmap;
     std::set<CTxDestination> full_groups;
@@ -330,7 +332,8 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                     if (it->second.m_outputs.size() >=
                         OUTPUT_GROUP_MAX_ENTRIES) {
                         groups.push_back(it->second);
-                        it->second = OutputGroup{};
+                        it->second =
+                            OutputGroup{effective_feerate, long_term_feerate};
                         full_groups.insert(dst);
                     }
                     it->second.Insert(
@@ -338,13 +341,15 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                         CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL),
                         ancestors, descendants);
                 } else {
-                    gmap[dst].Insert(
+                    auto ins = gmap.emplace(
+                        dst, OutputGroup{effective_feerate, long_term_feerate});
+                    ins.first->second.Insert(
                         input_coin, output.nDepth,
                         CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL),
                         ancestors, descendants);
                 }
             } else {
-                groups.emplace_back();
+                groups.emplace_back(effective_feerate, long_term_feerate);
                 groups.back().Insert(
                     input_coin, output.nDepth,
                     CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL), ancestors,
@@ -382,32 +387,30 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
         temp.m_confirm_target = 1008;
         CFeeRate long_term_feerate = GetMinimumFeeRate(wallet, temp);
 
+        // Get the feerate for effective value.
+        // When subtracting the fee from the outputs, we want the effective
+        // feerate to be 0
+        CFeeRate effective_feerate{Amount::zero()};
+        if (!coin_selection_params.m_subtract_fee_outputs) {
+            effective_feerate = coin_selection_params.effective_fee;
+        }
+
+        std::vector<OutputGroup> groups = GroupOutputs(
+            wallet, coins, !coin_selection_params.m_avoid_partial_spends,
+            eligibility_filter.max_ancestors, effective_feerate,
+            long_term_feerate);
+
         // Calculate cost of change
         Amount cost_of_change = wallet.chain().relayDustFee().GetFee(
                                     coin_selection_params.change_spend_size) +
                                 coin_selection_params.effective_fee.GetFee(
                                     coin_selection_params.change_output_size);
 
-        std::vector<OutputGroup> groups = GroupOutputs(
-            wallet, coins, !coin_selection_params.m_avoid_partial_spends,
-            eligibility_filter.max_ancestors);
-
         // Filter by the min conf specs and add to utxo_pool and calculate
         // effective value
         for (OutputGroup &group : groups) {
             if (!group.EligibleForSpending(eligibility_filter)) {
                 continue;
-            }
-
-            if (coin_selection_params.m_subtract_fee_outputs) {
-                // Set the effective feerate to 0 as we don't want to use the
-                // effective value since the fees will be deducted from the
-                // output
-                group.SetFees(CFeeRate(Amount::zero()) /* effective_feerate */,
-                              long_term_feerate);
-            } else {
-                group.SetFees(coin_selection_params.effective_fee,
-                              long_term_feerate);
             }
 
             OutputGroup pos_group = group.GetPositiveOnlyGroup();
@@ -424,7 +427,8 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
     } else {
         std::vector<OutputGroup> groups = GroupOutputs(
             wallet, coins, !coin_selection_params.m_avoid_partial_spends,
-            eligibility_filter.max_ancestors);
+            eligibility_filter.max_ancestors, CFeeRate(Amount::zero()),
+            CFeeRate(Amount::zero()));
 
         // Filter by the min conf specs and add to utxo_pool
         for (const OutputGroup &group : groups) {

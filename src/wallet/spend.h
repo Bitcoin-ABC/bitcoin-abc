@@ -124,7 +124,9 @@ std::map<CTxDestination, std::vector<COutput>> ListCoins(const CWallet &wallet)
 std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                                       const std::vector<COutput> &outputs,
                                       bool single_coin,
-                                      const size_t max_ancestors);
+                                      const size_t max_ancestors,
+                                      const CFeeRate &effective_feerate,
+                                      const CFeeRate &long_term_feerate);
 
 /**
  * Shuffle and select coins until nTargetValue is reached while avoiding

@@ -9,8 +9,6 @@
 #include <primitives/transaction.h>
 #include <random.h>
 
-class CFeeRate;
-
 //! target minimum change amount
 static constexpr Amount MIN_CHANGE{COIN / 100};
 //! final minimum change amount after paying for fees
@@ -86,19 +84,22 @@ struct OutputGroup {
     size_t m_descendants{0}; ///< deprecated after wellington activation
     Amount effective_value = Amount::zero();
     Amount fee = Amount::zero();
+    CFeeRate m_effective_feerate{Amount::zero()};
     Amount long_term_fee = Amount::zero();
+    CFeeRate m_long_term_feerate{Amount::zero()};
 
     OutputGroup() {}
+    OutputGroup(const CFeeRate &effective_feerate,
+                const CFeeRate &long_term_feerate)
+        : m_effective_feerate(effective_feerate),
+          m_long_term_feerate(long_term_feerate) {}
+
     void Insert(const CInputCoin &output, int depth, bool from_me,
                 size_t ancestors, size_t descendants);
     std::vector<CInputCoin>::iterator Discard(const CInputCoin &output);
     bool
     EligibleForSpending(const CoinEligibilityFilter &eligibility_filter) const;
 
-    //! Update the OutputGroup's fee, long_term_fee, and effective_value based
-    //! on the given feerates
-    void SetFees(const CFeeRate effective_feerate,
-                 const CFeeRate long_term_feerate);
     OutputGroup GetPositiveOnlyGroup();
 };
 
