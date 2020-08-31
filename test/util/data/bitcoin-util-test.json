@@ -212,7 +212,7 @@
   { "exec": "./bitcoin-tx",
     "args": ["-create", "outscript=0:123badscript"],
     "return_code": 1,
-    "error_txt": "Error parsing script: 123badscript",
+    "error_txt": "error: script parse error: unknown opcode 123badscript",
     "description": "Create a new transaction with an invalid output script"
   },
   { "exec": "./bitcoin-tx",
