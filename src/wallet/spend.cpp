@@ -303,7 +303,8 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                                       bool single_coin,
                                       const size_t max_ancestors,
                                       const CFeeRate &effective_feerate,
-                                      const CFeeRate &long_term_feerate) {
+                                      const CFeeRate &long_term_feerate,
+                                      const CoinEligibilityFilter &filter) {
     std::vector<OutputGroup> groups;
     std::map<CTxDestination, OutputGroup> gmap;
     std::set<CTxDestination> full_groups;
@@ -349,11 +350,15 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                         ancestors, descendants);
                 }
             } else {
-                groups.emplace_back(effective_feerate, long_term_feerate);
-                groups.back().Insert(
-                    input_coin, output.nDepth,
-                    CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL), ancestors,
-                    descendants);
+                // This is for if each output gets it's own OutputGroup
+                OutputGroup coin(effective_feerate, long_term_feerate);
+
+                coin.Insert(input_coin, output.nDepth,
+                            CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL),
+                            ancestors, descendants);
+                if (coin.EligibleForSpending(filter)) {
+                    groups.push_back(coin);
+                }
             }
         }
     }
@@ -365,7 +370,10 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                 // if possible
                 group.m_ancestors = max_ancestors - 1;
             }
-            groups.push_back(group);
+            // If the OutputGroup is not eligible, don't add it
+            if (group.EligibleForSpending(filter)) {
+                groups.push_back(group);
+            }
         }
     }
     return groups;
@@ -380,8 +388,8 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
     setCoinsRet.clear();
     nValueRet = Amount::zero();
 
-    std::vector<OutputGroup> utxo_pool;
     if (coin_selection_params.use_bnb) {
+        std::vector<OutputGroup> utxo_pool;
         // Get long term estimate
         CCoinControl temp;
         temp.m_confirm_target = 1008;
@@ -398,7 +406,7 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
         std::vector<OutputGroup> groups = GroupOutputs(
             wallet, coins, !coin_selection_params.m_avoid_partial_spends,
             eligibility_filter.max_ancestors, effective_feerate,
-            long_term_feerate);
+            long_term_feerate, eligibility_filter);
 
         // Calculate cost of change
         Amount cost_of_change = wallet.chain().relayDustFee().GetFee(
@@ -409,10 +417,6 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
         // Filter by the min conf specs and add to utxo_pool and calculate
         // effective value
         for (OutputGroup &group : groups) {
-            if (!group.EligibleForSpending(eligibility_filter)) {
-                continue;
-            }
-
             OutputGroup pos_group = group.GetPositiveOnlyGroup();
             if (pos_group.effective_value > Amount::zero()) {
                 utxo_pool.push_back(pos_group);
@@ -428,17 +432,10 @@ bool SelectCoinsMinConf(const CWallet &wallet, const Amount nTargetValue,
         std::vector<OutputGroup> groups = GroupOutputs(
             wallet, coins, !coin_selection_params.m_avoid_partial_spends,
             eligibility_filter.max_ancestors, CFeeRate(Amount::zero()),
-            CFeeRate(Amount::zero()));
+            CFeeRate(Amount::zero()), eligibility_filter);
 
-        // Filter by the min conf specs and add to utxo_pool
-        for (const OutputGroup &group : groups) {
-            if (!group.EligibleForSpending(eligibility_filter)) {
-                continue;
-            }
-            utxo_pool.push_back(group);
-        }
         bnb_used = false;
-        return KnapsackSolver(nTargetValue, utxo_pool, setCoinsRet, nValueRet);
+        return KnapsackSolver(nTargetValue, groups, setCoinsRet, nValueRet);
     }
 }
 

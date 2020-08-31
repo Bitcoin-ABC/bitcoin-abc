@@ -126,7 +126,8 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
                                       bool single_coin,
                                       const size_t max_ancestors,
                                       const CFeeRate &effective_feerate,
-                                      const CFeeRate &long_term_feerate);
+                                      const CFeeRate &long_term_feerate,
+                                      const CoinEligibilityFilter &filter);
 
 /**
  * Shuffle and select coins until nTargetValue is reached while avoiding
