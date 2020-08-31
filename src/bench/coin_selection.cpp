@@ -88,7 +88,7 @@ static void add_coin(const CWallet &wallet, const Amount nValue, int nInput,
     set.emplace_back();
     set.back().Insert(
         COutput(wallet, *wtx, nInput, 0, true, true, true).GetInputCoin(), 0,
-        true, 0, 0);
+        true, 0, 0, false);
     wtxn.emplace_back(std::move(wtx));
 }
 

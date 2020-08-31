@@ -95,12 +95,9 @@ struct OutputGroup {
           m_long_term_feerate(long_term_feerate) {}
 
     void Insert(const CInputCoin &output, int depth, bool from_me,
-                size_t ancestors, size_t descendants);
-    std::vector<CInputCoin>::iterator Discard(const CInputCoin &output);
+                size_t ancestors, size_t descendants, bool positive_only);
     bool
     EligibleForSpending(const CoinEligibilityFilter &eligibility_filter) const;
-
-    OutputGroup GetPositiveOnlyGroup();
 };
 
 bool SelectCoinsBnB(std::vector<OutputGroup> &utxo_pool,

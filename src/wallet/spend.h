@@ -121,13 +121,12 @@ const CTxOut &FindNonChangeParentOutput(const CWallet &wallet,
 std::map<CTxDestination, std::vector<COutput>> ListCoins(const CWallet &wallet)
     EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet);
 
-std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
-                                      const std::vector<COutput> &outputs,
-                                      bool single_coin,
-                                      const size_t max_ancestors,
-                                      const CFeeRate &effective_feerate,
-                                      const CFeeRate &long_term_feerate,
-                                      const CoinEligibilityFilter &filter);
+std::vector<OutputGroup>
+GroupOutputs(const CWallet &wallet, const std::vector<COutput> &outputs,
+             bool single_coin, const size_t max_ancestors,
+             const CFeeRate &effective_feerate,
+             const CFeeRate &long_term_feerate,
+             const CoinEligibilityFilter &filter, bool positive_only);
 
 /**
  * Shuffle and select coins until nTargetValue is reached while avoiding

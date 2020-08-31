@@ -121,7 +121,7 @@ GroupCoins(const std::vector<CInputCoin> &coins) {
     static_groups.clear();
     for (auto &coin : coins) {
         static_groups.emplace_back();
-        static_groups.back().Insert(coin, 0, true, 0, 0);
+        static_groups.back().Insert(coin, 0, true, 0, 0, false);
     }
     return static_groups;
 }
@@ -138,7 +138,7 @@ inline std::vector<OutputGroup> &GroupCoins(const std::vector<COutput> &coins) {
                 SATOSHI;
         static_groups.emplace_back();
         static_groups.back().Insert(coin.GetInputCoin(), coin.nDepth, is_me, 0,
-                                    0);
+                                    0, false);
     }
     return static_groups;
 }
