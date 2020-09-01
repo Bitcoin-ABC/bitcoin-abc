@@ -13,8 +13,13 @@
 #include <rpc/server.h>
 #include <streams.h>
 #include <util/system.h>
+#include <zmq.h>
 
 #include <cstdarg>
+#include <cstddef>
+#include <map>
+#include <string>
+#include <utility>
 
 static std::multimap<std::string, CZMQAbstractPublishNotifier *>
     mapPublishNotifiers;
