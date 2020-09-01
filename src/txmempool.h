@@ -575,8 +575,10 @@ private:
     typedef std::map<txiter, TxLinks, CompareIteratorById> txlinksMap;
     txlinksMap mapLinks;
 
-    void UpdateParent(txiter entry, txiter parent, bool add);
-    void UpdateChild(txiter entry, txiter child, bool add);
+    void UpdateParent(txiter entry, txiter parent, bool add)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void UpdateChild(txiter entry, txiter child, bool add)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     std::vector<indexed_transaction_set::const_iterator>
     GetSortedDepthAndScore() const EXCLUSIVE_LOCKS_REQUIRED(cs);
@@ -648,8 +650,9 @@ public:
 
     /** Affect CreateNewBlock prioritisation of transactions */
     void PrioritiseTransaction(const TxId &txid, const Amount nFeeDelta);
-    void ApplyDelta(const TxId &txid, Amount &nFeeDelta) const;
-    void ClearPrioritisation(const TxId &txid);
+    void ApplyDelta(const TxId &txid, Amount &nFeeDelta) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void ClearPrioritisation(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /** Get the transaction in the pool that spends the same prevout */
     const CTransaction *GetConflictTx(const COutPoint &prevout) const
@@ -766,8 +769,8 @@ public:
         return mapTx.size();
     }
 
-    uint64_t GetTotalTxSize() const {
-        LOCK(cs);
+    uint64_t GetTotalTxSize() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        AssertLockHeld(cs);
         return totalTxSize;
     }
 
@@ -803,8 +806,8 @@ public:
     }
 
     /** Returns whether a txid is in the unbroadcast set */
-    bool IsUnbroadcastTx(const TxId &txid) const {
-        LOCK(cs);
+    bool IsUnbroadcastTx(const TxId &txid) const EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        AssertLockHeld(cs);
         return (m_unbroadcast_txids.count(txid) != 0);
     }
 

@@ -987,7 +987,7 @@ void CTxMemPool::PrioritiseTransaction(const TxId &txid,
 }
 
 void CTxMemPool::ApplyDelta(const TxId &txid, Amount &nFeeDelta) const {
-    LOCK(cs);
+    AssertLockHeld(cs);
     std::map<TxId, Amount>::const_iterator pos = mapDeltas.find(txid);
     if (pos == mapDeltas.end()) {
         return;
@@ -997,7 +997,7 @@ void CTxMemPool::ApplyDelta(const TxId &txid, Amount &nFeeDelta) const {
 }
 
 void CTxMemPool::ClearPrioritisation(const TxId &txid) {
-    LOCK(cs);
+    AssertLockHeld(cs);
     mapDeltas.erase(txid);
 }
 
@@ -1132,6 +1132,7 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry) {
 }
 
 void CTxMemPool::UpdateChild(txiter entry, txiter child, bool add) {
+    AssertLockHeld(cs);
     setEntries s;
     if (add && mapLinks[entry].children.insert(child).second) {
         cachedInnerUsage += memusage::IncrementalDynamicUsage(s);
@@ -1141,6 +1142,7 @@ void CTxMemPool::UpdateChild(txiter entry, txiter child, bool add) {
 }
 
 void CTxMemPool::UpdateParent(txiter entry, txiter parent, bool add) {
+    AssertLockHeld(cs);
     setEntries s;
     if (add && mapLinks[entry].parents.insert(parent).second) {
         cachedInnerUsage += memusage::IncrementalDynamicUsage(s);
