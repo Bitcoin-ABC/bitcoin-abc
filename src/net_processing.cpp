@@ -559,6 +559,12 @@ private:
     const bool m_ignore_incoming_txs;
 
     /**
+     * Whether we've completed initial sync yet, for determining when to turn
+     * on extra block-relay-only peers.
+     */
+    bool m_initial_sync_finished{false};
+
+    /**
      * Protects m_peer_map. This mutex must not be locked while holding a lock
      * on any of the mutexes inside a Peer object.
      */
@@ -3467,7 +3473,7 @@ void PeerManagerImpl::ProcessMessage(
                 pfrom.nVersion.load(), peer->m_starting_height, pfrom.GetId(),
                 (fLogIPs ? strprintf(", peeraddr=%s", pfrom.addr.ToString())
                          : ""),
-                pfrom.m_tx_relay == nullptr ? "block-relay" : "full-relay");
+                pfrom.IsBlockOnlyConn() ? "block-relay" : "full-relay");
         }
 
         if (pfrom.GetCommonVersion() >= SENDHEADERS_VERSION) {
@@ -5381,15 +5387,76 @@ void PeerManagerImpl::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
 }
 
 void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
-    // Check whether we have too many outbound peers
-    int extra_peers = m_connman.GetExtraOutboundCount();
-    if (extra_peers <= 0) {
+    // If we have any extra block-relay-only peers, disconnect the youngest
+    // unless it's given us a block -- in which case, compare with the
+    // second-youngest, and out of those two, disconnect the peer who least
+    // recently gave us a block.
+    // The youngest block-relay-only peer would be the extra peer we connected
+    // to temporarily in order to sync our tip; see net.cpp.
+    // Note that we use higher nodeid as a measure for most recent connection.
+    if (m_connman.GetExtraBlockRelayCount() > 0) {
+        std::pair<NodeId, int64_t> youngest_peer{-1, 0},
+            next_youngest_peer{-1, 0};
+
+        m_connman.ForEachNode([&](CNode *pnode) {
+            if (!pnode->IsBlockOnlyConn() || pnode->fDisconnect) {
+                return;
+            }
+            if (pnode->GetId() > youngest_peer.first) {
+                next_youngest_peer = youngest_peer;
+                youngest_peer.first = pnode->GetId();
+                youngest_peer.second = pnode->nLastBlockTime;
+            }
+        });
+
+        NodeId to_disconnect = youngest_peer.first;
+        if (youngest_peer.second > next_youngest_peer.second) {
+            // Our newest block-relay-only peer gave us a block more recently;
+            // disconnect our second youngest.
+            to_disconnect = next_youngest_peer.first;
+        }
+
+        m_connman.ForNode(
+            to_disconnect,
+            [&](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+                AssertLockHeld(::cs_main);
+                // Make sure we're not getting a block right now, and that we've
+                // been connected long enough for this eviction to happen at
+                // all. Note that we only request blocks from a peer if we learn
+                // of a valid headers chain with at least as much work as our
+                // tip.
+                CNodeState *node_state = State(pnode->GetId());
+                if (node_state == nullptr ||
+                    (time_in_seconds - pnode->nTimeConnected >=
+                         MINIMUM_CONNECT_TIME &&
+                     node_state->nBlocksInFlight == 0)) {
+                    pnode->fDisconnect = true;
+                    LogPrint(BCLog::NET,
+                             "disconnecting extra block-relay-only peer=%d "
+                             "(last block received at time %d)\n",
+                             pnode->GetId(), pnode->nLastBlockTime);
+                    return true;
+                } else {
+                    LogPrint(
+                        BCLog::NET,
+                        "keeping block-relay-only peer=%d chosen for eviction "
+                        "(connect time: %d, blocks_in_flight: %d)\n",
+                        pnode->GetId(), pnode->nTimeConnected,
+                        node_state->nBlocksInFlight);
+                }
+                return false;
+            });
+    }
+
+    // Check whether we have too many OUTBOUND_FULL_RELAY peers
+    if (m_connman.GetExtraFullOutboundCount() <= 0) {
         return;
     }
 
-    // If we have more outbound peers than we target, disconnect one.
-    // Pick the outbound peer that least recently announced us a new block, with
-    // ties broken by choosing the more recent connection (higher node id)
+    // If we have more OUTBOUND_FULL_RELAY peers than we target, disconnect one.
+    // Pick the OUTBOUND_FULL_RELAY peer that least recently announced us a new
+    // block, with ties broken by choosing the more recent connection (higher
+    // node id)
     NodeId worst_peer = -1;
     int64_t oldest_block_announcement = std::numeric_limits<int64_t>::max();
 
@@ -5397,8 +5464,9 @@ void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
                               ::cs_main) {
         AssertLockHeld(::cs_main);
 
-        // Ignore non-outbound peers, or nodes marked for disconnect already
-        if (!pnode->IsOutboundOrBlockRelayConn() || pnode->fDisconnect) {
+        // Only consider OUTBOUND_FULL_RELAY peers that are not already marked
+        // for disconnection
+        if (!pnode->IsFullOutboundConn() || pnode->fDisconnect) {
             return;
         }
         CNodeState *state = State(pnode->GetId());
@@ -5410,11 +5478,6 @@ void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
         if (state->m_chain_sync.m_protect) {
             return;
         }
-        // Don't evict our block-relay-only peers.
-        if (pnode->m_tx_relay == nullptr) {
-            return;
-        }
-
         if (state->m_last_block_announcement < oldest_block_announcement ||
             (state->m_last_block_announcement == oldest_block_announcement &&
              pnode->GetId() > worst_peer)) {
@@ -5472,23 +5535,27 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
 
     EvictExtraOutboundPeers(time_in_seconds);
 
-    if (time_in_seconds <= m_stale_tip_check_time) {
-        return;
+    if (time_in_seconds > m_stale_tip_check_time) {
+        // Check whether our tip is stale, and if so, allow using an extra
+        // outbound peer.
+        if (!fImporting && !fReindex && m_connman.GetNetworkActive() &&
+            m_connman.GetUseAddrmanOutgoing() &&
+            TipMayBeStale(m_chainparams.GetConsensus())) {
+            LogPrintf("Potential stale tip detected, will try using extra "
+                      "outbound peer (last tip update: %d seconds ago)\n",
+                      time_in_seconds - g_last_tip_update);
+            m_connman.SetTryNewOutboundPeer(true);
+        } else if (m_connman.GetTryNewOutboundPeer()) {
+            m_connman.SetTryNewOutboundPeer(false);
+        }
+        m_stale_tip_check_time = time_in_seconds + STALE_CHECK_INTERVAL;
     }
 
-    // Check whether our tip is stale, and if so, allow using an extra outbound
-    // peer.
-    if (!fImporting && !fReindex && m_connman.GetNetworkActive() &&
-        m_connman.GetUseAddrmanOutgoing() &&
-        TipMayBeStale(m_chainparams.GetConsensus())) {
-        LogPrintf("Potential stale tip detected, will try using extra outbound "
-                  "peer (last tip update: %d seconds ago)\n",
-                  time_in_seconds - g_last_tip_update);
-        m_connman.SetTryNewOutboundPeer(true);
-    } else if (m_connman.GetTryNewOutboundPeer()) {
-        m_connman.SetTryNewOutboundPeer(false);
+    if (!m_initial_sync_finished &&
+        CanDirectFetch(m_chainparams.GetConsensus())) {
+        m_connman.StartExtraBlockRelayPeers();
+        m_initial_sync_finished = true;
     }
-    m_stale_tip_check_time = time_in_seconds + STALE_CHECK_INTERVAL;
 }
 
 void PeerManagerImpl::MaybeSendPing(CNode &node_to, Peer &peer) {

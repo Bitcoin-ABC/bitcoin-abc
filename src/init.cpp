@@ -226,7 +226,7 @@ void Shutdown(NodeContext &node) {
     }
     // Follow the lock order requirements:
     // * CheckForStaleTipAndEvictPeers locks cs_main before indirectly calling
-    //   GetExtraOutboundCount which locks cs_vNodes.
+    //   GetExtraFullOutboundCount which locks cs_vNodes.
     // * ProcessMessage locks cs_main and g_cs_orphans before indirectly calling
     //   ForEachNode which locks cs_vNodes.
     // * CConnman::Stop calls DeleteNode, which calls FinalizeNode, which locks
