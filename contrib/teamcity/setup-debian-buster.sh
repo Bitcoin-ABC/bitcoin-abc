@@ -123,3 +123,9 @@ update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32
 pip3 install teamcity-messages
 # Python library for merging nested structures
 pip3 install deepmerge
+
+# Install pandoc. The version from buster is outdated, so get a more recent one
+# from github.
+wget https://github.com/jgm/pandoc/releases/download/2.10.1/pandoc-2.10.1-1-amd64.deb
+echo "4515d6fe2bf8b82765d8dfa1e1b63ccb0ff3332d60389f948672eaa37932e936 pandoc-2.10.1-1-amd64.deb" | sha256sum -c
+DEBIAN_FRONTEND=noninteractive dpkg -i pandoc-2.10.1-1-amd64.deb
