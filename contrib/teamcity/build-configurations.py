@@ -31,6 +31,16 @@ class BuildConfiguration:
         self.config = {}
         self.script_path = Path()
 
+        self.project_root = PurePath(
+            subprocess.run(
+                ['git', 'rev-parse', '--show-toplevel'],
+                capture_output=True,
+                check=True,
+                encoding='utf-8',
+                text=True,
+            ).stdout.strip()
+        )
+
         if not config_file.is_file():
             raise FileNotFoundError(
                 "The configuration file does not exist {}".format(
@@ -110,13 +120,14 @@ class BuildConfiguration:
 
 
 class UserBuild():
-    def __init__(self, configuration, project_root):
+    def __init__(self, configuration):
         self.configuration = configuration
-        self.project_root = project_root
+
+        project_root = self.configuration.project_root
 
         # Create the build directory as needed
         self.build_directory = Path(
-            self.project_root.joinpath(
+            project_root.joinpath(
                 'abc-ci-builds',
                 self.configuration.name))
         self.build_directory.mkdir(exist_ok=True, parents=True)
@@ -128,9 +139,9 @@ class UserBuild():
         # We will provide the required environment variables
         self.environment_variables = {
             "BUILD_DIR": str(self.build_directory),
-            "CMAKE_PLATFORMS_DIR": self.project_root.joinpath("cmake", "platforms"),
+            "CMAKE_PLATFORMS_DIR": project_root.joinpath("cmake", "platforms"),
             "THREADS": str(os.cpu_count() or 1),
-            "TOPLEVEL": str(self.project_root),
+            "TOPLEVEL": str(project_root),
         }
 
         # Build 2 log files:
@@ -281,8 +292,8 @@ class UserBuild():
 
 
 class TeamcityBuild(UserBuild):
-    def __init__(self, configuration, project_root):
-        super().__init__(configuration, project_root)
+    def __init__(self, configuration):
+        super().__init__(configuration)
 
         # This accounts for the volume mapping from the container.
         # Our local /results is mapped to some relative ./results on the host,
@@ -374,20 +385,10 @@ def main():
     build_configuration = BuildConfiguration(
         script_dir, config_path, args.build)
 
-    git_root = PurePath(
-        subprocess.run(
-            ['git', 'rev-parse', '--show-toplevel'],
-            capture_output=True,
-            check=True,
-            encoding='utf-8',
-            text=True,
-        ).stdout.strip()
-    )
-
     if is_running_under_teamcity():
-        build = TeamcityBuild(build_configuration, git_root)
+        build = TeamcityBuild(build_configuration)
     else:
-        build = UserBuild(build_configuration, git_root)
+        build = UserBuild(build_configuration)
 
     sys.exit(build.run(unknown_args)[0])
 
