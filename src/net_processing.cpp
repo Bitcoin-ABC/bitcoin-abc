@@ -2957,6 +2957,22 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         }
 
         if (!pfrom.IsInboundConn() && !pfrom.IsBlockOnlyConn()) {
+            // For outbound peers, we try to relay our address (so that other
+            // nodes can try to find us more quickly, as we have no guarantee
+            // that an outbound peer is even aware of how to reach us) and do a
+            // one-time address fetch (to help populate/update our addrman). If
+            // we're starting up for the first time, our addrman may be pretty
+            // empty and no one will know who we are, so these mechanisms are
+            // important to help us connect to the network.
+            //
+            // We also update the addrman to record connection success for
+            // these peers (which include OUTBOUND_FULL_RELAY and FEELER
+            // connections) so that addrman will have an up-to-date notion of
+            // which peers are online and available.
+            //
+            // We skip these operations for BLOCK_RELAY peers to avoid
+            // potentially leaking information about our BLOCK_RELAY
+            // connections via the addrman or address relay.
             if (fListen && !::ChainstateActive().IsInitialBlockDownload()) {
                 CAddress addr =
                     GetLocalAddress(&pfrom.addr, pfrom.GetLocalServices());
@@ -2980,6 +2996,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                                               .Make(NetMsgType::GETADDR));
             pfrom.fGetAddr = true;
 
+            // Moves address from New to Tried table in Addrman, resolves
+            // tried-table collisions, etc.
             m_connman.MarkAddressGood(pfrom.addr);
         }
 
