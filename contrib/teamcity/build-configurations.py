@@ -181,7 +181,12 @@ class UserBuild():
                 if match.is_file():
                     shutil.copy2(match, dest)
                 else:
-                    shutil.copytree(match, dest.joinpath(match.name))
+                    # FIXME after python => 3.8 is enforced,  avoid the
+                    # try/except block and use dirs_exist_ok=True instead.
+                    try:
+                        shutil.copytree(match, dest.joinpath(match.name))
+                    except FileExistsError:
+                        pass
 
     def print_line_to_logs(self, line):
         # Always print to the full log
