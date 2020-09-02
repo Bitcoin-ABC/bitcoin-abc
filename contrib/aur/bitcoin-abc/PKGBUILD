@@ -1,7 +1,7 @@
 # Maintainer: Josh Ellithorpe <quest@mac.com>
 
 pkgname=bitcoin-abc
-pkgver=0.22.0
+pkgver=0.22.1
 pkgrel=0
 pkgdesc="Bitcoin ABC with bitcoind, bitcoin-tx, bitcoin-seeder and bitcoin-cli"
 arch=('i686' 'x86_64')
@@ -45,7 +45,7 @@ check() {
   cd "$srcdir/${pkgname}-$pkgver/build"
 
   msg2 'Testing...'
-  #ninja check
+  ninja check
 }
 
 package() {
@@ -74,8 +74,7 @@ package() {
 
   pushd build
   msg2 'Installing executables and man pages...'
-  cmake -DCOMPONENT=bitcoind -P cmake_install.cmake
-  cmake -DCOMPONENT=bitcoin-seeder -P cmake_install.cmake
+  ninja install/strip
   popd
 
   msg2 'Installing bitcoin.conf...'

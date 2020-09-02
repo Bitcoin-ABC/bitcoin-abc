@@ -1,7 +1,7 @@
 # Maintainer: Josh Ellithorpe <quest@mac.com>
 
 pkgname=bitcoin-abc-qt
-pkgver=0.22.0
+pkgver=0.22.1
 pkgrel=0
 pkgdesc="Bitcoin ABC with bitcoind, bitcoin-cli, bitcoin-tx, bitcoin-seeder and bitcoin-qt"
 arch=('i686' 'x86_64')
@@ -17,8 +17,8 @@ source=(https://github.com/Bitcoin-ABC/bitcoin-abc/archive/v$pkgver.tar.gz
         bitcoin.install)
 backup=('etc/bitcoin/bitcoin.conf'
         'etc/logrotate.d/bitcoin')
-provides=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-qt' 'bitcoin-seeder')
-conflicts=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-qt' 'bitcoin-seeder')
+provides=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-qt' 'bitcoin-seeder' 'bitcoin-wallet')
+conflicts=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-qt' 'bitcoin-seeder' 'bitcoin-wallet')
 install=bitcoin.install
 
 build() {
@@ -43,7 +43,7 @@ check() {
   cd "$srcdir/bitcoin-abc-$pkgver/build"
 
   msg2 'Testing...'
-  #ninja check
+  ninja check
 }
 
 package() {
@@ -78,9 +78,7 @@ package() {
 
   pushd build
   msg2 'Installing executables and man pages...'
-  cmake -DCOMPONENT=bitcoind -P cmake_install.cmake
-  cmake -DCOMPONENT=bitcoin-qt -P cmake_install.cmake
-  cmake -DCOMPONENT=bitcoin-seeder -P cmake_install.cmake
+  ninja install/strip
   popd
 
   msg2 'Installing bitcoin.conf...'
