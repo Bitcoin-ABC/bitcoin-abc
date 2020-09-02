@@ -42,7 +42,7 @@ do
 done
 
 # Add the checksums to the PKGBUILD. Enforce SHA256.
-echo "sha256sums=()" >> PKGBUILD
+echo "sha256sums=('f00')" >> PKGBUILD
 run_as_nobody "updpkgsums PKGBUILD"
 
 # Generate the .SRCINFO
@@ -54,7 +54,7 @@ popd
 git clone "https://aur.archlinux.org/${PACKAGE}.git" "${PACKAGE}-upstream"
 
 # Copy our modified files to the upstream repository
-cp -R "${PACKAGE}"/* "${PACKAGE}-upstream"
+cp -R "${PACKAGE}/." "${PACKAGE}-upstream"
 
 # Give write permission to the nobody user
 # This is required as makepkg cannot be run as root
