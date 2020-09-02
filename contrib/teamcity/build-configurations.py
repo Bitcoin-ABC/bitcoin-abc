@@ -148,10 +148,6 @@ class UserBuild():
             self.logs["full_log"].unlink()
 
     def copy_artifacts(self, artifacts):
-        if self.artifact_dir.is_dir():
-            shutil.rmtree(self.artifact_dir)
-        self.artifact_dir.mkdir(exist_ok=True)
-
         # Find and copy artifacts.
         # The source is relative to the build tree, the destination relative to
         # the artifact directory.
@@ -271,6 +267,10 @@ class UserBuild():
             return (return_code, message)
 
     def run(self, args=[]):
+        if self.artifact_dir.is_dir():
+            shutil.rmtree(self.artifact_dir)
+        self.artifact_dir.mkdir(exist_ok=True)
+
         return_code, message = asyncio.run(
             self.wait_for_build(
                 self.configuration.get(
