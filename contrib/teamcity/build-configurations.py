@@ -30,6 +30,9 @@ class BuildConfiguration:
         self.name = None
         self.config = {}
         self.script_path = Path()
+        self.build_directory = None
+        self.junit_reports_dir = None
+        self.test_logs_dir = None
 
         self.project_root = PurePath(
             subprocess.run(
@@ -115,6 +118,17 @@ class BuildConfiguration:
                 )
             )
 
+        # Create the build directory as needed
+        self.build_directory = Path(
+            self.project_root.joinpath(
+                'abc-ci-builds',
+                self.name))
+        self.build_directory.mkdir(exist_ok=True, parents=True)
+
+        # Define the junit and logs directories
+        self.junit_reports_dir = self.build_directory.joinpath("test/junit")
+        self.test_logs_dir = self.build_directory.joinpath("test/log")
+
     def get(self, key, default):
         return self.config.get(key, default)
 
@@ -124,21 +138,13 @@ class UserBuild():
         self.configuration = configuration
 
         project_root = self.configuration.project_root
+        build_directory = self.configuration.build_directory
 
-        # Create the build directory as needed
-        self.build_directory = Path(
-            project_root.joinpath(
-                'abc-ci-builds',
-                self.configuration.name))
-        self.build_directory.mkdir(exist_ok=True, parents=True)
-
-        self.artifact_dir = self.build_directory.joinpath("artifacts")
-        self.junit_reports_dir = self.build_directory.joinpath("test/junit")
-        self.test_logs_dir = self.build_directory.joinpath("test/log")
+        self.artifact_dir = build_directory.joinpath("artifacts")
 
         # We will provide the required environment variables
         self.environment_variables = {
-            "BUILD_DIR": str(self.build_directory),
+            "BUILD_DIR": str(build_directory),
             "CMAKE_PLATFORMS_DIR": project_root.joinpath("cmake", "platforms"),
             "THREADS": str(os.cpu_count() or 1),
             "TOPLEVEL": str(project_root),
@@ -149,12 +155,12 @@ class UserBuild():
         #  - the clean log will contain the same filtered content as what is
         #    printed to stdout. This filter is done in print_line_to_logs().
         self.logs = {}
-        self.logs["clean_log"] = self.build_directory.joinpath(
+        self.logs["clean_log"] = build_directory.joinpath(
             "build.clean.log")
         if self.logs["clean_log"].is_file():
             self.logs["clean_log"].unlink()
 
-        self.logs["full_log"] = self.build_directory.joinpath("build.full.log")
+        self.logs["full_log"] = build_directory.joinpath("build.full.log")
         if self.logs["full_log"].is_file():
             self.logs["full_log"].unlink()
 
@@ -166,7 +172,7 @@ class UserBuild():
         # from it needs to be excluded from the glob matches to prevent infinite
         # recursion.
         for pattern, dest in artifacts.items():
-            matches = [m for m in sorted(self.build_directory.glob(
+            matches = [m for m in sorted(self.configuration.build_directory.glob(
                 pattern)) if self.artifact_dir not in m.parents and self.artifact_dir != m]
             dest = self.artifact_dir.joinpath(dest)
 
@@ -230,7 +236,7 @@ class UserBuild():
             limit=1024 * 256,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
-            cwd=self.build_directory,
+            cwd=self.configuration.build_directory,
             env={
                 **os.environ,
                 **self.environment_variables,
@@ -264,13 +270,15 @@ class UserBuild():
         finally:
             self.print_line_to_logs(message)
 
+            build_directory = self.configuration.build_directory
+
             # Always add the build logs to the root of the artifacts
             artifacts = {
                 **self.configuration.get("artifacts", {}),
-                str(self.logs["full_log"].relative_to(self.build_directory)): "",
-                str(self.logs["clean_log"].relative_to(self.build_directory)): "",
-                str(self.junit_reports_dir.relative_to(self.build_directory)): "",
-                str(self.test_logs_dir.relative_to(self.build_directory)): "",
+                str(self.logs["full_log"].relative_to(build_directory)): "",
+                str(self.logs["clean_log"].relative_to(build_directory)): "",
+                str(self.configuration.junit_reports_dir.relative_to(build_directory)): "",
+                str(self.configuration.test_logs_dir.relative_to(build_directory)): "",
             }
 
             self.copy_artifacts(artifacts)
