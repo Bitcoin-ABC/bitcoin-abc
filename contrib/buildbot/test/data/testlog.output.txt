@@ -1,0 +1,60 @@
+[22:23:09] :	 [Step 1/1] Running tests: radix_tests from ../../src/test/radix_tests.cpp
+[22:23:10] :	 [Step 1/1] Running tests: raii_event_tests from ../../src/test/raii_event_tests.cpp
+[22:23:10] :	 [Step 1/1] Running tests: random_tests from ../../src/test/random_tests.cpp
+[22:23:11] :	 [Step 1/1] Running tests: rcu_tests from ../../src/test/rcu_tests.cpp
+[22:23:11] :	 [Step 1/1] Running tests: reverselock_tests from ../../src/test/reverselock_tests.cpp
+[22:23:12] :	 [Step 1/1] Running tests: rpc_tests from ../../src/test/rpc_tests.cpp
+[22:23:12] :	 [Step 1/1] Running tests: rpc_server_tests from ../../src/test/rpc_server_tests.cpp
+[22:23:13] :	 [Step 1/1] Running tests: sanity_tests from ../../src/test/sanity_tests.cpp
+[22:23:13] :	 [Step 1/1] Running tests: rwcollection_tests from ../../src/test/rwcollection_tests.cpp
+[22:23:13] :	 [Step 1/1] Running tests: scheduler_tests from ../../src/test/scheduler_tests.cpp
+[22:23:13] :	 [Step 1/1] Running tests: schnorr_tests from ../../src/test/schnorr_tests.cpp
+[22:23:13] :	 [Step 1/1] Running tests: script_commitment_tests from ../../src/test/script_commitment_tests.cpp
+[22:23:13] :	 [Step 1/1] Running tests: script_bitfield_tests from ../../src/test/script_bitfield_tests.cpp
+[22:23:14] :	 [Step 1/1] Running tests: script_p2sh_tests from ../../src/test/script_p2sh_tests.cpp
+[22:23:14] :	 [Step 1/1] Running tests: script_standard_tests from ../../src/test/script_standard_tests.cpp
+[22:23:14] :	 [Step 1/1] Running tests: script_tests from ../../src/test/script_tests.cpp
+[22:23:14] :	 [Step 1/1] Running tests: scriptnum_tests from ../../src/test/scriptnum_tests.cpp
+[22:23:15] :	 [Step 1/1] Running tests: serialize_tests from ../../src/test/serialize_tests.cpp
+[22:23:16] :	 [Step 1/1] Running tests: sigcache_tests from ../../src/test/sigcache_tests.cpp
+[22:23:17] :	 [Step 1/1] Running tests: sigencoding_tests from ../../src/test/sigencoding_tests.cpp
+[22:23:17] :	 [Step 1/1] Running tests: sighash_tests from ../../src/test/sighash_tests.cpp
+[22:23:18] :	 [Step 1/1] Running tests: sighashtype_tests from ../../src/test/sighashtype_tests.cpp
+[22:23:19] :	 [Step 1/1] Running tests: sigopcount_tests from ../../src/test/sigopcount_tests.cpp
+[22:23:19] :	 [Step 1/1] Running tests: skiplist_tests from ../../src/test/skiplist_tests.cpp
+[22:23:20] :	 [Step 1/1] Running tests: streams_tests from ../../src/test/streams_tests.cpp
+[22:23:21] :	 [Step 1/1] Running tests: sync_tests from ../../src/test/sync_tests.cpp
+[22:23:21] :	 [Step 1/1] Running tests: timedata_tests from ../../src/test/timedata_tests.cpp
+[22:23:21] :	 [Step 1/1] Running tests: torcontrol_tests from ../../src/test/torcontrol_tests.cpp
+[22:23:21] :	 [Step 1/1] Running tests: transaction_tests from ../../src/test/transaction_tests.cpp
+[22:23:25] :	 [Step 1/1] Running tests: txindex_tests from ../../src/test/txindex_tests.cpp
+[22:23:26] :	 [Step 1/1] Running tests: txvalidation_tests from ../../src/test/txvalidation_tests.cpp
+[22:23:26] :	 [Step 1/1] Running tests: txvalidationcache_tests from ../../src/test/txvalidationcache_tests.cpp
+[22:23:26] :	 [Step 1/1] Running tests: uint256_tests from ../../src/test/uint256_tests.cpp
+[22:23:27] :	 [Step 1/1] Running tests: undo_tests from ../../src/test/undo_tests.cpp
+[22:23:27] :	 [Step 1/1] Running tests: util_tests from ../../src/test/util_tests.cpp
+[22:23:31] :	 [Step 1/1] Running tests: validation_block_tests from ../../src/test/validation_block_tests.cpp
+[22:23:33]W:	 [Step 1/1] /bin/bash: line 1: 30761 Aborted                 test/test_bitcoin -l test_suite -t "`cat ../../src/test/validation_block_tests.cpp | grep "BOOST_FIXTURE_TEST_SUITE(\|BOOST_AUTO_TEST_SUITE(" | cut -d '(' -f 2 | cut -d ',' -f 1 | cut -d ')' -f 1`" > test/validation_block_tests.cpp.test.log 2>&1
+[22:23:33] :	 [Step 1/1] Running 1 test case...
+[22:23:33] :	 [Step 1/1]  [1;34;49mEntering test module "Bitcoin Test Suite"
+[22:23:33] :	 [Step 1/1]  [0;39;49m [1;34;49m../../src/test/validation_block_tests.cpp(24): Entering test suite "validation_block_tests"
+[22:23:33] :	 [Step 1/1]  [0;39;49m [1;34;49m../../src/test/validation_block_tests.cpp(133): Entering test case "processnewblock_signals_ordering"
+[22:23:33]W:	 [Step 1/1] make[3]: *** [Makefile:13500: test/validation_block_tests.cpp.test] Error 1
+[22:23:33] :	 [Step 1/1] test_bitcoin: ../../src/validation.cpp:5452: void CChainState::CheckBlockIndex(const Consensus::Params&): Assertion `pindex->nStatus.isOnParkedChain() || setBlockIndexCandidates.count(pindex)' failed.
+[22:23:33]W:	 [Step 1/1] make[3]: *** Waiting for unfinished jobs....
+[22:23:33] :	 [Step 1/1]  [0;39;49munknown location(0):  [4;31;49mfatal error: in "validation_block_tests/processnewblock_signals_ordering": signal: SIGABRT (application abort requested) [0;39;49m
+[22:23:33] :	 [Step 1/1] ../../src/test/validation_block_tests.cpp(46):  [1;36;49mlast checkpoint [0;39;49m
+[22:23:33] :	 [Step 1/1]  [1;34;49m../../src/test/validation_block_tests.cpp(133): Leaving test case "processnewblock_signals_ordering"; testing time: 57632us
+[22:23:33] :	 [Step 1/1]  [0;39;49m [1;34;49m../../src/test/validation_block_tests.cpp(24): Leaving test suite "validation_block_tests"; testing time: 57652us
+[22:23:33] :	 [Step 1/1]  [0;39;49m [1;34;49mLeaving test module "Bitcoin Test Suite"; testing time: 57804us
+[22:23:33] :	 [Step 1/1]  [0;39;49m
+[22:23:33] :	 [Step 1/1]  [1;31;49m*** 1 failure is detected in the test module "Bitcoin Test Suite"
+[22:23:33] :	 [Step 1/1]  [0;39;49mtest_bitcoin: /usr/include/boost/thread/pthread/condition_variable_fwd.hpp:85: boost::condition_variable::~condition_variable(): Assertion `!ret' failed.
+[22:23:39] :	 [Step 1/1] make[3]: Leaving directory '/home/teamcity/buildAgent/work/78fe5e47cf5a299e/build/src'
+[22:23:39]W:	 [Step 1/1] make[2]: *** [Makefile:12302: check-am] Error 2
+[22:23:39] :	 [Step 1/1] make[2]: Leaving directory '/home/teamcity/buildAgent/work/78fe5e47cf5a299e/build/src'
+[22:23:39] :	 [Step 1/1] make[1]: Leaving directory '/home/teamcity/buildAgent/work/78fe5e47cf5a299e/build/src'
+[22:23:39]W:	 [Step 1/1] make[1]: *** [Makefile:11987: check-recursive] Error 1
+[22:23:39]W:	 [Step 1/1] make: *** [Makefile:765: check-recursive] Error 1
+[22:23:39]W:	 [Step 1/1] Process exited with code 2
+[22:23:39]E:	 [Step 1/1] Process exited with code 2 (Step: Command Line)

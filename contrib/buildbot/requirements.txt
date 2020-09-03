@@ -1,0 +1,5 @@
+mock
+flask
+phabricator==0.7.0
+requests
+slackclient
