@@ -51,7 +51,7 @@ run_as_nobody "makepkg --printsrcinfo > .SRCINFO"
 popd
 
 # Clone the upstream repository
-git clone "https://aur.archlinux.org/${PACKAGE}.git" "${PACKAGE}-upstream"
+git clone "ssh://aur@aur.archlinux.org/${PACKAGE}.git" "${PACKAGE}-upstream"
 
 # Copy our modified files to the upstream repository
 cp -R "${PACKAGE}/." "${PACKAGE}-upstream"
