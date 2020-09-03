@@ -222,6 +222,8 @@ function(link_secp256k1_internal NAME)
 	endif()
 endfunction(link_secp256k1_internal)
 
+include(InstallationHelper)
+
 # Phony target to build benchmarks
 add_custom_target(bench-secp256k1)
 
@@ -237,6 +239,11 @@ function(add_secp256k1_bench NAME)
 		USES_TERMINAL
 	)
 	add_dependencies(bench-secp256k1 ${BENCH_NAME})
+
+	install_target("${EXECUTABLE_NAME}"
+		COMPONENT secp256k1-bench
+		EXCLUDE_FROM_ALL
+	)
 endfunction(add_secp256k1_bench)
 
 # ECDH module
@@ -314,8 +321,6 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 
 	target_sources(secp256k1 PRIVATE src/ecmult_static_context.h)
 endif()
-
-include(InstallationHelper)
 
 # If this project is not the top level project, then don't install by default
 get_directory_property(SECP256K1_PARENT_DIRECTORY PARENT_DIRECTORY)
