@@ -705,10 +705,15 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(pool.exists(tx3.GetId()));
 
     // mempool is limited to tx1's size in memory usage, so nothing fits
-    pool.TrimToSize(CTransaction(tx1).GetTotalSize());
+    std::vector<COutPoint> vNoSpendsRemaining;
+    pool.TrimToSize(CTransaction(tx1).GetTotalSize(), &vNoSpendsRemaining);
     BOOST_CHECK(!pool.exists(tx1.GetId()));
     BOOST_CHECK(!pool.exists(tx2.GetId()));
     BOOST_CHECK(!pool.exists(tx3.GetId()));
+    // This vector should only contain 'root' (not unconfirmed) outpoints
+    // Though both tx2 and tx3 were removed, tx3's input came from tx2.
+    BOOST_CHECK_EQUAL(vNoSpendsRemaining.size(), 1);
+    BOOST_CHECK(vNoSpendsRemaining == std::vector<COutPoint>{COutPoint()});
 
     CFeeRate maxFeeRateRemoved(25000 * SATOSHI,
                                CTransaction(tx3).GetTotalSize() +

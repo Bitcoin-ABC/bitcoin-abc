@@ -1294,17 +1294,9 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         CalculateDescendants(mapTx.project<0>(it), stage);
         nTxnRemoved += stage.size();
 
-        std::vector<CTransactionRef> txn;
         if (pvNoSpendsRemaining) {
-            txn.reserve(stage.size());
             for (txiter iter : stage) {
-                txn.push_back(iter->GetSharedTx());
-            }
-        }
-        RemoveStaged(stage, false, MemPoolRemovalReason::SIZELIMIT);
-        if (pvNoSpendsRemaining) {
-            for (const CTransactionRef &tx : txn) {
-                for (const CTxIn &txin : tx->vin) {
+                for (const CTxIn &txin : iter->GetTx().vin) {
                     if (exists(txin.prevout.GetTxId())) {
                         continue;
                     }
@@ -1312,6 +1304,8 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
                 }
             }
         }
+
+        RemoveStaged(stage, false, MemPoolRemovalReason::SIZELIMIT);
     }
 
     if (maxFeeRateRemoved > CFeeRate(Amount::zero())) {
