@@ -10,7 +10,6 @@ from flask import abort, Flask, request
 from functools import wraps
 import hashlib
 import hmac
-import json
 import os
 from phabricator_wrapper import (
     BITCOIN_ABC_PROJECT_PHID,
@@ -19,6 +18,7 @@ import re
 from shieldio import RasterBadge
 from shlex import quote
 from teamcity import TeamcityRequestException
+import yaml
 
 
 # Some keywords used by TeamCity and tcWebHook
@@ -218,8 +218,8 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
         target_phid = get_mandatory_argument('targetPHID')
 
         # Get the configuration from master
-        config = json.loads(phab.get_file_content_from_master(
-            "contrib/teamcity/build-configurations.json"))
+        config = yaml.safe_load(phab.get_file_content_from_master(
+            "contrib/teamcity/build-configurations.yaml"))
 
         # Get a list of the builds that should run on diffs
         builds = [
@@ -449,7 +449,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
             ).format(project_name)
 
         # secp256k1 is a special case because it has a Travis build from a
-        # Github repo that is not managed by the build-configurations.json config.
+        # Github repo that is not managed by the build-configurations.yml config.
         # The status always need to be fetched.
         sepc256k1_default_branch = 'master'
         sepc256k1_travis_status = travis.get_branch_status(
@@ -473,8 +473,8 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
         panel_content = add_line_to_panel('')
 
         # Download the build configuration from master
-        config = json.loads(phab.get_file_content_from_master(
-            "contrib/teamcity/build-configurations.json"))
+        config = yaml.safe_load(phab.get_file_content_from_master(
+            "contrib/teamcity/build-configurations.yml"))
 
         # Get a list of the builds to display
         config_build_names = [

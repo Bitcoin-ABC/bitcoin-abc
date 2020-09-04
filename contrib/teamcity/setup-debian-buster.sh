@@ -59,6 +59,7 @@ PACKAGES=(
   python3-autopep8
   python3-pip
   python3-setuptools
+  python3-yaml
   python3-zmq
   qemu-user-static
   qttools5-dev

@@ -1,5 +1,6 @@
 mock
 flask
 phabricator==0.7.0
+pyyaml
 requests
 slackclient

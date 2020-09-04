@@ -6,7 +6,6 @@
 import argparse
 import asyncio
 from deepmerge import always_merger
-import json
 import os
 from pathlib import Path, PurePath
 import shutil
@@ -14,6 +13,7 @@ import subprocess
 import sys
 from teamcity import is_running_under_teamcity
 from teamcity.messages import TeamcityServiceMessages
+import yaml
 
 # Default timeout value in seconds. Should be overridden by the
 # configuration file.
@@ -60,7 +60,7 @@ class BuildConfiguration:
 
         # Read the configuration
         with open(self.config_file, encoding="utf-8") as f:
-            config = json.load(f)
+            config = yaml.safe_load(f)
 
         # The configuration root should contain a mandatory element "builds", and
         # it should not be empty.
@@ -439,7 +439,7 @@ def main():
     # By default search for a configuration file in the same directory as this
     # script.
     default_config_path = Path(
-        script_dir.joinpath("build-configurations.json")
+        script_dir.joinpath("build-configurations.yml")
     )
 
     parser = argparse.ArgumentParser(description="Run a CI build")
