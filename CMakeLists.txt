@@ -12,6 +12,11 @@ project(bitcoin-abc
 	HOMEPAGE_URL "https://www.bitcoinabc.org"
 )
 
+add_custom_target(print-version
+  COMMENT "Print the current ${PROJECT_NAME} version"
+  COMMAND "${CMAKE_COMMAND}" -E echo "${PROJECT_VERSION}"
+)
+
 # Package information
 set(PACKAGE_NAME "Bitcoin ABC")
 set(PACKAGE_BUGREPORT "https://github.com/Bitcoin-ABC/bitcoin-abc/issues")
