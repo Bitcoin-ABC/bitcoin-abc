@@ -50,7 +50,7 @@ class BIP66Test(BitcoinTestFramework):
         self.skip_if_no_wallet()
 
     def run_test(self):
-        self.nodes[0].add_p2p_connection(P2PInterface())
+        peer = self.nodes[0].add_p2p_connection(P2PInterface())
 
         self.log.info("Mining {} blocks".format(DERSIG_HEIGHT - 1))
         self.coinbase_txids = [self.nodes[0].getblock(
@@ -67,9 +67,9 @@ class BIP66Test(BitcoinTestFramework):
         block.solve()
 
         with self.nodes[0].assert_debug_log(expected_msgs=['{}, bad-version(0x00000002)'.format(block.hash)]):
-            self.nodes[0].p2p.send_and_ping(msg_block(block))
+            peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
-            self.nodes[0].p2p.sync_with_ping()
+            peer.sync_with_ping()
 
         self.log.info(
             "Test that transactions with non-DER signatures cannot appear in a block")
@@ -96,9 +96,9 @@ class BIP66Test(BitcoinTestFramework):
         block.solve()
 
         with self.nodes[0].assert_debug_log(expected_msgs=['ConnectBlock {} failed, blk-bad-inputs'.format(block.hash)]):
-            self.nodes[0].p2p.send_and_ping(msg_block(block))
+            peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
-            self.nodes[0].p2p.sync_with_ping()
+            peer.sync_with_ping()
 
         self.log.info(
             "Test that a version 3 block with a DERSIG-compliant transaction is accepted")
@@ -108,7 +108,7 @@ class BIP66Test(BitcoinTestFramework):
         block.rehash()
         block.solve()
 
-        self.nodes[0].p2p.send_and_ping(msg_block(block))
+        peer.send_and_ping(msg_block(block))
         assert_equal(int(self.nodes[0].getbestblockhash(), 16), block.sha256)
 
 

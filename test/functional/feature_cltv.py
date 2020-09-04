@@ -94,7 +94,7 @@ class BIP65Test(BitcoinTestFramework):
         self.skip_if_no_wallet()
 
     def run_test(self):
-        self.nodes[0].add_p2p_connection(P2PInterface())
+        peer = self.nodes[0].add_p2p_connection(P2PInterface())
 
         self.log.info("Mining {} blocks".format(CLTV_HEIGHT - 2))
         self.coinbase_txids = [self.nodes[0].getblock(
@@ -121,7 +121,7 @@ class BIP65Test(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
 
-        self.nodes[0].p2p.send_and_ping(msg_block(block))
+        peer.send_and_ping(msg_block(block))
         # This block is valid
         assert_equal(self.nodes[0].getbestblockhash(), block.hash)
 
@@ -133,9 +133,9 @@ class BIP65Test(BitcoinTestFramework):
         block.solve()
 
         with self.nodes[0].assert_debug_log(expected_msgs=['{}, bad-version(0x00000003)'.format(block.hash)]):
-            self.nodes[0].p2p.send_and_ping(msg_block(block))
+            peer.send_and_ping(msg_block(block))
             assert_equal(int(self.nodes[0].getbestblockhash(), 16), tip)
-            self.nodes[0].p2p.sync_with_ping()
+            peer.sync_with_ping()
 
         self.log.info(
             "Test that invalid-according-to-cltv transactions cannot appear in a block")
@@ -148,7 +148,7 @@ class BIP65Test(BitcoinTestFramework):
 
         # The funding tx only has unexecuted bad CLTV, in scriptpubkey; this is
         # valid.
-        self.nodes[0].p2p.send_and_ping(msg_tx(fundtx))
+        peer.send_and_ping(msg_tx(fundtx))
         assert fundtx.hash in self.nodes[0].getrawmempool()
 
         # Mine a block containing the funding transaction
@@ -156,7 +156,7 @@ class BIP65Test(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
 
-        self.nodes[0].p2p.send_and_ping(msg_block(block))
+        peer.send_and_ping(msg_block(block))
         # This block is valid
         assert_equal(self.nodes[0].getbestblockhash(), block.hash)
 
@@ -185,9 +185,9 @@ class BIP65Test(BitcoinTestFramework):
         block.solve()
 
         with self.nodes[0].assert_debug_log(expected_msgs=['ConnectBlock {} failed, blk-bad-inputs'.format(block.hash)]):
-            self.nodes[0].p2p.send_and_ping(msg_block(block))
+            peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
-            self.nodes[0].p2p.sync_with_ping()
+            peer.sync_with_ping()
 
         self.log.info(
             "Test that a version 4 block with a valid-according-to-CLTV transaction is accepted")
@@ -212,7 +212,7 @@ class BIP65Test(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
 
-        self.nodes[0].p2p.send_and_ping(msg_block(block))
+        peer.send_and_ping(msg_block(block))
         # This block is now valid
         assert_equal(self.nodes[0].getbestblockhash(), block.hash)
 

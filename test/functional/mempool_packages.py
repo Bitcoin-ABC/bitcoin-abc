@@ -54,7 +54,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
     def run_test(self):
         # Mine some blocks and have them mature.
         # keep track of invs
-        self.nodes[0].add_p2p_connection(P2PTxInvStore())
+        peer_inv_store = self.nodes[0].add_p2p_connection(P2PTxInvStore())
         self.nodes[0].generate(101)
         utxo = self.nodes[0].listunspent(10)
         txid = utxo[0]['txid']
@@ -74,7 +74,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         # (sent inv and received getdata)
         # Otherwise, getrawmempool may be inconsistent with getmempoolentry if
         # unbroadcast changes in between
-        self.nodes[0].p2p.wait_for_broadcast(chain)
+        peer_inv_store.wait_for_broadcast(chain)
 
         # Check mempool has MAX_ANCESTORS transactions in it, and descendant and ancestor
         # count and fees should look correct
