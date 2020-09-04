@@ -1059,7 +1059,8 @@ public:
                            bool fFlushOnClose = true);
     bool LoadToWallet(const TxId &txid, const UpdateWalletTxFn &fill_wtx)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void transactionAddedToMempool(const CTransactionRef &tx) override;
+    void transactionAddedToMempool(const CTransactionRef &tx,
+                                   uint64_t mempool_sequence) override;
     void blockConnected(const CBlock &block, int height) override;
     void blockDisconnected(const CBlock &block, int height) override;
     void updatedBlockTip() override;
@@ -1087,7 +1088,8 @@ public:
                                          const WalletRescanReserver &reserver,
                                          bool fUpdate);
     void transactionRemovedFromMempool(const CTransactionRef &tx,
-                                       MemPoolRemovalReason reason) override;
+                                       MemPoolRemovalReason reason,
+                                       uint64_t mempool_sequence) override;
     void ReacceptWalletTransactions() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ResendWalletTransactions();
     struct Balance {

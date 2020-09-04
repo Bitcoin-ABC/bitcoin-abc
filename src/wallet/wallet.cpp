@@ -1293,7 +1293,8 @@ void CWallet::SyncTransaction(const CTransactionRef &ptx,
     MarkInputsDirty(ptx);
 }
 
-void CWallet::transactionAddedToMempool(const CTransactionRef &tx) {
+void CWallet::transactionAddedToMempool(const CTransactionRef &tx,
+                                        uint64_t mempool_sequence) {
     LOCK(cs_wallet);
 
     SyncTransaction(tx, {CWalletTx::Status::UNCONFIRMED, /* block_height */ 0,
@@ -1306,7 +1307,8 @@ void CWallet::transactionAddedToMempool(const CTransactionRef &tx) {
 }
 
 void CWallet::transactionRemovedFromMempool(const CTransactionRef &tx,
-                                            MemPoolRemovalReason reason) {
+                                            MemPoolRemovalReason reason,
+                                            uint64_t mempool_sequence) {
     LOCK(cs_wallet);
     auto it = mapWallet.find(tx->GetId());
     if (it != mapWallet.end()) {
@@ -1356,7 +1358,8 @@ void CWallet::blockConnected(const CBlock &block, int height) {
         SyncTransaction(block.vtx[index], {CWalletTx::Status::CONFIRMED, height,
                                            block_hash, int(index)});
         transactionRemovedFromMempool(block.vtx[index],
-                                      MemPoolRemovalReason::BLOCK);
+                                      MemPoolRemovalReason::BLOCK,
+                                      0 /* mempool_sequence */);
     }
 }
 

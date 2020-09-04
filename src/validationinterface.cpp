@@ -203,10 +203,11 @@ void CMainSignals::UpdatedBlockTip(const CBlockIndex *pindexNew,
         fInitialDownload);
 }
 
-void CMainSignals::TransactionAddedToMempool(const CTransactionRef &tx) {
-    auto event = [tx, this] {
+void CMainSignals::TransactionAddedToMempool(const CTransactionRef &tx,
+                                             uint64_t mempool_sequence) {
+    auto event = [tx, mempool_sequence, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.TransactionAddedToMempool(tx);
+            callbacks.TransactionAddedToMempool(tx, mempool_sequence);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,
@@ -214,10 +215,12 @@ void CMainSignals::TransactionAddedToMempool(const CTransactionRef &tx) {
 }
 
 void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef &tx,
-                                                 MemPoolRemovalReason reason) {
-    auto event = [tx, reason, this] {
+                                                 MemPoolRemovalReason reason,
+                                                 uint64_t mempool_sequence) {
+    auto event = [tx, reason, mempool_sequence, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.TransactionRemovedFromMempool(tx, reason);
+            callbacks.TransactionRemovedFromMempool(tx, reason,
+                                                    mempool_sequence);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,

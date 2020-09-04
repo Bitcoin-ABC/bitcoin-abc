@@ -741,7 +741,9 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
         return false;
     }
 
-    GetMainSignals().TransactionAddedToMempool(ptx);
+    GetMainSignals().TransactionAddedToMempool(
+        ptx, m_pool.GetAndIncrementSequence());
+
     return true;
 }
 
