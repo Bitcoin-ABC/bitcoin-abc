@@ -25,9 +25,17 @@
     },
     "builds": {
         "build-asan": {
-            "script": "builds/build-asan.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "clang": true,
+            "cmake_flags": [
+                "-DCMAKE_CXX_FLAGS=-DARENA_DEBUG",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DCRYPTO_USE_ASM=OFF",
+                "-DENABLE_SANITIZERS=address"
+            ],
+            "targets": [
+                ["all", "install", "install-secp256k1"],
+                ["check", "check-secp256k1", "check-functional"]
             ],
             "timeout": 1800,
             "env": {
@@ -36,17 +44,28 @@
             }
         },
         "build-bench": {
-            "script": "builds/build-bench.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "cmake_flags": [
+                "-DSECP256K1_ENABLE_MODULE_ECDH=ON",
+                "-DSECP256K1_ENABLE_MODULE_MULTISET=ON"
+            ],
+            "targets": [
+                ["all", "install-bitcoin-bench", "install-secp256k1-bench"],
+                ["bench-bitcoin"],
+                ["bench-secp256k1"]
             ],
             "timeout": 1200
         },
         "build-clang-10": {
             "runOnDiff": true,
-            "script": "builds/build-clang-10.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "cmake_flags": [
+                "-DCMAKE_C_COMPILER=clang-10",
+                "-DCMAKE_CXX_COMPILER=clang++-10"
+            ],
+            "targets": [
+                ["all", "install", "install-secp256k1"],
+                ["check", "check-secp256k1"]
             ],
             "timeout": 1200
         },
@@ -73,9 +92,10 @@
         },
         "build-diff": {
             "runOnDiff": true,
-            "script": "builds/build-diff.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "targets": [
+                ["all", "install", "install-secp256k1"],
+                ["check-all", "check-upgrade-activated"]
             ],
             "timeout": 1200
         },
@@ -151,9 +171,10 @@
             "timeout": 1200
         },
         "build-master": {
-            "script": "builds/build-master.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "targets": [
+                ["all", "install", "install-secp256k1"],
+                ["check-extended", "check-upgrade-activated-extended"]
             ],
             "timeout": 4800
         },
@@ -179,9 +200,14 @@
             }
         },
         "build-tsan": {
-            "script": "builds/build-tsan.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "clang": true,
+            "cmake_flags": [
+                "-DENABLE_SANITIZERS=thread"
+            ],
+            "targets": [
+                ["all", "install"],
+                ["check", "check-functional"]
             ],
             "timeout": 1800,
             "env": {
@@ -189,9 +215,15 @@
             }
         },
         "build-ubsan": {
-            "script": "builds/build-ubsan.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "clang": true,
+            "cmake_flags": [
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DENABLE_SANITIZERS=undefined"
+            ],
+            "targets": [
+                ["all", "install", "install-secp256k1"],
+                ["check", "check-secp256k1", "check-functional"]
             ],
             "timeout": 1800,
             "env": {
@@ -215,24 +247,36 @@
             }
         },
         "build-without-cli": {
-            "script": "builds/build-without-cli.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "cmake_flags": [
+                "-DBUILD_BITCOIN_CLI=OFF"
+            ],
+            "targets": [
+                ["all", "install"],
+                ["check-functional"]
             ],
             "timeout": 1200
         },
         "build-without-wallet": {
             "runOnDiff": true,
-            "script": "builds/build-without-wallet.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "cmake_flags": [
+                "-DBUILD_BITCOIN_WALLET=OFF"
+            ],
+            "targets": [
+                ["all", "install"],
+                ["check", "check-functional"]
             ],
             "timeout": 1200
         },
         "build-without-zmq": {
-            "script": "builds/build-without-zmq.sh",
-            "templates": [
-                "common_unix_artifacts"
+            "Werror": true,
+            "cmake_flags": [
+                "-DBUILD_BITCOIN_ZMQ=OFF"
+            ],
+            "targets": [
+                ["all", "install"],
+                ["check", "check-functional"]
             ],
             "timeout": 1800
         },

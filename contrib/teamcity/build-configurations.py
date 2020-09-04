@@ -29,7 +29,8 @@ class BuildConfiguration:
         self.config_file = config_file
         self.name = None
         self.config = {}
-        self.script_path = Path()
+        self.cmake_flags = []
+        self.build_steps = []
         self.build_directory = None
         self.junit_reports_dir = None
         self.test_logs_dir = None
@@ -100,24 +101,6 @@ class BuildConfiguration:
 
         self.config = always_merger.merge(template_config, build)
 
-        # Make sure there is a script file associated with the build...
-        script = self.config.get("script", None)
-        if script is None:
-            raise AssertionError(
-                "No script provided for the build {}".format(
-                    self.name
-                )
-            )
-
-        # ... and that the script file can be executed
-        self.script_path = Path(self.script_root.joinpath(script))
-        if not self.script_path.is_file() or not os.access(self.script_path, os.X_OK):
-            raise FileNotFoundError(
-                "The script file {} does not exist or does not have execution permission".format(
-                    str(self.script_path)
-                )
-            )
-
         # Create the build directory as needed
         self.build_directory = Path(
             self.project_root.joinpath(
@@ -128,6 +111,76 @@ class BuildConfiguration:
         # Define the junit and logs directories
         self.junit_reports_dir = self.build_directory.joinpath("test/junit")
         self.test_logs_dir = self.build_directory.joinpath("test/log")
+
+    def create_build_steps(self, artifact_dir):
+        # There are 2 possibilities to define the build steps:
+        #  - By defining a script to run. If such a script is set and is
+        #    executable, it is the only thing to run.
+        #  - By defining the configuration options and a list of target groups to
+        #    run. The configuration step should be run once then all the targets
+        #    groups. Each target group can contain 1 or more targets which
+        #    should be run parallel.
+        script = self.config.get("script", None)
+        if script:
+            script_path = Path(self.script_root.joinpath(script))
+            if not script_path.is_file() or not os.access(script_path, os.X_OK):
+                raise FileNotFoundError(
+                    "The script file {} does not exist or does not have execution permission".format(
+                        str(script_path)
+                    )
+                )
+            self.build_steps = [
+                {
+                    "bin": str(script_path),
+                    "args": [],
+                }
+            ]
+            return
+
+        # Get the cmake configuration definitions.
+        self.cmake_flags = self.config.get("cmake_flags", [])
+        self.cmake_flags.append("-DCMAKE_INSTALL_PREFIX={}".format(
+            str(artifact_dir)))
+        # Get the targets to build. If none is provided then raise an error.
+        targets = self.config.get("targets", None)
+        if not targets:
+            raise AssertionError(
+                "No build target has been provided for build {} and no script is defined, aborting".format(
+                    self.name
+                )
+            )
+
+        # Some more flags for the build_cmake.sh script
+        build_cmake_flags = []
+        if self.config.get("Werror", False):
+            build_cmake_flags.append("--Werror")
+        if self.config.get("junit", True):
+            build_cmake_flags.append("--junit")
+        if self.config.get("clang", False):
+            build_cmake_flags.append("--clang")
+
+        # Some generator flags
+        generator_flags = []
+        if self.config.get("fail_fast", False):
+            generator_flags.append("-k0")
+
+        # First call should use the build_cmake.sh script in order to run
+        # cmake.
+        self.build_steps = [
+            {
+                "bin": str(self.project_root.joinpath("contrib/devtools/build_cmake.sh")),
+                "args": targets[0] + build_cmake_flags,
+            }
+        ]
+
+        for target_group in targets[1:]:
+            self.build_steps.append(
+                {
+                    # TODO: let the generator be configurable
+                    "bin": "ninja",
+                    "args": generator_flags + target_group,
+                }
+            )
 
     def get(self, key, default):
         return self.config.get(key, default)
@@ -229,9 +282,9 @@ class UserBuild():
                 )
                 continue
 
-    async def run_build(self, args=[]):
-        proc = await asyncio.create_subprocess_exec(
-            *([str(self.configuration.script_path)] + args),
+    def run_process(self, bin, args=[]):
+        return asyncio.create_subprocess_exec(
+            *([bin] + args),
             # Buffer limit is 64KB by default, but we need a larger buffer:
             limit=1024 * 256,
             stdout=asyncio.subprocess.PIPE,
@@ -240,9 +293,13 @@ class UserBuild():
             env={
                 **os.environ,
                 **self.environment_variables,
-                **self.configuration.get("env", {})
+                **self.configuration.get("env", {}),
+                "CMAKE_FLAGS": " ".join(self.configuration.cmake_flags),
             },
         )
+
+    async def run_build(self, bin, args=[]):
+        proc = await self.run_process(bin, args)
 
         await asyncio.wait([
             self.process_stdout(proc.stdout)
@@ -255,12 +312,15 @@ class UserBuild():
             self.configuration.name
         )
         try:
-            return_code = await asyncio.wait_for(self.run_build(args), timeout)
-            if return_code != 0:
-                message = "Build {} failed with exit code {}".format(
-                    self.configuration.name,
-                    return_code
-                )
+            for step in self.configuration.build_steps:
+                return_code = await asyncio.wait_for(self.run_build(step["bin"], step["args"]), timeout)
+                if return_code != 0:
+                    message = "Build {} failed with exit code {}".format(
+                        self.configuration.name,
+                        return_code
+                    )
+                    return
+
         except asyncio.TimeoutError:
             message = "Build {} timed out after {:.1f}s".format(
                 self.configuration.name, round(timeout, 1)
@@ -289,6 +349,8 @@ class UserBuild():
         if self.artifact_dir.is_dir():
             shutil.rmtree(self.artifact_dir)
         self.artifact_dir.mkdir(exist_ok=True)
+
+        self.configuration.create_build_steps(self.artifact_dir)
 
         return_code, message = asyncio.run(
             self.wait_for_build(
