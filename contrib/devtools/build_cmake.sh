@@ -16,6 +16,7 @@ function usage() {
   echo "  --clang: build with clang/clang++"
   echo "  --gcc: build with gcc/g++"
   echo "  --junit: enable Junit reports generation"
+  echo "  --no-build: Only run the configuration step and skip the build"
   echo "  --Werror: add -Werror to the compiler flags"
   echo "Environment variables:"
   echo "  CMAKE_FLAGS: array of the CMAKE flags to use for the build"
@@ -32,6 +33,7 @@ git clean -xffd || true
 
 read -a CMAKE_FLAGS <<< "${CMAKE_FLAGS}"
 
+BUILD="yes"
 TARGETS=()
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -53,6 +55,10 @@ while [[ $# -gt 0 ]]; do
       CMAKE_FLAGS+=(
         "-DENABLE_JUNIT_REPORT=ON"
       )
+      shift
+      ;;
+    --no-build)
+      BUILD="no"
       shift
       ;;
     --Werror)
@@ -91,4 +97,7 @@ else
 fi
 
 # Run build
-ninja "${TARGETS[@]}"
+if [ "${BUILD}" == "yes" ]
+then
+  ninja "${TARGETS[@]}"
+fi
