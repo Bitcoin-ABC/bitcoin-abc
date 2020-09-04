@@ -218,6 +218,13 @@ class UserBuild():
             self.logs["full_log"].unlink()
 
     def copy_artifacts(self, artifacts):
+        # Make sure the artifact directory always exists. It is created before
+        # the build is run (to let the build install things to it) but since we
+        # have no control on what is being executed, it might very well be
+        # deleted by the build as well. This can happen when the artifacts
+        # are located in the build directory and the build calls git clean.
+        self.artifact_dir.mkdir(exist_ok=True)
+
         # Find and copy artifacts.
         # The source is relative to the build tree, the destination relative to
         # the artifact directory.
