@@ -24,7 +24,7 @@ test_autopatch() {
   export EDITOR="${CURRENT_DIR}/test-commit-message.sh"
   # Note: Do not use `-o ${REMOTE}` here because REMOTE may be on the local filesystem.
   EXIT_CODE=0
-  "${CURRENT_DIR}/../autopatch.sh" -o testorigin -b "${MASTER_BRANCH}" --patch-args "${PATCH_ARGS}" || EXIT_CODE=$?
+  "${CURRENT_DIR}/../autopatch.sh" -o testorigin -b "${MASTER_BRANCH}" --patch-args "${PATCH_ARGS}" > /dev/null || EXIT_CODE=$?
   if [ "${EXIT_CODE}" -ne "${EXPECTED_EXIT_CODE}" ]; then
     echo "Error: autopatch exited with '${EXIT_CODE}' when '${EXPECTED_EXIT_CODE}' was expected."
     exit 1
