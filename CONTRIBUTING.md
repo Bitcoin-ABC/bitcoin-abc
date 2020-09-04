@@ -132,7 +132,7 @@ will have to install the following:
 
 On Ubuntu (>= 18.04+updates):
 ```
-sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python-autopep8 flake8 php-codesniffer
+sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python-autopep8 flake8 php-codesniffer yamllint
 ```
 
 On Debian (>= 10), the clang-8 family of tools is available from the `buster-backports` repository:

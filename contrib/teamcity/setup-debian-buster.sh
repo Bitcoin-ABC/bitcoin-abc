@@ -66,6 +66,7 @@ PACKAGES=(
   software-properties-common
   tar
   wget
+  yamllint
   wine
 )
 

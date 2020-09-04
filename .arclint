@@ -230,6 +230,10 @@
             "exclude": [
                 "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)"
             ]
+        },
+        "yamllint": {
+            "type": "yamllint",
+            "include": "(\\.(yml|yaml)$)"
         }
     }
 }

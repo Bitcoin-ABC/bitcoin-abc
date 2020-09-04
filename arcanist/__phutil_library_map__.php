@@ -41,6 +41,7 @@ phutil_register_library_map(array(
     'StdintLinter' => 'linter/StdintLinter.php',
     'TestsLinter' => 'linter/TestsLinter.php',
     'WhitespaceLinter' => 'linter/WhitespaceLinter.php',
+    'YamllintLinter' => 'linter/YamllintLinter.php',
   ),
   'function' => array(),
   'xmap' => array(
@@ -78,5 +79,6 @@ phutil_register_library_map(array(
     'StdintLinter' => 'ArcanistLinter',
     'TestsLinter' => 'ArcanistExternalLinter',
     'WhitespaceLinter' => 'ArcanistLinter',
+    'YamllintLinter' => 'ArcanistExternalLinter',
   ),
 ));
