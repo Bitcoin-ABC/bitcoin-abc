@@ -219,7 +219,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
 
         # Get the configuration from master
         config = yaml.safe_load(phab.get_file_content_from_master(
-            "contrib/teamcity/build-configurations.yaml"))
+            "contrib/teamcity/build-configurations.yml"))
 
         # Get a list of the builds that should run on diffs
         builds = [
