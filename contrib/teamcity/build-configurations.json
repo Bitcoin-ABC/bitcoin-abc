@@ -287,6 +287,15 @@
             ],
             "timeout": 600
         },
+        "check-source-control-tools": {
+            "cmake_flags": [
+                "-DBUILD_SOURCE_CONTROL_TOOLS=ON"
+            ],
+            "targets": [
+                ["check-source-control-tools"]
+            ],
+            "timeout": 600
+        },
         "gitian-linux": {
             "templates": [
                 "gitian_builds"
