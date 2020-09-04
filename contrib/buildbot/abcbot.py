@@ -15,7 +15,7 @@ from logging.handlers import RotatingFileHandler
 
 from phabricator_wrapper import PhabWrapper
 from slackbot import SlackBot
-from teamcity import TeamCity
+from teamcity_wrapper import TeamCity
 from travis import Travis
 
 import server

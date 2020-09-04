@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 from build import BuildStatus
 from phabricator_wrapper import BITCOIN_ABC_REPO
 from server import BADGE_TC_BASE
-from teamcity import BuildInfo
+from teamcity_wrapper import BuildInfo
 from testutil import AnyWith
 from test.abcbot_fixture import ABCBotFixture
 import test.mocks.fixture

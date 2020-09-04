@@ -17,7 +17,7 @@ from phabricator_wrapper import (
 import re
 from shieldio import RasterBadge
 from shlex import quote
-from teamcity import TeamcityRequestException
+from teamcity_wrapper import TeamcityRequestException
 import yaml
 
 

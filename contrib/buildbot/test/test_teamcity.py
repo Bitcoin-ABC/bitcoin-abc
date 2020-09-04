@@ -11,7 +11,7 @@ import time
 import unittest
 from urllib.parse import urljoin
 
-from teamcity import TeamcityRequestException
+from teamcity_wrapper import TeamcityRequestException
 from testutil import AnyWith
 
 import test.mocks.teamcity
