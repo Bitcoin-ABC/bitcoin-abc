@@ -570,6 +570,10 @@ class WalletTest(BitcoinTestFramework):
         self.wait_until(
             lambda: len(self.nodes[0].getrawmempool()) == chainlimit * 2)
 
+        # Prevent potential race condition when calling wallet RPCs right after
+        # restart
+        self.nodes[0].syncwithvalidationinterfacequeue()
+
         node0_balance = self.nodes[0].getbalance()
         # With walletrejectlongchains we will not create the tx and store it in
         # our wallet.
