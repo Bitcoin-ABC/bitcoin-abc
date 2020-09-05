@@ -673,12 +673,19 @@ void SetupServerArgs(NodeContext &node) {
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-dnsseed",
-        "Query for peer addresses via DNS lookup, if low on addresses "
-        "(default: 1 unless -connect used)",
-        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-
+        strprintf(
+            "Query for peer addresses via DNS lookup, if low on addresses "
+            "(default: %u unless -connect used)",
+            DEFAULT_DNSSEED),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::CONNECTION);
     argsman.AddArg("-externalip=<ip>", "Specify your own public address",
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-fixedseeds",
+        strprintf(
+            "Allow fixed seeds if DNS seeds don't provide peers (default: %u)",
+            DEFAULT_FIXEDSEEDS),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-forcednsseed",
         strprintf(
