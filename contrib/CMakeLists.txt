@@ -1,5 +1,5 @@
-option(BUILD_SOURCE_CONTROL_TOOLS "Build the source control tools" OFF)
-if(BUILD_SOURCE_CONTROL_TOOLS)
+option(ENABLE_SOURCE_CONTROL_TOOLS_TESTS "Enable testing of the source control tools" OFF)
+if(ENABLE_SOURCE_CONTROL_TOOLS_TESTS)
 	add_subdirectory(source-control-tools)
 endif()
 

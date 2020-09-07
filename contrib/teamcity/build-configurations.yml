@@ -281,7 +281,7 @@ builds:
 
   check-source-control-tools:
     cmake_flags:
-      - '-DBUILD_SOURCE_CONTROL_TOOLS=ON'
+      - '-DENABLE_SOURCE_CONTROL_TOOLS_TESTS=ON'
     targets:
       - - check-source-control-tools
     timeout: 600
