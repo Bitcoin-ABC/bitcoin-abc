@@ -67,7 +67,7 @@ env:
     - ECMULTGENPRECISION=2
     - ECMULTGENPRECISION=8
     - RUN_VALGRIND=yes
-      BIGNUM=no ASM=x86_64 EXPERIMENTAL=yes ECDH=yes RECOVERY=yes OPENSSL_TESTS=no MULTISET=yes
+      BIGNUM=no ASM=x86_64 ECDH=yes RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes MULTISET=yes OPENSSL_TESTS=no
       AUTOTOOLS_TARGET=
       CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND CMAKE_TARGET="secp256k1-tests secp256k1-exhaustive_tests"
     - SCHNORR=no
@@ -89,7 +89,7 @@ jobs:
     # S390x build (big endian system)
     - dist: focal
       compiler: gcc
-      env: HOST=s390x-unknown-linux-gnu OPENSSL_TESTS=no ECDH=yes RECOVERY=yes EXPERIMENTAL=yes MULTISET=yes CTIMETEST=no
+      env: HOST=s390x-unknown-linux-gnu OPENSSL_TESTS=no ECDH=yes RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes MULTISET=yes CTIMETEST=no
       arch: s390x
       addons:
         apt:
