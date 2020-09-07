@@ -82,7 +82,62 @@ DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 git checkout master
 git reset --hard "${PARENT_COMMIT}"
 
+# Utility functions to compare version strings
+version_greater_equal() {
+  printf '%s\n%s\n' "$2" "$1" | sort -V -C
+}
+version_greater() {
+  [ "$1" != "$2" ] && version_greater_equal "$1" "$2"
+}
+version_less_equal() {
+  ! version_greater "$1" "$2"
+}
+version_less() {
+  ! version_greater_equal "$1" "$2"
+}
+
+# Common script to update the AUR packages.
+# Usage: update-aur-version <package_name>
+update-aur-version() {
+  PACKAGE="$1"
+
+  # Get the current version of the software
+  "${DEVTOOLS_DIR}"/build_cmake.sh --no-build
+  CURRENT_VERSION="$(ninja print-version | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')"
+
+  # Get the current version of the AUR package
+  PKGBUILD="${TOPLEVEL}"/contrib/aur/${PACKAGE}/PKGBUILD
+  # shellcheck source=../aur/bitcoin-abc/PKGBUILD
+  source "${PKGBUILD}"
+
+  # Compare the versions. We only want to update if
+  # (software version > package version) to prevent downgrades.
+  if version_less_equal "${CURRENT_VERSION}" "${pkgver}"
+  then
+    echo "Current version ${CURRENT_VERSION} <= ${PACKAGE} AUR package version ${pkgver}, skip the update"
+    exit 0
+  fi
+
+  # Reset the release version to 0 and update the package version in the
+  # PKGBUILD file.
+  # Note that this pattern is very safe: because of the shell script syntax,
+  # no whitespace can occur and we have the original value as a variable.
+  sed -i "s/pkgrel=${pkgrel}/pkgrel=0/" "${PKGBUILD}"
+  sed -i "s/pkgver=${pkgver}/pkgver=${CURRENT_VERSION}/" "${PKGBUILD}"
+
+  git add "${PKGBUILD}"
+  git commit -m "Bump ${PACKAGE} AUR package version to ${CURRENT_VERSION}"
+}
+
 case "${COMMIT_TYPE}" in
+  update-aur-version-bitcoin-abc)
+    update-aur-version "bitcoin-abc"
+    ;;
+
+  update-aur-version-bitcoin-abc-qt)
+    update-aur-version "bitcoin-abc-qt"
+    ;;
+
   update-chainparams)
     CHAINPARAMS_SCRIPTS_DIR="${DEVTOOLS_DIR}"/chainparams
 
