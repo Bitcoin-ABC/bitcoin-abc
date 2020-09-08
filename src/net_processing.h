@@ -110,8 +110,7 @@ public:
      * Evict extra outbound peers. If we think our tip may be stale, connect to
      * an extra outbound.
      */
-    void
-    CheckForStaleTipAndEvictPeers(const Consensus::Params &consensusParams);
+    void CheckForStaleTipAndEvictPeers();
     /**
      * If we have extra outbound peers, try to disconnect the one with the
      * oldest block announcement.

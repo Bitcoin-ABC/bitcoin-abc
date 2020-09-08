@@ -1528,7 +1528,6 @@ PeerManager::PeerManager(const CChainParams &chainparams, CConnman &connman,
     g_recent_confirmed_transactions.reset(
         new CRollingBloomFilter(24000, 0.000001));
 
-    const Consensus::Params &consensusParams = chainparams.GetConsensus();
     // Stale tip checking and peer eviction are on two different timers, but we
     // don't want them to get out of sync due to drift in the scheduler, so we
     // combine them in one function and schedule at the quicker (peer-eviction)
@@ -1537,8 +1536,8 @@ PeerManager::PeerManager(const CChainParams &chainparams, CConnman &connman,
         EXTRA_PEER_CHECK_INTERVAL < STALE_CHECK_INTERVAL,
         "peer eviction timer should be less than stale tip check timer");
     scheduler.scheduleEvery(
-        [this, &consensusParams]() {
-            this->CheckForStaleTipAndEvictPeers(consensusParams);
+        [this]() {
+            this->CheckForStaleTipAndEvictPeers();
             return true;
         },
         std::chrono::seconds{EXTRA_PEER_CHECK_INTERVAL});
@@ -5099,8 +5098,7 @@ void PeerManager::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     }
 }
 
-void PeerManager::CheckForStaleTipAndEvictPeers(
-    const Consensus::Params &consensusParams) {
+void PeerManager::CheckForStaleTipAndEvictPeers() {
     LOCK(cs_main);
 
     int64_t time_in_seconds = GetTime();
@@ -5114,7 +5112,8 @@ void PeerManager::CheckForStaleTipAndEvictPeers(
     // Check whether our tip is stale, and if so, allow using an extra outbound
     // peer.
     if (!fImporting && !fReindex && m_connman.GetNetworkActive() &&
-        m_connman.GetUseAddrmanOutgoing() && TipMayBeStale(consensusParams)) {
+        m_connman.GetUseAddrmanOutgoing() &&
+        TipMayBeStale(m_chainparams.GetConsensus())) {
         LogPrintf("Potential stale tip detected, will try using extra outbound "
                   "peer (last tip update: %d seconds ago)\n",
                   time_in_seconds - g_last_tip_update);
@@ -5144,8 +5143,7 @@ public:
 
 bool PeerManager::SendMessages(const Config &config, CNode *pto,
                                std::atomic<bool> &interruptMsgProc) {
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
+    const Consensus::Params &consensusParams = m_chainparams.GetConsensus();
 
     // We must call MaybeDiscourageAndDisconnect first, to ensure that we'll
     // disconnect misbehaving peers even before the version handshake is
