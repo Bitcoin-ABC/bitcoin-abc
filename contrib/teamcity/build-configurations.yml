@@ -1,20 +1,6 @@
 ---
 # Templates can be referenced in builds to avoid duplication
 templates:
-  common_unix_artifacts:
-    artifacts:
-      CMakeCache.txt: CMakeCache.txt
-      src/bitcoind: bin/bitcoind
-      src/bitcoin-*: bin
-      src/qt/bitcoin-qt: bin/bitcoin-qt
-      src/bench/bitcoin-bench: bin/bitcoin-bench
-      src/seeder/bitcoin-seeder: bin/bitcoin-seeder
-      src/libbitcoinconsensus.*: lib
-      src/test/test_bitcoin: bin/test_bitcoin
-      src/qt/test/test_bitcoin-qt: bin/test_bitcoin-qt
-      src/seeder/test/test-seeder: bin/test-seeder
-      test/tmp/test_runner_*: functional
-
   gitian_builds:
     script: gitian.sh
     timeout: 7200
@@ -94,17 +80,39 @@ builds:
 
   build-clang-tidy:
     runOnDiff: true
-    script: builds/build-clang-tidy.sh
-    templates:
-      - common_unix_artifacts
+    clang: true
+    cmake_flags:
+      - '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
+    targets:
+      - - all
+    post_build: |
+      CLANG_TIDY_WARNING_FILE="${BUILD_DIR}/clang-tidy-warnings.txt"
+
+      pushd "${TOPLEVEL}"
+      git diff -U0 HEAD^ | clang-tidy-diff-8.py \
+        -clang-tidy-binary "$(command -v clang-tidy-8)" \
+        -path "${BUILD_DIR}/compile_commands.json" \
+        -p1 > "${CLANG_TIDY_WARNING_FILE}"
+
+      if [ $(wc -l < "${CLANG_TIDY_WARNING_FILE}") -gt 1 ]; then
+        echo "clang-tidy found issues !"
+        cat "${CLANG_TIDY_WARNING_FILE}"
+        exit 1
+      fi
+      popd
     timeout: 600
     artifacts:
       clang-tidy-warnings.txt: clang-tidy-warnings.txt
 
   build-coverage:
-    script: builds/build-coverage.sh
-    templates:
-      - common_unix_artifacts
+    gcc: true
+    cmake_flags:
+      - '-DENABLE_COVERAGE=ON'
+      - '-DENABLE_BRANCH_COVERAGE=ON'
+    targets:
+      - - coverage-check-extended
+    post_build: |
+      "${TOPLEVEL}/contrib/teamcity/upload-coverage.sh" check-extended
     timeout: 4800
     artifacts:
       coverage.tar.gz: coverage.tar.gz
@@ -128,17 +136,19 @@ builds:
       doc/*: doc
 
   build-ibd:
-    script: builds/build-ibd.sh
-    templates:
-      - common_unix_artifacts
+    targets:
+      - - bitcoind
+    post_build: |
+      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -debug=net
     timeout: 14400
     artifacts:
       ibd/debug.log: log/debug.log
 
   build-ibd-no-assumevalid-checkpoint:
-    script: builds/build-ibd-no-assumevalid-checkpoint.sh
-    template:
-      - common_unix_artifacts
+    targets:
+      - - bitcoind
+    post_build: |
+      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
     timeout: 21600
     artifacts:
       ibd/debug.log: log/debug.log
@@ -248,7 +258,9 @@ builds:
         - install
         - install-secp256k1
         - install-tests
-      - - osx-dmg
+    post_build: |
+      export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin16/native/lib/python3/dist-packages:${PYTHONPATH:-}"
+      ninja osx-dmg
     timeout: 3600
     artifacts:
       Bitcoin-ABC.dmg: Bitcoin-ABC.dmg
@@ -304,18 +316,23 @@ builds:
       UBSAN_OPTIONS: log_path=stdout
 
   build-win64:
-    script: builds/build-win64.sh
+    cross_build:
+      static_depends: win64
+      toolchain: Win64
+    cmake_flags:
+      - "-DBUILD_BITCOIN_SEEDER=OFF"
+      - "-DCPACK_STRIP_FILES=ON"
+      - "-DUSE_JEMALLOC=OFF"
+    targets:
+      - - all
+        - install
+        - install-secp256k1
+        - install-tests
+      - - package
+    post_build: |
+      wine "${ARTIFACT_DIR}/bin/test_bitcoin.exe" --run_test=\!radix_tests,rcu_tests
     timeout: 3600
     artifacts:
-      CMakeCache.txt: CMakeCache.txt
-      src/bitcoind.exe: bin/bitcoind.exe
-      src/bitcoin-*.exe: bin
-      src/qt/bitcoin-qt.exe: bin/bitcoin-qt.exe
-      src/bench/bitcoin-bench.exe: bin/bitcoin-bench.exe
-      src/libbitcoinconsensus*: lib
-      src/test/test_bitcoin.exe: bin/test_bitcoin.exe
-      src/qt/test/test_bitcoin-qt.exe: bin/test_bitcoin-qt.exe
-      src/qt/test/test_bitcoin-qt.log: log/qt/test_bitcoin-qt.log
       bitcoin-abc-*-x86_64-w64-mingw32.exe: bitcoin-abc-x86_64-w64-mingw32.exe
 
   build-without-cli:
@@ -352,13 +369,20 @@ builds:
     timeout: 1800
 
   check-buildbot:
-    script: builds/check-buildbot.sh
+    targets:
+      - - check-buildbot
     timeout: 600
 
   check-seeds:
-    script: builds/check-seeds.sh
-    templates:
-      - common_unix_artifacts
+    targets:
+      - - bitcoind
+        - bitcoin-cli
+    post_build: |
+      # Run on different ports to avoid a race where the rpc port used in the first run
+      # may not be closed in time for the second to start.
+      SEEDS_DIR="${TOPLEVEL}"/contrib/seeds
+      RPC_PORT=18832 "${SEEDS_DIR}"/check-seeds.sh main 80
+      RPC_PORT=18833 "${SEEDS_DIR}"/check-seeds.sh test 70
     timeout: 600
 
   check-source-control-tools:

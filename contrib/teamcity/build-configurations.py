@@ -9,6 +9,8 @@ from deepmerge import always_merger
 import os
 from pathlib import Path, PurePath
 import shutil
+import stat
+from string import Template
 import subprocess
 import sys
 from teamcity import is_running_under_teamcity
@@ -240,6 +242,33 @@ class BuildConfiguration:
                 }
             )
 
+        # If a post build script is defined, add it as a last step
+        post_build = self.config.get("post_build", None)
+        if post_build:
+            # Write the content to a script file using a template
+            script_file = self.build_directory.joinpath("post_build.sh")
+
+            with open(self.script_root.joinpath("bash_script.sh.in"), encoding='utf-8') as f:
+                script_template_content = f.read()
+
+            template = Template(script_template_content)
+
+            with open(script_file, 'w', encoding='utf-8') as f:
+                f.write(
+                    template.safe_substitute(
+                        **self.environment_variables,
+                        SCRIPT_CONTENT=post_build,
+                    )
+                )
+            script_file.chmod(script_file.stat().st_mode | stat.S_IEXEC)
+
+            self.build_steps.append(
+                {
+                    "bin": str(script_file),
+                    "args": [],
+                }
+            )
+
     def get(self, key, default):
         return self.config.get(key, default)
 
@@ -350,6 +379,7 @@ class UserBuild():
                 **os.environ,
                 **self.configuration.environment_variables,
                 **self.configuration.get("env", {}),
+                "ARTIFACT_DIR": str(self.artifact_dir),
                 "CMAKE_FLAGS": " ".join(self.configuration.cmake_flags),
             },
         )

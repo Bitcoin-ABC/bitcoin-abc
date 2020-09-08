@@ -4,17 +4,33 @@ export LC_ALL=C.UTF-8
 
 set -euxo pipefail
 
-# shellcheck source=../ci-fixture.sh
-source "${TOPLEVEL}/contrib/teamcity/ci-fixture.sh"
+: "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
+: "${BUILD_DIR:=${TOPLEVEL}/build}"
 
-CMAKE_FLAGS=(
-  "-DENABLE_COVERAGE=ON"
-  "-DENABLE_BRANCH_COVERAGE=ON"
-)
-build_with_cmake --gcc coverage-check-extended
+usage() {
+  cat <<EOF
+Usage: $0 target
+  target: the name of the test target for which coverage has been built
+Environment variables:
+  TOPLEVEL the project root directory
+  BUILD_DIR the build directory
+
+Example:
+  $0 check-all
+EOF
+
+  exit 1
+}
+
+if [ $# -ne 1 ]
+then
+  usage
+fi
+
+COVERAGE_TARGET=$1
 
 # Publish the coverage report in a format that Teamcity understands
-pushd check-extended.coverage
+pushd "${BUILD_DIR}/${COVERAGE_TARGET}.coverage"
 
 # Send some message to Teamcity containing the coverage data.
 # This make it possible to track coverage variation and trigger events.
