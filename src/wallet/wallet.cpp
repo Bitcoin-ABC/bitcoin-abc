@@ -241,6 +241,7 @@ LoadWalletInternal(interfaces::Chain &chain, const std::string &name,
         if (!wallet) {
             error = Untranslated("Wallet loading failed.") + Untranslated(" ") +
                     error;
+            status = DatabaseStatus::FAILED_LOAD;
             return nullptr;
         }
         AddWallet(wallet);
@@ -252,6 +253,7 @@ LoadWalletInternal(interfaces::Chain &chain, const std::string &name,
         return wallet;
     } catch (const std::runtime_error &e) {
         error = Untranslated(e.what());
+        status = DatabaseStatus::FAILED_LOAD;
         return nullptr;
     }
 }
@@ -266,6 +268,7 @@ LoadWallet(interfaces::Chain &chain, const std::string &name,
                             return g_loading_wallet_set.insert(name));
     if (!result.second) {
         error = Untranslated("Wallet already being loading.");
+        status = DatabaseStatus::FAILED_LOAD;
         return nullptr;
     }
     auto wallet = LoadWalletInternal(chain, name, load_on_start, options,
