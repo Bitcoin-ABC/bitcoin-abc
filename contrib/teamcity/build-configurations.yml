@@ -21,6 +21,15 @@ templates:
     artifacts:
       gitian-results: ''
 
+  check+secp256k1:
+    targets:
+      - - all
+        - install
+        - install-secp256k1
+      - - check
+        - check-secp256k1
+        - check-functional
+
 # The build descriptions.
 # If a script is defined, then this will be the only step to run.
 # Otherwise a list of targets can be specified, grouped by parallel runs.
@@ -42,13 +51,8 @@ builds:
       - '-DCMAKE_BUILD_TYPE=Debug'
       - '-DCRYPTO_USE_ASM=OFF'
       - '-DENABLE_SANITIZERS=address'
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-      - - check
-        - check-secp256k1
-        - check-functional
+    templates:
+      - check+secp256k1
     timeout: 1800
     env:
       ASAN_OPTIONS: log_path=stdout
@@ -134,29 +138,77 @@ builds:
       ibd/debug.log: log/debug.log
 
   build-linux32:
-    script: builds/build-linux32.sh
+    cross_build:
+      static_depends: linux32
+      toolchain: Linux32
     templates:
-      - common_unix_artifacts
+      - check+secp256k1
     timeout: 3600
 
   build-linux64:
-    script: builds/build-linux64.sh
+    cross_build:
+      static_depends: linux64
+      toolchain: Linux64
     templates:
-      - common_unix_artifacts
+      - check+secp256k1
     timeout: 3600
 
   build-linux-aarch64:
-    script: builds/build-linux-aarch64.sh
+    cross_build:
+      static_depends: linux-aarch64
+      toolchain: LinuxAArch64
+      emulator: qemu-aarch64-static
+    cmake_flags:
+      # The ZMQ functional test will fail with qemu (due to a qemu limitation),
+      # so disable it to avoid the failure.
+      # Extracted from stderr:
+      #   Unknown host QEMU_IFLA type: 50
+      #   Unknown host QEMU_IFLA type: 51
+      #   Unknown QEMU_IFLA_BRPORT type 33
+      - "-DBUILD_BITCOIN_ZMQ=OFF"
+      # This is an horrible hack to workaround a qemu bug:
+      # https://bugs.launchpad.net/qemu/+bug/1748612
+      # Qemu emits a message for unsupported features called by the guest.
+      # Because the output filtering is not working at all, it causes the
+      # qemu stderr to end up in the node stderr and fail the functional
+      # tests.
+      # Disabling the unsupported feature (here bypassing the config
+      # detection) fixes the issue.
+      # FIXME: get rid of the hack, either by using a better qemu version
+      # or by filtering stderr at the framework level.
+      - "-DHAVE_DECL_GETIFADDRS=OFF"
     templates:
-      - common_unix_artifacts
+      - check+secp256k1
     timeout: 3600
     env:
       QEMU_LD_PREFIX: /usr/aarch64-linux-gnu
 
   build-linux-arm:
-    script: builds/build-linux-arm.sh
+    cross_build:
+      static_depends: linux-arm
+      toolchain: LinuxARM
+      emulator: qemu-arm-static
+    cmake_flags:
+      # The ZMQ functional test will fail with qemu (due to a qemu limitation),
+      # so disable it to avoid the failure.
+      # Extracted from stderr:
+      #   Unknown host QEMU_IFLA type: 50
+      #   Unknown host QEMU_IFLA type: 51
+      #   Unknown QEMU_IFLA_BRPORT type 33
+      - "-DBUILD_BITCOIN_ZMQ=OFF"
+      # This is an horrible hack to workaround a qemu bug:
+      # https://bugs.launchpad.net/qemu/+bug/1748612
+      # Qemu emits a message for unsupported features called by the guest.
+      # Because the output filtering is not working at all, it causes the
+      # qemu stderr to end up in the node stderr and fail the functional
+      # tests.
+      # Disabling the unsupported feature (here bypassing the config
+      # detection) fixes the issue.
+      # FIXME: get rid of the hack, either by using a better qemu version
+      # or by filtering stderr at the framework level.
+      - "-DHAVE_DECL_GETIFADDRS=OFF"
     templates:
-      - common_unix_artifacts
+      - check+secp256k1
     timeout: 3600
     env:
       QEMU_LD_PREFIX: /usr/arm-linux-gnueabihf
@@ -214,13 +266,8 @@ builds:
     cmake_flags:
       - '-DCMAKE_BUILD_TYPE=Debug'
       - '-DENABLE_SANITIZERS=undefined'
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-      - - check
-        - check-secp256k1
-        - check-functional
+    templates:
+      - check+secp256k1
     timeout: 1800
     env:
       UBSAN_OPTIONS: log_path=stdout

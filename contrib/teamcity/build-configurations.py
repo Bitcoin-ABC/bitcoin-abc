@@ -164,14 +164,49 @@ class BuildConfiguration:
         if self.config.get("fail_fast", False):
             generator_flags.append("-k0")
 
+        # Handle cross build configuration
+        cross_build = self.config.get("cross_build", None)
+        if cross_build:
+            static_depends = cross_build.get("static_depends", None)
+            toolchain = cross_build.get("toolchain", None)
+            emulator = cross_build.get("emulator", None)
+
+            # Both static_depends and toochain are mandatory for cross builds
+            if not static_depends:
+                raise AssertionError(
+                    "`static_depends` configuration is required for cross builds")
+            if not toolchain:
+                raise AssertionError(
+                    "`toolchain` configuration is required for cross builds")
+
+            self.build_steps.append(
+                {
+                    "bin": str(self.project_root.joinpath("contrib/devtools/build_depends.sh")),
+                    "args": [static_depends],
+                }
+            )
+
+            toolchain_file = self.project_root.joinpath(
+                "cmake/platforms/{}.cmake".format(toolchain)
+            )
+            self.cmake_flags.append(
+                "-DCMAKE_TOOLCHAIN_FILE={}".format(str(toolchain_file))
+            )
+
+            if emulator:
+                self.cmake_flags.append(
+                    "-DCMAKE_CROSSCOMPILING_EMULATOR={}".format(
+                        shutil.which(emulator))
+                )
+
         # First call should use the build_cmake.sh script in order to run
         # cmake.
-        self.build_steps = [
+        self.build_steps.append(
             {
                 "bin": str(self.project_root.joinpath("contrib/devtools/build_cmake.sh")),
                 "args": targets[0] + build_cmake_flags,
             }
-        ]
+        )
 
         for target_group in targets[1:]:
             self.build_steps.append(
