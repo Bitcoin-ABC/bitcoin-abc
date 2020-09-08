@@ -230,12 +230,17 @@ builds:
     timeout: 4800
 
   build-osx:
-    script: builds/build-osx.sh
-    templates:
-      - common_unix_artifacts
+    cross_build:
+      static_depends: osx
+      toolchain: OSX
+    targets:
+      - - all
+        - install
+        - install-secp256k1
+        - install-tests
+      - - osx-dmg
     timeout: 3600
     artifacts:
-      src/qt/BitcoinABC-Qt.app: bin
       Bitcoin-ABC.dmg: Bitcoin-ABC.dmg
 
   build-secp256k1:

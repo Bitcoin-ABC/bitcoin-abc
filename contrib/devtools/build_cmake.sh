@@ -75,6 +75,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# If cross building for OSX, the python library needs to be added to the python
+# library path.
+export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin16/native/lib/python3/dist-packages:${PYTHONPATH:-}"
+
 cmake -GNinja "${TOPLEVEL}" "${CMAKE_FLAGS[@]}"
 
 # If valid targets are given, use them, otherwise default to "all".
