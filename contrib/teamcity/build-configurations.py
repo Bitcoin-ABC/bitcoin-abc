@@ -106,7 +106,6 @@ class BuildConfiguration:
             self.project_root.joinpath(
                 'abc-ci-builds',
                 self.name))
-        self.build_directory.mkdir(exist_ok=True, parents=True)
 
         # Define the junit and logs directories
         self.junit_reports_dir = self.build_directory.joinpath("test/junit")
@@ -151,13 +150,25 @@ class BuildConfiguration:
             )
 
         # Some more flags for the build_cmake.sh script
-        build_cmake_flags = []
-        if self.config.get("Werror", False):
-            build_cmake_flags.append("--Werror")
-        if self.config.get("junit", True):
-            build_cmake_flags.append("--junit")
         if self.config.get("clang", False):
-            build_cmake_flags.append("--clang")
+            self.cmake_flags.extend([
+                "-DCMAKE_C_COMPILER=clang",
+                "-DCMAKE_CXX_COMPILER=clang++",
+            ])
+        if self.config.get("gcc", False):
+            self.cmake_flags.extend([
+                "-DCMAKE_C_COMPILER=gcc",
+                "-DCMAKE_CXX_COMPILER=g++",
+            ])
+        if self.config.get("junit", True):
+            self.cmake_flags.extend([
+                "-DENABLE_JUNIT_REPORT=ON",
+            ])
+        if self.config.get("Werror", False):
+            self.cmake_flags.extend([
+                "-DCMAKE_C_FLAGS=-Werror",
+                "-DCMAKE_CXX_FLAGS=-Werror",
+            ])
 
         # Some generator flags
         generator_flags = []
@@ -199,16 +210,16 @@ class BuildConfiguration:
                         shutil.which(emulator))
                 )
 
-        # First call should use the build_cmake.sh script in order to run
-        # cmake.
+        # Configure using cmake.
         self.build_steps.append(
             {
-                "bin": str(self.project_root.joinpath("contrib/devtools/build_cmake.sh")),
-                "args": targets[0] + build_cmake_flags,
+                "bin": "cmake",
+                # TODO: let the generator be configurable
+                "args": ["-G", "Ninja", str(self.project_root)] + self.cmake_flags,
             }
         )
 
-        for target_group in targets[1:]:
+        for target_group in targets:
             self.build_steps.append(
                 {
                     # TODO: let the generator be configurable
@@ -245,12 +256,12 @@ class UserBuild():
         self.logs = {}
         self.logs["clean_log"] = build_directory.joinpath(
             "build.clean.log")
-        if self.logs["clean_log"].is_file():
-            self.logs["clean_log"].unlink()
-
         self.logs["full_log"] = build_directory.joinpath("build.full.log")
-        if self.logs["full_log"].is_file():
-            self.logs["full_log"].unlink()
+
+        # Clean the build directory before any build step is run.
+        if self.configuration.build_directory.is_dir():
+            shutil.rmtree(self.configuration.build_directory)
+        self.configuration.build_directory.mkdir(exist_ok=True, parents=True)
 
     def copy_artifacts(self, artifacts):
         # Make sure the artifact directory always exists. It is created before
