@@ -96,13 +96,13 @@ version_less() {
   ! version_greater_equal "$1" "$2"
 }
 get_current_version() {
+  local -n CURRENT_VERSION=$1
+
   # Get the current version of the software
   "${DEVTOOLS_DIR}"/build_cmake.sh --no-build
   pushd "$BUILD_DIR"
   CURRENT_VERSION="$(ninja print-version | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')"
   popd
-
-  echo "${CURRENT_VERSION}"
 }
 
 # Common script to update the AUR packages.
@@ -110,7 +110,8 @@ get_current_version() {
 update-aur-version() {
   PACKAGE="$1"
 
-  CURRENT_VERSION="$(get_current_version)"
+  CURRENT_VERSION=""
+  get_current_version CURRENT_VERSION
 
   # Get the current version of the AUR package
   PKGBUILD="${TOPLEVEL}"/contrib/aur/${PACKAGE}/PKGBUILD
@@ -142,7 +143,8 @@ case "${COMMIT_TYPE}" in
     RELEASE_NOTES_VERSION=$(sed -n "1s/^Bitcoin ABC version \([0-9]\+\.[0-9]\+\.[0-9]\+\).\+$/\1/p" "${RELEASE_NOTES_FILE}")
     RELEASE_NOTES_ARCHIVE="${TOPLEVEL}/doc/release-notes/release-notes-${RELEASE_NOTES_VERSION}.md"
 
-    CURRENT_VERSION="$(get_current_version)"
+    CURRENT_VERSION=""
+    get_current_version CURRENT_VERSION
 
     # Compare the versions. We only want to archive the release notes if the
     # current version is greater the our release notes version.
