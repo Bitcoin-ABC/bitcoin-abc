@@ -111,6 +111,14 @@ class BuildConfiguration:
         self.junit_reports_dir = self.build_directory.joinpath("test/junit")
         self.test_logs_dir = self.build_directory.joinpath("test/log")
 
+        # We will provide the required environment variables
+        self.environment_variables = {
+            "BUILD_DIR": str(self.build_directory),
+            "CMAKE_PLATFORMS_DIR": self.project_root.joinpath("cmake", "platforms"),
+            "THREADS": str(os.cpu_count() or 1),
+            "TOPLEVEL": str(self.project_root),
+        }
+
     def create_build_steps(self, artifact_dir):
         # There are 2 possibilities to define the build steps:
         #  - By defining a script to run. If such a script is set and is
@@ -236,18 +244,9 @@ class UserBuild():
     def __init__(self, configuration):
         self.configuration = configuration
 
-        project_root = self.configuration.project_root
         build_directory = self.configuration.build_directory
 
         self.artifact_dir = build_directory.joinpath("artifacts")
-
-        # We will provide the required environment variables
-        self.environment_variables = {
-            "BUILD_DIR": str(build_directory),
-            "CMAKE_PLATFORMS_DIR": project_root.joinpath("cmake", "platforms"),
-            "THREADS": str(os.cpu_count() or 1),
-            "TOPLEVEL": str(project_root),
-        }
 
         # Build 2 log files:
         #  - the full log will contain all unfiltered content
@@ -345,7 +344,7 @@ class UserBuild():
             cwd=self.configuration.build_directory,
             env={
                 **os.environ,
-                **self.environment_variables,
+                **self.configuration.environment_variables,
                 **self.configuration.get("env", {}),
                 "CMAKE_FLAGS": " ".join(self.configuration.cmake_flags),
             },
