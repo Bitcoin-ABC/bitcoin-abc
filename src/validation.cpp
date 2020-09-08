@@ -6037,20 +6037,6 @@ double GuessVerificationProgress(const ChainTxData &data,
     return std::min<double>(pindex->GetChainTxCount() / fTxTotal, 1.0);
 }
 
-class CMainCleanup {
-public:
-    CMainCleanup() {}
-    ~CMainCleanup() {
-        // block headers
-        for (const std::pair<const BlockHash, CBlockIndex *> &it :
-             g_chainman.BlockIndex()) {
-            delete it.second;
-        }
-        g_chainman.BlockIndex().clear();
-    }
-};
-static CMainCleanup instance_of_cmaincleanup;
-
 std::optional<BlockHash> ChainstateManager::SnapshotBlockhash() const {
     if (m_active_chainstate != nullptr) {
         // If a snapshot chainstate exists, it will always be our active.

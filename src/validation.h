@@ -636,6 +636,8 @@ public:
     bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
                            BlockValidationState &state, CBlockIndex **ppindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    ~BlockManager() { Unload(); }
 };
 
 /**
