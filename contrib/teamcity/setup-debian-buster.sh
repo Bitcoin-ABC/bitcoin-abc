@@ -125,6 +125,13 @@ update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32
 pip3 install teamcity-messages
 # Python library for merging nested structures
 pip3 install deepmerge
+# For running Python test suites
+pip3 install pytest
+
+# Install Python dependencies for the build bot
+# Note: Path should be relative to TEAMCITY_DIR since the base image build
+# context may be different than the project root.
+pip3 install -r "${TEAMCITY_DIR}"/../buildbot/requirements.txt
 
 # Install pandoc. The version from buster is outdated, so get a more recent one
 # from github.

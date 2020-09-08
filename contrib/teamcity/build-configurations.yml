@@ -325,6 +325,10 @@ builds:
         - check-functional
     timeout: 1800
 
+  check-buildbot:
+    script: builds/check-buildbot.sh
+    timeout: 600
+
   check-seeds:
     script: builds/check-seeds.sh
     templates:
