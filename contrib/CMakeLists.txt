@@ -8,6 +8,7 @@ add_subdirectory(devtools)
 include(PackageHelper)
 exclude_from_source_package(
 	# Subdirectories
+	"aur/"
 	"debian/"
 	"gitian/"
 	"gitian-builder/"
