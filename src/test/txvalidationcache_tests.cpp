@@ -128,11 +128,10 @@ CheckInputScripts(const CTransaction &tx, TxValidationState &state,
 // should fail.
 // Capture this interaction with the upgraded_nop argument: set it when
 // evaluating any script flag that is implemented as an upgraded NOP code.
-static void
-ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
-                               uint32_t required_flags, bool add_to_cache,
-                               int expected_sigchecks)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+static void ValidateCheckInputsForAllFlags(
+    const CTransaction &tx, uint32_t failing_flags, uint32_t required_flags,
+    bool add_to_cache, CCoinsViewCache &active_coins_tip,
+    int expected_sigchecks) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     PrecomputedTransactionData txdata(tx);
 
     MMIXLinearCongruentialGenerator lcg;
@@ -148,9 +147,9 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
         }
 
         int nSigChecksDirect = 0xf00d;
-        bool ret = CheckInputScripts(
-            tx, state, &::ChainstateActive().CoinsTip(), test_flags, true,
-            add_to_cache, txdata, nSigChecksDirect);
+        bool ret =
+            CheckInputScripts(tx, state, &active_coins_tip, test_flags, true,
+                              add_to_cache, txdata, nSigChecksDirect);
 
         // CheckInputScripts should succeed iff test_flags doesn't intersect
         // with failing_flags
@@ -167,8 +166,8 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
             std::vector<CScriptCheck> scriptchecks;
             int nSigChecksCached = 0xbeef;
             BOOST_CHECK(CheckInputScripts(
-                tx, state, &::ChainstateActive().CoinsTip(), test_flags, true,
-                add_to_cache, txdata, nSigChecksCached, &scriptchecks));
+                tx, state, &active_coins_tip, test_flags, true, add_to_cache,
+                txdata, nSigChecksCached, &scriptchecks));
             BOOST_CHECK(nSigChecksCached == nSigChecksDirect);
             BOOST_CHECK(scriptchecks.empty());
         } else {
@@ -177,8 +176,8 @@ ValidateCheckInputsForAllFlags(const CTransaction &tx, uint32_t failing_flags,
             std::vector<CScriptCheck> scriptchecks;
             int nSigChecksUncached = 0xbabe;
             BOOST_CHECK(CheckInputScripts(
-                tx, state, &::ChainstateActive().CoinsTip(), test_flags, true,
-                add_to_cache, txdata, nSigChecksUncached, &scriptchecks));
+                tx, state, &active_coins_tip, test_flags, true, add_to_cache,
+                txdata, nSigChecksUncached, &scriptchecks));
             BOOST_CHECK(!ret || nSigChecksUncached == 0);
             BOOST_CHECK_EQUAL(scriptchecks.size(), tx.vin.size());
         }
@@ -299,7 +298,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // we can test later that block validation works fine in the absence of
         // cached successes.
         ValidateCheckInputsForAllFlags(
-            tx, SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS, 0, false, 0);
+            tx, SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS, 0, false,
+            ::ChainstateActive().CoinsTip(), 0);
     }
 
     // And if we produce a block with this tx, it should be valid, even though
@@ -327,7 +327,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         invalid_under_p2sh_tx.vin[0].scriptSig << vchSig2;
 
         ValidateCheckInputsForAllFlags(CTransaction(invalid_under_p2sh_tx),
-                                       SCRIPT_VERIFY_P2SH, 0, true, 0);
+                                       SCRIPT_VERIFY_P2SH, 0, true,
+                                       ::ChainstateActive().CoinsTip(), 0);
     }
 
     // Test CHECKLOCKTIMEVERIFY
@@ -354,7 +355,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         ValidateCheckInputsForAllFlags(CTransaction(invalid_with_cltv_tx),
                                        SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
                                            SCRIPT_ENABLE_REPLAY_PROTECTION,
-                                       SCRIPT_ENABLE_SIGHASH_FORKID, true, 1);
+                                       SCRIPT_ENABLE_SIGHASH_FORKID, true,
+                                       ::ChainstateActive().CoinsTip(), 1);
 
         // Make it valid, and check again
         invalid_with_cltv_tx.vin[0].scriptSig = CScript() << vchSig << 100;
@@ -394,7 +396,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         ValidateCheckInputsForAllFlags(CTransaction(invalid_with_csv_tx),
                                        SCRIPT_VERIFY_CHECKSEQUENCEVERIFY |
                                            SCRIPT_ENABLE_REPLAY_PROTECTION,
-                                       SCRIPT_ENABLE_SIGHASH_FORKID, true, 1);
+                                       SCRIPT_ENABLE_SIGHASH_FORKID, true,
+                                       ::ChainstateActive().CoinsTip(), 1);
 
         // Make it valid, and check again
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 100;
@@ -449,7 +452,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // convention.
         ValidateCheckInputsForAllFlags(
             CTransaction(tx), SCRIPT_ENABLE_REPLAY_PROTECTION,
-            SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_P2SH, true, 2);
+            SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_P2SH, true,
+            ::ChainstateActive().CoinsTip(), 2);
 
         {
             // Try checking this valid transaction with sigchecks limiter
