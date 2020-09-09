@@ -115,6 +115,9 @@ class MerkleBlockTest(BitcoinTestFramework):
         # We can't get a proof if we specify transactions from different blocks
         assert_raises_rpc_error(-5, "Not all transactions found in specified or retrieved block",
                                 self.nodes[0].gettxoutproof, [txid1, txid3])
+        # Test empty list
+        assert_raises_rpc_error(-5, "Transaction not yet in block",
+                                self.nodes[0].gettxoutproof, [])
 
         # Now we'll try tweaking a proof.
         proof = self.nodes[1].gettxoutproof([txid1, txid2])
