@@ -34,23 +34,24 @@ class MiniWallet:
                 {'txid': cb_tx['txid'], 'vout': 0, 'value': cb_tx['vout'][0]['value']})
         return blocks
 
-    def send_self_transfer(self, *, fee_rate, from_node):
+    def send_self_transfer(self, *, fee_rate=Decimal("3000.00"), from_node,
+                           utxo_to_spend=None):
         """Create and send a tx with the specified fee_rate. Fee may be exact
          or at most one satoshi higher than needed."""
         self._utxos = sorted(self._utxos, key=lambda k: k['value'])
-        # Pick the largest utxo and hope it covers the fee
-        largest_utxo = self._utxos.pop()
+        # Pick the largest utxo (if none provided) and hope it covers the fee
+        utxo_to_spend = utxo_to_spend or self._utxos.pop()
 
         # The size will be enforced by pad_tx()
         size = 100
         send_value = satoshi_round(
-            largest_utxo['value'] - fee_rate * (Decimal(size) / 1000))
-        fee = largest_utxo['value'] - send_value
+            utxo_to_spend['value'] - fee_rate * (Decimal(size) / 1000))
+        fee = utxo_to_spend['value'] - send_value
         assert send_value > 0
 
         tx = CTransaction()
-        tx.vin = [CTxIn(COutPoint(int(largest_utxo['txid'], 16),
-                                  largest_utxo['vout']))]
+        tx.vin = [CTxIn(COutPoint(int(utxo_to_spend['txid'], 16),
+                                  utxo_to_spend['vout']))]
         tx.vout = [CTxOut(int(send_value * XEC), self._scriptPubKey)]
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx, size)
