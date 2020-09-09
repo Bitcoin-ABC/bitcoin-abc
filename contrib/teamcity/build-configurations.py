@@ -34,6 +34,7 @@ class BuildConfiguration:
         self.build_directory = None
         self.junit_reports_dir = None
         self.test_logs_dir = None
+        self.jobs = (os.cpu_count() or 0) + 1
 
         self.project_root = PurePath(
             subprocess.run(
@@ -115,7 +116,7 @@ class BuildConfiguration:
         self.environment_variables = {
             "BUILD_DIR": str(self.build_directory),
             "CMAKE_PLATFORMS_DIR": self.project_root.joinpath("cmake", "platforms"),
-            "THREADS": str(os.cpu_count() or 1),
+            "THREADS": str(self.jobs),
             "TOPLEVEL": str(self.project_root),
         }
 
@@ -178,10 +179,15 @@ class BuildConfiguration:
                 "-DCMAKE_CXX_FLAGS=-Werror",
             ])
 
-        # Some generator flags
-        generator_flags = []
-        if self.config.get("fail_fast", False):
-            generator_flags.append("-k0")
+        # Get the generator, default to ninja
+        generator = self.config.get("generator", {})
+        generator_name = generator.get("name", "Ninja")
+        generator_command = generator.get("command", "ninja")
+        generator_flags = generator.get("flags", ["-k0"])
+
+        # Max out the jobs by default when the generator uses make
+        if generator_command == "make":
+            generator_flags.append("-j{}".format(self.jobs))
 
         # Handle cross build configuration
         cross_build = self.config.get("cross_build", None)
@@ -222,16 +228,14 @@ class BuildConfiguration:
         self.build_steps.append(
             {
                 "bin": "cmake",
-                # TODO: let the generator be configurable
-                "args": ["-G", "Ninja", str(self.project_root)] + self.cmake_flags,
+                "args": ["-G", generator_name, str(self.project_root)] + self.cmake_flags,
             }
         )
 
         for target_group in targets:
             self.build_steps.append(
                 {
-                    # TODO: let the generator be configurable
-                    "bin": "ninja",
+                    "bin": generator_command,
                     "args": generator_flags + target_group,
                 }
             )

@@ -214,9 +214,13 @@ builds:
       QEMU_LD_PREFIX: /usr/arm-linux-gnueabihf
 
   build-make-generator:
-    script: builds/build-make-generator.sh
+    generator:
+      name: 'Unix Makefiles'
+      command: make
+      flags:
+        - '-k'
     templates:
-      - common_unix_artifacts
+      - check+secp256k1
     timeout: 1200
 
   build-master:
