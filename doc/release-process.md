@@ -11,9 +11,9 @@ Bitcoin ABC Release Process
     - Any known issues or limitations should be documented in release notes
 
 2. Update the documents / code which needs to be updated every release
-    - Check that [release-notes.md](doc/release-notes.md) is complete, and fill in any missing items.
+    - Check that [release-notes.md](/doc/release-notes.md) is complete, and fill in any missing items.
     - Verify the following were updated by automation since the last release:
-        - Seeds (see [README](contrib/seeds/README.md))
+        - Seeds (see [README](/contrib/seeds/README.md))
         - Chainparams were updated, such as assume-valid, chainwork, and disk size expectations.
 
 3. Verify tests passed

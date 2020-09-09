@@ -81,4 +81,4 @@ sudo update-rc.d buildAgent defaults
 
 ## Install necessary build dependencies for bitcoin-abc
 
-See [build-unix.md](doc/build-unix.md)
+See [build-unix.md](/doc/build-unix.md)

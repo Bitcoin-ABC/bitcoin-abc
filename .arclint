@@ -242,6 +242,12 @@
                 "(^src/wallet/rpc*.*\\.(h|c|cpp)$)"
             ],
             "exclude": "(^src/rpc/server.cpp)"
+        },
+        "lint-markdown": {
+            "type": "lint-markdown",
+            "include": [
+                "(\\.md$)"
+            ]
         }
     }
 }

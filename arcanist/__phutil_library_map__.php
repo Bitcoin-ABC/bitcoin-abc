@@ -33,6 +33,7 @@ phutil_register_library_map(array(
     'IncludeSourceLinter' => 'linter/IncludeSourceLinter.php',
     'LocaleDependenceLinter' => 'linter/LocaleDependenceLinter.php',
     'LogLinter' => 'linter/LogLinter.php',
+    'MarkdownLinter' => 'linter/MarkdownLinter.php',
     'PythonFileEncodingLinter' => 'linter/PythonFileEncodingLinter.php',
     'PythonFormatLinter' => 'linter/PythonFormatLinter.php',
     'PythonShebangLinter' => 'linter/PythonShebangLinter.php',
@@ -44,7 +45,9 @@ phutil_register_library_map(array(
     'WhitespaceLinter' => 'linter/WhitespaceLinter.php',
     'YamllintLinter' => 'linter/YamllintLinter.php',
   ),
-  'function' => array(),
+  'function' => array(
+    'startsWith' => 'linter/MarkdownLinter.php',
+  ),
   'xmap' => array(
     'ArcanistBitcoinABCConfiguration' => 'ArcanistConfiguration',
     'ArcanistLandBotWorkflow' => 'ArcanistWorkflow',
@@ -72,6 +75,7 @@ phutil_register_library_map(array(
     'IncludeSourceLinter' => 'ArcanistLinter',
     'LocaleDependenceLinter' => 'ArcanistLinter',
     'LogLinter' => 'ArcanistLinter',
+    'MarkdownLinter' => 'ArcanistLinter',
     'PythonFileEncodingLinter' => 'ArcanistLinter',
     'PythonFormatLinter' => 'ArcanistExternalLinter',
     'PythonShebangLinter' => 'ArcanistLinter',
