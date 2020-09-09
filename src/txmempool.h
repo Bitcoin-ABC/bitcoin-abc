@@ -626,7 +626,7 @@ public:
      * are in the mapNextTx array). If sanity-checking is turned off, check does
      * nothing.
      */
-    void check(const CCoinsViewCache *pcoins) const
+    void check(CChainState &active_chainstate) const
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     // addUnchecked must updated state for all ancestors of a given transaction,

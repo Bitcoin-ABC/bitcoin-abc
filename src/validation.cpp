@@ -2976,7 +2976,7 @@ bool CChainState::ActivateBestChainStep(
                                              m_mempool);
     }
 
-    m_mempool.check(&CoinsTip());
+    m_mempool.check(*this);
 
     // Callbacks/notifications for a new best chain.
     if (fInvalidFound) {

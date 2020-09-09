@@ -3121,7 +3121,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             break;
         }
     }
-    m_mempool.check(&::ChainstateActive().CoinsTip());
+    m_mempool.check(m_chainman.ActiveChainstate());
 }
 
 /**
@@ -4382,7 +4382,7 @@ void PeerManagerImpl::ProcessMessage(
 
         if (AcceptToMemoryPool(::ChainstateActive(), config, m_mempool, state,
                                ptx, false /* bypass_limits */)) {
-            m_mempool.check(&::ChainstateActive().CoinsTip());
+            m_mempool.check(m_chainman.ActiveChainstate());
             // As this version of the transaction was acceptable, we can forget
             // about any requests for it.
             m_txrequest.ForgetInvId(tx.GetId());
