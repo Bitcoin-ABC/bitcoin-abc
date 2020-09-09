@@ -30,6 +30,13 @@ templates:
         - check-secp256k1
         - check-functional
 
+  secp256k1:
+    Werror: true
+    targets:
+      - - secp256k1
+        - install-secp256k1
+      - - check-secp256k1
+
 # The build descriptions.
 # If a script is defined, then this will be the only step to run.
 # Otherwise a list of targets can be specified, grouped by parallel runs.
@@ -248,12 +255,28 @@ builds:
       Bitcoin-ABC.dmg: Bitcoin-ABC.dmg
 
   build-secp256k1:
-    script: builds/build-secp256k1.sh
+    cmake_flags:
+      - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
+      - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
     templates:
-      - common_unix_artifacts
-    timeout: 900
-    artifacts:
-      src/secp256k1/libsecp256k1*: lib
+      - secp256k1
+    timeout: 600
+
+  build-secp256k1-endomorphism:
+    cmake_flags:
+      - "-DSECP256K1_ENABLE_ENDOMORPHISM=ON"
+    templates:
+      - secp256k1
+    timeout: 600
+
+  build-secp256k1-java:
+    cmake_flags:
+      - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
+      - '-DSECP256K1_ENABLE_JNI=ON'
+      - '-DUSE_JEMALLOC=OFF'
+    templates:
+      - secp256k1
+    timeout: 600
 
   build-tsan:
     Werror: true
