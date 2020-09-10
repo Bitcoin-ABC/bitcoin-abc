@@ -121,9 +121,8 @@ builds:
     timeout: 1200
 
   build-docs:
-    script: builds/build-docs.sh
-    templates:
-      - common_unix_artifacts
+    targets:
+      - - doc-rpc
     timeout: 600
     artifacts:
       doc/*: doc
