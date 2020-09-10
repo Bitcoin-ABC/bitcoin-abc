@@ -60,32 +60,17 @@ TOPLEVEL=$(git rev-parse --show-toplevel)
 # shellcheck source=sanitize-conduit-token.sh
 source "${TOPLEVEL}"/contrib/source-control-tools/sanitize-conduit-token.sh
 
-DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
-BUILD_DIR="${TOPLEVEL}"/build
-mkdir -p "${BUILD_DIR}"
-export BUILD_DIR
+# Pull the patch from Phabricator and rebase it on latest master
+"${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
 
-# Applying brace expansion ensures the remainder of this script is loaded into memory,
-# as most versions of bash typically load scripts in chunks as they run. For patches
-# that alter this script, this prevents those changes from affecting the remainder of
-# the execution.
-{
-  # Pull the patch from Phabricator and rebase it on latest master
-  "${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
+# TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
 
-  # TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
+# Sanity checks
+"${TOPLEVEL}"/contrib/devtools/smoke-tests.sh
 
-  # Sanity checks
-  "${DEVTOOLS_DIR}"/smoke-tests.sh
-
-  echo "Landing revision '${REVISION}' with arcanist arguments: ${ARC_LAND_ARGS[*]}"
-  # Stop logging verbosely to prevent leaking CONDUIT_TOKEN
-  set +x
-  # Land a commit using arcanist. This ensures the diff is reviewed and closed properly.
-  : | arc land "${ARC_LAND_ARGS[@]}" --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
-  set -x
-
-  # This MUST be the last line to ensure no changes to this script on-disk can affect the execution
-  # that is running right now. See note above for more details.
-  exit 0
-}
+echo "Landing revision '${REVISION}' with arcanist arguments: ${ARC_LAND_ARGS[*]}"
+# Stop logging verbosely to prevent leaking CONDUIT_TOKEN
+set +x
+# Land a commit using arcanist. This ensures the diff is reviewed and closed properly.
+: | arc land "${ARC_LAND_ARGS[@]}" --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
+set -x
