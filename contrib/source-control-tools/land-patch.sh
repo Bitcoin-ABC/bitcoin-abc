@@ -55,44 +55,15 @@ esac
 done
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
-# shellcheck source=sanitize-conduit-token.sh
-source "${TOPLEVEL}"/contrib/source-control-tools/sanitize-conduit-token.sh
-
 if [ -n "${REVISION}" ]; then
-  # Temporarily stop verbose logging to prevent leaking CONDUIT_TOKEN
-  set +x
-  # Fetch the revision and check its review status
-  REVISION_RESULT=$(curl "https://reviews.bitcoinabc.org/api/differential.revision.search" \
-    -d "api.token=${CONDUIT_TOKEN}" \
-    -d "constraints[ids][0]=${REVISION:1}") || {
-      echo "Error: Failed to fetch revision '${REVISION}'"
-      echo "curl output:"
-      echo "${REVISION_RESULT}"
-      exit 20
-  }
-  set -x
-
-  ERROR_INFO=$(echo "${REVISION_RESULT}" | jq '.error_info')
-  if [ "${ERROR_INFO}" != "null" ]; then
-    echo "Conduit error while fetching '${REVISION}': ${ERROR_INFO}"
-    exit 21
-  fi
-
-  REVIEW_STATUS=$(echo "${REVISION_RESULT}" | jq '.result.data[].fields.status.value') || {
-    echo "Error: Failed to fetch review status of revision '${REVISION}'"
-    echo "The 'status' fields may be missing or malformed."
-    exit 22
-  }
-
-  # We only trust code that has been accepted
-  if [ "${REVIEW_STATUS}" != "\"accepted\"" ]; then
-    echo "Error: Revision '${REVISION}' is not accepted. Review status is: ${REVIEW_STATUS}"
-    exit 23
-  fi
+  "${TOPLEVEL}"/contrib/source-control-tools/check-revision-accepted.sh "${REVISION}"
 fi
 
 # IMPORTANT NOTE: The patch is trusted past this point. It was either reviewed
 # and accepted or it was auto-generated.
+
+# shellcheck source=sanitize-conduit-token.sh
+source "${TOPLEVEL}"/contrib/source-control-tools/sanitize-conduit-token.sh
 
 DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 BUILD_DIR="${TOPLEVEL}"/build
