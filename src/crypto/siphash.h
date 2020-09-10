@@ -14,7 +14,8 @@ class CSipHasher {
 private:
     uint64_t v[4];
     uint64_t tmp;
-    int count;
+    // Only the low 8 bits of the input size matter.
+    uint8_t count;
 
 public:
     /** Construct a SipHash calculator initialized with 128-bit key (k0, k1) */
