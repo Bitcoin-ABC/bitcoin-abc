@@ -10,25 +10,22 @@ set -euxo pipefail
 help_message() {
   cat <<EOF
 Usage:
-$0 [options]
-Push a commit after running any necessary auto-gen scripts and sanity checks.
+$0 [options] revision_id
+Land a Differential revision after running any necessary scripts and sanity checks.
 
-By default, the local commit(s) on master will be pushed (not yet supported).
+revision_id               The Differential revision ID (ex: D1234)
 
 Options:
   -d, --dry-run           Dry run. Does everything but actually landing the change.
   -h, --help              Display this help message.
-  -r, --revision          Land a Differential patch instead of a local commit. This is the revision ID
-                            used in Phabricator that you want to land. (ex: D1234)
 
 Environment Variables:
-  CONDUIT_TOKEN           Conduit token to use when landing the patch. This allows landing a patch as
-                            a particular Phabricator user.  This must be set if -r|--revision is set.
+  CONDUIT_TOKEN           (required) Conduit token to use when landing the patch. This allows
+                            landing a patch as a particular Phabricator user.
 EOF
 }
 
 ARC_LAND_ARGS=()
-REVISION=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -41,26 +38,24 @@ case $1 in
     help_message
     exit 0
     ;;
-  -r|--revision)
-    REVISION="$2"
-    shift # shift past argument
-    shift # shift past value
-    ;;
   *)
-    echo "Error: Unrecognized argument: '$1'"
-    help_message
-    exit 1
+    if [ $# -gt 1 ]; then
+      echo "Error: Unrecognized argument: '$1'"
+      help_message
+      exit 1
+    fi
+    break
     ;;
 esac
 done
 
-TOPLEVEL=$(git rev-parse --show-toplevel)
-if [ -n "${REVISION}" ]; then
-  "${TOPLEVEL}"/contrib/source-control-tools/check-revision-accepted.sh "${REVISION}"
-fi
+REVISION="$1"
 
-# IMPORTANT NOTE: The patch is trusted past this point. It was either reviewed
-# and accepted or it was auto-generated.
+TOPLEVEL=$(git rev-parse --show-toplevel)
+"${TOPLEVEL}"/contrib/source-control-tools/check-revision-accepted.sh "${REVISION}"
+
+# IMPORTANT NOTE: The patch is trusted past this point because it has been reviewed
+# and accepted. That includes any changes that may affect this script.
 
 # shellcheck source=sanitize-conduit-token.sh
 source "${TOPLEVEL}"/contrib/source-control-tools/sanitize-conduit-token.sh
@@ -75,32 +70,20 @@ export BUILD_DIR
 # that alter this script, this prevents those changes from affecting the remainder of
 # the execution.
 {
-  if [ -n "${REVISION}" ]; then
-    # Pull the patch from Phabricator and rebase it on latest master
-    "${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
-  else
-    # TODO: This will primarily be for scheduled, automated commits.
-    echo "Error: Landing unreviewed patches is not supported yet."
-    exit 30
-  fi
+  # Pull the patch from Phabricator and rebase it on latest master
+  "${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
 
   # TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
 
   # Sanity checks
   "${DEVTOOLS_DIR}"/smoke-tests.sh
 
-  if [ -n "${REVISION}" ]; then
-    echo "Landing revision '${REVISION}' with arcanist arguments: ${ARC_LAND_ARGS[*]}"
-    # Stop logging verbosely to prevent leaking CONDUIT_TOKEN
-    set +x
-    # Land a commit using arcanist. This ensures the diff is reviewed and closed properly.
-    : | arc land "${ARC_LAND_ARGS[@]}" --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
-    set -x
-  else
-    # TODO: Push a git commit directly. This will primarily be for scheduled, automated commits.
-    echo "Error: Pushing unreviewed patches is not supported yet."
-    exit 31
-  fi
+  echo "Landing revision '${REVISION}' with arcanist arguments: ${ARC_LAND_ARGS[*]}"
+  # Stop logging verbosely to prevent leaking CONDUIT_TOKEN
+  set +x
+  # Land a commit using arcanist. This ensures the diff is reviewed and closed properly.
+  : | arc land "${ARC_LAND_ARGS[@]}" --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
+  set -x
 
   # This MUST be the last line to ensure no changes to this script on-disk can affect the execution
   # that is running right now. See note above for more details.
