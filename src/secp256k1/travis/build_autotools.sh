@@ -92,6 +92,9 @@ if [ "$BENCH" = "yes" ]; then
   if [ "$MULTISET" == "yes" ]; then
     $EXEC ./bench_multiset >> bench.log 2>&1
   fi
+  if [ "$SCHNORRSIG" == "yes" ]; then
+    $EXEC ./bench_schnorrsig >> bench.log 2>&1
+  fi
 fi
 if [ "$CTIMETEST" = "yes" ]; then
   ./libtool --mode=execute valgrind --error-exitcode=42 ./valgrind_ctime_test > valgrind_ctime_test.log 2>&1
