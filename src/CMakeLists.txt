@@ -98,7 +98,7 @@ add_compile_options_to_configuration(Debug -ftrapv)
 # All versions of gcc that we commonly use for building are subject to bug
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90348. To work around that, set
 # -fstack-reuse=none for all gcc builds. (Only gcc understands this flag)
-if(NOT ENABLE_CLANG_TIDY)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 	add_compiler_flags(-fstack-reuse=none)
 endif()
 
