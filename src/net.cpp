@@ -51,6 +51,15 @@ static_assert(MINIUPNPC_API_VERSION >= 10,
 #include <optional>
 #include <unordered_map>
 
+/** Maximum number of block-relay-only anchor connections */
+static constexpr size_t MAX_BLOCK_RELAY_ONLY_ANCHORS = 2;
+static_assert(MAX_BLOCK_RELAY_ONLY_ANCHORS <=
+                  static_cast<size_t>(MAX_BLOCK_RELAY_ONLY_CONNECTIONS),
+              "MAX_BLOCK_RELAY_ONLY_ANCHORS must not exceed "
+              "MAX_BLOCK_RELAY_ONLY_CONNECTIONS.");
+/** Anchor IP address database file name */
+const char *const ANCHORS_DATABASE_FILENAME = "anchors.dat";
+
 // How often to dump addresses to peers.dat
 static constexpr std::chrono::minutes DUMP_PEERS_INTERVAL{15};
 
@@ -2722,6 +2731,18 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         }
     }
 
+    if (m_use_addrman_outgoing) {
+        // Load addresses from anchors.dat
+        m_anchors = ReadAnchors(config->GetChainParams(),
+                                GetDataDir() / ANCHORS_DATABASE_FILENAME);
+        if (m_anchors.size() > MAX_BLOCK_RELAY_ONLY_ANCHORS) {
+            m_anchors.resize(MAX_BLOCK_RELAY_ONLY_ANCHORS);
+        }
+        LogPrintf(
+            "%i block-relay-only anchors will be tried for connections.\n",
+            m_anchors.size());
+    }
+
     uiInterface.InitMessage(_("Starting network threads...").translated);
 
     fAddressesInitialized = true;
@@ -2863,6 +2884,18 @@ void CConnman::StopNodes() {
     if (fAddressesInitialized) {
         DumpAddresses();
         fAddressesInitialized = false;
+
+        if (m_use_addrman_outgoing) {
+            // Anchor connections are only dumped during clean shutdown.
+            std::vector<CAddress> anchors_to_dump =
+                GetCurrentBlockRelayOnlyConns();
+            if (anchors_to_dump.size() > MAX_BLOCK_RELAY_ONLY_ANCHORS) {
+                anchors_to_dump.resize(MAX_BLOCK_RELAY_ONLY_ANCHORS);
+            }
+            DumpAnchors(config->GetChainParams(),
+                        GetDataDir() / ANCHORS_DATABASE_FILENAME,
+                        anchors_to_dump);
+        }
     }
 
     // Close sockets
