@@ -434,8 +434,17 @@ def connect_nodes(from_node, to_node):
     from_node.addnode(ip_port, "onetry")
     # poll until version handshake complete to avoid race conditions
     # with transaction relaying
-    wait_until(lambda: all(peer['version']
-                           != 0 for peer in from_node.getpeerinfo()))
+    # See comments in net_processing:
+    # * Must have a version message before anything else
+    # * Must have a verack message before anything else
+    wait_until(
+        lambda: all(
+            peer['version'] != 0 for peer in from_node.getpeerinfo()))
+    wait_until(
+        lambda: all(
+            peer['bytesrecv_per_msg'].pop(
+                'verack',
+                0) == 24 for peer in from_node.getpeerinfo()))
 
 
 def sync_blocks(rpc_connections, *, wait=1, timeout=60):
