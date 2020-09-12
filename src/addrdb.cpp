@@ -163,3 +163,17 @@ void DumpAnchors(const CChainParams &chainParams,
         anchors.size()));
     SerializeFileDB(chainParams, "anchors", anchors_db_path, anchors);
 }
+
+std::vector<CAddress> ReadAnchors(const CChainParams &chainParams,
+                                  const fs::path &anchors_db_path) {
+    std::vector<CAddress> anchors;
+    if (DeserializeFileDB(chainParams, anchors_db_path, anchors)) {
+        LogPrintf("Loaded %i addresses from %s\n", anchors.size(),
+                  anchors_db_path.filename());
+    } else {
+        anchors.clear();
+    }
+
+    fs::remove(anchors_db_path);
+    return anchors;
+}

@@ -80,4 +80,14 @@ void DumpAnchors(const CChainParams &chainParams,
                  const fs::path &anchors_db_path,
                  const std::vector<CAddress> &anchors);
 
+/**
+ * Read the anchor IP address database (anchors.dat)
+ *
+ * Deleting anchors.dat is intentional as it avoids renewed peering to anchors
+ * after an unclean shutdown and thus potential exploitation of the anchor peer
+ * policy.
+ */
+std::vector<CAddress> ReadAnchors(const CChainParams &chainParams,
+                                  const fs::path &anchors_db_path);
+
 #endif // BITCOIN_ADDRDB_H
