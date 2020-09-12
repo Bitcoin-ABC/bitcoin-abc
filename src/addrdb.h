@@ -10,10 +10,10 @@
 #include <net_types.h> // For banmap_t
 #include <serialize.h>
 
-#include <map>
 #include <string>
+#include <vector>
 
-class CSubNet;
+class CAddress;
 class CAddrMan;
 class CDataStream;
 class CChainParams;
@@ -69,5 +69,15 @@ public:
     bool Write(const banmap_t &banSet);
     bool Read(banmap_t &banSet);
 };
+
+/**
+ * Dump the anchor IP address database (anchors.dat)
+ *
+ * Anchors are last known outgoing block-relay-only peers that are
+ * tried to re-connect to on startup.
+ */
+void DumpAnchors(const CChainParams &chainParams,
+                 const fs::path &anchors_db_path,
+                 const std::vector<CAddress> &anchors);
 
 #endif // BITCOIN_ADDRDB_H

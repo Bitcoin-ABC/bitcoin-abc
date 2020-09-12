@@ -9,6 +9,7 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <hash.h>
+#include <logging/timer.h>
 #include <random.h>
 #include <streams.h>
 #include <tinyformat.h>
@@ -152,4 +153,13 @@ bool CAddrDB::Read(CAddrMan &addr, CDataStream &ssPeers) {
         addr.Clear();
     }
     return ret;
+}
+
+void DumpAnchors(const CChainParams &chainParams,
+                 const fs::path &anchors_db_path,
+                 const std::vector<CAddress> &anchors) {
+    LOG_TIME_SECONDS(strprintf(
+        "Flush %d outbound block-relay-only peer addresses to anchors.dat",
+        anchors.size()));
+    SerializeFileDB(chainParams, "anchors", anchors_db_path, anchors);
 }
