@@ -1232,8 +1232,6 @@ public:
     // Whether a ping is requested.
     std::atomic<bool> fPingQueued{false};
 
-    std::set<TxId> m_orphan_work_set;
-
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn,
           SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
           uint64_t nLocalHostNonceIn, uint64_t nLocalExtraEntropyIn,

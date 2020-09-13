@@ -607,6 +607,12 @@ struct Peer {
      * (unless it has the noban permission). */
     bool m_should_discourage GUARDED_BY(m_misbehavior_mutex){false};
 
+    /**
+     * Set of txids to reconsider once their parent transactions have been
+     * accepted
+     */
+    std::set<TxId> m_orphan_work_set;
+
     Peer(NodeId id) : m_id(id) {}
 };
 
@@ -2868,6 +2874,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         return;
     }
 
+    PeerRef peer = GetPeerRef(pfrom.GetId());
+    if (peer == nullptr) {
+        return;
+    }
+
     if (IsAvalancheMessageType(msg_type)) {
         if (!g_avalanche) {
             LogPrint(BCLog::AVALANCHE,
@@ -3657,7 +3668,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     mapOrphanTransactionsByPrev.find(COutPoint(txid, i));
                 if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
                     for (const auto &elem : it_by_prev->second) {
-                        pfrom.m_orphan_work_set.insert(elem->first);
+                        peer->m_orphan_work_set.insert(elem->first);
                     }
                 }
             }
@@ -3672,7 +3683,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
             // Recursively process any orphan transactions that depended on this
             // one
-            ProcessOrphanTx(config, pfrom.m_orphan_work_set);
+            ProcessOrphanTx(config, peer->m_orphan_work_set);
         } else if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
             // It may be the case that the orphans parents have all been
             // rejected.
@@ -4840,13 +4851,18 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
     //
     bool fMoreWork = false;
 
+    PeerRef peer = GetPeerRef(pfrom->GetId());
+    if (peer == nullptr) {
+        return false;
+    }
+
     if (!pfrom->vRecvGetData.empty()) {
         ProcessGetData(config, *pfrom, m_connman, m_mempool, interruptMsgProc);
     }
 
-    if (!pfrom->m_orphan_work_set.empty()) {
+    if (!peer->m_orphan_work_set.empty()) {
         LOCK2(cs_main, g_cs_orphans);
-        ProcessOrphanTx(config, pfrom->m_orphan_work_set);
+        ProcessOrphanTx(config, peer->m_orphan_work_set);
     }
 
     if (pfrom->fDisconnect) {
@@ -4858,7 +4874,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
     if (!pfrom->vRecvGetData.empty()) {
         return true;
     }
-    if (!pfrom->m_orphan_work_set.empty()) {
+    if (!peer->m_orphan_work_set.empty()) {
         return true;
     }
 
