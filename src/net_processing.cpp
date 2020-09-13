@@ -611,7 +611,7 @@ struct Peer {
      * Set of txids to reconsider once their parent transactions have been
      * accepted
      */
-    std::set<TxId> m_orphan_work_set;
+    std::set<TxId> m_orphan_work_set GUARDED_BY(g_cs_orphans);
 
     Peer(NodeId id) : m_id(id) {}
 };
@@ -4860,9 +4860,11 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
         ProcessGetData(config, *pfrom, m_connman, m_mempool, interruptMsgProc);
     }
 
-    if (!peer->m_orphan_work_set.empty()) {
+    {
         LOCK2(cs_main, g_cs_orphans);
-        ProcessOrphanTx(config, peer->m_orphan_work_set);
+        if (!peer->m_orphan_work_set.empty()) {
+            ProcessOrphanTx(config, peer->m_orphan_work_set);
+        }
     }
 
     if (pfrom->fDisconnect) {
@@ -4874,8 +4876,11 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
     if (!pfrom->vRecvGetData.empty()) {
         return true;
     }
-    if (!peer->m_orphan_work_set.empty()) {
-        return true;
+    {
+        LOCK(g_cs_orphans);
+        if (!peer->m_orphan_work_set.empty()) {
+            return true;
+        }
     }
 
     // Don't bother if send buffer is too full to respond anyway
