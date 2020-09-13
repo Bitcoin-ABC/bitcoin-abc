@@ -127,8 +127,11 @@ protected:
      */
     Network m_net{NET_IPV6};
 
-    // for scoped/link-local ipv6 addresses
-    uint32_t scopeId{0};
+    /**
+     * Scope id if scoped/link-local IPV6 address.
+     * See https://tools.ietf.org/html/rfc4007
+     */
+    uint32_t m_scope_id{0};
 
 public:
     CNetAddr();
@@ -408,7 +411,7 @@ private:
                 "Address too long: %u > %u", address_size, MAX_ADDRV2_SIZE));
         }
 
-        scopeId = 0;
+        m_scope_id = 0;
 
         if (SetNetFromBIP155Network(bip155_net, address_size)) {
             m_addr.resize(address_size);
