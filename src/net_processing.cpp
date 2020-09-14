@@ -613,6 +613,9 @@ struct Peer {
      */
     std::set<TxId> m_orphan_work_set GUARDED_BY(g_cs_orphans);
 
+    /** Work queue of items requested by this peer **/
+    std::deque<CInv> vRecvGetData;
+
     Peer(NodeId id) : m_id(id) {}
 };
 
@@ -2167,7 +2170,12 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
     LOCKS_EXCLUDED(cs_main) {
     AssertLockNotHeld(cs_main);
 
-    std::deque<CInv>::iterator it = pfrom.vRecvGetData.begin();
+    PeerRef peer = GetPeerRef(pfrom.GetId());
+    if (peer == nullptr) {
+        return;
+    }
+
+    std::deque<CInv>::iterator it = peer->vRecvGetData.begin();
     std::vector<CInv> vNotFound;
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
 
@@ -2181,7 +2189,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
     // Process as many TX or AVA_PROOF items from the front of the getdata
     // queue as possible, since they're common and it's efficient to batch
     // process them.
-    while (it != pfrom.vRecvGetData.end()) {
+    while (it != peer->vRecvGetData.end()) {
         if (interruptMsgProc) {
             return;
         }
@@ -2269,7 +2277,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
 
     // Only process one BLOCK item per call, since they're uncommon and can be
     // expensive to process.
-    if (it != pfrom.vRecvGetData.end() && !pfrom.fPauseSend) {
+    if (it != peer->vRecvGetData.end() && !pfrom.fPauseSend) {
         const CInv &inv = *it++;
         if (inv.IsGenBlkMsg()) {
             ProcessGetBlockData(config, pfrom, inv, connman, interruptMsgProc);
@@ -2278,7 +2286,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
         // and continue processing the queue on the next call.
     }
 
-    pfrom.vRecvGetData.erase(pfrom.vRecvGetData.begin(), it);
+    peer->vRecvGetData.erase(peer->vRecvGetData.begin(), it);
 
     if (!vNotFound.empty()) {
         // Let the peer know that we didn't find what it asked for, so it
@@ -3403,7 +3411,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                      vInv[0].ToString(), pfrom.GetId());
         }
 
-        pfrom.vRecvGetData.insert(pfrom.vRecvGetData.end(), vInv.begin(),
+        peer->vRecvGetData.insert(peer->vRecvGetData.end(), vInv.begin(),
                                   vInv.end());
         ProcessGetData(config, pfrom, m_connman, m_mempool, interruptMsgProc);
         return;
@@ -3535,7 +3543,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             CInv inv;
             inv.type = MSG_BLOCK;
             inv.hash = req.blockhash;
-            pfrom.vRecvGetData.push_back(inv);
+            peer->vRecvGetData.push_back(inv);
             // The message processing loop will go around again (without
             // pausing) and we'll respond then (without cs_main)
             return;
@@ -4856,7 +4864,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
         return false;
     }
 
-    if (!pfrom->vRecvGetData.empty()) {
+    if (!peer->vRecvGetData.empty()) {
         ProcessGetData(config, *pfrom, m_connman, m_mempool, interruptMsgProc);
     }
 
@@ -4873,7 +4881,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
 
     // this maintains the order of responses and prevents vRecvGetData from
     // growing unbounded
-    if (!pfrom->vRecvGetData.empty()) {
+    if (!peer->vRecvGetData.empty()) {
         return true;
     }
     {
@@ -4953,7 +4961,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
             return false;
         }
 
-        if (!pfrom->vRecvGetData.empty()) {
+        if (!peer->vRecvGetData.empty()) {
             fMoreWork = true;
         }
     } catch (const std::exception &e) {
