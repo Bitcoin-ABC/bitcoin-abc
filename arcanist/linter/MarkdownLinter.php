@@ -39,11 +39,12 @@ final class MarkdownLinter extends ArcanistLinter {
 
   private function isValidLink($currentPath, $link) {
     /*
-     *  File anchors are not tested and always considered valid.
+     *  File anchors should only contain lowercase alphanum chars, underscores
+     *  or hyphens.
      *  TODO: check that anchors have a corresponding section.
      */
     if ($link[0] === '#') {
-      return true;
+      return preg_match('/^#[a-z0-9_\-]+$/', $link);
     }
 
     /*
@@ -75,7 +76,7 @@ final class MarkdownLinter extends ArcanistLinter {
     $fileContent = Filesystem::readFile($path);
 
     /* Check for broken links (typos in URL of missing target file) */
-    $pattern = '/\[[^\]]+\]\(([^)]+\.[^ "#)]+)#?[^)]*\)/';
+    $pattern = '/\[[^\]]+\]\((#?[^ "#)]+)#?[^)]*\)/';
     if (preg_match_all($pattern, $fileContent, $matches, PREG_OFFSET_CAPTURE)) {
       foreach ($matches[1] as $match) {
         list($link, $offset) = $match;

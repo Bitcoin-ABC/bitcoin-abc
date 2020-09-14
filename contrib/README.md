@@ -5,9 +5,6 @@ Repository Tools
 Specific tools for developers working on this repository.
 Contains the script `github-merge.py` for merging GitHub pull requests securely and signing them using GPG.
 
-### [Verify-Commits](/contrib/verify-commits) ###
-Tool to verify that every merge commit was signed by a developer using the above `github-merge.py` script.
-
 ### [Linearize](/contrib/linearize) ###
 Construct a linear, no-fork, best version of the blockchain.
 
@@ -28,8 +25,8 @@ for Debian-based Linux systems. If you compile bitcoind/bitcoin-qt yourself, the
 ### [Gitian-descriptors](/contrib/gitian-descriptors) ###
 Notes on getting Gitian builds up and running using KVM.
 
-### [Gitian-keys](/contrib/gitian-keys)
-PGP keys used for signing Bitcoin Core [Gitian release](/doc/release-process.md) results.
+### [Gitian-signing](/contrib/gitian-signing)
+PGP keys used for signing Bitcoin ABC [Gitian release](/doc/release-process.md) results.
 
 ### [MacDeploy](/contrib/macdeploy) ###
 Scripts and notes for Mac builds.

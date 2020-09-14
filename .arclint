@@ -247,7 +247,8 @@
             "type": "lint-markdown",
             "include": [
                 "(\\.md$)"
-            ]
+            ],
+            "exclude": "(^contrib/gitian-builder/)"
         }
     }
 }
