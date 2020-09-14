@@ -600,8 +600,8 @@ void TorController::auth_cb(TorControlConnection &_conn,
         // Finally - now create the service
         // No private key, generate one
         if (private_key.empty()) {
-            // Explicitly request RSA1024 - see issue #9214
-            private_key = "NEW:RSA1024";
+            // Explicitly request key type - see issue #9214
+            private_key = "NEW:ED25519-V3";
         }
         // Request hidden service, redirect port.
         // Note that the 'virtual' port doesn't have to be the same as our
@@ -851,7 +851,7 @@ void TorController::Reconnect() {
 }
 
 fs::path TorController::GetPrivateKeyFile() {
-    return GetDataDir() / "onion_private_key";
+    return GetDataDir() / "onion_v3_private_key";
 }
 
 void TorController::reconnect_cb(evutil_socket_t fd, short what, void *arg) {

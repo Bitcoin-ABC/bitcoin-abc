@@ -12,3 +12,13 @@ This release includes the following features and fixes:
    read it. Those old versions, in the event of a downgrade, will log an error
    message that deserialization has failed and will continue normal operation
    as if the file was missing, creating a new empty one.
+ - The Tor onion service that is automatically created by setting the
+   `-listenonion` configuration parameter will now be created as a Tor v3 service
+   instead of Tor v2. The private key that was used for Tor v2 (if any) will be
+   left untouched in the `onion_private_key` file in the data directory (see
+   `-datadir`) and can be removed if not needed. Bitcoin ABC will no longer
+   attempt to read it. The private key for the Tor v3 service will be saved in a
+   file named `onion_v3_private_key`. To use the deprecated Tor v2 service (not
+   recommended), then `onion_private_key` can be copied over
+   `onion_v3_private_key`, e.g.
+   `cp -f onion_private_key onion_v3_private_key`.
