@@ -2157,7 +2157,7 @@ bool CChainState::DisconnectTip(const CChainParams &params,
     }
 
     if (disconnectpool) {
-        disconnectpool->addForBlock(block.vtx);
+        disconnectpool->addForBlock(block.vtx, g_mempool);
     }
 
     // If the tip is finalized, then undo it.
@@ -2659,7 +2659,7 @@ bool CChainState::ActivateBestChainStep(
         if (!DisconnectTip(config.GetChainParams(), state, &disconnectpool)) {
             // This is likely a fatal error, but keep the mempool consistent,
             // just in case. Only remove from the mempool in this case.
-            disconnectpool.updateMempoolForReorg(config, false);
+            disconnectpool.updateMempoolForReorg(config, false, g_mempool);
 
             // If we're unable to disconnect a block during normal operation,
             // then that is a failure of our local system -- we should abort
@@ -2712,7 +2712,7 @@ bool CChainState::ActivateBestChainStep(
                 // A system error occurred (disk space, database error, ...).
                 // Make the mempool consistent with the current tip, just in
                 // case any observers try to use it before shutdown.
-                disconnectpool.updateMempoolForReorg(config, false);
+                disconnectpool.updateMempoolForReorg(config, false, g_mempool);
                 return false;
             } else {
                 PruneBlockIndexCandidates();
@@ -2734,7 +2734,7 @@ bool CChainState::ActivateBestChainStep(
         // effect.
         LogPrint(BCLog::MEMPOOL, "Updating mempool due to reorganization or "
                                  "rules upgrade/downgrade\n");
-        disconnectpool.updateMempoolForReorg(config, true);
+        disconnectpool.updateMempoolForReorg(config, true, g_mempool);
     }
 
     g_mempool.check(pcoinsTip.get());
@@ -3047,7 +3047,8 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         // and we're not doing a very deep invalidation (in which case
         // keeping the mempool up to date is probably futile anyway).
         disconnectpool.updateMempoolForReorg(
-            config, /* fAddToMempool = */ (++disconnected <= 10) && ret);
+            config, /* fAddToMempool = */ (++disconnected <= 10) && ret,
+            g_mempool);
 
         if (!ret) {
             return false;

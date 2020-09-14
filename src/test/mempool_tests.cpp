@@ -875,6 +875,7 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
          {disconnectedTxnsInOrder, disconnectedTxnsMixedOrder,
           disconnectedTxnsInvertedOrder}) {
         for (auto &unconfTxns : {unconfTxnsInOrder, unconfTxnsOutOfOrder}) {
+            CTxMemPool testPool;
             // addForBlock inserts disconnectTxns in disconnectPool. They
             // simulate transactions that were once confirmed in a block
             std::vector<CTransactionRef> vtx;
@@ -882,14 +883,12 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
                 vtx.push_back(MakeTransactionRef(*tx));
             }
             DisconnectedBlockTransactions disconnectPool;
-            disconnectPool.addForBlock(vtx);
+            disconnectPool.addForBlock(vtx, testPool);
             CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
                                      disconnectedTxns.size());
 
             // If the mempool is empty, importMempool doesn't change
             // disconnectPool
-            CTxMemPool testPool;
-
             disconnectPool.importMempool(testPool);
             CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
                                      disconnectedTxns.size());

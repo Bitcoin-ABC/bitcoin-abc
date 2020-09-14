@@ -925,7 +925,7 @@ public:
 
     // Add entries for a block while reconstructing the topological ordering so
     // they can be added back to the mempool simply.
-    void addForBlock(const std::vector<CTransactionRef> &vtx);
+    void addForBlock(const std::vector<CTransactionRef> &vtx, CTxMemPool &pool);
 
     // Remove entries based on txid_index, and update memory usage.
     void removeForBlock(const std::vector<CTransactionRef> &vtx) {
@@ -969,7 +969,8 @@ public:
      * Passing fAddToMempool=false will skip trying to add the transactions
      * back, and instead just erase from the mempool as needed.
      */
-    void updateMempoolForReorg(const Config &config, bool fAddToMempool);
+    void updateMempoolForReorg(const Config &config, bool fAddToMempool,
+                               CTxMemPool &pool);
 };
 
 #endif // BITCOIN_TXMEMPOOL_H

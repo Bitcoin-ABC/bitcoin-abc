@@ -636,7 +636,7 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx,
     LOCK(cs);
 
     DisconnectedBlockTransactions disconnectpool;
-    disconnectpool.addForBlock(vtx);
+    disconnectpool.addForBlock(vtx, *this);
 
     std::vector<const CTxMemPoolEntry *> entries;
     for (const CTransactionRef &tx :
@@ -1284,7 +1284,7 @@ void CTxMemPool::SetIsLoaded(bool loaded) {
 static const size_t MAX_DISCONNECTED_TX_POOL_SIZE = 20 * DEFAULT_MAX_BLOCK_SIZE;
 
 void DisconnectedBlockTransactions::addForBlock(
-    const std::vector<CTransactionRef> &vtx) {
+    const std::vector<CTransactionRef> &vtx, CTxMemPool &pool) {
     for (const auto &tx : reverse_iterate(vtx)) {
         // If we already added it, just skip.
         auto it = queuedTx.find(tx->GetId());
@@ -1336,7 +1336,7 @@ void DisconnectedBlockTransactions::addForBlock(
         // Drop the earliest entry, and remove its children from the
         // mempool.
         auto it = queuedTx.get<insertion_order>().begin();
-        g_mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
+        pool.removeRecursive(**it, MemPoolRemovalReason::REORG);
         removeEntry(it);
     }
 }
@@ -1364,7 +1364,7 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
     // Use addForBlocks to sort the transactions and then splice them in front
     // of queuedTx
     DisconnectedBlockTransactions orderedTxnPool;
-    orderedTxnPool.addForBlock(vtx);
+    orderedTxnPool.addForBlock(vtx, pool);
     cachedInnerUsage += orderedTxnPool.cachedInnerUsage;
     queuedTx.get<insertion_order>().splice(
         queuedTx.get<insertion_order>().begin(),
@@ -1379,7 +1379,8 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
 }
 
 void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
-                                                          bool fAddToMempool) {
+                                                          bool fAddToMempool,
+                                                          CTxMemPool &pool) {
     AssertLockHeld(cs_main);
     std::vector<TxId> txidsUpdate;
 
@@ -1394,13 +1395,13 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
         // ignore validation errors in resurrected transactions
         TxValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
-            !AcceptToMemoryPool(config, g_mempool, stateDummy, tx,
+            !AcceptToMemoryPool(config, pool, stateDummy, tx,
                                 true /* bypass_limits */,
                                 Amount::zero() /* nAbsurdFee */)) {
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
-            g_mempool.removeRecursive(*tx, MemPoolRemovalReason::REORG);
-        } else if (g_mempool.exists(tx->GetId())) {
+            pool.removeRecursive(*tx, MemPoolRemovalReason::REORG);
+        } else if (pool.exists(tx->GetId())) {
             txidsUpdate.push_back(tx->GetId());
         }
     }
@@ -1412,16 +1413,16 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     // previously-confirmed transactions back to the mempool.
     // UpdateTransactionsFromBlock finds descendants of any transactions in the
     // disconnectpool that were added back and cleans up the mempool state.
-    g_mempool.UpdateTransactionsFromBlock(txidsUpdate);
+    pool.UpdateTransactionsFromBlock(txidsUpdate);
 
     // We also need to remove any now-immature transactions
-    g_mempool.removeForReorg(config, pcoinsTip.get(),
-                             ::ChainActive().Tip()->nHeight + 1,
-                             STANDARD_LOCKTIME_VERIFY_FLAGS);
+    pool.removeForReorg(config, pcoinsTip.get(),
+                        ::ChainActive().Tip()->nHeight + 1,
+                        STANDARD_LOCKTIME_VERIFY_FLAGS);
 
     // Re-limit mempool size, in case we added any transactions
-    g_mempool.LimitSize(
-        gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
-        std::chrono::hours{
-            gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+    pool.LimitSize(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
+                       1000000,
+                   std::chrono::hours{
+                       gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
 }
