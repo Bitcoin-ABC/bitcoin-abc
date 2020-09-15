@@ -4628,10 +4628,13 @@ void BlockManager::FindFilesToPruneManual(std::set<int> &setFilesToPrune,
 }
 
 /* This function is called from the RPC code for pruneblockchain */
-void PruneBlockFilesManual(int nManualPruneHeight) {
+void PruneBlockFilesManual(CChainState &active_chainstate,
+                           int nManualPruneHeight) {
     BlockValidationState state;
     const CChainParams &chainparams = Params();
-    if (!::ChainstateActive().FlushStateToDisk(
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(active_chainstate));
+    if (active_chainstate.FlushStateToDisk(
             chainparams, state, FlushStateMode::NONE, nManualPruneHeight)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
                   state.ToString());
