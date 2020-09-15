@@ -2843,7 +2843,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                         // parameterized by chainstate.
                         if (&::ChainstateActive() == chainstate &&
                             !CVerifyDB().VerifyDB(
-                                config, &chainstate->CoinsDB(),
+                                config, *chainstate, &chainstate->CoinsDB(),
                                 args.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
                                 args.GetArg("-checkblocks",
                                             DEFAULT_CHECKBLOCKS))) {

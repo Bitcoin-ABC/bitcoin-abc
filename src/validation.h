@@ -511,8 +511,8 @@ class CVerifyDB {
 public:
     CVerifyDB();
     ~CVerifyDB();
-    bool VerifyDB(const Config &config, CCoinsView *coinsview, int nCheckLevel,
-                  int nCheckDepth);
+    bool VerifyDB(const Config &config, CChainState &active_chainstate,
+                  CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
 };
 
 /** @see CChainState::FlushStateToDisk */

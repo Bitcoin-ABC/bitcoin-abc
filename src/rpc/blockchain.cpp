@@ -1445,7 +1445,7 @@ static RPCHelpMan verifychain() {
 
             LOCK(cs_main);
 
-            return CVerifyDB().VerifyDB(config,
+            return CVerifyDB().VerifyDB(config, ::ChainstateActive(),
                                         &::ChainstateActive().CoinsTip(),
                                         check_level, check_depth);
         },
