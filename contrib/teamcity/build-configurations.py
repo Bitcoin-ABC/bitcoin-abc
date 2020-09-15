@@ -113,6 +113,8 @@ class BuildConfiguration:
         # Define the junit and logs directories
         self.junit_reports_dir = self.build_directory.joinpath("test/junit")
         self.test_logs_dir = self.build_directory.joinpath("test/log")
+        self.functional_test_logs = self.build_directory.joinpath(
+            "test/tmp/test_runner_*")
 
         # We will provide the required environment variables
         self.environment_variables = {
@@ -425,6 +427,7 @@ class UserBuild():
                 str(self.logs["clean_log"].relative_to(build_directory)): "",
                 str(self.configuration.junit_reports_dir.relative_to(build_directory)): "",
                 str(self.configuration.test_logs_dir.relative_to(build_directory)): "",
+                str(self.configuration.functional_test_logs.relative_to(build_directory)): "functional",
             }
 
             self.copy_artifacts(artifacts)
