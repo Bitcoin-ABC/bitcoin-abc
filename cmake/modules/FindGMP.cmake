@@ -25,11 +25,12 @@
 #   GMP::gmp
 
 include(BrewHelper)
-find_brew_prefix(BREW_HINT gmp)
+find_brew_prefix(_GMP_BREW_HINT gmp)
 
 find_path(GMP_INCLUDE_DIR
 	NAMES gmp.h
-	HINTS ${BREW_HINT}
+	HINTS ${_GMP_BREW_HINT}
+	PATH_SUFFIXES include
 )
 set(GMP_INCLUDE_DIRS "${GMP_INCLUDE_DIR}")
 mark_as_advanced(GMP_INCLUDE_DIR)
@@ -78,7 +79,7 @@ if(GMP_INCLUDE_DIR)
 	include(ExternalLibraryHelper)
 	find_component(GMP gmp
 		NAMES gmp
-		HINTS ${BREW_HINT}
+		HINTS ${_GMP_BREW_HINT}
 		INCLUDE_DIRS ${GMP_INCLUDE_DIRS}
 	)
 endif()

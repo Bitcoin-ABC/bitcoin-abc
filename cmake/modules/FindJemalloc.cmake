@@ -23,13 +23,13 @@ find_package(PkgConfig)
 pkg_check_modules(PC_Jemalloc QUIET libjemalloc)
 
 include(BrewHelper)
-find_brew_prefix(BREW_HINT jemalloc)
+find_brew_prefix(_Jemalloc_BREW_HINT jemalloc)
 
 find_path(Jemalloc_INCLUDE_DIR
 	NAMES jemalloc.h
 	PATHS ${PC_Jemalloc_INCLUDE_DIRS}
-	PATH_SUFFIXES jemalloc
-	HINTS ${BREW_HINT}
+	PATH_SUFFIXES include jemalloc
+	HINTS ${_Jemalloc_BREW_HINT}
 )
 
 set(Jemalloc_INCLUDE_DIRS ${Jemalloc_INCLUDE_DIR})
@@ -66,7 +66,7 @@ if(Jemalloc_INCLUDE_DIR)
 
 	find_component(Jemalloc jemalloc
 		NAMES jemalloc_pic jemalloc
-		HINTS "${BREW_HINT}"
+		HINTS "${_Jemalloc_BREW_HINT}"
 		INCLUDE_DIRS ${Jemalloc_INCLUDE_DIRS}
 		PATHS ${PC_Jemalloc_LIBRARY_DIRS}
 		INTERFACE_LINK_LIBRARIES "$<$<NOT:$<PLATFORM_ID:Windows>>:m>" Threads::Threads

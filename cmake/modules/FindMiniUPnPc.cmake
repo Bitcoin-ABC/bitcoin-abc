@@ -22,16 +22,16 @@
 #   MiniUPnPc::miniupnpc
 
 include(BrewHelper)
-find_brew_prefix(BREW_HINT miniupnpc)
+find_brew_prefix(_MiniUPnPc_BREW_HINT miniupnpc)
 
 find_package(PkgConfig)
 pkg_check_modules(PC_MiniUPnPc QUIET libqrencode)
 
 find_path(MiniUPnPc_INCLUDE_DIR
 	NAMES miniupnpc.h
-	HINTS ${BREW_HINT}
+	HINTS ${_MiniUPnPc_BREW_HINT}
 	PATHS ${PC_MiniUPnPc_INCLUDE_DIRS}
-	PATH_SUFFIXES miniupnpc
+	PATH_SUFFIXES include miniupnpc
 )
 
 set(MiniUPnPc_INCLUDE_DIRS "${MiniUPnPc_INCLUDE_DIR}")
@@ -58,7 +58,7 @@ if(MiniUPnPc_INCLUDE_DIR)
 	include(ExternalLibraryHelper)
 	find_component(MiniUPnPc miniupnpc
 		NAMES miniupnpc
-		HINTS ${BREW_HINT}
+		HINTS ${_MiniUPnPc_BREW_HINT}
 		PATHS ${PC_MiniUPnPc_LIBRARY_DIRS}
 		PATH_SUFFIXES miniupnpc
 		INCLUDE_DIRS ${MiniUPnPc_INCLUDE_DIRS}

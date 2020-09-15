@@ -27,12 +27,13 @@ find_package(PkgConfig)
 pkg_check_modules(PC_Event QUIET libevent)
 
 include(BrewHelper)
-find_brew_prefix(BREW_HINT berkeley-db)
+find_brew_prefix(_Event_BREW_HINT libevent)
 
 find_path(Event_INCLUDE_DIR
 	NAMES event.h
 	PATHS ${PC_Event_INCLUDE_DIRS}
-	HINTS ${BREW_HINT}
+	HINTS ${_Event_BREW_HINT}
+	PATH_SUFFIXES include
 )
 
 set(Event_INCLUDE_DIRS ${Event_INCLUDE_DIR})
@@ -43,7 +44,7 @@ if(Event_INCLUDE_DIR)
 
 	find_component(Event event
 		NAMES event
-		HINTS "${BREW_HINT}"
+		HINTS "${_Event_BREW_HINT}"
 		INCLUDE_DIRS ${Event_INCLUDE_DIRS}
 		PATHS ${PC_Event_LIBRARY_DIRS}
 		INTERFACE_LINK_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;shell32;advapi32>"

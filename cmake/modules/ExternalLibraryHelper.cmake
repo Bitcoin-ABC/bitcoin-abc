@@ -19,7 +19,7 @@ function(find_component LIB COMPONENT)
 		NAMES ${ARG_NAMES}
 		PATHS "" ${ARG_PATHS}
 		HINTS "" ${ARG_HINTS}
-		PATH_SUFFIXES "" ${ARG_PATH_SUFFIXES}
+		PATH_SUFFIXES "lib" ${ARG_PATH_SUFFIXES}
 	)
 	mark_as_advanced(${LIB}_${COMPONENT}_LIBRARY)
 

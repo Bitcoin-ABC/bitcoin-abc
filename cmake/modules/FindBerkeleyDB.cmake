@@ -47,7 +47,7 @@ function(generate_versions_variants VARIANTS LIB MAJOR MINOR)
 endfunction()
 
 include(BrewHelper)
-find_brew_prefix(BREW_HINT berkeley-db)
+find_brew_prefix(_BerkeleyDB_BREW_HINT berkeley-db)
 
 # If the include directory is user supplied, skip the search
 if(NOT BerkeleyDB_INCLUDE_DIR)
@@ -59,6 +59,7 @@ if(NOT BerkeleyDB_INCLUDE_DIR)
 	generate_versions_variants(_BerkeleyDB_PATH_SUFFIXES_18_1 db 18 1)
 
 	set(_BerkeleyDB_PATH_SUFFIXES
+		include
 		${_BerkeleyDB_PATH_SUFFIXES_5_3}
 		${_BerkeleyDB_PATH_SUFFIXES_6_2}
 		${_BerkeleyDB_PATH_SUFFIXES_18_1}
@@ -70,7 +71,7 @@ if(NOT BerkeleyDB_INCLUDE_DIR)
 	# the `BerkeleyDB_ROOT` variable to cmake.
 	find_path(BerkeleyDB_INCLUDE_DIR
 		NAMES db.h
-		HINTS ${BREW_HINT}
+		HINTS ${_BerkeleyDB_BREW_HINT}
 		PATH_SUFFIXES ${_BerkeleyDB_PATH_SUFFIXES}
 	)
 endif()
@@ -137,7 +138,7 @@ if(BerkeleyDB_INCLUDE_DIR)
 
 	find_component(BerkeleyDB C
 		NAMES ${_db_variants}
-		HINTS ${BREW_HINT}
+		HINTS ${_BerkeleyDB_BREW_HINT}
 		PATH_SUFFIXES ${_db_variants}
 		INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
 	)
@@ -151,7 +152,7 @@ if(BerkeleyDB_INCLUDE_DIR)
 
 	find_component(BerkeleyDB CXX
 		NAMES ${_db_cxx_variants}
-		HINTS ${BREW_HINT}
+		HINTS ${_BerkeleyDB_BREW_HINT}
 		PATH_SUFFIXES ${_db_variants}
 		INCLUDE_DIRS ${BerkeleyDB_INCLUDE_DIRS}
 	)

@@ -21,15 +21,16 @@
 #   QREncode::qrencode
 
 include(BrewHelper)
-find_brew_prefix(BREW_HINT qrencode)
+find_brew_prefix(_QREncode_BREW_HINT qrencode)
 
 find_package(PkgConfig)
 pkg_check_modules(PC_QREncode QUIET libqrencode)
 
 find_path(QREncode_INCLUDE_DIR
 	NAMES qrencode.h
-	HINTS ${BREW_HINT}
+	HINTS ${_QREncode_BREW_HINT}
 	PATHS ${PC_QREncode_INCLUDE_DIRS}
+	PATH_SUFFIXES include
 )
 
 set(QREncode_INCLUDE_DIRS "${QREncode_INCLUDE_DIR}")
@@ -42,7 +43,7 @@ if(QREncode_INCLUDE_DIR)
 	include(ExternalLibraryHelper)
 	find_component(QREncode qrencode
 		NAMES qrencode
-		HINTS ${BREW_HINT}
+		HINTS ${_QREncode_BREW_HINT}
 		PATHS ${PC_QREncode_LIBRARY_DIRS}
 		INCLUDE_DIRS ${QREncode_INCLUDE_DIRS}
 	)
