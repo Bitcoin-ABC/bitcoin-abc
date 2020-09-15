@@ -25,7 +25,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "avalanche/processor -> validation -> avalanche/processor"
     "chainparams -> protocol -> chainparams"
     "chainparamsbase -> util/system -> chainparamsbase"
-    "minerfund -> validation -> minerfund"
     "script/scriptcache -> validation -> script/scriptcache"
     "seeder/bitcoin -> seeder/db -> seeder/bitcoin"
     "chainparams -> protocol -> config -> chainparams"

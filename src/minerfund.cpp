@@ -9,7 +9,6 @@
 #include <currencyunit.h>
 #include <key_io.h> // For DecodeDestination
 #include <util/system.h>
-#include <validation.h> // For VersionBitsBlockState
 
 /**
  * Percentage of the block reward to be sent to the fund.

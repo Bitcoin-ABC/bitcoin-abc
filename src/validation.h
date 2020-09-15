@@ -375,29 +375,6 @@ CheckInputScripts(const CTransaction &tx, TxValidationState &state,
                              nSigChecksTxLimiter, nullptr, nullptr);
 }
 
-/** Get the BIP9 state for a given deployment at the current tip. */
-ThresholdState VersionBitsTipState(const Consensus::Params &params,
-                                   Consensus::DeploymentPos pos);
-
-/** Get the BIP9 state for a given deployment at a given block. */
-ThresholdState VersionBitsBlockState(const Consensus::Params &params,
-                                     Consensus::DeploymentPos pos,
-                                     const CBlockIndex *pindex);
-
-/**
- * Get the numerical statistics for the BIP9 state for a given deployment at the
- * current tip.
- */
-BIP9Stats VersionBitsTipStatistics(const Consensus::Params &params,
-                                   Consensus::DeploymentPos pos);
-
-/**
- * Get the block height at which the BIP9 deployment switched into the state for
- * the block building on the current tip.
- */
-int VersionBitsTipStateSinceHeight(const Consensus::Params &params,
-                                   Consensus::DeploymentPos pos);
-
 /**
  * Mark all the coins corresponding to a given transaction inputs as spent.
  */
@@ -1289,6 +1266,8 @@ CChain &ChainActive();
  * Global variable that points to the active block tree (protected by cs_main)
  */
 extern std::unique_ptr<CBlockTreeDB> pblocktree;
+
+extern VersionBitsCache versionbitscache;
 
 /**
  * Determine what nVersion a new block should use.
