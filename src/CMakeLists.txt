@@ -597,6 +597,7 @@ if(BUILD_BITCOIN_WALLET)
 	add_to_security_check(bitcoin-wallet)
 
 	install_target(bitcoin-wallet)
+	install_manpage(bitcoin-wallet)
 else()
 	target_sources(server PRIVATE dummywallet.cpp)
 endif()
@@ -629,6 +630,7 @@ if(BUILD_BITCOIN_CLI)
 	add_to_security_check(bitcoin-cli)
 
 	install_target(bitcoin-cli)
+	install_manpage(bitcoin-cli)
 endif()
 
 # bitcoin-tx
@@ -644,6 +646,7 @@ if(BUILD_BITCOIN_TX)
 	add_to_security_check(bitcoin-tx)
 
 	install_target(bitcoin-tx)
+	install_manpage(bitcoin-tx)
 endif()
 
 # bitcoind
@@ -656,6 +659,7 @@ add_to_symbols_check(bitcoind)
 add_to_security_check(bitcoind)
 
 install_target(bitcoind)
+install_manpage(bitcoind)
 
 # Bitcoin-qt
 if(BUILD_BITCOIN_QT)

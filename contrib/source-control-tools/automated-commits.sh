@@ -193,47 +193,6 @@ case "${COMMIT_TYPE}" in
     git commit -m "${BOT_PREFIX} Update chainparams"
     ;;
 
-  update-manpages)
-    # Unfortunately bitcoin-qt requires a handle on the DISPLAY, even for the
-    # --help option. We can spoof an X window using xvfb.
-    command -v xvfb-run > /dev/null || (echo "Error: Package 'xvfb' is needed to run bitcoin-qt headlessly." && exit 11)
-
-    "${DEVTOOLS_DIR}"/build_cmake.sh
-    BUILDDIR="${BUILD_DIR}" xvfb-run "${DEVTOOLS_DIR}"/gen-manpages.sh
-
-    MANPAGES_DIR="${TOPLEVEL}"/doc/man
-
-    # Sanity check that the current bitcoind version is in the manpages.
-    # Note that this check could be more complex, checking that all version
-    # instances match the current bitcoind version. But, it's impossible to
-    # know if some other version number will appear in the help text due to
-    # deprecation notices or otherwise.
-    EXPECTED_VERSION=$("${BUILD_DIR}"/src/bitcoind --version | head -1 | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+")
-    grep "${EXPECTED_VERSION}" "${MANPAGES_DIR}"/*\.1
-
-    # Sanity check that the version string was not dirty or that something
-    # unexpected occurred.
-    grep "${EXPECTED_VERSION}-dirty" "${MANPAGES_DIR}"/*\.1 && {
-      echo "Error: Unexpected dirty version string."
-      exit 12
-    }
-    grep "${EXPECTED_VERSION}-unk" "${MANPAGES_DIR}"/*\.1 && {
-      echo "Error: Unknown error detected in version string."
-      exit 13
-    }
-
-    # If there is no change, we're done.
-    if [ -z "$(git status --porcelain)" ]
-    then
-      echo "No update to perform on the man pages"
-      exit 0
-    fi
-
-    git add "${MANPAGES_DIR}"/*\.1
-
-    git commit -m "${BOT_PREFIX} Update manpages"
-    ;;
-
   update-seeds)
     # Assumes seeder instances are already running on mainnet and testnet
     pushd "${TOPLEVEL}"/contrib/seeds

@@ -170,6 +170,7 @@ script: |
     ninja
 
     ninja install/strip
+    ninja install-manpages
 
     export PYTHONPATH="${BASEPREFIX}/${i}/native/lib/python3/dist-packages:${PYTHONPATH}"
     ninja osx-deploydir

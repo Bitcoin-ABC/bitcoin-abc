@@ -164,16 +164,39 @@ function(install_shared_library NAME)
 	install_target(${_shared_name} ${FORWARD_EXCLUDE_FROM_ALL})
 endfunction()
 
-function(install_manpages)
+function(install_manpage TARGET)
 	set(MAN_DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
 
-	install(
-		FILES ${ARGN}
-		DESTINATION "${MAN_DESTINATION}"
-		COMPONENT manpages
+	set(MAN_PAGE "${CMAKE_BINARY_DIR}/doc/man/${TARGET}.1")
+	add_custom_command(
+		OUTPUT "${MAN_PAGE}"
+		COMMENT "Generating man page for ${TARGET}"
+		COMMAND
+			"${CMAKE_SOURCE_DIR}/doc/man/gen-manpages.sh"
+			"$<TARGET_FILE:bitcoind>"
+			"$<TARGET_FILE:${TARGET}>"
+			"${MAN_PAGE}"
+		DEPENDS
+			bitcoind
+			"${TARGET}"
+	)
+	add_custom_target(gen-manpage-${TARGET}
+		DEPENDS "${MAN_PAGE}"
 	)
 
-	_add_install_target(manpages)
+	install(
+		FILES "${MAN_PAGE}"
+		DESTINATION "${MAN_DESTINATION}"
+		COMPONENT manpage-${TARGET}
+		EXCLUDE_FROM_ALL
+	)
+
+	_add_install_target(manpage-${TARGET}
+		DEPENDS gen-manpage-${TARGET}
+	)
+	_add_install_target(manpages
+		DEPENDS install-manpage-${TARGET}
+	)
 
 	if(NOT TARGET install-manpages-html)
 		set(INPUT_DIR "${CMAKE_INSTALL_PREFIX}/${MAN_DESTINATION}")
