@@ -19,6 +19,7 @@ PACKAGES=(
   flake8
   g++-aarch64-linux-gnu
   g++-arm-linux-gnueabihf
+  gettext-base
   git
   golang
   g++-mingw-w64
