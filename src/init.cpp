@@ -1540,7 +1540,7 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
             if (pblockindex && !pblockindex->nStatus.isValid()) {
                 LogPrintf("Reconsidering checkpointed block %s ...\n",
                           hash.GetHex());
-                ResetBlockFailureFlags(pblockindex);
+                ::ChainstateActive().ResetBlockFailureFlags(pblockindex);
             }
         }
 

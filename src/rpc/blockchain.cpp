@@ -1905,7 +1905,7 @@ static RPCHelpMan preciousblock() {
             }
 
             BlockValidationState state;
-            PreciousBlock(config, state, pblockindex);
+            ::ChainstateActive().PreciousBlock(config, state, pblockindex);
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
@@ -2069,7 +2069,7 @@ static RPCHelpMan reconsiderblock() {
                                        "Block not found");
                 }
 
-                ResetBlockFailureFlags(pblockindex);
+                ::ChainstateActive().ResetBlockFailureFlags(pblockindex);
             }
 
             BlockValidationState state;

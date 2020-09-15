@@ -928,6 +928,11 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
 
     // Manual block validity manipulation:
+    /**
+     * Mark a block as precious and reorganize.
+     *
+     * May not be called in a validationinterface callback.
+     */
     bool PreciousBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
     /** Mark a block as invalid. */
@@ -955,6 +960,7 @@ public:
     bool IsBlockFinalized(const CBlockIndex *pindex) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+    /** Remove invalidity status from a block and its descendants. */
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F>
@@ -1050,18 +1056,6 @@ private:
 
     friend ChainstateManager;
 };
-
-/**
- * Mark a block as precious and reorganize.
- *
- * May not be called in a validationinterface callback.
- */
-bool PreciousBlock(const Config &config, BlockValidationState &state,
-                   CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
-
-/** Remove invalidity status from a block and its descendants. */
-void ResetBlockFailureFlags(CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Remove parked status from a block and its descendants. */
 void UnparkBlockAndChildren(CBlockIndex *pindex)

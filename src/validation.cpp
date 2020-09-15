@@ -3203,11 +3203,6 @@ bool CChainState::PreciousBlock(const Config &config,
     return ActivateBestChain(config, state);
 }
 
-bool PreciousBlock(const Config &config, BlockValidationState &state,
-                   CBlockIndex *pindex) {
-    return ::ChainstateActive().PreciousBlock(config, state, pindex);
-}
-
 bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
                               CBlockIndex *pindex, bool invalidate) {
     CBlockIndex *to_mark_failed_or_parked = pindex;
@@ -3532,10 +3527,6 @@ void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
         [](const BlockStatus status) {
             return status.withFailedParent(false);
         });
-}
-
-void ResetBlockFailureFlags(CBlockIndex *pindex) {
-    return ::ChainstateActive().ResetBlockFailureFlags(pindex);
 }
 
 void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
