@@ -193,9 +193,11 @@ function(install_manpage TARGET)
 
 	_add_install_target(manpage-${TARGET}
 		DEPENDS gen-manpage-${TARGET}
+		EXCLUDE_FROM_ALL
 	)
 	_add_install_target(manpages
 		DEPENDS install-manpage-${TARGET}
+		EXCLUDE_FROM_ALL
 	)
 
 	if(NOT TARGET install-manpages-html)
