@@ -82,32 +82,11 @@ DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 git checkout master
 git reset --hard "${PARENT_COMMIT}"
 
-# Utility functions to compare version strings
-version_greater_equal() {
-  printf '%s\n%s\n' "$2" "$1" | sort -V -C
-}
-version_greater() {
-  [ "$1" != "$2" ] && version_greater_equal "$1" "$2"
-}
-version_less_equal() {
-  ! version_greater "$1" "$2"
-}
-version_less() {
-  ! version_greater_equal "$1" "$2"
-}
-get_current_version() {
-  local -n CURRENT_VERSION=$1
-
-  # Get the current version of the software
-  "${DEVTOOLS_DIR}"/build_cmake.sh --no-build
-  pushd "$BUILD_DIR"
-  CURRENT_VERSION="$(ninja print-version | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')"
-  popd
-}
-
 # Common script to update the AUR packages.
 # Usage: update-aur-version <package_name>
 update-aur-version() {
+  # shellcheck source=../utils/compare-version.sh
+  source "${TOPLEVEL}"/contrib/utils/compare-version.sh
   PACKAGE="$1"
 
   CURRENT_VERSION=""
@@ -139,6 +118,8 @@ update-aur-version() {
 
 case "${COMMIT_TYPE}" in
   archive-release-notes)
+    # shellcheck source=../utils/compare-version.sh
+    source "${TOPLEVEL}"/contrib/utils/compare-version.sh
     RELEASE_NOTES_FILE="${TOPLEVEL}/doc/release-notes.md"
     RELEASE_NOTES_VERSION=$(sed -n "1s/^Bitcoin ABC version \([0-9]\+\.[0-9]\+\.[0-9]\+\).\+$/\1/p" "${RELEASE_NOTES_FILE}")
     RELEASE_NOTES_ARCHIVE="${TOPLEVEL}/doc/release-notes/release-notes-${RELEASE_NOTES_VERSION}.md"
