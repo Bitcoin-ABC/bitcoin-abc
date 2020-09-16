@@ -180,7 +180,7 @@ std::unique_ptr<CBlockTreeDB> pblocktree;
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex);
 
-bool TestLockPointValidity(const LockPoints *lp) {
+bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp) {
     AssertLockHeld(cs_main);
     assert(lp);
     // If there are relative lock times then the maxInputBlock will be set
@@ -190,7 +190,8 @@ bool TestLockPointValidity(const LockPoints *lp) {
         // Check whether ::ChainActive() is an extension of the block at which
         // the LockPoints calculation was valid. If not LockPoints are no longer
         // valid.
-        if (!::ChainActive().Contains(lp->maxInputBlock)) {
+        assert(std::addressof(::ChainActive()) == std::addressof(active_chain));
+        if (!active_chain.Contains(lp->maxInputBlock)) {
             return false;
         }
     }

@@ -581,7 +581,7 @@ void CTxMemPool::removeForReorg(const Config &config,
          it != mapTx.end(); it++) {
         const CTransaction &tx = it->GetTx();
         LockPoints lp = it->GetLockPoints();
-        bool validLP = TestLockPointValidity(&lp);
+        bool validLP = TestLockPointValidity(::ChainActive(), &lp);
 
         TxValidationState state;
         if (!ContextualCheckTransactionForCurrentBlock(
