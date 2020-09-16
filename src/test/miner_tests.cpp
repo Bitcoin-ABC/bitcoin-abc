@@ -37,7 +37,8 @@ struct MinerTestingSetup : public TestingSetup {
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs);
     bool TestSequenceLocks(const CTransaction &tx, int flags)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs) {
-        return CheckSequenceLocks(*m_node.mempool, tx, flags);
+        return CheckSequenceLocks(::ChainstateActive(), *m_node.mempool, tx,
+                                  flags);
     }
     BlockAssembler AssemblerForTest(const CChainParams &params);
 };
