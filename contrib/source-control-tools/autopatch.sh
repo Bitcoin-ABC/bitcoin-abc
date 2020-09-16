@@ -9,7 +9,7 @@ set -euxo pipefail
 
 # --force is necessary to skip the "sanity check" step, which conflicts with
 # stacked revisions that contain already-landed dependencies.
-DEFAULT_PATCH_ARGS="--skip-dependencies --force"
+DEFAULT_PATCH_ARGS="--skip-dependencies --force --nobranch"
 DEFAULT_REMOTE="origin"
 DEFAULT_BRANCH="master"
 

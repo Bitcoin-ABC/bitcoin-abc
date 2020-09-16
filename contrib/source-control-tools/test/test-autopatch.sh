@@ -81,11 +81,9 @@ git remote add testorigin "${TOPLEVEL}"
 git pull testorigin "${REMOTE_AND_BRANCH}"
 
 test_cleanup() {
-  # Cleanup current branch so that arcanist doesn't run out of branch names
-  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  git checkout "${MASTER_BRANCH}"
   git reset --hard HEAD
-  git branch -D "${CURRENT_BRANCH}" || true
+  git clean -xffd || true
+  git checkout "${MASTER_BRANCH}"
 }
 
 (
