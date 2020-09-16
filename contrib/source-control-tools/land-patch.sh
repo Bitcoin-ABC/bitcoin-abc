@@ -25,13 +25,13 @@ Environment Variables:
 EOF
 }
 
-ARC_LAND_ARGS=()
+GIT_ARGS=()
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
 case $1 in
   -d|--dry-run)
-    ARC_LAND_ARGS+=("--hold")
+    GIT_ARGS+=("--dry-run")
     shift # shift past argument
     ;;
   -h|--help)
@@ -63,14 +63,16 @@ source "${TOPLEVEL}"/contrib/source-control-tools/sanitize-conduit-token.sh
 # Pull the patch from Phabricator and rebase it on latest master
 "${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
 
+# Stop logging verbosely to prevent leaking CONDUIT_TOKEN
+set +x
+# Check that the revision is ready to land (tests passed, etc.)
+: | arc land --hold --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
+set -x
+
 # TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
 
 # Sanity checks
 "${TOPLEVEL}"/contrib/devtools/smoke-tests.sh
 
-echo "Landing revision '${REVISION}' with arcanist arguments: ${ARC_LAND_ARGS[*]}"
-# Stop logging verbosely to prevent leaking CONDUIT_TOKEN
-set +x
-# Land a commit using arcanist. This ensures the diff is reviewed and closed properly.
-: | arc land "${ARC_LAND_ARGS[@]}" --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
-set -x
+# Push the change. Phabricator will automatically close the associated revision.
+git push "${GIT_ARGS[@]}" origin master
