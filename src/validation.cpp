@@ -343,9 +343,10 @@ namespace {
 
 class MemPoolAccept {
 public:
-    MemPoolAccept(CTxMemPool &mempool)
+    MemPoolAccept(CTxMemPool &mempool, CChainState &active_chainstate)
         : m_pool(mempool), m_view(&m_dummy),
-          m_viewmempool(&::ChainstateActive().CoinsTip(), m_pool),
+          m_viewmempool(&active_chainstate.CoinsTip(), m_pool),
+          m_active_chainstate(active_chainstate),
           m_limit_ancestors(
               gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT)),
           m_limit_ancestor_size(
@@ -355,7 +356,10 @@ public:
               gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT)),
           m_limit_descendant_size(gArgs.GetArg("-limitdescendantsize",
                                                DEFAULT_DESCENDANT_SIZE_LIMIT) *
-                                  1000) {}
+                                  1000) {
+        assert(std::addressof(::ChainstateActive()) ==
+               std::addressof(m_active_chainstate));
+    }
 
     // We put the arguments we're handed into a struct, so we can pass them
     // around easier.
@@ -430,6 +434,8 @@ private:
     CCoinsViewMemPool m_viewmempool;
     CCoinsView m_dummy;
 
+    CChainState &m_active_chainstate;
+
     // The package limits in effect at the time of invocation.
     const size_t m_limit_ancestors;
     const size_t m_limit_ancestor_size;
@@ -470,9 +476,11 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // Only accept nLockTime-using transactions that can be mined in the next
     // block; we don't want our mempool filled up with transactions that can't
     // be mined yet.
+    assert(std::addressof(::ChainActive()) ==
+           std::addressof(m_active_chainstate.m_chain));
     TxValidationState ctxState;
     if (!ContextualCheckTransactionForCurrentBlock(
-            ::ChainActive().Tip(),
+            m_active_chainstate.m_chain.Tip(),
             args.m_config.GetChainParams().GetConsensus(), tx, ctxState,
             STANDARD_LOCKTIME_VERIFY_FLAGS)) {
         // We copy the state from a dummy to ensure we don't increase the
@@ -501,7 +509,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     LockPoints lp;
     m_view.SetBackend(m_viewmempool);
 
-    const CCoinsViewCache &coins_cache = ::ChainstateActive().CoinsTip();
+    assert(std::addressof(::ChainstateActive().CoinsTip()) ==
+           std::addressof(m_active_chainstate.CoinsTip()));
+    const CCoinsViewCache &coins_cache = m_active_chainstate.CoinsTip();
     // Do all inputs exist?
     for (const CTxIn &txin : tx.vin) {
         if (!coins_cache.HaveCoinInCache(txin.prevout)) {
@@ -549,16 +559,20 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // that can't be mined yet. Must keep pool.cs for this unless we change
     // CheckSequenceLocks to take a CoinsViewCache instead of create its
     // own.
-    if (!CheckSequenceLocks(::ChainstateActive(), m_pool, tx,
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(m_active_chainstate));
+    if (!CheckSequenceLocks(m_active_chainstate, m_pool, tx,
                             STANDARD_LOCKTIME_VERIFY_FLAGS, &lp)) {
         return state.Invalid(TxValidationResult::TX_PREMATURE_SPEND,
                              "non-BIP68-final");
     }
 
+    assert(std::addressof(g_chainman.m_blockman) ==
+           std::addressof(m_active_chainstate.m_blockman));
     Amount nFees = Amount::zero();
-    if (!Consensus::CheckTxInputs(tx, state, m_view,
-                                  g_chainman.m_blockman.GetSpendHeight(m_view),
-                                  nFees)) {
+    if (!Consensus::CheckTxInputs(
+            tx, state, m_view,
+            m_active_chainstate.m_blockman.GetSpendHeight(m_view), nFees)) {
         // state filled in by CheckTxInputs
         return false;
     }
@@ -612,9 +626,11 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
         return false;
     }
 
-    entry.reset(new CTxMemPoolEntry(ptx, nFees, nAcceptTime,
-                                    ::ChainActive().Height(), fSpendsCoinbase,
-                                    ws.m_sig_checks_standard, lp));
+    assert(std::addressof(::ChainActive()) ==
+           std::addressof(m_active_chainstate.m_chain));
+    entry.reset(new CTxMemPoolEntry(
+        ptx, nFees, nAcceptTime, m_active_chainstate.m_chain.Height(),
+        fSpendsCoinbase, ws.m_sig_checks_standard, lp));
 
     unsigned int nVirtualSize = entry->GetTxVirtualSize();
 
@@ -659,10 +675,12 @@ bool MemPoolAccept::ConsensusScriptChecks(ATMPArgs &args, const Workspace &ws,
     // There is a similar check in CreateNewBlock() to prevent creating
     // invalid blocks (using TestBlockValidity), however allowing such
     // transactions into the mempool can be exploited as a DoS attack.
+    assert(std::addressof(::ChainstateActive().CoinsTip()) ==
+           std::addressof(m_active_chainstate.CoinsTip()));
     int nSigChecksConsensus;
     if (!CheckInputsFromMempoolAndCache(
             tx, state, m_view, m_pool, ws.m_next_block_script_verify_flags,
-            txdata, nSigChecksConsensus, ::ChainstateActive().CoinsTip())) {
+            txdata, nSigChecksConsensus, m_active_chainstate.CoinsTip())) {
         // This can occur under some circumstances, if the node receives an
         // unrequested tx which is invalid due to new consensus rules not
         // being activated yet (during IBD).
@@ -696,8 +714,10 @@ bool MemPoolAccept::Finalize(ATMPArgs &args, Workspace &ws) {
 
     // Trim mempool and check if tx was trimmed.
     if (!bypass_limits) {
+        assert(std::addressof(::ChainstateActive().CoinsTip()) ==
+               std::addressof(m_active_chainstate.CoinsTip()));
         m_pool.LimitSize(
-            ::ChainstateActive().CoinsTip(),
+            m_active_chainstate.CoinsTip(),
             gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
             std::chrono::hours{
                 gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
@@ -765,7 +785,8 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
     MemPoolAccept::ATMPArgs args{
         config,           state,       nAcceptTime, bypass_limits,
         coins_to_uncache, test_accept, fee_out};
-    bool res = MemPoolAccept(pool).AcceptSingleTransaction(tx, args);
+    bool res = MemPoolAccept(pool, ::ChainstateActive())
+                   .AcceptSingleTransaction(tx, args);
     if (!res) {
         // Remove coins that were not present in the coins cache before calling
         // ATMPW; this is to prevent memory DoS in case we receive a large
