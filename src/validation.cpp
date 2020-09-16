@@ -294,8 +294,8 @@ static bool IsReplayProtectionEnabled(const Consensus::Params &params,
 static bool CheckInputsFromMempoolAndCache(
     const CTransaction &tx, TxValidationState &state,
     const CCoinsViewCache &view, const CTxMemPool &pool, const uint32_t flags,
-    PrecomputedTransactionData &txdata, int &nSigChecksOut)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    PrecomputedTransactionData &txdata, int &nSigChecksOut,
+    CCoinsViewCache &coins_tip) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     // pool.cs should be locked already, but go ahead and re-take the lock here
@@ -321,8 +321,9 @@ static bool CheckInputsFromMempoolAndCache(
             assert(txFrom->vout.size() > txin.prevout.GetN());
             assert(txFrom->vout[txin.prevout.GetN()] == coin.GetTxOut());
         } else {
-            const Coin &coinFromDisk =
-                ::ChainstateActive().CoinsTip().AccessCoin(txin.prevout);
+            assert(std::addressof(::ChainstateActive().CoinsTip()) ==
+                   std::addressof(coins_tip));
+            const Coin &coinFromDisk = coins_tip.AccessCoin(txin.prevout);
             assert(!coinFromDisk.IsSpent());
             assert(coinFromDisk.GetTxOut() == coin.GetTxOut());
         }
@@ -654,9 +655,9 @@ bool MemPoolAccept::ConsensusScriptChecks(ATMPArgs &args, const Workspace &ws,
     // invalid blocks (using TestBlockValidity), however allowing such
     // transactions into the mempool can be exploited as a DoS attack.
     int nSigChecksConsensus;
-    if (!CheckInputsFromMempoolAndCache(tx, state, m_view, m_pool,
-                                        ws.m_next_block_script_verify_flags,
-                                        txdata, nSigChecksConsensus)) {
+    if (!CheckInputsFromMempoolAndCache(
+            tx, state, m_view, m_pool, ws.m_next_block_script_verify_flags,
+            txdata, nSigChecksConsensus, ::ChainstateActive().CoinsTip())) {
         // This can occur under some circumstances, if the node receives an
         // unrequested tx which is invalid due to new consensus rules not
         // being activated yet (during IBD).
