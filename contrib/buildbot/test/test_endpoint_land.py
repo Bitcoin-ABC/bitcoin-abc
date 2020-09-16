@@ -14,7 +14,7 @@ import test.mocks.teamcity
 from testutil import AnyWith
 
 
-class landRevisionRequestData(test.mocks.fixture.MockData):
+class landRequestData(test.mocks.fixture.MockData):
     def __init__(self):
         self.revision = 'D1234'
         self.conduitToken = 'U2FsdGVkX1/RI0AAAAAAAF46wjo3lSAxj1d1iqqkxks='
@@ -22,18 +22,9 @@ class landRevisionRequestData(test.mocks.fixture.MockData):
         self.committerEmail = 'user@bitcoinabc.org'
 
 
-class landDiffRequestData(test.mocks.fixture.MockData):
-    def __init__(self):
-        self.diff = '12345'
-        self.commitMessage = '[Test] Commit message'
-        self.conduitToken = 'U2FsdGVkX1/RI0AAAAAAAF46wjo3lSAxj1d1iqqkxks='
-        self.committerName = 'User Name'
-        self.committerEmail = 'user@bitcoinabc.org'
-
-
 class EndpointLandTestCase(ABCBotFixture):
-    def test_land_revision(self):
-        data = landRevisionRequestData()
+    def test_land_happyPath(self):
+        data = landRequestData()
         triggerBuildResponse = test.mocks.teamcity.buildInfo(
             test.mocks.teamcity.buildInfo_changes(['test-change']))
         self.teamcity.session.send.return_value = triggerBuildResponse
@@ -47,42 +38,9 @@ class EndpointLandTestCase(ABCBotFixture):
                 },
                 'properties': {
                     'property': [{
-                        'name': 'env.ABC_CONDUIT_TOKEN',
-                        'value': 'U2FsdGVkX1/RI0AAAAAAAF46wjo3lSAxj1d1iqqkxks=',
-                    }, {
-                        'name': 'env.ABC_COMMITTER_NAME',
-                        'value': 'User Name',
-                    }, {
-                        'name': 'env.ABC_COMMITTER_EMAIL',
-                        'value': 'user@bitcoinabc.org',
-                    }, {
                         'name': 'env.ABC_REVISION',
                         'value': 'D1234',
                     }, {
-                        'name': 'env.harborMasterTargetPHID',
-                        'value': 'UNRESOLVED',
-                    }],
-                },
-            }),
-        }))
-        assert response.status_code == 200
-        assert response.get_json() == json.loads(triggerBuildResponse.content)
-
-    def test_land_diff(self):
-        data = landDiffRequestData()
-        triggerBuildResponse = test.mocks.teamcity.buildInfo(
-            test.mocks.teamcity.buildInfo_changes(['test-change']))
-        self.teamcity.session.send.return_value = triggerBuildResponse
-        response = self.app.post('/land', headers=self.headers, json=data)
-        self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
-            'url': 'https://teamcity.test/app/rest/buildQueue',
-            'body': json.dumps({
-                'branchName': 'master',
-                'buildType': {
-                    'id': 'BitcoinAbcLandBot',
-                },
-                'properties': {
-                    'property': [{
                         'name': 'env.ABC_CONDUIT_TOKEN',
                         'value': 'U2FsdGVkX1/RI0AAAAAAAF46wjo3lSAxj1d1iqqkxks=',
                     }, {
@@ -91,12 +49,6 @@ class EndpointLandTestCase(ABCBotFixture):
                     }, {
                         'name': 'env.ABC_COMMITTER_EMAIL',
                         'value': 'user@bitcoinabc.org',
-                    }, {
-                        'name': 'env.ABC_DIFF',
-                        'value': '12345',
-                    }, {
-                        'name': 'env.ABC_COMMIT_MESSAGE',
-                        'value': '[Test] Commit message',
                     }, {
                         'name': 'env.harborMasterTargetPHID',
                         'value': 'UNRESOLVED',
@@ -115,27 +67,14 @@ class EndpointLandTestCase(ABCBotFixture):
     def test_land_missingArguments(self):
         # Test otherwise valid requests with each required argument missing.
         # All of them should fail with status code 400.
-        requiredRevisionArgs = [
+        requiredArgs = [
             'revision',
             'conduitToken',
             'committerName',
             'committerEmail',
         ]
-        for arg in requiredRevisionArgs:
-            data = landRevisionRequestData()
-            setattr(data, arg, '')
-            response = self.app.post('/land', headers=self.headers, json=data)
-            assert response.status_code == 400
-
-        requiredDiffArgs = [
-            'diff',
-            'commitMessage',
-            'conduitToken',
-            'committerName',
-            'committerEmail',
-        ]
-        for arg in requiredDiffArgs:
-            data = landDiffRequestData()
+        for arg in requiredArgs:
+            data = landRequestData()
             setattr(data, arg, '')
             response = self.app.post('/land', headers=self.headers, json=data)
             assert response.status_code == 400

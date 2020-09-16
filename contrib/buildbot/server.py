@@ -254,30 +254,28 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
     def land():
         data = get_json_request_data(request)
 
-        revision = data.get('revision', None)
-        diff = data.get('diff', None)
-        if not revision and not diff:
-            return FAILURE, 400
-
-        commitMessage = data.get('commitMessage', None)
-        if diff and not commitMessage:
+        revision = data['revision']
+        if not revision:
             return FAILURE, 400
 
         # conduitToken is expected to be encrypted and will be decrypted by the
         # land bot.
-        conduitToken = data.get('conduitToken', None)
+        conduitToken = data['conduitToken']
         if not conduitToken:
             return FAILURE, 400
 
-        committerName = data.get('committerName', None)
+        committerName = data['committerName']
         if not committerName:
             return FAILURE, 400
 
-        committerEmail = data.get('committerEmail', None)
+        committerEmail = data['committerEmail']
         if not committerEmail:
             return FAILURE, 400
 
         properties = [{
+            'name': 'env.ABC_REVISION',
+            'value': revision,
+        }, {
             'name': 'env.ABC_CONDUIT_TOKEN',
             'value': conduitToken,
         }, {
@@ -287,22 +285,6 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
             'name': 'env.ABC_COMMITTER_EMAIL',
             'value': committerEmail,
         }]
-
-        if revision:
-            properties += [{
-                'name': 'env.ABC_REVISION',
-                'value': revision,
-            }]
-
-        if diff:
-            properties += [{
-                'name': 'env.ABC_DIFF',
-                'value': diff,
-            }, {
-                'name': 'env.ABC_COMMIT_MESSAGE',
-                'value': commitMessage,
-            }]
-
         output = tc.trigger_build(
             LANDBOT_BUILD_TYPE,
             'master',
