@@ -7,6 +7,7 @@ Build-Depends: cmake (>= 3.16),
  debhelper (>=12.1),
  devscripts,
  git,
+ help2man,
  libdb5.3++-dev,
  libevent-dev,
  libjemalloc-dev,
@@ -24,7 +25,8 @@ Build-Depends: cmake (>= 3.16),
  protobuf-compiler,
  python3,
  qttools5-dev,
- qttools5-dev-tools
+ qttools5-dev-tools,
+ xvfb
 Standards-Version: 3.9.2
 Homepage: https://bitcoinabc.org/
 Vcs-Git: ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git

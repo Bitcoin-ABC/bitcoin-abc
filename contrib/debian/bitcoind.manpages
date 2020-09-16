@@ -1,2 +1,2 @@
-doc/man/bitcoind.1
-doc/man/bitcoin-cli.1
+share/man/man1/bitcoind.1
+share/man/man1/bitcoin-cli.1
