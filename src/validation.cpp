@@ -2890,7 +2890,8 @@ bool CChainState::ActivateBestChainStep(
         if (!DisconnectTip(config.GetChainParams(), state, &disconnectpool)) {
             // This is likely a fatal error, but keep the mempool consistent,
             // just in case. Only remove from the mempool in this case.
-            disconnectpool.updateMempoolForReorg(config, false, m_mempool);
+            disconnectpool.updateMempoolForReorg(config, ::ChainstateActive(),
+                                                 false, m_mempool);
 
             // If we're unable to disconnect a block during normal operation,
             // then that is a failure of our local system -- we should abort
@@ -2943,7 +2944,8 @@ bool CChainState::ActivateBestChainStep(
                 // A system error occurred (disk space, database error, ...).
                 // Make the mempool consistent with the current tip, just in
                 // case any observers try to use it before shutdown.
-                disconnectpool.updateMempoolForReorg(config, false, m_mempool);
+                disconnectpool.updateMempoolForReorg(
+                    config, ::ChainstateActive(), false, m_mempool);
                 return false;
             } else {
                 PruneBlockIndexCandidates();
@@ -2965,7 +2967,8 @@ bool CChainState::ActivateBestChainStep(
         // effect.
         LogPrint(BCLog::MEMPOOL, "Updating mempool due to reorganization or "
                                  "rules upgrade/downgrade\n");
-        disconnectpool.updateMempoolForReorg(config, true, m_mempool);
+        disconnectpool.updateMempoolForReorg(config, ::ChainstateActive(), true,
+                                             m_mempool);
     }
 
     m_mempool.check(&CoinsTip());
@@ -3282,8 +3285,8 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         // and we're not doing a very deep invalidation (in which case
         // keeping the mempool up to date is probably futile anyway).
         disconnectpool.updateMempoolForReorg(
-            config, /* fAddToMempool = */ (++disconnected <= 10) && ret,
-            m_mempool);
+            config, ::ChainstateActive(),
+            /* fAddToMempool = */ (++disconnected <= 10) && ret, m_mempool);
 
         if (!ret) {
             return false;

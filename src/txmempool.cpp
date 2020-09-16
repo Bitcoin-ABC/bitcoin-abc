@@ -1400,11 +1400,13 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
     }
 }
 
-void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
-                                                          bool fAddToMempool,
-                                                          CTxMemPool &pool) {
+void DisconnectedBlockTransactions::updateMempoolForReorg(
+    const Config &config, CChainState &active_chainstate, bool fAddToMempool,
+    CTxMemPool &pool) {
     AssertLockHeld(cs_main);
     AssertLockHeld(pool.cs);
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(active_chainstate));
     std::vector<TxId> txidsUpdate;
 
     // disconnectpool's insertion_order index sorts the entries from oldest to
@@ -1418,8 +1420,8 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
         // ignore validation errors in resurrected transactions
         TxValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
-            !AcceptToMemoryPool(::ChainstateActive(), config, pool, stateDummy,
-                                tx, true /* bypass_limits */)) {
+            !AcceptToMemoryPool(active_chainstate, config, pool, stateDummy, tx,
+                                true /* bypass_limits */)) {
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
             pool.removeRecursive(*tx, MemPoolRemovalReason::REORG);
@@ -1438,11 +1440,11 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     pool.UpdateTransactionsFromBlock(txidsUpdate);
 
     // We also need to remove any now-immature transactions
-    pool.removeForReorg(config, ::ChainstateActive(),
+    pool.removeForReorg(config, active_chainstate,
                         STANDARD_LOCKTIME_VERIFY_FLAGS);
 
     // Re-limit mempool size, in case we added any transactions
-    pool.LimitSize(::ChainstateActive().CoinsTip(),
+    pool.LimitSize(active_chainstate.CoinsTip(),
                    gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                        1000000,
                    std::chrono::hours{
