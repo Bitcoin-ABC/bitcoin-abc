@@ -1311,7 +1311,8 @@ CBlockFileInfo *GetBlockFileInfo(size_t n);
 bool DumpMempool(const CTxMemPool &pool);
 
 /** Load the mempool from disk. */
-bool LoadMempool(const Config &config, CTxMemPool &pool);
+bool LoadMempool(const Config &config, CTxMemPool &pool,
+                 CChainState &active_chainstate);
 
 //! Check whether the block associated with this index entry is pruned or not.
 bool IsBlockPruned(const CBlockIndex *pblockindex);
