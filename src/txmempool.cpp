@@ -571,8 +571,7 @@ void CTxMemPool::removeRecursive(const CTransaction &origTx,
 }
 
 void CTxMemPool::removeForReorg(const Config &config,
-                                const CCoinsViewCache *pcoins,
-                                unsigned int nMemPoolHeight, int flags) {
+                                CChainState &active_chainstate, int flags) {
     // Remove transactions spending a coinbase which are now immature and
     // no-longer-final transactions.
     AssertLockHeld(cs);
@@ -581,13 +580,15 @@ void CTxMemPool::removeForReorg(const Config &config,
          it != mapTx.end(); it++) {
         const CTransaction &tx = it->GetTx();
         LockPoints lp = it->GetLockPoints();
-        bool validLP = TestLockPointValidity(::ChainActive(), &lp);
+        assert(std::addressof(::ChainstateActive()) ==
+               std::addressof(active_chainstate));
+        bool validLP = TestLockPointValidity(active_chainstate.m_chain, &lp);
 
         TxValidationState state;
         if (!ContextualCheckTransactionForCurrentBlock(
-                ::ChainActive().Tip(), config.GetChainParams().GetConsensus(),
-                tx, state, flags) ||
-            !CheckSequenceLocks(::ChainstateActive(), *this, tx, flags, &lp,
+                active_chainstate.m_chain.Tip(),
+                config.GetChainParams().GetConsensus(), tx, state, flags) ||
+            !CheckSequenceLocks(active_chainstate, *this, tx, flags, &lp,
                                 validLP)) {
             // Note if CheckSequenceLocks fails the LockPoints may still be
             // invalid. So it's critical that we remove the tx and not depend on
@@ -601,11 +602,13 @@ void CTxMemPool::removeForReorg(const Config &config,
                     continue;
                 }
 
-                const Coin &coin = pcoins->AccessCoin(txin.prevout);
+                const Coin &coin =
+                    active_chainstate.CoinsTip().AccessCoin(txin.prevout);
                 if (m_check_ratio != 0) {
                     assert(!coin.IsSpent());
                 }
-
+                unsigned int nMemPoolHeight =
+                    active_chainstate.m_chain.Tip()->nHeight + 1;
                 if (coin.IsSpent() ||
                     (coin.IsCoinBase() &&
                      int64_t(nMemPoolHeight) - coin.GetHeight() <
@@ -1435,8 +1438,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     pool.UpdateTransactionsFromBlock(txidsUpdate);
 
     // We also need to remove any now-immature transactions
-    pool.removeForReorg(config, &::ChainstateActive().CoinsTip(),
-                        ::ChainActive().Tip()->nHeight + 1,
+    pool.removeForReorg(config, ::ChainstateActive(),
                         STANDARD_LOCKTIME_VERIFY_FLAGS);
 
     // Re-limit mempool size, in case we added any transactions
