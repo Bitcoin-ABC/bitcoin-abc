@@ -954,7 +954,7 @@ qreal calculateIdealFontSize(int width, const QString &text, QFont font,
     while (font_size >= minPointSize) {
         font.setPointSizeF(font_size);
         QFontMetrics fm(font);
-        if (fm.horizontalAdvance(text) < width) {
+        if (GUIUtil::TextWidth(fm, text) < width) {
             break;
         }
         font_size -= 0.5;
